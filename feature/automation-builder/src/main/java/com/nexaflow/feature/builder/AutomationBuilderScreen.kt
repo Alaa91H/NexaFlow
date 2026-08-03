@@ -118,6 +118,13 @@ fun AutomationBuilderScreen(navController: NavController) {
     var rangePickerTarget by remember { mutableStateOf<String?>(null) }
     var appPackage by remember { mutableStateOf("") }
     var appPickerTarget by remember { mutableStateOf<String?>(null) }
+    var deviceEvent by remember { mutableStateOf("SCREEN_ON") }
+    var networkType by remember { mutableStateOf("WIFI") }
+    var connectivityState by remember { mutableStateOf("CONNECTED") }
+    var locationLat by remember { mutableStateOf("") }
+    var locationLng by remember { mutableStateOf("") }
+    var locationRadius by remember { mutableStateOf("100") }
+    var locationEvent by remember { mutableStateOf("ENTER") }
     val actionConfigs = remember { mutableStateMapOf<ActionType, Map<String, String>>() }
     val selectedActions = remember { mutableSetOf<ActionOption>() }
 
@@ -142,6 +149,16 @@ fun AutomationBuilderScreen(navController: NavController) {
         val triggerConfig = when (triggerType) {
             TriggerType.TIME -> mapOf("time" to scheduledTime)
             TriggerType.APPLICATION -> mapOf("package" to appPackage)
+            TriggerType.DEVICE -> mapOf("event" to deviceEvent)
+            TriggerType.CONNECTIVITY ->
+                mapOf("network" to networkType, "state" to connectivityState)
+            TriggerType.LOCATION ->
+                mapOf(
+                    "lat" to locationLat,
+                    "lng" to locationLng,
+                    "radius" to locationRadius,
+                    "event" to locationEvent
+                )
             else -> emptyMap()
         }
         val conditions = buildList {
@@ -163,7 +180,7 @@ fun AutomationBuilderScreen(navController: NavController) {
         navController.popBackStack()
     }
 
-    val triggerOptions = listOf("Time", "App", "Device", "Connectivity")
+    val triggerOptions = listOf("Time", "App", "Device", "Connectivity", "Location")
 
     Scaffold(
         topBar = {
@@ -280,12 +297,71 @@ fun AutomationBuilderScreen(navController: NavController) {
                             )
                         }
                     }
-                    if (trigger == "Device" || trigger == "Connectivity") {
-                        Text(
-                            text = "This trigger type is not wired to an event listener yet",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary
+                    if (trigger == "Device") {
+                        OptionChips(
+                            options = listOf(
+                                "SCREEN_ON",
+                                "SCREEN_OFF",
+                                "POWER_CONNECTED",
+                                "POWER_DISCONNECTED",
+                                "HEADSET_CONNECTED",
+                                "HEADSET_DISCONNECTED"
+                            ),
+                            selected = deviceEvent,
+                            onSelect = { deviceEvent = it }
                         )
+                    }
+                    if (trigger == "Connectivity") {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(text = "Network", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                            OptionChips(
+                                options = listOf("WIFI", "MOBILE"),
+                                selected = networkType,
+                                onSelect = { networkType = it }
+                            )
+                            Text(text = "State", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                            OptionChips(
+                                options = listOf("CONNECTED", "DISCONNECTED"),
+                                selected = connectivityState,
+                                onSelect = { connectivityState = it }
+                            )
+                        }
+                    }
+                    if (trigger == "Location") {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = locationLat,
+                                onValueChange = { locationLat = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text(text = "Latitude") },
+                                singleLine = true
+                            )
+                            OutlinedTextField(
+                                value = locationLng,
+                                onValueChange = { locationLng = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text(text = "Longitude") },
+                                singleLine = true
+                            )
+                            OutlinedTextField(
+                                value = locationRadius,
+                                onValueChange = { locationRadius = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text(text = "Radius (meters)") },
+                                singleLine = true
+                            )
+                            Text(text = "Event", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                            OptionChips(
+                                options = listOf("ENTER", "EXIT"),
+                                selected = locationEvent,
+                                onSelect = { locationEvent = it }
+                            )
+                            PermissionHint(
+                                text = "Needs location permission and a current location fix",
+                                buttonLabel = "Grant",
+                                onClick = { PermissionShortcuts.openAppSettings(context) }
+                            )
+                        }
                     }
                 }
             }
@@ -481,6 +557,24 @@ private fun SliderRow(
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(text = label, style = MaterialTheme.typography.bodySmall)
         Slider(value = value, onValueChange = onValueChange, valueRange = valueRange)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OptionChips(
+    options: List<String>,
+    selected: String,
+    onSelect: (String) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        options.forEach { option ->
+            FilterChip(
+                selected = selected == option,
+                onClick = { onSelect(option) },
+                label = { Text(text = option) }
+            )
+        }
     }
 }
 
@@ -709,6 +803,16 @@ private object PermissionShortcuts {
     fun openAccessibilitySettings(context: Context) {
         try {
             context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+        } catch (_: Throwable) {
+            context.startActivity(Intent(Settings.ACTION_SETTINGS))
+        }
+    }
+
+    fun openAppSettings(context: Context) {
+        try {
+            context.startActivity(
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))
+            )
         } catch (_: Throwable) {
             context.startActivity(Intent(Settings.ACTION_SETTINGS))
         }
