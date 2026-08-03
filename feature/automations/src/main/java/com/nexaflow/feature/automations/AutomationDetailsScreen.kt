@@ -35,6 +35,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,7 +65,16 @@ import com.nexaflow.domain.models.TriggerType
 fun AutomationDetailsScreen(navController: NavController) {
     val viewModel: AutomationDetailsViewModel = hiltViewModel()
     val automation by viewModel.automation.collectAsStateWithLifecycle()
+    val running by viewModel.running.collectAsStateWithLifecycle()
+    val executionMessage by viewModel.executionMessage.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    LaunchedEffect(executionMessage) {
+        executionMessage?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            viewModel.consumeExecutionMessage()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -197,13 +207,15 @@ fun AutomationDetailsScreen(navController: NavController) {
                     }
                 }
                 Button(
-                    onClick = {
-                        Toast.makeText(context, "Execution engine coming soon", Toast.LENGTH_SHORT).show()
-                    },
+                    onClick = { viewModel.runNow() },
+                    enabled = !running,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null)
-                    Text(text = "Run Now", modifier = Modifier.padding(start = 8.dp))
+                    Text(
+                        text = if (running) "Running..." else "Run Now",
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
                 }
             }
         }

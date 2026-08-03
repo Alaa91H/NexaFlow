@@ -1,0 +1,25 @@
+package com.nexaflow.data.repository
+
+import com.nexaflow.core.database.ExecutionDao
+import com.nexaflow.data.mapper.toDomain
+import com.nexaflow.data.mapper.toEntity
+import com.nexaflow.domain.models.ExecutionRecord
+import com.nexaflow.domain.repositories.HistoryRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+
+class HistoryRepositoryImpl @Inject constructor(
+    private val executionDao: ExecutionDao
+) : HistoryRepository {
+
+    override fun getExecutionHistory(): Flow<List<ExecutionRecord>> {
+        return executionDao.getAllExecutions().map { list ->
+            list.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun recordExecution(record: ExecutionRecord) {
+        executionDao.insertExecution(record.toEntity())
+    }
+}

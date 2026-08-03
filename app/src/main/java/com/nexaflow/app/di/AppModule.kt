@@ -4,8 +4,12 @@ import android.content.Context
 import androidx.room.Room
 import com.nexaflow.core.database.AppDatabase
 import com.nexaflow.core.database.AutomationDao
+import com.nexaflow.core.database.ExecutionDao
+import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.data.repository.AutomationRepositoryImpl
+import com.nexaflow.data.repository.HistoryRepositoryImpl
 import com.nexaflow.domain.repositories.AutomationRepository
+import com.nexaflow.domain.repositories.HistoryRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,7 +28,7 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "nexaflow.db"
-        ).build()
+        ).fallbackToDestructiveMigration().build()
     }
 
     @Provides
@@ -33,8 +37,28 @@ object AppModule {
     }
 
     @Provides
+    fun provideExecutionDao(database: AppDatabase): ExecutionDao {
+        return database.executionDao()
+    }
+
+    @Provides
     @Singleton
     fun provideAutomationRepository(dao: AutomationDao): AutomationRepository {
         return AutomationRepositoryImpl(dao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideHistoryRepository(executionDao: ExecutionDao): HistoryRepository {
+        return HistoryRepositoryImpl(executionDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideExecutionEngine(
+        @ApplicationContext context: Context,
+        historyRepository: HistoryRepository
+    ): ExecutionEngine {
+        return ExecutionEngine(context, historyRepository)
     }
 }

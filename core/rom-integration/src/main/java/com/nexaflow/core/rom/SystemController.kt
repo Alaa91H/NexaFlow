@@ -1,8 +1,13 @@
 package com.nexaflow.core.rom
 
+import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
+import android.media.AudioManager
+import android.os.Build
 import android.provider.Settings
+import androidx.core.app.NotificationCompat
 import com.nexaflow.core.rom.model.RomCapability
 import com.nexaflow.core.rom.model.SystemControlResult
 
@@ -104,6 +109,95 @@ class SystemController(
             SystemControlResult.ok("Force-stopped $packageName")
         } catch (t: Throwable) {
             SystemControlResult.fail("Failed to force-stop package: ${t.message}")
+        }
+    }
+
+    fun setBrightness(value: Int): SystemControlResult {
+        if (!capabilityProvider.isAvailable(RomCapability.WRITE_SETTINGS)) {
+            return SystemControlResult.fail("Write settings is not available")
+        }
+        return try {
+            val clamped = value.coerceIn(0, 255)
+            val written = Settings.System.putInt(
+                context.contentResolver,
+                Settings.System.SCREEN_BRIGHTNESS,
+                clamped
+            )
+            if (written) {
+                SystemControlResult.ok("Brightness set to $clamped")
+            } else {
+                SystemControlResult.fail("The ROM rejected the brightness change")
+            }
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to set brightness: ${t.message}")
+        }
+    }
+
+    fun setVolume(stream: Int, value: Int): SystemControlResult {
+        return try {
+            val audioManager = context.getSystemService(AudioManager::class.java)
+            val max = audioManager.getStreamMaxVolume(stream)
+            val clamped = value.coerceIn(0, max)
+            audioManager.setStreamVolume(stream, clamped, 0)
+            SystemControlResult.ok("Volume set to $clamped")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to set volume: ${t.message}")
+        }
+    }
+
+    fun setScreenRotation(autoRotate: Boolean): SystemControlResult {
+        if (!capabilityProvider.isAvailable(RomCapability.WRITE_SETTINGS)) {
+            return SystemControlResult.fail("Write settings is not available")
+        }
+        return try {
+            val written = Settings.System.putInt(
+                context.contentResolver,
+                Settings.System.ACCELEROMETER_ROTATION,
+                if (autoRotate) 1 else 0
+            )
+            if (written) {
+                SystemControlResult.ok(if (autoRotate) "Auto-rotate enabled" else "Auto-rotate disabled")
+            } else {
+                SystemControlResult.fail("The ROM rejected the rotation change")
+            }
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to change rotation: ${t.message}")
+        }
+    }
+
+    fun launchApp(packageName: String): SystemControlResult {
+        return try {
+            val intent = context.packageManager.getLaunchIntentForPackage(packageName)
+                ?: return SystemControlResult.fail("No launch intent for $packageName")
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            SystemControlResult.ok("Launched $packageName")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to launch $packageName: ${t.message}")
+        }
+    }
+
+    fun sendNotification(title: String, text: String, channelId: String = "nexaflow_actions"): SystemControlResult {
+        return try {
+            val notificationManager = context.getSystemService(NotificationManager::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channel = NotificationChannel(
+                    channelId,
+                    "NexaFlow Actions",
+                    NotificationManager.IMPORTANCE_DEFAULT
+                )
+                notificationManager.createNotificationChannel(channel)
+            }
+            val notification = NotificationCompat.Builder(context, channelId)
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setAutoCancel(true)
+                .build()
+            notificationManager.notify(1001, notification)
+            SystemControlResult.ok("Notification sent")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to send notification: ${t.message}")
         }
     }
 }

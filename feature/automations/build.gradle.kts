@@ -54,6 +54,7 @@ dependencies {
     ksp("com.google.dagger:hilt-compiler:2.48")
     implementation(project(":domain"))
     implementation(project(":core:ui-components"))
+    implementation(project(":core:execution"))
     testImplementation("junit:junit:4.13.2")
 }
 
