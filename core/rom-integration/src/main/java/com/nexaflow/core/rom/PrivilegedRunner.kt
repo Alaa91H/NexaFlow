@@ -24,6 +24,7 @@ object PrivilegedRunner {
         }
     }
 
+    @Suppress("DEPRECATION")
     fun runShizuku(command: String): SystemControlResult {
         if (!isShizukuGranted()) {
             return SystemControlResult.fail("Shizuku is not granted. Open the Shizuku app and grant NexaFlow")
