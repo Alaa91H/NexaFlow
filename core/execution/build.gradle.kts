@@ -32,7 +32,6 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation(project(":domain"))
-    implementation(project(":core:automation-engine"))
     implementation(project(":core:rom-integration"))
     testImplementation("junit:junit:4.13.2")
 }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.NotificationImportant
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -27,6 +29,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -82,6 +87,8 @@ fun AutomationBuilderScreen(navController: NavController) {
     var batteryCondition by remember { mutableStateOf(false) }
     var timeRangeCondition by remember { mutableStateOf(false) }
     var selectedIconIndex by remember { mutableStateOf(0) }
+    var scheduledTime by remember { mutableStateOf("08:00") }
+    var showTimePicker by remember { mutableStateOf(false) }
     val selectedActions = remember { mutableSetOf<ActionOption>() }
 
     val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
@@ -107,10 +114,11 @@ fun AutomationBuilderScreen(navController: NavController) {
             if (timeRangeCondition) add(Condition(ConditionType.TIME_RANGE, mapOf("range" to "custom")))
         }
         val actions = selectedActions.map { Action(it.actionType, emptyMap()) }
+        val triggerConfig = if (triggerType == TriggerType.TIME) mapOf("time" to scheduledTime) else emptyMap()
         viewModel.saveAutomation(
             name = name,
             icon = NexaFlowIcons.all[selectedIconIndex].first,
-            trigger = Trigger(triggerType, emptyMap()),
+            trigger = Trigger(triggerType, triggerConfig),
             conditions = conditions,
             actions = actions
         )
@@ -189,6 +197,31 @@ fun AutomationBuilderScreen(navController: NavController) {
                             label = { Text(text = option) }
                         )
                     }
+                    if (trigger == "Time") {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showTimePicker = true }
+                                .padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Trigger time",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = "Runs daily at the chosen time",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                            TextButton(onClick = { showTimePicker = true }) {
+                                Text(text = scheduledTime)
+                            }
+                        }
+                    }
                 }
             }
             SectionHeader(text = "CONDITIONS")
@@ -245,5 +278,29 @@ fun AutomationBuilderScreen(navController: NavController) {
                 Text(text = "Save Automation")
             }
         }
+    }
+
+    if (showTimePicker) {
+        val pickerState = rememberTimePickerState(
+            initialHour = scheduledTime.substringBefore(":").toIntOrNull() ?: 8,
+            initialMinute = scheduledTime.substringAfter(":").toIntOrNull() ?: 0
+        )
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    scheduledTime = "%02d:%02d".format(pickerState.hour, pickerState.minute)
+                    showTimePicker = false
+                }) {
+                    Text(text = "OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) {
+                    Text(text = "Cancel")
+                }
+            },
+            text = { TimePicker(state = pickerState) }
+        )
     }
 }
