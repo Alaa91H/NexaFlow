@@ -53,6 +53,33 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".NexaFlowToggleWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.nexaflow.app.action.TOGGLE_ALL" />
+                <action android:name="com.nexaflow.core.execution.action.AUTOMATIONS_CHANGED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/toggle_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".NexaFlowStatusWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="com.nexaflow.app.action.REFRESH" />
+                <action android:name="com.nexaflow.core.execution.action.AUTOMATIONS_CHANGED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/status_widget_info" />
+        </receiver>
+
         <service
             android:name="com.nexaflow.core.engine.MonitoringService"
             android:exported="false"

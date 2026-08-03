@@ -5,11 +5,15 @@ import androidx.room.Room
 import com.nexaflow.core.database.AppDatabase
 import com.nexaflow.core.database.AutomationDao
 import com.nexaflow.core.database.ExecutionDao
+import com.nexaflow.core.database.ProfileDao
+import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.data.repository.AutomationRepositoryImpl
 import com.nexaflow.data.repository.HistoryRepositoryImpl
+import com.nexaflow.data.repository.ProfileRepositoryImpl
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.repositories.HistoryRepository
+import com.nexaflow.domain.repositories.ProfileRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -42,9 +46,26 @@ object AppModule {
     }
 
     @Provides
+    fun provideProfileDao(database: AppDatabase): ProfileDao {
+        return database.profileDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideThemePreferences(@ApplicationContext context: Context): ThemePreferences {
+        return ThemePreferences(context)
+    }
+
+    @Provides
     @Singleton
     fun provideAutomationRepository(dao: AutomationDao): AutomationRepository {
         return AutomationRepositoryImpl(dao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideProfileRepository(dao: ProfileDao): ProfileRepository {
+        return ProfileRepositoryImpl(dao)
     }
 
     @Provides

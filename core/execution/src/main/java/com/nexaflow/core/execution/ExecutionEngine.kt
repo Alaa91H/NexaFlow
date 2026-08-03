@@ -1,6 +1,7 @@
 package com.nexaflow.core.execution
 
 import android.content.Context
+import android.content.Intent
 import android.media.AudioManager
 import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.rom.RomIntegrationManager
@@ -45,6 +46,7 @@ class ExecutionEngine(
             executedAt = System.currentTimeMillis()
         )
         historyRepository.recordExecution(record)
+        context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
         return record
     }
 

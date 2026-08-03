@@ -33,6 +33,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("javax.inject:javax.inject:1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("com.google.code.gson:gson:2.10.1")
     implementation(project(":domain"))
     implementation(project(":core:database"))
     implementation(project(":core:datastore"))

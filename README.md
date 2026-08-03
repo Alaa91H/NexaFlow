@@ -10,6 +10,10 @@ NexaFlow is a professional automation platform inspired by Samsung Modes & Routi
 - **Modular Architecture:** Built with a clean, modular structure for scalability and maintainability.
 - **Modern UI:** Utilizes Jetpack Compose and Material 3 for a premium user experience.
 - **Extensible:** Designed to allow easy integration of future features like AI recommendations.
+- **Profiles:** Save and restore sets of automations with one tap (Room-backed, activate/deactivate).
+- **Themes:** Accent colors + dark mode persisted via DataStore and applied app-wide.
+- **Home Screen Widgets:** Toggle-all and status widgets that refresh automatically.
+- **Settings & Monitoring:** Accessibility status, foreground monitoring service, and about/license info.
 
 ## Technology Stack
 

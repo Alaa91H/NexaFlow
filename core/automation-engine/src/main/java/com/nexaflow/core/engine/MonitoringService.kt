@@ -31,6 +31,7 @@ class MonitoringService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        isRunning = true
         startAsForeground()
         batteryMonitor.initialize()
         deviceEventMonitor.initialize()
@@ -43,6 +44,7 @@ class MonitoringService : Service() {
     }
 
     override fun onDestroy() {
+        isRunning = false
         batteryMonitor.stop()
         deviceEventMonitor.stop()
         connectivityMonitor.stop()
@@ -84,8 +86,16 @@ class MonitoringService : Service() {
         private const val CHANNEL_ID = "nexaflow_monitoring"
         private const val NOTIFICATION_ID = 2001
 
+        @Volatile
+        var isRunning: Boolean = false
+            private set
+
         fun start(context: Context) {
             ContextCompat.startForegroundService(context, Intent(context, MonitoringService::class.java))
+        }
+
+        fun stop(context: Context) {
+            context.stopService(Intent(context, MonitoringService::class.java))
         }
     }
 }

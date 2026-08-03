@@ -22,18 +22,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
@@ -41,20 +39,22 @@ import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.ToggleRow
 
-private val accentColors = listOf(
-    Color(0xFF1B62B7) to "Blue",
-    Color(0xFF2FA84F) to "Green",
-    Color(0xFFE5533D) to "Red",
-    Color(0xFF7A5BD1) to "Purple",
-    Color(0xFFE8A33D) to "Amber",
-    Color(0xFF13A5A8) to "Teal"
+private data class AccentOption(val key: String, val color: Color, val label: String)
+
+private val accentOptions = listOf(
+    AccentOption("blue", Color(0xFF1B62B7), "Blue"),
+    AccentOption("green", Color(0xFF2FA84F), "Green"),
+    AccentOption("red", Color(0xFFE5533D), "Red"),
+    AccentOption("purple", Color(0xFF7A5BD1), "Purple"),
+    AccentOption("amber", Color(0xFFE8A33D), "Amber"),
+    AccentOption("teal", Color(0xFF13A5A8), "Teal")
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThemeScreen(navController: NavController) {
-    var darkMode by remember { mutableStateOf(false) }
-    var selectedIndex by remember { mutableStateOf(0) }
+    val viewModel: ThemeViewModel = hiltViewModel()
+    val theme by viewModel.theme.collectAsStateWithLifecycle()
 
     Scaffold(topBar = { NexaFlowTopBar(title = "Themes", onBack = { navController.popBackStack() }) }) { padding ->
         LazyColumn(
@@ -73,8 +73,8 @@ fun ThemeScreen(navController: NavController) {
                         icon = Icons.Filled.DarkMode,
                         title = "Dark mode",
                         subtitle = "Use the dark One UI color scheme",
-                        checked = darkMode,
-                        onCheckedChange = { darkMode = it }
+                        checked = theme.darkMode,
+                        onCheckedChange = { viewModel.setDarkMode(it) }
                     )
                 }
             }
@@ -87,20 +87,21 @@ fun ThemeScreen(navController: NavController) {
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        accentColors.forEachIndexed { index, (color, _) ->
+                        accentOptions.forEach { option ->
+                            val selected = theme.accent == option.key
                             Box(
                                 modifier = Modifier
                                     .size(44.dp)
-                                    .background(color = color, shape = CircleShape)
+                                    .background(color = option.color, shape = CircleShape)
                                     .border(
-                                        width = if (selectedIndex == index) 3.dp else 1.dp,
-                                        color = if (selectedIndex == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                                        width = if (selected) 3.dp else 1.dp,
+                                        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                                         shape = CircleShape
                                     )
-                                    .clickable { selectedIndex = index },
+                                    .clickable { viewModel.setAccent(option.key) },
                                 contentAlignment = Alignment.Center
                             ) {
-                                if (selectedIndex == index) {
+                                if (selected) {
                                     Icon(
                                         imageVector = Icons.Filled.Check,
                                         contentDescription = null,
@@ -111,7 +112,7 @@ fun ThemeScreen(navController: NavController) {
                         }
                     }
                     Text(
-                        text = "Selected: ${accentColors[selectedIndex].second}",
+                        text = "Selected: ${accentOptions.firstOrNull { it.key == theme.accent }?.label ?: "Blue"}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.padding(top = 12.dp)
@@ -130,12 +131,12 @@ fun ThemeScreen(navController: NavController) {
                         ) {
                             IconBadge(
                                 icon = Icons.Filled.Palette,
-                                containerColor = accentColors[selectedIndex].first
+                                containerColor = accentOptions.firstOrNull { it.key == theme.accent }?.color ?: Color(0xFF1B62B7)
                             )
                             Column {
                                 Text(text = "NexaFlow theme", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                                 Text(
-                                    text = if (darkMode) "Dark preview" else "Light preview",
+                                    text = if (theme.darkMode) "Dark preview" else "Light preview",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.secondary
                                 )
@@ -145,7 +146,7 @@ fun ThemeScreen(navController: NavController) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(
-                                    color = accentColors[selectedIndex].first,
+                                    color = accentOptions.firstOrNull { it.key == theme.accent }?.color ?: Color(0xFF1B62B7),
                                     shape = MaterialTheme.shapes.medium
                                 )
                                 .padding(12.dp)
