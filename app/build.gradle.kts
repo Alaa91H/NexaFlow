@@ -80,6 +80,7 @@ dependencies {
     implementation(project(":core:automation-engine"))
     implementation(project(":core:execution"))
     implementation(project(":core:capability-manager"))
+    implementation(project(":core:rom-integration"))
     implementation(project(":core:ui-components"))
     implementation(project(":core:security"))
     implementation(project(":domain"))
