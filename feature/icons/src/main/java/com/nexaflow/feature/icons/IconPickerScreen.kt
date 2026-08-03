@@ -14,23 +14,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BatteryChargingFull
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.DoNotDisturb
-import androidx.compose.material.icons.filled.FlashOn
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.VolumeUp
-import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -43,29 +26,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.nexaflow.core.ui.NexaFlowIcons
 import com.nexaflow.core.ui.NexaFlowTopBar
-
-private val iconOptions = listOf(
-    Icons.Filled.Bolt,
-    Icons.Filled.BatteryChargingFull,
-    Icons.Filled.WbSunny,
-    Icons.Filled.DarkMode,
-    Icons.Filled.DoNotDisturb,
-    Icons.Filled.Wifi,
-    Icons.Filled.Home,
-    Icons.Filled.Schedule,
-    Icons.Filled.Notifications,
-    Icons.Filled.VolumeUp,
-    Icons.Filled.FlashOn,
-    Icons.Filled.Lock,
-    Icons.Filled.Palette,
-    Icons.Filled.Security,
-    Icons.Filled.Settings,
-    Icons.Filled.Star
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,7 +45,13 @@ fun IconPickerScreen(navController: NavController) {
                     .background(MaterialTheme.colorScheme.background)
                     .padding(16.dp)
             ) {
-                Button(onClick = { navController.popBackStack() }, modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = {
+                        navController.previousBackStackEntry?.savedStateHandle?.set("selected_icon", selected)
+                        navController.popBackStack()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text(text = "Done")
                 }
             }
@@ -96,8 +66,8 @@ fun IconPickerScreen(navController: NavController) {
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(iconOptions) { icon ->
-                val index = iconOptions.indexOf(icon)
+            items(NexaFlowIcons.all) { (_, icon) ->
+                val index = NexaFlowIcons.all.indexOfFirst { it.second == icon }
                 val isSelected = index == selected
                 Icon(
                     imageVector = icon,

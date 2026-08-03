@@ -16,9 +16,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DoNotDisturb
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.NotificationImportant
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,6 +28,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,32 +39,83 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Observer
 import androidx.navigation.NavController
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
+import com.nexaflow.core.ui.NexaFlowIcons
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.ToggleRow
+import com.nexaflow.core.ui.iconVector
+import com.nexaflow.domain.models.Action
+import com.nexaflow.domain.models.ActionType
+import com.nexaflow.domain.models.Condition
+import com.nexaflow.domain.models.ConditionType
+import com.nexaflow.domain.models.Trigger
+import com.nexaflow.domain.models.TriggerType
 
-private data class ActionOption(val title: String, val subtitle: String, val icon: ImageVector, val color: Color)
+private data class ActionOption(
+    val title: String,
+    val subtitle: String,
+    val icon: ImageVector,
+    val color: Color,
+    val actionType: ActionType
+)
 
 private val actionOptions = listOf(
-    ActionOption("Brightness", "Set screen brightness", Icons.Filled.FlashOn, Color(0xFF1B62B7)),
-    ActionOption("Volume", "Change media volume", Icons.Filled.VolumeUp, Color(0xFF7A5BD1)),
-    ActionOption("Do Not Disturb", "Toggle DND mode", Icons.Filled.DoNotDisturb, Color(0xFFE5533D)),
-    ActionOption("Open app", "Launch an application", Icons.Filled.Add, Color(0xFF2FA84F)),
-    ActionOption("Notification", "Send a notification", Icons.Filled.NotificationImportant, Color(0xFFE8A33D)),
-    ActionOption("Wi-Fi", "Control Wi-Fi state", Icons.Filled.Wifi, Color(0xFF13A5A8))
+    ActionOption("Brightness", "Set screen brightness", Icons.Filled.FlashOn, Color(0xFF1B62B7), ActionType.SYSTEM_BRIGHTNESS),
+    ActionOption("Volume", "Change media volume", Icons.Filled.VolumeUp, Color(0xFF7A5BD1), ActionType.SYSTEM_VOLUME),
+    ActionOption("Do Not Disturb", "Toggle DND mode", Icons.Filled.DoNotDisturb, Color(0xFFE5533D), ActionType.SYSTEM_DND),
+    ActionOption("Open app", "Launch an application", Icons.Filled.Add, Color(0xFF2FA84F), ActionType.SYSTEM_OPEN_APP),
+    ActionOption("Notification", "Send a notification", Icons.Filled.NotificationImportant, Color(0xFFE8A33D), ActionType.SYSTEM_SEND_NOTIFICATION),
+    ActionOption("Screen Rotation", "Toggle rotation lock", Icons.Filled.ScreenRotation, Color(0xFF13A5A8), ActionType.SYSTEM_SCREEN_ROTATION)
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AutomationBuilderScreen(navController: NavController) {
+    val viewModel: AutomationBuilderViewModel = hiltViewModel()
     var name by remember { mutableStateOf("") }
     var trigger by remember { mutableStateOf("Time") }
     var batteryCondition by remember { mutableStateOf(false) }
     var timeRangeCondition by remember { mutableStateOf(false) }
+    var selectedIconIndex by remember { mutableStateOf(0) }
     val selectedActions = remember { mutableSetOf<ActionOption>() }
+
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    DisposableEffect(savedStateHandle) {
+        val observer = Observer<Int> { index ->
+            selectedIconIndex = index
+        }
+        savedStateHandle?.getLiveData<Int>("selected_icon")?.observeForever(observer)
+        onDispose {
+            savedStateHandle?.getLiveData<Int>("selected_icon")?.removeObserver(observer)
+        }
+    }
+
+    fun save() {
+        val triggerType = when (trigger) {
+            "App" -> TriggerType.APPLICATION
+            "Device" -> TriggerType.DEVICE
+            "Connectivity" -> TriggerType.CONNECTIVITY
+            else -> TriggerType.TIME
+        }
+        val conditions = buildList {
+            if (batteryCondition) add(Condition(ConditionType.BATTERY_PERCENTAGE, mapOf("above" to "20")))
+            if (timeRangeCondition) add(Condition(ConditionType.TIME_RANGE, mapOf("range" to "custom")))
+        }
+        val actions = selectedActions.map { Action(it.actionType, emptyMap()) }
+        viewModel.saveAutomation(
+            name = name,
+            icon = NexaFlowIcons.all[selectedIconIndex].first,
+            trigger = Trigger(triggerType, emptyMap()),
+            conditions = conditions,
+            actions = actions
+        )
+        navController.popBackStack()
+    }
 
     val triggerOptions = listOf("Time", "App", "Device", "Connectivity")
 
@@ -75,7 +125,7 @@ fun AutomationBuilderScreen(navController: NavController) {
                 title = "New Automation",
                 onBack = { navController.popBackStack() },
                 actions = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = { save() }) {
                         Icon(imageVector = Icons.Filled.Check, contentDescription = "Save")
                     }
                 }
@@ -104,22 +154,29 @@ fun AutomationBuilderScreen(navController: NavController) {
             }
             NexaFlowCard {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { navController.navigate("icon_picker") },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    IconBadge(icon = Icons.Filled.Palette, containerColor = MaterialTheme.colorScheme.primary)
+                    IconBadge(
+                        icon = iconVector(NexaFlowIcons.all[selectedIconIndex].first),
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
                     Column(modifier = Modifier.weight(1f)) {
                         Text(text = "Icon", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                         Text(
-                            text = "Choose an icon for this automation",
+                            text = "Tap to choose an icon",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.secondary
                         )
                     }
-                    IconButton(onClick = { navController.navigate("icon_picker") }) {
-                        Icon(imageVector = Icons.Filled.Bolt, contentDescription = "Pick icon")
-                    }
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.outline
+                    )
                 }
             }
             SectionHeader(text = "WHEN")
@@ -144,7 +201,7 @@ fun AutomationBuilderScreen(navController: NavController) {
                     onCheckedChange = { batteryCondition = it }
                 )
                 ToggleRow(
-                    icon = Icons.Filled.Schedule,
+                    icon = Icons.Filled.ScreenRotation,
                     title = "Within time range",
                     subtitle = "Only run between the configured hours",
                     checked = timeRangeCondition,
@@ -184,10 +241,7 @@ fun AutomationBuilderScreen(navController: NavController) {
                     }
                 }
             }
-            Button(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            Button(onClick = { save() }, modifier = Modifier.fillMaxWidth()) {
                 Text(text = "Save Automation")
             }
         }

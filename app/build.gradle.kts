@@ -72,6 +72,9 @@ dependencies {
     // Navigation Compose
     implementation("androidx.navigation:navigation-compose:2.7.5")
 
+    // Room
+    implementation("androidx.room:room-runtime:2.6.1")
+
     // Project Modules
     implementation(project(":core:common"))
     implementation(project(":core:database"))

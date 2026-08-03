@@ -88,7 +88,7 @@ fun NexaFlowApp() {
                 AutomationBuilderScreen(navController = navController)
             }
             composable("automation_details/{automationId}") {
-                AutomationDetailsScreen(navController = navController, automationId = "1")
+                AutomationDetailsScreen(navController = navController)
             }
             composable("profiles") {
                 ProfilesScreen(navController = navController)
