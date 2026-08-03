@@ -45,7 +45,11 @@ class SystemController(
 
     fun setDoNotDisturb(enabled: Boolean): SystemControlResult {
         if (!capabilityProvider.isAvailable(RomCapability.DND_ACCESS)) {
-            return SystemControlResult.fail("Do Not Disturb access is not available")
+            return tryPrivileged(
+                command = "cmd notification set_interruption_filter " +
+                    if (enabled) "none" else "all",
+                successMessage = if (enabled) "Do Not Disturb enabled" else "Do Not Disturb disabled"
+            )
         }
         return try {
             val notificationManager = context.getSystemService(NotificationManager::class.java)
@@ -62,7 +66,11 @@ class SystemController(
             }
             SystemControlResult.ok(if (enabled) "Do Not Disturb enabled" else "Do Not Disturb disabled")
         } catch (t: Throwable) {
-            SystemControlResult.fail("Failed to change Do Not Disturb: ${t.message}")
+            tryPrivileged(
+                command = "cmd notification set_interruption_filter " +
+                    if (enabled) "none" else "all",
+                successMessage = if (enabled) "Do Not Disturb enabled" else "Do Not Disturb disabled"
+            ).takeIf { it.success } ?: SystemControlResult.fail("Failed to change Do Not Disturb: ${t.message}")
         }
     }
 
@@ -80,7 +88,10 @@ class SystemController(
 
     fun setScreenTimeoutMillis(millis: Int): SystemControlResult {
         if (!capabilityProvider.isAvailable(RomCapability.WRITE_SETTINGS)) {
-            return SystemControlResult.fail("Write settings is not available")
+            return tryPrivileged(
+                command = "settings put system screen_off_timeout $millis",
+                successMessage = "Screen timeout set to $millis ms"
+            )
         }
         return try {
             val written = Settings.System.putInt(
@@ -114,7 +125,10 @@ class SystemController(
 
     fun setBrightness(value: Int): SystemControlResult {
         if (!capabilityProvider.isAvailable(RomCapability.WRITE_SETTINGS)) {
-            return SystemControlResult.fail("Write settings is not available")
+            return tryPrivileged(
+                command = "settings put system screen_brightness ${value.coerceIn(0, 255)}",
+                successMessage = "Brightness set to ${value.coerceIn(0, 255)}"
+            )
         }
         return try {
             val clamped = value.coerceIn(0, 255)
@@ -147,7 +161,10 @@ class SystemController(
 
     fun setScreenRotation(autoRotate: Boolean): SystemControlResult {
         if (!capabilityProvider.isAvailable(RomCapability.WRITE_SETTINGS)) {
-            return SystemControlResult.fail("Write settings is not available")
+            return tryPrivileged(
+                command = "settings put system accelerometer_rotation ${if (autoRotate) 1 else 0}",
+                successMessage = if (autoRotate) "Auto-rotate enabled" else "Auto-rotate disabled"
+            )
         }
         return try {
             val written = Settings.System.putInt(
@@ -199,5 +216,10 @@ class SystemController(
         } catch (t: Throwable) {
             SystemControlResult.fail("Failed to send notification: ${t.message}")
         }
+    }
+
+    private fun tryPrivileged(command: String, successMessage: String): SystemControlResult {
+        val result = PrivilegedRunner.runShell(command)
+        return if (result.success) SystemControlResult.ok(successMessage) else result
     }
 }

@@ -2,6 +2,7 @@ package com.nexaflow.core.execution
 
 import android.content.Context
 import android.media.AudioManager
+import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.rom.RomIntegrationManager
 import com.nexaflow.core.rom.SystemController
 import com.nexaflow.core.rom.model.SystemControlResult
@@ -17,8 +18,23 @@ class ExecutionEngine(
     private val historyRepository: HistoryRepository
 ) {
 
+    private val conditionEvaluator = ConditionEvaluator(context)
+
     suspend fun runAutomation(automation: Automation): ExecutionRecord {
         val controller = RomIntegrationManager.controller(context)
+        val conditionsMet = conditionEvaluator.isMet(automation.conditions)
+        if (!conditionsMet) {
+            val skipped = ExecutionRecord(
+                id = UUID.randomUUID().toString(),
+                automationId = automation.id,
+                automationName = automation.name,
+                success = true,
+                message = "Skipped: conditions not met",
+                executedAt = System.currentTimeMillis()
+            )
+            historyRepository.recordExecution(skipped)
+            return skipped
+        }
         val results = automation.actions.map { executeAction(it, controller) }
         val record = ExecutionRecord(
             id = UUID.randomUUID().toString(),
@@ -59,9 +75,10 @@ class ExecutionEngine(
                     "Battery Alert",
                     action.config["message"] ?: "Battery alert triggered"
                 )
-            ActionType.ADVANCED_SHIZUKU,
+            ActionType.ADVANCED_SHIZUKU ->
+                PrivilegedRunner.runShizuku(action.config["command"] ?: "echo nexaflow")
             ActionType.ADVANCED_ROOT ->
-                SystemControlResult.fail("${action.type.name} requires an external runtime that is not wired yet")
+                PrivilegedRunner.runRoot(action.config["command"] ?: "echo nexaflow")
         }
     }
 
