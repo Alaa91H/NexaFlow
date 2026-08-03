@@ -27,12 +27,13 @@ class ConnectivityMonitor @Inject constructor(
     private var initialized = false
 
     private val lastRunAt = mutableMapOf<String, Long>()
+    private var callback: ConnectivityManager.NetworkCallback? = null
 
     fun initialize() {
         if (initialized) return
         initialized = true
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        connectivityManager.registerDefaultNetworkCallback(object : ConnectivityManager.NetworkCallback() {
+        val networkCallback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
                 handleChange(connected = true)
             }
@@ -40,7 +41,23 @@ class ConnectivityMonitor @Inject constructor(
             override fun onLost(network: Network) {
                 handleChange(connected = false)
             }
-        })
+        }
+        callback = networkCallback
+        connectivityManager.registerDefaultNetworkCallback(networkCallback)
+    }
+
+    fun stop() {
+        if (!initialized) return
+        initialized = false
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        callback?.let { c ->
+            try {
+                connectivityManager.unregisterNetworkCallback(c)
+            } catch (_: Throwable) {
+                // ignore
+            }
+        }
+        callback = null
     }
 
     private fun handleChange(connected: Boolean) {

@@ -58,6 +58,16 @@ class DeviceEventMonitor @Inject constructor(
         context.registerReceiver(receiver, filter)
     }
 
+    fun stop() {
+        if (!registered) return
+        registered = false
+        try {
+            context.unregisterReceiver(receiver)
+        } catch (_: Throwable) {
+            // ignore
+        }
+    }
+
     private fun handleEvent(event: String) {
         scope.launch {
             val automations = repository.getAutomations().first()

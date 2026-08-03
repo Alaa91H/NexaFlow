@@ -29,7 +29,12 @@ class AutomationScheduler @Inject constructor(
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     private val scheduledIds = mutableSetOf<String>()
 
+    @Volatile
+    private var initialized = false
+
     fun initialize() {
+        if (initialized) return
+        initialized = true
         scope.launch {
             repository.getAutomations().collect { automations ->
                 rescheduleAll(automations)

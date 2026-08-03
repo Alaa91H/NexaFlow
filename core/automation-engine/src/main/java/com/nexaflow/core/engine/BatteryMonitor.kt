@@ -47,6 +47,16 @@ class BatteryMonitor @Inject constructor(
         context.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
     }
 
+    fun stop() {
+        if (!registered) return
+        registered = false
+        try {
+            context.unregisterReceiver(receiver)
+        } catch (_: Throwable) {
+            // ignore
+        }
+    }
+
     private fun handleBatteryChange(level: Int, status: Int) {
         if (level <= 0) return
         scope.launch {

@@ -25,6 +25,8 @@ class LocationMonitor @Inject constructor(
 ) {
 
     private val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    @Volatile
+    private var initialized = false
     private var listening = false
     private val insideByAutomation = mutableMapOf<String, Boolean>()
     private val lastRunAt = mutableMapOf<String, Long>()
@@ -39,6 +41,8 @@ class LocationMonitor @Inject constructor(
     }
 
     fun initialize() {
+        if (initialized) return
+        initialized = true
         scope.launch {
             repository.getAutomations().collect { automations ->
                 val hasLocationTrigger = automations.any { automation ->
@@ -47,6 +51,17 @@ class LocationMonitor @Inject constructor(
                 updateListening(hasLocationTrigger)
             }
         }
+    }
+
+    fun stop() {
+        if (!initialized) return
+        initialized = false
+        try {
+            locationManager.removeUpdates(listener)
+        } catch (_: Throwable) {
+            // ignore
+        }
+        listening = false
     }
 
     private fun updateListening(shouldListen: Boolean) {
