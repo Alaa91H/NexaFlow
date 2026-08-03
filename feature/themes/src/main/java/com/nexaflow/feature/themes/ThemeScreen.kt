@@ -1,4 +1,4 @@
-package com.nexaflow.feature.themes
+﻿package com.nexaflow.feature.themes
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 
 @Composable
-fun ThemeScreen(navController: NavController) {
+fun ThemeScreen() {
     Column(modifier = Modifier.fillMaxSize()) {
         Text(text = "Theme Screen")
         // TODO: Implement UI for theme selection and customization

@@ -1,4 +1,4 @@
-package com.nexaflow.feature.dashboard
+﻿package com.nexaflow.feature.dashboard
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 
 @Composable
-fun DashboardScreen(navController: NavController) {
+fun DashboardScreen() {
     Column(modifier = Modifier.fillMaxSize()) {
         Text(text = "Dashboard Screen")
         // TODO: Implement dashboard UI with active, scheduled, and running automations

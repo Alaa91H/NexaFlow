@@ -1,4 +1,4 @@
-package com.nexaflow.feature.settings
+﻿package com.nexaflow.feature.settings
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 
 @Composable
-fun SettingsScreen(navController: NavController) {
+fun SettingsScreen() {
     Column(modifier = Modifier.fillMaxSize()) {
         Text(text = "Settings Screen")
         // TODO: Implement UI for application settings

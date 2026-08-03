@@ -1,4 +1,4 @@
-package com.nexaflow.feature.icons
+﻿package com.nexaflow.feature.icons
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 
 @Composable
-fun IconPickerScreen(navController: NavController) {
+fun IconPickerScreen() {
     Column(modifier = Modifier.fillMaxSize()) {
         Text(text = "Icon Picker Screen")
         // TODO: Implement UI for picking icons

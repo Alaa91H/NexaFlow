@@ -1,4 +1,4 @@
-package com.nexaflow.feature.automations
+﻿package com.nexaflow.feature.automations
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 
 @Composable
-fun AutomationDetailsScreen(navController: NavController) {
+fun AutomationDetailsScreen() {
     Column(modifier = Modifier.fillMaxSize()) {
         Text(text = "Automation Details Screen")
         // TODO: Implement UI for displaying automation details

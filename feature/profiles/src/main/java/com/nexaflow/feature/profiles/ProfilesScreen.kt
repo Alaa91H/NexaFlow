@@ -1,4 +1,4 @@
-package com.nexaflow.feature.profiles
+﻿package com.nexaflow.feature.profiles
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 
 @Composable
-fun ProfilesScreen(navController: NavController) {
+fun ProfilesScreen() {
     Column(modifier = Modifier.fillMaxSize()) {
         Text(text = "Profiles Screen")
         // TODO: Implement UI for managing user profiles
