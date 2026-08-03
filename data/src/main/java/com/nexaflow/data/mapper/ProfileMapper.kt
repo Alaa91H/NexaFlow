@@ -9,7 +9,11 @@ private val gson = Gson()
 
 fun ProfileEntity.toDomain(): Profile {
     val type = object : TypeToken<List<String>>() {}.type
-    val ids: List<String> = gson.fromJson(automationIdsJson, type) ?: emptyList()
+    val ids: List<String> = try {
+        gson.fromJson<List<String>>(automationIdsJson, type)
+    } catch (_: Throwable) {
+        emptyList()
+    } ?: emptyList()
     return Profile(
         id = id,
         name = name,

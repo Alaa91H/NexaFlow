@@ -7,8 +7,13 @@ import com.nexaflow.domain.models.ConditionType
 import java.time.LocalTime
 
 class ConditionEvaluator(
-    private val context: Context
+    private val batteryLevelProvider: () -> Int,
+    private val clock: () -> LocalTime = LocalTime::now
 ) {
+
+    constructor(context: Context) : this(
+        batteryLevelProvider = { readBatteryLevel(context) }
+    )
 
     fun isMet(conditions: List<Condition>): Boolean {
         if (conditions.isEmpty()) return true
@@ -23,7 +28,7 @@ class ConditionEvaluator(
                 !(condition.nestedConditions?.firstOrNull()?.let { isMet(it) } ?: false)
             ConditionType.BATTERY_PERCENTAGE -> {
                 val above = condition.config["above"]?.toIntOrNull() ?: 20
-                batteryLevel() >= above
+                batteryLevelProvider() >= above
             }
             ConditionType.TIME_RANGE -> {
                 val start = condition.config["start"]
@@ -34,18 +39,9 @@ class ConditionEvaluator(
         }
     }
 
-    private fun batteryLevel(): Int {
-        return try {
-            val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
-            batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) ?: 100
-        } catch (_: Throwable) {
-            100
-        }
-    }
-
     private fun withinTimeRange(start: String, end: String): Boolean {
         return try {
-            val now = LocalTime.now()
+            val now = clock()
             val startTime = LocalTime.parse(start)
             val endTime = LocalTime.parse(end)
             if (startTime <= endTime) {
@@ -55,6 +51,17 @@ class ConditionEvaluator(
             }
         } catch (_: Throwable) {
             true
+        }
+    }
+
+    private companion object {
+        fun readBatteryLevel(context: Context): Int {
+            return try {
+                val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+                batteryManager?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) ?: 100
+            } catch (_: Throwable) {
+                100
+            }
         }
     }
 }

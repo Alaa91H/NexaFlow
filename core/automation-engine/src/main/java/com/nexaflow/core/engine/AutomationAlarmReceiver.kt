@@ -3,6 +3,7 @@ package com.nexaflow.core.engine
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.repositories.AutomationRepository
@@ -28,6 +29,10 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
     lateinit var scheduler: AutomationScheduler
 
     override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
+            restoreAfterBoot(context)
+            return
+        }
         if (intent.action != AutomationScheduler.ACTION_RUN_AUTOMATION) return
         val automationId = intent.getStringExtra(AutomationScheduler.EXTRA_AUTOMATION_ID) ?: return
         val result = goAsync()
@@ -41,6 +46,15 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
             } finally {
                 result.finish()
             }
+        }
+    }
+
+    private fun restoreAfterBoot(context: Context) {
+        try {
+            scheduler.initialize()
+            MonitoringService.start(context.applicationContext)
+        } catch (t: Throwable) {
+            Log.e("AutomationAlarmReceiver", "Failed to restore after boot", t)
         }
     }
 }

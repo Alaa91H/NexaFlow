@@ -3,20 +3,28 @@
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.rom.RomIntegrationManager
+import com.nexaflow.core.rom.model.RomCapability
+import com.nexaflow.core.ui.StatusPill
 
 @Composable
 fun CapabilityCenterScreen() {
@@ -52,6 +60,7 @@ fun CapabilityCenterScreen() {
                         text = "Security patch: ${buildInfo.securityPatch}",
                         style = MaterialTheme.typography.bodyMedium
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Integration level: ${integrationLevel.displayName}",
                         style = MaterialTheme.typography.titleMedium
@@ -65,21 +74,82 @@ fun CapabilityCenterScreen() {
         }
         item {
             Text(
-                text = "Available capabilities (${capabilities.size})",
+                text = "Capabilities (${capabilities.size} available)",
                 style = MaterialTheme.typography.titleMedium
             )
         }
         items(capabilities) { capability ->
+            CapabilityRow(
+                capability = capability,
+                available = RomIntegrationManager.isCapabilityAvailable(context, capability),
+                context = context
+            )
+        }
+        item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = capability.displayName,
+                        text = "About privileged capabilities",
                         style = MaterialTheme.typography.titleSmall
                     )
                     Text(
-                        text = capability.description,
+                        text = "Capabilities marked as privileged require the app to be installed as a " +
+                            "system/privileged app, a Root shell, or the Shizuku service. " +
+                            "Use the Grant button to request the capabilities Android exposes to normal apps.",
                         style = MaterialTheme.typography.bodyMedium
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CapabilityRow(
+    capability: RomCapability,
+    available: Boolean,
+    context: android.content.Context
+) {
+    val grantIntent = remember(capability) {
+        CapabilityGrantHelper.grantIntent(context, capability)
+    }
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = capability.displayName,
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.weight(1f)
+                )
+                if (available) {
+                    StatusPill(
+                        text = "Available",
+                        background = Color(0xFF2FA84F),
+                        contentColor = Color.White
+                    )
+                } else {
+                    StatusPill(
+                        text = "Not available",
+                        background = Color(0xFFB3261E),
+                        contentColor = Color.White
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = capability.description,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            if (grantIntent != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = { CapabilityGrantHelper.launch(context, grantIntent) }
+                ) {
+                    Text(if (available) "Settings" else "Grant")
                 }
             }
         }

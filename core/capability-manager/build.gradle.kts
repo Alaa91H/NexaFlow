@@ -46,5 +46,6 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     implementation(project(":domain"))
     implementation(project(":core:rom-integration"))
+    implementation(project(":core:ui-components"))
     testImplementation("junit:junit:4.13.2")
 }

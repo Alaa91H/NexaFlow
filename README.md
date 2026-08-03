@@ -36,15 +36,13 @@ The project follows a modular structure:
 .github/
 app/
 core/
-  common/
   database/
   datastore/
-  permissions/
   automation-engine/
   execution/
   capability-manager/
+  rom-integration/
   ui-components/
-  security/
 domain/
   models/
   repositories/

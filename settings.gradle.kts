@@ -15,16 +15,13 @@ dependencyResolutionManagement {
 
 rootProject.name = "NexaFlow"
 include(":app")
-include(":core:common")
 include(":core:database")
 include(":core:datastore")
-include(":core:permissions")
 include(":core:automation-engine")
 include(":core:execution")
 include(":core:capability-manager")
 include(":core:rom-integration")
 include(":core:ui-components")
-include(":core:security")
 include(":domain")
 include(":data")
 include(":feature:dashboard")

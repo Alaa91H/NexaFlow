@@ -76,16 +76,13 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
 
     // Project Modules
-    implementation(project(":core:common"))
     implementation(project(":core:database"))
     implementation(project(":core:datastore"))
-    implementation(project(":core:permissions"))
     implementation(project(":core:automation-engine"))
     implementation(project(":core:execution"))
     implementation(project(":core:capability-manager"))
     implementation(project(":core:rom-integration"))
     implementation(project(":core:ui-components"))
-    implementation(project(":core:security"))
     implementation(project(":domain"))
     implementation(project(":data"))
     implementation(project(":feature:dashboard"))
