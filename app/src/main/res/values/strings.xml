@@ -9,4 +9,11 @@
     <string name="widget_status_last">Last run: —</string>
     <string name="widget_subtitle">Automations</string>
     <string name="widget_action">Enable all</string>
+
+    <!-- Bottom navigation -->
+    <string name="tab_home">Home</string>
+    <string name="tab_modes">Modes</string>
+    <string name="tab_device">Device</string>
+    <string name="tab_history">History</string>
+    <string name="tab_settings">Settings</string>
 </resources>

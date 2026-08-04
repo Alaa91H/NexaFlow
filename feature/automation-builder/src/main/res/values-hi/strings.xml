@@ -230,4 +230,12 @@
     <string name="remove_action">कार्रवाई हटाएं</string>
     <string name="quick_save">त्वरित सहेजें</string>
     <string name="saved_successfully">ऑटोमेशन सहेजा गया</string>
+    <string name="summary_if">यदि</string>
+    <string name="summary_then">फिर</string>
+    <string name="summary_no_triggers">ट्रिगर जोड़ें</string>
+    <string name="summary_no_actions">क्रिया जोड़ें</string>
+    <string name="step_when">जब</string>
+    <string name="step_then">फिर</string>
+    <string name="next">अगला</string>
+    <string name="previous">पिछला</string>
 </resources>

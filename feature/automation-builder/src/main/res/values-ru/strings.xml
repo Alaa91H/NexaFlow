@@ -230,4 +230,12 @@
     <string name="remove_action">Удалить действие</string>
     <string name="quick_save">Быстрое сохранение</string>
     <string name="saved_successfully">Автоматизация сохранена</string>
+    <string name="summary_if">ЕСЛИ</string>
+    <string name="summary_then">ТО</string>
+    <string name="summary_no_triggers">Добавить триггер</string>
+    <string name="summary_no_actions">Добавить действие</string>
+    <string name="step_when">Когда</string>
+    <string name="step_then">Затем</string>
+    <string name="next">Далее</string>
+    <string name="previous">Назад</string>
 </resources>

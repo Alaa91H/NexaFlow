@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="dashboard_title">NexaFlow</string>
-    <string name="dashboard_subtitle">Automatisiere dein Gerät, auf deine Art</string>
+    <string name="dashboard_subtitle">Automatisiere dein Gerät nach deinen Regeln</string>
     <string name="dashboard_settings">Einstellungen</string>
-    <string name="stat_active">Aktiv</string>
-    <string name="stat_scheduled">Geplant</string>
-    <string name="stat_total">Gesamt</string>
-    <string name="section_quick_actions">SCHNELLAKTIONEN</string>
-    <string name="quick_new_automation">Neue Automatisierung</string>
-    <string name="quick_new_automation_sub">Ablauf erstellen</string>
-    <string name="quick_capability_center">Fähigkeitszentrum</string>
-    <string name="quick_capability_center_sub">ROM-Funktionen</string>
-    <string name="section_your_automations">DEINE AUTOMATISIERUNGEN</string>
-    <string name="empty_automations_title">Noch keine Automatisierungen</string>
-    <string name="empty_automations_sub">Tippe auf Neue Automatisierung, um deinen ersten Ablauf zu erstellen.</string>
-    <string name="status_active">Aktiv</string>
-    <string name="status_off">Aus</string>
+    <string name="section_modes">MODI</string>
+    <string name="section_routines">ROUTINEN</string>
+    <string name="no_modes_title">Noch keine Modi</string>
+    <string name="no_modes_subtitle">Erstelle einen Modus, um mehrere Routinen auf einmal zu aktivieren.</string>
+    <string name="manage_modes">Modi verwalten</string>
+    <string name="new_routine">Neue Routine</string>
+    <string name="mode_on">An · %1$d Routine(n)</string>
+    <string name="mode_off">Aus · %1$d Routine(n)</string>
+    <string name="empty_automations_title">Noch keine Routinen</string>
+    <string name="empty_automations_sub">Tippe auf Neue Routine, um deine erste zu erstellen.</string>
+    <string name="summary_any_trigger">beliebiger Auslöser</string>
+    <string name="summary_no_actions">keine Aktionen</string>
+    <string name="summary_actions_count">%1$d Aktion(en)</string>
+    <string name="summary_template">Wenn %1$s → Dann %2$s</string>
+    <string name="trigger_time">Zeit</string>
+    <string name="trigger_app">App</string>
+    <string name="trigger_device">Gerät</string>
+    <string name="trigger_connectivity">Verbindung</string>
+    <string name="trigger_location">Standort</string>
+    <string name="trigger_sms">SMS</string>
 </resources>

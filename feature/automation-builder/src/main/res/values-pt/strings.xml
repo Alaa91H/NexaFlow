@@ -230,4 +230,12 @@
     <string name="remove_action">Remover ação</string>
     <string name="quick_save">Salvar rapidamente</string>
     <string name="saved_successfully">Automação salva</string>
+    <string name="summary_if">SE</string>
+    <string name="summary_then">ENTÃO</string>
+    <string name="summary_no_triggers">Adicionar um gatilho</string>
+    <string name="summary_no_actions">Adicionar uma ação</string>
+    <string name="step_when">Quando</string>
+    <string name="step_then">Então</string>
+    <string name="next">Próximo</string>
+    <string name="previous">Anterior</string>
 </resources>

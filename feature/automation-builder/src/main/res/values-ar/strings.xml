@@ -230,4 +230,12 @@
     <string name="remove_action">إزالة المهمة</string>
     <string name="quick_save">حفظ سريع</string>
     <string name="saved_successfully">تم حفظ الأتمتة</string>
+    <string name="summary_if">إذا</string>
+    <string name="summary_then">ثم</string>
+    <string name="summary_no_triggers">أضف مشغلاً</string>
+    <string name="summary_no_actions">أضف مهمة</string>
+    <string name="step_when">عند</string>
+    <string name="step_then">ثم</string>
+    <string name="next">التالي</string>
+    <string name="previous">السابق</string>
 </resources>

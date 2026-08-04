@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="profiles_title">Profils</string>
-    <string name="new_profile">Nouveau profil</string>
-    <string name="section_profiles">PROFILS</string>
-    <string name="no_profiles_title">Aucun profil pour l\u2019instant</string>
-    <string name="no_profiles_subtitle">Les profils regroupent vos automatisations pour les appliquer en un geste.</string>
-    <string name="delete_profile_title">Supprimer le profil ?</string>
-    <string name="delete_profile_text">« %1$s » sera supprimé. Ses automatisations seront désactivées.</string>
+    <string name="profiles_title">Modes</string>
+    <string name="new_profile">Nouveau mode</string>
+    <string name="section_profiles">MODES</string>
+    <string name="no_profiles_title">Aucun mode pour l\\u2019instant</string>
+    <string name="no_profiles_subtitle">Les modes regroupent vos routines pour les appliquer en un geste.</string>
+    <string name="delete_profile_title">Supprimer le mode ?</string>
+    <string name="delete_profile_text">« %1$s » sera supprimé. Ses routines seront désactivées.</string>
     <string name="delete">Supprimer</string>
     <string name="cancel">Annuler</string>
     <string name="no_description">Aucune description</string>
-    <string name="active_count">Actif · %1$d automatisation(s)</string>
-    <string name="inactive_count">Inactif · %1$d automatisation(s)</string>
-    <string name="manage_automations">Gérer les automatisations</string>
-    <string name="new_profile_title">Nouveau profil</string>
+    <string name="active_count">Actif · %1$d routine(s)</string>
+    <string name="inactive_count">Inactif · %1$d routine(s)</string>
+    <string name="manage_automations">Gérer les routines</string>
+    <string name="new_profile_title">Nouveau mode</string>
     <string name="name">Nom</string>
     <string name="description">Description</string>
     <string name="icon">Icône</string>
     <string name="color">Couleur</string>
     <string name="create">Créer</string>
-    <string name="automations_in">Automatisations dans %1$s</string>
-    <string name="no_automations_yet">Aucune automatisation pour l\u2019instant. Créez-en une d\u2019abord.</string>
+    <string name="automations_in">Routines dans %1$s</string>
+    <string name="no_automations_yet">Aucune routine pour l\\u2019instant. Créez-en une d\\u2019abord.</string>
     <string name="save">Enregistrer</string>
 </resources>

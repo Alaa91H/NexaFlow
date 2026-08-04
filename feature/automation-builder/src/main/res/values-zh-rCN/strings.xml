@@ -230,4 +230,12 @@
     <string name="remove_action">移除操作</string>
     <string name="quick_save">快速保存</string>
     <string name="saved_successfully">自动化已保存</string>
+    <string name="summary_if">如果</string>
+    <string name="summary_then">那么</string>
+    <string name="summary_no_triggers">添加触发器</string>
+    <string name="summary_no_actions">添加操作</string>
+    <string name="step_when">当</string>
+    <string name="step_then">那么</string>
+    <string name="next">下一步</string>
+    <string name="previous">上一步</string>
 </resources>

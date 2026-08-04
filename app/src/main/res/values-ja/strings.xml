@@ -7,4 +7,11 @@
     <string name="widget_status_last">最終実行: —</string>
     <string name="widget_subtitle">自動化</string>
     <string name="widget_action">すべて有効にする</string>
+
+    <!-- Bottom navigation -->
+    <string name="tab_home">ホーム</string>
+    <string name="tab_modes">モード</string>
+    <string name="tab_device">端末</string>
+    <string name="tab_history">履歴</string>
+    <string name="tab_settings">設定</string>
 </resources>

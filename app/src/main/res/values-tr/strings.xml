@@ -7,4 +7,11 @@
     <string name="widget_status_last">Son çalıştırma: —</string>
     <string name="widget_subtitle">Otomasyonlar</string>
     <string name="widget_action">Tümünü etkinleştir</string>
+
+    <!-- Bottom navigation -->
+    <string name="tab_home">Ana Sayfa</string>
+    <string name="tab_modes">Modlar</string>
+    <string name="tab_device">Cihaz</string>
+    <string name="tab_history">Geçmiş</string>
+    <string name="tab_settings">Ayarlar</string>
 </resources>

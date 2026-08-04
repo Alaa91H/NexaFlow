@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="profiles_title">プロファイル</string>
-    <string name="new_profile">新しいプロファイル</string>
-    <string name="section_profiles">プロファイル</string>
-    <string name="no_profiles_title">まだプロファイルがありません</string>
-    <string name="no_profiles_subtitle">プロファイルは自動化をまとめて、ワンタップで適用できます。</string>
-    <string name="delete_profile_title">プロファイルを削除しますか？</string>
-    <string name="delete_profile_text">「%1$s」が削除されます。その自動化は無効になります。</string>
+    <string name="profiles_title">モード</string>
+    <string name="new_profile">新しいモード</string>
+    <string name="section_profiles">モード</string>
+    <string name="no_profiles_title">まだモードがありません</string>
+    <string name="no_profiles_subtitle">モードはルーティンをまとめて、ワンタップで適用できます。</string>
+    <string name="delete_profile_title">モードを削除しますか？</string>
+    <string name="delete_profile_text">「%1$s」が削除されます。そのルーティンは無効になります。</string>
     <string name="delete">削除</string>
     <string name="cancel">キャンセル</string>
     <string name="no_description">説明なし</string>
-    <string name="active_count">アクティブ · %1$d 自動化</string>
-    <string name="inactive_count">非アクティブ · %1$d 自動化</string>
-    <string name="manage_automations">自動化を管理</string>
-    <string name="new_profile_title">新しいプロファイル</string>
+    <string name="active_count">アクティブ · %1$d ルーティン</string>
+    <string name="inactive_count">非アクティブ · %1$d ルーティン</string>
+    <string name="manage_automations">ルーティンを管理</string>
+    <string name="new_profile_title">新しいモード</string>
     <string name="name">名前</string>
     <string name="description">説明</string>
     <string name="icon">アイコン</string>
     <string name="color">色</string>
     <string name="create">作成</string>
-    <string name="automations_in">%1$s の自動化</string>
-    <string name="no_automations_yet">まだ自動化がありません。先に作成してください。</string>
+    <string name="automations_in">%1$s のルーティン</string>
+    <string name="no_automations_yet">まだルーティンがありません。先に作成してください。</string>
     <string name="save">保存</string>
 </resources>

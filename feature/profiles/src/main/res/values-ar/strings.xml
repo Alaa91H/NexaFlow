@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="profiles_title">الملفات الشخصية</string>
-    <string name="new_profile">ملف شخصي جديد</string>
-    <string name="section_profiles">الملفات الشخصية</string>
-    <string name="no_profiles_title">لا توجد ملفات شخصية بعد</string>
-    <string name="no_profiles_subtitle">تجمع الملفات الشخصية أتمتاتك لتطبيقها بلمسة واحدة.</string>
-    <string name="delete_profile_title">حذف الملف الشخصي؟</string>
-    <string name="delete_profile_text">سيتم إزالة «%1$s». سيتم تعطيل أتمتاته.</string>
+    <string name="profiles_title">الأنماط</string>
+    <string name="new_profile">نمط جديد</string>
+    <string name="section_profiles">الأنماط</string>
+    <string name="no_profiles_title">لا توجد أنماط بعد</string>
+    <string name="no_profiles_subtitle">تجمع الأنماط روتيناتك لتطبيقها بلمسة واحدة.</string>
+    <string name="delete_profile_title">حذف النمط؟</string>
+    <string name="delete_profile_text">سيتم إزالة «%1$s». سيتم تعطيل روتيناته.</string>
     <string name="delete">حذف</string>
     <string name="cancel">إلغاء</string>
     <string name="no_description">لا يوجد وصف</string>
-    <string name="active_count">نشط · %1$d أتمتة</string>
-    <string name="inactive_count">غير نشط · %1$d أتمتة</string>
-    <string name="manage_automations">إدارة الأتمتات</string>
-    <string name="new_profile_title">ملف شخصي جديد</string>
+    <string name="active_count">نشط · %1$d روتين</string>
+    <string name="inactive_count">غير نشط · %1$d روتين</string>
+    <string name="manage_automations">إدارة الروتينات</string>
+    <string name="new_profile_title">نمط جديد</string>
     <string name="name">الاسم</string>
     <string name="description">الوصف</string>
     <string name="icon">الأيقونة</string>
     <string name="color">اللون</string>
     <string name="create">إنشاء</string>
-    <string name="automations_in">الأتمتات في %1$s</string>
-    <string name="no_automations_yet">لا توجد أتمتات بعد. أنشئ واحدة أولاً.</string>
+    <string name="automations_in">الروتينات في %1$s</string>
+    <string name="no_automations_yet">لا توجد روتينات بعد. أنشئ واحداً أولاً.</string>
     <string name="save">حفظ</string>
 </resources>

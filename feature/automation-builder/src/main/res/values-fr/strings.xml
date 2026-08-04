@@ -230,4 +230,12 @@
     <string name="remove_action">"Retirer l'action"</string>
     <string name="quick_save">Enregistrement rapide</string>
     <string name="saved_successfully">Automatisation enregistrée</string>
+    <string name="summary_if">SI</string>
+    <string name="summary_then">ALORS</string>
+    <string name="summary_no_triggers">Ajouter un déclencheur</string>
+    <string name="summary_no_actions">Ajouter une action</string>
+    <string name="step_when">Quand</string>
+    <string name="step_then">Alors</string>
+    <string name="next">Suivant</string>
+    <string name="previous">Précédent</string>
 </resources>

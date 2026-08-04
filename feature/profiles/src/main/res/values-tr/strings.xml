@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="profiles_title">Profiller</string>
-    <string name="new_profile">Yeni Profil</string>
-    <string name="section_profiles">PROFİLLER</string>
-    <string name="no_profiles_title">Henüz profil yok</string>
-    <string name="no_profiles_subtitle">Profiller, otomasyonlarınızı tek dokunuşla uygulamak için gruplar.</string>
-    <string name="delete_profile_title">Profil silinsin mi?</string>
-    <string name="delete_profile_text">"%1$s" kaldırılacak. Otomasyonları devre dışı bırakılacak.</string>
+    <string name="profiles_title">Modlar</string>
+    <string name="new_profile">Yeni Mod</string>
+    <string name="section_profiles">MODLAR</string>
+    <string name="no_profiles_title">Henüz mod yok</string>
+    <string name="no_profiles_subtitle">Modlar, rutinlerinizi tek dokunuşla uygulamak için gruplar.</string>
+    <string name="delete_profile_title">Mod silinsin mi?</string>
+    <string name="delete_profile_text">"%1$s" kaldırılacak. Rutinleri devre dışı bırakılacak.</string>
     <string name="delete">Sil</string>
     <string name="cancel">İptal</string>
     <string name="no_description">Açıklama yok</string>
-    <string name="active_count">Etkin · %1$d otomasyon</string>
-    <string name="inactive_count">Etkin değil · %1$d otomasyon</string>
-    <string name="manage_automations">Otomasyonları yönet</string>
-    <string name="new_profile_title">Yeni profil</string>
+    <string name="active_count">Etkin · %1$d rutin</string>
+    <string name="inactive_count">Etkin değil · %1$d rutin</string>
+    <string name="manage_automations">Rutinleri yönet</string>
+    <string name="new_profile_title">Yeni mod</string>
     <string name="name">Ad</string>
     <string name="description">Açıklama</string>
     <string name="icon">Simge</string>
     <string name="color">Renk</string>
     <string name="create">Oluştur</string>
-    <string name="automations_in">%1$s içindeki otomasyonlar</string>
-    <string name="no_automations_yet">Henüz otomasyon yok. Önce bir tane oluşturun.</string>
+    <string name="automations_in">%1$s içindeki rutinler</string>
+    <string name="no_automations_yet">Henüz rutin yok. Önce bir tane oluşturun.</string>
     <string name="save">Kaydet</string>
 </resources>

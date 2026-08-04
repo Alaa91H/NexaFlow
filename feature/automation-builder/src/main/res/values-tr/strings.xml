@@ -230,4 +230,12 @@
     <string name="remove_action">Eylemi kaldır</string>
     <string name="quick_save">Hızlı kaydet</string>
     <string name="saved_successfully">Otomasyon kaydedildi</string>
+    <string name="summary_if">EĞER</string>
+    <string name="summary_then">O ZAMAN</string>
+    <string name="summary_no_triggers">Tetikleyici ekle</string>
+    <string name="summary_no_actions">Eylem ekle</string>
+    <string name="step_when">Ne zaman</string>
+    <string name="step_then">O zaman</string>
+    <string name="next">İleri</string>
+    <string name="previous">Geri</string>
 </resources>

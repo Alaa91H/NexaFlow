@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,8 +14,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AirplanemodeActive
 import androidx.compose.material.icons.filled.Apps
@@ -53,14 +57,17 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -70,6 +77,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -174,6 +182,184 @@ private val actionOptions = listOf(
 
 private val actionCategories: List<ActionCategory> = ActionCategory.entries.toList()
 
+private fun TriggerType.summaryLabelRes(): Int = when (this) {
+    TriggerType.TIME -> R.string.trigger_type_time
+    TriggerType.APPLICATION -> R.string.trigger_type_app
+    TriggerType.DEVICE -> R.string.trigger_type_device
+    TriggerType.CONNECTIVITY -> R.string.trigger_type_connectivity
+    TriggerType.LOCATION -> R.string.trigger_type_location
+    TriggerType.SMS -> R.string.trigger_type_sms
+}
+
+/** Samsung-style live "IF … THEN …" summary shown while building a routine. */
+@Composable
+private fun BuilderSummaryCard(
+    triggers: List<TriggerDraft>,
+    actions: List<ActionOption>
+) {
+    NexaFlowCard {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            SummaryLine(
+                label = stringResource(R.string.summary_if),
+                text = if (triggers.isEmpty()) {
+                    stringResource(R.string.summary_no_triggers)
+                } else {
+                    triggers.map { stringResource(it.type.summaryLabelRes()) }.joinToString(" + ")
+                },
+                accent = Color(0xFF1B62B7)
+            )
+            SummaryLine(
+                label = stringResource(R.string.summary_then),
+                text = if (actions.isEmpty()) {
+                    stringResource(R.string.summary_no_actions)
+                } else {
+                    actions.map { stringResource(it.titleRes) }.joinToString(" + ")
+                },
+                accent = Color(0xFF2FA84F)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SummaryLine(label: String, text: String, accent: Color) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = accent,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (text.isBlank()) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+/** Samsung-style two-segment step indicator (WHEN → THEN). */
+@Composable
+private fun BuilderStepIndicator(currentStep: Int, onSelect: (Int) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        StepChip(
+            number = "1",
+            label = stringResource(R.string.step_when),
+            selected = currentStep == 0,
+            onClick = { onSelect(0) },
+            modifier = Modifier.weight(1f)
+        )
+        StepChip(
+            number = "2",
+            label = stringResource(R.string.step_then),
+            selected = currentStep == 1,
+            onClick = { onSelect(1) },
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun StepChip(
+    number: String,
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                if (selected) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.surfaceVariant
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = number,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+/** Bottom wizard bar with Previous / Next / Save. */
+@Composable
+private fun BuilderBottomBar(
+    step: Int,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+    onSave: () -> Unit
+) {
+    Surface(shadowElevation = 8.dp) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            if (step == 1) {
+                OutlinedButton(
+                    onClick = onPrevious,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = null
+                    )
+                    Text(
+                        text = stringResource(R.string.previous),
+                        modifier = Modifier.padding(start = 6.dp)
+                    )
+                }
+            }
+            Button(
+                onClick = { if (step == 0) onNext() else onSave() },
+                modifier = Modifier.weight(1f)
+            ) {
+                if (step == 0) {
+                    Text(
+                        text = stringResource(R.string.next),
+                        modifier = Modifier.padding(end = 6.dp)
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = null
+                    )
+                    Text(
+                        text = stringResource(R.string.save_automation),
+                        modifier = Modifier.padding(start = 6.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
 /** Parses "geo:lat,lng..." (and geo:0,0?q=lat,lng) into a (lat, lng) pair. */
 private fun parseGeoUri(uri: String): Pair<Double, Double>? {
     if (!uri.startsWith("geo:")) return null
@@ -197,6 +383,7 @@ fun AutomationBuilderScreen(navController: NavController) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var name by remember { mutableStateOf("") }
+    var step by remember { mutableStateOf(0) }
     val triggers = remember { mutableStateListOf<TriggerDraft>() }
     var batteryCondition by remember { mutableStateOf(false) }
     var timeRangeCondition by remember { mutableStateOf(false) }
@@ -221,6 +408,7 @@ fun AutomationBuilderScreen(navController: NavController) {
     }
     val actionConfigs = remember { mutableStateMapOf<ActionType, Map<String, String>>() }
     val selectedActions = remember { mutableStateListOf<ActionOption>() }
+    val scrollState = rememberScrollState()
 
     val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
     DisposableEffect(savedStateHandle) {
@@ -284,187 +472,207 @@ fun AutomationBuilderScreen(navController: NavController) {
                 }
             )
         },
+        bottomBar = {
+            BuilderBottomBar(
+                step = step,
+                onPrevious = { step = 0 },
+                onNext = { step = 1 },
+                onSave = { save() }
+            )
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            NexaFlowCard {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(text = stringResource(R.string.name), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = { name = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text(text = stringResource(R.string.name_hint)) },
-                        singleLine = true
-                    )
-                }
+            LaunchedEffect(step) {
+                scrollState.scrollTo(0)
             }
-            NexaFlowCard {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { navController.navigate("icon_picker") },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    IconBadge(
-                        icon = iconVector(NexaFlowIcons.all[selectedIconIndex].first),
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(text = stringResource(R.string.icon), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                        Text(
-                            text = stringResource(R.string.tap_to_choose_icon),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    }
-                    Icon(
-                        imageVector = Icons.Filled.Add,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                }
-            }
-            SectionHeader(text = stringResource(R.string.section_when))
-            triggers.forEachIndexed { index, draft ->
-                TriggerEditorCard(
-                    draft = draft,
-                    index = index,
-                    onConfigChange = { updated ->
-                        triggers[index] = updated
-                    },
-                    onRemove = { triggers.removeAt(index) },
-                    onPickApp = { appPickerTarget = "trigger:$index" },
-                    onPickFromMap = {
-                        mapPickerTarget = index
-                        try {
-                            mapLauncher.launch(
-                                Intent(Intent.ACTION_PICK, Uri.parse("geo:0,0?z=15")).apply {
-                                    `package` = "com.google.android.apps.maps"
-                                }
-                            )
-                        } catch (_: Throwable) {
-                            mapLauncher.launch(Intent(Intent.ACTION_PICK, Uri.parse("geo:0,0?z=15")))
-                        }
-                    }
-                )
-            }
-            Button(
-                onClick = {
-                    triggers.add(TriggerDraft(TriggerType.TIME, mapOf("time" to "08:00")))
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(imageVector = Icons.Filled.Add, contentDescription = null)
-                Text(text = stringResource(R.string.add_another_trigger), modifier = Modifier.padding(start = 8.dp))
-            }
-            SectionHeader(text = stringResource(R.string.section_conditions))
-            NexaFlowCard {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ToggleRow(
-                        icon = Icons.Filled.Bolt,
-                        title = stringResource(R.string.battery_above),
-                        subtitle = stringResource(R.string.battery_above_sub),
-                        checked = batteryCondition,
-                        onCheckedChange = { batteryCondition = it }
-                    )
-                    if (batteryCondition) {
-                        SliderRow(
-                            label = stringResource(R.string.minimum_battery, batteryThreshold),
-                            value = batteryThreshold.toFloat(),
-                            onValueChange = { batteryThreshold = it.toInt() },
-                            valueRange = 5f..100f
-                        )
-                    }
-                    ToggleRow(
-                        icon = Icons.Filled.ScreenRotation,
-                        title = stringResource(R.string.within_time_range),
-                        subtitle = stringResource(R.string.within_time_range_sub),
-                        checked = timeRangeCondition,
-                        onCheckedChange = { timeRangeCondition = it }
-                    )
-                    if (timeRangeCondition) {
-                        Row(
+            BuilderStepIndicator(currentStep = step, onSelect = { step = it })
+            if (step == 0) {
+                NexaFlowCard {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = stringResource(R.string.name), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        OutlinedTextField(
+                            value = name,
+                            onValueChange = { name = it },
                             modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(text = stringResource(R.string.from), style = MaterialTheme.typography.bodySmall)
-                                TextButton(onClick = { rangePickerTarget = "start" }) {
-                                    Text(text = rangeStart)
-                                }
-                            }
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(text = stringResource(R.string.to), style = MaterialTheme.typography.bodySmall)
-                                TextButton(onClick = { rangePickerTarget = "end" }) {
-                                    Text(text = rangeEnd)
-                                }
-                            }
-                        }
+                            placeholder = { Text(text = stringResource(R.string.name_hint)) },
+                            singleLine = true
+                        )
                     }
                 }
-            }
-            SectionHeader(text = stringResource(R.string.section_actions))
-            actionCategories.forEach { category ->
-                val categoryOptions = actionOptions.filter { it.category == category }
-                if (categoryOptions.isNotEmpty()) {
-                    itemHeader(text = stringResource(category.headerRes))
-                    NexaFlowCard {
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            categoryOptions.forEach { option ->
-                                ActionOptionRow(
-                                    option = option,
-                                    checked = option in selectedActions,
-                                    onToggle = {
-                                        if (option in selectedActions) selectedActions.remove(option)
-                                        else selectedActions.add(option)
+                NexaFlowCard {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { navController.navigate("icon_picker") },
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        IconBadge(
+                            icon = iconVector(NexaFlowIcons.all[selectedIconIndex].first),
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = stringResource(R.string.icon), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                text = stringResource(R.string.tap_to_choose_icon),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline
+                        )
+                    }
+                }
+                BuilderSummaryCard(
+                    triggers = triggers,
+                    actions = selectedActions
+                )
+                SectionHeader(text = stringResource(R.string.section_when))
+                triggers.forEachIndexed { index, draft ->
+                    TriggerEditorCard(
+                        draft = draft,
+                        index = index,
+                        onConfigChange = { updated ->
+                            triggers[index] = updated
+                        },
+                        onRemove = { triggers.removeAt(index) },
+                        onPickApp = { appPickerTarget = "trigger:$index" },
+                        onPickFromMap = {
+                            mapPickerTarget = index
+                            try {
+                                mapLauncher.launch(
+                                    Intent(Intent.ACTION_PICK, Uri.parse("geo:0,0?z=15")).apply {
+                                        `package` = "com.google.android.apps.maps"
                                     }
                                 )
-                                if (option in selectedActions) {
-                                    val config = actionConfigs[option.actionType] ?: emptyMap()
-                                    ActionConfigEditor(
-                                        option = option,
-                                        config = config,
-                                        onConfigChange = { actionConfigs[option.actionType] = it },
-                                        onPickApp = { appPickerTarget = "action:${option.actionType.name}" }
-                                    )
-                                    PermissionHintForAction(
-                                        actionType = option.actionType,
-                                        context = context
-                                    )
-                                    Spacer(modifier = Modifier.padding(top = 4.dp))
+                            } catch (_: Throwable) {
+                                mapLauncher.launch(Intent(Intent.ACTION_PICK, Uri.parse("geo:0,0?z=15")))
+                            }
+                        }
+                    )
+                }
+                Button(
+                    onClick = {
+                        triggers.add(TriggerDraft(TriggerType.TIME, mapOf("time" to "08:00")))
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(imageVector = Icons.Filled.Add, contentDescription = null)
+                    Text(text = stringResource(R.string.add_another_trigger), modifier = Modifier.padding(start = 8.dp))
+                }
+                SectionHeader(text = stringResource(R.string.section_conditions))
+                NexaFlowCard {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        ToggleRow(
+                            icon = Icons.Filled.Bolt,
+                            title = stringResource(R.string.battery_above),
+                            subtitle = stringResource(R.string.battery_above_sub),
+                            checked = batteryCondition,
+                            onCheckedChange = { batteryCondition = it }
+                        )
+                        if (batteryCondition) {
+                            SliderRow(
+                                label = stringResource(R.string.minimum_battery, batteryThreshold),
+                                value = batteryThreshold.toFloat(),
+                                onValueChange = { batteryThreshold = it.toInt() },
+                                valueRange = 5f..100f
+                            )
+                        }
+                        ToggleRow(
+                            icon = Icons.Filled.ScreenRotation,
+                            title = stringResource(R.string.within_time_range),
+                            subtitle = stringResource(R.string.within_time_range_sub),
+                            checked = timeRangeCondition,
+                            onCheckedChange = { timeRangeCondition = it }
+                        )
+                        if (timeRangeCondition) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(text = stringResource(R.string.from), style = MaterialTheme.typography.bodySmall)
+                                    TextButton(onClick = { rangePickerTarget = "start" }) {
+                                        Text(text = rangeStart)
+                                    }
+                                }
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(text = stringResource(R.string.to), style = MaterialTheme.typography.bodySmall)
+                                    TextButton(onClick = { rangePickerTarget = "end" }) {
+                                        Text(text = rangeEnd)
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
-            if (selectedActions.isNotEmpty()) {
-                SectionHeader(text = stringResource(R.string.section_execution_order))
-                NexaFlowCard {
-                    ActionOrderSection(
-                        actions = selectedActions.toList(),
-                        onMove = { from, to -> moveAction(from, to) },
-                        onRemove = { option -> selectedActions.remove(option) }
+            } else {
+                BuilderSummaryCard(
+                    triggers = triggers,
+                    actions = selectedActions
+                )
+                SectionHeader(text = stringResource(R.string.section_actions))
+                actionCategories.forEach { category ->
+                    val categoryOptions = actionOptions.filter { it.category == category }
+                    if (categoryOptions.isNotEmpty()) {
+                        itemHeader(text = stringResource(category.headerRes))
+                        NexaFlowCard {
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                categoryOptions.forEach { option ->
+                                    ActionOptionRow(
+                                        option = option,
+                                        checked = option in selectedActions,
+                                        onToggle = {
+                                            if (option in selectedActions) selectedActions.remove(option)
+                                            else selectedActions.add(option)
+                                        }
+                                    )
+                                    if (option in selectedActions) {
+                                        val config = actionConfigs[option.actionType] ?: emptyMap()
+                                        ActionConfigEditor(
+                                            option = option,
+                                            config = config,
+                                            onConfigChange = { actionConfigs[option.actionType] = it },
+                                            onPickApp = { appPickerTarget = "action:${option.actionType.name}" }
+                                        )
+                                        PermissionHintForAction(
+                                            actionType = option.actionType,
+                                            context = context
+                                        )
+                                        Spacer(modifier = Modifier.padding(top = 4.dp))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (selectedActions.isNotEmpty()) {
+                    SectionHeader(text = stringResource(R.string.section_execution_order))
+                    NexaFlowCard {
+                        ActionOrderSection(
+                            actions = selectedActions.toList(),
+                            onMove = { from, to -> moveAction(from, to) },
+                            onRemove = { option -> selectedActions.remove(option) }
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.execution_order_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
                     )
                 }
-                Text(
-                    text = stringResource(R.string.execution_order_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-            }
-            Button(onClick = { save() }, modifier = Modifier.fillMaxWidth()) {
-                Text(text = stringResource(R.string.save_automation))
             }
         }
     }

@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="profiles_title">配置文件</string>
-    <string name="new_profile">新建配置文件</string>
-    <string name="section_profiles">配置文件</string>
-    <string name="no_profiles_title">暂无配置文件</string>
-    <string name="no_profiles_subtitle">配置文件可对您的自动化进行分组，一键应用。</string>
-    <string name="delete_profile_title">删除配置文件？</string>
-    <string name="delete_profile_text">将删除“%1$s”。其自动化将被禁用。</string>
+    <string name="profiles_title">模式</string>
+    <string name="new_profile">新模式</string>
+    <string name="section_profiles">模式</string>
+    <string name="no_profiles_title">暂无模式</string>
+    <string name="no_profiles_subtitle">模式可对您的例程进行分组，一键应用。</string>
+    <string name="delete_profile_title">删除模式？</string>
+    <string name="delete_profile_text">将删除“%1$s”。其例程将被禁用。</string>
     <string name="delete">删除</string>
     <string name="cancel">取消</string>
     <string name="no_description">无描述</string>
-    <string name="active_count">活动 · %1$d 个自动化</string>
-    <string name="inactive_count">非活动 · %1$d 个自动化</string>
-    <string name="manage_automations">管理自动化</string>
-    <string name="new_profile_title">新建配置文件</string>
+    <string name="active_count">活动 · %1$d 个例程</string>
+    <string name="inactive_count">非活动 · %1$d 个例程</string>
+    <string name="manage_automations">管理例程</string>
+    <string name="new_profile_title">新模式</string>
     <string name="name">名称</string>
     <string name="description">描述</string>
     <string name="icon">图标</string>
     <string name="color">颜色</string>
     <string name="create">创建</string>
-    <string name="automations_in">%1$s 中的自动化</string>
-    <string name="no_automations_yet">暂无自动化。请先创建一个。</string>
+    <string name="automations_in">%1$s 中的例程</string>
+    <string name="no_automations_yet">暂无例程。请先创建一个。</string>
     <string name="save">保存</string>
 </resources>

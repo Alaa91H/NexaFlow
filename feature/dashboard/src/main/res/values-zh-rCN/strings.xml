@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="dashboard_title">NexaFlow</string>
-    <string name="dashboard_subtitle">按你的方式自动化设备</string>
+    <string name="dashboard_subtitle">按您的方式自动执行设备操作</string>
     <string name="dashboard_settings">设置</string>
-    <string name="stat_active">活动</string>
-    <string name="stat_scheduled">已计划</string>
-    <string name="stat_total">总计</string>
-    <string name="section_quick_actions">快捷操作</string>
-    <string name="quick_new_automation">新建自动化</string>
-    <string name="quick_new_automation_sub">创建流程</string>
-    <string name="quick_capability_center">能力中心</string>
-    <string name="quick_capability_center_sub">ROM 功能</string>
-    <string name="section_your_automations">你的自动化</string>
-    <string name="empty_automations_title">暂无自动化</string>
-    <string name="empty_automations_sub">点击“新建自动化”创建你的第一个流程。</string>
-    <string name="status_active">活动</string>
-    <string name="status_off">关闭</string>
+    <string name="section_modes">模式</string>
+    <string name="section_routines">例程</string>
+    <string name="no_modes_title">暂无模式</string>
+    <string name="no_modes_subtitle">创建模式可一次开启多个例程。</string>
+    <string name="manage_modes">管理模式</string>
+    <string name="new_routine">新建例程</string>
+    <string name="mode_on">开启 · %1$d 个例程</string>
+    <string name="mode_off">关闭 · %1$d 个例程</string>
+    <string name="empty_automations_title">暂无例程</string>
+    <string name="empty_automations_sub">点按“新建例程”创建第一个例程。</string>
+    <string name="summary_any_trigger">任意触发器</string>
+    <string name="summary_no_actions">无操作</string>
+    <string name="summary_actions_count">%1$d 个操作</string>
+    <string name="summary_template">当 %1$s → 然后 %2$s</string>
+    <string name="trigger_time">时间</string>
+    <string name="trigger_app">应用</string>
+    <string name="trigger_device">设备</string>
+    <string name="trigger_connectivity">连接</string>
+    <string name="trigger_location">位置</string>
+    <string name="trigger_sms">短信</string>
 </resources>

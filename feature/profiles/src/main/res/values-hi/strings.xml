@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="profiles_title">प्रोफ़ाइल</string>
-    <string name="new_profile">नई प्रोफ़ाइल</string>
-    <string name="section_profiles">प्रोफ़ाइल</string>
-    <string name="no_profiles_title">अभी कोई प्रोफ़ाइल नहीं</string>
-    <string name="no_profiles_subtitle">प्रोफ़ाइल आपके ऑटोमेशन को समूहित करती हैं ताकि उन्हें एक टैप में लागू किया जा सके।</string>
-    <string name="delete_profile_title">प्रोफ़ाइल हटाएँ?</string>
-    <string name="delete_profile_text">"%1$s" हटा दिया जाएगा। इसके ऑटोमेशन अक्षम कर दिए जाएँगे।</string>
+    <string name="profiles_title">मोड</string>
+    <string name="new_profile">नया मोड</string>
+    <string name="section_profiles">मोड</string>
+    <string name="no_profiles_title">अभी कोई मोड नहीं</string>
+    <string name="no_profiles_subtitle">मोड आपके रूटीन को समूहित करते हैं ताकि उन्हें एक टैप में लागू किया जा सके।</string>
+    <string name="delete_profile_title">मोड हटाएँ?</string>
+    <string name="delete_profile_text">"%1$s" हटा दिया जाएगा। इसके रूटीन अक्षम कर दिए जाएँगे।</string>
     <string name="delete">हटाएँ</string>
     <string name="cancel">रद्द करें</string>
     <string name="no_description">कोई विवरण नहीं</string>
-    <string name="active_count">सक्रिय · %1$d ऑटोमेशन</string>
-    <string name="inactive_count">निष्क्रिय · %1$d ऑटोमेशन</string>
-    <string name="manage_automations">ऑटोमेशन प्रबंधित करें</string>
-    <string name="new_profile_title">नई प्रोफ़ाइल</string>
+    <string name="active_count">सक्रिय · %1$d रूटीन</string>
+    <string name="inactive_count">निष्क्रिय · %1$d रूटीन</string>
+    <string name="manage_automations">रूटीन प्रबंधित करें</string>
+    <string name="new_profile_title">नया मोड</string>
     <string name="name">नाम</string>
     <string name="description">विवरण</string>
     <string name="icon">आइकन</string>
     <string name="color">रंग</string>
     <string name="create">बनाएँ</string>
-    <string name="automations_in">%1$s में ऑटोमेशन</string>
-    <string name="no_automations_yet">अभी कोई ऑटोमेशन नहीं। पहले एक बनाएँ।</string>
+    <string name="automations_in">%1$s में रूटीन</string>
+    <string name="no_automations_yet">अभी कोई रूटीन नहीं। पहले एक बनाएँ।</string>
     <string name="save">सहेजें</string>
 </resources>

@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="dashboard_title">NexaFlow</string>
-    <string name="dashboard_subtitle">デバイスを自分流に自動化</string>
+    <string name="dashboard_subtitle">お好みに合わせてデバイスを自動化</string>
     <string name="dashboard_settings">設定</string>
-    <string name="stat_active">アクティブ</string>
-    <string name="stat_scheduled">予定</string>
-    <string name="stat_total">合計</string>
-    <string name="section_quick_actions">クイックアクション</string>
-    <string name="quick_new_automation">新しい自動化</string>
-    <string name="quick_new_automation_sub">フローを作成</string>
-    <string name="quick_capability_center">機能センター</string>
-    <string name="quick_capability_center_sub">ROM機能</string>
-    <string name="section_your_automations">あなたの自動化</string>
-    <string name="empty_automations_title">まだ自動化がありません</string>
-    <string name="empty_automations_sub">「新しい自動化」をタップして最初のフローを作成しましょう。</string>
-    <string name="status_active">アクティブ</string>
-    <string name="status_off">オフ</string>
+    <string name="section_modes">モード</string>
+    <string name="section_routines">ルーティン</string>
+    <string name="no_modes_title">モードはまだありません</string>
+    <string name="no_modes_subtitle">モードを作成すると、複数のルーティンを一度にオンにできます。</string>
+    <string name="manage_modes">モードを管理</string>
+    <string name="new_routine">新しいルーティン</string>
+    <string name="mode_on">オン · %1$d ルーティン</string>
+    <string name="mode_off">オフ · %1$d ルーティン</string>
+    <string name="empty_automations_title">ルーティンはまだありません</string>
+    <string name="empty_automations_sub">最初のルーティンを作成するには「新しいルーティン」をタップします。</string>
+    <string name="summary_any_trigger">任意のトリガー</string>
+    <string name="summary_no_actions">アクションなし</string>
+    <string name="summary_actions_count">%1$d アクション</string>
+    <string name="summary_template">%1$s のとき → %2$s</string>
+    <string name="trigger_time">時刻</string>
+    <string name="trigger_app">アプリ</string>
+    <string name="trigger_device">端末</string>
+    <string name="trigger_connectivity">接続</string>
+    <string name="trigger_location">位置情報</string>
+    <string name="trigger_sms">SMS</string>
 </resources>

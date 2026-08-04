@@ -230,4 +230,12 @@
     <string name="remove_action">Quitar acción</string>
     <string name="quick_save">Guardado rápido</string>
     <string name="saved_successfully">Automatización guardada</string>
+    <string name="summary_if">SI</string>
+    <string name="summary_then">ENTONCES</string>
+    <string name="summary_no_triggers">Añadir un disparador</string>
+    <string name="summary_no_actions">Añadir una acción</string>
+    <string name="step_when">Cuándo</string>
+    <string name="step_then">Entonces</string>
+    <string name="next">Siguiente</string>
+    <string name="previous">Anterior</string>
 </resources>

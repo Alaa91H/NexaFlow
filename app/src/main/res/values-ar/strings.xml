@@ -7,4 +7,11 @@
     <string name="widget_status_last">آخر تشغيل: —</string>
     <string name="widget_subtitle">أتمتات</string>
     <string name="widget_action">تفعيل الكل</string>
+
+    <!-- Bottom navigation -->
+    <string name="tab_home">الرئيسية</string>
+    <string name="tab_modes">الأنماط</string>
+    <string name="tab_device">الجهاز</string>
+    <string name="tab_history">السجل</string>
+    <string name="tab_settings">الإعدادات</string>
 </resources>

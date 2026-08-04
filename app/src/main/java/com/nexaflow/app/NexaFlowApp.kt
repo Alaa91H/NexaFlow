@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -34,16 +35,16 @@ import com.nexaflow.feature.widgets.WidgetsScreen
 
 private data class BottomTab(
     val route: String,
-    val label: String,
+    val labelRes: Int,
     val icon: ImageVector
 )
 
 private val bottomTabs = listOf(
-    BottomTab("dashboard", "Home", Icons.Filled.Dashboard),
-    BottomTab("profiles", "Profiles", Icons.Filled.Group),
-    BottomTab("capability_center", "Device", Icons.Filled.Security),
-    BottomTab("history", "History", Icons.Filled.History),
-    BottomTab("settings", "Settings", Icons.Filled.Settings)
+    BottomTab("dashboard", R.string.tab_home, Icons.Filled.Dashboard),
+    BottomTab("profiles", R.string.tab_modes, Icons.Filled.Group),
+    BottomTab("capability_center", R.string.tab_device, Icons.Filled.Security),
+    BottomTab("history", R.string.tab_history, Icons.Filled.History),
+    BottomTab("settings", R.string.tab_settings, Icons.Filled.Settings)
 )
 
 @Composable
@@ -68,8 +69,8 @@ fun NexaFlowApp() {
                                     restoreState = true
                                 }
                             },
-                            icon = { Icon(imageVector = tab.icon, contentDescription = tab.label) },
-                            label = { Text(text = tab.label) }
+                            icon = { Icon(imageVector = tab.icon, contentDescription = stringResource(tab.labelRes)) },
+                            label = { Text(text = stringResource(tab.labelRes)) }
                         )
                     }
                 }

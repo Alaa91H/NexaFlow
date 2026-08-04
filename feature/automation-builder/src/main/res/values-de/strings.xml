@@ -230,4 +230,12 @@
     <string name="remove_action">Aktion entfernen</string>
     <string name="quick_save">Schnellspeichern</string>
     <string name="saved_successfully">Automatisierung gespeichert</string>
+    <string name="summary_if">WENN</string>
+    <string name="summary_then">DANN</string>
+    <string name="summary_no_triggers">Auslöser hinzufügen</string>
+    <string name="summary_no_actions">Aktion hinzufügen</string>
+    <string name="step_when">Wann</string>
+    <string name="step_then">Dann</string>
+    <string name="next">Weiter</string>
+    <string name="previous">Zurück</string>
 </resources>

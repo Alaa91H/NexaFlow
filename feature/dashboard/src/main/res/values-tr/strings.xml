@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="dashboard_title">NexaFlow</string>
-    <string name="dashboard_subtitle">Cihazını kendi yönteminle otomatikleştir</string>
+    <string name="dashboard_subtitle">Cihazınızı kendi yönteminizle otomatikleştirin</string>
     <string name="dashboard_settings">Ayarlar</string>
-    <string name="stat_active">Etkin</string>
-    <string name="stat_scheduled">Planlanan</string>
-    <string name="stat_total">Toplam</string>
-    <string name="section_quick_actions">HIZLI İŞLEMLER</string>
-    <string name="quick_new_automation">Yeni Otomasyon</string>
-    <string name="quick_new_automation_sub">Akış oluştur</string>
-    <string name="quick_capability_center">Yetenek Merkezi</string>
-    <string name="quick_capability_center_sub">ROM özellikleri</string>
-    <string name="section_your_automations">OTOMASYONLARIN</string>
-    <string name="empty_automations_title">Henüz otomasyon yok</string>
-    <string name="empty_automations_sub">İlk akışını oluşturmak için Yeni Otomasyon\u0027a dokun.</string>
-    <string name="status_active">Etkin</string>
-    <string name="status_off">Kapalı</string>
+    <string name="section_modes">MODLAR</string>
+    <string name="section_routines">RUTİNLER</string>
+    <string name="no_modes_title">Henüz mod yok</string>
+    <string name="no_modes_subtitle">Birden fazla rutini aynı anda açmak için bir mod oluşturun.</string>
+    <string name="manage_modes">Modları yönet</string>
+    <string name="new_routine">Yeni rutin</string>
+    <string name="mode_on">Açık · %1$d rutin</string>
+    <string name="mode_off">Kapalı · %1$d rutin</string>
+    <string name="empty_automations_title">Henüz rutin yok</string>
+    <string name="empty_automations_sub">İlk rutini oluşturmak için Yeni rutin\'e dokunun.</string>
+    <string name="summary_any_trigger">herhangi bir tetikleyici</string>
+    <string name="summary_no_actions">eylem yok</string>
+    <string name="summary_actions_count">%1$d eylem</string>
+    <string name="summary_template">%1$s olduğunda → %2$s</string>
+    <string name="trigger_time">Zaman</string>
+    <string name="trigger_app">Uygulama</string>
+    <string name="trigger_device">Cihaz</string>
+    <string name="trigger_connectivity">Bağlantı</string>
+    <string name="trigger_location">Konum</string>
+    <string name="trigger_sms">SMS</string>
 </resources>

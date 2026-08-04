@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="dashboard_title">NexaFlow</string>
-    <string name="dashboard_subtitle">Automatize seu dispositivo, do seu jeito</string>
+    <string name="dashboard_subtitle">Automatize seu dispositivo do seu jeito</string>
     <string name="dashboard_settings">Configurações</string>
-    <string name="stat_active">Ativas</string>
-    <string name="stat_scheduled">Agendadas</string>
-    <string name="stat_total">Total</string>
-    <string name="section_quick_actions">AÇÕES RÁPIDAS</string>
-    <string name="quick_new_automation">Nova automação</string>
-    <string name="quick_new_automation_sub">Criar um fluxo</string>
-    <string name="quick_capability_center">Central de recursos</string>
-    <string name="quick_capability_center_sub">Recursos ROM</string>
-    <string name="section_your_automations">SUAS AUTOMAÇÕES</string>
-    <string name="empty_automations_title">Nenhuma automação ainda</string>
-    <string name="empty_automations_sub">Toque em Nova automação para criar seu primeiro fluxo.</string>
-    <string name="status_active">Ativa</string>
-    <string name="status_off">Desativada</string>
+    <string name="section_modes">MODOS</string>
+    <string name="section_routines">ROTINAS</string>
+    <string name="no_modes_title">Ainda não há modos</string>
+    <string name="no_modes_subtitle">Crie um modo para ativar várias rotinas de uma vez.</string>
+    <string name="manage_modes">Gerenciar modos</string>
+    <string name="new_routine">Nova rotina</string>
+    <string name="mode_on">Ativado · %1$d rotina(s)</string>
+    <string name="mode_off">Desativado · %1$d rotina(s)</string>
+    <string name="empty_automations_title">Ainda não há rotinas</string>
+    <string name="empty_automations_sub">Toque em Nova rotina para criar a primeira.</string>
+    <string name="summary_any_trigger">qualquer gatilho</string>
+    <string name="summary_no_actions">sem ações</string>
+    <string name="summary_actions_count">%1$d ação(ões)</string>
+    <string name="summary_template">Quando %1$s → Então %2$s</string>
+    <string name="trigger_time">Hora</string>
+    <string name="trigger_app">App</string>
+    <string name="trigger_device">Dispositivo</string>
+    <string name="trigger_connectivity">Conectividade</string>
+    <string name="trigger_location">Localização</string>
+    <string name="trigger_sms">SMS</string>
 </resources>

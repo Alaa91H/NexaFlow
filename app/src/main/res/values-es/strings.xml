@@ -7,4 +7,11 @@
     <string name="widget_status_last">Última ejecución: —</string>
     <string name="widget_subtitle">Automatizaciones</string>
     <string name="widget_action">Activar todas</string>
+
+    <!-- Bottom navigation -->
+    <string name="tab_home">Inicio</string>
+    <string name="tab_modes">Modos</string>
+    <string name="tab_device">Dispositivo</string>
+    <string name="tab_history">Historial</string>
+    <string name="tab_settings">Ajustes</string>
 </resources>

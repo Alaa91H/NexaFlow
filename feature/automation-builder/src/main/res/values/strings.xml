@@ -230,4 +230,12 @@
     <string name="select">Select</string>
     <string name="quick_save">Quick save</string>
     <string name="saved_successfully">Automation saved</string>
+    <string name="summary_if">IF</string>
+    <string name="summary_then">THEN</string>
+    <string name="summary_no_triggers">Add a trigger</string>
+    <string name="summary_no_actions">Add an action</string>
+    <string name="step_when">When</string>
+    <string name="step_then">Then</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
 </resources>

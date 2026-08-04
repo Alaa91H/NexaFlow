@@ -230,4 +230,12 @@
     <string name="remove_action">アクションを削除</string>
     <string name="quick_save">クイック保存</string>
     <string name="saved_successfully">自動化を保存しました</string>
+    <string name="summary_if">もし</string>
+    <string name="summary_then">それなら</string>
+    <string name="summary_no_triggers">トリガーを追加</string>
+    <string name="summary_no_actions">アクションを追加</string>
+    <string name="step_when">いつ</string>
+    <string name="step_then">それから</string>
+    <string name="next">次へ</string>
+    <string name="previous">戻る</string>
 </resources>
