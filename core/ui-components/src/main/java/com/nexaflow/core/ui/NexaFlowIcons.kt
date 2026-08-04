@@ -14,7 +14,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -30,7 +30,7 @@ object NexaFlowIcons {
         "home" to Icons.Filled.Home,
         "schedule" to Icons.Filled.Schedule,
         "notifications" to Icons.Filled.Notifications,
-        "volume" to Icons.Filled.VolumeUp,
+        "volume" to Icons.AutoMirrored.Filled.VolumeUp,
         "flash" to Icons.Filled.FlashOn,
         "lock" to Icons.Filled.Lock,
         "palette" to Icons.Filled.Palette,

@@ -1,5 +1,9 @@
 package com.nexaflow.feature.builder
 
+import android.content.Intent
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,15 +23,29 @@ import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DoNotDisturb
 import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.NotificationImportant
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.ScreenRotation
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.Terminal
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,7 +72,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Observer
 import androidx.navigation.NavController
 import com.nexaflow.core.ui.IconBadge
@@ -71,38 +89,100 @@ import com.nexaflow.domain.models.ConditionType
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 
+enum class ActionCategory(val headerRes: Int) {
+    DISPLAY(R.string.category_display),
+    SOUND(R.string.category_sound),
+    CONNECTIVITY(R.string.category_connectivity),
+    MEDIA(R.string.category_media),
+    NOTIFICATIONS(R.string.category_notifications),
+    APPS(R.string.category_apps),
+    SYSTEM(R.string.category_system),
+    BATTERY(R.string.category_battery),
+    ADVANCED(R.string.category_advanced)
+}
+
 data class ActionOption(
     val titleRes: Int,
     val subtitleRes: Int,
     val icon: ImageVector,
     val color: Color,
-    val actionType: ActionType
+    val actionType: ActionType,
+    val category: ActionCategory
 )
 
 private val actionOptions = listOf(
-    ActionOption(R.string.action_brightness, R.string.action_brightness_sub, Icons.Filled.FlashOn, Color(0xFF1B62B7), ActionType.SYSTEM_BRIGHTNESS),
-    ActionOption(R.string.action_volume, R.string.action_volume_sub, Icons.Filled.VolumeUp, Color(0xFF7A5BD1), ActionType.SYSTEM_VOLUME),
-    ActionOption(R.string.action_dnd, R.string.action_dnd_sub, Icons.Filled.DoNotDisturb, Color(0xFFE5533D), ActionType.SYSTEM_DND),
-    ActionOption(R.string.action_open_apps, R.string.action_open_apps_sub, Icons.Filled.Apps, Color(0xFF2FA84F), ActionType.SYSTEM_OPEN_APP),
-    ActionOption(R.string.action_close_app, R.string.action_close_app_sub, Icons.Filled.Close, Color(0xFFE5533D), ActionType.APPLICATION_CLOSE_APP),
-    ActionOption(R.string.action_notification, R.string.action_notification_sub, Icons.Filled.NotificationImportant, Color(0xFFE8A33D), ActionType.SYSTEM_SEND_NOTIFICATION),
-    ActionOption(R.string.action_wifi, R.string.action_wifi_sub, Icons.Filled.Wifi, Color(0xFF1B62B7), ActionType.SYSTEM_WIFI),
-    ActionOption(R.string.action_bluetooth, R.string.action_bluetooth_sub, Icons.Filled.Bluetooth, Color(0xFF2FA84F), ActionType.SYSTEM_BLUETOOTH),
-    ActionOption(R.string.action_flashlight, R.string.action_flashlight_sub, Icons.Filled.FlashOn, Color(0xFFE8A33D), ActionType.SYSTEM_FLASHLIGHT),
-    ActionOption(R.string.action_airplane, R.string.action_airplane_sub, Icons.Filled.AirplanemodeActive, Color(0xFF13A5A8), ActionType.SYSTEM_AIRPLANE_MODE),
-    ActionOption(R.string.action_media_play, R.string.action_media_play_sub, Icons.Filled.MusicNote, Color(0xFF7A5BD1), ActionType.SYSTEM_MEDIA_PLAY_PAUSE),
-    ActionOption(R.string.action_media_next, R.string.action_media_next_sub, Icons.Filled.MusicNote, Color(0xFF7A5BD1), ActionType.SYSTEM_MEDIA_NEXT),
-    ActionOption(R.string.action_media_prev, R.string.action_media_prev_sub, Icons.Filled.MusicNote, Color(0xFF7A5BD1), ActionType.SYSTEM_MEDIA_PREVIOUS),
-    ActionOption(R.string.action_open_url, R.string.action_open_url_sub, Icons.Filled.Link, Color(0xFF1B62B7), ActionType.SYSTEM_OPEN_URL),
-    ActionOption(R.string.action_clear_notifs, R.string.action_clear_notifs_sub, Icons.Filled.Notifications, Color(0xFFE8A33D), ActionType.SYSTEM_CLEAR_NOTIFICATIONS),
-    ActionOption(R.string.action_expand_bar, R.string.action_expand_bar_sub, Icons.Filled.NotificationImportant, Color(0xFF13A5A8), ActionType.SYSTEM_EXPAND_STATUS_BAR),
-    ActionOption(R.string.action_collapse_bar, R.string.action_collapse_bar_sub, Icons.Filled.NotificationImportant, Color(0xFF13A5A8), ActionType.SYSTEM_COLLAPSE_STATUS_BAR),
-    ActionOption(R.string.action_rotation, R.string.action_rotation_sub, Icons.Filled.ScreenRotation, Color(0xFF13A5A8), ActionType.SYSTEM_SCREEN_ROTATION),
-    ActionOption(R.string.action_battery_alert, R.string.action_battery_alert_sub, Icons.Filled.BatteryAlert, Color(0xFFE5533D), ActionType.BATTERY_ALERTS),
-    ActionOption(R.string.action_charging_alert, R.string.action_charging_alert_sub, Icons.Filled.BatteryAlert, Color(0xFF2FA84F), ActionType.BATTERY_CHARGING_NOTIFICATIONS),
-    ActionOption(R.string.action_shizuku, R.string.action_shizuku_sub, Icons.Filled.Terminal, Color(0xFF1B62B7), ActionType.ADVANCED_SHIZUKU),
-    ActionOption(R.string.action_root, R.string.action_root_sub, Icons.Filled.Terminal, Color(0xFFE5533D), ActionType.ADVANCED_ROOT)
+    // DISPLAY
+    ActionOption(R.string.action_brightness, R.string.action_brightness_sub, Icons.Filled.FlashOn, Color(0xFF1B62B7), ActionType.SYSTEM_BRIGHTNESS, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_rotation, R.string.action_rotation_sub, Icons.Filled.ScreenRotation, Color(0xFF13A5A8), ActionType.SYSTEM_SCREEN_ROTATION, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_screen_timeout, R.string.action_screen_timeout_sub, Icons.Filled.ScreenRotation, Color(0xFF1B62B7), ActionType.SYSTEM_SCREEN_TIMEOUT, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_stay_awake, R.string.action_stay_awake_sub, Icons.Filled.WbSunny, Color(0xFFE8A33D), ActionType.SYSTEM_STAY_AWAKE, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_auto_brightness, R.string.action_auto_brightness_sub, Icons.Filled.FlashOn, Color(0xFF1B62B7), ActionType.SYSTEM_AUTO_BRIGHTNESS, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_dark_mode, R.string.action_dark_mode_sub, Icons.Filled.DarkMode, Color(0xFF7A5BD1), ActionType.SYSTEM_DARK_MODE, ActionCategory.DISPLAY),
+    // SOUND
+    ActionOption(R.string.action_volume, R.string.action_volume_sub, Icons.AutoMirrored.Filled.VolumeUp, Color(0xFF7A5BD1), ActionType.SYSTEM_VOLUME, ActionCategory.SOUND),
+    ActionOption(R.string.action_ringer, R.string.action_ringer_sub, Icons.AutoMirrored.Filled.VolumeUp, Color(0xFF7A5BD1), ActionType.SYSTEM_RINGER_MODE, ActionCategory.SOUND),
+    ActionOption(R.string.action_dnd, R.string.action_dnd_sub, Icons.Filled.DoNotDisturb, Color(0xFFE5533D), ActionType.SYSTEM_DND, ActionCategory.SOUND),
+    // CONNECTIVITY
+    ActionOption(R.string.action_wifi, R.string.action_wifi_sub, Icons.Filled.Wifi, Color(0xFF1B62B7), ActionType.SYSTEM_WIFI, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_bluetooth, R.string.action_bluetooth_sub, Icons.Filled.Bluetooth, Color(0xFF2FA84F), ActionType.SYSTEM_BLUETOOTH, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_mobile_data, R.string.action_mobile_data_sub, Icons.Filled.SignalCellularAlt, Color(0xFF13A5A8), ActionType.SYSTEM_MOBILE_DATA, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_hotspot, R.string.action_hotspot_sub, Icons.Filled.Wifi, Color(0xFF2FA84F), ActionType.SYSTEM_HOTSPOT, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_nfc, R.string.action_nfc_sub, Icons.Filled.Nfc, Color(0xFF1B62B7), ActionType.SYSTEM_NFC, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_airplane, R.string.action_airplane_sub, Icons.Filled.AirplanemodeActive, Color(0xFF13A5A8), ActionType.SYSTEM_AIRPLANE_MODE, ActionCategory.CONNECTIVITY),
+    // MEDIA
+    ActionOption(R.string.action_media_play, R.string.action_media_play_sub, Icons.Filled.MusicNote, Color(0xFF7A5BD1), ActionType.SYSTEM_MEDIA_PLAY_PAUSE, ActionCategory.MEDIA),
+    ActionOption(R.string.action_media_next, R.string.action_media_next_sub, Icons.Filled.MusicNote, Color(0xFF7A5BD1), ActionType.SYSTEM_MEDIA_NEXT, ActionCategory.MEDIA),
+    ActionOption(R.string.action_media_prev, R.string.action_media_prev_sub, Icons.Filled.MusicNote, Color(0xFF7A5BD1), ActionType.SYSTEM_MEDIA_PREVIOUS, ActionCategory.MEDIA),
+    // NOTIFICATIONS
+    ActionOption(R.string.action_notification, R.string.action_notification_sub, Icons.Filled.NotificationImportant, Color(0xFFE8A33D), ActionType.SYSTEM_SEND_NOTIFICATION, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_clear_notifs, R.string.action_clear_notifs_sub, Icons.Filled.Notifications, Color(0xFFE8A33D), ActionType.SYSTEM_CLEAR_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_expand_bar, R.string.action_expand_bar_sub, Icons.Filled.NotificationImportant, Color(0xFF13A5A8), ActionType.SYSTEM_EXPAND_STATUS_BAR, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_collapse_bar, R.string.action_collapse_bar_sub, Icons.Filled.NotificationImportant, Color(0xFF13A5A8), ActionType.SYSTEM_COLLAPSE_STATUS_BAR, ActionCategory.NOTIFICATIONS),
+    // APPS
+    ActionOption(R.string.action_open_apps, R.string.action_open_apps_sub, Icons.Filled.Apps, Color(0xFF2FA84F), ActionType.SYSTEM_OPEN_APP, ActionCategory.APPS),
+    ActionOption(R.string.action_close_app, R.string.action_close_app_sub, Icons.Filled.Close, Color(0xFFE5533D), ActionType.APPLICATION_CLOSE_APP, ActionCategory.APPS),
+    ActionOption(R.string.action_open_app_settings, R.string.action_open_app_settings_sub, Icons.Filled.Settings, Color(0xFF1B62B7), ActionType.APPLICATION_OPEN_APP_SETTINGS, ActionCategory.APPS),
+    // SYSTEM
+    ActionOption(R.string.action_flashlight, R.string.action_flashlight_sub, Icons.Filled.FlashOn, Color(0xFFE8A33D), ActionType.SYSTEM_FLASHLIGHT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_url, R.string.action_open_url_sub, Icons.Filled.Link, Color(0xFF1B62B7), ActionType.SYSTEM_OPEN_URL, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_power_saver, R.string.action_power_saver_sub, Icons.Filled.BatteryAlert, Color(0xFF2FA84F), ActionType.SYSTEM_POWER_SAVER, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_animations, R.string.action_animations_sub, Icons.Filled.Palette, Color(0xFF7A5BD1), ActionType.SYSTEM_ANIMATIONS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_lock_screen, R.string.action_lock_screen_sub, Icons.Filled.Lock, Color(0xFFE5533D), ActionType.SYSTEM_LOCK_SCREEN, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_set_alarm, R.string.action_set_alarm_sub, Icons.Filled.Schedule, Color(0xFF13A5A8), ActionType.SYSTEM_SET_ALARM, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_recents, R.string.action_open_recents_sub, Icons.Filled.Apps, Color(0xFF1B62B7), ActionType.SYSTEM_OPEN_RECENTS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_go_home, R.string.action_go_home_sub, Icons.Filled.Home, Color(0xFF2FA84F), ActionType.SYSTEM_GO_HOME, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_ring_volume, R.string.action_ring_volume_sub, Icons.Filled.PhoneAndroid, Color(0xFF7A5BD1), ActionType.SYSTEM_RING_VOLUME, ActionCategory.SOUND),
+    ActionOption(R.string.action_location, R.string.action_location_sub, Icons.Filled.LocationOn, Color(0xFF2FA84F), ActionType.SYSTEM_LOCATION, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_play_updates, R.string.action_play_updates_sub, Icons.Filled.Storefront, Color(0xFF13A5A8), ActionType.SYSTEM_OPEN_PLAY_UPDATES, ActionCategory.APPS),
+    ActionOption(R.string.action_galaxy_store, R.string.action_galaxy_store_sub, Icons.Filled.Storefront, Color(0xFF1B62B7), ActionType.SYSTEM_OPEN_GALAXY_STORE, ActionCategory.APPS),
+    ActionOption(R.string.action_send_sms, R.string.action_send_sms_sub, Icons.Filled.NotificationImportant, Color(0xFF2FA84F), ActionType.SYSTEM_SEND_SMS, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_reminder, R.string.action_reminder_sub, Icons.Filled.NotificationsActive, Color(0xFFE8A33D), ActionType.SYSTEM_SEND_REMINDER, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_open_settings, R.string.action_open_settings_sub, Icons.Filled.Settings, Color(0xFF1B62B7), ActionType.SYSTEM_OPEN_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_wait, R.string.action_wait_sub, Icons.Filled.Schedule, Color(0xFF7A5BD1), ActionType.SYSTEM_WAIT, ActionCategory.SYSTEM),
+    // BATTERY
+    ActionOption(R.string.action_battery_alert, R.string.action_battery_alert_sub, Icons.Filled.BatteryAlert, Color(0xFFE5533D), ActionType.BATTERY_ALERTS, ActionCategory.BATTERY),
+    ActionOption(R.string.action_charging_alert, R.string.action_charging_alert_sub, Icons.Filled.BatteryAlert, Color(0xFF2FA84F), ActionType.BATTERY_CHARGING_NOTIFICATIONS, ActionCategory.BATTERY),
+    // ADVANCED
+    ActionOption(R.string.action_shizuku, R.string.action_shizuku_sub, Icons.Filled.Terminal, Color(0xFF1B62B7), ActionType.ADVANCED_SHIZUKU, ActionCategory.ADVANCED),
+    ActionOption(R.string.action_root, R.string.action_root_sub, Icons.Filled.Terminal, Color(0xFFE5533D), ActionType.ADVANCED_ROOT, ActionCategory.ADVANCED)
 )
+
+private val actionCategories: List<ActionCategory> = ActionCategory.entries.toList()
+
+/** Parses "geo:lat,lng..." (and geo:0,0?q=lat,lng) into a (lat, lng) pair. */
+private fun parseGeoUri(uri: String): Pair<Double, Double>? {
+    if (!uri.startsWith("geo:")) return null
+    val coordsPart = uri.removePrefix("geo:").substringBefore("?")
+    val parts = coordsPart.split(',')
+    if (parts.size < 2) return null
+    val lat = parts[0].toDoubleOrNull() ?: return null
+    val lng = parts[1].toDoubleOrNull() ?: return null
+    if (lat == 0.0 && lng == 0.0) {
+        // Some map apps return geo:0,0?q=<address> instead of coordinates.
+        return null
+    }
+    return lat to lng
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -119,6 +199,19 @@ fun AutomationBuilderScreen(navController: NavController) {
     var rangeEnd by remember { mutableStateOf("07:00") }
     var rangePickerTarget by remember { mutableStateOf<String?>(null) }
     var appPickerTarget by remember { mutableStateOf<String?>(null) }
+    var mapPickerTarget by remember { mutableStateOf<Int?>(null) }
+    val mapLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val index = mapPickerTarget ?: return@rememberLauncherForActivityResult
+        mapPickerTarget = null
+        val data = result.data?.data?.toString().orEmpty()
+        val coords = parseGeoUri(data)
+        if (coords != null && index in triggers.indices) {
+            val current = triggers[index]
+            triggers[index] = current.copy(
+                config = current.config + ("lat" to coords.first.toString()) + ("lng" to coords.second.toString())
+            )
+        }
+    }
     val actionConfigs = remember { mutableStateMapOf<ActionType, Map<String, String>>() }
     val selectedActions = remember { mutableStateListOf<ActionOption>() }
 
@@ -131,6 +224,13 @@ fun AutomationBuilderScreen(navController: NavController) {
         onDispose {
             savedStateHandle?.getLiveData<Int>("selected_icon")?.removeObserver(observer)
         }
+    }
+
+    fun moveAction(from: Int, to: Int) {
+        if (from !in selectedActions.indices || to !in selectedActions.indices) return
+        if (from == to) return
+        val item = selectedActions.removeAt(from)
+        selectedActions.add(to, item)
     }
 
     fun save() {
@@ -225,7 +325,19 @@ fun AutomationBuilderScreen(navController: NavController) {
                         triggers[index] = updated
                     },
                     onRemove = { triggers.removeAt(index) },
-                    onPickApp = { appPickerTarget = "trigger:$index" }
+                    onPickApp = { appPickerTarget = "trigger:$index" },
+                    onPickFromMap = {
+                        mapPickerTarget = index
+                        try {
+                            mapLauncher.launch(
+                                Intent(Intent.ACTION_PICK, Uri.parse("geo:0,0?z=15")).apply {
+                                    `package` = "com.google.android.apps.maps"
+                                }
+                            )
+                        } catch (_: Throwable) {
+                            mapLauncher.launch(Intent(Intent.ACTION_PICK, Uri.parse("geo:0,0?z=15")))
+                        }
+                    }
                 )
             }
             Button(
@@ -285,76 +397,54 @@ fun AutomationBuilderScreen(navController: NavController) {
                 }
             }
             SectionHeader(text = stringResource(R.string.section_actions))
-            NexaFlowCard {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    actionOptions.forEach { option ->
-                        val checked = option in selectedActions
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    if (checked) selectedActions.remove(option) else selectedActions.add(option)
+            actionCategories.forEach { category ->
+                val categoryOptions = actionOptions.filter { it.category == category }
+                if (categoryOptions.isNotEmpty()) {
+                    itemHeader(text = stringResource(category.headerRes))
+                    NexaFlowCard {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            categoryOptions.forEach { option ->
+                                ActionOptionRow(
+                                    option = option,
+                                    checked = option in selectedActions,
+                                    onToggle = {
+                                        if (option in selectedActions) selectedActions.remove(option)
+                                        else selectedActions.add(option)
+                                    }
+                                )
+                                if (option in selectedActions) {
+                                    val config = actionConfigs[option.actionType] ?: emptyMap()
+                                    ActionConfigEditor(
+                                        option = option,
+                                        config = config,
+                                        onConfigChange = { actionConfigs[option.actionType] = it },
+                                        onPickApp = { appPickerTarget = "action:${option.actionType.name}" }
+                                    )
+                                    PermissionHintForAction(
+                                        actionType = option.actionType,
+                                        context = context
+                                    )
+                                    Spacer(modifier = Modifier.padding(top = 4.dp))
                                 }
-                                .padding(vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            IconBadge(icon = option.icon, containerColor = option.color, size = 36)
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(text = stringResource(option.titleRes), style = MaterialTheme.typography.bodyLarge)
-                                Text(
-                                    text = stringResource(option.subtitleRes),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
                             }
-                            Icon(
-                                imageVector = if (checked) Icons.Filled.Check else Icons.Filled.Add,
-                                contentDescription = null,
-                                tint = if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-                            )
-                        }
-                        if (checked) {
-                            val config = actionConfigs[option.actionType] ?: emptyMap()
-                            ActionConfigEditor(
-                                option = option,
-                                config = config,
-                                onConfigChange = { actionConfigs[option.actionType] = it },
-                                onPickApp = { appPickerTarget = "action" }
-                            )
-                            when (option.actionType) {
-                                ActionType.SYSTEM_BRIGHTNESS,
-                                ActionType.SYSTEM_SCREEN_ROTATION -> PermissionHint(
-                                    text = stringResource(R.string.write_settings_hint),
-                                    buttonLabel = stringResource(R.string.grant),
-                                    onClick = { PermissionShortcuts.openWriteSettings(context) }
-                                )
-                                ActionType.SYSTEM_DND -> PermissionHint(
-                                    text = stringResource(R.string.dnd_hint),
-                                    buttonLabel = stringResource(R.string.grant),
-                                    onClick = { PermissionShortcuts.openNotificationPolicy(context) }
-                                )
-                                ActionType.SYSTEM_FLASHLIGHT -> PermissionHint(
-                                    text = stringResource(R.string.flashlight_hint),
-                                    buttonLabel = stringResource(R.string.grant),
-                                    onClick = { PermissionShortcuts.openAppSettings(context) }
-                                )
-                                ActionType.ADVANCED_SHIZUKU -> PermissionHint(
-                                    text = stringResource(R.string.shizuku_hint),
-                                    buttonLabel = stringResource(R.string.info),
-                                    onClick = { PermissionShortcuts.openShizukuManager(context) }
-                                )
-                                ActionType.ADVANCED_ROOT -> PermissionHint(
-                                    text = stringResource(R.string.root_hint),
-                                    buttonLabel = stringResource(R.string.info),
-                                    onClick = { PermissionShortcuts.openShizukuManager(context) }
-                                )
-                                else -> Unit
-                            }
-                            Spacer(modifier = Modifier.padding(top = 4.dp))
                         }
                     }
                 }
+            }
+            if (selectedActions.isNotEmpty()) {
+                SectionHeader(text = stringResource(R.string.section_execution_order))
+                NexaFlowCard {
+                    ActionOrderSection(
+                        actions = selectedActions.toList(),
+                        onMove = { from, to -> moveAction(from, to) },
+                        onRemove = { option -> selectedActions.remove(option) }
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.execution_order_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
             }
             Button(onClick = { save() }, modifier = Modifier.fillMaxWidth()) {
                 Text(text = stringResource(R.string.save_automation))
@@ -386,24 +476,41 @@ fun AutomationBuilderScreen(navController: NavController) {
                 onDismiss = { appPickerTarget = null }
             )
         } else {
-            AppPickerDialog(
-                onPickSingle = { app ->
-                    val existing = actionConfigs[ActionType.SYSTEM_OPEN_APP]
-                    val current = (existing?.get("packages") ?: existing?.get("package") ?: "")
-                        .split(',')
-                        .map { it.trim() }
-                        .filter { it.isNotEmpty() }
-                    val merged = (current + app.packageName).distinct()
-                    actionConfigs[ActionType.SYSTEM_OPEN_APP] = mapOf("packages" to merged.joinToString(","))
-                    appPickerTarget = null
-                },
-                onPickMultiple = { packages ->
-                    actionConfigs[ActionType.SYSTEM_OPEN_APP] = mapOf("packages" to packages.joinToString(",") { it.packageName })
-                    appPickerTarget = null
-                },
-                multiSelect = true,
-                onDismiss = { appPickerTarget = null }
-            )
+            val actionTypeName = target.removePrefix("action:")
+            val isOpenApp = actionTypeName == ActionType.SYSTEM_OPEN_APP.name
+            val singlePickType = when (actionTypeName) {
+                ActionType.APPLICATION_CLOSE_APP.name -> ActionType.APPLICATION_CLOSE_APP
+                ActionType.APPLICATION_OPEN_APP_SETTINGS.name -> ActionType.APPLICATION_OPEN_APP_SETTINGS
+                else -> null
+            }
+            when {
+                isOpenApp -> AppPickerDialog(
+                    onPickSingle = { app ->
+                        val existing = actionConfigs[ActionType.SYSTEM_OPEN_APP]
+                        val current = (existing?.get("packages") ?: existing?.get("package") ?: "")
+                            .split(',')
+                            .map { it.trim() }
+                            .filter { it.isNotEmpty() }
+                        val merged = (current + app.packageName).distinct()
+                        actionConfigs[ActionType.SYSTEM_OPEN_APP] = mapOf("packages" to merged.joinToString(","))
+                        appPickerTarget = null
+                    },
+                    onPickMultiple = { packages ->
+                        actionConfigs[ActionType.SYSTEM_OPEN_APP] = mapOf("packages" to packages.joinToString(",") { it.packageName })
+                        appPickerTarget = null
+                    },
+                    multiSelect = true,
+                    onDismiss = { appPickerTarget = null }
+                )
+                singlePickType != null -> AppPickerDialog(
+                    onPickSingle = { app ->
+                        actionConfigs[singlePickType] = mapOf("package" to app.packageName)
+                        appPickerTarget = null
+                    },
+                    onDismiss = { appPickerTarget = null }
+                )
+                else -> appPickerTarget = null
+            }
         }
     }
 }

@@ -32,7 +32,7 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "nexaflow.db"
-        ).fallbackToDestructiveMigration().build()
+        ).fallbackToDestructiveMigration(dropAllTables = true).build()
     }
 
     @Provides

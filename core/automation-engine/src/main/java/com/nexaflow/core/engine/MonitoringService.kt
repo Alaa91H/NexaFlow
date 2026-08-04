@@ -43,6 +43,13 @@ class MonitoringService : Service() {
         return START_STICKY
     }
 
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        // The user swiped the app away: schedule an immediate restart so the
+        // monitoring service keeps running in the background.
+        super.onTaskRemoved(rootIntent)
+        scheduleRestart()
+    }
+
     override fun onDestroy() {
         isRunning = false
         batteryMonitor.stop()
@@ -50,6 +57,27 @@ class MonitoringService : Service() {
         connectivityMonitor.stop()
         locationMonitor.stop()
         super.onDestroy()
+    }
+
+    /** Restarts the service shortly after the task is removed from recents. */
+    private fun scheduleRestart() {
+        try {
+            val alarmManager = getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+            val intent = Intent(this, MonitoringService::class.java)
+            val pendingIntent = android.app.PendingIntent.getService(
+                this,
+                RESTART_REQUEST_CODE,
+                intent,
+                android.app.PendingIntent.FLAG_ONE_SHOT or android.app.PendingIntent.FLAG_IMMUTABLE
+            )
+            alarmManager.set(
+                android.app.AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis() + RESTART_DELAY_MS,
+                pendingIntent
+            )
+        } catch (_: Throwable) {
+            // Best-effort; START_STICKY also brings the service back.
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -83,6 +111,8 @@ class MonitoringService : Service() {
     companion object {
         private const val CHANNEL_ID = "nexaflow_monitoring"
         private const val NOTIFICATION_ID = 2001
+        private const val RESTART_REQUEST_CODE = 42001
+        private const val RESTART_DELAY_MS = 15_000L
 
         @Volatile
         var isRunning: Boolean = false

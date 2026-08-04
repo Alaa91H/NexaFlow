@@ -323,6 +323,396 @@ class SystemController(
         }
     }
 
+    /** Screen timeout (seconds). Requires WRITE_SETTINGS or an elevated runtime. */
+    fun setScreenTimeout(seconds: Int): SystemControlResult {
+        val millis = seconds.coerceIn(10, 1800) * 1000
+        return setScreenTimeoutMillis(millis)
+    }
+
+    /** Keep the screen on while charging. Requires WRITE_SETTINGS or an elevated runtime. */
+    fun setStayAwake(enabled: Boolean): SystemControlResult {
+        val value = if (enabled) 1 else 0
+        return writeSystemInt(
+            name = "stay_on_while_plugged_in",
+            value = value,
+            successMessage = if (enabled) "Stay-awake enabled" else "Stay-awake disabled"
+        )
+    }
+
+    /** Toggle automatic (adaptive) brightness. Requires WRITE_SETTINGS or an elevated runtime. */
+    fun setAutoBrightness(enabled: Boolean): SystemControlResult {
+        val mode = if (enabled) Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC
+        else Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL
+        return writeSystemInt(
+            name = Settings.System.SCREEN_BRIGHTNESS_MODE,
+            value = mode,
+            successMessage = if (enabled) "Auto-brightness enabled" else "Auto-brightness disabled"
+        )
+    }
+
+    /** Ringer mode: NORMAL / VIBRATE / SILENT. Needs DND access or elevated runtime. */
+    fun setRingerMode(mode: String): SystemControlResult {
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val ringerMode = when (mode.uppercase()) {
+            "VIBRATE" -> AudioManager.RINGER_MODE_VIBRATE
+            "SILENT" -> AudioManager.RINGER_MODE_SILENT
+            else -> AudioManager.RINGER_MODE_NORMAL
+        }
+        val label = mode.uppercase().lowercase().replaceFirstChar { it.uppercase() }
+        return try {
+            if (!capabilityProvider.isAvailable(RomCapability.DND_ACCESS)) {
+                return tryPrivileged(
+                    command = "cmd audio set_mode $ringerMode",
+                    successMessage = "Ringer mode set to $label"
+                )
+            }
+            audioManager.ringerMode = ringerMode
+            SystemControlResult.ok("Ringer mode set to $label")
+        } catch (t: Throwable) {
+            tryPrivileged(
+                command = "cmd audio set_mode $ringerMode",
+                successMessage = "Ringer mode set to $label"
+            ).takeIf { it.success } ?: SystemControlResult.fail("Failed to set ringer mode: ${t.message}")
+        }
+    }
+
+    /** Toggle mobile data. Requires MODIFY_PHONE_STATE or an elevated runtime. */
+    fun setMobileData(enabled: Boolean): SystemControlResult {
+        if (!capabilityProvider.isAvailable(RomCapability.MODIFY_PHONE_STATE)) {
+            return tryPrivileged(
+                command = "svc data ${if (enabled) "enable" else "disable"}",
+                successMessage = if (enabled) "Mobile data enabled" else "Mobile data disabled"
+            )
+        }
+        return try {
+            val telephony = context.getSystemService(Context.TELEPHONY_SERVICE)
+            RomSystemApiBridge.invokeInstance(telephony, "setDataEnabled", enabled)
+            SystemControlResult.ok(if (enabled) "Mobile data enabled" else "Mobile data disabled")
+        } catch (t: Throwable) {
+            tryPrivileged(
+                command = "svc data ${if (enabled) "enable" else "disable"}",
+                successMessage = if (enabled) "Mobile data enabled" else "Mobile data disabled"
+            )
+        }
+    }
+
+    /** Toggle Wi-Fi hotspot. Requires an elevated runtime (root/Shizuku/system). */
+    fun setHotspot(enabled: Boolean): SystemControlResult {
+        return try {
+            val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+            if (wifiManager == null) {
+                return tryPrivileged(
+                    command = "cmd connectivity set-softap ${if (enabled) "enable" else "disable"}",
+                    successMessage = if (enabled) "Hotspot enabled" else "Hotspot disabled"
+                )
+            }
+            val method = wifiManager.javaClass.getMethod(
+                "setWifiApEnabled",
+                android.net.wifi.WifiConfiguration::class.java,
+                Boolean::class.javaPrimitiveType
+            )
+            val success = method.invoke(wifiManager, null, enabled) as? Boolean ?: false
+            if (success) {
+                SystemControlResult.ok(if (enabled) "Hotspot enabled" else "Hotspot disabled")
+            } else {
+                tryPrivileged(
+                    command = "cmd connectivity set-softap ${if (enabled) "enable" else "disable"}",
+                    successMessage = if (enabled) "Hotspot enabled" else "Hotspot disabled"
+                )
+            }
+        } catch (t: Throwable) {
+            tryPrivileged(
+                command = "cmd connectivity set-softap ${if (enabled) "enable" else "disable"}",
+                successMessage = if (enabled) "Hotspot enabled" else "Hotspot disabled"
+            ).takeIf { it.success } ?: SystemControlResult.fail("Failed to toggle hotspot: ${t.message}")
+        }
+    }
+
+    /** Toggle NFC. Requires WRITE_SECURE_SETTINGS or an elevated runtime. */
+    fun setNfc(enabled: Boolean): SystemControlResult {
+        return try {
+            val nfcManager = context.getSystemService("nfc")
+            if (nfcManager != null) {
+                val set = runCatching {
+                    RomSystemApiBridge.invokeInstance(nfcManager, "setNfcEnabled", enabled)
+                }.isSuccess
+                if (set) {
+                    return SystemControlResult.ok(if (enabled) "NFC enabled" else "NFC disabled")
+                }
+            }
+            tryPrivileged(
+                command = "svc nfc ${if (enabled) "enable" else "disable"}",
+                successMessage = if (enabled) "NFC enabled" else "NFC disabled"
+            )
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to toggle NFC: ${t.message}")
+        }
+    }
+
+    /** Toggle battery saver. Requires elevated runtime on most ROMs. */
+    fun setPowerSaver(enabled: Boolean): SystemControlResult {
+        return tryPrivileged(
+            command = "settings put global low_power ${if (enabled) 1 else 0}",
+            successMessage = if (enabled) "Battery saver enabled" else "Battery saver disabled"
+        )
+    }
+
+    /** Enable or disable system animations. Requires WRITE_SECURE_SETTINGS or elevated runtime. */
+    fun setAnimations(enabled: Boolean): SystemControlResult {
+        val scale = if (enabled) 1.0f else 0.0f
+        return try {
+            val names = listOf(
+                Settings.Global.WINDOW_ANIMATION_SCALE,
+                Settings.Global.TRANSITION_ANIMATION_SCALE,
+                Settings.Global.ANIMATOR_DURATION_SCALE
+            )
+            if (!capabilityProvider.isAvailable(RomCapability.WRITE_SECURE_SETTINGS)) {
+                val cmd = names.joinToString(" && ") {
+                    "settings put global $it $scale"
+                }
+                return tryPrivileged(
+                    command = cmd,
+                    successMessage = if (enabled) "Animations enabled" else "Animations disabled"
+                )
+            }
+            names.forEach {
+                Settings.Global.putFloat(context.contentResolver, it, scale)
+            }
+            SystemControlResult.ok(if (enabled) "Animations enabled" else "Animations disabled")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to change animations: ${t.message}")
+        }
+    }
+
+    /** Lock the screen now. Needs a device admin or an elevated runtime. */
+    fun lockScreenNow(): SystemControlResult {
+        return try {
+            val policyManager = context.getSystemService(Context.DEVICE_POLICY_SERVICE)
+            val dpm = policyManager as android.app.admin.DevicePolicyManager
+            val admins = dpm.activeAdmins
+            if (admins != null && admins.any { it.packageName == context.packageName }) {
+                dpm.lockNow()
+                SystemControlResult.ok("Screen locked")
+            } else {
+                tryPrivileged(
+                    command = "input keyevent 26",
+                    successMessage = "Screen locked"
+                )
+            }
+        } catch (t: Throwable) {
+            tryPrivileged(
+                command = "input keyevent 26",
+                successMessage = "Screen locked"
+            ).takeIf { it.success } ?: SystemControlResult.fail("Failed to lock screen: ${t.message}")
+        }
+    }
+
+    /** Create an alarm via the system clock app. Works on all devices. */
+    fun setAlarm(hour: Int, minute: Int): SystemControlResult {
+        return try {
+            val intent = Intent(android.provider.AlarmClock.ACTION_SET_ALARM)
+                .putExtra(android.provider.AlarmClock.EXTRA_HOUR, hour)
+                .putExtra(android.provider.AlarmClock.EXTRA_MINUTES, minute)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            SystemControlResult.ok("Alarm set for %02d:%02d".format(hour, minute))
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to set alarm: ${t.message}")
+        }
+    }
+
+    /** Force dark mode via ui_mode night override. Requires WRITE_SECURE_SETTINGS or elevated runtime. */
+    fun setDarkMode(enabled: Boolean): SystemControlResult {
+        val value = if (enabled) 2 else 1
+        return writeSecureInt(
+            name = "ui_night_mode",
+            value = value,
+            successMessage = if (enabled) "Dark mode enabled" else "Dark mode disabled"
+        )
+    }
+
+    /** Open the recent-apps screen. Requires status bar control or elevated runtime. */
+    fun openRecents(): SystemControlResult {
+        if (!capabilityProvider.isAvailable(RomCapability.STATUS_BAR_CONTROL)) {
+            return tryPrivileged(
+                command = "input keyevent KEYCODE_APP_SWITCH",
+                successMessage = "Recents opened"
+            )
+        }
+        return try {
+            val service = context.getSystemService("statusbar")
+                ?: return SystemControlResult.fail("Status bar service is unavailable")
+            RomSystemApiBridge.invokeInstance(service, "toggleRecentApps")
+            SystemControlResult.ok("Recents opened")
+        } catch (t: Throwable) {
+            tryPrivileged(
+                command = "input keyevent KEYCODE_APP_SWITCH",
+                successMessage = "Recents opened"
+            )
+        }
+    }
+
+    /** Go to the home screen. Requires an elevated runtime or accessibility. */
+    fun goHome(): SystemControlResult {
+        return tryPrivileged(
+            command = "input keyevent KEYCODE_HOME",
+            successMessage = "Home screen shown"
+        )
+    }
+
+    /** Set the ring (incoming call) volume. Requires no special permission. */
+    fun setRingVolume(value: Int): SystemControlResult {
+        return try {
+            val audioManager = context.getSystemService(AudioManager::class.java)
+            val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_RING)
+            val clamped = value.coerceIn(0, max)
+            audioManager.setStreamVolume(AudioManager.STREAM_RING, clamped, 0)
+            SystemControlResult.ok("Ring volume set to $clamped")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to set ring volume: ${t.message}")
+        }
+    }
+
+    /** Toggle GPS/location. Requires WRITE_SECURE_SETTINGS or an elevated runtime. */
+    @Suppress("DEPRECATION")
+    fun setLocationEnabled(enabled: Boolean): SystemControlResult {
+        if (!capabilityProvider.isAvailable(RomCapability.WRITE_SECURE_SETTINGS)) {
+            return tryPrivileged(
+                command = "settings put secure location_mode ${if (enabled) 3 else 0}",
+                successMessage = if (enabled) "Location enabled" else "Location disabled"
+            )
+        }
+        return try {
+            val written = Settings.Secure.putInt(
+                context.contentResolver,
+                Settings.Secure.LOCATION_MODE,
+                if (enabled) Settings.Secure.LOCATION_MODE_HIGH_ACCURACY else Settings.Secure.LOCATION_MODE_OFF
+            )
+            if (written) {
+                SystemControlResult.ok(if (enabled) "Location enabled" else "Location disabled")
+            } else {
+                tryPrivileged(
+                    command = "settings put secure location_mode ${if (enabled) 3 else 0}",
+                    successMessage = if (enabled) "Location enabled" else "Location disabled"
+                )
+            }
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to change location: ${t.message}")
+        }
+    }
+
+    /** Open the Google Play Store updates page. Works on all devices. */
+    fun openPlayStoreUpdates(): SystemControlResult {
+        return try {
+            val intent = Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("https://play.google.com/store/apps")
+            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            SystemControlResult.ok("Opened Play Store updates")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to open Play Store: ${t.message}")
+        }
+    }
+
+    /** Open the Samsung Galaxy Store (falls back to any installed store). */
+    fun openGalaxyStore(): SystemControlResult {
+        return try {
+            val galaxyIntent = context.packageManager.getLaunchIntentForPackage("com.sec.android.app.samsungapps")
+            if (galaxyIntent != null) {
+                galaxyIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(galaxyIntent)
+                SystemControlResult.ok("Opened Galaxy Store")
+            } else {
+                openPlayStoreUpdates()
+            }
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to open Galaxy Store: ${t.message}")
+        }
+    }
+
+    /** Send an SMS text message. Requires SEND_SMS permission. */
+    fun sendSms(number: String, text: String): SystemControlResult {
+        if (number.isBlank()) return SystemControlResult.fail("No phone number configured")
+        return try {
+            val smsManager = context.getSystemService(android.telephony.SmsManager::class.java)
+            val parts = smsManager.divideMessage(text.ifBlank { "NexaFlow automation" })
+            smsManager.sendMultipartTextMessage(number, null, parts, null, null)
+            SystemControlResult.ok("SMS sent to $number")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to send SMS: ${t.message}")
+        }
+    }
+
+    /** Open a system settings page (Wi-Fi, Bluetooth, location, sound...). */
+    fun openSystemSettings(page: String): SystemControlResult {
+        val settingsIntent = when (page) {
+            "WIFI" -> Intent(Settings.ACTION_WIFI_SETTINGS)
+            "BLUETOOTH" -> Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
+            "LOCATION" -> Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+            "SOUND" -> Intent(Settings.ACTION_SOUND_SETTINGS)
+            "DISPLAY" -> Intent(Settings.ACTION_DISPLAY_SETTINGS)
+            "BATTERY" -> Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS)
+            "NOTIFICATION" -> Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+            "DATA" -> Intent(Settings.ACTION_DATA_ROAMING_SETTINGS)
+            else -> Intent(Settings.ACTION_SETTINGS)
+        }
+        return try {
+            settingsIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(settingsIntent)
+            SystemControlResult.ok("Opened $page settings")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to open settings: ${t.message}")
+        }
+    }
+
+    /** Open the app details page for a package. Works on all devices. */
+    fun openAppSettings(packageName: String): SystemControlResult {
+        if (packageName.isBlank()) return SystemControlResult.fail("No app selected")
+        return try {
+            val intent = Intent(
+                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.parse("package:$packageName")
+            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            SystemControlResult.ok("Opened settings for $packageName")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to open app settings: ${t.message}")
+        }
+    }
+
+    private fun writeSystemInt(name: String, value: Int, successMessage: String): SystemControlResult {
+        if (!capabilityProvider.isAvailable(RomCapability.WRITE_SETTINGS)) {
+            return tryPrivileged(
+                command = "settings put system $name $value",
+                successMessage = successMessage
+            )
+        }
+        return try {
+            val written = Settings.System.putInt(context.contentResolver, name, value)
+            if (written) SystemControlResult.ok(successMessage)
+            else SystemControlResult.fail("The ROM rejected the change")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to change setting: ${t.message}")
+        }
+    }
+
+    private fun writeSecureInt(name: String, value: Int, successMessage: String): SystemControlResult {
+        if (!capabilityProvider.isAvailable(RomCapability.WRITE_SECURE_SETTINGS)) {
+            return tryPrivileged(
+                command = "settings put secure $name $value",
+                successMessage = successMessage
+            )
+        }
+        return try {
+            val written = Settings.Secure.putInt(context.contentResolver, name, value)
+            if (written) SystemControlResult.ok(successMessage)
+            else SystemControlResult.fail("The ROM rejected the change")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to change setting: ${t.message}")
+        }
+    }
+
     fun launchApp(packageName: String): SystemControlResult {
         return try {
             val intent = context.packageManager.getLaunchIntentForPackage(packageName)
@@ -335,7 +725,20 @@ class SystemController(
         }
     }
 
-    fun sendNotification(title: String, text: String, channelId: String = "nexaflow_actions"): SystemControlResult {
+    /**
+     * Sends a notification. `sound` controls the alert tone:
+     *  - RINGTONE: the default ringtone
+     *  - NOTIFICATION: the default notification sound
+     *  - BEEP: a single short beep (played even without notification sound)
+     *  - SILENT: no sound
+     *  - anything else (DEFAULT): the channel default
+     */
+    fun sendNotification(
+        title: String,
+        text: String,
+        channelId: String = "nexaflow_actions",
+        sound: String = "DEFAULT"
+    ): SystemControlResult {
         return try {
             val notificationManager = context.getSystemService(NotificationManager::class.java)
             val channel = NotificationChannel(
@@ -344,16 +747,48 @@ class SystemController(
                 NotificationManager.IMPORTANCE_DEFAULT
             )
             notificationManager.createNotificationChannel(channel)
-            val notification = NotificationCompat.Builder(context, channelId)
+
+            val soundUri = when (sound) {
+                "RINGTONE" -> android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_RINGTONE)
+                "NOTIFICATION" -> android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
+                "SILENT" -> null
+                else -> null // DEFAULT: use channel sound
+            }
+
+            val builder = NotificationCompat.Builder(context, channelId)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setContentTitle(title)
                 .setContentText(text)
                 .setAutoCancel(true)
-                .build()
-            notificationManager.notify(1001, notification)
+            if (sound == "RINGTONE" || sound == "NOTIFICATION") {
+                soundUri?.let { builder.setSound(it) }
+            }
+            if (sound == "SILENT") {
+                builder.setSilent(true)
+            }
+            notificationManager.notify(1001, builder.build())
+
+            if (sound == "BEEP") {
+                playBeep()
+            }
             SystemControlResult.ok("Notification sent")
         } catch (t: Throwable) {
             SystemControlResult.fail("Failed to send notification: ${t.message}")
+        }
+    }
+
+    /** Plays a single short beep through the notification stream. */
+    private fun playBeep() {
+        try {
+            val toneGenerator = android.media.ToneGenerator(
+                android.media.AudioManager.STREAM_NOTIFICATION,
+                80
+            )
+            toneGenerator.startTone(android.media.ToneGenerator.TONE_PROP_BEEP, 250)
+            // ToneGenerator plays asynchronously; release shortly after the tone.
+            android.os.Handler(context.mainLooper).postDelayed({ toneGenerator.release() }, 500L)
+        } catch (_: Throwable) {
+            // Beep is best-effort.
         }
     }
 
