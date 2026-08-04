@@ -47,6 +47,7 @@ import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -126,7 +127,7 @@ fun AutomationBuilderScreen(navController: NavController) {
     var locationRadius by remember { mutableStateOf("100") }
     var locationEvent by remember { mutableStateOf("ENTER") }
     val actionConfigs = remember { mutableStateMapOf<ActionType, Map<String, String>>() }
-    val selectedActions = remember { mutableSetOf<ActionOption>() }
+    val selectedActions = remember { mutableStateListOf<ActionOption>() }
 
     val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
     DisposableEffect(savedStateHandle) {
@@ -144,6 +145,7 @@ fun AutomationBuilderScreen(navController: NavController) {
             "App" -> TriggerType.APPLICATION
             "Device" -> TriggerType.DEVICE
             "Connectivity" -> TriggerType.CONNECTIVITY
+            "Location" -> TriggerType.LOCATION
             else -> TriggerType.TIME
         }
         val triggerConfig = when (triggerType) {

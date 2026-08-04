@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    NexaFlow is designed to integrate with custom ROMs as a privileged/system
+    app (see core/rom-integration/privapp-permissions-nexaflow.xml). The
+    signature/privileged permissions declared in the manifest (WRITE_SECURE_SETTINGS,
+    READ_LOGS, MODIFY_PHONE_STATE, STATUS_BAR, FORCE_STOP_PACKAGES, ...) are
+    intentional and are granted only when the app is installed in priv-app with
+    the matching privapp-permissions allowlist. At runtime the app gracefully
+    degrades when these permissions are absent (see RomCapabilityProvider).
+-->
+<lint>
+    <issue id="ProtectedPermissions" severity="ignore" />
+</lint>

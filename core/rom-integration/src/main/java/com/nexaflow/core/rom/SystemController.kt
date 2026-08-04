@@ -1,5 +1,6 @@
 package com.nexaflow.core.rom
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -15,12 +16,15 @@ class SystemController(
     private val context: Context,
     private val capabilityProvider: RomCapabilityProvider
 ) {
+    // STATUS_BAR_SERVICE is a hidden constant not in the public SDK; the raw
+    // service name is used intentionally for privileged ROM integration.
+    @SuppressLint("WrongConstant")
     fun expandStatusBar(): SystemControlResult {
         if (!capabilityProvider.isAvailable(RomCapability.STATUS_BAR_CONTROL)) {
             return SystemControlResult.fail("Status bar control is not available at the current integration level")
         }
         return try {
-            val service = context.getSystemService(Context.STATUS_BAR_SERVICE)
+            val service = context.getSystemService("statusbar")
                 ?: return SystemControlResult.fail("Status bar service is unavailable")
             RomSystemApiBridge.invokeInstance(service, "expandNotificationsPanel")
             SystemControlResult.ok("Status bar expanded")
@@ -29,12 +33,13 @@ class SystemController(
         }
     }
 
+    @SuppressLint("WrongConstant")
     fun collapseStatusBar(): SystemControlResult {
         if (!capabilityProvider.isAvailable(RomCapability.STATUS_BAR_CONTROL)) {
             return SystemControlResult.fail("Status bar control is not available at the current integration level")
         }
         return try {
-            val service = context.getSystemService(Context.STATUS_BAR_SERVICE)
+            val service = context.getSystemService("statusbar")
                 ?: return SystemControlResult.fail("Status bar service is unavailable")
             RomSystemApiBridge.invokeInstance(service, "collapsePanels")
             SystemControlResult.ok("Status bar collapsed")
@@ -197,14 +202,12 @@ class SystemController(
     fun sendNotification(title: String, text: String, channelId: String = "nexaflow_actions"): SystemControlResult {
         return try {
             val notificationManager = context.getSystemService(NotificationManager::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val channel = NotificationChannel(
-                    channelId,
-                    "NexaFlow Actions",
-                    NotificationManager.IMPORTANCE_DEFAULT
-                )
-                notificationManager.createNotificationChannel(channel)
-            }
+            val channel = NotificationChannel(
+                channelId,
+                "NexaFlow Actions",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            notificationManager.createNotificationChannel(channel)
             val notification = NotificationCompat.Builder(context, channelId)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setContentTitle(title)

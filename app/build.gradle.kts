@@ -75,6 +75,9 @@ dependencies {
     // Room
     implementation("androidx.room:room-runtime:2.6.1")
 
+    // Shizuku provider (referenced from the manifest for ROM integration)
+    implementation("dev.rikka.shizuku:provider:12.1.0")
+
     // Project Modules
     implementation(project(":core:database"))
     implementation(project(":core:datastore"))

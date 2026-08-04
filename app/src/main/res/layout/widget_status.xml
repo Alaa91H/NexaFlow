@@ -11,7 +11,7 @@
         android:id="@+id/widget_status_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Active automations"
+        android:text="@string/widget_status_title"
         android:textColor="#FF74777C"
         android:textSize="12sp" />
 
@@ -20,7 +20,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:text="0 / 0"
+        android:text="@string/widget_status_count"
         android:textColor="#FF1B62B7"
         android:textSize="26sp"
         android:textStyle="bold" />
@@ -30,7 +30,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:text="Last run: --"
+        android:text="@string/widget_status_last"
         android:textColor="#FF74777C"
         android:textSize="12sp"
         android:singleLine="true" />

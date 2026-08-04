@@ -11,7 +11,7 @@
         android:id="@+id/widget_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="NexaFlow"
+        android:text="@string/app_name"
         android:textColor="#FF1B62B7"
         android:textSize="16sp"
         android:textStyle="bold" />
@@ -21,7 +21,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:text="Automations"
+        android:text="@string/widget_subtitle"
         android:textColor="#FF74777C"
         android:textSize="12sp" />
 
@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:minHeight="40dp"
-        android:text="Enable all"
+        android:text="@string/widget_action"
         android:textSize="13sp"
         android:textStyle="bold" />
 </LinearLayout>

@@ -2,4 +2,11 @@
 <resources>
     <string name="app_name">NexaFlow</string>
     <string name="accessibility_service_description">Detects when configured apps are opened to run automations with an App trigger. Only the top-most app is observed; nothing is read from the screen.</string>
+
+    <!-- Widgets -->
+    <string name="widget_status_title">Active automations</string>
+    <string name="widget_status_count">0 / 0</string>
+    <string name="widget_status_last">Last run: —</string>
+    <string name="widget_subtitle">Automations</string>
+    <string name="widget_action">Enable all</string>
 </resources>

@@ -1,7 +1,9 @@
 package com.nexaflow.core.rom
 
+import android.annotation.SuppressLint
 import java.io.File
 
+@SuppressLint("PrivateApi") // Accessing android.os.SystemProperties is intentional for ROM detection
 internal object SystemPropertyProvider {
     private val systemPropertiesClass by lazy {
         runCatching { Class.forName("android.os.SystemProperties") }.getOrNull()

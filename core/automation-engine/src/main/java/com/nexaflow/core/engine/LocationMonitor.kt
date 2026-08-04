@@ -66,6 +66,11 @@ class LocationMonitor @Inject constructor(
 
     private fun updateListening(shouldListen: Boolean) {
         if (shouldListen && !listening) {
+            val fineGranted = context.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED
+            val coarseGranted = context.checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED
+            if (!fineGranted && !coarseGranted) return
             try {
                 listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER).forEach { provider ->
                     if (locationManager.isProviderEnabled(provider)) {

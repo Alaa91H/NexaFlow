@@ -29,7 +29,7 @@ fun accentPalette(accent: String): AccentColors {
 }
 
 @Composable
-fun OneUIColorScheme(darkTheme: Boolean, accent: String): androidx.compose.material3.ColorScheme {
+fun oneUIColorScheme(darkTheme: Boolean, accent: String): androidx.compose.material3.ColorScheme {
     val palette = accentPalette(accent)
     return if (darkTheme) {
         darkColorScheme(
@@ -78,7 +78,7 @@ fun NexaFlowTheme(
     accent: String = "blue",
     content: @Composable () -> Unit
 ) {
-    val colorScheme = OneUIColorScheme(darkTheme, accent)
+    val colorScheme = oneUIColorScheme(darkTheme, accent)
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
