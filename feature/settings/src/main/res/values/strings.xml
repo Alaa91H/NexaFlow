@@ -28,4 +28,13 @@
     <string name="about_description">An advanced context-aware automation engine for Android. Automate your device using time, app, device, connectivity and location triggers.</string>
     <string name="about_license">Licensed under the MIT License.</string>
     <string name="ok">OK</string>
+    <string name="section_backup">BACKUP</string>
+    <string name="backup_export">Export &amp; share</string>
+    <string name="backup_export_sub">Save all automations as a JSON file</string>
+    <string name="backup_import">Import from file</string>
+    <string name="backup_import_sub">Restore automations from a JSON backup</string>
+    <string name="backup_imported">Imported %1$d automation(s)</string>
+    <string name="backup_import_failed">Invalid or unsupported backup file</string>
+    <string name="backup_export_failed">Export failed</string>
+    <string name="share_backup_title">Share automation backup</string>
 </resources>

@@ -28,4 +28,13 @@
     <string name="about_description">Un moteur d\u2019automatisation avancé et contextuel pour Android. Automatisez votre appareil avec des déclencheurs d\u2019heure, d\u2019application, d\u2019appareil, de connectivité et de position.</string>
     <string name="about_license">Sous licence MIT.</string>
     <string name="ok">OK</string>
+    <string name="section_backup">SAUVEGARDE</string>
+    <string name="backup_export">Exporter et partager</string>
+    <string name="backup_export_sub">Enregistrer toutes les automatisations en fichier JSON</string>
+    <string name="backup_import">Importer depuis un fichier</string>
+    <string name="backup_import_sub">Restaurer les automatisations depuis une sauvegarde JSON</string>
+    <string name="backup_imported">"%1$d automatisation(s) importée(s)"</string>
+    <string name="backup_import_failed">Fichier de sauvegarde non valide ou non pris en charge</string>
+    <string name="backup_export_failed">"Échec de l'exportation"</string>
+    <string name="share_backup_title">Partager la sauvegarde des automatisations</string>
 </resources>

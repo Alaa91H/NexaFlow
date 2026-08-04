@@ -228,4 +228,6 @@
     <string name="move_up">ऊपर ले जाएं</string>
     <string name="move_down">नीचे ले जाएं</string>
     <string name="remove_action">कार्रवाई हटाएं</string>
+    <string name="quick_save">त्वरित सहेजें</string>
+    <string name="saved_successfully">ऑटोमेशन सहेजा गया</string>
 </resources>

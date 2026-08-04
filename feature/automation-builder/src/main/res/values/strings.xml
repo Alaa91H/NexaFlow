@@ -228,4 +228,6 @@
     <string name="show_system_apps">Show system apps</string>
     <string name="app_count">%1$d app(s)</string>
     <string name="select">Select</string>
+    <string name="quick_save">Quick save</string>
+    <string name="saved_successfully">Automation saved</string>
 </resources>

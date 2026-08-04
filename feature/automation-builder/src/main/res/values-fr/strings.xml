@@ -228,4 +228,6 @@
     <string name="move_up">Monter</string>
     <string name="move_down">Descendre</string>
     <string name="remove_action">"Retirer l'action"</string>
+    <string name="quick_save">Enregistrement rapide</string>
+    <string name="saved_successfully">Automatisation enregistrée</string>
 </resources>

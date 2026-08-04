@@ -28,4 +28,13 @@
     <string name="about_description">Eine fortschrittliche kontextbewusste Automatisierungs-Engine für Android. Automatisiere dein Gerät mit Zeit-, App-, Geräte-, Konnektivitäts- und Standort-Triggern.</string>
     <string name="about_license">Lizenziert unter der MIT-Lizenz.</string>
     <string name="ok">OK</string>
+    <string name="section_backup">SICHERUNG</string>
+    <string name="backup_export">Exportieren und teilen</string>
+    <string name="backup_export_sub">Alle Automatisierungen als JSON-Datei speichern</string>
+    <string name="backup_import">Aus Datei importieren</string>
+    <string name="backup_import_sub">Automatisierungen aus JSON-Sicherung wiederherstellen</string>
+    <string name="backup_imported">%1$d Automatisierung(en) importiert</string>
+    <string name="backup_import_failed">Ungültige oder nicht unterstützte Sicherungsdatei</string>
+    <string name="backup_export_failed">Export fehlgeschlagen</string>
+    <string name="share_backup_title">Automatisierungs-Sicherung teilen</string>
 </resources>

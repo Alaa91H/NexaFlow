@@ -228,4 +228,6 @@
     <string name="move_up">Nach oben</string>
     <string name="move_down">Nach unten</string>
     <string name="remove_action">Aktion entfernen</string>
+    <string name="quick_save">Schnellspeichern</string>
+    <string name="saved_successfully">Automatisierung gespeichert</string>
 </resources>

@@ -228,4 +228,6 @@
     <string name="move_up">Mover para cima</string>
     <string name="move_down">Mover para baixo</string>
     <string name="remove_action">Remover ação</string>
+    <string name="quick_save">Salvar rapidamente</string>
+    <string name="saved_successfully">Automação salva</string>
 </resources>

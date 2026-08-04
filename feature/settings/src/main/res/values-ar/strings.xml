@@ -28,4 +28,13 @@
     <string name="about_description">محرك أتمتة متقدم يدرك السياق لنظام أندرويد. أتمت جهازك باستخدام مشغّلات الوقت والتطبيق والجهاز والاتصال والموقع.</string>
     <string name="about_license">مرخّص بموجب رخصة MIT.</string>
     <string name="ok">حسناً</string>
+    <string name="section_backup">نسخ احتياطي</string>
+    <string name="backup_export">تصدير ومشاركة</string>
+    <string name="backup_export_sub">حفظ جميع الأتمتة كملف JSON</string>
+    <string name="backup_import">استيراد من ملف</string>
+    <string name="backup_import_sub">استعادة الأتمتة من نسخة احتياطية JSON</string>
+    <string name="backup_imported">تم استيراد %1$d أتمتة</string>
+    <string name="backup_import_failed">ملف نسخ احتياطي غير صالح أو غير مدعوم</string>
+    <string name="backup_export_failed">فشل التصدير</string>
+    <string name="share_backup_title">مشاركة النسخة الاحتياطية للأتمتة</string>
 </resources>

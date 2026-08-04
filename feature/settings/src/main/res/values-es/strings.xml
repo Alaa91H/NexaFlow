@@ -28,4 +28,13 @@
     <string name="about_description">Un avanzado motor de automatización sensible al contexto para Android. Automatiza tu dispositivo con disparadores de hora, app, dispositivo, conectividad y ubicación.</string>
     <string name="about_license">Licenciado bajo la Licencia MIT.</string>
     <string name="ok">Aceptar</string>
+    <string name="section_backup">COPIA DE SEGURIDAD</string>
+    <string name="backup_export">Exportar y compartir</string>
+    <string name="backup_export_sub">Guardar todas las automatizaciones como archivo JSON</string>
+    <string name="backup_import">Importar desde archivo</string>
+    <string name="backup_import_sub">Restaurar automatizaciones desde una copia JSON</string>
+    <string name="backup_imported">%1$d automatización(es) importada(s)</string>
+    <string name="backup_import_failed">Archivo de copia no válido o no compatible</string>
+    <string name="backup_export_failed">Error al exportar</string>
+    <string name="share_backup_title">Compartir copia de automatizaciones</string>
 </resources>

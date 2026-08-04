@@ -8,6 +8,7 @@ import com.nexaflow.core.database.ExecutionDao
 import com.nexaflow.core.database.ProfileDao
 import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.data.backup.BackupManager
 import com.nexaflow.data.repository.AutomationRepositoryImpl
 import com.nexaflow.data.repository.HistoryRepositoryImpl
 import com.nexaflow.data.repository.ProfileRepositoryImpl
@@ -60,6 +61,12 @@ object AppModule {
     @Singleton
     fun provideAutomationRepository(dao: AutomationDao): AutomationRepository {
         return AutomationRepositoryImpl(dao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBackupManager(automationRepository: AutomationRepository): BackupManager {
+        return BackupManager(automationRepository)
     }
 
     @Provides

@@ -17,6 +17,9 @@ class AutomationBuilderViewModel @Inject constructor(
     private val repository: AutomationRepository
 ) : ViewModel() {
 
+    /** Draft id reused across quick-saves so they update instead of duplicating. */
+    private var draftId: String? = null
+
     fun saveAutomation(
         name: String,
         icon: String,
@@ -26,8 +29,9 @@ class AutomationBuilderViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             val now = System.currentTimeMillis()
+            val id = draftId ?: UUID.randomUUID().toString().also { draftId = it }
             val automation = Automation(
-                id = UUID.randomUUID().toString(),
+                id = id,
                 name = name.ifBlank { "Untitled Automation" },
                 description = buildDescription(triggers, actions),
                 icon = icon,

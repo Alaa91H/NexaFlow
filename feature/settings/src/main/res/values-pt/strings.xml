@@ -28,4 +28,13 @@
     <string name="about_description">Um mecanismo avançado de automação ciente de contexto para Android. Automatize seu dispositivo com gatilhos de hora, aplicativo, dispositivo, conectividade e localização.</string>
     <string name="about_license">Licenciado sob a Licença MIT.</string>
     <string name="ok">OK</string>
+    <string name="section_backup">CÓPIA DE SEGURANÇA</string>
+    <string name="backup_export">Exportar e compartilhar</string>
+    <string name="backup_export_sub">Salvar todas as automações como arquivo JSON</string>
+    <string name="backup_import">Importar do arquivo</string>
+    <string name="backup_import_sub">Restaurar automações de uma cópia JSON</string>
+    <string name="backup_imported">%1$d automação(ões) importada(s)</string>
+    <string name="backup_import_failed">Arquivo de backup inválido ou não compatível</string>
+    <string name="backup_export_failed">Falha ao exportar</string>
+    <string name="share_backup_title">Compartilhar backup de automações</string>
 </resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shared FileProvider paths for exporting automation backups. -->
+<paths>
+    <cache-path
+        name="backup"
+        path="backup/" />
+</paths>

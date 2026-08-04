@@ -228,4 +228,6 @@
     <string name="move_up">Вверх</string>
     <string name="move_down">Вниз</string>
     <string name="remove_action">Удалить действие</string>
+    <string name="quick_save">Быстрое сохранение</string>
+    <string name="saved_successfully">Автоматизация сохранена</string>
 </resources>

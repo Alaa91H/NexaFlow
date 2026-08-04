@@ -28,4 +28,13 @@
     <string name="about_description">Android के लिए एक उन्नत संदर्भ-जागरूक ऑटोमेशन इंजन। समय, ऐप, डिवाइस, कनेक्टिविटी और स्थान ट्रिगर से अपने डिवाइस को स्वचालित करें।</string>
     <string name="about_license">MIT लाइसेंस के तहत लाइसेंस प्राप्त।</string>
     <string name="ok">ठीक है</string>
+    <string name="section_backup">बैकअप</string>
+    <string name="backup_export">निर्यात और साझा करें</string>
+    <string name="backup_export_sub">सभी ऑटोमेशन को JSON फ़ाइल के रूप में सहेजें</string>
+    <string name="backup_import">फ़ाइल से आयात करें</string>
+    <string name="backup_import_sub">JSON बैकअप से ऑटोमेशन पुनर्स्थापित करें</string>
+    <string name="backup_imported">%1$d ऑटोमेशन आयात किए गए</string>
+    <string name="backup_import_failed">अमान्य या असमर्थित बैकअप फ़ाइल</string>
+    <string name="backup_export_failed">निर्यात विफल</string>
+    <string name="share_backup_title">ऑटोमेशन बैकअप साझा करें</string>
 </resources>

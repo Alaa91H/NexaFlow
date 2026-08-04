@@ -28,4 +28,13 @@
     <string name="about_description">Android için gelişmiş, bağlam farkında otomasyon motoru. Zaman, uygulama, cihaz, bağlantı ve konum tetikleyicileriyle cihazını otomatikleştir.</string>
     <string name="about_license">MIT Lisansı altında lisanslıdır.</string>
     <string name="ok">Tamam</string>
+    <string name="section_backup">YEDEKLEME</string>
+    <string name="backup_export">Dışa aktar ve paylaş</string>
+    <string name="backup_export_sub">Tüm otomasyonları JSON dosyası olarak kaydet</string>
+    <string name="backup_import">Dosyadan içe aktar</string>
+    <string name="backup_import_sub">Otomasyonları JSON yedeğinden geri yükle</string>
+    <string name="backup_imported">%1$d otomasyon içe aktarıldı</string>
+    <string name="backup_import_failed">Geçersiz veya desteklenmeyen yedek dosyası</string>
+    <string name="backup_export_failed">Dışa aktarma başarısız</string>
+    <string name="share_backup_title">Otomasyon yedeğini paylaş</string>
 </resources>

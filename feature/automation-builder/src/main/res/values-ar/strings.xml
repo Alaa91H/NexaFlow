@@ -228,4 +228,6 @@
     <string name="move_up">تحريك للأعلى</string>
     <string name="move_down">تحريك للأسفل</string>
     <string name="remove_action">إزالة المهمة</string>
+    <string name="quick_save">حفظ سريع</string>
+    <string name="saved_successfully">تم حفظ الأتمتة</string>
 </resources>

@@ -3,7 +3,10 @@
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,33 +15,41 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Accessibility
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.nexaflow.core.engine.AppTriggerAccessibilityService
 import com.nexaflow.core.engine.MonitoringService
@@ -46,15 +57,80 @@ import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.SettingRow
+import com.nexaflow.data.backup.ImportResult
+import kotlinx.coroutines.launch
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(navController: NavController) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val viewModel: SettingsViewModel = hiltViewModel()
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     var accessibilityEnabled by remember { mutableStateOf(false) }
     var monitoringRunning by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            scope.launch {
+                val json = runCatching {
+                    context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                }.getOrNull()
+                if (json.isNullOrBlank()) {
+                    snackbarHostState.showSnackbar(context.getString(R.string.backup_import_failed))
+                } else {
+                    viewModel.importBackup(json)
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.importResult.collect { result ->
+            val message = when (result) {
+                is ImportResult.Success ->
+                    context.getString(R.string.backup_imported, result.count)
+                ImportResult.InvalidFile ->
+                    context.getString(R.string.backup_import_failed)
+            }
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+
+    fun shareBackup() {
+        viewModel.exportBackup { json ->
+            if (json == null) {
+                scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.backup_export_failed)) }
+                return@exportBackup
+            }
+            val result = runCatching {
+                val dir = File(context.cacheDir, "backup").apply { mkdirs() }
+                val file = File(dir, "nexaflow_backup.json")
+                file.writeText(json)
+                val uri: Uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    file
+                )
+                val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "application/json"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.share_backup_title))
+                    putExtra(Intent.EXTRA_TEXT, context.getString(R.string.share_backup_title))
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                context.startActivity(Intent.createChooser(sendIntent, context.getString(R.string.share_backup_title)))
+            }
+            if (result.isFailure) {
+                scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.backup_export_failed)) }
+            }
+        }
+    }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -67,7 +143,10 @@ fun SettingsScreen(navController: NavController) {
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    Scaffold(topBar = { NexaFlowTopBar(title = stringResource(R.string.settings_title), onBack = { navController.popBackStack() }) }) { padding ->
+    Scaffold(
+        topBar = { NexaFlowTopBar(title = stringResource(R.string.settings_title), onBack = { navController.popBackStack() }) },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -109,6 +188,25 @@ fun SettingsScreen(navController: NavController) {
                                 }
                             )
                         }
+                    )
+                }
+            }
+            item {
+                SectionHeader(text = stringResource(R.string.section_backup))
+            }
+            item {
+                NexaFlowCard {
+                    SettingRow(
+                        icon = Icons.Filled.Upload,
+                        title = stringResource(R.string.backup_export),
+                        subtitle = stringResource(R.string.backup_export_sub),
+                        onClick = { shareBackup() }
+                    )
+                    SettingRow(
+                        icon = Icons.Filled.Download,
+                        title = stringResource(R.string.backup_import),
+                        subtitle = stringResource(R.string.backup_import_sub),
+                        onClick = { importLauncher.launch(arrayOf("application/json", "text/plain", "text/*", "*/*")) }
                     )
                 }
             }

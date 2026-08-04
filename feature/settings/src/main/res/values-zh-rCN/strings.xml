@@ -28,4 +28,13 @@
     <string name="about_description">适用于 Android 的高级情境感知自动化引擎。使用时间、应用、设备、网络和位置触发器自动化您的设备。</string>
     <string name="about_license">根据 MIT 许可证授权。</string>
     <string name="ok">确定</string>
+    <string name="section_backup">备份</string>
+    <string name="backup_export">导出并分享</string>
+    <string name="backup_export_sub">将所有自动化保存为 JSON 文件</string>
+    <string name="backup_import">从文件导入</string>
+    <string name="backup_import_sub">从 JSON 备份恢复自动化</string>
+    <string name="backup_imported">已导入 %1$d 个自动化</string>
+    <string name="backup_import_failed">无效或不支持的备份文件</string>
+    <string name="backup_export_failed">导出失败</string>
+    <string name="share_backup_title">分享自动化备份</string>
 </resources>

@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.ScreenRotation
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.Terminal
@@ -54,6 +55,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -63,6 +66,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,6 +76,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Observer
 import androidx.navigation.NavController
@@ -189,6 +194,8 @@ private fun parseGeoUri(uri: String): Pair<Double, Double>? {
 fun AutomationBuilderScreen(navController: NavController) {
     val viewModel: AutomationBuilderViewModel = hiltViewModel()
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     var name by remember { mutableStateOf("") }
     val triggers = remember { mutableStateListOf<TriggerDraft>() }
     var batteryCondition by remember { mutableStateOf(false) }
@@ -233,7 +240,7 @@ fun AutomationBuilderScreen(navController: NavController) {
         selectedActions.add(to, item)
     }
 
-    fun save() {
+    fun save(closeAfterSave: Boolean = true) {
         val builtTriggers = triggers.map { draft ->
             Trigger(draft.type, draft.config)
         }
@@ -253,7 +260,13 @@ fun AutomationBuilderScreen(navController: NavController) {
             conditions = conditions,
             actions = actions
         )
-        navController.popBackStack()
+        if (closeAfterSave) {
+            navController.popBackStack()
+        } else {
+            scope.launch {
+                snackbarHostState.showSnackbar(context.getString(R.string.saved_successfully))
+            }
+        }
     }
 
     Scaffold(
@@ -262,12 +275,16 @@ fun AutomationBuilderScreen(navController: NavController) {
                 title = stringResource(R.string.builder_title),
                 onBack = { navController.popBackStack() },
                 actions = {
+                    IconButton(onClick = { save(closeAfterSave = false) }) {
+                        Icon(imageVector = Icons.Filled.Save, contentDescription = stringResource(R.string.quick_save))
+                    }
                     IconButton(onClick = { save() }) {
                         Icon(imageVector = Icons.Filled.Check, contentDescription = stringResource(R.string.save))
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Column(
             modifier = Modifier
