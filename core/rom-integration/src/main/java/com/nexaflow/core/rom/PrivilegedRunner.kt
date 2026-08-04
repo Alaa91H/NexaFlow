@@ -3,6 +3,7 @@ package com.nexaflow.core.rom
 import android.content.pm.PackageManager
 import com.nexaflow.core.rom.model.SystemControlResult
 import rikka.shizuku.Shizuku
+import rikka.shizuku.ShizukuRemoteProcess
 
 object PrivilegedRunner {
 
@@ -30,7 +31,7 @@ object PrivilegedRunner {
             return SystemControlResult.fail("Shizuku is not granted. Open the Shizuku app and grant NexaFlow")
         }
         return try {
-            val process = Shizuku.newProcess(arrayOf("sh", "-c", command), null, null)
+            val process = createShizukuProcess(arrayOf("sh", "-c", command), null, null)
             val output = process.inputStream.bufferedReader().readText()
             val exit = process.waitFor()
             process.destroy()
@@ -41,6 +42,32 @@ object PrivilegedRunner {
             }
         } catch (t: Throwable) {
             SystemControlResult.fail("Shizuku execution failed: ${t.message}")
+        }
+    }
+
+    /**
+     * Since Shizuku API 13.1.5, [Shizuku.newProcess] was made private (it is deprecated and
+     * planned for removal in API 14). It still exists in the current release, so invoke it via
+     * reflection. If a future API version removes it entirely, fail with a clear message.
+     */
+    private fun createShizukuProcess(
+        cmd: Array<String>,
+        env: Array<String>?,
+        dir: String?
+    ): ShizukuRemoteProcess {
+        try {
+            val method = Shizuku::class.java.getDeclaredMethod(
+                "newProcess",
+                Array<String>::class.java,
+                Array<String>::class.java,
+                String::class.java
+            )
+            method.isAccessible = true
+            return method.invoke(null, cmd, env, dir) as ShizukuRemoteProcess
+        } catch (t: Throwable) {
+            throw IllegalStateException(
+                "Shizuku.newProcess is unavailable in this Shizuku API version", t
+            )
         }
     }
 
