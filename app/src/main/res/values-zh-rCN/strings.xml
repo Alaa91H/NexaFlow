@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NexaFlow</string>
+    <string name="accessibility_service_description">检测配置的应用程序何时被打开，以运行带有应用触发器的自动化。仅观察最顶层的应用；不会从屏幕读取任何内容。</string>
+    <string name="widget_status_title">活动自动化</string>
+    <string name="widget_status_count">0 / 0</string>
+    <string name="widget_status_last">上次运行：—</string>
+    <string name="widget_subtitle">自动化</string>
+    <string name="widget_action">全部启用</string>
+</resources>

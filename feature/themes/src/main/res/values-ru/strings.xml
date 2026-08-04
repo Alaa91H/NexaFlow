@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="themes_title">Темы</string>
+    <string name="section_appearance">ВНЕШНИЙ ВИД</string>
+    <string name="mode_system">По умолчанию</string>
+    <string name="mode_system_sub">Следует теме устройства</string>
+    <string name="mode_light">Светлая</string>
+    <string name="mode_light_sub">Всегда использовать светлую тему</string>
+    <string name="mode_dark">Тёмная</string>
+    <string name="mode_dark_sub">Всегда использовать тёмную тему</string>
+    <string name="theme_follows_system">Автоматически следует внешнему виду системы</string>
+    <string name="theme_manual">Выбрано ручное изменение темы</string>
+    <string name="section_accent">АКЦЕНТНЫЙ ЦВЕТ</string>
+    <string name="accent_selected">Выбрано: %1$s</string>
+    <string name="accent_blue">Синий</string>
+    <string name="accent_green">Зелёный</string>
+    <string name="accent_red">Красный</string>
+    <string name="accent_purple">Фиолетовый</string>
+    <string name="accent_amber">Янтарный</string>
+    <string name="accent_teal">Бирюзовый</string>
+    <string name="section_preview">ПРЕДПРОСМОТР</string>
+    <string name="theme_name">Тема NexaFlow</string>
+    <string name="preview_system">Внешний вид системы</string>
+    <string name="preview_dark">Тёмный предпросмотр</string>
+    <string name="preview_light">Светлый предпросмотр</string>
+    <string name="primary_accent">Основной акцент</string>
+</resources>

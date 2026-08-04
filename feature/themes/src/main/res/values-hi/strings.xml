@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="themes_title">थीम</string>
+    <string name="section_appearance">रूप-रंग</string>
+    <string name="mode_system">सिस्टम डिफ़ॉल्ट</string>
+    <string name="mode_system_sub">डिवाइस थीम का पालन करता है</string>
+    <string name="mode_light">लाइट</string>
+    <string name="mode_light_sub">हमेशा लाइट थीम उपयोग करें</string>
+    <string name="mode_dark">डार्क</string>
+    <string name="mode_dark_sub">हमेशा डार्क थीम उपयोग करें</string>
+    <string name="theme_follows_system">सिस्टम की उपस्थिति का स्वतः अनुसरण करता है</string>
+    <string name="theme_manual">मैन्युअल थीम ओवरराइड चुना गया</string>
+    <string name="section_accent">एक्सेंट रंग</string>
+    <string name="accent_selected">चयनित: %1$s</string>
+    <string name="accent_blue">नीला</string>
+    <string name="accent_green">हरा</string>
+    <string name="accent_red">लाल</string>
+    <string name="accent_purple">बैंगनी</string>
+    <string name="accent_amber">अंबर</string>
+    <string name="accent_teal">टील</string>
+    <string name="section_preview">पूर्वावलोकन</string>
+    <string name="theme_name">NexaFlow थीम</string>
+    <string name="preview_system">सिस्टम उपस्थिति</string>
+    <string name="preview_dark">डार्क पूर्वावलोकन</string>
+    <string name="preview_light">लाइट पूर्वावलोकन</string>
+    <string name="primary_accent">मुख्य एक्सेंट</string>
+</resources>

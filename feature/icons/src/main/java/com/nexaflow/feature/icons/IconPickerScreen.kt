@@ -26,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.nexaflow.core.ui.NexaFlowIcons
@@ -37,7 +38,7 @@ fun IconPickerScreen(navController: NavController) {
     var selected by remember { mutableStateOf(0) }
 
     Scaffold(
-        topBar = { NexaFlowTopBar(title = "Choose Icon", onBack = { navController.popBackStack() }) },
+        topBar = { NexaFlowTopBar(title = stringResource(R.string.choose_icon_title), onBack = { navController.popBackStack() }) },
         bottomBar = {
             Box(
                 modifier = Modifier
@@ -52,7 +53,7 @@ fun IconPickerScreen(navController: NavController) {
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = "Done")
+                    Text(text = stringResource(R.string.done))
                 }
             }
         }

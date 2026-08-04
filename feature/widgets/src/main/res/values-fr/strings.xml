@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widgets_title">Widgets</string>
+    <string name="section_available">WIDGETS DISPONIBLES</string>
+    <string name="widget_quick_toggle">Bascule rapide</string>
+    <string name="widget_quick_toggle_desc">Activez ou désactivez toutes les automatisations depuis l\u2019écran d\u2019accueil en un geste.</string>
+    <string name="widget_status_card">Carte d\u2019état</string>
+    <string name="widget_status_card_desc">Vue en direct des automatisations actives et de la dernière exécution.</string>
+    <string name="widget_not_added">Pas encore ajouté à votre écran d\u2019accueil.</string>
+    <string name="section_how_to">COMMENT AJOUTER</string>
+    <string name="how_to_text">Appuyez longuement sur un espace vide de l\u2019écran d\u2019accueil, touchez Widgets, puis cherchez NexaFlow.</string>
+    <string name="how_to_sub">Faites glisser le widget Bascule rapide ou Carte d\u2019état sur votre écran.</string>
+    <string name="section_tip">ASTUCE</string>
+    <string name="tip_text">Les widgets se mettent à jour automatiquement à chaque exécution d\u2019automatisation ou changement d\u2019état.</string>
+</resources>

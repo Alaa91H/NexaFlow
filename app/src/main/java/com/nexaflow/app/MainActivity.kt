@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
         requestNotificationPermissionIfNeeded()
         setContent {
             val theme by themePreferences.theme.collectAsState(initial = ThemeSettings())
-            NexaFlowTheme(darkTheme = theme.darkMode, accent = theme.accent) {
+            NexaFlowTheme(themeMode = theme.mode, accent = theme.accent) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

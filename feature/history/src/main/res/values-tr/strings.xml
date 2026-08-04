@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_title">Geçmiş</string>
+    <string name="no_runs_title">Henüz çalıştırma yok</string>
+    <string name="no_runs_subtitle">Otomasyon yürütmeleriniz burada görünecek.</string>
+    <string name="status_success">Başarılı</string>
+    <string name="status_failed">Başarısız</string>
+</resources>

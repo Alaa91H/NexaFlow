@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widgets_title">الأدوات</string>
+    <string name="section_available">الأدوات المتاحة</string>
+    <string name="widget_quick_toggle">تبديل سريع</string>
+    <string name="widget_quick_toggle_desc">فعّل أو عطّل جميع الأتمتات من الشاشة الرئيسية بلمسة واحدة.</string>
+    <string name="widget_status_card">بطاقة الحالة</string>
+    <string name="widget_status_card_desc">عرض مباشر للأتمتات النشطة ووقت آخر تشغيل.</string>
+    <string name="widget_not_added">لم تُضف إلى الشاشة الرئيسية بعد.</string>
+    <string name="section_how_to">كيفية الإضافة</string>
+    <string name="how_to_text">اضغط مطولاً على مساحة فارغة في الشاشة الرئيسية، ثم اضغط «الأدوات»، وابحث عن NexaFlow.</string>
+    <string name="how_to_sub">اسحب أداة «التبديل السريع» أو «بطاقة الحالة» إلى شاشتك.</string>
+    <string name="section_tip">نصيحة</string>
+    <string name="tip_text">تتحدث الأدوات تلقائياً كلما تم تشغيل أتمتة أو تغيرت حالتها.</string>
+</resources>

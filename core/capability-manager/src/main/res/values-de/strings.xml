@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="capability_title">ROM-Integration</string>
+    <string name="detected_rom">Erkannte ROM: %1$s</string>
+    <string name="integration_level">Integrationsstufe: %1$s</string>
+    <string name="capabilities_count">Fähigkeiten (%1$d verfügbar)</string>
+    <string name="about_privileged">Über privilegierte Fähigkeiten</string>
+    <string name="about_privileged_text">Als privilegiert markierte Fähigkeiten erfordern, dass die App als System-/Privilegien-App installiert ist, eine Root-Shell oder den Shizuku-Dienst. Verwende die Schaltfläche Erteilen, um die Fähigkeiten anzufordern, die Android normalen Apps zugänglich macht.</string>
+    <string name="available">Verfügbar</string>
+    <string name="not_available">Nicht verfügbar</string>
+    <string name="settings">Einstellungen</string>
+    <string name="grant">Erteilen</string>
+</resources>

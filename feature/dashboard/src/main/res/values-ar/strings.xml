@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dashboard_title">NexaFlow</string>
+    <string name="dashboard_subtitle">أتمتة جهازك على طريقتك</string>
+    <string name="dashboard_settings">الإعدادات</string>
+    <string name="stat_active">نشطة</string>
+    <string name="stat_scheduled">مجدولة</string>
+    <string name="stat_total">الإجمالي</string>
+    <string name="section_quick_actions">إجراءات سريعة</string>
+    <string name="quick_new_automation">أتمتة جديدة</string>
+    <string name="quick_new_automation_sub">إنشاء تدفق</string>
+    <string name="quick_capability_center">مركز القدرات</string>
+    <string name="quick_capability_center_sub">ميزات النظام</string>
+    <string name="section_your_automations">الأتمتات الخاصة بك</string>
+    <string name="empty_automations_title">لا توجد أتمتات بعد</string>
+    <string name="empty_automations_sub">اضغط على «أتمتة جديدة» لإنشاء أول تدفق لك.</string>
+    <string name="status_active">نشطة</string>
+    <string name="status_off">متوقفة</string>
+</resources>

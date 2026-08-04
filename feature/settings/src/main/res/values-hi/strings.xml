@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">सेटिंग्स</string>
+    <string name="section_automation">ऑटोमेशन</string>
+    <string name="accessibility_service">एक्सेसिबिलिटी सेवा</string>
+    <string name="accessibility_enabled">सक्षम — ऐप ट्रिगर का पता लगाया जाता है</string>
+    <string name="accessibility_disabled">बंद — ऐप ट्रिगर नहीं चलेंगे</string>
+    <string name="monitoring_service">निगरानी सेवा</string>
+    <string name="monitoring_running">चालू — डिवाइस, बैटरी, नेटवर्क और स्थान की निगरानी</string>
+    <string name="monitoring_stopped">रुका — ट्रिगर केवल ऐप खुला होने पर चलते हैं</string>
+    <string name="state_on">चालू</string>
+    <string name="state_off">बंद</string>
+    <string name="section_appearance">रूप-रंग</string>
+    <string name="themes">थीम</string>
+    <string name="themes_sub">डार्क मोड और एक्सेंट रंग</string>
+    <string name="widgets">विजेट</string>
+    <string name="widgets_sub">होम स्क्रीन विजेट</string>
+    <string name="section_integration">एकीकरण</string>
+    <string name="capability_center">क्षमता केंद्र</string>
+    <string name="capability_center_sub">ROM सुविधाएँ और अनुमतियाँ</string>
+    <string name="execution_history">निष्पादन इतिहास</string>
+    <string name="execution_history_sub">ऑटोमेशन रन देखें</string>
+    <string name="section_about">परिचय</string>
+    <string name="about_nexaflow">NexaFlow के बारे में</string>
+    <string name="version">संस्करण %1$s</string>
+    <string name="rom_integration">ROM एकीकरण</string>
+    <string name="rom_integration_sub">ROM में शामिल होने पर सिस्टम-स्तरीय पहुँच</string>
+    <string name="about_description">Android के लिए एक उन्नत संदर्भ-जागरूक ऑटोमेशन इंजन। समय, ऐप, डिवाइस, कनेक्टिविटी और स्थान ट्रिगर से अपने डिवाइस को स्वचालित करें।</string>
+    <string name="about_license">MIT लाइसेंस के तहत लाइसेंस प्राप्त।</string>
+    <string name="ok">ठीक है</string>
+</resources>

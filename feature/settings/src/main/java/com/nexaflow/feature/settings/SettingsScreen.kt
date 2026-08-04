@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -66,7 +67,7 @@ fun SettingsScreen(navController: NavController) {
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    Scaffold(topBar = { NexaFlowTopBar(title = "Settings", onBack = { navController.popBackStack() }) }) { padding ->
+    Scaffold(topBar = { NexaFlowTopBar(title = stringResource(R.string.settings_title), onBack = { navController.popBackStack() }) }) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -74,17 +75,17 @@ fun SettingsScreen(navController: NavController) {
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp)
         ) {
             item {
-                SectionHeader(text = "AUTOMATION")
+                SectionHeader(text = stringResource(R.string.section_automation))
             }
             item {
                 NexaFlowCard {
                     SettingRow(
                         icon = Icons.Filled.Accessibility,
-                        title = "Accessibility service",
-                        subtitle = if (accessibilityEnabled) "Enabled — app triggers are detected" else "Off — app triggers won't fire",
+                        title = stringResource(R.string.accessibility_service),
+                        subtitle = if (accessibilityEnabled) stringResource(R.string.accessibility_enabled) else stringResource(R.string.accessibility_disabled),
                         trailing = {
                             Text(
-                                text = if (accessibilityEnabled) "On" else "Off",
+                                text = if (accessibilityEnabled) stringResource(R.string.state_on) else stringResource(R.string.state_off),
                                 color = if (accessibilityEnabled) Color(0xFF2FA84F) else Color(0xFFE5533D),
                                 style = androidx.compose.material3.MaterialTheme.typography.labelLarge
                             )
@@ -93,8 +94,8 @@ fun SettingsScreen(navController: NavController) {
                     )
                     SettingRow(
                         icon = Icons.Filled.MonitorHeart,
-                        title = "Monitoring service",
-                        subtitle = if (monitoringRunning) "Running — watching device, battery, network, location" else "Stopped — triggers only fire while the app is open",
+                        title = stringResource(R.string.monitoring_service),
+                        subtitle = if (monitoringRunning) stringResource(R.string.monitoring_running) else stringResource(R.string.monitoring_stopped),
                         trailing = {
                             Switch(
                                 checked = monitoringRunning,
@@ -112,58 +113,58 @@ fun SettingsScreen(navController: NavController) {
                 }
             }
             item {
-                SectionHeader(text = "APPEARANCE")
+                SectionHeader(text = stringResource(R.string.section_appearance))
             }
             item {
                 NexaFlowCard {
                     SettingRow(
                         icon = Icons.Filled.Palette,
-                        title = "Themes",
-                        subtitle = "Dark mode and accent color",
+                        title = stringResource(R.string.themes),
+                        subtitle = stringResource(R.string.themes_sub),
                         onClick = { navController.navigate("themes") }
                     )
                     SettingRow(
                         icon = Icons.Filled.Widgets,
-                        title = "Widgets",
-                        subtitle = "Home screen widgets",
+                        title = stringResource(R.string.widgets),
+                        subtitle = stringResource(R.string.widgets_sub),
                         onClick = { navController.navigate("widgets") }
                     )
                 }
             }
             item {
-                SectionHeader(text = "INTEGRATION")
+                SectionHeader(text = stringResource(R.string.section_integration))
             }
             item {
                 NexaFlowCard {
                     SettingRow(
                         icon = Icons.Filled.Security,
-                        title = "Capability Center",
-                        subtitle = "ROM features and permissions",
+                        title = stringResource(R.string.capability_center),
+                        subtitle = stringResource(R.string.capability_center_sub),
                         onClick = { navController.navigate("capability_center") }
                     )
                     SettingRow(
                         icon = Icons.Filled.PlayArrow,
-                        title = "Execution History",
-                        subtitle = "View automation runs",
+                        title = stringResource(R.string.execution_history),
+                        subtitle = stringResource(R.string.execution_history_sub),
                         onClick = { navController.navigate("history") }
                     )
                 }
             }
             item {
-                SectionHeader(text = "ABOUT")
+                SectionHeader(text = stringResource(R.string.section_about))
             }
             item {
                 NexaFlowCard {
                     SettingRow(
                         icon = Icons.Filled.Info,
-                        title = "About NexaFlow",
-                        subtitle = "Version ${appVersion(context)}",
+                        title = stringResource(R.string.about_nexaflow),
+                        subtitle = stringResource(R.string.version, appVersion(context)),
                         onClick = { showAbout = true }
                     )
                     SettingRow(
                         icon = Icons.Filled.Settings,
-                        title = "ROM Integration",
-                        subtitle = "System-level access when baked into a ROM",
+                        title = stringResource(R.string.rom_integration),
+                        subtitle = stringResource(R.string.rom_integration_sub),
                         onClick = { navController.navigate("capability_center") }
                     )
                 }
@@ -177,20 +178,19 @@ fun SettingsScreen(navController: NavController) {
             title = { Text("NexaFlow") },
             text = {
                 Column {
-                    Text("Version ${appVersion(context)}")
+                    Text(stringResource(R.string.version, appVersion(context)))
                     Text(
-                        text = "An advanced context-aware automation engine for Android. " +
-                            "Automate your device using time, app, device, connectivity and location triggers.",
+                        text = stringResource(R.string.about_description),
                         modifier = Modifier.padding(top = 8.dp)
                     )
                     Text(
-                        text = "Licensed under the MIT License.",
+                        text = stringResource(R.string.about_license),
                         modifier = Modifier.padding(top = 8.dp)
                     )
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showAbout = false }) { Text("OK") }
+                TextButton(onClick = { showAbout = false }) { Text(stringResource(R.string.ok)) }
             }
         )
     }

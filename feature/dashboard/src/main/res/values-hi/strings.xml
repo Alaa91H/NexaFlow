@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dashboard_title">NexaFlow</string>
+    <string name="dashboard_subtitle">अपने डिवाइस को अपने तरीके से स्वचालित करें</string>
+    <string name="dashboard_settings">सेटिंग्स</string>
+    <string name="stat_active">सक्रिय</string>
+    <string name="stat_scheduled">निर्धारित</string>
+    <string name="stat_total">कुल</string>
+    <string name="section_quick_actions">त्वरित क्रियाएँ</string>
+    <string name="quick_new_automation">नया ऑटोमेशन</string>
+    <string name="quick_new_automation_sub">फ़्लो बनाएँ</string>
+    <string name="quick_capability_center">क्षमता केंद्र</string>
+    <string name="quick_capability_center_sub">ROM सुविधाएँ</string>
+    <string name="section_your_automations">आपके ऑटोमेशन</string>
+    <string name="empty_automations_title">अभी कोई ऑटोमेशन नहीं</string>
+    <string name="empty_automations_sub">पहला फ़्लो बनाने के लिए नया ऑटोमेशन पर टैप करें।</string>
+    <string name="status_active">सक्रिय</string>
+    <string name="status_off">बंद</string>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="capability_title">ROM एकीकरण</string>
+    <string name="detected_rom">पहचानी गई ROM: %1$s</string>
+    <string name="integration_level">एकीकरण स्तर: %1$s</string>
+    <string name="capabilities_count">क्षमताएँ (%1$d उपलब्ध)</string>
+    <string name="about_privileged">विशेषाधिकार प्राप्त क्षमताओं के बारे में</string>
+    <string name="about_privileged_text">विशेषाधिकार चिह्नित क्षमताओं के लिए ऐप को सिस्टम/विशेषाधिकार ऐप, रूट शेल या Shizuku सेवा के रूप में स्थापित होना आवश्यक है। Android सामान्य ऐप्स को देने वाली क्षमताओं का अनुरोध करने के लिए अनुदान बटन का उपयोग करें।</string>
+    <string name="available">उपलब्ध</string>
+    <string name="not_available">उपलब्ध नहीं</string>
+    <string name="settings">सेटिंग्स</string>
+    <string name="grant">अनुदान</string>
+</resources>

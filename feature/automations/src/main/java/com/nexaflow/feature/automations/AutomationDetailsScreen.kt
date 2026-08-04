@@ -12,14 +12,20 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AirplanemodeActive
+import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DoNotDisturb
 import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.NotificationImportant
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Schedule
@@ -42,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -79,11 +86,11 @@ fun AutomationDetailsScreen(navController: NavController) {
     Scaffold(
         topBar = {
             NexaFlowTopBar(
-                title = "Automation",
+                title = stringResource(R.string.automation_title),
                 onBack = { navController.popBackStack() },
                 actions = {
                     IconButton(onClick = { viewModel.delete { navController.popBackStack() } }) {
-                        Icon(imageVector = Icons.Filled.Delete, contentDescription = "Delete")
+                        Icon(imageVector = Icons.Filled.Delete, contentDescription = stringResource(R.string.delete))
                     }
                 }
             )
@@ -93,8 +100,8 @@ fun AutomationDetailsScreen(navController: NavController) {
         if (current == null) {
             EmptyState(
                 icon = Icons.Filled.Bolt,
-                title = "Automation not found",
-                subtitle = "It may have been deleted."
+                title = stringResource(R.string.not_found_title),
+                subtitle = stringResource(R.string.not_found_subtitle)
             )
         } else {
             Column(
@@ -130,13 +137,13 @@ fun AutomationDetailsScreen(navController: NavController) {
                         }
                         if (current.enabled) {
                             StatusPill(
-                                text = "Active",
+                                text = stringResource(R.string.status_active),
                                 background = Color(0xFFE4F4E9),
                                 contentColor = Color(0xFF2FA84F)
                             )
                         } else {
                             StatusPill(
-                                text = "Off",
+                                text = stringResource(R.string.status_off),
                                 background = MaterialTheme.colorScheme.surfaceVariant,
                                 contentColor = MaterialTheme.colorScheme.secondary
                             )
@@ -146,24 +153,24 @@ fun AutomationDetailsScreen(navController: NavController) {
                 NexaFlowCard {
                     ToggleRow(
                         icon = Icons.Filled.Bolt,
-                        title = "Enabled",
-                        subtitle = "Run this automation",
+                        title = stringResource(R.string.enabled),
+                        subtitle = stringResource(R.string.enabled_subtitle),
                         checked = current.enabled,
                         onCheckedChange = { viewModel.toggleEnabled(it) }
                     )
                 }
-                SectionHeader(text = "TRIGGERS")
+                SectionHeader(text = stringResource(R.string.section_triggers))
                 NexaFlowCard {
                     if (current.triggers.isEmpty()) {
                         Text(
-                            text = "No triggers configured.",
+                            text = stringResource(R.string.no_triggers),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.secondary
                         )
                     } else {
                         current.triggers.forEach { trigger ->
-                            val (title, subtitle, icon) = triggerPresentation(trigger.type)
-                            SettingRow(icon = icon, title = title, subtitle = subtitle, trailing = {
+                            val (titleRes, subtitleRes, icon) = triggerPresentation(trigger.type)
+                            SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes), trailing = {
                                 Text(
                                     text = trigger.config.entries.joinToString(", ") { "${it.key}=${it.value}" }.ifEmpty { "default" },
                                     style = MaterialTheme.typography.bodySmall,
@@ -173,11 +180,11 @@ fun AutomationDetailsScreen(navController: NavController) {
                         }
                     }
                 }
-                SectionHeader(text = "CONDITIONS")
+                SectionHeader(text = stringResource(R.string.section_conditions))
                 NexaFlowCard {
                     if (current.conditions.isEmpty()) {
                         Text(
-                            text = "No conditions configured.",
+                            text = stringResource(R.string.no_conditions),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.secondary
                         )
@@ -186,23 +193,23 @@ fun AutomationDetailsScreen(navController: NavController) {
                             SettingRow(
                                 icon = Icons.Filled.Bolt,
                                 title = condition.type.name.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() },
-                                subtitle = condition.config.entries.joinToString(", ") { "${it.key}=${it.value}" }.ifEmpty { "Always true" }
+                                subtitle = condition.config.entries.joinToString(", ") { "${it.key}=${it.value}" }.ifEmpty { stringResource(R.string.always_true) }
                             )
                         }
                     }
                 }
-                SectionHeader(text = "ACTIONS")
+                SectionHeader(text = stringResource(R.string.section_actions))
                 NexaFlowCard {
                     if (current.actions.isEmpty()) {
                         Text(
-                            text = "No actions configured.",
+                            text = stringResource(R.string.no_actions),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.secondary
                         )
                     } else {
                         current.actions.forEach { action ->
-                            val (title, subtitle, icon) = actionPresentation(action.type)
-                            SettingRow(icon = icon, title = title, subtitle = subtitle)
+                            val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
+                            SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes))
                         }
                     }
                 }
@@ -213,7 +220,7 @@ fun AutomationDetailsScreen(navController: NavController) {
                 ) {
                     Icon(imageVector = Icons.Filled.PlayArrow, contentDescription = null)
                     Text(
-                        text = if (running) "Running..." else "Run Now",
+                        text = if (running) stringResource(R.string.running) else stringResource(R.string.run_now),
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }
@@ -222,25 +229,36 @@ fun AutomationDetailsScreen(navController: NavController) {
     }
 }
 
-private fun triggerPresentation(type: TriggerType): Triple<String, String, ImageVector> = when (type) {
-    TriggerType.TIME -> Triple("Time", "Trigger at a scheduled time", Icons.Filled.Schedule)
-    TriggerType.APPLICATION -> Triple("App", "Trigger on app event", Icons.Filled.Add)
-    TriggerType.DEVICE -> Triple("Device", "Trigger on device state", Icons.Filled.Bolt)
-    TriggerType.CONNECTIVITY -> Triple("Connectivity", "Trigger on network change", Icons.Filled.Wifi)
-    TriggerType.LOCATION -> Triple("Location", "Trigger on location", Icons.Filled.Place)
+private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector> = when (type) {
+    TriggerType.TIME -> Triple(R.string.trigger_time, R.string.trigger_time_sub, Icons.Filled.Schedule)
+    TriggerType.APPLICATION -> Triple(R.string.trigger_app, R.string.trigger_app_sub, Icons.Filled.Add)
+    TriggerType.DEVICE -> Triple(R.string.trigger_device, R.string.trigger_device_sub, Icons.Filled.Bolt)
+    TriggerType.CONNECTIVITY -> Triple(R.string.trigger_connectivity, R.string.trigger_connectivity_sub, Icons.Filled.Wifi)
+    TriggerType.LOCATION -> Triple(R.string.trigger_location, R.string.trigger_location_sub, Icons.Filled.Place)
 }
 
-private fun actionPresentation(type: ActionType): Triple<String, String, ImageVector> = when (type) {
-    ActionType.SYSTEM_BRIGHTNESS -> Triple("Brightness", "Set screen brightness", Icons.Filled.FlashOn)
-    ActionType.SYSTEM_VOLUME -> Triple("Volume", "Change media volume", Icons.Filled.VolumeUp)
-    ActionType.SYSTEM_DND -> Triple("Do Not Disturb", "Toggle DND mode", Icons.Filled.DoNotDisturb)
-    ActionType.SYSTEM_SCREEN_ROTATION -> Triple("Screen Rotation", "Toggle rotation", Icons.Filled.ScreenRotation)
-    ActionType.SYSTEM_OPEN_APP -> Triple("Open App", "Open an application", Icons.Filled.Add)
-    ActionType.SYSTEM_SEND_NOTIFICATION -> Triple("Notification", "Send a notification", Icons.Filled.NotificationImportant)
-    ActionType.BATTERY_ALERTS -> Triple("Battery Alert", "Alert at battery level", Icons.Filled.BatteryChargingFull)
-    ActionType.BATTERY_CHARGING_NOTIFICATIONS -> Triple("Charging Alert", "Notify on charging", Icons.Filled.BatteryChargingFull)
-    ActionType.APPLICATION_LAUNCH_APP -> Triple("Launch App", "Launch an application", Icons.Filled.Add)
-    ActionType.APPLICATION_CLOSE_APP -> Triple("Close App", "Close an application", Icons.Filled.Close)
-    ActionType.ADVANCED_SHIZUKU -> Triple("Shizuku", "Run via Shizuku", Icons.Filled.Security)
-    ActionType.ADVANCED_ROOT -> Triple("Root", "Run via root", Icons.Filled.Lock)
+private fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (type) {
+    ActionType.SYSTEM_BRIGHTNESS -> Triple(R.string.action_brightness, R.string.action_brightness_sub, Icons.Filled.FlashOn)
+    ActionType.SYSTEM_VOLUME -> Triple(R.string.action_volume, R.string.action_volume_sub, Icons.Filled.VolumeUp)
+    ActionType.SYSTEM_DND -> Triple(R.string.action_dnd, R.string.action_dnd_sub, Icons.Filled.DoNotDisturb)
+    ActionType.SYSTEM_SCREEN_ROTATION -> Triple(R.string.action_rotation, R.string.action_rotation_sub, Icons.Filled.ScreenRotation)
+    ActionType.SYSTEM_OPEN_APP -> Triple(R.string.action_open_apps, R.string.action_open_apps_sub, Icons.Filled.Apps)
+    ActionType.SYSTEM_SEND_NOTIFICATION -> Triple(R.string.action_notification, R.string.action_notification_sub, Icons.Filled.NotificationImportant)
+    ActionType.SYSTEM_WIFI -> Triple(R.string.action_wifi, R.string.action_wifi_sub, Icons.Filled.Wifi)
+    ActionType.SYSTEM_BLUETOOTH -> Triple(R.string.action_bluetooth, R.string.action_bluetooth_sub, Icons.Filled.Bluetooth)
+    ActionType.SYSTEM_FLASHLIGHT -> Triple(R.string.action_flashlight, R.string.action_flashlight_sub, Icons.Filled.FlashOn)
+    ActionType.SYSTEM_AIRPLANE_MODE -> Triple(R.string.action_airplane, R.string.action_airplane_sub, Icons.Filled.AirplanemodeActive)
+    ActionType.SYSTEM_MEDIA_PLAY_PAUSE -> Triple(R.string.action_media_play, R.string.action_media_play_sub, Icons.Filled.MusicNote)
+    ActionType.SYSTEM_MEDIA_NEXT -> Triple(R.string.action_media_next, R.string.action_media_next_sub, Icons.Filled.MusicNote)
+    ActionType.SYSTEM_MEDIA_PREVIOUS -> Triple(R.string.action_media_prev, R.string.action_media_prev_sub, Icons.Filled.MusicNote)
+    ActionType.SYSTEM_OPEN_URL -> Triple(R.string.action_open_url, R.string.action_open_url_sub, Icons.Filled.Link)
+    ActionType.SYSTEM_CLEAR_NOTIFICATIONS -> Triple(R.string.action_clear_notifs, R.string.action_clear_notifs_sub, Icons.Filled.Notifications)
+    ActionType.SYSTEM_EXPAND_STATUS_BAR -> Triple(R.string.action_expand_bar, R.string.action_expand_bar_sub, Icons.Filled.NotificationImportant)
+    ActionType.SYSTEM_COLLAPSE_STATUS_BAR -> Triple(R.string.action_collapse_bar, R.string.action_collapse_bar_sub, Icons.Filled.NotificationImportant)
+    ActionType.BATTERY_ALERTS -> Triple(R.string.action_battery_alert, R.string.action_battery_alert_sub, Icons.Filled.BatteryChargingFull)
+    ActionType.BATTERY_CHARGING_NOTIFICATIONS -> Triple(R.string.action_charging_alert, R.string.action_charging_alert_sub, Icons.Filled.BatteryChargingFull)
+    ActionType.APPLICATION_LAUNCH_APP -> Triple(R.string.action_open_apps, R.string.action_open_apps_sub, Icons.Filled.Add)
+    ActionType.APPLICATION_CLOSE_APP -> Triple(R.string.action_close_app, R.string.action_close_app_sub, Icons.Filled.Close)
+    ActionType.ADVANCED_SHIZUKU -> Triple(R.string.action_shizuku, R.string.action_shizuku_sub, Icons.Filled.Security)
+    ActionType.ADVANCED_ROOT -> Triple(R.string.action_root, R.string.action_root_sub, Icons.Filled.Lock)
 }

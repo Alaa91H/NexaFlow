@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profiles_title">Профили</string>
+    <string name="new_profile">Новый профиль</string>
+    <string name="section_profiles">ПРОФИЛИ</string>
+    <string name="no_profiles_title">Пока нет профилей</string>
+    <string name="no_profiles_subtitle">Профили группируют автоматизации, чтобы применять их одним касанием.</string>
+    <string name="delete_profile_title">Удалить профиль?</string>
+    <string name="delete_profile_text">«%1$s» будет удалён. Его автоматизации будут отключены.</string>
+    <string name="delete">Удалить</string>
+    <string name="cancel">Отмена</string>
+    <string name="no_description">Без описания</string>
+    <string name="active_count">Активен · %1$d автоматизац.</string>
+    <string name="inactive_count">Неактивен · %1$d автоматизац.</string>
+    <string name="manage_automations">Управление автоматизациями</string>
+    <string name="new_profile_title">Новый профиль</string>
+    <string name="name">Имя</string>
+    <string name="description">Описание</string>
+    <string name="icon">Значок</string>
+    <string name="color">Цвет</string>
+    <string name="create">Создать</string>
+    <string name="automations_in">Автоматизации в %1$s</string>
+    <string name="no_automations_yet">Пока нет автоматизаций. Сначала создайте одну.</string>
+    <string name="save">Сохранить</string>
+</resources>

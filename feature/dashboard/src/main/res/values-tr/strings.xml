@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dashboard_title">NexaFlow</string>
+    <string name="dashboard_subtitle">Cihazını kendi yönteminle otomatikleştir</string>
+    <string name="dashboard_settings">Ayarlar</string>
+    <string name="stat_active">Etkin</string>
+    <string name="stat_scheduled">Planlanan</string>
+    <string name="stat_total">Toplam</string>
+    <string name="section_quick_actions">HIZLI İŞLEMLER</string>
+    <string name="quick_new_automation">Yeni Otomasyon</string>
+    <string name="quick_new_automation_sub">Akış oluştur</string>
+    <string name="quick_capability_center">Yetenek Merkezi</string>
+    <string name="quick_capability_center_sub">ROM özellikleri</string>
+    <string name="section_your_automations">OTOMASYONLARIN</string>
+    <string name="empty_automations_title">Henüz otomasyon yok</string>
+    <string name="empty_automations_sub">İlk akışını oluşturmak için Yeni Otomasyon\u0027a dokun.</string>
+    <string name="status_active">Etkin</string>
+    <string name="status_off">Kapalı</string>
+</resources>

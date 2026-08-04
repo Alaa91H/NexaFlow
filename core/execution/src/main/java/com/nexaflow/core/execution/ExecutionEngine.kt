@@ -60,13 +60,45 @@ class ExecutionEngine(
                 controller.setDoNotDisturb(action.config["enabled"]?.toBoolean() ?: true)
             ActionType.SYSTEM_SCREEN_ROTATION ->
                 controller.setScreenRotation(action.config["autoRotate"]?.toBoolean() ?: true)
-            ActionType.SYSTEM_OPEN_APP ->
-                controller.launchApp(action.config["package"] ?: "")
+            ActionType.SYSTEM_OPEN_APP -> {
+                val packages = (action.config["packages"] ?: action.config["package"] ?: "")
+                    .split(',')
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                if (packages.isEmpty()) {
+                    SystemControlResult.fail("No app selected")
+                } else {
+                    packages.forEach { controller.launchApp(it) }
+                    SystemControlResult.ok("Opened ${packages.size} app(s)")
+                }
+            }
             ActionType.SYSTEM_SEND_NOTIFICATION ->
                 controller.sendNotification(
                     action.config["title"] ?: "NexaFlow",
                     action.config["text"] ?: "Automation executed"
                 )
+            ActionType.SYSTEM_WIFI ->
+                controller.setWifi(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_BLUETOOTH ->
+                controller.setBluetooth(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_FLASHLIGHT ->
+                controller.setFlashlight(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_AIRPLANE_MODE ->
+                controller.setAirplaneMode(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_MEDIA_PLAY_PAUSE ->
+                controller.mediaControl("PLAY_PAUSE")
+            ActionType.SYSTEM_MEDIA_NEXT ->
+                controller.mediaControl("NEXT")
+            ActionType.SYSTEM_MEDIA_PREVIOUS ->
+                controller.mediaControl("PREVIOUS")
+            ActionType.SYSTEM_OPEN_URL ->
+                controller.openUrl(action.config["url"] ?: "")
+            ActionType.SYSTEM_CLEAR_NOTIFICATIONS ->
+                controller.clearNotifications()
+            ActionType.SYSTEM_EXPAND_STATUS_BAR ->
+                controller.expandStatusBar()
+            ActionType.SYSTEM_COLLAPSE_STATUS_BAR ->
+                controller.collapseStatusBar()
             ActionType.APPLICATION_LAUNCH_APP ->
                 controller.launchApp(action.config["package"] ?: "")
             ActionType.APPLICATION_CLOSE_APP ->

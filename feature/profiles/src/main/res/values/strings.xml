@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profiles_title">Profiles</string>
+    <string name="new_profile">New Profile</string>
+    <string name="section_profiles">PROFILES</string>
+    <string name="no_profiles_title">No profiles yet</string>
+    <string name="no_profiles_subtitle">Profiles group your automations so you can apply them in one tap.</string>
+    <string name="delete_profile_title">Delete profile?</string>
+    <string name="delete_profile_text">"%1$s" will be removed. Its automations will be disabled.</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="no_description">No description</string>
+    <string name="active_count">Active · %1$d automation(s)</string>
+    <string name="inactive_count">Inactive · %1$d automation(s)</string>
+    <string name="manage_automations">Manage automations</string>
+    <string name="new_profile_title">New profile</string>
+    <string name="name">Name</string>
+    <string name="description">Description</string>
+    <string name="icon">Icon</string>
+    <string name="color">Color</string>
+    <string name="create">Create</string>
+    <string name="automations_in">Automations in %1$s</string>
+    <string name="no_automations_yet">No automations yet. Create one first.</string>
+    <string name="save">Save</string>
+</resources>

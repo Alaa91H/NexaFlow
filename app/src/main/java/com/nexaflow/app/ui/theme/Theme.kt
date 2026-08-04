@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.nexaflow.core.datastore.ThemeMode
 
 data class AccentColors(
     val primary: Color,
@@ -74,10 +75,15 @@ fun oneUIColorScheme(darkTheme: Boolean, accent: String): androidx.compose.mater
 
 @Composable
 fun NexaFlowTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
     accent: String = "blue",
     content: @Composable () -> Unit
 ) {
+    val darkTheme = when (themeMode) {
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+    }
     val colorScheme = oneUIColorScheme(darkTheme, accent)
     val view = LocalView.current
     if (!view.isInEditMode) {

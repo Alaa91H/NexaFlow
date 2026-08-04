@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widgets_title">Виджеты</string>
+    <string name="section_available">ДОСТУПНЫЕ ВИДЖЕТЫ</string>
+    <string name="widget_quick_toggle">Быстрый переключатель</string>
+    <string name="widget_quick_toggle_desc">Включает или выключает все автоматизации с главного экрана одним касанием.</string>
+    <string name="widget_status_card">Карточка статуса</string>
+    <string name="widget_status_card_desc">Живой просмотр активных автоматизаций и времени последнего запуска.</string>
+    <string name="widget_not_added">Ещё не добавлен на главный экран.</string>
+    <string name="section_how_to">КАК ДОБАВИТЬ</string>
+    <string name="how_to_text">Нажмите и удерживайте пустое место на главном экране, коснитесь «Виджеты» и найдите NexaFlow.</string>
+    <string name="how_to_sub">Перетащите виджет «Быстрый переключатель» или «Карточка статуса» на экран.</string>
+    <string name="section_tip">СОВЕТ</string>
+    <string name="tip_text">Виджеты обновляются автоматически при каждом запуске автоматизации или изменении её состояния.</string>
+</resources>

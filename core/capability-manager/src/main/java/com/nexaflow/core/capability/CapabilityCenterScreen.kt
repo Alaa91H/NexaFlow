@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.rom.RomIntegrationManager
 import com.nexaflow.core.rom.model.RomCapability
@@ -39,13 +40,13 @@ fun CapabilityCenterScreen() {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            Text(text = "ROM Integration", style = MaterialTheme.typography.headlineSmall)
+            Text(text = stringResource(R.string.capability_title), style = MaterialTheme.typography.headlineSmall)
         }
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Detected ROM: ${buildInfo.family.displayName}",
+                        text = stringResource(R.string.detected_rom, buildInfo.family.displayName),
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
@@ -62,7 +63,7 @@ fun CapabilityCenterScreen() {
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Integration level: ${integrationLevel.displayName}",
+                        text = stringResource(R.string.integration_level, integrationLevel.displayName),
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
@@ -74,7 +75,7 @@ fun CapabilityCenterScreen() {
         }
         item {
             Text(
-                text = "Capabilities (${capabilities.size} available)",
+                text = stringResource(R.string.capabilities_count, capabilities.size),
                 style = MaterialTheme.typography.titleMedium
             )
         }
@@ -89,13 +90,11 @@ fun CapabilityCenterScreen() {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "About privileged capabilities",
+                        text = stringResource(R.string.about_privileged),
                         style = MaterialTheme.typography.titleSmall
                     )
                     Text(
-                        text = "Capabilities marked as privileged require the app to be installed as a " +
-                            "system/privileged app, a Root shell, or the Shizuku service. " +
-                            "Use the Grant button to request the capabilities Android exposes to normal apps.",
+                        text = stringResource(R.string.about_privileged_text),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -127,13 +126,13 @@ private fun CapabilityRow(
                 )
                 if (available) {
                     StatusPill(
-                        text = "Available",
+                        text = stringResource(R.string.available),
                         background = Color(0xFF2FA84F),
                         contentColor = Color.White
                     )
                 } else {
                     StatusPill(
-                        text = "Not available",
+                        text = stringResource(R.string.not_available),
                         background = Color(0xFFB3261E),
                         contentColor = Color.White
                     )
@@ -149,7 +148,7 @@ private fun CapabilityRow(
                 Button(
                     onClick = { CapabilityGrantHelper.launch(context, grantIntent) }
                 ) {
-                    Text(if (available) "Settings" else "Grant")
+                    Text(if (available) stringResource(R.string.settings) else stringResource(R.string.grant))
                 }
             }
         }

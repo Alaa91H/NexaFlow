@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Einstellungen</string>
+    <string name="section_automation">AUTOMATISIERUNG</string>
+    <string name="accessibility_service">Barrierefreiheitsdienst</string>
+    <string name="accessibility_enabled">Aktiviert — App-Trigger werden erkannt</string>
+    <string name="accessibility_disabled">Aus — App-Trigger werden nicht ausgelöst</string>
+    <string name="monitoring_service">Überwachungsdienst</string>
+    <string name="monitoring_running">Läuft — beobachtet Gerät, Akku, Netzwerk und Standort</string>
+    <string name="monitoring_stopped">Gestoppt — Trigger feuern nur bei geöffneter App</string>
+    <string name="state_on">An</string>
+    <string name="state_off">Aus</string>
+    <string name="section_appearance">DARSTELLUNG</string>
+    <string name="themes">Designs</string>
+    <string name="themes_sub">Dunkelmodus und Akzentfarbe</string>
+    <string name="widgets">Widgets</string>
+    <string name="widgets_sub">Startbildschirm-Widgets</string>
+    <string name="section_integration">INTEGRATION</string>
+    <string name="capability_center">Fähigkeitszentrum</string>
+    <string name="capability_center_sub">ROM-Funktionen und Berechtigungen</string>
+    <string name="execution_history">Ausführungsverlauf</string>
+    <string name="execution_history_sub">Automatisierungsläufe anzeigen</string>
+    <string name="section_about">ÜBER</string>
+    <string name="about_nexaflow">Über NexaFlow</string>
+    <string name="version">Version %1$s</string>
+    <string name="rom_integration">ROM-Integration</string>
+    <string name="rom_integration_sub">Systemweiter Zugriff bei Integration in eine ROM</string>
+    <string name="about_description">Eine fortschrittliche kontextbewusste Automatisierungs-Engine für Android. Automatisiere dein Gerät mit Zeit-, App-, Geräte-, Konnektivitäts- und Standort-Triggern.</string>
+    <string name="about_license">Lizenziert unter der MIT-Lizenz.</string>
+    <string name="ok">OK</string>
+</resources>

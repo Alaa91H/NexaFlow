@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Paramètres</string>
+    <string name="section_automation">AUTOMATISATION</string>
+    <string name="accessibility_service">Service d\u2019accessibilité</string>
+    <string name="accessibility_enabled">Activé — les déclencheurs d\u2019application sont détectés</string>
+    <string name="accessibility_disabled">Désactivé — les déclencheurs d\u2019application ne se déclencheront pas</string>
+    <string name="monitoring_service">Service de surveillance</string>
+    <string name="monitoring_running">En cours — surveille appareil, batterie, réseau et position</string>
+    <string name="monitoring_stopped">Arrêté — les déclencheurs ne se déclenchent que lorsque l\u2019application est ouverte</string>
+    <string name="state_on">Activé</string>
+    <string name="state_off">Désactivé</string>
+    <string name="section_appearance">APPARENCE</string>
+    <string name="themes">Thèmes</string>
+    <string name="themes_sub">Mode sombre et couleur d\u2019accent</string>
+    <string name="widgets">Widgets</string>
+    <string name="widgets_sub">Widgets de l\u2019écran d\u2019accueil</string>
+    <string name="section_integration">INTÉGRATION</string>
+    <string name="capability_center">Centre de capacités</string>
+    <string name="capability_center_sub">Fonctions ROM et autorisations</string>
+    <string name="execution_history">Historique d\u2019exécution</string>
+    <string name="execution_history_sub">Voir les exécutions des automatisations</string>
+    <string name="section_about">À PROPOS</string>
+    <string name="about_nexaflow">À propos de NexaFlow</string>
+    <string name="version">Version %1$s</string>
+    <string name="rom_integration">Intégration ROM</string>
+    <string name="rom_integration_sub">Accès système intégré dans une ROM</string>
+    <string name="about_description">Un moteur d\u2019automatisation avancé et contextuel pour Android. Automatisez votre appareil avec des déclencheurs d\u2019heure, d\u2019application, d\u2019appareil, de connectivité et de position.</string>
+    <string name="about_license">Sous licence MIT.</string>
+    <string name="ok">OK</string>
+</resources>

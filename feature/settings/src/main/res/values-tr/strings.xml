@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Ayarlar</string>
+    <string name="section_automation">OTOMASYON</string>
+    <string name="accessibility_service">Erişilebilirlik hizmeti</string>
+    <string name="accessibility_enabled">Etkin — uygulama tetikleyicileri algılanıyor</string>
+    <string name="accessibility_disabled">Kapalı — uygulama tetikleyicileri çalışmaz</string>
+    <string name="monitoring_service">İzleme hizmeti</string>
+    <string name="monitoring_running">Çalışıyor — cihaz, pil, ağ ve konum izleniyor</string>
+    <string name="monitoring_stopped">Durduruldu — tetikleyiciler yalnızca uygulama açıkken çalışır</string>
+    <string name="state_on">Açık</string>
+    <string name="state_off">Kapalı</string>
+    <string name="section_appearance">GÖRÜNÜM</string>
+    <string name="themes">Temalar</string>
+    <string name="themes_sub">Karanlık mod ve vurgu rengi</string>
+    <string name="widgets">Widget\u0027lar</string>
+    <string name="widgets_sub">Ana ekran widget\u0027ları</string>
+    <string name="section_integration">ENTEGRASYON</string>
+    <string name="capability_center">Yetenek Merkezi</string>
+    <string name="capability_center_sub">ROM özellikleri ve izinler</string>
+    <string name="execution_history">Yürütme Geçmişi</string>
+    <string name="execution_history_sub">Otomasyon çalışmalarını görüntüle</string>
+    <string name="section_about">HAKKINDA</string>
+    <string name="about_nexaflow">NexaFlow Hakkında</string>
+    <string name="version">Sürüm %1$s</string>
+    <string name="rom_integration">ROM Entegrasyonu</string>
+    <string name="rom_integration_sub">Bir ROM\u0027a gömüldüğünde sistem düzeyi erişim</string>
+    <string name="about_description">Android için gelişmiş, bağlam farkında otomasyon motoru. Zaman, uygulama, cihaz, bağlantı ve konum tetikleyicileriyle cihazını otomatikleştir.</string>
+    <string name="about_license">MIT Lisansı altında lisanslıdır.</string>
+    <string name="ok">Tamam</string>
+</resources>

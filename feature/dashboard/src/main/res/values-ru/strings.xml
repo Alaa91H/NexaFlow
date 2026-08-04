@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dashboard_title">NexaFlow</string>
+    <string name="dashboard_subtitle">Автоматизируйте устройство по-своему</string>
+    <string name="dashboard_settings">Настройки</string>
+    <string name="stat_active">Активные</string>
+    <string name="stat_scheduled">По расписанию</string>
+    <string name="stat_total">Всего</string>
+    <string name="section_quick_actions">БЫСТРЫЕ ДЕЙСТВИЯ</string>
+    <string name="quick_new_automation">Новая автоматизация</string>
+    <string name="quick_new_automation_sub">Создать сценарий</string>
+    <string name="quick_capability_center">Центр возможностей</string>
+    <string name="quick_capability_center_sub">Функции ROM</string>
+    <string name="section_your_automations">ВАШИ АВТОМАТИЗАЦИИ</string>
+    <string name="empty_automations_title">Пока нет автоматизаций</string>
+    <string name="empty_automations_sub">Нажмите «Новая автоматизация», чтобы создать первый сценарий.</string>
+    <string name="status_active">Активна</string>
+    <string name="status_off">Выключена</string>
+</resources>

@@ -2,6 +2,7 @@ package com.nexaflow.feature.themes
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nexaflow.core.datastore.ThemeMode
 import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.datastore.ThemeSettings
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,8 +20,8 @@ class ThemeViewModel @Inject constructor(
     val theme: StateFlow<ThemeSettings> = themePreferences.theme
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ThemeSettings())
 
-    fun setDarkMode(enabled: Boolean) {
-        viewModelScope.launch { themePreferences.setDarkMode(enabled) }
+    fun setThemeMode(mode: ThemeMode) {
+        viewModelScope.launch { themePreferences.setThemeMode(mode) }
     }
 
     fun setAccent(accent: String) {

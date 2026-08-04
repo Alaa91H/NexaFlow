@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Настройки</string>
+    <string name="section_automation">АВТОМАТИЗАЦИЯ</string>
+    <string name="accessibility_service">Служба специальных возможностей</string>
+    <string name="accessibility_enabled">Включена — триггеры приложений обнаруживаются</string>
+    <string name="accessibility_disabled">Выключена — триггеры приложений не сработают</string>
+    <string name="monitoring_service">Служба мониторинга</string>
+    <string name="monitoring_running">Работает — наблюдает за устройством, батареей, сетью и местоположением</string>
+    <string name="monitoring_stopped">Остановлена — триггеры срабатывают только при открытом приложении</string>
+    <string name="state_on">Вкл</string>
+    <string name="state_off">Выкл</string>
+    <string name="section_appearance">ВНЕШНИЙ ВИД</string>
+    <string name="themes">Темы</string>
+    <string name="themes_sub">Тёмный режим и акцентный цвет</string>
+    <string name="widgets">Виджеты</string>
+    <string name="widgets_sub">Виджеты главного экрана</string>
+    <string name="section_integration">ИНТЕГРАЦИЯ</string>
+    <string name="capability_center">Центр возможностей</string>
+    <string name="capability_center_sub">Функции ROM и разрешения</string>
+    <string name="execution_history">История выполнения</string>
+    <string name="execution_history_sub">Просмотр запусков автоматизаций</string>
+    <string name="section_about">О ПРИЛОЖЕНИИ</string>
+    <string name="about_nexaflow">О NexaFlow</string>
+    <string name="version">Версия %1$s</string>
+    <string name="rom_integration">Интеграция ROM</string>
+    <string name="rom_integration_sub">Системный доступ при встраивании в ROM</string>
+    <string name="about_description">Передовой контекстно-зависимый движок автоматизации для Android. Автоматизируйте устройство с помощью триггеров времени, приложений, устройства, сети и местоположения.</string>
+    <string name="about_license">Распространяется по лицензии MIT.</string>
+    <string name="ok">ОК</string>
+</resources>

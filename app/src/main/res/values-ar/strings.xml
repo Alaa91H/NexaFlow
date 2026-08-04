@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NexaFlow</string>
+    <string name="accessibility_service_description">تكتشف عند فتح التطبيقات المكوَّنة لتشغيل الأتمتات ذات مشغّل التطبيق. يتم ملاحظة التطبيق العلوي فقط؛ لا تتم قراءة أي شيء من الشاشة.</string>
+    <string name="widget_status_title">الأتمتات النشطة</string>
+    <string name="widget_status_count">0 / 0</string>
+    <string name="widget_status_last">آخر تشغيل: —</string>
+    <string name="widget_subtitle">أتمتات</string>
+    <string name="widget_action">تفعيل الكل</string>
+</resources>

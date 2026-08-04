@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Settings</string>
+    <string name="section_automation">AUTOMATION</string>
+    <string name="accessibility_service">Accessibility service</string>
+    <string name="accessibility_enabled">Enabled — app triggers are detected</string>
+    <string name="accessibility_disabled">Off — app triggers won\'t fire</string>
+    <string name="monitoring_service">Monitoring service</string>
+    <string name="monitoring_running">Running — watching device, battery, network, location</string>
+    <string name="monitoring_stopped">Stopped — triggers only fire while the app is open</string>
+    <string name="state_on">On</string>
+    <string name="state_off">Off</string>
+    <string name="section_appearance">APPEARANCE</string>
+    <string name="themes">Themes</string>
+    <string name="themes_sub">Dark mode and accent color</string>
+    <string name="widgets">Widgets</string>
+    <string name="widgets_sub">Home screen widgets</string>
+    <string name="section_integration">INTEGRATION</string>
+    <string name="capability_center">Capability Center</string>
+    <string name="capability_center_sub">ROM features and permissions</string>
+    <string name="execution_history">Execution History</string>
+    <string name="execution_history_sub">View automation runs</string>
+    <string name="section_about">ABOUT</string>
+    <string name="about_nexaflow">About NexaFlow</string>
+    <string name="version">Version %1$s</string>
+    <string name="rom_integration">ROM Integration</string>
+    <string name="rom_integration_sub">System-level access when baked into a ROM</string>
+    <string name="about_description">An advanced context-aware automation engine for Android. Automate your device using time, app, device, connectivity and location triggers.</string>
+    <string name="about_license">Licensed under the MIT License.</string>
+    <string name="ok">OK</string>
+</resources>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">Configurações</string>
+    <string name="section_automation">AUTOMAÇÃO</string>
+    <string name="accessibility_service">Serviço de acessibilidade</string>
+    <string name="accessibility_enabled">Ativado — gatilhos de aplicativos são detectados</string>
+    <string name="accessibility_disabled">Desativado — gatilhos de aplicativos não serão acionados</string>
+    <string name="monitoring_service">Serviço de monitoramento</string>
+    <string name="monitoring_running">Em execução — monitora dispositivo, bateria, rede e localização</string>
+    <string name="monitoring_stopped">Parado — gatilhos só disparam com o aplicativo aberto</string>
+    <string name="state_on">Ligado</string>
+    <string name="state_off">Desligado</string>
+    <string name="section_appearance">APARÊNCIA</string>
+    <string name="themes">Temas</string>
+    <string name="themes_sub">Modo escuro e cor de destaque</string>
+    <string name="widgets">Widgets</string>
+    <string name="widgets_sub">Widgets da tela inicial</string>
+    <string name="section_integration">INTEGRAÇÃO</string>
+    <string name="capability_center">Central de recursos</string>
+    <string name="capability_center_sub">Recursos ROM e permissões</string>
+    <string name="execution_history">Histórico de execução</string>
+    <string name="execution_history_sub">Ver execuções de automações</string>
+    <string name="section_about">SOBRE</string>
+    <string name="about_nexaflow">Sobre o NexaFlow</string>
+    <string name="version">Versão %1$s</string>
+    <string name="rom_integration">Integração ROM</string>
+    <string name="rom_integration_sub">Acesso ao sistema quando integrado a uma ROM</string>
+    <string name="about_description">Um mecanismo avançado de automação ciente de contexto para Android. Automatize seu dispositivo com gatilhos de hora, aplicativo, dispositivo, conectividade e localização.</string>
+    <string name="about_license">Licenciado sob a Licença MIT.</string>
+    <string name="ok">OK</string>
+</resources>

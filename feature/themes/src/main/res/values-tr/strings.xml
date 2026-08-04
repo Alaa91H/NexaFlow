@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="themes_title">Temalar</string>
+    <string name="section_appearance">GÖRÜNÜM</string>
+    <string name="mode_system">Sistem varsayılanı</string>
+    <string name="mode_system_sub">Cihaz temasını takip eder</string>
+    <string name="mode_light">Açık</string>
+    <string name="mode_light_sub">Her zaman açık temayı kullan</string>
+    <string name="mode_dark">Koyu</string>
+    <string name="mode_dark_sub">Her zaman koyu temayı kullan</string>
+    <string name="theme_follows_system">Sistem görünümünü otomatik olarak takip eder</string>
+    <string name="theme_manual">Manuel tema seçildi</string>
+    <string name="section_accent">VURGU RENGİ</string>
+    <string name="accent_selected">Seçilen: %1$s</string>
+    <string name="accent_blue">Mavi</string>
+    <string name="accent_green">Yeşil</string>
+    <string name="accent_red">Kırmızı</string>
+    <string name="accent_purple">Mor</string>
+    <string name="accent_amber">Kehribar</string>
+    <string name="accent_teal">Turkuaz</string>
+    <string name="section_preview">ÖNİZLEME</string>
+    <string name="theme_name">NexaFlow teması</string>
+    <string name="preview_system">Sistem görünümü</string>
+    <string name="preview_dark">Koyu önizleme</string>
+    <string name="preview_light">Açık önizleme</string>
+    <string name="primary_accent">Ana vurgu</string>
+</resources>

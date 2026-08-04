@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dashboard_title">NexaFlow</string>
+    <string name="dashboard_subtitle">Automatiza tu dispositivo, a tu manera</string>
+    <string name="dashboard_settings">Ajustes</string>
+    <string name="stat_active">Activas</string>
+    <string name="stat_scheduled">Programadas</string>
+    <string name="stat_total">Total</string>
+    <string name="section_quick_actions">ACCIONES RÁPIDAS</string>
+    <string name="quick_new_automation">Nueva automatización</string>
+    <string name="quick_new_automation_sub">Crear un flujo</string>
+    <string name="quick_capability_center">Centro de capacidades</string>
+    <string name="quick_capability_center_sub">Funciones ROM</string>
+    <string name="section_your_automations">TUS AUTOMATIZACIONES</string>
+    <string name="empty_automations_title">Aún no hay automatizaciones</string>
+    <string name="empty_automations_sub">Toca Nueva automatización para crear tu primer flujo.</string>
+    <string name="status_active">Activa</string>
+    <string name="status_off">Apagada</string>
+</resources>

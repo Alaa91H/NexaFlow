@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="themes_title">主题</string>
+    <string name="section_appearance">外观</string>
+    <string name="mode_system">系统默认</string>
+    <string name="mode_system_sub">跟随设备主题</string>
+    <string name="mode_light">浅色</string>
+    <string name="mode_light_sub">始终使用浅色主题</string>
+    <string name="mode_dark">深色</string>
+    <string name="mode_dark_sub">始终使用深色主题</string>
+    <string name="theme_follows_system">自动跟随系统外观</string>
+    <string name="theme_manual">已选择手动主题覆盖</string>
+    <string name="section_accent">强调色</string>
+    <string name="accent_selected">已选择：%1$s</string>
+    <string name="accent_blue">蓝色</string>
+    <string name="accent_green">绿色</string>
+    <string name="accent_red">红色</string>
+    <string name="accent_purple">紫色</string>
+    <string name="accent_amber">琥珀色</string>
+    <string name="accent_teal">青色</string>
+    <string name="section_preview">预览</string>
+    <string name="theme_name">NexaFlow 主题</string>
+    <string name="preview_system">系统外观</string>
+    <string name="preview_dark">深色预览</string>
+    <string name="preview_light">浅色预览</string>
+    <string name="primary_accent">主要强调色</string>
+</resources>

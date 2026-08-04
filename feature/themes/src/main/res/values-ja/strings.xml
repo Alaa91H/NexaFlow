@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="themes_title">テーマ</string>
+    <string name="section_appearance">外観</string>
+    <string name="mode_system">システム既定</string>
+    <string name="mode_system_sub">端末のテーマに従う</string>
+    <string name="mode_light">ライト</string>
+    <string name="mode_light_sub">常にライトテーマを使用</string>
+    <string name="mode_dark">ダーク</string>
+    <string name="mode_dark_sub">常にダークテーマを使用</string>
+    <string name="theme_follows_system">システムの外観に自動的に従います</string>
+    <string name="theme_manual">手動テーマが選択されました</string>
+    <string name="section_accent">アクセントカラー</string>
+    <string name="accent_selected">選択中: %1$s</string>
+    <string name="accent_blue">青</string>
+    <string name="accent_green">緑</string>
+    <string name="accent_red">赤</string>
+    <string name="accent_purple">紫</string>
+    <string name="accent_amber">琥珀</string>
+    <string name="accent_teal">ティール</string>
+    <string name="section_preview">プレビュー</string>
+    <string name="theme_name">NexaFlowテーマ</string>
+    <string name="preview_system">システムの外観</string>
+    <string name="preview_dark">ダークプレビュー</string>
+    <string name="preview_light">ライトプレビュー</string>
+    <string name="primary_accent">メインアクセント</string>
+</resources>

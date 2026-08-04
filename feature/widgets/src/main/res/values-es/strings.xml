@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widgets_title">Widgets</string>
+    <string name="section_available">WIDGETS DISPONIBLES</string>
+    <string name="widget_quick_toggle">Alternancia rápida</string>
+    <string name="widget_quick_toggle_desc">Habilita o deshabilita todas las automatizaciones desde la pantalla de inicio con un toque.</string>
+    <string name="widget_status_card">Tarjeta de estado</string>
+    <string name="widget_status_card_desc">Vista en vivo de las automatizaciones activas y la última ejecución.</string>
+    <string name="widget_not_added">Aún no se ha añadido a tu pantalla de inicio.</string>
+    <string name="section_how_to">CÓMO AÑADIR</string>
+    <string name="how_to_text">Mantén presionado un espacio vacío de la pantalla de inicio, toca Widgets y busca NexaFlow.</string>
+    <string name="how_to_sub">Arrastra el widget Alternancia rápida o Tarjeta de estado a tu pantalla.</string>
+    <string name="section_tip">CONSEJO</string>
+    <string name="tip_text">Los widgets se actualizan automáticamente cuando una automatización se ejecuta o cambia su estado.</string>
+</resources>

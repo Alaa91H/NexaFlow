@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -42,12 +43,12 @@ fun HistoryScreen(navController: NavController) {
     val viewModel: HistoryViewModel = hiltViewModel()
     val history by viewModel.history.collectAsStateWithLifecycle()
 
-    Scaffold(topBar = { NexaFlowTopBar(title = "History", onBack = { navController.popBackStack() }) }) { padding ->
+    Scaffold(topBar = { NexaFlowTopBar(title = stringResource(R.string.history_title), onBack = { navController.popBackStack() }) }) { padding ->
         if (history.isEmpty()) {
             EmptyState(
                 icon = Icons.Filled.History,
-                title = "No runs yet",
-                subtitle = "Your automation executions will appear here."
+                title = stringResource(R.string.no_runs_title),
+                subtitle = stringResource(R.string.no_runs_subtitle)
             )
         } else {
             LazyColumn(
@@ -94,7 +95,7 @@ private fun HistoryCard(entry: ExecutionRecord) {
                 )
             }
             StatusPill(
-                text = if (entry.success) "Success" else "Failed",
+                text = if (entry.success) stringResource(R.string.status_success) else stringResource(R.string.status_failed),
                 background = if (entry.success) Color(0xFFE4F4E9) else Color(0xFFFBEAE7),
                 contentColor = if (entry.success) Color(0xFF2FA84F) else Color(0xFFE5533D)
             )

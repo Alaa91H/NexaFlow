@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -62,18 +63,18 @@ fun DashboardScreen(navController: NavController) {
             ) {
                 Column {
                     Text(
-                        text = "NexaFlow",
+                        text = stringResource(R.string.dashboard_title),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Automate your device, your way",
+                        text = stringResource(R.string.dashboard_subtitle),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.secondary
                     )
                 }
                 IconButton(onClick = { navController.navigate("settings") }) {
-                    Icon(imageVector = Icons.Filled.Settings, contentDescription = "Settings")
+                    Icon(imageVector = Icons.Filled.Settings, contentDescription = stringResource(R.string.dashboard_settings))
                 }
             }
         }
@@ -81,40 +82,40 @@ fun DashboardScreen(navController: NavController) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 StatCard(
                     value = activeCount.toString(),
-                    label = "Active",
+                    label = stringResource(R.string.stat_active),
                     icon = Icons.Filled.Bolt,
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
                     value = scheduledCount.toString(),
-                    label = "Scheduled",
+                    label = stringResource(R.string.stat_scheduled),
                     icon = Icons.Filled.Schedule,
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
                     value = totalCount.toString(),
-                    label = "Total",
+                    label = stringResource(R.string.stat_total),
                     icon = Icons.Filled.Dashboard,
                     modifier = Modifier.weight(1f)
                 )
             }
         }
         item {
-            SectionHeader(text = "QUICK ACTIONS")
+            SectionHeader(text = stringResource(R.string.section_quick_actions))
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 QuickActionCard(
-                    title = "New Automation",
-                    subtitle = "Create a flow",
+                    title = stringResource(R.string.quick_new_automation),
+                    subtitle = stringResource(R.string.quick_new_automation_sub),
                     icon = Icons.Filled.AddCircle,
                     containerColor = MaterialTheme.colorScheme.primary,
                     onClick = { navController.navigate("automation_builder") },
                     modifier = Modifier.weight(1f)
                 )
                 QuickActionCard(
-                    title = "Capability Center",
-                    subtitle = "ROM features",
+                    title = stringResource(R.string.quick_capability_center),
+                    subtitle = stringResource(R.string.quick_capability_center_sub),
                     icon = Icons.Filled.Bolt,
                     containerColor = Color(0xFF2FA84F),
                     onClick = { navController.navigate("capability_center") },
@@ -123,14 +124,14 @@ fun DashboardScreen(navController: NavController) {
             }
         }
         item {
-            SectionHeader(text = "YOUR AUTOMATIONS")
+            SectionHeader(text = stringResource(R.string.section_your_automations))
         }
         if (automations.isEmpty()) {
             item {
                 EmptyState(
                     icon = Icons.Filled.Dashboard,
-                    title = "No automations yet",
-                    subtitle = "Tap New Automation to create your first flow."
+                    title = stringResource(R.string.empty_automations_title),
+                    subtitle = stringResource(R.string.empty_automations_sub)
                 )
             }
         }
@@ -191,13 +192,13 @@ private fun AutomationCard(automation: Automation, onClick: () -> Unit) {
             }
             if (automation.enabled) {
                 StatusPill(
-                    text = "Active",
+                    text = stringResource(R.string.status_active),
                     background = Color(0xFFE4F4E9),
                     contentColor = Color(0xFF2FA84F)
                 )
             } else {
                 StatusPill(
-                    text = "Off",
+                    text = stringResource(R.string.status_off),
                     background = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.secondary
                 )

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="themes_title">Themes</string>
+    <string name="section_appearance">APPEARANCE</string>
+    <string name="mode_system">System default</string>
+    <string name="mode_system_sub">Follows the device theme</string>
+    <string name="mode_light">Light</string>
+    <string name="mode_light_sub">Always use the light theme</string>
+    <string name="mode_dark">Dark</string>
+    <string name="mode_dark_sub">Always use the dark theme</string>
+    <string name="theme_follows_system">Follows your system appearance automatically</string>
+    <string name="theme_manual">Manual theme override selected</string>
+    <string name="section_accent">ACCENT COLOR</string>
+    <string name="accent_selected">Selected: %1$s</string>
+    <string name="accent_blue">Blue</string>
+    <string name="accent_green">Green</string>
+    <string name="accent_red">Red</string>
+    <string name="accent_purple">Purple</string>
+    <string name="accent_amber">Amber</string>
+    <string name="accent_teal">Teal</string>
+    <string name="section_preview">PREVIEW</string>
+    <string name="theme_name">NexaFlow theme</string>
+    <string name="preview_system">System appearance</string>
+    <string name="preview_dark">Dark preview</string>
+    <string name="preview_light">Light preview</string>
+    <string name="primary_accent">Primary accent</string>
+</resources>

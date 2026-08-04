@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="capability_title">Intégration ROM</string>
+    <string name="detected_rom">ROM détectée : %1$s</string>
+    <string name="integration_level">Niveau d\u2019intégration : %1$s</string>
+    <string name="capabilities_count">Capacités (%1$d disponibles)</string>
+    <string name="about_privileged">À propos des capacités privilégiées</string>
+    <string name="about_privileged_text">Les capacités marquées comme privilégiées exigent que l\u2019application soit installée comme application système/privilégiée, un shell root ou le service Shizuku. Utilisez le bouton Accorder pour demander les capacités qu\u2019Android expose aux applications normales.</string>
+    <string name="available">Disponible</string>
+    <string name="not_available">Non disponible</string>
+    <string name="settings">Paramètres</string>
+    <string name="grant">Accorder</string>
+</resources>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">الإعدادات</string>
+    <string name="section_automation">الأتمتة</string>
+    <string name="accessibility_service">خدمة إمكانية الوصول</string>
+    <string name="accessibility_enabled">مفعّلة — يتم اكتشاف مشغّلات التطبيق</string>
+    <string name="accessibility_disabled">متوقفة — لن تعمل مشغّلات التطبيق</string>
+    <string name="monitoring_service">خدمة المراقبة</string>
+    <string name="monitoring_running">تعمل — تراقب الجهاز والبطارية والشبكة والموقع</string>
+    <string name="monitoring_stopped">متوقفة — تعمل المشغّلات فقط أثناء فتح التطبيق</string>
+    <string name="state_on">مفعّل</string>
+    <string name="state_off">متوقف</string>
+    <string name="section_appearance">المظهر</string>
+    <string name="themes">السمات</string>
+    <string name="themes_sub">الوضع الداكن ولون التمييز</string>
+    <string name="widgets">الأدوات</string>
+    <string name="widgets_sub">أدوات الشاشة الرئيسية</string>
+    <string name="section_integration">التكامل</string>
+    <string name="capability_center">مركز القدرات</string>
+    <string name="capability_center_sub">ميزات النظام والأذونات</string>
+    <string name="execution_history">سجل التنفيذ</string>
+    <string name="execution_history_sub">عرض عمليات تشغيل الأتمتات</string>
+    <string name="section_about">حول</string>
+    <string name="about_nexaflow">حول NexaFlow</string>
+    <string name="version">الإصدار %1$s</string>
+    <string name="rom_integration">تكامل ROM</string>
+    <string name="rom_integration_sub">وصول على مستوى النظام عند تضمينه في ROM</string>
+    <string name="about_description">محرك أتمتة متقدم يدرك السياق لنظام أندرويد. أتمت جهازك باستخدام مشغّلات الوقت والتطبيق والجهاز والاتصال والموقع.</string>
+    <string name="about_license">مرخّص بموجب رخصة MIT.</string>
+    <string name="ok">حسناً</string>
+</resources>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="themes_title">Designs</string>
+    <string name="section_appearance">DARSTELLUNG</string>
+    <string name="mode_system">Systemstandard</string>
+    <string name="mode_system_sub">Folgt dem Geräte-Design</string>
+    <string name="mode_light">Hell</string>
+    <string name="mode_light_sub">Immer das helle Design verwenden</string>
+    <string name="mode_dark">Dunkel</string>
+    <string name="mode_dark_sub">Immer das dunkle Design verwenden</string>
+    <string name="theme_follows_system">Folgt automatisch der Systemdarstellung</string>
+    <string name="theme_manual">Manuelle Design-Überschreibung ausgewählt</string>
+    <string name="section_accent">AKZENTFARBE</string>
+    <string name="accent_selected">Ausgewählt: %1$s</string>
+    <string name="accent_blue">Blau</string>
+    <string name="accent_green">Grün</string>
+    <string name="accent_red">Rot</string>
+    <string name="accent_purple">Lila</string>
+    <string name="accent_amber">Bernstein</string>
+    <string name="accent_teal">Petrol</string>
+    <string name="section_preview">VORSCHAU</string>
+    <string name="theme_name">NexaFlow-Design</string>
+    <string name="preview_system">Systemdarstellung</string>
+    <string name="preview_dark">Dunkle Vorschau</string>
+    <string name="preview_light">Helle Vorschau</string>
+    <string name="primary_accent">Primäre Akzentfarbe</string>
+</resources>

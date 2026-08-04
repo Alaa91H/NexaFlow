@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">设置</string>
+    <string name="section_automation">自动化</string>
+    <string name="accessibility_service">无障碍服务</string>
+    <string name="accessibility_enabled">已启用 — 可检测应用触发器</string>
+    <string name="accessibility_disabled">已关闭 — 应用触发器不会触发</string>
+    <string name="monitoring_service">监控服务</string>
+    <string name="monitoring_running">运行中 — 监控设备、电池、网络和位置</string>
+    <string name="monitoring_stopped">已停止 — 仅当应用打开时触发器才触发</string>
+    <string name="state_on">开</string>
+    <string name="state_off">关</string>
+    <string name="section_appearance">外观</string>
+    <string name="themes">主题</string>
+    <string name="themes_sub">深色模式和强调色</string>
+    <string name="widgets">小组件</string>
+    <string name="widgets_sub">主屏幕小组件</string>
+    <string name="section_integration">集成</string>
+    <string name="capability_center">能力中心</string>
+    <string name="capability_center_sub">ROM 功能和权限</string>
+    <string name="execution_history">执行历史</string>
+    <string name="execution_history_sub">查看自动化运行记录</string>
+    <string name="section_about">关于</string>
+    <string name="about_nexaflow">关于 NexaFlow</string>
+    <string name="version">版本 %1$s</string>
+    <string name="rom_integration">ROM 集成</string>
+    <string name="rom_integration_sub">集成到 ROM 时的系统级访问</string>
+    <string name="about_description">适用于 Android 的高级情境感知自动化引擎。使用时间、应用、设备、网络和位置触发器自动化您的设备。</string>
+    <string name="about_license">根据 MIT 许可证授权。</string>
+    <string name="ok">确定</string>
+</resources>

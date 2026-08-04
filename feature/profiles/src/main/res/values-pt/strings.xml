@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profiles_title">Perfis</string>
+    <string name="new_profile">Novo perfil</string>
+    <string name="section_profiles">PERFIS</string>
+    <string name="no_profiles_title">Nenhum perfil ainda</string>
+    <string name="no_profiles_subtitle">Os perfis agrupam suas automações para aplicá-las com um toque.</string>
+    <string name="delete_profile_title">Excluir perfil?</string>
+    <string name="delete_profile_text">"%1$s" será removido. Suas automações serão desativadas.</string>
+    <string name="delete">Excluir</string>
+    <string name="cancel">Cancelar</string>
+    <string name="no_description">Sem descrição</string>
+    <string name="active_count">Ativo · %1$d automação(ões)</string>
+    <string name="inactive_count">Inativo · %1$d automação(ões)</string>
+    <string name="manage_automations">Gerenciar automações</string>
+    <string name="new_profile_title">Novo perfil</string>
+    <string name="name">Nome</string>
+    <string name="description">Descrição</string>
+    <string name="icon">Ícone</string>
+    <string name="color">Cor</string>
+    <string name="create">Criar</string>
+    <string name="automations_in">Automações em %1$s</string>
+    <string name="no_automations_yet">Nenhuma automação ainda. Crie uma primeiro.</string>
+    <string name="save">Salvar</string>
+</resources>

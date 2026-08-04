@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dashboard_title">NexaFlow</string>
+    <string name="dashboard_subtitle">デバイスを自分流に自動化</string>
+    <string name="dashboard_settings">設定</string>
+    <string name="stat_active">アクティブ</string>
+    <string name="stat_scheduled">予定</string>
+    <string name="stat_total">合計</string>
+    <string name="section_quick_actions">クイックアクション</string>
+    <string name="quick_new_automation">新しい自動化</string>
+    <string name="quick_new_automation_sub">フローを作成</string>
+    <string name="quick_capability_center">機能センター</string>
+    <string name="quick_capability_center_sub">ROM機能</string>
+    <string name="section_your_automations">あなたの自動化</string>
+    <string name="empty_automations_title">まだ自動化がありません</string>
+    <string name="empty_automations_sub">「新しい自動化」をタップして最初のフローを作成しましょう。</string>
+    <string name="status_active">アクティブ</string>
+    <string name="status_off">オフ</string>
+</resources>

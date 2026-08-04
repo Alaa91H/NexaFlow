@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="themes_title">السمات</string>
+    <string name="section_appearance">المظهر</string>
+    <string name="mode_system">افتراضي النظام</string>
+    <string name="mode_system_sub">يتبع سمة الجهاز</string>
+    <string name="mode_light">فاتح</string>
+    <string name="mode_light_sub">استخدام السمة الفاتحة دائماً</string>
+    <string name="mode_dark">داكن</string>
+    <string name="mode_dark_sub">استخدام السمة الداكنة دائماً</string>
+    <string name="theme_follows_system">يتبع مظهر النظام تلقائياً</string>
+    <string name="theme_manual">تم اختيار تجاوز يدوي للسمة</string>
+    <string name="section_accent">لون التمييز</string>
+    <string name="accent_selected">المحدد: %1$s</string>
+    <string name="accent_blue">أزرق</string>
+    <string name="accent_green">أخضر</string>
+    <string name="accent_red">أحمر</string>
+    <string name="accent_purple">بنفسجي</string>
+    <string name="accent_amber">كهرماني</string>
+    <string name="accent_teal">تركوازي</string>
+    <string name="section_preview">معاينة</string>
+    <string name="theme_name">سمة NexaFlow</string>
+    <string name="preview_system">مظهر النظام</string>
+    <string name="preview_dark">معاينة داكنة</string>
+    <string name="preview_light">معاينة فاتحة</string>
+    <string name="primary_accent">اللون الأساسي</string>
+</resources>

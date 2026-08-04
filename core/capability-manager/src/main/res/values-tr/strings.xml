@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="capability_title">ROM Entegrasyonu</string>
+    <string name="detected_rom">Algılanan ROM: %1$s</string>
+    <string name="integration_level">Entegrasyon düzeyi: %1$s</string>
+    <string name="capabilities_count">Yetenekler (%1$d kullanılabilir)</string>
+    <string name="about_privileged">Ayrıcalıklı yetenekler hakkında</string>
+    <string name="about_privileged_text">Ayrıcalıklı olarak işaretlenen yetenekler, uygulamanın sistem/ayrıcalıklı uygulama olarak kurulmasını, Root kabuğunu veya Shizuku hizmetini gerektirir. Android\u0027in normal uygulamalara sunduğu yetenekleri istemek için İzin Ver düğmesini kullanın.</string>
+    <string name="available">Kullanılabilir</string>
+    <string name="not_available">Kullanılamıyor</string>
+    <string name="settings">Ayarlar</string>
+    <string name="grant">İzin Ver</string>
+</resources>

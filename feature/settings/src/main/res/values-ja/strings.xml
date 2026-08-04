@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">設定</string>
+    <string name="section_automation">自動化</string>
+    <string name="accessibility_service">アクセシビリティサービス</string>
+    <string name="accessibility_enabled">有効 — アプリトリガーが検出されます</string>
+    <string name="accessibility_disabled">オフ — アプリトリガーは作動しません</string>
+    <string name="monitoring_service">監視サービス</string>
+    <string name="monitoring_running">実行中 — 端末・バッテリー・ネットワーク・位置情報を監視</string>
+    <string name="monitoring_stopped">停止中 — アプリが開いている間のみトリガーが作動</string>
+    <string name="state_on">オン</string>
+    <string name="state_off">オフ</string>
+    <string name="section_appearance">外観</string>
+    <string name="themes">テーマ</string>
+    <string name="themes_sub">ダークモードとアクセントカラー</string>
+    <string name="widgets">ウィジェット</string>
+    <string name="widgets_sub">ホーム画面ウィジェット</string>
+    <string name="section_integration">統合</string>
+    <string name="capability_center">機能センター</string>
+    <string name="capability_center_sub">ROM機能と権限</string>
+    <string name="execution_history">実行履歴</string>
+    <string name="execution_history_sub">自動化の実行を表示</string>
+    <string name="section_about">情報</string>
+    <string name="about_nexaflow">NexaFlowについて</string>
+    <string name="version">バージョン %1$s</string>
+    <string name="rom_integration">ROM統合</string>
+    <string name="rom_integration_sub">ROMに組み込まれた際のシステムレベルアクセス</string>
+    <string name="about_description">Android向けの高度なコンテキスト認識型自動化エンジン。時刻・アプリ・端末・接続・位置情報のトリガーで端末を自動化します。</string>
+    <string name="about_license">MITライセンスの下で提供されています。</string>
+    <string name="ok">OK</string>
+</resources>

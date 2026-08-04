@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="capability_title">Интеграция ROM</string>
+    <string name="detected_rom">Обнаруженная ROM: %1$s</string>
+    <string name="integration_level">Уровень интеграции: %1$s</string>
+    <string name="capabilities_count">Возможности (%1$d доступно)</string>
+    <string name="about_privileged">О привилегированных возможностях</string>
+    <string name="about_privileged_text">Возможности, помеченные как привилегированные, требуют установки приложения как системного/привилегированного, root-оболочки или службы Shizuku. Используйте кнопку «Предоставить», чтобы запросить возможности, которые Android открывает обычным приложениям.</string>
+    <string name="available">Доступно</string>
+    <string name="not_available">Недоступно</string>
+    <string name="settings">Настройки</string>
+    <string name="grant">Предоставить</string>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="capability_title">ROM統合</string>
+    <string name="detected_rom">検出されたROM: %1$s</string>
+    <string name="integration_level">統合レベル: %1$s</string>
+    <string name="capabilities_count">機能 (%1$d 利用可能)</string>
+    <string name="about_privileged">特権機能について</string>
+    <string name="about_privileged_text">特権とマークされた機能では、アプリをシステム/特権アプリとしてインストールするか、RootシェルまたはShizukuサービスが必要です。「許可」ボタンでAndroidが通常のアプリに公開している機能をリクエストしてください。</string>
+    <string name="available">利用可能</string>
+    <string name="not_available">利用不可</string>
+    <string name="settings">設定</string>
+    <string name="grant">許可</string>
+</resources>

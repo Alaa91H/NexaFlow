@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_title">历史记录</string>
+    <string name="no_runs_title">暂无运行</string>
+    <string name="no_runs_subtitle">您的自动化执行记录将显示在此处。</string>
+    <string name="status_success">成功</string>
+    <string name="status_failed">失败</string>
+</resources>

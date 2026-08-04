@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widgets_title">विजेट</string>
+    <string name="section_available">उपलब्ध विजेट</string>
+    <string name="widget_quick_toggle">त्वरित टॉगल</string>
+    <string name="widget_quick_toggle_desc">होम स्क्रीन से एक टैप में सभी ऑटोमेशन सक्षम या अक्षम करें।</string>
+    <string name="widget_status_card">स्थिति कार्ड</string>
+    <string name="widget_status_card_desc">सक्रिय ऑटोमेशन और अंतिम रन समय का लाइव दृश्य।</string>
+    <string name="widget_not_added">अभी आपकी होम स्क्रीन में नहीं जोड़ा गया।</string>
+    <string name="section_how_to">कैसे जोड़ें</string>
+    <string name="how_to_text">होम स्क्रीन के खाली स्थान को देर तक दबाएँ, विजेट पर टैप करें और NexaFlow खोजें।</string>
+    <string name="how_to_sub">त्वरित टॉगल या स्थिति कार्ड विजेट को अपनी स्क्रीन पर खींचें।</string>
+    <string name="section_tip">सुझाव</string>
+    <string name="tip_text">जब भी कोई ऑटोमेशन चलता है या उसकी स्थिति बदलती है, विजेट स्वतः अपडेट होते हैं।</string>
+</resources>

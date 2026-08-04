@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_title">Histórico</string>
+    <string name="no_runs_title">Nenhuma execução ainda</string>
+    <string name="no_runs_subtitle">Suas execuções de automação aparecerão aqui.</string>
+    <string name="status_success">Sucesso</string>
+    <string name="status_failed">Falhou</string>
+</resources>

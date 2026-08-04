@@ -10,8 +10,20 @@ import kotlinx.coroutines.flow.map
 
 private val Context.themeDataStore by preferencesDataStore(name = "nexaflow_theme")
 
+enum class ThemeMode(val storedValue: String) {
+    SYSTEM("system"),
+    LIGHT("light"),
+    DARK("dark");
+
+    companion object {
+        fun fromStored(value: String?): ThemeMode {
+            return entries.firstOrNull { it.storedValue == value } ?: SYSTEM
+        }
+    }
+}
+
 data class ThemeSettings(
-    val darkMode: Boolean = false,
+    val mode: ThemeMode = ThemeMode.SYSTEM,
     val accent: String = "blue"
 )
 
@@ -21,13 +33,13 @@ class ThemePreferences(private val context: Context) {
 
     val theme: Flow<ThemeSettings> = dataStore.data.map { preferences ->
         ThemeSettings(
-            darkMode = preferences[KEY_DARK_MODE] ?: false,
+            mode = ThemeMode.fromStored(preferences[KEY_THEME_MODE]),
             accent = preferences[KEY_ACCENT] ?: "blue"
         )
     }
 
-    suspend fun setDarkMode(enabled: Boolean) {
-        dataStore.edit { it[KEY_DARK_MODE] = enabled }
+    suspend fun setThemeMode(mode: ThemeMode) {
+        dataStore.edit { it[KEY_THEME_MODE] = mode.storedValue }
     }
 
     suspend fun setAccent(accent: String) {
@@ -35,7 +47,7 @@ class ThemePreferences(private val context: Context) {
     }
 
     private companion object {
-        val KEY_DARK_MODE = booleanPreferencesKey("dark_mode")
+        val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
         val KEY_ACCENT = stringPreferencesKey("accent")
     }
 }

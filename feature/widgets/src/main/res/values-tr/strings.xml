@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widgets_title">Widget\u0027lar</string>
+    <string name="section_available">MEVCUT WIDGET\u0027LAR</string>
+    <string name="widget_quick_toggle">Hızlı Anahtar</string>
+    <string name="widget_quick_toggle_desc">Ana ekrandan tek dokunuşla tüm otomasyonları etkinleştirin veya devre dışı bırakın.</string>
+    <string name="widget_status_card">Durum Kartı</string>
+    <string name="widget_status_card_desc">Etkin otomasyonların ve son çalıştırmanın canlı görünümü.</string>
+    <string name="widget_not_added">Henüz ana ekranınıza eklenmedi.</string>
+    <string name="section_how_to">NASIL EKLENİR</string>
+    <string name="how_to_text">Ana ekranda boş bir yere uzun basın, Widget\u0027lar\u0027a dokunun ve NexaFlow\u0027u bulun.</string>
+    <string name="how_to_sub">Hızlı Anahtar veya Durum Kartı widget\u0027ını ekranınıza sürükleyin.</string>
+    <string name="section_tip">İPUCU</string>
+    <string name="tip_text">Bir otomasyon çalıştığında veya durumu değiştiğinde widget\u0027lar otomatik olarak güncellenir.</string>
+</resources>

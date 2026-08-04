@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_title">इतिहास</string>
+    <string name="no_runs_title">अभी कोई रन नहीं</string>
+    <string name="no_runs_subtitle">आपके ऑटोमेशन निष्पादन यहाँ दिखाई देंगे।</string>
+    <string name="status_success">सफल</string>
+    <string name="status_failed">विफल</string>
+</resources>

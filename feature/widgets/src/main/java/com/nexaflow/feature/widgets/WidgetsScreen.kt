@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -40,8 +41,8 @@ import com.nexaflow.core.ui.SectionHeader
 
 private data class WidgetModel(
     val id: String,
-    val name: String,
-    val description: String,
+    val nameRes: Int,
+    val descriptionRes: Int,
     val icon: ImageVector,
     val color: Color,
     val componentName: String
@@ -50,16 +51,16 @@ private data class WidgetModel(
 private val realWidgets = listOf(
     WidgetModel(
         "1",
-        "Quick Toggle",
-        "Enable or disable all automations from your home screen with one tap.",
+        R.string.widget_quick_toggle,
+        R.string.widget_quick_toggle_desc,
         Icons.Filled.ToggleOn,
         Color(0xFF1B62B7),
         "com.nexaflow.app.NexaFlowToggleWidgetProvider"
     ),
     WidgetModel(
         "2",
-        "Status Card",
-        "Live view of active automations and the last run time.",
+        R.string.widget_status_card,
+        R.string.widget_status_card_desc,
         Icons.Filled.CheckCircle,
         Color(0xFF2FA84F),
         "com.nexaflow.app.NexaFlowStatusWidgetProvider"
@@ -72,7 +73,7 @@ fun WidgetsScreen(navController: NavController) {
     val context = LocalContext.current
     val installed = remember(context) { installedWidgets(context) }
 
-    Scaffold(topBar = { NexaFlowTopBar(title = "Widgets", onBack = { navController.popBackStack() }) }) { padding ->
+    Scaffold(topBar = { NexaFlowTopBar(title = stringResource(R.string.widgets_title), onBack = { navController.popBackStack() }) }) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -81,7 +82,7 @@ fun WidgetsScreen(navController: NavController) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                SectionHeader(text = "AVAILABLE WIDGETS")
+                SectionHeader(text = stringResource(R.string.section_available))
             }
             items(realWidgets) { widget ->
                 val isInstalled = widget.componentName in installed
@@ -93,9 +94,9 @@ fun WidgetsScreen(navController: NavController) {
                     ) {
                         IconBadge(icon = widget.icon, containerColor = widget.color)
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(text = widget.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                            Text(text = stringResource(widget.nameRes), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                             Text(
-                                text = widget.description,
+                                text = stringResource(widget.descriptionRes),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.secondary
                             )
@@ -108,7 +109,7 @@ fun WidgetsScreen(navController: NavController) {
                     }
                     if (!isInstalled) {
                         Text(
-                            text = "Not added to your home screen yet.",
+                            text = stringResource(R.string.widget_not_added),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.padding(top = 8.dp)
@@ -117,7 +118,7 @@ fun WidgetsScreen(navController: NavController) {
                 }
             }
             item {
-                SectionHeader(text = "HOW TO ADD")
+                SectionHeader(text = stringResource(R.string.section_how_to))
             }
             item {
                 NexaFlowCard {
@@ -132,11 +133,11 @@ fun WidgetsScreen(navController: NavController) {
                         )
                         Column {
                             Text(
-                                text = "Long-press an empty spot on your home screen, tap Widgets, then find NexaFlow.",
+                                text = stringResource(R.string.how_to_text),
                                 style = MaterialTheme.typography.bodyMedium
                             )
                             Text(
-                                text = "Drag the Quick Toggle or Status Card widget onto your screen.",
+                                text = stringResource(R.string.how_to_sub),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.secondary
                             )
@@ -145,7 +146,7 @@ fun WidgetsScreen(navController: NavController) {
                 }
             }
             item {
-                SectionHeader(text = "TIP")
+                SectionHeader(text = stringResource(R.string.section_tip))
             }
             item {
                 NexaFlowCard {
@@ -159,7 +160,7 @@ fun WidgetsScreen(navController: NavController) {
                             tint = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Widgets update automatically whenever an automation runs or its state changes.",
+                            text = stringResource(R.string.tip_text),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="capability_title">تكامل ROM</string>
+    <string name="detected_rom">ROM المكتشفة: %1$s</string>
+    <string name="integration_level">مستوى التكامل: %1$s</string>
+    <string name="capabilities_count">القدرات (%1$d متاحة)</string>
+    <string name="about_privileged">حول القدرات المميزة</string>
+    <string name="about_privileged_text">تتطلب القدرات المميزة تثبيت التطبيق كتطبيق نظام/مميز، أو صلاحيات الروت، أو خدمة Shizuku. استخدم زر «منح» لطلب القدرات التي يوفرها أندرويد للتطبيقات العادية.</string>
+    <string name="available">متاحة</string>
+    <string name="not_available">غير متاحة</string>
+    <string name="settings">الإعدادات</string>
+    <string name="grant">منح</string>
+</resources>

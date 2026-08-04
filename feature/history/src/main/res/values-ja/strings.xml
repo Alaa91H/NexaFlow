@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_title">履歴</string>
+    <string name="no_runs_title">まだ実行がありません</string>
+    <string name="no_runs_subtitle">自動化の実行結果がここに表示されます。</string>
+    <string name="status_success">成功</string>
+    <string name="status_failed">失敗</string>
+</resources>

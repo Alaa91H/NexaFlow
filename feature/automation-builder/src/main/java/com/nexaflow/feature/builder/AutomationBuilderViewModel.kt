@@ -20,7 +20,7 @@ class AutomationBuilderViewModel @Inject constructor(
     fun saveAutomation(
         name: String,
         icon: String,
-        trigger: Trigger?,
+        triggers: List<Trigger>,
         conditions: List<Condition>,
         actions: List<Action>
     ) {
@@ -29,14 +29,14 @@ class AutomationBuilderViewModel @Inject constructor(
             val automation = Automation(
                 id = UUID.randomUUID().toString(),
                 name = name.ifBlank { "Untitled Automation" },
-                description = buildDescription(trigger, actions),
+                description = buildDescription(triggers, actions),
                 icon = icon,
                 iconColor = 0xFF1B62B7,
                 backgroundColor = 0xFFE3EEFA,
                 category = "custom",
                 priority = 1,
                 enabled = true,
-                triggers = listOfNotNull(trigger),
+                triggers = triggers,
                 conditions = conditions,
                 actions = actions,
                 createdAt = now,
@@ -46,10 +46,13 @@ class AutomationBuilderViewModel @Inject constructor(
         }
     }
 
-    private fun buildDescription(trigger: Trigger?, actions: List<Action>): String {
-        val triggerText = trigger?.let {
-            "When ${it.type.name.replace('_', ' ').lowercase()}"
-        } ?: "When configured"
+    private fun buildDescription(triggers: List<Trigger>, actions: List<Action>): String {
+        val triggerText = if (triggers.isEmpty()) {
+            "When configured"
+        } else {
+            val types = triggers.joinToString(", ") { it.type.name.replace('_', ' ').lowercase() }
+            "When $types"
+        }
         return "$triggerText, then ${actions.size} action(s)"
     }
 }

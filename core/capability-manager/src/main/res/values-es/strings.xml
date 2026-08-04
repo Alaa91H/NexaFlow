@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="capability_title">Integración ROM</string>
+    <string name="detected_rom">ROM detectada: %1$s</string>
+    <string name="integration_level">Nivel de integración: %1$s</string>
+    <string name="capabilities_count">Capacidades (%1$d disponibles)</string>
+    <string name="about_privileged">Acerca de las capacidades privilegiadas</string>
+    <string name="about_privileged_text">Las capacidades marcadas como privilegiadas requieren que la app esté instalada como app de sistema/privilegiada, un shell root o el servicio Shizuku. Usa el botón Conceder para solicitar las capacidades que Android expone a las apps normales.</string>
+    <string name="available">Disponible</string>
+    <string name="not_available">No disponible</string>
+    <string name="settings">Ajustes</string>
+    <string name="grant">Conceder</string>
+</resources>

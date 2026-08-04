@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_title">История</string>
+    <string name="no_runs_title">Запусков пока нет</string>
+    <string name="no_runs_subtitle">Здесь появятся ваши выполнения автоматизаций.</string>
+    <string name="status_success">Успешно</string>
+    <string name="status_failed">Сбой</string>
+</resources>

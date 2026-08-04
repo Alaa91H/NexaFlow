@@ -3,11 +3,17 @@ package com.nexaflow.core.rom
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.Intent
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
 import android.media.AudioManager
+import android.net.Uri
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.provider.Settings
+import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
 import com.nexaflow.core.rom.model.RomCapability
 import com.nexaflow.core.rom.model.SystemControlResult
@@ -149,6 +155,136 @@ class SystemController(
             }
         } catch (t: Throwable) {
             SystemControlResult.fail("Failed to set brightness: ${t.message}")
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    fun setWifi(enabled: Boolean): SystemControlResult {
+        return try {
+            val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+                ?: return SystemControlResult.fail("Wi-Fi service unavailable")
+            val set = try {
+                wifiManager.setWifiEnabled(enabled)
+            } catch (_: Throwable) {
+                false
+            }
+            if (set) {
+                SystemControlResult.ok(if (enabled) "Wi-Fi enabled" else "Wi-Fi disabled")
+            } else {
+                tryPrivileged(
+                    command = "svc wifi ${if (enabled) "enable" else "disable"}",
+                    successMessage = if (enabled) "Wi-Fi enabled" else "Wi-Fi disabled"
+                )
+            }
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to change Wi-Fi: ${t.message}")
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    fun setBluetooth(enabled: Boolean): SystemControlResult {
+        return try {
+            val adapter = BluetoothAdapter.getDefaultAdapter()
+                ?: return SystemControlResult.fail("Bluetooth is not available")
+            val set = try {
+                if (enabled) adapter.enable() else adapter.disable()
+            } catch (_: Throwable) {
+                false
+            }
+            if (set) {
+                SystemControlResult.ok(if (enabled) "Bluetooth enabled" else "Bluetooth disabled")
+            } else {
+                tryPrivileged(
+                    command = "svc bluetooth ${if (enabled) "enable" else "disable"}",
+                    successMessage = if (enabled) "Bluetooth enabled" else "Bluetooth disabled"
+                )
+            }
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to change Bluetooth: ${t.message}")
+        }
+    }
+
+    fun setFlashlight(enabled: Boolean): SystemControlResult {
+        return try {
+            val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            val cameraId = cameraManager.cameraIdList.firstOrNull { id ->
+                runCatching {
+                    cameraManager.getCameraCharacteristics(id)
+                        .get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+                }.getOrDefault(false)
+            } ?: return SystemControlResult.fail("No camera with a flashlight was found")
+            cameraManager.setTorchMode(cameraId, enabled)
+            SystemControlResult.ok(if (enabled) "Flashlight turned on" else "Flashlight turned off")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to control the flashlight: ${t.message}")
+        }
+    }
+
+    fun setAirplaneMode(enabled: Boolean): SystemControlResult {
+        if (!capabilityProvider.isAvailable(RomCapability.WRITE_SECURE_SETTINGS)) {
+            return tryPrivileged(
+                command = "settings put global airplane_mode_on ${if (enabled) 1 else 0} && " +
+                    "am broadcast -a android.intent.action.AIRPLANE_MODE --ez state $enabled",
+                successMessage = if (enabled) "Airplane mode enabled" else "Airplane mode disabled"
+            )
+        }
+        return try {
+            val written = Settings.Global.putInt(
+                context.contentResolver,
+                Settings.Global.AIRPLANE_MODE_ON,
+                if (enabled) 1 else 0
+            )
+            if (written) {
+                context.sendBroadcast(
+                    Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED).putExtra("state", enabled)
+                )
+                SystemControlResult.ok(if (enabled) "Airplane mode enabled" else "Airplane mode disabled")
+            } else {
+                SystemControlResult.fail("The ROM rejected the airplane mode change")
+            }
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to change airplane mode: ${t.message}")
+        }
+    }
+
+    fun mediaControl(command: String): SystemControlResult {
+        val keyCode = when (command) {
+            "NEXT" -> KeyEvent.KEYCODE_MEDIA_NEXT
+            "PREVIOUS" -> KeyEvent.KEYCODE_MEDIA_PREVIOUS
+            else -> KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
+        }
+        return try {
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            audioManager.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
+            audioManager.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
+            SystemControlResult.ok("Media command sent ($command)")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to send media command: ${t.message}")
+        }
+    }
+
+    fun openUrl(url: String): SystemControlResult {
+        if (url.isBlank()) return SystemControlResult.fail("No URL configured")
+        return try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            SystemControlResult.ok("Opened URL")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to open URL: ${t.message}")
+        }
+    }
+
+    fun clearNotifications(): SystemControlResult {
+        return try {
+            val notificationManager = context.getSystemService(NotificationManager::class.java)
+            notificationManager.cancelAll()
+            tryPrivileged(
+                command = "cmd notification cancel_all",
+                successMessage = "Notifications cleared"
+            )
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to clear notifications: ${t.message}")
         }
     }
 

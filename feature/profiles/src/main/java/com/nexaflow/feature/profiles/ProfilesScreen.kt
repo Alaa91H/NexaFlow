@@ -42,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -83,12 +84,12 @@ fun ProfilesScreen(navController: NavController) {
     var deleteTarget by remember { mutableStateOf<Profile?>(null) }
 
     Scaffold(
-        topBar = { NexaFlowTopBar(title = "Profiles", onBack = { navController.popBackStack() }) },
+        topBar = { NexaFlowTopBar(title = stringResource(R.string.profiles_title), onBack = { navController.popBackStack() }) },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { showCreateDialog = true },
                 icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                text = { Text("New Profile") }
+                text = { Text(stringResource(R.string.new_profile)) }
             )
         }
     ) { padding ->
@@ -100,14 +101,14 @@ fun ProfilesScreen(navController: NavController) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                SectionHeader(text = "PROFILES")
+                SectionHeader(text = stringResource(R.string.section_profiles))
             }
             if (profiles.isEmpty()) {
                 item {
                     EmptyState(
                         icon = Icons.Filled.Group,
-                        title = "No profiles yet",
-                        subtitle = "Profiles group your automations so you can apply them in one tap."
+                        title = stringResource(R.string.no_profiles_title),
+                        subtitle = stringResource(R.string.no_profiles_subtitle)
                     )
                 }
             }
@@ -148,18 +149,18 @@ fun ProfilesScreen(navController: NavController) {
     deleteTarget?.let { profile ->
         AlertDialog(
             onDismissRequest = { deleteTarget = null },
-            title = { Text("Delete profile?") },
-            text = { Text("\"${profile.name}\" will be removed. Its automations will be disabled.") },
+            title = { Text(stringResource(R.string.delete_profile_title)) },
+            text = { Text(stringResource(R.string.delete_profile_text, profile.name)) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteProfile(profile)
                     deleteTarget = null
                 }) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) { Text("Cancel") }
+                TextButton(onClick = { deleteTarget = null }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -183,13 +184,13 @@ private fun ProfileCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = profile.name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 Text(
-                    text = profile.description.ifBlank { "No description" },
+                    text = profile.description.ifBlank { stringResource(R.string.no_description) },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.secondary,
                     maxLines = 2
                 )
                 Text(
-                    text = if (profile.active) "Active · $automationCount automation(s)" else "Inactive · $automationCount automation(s)",
+                    text = if (profile.active) stringResource(R.string.active_count, automationCount) else stringResource(R.string.inactive_count, automationCount),
                     style = MaterialTheme.typography.labelSmall,
                     color = if (profile.active) Color(0xFF2FA84F) else MaterialTheme.colorScheme.secondary
                 )
@@ -197,12 +198,12 @@ private fun ProfileCard(
             Column(horizontalAlignment = Alignment.End) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onManage) {
-                        Icon(Icons.Filled.PlaylistAdd, contentDescription = "Manage automations")
+                        Icon(Icons.Filled.PlaylistAdd, contentDescription = stringResource(R.string.manage_automations))
                     }
                     IconButton(onClick = onDelete) {
                         Icon(
                             Icons.Filled.Delete,
-                            contentDescription = "Delete",
+                            contentDescription = stringResource(R.string.delete),
                             tint = MaterialTheme.colorScheme.error
                         )
                     }
@@ -225,23 +226,23 @@ private fun CreateProfileDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("New profile") },
+        title = { Text(stringResource(R.string.new_profile_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Name") },
+                    label = { Text(stringResource(R.string.name)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Description") },
+                    label = { Text(stringResource(R.string.description)) },
                     modifier = Modifier.fillMaxWidth()
                 )
-                Text("Icon", style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.icon), style = MaterialTheme.typography.labelMedium)
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(profileIcons) { icon ->
                         val selected = selectedIcon == icon
@@ -259,7 +260,7 @@ private fun CreateProfileDialog(
                         }
                     }
                 }
-                Text("Color", style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.color), style = MaterialTheme.typography.labelMedium)
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(accentOptions) { option ->
                         val color = option.color
@@ -287,11 +288,11 @@ private fun CreateProfileDialog(
                 onClick = { onSave(name, description, selectedIcon, selectedColor.value.toLong()) },
                 enabled = name.isNotBlank()
             ) {
-                Text("Create")
+                Text(stringResource(R.string.create))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
         }
     )
 }
@@ -307,10 +308,10 @@ private fun ManageAutomationsDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Automations in ${profile.name}") },
+        title = { Text(stringResource(R.string.automations_in, profile.name)) },
         text = {
             if (automations.isEmpty()) {
-                Text("No automations yet. Create one first.")
+                Text(stringResource(R.string.no_automations_yet))
             } else {
                 Column(modifier = Modifier.heightIn(max = 360.dp)) {
                     LazyColumn {
@@ -342,11 +343,11 @@ private fun ManageAutomationsDialog(
         },
         confirmButton = {
             TextButton(onClick = { onSave(selectedIds.toList()) }) {
-                Text("Save")
+                Text(stringResource(R.string.save))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
         }
     )
 }

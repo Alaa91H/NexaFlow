@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_title">السجل</string>
+    <string name="no_runs_title">لا توجد عمليات تشغيل بعد</string>
+    <string name="no_runs_subtitle">ستظهر عمليات تنفيذ الأتمتات هنا.</string>
+    <string name="status_success">نجحت</string>
+    <string name="status_failed">فشلت</string>
+</resources>

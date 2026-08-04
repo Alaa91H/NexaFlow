@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="capability_title">ROM Integration</string>
+    <string name="detected_rom">Detected ROM: %1$s</string>
+    <string name="integration_level">Integration level: %1$s</string>
+    <string name="capabilities_count">Capabilities (%1$d available)</string>
+    <string name="about_privileged">About privileged capabilities</string>
+    <string name="about_privileged_text">Capabilities marked as privileged require the app to be installed as a system/privileged app, a Root shell, or the Shizuku service. Use the Grant button to request the capabilities Android exposes to normal apps.</string>
+    <string name="available">Available</string>
+    <string name="not_available">Not available</string>
+    <string name="settings">Settings</string>
+    <string name="grant">Grant</string>
+</resources>
