@@ -22,9 +22,14 @@ jobs:
     - name: Run unit tests
       run: ./gradlew testDebugUnitTest
     - name: Build with Gradle
-      run: ./gradlew assembleDebug
-    - name: Upload APK
+      run: ./gradlew assembleDebug assembleRelease
+    - name: Upload Debug APK
       uses: actions/upload-artifact@v7
       with:
         name: nexaflow-debug-apk
         path: app/build/outputs/apk/debug/app-debug.apk
+    - name: Upload Release APK
+      uses: actions/upload-artifact@v7
+      with:
+        name: nexaflow-release-apk
+        path: app/build/outputs/apk/release/app-release.apk
