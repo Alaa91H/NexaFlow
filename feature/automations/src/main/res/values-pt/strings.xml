@@ -116,4 +116,5 @@
     <string name="action_wait">Aguardar / Atraso</string>
     <string name="action_wait_sub">Pausa antes da próxima ação</string>
     <string name="enabled">Ativada</string>
+    <string name="edit">Editar</string>
 </resources>

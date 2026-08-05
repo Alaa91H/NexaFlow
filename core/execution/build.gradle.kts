@@ -35,5 +35,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
     implementation(project(":domain"))
     implementation(project(":core:rom-integration"))
+    implementation(project(":core:datastore"))
     testImplementation("junit:junit:4.13.2")
 }

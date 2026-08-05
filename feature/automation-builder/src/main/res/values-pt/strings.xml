@@ -3,7 +3,7 @@
     <string name="builder_title">Nova automação</string>
     <string name="save">Salvar</string>
     <string name="name">Nome</string>
-    <string name="name_hint">ex.: Rotina matinal</string>
+    <string name="name_hint">ex.: Tarefa matinal</string>
     <string name="icon">Ícone</string>
     <string name="tap_to_choose_icon">Toque para escolher um ícone</string>
     <string name="section_when">QUANDO (GATILHOS)</string>
@@ -236,4 +236,18 @@
     <string name="next">Próximo</string>
     <string name="previous">Anterior</string>
     <string name="next_needs_trigger">Adicione pelo menos um gatilho primeiro</string>
+    <string name="edit_task_title">Editar tarefa</string>
+    <string name="battery_trigger_title">Nível da bateria</string>
+    <string name="battery_below">Abaixo</string>
+    <string name="battery_below_sub">Dispara quando a bateria cai abaixo deste nível</string>
+    <string name="maximum_battery">Máximo: %1$d%%</string>
+    <string name="no_apps_selected">Nenhum app selecionado</string>
+    <string name="selected_apps_count">%1$d app(s) selecionado(s)</string>
+    <string name="trigger_app">Quando um app é aberto</string>
+    <string name="time_single">Horário único</string>
+    <string name="time_range">Intervalo de horário</string>
+    <string name="range_start">Início</string>
+    <string name="range_end">Fim</string>
+    <string name="range_same_day">Mesmo dia</string>
+    <string name="range_overnight">Durante a noite — termina no dia seguinte</string>
 </resources>

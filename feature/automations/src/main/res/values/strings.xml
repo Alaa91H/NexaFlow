@@ -116,4 +116,5 @@
     <string name="action_root">Root</string>
     <string name="action_root_sub">Run via root</string>
     <string name="enabled">Enabled</string>
+    <string name="edit">Edit</string>
 </resources>

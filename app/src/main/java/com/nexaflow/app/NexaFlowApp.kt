@@ -13,6 +13,8 @@ import com.nexaflow.feature.builder.AutomationBuilderScreen
 import com.nexaflow.feature.dashboard.DashboardScreen
 import com.nexaflow.feature.history.HistoryScreen
 import com.nexaflow.feature.icons.IconPickerScreen
+import com.nexaflow.feature.settings.NotificationManagerScreen
+import com.nexaflow.feature.settings.PermissionManagerScreen
 import com.nexaflow.feature.settings.SettingsScreen
 import com.nexaflow.feature.themes.ThemeScreen
 import com.nexaflow.feature.widgets.WidgetsScreen
@@ -29,11 +31,20 @@ fun NexaFlowApp() {
             composable("dashboard") {
                 DashboardScreen(navController = navController)
             }
-            composable("automation_builder") {
-                AutomationBuilderScreen(navController = navController)
+            composable("automation_builder?automationId={automationId}") { entry ->
+                AutomationBuilderScreen(
+                    navController = navController,
+                    automationId = entry.arguments?.getString("automationId")
+                )
             }
             composable("automation_details/{automationId}") {
                 AutomationDetailsScreen(navController = navController)
+            }
+            composable("permission_manager") {
+                PermissionManagerScreen(navController = navController)
+            }
+            composable("notification_manager") {
+                NotificationManagerScreen(navController = navController)
             }
             composable("history") {
                 HistoryScreen(navController = navController)

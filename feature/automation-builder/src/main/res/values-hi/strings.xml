@@ -3,7 +3,7 @@
     <string name="builder_title">नया ऑटोमेशन</string>
     <string name="save">सहेजें</string>
     <string name="name">नाम</string>
-    <string name="name_hint">जैसे: सुबह की दिनचर्या</string>
+    <string name="name_hint">जैसे: सुबह का कार्य</string>
     <string name="icon">आइकन</string>
     <string name="tap_to_choose_icon">आइकन चुनने के लिए टैप करें</string>
     <string name="section_when">कब (ट्रिगर)</string>
@@ -236,4 +236,18 @@
     <string name="next">अगला</string>
     <string name="previous">पिछला</string>
     <string name="next_needs_trigger">पहले कम से कम एक ट्रिगर जोड़ें</string>
+    <string name="edit_task_title">कार्य संपादित करें</string>
+    <string name="battery_trigger_title">बैटरी स्तर</string>
+    <string name="battery_below">से कम</string>
+    <string name="battery_below_sub">जब बैटरी इस स्तर से नीचे गिरती है तो चालू होता है</string>
+    <string name="maximum_battery">अधिकतम: %1$d%%</string>
+    <string name="no_apps_selected">कोई ऐप चयनित नहीं</string>
+    <string name="selected_apps_count">%1$d ऐप चयनित</string>
+    <string name="trigger_app">जब कोई ऐप खोला जाता है</string>
+    <string name="time_single">एकल समय</string>
+    <string name="time_range">समय सीमा</string>
+    <string name="range_start">आरंभ</string>
+    <string name="range_end">समाप्ति</string>
+    <string name="range_same_day">उसी दिन</string>
+    <string name="range_overnight">रात भर — अगले दिन समाप्त</string>
 </resources>

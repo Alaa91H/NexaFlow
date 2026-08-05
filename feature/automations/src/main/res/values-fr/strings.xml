@@ -116,4 +116,5 @@
     <string name="action_wait">Attendre / Délai</string>
     <string name="action_wait_sub">"Pause avant l'action suivante"</string>
     <string name="enabled">Activé</string>
+    <string name="edit">Modifier</string>
 </resources>

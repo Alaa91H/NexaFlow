@@ -3,7 +3,7 @@
     <string name="builder_title">Новая автоматизация</string>
     <string name="save">Сохранить</string>
     <string name="name">Имя</string>
-    <string name="name_hint">напр.: Утренняя рутина</string>
+    <string name="name_hint">напр.: Утренняя задача</string>
     <string name="icon">Значок</string>
     <string name="tap_to_choose_icon">Нажмите, чтобы выбрать значок</string>
     <string name="section_when">КОГДА (ТРИГГЕРЫ)</string>
@@ -236,4 +236,18 @@
     <string name="next">Далее</string>
     <string name="previous">Назад</string>
     <string name="next_needs_trigger">Сначала добавьте хотя бы один триггер</string>
+    <string name="edit_task_title">Изменить задачу</string>
+    <string name="battery_trigger_title">Уровень заряда</string>
+    <string name="battery_below">Ниже</string>
+    <string name="battery_below_sub">Срабатывает, когда заряд падает ниже этого уровня</string>
+    <string name="maximum_battery">Максимум: %1$d%%</string>
+    <string name="no_apps_selected">Приложения не выбраны</string>
+    <string name="selected_apps_count">Выбрано приложений: %1$d</string>
+    <string name="trigger_app">Когда открывается приложение</string>
+    <string name="time_single">Одно время</string>
+    <string name="time_range">Диапазон времени</string>
+    <string name="range_start">Начало</string>
+    <string name="range_end">Конец</string>
+    <string name="range_same_day">Тот же день</string>
+    <string name="range_overnight">Ночью — заканчивается на следующий день</string>
 </resources>

@@ -30,6 +30,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -159,6 +160,48 @@ private fun DateField(
     }
 }
 
+/** Samsung-style tappable row that opens the time picker. */
+@Composable
+private fun TimeField(
+    label: String,
+    value: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Schedule,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.secondary
+            )
+            Text(
+                text = value.ifBlank { "08:00" },
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium
+            )
+        }
+        Icon(
+            imageVector = Icons.Filled.Edit,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.outline
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun TriggerEditorCard(
@@ -171,6 +214,7 @@ fun TriggerEditorCard(
 ) {
     val context = LocalContext.current
     var showTimePicker by remember { mutableStateOf(false) }
+    var timePickerTarget by remember { mutableStateOf("time") } // "time" | "rangeStart" | "rangeEnd"
     var datePickerTarget by remember { mutableStateOf<String?>(null) } // "date" | "startDate" | "endDate"
 
     NexaFlowCard {
@@ -207,8 +251,13 @@ fun TriggerEditorCard(
                                     type = option,
                                     config = when (option) {
                                         TriggerType.TIME -> mapOf("time" to (draft.config["time"] ?: "08:00"))
-                                        TriggerType.BATTERY -> mapOf("above" to (draft.config["above"] ?: "80"))
-                                        TriggerType.APPLICATION -> mapOf("package" to (draft.config["package"] ?: ""))
+                                        TriggerType.BATTERY -> mapOf(
+                                            "direction" to (draft.config["direction"] ?: "ABOVE"),
+                                            "above" to (draft.config["above"] ?: "80")
+                                        )
+                                        TriggerType.APPLICATION -> mapOf(
+                                            "packages" to (draft.config["packages"] ?: draft.config["package"] ?: "")
+                                        )
                                         TriggerType.DEVICE -> mapOf("event" to (draft.config["event"] ?: "SCREEN_ON"))
                                         TriggerType.CONNECTIVITY -> mapOf(
                                             "network" to (draft.config["network"] ?: "WIFI"),
@@ -247,113 +296,153 @@ fun TriggerEditorCard(
             }
             when (draft.type) {
                 TriggerType.TIME -> {
+                    val rangeMode = draft.config["timeMode"] == "RANGE"
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        val repeatMode = draft.config["repeat"] ?: "DAILY"
-                        val repeatSubtitleRes = when (repeatMode) {
-                            "ONCE" -> R.string.repeat_once
-                            "SPECIFIC_DAYS" -> R.string.repeat_specific_days
-                            "SPECIFIC_DATE" -> R.string.repeat_specific_date
-                            "DATE_RANGE" -> R.string.repeat_date_range
-                            else -> R.string.repeat_daily
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { showTimePicker = true }
-                                .padding(vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Schedule,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(end = 8.dp)
+                        FilterChip(
+                            selected = !rangeMode,
+                            onClick = {
+                                onConfigChange(
+                                    draft.copy(
+                                        config = draft.config + ("timeMode" to "SINGLE")
+                                    )
+                                )
+                            },
+                            label = { Text(text = stringResource(R.string.time_single)) }
+                        )
+                        FilterChip(
+                            selected = rangeMode,
+                            onClick = {
+                                onConfigChange(
+                                    draft.copy(
+                                        config = draft.config +
+                                            ("timeMode" to "RANGE") +
+                                            ("rangeStart" to (draft.config["rangeStart"] ?: "08:00")) +
+                                            ("rangeEnd" to (draft.config["rangeEnd"] ?: "18:00"))
+                                    )
+                                )
+                            },
+                            label = { Text(text = stringResource(R.string.time_range)) }
+                        )
+                        if (rangeMode) {
+                            val start = draft.config["rangeStart"] ?: "08:00"
+                            val end = draft.config["rangeEnd"] ?: "18:00"
+                            TimeField(
+                                label = stringResource(R.string.range_start),
+                                value = start,
+                                onClick = { timePickerTarget = "rangeStart"; showTimePicker = true }
                             )
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.trigger_time),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold
+                            TimeField(
+                                label = stringResource(R.string.range_end),
+                                value = end,
+                                onClick = { timePickerTarget = "rangeEnd"; showTimePicker = true }
+                            )
+                            val overnight = parseTimeMinutes(end) < parseTimeMinutes(start)
+                            Text(
+                                text = if (overnight) stringResource(R.string.range_overnight) else stringResource(R.string.range_same_day),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (overnight) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                            )
+                        } else {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { timePickerTarget = "time"; showTimePicker = true }
+                                    .padding(vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Schedule,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(end = 8.dp)
                                 )
-                                Text(
-                                    text = stringResource(repeatSubtitleRes),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-                            TextButton(onClick = { showTimePicker = true }) {
-                                Text(text = draft.config["time"] ?: "08:00")
-                            }
-                        }
-                        Text(text = stringResource(R.string.repeat_label), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                        FlowRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            repeatOptions.forEach { (value, labelRes) ->
-                                FilterChip(
-                                    selected = (draft.config["repeat"] ?: "DAILY") == value,
-                                    onClick = {
-                                        onConfigChange(draft.copy(config = draft.config + ("repeat" to value)))
-                                    },
-                                    label = { Text(text = stringResource(labelRes), style = MaterialTheme.typography.labelMedium) }
-                                )
-                            }
-                        }
-                        when (draft.config["repeat"] ?: "DAILY") {
-                            "SPECIFIC_DAYS" -> {
-                                Text(text = stringResource(R.string.select_days), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                                FlowRow(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    weekdayOptions.forEach { (day, labelRes) ->
-                                        val selectedDays = draft.config["days"]?.split(',')?.mapNotNull { it.trim().toIntOrNull() }.orEmpty()
-                                        FilterChip(
-                                            selected = day in selectedDays,
-                                            onClick = {
-                                                val updated = if (day in selectedDays) selectedDays - day else selectedDays + day
-                                                onConfigChange(draft.copy(config = draft.config + ("days" to updated.sorted().joinToString(","))))
-                                            },
-                                            label = { Text(text = stringResource(labelRes), style = MaterialTheme.typography.labelMedium) }
-                                        )
-                                    }
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = stringResource(R.string.trigger_time),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.repeat_daily),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+                                TextButton(onClick = { timePickerTarget = "time"; showTimePicker = true }) {
+                                    Text(text = draft.config["time"] ?: "08:00")
                                 }
                             }
-                            "SPECIFIC_DATE" -> {
-                                DateField(
-                                    label = stringResource(R.string.specific_date),
-                                    value = draft.config["date"] ?: "",
-                                    onClick = { datePickerTarget = "date" }
-                                )
-                            }
-                            "DATE_RANGE" -> {
-                                DateField(
-                                    label = stringResource(R.string.start_date),
-                                    value = draft.config["startDate"] ?: "",
-                                    onClick = { datePickerTarget = "startDate" }
-                                )
-                                DateField(
-                                    label = stringResource(R.string.end_date),
-                                    value = draft.config["endDate"] ?: "",
-                                    onClick = { datePickerTarget = "endDate" }
-                                )
-                                val start = draft.config["startDate"]?.let(::parseDateMillis)
-                                val end = draft.config["endDate"]?.let(::parseDateMillis)
-                                if (start != null && end != null && start > end) {
-                                    Text(
-                                        text = stringResource(R.string.date_range_invalid),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.error
+                            Text(text = stringResource(R.string.repeat_label), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                            FlowRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                repeatOptions.forEach { (value, labelRes) ->
+                                    FilterChip(
+                                        selected = (draft.config["repeat"] ?: "DAILY") == value,
+                                        onClick = {
+                                            onConfigChange(draft.copy(config = draft.config + ("repeat" to value)))
+                                        },
+                                        label = { Text(text = stringResource(labelRes), style = MaterialTheme.typography.labelMedium) }
                                     )
+                                }
+                            }
+                            when (draft.config["repeat"] ?: "DAILY") {
+                                "SPECIFIC_DAYS" -> {
+                                    Text(text = stringResource(R.string.select_days), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                                    FlowRow(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        weekdayOptions.forEach { (day, labelRes) ->
+                                            val selectedDays = draft.config["days"]?.split(',')?.mapNotNull { it.trim().toIntOrNull() }.orEmpty()
+                                            FilterChip(
+                                                selected = day in selectedDays,
+                                                onClick = {
+                                                    val updated = if (day in selectedDays) selectedDays - day else selectedDays + day
+                                                    onConfigChange(draft.copy(config = draft.config + ("days" to updated.sorted().joinToString(","))))
+                                                },
+                                                label = { Text(text = stringResource(labelRes), style = MaterialTheme.typography.labelMedium) }
+                                            )
+                                        }
+                                    }
+                                }
+                                "SPECIFIC_DATE" -> {
+                                    DateField(
+                                        label = stringResource(R.string.specific_date),
+                                        value = draft.config["date"] ?: "",
+                                        onClick = { datePickerTarget = "date" }
+                                    )
+                                }
+                                "DATE_RANGE" -> {
+                                    DateField(
+                                        label = stringResource(R.string.start_date),
+                                        value = draft.config["startDate"] ?: "",
+                                        onClick = { datePickerTarget = "startDate" }
+                                    )
+                                    DateField(
+                                        label = stringResource(R.string.end_date),
+                                        value = draft.config["endDate"] ?: "",
+                                        onClick = { datePickerTarget = "endDate" }
+                                    )
+                                    val start = draft.config["startDate"]?.let(::parseDateMillis)
+                                    val end = draft.config["endDate"]?.let(::parseDateMillis)
+                                    if (start != null && end != null && start > end) {
+                                        Text(
+                                            text = stringResource(R.string.date_range_invalid),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.error
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                 }
                 TriggerType.BATTERY -> {
+                    val direction = draft.config["direction"] ?: "ABOVE"
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         val threshold = (draft.config["above"] ?: "80").toIntOrNull() ?: 80
                         Row(
@@ -368,19 +457,43 @@ fun TriggerEditorCard(
                             )
                             Column {
                                 Text(
-                                    text = stringResource(R.string.battery_above),
+                                    text = stringResource(R.string.battery_trigger_title),
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 Text(
-                                    text = stringResource(R.string.battery_above_sub),
+                                    text = if (direction == "ABOVE") {
+                                        stringResource(R.string.battery_above_sub)
+                                    } else {
+                                        stringResource(R.string.battery_below_sub)
+                                    },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.secondary
                                 )
                             }
                         }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilterChip(
+                                selected = direction == "ABOVE",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("direction" to "ABOVE")))
+                                },
+                                label = { Text(text = stringResource(R.string.battery_above)) }
+                            )
+                            FilterChip(
+                                selected = direction == "BELOW",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("direction" to "BELOW")))
+                                },
+                                label = { Text(text = stringResource(R.string.battery_below)) }
+                            )
+                        }
                         SliderRow(
-                            label = stringResource(R.string.minimum_battery, threshold),
+                            label = if (direction == "ABOVE") {
+                                stringResource(R.string.minimum_battery, threshold)
+                            } else {
+                                stringResource(R.string.maximum_battery, threshold)
+                            },
                             value = threshold.toFloat(),
                             onValueChange = { value ->
                                 onConfigChange(
@@ -392,19 +505,47 @@ fun TriggerEditorCard(
                     }
                 }
                 TriggerType.APPLICATION -> {
+                    val packages = (draft.config["packages"] ?: draft.config["package"] ?: "")
+                        .split(',')
+                        .map { it.trim() }
+                        .filter { it.isNotEmpty() }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = draft.config["package"] ?: "",
-                            onValueChange = {
-                                onConfigChange(draft.copy(config = draft.config + ("package" to it)))
-                            },
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
-                            label = { Text(text = stringResource(R.string.package_name)) },
-                            placeholder = { Text(text = stringResource(R.string.package_hint)) },
-                            singleLine = true
-                        )
-                        TextButton(onClick = onPickApp) {
-                            Text(text = stringResource(R.string.choose_from_installed))
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Apps,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.trigger_app),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = if (packages.isEmpty()) {
+                                        stringResource(R.string.no_apps_selected)
+                                    } else {
+                                        stringResource(R.string.selected_apps_count, packages.size)
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        }
+                        OutlinedButton(
+                            onClick = onPickApp,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(imageVector = Icons.Filled.Apps, contentDescription = null)
+                            Text(
+                                text = stringResource(R.string.choose_apps),
+                                modifier = Modifier.padding(start = 6.dp)
+                            )
                         }
                         PermissionHint(
                             text = stringResource(R.string.app_detection_hint),
@@ -521,10 +662,15 @@ fun TriggerEditorCard(
     }
 
     if (showTimePicker) {
+        val currentTime = when (timePickerTarget) {
+            "rangeStart" -> draft.config["rangeStart"] ?: "08:00"
+            "rangeEnd" -> draft.config["rangeEnd"] ?: "18:00"
+            else -> draft.config["time"] ?: "08:00"
+        }
         TimePickerAlert(
-            initialTime = draft.config["time"] ?: "08:00",
+            initialTime = currentTime,
             onConfirm = {
-                onConfigChange(draft.copy(config = draft.config + ("time" to it)))
+                onConfigChange(draft.copy(config = draft.config + (timePickerTarget to it)))
                 showTimePicker = false
             },
             onDismiss = { showTimePicker = false }
@@ -560,4 +706,9 @@ fun TriggerEditorCard(
             DatePicker(state = datePickerState)
         }
     }
+}
+
+private fun parseTimeMinutes(value: String): Int {
+    val parts = value.split(":")
+    return (parts.getOrNull(0)?.toIntOrNull() ?: 0) * 60 + (parts.getOrNull(1)?.toIntOrNull() ?: 0)
 }

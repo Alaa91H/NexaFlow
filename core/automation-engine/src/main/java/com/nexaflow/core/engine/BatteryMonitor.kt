@@ -64,14 +64,16 @@ class BatteryMonitor @Inject constructor(
         scope.launch {
             val automations = repository.getAutomations().first()
             automations.filter { it.enabled }.forEach { automation ->
-                // Battery trigger: fire when the level rises to (or above) the
-                // configured threshold, once per crossing.
+                // Battery trigger: fire when the level crosses the configured
+                // threshold (ABOVE or BELOW), once per crossing.
                 val batteryTrigger = automation.triggers.firstOrNull {
                     it.type == TriggerType.BATTERY
                 }
                 if (batteryTrigger != null) {
                     val threshold = batteryTrigger.config["above"]?.toIntOrNull() ?: 80
-                    if (level >= threshold) {
+                    val direction = batteryTrigger.config["direction"] ?: "ABOVE"
+                    val crossed = if (direction == "BELOW") level <= threshold else level >= threshold
+                    if (crossed) {
                         if (firedAbove.add(automation.id)) {
                             executionEngine.runAutomation(automation)
                         }

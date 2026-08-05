@@ -3,7 +3,7 @@
     <string name="builder_title">Nouvelle automatisation</string>
     <string name="save">Enregistrer</string>
     <string name="name">Nom</string>
-    <string name="name_hint">p. ex. Routine matinale</string>
+    <string name="name_hint">p. ex. Tâche du matin</string>
     <string name="icon">Icône</string>
     <string name="tap_to_choose_icon">Touchez pour choisir une icône</string>
     <string name="section_when">QUAND (DÉCLENCHEURS)</string>
@@ -236,4 +236,18 @@
     <string name="next">Suivant</string>
     <string name="previous">Précédent</string>
     <string name="next_needs_trigger">Ajoutez d\'abord au moins un déclencheur</string>
+    <string name="edit_task_title">Modifier la tâche</string>
+    <string name="battery_trigger_title">Niveau de batterie</string>
+    <string name="battery_below">En dessous</string>
+    <string name="battery_below_sub">Se déclenche lorsque la batterie passe sous ce niveau</string>
+    <string name="maximum_battery">Maximum : %1$d%%</string>
+    <string name="no_apps_selected">Aucune application sélectionnée</string>
+    <string name="selected_apps_count">%1$d application(s) sélectionnée(s)</string>
+    <string name="trigger_app">Lorsqu\'une application est ouverte</string>
+    <string name="time_single">Heure unique</string>
+    <string name="time_range">Plage horaire</string>
+    <string name="range_start">Début</string>
+    <string name="range_end">Fin</string>
+    <string name="range_same_day">Même jour</string>
+    <string name="range_overnight">De nuit — se termine le lendemain</string>
 </resources>

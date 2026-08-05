@@ -116,4 +116,5 @@
     <string name="action_wait">待機 / 遅延</string>
     <string name="action_wait_sub">次のアクションの前に一時停止</string>
     <string name="enabled">有効</string>
+    <string name="edit">編集</string>
 </resources>

@@ -3,7 +3,7 @@
     <string name="builder_title">新建自动化</string>
     <string name="save">保存</string>
     <string name="name">名称</string>
-    <string name="name_hint">例如：晨间例行程序</string>
+    <string name="name_hint">例如：晨间任务</string>
     <string name="icon">图标</string>
     <string name="tap_to_choose_icon">点击选择图标</string>
     <string name="section_when">何时（触发器）</string>
@@ -236,4 +236,18 @@
     <string name="next">下一步</string>
     <string name="previous">上一步</string>
     <string name="next_needs_trigger">请先添加至少一个触发器</string>
+    <string name="edit_task_title">编辑任务</string>
+    <string name="battery_trigger_title">电池电量</string>
+    <string name="battery_below">低于</string>
+    <string name="battery_below_sub">当电池电量低于此水平时触发</string>
+    <string name="maximum_battery">最大值：%1$d%%</string>
+    <string name="no_apps_selected">未选择应用</string>
+    <string name="selected_apps_count">已选择 %1$d 个应用</string>
+    <string name="trigger_app">当应用被打开时</string>
+    <string name="time_single">单个时间</string>
+    <string name="time_range">时间段</string>
+    <string name="range_start">开始</string>
+    <string name="range_end">结束</string>
+    <string name="range_same_day">同一天</string>
+    <string name="range_overnight">整夜 — 次日结束</string>
 </resources>

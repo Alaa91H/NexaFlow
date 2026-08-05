@@ -54,6 +54,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":data"))
     implementation(project(":core:automation-engine"))
+    implementation(project(":core:datastore"))
     implementation(project(":core:ui-components"))
     testImplementation("junit:junit:4.13.2")
 }

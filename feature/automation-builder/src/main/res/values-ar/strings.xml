@@ -3,7 +3,7 @@
     <string name="builder_title">أتمتة جديدة</string>
     <string name="save">حفظ</string>
     <string name="name">الاسم</string>
-    <string name="name_hint">مثال: روتين الصباح</string>
+    <string name="name_hint">مثال: مهمة الصباح</string>
     <string name="icon">الأيقونة</string>
     <string name="tap_to_choose_icon">اضغط لاختيار أيقونة</string>
     <string name="section_when">متى (المشغّلات)</string>
@@ -235,4 +235,18 @@
     <string name="next">التالي</string>
     <string name="previous">السابق</string>
     <string name="next_needs_trigger">أضف مشغّلاً واحداً على الأقل أولاً</string>
+    <string name="edit_task_title">تعديل المهمة</string>
+    <string name="battery_trigger_title">مستوى البطارية</string>
+    <string name="battery_below">أقل من</string>
+    <string name="battery_below_sub">يعمل عندما تنخفض البطارية عن هذا المستوى</string>
+    <string name="maximum_battery">الحد الأقصى: %1$d٪</string>
+    <string name="no_apps_selected">لم يتم تحديد تطبيقات</string>
+    <string name="selected_apps_count">تم تحديد %1$d تطبيق</string>
+    <string name="trigger_app">عند فتح تطبيق</string>
+    <string name="time_single">وقت واحد</string>
+    <string name="time_range">نطاق زمني</string>
+    <string name="range_start">البداية</string>
+    <string name="range_end">النهاية</string>
+    <string name="range_same_day">نفس اليوم</string>
+    <string name="range_overnight">طوال الليل — ينتهي في اليوم التالي</string>
 </resources>

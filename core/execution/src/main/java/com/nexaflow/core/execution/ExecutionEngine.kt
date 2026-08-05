@@ -3,6 +3,8 @@ package com.nexaflow.core.execution
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
+import com.nexaflow.core.datastore.NotificationPreferences
+import com.nexaflow.core.datastore.NotificationSettings
 import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.rom.RomIntegrationManager
 import com.nexaflow.core.rom.SystemController
@@ -13,16 +15,19 @@ import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.repositories.HistoryRepository
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import java.util.UUID
 
 class ExecutionEngine(
     private val context: Context,
-    private val historyRepository: HistoryRepository
+    private val historyRepository: HistoryRepository,
+    private val notificationPreferences: NotificationPreferences
 ) {
 
     suspend fun runAutomation(automation: Automation): ExecutionRecord {
         val controller = RomIntegrationManager.controller(context)
-        val results = automation.actions.map { executeAction(it, controller) }
+        val notif = notificationPreferences.settings.first()
+        val results = automation.actions.map { executeAction(it, controller, notif) }
         // Actions are executed sequentially, so a SYSTEM_WAIT action placed anywhere
         // pauses the chain for the configured duration (counter mode).
         val record = ExecutionRecord(
@@ -38,7 +43,11 @@ class ExecutionEngine(
         return record
     }
 
-    private suspend fun executeAction(action: Action, controller: SystemController): SystemControlResult {
+    private suspend fun executeAction(
+        action: Action,
+        controller: SystemController,
+        notif: NotificationSettings
+    ): SystemControlResult {
         return when (action.type) {
             ActionType.SYSTEM_WAIT -> {
                 val seconds = action.config["seconds"]?.toIntOrNull()?.coerceIn(1, 3600) ?: 5
@@ -66,11 +75,15 @@ class ExecutionEngine(
                 }
             }
             ActionType.SYSTEM_SEND_NOTIFICATION ->
-                controller.sendNotification(
-                    action.config["title"] ?: "NexaFlow",
-                    action.config["text"] ?: "Automation executed",
-                    sound = action.config["sound"] ?: "DEFAULT"
-                )
+                if (notif.enabled && notif.executionEnabled) {
+                    controller.sendNotification(
+                        action.config["title"] ?: "NexaFlow",
+                        action.config["text"] ?: "Automation executed",
+                        sound = action.config["sound"] ?: "DEFAULT"
+                    )
+                } else {
+                    SystemControlResult.ok("Notifications disabled")
+                }
             ActionType.SYSTEM_WIFI ->
                 controller.setWifi(action.config["enabled"]?.toBoolean() ?: true)
             ActionType.SYSTEM_BLUETOOTH ->
@@ -134,12 +147,17 @@ class ExecutionEngine(
                 controller.openGalaxyStore()
             ActionType.SYSTEM_SEND_SMS ->
                 controller.sendSms(action.config["number"] ?: "", action.config["text"] ?: "")
-            ActionType.SYSTEM_SEND_REMINDER -> scheduleReminder(
-                action.config["title"] ?: "Reminder",
-                action.config["text"] ?: "",
-                action.config["hour"]?.toIntOrNull() ?: 9,
-                action.config["minute"]?.toIntOrNull() ?: 0
-            )
+            ActionType.SYSTEM_SEND_REMINDER ->
+                if (notif.enabled && notif.remindersEnabled) {
+                    scheduleReminder(
+                        action.config["title"] ?: "Reminder",
+                        action.config["text"] ?: "",
+                        action.config["hour"]?.toIntOrNull() ?: 9,
+                        action.config["minute"]?.toIntOrNull() ?: 0
+                    )
+                } else {
+                    SystemControlResult.ok("Reminders disabled")
+                }
             ActionType.SYSTEM_OPEN_SETTINGS ->
                 controller.openSystemSettings(action.config["page"] ?: "")
             ActionType.APPLICATION_OPEN_APP_SETTINGS ->
@@ -150,11 +168,15 @@ class ExecutionEngine(
                 controller.forceStopPackage(action.config["package"] ?: "")
             ActionType.BATTERY_ALERTS,
             ActionType.BATTERY_CHARGING_NOTIFICATIONS ->
-                controller.sendNotification(
-                    "Battery Alert",
-                    action.config["message"] ?: "Battery alert triggered",
-                    sound = action.config["sound"] ?: "DEFAULT"
-                )
+                if (notif.enabled && notif.executionEnabled) {
+                    controller.sendNotification(
+                        "Battery Alert",
+                        action.config["message"] ?: "Battery alert triggered",
+                        sound = action.config["sound"] ?: "DEFAULT"
+                    )
+                } else {
+                    SystemControlResult.ok("Notifications disabled")
+                }
             ActionType.ADVANCED_SHIZUKU ->
                 PrivilegedRunner.runShizuku(action.config["command"] ?: "echo nexaflow")
             ActionType.ADVANCED_ROOT ->

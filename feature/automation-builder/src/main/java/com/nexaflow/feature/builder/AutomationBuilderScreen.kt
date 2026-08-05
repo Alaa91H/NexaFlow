@@ -53,6 +53,7 @@ import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -85,6 +86,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Observer
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
@@ -394,7 +396,7 @@ private fun parseGeoUri(uri: String): Pair<Double, Double>? {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AutomationBuilderScreen(navController: NavController) {
+fun AutomationBuilderScreen(navController: NavController, automationId: String? = null) {
     val viewModel: AutomationBuilderViewModel = hiltViewModel()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -405,6 +407,30 @@ fun AutomationBuilderScreen(navController: NavController) {
     var selectedIconIndex by remember { mutableStateOf(0) }
     var appPickerTarget by remember { mutableStateOf<String?>(null) }
     var mapPickerTarget by remember { mutableStateOf<Int?>(null) }
+    val actionConfigs = remember { mutableStateMapOf<ActionType, Map<String, String>>() }
+    val selectedActions = remember { mutableStateListOf<ActionOption>() }
+
+    // Edit mode: load the existing automation once and pre-fill the drafts.
+    LaunchedEffect(automationId) {
+        automationId?.let { viewModel.loadAutomation(it) }
+    }
+    val loadedAutomation by viewModel.loaded.collectAsStateWithLifecycle()
+    LaunchedEffect(loadedAutomation) {
+        val loaded = loadedAutomation ?: return@LaunchedEffect
+        if (loaded.id != automationId) return@LaunchedEffect
+        name = loaded.name
+        selectedIconIndex = NexaFlowIcons.all.indexOfFirst { it.first == loaded.icon }.coerceAtLeast(0)
+        triggers.clear()
+        loaded.triggers.forEach { triggers.add(TriggerDraft(it.type, it.config)) }
+        selectedActions.clear()
+        actionConfigs.clear()
+        loaded.actions.forEach { action ->
+            actionOptions.find { it.actionType == action.type }?.let { option ->
+                selectedActions.add(option)
+                actionConfigs[option.actionType] = action.config
+            }
+        }
+    }
     val mapLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val index = mapPickerTarget ?: return@rememberLauncherForActivityResult
         mapPickerTarget = null
@@ -417,8 +443,6 @@ fun AutomationBuilderScreen(navController: NavController) {
             )
         }
     }
-    val actionConfigs = remember { mutableStateMapOf<ActionType, Map<String, String>>() }
-    val selectedActions = remember { mutableStateListOf<ActionOption>() }
     val scrollState = rememberScrollState()
 
     val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
@@ -431,6 +455,8 @@ fun AutomationBuilderScreen(navController: NavController) {
             savedStateHandle?.getLiveData<Int>("selected_icon")?.removeObserver(observer)
         }
     }
+
+    val isEditing = automationId != null
 
     fun moveAction(from: Int, to: Int) {
         if (from !in selectedActions.indices || to !in selectedActions.indices) return
@@ -468,7 +494,7 @@ fun AutomationBuilderScreen(navController: NavController) {
     Scaffold(
         topBar = {
             NexaFlowTopBar(
-                title = stringResource(R.string.builder_title),
+                title = if (isEditing) stringResource(R.string.edit_task_title) else stringResource(R.string.builder_title),
                 onBack = { navController.popBackStack() },
                 actions = {
                     IconButton(onClick = { save(closeAfterSave = false) }) {
@@ -515,7 +541,7 @@ fun AutomationBuilderScreen(navController: NavController) {
             )
             if (step == 0) {
                 NexaFlowCard {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(text = stringResource(R.string.name), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                         OutlinedTextField(
                             value = name,
@@ -524,33 +550,32 @@ fun AutomationBuilderScreen(navController: NavController) {
                             placeholder = { Text(text = stringResource(R.string.name_hint)) },
                             singleLine = true
                         )
-                    }
-                }
-                NexaFlowCard {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { navController.navigate("icon_picker") },
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        IconBadge(
-                            icon = iconVector(NexaFlowIcons.all[selectedIconIndex].first),
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(text = stringResource(R.string.icon), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                            Text(
-                                text = stringResource(R.string.tap_to_choose_icon),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.secondary
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { navController.navigate("icon_picker") },
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            IconBadge(
+                                icon = iconVector(NexaFlowIcons.all[selectedIconIndex].first),
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = stringResource(R.string.icon), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                                Text(
+                                    text = stringResource(R.string.tap_to_choose_icon),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.Filled.Add,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.outline
                             )
                         }
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.outline
-                        )
                     }
                 }
                 BuilderSummaryCard(
@@ -658,9 +683,19 @@ fun AutomationBuilderScreen(navController: NavController) {
             AppPickerDialog(
                 onPickSingle = { app ->
                     val current = triggers[triggerIndex]
-                    triggers[triggerIndex] = current.copy(config = mapOf("package" to app.packageName))
+                    triggers[triggerIndex] = current.copy(
+                        config = mapOf("packages" to app.packageName)
+                    )
                     appPickerTarget = null
                 },
+                onPickMultiple = { apps ->
+                    val current = triggers[triggerIndex]
+                    triggers[triggerIndex] = current.copy(
+                        config = mapOf("packages" to apps.joinToString(",") { it.packageName })
+                    )
+                    appPickerTarget = null
+                },
+                multiSelect = true,
                 onDismiss = { appPickerTarget = null }
             )
         } else {

@@ -7,6 +7,8 @@ import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
@@ -19,6 +21,23 @@ class AutomationBuilderViewModel @Inject constructor(
     /** Draft id reused across quick-saves so they update instead of duplicating. */
     private var draftId: String? = null
 
+    /** The automation being edited, if the builder was opened in edit mode. */
+    private var existing: Automation? = null
+
+    private val _loaded = MutableStateFlow<Automation?>(null)
+    val loaded: StateFlow<Automation?> = _loaded
+
+    /** Loads an existing automation so the builder can pre-fill and update it. */
+    fun loadAutomation(id: String) {
+        if (id.isBlank()) return
+        viewModelScope.launch {
+            val automation = repository.getAutomationById(id)
+            existing = automation
+            draftId = automation?.id
+            _loaded.value = automation
+        }
+    }
+
     fun saveAutomation(
         name: String,
         icon: String,
@@ -27,22 +46,24 @@ class AutomationBuilderViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             val now = System.currentTimeMillis()
-            val id = draftId ?: UUID.randomUUID().toString().also { draftId = it }
+            val prev = existing
+            val id = prev?.id ?: draftId ?: UUID.randomUUID().toString().also { draftId = it }
             val automation = Automation(
                 id = id,
-                name = name.ifBlank { "Untitled Automation" },
+                name = name.ifBlank { "Untitled Task" },
                 description = buildDescription(triggers, actions),
                 icon = icon,
-                iconColor = 0xFF1B62B7,
-                backgroundColor = 0xFFE3EEFA,
-                category = "custom",
-                priority = 1,
-                enabled = true,
+                iconColor = prev?.iconColor ?: 0xFF1B62B7,
+                backgroundColor = prev?.backgroundColor ?: 0xFFE3EEFA,
+                category = prev?.category ?: "custom",
+                priority = prev?.priority ?: 1,
+                enabled = prev?.enabled ?: true,
                 triggers = triggers,
                 actions = actions,
-                createdAt = now,
+                createdAt = prev?.createdAt ?: now,
                 updatedAt = now
             )
+            existing = automation
             repository.saveAutomation(automation)
         }
     }

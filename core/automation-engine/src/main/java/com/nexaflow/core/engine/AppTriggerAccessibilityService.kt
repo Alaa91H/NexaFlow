@@ -40,7 +40,7 @@ class AppTriggerAccessibilityService : AccessibilityService() {
             automations
                 .filter { automation ->
                     automation.enabled && automation.triggers.any { trigger ->
-                        trigger.type == TriggerType.APPLICATION && trigger.config["package"] == packageName
+                        trigger.type == TriggerType.APPLICATION && trigger.matchesPackage(packageName)
                     }
                 }
                 .forEach { automation ->
@@ -58,4 +58,10 @@ class AppTriggerAccessibilityService : AccessibilityService() {
     companion object {
         private const val COOLDOWN_MS = 10_000L
     }
+}
+
+/** True when the app trigger's config lists [packageName] (single or multi-select). */
+private fun com.nexaflow.domain.models.Trigger.matchesPackage(packageName: String): Boolean {
+    val raw = config["packages"] ?: config["package"] ?: ""
+    return raw.split(',').any { it.trim() == packageName }
 }

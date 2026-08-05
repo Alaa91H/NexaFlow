@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MonitorHeart
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Security
@@ -188,6 +189,18 @@ fun SettingsScreen(navController: NavController) {
                                 }
                             )
                         }
+                    )
+                    SettingRow(
+                        icon = Icons.Filled.Security,
+                        title = stringResource(R.string.permission_manager),
+                        subtitle = stringResource(R.string.permission_manager_sub),
+                        onClick = { navController.navigate("permission_manager") }
+                    )
+                    SettingRow(
+                        icon = Icons.Filled.Notifications,
+                        title = stringResource(R.string.notification_manager),
+                        subtitle = stringResource(R.string.notification_manager_sub),
+                        onClick = { navController.navigate("notification_manager") }
                     )
                 }
             }

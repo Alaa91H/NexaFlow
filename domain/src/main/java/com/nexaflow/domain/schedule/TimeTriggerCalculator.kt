@@ -28,7 +28,9 @@ object TimeTriggerCalculator {
     private const val MAX_SEARCH_DAYS = 370
 
     fun nextFireTime(config: Map<String, String>, fromMillis: Long): Long? {
-        val time = config["time"] ?: return null
+        // A time-range window schedules at the window start each day.
+        val time = if (config["timeMode"] == "RANGE") config["rangeStart"] ?: config["time"] else config["time"]
+        if (time.isNullOrBlank()) return null
         val localTime = runCatching { LocalTime.parse(time) }.getOrNull() ?: return null
         val zone = ZoneId.systemDefault()
         val today = ZonedDateTime.ofInstant(Instant.ofEpochMilli(fromMillis), zone).toLocalDate()

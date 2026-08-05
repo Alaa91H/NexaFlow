@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.nexaflow.core.database.AppDatabase
 import com.nexaflow.core.database.AutomationDao
 import com.nexaflow.core.database.ExecutionDao
+import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.data.backup.BackupManager
@@ -51,6 +52,12 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideNotificationPreferences(@ApplicationContext context: Context): NotificationPreferences {
+        return NotificationPreferences(context)
+    }
+
+    @Provides
+    @Singleton
     fun provideAutomationRepository(dao: AutomationDao): AutomationRepository {
         return AutomationRepositoryImpl(dao)
     }
@@ -71,8 +78,9 @@ object AppModule {
     @Singleton
     fun provideExecutionEngine(
         @ApplicationContext context: Context,
-        historyRepository: HistoryRepository
+        historyRepository: HistoryRepository,
+        notificationPreferences: NotificationPreferences
     ): ExecutionEngine {
-        return ExecutionEngine(context, historyRepository)
+        return ExecutionEngine(context, historyRepository, notificationPreferences)
     }
 }

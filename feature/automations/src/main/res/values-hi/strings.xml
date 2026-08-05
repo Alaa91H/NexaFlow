@@ -116,4 +116,5 @@
     <string name="action_wait">प्रतीक्षा / देरी</string>
     <string name="action_wait_sub">अगली कार्रवाई से पहले रुकें</string>
     <string name="enabled">सक्षम</string>
+    <string name="edit">संपादित करें</string>
 </resources>

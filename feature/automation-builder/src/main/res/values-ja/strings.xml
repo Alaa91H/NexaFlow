@@ -3,7 +3,7 @@
     <string name="builder_title">新しい自動化</string>
     <string name="save">保存</string>
     <string name="name">名前</string>
-    <string name="name_hint">例：朝のルーティン</string>
+    <string name="name_hint">例：朝のタスク</string>
     <string name="icon">アイコン</string>
     <string name="tap_to_choose_icon">タップしてアイコンを選択</string>
     <string name="section_when">いつ（トリガー）</string>
@@ -236,4 +236,18 @@
     <string name="next">次へ</string>
     <string name="previous">戻る</string>
     <string name="next_needs_trigger">先にトリガーを1つ以上追加してください</string>
+    <string name="edit_task_title">タスクを編集</string>
+    <string name="battery_trigger_title">バッテリーレベル</string>
+    <string name="battery_below">以下</string>
+    <string name="battery_below_sub">バッテリーがこのレベルを下回ったときに発動</string>
+    <string name="maximum_battery">最大: %1$d%%</string>
+    <string name="no_apps_selected">アプリが選択されていません</string>
+    <string name="selected_apps_count">%1$d 個のアプリを選択</string>
+    <string name="trigger_app">アプリが開かれたとき</string>
+    <string name="time_single">単一時刻</string>
+    <string name="time_range">時間帯</string>
+    <string name="range_start">開始</string>
+    <string name="range_end">終了</string>
+    <string name="range_same_day">同日</string>
+    <string name="range_overnight">夜間 — 翌日に終了</string>
 </resources>

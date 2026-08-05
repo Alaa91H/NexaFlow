@@ -116,4 +116,5 @@
     <string name="action_wait">Bekle / Geciktir</string>
     <string name="action_wait_sub">Sonraki eylemden önce duraklat</string>
     <string name="enabled">Etkin</string>
+    <string name="edit">Düzenle</string>
 </resources>

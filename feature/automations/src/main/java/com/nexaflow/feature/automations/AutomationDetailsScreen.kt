@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.DoNotDisturb
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Home
@@ -93,6 +94,15 @@ fun AutomationDetailsScreen(navController: NavController) {
                 title = stringResource(R.string.automation_title),
                 onBack = { navController.popBackStack() },
                 actions = {
+                    IconButton(
+                        onClick = {
+                            automation?.let {
+                                navController.navigate("automation_builder?automationId=${it.id}")
+                            }
+                        }
+                    ) {
+                        Icon(imageVector = Icons.Filled.Edit, contentDescription = stringResource(R.string.edit))
+                    }
                     IconButton(onClick = { viewModel.delete { navController.popBackStack() } }) {
                         Icon(imageVector = Icons.Filled.Delete, contentDescription = stringResource(R.string.delete))
                     }
@@ -168,7 +178,7 @@ fun AutomationDetailsScreen(navController: NavController) {
                             val (titleRes, subtitleRes, icon) = triggerPresentation(trigger.type)
                             SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes), trailing = {
                                 Text(
-                                    text = trigger.config.entries.joinToString(", ") { "${it.key}=${it.value}" }.ifEmpty { "default" },
+                                    text = triggerDetail(trigger.config),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.secondary
                                 )
@@ -215,6 +225,30 @@ private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector
     TriggerType.CONNECTIVITY -> Triple(R.string.trigger_connectivity, R.string.trigger_connectivity_sub, Icons.Filled.Wifi)
     TriggerType.LOCATION -> Triple(R.string.trigger_location, R.string.trigger_location_sub, Icons.Filled.Place)
     TriggerType.SMS -> Triple(R.string.trigger_sms, R.string.trigger_sms_sub, Icons.Filled.NotificationImportant)
+}
+
+/** Human-readable trigger detail (e.g. battery direction, time range, repeat mode). */
+@Composable
+private fun triggerDetail(config: Map<String, String>): String {
+    val parts = buildList {
+        if (config["timeMode"] == "RANGE") {
+            add("${config["rangeStart"] ?: ""} → ${config["rangeEnd"] ?: ""}")
+        } else {
+            config["time"]?.let { add(it) }
+        }
+        config["direction"]?.let { dir ->
+            if (dir == "BELOW") add("< ${config["above"] ?: ""}%") else add("> ${config["above"] ?: ""}%")
+        }
+        config["repeat"]?.let { if (it != "DAILY") add(it.lowercase()) }
+        config["days"]?.let { add(it) }
+        config["date"]?.let { add(it) }
+        config["startDate"]?.let { add("$it → ${config["endDate"]}") }
+        config["packages"]?.let { add("${it.split(',').size} app(s)") }
+        config["network"]?.let { add(it.lowercase()) }
+        config["event"]?.let { add(it.lowercase()) }
+        config["from"]?.takeIf { it.isNotBlank() }?.let { add("from $it") }
+    }
+    return parts.joinToString(", ").ifEmpty { "default" }
 }
 
 private fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (type) {
