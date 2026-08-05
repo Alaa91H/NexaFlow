@@ -6,8 +6,6 @@
     <string name="not_found_subtitle">削除された可能性があります。</string>
     <string name="section_triggers">トリガー</string>
     <string name="no_triggers">トリガーが設定されていません。</string>
-    <string name="section_conditions">条件</string>
-    <string name="no_conditions">条件が設定されていません。</string>
     <string name="section_actions">アクション</string>
     <string name="no_actions">アクションが設定されていません。</string>
     <string name="run_now">今すぐ実行</string>
@@ -99,6 +97,8 @@
     <string name="action_open_app_settings_sub">アプリの設定ページを開く</string>
     <string name="trigger_sms">SMS</string>
     <string name="trigger_sms_sub">メッセージ受信時に発火</string>
+    <string name="trigger_battery">バッテリー</string>
+    <string name="trigger_battery_sub">バッテリー残量がしきい値に達したとき</string>
     <string name="action_ring_volume">着信音量</string>
     <string name="action_ring_volume_sub">着信音量を変更</string>
     <string name="action_location">位置情報 (GPS)</string>

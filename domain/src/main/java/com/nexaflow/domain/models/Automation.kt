@@ -11,7 +11,6 @@ data class Automation(
     val priority: Int,
     val enabled: Boolean,
     val triggers: List<Trigger>,
-    val conditions: List<Condition>,
     val actions: List<Action>,
     val createdAt: Long,
     val updatedAt: Long
@@ -24,26 +23,12 @@ data class Trigger(
 
 enum class TriggerType {
     TIME,
+    BATTERY,
     APPLICATION,
     DEVICE,
     CONNECTIVITY,
     LOCATION,
     SMS
-}
-
-data class Condition(
-    val type: ConditionType,
-    val config: Map<String, String>,
-    val nestedConditions: List<Condition>? = null
-)
-
-enum class ConditionType {
-    AND,
-    OR,
-    NOT,
-    BATTERY_PERCENTAGE,
-    TIME_RANGE,
-    // Add more specific conditions as needed
 }
 
 data class Action(

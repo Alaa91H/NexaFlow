@@ -6,8 +6,6 @@
     <string name="not_found_subtitle">Возможно, она была удалена.</string>
     <string name="section_triggers">ТРИГГЕРЫ</string>
     <string name="no_triggers">Триггеры не настроены.</string>
-    <string name="section_conditions">УСЛОВИЯ</string>
-    <string name="no_conditions">Условия не настроены.</string>
     <string name="section_actions">ДЕЙСТВИЯ</string>
     <string name="no_actions">Действия не настроены.</string>
     <string name="run_now">Выполнить сейчас</string>
@@ -99,6 +97,8 @@
     <string name="action_open_app_settings_sub">Открыть настройки приложения</string>
     <string name="trigger_sms">СМС</string>
     <string name="trigger_sms_sub">Срабатывать при получении сообщения</string>
+    <string name="trigger_battery">Батарея</string>
+    <string name="trigger_battery_sub">Срабатывать при достижении уровня батареи</string>
     <string name="action_ring_volume">Громкость звонка</string>
     <string name="action_ring_volume_sub">Изменить громкость входящих звонков</string>
     <string name="action_location">Геолокация (GPS)</string>

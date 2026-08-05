@@ -53,6 +53,7 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.60.1")
     ksp("com.google.dagger:hilt-compiler:2.60.1")
     implementation(project(":domain"))
+    implementation(project(":core:execution"))
     implementation(project(":core:ui-components"))
     testImplementation("junit:junit:4.13.2")
 }

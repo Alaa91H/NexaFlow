@@ -176,24 +176,6 @@ fun AutomationDetailsScreen(navController: NavController) {
                         }
                     }
                 }
-                SectionHeader(text = stringResource(R.string.section_conditions))
-                NexaFlowCard {
-                    if (current.conditions.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.no_conditions),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    } else {
-                        current.conditions.forEach { condition ->
-                            SettingRow(
-                                icon = Icons.Filled.Bolt,
-                                title = condition.type.name.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() },
-                                subtitle = condition.config.entries.joinToString(", ") { "${it.key}=${it.value}" }.ifEmpty { stringResource(R.string.always_true) }
-                            )
-                        }
-                    }
-                }
                 SectionHeader(text = stringResource(R.string.section_actions))
                 NexaFlowCard {
                     if (current.actions.isEmpty()) {
@@ -227,6 +209,7 @@ fun AutomationDetailsScreen(navController: NavController) {
 
 private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector> = when (type) {
     TriggerType.TIME -> Triple(R.string.trigger_time, R.string.trigger_time_sub, Icons.Filled.Schedule)
+    TriggerType.BATTERY -> Triple(R.string.trigger_battery, R.string.trigger_battery_sub, Icons.Filled.BatteryChargingFull)
     TriggerType.APPLICATION -> Triple(R.string.trigger_app, R.string.trigger_app_sub, Icons.Filled.Add)
     TriggerType.DEVICE -> Triple(R.string.trigger_device, R.string.trigger_device_sub, Icons.Filled.Bolt)
     TriggerType.CONNECTIVITY -> Triple(R.string.trigger_connectivity, R.string.trigger_connectivity_sub, Icons.Filled.Wifi)

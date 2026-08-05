@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
-import com.nexaflow.domain.models.Condition
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +23,6 @@ class AutomationBuilderViewModel @Inject constructor(
         name: String,
         icon: String,
         triggers: List<Trigger>,
-        conditions: List<Condition>,
         actions: List<Action>
     ) {
         viewModelScope.launch {
@@ -41,7 +39,6 @@ class AutomationBuilderViewModel @Inject constructor(
                 priority = 1,
                 enabled = true,
                 triggers = triggers,
-                conditions = conditions,
                 actions = actions,
                 createdAt = now,
                 updatedAt = now

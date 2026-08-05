@@ -24,7 +24,6 @@ import androidx.compose.material.icons.filled.AirplanemodeActive
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.Bluetooth
-import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DarkMode
@@ -64,7 +63,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -93,12 +91,9 @@ import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowIcons
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
-import com.nexaflow.core.ui.ToggleRow
 import com.nexaflow.core.ui.iconVector
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
-import com.nexaflow.domain.models.Condition
-import com.nexaflow.domain.models.ConditionType
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 
@@ -184,6 +179,7 @@ private val actionCategories: List<ActionCategory> = ActionCategory.entries.toLi
 
 private fun TriggerType.summaryLabelRes(): Int = when (this) {
     TriggerType.TIME -> R.string.trigger_type_time
+    TriggerType.BATTERY -> R.string.trigger_type_battery
     TriggerType.APPLICATION -> R.string.trigger_type_app
     TriggerType.DEVICE -> R.string.trigger_type_device
     TriggerType.CONNECTIVITY -> R.string.trigger_type_connectivity
@@ -406,13 +402,7 @@ fun AutomationBuilderScreen(navController: NavController) {
     var name by remember { mutableStateOf("") }
     var step by remember { mutableStateOf(0) }
     val triggers = remember { mutableStateListOf<TriggerDraft>() }
-    var batteryCondition by remember { mutableStateOf(false) }
-    var timeRangeCondition by remember { mutableStateOf(false) }
     var selectedIconIndex by remember { mutableStateOf(0) }
-    var batteryThreshold by remember { mutableStateOf(20) }
-    var rangeStart by remember { mutableStateOf("22:00") }
-    var rangeEnd by remember { mutableStateOf("07:00") }
-    var rangePickerTarget by remember { mutableStateOf<String?>(null) }
     var appPickerTarget by remember { mutableStateOf<String?>(null) }
     var mapPickerTarget by remember { mutableStateOf<Int?>(null) }
     val mapLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -459,20 +449,11 @@ fun AutomationBuilderScreen(navController: NavController) {
         val builtTriggers = triggers.map { draft ->
             Trigger(draft.type, draft.config)
         }
-        val conditions = buildList {
-            if (batteryCondition) {
-                add(Condition(ConditionType.BATTERY_PERCENTAGE, mapOf("above" to batteryThreshold.toString())))
-            }
-            if (timeRangeCondition) {
-                add(Condition(ConditionType.TIME_RANGE, mapOf("start" to rangeStart, "end" to rangeEnd)))
-            }
-        }
         val actions = selectedActions.map { Action(it.actionType, actionConfigs[it.actionType] ?: emptyMap()) }
         viewModel.saveAutomation(
             name = name,
             icon = NexaFlowIcons.all[selectedIconIndex].first,
             triggers = builtTriggers,
-            conditions = conditions,
             actions = actions
         )
         if (closeAfterSave) {
@@ -612,53 +593,6 @@ fun AutomationBuilderScreen(navController: NavController) {
                         }
                     )
                 }
-                SectionHeader(text = stringResource(R.string.section_conditions))
-                NexaFlowCard {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        ToggleRow(
-                            icon = Icons.Filled.Bolt,
-                            title = stringResource(R.string.battery_above),
-                            subtitle = stringResource(R.string.battery_above_sub),
-                            checked = batteryCondition,
-                            onCheckedChange = { batteryCondition = it }
-                        )
-                        if (batteryCondition) {
-                            SliderRow(
-                                label = stringResource(R.string.minimum_battery, batteryThreshold),
-                                value = batteryThreshold.toFloat(),
-                                onValueChange = { batteryThreshold = it.toInt() },
-                                valueRange = 5f..100f
-                            )
-                        }
-                        ToggleRow(
-                            icon = Icons.Filled.ScreenRotation,
-                            title = stringResource(R.string.within_time_range),
-                            subtitle = stringResource(R.string.within_time_range_sub),
-                            checked = timeRangeCondition,
-                            onCheckedChange = { timeRangeCondition = it }
-                        )
-                        if (timeRangeCondition) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(text = stringResource(R.string.from), style = MaterialTheme.typography.bodySmall)
-                                    TextButton(onClick = { rangePickerTarget = "start" }) {
-                                        Text(text = rangeStart)
-                                    }
-                                }
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(text = stringResource(R.string.to), style = MaterialTheme.typography.bodySmall)
-                                    TextButton(onClick = { rangePickerTarget = "end" }) {
-                                        Text(text = rangeEnd)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             } else {
                 BuilderSummaryCard(
                     triggers = triggers,
@@ -716,18 +650,6 @@ fun AutomationBuilderScreen(navController: NavController) {
                 }
             }
         }
-    }
-
-    rangePickerTarget?.let { target ->
-        val initial = if (target == "start") rangeStart else rangeEnd
-        TimePickerAlert(
-            initialTime = initial,
-            onConfirm = {
-                if (target == "start") rangeStart = it else rangeEnd = it
-                rangePickerTarget = null
-            },
-            onDismiss = { rangePickerTarget = null }
-        )
     }
 
     appPickerTarget?.let { target ->

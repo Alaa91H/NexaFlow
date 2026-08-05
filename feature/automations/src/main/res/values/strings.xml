@@ -6,8 +6,6 @@
     <string name="not_found_subtitle">It may have been deleted.</string>
     <string name="section_triggers">TRIGGERS</string>
     <string name="no_triggers">No triggers configured.</string>
-    <string name="section_conditions">CONDITIONS</string>
-    <string name="no_conditions">No conditions configured.</string>
     <string name="section_actions">ACTIONS</string>
     <string name="no_actions">No actions configured.</string>
     <string name="run_now">Run Now</string>
@@ -25,6 +23,8 @@
     <string name="trigger_location_sub">Trigger on location</string>
     <string name="trigger_sms">SMS</string>
     <string name="trigger_sms_sub">Trigger on incoming message</string>
+    <string name="trigger_battery">Battery</string>
+    <string name="trigger_battery_sub">Trigger when battery reaches the level</string>
     <string name="action_brightness">Brightness</string>
     <string name="action_brightness_sub">Set screen brightness</string>
     <string name="action_volume">Volume</string>

@@ -6,8 +6,6 @@
     <string name="not_found_subtitle">Sie wurde möglicherweise gelöscht.</string>
     <string name="section_triggers">TRIGGER</string>
     <string name="no_triggers">Keine Trigger konfiguriert.</string>
-    <string name="section_conditions">BEDINGUNGEN</string>
-    <string name="no_conditions">Keine Bedingungen konfiguriert.</string>
     <string name="section_actions">AKTIONEN</string>
     <string name="no_actions">Keine Aktionen konfiguriert.</string>
     <string name="run_now">Jetzt ausführen</string>
@@ -99,6 +97,8 @@
     <string name="action_open_app_settings_sub">Einstellungsseite einer App öffnen</string>
     <string name="trigger_sms">SMS</string>
     <string name="trigger_sms_sub">Bei eingehender Nachricht auslösen</string>
+    <string name="trigger_battery">Akku</string>
+    <string name="trigger_battery_sub">Auslösen, wenn der Akkustand erreicht wird</string>
     <string name="action_ring_volume">Klingelton-Lautstärke</string>
     <string name="action_ring_volume_sub">Lautstärke eingehender Anrufe ändern</string>
     <string name="action_location">Standort (GPS)</string>

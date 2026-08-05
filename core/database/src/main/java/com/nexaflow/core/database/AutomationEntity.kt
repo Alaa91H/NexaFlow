@@ -15,7 +15,6 @@ data class AutomationEntity(
     val priority: Int,
     val enabled: Boolean,
     val triggersJson: String, // Store as JSON string
-    val conditionsJson: String, // Store as JSON string
     val actionsJson: String, // Store as JSON string
     val createdAt: Long,
     val updatedAt: Long

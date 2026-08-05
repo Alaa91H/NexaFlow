@@ -17,7 +17,6 @@ fun AutomationEntity.toDomain(): Automation {
         priority = priority,
         enabled = enabled,
         triggers = converters.toTriggerList(triggersJson),
-        conditions = converters.toConditionList(conditionsJson),
         actions = converters.toActionList(actionsJson),
         createdAt = createdAt,
         updatedAt = updatedAt
@@ -37,7 +36,6 @@ fun Automation.toEntity(): AutomationEntity {
         priority = priority,
         enabled = enabled,
         triggersJson = converters.fromTriggerList(triggers),
-        conditionsJson = converters.fromConditionList(conditions),
         actionsJson = converters.fromActionList(actions),
         createdAt = createdAt,
         updatedAt = updatedAt

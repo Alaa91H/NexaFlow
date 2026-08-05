@@ -8,6 +8,7 @@ import android.os.BatteryManager
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.ActionType
+import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -29,6 +30,7 @@ class BatteryMonitor @Inject constructor(
 
     private var alertedLow = false
     private var alertedChargeComplete = false
+    private val firedAbove = mutableSetOf<String>()
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(receiverContext: Context, intent: Intent) {
@@ -62,6 +64,22 @@ class BatteryMonitor @Inject constructor(
         scope.launch {
             val automations = repository.getAutomations().first()
             automations.filter { it.enabled }.forEach { automation ->
+                // Battery trigger: fire when the level rises to (or above) the
+                // configured threshold, once per crossing.
+                val batteryTrigger = automation.triggers.firstOrNull {
+                    it.type == TriggerType.BATTERY
+                }
+                if (batteryTrigger != null) {
+                    val threshold = batteryTrigger.config["above"]?.toIntOrNull() ?: 80
+                    if (level >= threshold) {
+                        if (firedAbove.add(automation.id)) {
+                            executionEngine.runAutomation(automation)
+                        }
+                    } else {
+                        firedAbove.remove(automation.id)
+                    }
+                }
+
                 val alertAction = automation.actions.firstOrNull {
                     it.type == ActionType.BATTERY_ALERTS
                 }

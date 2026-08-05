@@ -6,8 +6,6 @@
     <string name="not_found_subtitle">Puede que se haya eliminado.</string>
     <string name="section_triggers">DISPARADORES</string>
     <string name="no_triggers">No hay disparadores configurados.</string>
-    <string name="section_conditions">CONDICIONES</string>
-    <string name="no_conditions">No hay condiciones configuradas.</string>
     <string name="section_actions">ACCIONES</string>
     <string name="no_actions">No hay acciones configuradas.</string>
     <string name="run_now">Ejecutar ahora</string>
@@ -99,6 +97,8 @@
     <string name="action_open_app_settings_sub">Abrir ajustes de una app</string>
     <string name="trigger_sms">SMS</string>
     <string name="trigger_sms_sub">Activar al recibir mensaje</string>
+    <string name="trigger_battery">Batería</string>
+    <string name="trigger_battery_sub">Activar cuando la batería alcance el nivel</string>
     <string name="action_ring_volume">Volumen de llamada</string>
     <string name="action_ring_volume_sub">Cambiar el volumen de llamadas</string>
     <string name="action_location">Ubicación (GPS)</string>

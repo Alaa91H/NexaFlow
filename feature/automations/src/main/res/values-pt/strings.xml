@@ -6,8 +6,6 @@
     <string name="not_found_subtitle">Ela pode ter sido excluída.</string>
     <string name="section_triggers">GATILHOS</string>
     <string name="no_triggers">Nenhum gatilho configurado.</string>
-    <string name="section_conditions">CONDIÇÕES</string>
-    <string name="no_conditions">Nenhuma condição configurada.</string>
     <string name="section_actions">AÇÕES</string>
     <string name="no_actions">Nenhuma ação configurada.</string>
     <string name="run_now">Executar agora</string>
@@ -99,6 +97,8 @@
     <string name="action_open_app_settings_sub">Abrir configurações de um app</string>
     <string name="trigger_sms">SMS</string>
     <string name="trigger_sms_sub">Disparar ao receber mensagem</string>
+    <string name="trigger_battery">Bateria</string>
+    <string name="trigger_battery_sub">Disparar quando a bateria atingir o nível</string>
     <string name="action_ring_volume">Volume do toque</string>
     <string name="action_ring_volume_sub">Alterar o volume de chamadas</string>
     <string name="action_location">Localização (GPS)</string>

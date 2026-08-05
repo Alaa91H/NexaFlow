@@ -11,6 +11,7 @@
     <string name="remove_trigger">ट्रिगर हटाएँ</string>
     <string name="add_another_trigger">एक और ट्रिगर जोड़ें</string>
     <string name="trigger_type_time">समय</string>
+    <string name="trigger_type_battery">बैटरी</string>
     <string name="trigger_type_app">ऐप</string>
     <string name="trigger_type_device">डिवाइस</string>
     <string name="trigger_type_connectivity">कनेक्टिविटी</string>
@@ -30,14 +31,10 @@
     <string name="event">घटना</string>
     <string name="location_hint">स्थान अनुमति और वर्तमान स्थान की आवश्यकता है</string>
     <string name="grant">अनुमति दें</string>
-    <string name="section_conditions">शर्तें</string>
     <string name="battery_above">बैटरी सीमा से ऊपर</string>
     <string name="battery_above_sub">केवल तभी चलाएँ जब बैटरी स्तर से ऊपर हो</string>
     <string name="minimum_battery">न्यूनतम बैटरी: %1$d%%</string>
-    <string name="within_time_range">समय सीमा के भीतर</string>
-    <string name="within_time_range_sub">केवल कॉन्फ़िगर किए गए घंटों के बीच चलाएँ</string>
-    <string name="from">से</string>
-    <string name="to">तक</string>
+
     <string name="section_actions">फिर (क्रियाएँ)</string>
     <string name="save_automation">ऑटोमेशन सहेजें</string>
     <string name="ok">ठीक है</string>
@@ -162,10 +159,8 @@
     <string name="repeat_label">दोहराएं</string>
     <string name="repeat_once">एक बार</string>
     <string name="repeat_daily">दैनिक</string>
-    <string name="repeat_weekdays">कार्यदिवस</string>
-    <string name="repeat_weekends">सप्ताहांत</string>
     <string name="repeat_specific_days">खास दिन</string>
-    <string name="repeat_monthly">मासिक</string>
+    <string name="repeat_specific_date">विशिष्ट तिथि</string>
     <string name="repeat_date_range">तिथि सीमा</string>
     <string name="select_days">दिन चुनें</string>
     <string name="day_mon">सोम</string>
@@ -175,9 +170,11 @@
     <string name="day_fri">शुक्र</string>
     <string name="day_sat">शनि</string>
     <string name="day_sun">रवि</string>
-    <string name="month_day">महीने का दिन</string>
     <string name="start_date">आरंभ तिथि</string>
     <string name="end_date">समाप्ति तिथि</string>
+    <string name="date_range_invalid">समाप्ति तिथि आरंभ तिथि के बाद होनी चाहिए</string>
+    <string name="specific_date">तिथि</string>
+    <string name="pick_date">तिथि चुनें</string>
     <string name="pick_on_map">नक्शे से चुनें</string>
     <string name="sms_from">से (नंबर)</string>
     <string name="sms_from_hint">जैसे 05XXXXXXXX (खाली = कोई भी)</string>

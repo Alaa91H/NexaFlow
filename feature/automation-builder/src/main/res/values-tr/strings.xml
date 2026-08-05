@@ -11,6 +11,7 @@
     <string name="remove_trigger">Tetikleyiciyi kaldır</string>
     <string name="add_another_trigger">Başka bir tetikleyici ekle</string>
     <string name="trigger_type_time">Zaman</string>
+    <string name="trigger_type_battery">Pil</string>
     <string name="trigger_type_app">Uygulama</string>
     <string name="trigger_type_device">Cihaz</string>
     <string name="trigger_type_connectivity">Bağlantı</string>
@@ -30,14 +31,10 @@
     <string name="event">Olay</string>
     <string name="location_hint">Konum izni ve güncel konum gerekir</string>
     <string name="grant">İzin Ver</string>
-    <string name="section_conditions">KOŞULLAR</string>
     <string name="battery_above">Pil eşiğin üzerinde</string>
     <string name="battery_above_sub">Yalnızca pil seviyenin üzerindeyken çalıştır</string>
     <string name="minimum_battery">Minimum pil: %1$d%%</string>
-    <string name="within_time_range">Zaman aralığı içinde</string>
-    <string name="within_time_range_sub">Yalnızca yapılandırılan saatler arasında çalıştır</string>
-    <string name="from">Başlangıç</string>
-    <string name="to">Bitiş</string>
+
     <string name="section_actions">SONRA (EYLEMLER)</string>
     <string name="save_automation">Otomasyonu Kaydet</string>
     <string name="ok">Tamam</string>
@@ -162,10 +159,8 @@
     <string name="repeat_label">Tekrar</string>
     <string name="repeat_once">Bir kez</string>
     <string name="repeat_daily">Her gün</string>
-    <string name="repeat_weekdays">Hafta içi</string>
-    <string name="repeat_weekends">Hafta sonu</string>
     <string name="repeat_specific_days">Belirli günler</string>
-    <string name="repeat_monthly">Aylık</string>
+    <string name="repeat_specific_date">Belirli tarih</string>
     <string name="repeat_date_range">Tarih aralığı</string>
     <string name="select_days">Günleri seç</string>
     <string name="day_mon">Pzt</string>
@@ -175,9 +170,11 @@
     <string name="day_fri">Cum</string>
     <string name="day_sat">Cmt</string>
     <string name="day_sun">Paz</string>
-    <string name="month_day">Ayın günü</string>
     <string name="start_date">Başlangıç tarihi</string>
     <string name="end_date">Bitiş tarihi</string>
+    <string name="date_range_invalid">Bitiş tarihi başlangıç tarihinden sonra olmalı</string>
+    <string name="specific_date">Tarih</string>
+    <string name="pick_date">Tarih seç</string>
     <string name="pick_on_map">Haritada seç</string>
     <string name="sms_from">Kimden (numara)</string>
     <string name="sms_from_hint">örn. 05XXXXXXXX (boş = herhangi biri)</string>

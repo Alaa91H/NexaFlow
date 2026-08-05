@@ -1,5 +1,6 @@
 package com.nexaflow.feature.builder
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,9 +9,22 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Message
+import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -19,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,15 +41,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.domain.models.TriggerType
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 val triggerTypeOptions = listOf(
     TriggerType.TIME,
+    TriggerType.BATTERY,
     TriggerType.APPLICATION,
     TriggerType.DEVICE,
     TriggerType.CONNECTIVITY,
@@ -45,10 +66,8 @@ val triggerTypeOptions = listOf(
 private val repeatOptions = listOf(
     "ONCE" to R.string.repeat_once,
     "DAILY" to R.string.repeat_daily,
-    "WEEKDAYS" to R.string.repeat_weekdays,
-    "WEEKENDS" to R.string.repeat_weekends,
     "SPECIFIC_DAYS" to R.string.repeat_specific_days,
-    "MONTHLY" to R.string.repeat_monthly,
+    "SPECIFIC_DATE" to R.string.repeat_specific_date,
     "DATE_RANGE" to R.string.repeat_date_range
 )
 
@@ -64,11 +83,80 @@ private val weekdayOptions = listOf(
 
 private fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.TIME -> R.string.trigger_type_time
+    TriggerType.BATTERY -> R.string.trigger_type_battery
     TriggerType.APPLICATION -> R.string.trigger_type_app
     TriggerType.DEVICE -> R.string.trigger_type_device
     TriggerType.CONNECTIVITY -> R.string.trigger_type_connectivity
     TriggerType.LOCATION -> R.string.trigger_type_location
     TriggerType.SMS -> R.string.trigger_type_sms
+}
+
+private fun TriggerType.icon(): ImageVector = when (this) {
+    TriggerType.TIME -> Icons.Filled.Schedule
+    TriggerType.BATTERY -> Icons.Filled.BatteryChargingFull
+    TriggerType.APPLICATION -> Icons.Filled.Apps
+    TriggerType.DEVICE -> Icons.Filled.Bolt
+    TriggerType.CONNECTIVITY -> Icons.Filled.Wifi
+    TriggerType.LOCATION -> Icons.Filled.Place
+    TriggerType.SMS -> Icons.AutoMirrored.Filled.Message
+}
+
+private fun parseDateMillis(value: String): Long? {
+    return runCatching {
+        LocalDate.parse(value)
+            .atStartOfDay(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+    }.getOrNull()
+}
+
+private fun millisToDateString(millis: Long): String {
+    return Instant.ofEpochMilli(millis)
+        .atZone(ZoneId.systemDefault())
+        .toLocalDate()
+        .toString()
+}
+
+/** Samsung-style tappable field that opens a Material3 date picker. */
+@Composable
+private fun DateField(
+    label: String,
+    value: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Filled.DateRange,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.secondary
+            )
+            Text(
+                text = value.ifBlank { stringResource(R.string.pick_date) },
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium
+            )
+        }
+        Icon(
+            imageVector = Icons.Filled.Edit,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.outline
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -83,6 +171,7 @@ fun TriggerEditorCard(
 ) {
     val context = LocalContext.current
     var showTimePicker by remember { mutableStateOf(false) }
+    var datePickerTarget by remember { mutableStateOf<String?>(null) } // "date" | "startDate" | "endDate"
 
     NexaFlowCard {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -118,6 +207,7 @@ fun TriggerEditorCard(
                                     type = option,
                                     config = when (option) {
                                         TriggerType.TIME -> mapOf("time" to (draft.config["time"] ?: "08:00"))
+                                        TriggerType.BATTERY -> mapOf("above" to (draft.config["above"] ?: "80"))
                                         TriggerType.APPLICATION -> mapOf("package" to (draft.config["package"] ?: ""))
                                         TriggerType.DEVICE -> mapOf("event" to (draft.config["event"] ?: "SCREEN_ON"))
                                         TriggerType.CONNECTIVITY -> mapOf(
@@ -139,6 +229,18 @@ fun TriggerEditorCard(
                                 )
                             )
                         },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = option.icon(),
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = if (draft.type == option) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.secondary
+                                }
+                            )
+                        },
                         label = { Text(text = stringResource(option.labelRes())) }
                     )
                 }
@@ -146,6 +248,14 @@ fun TriggerEditorCard(
             when (draft.type) {
                 TriggerType.TIME -> {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        val repeatMode = draft.config["repeat"] ?: "DAILY"
+                        val repeatSubtitleRes = when (repeatMode) {
+                            "ONCE" -> R.string.repeat_once
+                            "SPECIFIC_DAYS" -> R.string.repeat_specific_days
+                            "SPECIFIC_DATE" -> R.string.repeat_specific_date
+                            "DATE_RANGE" -> R.string.repeat_date_range
+                            else -> R.string.repeat_daily
+                        }
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -153,6 +263,12 @@ fun TriggerEditorCard(
                                 .padding(vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Icon(
+                                imageVector = Icons.Filled.Schedule,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = stringResource(R.string.trigger_time),
@@ -160,7 +276,7 @@ fun TriggerEditorCard(
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 Text(
-                                    text = stringResource(R.string.repeat_label),
+                                    text = stringResource(repeatSubtitleRes),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.secondary
                                 )
@@ -206,39 +322,73 @@ fun TriggerEditorCard(
                                     }
                                 }
                             }
-                            "MONTHLY" -> {
-                                OutlinedTextField(
-                                    value = draft.config["monthDay"] ?: "1",
-                                    onValueChange = { onConfigChange(draft.copy(config = draft.config + ("monthDay" to it))) },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    label = { Text(text = stringResource(R.string.month_day)) },
-                                    singleLine = true
+                            "SPECIFIC_DATE" -> {
+                                DateField(
+                                    label = stringResource(R.string.specific_date),
+                                    value = draft.config["date"] ?: "",
+                                    onClick = { datePickerTarget = "date" }
                                 )
                             }
                             "DATE_RANGE" -> {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    OutlinedTextField(
-                                        value = draft.config["startDate"] ?: "",
-                                        onValueChange = { onConfigChange(draft.copy(config = draft.config + ("startDate" to it))) },
-                                        modifier = Modifier.weight(1f),
-                                        label = { Text(text = stringResource(R.string.start_date)) },
-                                        placeholder = { Text(text = "2026-01-01") },
-                                        singleLine = true
-                                    )
-                                    OutlinedTextField(
-                                        value = draft.config["endDate"] ?: "",
-                                        onValueChange = { onConfigChange(draft.copy(config = draft.config + ("endDate" to it))) },
-                                        modifier = Modifier.weight(1f),
-                                        label = { Text(text = stringResource(R.string.end_date)) },
-                                        placeholder = { Text(text = "2026-12-31") },
-                                        singleLine = true
+                                DateField(
+                                    label = stringResource(R.string.start_date),
+                                    value = draft.config["startDate"] ?: "",
+                                    onClick = { datePickerTarget = "startDate" }
+                                )
+                                DateField(
+                                    label = stringResource(R.string.end_date),
+                                    value = draft.config["endDate"] ?: "",
+                                    onClick = { datePickerTarget = "endDate" }
+                                )
+                                val start = draft.config["startDate"]?.let(::parseDateMillis)
+                                val end = draft.config["endDate"]?.let(::parseDateMillis)
+                                if (start != null && end != null && start > end) {
+                                    Text(
+                                        text = stringResource(R.string.date_range_invalid),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.error
                                     )
                                 }
                             }
                         }
+                    }
+                }
+                TriggerType.BATTERY -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        val threshold = (draft.config["above"] ?: "80").toIntOrNull() ?: 80
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.BatteryChargingFull,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.battery_above),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = stringResource(R.string.battery_above_sub),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        }
+                        SliderRow(
+                            label = stringResource(R.string.minimum_battery, threshold),
+                            value = threshold.toFloat(),
+                            onValueChange = { value ->
+                                onConfigChange(
+                                    draft.copy(config = draft.config + ("above" to value.toInt().toString()))
+                                )
+                            },
+                            valueRange = 5f..100f
+                        )
                     }
                 }
                 TriggerType.APPLICATION -> {
@@ -379,5 +529,35 @@ fun TriggerEditorCard(
             },
             onDismiss = { showTimePicker = false }
         )
+    }
+
+    // The picker state is (re)created fresh on every open because the dialog
+    // leaves composition whenever datePickerTarget resets to null on dismiss.
+    datePickerTarget?.let { target ->
+        val initialMillis = draft.config[target]?.let(::parseDateMillis)
+            ?: System.currentTimeMillis()
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialMillis)
+        DatePickerDialog(
+            onDismissRequest = { datePickerTarget = null },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        onConfigChange(
+                            draft.copy(config = draft.config + (target to millisToDateString(millis)))
+                        )
+                    }
+                    datePickerTarget = null
+                }) {
+                    Text(text = stringResource(R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { datePickerTarget = null }) {
+                    Text(text = stringResource(R.string.cancel))
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
     }
 }

@@ -6,8 +6,6 @@
     <string name="not_found_subtitle">Elle a peut-être été supprimée.</string>
     <string name="section_triggers">DÉCLENCHEURS</string>
     <string name="no_triggers">Aucun déclencheur configuré.</string>
-    <string name="section_conditions">CONDITIONS</string>
-    <string name="no_conditions">Aucune condition configurée.</string>
     <string name="section_actions">ACTIONS</string>
     <string name="no_actions">Aucune action configurée.</string>
     <string name="run_now">Exécuter maintenant</string>
@@ -99,6 +97,8 @@
     <string name="action_open_app_settings_sub">"Ouvrir la page de paramètres d'une app"</string>
     <string name="trigger_sms">SMS</string>
     <string name="trigger_sms_sub">"Déclencher à la réception d'un message"</string>
+    <string name="trigger_battery">Batterie</string>
+    <string name="trigger_battery_sub">Se déclencher lorsque la batterie atteint le niveau</string>
     <string name="action_ring_volume">Volume de sonnerie</string>
     <string name="action_ring_volume_sub">Changer le volume des appels</string>
     <string name="action_location">Localisation (GPS)</string>

@@ -11,6 +11,7 @@
     <string name="remove_trigger">Remove trigger</string>
     <string name="add_another_trigger">Add another trigger</string>
     <string name="trigger_type_time">Time</string>
+    <string name="trigger_type_battery">Battery</string>
     <string name="trigger_type_app">App</string>
     <string name="trigger_type_device">Device</string>
     <string name="trigger_type_connectivity">Connectivity</string>
@@ -19,10 +20,8 @@
     <string name="repeat_label">Repeat</string>
     <string name="repeat_once">Once</string>
     <string name="repeat_daily">Daily</string>
-    <string name="repeat_weekdays">Workdays</string>
-    <string name="repeat_weekends">Weekends</string>
     <string name="repeat_specific_days">Days</string>
-    <string name="repeat_monthly">Monthly</string>
+    <string name="repeat_specific_date">Specific date</string>
     <string name="repeat_date_range">Date range</string>
     <string name="select_days">Select days</string>
     <string name="day_mon">Mon</string>
@@ -32,9 +31,11 @@
     <string name="day_fri">Fri</string>
     <string name="day_sat">Sat</string>
     <string name="day_sun">Sun</string>
-    <string name="month_day">Day of month</string>
     <string name="start_date">Start date</string>
     <string name="end_date">End date</string>
+    <string name="date_range_invalid">End date must be after the start date</string>
+    <string name="specific_date">Date</string>
+    <string name="pick_date">Pick a date</string>
     <string name="pick_on_map">Pick on map</string>
     <string name="sms_from">From (number)</string>
     <string name="sms_from_hint">e.g. 05XXXXXXXX (blank = any)</string>
@@ -59,14 +60,9 @@
     <string name="event">Event</string>
     <string name="location_hint">Needs location permission and a current location fix</string>
     <string name="grant">Grant</string>
-    <string name="section_conditions">CONDITIONS</string>
     <string name="battery_above">Battery above threshold</string>
     <string name="battery_above_sub">Only run when battery is above the level</string>
     <string name="minimum_battery">Minimum battery: %1$d%%</string>
-    <string name="within_time_range">Within time range</string>
-    <string name="within_time_range_sub">Only run between the configured hours</string>
-    <string name="from">From</string>
-    <string name="to">To</string>
     <string name="section_actions">THEN (ACTIONS)</string>
     <string name="category_display">Display</string>
     <string name="category_sound">Sound</string>

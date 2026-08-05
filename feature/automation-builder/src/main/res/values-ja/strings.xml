@@ -11,6 +11,7 @@
     <string name="remove_trigger">トリガーを削除</string>
     <string name="add_another_trigger">別のトリガーを追加</string>
     <string name="trigger_type_time">時刻</string>
+    <string name="trigger_type_battery">バッテリー</string>
     <string name="trigger_type_app">アプリ</string>
     <string name="trigger_type_device">端末</string>
     <string name="trigger_type_connectivity">接続</string>
@@ -30,14 +31,10 @@
     <string name="event">イベント</string>
     <string name="location_hint">位置情報の許可と現在地の特定が必要です</string>
     <string name="grant">許可</string>
-    <string name="section_conditions">条件</string>
     <string name="battery_above">バッテリーがしきい値を超えている</string>
     <string name="battery_above_sub">バッテリーがレベルを超えている場合のみ実行</string>
     <string name="minimum_battery">最小バッテリー: %1$d%%</string>
-    <string name="within_time_range">時間範囲内</string>
-    <string name="within_time_range_sub">設定した時間帯のみ実行</string>
-    <string name="from">開始</string>
-    <string name="to">終了</string>
+
     <string name="section_actions">次に（アクション）</string>
     <string name="save_automation">自動化を保存</string>
     <string name="ok">OK</string>
@@ -162,10 +159,8 @@
     <string name="repeat_label">繰り返し</string>
     <string name="repeat_once">1回</string>
     <string name="repeat_daily">毎日</string>
-    <string name="repeat_weekdays">平日</string>
-    <string name="repeat_weekends">週末</string>
     <string name="repeat_specific_days">指定日</string>
-    <string name="repeat_monthly">毎月</string>
+    <string name="repeat_specific_date">特定日</string>
     <string name="repeat_date_range">日付範囲</string>
     <string name="select_days">曜日を選択</string>
     <string name="day_mon">月</string>
@@ -175,9 +170,11 @@
     <string name="day_fri">金</string>
     <string name="day_sat">土</string>
     <string name="day_sun">日</string>
-    <string name="month_day">月の日</string>
     <string name="start_date">開始日</string>
     <string name="end_date">終了日</string>
+    <string name="date_range_invalid">終了日は開始日より後にしてください</string>
+    <string name="specific_date">日付</string>
+    <string name="pick_date">日付を選択</string>
     <string name="pick_on_map">地図で選択</string>
     <string name="sms_from">送信元（番号）</string>
     <string name="sms_from_hint">例 05XXXXXXXX（空 = すべて）</string>

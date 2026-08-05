@@ -6,8 +6,6 @@
     <string name="not_found_subtitle">ربما تم حذفها.</string>
     <string name="section_triggers">المشغّلات</string>
     <string name="no_triggers">لا توجد مشغّلات مكوّنة.</string>
-    <string name="section_conditions">الشروط</string>
-    <string name="no_conditions">لا توجد شروط مكوّنة.</string>
     <string name="section_actions">الإجراءات</string>
     <string name="no_actions">لا توجد إجراءات مكوّنة.</string>
     <string name="run_now">تشغيل الآن</string>
@@ -99,6 +97,8 @@
     <string name="action_open_app_settings_sub">فتح صفحة إعدادات التطبيق</string>
     <string name="trigger_sms">رسالة نصية</string>
     <string name="trigger_sms_sub">عند وصول رسالة</string>
+    <string name="trigger_battery">البطارية</string>
+    <string name="trigger_battery_sub">عند وصول البطارية إلى الحد المحدد</string>
     <string name="action_ring_volume">صوت الرنين</string>
     <string name="action_ring_volume_sub">تغيير مستوى صوت المكالمات</string>
     <string name="action_location">الموقع (GPS)</string>

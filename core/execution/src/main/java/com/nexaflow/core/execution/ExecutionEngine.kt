@@ -20,23 +20,8 @@ class ExecutionEngine(
     private val historyRepository: HistoryRepository
 ) {
 
-    private val conditionEvaluator = ConditionEvaluator(context)
-
     suspend fun runAutomation(automation: Automation): ExecutionRecord {
         val controller = RomIntegrationManager.controller(context)
-        val conditionsMet = conditionEvaluator.isMet(automation.conditions)
-        if (!conditionsMet) {
-            val skipped = ExecutionRecord(
-                id = UUID.randomUUID().toString(),
-                automationId = automation.id,
-                automationName = automation.name,
-                success = true,
-                message = "Skipped: conditions not met",
-                executedAt = System.currentTimeMillis()
-            )
-            historyRepository.recordExecution(skipped)
-            return skipped
-        }
         val results = automation.actions.map { executeAction(it, controller) }
         // Actions are executed sequentially, so a SYSTEM_WAIT action placed anywhere
         // pauses the chain for the configured duration (counter mode).

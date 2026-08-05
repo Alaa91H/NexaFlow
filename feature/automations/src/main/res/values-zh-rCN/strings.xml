@@ -6,8 +6,6 @@
     <string name="not_found_subtitle">可能已被删除。</string>
     <string name="section_triggers">触发器</string>
     <string name="no_triggers">未配置触发器。</string>
-    <string name="section_conditions">条件</string>
-    <string name="no_conditions">未配置条件。</string>
     <string name="section_actions">操作</string>
     <string name="no_actions">未配置操作。</string>
     <string name="run_now">立即运行</string>
@@ -99,6 +97,8 @@
     <string name="action_open_app_settings_sub">打开应用设置页面</string>
     <string name="trigger_sms">短信</string>
     <string name="trigger_sms_sub">收到消息时触发</string>
+    <string name="trigger_battery">电池</string>
+    <string name="trigger_battery_sub">电池电量达到阈值时触发</string>
     <string name="action_ring_volume">铃声音量</string>
     <string name="action_ring_volume_sub">更改来电音量</string>
     <string name="action_location">定位 (GPS)</string>

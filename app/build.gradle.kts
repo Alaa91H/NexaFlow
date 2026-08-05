@@ -13,8 +13,8 @@ android {
         applicationId = "com.nexaflow.app"
         minSdk = 29
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0.0-alpha"
+        versionCode = 2
+        versionName = "2.0.0-alpha"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -94,7 +94,6 @@ dependencies {
     implementation(project(":feature:dashboard"))
     implementation(project(":feature:automation-builder"))
     implementation(project(":feature:automations"))
-    implementation(project(":feature:profiles"))
     implementation(project(":feature:history"))
     implementation(project(":feature:icons"))
     implementation(project(":feature:themes"))

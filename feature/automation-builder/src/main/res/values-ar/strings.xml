@@ -11,6 +11,7 @@
     <string name="remove_trigger">إزالة المشغّل</string>
     <string name="add_another_trigger">إضافة مشغّل آخر</string>
     <string name="trigger_type_time">الوقت</string>
+    <string name="trigger_type_battery">البطارية</string>
     <string name="trigger_type_app">التطبيق</string>
     <string name="trigger_type_device">الجهاز</string>
     <string name="trigger_type_connectivity">الاتصال</string>
@@ -30,14 +31,9 @@
     <string name="event">الحدث</string>
     <string name="location_hint">يتطلب إذن الموقع وتثبيت موقع حالي</string>
     <string name="grant">منح</string>
-    <string name="section_conditions">الشروط</string>
     <string name="battery_above">البطارية فوق الحد</string>
     <string name="battery_above_sub">التشغيل فقط عندما تكون البطارية فوق المستوى</string>
     <string name="minimum_battery">الحد الأدنى للبطارية: %1$d%%</string>
-    <string name="within_time_range">ضمن نطاق زمني</string>
-    <string name="within_time_range_sub">التشغيل فقط بين الساعات المحددة</string>
-    <string name="from">من</string>
-    <string name="to">إلى</string>
     <string name="section_actions">ثم (الإجراءات)</string>
     <string name="save_automation">حفظ الأتمتة</string>
     <string name="ok">حسناً</string>
@@ -162,10 +158,8 @@
     <string name="repeat_label">التكرار</string>
     <string name="repeat_once">مرة واحدة</string>
     <string name="repeat_daily">يوميًا</string>
-    <string name="repeat_weekdays">أيام العمل</string>
-    <string name="repeat_weekends">عطلة نهاية الأسبوع</string>
     <string name="repeat_specific_days">أيام محددة</string>
-    <string name="repeat_monthly">شهريًا</string>
+    <string name="repeat_specific_date">تاريخ محدد</string>
     <string name="repeat_date_range">نطاق تواريخ</string>
     <string name="select_days">اختر الأيام</string>
     <string name="day_mon">إث</string>
@@ -175,9 +169,11 @@
     <string name="day_fri">جم</string>
     <string name="day_sat">سب</string>
     <string name="day_sun">أح</string>
-    <string name="month_day">يوم من الشهر</string>
     <string name="start_date">تاريخ البداية</string>
     <string name="end_date">تاريخ النهاية</string>
+    <string name="date_range_invalid">يجب أن يكون تاريخ النهاية بعد تاريخ البداية</string>
+    <string name="specific_date">التاريخ</string>
+    <string name="pick_date">اختر تاريخاً</string>
     <string name="pick_on_map">اختر من الخريطة</string>
     <string name="sms_from">من (الرقم)</string>
     <string name="sms_from_hint">مثال 05XXXXXXXX (فارغ = أي رقم)</string>

@@ -11,6 +11,7 @@
     <string name="remove_trigger">移除触发器</string>
     <string name="add_another_trigger">添加另一个触发器</string>
     <string name="trigger_type_time">时间</string>
+    <string name="trigger_type_battery">电池</string>
     <string name="trigger_type_app">应用</string>
     <string name="trigger_type_device">设备</string>
     <string name="trigger_type_connectivity">网络</string>
@@ -30,14 +31,10 @@
     <string name="event">事件</string>
     <string name="location_hint">需要位置权限和当前位置</string>
     <string name="grant">授予</string>
-    <string name="section_conditions">条件</string>
     <string name="battery_above">电量高于阈值</string>
     <string name="battery_above_sub">仅当电量高于该水平时运行</string>
     <string name="minimum_battery">最低电量：%1$d%%</string>
-    <string name="within_time_range">在时间段内</string>
-    <string name="within_time_range_sub">仅在配置的时间之间运行</string>
-    <string name="from">从</string>
-    <string name="to">到</string>
+
     <string name="section_actions">然后（操作）</string>
     <string name="save_automation">保存自动化</string>
     <string name="ok">确定</string>
@@ -162,10 +159,8 @@
     <string name="repeat_label">重复</string>
     <string name="repeat_once">一次</string>
     <string name="repeat_daily">每天</string>
-    <string name="repeat_weekdays">工作日</string>
-    <string name="repeat_weekends">周末</string>
     <string name="repeat_specific_days">指定日期</string>
-    <string name="repeat_monthly">每月</string>
+    <string name="repeat_specific_date">特定日期</string>
     <string name="repeat_date_range">日期范围</string>
     <string name="select_days">选择日期</string>
     <string name="day_mon">一</string>
@@ -175,9 +170,11 @@
     <string name="day_fri">五</string>
     <string name="day_sat">六</string>
     <string name="day_sun">日</string>
-    <string name="month_day">每月几号</string>
     <string name="start_date">开始日期</string>
     <string name="end_date">结束日期</string>
+    <string name="date_range_invalid">结束日期必须在开始日期之后</string>
+    <string name="specific_date">日期</string>
+    <string name="pick_date">选择日期</string>
     <string name="pick_on_map">在地图上选择</string>
     <string name="sms_from">发件人（号码）</string>
     <string name="sms_from_hint">例如 05XXXXXXXX（留空 = 任意）</string>

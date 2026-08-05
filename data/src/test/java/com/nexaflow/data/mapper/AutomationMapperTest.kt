@@ -3,8 +3,6 @@ package com.nexaflow.data.mapper
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
-import com.nexaflow.domain.models.Condition
-import com.nexaflow.domain.models.ConditionType
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import org.junit.Assert.assertEquals
@@ -24,12 +22,6 @@ class AutomationMapperTest {
         enabled = true,
         triggers = listOf(
             Trigger(TriggerType.TIME, config = mapOf("time" to "22:00"))
-        ),
-        conditions = listOf(
-            Condition(
-                ConditionType.BATTERY_PERCENTAGE,
-                config = mapOf("above" to "20")
-            )
         ),
         actions = listOf(
             Action(ActionType.SYSTEM_BRIGHTNESS, config = mapOf("value" to "40")),
@@ -54,7 +46,6 @@ class AutomationMapperTest {
         val entity = automation.toEntity()
         val restored = entity.toDomain()
         assertEquals(automation.triggers, restored.triggers)
-        assertEquals(automation.conditions, restored.conditions)
         assertEquals(automation.actions, restored.actions)
     }
 
@@ -62,25 +53,8 @@ class AutomationMapperTest {
     fun emptyListsRoundTrip() {
         val plain = automation.copy(
             triggers = emptyList(),
-            conditions = emptyList(),
             actions = emptyList()
         )
         assertEquals(plain, plain.toEntity().toDomain())
-    }
-
-    @Test
-    fun nestedConditionsRoundTrip() {
-        val nested = automation.copy(
-            conditions = listOf(
-                Condition(
-                    ConditionType.OR,
-                    config = emptyMap(),
-                    nestedConditions = listOf(
-                        Condition(ConditionType.BATTERY_PERCENTAGE, config = mapOf("above" to "30"))
-                    )
-                )
-            )
-        )
-        assertEquals(nested, nested.toEntity().toDomain())
     }
 }

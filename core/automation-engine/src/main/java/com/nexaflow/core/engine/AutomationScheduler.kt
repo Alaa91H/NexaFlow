@@ -9,13 +9,10 @@ import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
+import com.nexaflow.domain.schedule.TimeTriggerCalculator
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.LocalTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -62,7 +59,7 @@ class AutomationScheduler @Inject constructor(
             ?.config ?: return
         val time = config["time"]
         if (time.isNullOrBlank()) return
-        val triggerAt = nextTriggerAt(config, fromMillis = System.currentTimeMillis())
+        val triggerAt = TimeTriggerCalculator.nextFireTime(config, fromMillis = System.currentTimeMillis())
         if (triggerAt == null) return
         val pendingIntent = buildPendingIntent(automation.id)
         setAlarm(triggerAt, pendingIntent)
@@ -78,8 +75,10 @@ class AutomationScheduler @Inject constructor(
             val time = config["time"]
             if (time.isNullOrBlank()) return@launch
             // One-shot automations must not be rescheduled after they fire.
-            if (config["repeat"] == REPEAT_ONCE) return@launch
-            val triggerAt = nextTriggerAt(config, fromMillis = System.currentTimeMillis() + 60_000L)
+            if (config["repeat"] == TimeTriggerCalculator.REPEAT_ONCE ||
+                config["repeat"] == TimeTriggerCalculator.REPEAT_SPECIFIC_DATE
+            ) return@launch
+            val triggerAt = TimeTriggerCalculator.nextFireTime(config, fromMillis = System.currentTimeMillis() + 60_000L)
             if (triggerAt == null) return@launch
             setAlarm(triggerAt, buildPendingIntent(automationId))
         }
@@ -113,75 +112,8 @@ class AutomationScheduler @Inject constructor(
         )
     }
 
-    /**
-     * Computes the next fire time for a TIME trigger honouring the repeat mode:
-     * ONCE, DAILY, WEEKDAYS, WEEKENDS, SPECIFIC_DAYS, MONTHLY or DATE_RANGE.
-     * Returns null when no future occurrence exists (e.g. past one-shot or
-     * finished date range).
-     */
-    private fun nextTriggerAt(config: Map<String, String>, fromMillis: Long): Long? {
-        val time = config["time"] ?: return null
-        val localTime = LocalTime.parse(time)
-        val zone = ZoneId.systemDefault()
-        val today = ZonedDateTime.ofInstant(Instant.ofEpochMilli(fromMillis), zone).toLocalDate()
-        val repeat = config["repeat"] ?: REPEAT_DAILY
-
-        // Date-range window bounds (yyyy-MM-dd).
-        val startDate = config["startDate"]?.let(::parseDate)
-        val endDate = config["endDate"]?.let(::parseDate)
-        if (endDate != null && today.isAfter(endDate)) return null
-
-        var daysChecked = 0
-        var candidate = ZonedDateTime.of(today, localTime, zone)
-        while (daysChecked < MAX_SEARCH_DAYS) {
-            val day = candidate.toLocalDate()
-            if (startDate != null && day.isBefore(startDate)) {
-                candidate = ZonedDateTime.of(startDate, localTime, zone)
-                continue
-            }
-            if (endDate != null && day.isAfter(endDate)) return null
-            if (matchesRepeat(repeat, config, day)) {
-                val millis = candidate.toInstant().toEpochMilli()
-                if (millis > fromMillis) return millis
-            }
-            candidate = candidate.plusDays(1)
-            daysChecked++
-        }
-        return null
-    }
-
-    private fun matchesRepeat(repeat: String, config: Map<String, String>, day: java.time.LocalDate): Boolean {
-        val dayOfWeek = day.dayOfWeek.value // 1=MON .. 7=SUN
-        return when (repeat) {
-            REPEAT_WEEKDAYS -> dayOfWeek in 1..5
-            REPEAT_WEEKENDS -> dayOfWeek == 6 || dayOfWeek == 7
-            REPEAT_SPECIFIC_DAYS -> {
-                val days = config["days"]?.split(',')?.mapNotNull { it.trim().toIntOrNull() }.orEmpty()
-                dayOfWeek in days
-            }
-            REPEAT_MONTHLY -> {
-                val monthDay = config["monthDay"]?.toIntOrNull() ?: 1
-                day.dayOfMonth == monthDay
-            }
-            else -> true // ONCE and DAILY
-        }
-    }
-
-    private fun parseDate(value: String): java.time.LocalDate {
-        return runCatching { java.time.LocalDate.parse(value) }.getOrNull()
-            ?: java.time.LocalDate.parse(value.replace('/', '-'))
-    }
-
     companion object {
         const val ACTION_RUN_AUTOMATION = "com.nexaflow.core.engine.action.RUN_AUTOMATION"
         const val EXTRA_AUTOMATION_ID = "com.nexaflow.core.engine.extra.AUTOMATION_ID"
-        const val REPEAT_ONCE = "ONCE"
-        const val REPEAT_DAILY = "DAILY"
-        const val REPEAT_WEEKDAYS = "WEEKDAYS"
-        const val REPEAT_WEEKENDS = "WEEKENDS"
-        const val REPEAT_SPECIFIC_DAYS = "SPECIFIC_DAYS"
-        const val REPEAT_MONTHLY = "MONTHLY"
-        const val REPEAT_DATE_RANGE = "DATE_RANGE"
-        private const val MAX_SEARCH_DAYS = 370
     }
 }

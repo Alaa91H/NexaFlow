@@ -11,6 +11,7 @@
     <string name="remove_trigger">Quitar disparador</string>
     <string name="add_another_trigger">Añadir otro disparador</string>
     <string name="trigger_type_time">Hora</string>
+    <string name="trigger_type_battery">Batería</string>
     <string name="trigger_type_app">App</string>
     <string name="trigger_type_device">Dispositivo</string>
     <string name="trigger_type_connectivity">Conectividad</string>
@@ -30,14 +31,10 @@
     <string name="event">Evento</string>
     <string name="location_hint">Necesita permiso de ubicación y una ubicación actual</string>
     <string name="grant">Conceder</string>
-    <string name="section_conditions">CONDICIONES</string>
     <string name="battery_above">Batería por encima del umbral</string>
     <string name="battery_above_sub">Solo ejecutar cuando la batería supere el nivel</string>
     <string name="minimum_battery">Batería mínima: %1$d%%</string>
-    <string name="within_time_range">Dentro de un rango horario</string>
-    <string name="within_time_range_sub">Solo ejecutar entre las horas configuradas</string>
-    <string name="from">Desde</string>
-    <string name="to">Hasta</string>
+
     <string name="section_actions">ENTONCES (ACCIONES)</string>
     <string name="save_automation">Guardar automatización</string>
     <string name="ok">Aceptar</string>
@@ -162,10 +159,8 @@
     <string name="repeat_label">Repetir</string>
     <string name="repeat_once">Una vez</string>
     <string name="repeat_daily">Diario</string>
-    <string name="repeat_weekdays">Días laborables</string>
-    <string name="repeat_weekends">Fines de semana</string>
     <string name="repeat_specific_days">Días concretos</string>
-    <string name="repeat_monthly">Mensual</string>
+    <string name="repeat_specific_date">Fecha concreta</string>
     <string name="repeat_date_range">Rango de fechas</string>
     <string name="select_days">Seleccionar días</string>
     <string name="day_mon">Lun</string>
@@ -175,9 +170,11 @@
     <string name="day_fri">Vie</string>
     <string name="day_sat">Sáb</string>
     <string name="day_sun">Dom</string>
-    <string name="month_day">Día del mes</string>
     <string name="start_date">Fecha de inicio</string>
     <string name="end_date">Fecha de fin</string>
+    <string name="date_range_invalid">La fecha de fin debe ser posterior a la de inicio</string>
+    <string name="specific_date">Fecha</string>
+    <string name="pick_date">Elegir fecha</string>
     <string name="pick_on_map">Elegir en el mapa</string>
     <string name="sms_from">De (número)</string>
     <string name="sms_from_hint">p. ej. 05XXXXXXXX (vacío = cualquiera)</string>

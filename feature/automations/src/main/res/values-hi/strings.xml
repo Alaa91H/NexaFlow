@@ -6,8 +6,6 @@
     <string name="not_found_subtitle">हो सकता है इसे हटा दिया गया हो।</string>
     <string name="section_triggers">ट्रिगर</string>
     <string name="no_triggers">कोई ट्रिगर कॉन्फ़िगर नहीं।</string>
-    <string name="section_conditions">शर्तें</string>
-    <string name="no_conditions">कोई शर्त कॉन्फ़िगर नहीं।</string>
     <string name="section_actions">क्रियाएँ</string>
     <string name="no_actions">कोई क्रिया कॉन्फ़िगर नहीं।</string>
     <string name="run_now">अभी चलाएँ</string>
@@ -99,6 +97,8 @@
     <string name="action_open_app_settings_sub">ऐप की सेटिंग्स पेज खोलें</string>
     <string name="trigger_sms">SMS</string>
     <string name="trigger_sms_sub">संदेश आने पर ट्रिगर</string>
+    <string name="trigger_battery">बैटरी</string>
+    <string name="trigger_battery_sub">बैटरी स्तर तक पहुँचने पर ट्रिगर</string>
     <string name="action_ring_volume">रिंग वॉल्यूम</string>
     <string name="action_ring_volume_sub">कॉल की आवाज़ बदलें</string>
     <string name="action_location">लोकेशन (GPS)</string>
