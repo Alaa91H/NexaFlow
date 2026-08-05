@@ -280,4 +280,15 @@
     <string name="ringer_mode_label">وضع الصوت</string>
     <string name="ringer_mode_hint">تُنفَّذ المهمة عندما يتحول الهاتف إلى وضع الصوت المختار</string>
     <string name="change_now">غيّر الآن</string>
+    <string name="pick_actions">اختر الإجراءات</string>
+    <string name="search_actions">ابحث عن الإجراءات…</string>
+    <string name="add_count">إضافة (%1$d)</string>
+    <string name="add_action">إضافة إجراء</string>
+    <string name="pick_trigger_type">إضافة مشغّل</string>
+    <string name="next_needs_action">أضف إجراءً واحداً على الأقل أولاً</string>
+    <string name="no_matching_actions">لا توجد إجراءات مطابقة</string>
+    <string name="repeat_weekdays">أيام الأسبوع</string>
+    <string name="repeat_weekends">عطلة نهاية الأسبوع</string>
+    <string name="repeat_monthly">شهرياً</string>
+    <string name="month_day_label">يوم من الشهر: %1$d</string>
 </resources>

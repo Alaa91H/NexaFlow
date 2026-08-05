@@ -55,6 +55,17 @@ class ExecutionEngine(
      * the configured exit actions. Records the run in history as well.
      */
     suspend fun runExit(automation: Automation): ExecutionRecord {
+        // Nothing to do when there are no exit actions and no state to restore.
+        if (!automation.revertOnExit && automation.exitActions.isEmpty()) {
+            return ExecutionRecord(
+                id = UUID.randomUUID().toString(),
+                automationId = automation.id,
+                automationName = automation.name,
+                success = true,
+                message = "No exit behavior configured",
+                executedAt = System.currentTimeMillis()
+            )
+        }
         val controller = RomIntegrationManager.controller(context)
         val notif = notificationPreferences.settings.first()
         val results = if (automation.revertOnExit) {

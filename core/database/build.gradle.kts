@@ -3,6 +3,10 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 android {
     namespace = "com.nexaflow.core.database"
     compileSdk = 37

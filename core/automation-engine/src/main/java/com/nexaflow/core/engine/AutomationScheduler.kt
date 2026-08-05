@@ -61,8 +61,15 @@ class AutomationScheduler @Inject constructor(
         if (time.isNullOrBlank()) return
         val triggerAt = TimeTriggerCalculator.nextFireTime(config, fromMillis = System.currentTimeMillis())
         if (triggerAt == null) return
-        val pendingIntent = buildPendingIntent(automation.id)
-        setAlarm(triggerAt, pendingIntent)
+        setAlarm(triggerAt, buildPendingIntent(automation.id, ACTION_RUN_AUTOMATION))
+        // A time-range trigger also schedules an end-of-window alarm that runs
+        // the exit/revert behavior when the range closes.
+        if (config["timeMode"] == "RANGE") {
+            val endAt = TimeTriggerCalculator.windowEndMillis(config, triggerAt)
+            if (endAt != null && endAt > System.currentTimeMillis()) {
+                setAlarm(endAt, buildPendingIntent(automation.id, ACTION_END_AUTOMATION))
+            }
+        }
     }
 
     fun scheduleNext(automationId: String) {
@@ -80,12 +87,20 @@ class AutomationScheduler @Inject constructor(
             ) return@launch
             val triggerAt = TimeTriggerCalculator.nextFireTime(config, fromMillis = System.currentTimeMillis() + 60_000L)
             if (triggerAt == null) return@launch
-            setAlarm(triggerAt, buildPendingIntent(automationId))
+            setAlarm(triggerAt, buildPendingIntent(automationId, ACTION_RUN_AUTOMATION))
+            // Keep the end-of-window alarm aligned with the rescheduled start.
+            if (config["timeMode"] == "RANGE") {
+                val endAt = TimeTriggerCalculator.windowEndMillis(config, triggerAt)
+                if (endAt != null) {
+                    setAlarm(endAt, buildPendingIntent(automationId, ACTION_END_AUTOMATION))
+                }
+            }
         }
     }
 
     fun cancel(automationId: String) {
-        alarmManager.cancel(buildPendingIntent(automationId))
+        alarmManager.cancel(buildPendingIntent(automationId, ACTION_RUN_AUTOMATION))
+        alarmManager.cancel(buildPendingIntent(automationId, ACTION_END_AUTOMATION))
     }
 
     private fun setAlarm(triggerAt: Long, pendingIntent: PendingIntent) {
@@ -100,13 +115,13 @@ class AutomationScheduler @Inject constructor(
         }
     }
 
-    private fun buildPendingIntent(automationId: String): PendingIntent {
+    private fun buildPendingIntent(automationId: String, action: String): PendingIntent {
         val intent = Intent(context, AutomationAlarmReceiver::class.java)
-            .setAction(ACTION_RUN_AUTOMATION)
+            .setAction(action)
             .putExtra(EXTRA_AUTOMATION_ID, automationId)
         return PendingIntent.getBroadcast(
             context,
-            automationId.hashCode(),
+            (automationId.hashCode() * 31 + action.hashCode()),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -114,6 +129,7 @@ class AutomationScheduler @Inject constructor(
 
     companion object {
         const val ACTION_RUN_AUTOMATION = "com.nexaflow.core.engine.action.RUN_AUTOMATION"
+        const val ACTION_END_AUTOMATION = "com.nexaflow.core.engine.action.END_AUTOMATION"
         const val EXTRA_AUTOMATION_ID = "com.nexaflow.core.engine.extra.AUTOMATION_ID"
     }
 }

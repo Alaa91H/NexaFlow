@@ -281,4 +281,15 @@
     <string name="ringer_mode_label">Modo de sonido</string>
     <string name="ringer_mode_hint">La tarea se ejecuta cuando el teléfono cambia al modo de sonido elegido</string>
     <string name="change_now">Cambiar ahora</string>
+    <string name="pick_actions">Elegir acciones</string>
+    <string name="search_actions">Buscar acciones…</string>
+    <string name="add_count">Añadir (%1$d)</string>
+    <string name="add_action">Añadir acción</string>
+    <string name="pick_trigger_type">Añadir disparador</string>
+    <string name="next_needs_action">Añade al menos una acción primero</string>
+    <string name="no_matching_actions">No hay acciones que coincidan</string>
+    <string name="repeat_weekdays">Entre semana</string>
+    <string name="repeat_weekends">Fin de semana</string>
+    <string name="repeat_monthly">Mensual</string>
+    <string name="month_day_label">Día del mes: %1$d</string>
 </resources>

@@ -281,4 +281,15 @@
     <string name="ringer_mode_label">サウンドモード</string>
     <string name="ringer_mode_hint">スマホが選択したサウンドモードに切り替わるとタスクが実行されます</string>
     <string name="change_now">今すぐ変更</string>
+    <string name="pick_actions">アクションを選択</string>
+    <string name="search_actions">アクションを検索…</string>
+    <string name="add_count">追加 (%1$d)</string>
+    <string name="add_action">アクションを追加</string>
+    <string name="pick_trigger_type">トリガーを追加</string>
+    <string name="next_needs_action">先にアクションを1つ以上追加してください</string>
+    <string name="no_matching_actions">一致するアクションがありません</string>
+    <string name="repeat_weekdays">平日</string>
+    <string name="repeat_weekends">週末</string>
+    <string name="repeat_monthly">毎月</string>
+    <string name="month_day_label">月の日: %1$d</string>
 </resources>

@@ -281,4 +281,15 @@
     <string name="ringer_mode_label">ध्वनि मोड</string>
     <string name="ringer_mode_hint">जब फ़ोन चुने हुए ध्वनि मोड में जाता है तो कार्य चलता है</string>
     <string name="change_now">अभी बदलें</string>
+    <string name="pick_actions">क्रियाएँ चुनें</string>
+    <string name="search_actions">क्रियाएँ खोजें…</string>
+    <string name="add_count">जोड़ें (%1$d)</string>
+    <string name="add_action">क्रिया जोड़ें</string>
+    <string name="pick_trigger_type">ट्रिगर जोड़ें</string>
+    <string name="next_needs_action">पहले कम से कम एक क्रिया जोड़ें</string>
+    <string name="no_matching_actions">कोई मिलती-जुलती क्रिया नहीं</string>
+    <string name="repeat_weekdays">कार्यदिवस</string>
+    <string name="repeat_weekends">सप्ताहांत</string>
+    <string name="repeat_monthly">मासिक</string>
+    <string name="month_day_label">महीने का दिन: %1$d</string>
 </resources>

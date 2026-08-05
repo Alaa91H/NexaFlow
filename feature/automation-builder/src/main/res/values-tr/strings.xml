@@ -281,4 +281,15 @@
     <string name="ringer_mode_label">Ses modu</string>
     <string name="ringer_mode_hint">Telefon seçilen ses moduna geçtiğinde görev çalışır</string>
     <string name="change_now">Şimdi değiştir</string>
+    <string name="pick_actions">Eylemleri seç</string>
+    <string name="search_actions">Eylemleri ara…</string>
+    <string name="add_count">Ekle (%1$d)</string>
+    <string name="add_action">Eylem ekle</string>
+    <string name="pick_trigger_type">Tetikleyici ekle</string>
+    <string name="next_needs_action">Önce en az bir eylem ekleyin</string>
+    <string name="no_matching_actions">Eşleşen eylem yok</string>
+    <string name="repeat_weekdays">Hafta içi</string>
+    <string name="repeat_weekends">Hafta sonu</string>
+    <string name="repeat_monthly">Aylık</string>
+    <string name="month_day_label">Ayın günü: %1$d</string>
 </resources>

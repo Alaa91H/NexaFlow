@@ -36,14 +36,22 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
             restoreAfterBoot(context)
             return
         }
-        if (intent.action != AutomationScheduler.ACTION_RUN_AUTOMATION) return
+        if (intent.action != AutomationScheduler.ACTION_RUN_AUTOMATION &&
+            intent.action != AutomationScheduler.ACTION_END_AUTOMATION
+        ) return
         val automationId = intent.getStringExtra(AutomationScheduler.EXTRA_AUTOMATION_ID) ?: return
+        val isEndOfWindow = intent.action == AutomationScheduler.ACTION_END_AUTOMATION
         val result = goAsync()
         scope.launch {
             try {
                 val automation = repository.getAutomationById(automationId)
                 if (automation != null && automation.enabled) {
-                    executionEngine.runAutomation(automation)
+                    if (isEndOfWindow) {
+                        // The time-range window closed: run the exit/revert behavior.
+                        executionEngine.runExit(automation)
+                    } else {
+                        executionEngine.runAutomation(automation)
+                    }
                 }
                 scheduler.scheduleNext(automationId)
             } finally {

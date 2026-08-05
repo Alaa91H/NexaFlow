@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.nexaflow.core.database.AppDatabase
 import com.nexaflow.core.database.AutomationDao
 import com.nexaflow.core.database.ExecutionDao
+import com.nexaflow.core.database.Migrations
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.execution.ExecutionEngine
@@ -31,7 +32,9 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "nexaflow.db"
-        ).fallbackToDestructiveMigration(dropAllTables = true).build()
+        ).addMigrations(*Migrations.ALL.toTypedArray())
+            .fallbackToDestructiveMigrationOnDowngrade()
+            .build()
     }
 
     @Provides

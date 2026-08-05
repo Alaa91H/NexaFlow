@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="monitoring_channel_name">Monitoramento NexaFlow</string>
+    <string name="monitoring_title">Monitoramento NexaFlow</string>
+    <string name="monitoring_text">Observando suas automações</string>
+</resources>

@@ -281,4 +281,15 @@
     <string name="ringer_mode_label">声音模式</string>
     <string name="ringer_mode_hint">当手机切换到所选声音模式时执行任务</string>
     <string name="change_now">立即更改</string>
+    <string name="pick_actions">选择操作</string>
+    <string name="search_actions">搜索操作…</string>
+    <string name="add_count">添加 (%1$d)</string>
+    <string name="add_action">添加操作</string>
+    <string name="pick_trigger_type">添加触发器</string>
+    <string name="next_needs_action">请先添加至少一个操作</string>
+    <string name="no_matching_actions">没有匹配的操作</string>
+    <string name="repeat_weekdays">工作日</string>
+    <string name="repeat_weekends">周末</string>
+    <string name="repeat_monthly">每月</string>
+    <string name="month_day_label">每月第 %1$d 天</string>
 </resources>

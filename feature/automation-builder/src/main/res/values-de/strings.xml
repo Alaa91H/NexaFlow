@@ -281,4 +281,15 @@
     <string name="ringer_mode_label">Tonmodus</string>
     <string name="ringer_mode_hint">Die Aufgabe läuft, wenn das Telefon in den gewählten Tonmodus wechselt</string>
     <string name="change_now">Jetzt ändern</string>
+    <string name="pick_actions">Aktionen auswählen</string>
+    <string name="search_actions">Aktionen suchen…</string>
+    <string name="add_count">Hinzufügen (%1$d)</string>
+    <string name="add_action">Aktion hinzufügen</string>
+    <string name="pick_trigger_type">Auslöser hinzufügen</string>
+    <string name="next_needs_action">Füge zuerst mindestens eine Aktion hinzu</string>
+    <string name="no_matching_actions">Keine passenden Aktionen</string>
+    <string name="repeat_weekdays">Wochentage</string>
+    <string name="repeat_weekends">Wochenende</string>
+    <string name="repeat_monthly">Monatlich</string>
+    <string name="month_day_label">Tag des Monats: %1$d</string>
 </resources>

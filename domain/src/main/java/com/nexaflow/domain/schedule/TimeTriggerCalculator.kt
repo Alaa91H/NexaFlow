@@ -62,6 +62,28 @@ object TimeTriggerCalculator {
         return null
     }
 
+    /**
+     * For a RANGE time trigger, returns the exact millis when the window that
+     * starts at [windowStartMillis] ends. Handles overnight ranges (e.g.
+     * 22:00 -> 06:00 ends the next day). Returns null for non-range configs.
+     */
+    fun windowEndMillis(config: Map<String, String>, windowStartMillis: Long): Long? {
+        if (config["timeMode"] != "RANGE") return null
+        val start = config["rangeStart"] ?: return null
+        val end = config["rangeEnd"] ?: return null
+        val startTime = runCatching { LocalTime.parse(start) }.getOrNull() ?: return null
+        val endTime = runCatching { LocalTime.parse(end) }.getOrNull() ?: return null
+        val zone = ZoneId.systemDefault()
+        val startZdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(windowStartMillis), zone)
+        val startMinutes = startTime.hour * 60 + startTime.minute
+        val endMinutes = endTime.hour * 60 + endTime.minute
+        // A zero-length window (end == start) is treated as a full 24h window so
+        // the end alarm never collides with the start alarm.
+        val overnight = endMinutes <= startMinutes
+        val endDate = if (overnight) startZdt.toLocalDate().plusDays(1) else startZdt.toLocalDate()
+        return ZonedDateTime.of(endDate, endTime, zone).toInstant().toEpochMilli()
+    }
+
     /** True when the repeat mode fires on [day]. ONCE/DAILY always match; the window is handled by [nextFireTime]. */
     fun matchesRepeat(repeat: String, config: Map<String, String>, day: LocalDate): Boolean {
         val dayOfWeek = day.dayOfWeek.value // 1=MON .. 7=SUN

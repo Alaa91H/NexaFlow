@@ -281,4 +281,15 @@
     <string name="ringer_mode_label">Режим звука</string>
     <string name="ringer_mode_hint">Задача выполняется, когда телефон переключается в выбранный режим звука</string>
     <string name="change_now">Изменить сейчас</string>
+    <string name="pick_actions">Выбрать действия</string>
+    <string name="search_actions">Поиск действий…</string>
+    <string name="add_count">Добавить (%1$d)</string>
+    <string name="add_action">Добавить действие</string>
+    <string name="pick_trigger_type">Добавить триггер</string>
+    <string name="next_needs_action">Сначала добавьте хотя бы одно действие</string>
+    <string name="no_matching_actions">Нет подходящих действий</string>
+    <string name="repeat_weekdays">Будни</string>
+    <string name="repeat_weekends">Выходные</string>
+    <string name="repeat_monthly">Ежемесячно</string>
+    <string name="month_day_label">День месяца: %1$d</string>
 </resources>

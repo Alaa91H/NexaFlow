@@ -96,14 +96,14 @@ class MonitoringService : Service() {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "NexaFlow monitoring",
+            getString(R.string.monitoring_channel_name),
             NotificationManager.IMPORTANCE_LOW
         )
         notificationManager.createNotificationChannel(channel)
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentTitle("NexaFlow monitoring")
-            .setContentText("Watching your automations")
+            .setContentTitle(getString(R.string.monitoring_title))
+            .setContentText(getString(R.string.monitoring_text))
             .setOngoing(true)
             .build()
         ServiceCompat.startForeground(

@@ -71,7 +71,10 @@ val triggerTypeOptions = listOf(
 private val repeatOptions = listOf(
     "ONCE" to R.string.repeat_once,
     "DAILY" to R.string.repeat_daily,
+    "WEEKDAYS" to R.string.repeat_weekdays,
+    "WEEKENDS" to R.string.repeat_weekends,
     "SPECIFIC_DAYS" to R.string.repeat_specific_days,
+    "MONTHLY" to R.string.repeat_monthly,
     "SPECIFIC_DATE" to R.string.repeat_specific_date,
     "DATE_RANGE" to R.string.repeat_date_range
 )
@@ -86,7 +89,20 @@ private val weekdayOptions = listOf(
     7 to R.string.day_sun
 )
 
-private fun TriggerType.labelRes(): Int = when (this) {
+/** Sensible default config for a freshly added trigger of the given type. */
+internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when (type) {
+    TriggerType.TIME -> mapOf("time" to "08:00")
+    TriggerType.BATTERY -> mapOf("direction" to "ABOVE", "above" to "80")
+    TriggerType.APPLICATION -> mapOf("packages" to "")
+    TriggerType.DEVICE -> mapOf("event" to "SCREEN_ON")
+    TriggerType.CONNECTIVITY -> mapOf("network" to "WIFI", "state" to "CONNECTED")
+    TriggerType.LOCATION -> mapOf("lat" to "", "lng" to "", "radius" to "100", "event" to "ENTER")
+    TriggerType.SMS -> mapOf("from" to "", "contains" to "", "reply" to "")
+    TriggerType.BLUETOOTH_DEVICE -> mapOf("deviceName" to "", "deviceAddress" to "", "event" to "CONNECTED")
+    TriggerType.RINGER_MODE -> mapOf("mode" to "NORMAL")
+}
+
+internal fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.TIME -> R.string.trigger_type_time
     TriggerType.BATTERY -> R.string.trigger_type_battery
     TriggerType.APPLICATION -> R.string.trigger_type_app
@@ -98,7 +114,7 @@ private fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.RINGER_MODE -> R.string.trigger_type_ringer
 }
 
-private fun TriggerType.icon(): ImageVector = when (this) {
+internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.TIME -> Icons.Filled.Schedule
     TriggerType.BATTERY -> Icons.Filled.BatteryChargingFull
     TriggerType.APPLICATION -> Icons.Filled.Apps
@@ -210,6 +226,107 @@ private fun TimeField(
     }
 }
 
+/**
+ * Shared repeat schedule (once / daily / specific days / specific date / date range).
+ * Used by both the single-time and time-range modes so every time trigger can
+ * choose exactly how often it runs.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun TimeRepeatSection(
+    draft: TriggerDraft,
+    onConfigChange: (TriggerDraft) -> Unit,
+    onPickDate: (String) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            text = stringResource(R.string.repeat_label),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold
+        )
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            repeatOptions.forEach { (value, labelRes) ->
+                FilterChip(
+                    selected = (draft.config["repeat"] ?: "DAILY") == value,
+                    onClick = {
+                        onConfigChange(draft.copy(config = draft.config + ("repeat" to value)))
+                    },
+                    label = { Text(text = stringResource(labelRes), style = MaterialTheme.typography.labelMedium) }
+                )
+            }
+        }
+        when (draft.config["repeat"] ?: "DAILY") {
+            "SPECIFIC_DAYS" -> {
+                Text(
+                    text = stringResource(R.string.select_days),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    weekdayOptions.forEach { (day, labelRes) ->
+                        val selectedDays = draft.config["days"]?.split(',')?.mapNotNull { it.trim().toIntOrNull() }.orEmpty()
+                        FilterChip(
+                            selected = day in selectedDays,
+                            onClick = {
+                                val updated = if (day in selectedDays) selectedDays - day else selectedDays + day
+                                onConfigChange(draft.copy(config = draft.config + ("days" to updated.sorted().joinToString(","))))
+                            },
+                            label = { Text(text = stringResource(labelRes), style = MaterialTheme.typography.labelMedium) }
+                        )
+                    }
+                }
+            }
+            "MONTHLY" -> {
+                val monthDay = (draft.config["monthDay"] ?: "1").toIntOrNull() ?: 1
+                SliderRow(
+                    label = stringResource(R.string.month_day_label, monthDay),
+                    value = monthDay.toFloat(),
+                    onValueChange = { value ->
+                        onConfigChange(draft.copy(config = draft.config + ("monthDay" to value.toInt().toString())))
+                    },
+                    valueRange = 1f..28f
+                )
+            }
+            "SPECIFIC_DATE" -> {
+                DateField(
+                    label = stringResource(R.string.specific_date),
+                    value = draft.config["date"] ?: "",
+                    onClick = { onPickDate("date") }
+                )
+            }
+            "DATE_RANGE" -> {
+                DateField(
+                    label = stringResource(R.string.start_date),
+                    value = draft.config["startDate"] ?: "",
+                    onClick = { onPickDate("startDate") }
+                )
+                DateField(
+                    label = stringResource(R.string.end_date),
+                    value = draft.config["endDate"] ?: "",
+                    onClick = { onPickDate("endDate") }
+                )
+                val start = draft.config["startDate"]?.let(::parseDateMillis)
+                val end = draft.config["endDate"]?.let(::parseDateMillis)
+                if (start != null && end != null && start > end) {
+                    Text(
+                        text = stringResource(R.string.date_range_invalid),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun TriggerEditorCard(
@@ -255,43 +372,13 @@ fun TriggerEditorCard(
                     FilterChip(
                         selected = draft.type == option,
                         onClick = {
+                            // Keep values that already exist for this type (e.g. the chosen
+                            // time) while filling in defaults for the newly selected type.
+                            val defaults = defaultTriggerConfig(option)
                             onConfigChange(
                                 TriggerDraft(
                                     type = option,
-                                    config = when (option) {
-                                        TriggerType.TIME -> mapOf("time" to (draft.config["time"] ?: "08:00"))
-                                        TriggerType.BATTERY -> mapOf(
-                                            "direction" to (draft.config["direction"] ?: "ABOVE"),
-                                            "above" to (draft.config["above"] ?: "80")
-                                        )
-                                        TriggerType.APPLICATION -> mapOf(
-                                            "packages" to (draft.config["packages"] ?: draft.config["package"] ?: "")
-                                        )
-                                        TriggerType.DEVICE -> mapOf("event" to (draft.config["event"] ?: "SCREEN_ON"))
-                                        TriggerType.CONNECTIVITY -> mapOf(
-                                            "network" to (draft.config["network"] ?: "WIFI"),
-                                            "state" to (draft.config["state"] ?: "CONNECTED")
-                                        )
-                                        TriggerType.LOCATION -> mapOf(
-                                            "lat" to (draft.config["lat"] ?: ""),
-                                            "lng" to (draft.config["lng"] ?: ""),
-                                            "radius" to (draft.config["radius"] ?: "100"),
-                                            "event" to (draft.config["event"] ?: "ENTER")
-                                        )
-                                        TriggerType.SMS -> mapOf(
-                                            "from" to (draft.config["from"] ?: ""),
-                                            "contains" to (draft.config["contains"] ?: ""),
-                                            "reply" to (draft.config["reply"] ?: "")
-                                        )
-                                        TriggerType.BLUETOOTH_DEVICE -> mapOf(
-                                            "deviceName" to (draft.config["deviceName"] ?: ""),
-                                            "deviceAddress" to (draft.config["deviceAddress"] ?: ""),
-                                            "event" to (draft.config["event"] ?: "CONNECTED")
-                                        )
-                                        TriggerType.RINGER_MODE -> mapOf(
-                                            "mode" to (draft.config["mode"] ?: "NORMAL")
-                                        )
-                                    }
+                                    config = defaults + draft.config.filterKeys { it in defaults.keys }
                                 )
                             )
                         },
@@ -315,31 +402,37 @@ fun TriggerEditorCard(
                 TriggerType.TIME -> {
                     val rangeMode = draft.config["timeMode"] == "RANGE"
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        FilterChip(
-                            selected = !rangeMode,
-                            onClick = {
-                                onConfigChange(
-                                    draft.copy(
-                                        config = draft.config + ("timeMode" to "SINGLE")
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            FilterChip(
+                                selected = !rangeMode,
+                                onClick = {
+                                    onConfigChange(
+                                        draft.copy(
+                                            config = draft.config + ("timeMode" to "SINGLE")
+                                        )
                                     )
-                                )
-                            },
-                            label = { Text(text = stringResource(R.string.time_single)) }
-                        )
-                        FilterChip(
-                            selected = rangeMode,
-                            onClick = {
-                                onConfigChange(
-                                    draft.copy(
-                                        config = draft.config +
-                                            ("timeMode" to "RANGE") +
-                                            ("rangeStart" to (draft.config["rangeStart"] ?: "08:00")) +
-                                            ("rangeEnd" to (draft.config["rangeEnd"] ?: "18:00"))
+                                },
+                                label = { Text(text = stringResource(R.string.time_single)) }
+                            )
+                            FilterChip(
+                                selected = rangeMode,
+                                onClick = {
+                                    onConfigChange(
+                                        draft.copy(
+                                            config = draft.config +
+                                                ("timeMode" to "RANGE") +
+                                                ("rangeStart" to (draft.config["rangeStart"] ?: "08:00")) +
+                                                ("rangeEnd" to (draft.config["rangeEnd"] ?: "18:00"))
+                                        )
                                     )
-                                )
-                            },
-                            label = { Text(text = stringResource(R.string.time_range)) }
-                        )
+                                },
+                                label = { Text(text = stringResource(R.string.time_range)) }
+                            )
+                        }
                         if (rangeMode) {
                             val start = draft.config["rangeStart"] ?: "08:00"
                             val end = draft.config["rangeEnd"] ?: "18:00"
@@ -389,73 +482,12 @@ fun TriggerEditorCard(
                                     Text(text = draft.config["time"] ?: "08:00")
                                 }
                             }
-                            Text(text = stringResource(R.string.repeat_label), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                            FlowRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                repeatOptions.forEach { (value, labelRes) ->
-                                    FilterChip(
-                                        selected = (draft.config["repeat"] ?: "DAILY") == value,
-                                        onClick = {
-                                            onConfigChange(draft.copy(config = draft.config + ("repeat" to value)))
-                                        },
-                                        label = { Text(text = stringResource(labelRes), style = MaterialTheme.typography.labelMedium) }
-                                    )
-                                }
-                            }
-                            when (draft.config["repeat"] ?: "DAILY") {
-                                "SPECIFIC_DAYS" -> {
-                                    Text(text = stringResource(R.string.select_days), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                                    FlowRow(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        weekdayOptions.forEach { (day, labelRes) ->
-                                            val selectedDays = draft.config["days"]?.split(',')?.mapNotNull { it.trim().toIntOrNull() }.orEmpty()
-                                            FilterChip(
-                                                selected = day in selectedDays,
-                                                onClick = {
-                                                    val updated = if (day in selectedDays) selectedDays - day else selectedDays + day
-                                                    onConfigChange(draft.copy(config = draft.config + ("days" to updated.sorted().joinToString(","))))
-                                                },
-                                                label = { Text(text = stringResource(labelRes), style = MaterialTheme.typography.labelMedium) }
-                                            )
-                                        }
-                                    }
-                                }
-                                "SPECIFIC_DATE" -> {
-                                    DateField(
-                                        label = stringResource(R.string.specific_date),
-                                        value = draft.config["date"] ?: "",
-                                        onClick = { datePickerTarget = "date" }
-                                    )
-                                }
-                                "DATE_RANGE" -> {
-                                    DateField(
-                                        label = stringResource(R.string.start_date),
-                                        value = draft.config["startDate"] ?: "",
-                                        onClick = { datePickerTarget = "startDate" }
-                                    )
-                                    DateField(
-                                        label = stringResource(R.string.end_date),
-                                        value = draft.config["endDate"] ?: "",
-                                        onClick = { datePickerTarget = "endDate" }
-                                    )
-                                    val start = draft.config["startDate"]?.let(::parseDateMillis)
-                                    val end = draft.config["endDate"]?.let(::parseDateMillis)
-                                    if (start != null && end != null && start > end) {
-                                        Text(
-                                            text = stringResource(R.string.date_range_invalid),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.error
-                                        )
-                                    }
-                                }
-                            }
                         }
+                        TimeRepeatSection(
+                            draft = draft,
+                            onConfigChange = onConfigChange,
+                            onPickDate = { datePickerTarget = it }
+                        )
                     }
                 }
                 TriggerType.BATTERY -> {

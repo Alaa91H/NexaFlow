@@ -280,4 +280,15 @@
     <string name="ringer_mode_label">Sound mode</string>
     <string name="ringer_mode_hint">The task runs when the phone switches to the chosen sound mode</string>
     <string name="change_now">Change now</string>
+    <string name="pick_actions">Pick actions</string>
+    <string name="search_actions">Search actions…</string>
+    <string name="add_count">Add (%1$d)</string>
+    <string name="add_action">Add action</string>
+    <string name="pick_trigger_type">Add trigger</string>
+    <string name="next_needs_action">Add at least one action</string>
+    <string name="no_matching_actions">No matching actions</string>
+    <string name="repeat_weekdays">Weekdays</string>
+    <string name="repeat_weekends">Weekends</string>
+    <string name="repeat_monthly">Monthly</string>
+    <string name="month_day_label">Day of month: %1$d</string>
 </resources>
