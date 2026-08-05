@@ -12,7 +12,6 @@
     <string name="no_description">Açıklama yok</string>
     <string name="active_count">Etkin · %1$d rutin</string>
     <string name="inactive_count">Etkin değil · %1$d rutin</string>
-    <string name="manage_automations">Rutinleri yönet</string>
     <string name="new_profile_title">Yeni mod</string>
     <string name="name">Ad</string>
     <string name="description">Açıklama</string>
@@ -22,4 +21,10 @@
     <string name="automations_in">%1$s içindeki rutinler</string>
     <string name="no_automations_yet">Henüz rutin yok. Önce bir tane oluşturun.</string>
     <string name="save">Kaydet</string>
+    <string name="mode_details_title">Mod</string>
+    <string name="routines_in_mode">BU MODDAKİ RUTİNLER</string>
+    <string name="no_routines_in_mode">Bu modda henüz rutin yok.</string>
+    <string name="add_routines">Rutin ekle</string>
+    <string name="mode_on">Açık</string>
+    <string name="mode_off">Kapalı</string>
 </resources>

@@ -4,10 +4,6 @@
     <string name="delete">删除</string>
     <string name="not_found_title">未找到自动化</string>
     <string name="not_found_subtitle">可能已被删除。</string>
-    <string name="enabled">已启用</string>
-    <string name="enabled_subtitle">运行此自动化</string>
-    <string name="status_active">活动</string>
-    <string name="status_off">关闭</string>
     <string name="section_triggers">触发器</string>
     <string name="no_triggers">未配置触发器。</string>
     <string name="section_conditions">条件</string>
@@ -119,4 +115,5 @@
     <string name="action_open_settings_sub">打开系统设置页面</string>
     <string name="action_wait">等待 / 延迟</string>
     <string name="action_wait_sub">在下一个操作前暂停</string>
+    <string name="enabled">已启用</string>
 </resources>

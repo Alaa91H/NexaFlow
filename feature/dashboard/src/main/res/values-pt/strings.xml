@@ -7,12 +7,11 @@
     <string name="section_routines">ROTINAS</string>
     <string name="no_modes_title">Ainda não há modos</string>
     <string name="no_modes_subtitle">Crie um modo para ativar várias rotinas de uma vez.</string>
-    <string name="manage_modes">Gerenciar modos</string>
     <string name="new_routine">Nova rotina</string>
     <string name="mode_on">Ativado · %1$d rotina(s)</string>
     <string name="mode_off">Desativado · %1$d rotina(s)</string>
     <string name="empty_automations_title">Ainda não há rotinas</string>
-    <string name="empty_automations_sub">Toque em Nova rotina para criar a primeira.</string>
+    <string name="empty_automations_sub">Toque em + para criar a primeira rotina.</string>
     <string name="summary_any_trigger">qualquer gatilho</string>
     <string name="summary_no_actions">sem ações</string>
     <string name="summary_actions_count">%1$d ação(ões)</string>
@@ -23,4 +22,5 @@
     <string name="trigger_connectivity">Conectividade</string>
     <string name="trigger_location">Localização</string>
     <string name="trigger_sms">SMS</string>
+    <string name="add_mode">Novo modo</string>
 </resources>

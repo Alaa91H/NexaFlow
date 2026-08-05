@@ -7,12 +7,11 @@
     <string name="section_routines">ルーティン</string>
     <string name="no_modes_title">モードはまだありません</string>
     <string name="no_modes_subtitle">モードを作成すると、複数のルーティンを一度にオンにできます。</string>
-    <string name="manage_modes">モードを管理</string>
     <string name="new_routine">新しいルーティン</string>
     <string name="mode_on">オン · %1$d ルーティン</string>
     <string name="mode_off">オフ · %1$d ルーティン</string>
     <string name="empty_automations_title">ルーティンはまだありません</string>
-    <string name="empty_automations_sub">最初のルーティンを作成するには「新しいルーティン」をタップします。</string>
+    <string name="empty_automations_sub">+ をタップして最初のルーティンを作成します。</string>
     <string name="summary_any_trigger">任意のトリガー</string>
     <string name="summary_no_actions">アクションなし</string>
     <string name="summary_actions_count">%1$d アクション</string>
@@ -23,4 +22,5 @@
     <string name="trigger_connectivity">接続</string>
     <string name="trigger_location">位置情報</string>
     <string name="trigger_sms">SMS</string>
+    <string name="add_mode">新しいモード</string>
 </resources>

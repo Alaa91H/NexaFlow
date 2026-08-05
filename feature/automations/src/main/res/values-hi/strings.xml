@@ -4,10 +4,6 @@
     <string name="delete">हटाएँ</string>
     <string name="not_found_title">ऑटोमेशन नहीं मिला</string>
     <string name="not_found_subtitle">हो सकता है इसे हटा दिया गया हो।</string>
-    <string name="enabled">सक्षम</string>
-    <string name="enabled_subtitle">इस ऑटोमेशन को चलाएँ</string>
-    <string name="status_active">सक्रिय</string>
-    <string name="status_off">बंद</string>
     <string name="section_triggers">ट्रिगर</string>
     <string name="no_triggers">कोई ट्रिगर कॉन्फ़िगर नहीं।</string>
     <string name="section_conditions">शर्तें</string>
@@ -119,4 +115,5 @@
     <string name="action_open_settings_sub">सिस्टम सेटिंग्स पेज खोलें</string>
     <string name="action_wait">प्रतीक्षा / देरी</string>
     <string name="action_wait_sub">अगली कार्रवाई से पहले रुकें</string>
+    <string name="enabled">सक्षम</string>
 </resources>

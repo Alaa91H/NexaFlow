@@ -1,4 +1,4 @@
-﻿package com.nexaflow.feature.profiles
+package com.nexaflow.feature.profiles
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,9 +20,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -54,7 +51,6 @@ import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.iconVector
-import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Profile
 
 private data class AccentOption(val color: Color, val label: String)
@@ -80,7 +76,6 @@ fun ProfilesScreen(navController: NavController) {
     val automations by viewModel.automations.collectAsStateWithLifecycle()
 
     var showCreateDialog by remember { mutableStateOf(false) }
-    var managingProfile by remember { mutableStateOf<Profile?>(null) }
     var deleteTarget by remember { mutableStateOf<Profile?>(null) }
 
     Scaffold(
@@ -117,7 +112,7 @@ fun ProfilesScreen(navController: NavController) {
                     profile = profile,
                     automationCount = automations.count { it.id in profile.automationIds },
                     onToggle = { viewModel.toggleProfile(profile, it) },
-                    onManage = { managingProfile = profile },
+                    onClick = { navController.navigate("profile_details/${profile.id}") },
                     onDelete = { deleteTarget = profile }
                 )
             }
@@ -130,18 +125,6 @@ fun ProfilesScreen(navController: NavController) {
             onSave = { name, description, icon, color ->
                 viewModel.createProfile(name, description, icon, color)
                 showCreateDialog = false
-            }
-        )
-    }
-
-    managingProfile?.let { profile ->
-        ManageAutomationsDialog(
-            profile = profile,
-            automations = automations,
-            onDismiss = { managingProfile = null },
-            onSave = { ids ->
-                viewModel.setProfileAutomations(profile.id, ids)
-                managingProfile = null
             }
         )
     }
@@ -171,10 +154,10 @@ private fun ProfileCard(
     profile: Profile,
     automationCount: Int,
     onToggle: (Boolean) -> Unit,
-    onManage: () -> Unit,
+    onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
-    NexaFlowCard {
+    NexaFlowCard(modifier = Modifier.clickable(onClick = onClick)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -196,17 +179,12 @@ private fun ProfileCard(
                 )
             }
             Column(horizontalAlignment = Alignment.End) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onManage) {
-                        Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = stringResource(R.string.manage_automations))
-                    }
-                    IconButton(onClick = onDelete) {
-                        Icon(
-                            Icons.Filled.Delete,
-                            contentDescription = stringResource(R.string.delete),
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
+                IconButton(onClick = onDelete) {
+                    Icon(
+                        Icons.Filled.Delete,
+                        contentDescription = stringResource(R.string.delete),
+                        tint = MaterialTheme.colorScheme.error
+                    )
                 }
                 Switch(checked = profile.active, onCheckedChange = onToggle)
             }
@@ -289,61 +267,6 @@ private fun CreateProfileDialog(
                 enabled = name.isNotBlank()
             ) {
                 Text(stringResource(R.string.create))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
-        }
-    )
-}
-
-@Composable
-private fun ManageAutomationsDialog(
-    profile: Profile,
-    automations: List<Automation>,
-    onDismiss: () -> Unit,
-    onSave: (List<String>) -> Unit
-) {
-    var selectedIds by remember { mutableStateOf(profile.automationIds.toMutableSet()) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.automations_in, profile.name)) },
-        text = {
-            if (automations.isEmpty()) {
-                Text(stringResource(R.string.no_automations_yet))
-            } else {
-                Column(modifier = Modifier.heightIn(max = 360.dp)) {
-                    LazyColumn {
-                        items(automations, key = { it.id }) { automation ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        if (!selectedIds.add(automation.id)) {
-                                            selectedIds.remove(automation.id)
-                                        }
-                                    }
-                                    .padding(vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Checkbox(
-                                    checked = automation.id in selectedIds,
-                                    onCheckedChange = { checked ->
-                                        if (checked) selectedIds.add(automation.id)
-                                        else selectedIds.remove(automation.id)
-                                    }
-                                )
-                                Text(text = automation.name, style = MaterialTheme.typography.bodyMedium)
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onSave(selectedIds.toList()) }) {
-                Text(stringResource(R.string.save))
             }
         },
         dismissButton = {

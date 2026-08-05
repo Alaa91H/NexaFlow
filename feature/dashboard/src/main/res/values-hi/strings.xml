@@ -7,12 +7,11 @@
     <string name="section_routines">रूटीन</string>
     <string name="no_modes_title">अभी कोई मोड नहीं</string>
     <string name="no_modes_subtitle">एक साथ कई रूटीन चालू करने के लिए मोड बनाएँ।</string>
-    <string name="manage_modes">मोड प्रबंधित करें</string>
     <string name="new_routine">नई रूटीन</string>
     <string name="mode_on">चालू · %1$d रूटीन</string>
     <string name="mode_off">बंद · %1$d रूटीन</string>
     <string name="empty_automations_title">अभी कोई रूटीन नहीं</string>
-    <string name="empty_automations_sub">पहली रूटीन बनाने के लिए नई रूटीन पर टैप करें।</string>
+    <string name="empty_automations_sub">अपनी पहली रूटीन बनाने के लिए + पर टैप करें।</string>
     <string name="summary_any_trigger">कोई भी ट्रिगर</string>
     <string name="summary_no_actions">कोई क्रियाएँ नहीं</string>
     <string name="summary_actions_count">%1$d क्रियाएँ</string>
@@ -23,4 +22,5 @@
     <string name="trigger_connectivity">कनेक्टिविटी</string>
     <string name="trigger_location">स्थान</string>
     <string name="trigger_sms">SMS</string>
+    <string name="add_mode">नया मोड</string>
 </resources>

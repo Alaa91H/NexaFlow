@@ -238,4 +238,5 @@
     <string name="step_then">Затем</string>
     <string name="next">Далее</string>
     <string name="previous">Назад</string>
+    <string name="next_needs_trigger">Сначала добавьте хотя бы один триггер</string>
 </resources>

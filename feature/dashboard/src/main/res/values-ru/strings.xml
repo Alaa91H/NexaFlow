@@ -7,12 +7,11 @@
     <string name="section_routines">РОУТИНЫ</string>
     <string name="no_modes_title">Пока нет режимов</string>
     <string name="no_modes_subtitle">Создайте режим, чтобы включать несколько роутинов сразу.</string>
-    <string name="manage_modes">Управление режимами</string>
     <string name="new_routine">Новый роутин</string>
     <string name="mode_on">Вкл · %1$d роутин(ов)</string>
     <string name="mode_off">Выкл · %1$d роутин(ов)</string>
     <string name="empty_automations_title">Пока нет роутинов</string>
-    <string name="empty_automations_sub">Нажмите «Новый роутин», чтобы создать первый.</string>
+    <string name="empty_automations_sub">Нажмите +, чтобы создать первый роутин.</string>
     <string name="summary_any_trigger">любой триггер</string>
     <string name="summary_no_actions">без действий</string>
     <string name="summary_actions_count">%1$d действ.</string>
@@ -23,4 +22,5 @@
     <string name="trigger_connectivity">Подключение</string>
     <string name="trigger_location">Местоположение</string>
     <string name="trigger_sms">SMS</string>
+    <string name="add_mode">Новый режим</string>
 </resources>

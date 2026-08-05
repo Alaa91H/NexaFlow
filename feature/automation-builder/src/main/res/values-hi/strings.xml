@@ -238,4 +238,5 @@
     <string name="step_then">फिर</string>
     <string name="next">अगला</string>
     <string name="previous">पिछला</string>
+    <string name="next_needs_trigger">पहले कम से कम एक ट्रिगर जोड़ें</string>
 </resources>

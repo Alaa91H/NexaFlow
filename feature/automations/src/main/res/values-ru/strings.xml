@@ -4,10 +4,6 @@
     <string name="delete">Удалить</string>
     <string name="not_found_title">Автоматизация не найдена</string>
     <string name="not_found_subtitle">Возможно, она была удалена.</string>
-    <string name="enabled">Включена</string>
-    <string name="enabled_subtitle">Выполнить эту автоматизацию</string>
-    <string name="status_active">Активна</string>
-    <string name="status_off">Выключена</string>
     <string name="section_triggers">ТРИГГЕРЫ</string>
     <string name="no_triggers">Триггеры не настроены.</string>
     <string name="section_conditions">УСЛОВИЯ</string>
@@ -119,4 +115,5 @@
     <string name="action_open_settings_sub">Открыть страницу настроек системы</string>
     <string name="action_wait">Ожидание / Пауза</string>
     <string name="action_wait_sub">Пауза перед следующим действием</string>
+    <string name="enabled">Включено</string>
 </resources>

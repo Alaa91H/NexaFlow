@@ -7,12 +7,11 @@
     <string name="section_routines">RUTİNLER</string>
     <string name="no_modes_title">Henüz mod yok</string>
     <string name="no_modes_subtitle">Birden fazla rutini aynı anda açmak için bir mod oluşturun.</string>
-    <string name="manage_modes">Modları yönet</string>
     <string name="new_routine">Yeni rutin</string>
     <string name="mode_on">Açık · %1$d rutin</string>
     <string name="mode_off">Kapalı · %1$d rutin</string>
     <string name="empty_automations_title">Henüz rutin yok</string>
-    <string name="empty_automations_sub">İlk rutini oluşturmak için Yeni rutin\'e dokunun.</string>
+    <string name="empty_automations_sub">İlk rutini oluşturmak için + simgesine dokunun.</string>
     <string name="summary_any_trigger">herhangi bir tetikleyici</string>
     <string name="summary_no_actions">eylem yok</string>
     <string name="summary_actions_count">%1$d eylem</string>
@@ -23,4 +22,5 @@
     <string name="trigger_connectivity">Bağlantı</string>
     <string name="trigger_location">Konum</string>
     <string name="trigger_sms">SMS</string>
+    <string name="add_mode">Yeni mod</string>
 </resources>

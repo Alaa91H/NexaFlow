@@ -7,12 +7,11 @@
     <string name="section_routines">الروتينات</string>
     <string name="no_modes_title">لا توجد أنماط بعد</string>
     <string name="no_modes_subtitle">أنشئ نمطاً لتشغيل عدة روتينات معاً دفعة واحدة.</string>
-    <string name="manage_modes">إدارة الأنماط</string>
     <string name="new_routine">روتين جديد</string>
     <string name="mode_on">مفعّل · %1$d روتين</string>
     <string name="mode_off">متوقف · %1$d روتين</string>
     <string name="empty_automations_title">لا توجد روتينات بعد</string>
-    <string name="empty_automations_sub">اضغط «روتين جديد» لإنشاء أول روتين لك.</string>
+    <string name="empty_automations_sub">اضغط + لإنشاء أول روتين.</string>
     <string name="summary_any_trigger">أي مشغّل</string>
     <string name="summary_no_actions">بدون مهام</string>
     <string name="summary_actions_count">%1$d مهام</string>
@@ -23,4 +22,5 @@
     <string name="trigger_connectivity">الاتصال</string>
     <string name="trigger_location">الموقع</string>
     <string name="trigger_sms">رسالة</string>
+    <string name="add_mode">نمط جديد</string>
 </resources>

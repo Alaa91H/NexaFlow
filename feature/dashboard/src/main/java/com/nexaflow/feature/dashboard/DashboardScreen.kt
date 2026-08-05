@@ -1,7 +1,9 @@
 package com.nexaflow.feature.dashboard
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -11,12 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -78,9 +80,19 @@ fun DashboardScreen(navController: NavController) {
             }
         }
 
-        // ---- Modes (Samsung-style big colorful cards) ----
+        // ---- Modes (Samsung-style tinted cards with header "+") ----
         item {
-            SectionHeader(text = stringResource(R.string.section_modes))
+            SectionHeader(
+                text = stringResource(R.string.section_modes),
+                trailing = {
+                    IconButton(onClick = { navController.navigate("profiles") }) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = stringResource(R.string.add_mode)
+                        )
+                    }
+                }
+            )
         }
         if (profiles.isEmpty()) {
             item {
@@ -96,21 +108,23 @@ fun DashboardScreen(navController: NavController) {
                 profile = profile,
                 routineCount = automations.count { it.id in profile.automationIds },
                 onToggle = { viewModel.toggleProfile(profile, it) },
-                onClick = { navController.navigate("profiles") }
+                onClick = { navController.navigate("profile_details/${profile.id}") }
             )
         }
-        if (profiles.isNotEmpty()) {
-            item {
-                TextButtonLink(
-                    text = stringResource(R.string.manage_modes),
-                    onClick = { navController.navigate("profiles") }
-                )
-            }
-        }
 
-        // ---- Routines ----
+        // ---- Routines (Samsung-style list with header "+") ----
         item {
-            SectionHeader(text = stringResource(R.string.section_routines))
+            SectionHeader(
+                text = stringResource(R.string.section_routines),
+                trailing = {
+                    IconButton(onClick = { navController.navigate("automation_builder") }) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = stringResource(R.string.new_routine)
+                        )
+                    }
+                }
+            )
         }
         if (automations.isEmpty()) {
             item {
@@ -129,35 +143,10 @@ fun DashboardScreen(navController: NavController) {
                 onClick = { navController.navigate("automation_details/${automation.id}") }
             )
         }
-        item {
-            Button(
-                onClick = { navController.navigate("automation_builder") },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(imageVector = Icons.Filled.AddCircle, contentDescription = null)
-                Text(
-                    text = stringResource(R.string.new_routine),
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
-        }
     }
 }
 
-@Composable
-private fun TextButtonLink(text: String, onClick: () -> Unit) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(vertical = 4.dp)
-    )
-}
-
-/** Samsung-style big colorful mode card with an instant on/off switch. */
+/** Samsung-style mode card: saturated color card, white icon + text, and a switch. */
 @Composable
 private fun ModeCard(
     profile: Profile,
@@ -168,23 +157,33 @@ private fun ModeCard(
     val accent = Color(profile.color)
     NexaFlowCard(
         modifier = Modifier.clickable(onClick = onClick),
-        border = false
+        border = false,
+        containerColor = accent
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            IconBadge(
-                icon = iconVector(profile.icon),
-                containerColor = accent,
-                size = 52
-            )
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(color = Color.White.copy(alpha = 0.22f), shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = iconVector(profile.icon),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(26.dp)
+                )
+            }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = profile.name,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
                 Text(
                     text = if (profile.active) {
@@ -193,10 +192,21 @@ private fun ModeCard(
                         stringResource(R.string.mode_off, routineCount)
                     },
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (profile.active) Color(0xFF2FA84F) else MaterialTheme.colorScheme.secondary
+                    color = Color.White.copy(alpha = 0.85f)
                 )
             }
-            Switch(checked = profile.active, onCheckedChange = onToggle)
+            Switch(
+                checked = profile.active,
+                onCheckedChange = onToggle,
+                colors = androidx.compose.material3.SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = Color.White.copy(alpha = 0.45f),
+                    checkedBorderColor = Color.White.copy(alpha = 0.6f),
+                    uncheckedThumbColor = Color.White.copy(alpha = 0.85f),
+                    uncheckedTrackColor = Color.Transparent,
+                    uncheckedBorderColor = Color.White.copy(alpha = 0.6f)
+                )
+            )
         }
     }
 }

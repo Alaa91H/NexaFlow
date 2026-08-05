@@ -238,4 +238,5 @@
     <string name="step_then">O zaman</string>
     <string name="next">İleri</string>
     <string name="previous">Geri</string>
+    <string name="next_needs_trigger">Önce en az bir tetikleyici ekleyin</string>
 </resources>

@@ -10,4 +10,9 @@
     <string name="not_available">Недоступно</string>
     <string name="settings">Настройки</string>
     <string name="grant">Предоставить</string>
+    <string name="capability_subtitle">Глубокая интеграция с прошивкой вашего устройства</string>
+    <string name="section_device">Устройство</string>
+    <string name="section_capabilities">Возможности</string>
+    <string name="section_about">О приложении</string>
+    <string name="security_patch">Патч безопасности: %1$s</string>
 </resources>

@@ -1,4 +1,4 @@
-﻿package com.nexaflow.core.capability
+package com.nexaflow.core.capability
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,8 +11,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Smartphone
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,9 +26,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.rom.RomIntegrationManager
 import com.nexaflow.core.rom.model.RomCapability
+import com.nexaflow.core.ui.IconBadge
+import com.nexaflow.core.ui.NexaFlowCard
+import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.StatusPill
 
 @Composable
@@ -33,70 +41,142 @@ fun CapabilityCenterScreen() {
     val buildInfo = remember { RomIntegrationManager.buildInfo(context) }
     val integrationLevel = remember { RomIntegrationManager.integrationLevel(context) }
     val capabilities = remember { RomIntegrationManager.availableCapabilities(context) }
+    val availableCount = remember(capabilities) {
+        capabilities.count { RomIntegrationManager.isCapabilityAvailable(context, it) }
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
-            Text(text = stringResource(R.string.capability_title), style = MaterialTheme.typography.headlineSmall)
+            Column {
+                Text(
+                    text = stringResource(R.string.capability_title),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = stringResource(R.string.capability_subtitle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
+
+        item {
+            SectionHeader(text = stringResource(R.string.section_device))
         }
         item {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(R.string.detected_rom, buildInfo.family.displayName),
-                        style = MaterialTheme.typography.titleMedium
+            NexaFlowCard {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    IconBadge(
+                        icon = Icons.Filled.Smartphone,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     )
-                    Text(
-                        text = "${buildInfo.brand} \u00b7 ${buildInfo.model} (${buildInfo.device})",
-                        style = MaterialTheme.typography.bodyMedium
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.detected_rom, buildInfo.family.displayName),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "${buildInfo.brand} · ${buildInfo.model} (${buildInfo.device})",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Text(
+                            text = "Android ${buildInfo.androidVersion} · ${buildInfo.buildDisplay}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Text(
+                            text = stringResource(R.string.security_patch, buildInfo.securityPatch),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    IconBadge(
+                        icon = Icons.Filled.Tune,
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Text(
-                        text = "Android ${buildInfo.androidVersion} \u00b7 Build ${buildInfo.buildDisplay}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = "Security patch: ${buildInfo.securityPatch}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(R.string.integration_level, integrationLevel.displayName),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        text = integrationLevel.description,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.integration_level, integrationLevel.displayName),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = integrationLevel.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
                 }
             }
         }
+
         item {
-            Text(
-                text = stringResource(R.string.capabilities_count, capabilities.size),
-                style = MaterialTheme.typography.titleMedium
+            SectionHeader(
+                text = stringResource(R.string.section_capabilities),
+                trailing = {
+                    StatusPill(
+                        text = stringResource(R.string.capabilities_count, availableCount),
+                        background = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.secondary
+                    )
+                }
             )
         }
         items(capabilities) { capability ->
-            CapabilityRow(
+            CapabilityCard(
                 capability = capability,
                 available = RomIntegrationManager.isCapabilityAvailable(context, capability),
                 context = context
             )
         }
+
         item {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(R.string.about_privileged),
-                        style = MaterialTheme.typography.titleSmall
+            SectionHeader(text = stringResource(R.string.section_about))
+        }
+        item {
+            NexaFlowCard {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    IconBadge(
+                        icon = Icons.Filled.Info,
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Text(
-                        text = stringResource(R.string.about_privileged_text),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    Column {
+                        Text(
+                            text = stringResource(R.string.about_privileged),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = stringResource(R.string.about_privileged_text),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
                 }
             }
         }
@@ -104,7 +184,7 @@ fun CapabilityCenterScreen() {
 }
 
 @Composable
-private fun CapabilityRow(
+private fun CapabilityCard(
     capability: RomCapability,
     available: Boolean,
     context: android.content.Context
@@ -112,44 +192,54 @@ private fun CapabilityRow(
     val grantIntent = remember(capability) {
         CapabilityGrantHelper.grantIntent(context, capability)
     }
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+    NexaFlowCard {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            IconBadge(
+                icon = Icons.Filled.Security,
+                containerColor = if (available) {
+                    Color(0xFF2FA84F)
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant
+                },
+                contentColor = if (available) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = capability.displayName,
                     style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.weight(1f)
+                    fontWeight = FontWeight.SemiBold
                 )
-                if (available) {
-                    StatusPill(
-                        text = stringResource(R.string.available),
-                        background = Color(0xFF2FA84F),
-                        contentColor = Color.White
-                    )
-                } else {
-                    StatusPill(
-                        text = stringResource(R.string.not_available),
-                        background = Color(0xFFB3261E),
-                        contentColor = Color.White
-                    )
-                }
+                Text(
+                    text = capability.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
             }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = capability.description,
-                style = MaterialTheme.typography.bodyMedium
-            )
-            if (grantIntent != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = { CapabilityGrantHelper.launch(context, grantIntent) }
-                ) {
-                    Text(if (available) stringResource(R.string.settings) else stringResource(R.string.grant))
-                }
+            if (available) {
+                StatusPill(
+                    text = stringResource(R.string.available),
+                    background = Color(0xFF2FA84F),
+                    contentColor = Color.White
+                )
+            } else {
+                StatusPill(
+                    text = stringResource(R.string.not_available),
+                    background = Color(0xFFB3261E),
+                    contentColor = Color.White
+                )
+            }
+        }
+        if (grantIntent != null) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Button(
+                onClick = { CapabilityGrantHelper.launch(context, grantIntent) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(if (available) stringResource(R.string.settings) else stringResource(R.string.grant))
             }
         }
     }

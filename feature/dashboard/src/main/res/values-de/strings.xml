@@ -7,12 +7,11 @@
     <string name="section_routines">ROUTINEN</string>
     <string name="no_modes_title">Noch keine Modi</string>
     <string name="no_modes_subtitle">Erstelle einen Modus, um mehrere Routinen auf einmal zu aktivieren.</string>
-    <string name="manage_modes">Modi verwalten</string>
     <string name="new_routine">Neue Routine</string>
     <string name="mode_on">An · %1$d Routine(n)</string>
     <string name="mode_off">Aus · %1$d Routine(n)</string>
     <string name="empty_automations_title">Noch keine Routinen</string>
-    <string name="empty_automations_sub">Tippe auf Neue Routine, um deine erste zu erstellen.</string>
+    <string name="empty_automations_sub">Tippe auf +, um deine erste Routine zu erstellen.</string>
     <string name="summary_any_trigger">beliebiger Auslöser</string>
     <string name="summary_no_actions">keine Aktionen</string>
     <string name="summary_actions_count">%1$d Aktion(en)</string>
@@ -23,4 +22,5 @@
     <string name="trigger_connectivity">Verbindung</string>
     <string name="trigger_location">Standort</string>
     <string name="trigger_sms">SMS</string>
+    <string name="add_mode">Neuer Modus</string>
 </resources>

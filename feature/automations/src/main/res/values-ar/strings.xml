@@ -4,10 +4,6 @@
     <string name="delete">حذف</string>
     <string name="not_found_title">لم يتم العثور على الأتمتة</string>
     <string name="not_found_subtitle">ربما تم حذفها.</string>
-    <string name="enabled">مفعّلة</string>
-    <string name="enabled_subtitle">تشغيل هذه الأتمتة</string>
-    <string name="status_active">نشطة</string>
-    <string name="status_off">متوقفة</string>
     <string name="section_triggers">المشغّلات</string>
     <string name="no_triggers">لا توجد مشغّلات مكوّنة.</string>
     <string name="section_conditions">الشروط</string>
@@ -119,4 +115,5 @@
     <string name="action_open_settings_sub">فتح صفحة إعدادات النظام</string>
     <string name="action_wait">انتظار / تأخير</string>
     <string name="action_wait_sub">توقف قبل المهمة التالية</string>
+    <string name="enabled">مفعّل</string>
 </resources>

@@ -12,7 +12,6 @@
     <string name="no_description">Sin descripción</string>
     <string name="active_count">Activo · %1$d rutina(s)</string>
     <string name="inactive_count">Inactivo · %1$d rutina(s)</string>
-    <string name="manage_automations">Gestionar rutinas</string>
     <string name="new_profile_title">Nuevo modo</string>
     <string name="name">Nombre</string>
     <string name="description">Descripción</string>
@@ -22,4 +21,10 @@
     <string name="automations_in">Rutinas en %1$s</string>
     <string name="no_automations_yet">Aún no hay rutinas. Crea una primero.</string>
     <string name="save">Guardar</string>
+    <string name="mode_details_title">Modo</string>
+    <string name="routines_in_mode">RUTINAS EN ESTE MODO</string>
+    <string name="no_routines_in_mode">Aún no hay rutinas en este modo.</string>
+    <string name="add_routines">Añadir rutinas</string>
+    <string name="mode_on">Activo</string>
+    <string name="mode_off">Inactivo</string>
 </resources>

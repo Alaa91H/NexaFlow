@@ -4,10 +4,6 @@
     <string name="delete">Excluir</string>
     <string name="not_found_title">Automação não encontrada</string>
     <string name="not_found_subtitle">Ela pode ter sido excluída.</string>
-    <string name="enabled">Ativada</string>
-    <string name="enabled_subtitle">Executar esta automação</string>
-    <string name="status_active">Ativa</string>
-    <string name="status_off">Desativada</string>
     <string name="section_triggers">GATILHOS</string>
     <string name="no_triggers">Nenhum gatilho configurado.</string>
     <string name="section_conditions">CONDIÇÕES</string>
@@ -119,4 +115,5 @@
     <string name="action_open_settings_sub">Abrir uma página de configurações do sistema</string>
     <string name="action_wait">Aguardar / Atraso</string>
     <string name="action_wait_sub">Pausa antes da próxima ação</string>
+    <string name="enabled">Ativada</string>
 </resources>

@@ -4,10 +4,6 @@
     <string name="delete">Sil</string>
     <string name="not_found_title">Otomasyon bulunamadı</string>
     <string name="not_found_subtitle">Silinmiş olabilir.</string>
-    <string name="enabled">Etkin</string>
-    <string name="enabled_subtitle">Bu otomasyonu çalıştır</string>
-    <string name="status_active">Etkin</string>
-    <string name="status_off">Kapalı</string>
     <string name="section_triggers">TETİKLEYİCİLER</string>
     <string name="no_triggers">Yapılandırılmış tetikleyici yok.</string>
     <string name="section_conditions">KOŞULLAR</string>
@@ -119,4 +115,5 @@
     <string name="action_open_settings_sub">Sistem ayarları sayfasını aç</string>
     <string name="action_wait">Bekle / Geciktir</string>
     <string name="action_wait_sub">Sonraki eylemden önce duraklat</string>
+    <string name="enabled">Etkin</string>
 </resources>

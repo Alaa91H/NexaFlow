@@ -10,4 +10,9 @@
     <string name="not_available">利用不可</string>
     <string name="settings">設定</string>
     <string name="grant">許可</string>
+    <string name="capability_subtitle">デバイスのROMとの深い統合</string>
+    <string name="section_device">デバイス</string>
+    <string name="section_capabilities">機能</string>
+    <string name="section_about">について</string>
+    <string name="security_patch">セキュリティパッチ: %1$s</string>
 </resources>

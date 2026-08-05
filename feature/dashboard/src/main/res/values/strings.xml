@@ -7,12 +7,11 @@
     <string name="section_routines">ROUTINES</string>
     <string name="no_modes_title">No modes yet</string>
     <string name="no_modes_subtitle">Create a mode to switch several routines on at once.</string>
-    <string name="manage_modes">Manage modes</string>
     <string name="new_routine">New routine</string>
     <string name="mode_on">On · %1$d routine(s)</string>
     <string name="mode_off">Off · %1$d routine(s)</string>
     <string name="empty_automations_title">No routines yet</string>
-    <string name="empty_automations_sub">Tap New routine to create your first one.</string>
+    <string name="empty_automations_sub">Tap + to create your first routine.</string>
     <string name="summary_any_trigger">any trigger</string>
     <string name="summary_no_actions">no actions</string>
     <string name="summary_actions_count">%1$d action(s)</string>
@@ -23,4 +22,5 @@
     <string name="trigger_connectivity">Connectivity</string>
     <string name="trigger_location">Location</string>
     <string name="trigger_sms">SMS</string>
+    <string name="add_mode">New mode</string>
 </resources>

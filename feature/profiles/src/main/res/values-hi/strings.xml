@@ -12,7 +12,6 @@
     <string name="no_description">कोई विवरण नहीं</string>
     <string name="active_count">सक्रिय · %1$d रूटीन</string>
     <string name="inactive_count">निष्क्रिय · %1$d रूटीन</string>
-    <string name="manage_automations">रूटीन प्रबंधित करें</string>
     <string name="new_profile_title">नया मोड</string>
     <string name="name">नाम</string>
     <string name="description">विवरण</string>
@@ -22,4 +21,10 @@
     <string name="automations_in">%1$s में रूटीन</string>
     <string name="no_automations_yet">अभी कोई रूटीन नहीं। पहले एक बनाएँ।</string>
     <string name="save">सहेजें</string>
+    <string name="mode_details_title">मोड</string>
+    <string name="routines_in_mode">इस मोड में रूटीन</string>
+    <string name="no_routines_in_mode">इस मोड में अभी कोई रूटीन नहीं है।</string>
+    <string name="add_routines">रूटीन जोड़ें</string>
+    <string name="mode_on">चालू</string>
+    <string name="mode_off">बंद</string>
 </resources>

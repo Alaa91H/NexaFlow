@@ -41,7 +41,6 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Storefront
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.ScreenRotation
@@ -53,6 +52,7 @@ import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -306,8 +306,10 @@ private fun StepChip(
 @Composable
 private fun BuilderBottomBar(
     step: Int,
+    canProceed: Boolean,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
+    onNextHint: () -> Unit,
     onSave: () -> Unit
 ) {
     Surface(shadowElevation = 8.dp) {
@@ -332,9 +334,28 @@ private fun BuilderBottomBar(
                     )
                 }
             }
+            val nextBlocked = step == 0 && !canProceed
             Button(
-                onClick = { if (step == 0) onNext() else onSave() },
-                modifier = Modifier.weight(1f)
+                onClick = {
+                    when {
+                        nextBlocked -> onNextHint()
+                        step == 0 -> onNext()
+                        else -> onSave()
+                    }
+                },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (nextBlocked) {
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    },
+                    contentColor = if (nextBlocked) {
+                        MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f)
+                    } else {
+                        MaterialTheme.colorScheme.onPrimary
+                    }
+                )
             ) {
                 if (step == 0) {
                     Text(
@@ -428,6 +449,12 @@ fun AutomationBuilderScreen(navController: NavController) {
         selectedActions.add(to, item)
     }
 
+    fun showTriggerHint() {
+        scope.launch {
+            snackbarHostState.showSnackbar(context.getString(R.string.next_needs_trigger))
+        }
+    }
+
     fun save(closeAfterSave: Boolean = true) {
         val builtTriggers = triggers.map { draft ->
             Trigger(draft.type, draft.config)
@@ -475,8 +502,10 @@ fun AutomationBuilderScreen(navController: NavController) {
         bottomBar = {
             BuilderBottomBar(
                 step = step,
+                canProceed = triggers.isNotEmpty(),
                 onPrevious = { step = 0 },
                 onNext = { step = 1 },
+                onNextHint = { showTriggerHint() },
                 onSave = { save() }
             )
         },
@@ -493,7 +522,16 @@ fun AutomationBuilderScreen(navController: NavController) {
             LaunchedEffect(step) {
                 scrollState.scrollTo(0)
             }
-            BuilderStepIndicator(currentStep = step, onSelect = { step = it })
+            BuilderStepIndicator(
+                currentStep = step,
+                onSelect = { newStep ->
+                    if (newStep == 1 && triggers.isEmpty()) {
+                        showTriggerHint()
+                    } else {
+                        step = newStep
+                    }
+                }
+            )
             if (step == 0) {
                 NexaFlowCard {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -538,7 +576,19 @@ fun AutomationBuilderScreen(navController: NavController) {
                     triggers = triggers,
                     actions = selectedActions
                 )
-                SectionHeader(text = stringResource(R.string.section_when))
+                SectionHeader(
+                    text = stringResource(R.string.section_when),
+                    trailing = {
+                        IconButton(onClick = {
+                            triggers.add(TriggerDraft(TriggerType.TIME, mapOf("time" to "08:00")))
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Add,
+                                contentDescription = stringResource(R.string.add_another_trigger)
+                            )
+                        }
+                    }
+                )
                 triggers.forEachIndexed { index, draft ->
                     TriggerEditorCard(
                         draft = draft,
@@ -561,15 +611,6 @@ fun AutomationBuilderScreen(navController: NavController) {
                             }
                         }
                     )
-                }
-                Button(
-                    onClick = {
-                        triggers.add(TriggerDraft(TriggerType.TIME, mapOf("time" to "08:00")))
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(imageVector = Icons.Filled.Add, contentDescription = null)
-                    Text(text = stringResource(R.string.add_another_trigger), modifier = Modifier.padding(start = 8.dp))
                 }
                 SectionHeader(text = stringResource(R.string.section_conditions))
                 NexaFlowCard {

@@ -4,10 +4,6 @@
     <string name="delete">削除</string>
     <string name="not_found_title">自動化が見つかりません</string>
     <string name="not_found_subtitle">削除された可能性があります。</string>
-    <string name="enabled">有効</string>
-    <string name="enabled_subtitle">この自動化を実行</string>
-    <string name="status_active">アクティブ</string>
-    <string name="status_off">オフ</string>
     <string name="section_triggers">トリガー</string>
     <string name="no_triggers">トリガーが設定されていません。</string>
     <string name="section_conditions">条件</string>
@@ -119,4 +115,5 @@
     <string name="action_open_settings_sub">システム設定ページを開く</string>
     <string name="action_wait">待機 / 遅延</string>
     <string name="action_wait_sub">次のアクションの前に一時停止</string>
+    <string name="enabled">有効</string>
 </resources>

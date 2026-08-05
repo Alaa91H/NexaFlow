@@ -10,4 +10,9 @@
     <string name="not_available">Kullanılamıyor</string>
     <string name="settings">Ayarlar</string>
     <string name="grant">İzin Ver</string>
+    <string name="capability_subtitle">Cihazınızın ROM\'u ile derin entegrasyon</string>
+    <string name="section_device">Cihaz</string>
+    <string name="section_capabilities">Yetenekler</string>
+    <string name="section_about">Hakkında</string>
+    <string name="security_patch">Güvenlik yaması: %1$s</string>
 </resources>

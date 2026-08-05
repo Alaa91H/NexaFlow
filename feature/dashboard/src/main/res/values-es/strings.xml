@@ -7,12 +7,11 @@
     <string name="section_routines">RUTINAS</string>
     <string name="no_modes_title">Aún no hay modos</string>
     <string name="no_modes_subtitle">Crea un modo para activar varias rutinas a la vez.</string>
-    <string name="manage_modes">Gestionar modos</string>
     <string name="new_routine">Nueva rutina</string>
     <string name="mode_on">Activado · %1$d rutina(s)</string>
     <string name="mode_off">Desactivado · %1$d rutina(s)</string>
     <string name="empty_automations_title">Aún no hay rutinas</string>
-    <string name="empty_automations_sub">Toca Nueva rutina para crear la primera.</string>
+    <string name="empty_automations_sub">Toca + para crear tu primera rutina.</string>
     <string name="summary_any_trigger">cualquier disparador</string>
     <string name="summary_no_actions">sin acciones</string>
     <string name="summary_actions_count">%1$d acción(es)</string>
@@ -23,4 +22,5 @@
     <string name="trigger_connectivity">Conectividad</string>
     <string name="trigger_location">Ubicación</string>
     <string name="trigger_sms">SMS</string>
+    <string name="add_mode">Nuevo modo</string>
 </resources>

@@ -238,4 +238,5 @@
     <string name="step_then">Entonces</string>
     <string name="next">Siguiente</string>
     <string name="previous">Anterior</string>
+    <string name="next_needs_trigger">Añade al menos un disparador primero</string>
 </resources>

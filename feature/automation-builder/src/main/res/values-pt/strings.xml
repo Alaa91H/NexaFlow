@@ -238,4 +238,5 @@
     <string name="step_then">Então</string>
     <string name="next">Próximo</string>
     <string name="previous">Anterior</string>
+    <string name="next_needs_trigger">Adicione pelo menos um gatilho primeiro</string>
 </resources>

@@ -10,4 +10,9 @@
     <string name="not_available">Nicht verfügbar</string>
     <string name="settings">Einstellungen</string>
     <string name="grant">Erteilen</string>
+    <string name="capability_subtitle">Tiefe Integration in die ROM deines Geräts</string>
+    <string name="section_device">Gerät</string>
+    <string name="section_capabilities">Fähigkeiten</string>
+    <string name="section_about">Über</string>
+    <string name="security_patch">Sicherheitspatch: %1$s</string>
 </resources>

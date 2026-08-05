@@ -10,4 +10,9 @@
     <string name="not_available">Non disponible</string>
     <string name="settings">Paramètres</string>
     <string name="grant">Accorder</string>
+    <string name="capability_subtitle">Intégration profonde avec le ROM de votre appareil</string>
+    <string name="section_device">Appareil</string>
+    <string name="section_capabilities">Capacités</string>
+    <string name="section_about">À propos</string>
+    <string name="security_patch">Correctif de sécurité : %1$s</string>
 </resources>

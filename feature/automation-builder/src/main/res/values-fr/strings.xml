@@ -238,4 +238,5 @@
     <string name="step_then">Alors</string>
     <string name="next">Suivant</string>
     <string name="previous">Précédent</string>
+    <string name="next_needs_trigger">Ajoutez d\'abord au moins un déclencheur</string>
 </resources>

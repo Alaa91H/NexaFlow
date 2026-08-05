@@ -238,4 +238,5 @@
     <string name="step_then">それから</string>
     <string name="next">次へ</string>
     <string name="previous">戻る</string>
+    <string name="next_needs_trigger">先にトリガーを1つ以上追加してください</string>
 </resources>

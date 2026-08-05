@@ -10,4 +10,9 @@
     <string name="not_available">不可用</string>
     <string name="settings">设置</string>
     <string name="grant">授予</string>
+    <string name="capability_subtitle">与设备 ROM 的深度集成</string>
+    <string name="section_device">设备</string>
+    <string name="section_capabilities">能力</string>
+    <string name="section_about">关于</string>
+    <string name="security_patch">安全补丁：%1$s</string>
 </resources>

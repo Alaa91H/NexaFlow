@@ -10,4 +10,9 @@
     <string name="not_available">غير متاحة</string>
     <string name="settings">الإعدادات</string>
     <string name="grant">منح</string>
+    <string name="capability_subtitle">تكامل عميق مع ROM الخاص بجهازك</string>
+    <string name="section_device">الجهاز</string>
+    <string name="section_capabilities">القدرات</string>
+    <string name="section_about">حول</string>
+    <string name="security_patch">تصحيح الأمان: %1$s</string>
 </resources>

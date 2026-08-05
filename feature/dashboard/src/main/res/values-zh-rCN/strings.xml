@@ -7,12 +7,11 @@
     <string name="section_routines">例程</string>
     <string name="no_modes_title">暂无模式</string>
     <string name="no_modes_subtitle">创建模式可一次开启多个例程。</string>
-    <string name="manage_modes">管理模式</string>
     <string name="new_routine">新建例程</string>
     <string name="mode_on">开启 · %1$d 个例程</string>
     <string name="mode_off">关闭 · %1$d 个例程</string>
     <string name="empty_automations_title">暂无例程</string>
-    <string name="empty_automations_sub">点按“新建例程”创建第一个例程。</string>
+    <string name="empty_automations_sub">点按 + 创建第一个例程。</string>
     <string name="summary_any_trigger">任意触发器</string>
     <string name="summary_no_actions">无操作</string>
     <string name="summary_actions_count">%1$d 个操作</string>
@@ -23,4 +22,5 @@
     <string name="trigger_connectivity">连接</string>
     <string name="trigger_location">位置</string>
     <string name="trigger_sms">短信</string>
+    <string name="add_mode">新模式</string>
 </resources>

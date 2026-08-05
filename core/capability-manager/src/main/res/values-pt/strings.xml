@@ -10,4 +10,9 @@
     <string name="not_available">Indisponível</string>
     <string name="settings">Configurações</string>
     <string name="grant">Conceder</string>
+    <string name="capability_subtitle">Integração profunda com a ROM do seu dispositivo</string>
+    <string name="section_device">Dispositivo</string>
+    <string name="section_capabilities">Recursos</string>
+    <string name="section_about">Sobre</string>
+    <string name="security_patch">Patch de segurança: %1$s</string>
 </resources>

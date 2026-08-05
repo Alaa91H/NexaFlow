@@ -10,4 +10,9 @@
     <string name="not_available">उपलब्ध नहीं</string>
     <string name="settings">सेटिंग्स</string>
     <string name="grant">अनुदान</string>
+    <string name="capability_subtitle">आपके डिवाइस के ROM के साथ गहरा एकीकरण</string>
+    <string name="section_device">डिवाइस</string>
+    <string name="section_capabilities">क्षमताएँ</string>
+    <string name="section_about">परिचय</string>
+    <string name="security_patch">सुरक्षा पैच: %1$s</string>
 </resources>

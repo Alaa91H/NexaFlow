@@ -238,4 +238,5 @@
     <string name="step_then">那么</string>
     <string name="next">下一步</string>
     <string name="previous">上一步</string>
+    <string name="next_needs_trigger">请先添加至少一个触发器</string>
 </resources>

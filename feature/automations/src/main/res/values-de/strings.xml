@@ -4,10 +4,6 @@
     <string name="delete">Löschen</string>
     <string name="not_found_title">Automatisierung nicht gefunden</string>
     <string name="not_found_subtitle">Sie wurde möglicherweise gelöscht.</string>
-    <string name="enabled">Aktiviert</string>
-    <string name="enabled_subtitle">Diese Automatisierung ausführen</string>
-    <string name="status_active">Aktiv</string>
-    <string name="status_off">Aus</string>
     <string name="section_triggers">TRIGGER</string>
     <string name="no_triggers">Keine Trigger konfiguriert.</string>
     <string name="section_conditions">BEDINGUNGEN</string>
@@ -119,4 +115,5 @@
     <string name="action_open_settings_sub">Eine Systemeinstellungsseite öffnen</string>
     <string name="action_wait">Warten / Verzögerung</string>
     <string name="action_wait_sub">Pause vor der nächsten Aktion</string>
+    <string name="enabled">Aktiviert</string>
 </resources>

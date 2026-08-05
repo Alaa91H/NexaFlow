@@ -12,7 +12,6 @@
     <string name="no_description">説明なし</string>
     <string name="active_count">アクティブ · %1$d ルーティン</string>
     <string name="inactive_count">非アクティブ · %1$d ルーティン</string>
-    <string name="manage_automations">ルーティンを管理</string>
     <string name="new_profile_title">新しいモード</string>
     <string name="name">名前</string>
     <string name="description">説明</string>
@@ -22,4 +21,10 @@
     <string name="automations_in">%1$s のルーティン</string>
     <string name="no_automations_yet">まだルーティンがありません。先に作成してください。</string>
     <string name="save">保存</string>
+    <string name="mode_details_title">モード</string>
+    <string name="routines_in_mode">このモードのルーティン</string>
+    <string name="no_routines_in_mode">このモードにはまだルーティンがありません。</string>
+    <string name="add_routines">ルーティンを追加</string>
+    <string name="mode_on">オン</string>
+    <string name="mode_off">オフ</string>
 </resources>

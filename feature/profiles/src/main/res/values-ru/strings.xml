@@ -12,7 +12,6 @@
     <string name="no_description">Без описания</string>
     <string name="active_count">Активен · %1$d роутин(ов)</string>
     <string name="inactive_count">Неактивен · %1$d роутин(ов)</string>
-    <string name="manage_automations">Управление роутинами</string>
     <string name="new_profile_title">Новый режим</string>
     <string name="name">Имя</string>
     <string name="description">Описание</string>
@@ -22,4 +21,10 @@
     <string name="automations_in">Роутины в %1$s</string>
     <string name="no_automations_yet">Пока нет роутинов. Сначала создайте один.</string>
     <string name="save">Сохранить</string>
+    <string name="mode_details_title">Режим</string>
+    <string name="routines_in_mode">РОУТИНЫ В ЭТОМ РЕЖИМЕ</string>
+    <string name="no_routines_in_mode">В этом режиме пока нет роутинов.</string>
+    <string name="add_routines">Добавить роутины</string>
+    <string name="mode_on">Вкл</string>
+    <string name="mode_off">Выкл</string>
 </resources>

@@ -44,6 +44,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -65,8 +66,6 @@ import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.SettingRow
-import com.nexaflow.core.ui.StatusPill
-import com.nexaflow.core.ui.ToggleRow
 import com.nexaflow.core.ui.iconVector
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
@@ -140,29 +139,21 @@ fun AutomationDetailsScreen(navController: NavController) {
                                 color = MaterialTheme.colorScheme.secondary
                             )
                         }
-                        if (current.enabled) {
-                            StatusPill(
-                                text = stringResource(R.string.status_active),
-                                background = Color(0xFFE4F4E9),
-                                contentColor = Color(0xFF2FA84F)
+                        Column(
+                            horizontalAlignment = Alignment.End,
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.enabled),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.secondary
                             )
-                        } else {
-                            StatusPill(
-                                text = stringResource(R.string.status_off),
-                                background = MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = MaterialTheme.colorScheme.secondary
+                            Switch(
+                                checked = current.enabled,
+                                onCheckedChange = { viewModel.toggleEnabled(it) }
                             )
                         }
                     }
-                }
-                NexaFlowCard {
-                    ToggleRow(
-                        icon = Icons.Filled.Bolt,
-                        title = stringResource(R.string.enabled),
-                        subtitle = stringResource(R.string.enabled_subtitle),
-                        checked = current.enabled,
-                        onCheckedChange = { viewModel.toggleEnabled(it) }
-                    )
                 }
                 SectionHeader(text = stringResource(R.string.section_triggers))
                 NexaFlowCard {

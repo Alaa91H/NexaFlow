@@ -12,7 +12,6 @@
     <string name="no_description">لا يوجد وصف</string>
     <string name="active_count">نشط · %1$d روتين</string>
     <string name="inactive_count">غير نشط · %1$d روتين</string>
-    <string name="manage_automations">إدارة الروتينات</string>
     <string name="new_profile_title">نمط جديد</string>
     <string name="name">الاسم</string>
     <string name="description">الوصف</string>
@@ -22,4 +21,10 @@
     <string name="automations_in">الروتينات في %1$s</string>
     <string name="no_automations_yet">لا توجد روتينات بعد. أنشئ واحداً أولاً.</string>
     <string name="save">حفظ</string>
+    <string name="mode_details_title">نمط</string>
+    <string name="routines_in_mode">الروتينات في هذا النمط</string>
+    <string name="no_routines_in_mode">لا توجد روتينات في هذا النمط بعد.</string>
+    <string name="add_routines">إضافة روتينات</string>
+    <string name="mode_on">مفعّل</string>
+    <string name="mode_off">متوقف</string>
 </resources>
