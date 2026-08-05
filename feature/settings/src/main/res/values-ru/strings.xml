@@ -67,4 +67,6 @@
     <string name="notification_monitoring_sub">Уведомление фоновой службы</string>
     <string name="notifications_off_hint">Уведомления отключены. Включите главный переключатель, чтобы восстановить их.</string>
     <string name="notifications_global_note">Эти настройки влияют только на уведомления, отправляемые NexaFlow. Уведомлениями приложений можно управлять в системных настройках.</string>
+    <string name="bluetooth_permission">Разрешение Bluetooth</string>
+    <string name="bluetooth_permission_sub">Необходимо для обнаружения сопряжённых устройств (наушники и т. д.)</string>
 </resources>

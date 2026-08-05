@@ -27,6 +27,8 @@ class ConnectivityMonitor @Inject constructor(
     private var initialized = false
 
     private val lastRunAt = mutableMapOf<String, Long>()
+    /** Automations currently in their triggered state, mapped to the active state string. */
+    private val activeStates = mutableMapOf<String, String>()
     private var callback: ConnectivityManager.NetworkCallback? = null
 
     fun initialize() {
@@ -69,23 +71,35 @@ class ConnectivityMonitor @Inject constructor(
                 capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true -> "MOBILE"
                 else -> null
             }
-            if (type == null) return@launch
             val state = if (connected) "CONNECTED" else "DISCONNECTED"
             val automations = repository.getAutomations().first()
             val now = System.currentTimeMillis()
             automations
                 .filter { automation ->
-                    automation.enabled && automation.triggers.any { trigger ->
-                        trigger.type == TriggerType.CONNECTIVITY &&
-                            trigger.config["network"] == type &&
-                            trigger.config["state"] == state
-                    }
+                    automation.enabled && automation.triggers.any { it.type == TriggerType.CONNECTIVITY }
                 }
                 .forEach { automation ->
-                    val last = lastRunAt[automation.id] ?: 0L
-                    if (now - last > COOLDOWN_MS) {
-                        lastRunAt[automation.id] = now
-                        executionEngine.runAutomation(automation)
+                    val trigger = automation.triggers.first { it.type == TriggerType.CONNECTIVITY }
+                    val network = trigger.config["network"] ?: "WIFI"
+                    val desiredState = trigger.config["state"] ?: "CONNECTED"
+                    // When no network is active (type == null) the only valid
+                    // transition is a disconnect, so gate on that.
+                    val networkMatch = when {
+                        type != null -> network == type
+                        state == "DISCONNECTED" -> desiredState == "DISCONNECTED"
+                        else -> false
+                    }
+                    if (networkMatch && state == desiredState) {
+                        val last = lastRunAt[automation.id] ?: 0L
+                        if (now - last > COOLDOWN_MS) {
+                            lastRunAt[automation.id] = now
+                            activeStates[automation.id] = state
+                            executionEngine.runAutomation(automation)
+                        }
+                    } else if (activeStates[automation.id] == desiredState) {
+                        // The condition ended (state flipped or network lost): fire exit.
+                        activeStates.remove(automation.id)
+                        executionEngine.runExit(automation)
                     }
                 }
         }

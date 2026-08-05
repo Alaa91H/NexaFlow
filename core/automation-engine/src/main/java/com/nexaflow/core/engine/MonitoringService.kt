@@ -29,6 +29,12 @@ class MonitoringService : Service() {
     @Inject
     lateinit var locationMonitor: LocationMonitor
 
+    @Inject
+    lateinit var bluetoothMonitor: BluetoothMonitor
+
+    @Inject
+    lateinit var ringerModeMonitor: RingerModeMonitor
+
     override fun onCreate() {
         super.onCreate()
         isRunning = true
@@ -37,6 +43,8 @@ class MonitoringService : Service() {
         deviceEventMonitor.initialize()
         connectivityMonitor.initialize()
         locationMonitor.initialize()
+        bluetoothMonitor.initialize()
+        ringerModeMonitor.initialize()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -56,6 +64,8 @@ class MonitoringService : Service() {
         deviceEventMonitor.stop()
         connectivityMonitor.stop()
         locationMonitor.stop()
+        bluetoothMonitor.stop()
+        ringerModeMonitor.stop()
         super.onDestroy()
     }
 

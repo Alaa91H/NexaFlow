@@ -57,6 +57,42 @@ fun ActionConfigEditor(
                 valueRange = 0f..100f
             )
         }
+        ActionType.SYSTEM_STREAM_VOLUME -> {
+            val streams = listOf(
+                "MUSIC" to stringResource(R.string.stream_music),
+                "RING" to stringResource(R.string.stream_ring),
+                "NOTIFICATION" to stringResource(R.string.stream_notification),
+                "ALARM" to stringResource(R.string.stream_alarm),
+                "VOICE_CALL" to stringResource(R.string.stream_voice_call),
+                "SYSTEM" to stringResource(R.string.stream_system),
+                "DTMF" to stringResource(R.string.stream_dtmf),
+                "ACCESSIBILITY" to stringResource(R.string.stream_accessibility)
+            )
+            val selectedStream = config["stream"] ?: "MUSIC"
+            val value = config["value"]?.toIntOrNull() ?: 50
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = stringResource(R.string.stream_label), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    streams.forEach { (stream, label) ->
+                        FilterChip(
+                            selected = selectedStream == stream,
+                            onClick = { onConfigChange(config + ("stream" to stream)) },
+                            label = { Text(text = label, style = MaterialTheme.typography.labelMedium) }
+                        )
+                    }
+                }
+                SliderRow(
+                    label = stringResource(R.string.stream_volume_label, value),
+                    value = value.toFloat(),
+                    onValueChange = { onConfigChange(config + ("value" to it.toInt().toString())) },
+                    valueRange = 0f..100f
+                )
+            }
+        }
         ActionType.SYSTEM_LOCATION -> {
             ToggleConfigRow(
                 label = stringResource(R.string.turn_on),

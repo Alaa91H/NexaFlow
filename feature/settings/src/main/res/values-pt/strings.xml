@@ -67,4 +67,6 @@
     <string name="notification_monitoring_sub">Notificação do serviço em primeiro plano</string>
     <string name="notifications_off_hint">As notificações estão desativadas. Ative novamente o interruptor principal para restaurá-las.</string>
     <string name="notifications_global_note">Estas configurações afetam apenas as notificações enviadas pelo NexaFlow. As notificações do app podem ser gerenciadas nas configurações do sistema.</string>
+    <string name="bluetooth_permission">Permissão de Bluetooth</string>
+    <string name="bluetooth_permission_sub">Necessária para detectar dispositivos pareados (fones, etc.)</string>
 </resources>

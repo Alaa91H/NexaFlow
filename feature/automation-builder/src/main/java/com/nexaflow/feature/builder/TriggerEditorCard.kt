@@ -15,8 +15,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Map
@@ -61,7 +63,9 @@ val triggerTypeOptions = listOf(
     TriggerType.DEVICE,
     TriggerType.CONNECTIVITY,
     TriggerType.LOCATION,
-    TriggerType.SMS
+    TriggerType.SMS,
+    TriggerType.BLUETOOTH_DEVICE,
+    TriggerType.RINGER_MODE
 )
 
 private val repeatOptions = listOf(
@@ -90,6 +94,8 @@ private fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.CONNECTIVITY -> R.string.trigger_type_connectivity
     TriggerType.LOCATION -> R.string.trigger_type_location
     TriggerType.SMS -> R.string.trigger_type_sms
+    TriggerType.BLUETOOTH_DEVICE -> R.string.trigger_type_bluetooth
+    TriggerType.RINGER_MODE -> R.string.trigger_type_ringer
 }
 
 private fun TriggerType.icon(): ImageVector = when (this) {
@@ -100,6 +106,8 @@ private fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.CONNECTIVITY -> Icons.Filled.Wifi
     TriggerType.LOCATION -> Icons.Filled.Place
     TriggerType.SMS -> Icons.AutoMirrored.Filled.Message
+    TriggerType.BLUETOOTH_DEVICE -> Icons.Filled.Bluetooth
+    TriggerType.RINGER_MODE -> Icons.Filled.NotificationsActive
 }
 
 private fun parseDateMillis(value: String): Long? {
@@ -210,7 +218,8 @@ fun TriggerEditorCard(
     onConfigChange: (TriggerDraft) -> Unit,
     onRemove: () -> Unit,
     onPickApp: () -> Unit,
-    onPickFromMap: () -> Unit = {}
+    onPickFromMap: () -> Unit = {},
+    onPickBluetooth: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var showTimePicker by remember { mutableStateOf(false) }
@@ -273,6 +282,14 @@ fun TriggerEditorCard(
                                             "from" to (draft.config["from"] ?: ""),
                                             "contains" to (draft.config["contains"] ?: ""),
                                             "reply" to (draft.config["reply"] ?: "")
+                                        )
+                                        TriggerType.BLUETOOTH_DEVICE -> mapOf(
+                                            "deviceName" to (draft.config["deviceName"] ?: ""),
+                                            "deviceAddress" to (draft.config["deviceAddress"] ?: ""),
+                                            "event" to (draft.config["event"] ?: "CONNECTED")
+                                        )
+                                        TriggerType.RINGER_MODE -> mapOf(
+                                            "mode" to (draft.config["mode"] ?: "NORMAL")
                                         )
                                     }
                                 )
@@ -654,6 +671,121 @@ fun TriggerEditorCard(
                             text = stringResource(R.string.sms_permission_hint),
                             buttonLabel = stringResource(R.string.grant),
                             onClick = { PermissionShortcuts.openAppSettings(context) }
+                        )
+                    }
+                }
+                TriggerType.RINGER_MODE -> {
+                    val mode = draft.config["mode"] ?: "NORMAL"
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.NotificationsActive,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.trigger_ringer),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = stringResource(R.string.trigger_ringer_sub),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        }
+                        Text(text = stringResource(R.string.ringer_mode_label), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            val modes = listOf(
+                                "NORMAL" to R.string.ringer_normal,
+                                "VIBRATE" to R.string.ringer_vibrate,
+                                "SILENT" to R.string.ringer_silent
+                            )
+                            modes.forEach { (value, labelRes) ->
+                                FilterChip(
+                                    selected = mode == value,
+                                    onClick = { onConfigChange(draft.copy(config = draft.config + ("mode" to value))) },
+                                    label = { Text(text = stringResource(labelRes), style = MaterialTheme.typography.labelMedium) }
+                                )
+                            }
+                        }
+                        PermissionHint(
+                            text = stringResource(R.string.ringer_mode_hint),
+                            buttonLabel = stringResource(R.string.change_now),
+                            onClick = {
+                                runCatching {
+                                    val audio = context.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
+                                    when (mode) {
+                                        "SILENT" -> audio.ringerMode = android.media.AudioManager.RINGER_MODE_SILENT
+                                        "VIBRATE" -> audio.ringerMode = android.media.AudioManager.RINGER_MODE_VIBRATE
+                                        else -> audio.ringerMode = android.media.AudioManager.RINGER_MODE_NORMAL
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+                TriggerType.BLUETOOTH_DEVICE -> {
+                    val deviceName = draft.config["deviceName"] ?: ""
+                    val event = draft.config["event"] ?: "CONNECTED"
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Bluetooth,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.trigger_bluetooth),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = if (deviceName.isBlank()) {
+                                        stringResource(R.string.no_bluetooth_device)
+                                    } else {
+                                        deviceName
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        }
+                        OutlinedButton(
+                            onClick = onPickBluetooth,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(imageVector = Icons.Filled.Bluetooth, contentDescription = null)
+                            Text(
+                                text = stringResource(R.string.choose_bluetooth_device),
+                                modifier = Modifier.padding(start = 6.dp)
+                            )
+                        }
+                        Text(text = stringResource(R.string.state), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        OptionChips(
+                            options = listOf("CONNECTED", "DISCONNECTED"),
+                            selected = event,
+                            onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
+                        )
+                        PermissionHint(
+                            text = stringResource(R.string.bluetooth_permission_hint),
+                            buttonLabel = stringResource(R.string.enable),
+                            onClick = { PermissionShortcuts.openBluetoothSettings(context) }
                         )
                     }
                 }

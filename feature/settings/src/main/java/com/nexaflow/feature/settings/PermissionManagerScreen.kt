@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.BatteryAlert
+import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Schedule
@@ -158,6 +159,20 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
             isGranted = { context ->
                 ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED ||
                     ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED
+            },
+            openAction = { context ->
+                context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }
+        ),
+        PermissionEntry(
+            key = "bluetooth",
+            titleRes = R.string.bluetooth_permission,
+            subtitleRes = R.string.bluetooth_permission_sub,
+            icon = Icons.Filled.Bluetooth,
+            isGranted = { context ->
+                if (Build.VERSION.SDK_INT >= 31) {
+                    ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+                } else true
             },
             openAction = { context ->
                 context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))

@@ -31,4 +31,6 @@
     <string name="trigger_location">Konum</string>
     <string name="trigger_sms">SMS</string>
     <string name="trigger_battery">Pil</string>
+    <string name="trigger_bluetooth">Bluetooth cihazı</string>
+    <string name="trigger_ringer">Ses modu</string>
 </resources>

@@ -16,6 +16,8 @@ data class AutomationEntity(
     val enabled: Boolean,
     val triggersJson: String, // Store as JSON string
     val actionsJson: String, // Store as JSON string
+    val exitActionsJson: String = "[]", // Actions run when the condition ends
+    val revertOnExit: Boolean = false, // Restore device state on exit instead
     val createdAt: Long,
     val updatedAt: Long
 )

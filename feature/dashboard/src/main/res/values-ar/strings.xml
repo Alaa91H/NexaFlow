@@ -31,4 +31,6 @@
     <string name="trigger_location">الموقع</string>
     <string name="trigger_sms">رسالة</string>
     <string name="trigger_battery">البطارية</string>
+    <string name="trigger_bluetooth">جهاز بلوتوث</string>
+    <string name="trigger_ringer">وضع الصوت</string>
 </resources>

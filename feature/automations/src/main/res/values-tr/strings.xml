@@ -117,4 +117,14 @@
     <string name="action_wait_sub">Sonraki eylemden önce duraklat</string>
     <string name="enabled">Etkin</string>
     <string name="edit">Düzenle</string>
+    <string name="trigger_bluetooth">Bluetooth cihazı</string>
+    <string name="trigger_bluetooth_sub">Bir cihaz bağlandığında veya bağlantısı kesildiğinde</string>
+    <string name="action_stream_volume">Kanal sesi</string>
+    <string name="action_stream_volume_sub">Herhangi bir ses kanalını hassas şekilde ayarla</string>
+    <string name="section_exit_behavior">Görev bittiğinde</string>
+    <string name="exit_revert_label">Orijinal duruma dön</string>
+    <string name="exit_revert_sub">Cihaz, görevden önceki durumuna döner</string>
+    <string name="exit_nothing_sub">Hiçbir şey olmaz — görev sona erer</string>
+    <string name="trigger_ringer">Ses modu</string>
+    <string name="trigger_ringer_sub">Ses modu değiştiğinde</string>
 </resources>

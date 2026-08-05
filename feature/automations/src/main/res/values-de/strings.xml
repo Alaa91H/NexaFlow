@@ -117,4 +117,14 @@
     <string name="action_wait_sub">Pause vor der nächsten Aktion</string>
     <string name="enabled">Aktiviert</string>
     <string name="edit">Bearbeiten</string>
+    <string name="trigger_bluetooth">Bluetooth-Gerät</string>
+    <string name="trigger_bluetooth_sub">Wenn ein Gerät verbunden oder getrennt wird</string>
+    <string name="action_stream_volume">Kanal-Lautstärke</string>
+    <string name="action_stream_volume_sub">Beliebigen Tonkanal präzise einstellen</string>
+    <string name="section_exit_behavior">Wenn die Aufgabe endet</string>
+    <string name="exit_revert_label">Originalzustand wiederherstellen</string>
+    <string name="exit_revert_sub">Das Gerät kehrt in seinen Zustand vor der Aufgabe zurück</string>
+    <string name="exit_nothing_sub">Es passiert nichts – die Aufgabe endet einfach</string>
+    <string name="trigger_ringer">Tonmodus</string>
+    <string name="trigger_ringer_sub">Wenn sich der Tonmodus ändert</string>
 </resources>

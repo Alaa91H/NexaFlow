@@ -117,4 +117,14 @@
     <string name="action_wait_sub">توقف قبل المهمة التالية</string>
     <string name="enabled">مفعّل</string>
     <string name="edit">تعديل</string>
+    <string name="trigger_bluetooth">جهاز بلوتوث</string>
+    <string name="trigger_bluetooth_sub">عند اتصال جهاز أو انفصاله</string>
+    <string name="action_stream_volume">صوت القناة</string>
+    <string name="action_stream_volume_sub">ضبط أي قناة صوت بدقة</string>
+    <string name="section_exit_behavior">عند انتهاء المهمة</string>
+    <string name="exit_revert_label">الرجوع للحالة الأصلية</string>
+    <string name="exit_revert_sub">يعود الجهاز إلى حالته قبل تشغيل المهمة</string>
+    <string name="exit_nothing_sub">لا يحدث شيء — تنتهي المهمة فقط</string>
+    <string name="trigger_ringer">وضع الصوت</string>
+    <string name="trigger_ringer_sub">عند تغيّر وضع الصوت</string>
 </resources>

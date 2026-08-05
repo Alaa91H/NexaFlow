@@ -67,4 +67,6 @@
     <string name="notification_monitoring_sub">Vordergrunddienst-Benachrichtigung</string>
     <string name="notifications_off_hint">Benachrichtigungen sind deaktiviert. Aktiviere den Hauptschalter erneut, um sie wiederherzustellen.</string>
     <string name="notifications_global_note">Diese Einstellungen gelten nur für Benachrichtigungen von NexaFlow. App-Benachrichtigungen können in den Systemeinstellungen verwaltet werden.</string>
+    <string name="bluetooth_permission">Bluetooth-Berechtigung</string>
+    <string name="bluetooth_permission_sub">Erforderlich zum Erkennen gekoppelter Geräte (Kopfhörer usw.)</string>
 </resources>

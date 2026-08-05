@@ -117,4 +117,14 @@
     <string name="action_wait_sub">在下一个操作前暂停</string>
     <string name="enabled">已启用</string>
     <string name="edit">编辑</string>
+    <string name="trigger_bluetooth">蓝牙设备</string>
+    <string name="trigger_bluetooth_sub">当设备连接或断开时</string>
+    <string name="action_stream_volume">通道音量</string>
+    <string name="action_stream_volume_sub">精确调节任意声音通道</string>
+    <string name="section_exit_behavior">任务结束时</string>
+    <string name="exit_revert_label">恢复原始状态</string>
+    <string name="exit_revert_sub">设备恢复到任务运行前的状态</string>
+    <string name="exit_nothing_sub">什么都不会发生 — 任务直接结束</string>
+    <string name="trigger_ringer">声音模式</string>
+    <string name="trigger_ringer_sub">当声音模式改变时</string>
 </resources>

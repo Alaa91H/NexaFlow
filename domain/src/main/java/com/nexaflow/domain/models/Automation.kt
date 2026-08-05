@@ -12,6 +12,10 @@ data class Automation(
     val enabled: Boolean,
     val triggers: List<Trigger>,
     val actions: List<Action>,
+    /** Actions executed when the task's condition stops being true. */
+    val exitActions: List<Action> = emptyList(),
+    /** When true, exit restores the device to its pre-run state instead of exitActions. */
+    val revertOnExit: Boolean = false,
     val createdAt: Long,
     val updatedAt: Long
 )
@@ -28,7 +32,9 @@ enum class TriggerType {
     DEVICE,
     CONNECTIVITY,
     LOCATION,
-    SMS
+    SMS,
+    BLUETOOTH_DEVICE,
+    RINGER_MODE
 }
 
 data class Action(
@@ -39,6 +45,7 @@ data class Action(
 enum class ActionType {
     SYSTEM_BRIGHTNESS,
     SYSTEM_VOLUME,
+    SYSTEM_STREAM_VOLUME,
     SYSTEM_DND,
     SYSTEM_SCREEN_ROTATION,
     SYSTEM_OPEN_APP,

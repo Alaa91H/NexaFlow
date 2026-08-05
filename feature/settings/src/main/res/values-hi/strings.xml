@@ -67,4 +67,6 @@
     <string name="notification_monitoring_sub">फ़ोरग्राउंड सेवा सूचना</string>
     <string name="notifications_off_hint">सूचनाएँ अक्षम हैं। उन्हें बहाल करने के लिए मुख्य स्विच फिर से चालू करें।</string>
     <string name="notifications_global_note">ये सेटिंग्स केवल NexaFlow द्वारा भेजी गई सूचनाओं को प्रभावित करती हैं। ऐप सूचनाएँ सिस्टम सेटिंग्स में प्रबंधित की जा सकती हैं।</string>
+    <string name="bluetooth_permission">ब्लूटूथ अनुमति</string>
+    <string name="bluetooth_permission_sub">पेयर किए गए डिवाइस (हेडफ़ोन आदि) का पता लगाने के लिए आवश्यक</string>
 </resources>

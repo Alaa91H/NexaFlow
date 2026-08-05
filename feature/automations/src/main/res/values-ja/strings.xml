@@ -117,4 +117,14 @@
     <string name="action_wait_sub">次のアクションの前に一時停止</string>
     <string name="enabled">有効</string>
     <string name="edit">編集</string>
+    <string name="trigger_bluetooth">Bluetooth デバイス</string>
+    <string name="trigger_bluetooth_sub">デバイスの接続時または切断時</string>
+    <string name="action_stream_volume">チャンネル音量</string>
+    <string name="action_stream_volume_sub">任意のサウンドチャンネルを正確に設定</string>
+    <string name="section_exit_behavior">タスク終了時</string>
+    <string name="exit_revert_label">元の状態に戻す</string>
+    <string name="exit_revert_sub">タスク実行前の状態に戻ります</string>
+    <string name="exit_nothing_sub">何も起こりません — タスクは単に終了します</string>
+    <string name="trigger_ringer">サウンドモード</string>
+    <string name="trigger_ringer_sub">サウンドモードが変わったとき</string>
 </resources>

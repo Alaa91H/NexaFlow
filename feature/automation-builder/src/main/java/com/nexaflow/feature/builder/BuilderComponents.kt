@@ -440,4 +440,12 @@ object PermissionShortcuts {
             context.startActivity(Intent(Settings.ACTION_SETTINGS))
         }
     }
+
+    fun openBluetoothSettings(context: Context) {
+        try {
+            context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+        } catch (_: Throwable) {
+            context.startActivity(Intent(Settings.ACTION_SETTINGS))
+        }
+    }
 }

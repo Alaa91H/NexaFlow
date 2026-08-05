@@ -31,4 +31,6 @@
     <string name="trigger_location">स्थान</string>
     <string name="trigger_sms">SMS</string>
     <string name="trigger_battery">बैटरी</string>
+    <string name="trigger_bluetooth">ब्लूटूथ डिवाइस</string>
+    <string name="trigger_ringer">ध्वनि मोड</string>
 </resources>

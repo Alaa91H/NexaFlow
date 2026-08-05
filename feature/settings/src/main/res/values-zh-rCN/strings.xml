@@ -67,4 +67,6 @@
     <string name="notification_monitoring_sub">前台服务通知</string>
     <string name="notifications_off_hint">通知已禁用。重新打开主开关以恢复通知。</string>
     <string name="notifications_global_note">这些设置仅影响 NexaFlow 发送的通知。应用通知可在系统设置中管理。</string>
+    <string name="bluetooth_permission">蓝牙权限</string>
+    <string name="bluetooth_permission_sub">检测已配对设备（耳机等）所必需</string>
 </resources>

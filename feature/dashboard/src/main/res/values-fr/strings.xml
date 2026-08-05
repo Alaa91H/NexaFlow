@@ -31,4 +31,6 @@
     <string name="trigger_location">Position</string>
     <string name="trigger_sms">SMS</string>
     <string name="trigger_battery">Batterie</string>
+    <string name="trigger_bluetooth">Appareil Bluetooth</string>
+    <string name="trigger_ringer">Mode sonore</string>
 </resources>

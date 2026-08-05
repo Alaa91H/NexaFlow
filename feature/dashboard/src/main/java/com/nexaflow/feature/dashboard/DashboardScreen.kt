@@ -336,4 +336,6 @@ private fun triggerLabel(type: TriggerType): Int = when (type) {
     TriggerType.CONNECTIVITY -> R.string.trigger_connectivity
     TriggerType.LOCATION -> R.string.trigger_location
     TriggerType.SMS -> R.string.trigger_sms
+    TriggerType.BLUETOOTH_DEVICE -> R.string.trigger_bluetooth
+    TriggerType.RINGER_MODE -> R.string.trigger_ringer
 }

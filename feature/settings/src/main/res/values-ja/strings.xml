@@ -67,4 +67,6 @@
     <string name="notification_monitoring_sub">フォアグラウンドサービスの通知</string>
     <string name="notifications_off_hint">通知は無効です。マスタースイッチをオンに戻すと復元されます。</string>
     <string name="notifications_global_note">これらの設定は NexaFlow が送信する通知のみに影響します。アプリの通知はシステム設定で管理できます。</string>
+    <string name="bluetooth_permission">Bluetooth 権限</string>
+    <string name="bluetooth_permission_sub">ペアリング済みデバイス（ヘッドホンなど）の検出に必要</string>
 </resources>

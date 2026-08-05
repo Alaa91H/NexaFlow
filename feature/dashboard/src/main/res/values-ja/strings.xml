@@ -31,4 +31,6 @@
     <string name="trigger_location">位置情報</string>
     <string name="trigger_sms">SMS</string>
     <string name="trigger_battery">バッテリー</string>
+    <string name="trigger_bluetooth">Bluetooth デバイス</string>
+    <string name="trigger_ringer">サウンドモード</string>
 </resources>

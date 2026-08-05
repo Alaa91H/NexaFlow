@@ -18,6 +18,8 @@ fun AutomationEntity.toDomain(): Automation {
         enabled = enabled,
         triggers = converters.toTriggerList(triggersJson),
         actions = converters.toActionList(actionsJson),
+        exitActions = converters.toActionList(exitActionsJson),
+        revertOnExit = revertOnExit,
         createdAt = createdAt,
         updatedAt = updatedAt
     )
@@ -37,6 +39,8 @@ fun Automation.toEntity(): AutomationEntity {
         enabled = enabled,
         triggersJson = converters.fromTriggerList(triggers),
         actionsJson = converters.fromActionList(actions),
+        exitActionsJson = converters.fromActionList(exitActions),
+        revertOnExit = revertOnExit,
         createdAt = createdAt,
         updatedAt = updatedAt
     )

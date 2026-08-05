@@ -31,6 +31,7 @@ class BatteryMonitor @Inject constructor(
     private var alertedLow = false
     private var alertedChargeComplete = false
     private val firedAbove = mutableSetOf<String>()
+    private val lastRunAt = mutableMapOf<String, Long>()
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(receiverContext: Context, intent: Intent) {
@@ -75,10 +76,13 @@ class BatteryMonitor @Inject constructor(
                     val crossed = if (direction == "BELOW") level <= threshold else level >= threshold
                     if (crossed) {
                         if (firedAbove.add(automation.id)) {
+                            lastRunAt[automation.id] = System.currentTimeMillis()
                             executionEngine.runAutomation(automation)
                         }
                     } else {
-                        firedAbove.remove(automation.id)
+                        if (firedAbove.remove(automation.id)) {
+                            executionEngine.runExit(automation)
+                        }
                     }
                 }
 

@@ -67,4 +67,6 @@
     <string name="notification_monitoring_sub">Ön plan hizmeti bildirimi</string>
     <string name="notifications_off_hint">Bildirimler devre dışı. Geri yüklemek için ana anahtarı tekrar açın.</string>
     <string name="notifications_global_note">Bu ayarlar yalnızca NexaFlow\'un gönderdiği bildirimleri etkiler. Uygulama bildirimleri sistem ayarlarından yönetilebilir.</string>
+    <string name="bluetooth_permission">Bluetooth izni</string>
+    <string name="bluetooth_permission_sub">Eşleştirilmiş cihazları (kulaklık vb.) algılamak için gerekli</string>
 </resources>

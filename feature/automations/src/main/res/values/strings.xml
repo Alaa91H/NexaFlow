@@ -117,4 +117,14 @@
     <string name="action_root_sub">Run via root</string>
     <string name="enabled">Enabled</string>
     <string name="edit">Edit</string>
+    <string name="trigger_bluetooth">Bluetooth device</string>
+    <string name="trigger_bluetooth_sub">When a device connects or disconnects</string>
+    <string name="action_stream_volume">Channel volume</string>
+    <string name="action_stream_volume_sub">Set any sound channel precisely</string>
+    <string name="section_exit_behavior">When the task ends</string>
+    <string name="exit_revert_label">Restore original state</string>
+    <string name="exit_revert_sub">The device returns to its state before the task ran</string>
+    <string name="exit_nothing_sub">Nothing happens - the task simply ends</string>
+    <string name="trigger_ringer">Sound mode</string>
+    <string name="trigger_ringer_sub">When the sound mode changes</string>
 </resources>

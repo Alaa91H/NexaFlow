@@ -24,9 +24,15 @@ class ExecutionEngine(
     private val notificationPreferences: NotificationPreferences
 ) {
 
+    /** Snapshots captured for automations with revertOnExit, keyed by automation id. */
+    private val snapshots = java.util.concurrent.ConcurrentHashMap<String, DeviceStateSnapshot>()
+
     suspend fun runAutomation(automation: Automation): ExecutionRecord {
         val controller = RomIntegrationManager.controller(context)
         val notif = notificationPreferences.settings.first()
+        if (automation.revertOnExit) {
+            snapshots[automation.id] = DeviceStateSnapshot.capture(context)
+        }
         val results = automation.actions.map { executeAction(it, controller, notif) }
         // Actions are executed sequentially, so a SYSTEM_WAIT action placed anywhere
         // pauses the chain for the configured duration (counter mode).
@@ -41,6 +47,43 @@ class ExecutionEngine(
         historyRepository.recordExecution(record)
         context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
         return record
+    }
+
+    /**
+     * Runs the exit behavior of a task when its condition stops being true:
+     * either restores the device to its pre-run state (revertOnExit) or runs
+     * the configured exit actions. Records the run in history as well.
+     */
+    suspend fun runExit(automation: Automation): ExecutionRecord {
+        val controller = RomIntegrationManager.controller(context)
+        val notif = notificationPreferences.settings.first()
+        val results = if (automation.revertOnExit) {
+            val snapshot = snapshots.remove(automation.id)
+            if (snapshot != null) {
+                snapshot.restore(context)
+                listOf(SystemControlResult.ok("Restored original state"))
+            } else {
+                listOf(SystemControlResult.ok("Nothing to restore"))
+            }
+        } else {
+            automation.exitActions.map { executeAction(it, controller, notif) }
+        }
+        val record = ExecutionRecord(
+            id = UUID.randomUUID().toString(),
+            automationId = automation.id,
+            automationName = automation.name,
+            success = results.all { it.success },
+            message = buildMessage(results),
+            executedAt = System.currentTimeMillis()
+        )
+        historyRepository.recordExecution(record)
+        context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
+        return record
+    }
+
+    /** Discards any stored snapshot (e.g. when the automation is deleted). */
+    fun clearSnapshot(automationId: String) {
+        snapshots.remove(automationId)
     }
 
     private suspend fun executeAction(
@@ -58,6 +101,11 @@ class ExecutionEngine(
                 controller.setBrightness(action.config["value"]?.toIntOrNull() ?: 128)
             ActionType.SYSTEM_VOLUME ->
                 controller.setVolume(AudioManager.STREAM_MUSIC, action.config["value"]?.toIntOrNull() ?: 50)
+            ActionType.SYSTEM_STREAM_VOLUME ->
+                controller.setVolume(
+                    AudioStreams.streamId(action.config["stream"] ?: "MUSIC"),
+                    action.config["value"]?.toIntOrNull() ?: 50
+                )
             ActionType.SYSTEM_DND ->
                 controller.setDoNotDisturb(action.config["enabled"]?.toBoolean() ?: true)
             ActionType.SYSTEM_SCREEN_ROTATION ->

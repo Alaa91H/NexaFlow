@@ -27,6 +27,8 @@ class AppTriggerAccessibilityService : AccessibilityService() {
 
     private var lastPackage: String? = null
     private val lastRunAt = mutableMapOf<String, Long>()
+    /** Automations currently triggered by a foreground app (for exit behavior). */
+    private val activeApps = mutableMapOf<String, String>()
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
@@ -39,15 +41,20 @@ class AppTriggerAccessibilityService : AccessibilityService() {
             val now = System.currentTimeMillis()
             automations
                 .filter { automation ->
-                    automation.enabled && automation.triggers.any { trigger ->
-                        trigger.type == TriggerType.APPLICATION && trigger.matchesPackage(packageName)
-                    }
+                    automation.enabled && automation.triggers.any { it.type == TriggerType.APPLICATION }
                 }
                 .forEach { automation ->
-                    val last = lastRunAt[automation.id] ?: 0L
-                    if (now - last > COOLDOWN_MS) {
-                        lastRunAt[automation.id] = now
-                        executionEngine.runAutomation(automation)
+                    val matches = automation.triggers.any { it.matchesPackage(packageName) }
+                    if (matches) {
+                        val last = lastRunAt[automation.id] ?: 0L
+                        if (now - last > COOLDOWN_MS) {
+                            lastRunAt[automation.id] = now
+                            activeApps[automation.id] = packageName
+                            executionEngine.runAutomation(automation)
+                        }
+                    } else if (activeApps.remove(automation.id) != null) {
+                        // The foreground app changed: the condition ended, fire exit.
+                        executionEngine.runExit(automation)
                     }
                 }
         }

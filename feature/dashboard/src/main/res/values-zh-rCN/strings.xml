@@ -31,4 +31,6 @@
     <string name="trigger_location">位置</string>
     <string name="trigger_sms">短信</string>
     <string name="trigger_battery">电池</string>
+    <string name="trigger_bluetooth">蓝牙设备</string>
+    <string name="trigger_ringer">声音模式</string>
 </resources>

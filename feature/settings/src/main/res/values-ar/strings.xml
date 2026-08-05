@@ -67,4 +67,6 @@
     <string name="notification_monitoring_sub">إشعار الخدمة الأمامية</string>
     <string name="notifications_off_hint">الإشعارات معطلة. أعد تفعيل المفتاح الرئيسي لاستعادتها.</string>
     <string name="notifications_global_note">تؤثر هذه الإعدادات فقط على الإشعارات التي ترسلها NexaFlow. يمكن إدارة إشعارات التطبيق من إعدادات النظام.</string>
+    <string name="bluetooth_permission">إذن البلوتوث</string>
+    <string name="bluetooth_permission_sub">مطلوب لاكتشاف الأجهزة المقترنة (سماعات، إلخ)</string>
 </resources>

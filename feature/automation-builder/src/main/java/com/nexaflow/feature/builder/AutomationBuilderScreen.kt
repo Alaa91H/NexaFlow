@@ -63,6 +63,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -120,7 +121,7 @@ data class ActionOption(
     val category: ActionCategory
 )
 
-private val actionOptions = listOf(
+internal val actionOptions = listOf(
     // DISPLAY
     ActionOption(R.string.action_brightness, R.string.action_brightness_sub, Icons.Filled.FlashOn, Color(0xFF1B62B7), ActionType.SYSTEM_BRIGHTNESS, ActionCategory.DISPLAY),
     ActionOption(R.string.action_rotation, R.string.action_rotation_sub, Icons.Filled.ScreenRotation, Color(0xFF13A5A8), ActionType.SYSTEM_SCREEN_ROTATION, ActionCategory.DISPLAY),
@@ -130,6 +131,7 @@ private val actionOptions = listOf(
     ActionOption(R.string.action_dark_mode, R.string.action_dark_mode_sub, Icons.Filled.DarkMode, Color(0xFF7A5BD1), ActionType.SYSTEM_DARK_MODE, ActionCategory.DISPLAY),
     // SOUND
     ActionOption(R.string.action_volume, R.string.action_volume_sub, Icons.AutoMirrored.Filled.VolumeUp, Color(0xFF7A5BD1), ActionType.SYSTEM_VOLUME, ActionCategory.SOUND),
+    ActionOption(R.string.action_stream_volume, R.string.action_stream_volume_sub, Icons.AutoMirrored.Filled.VolumeUp, Color(0xFF7A5BD1), ActionType.SYSTEM_STREAM_VOLUME, ActionCategory.SOUND),
     ActionOption(R.string.action_ringer, R.string.action_ringer_sub, Icons.AutoMirrored.Filled.VolumeUp, Color(0xFF7A5BD1), ActionType.SYSTEM_RINGER_MODE, ActionCategory.SOUND),
     ActionOption(R.string.action_dnd, R.string.action_dnd_sub, Icons.Filled.DoNotDisturb, Color(0xFFE5533D), ActionType.SYSTEM_DND, ActionCategory.SOUND),
     // CONNECTIVITY
@@ -177,7 +179,7 @@ private val actionOptions = listOf(
     ActionOption(R.string.action_root, R.string.action_root_sub, Icons.Filled.Terminal, Color(0xFFE5533D), ActionType.ADVANCED_ROOT, ActionCategory.ADVANCED)
 )
 
-private val actionCategories: List<ActionCategory> = ActionCategory.entries.toList()
+internal val actionCategories: List<ActionCategory> = ActionCategory.entries.toList()
 
 private fun TriggerType.summaryLabelRes(): Int = when (this) {
     TriggerType.TIME -> R.string.trigger_type_time
@@ -187,6 +189,8 @@ private fun TriggerType.summaryLabelRes(): Int = when (this) {
     TriggerType.CONNECTIVITY -> R.string.trigger_type_connectivity
     TriggerType.LOCATION -> R.string.trigger_type_location
     TriggerType.SMS -> R.string.trigger_type_sms
+    TriggerType.BLUETOOTH_DEVICE -> R.string.trigger_type_bluetooth
+    TriggerType.RINGER_MODE -> R.string.trigger_type_ringer
 }
 
 /** Samsung-style live "IF … THEN …" summary shown while building a routine. */
@@ -407,8 +411,13 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
     var selectedIconIndex by remember { mutableStateOf(0) }
     var appPickerTarget by remember { mutableStateOf<String?>(null) }
     var mapPickerTarget by remember { mutableStateOf<Int?>(null) }
+    var bluetoothPickerTarget by remember { mutableStateOf<Int?>(null) }
     val actionConfigs = remember { mutableStateMapOf<ActionType, Map<String, String>>() }
     val selectedActions = remember { mutableStateListOf<ActionOption>() }
+    var revertOnExit by remember { mutableStateOf(false) }
+    val exitActionConfigs = remember { mutableStateMapOf<ActionType, Map<String, String>>() }
+    val selectedExitActions = remember { mutableStateListOf<ActionOption>() }
+    var showExitPicker by remember { mutableStateOf(false) }
 
     // Edit mode: load the existing automation once and pre-fill the drafts.
     LaunchedEffect(automationId) {
@@ -428,6 +437,15 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
             actionOptions.find { it.actionType == action.type }?.let { option ->
                 selectedActions.add(option)
                 actionConfigs[option.actionType] = action.config
+            }
+        }
+        revertOnExit = loaded.revertOnExit
+        selectedExitActions.clear()
+        exitActionConfigs.clear()
+        loaded.exitActions.forEach { action ->
+            actionOptions.find { it.actionType == action.type }?.let { option ->
+                selectedExitActions.add(option)
+                exitActionConfigs[option.actionType] = action.config
             }
         }
     }
@@ -476,11 +494,14 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
             Trigger(draft.type, draft.config)
         }
         val actions = selectedActions.map { Action(it.actionType, actionConfigs[it.actionType] ?: emptyMap()) }
+        val exitActions = selectedExitActions.map { Action(it.actionType, exitActionConfigs[it.actionType] ?: emptyMap()) }
         viewModel.saveAutomation(
             name = name,
             icon = NexaFlowIcons.all[selectedIconIndex].first,
             triggers = builtTriggers,
-            actions = actions
+            actions = actions,
+            exitActions = exitActions,
+            revertOnExit = revertOnExit
         )
         if (closeAfterSave) {
             navController.popBackStack()
@@ -604,6 +625,7 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                         },
                         onRemove = { triggers.removeAt(index) },
                         onPickApp = { appPickerTarget = "trigger:$index" },
+                        onPickBluetooth = { bluetoothPickerTarget = index },
                         onPickFromMap = {
                             mapPickerTarget = index
                             try {
@@ -673,11 +695,157 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                         color = MaterialTheme.colorScheme.secondary
                     )
                 }
+                SectionHeader(
+                    text = stringResource(R.string.section_exit_behavior),
+                    trailing = {
+                        IconButton(onClick = { showExitPicker = true }) {
+                            Icon(
+                                imageVector = Icons.Filled.Add,
+                                contentDescription = stringResource(R.string.add_exit_action)
+                            )
+                        }
+                    }
+                )
+                NexaFlowCard {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = stringResource(R.string.exit_behavior_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = stringResource(R.string.exit_revert_label),
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Switch(
+                                checked = revertOnExit,
+                                onCheckedChange = { revertOnExit = it }
+                            )
+                        }
+                        if (revertOnExit) {
+                            Text(
+                                text = stringResource(R.string.exit_revert_sub),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        } else if (selectedExitActions.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.exit_nothing_sub),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        } else {
+                            selectedExitActions.forEach { option ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = stringResource(option.titleRes),
+                                        modifier = Modifier.weight(1f),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    IconButton(onClick = {
+                                        selectedExitActions.remove(option)
+                                        exitActionConfigs.remove(option.actionType)
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Close,
+                                            contentDescription = stringResource(R.string.remove_action),
+                                            tint = MaterialTheme.colorScheme.secondary
+                                        )
+                                    }
+                                }
+                                val config = exitActionConfigs[option.actionType] ?: emptyMap()
+                                ActionConfigEditor(
+                                    option = option,
+                                    config = config,
+                                    onConfigChange = { exitActionConfigs[option.actionType] = it },
+                                    onPickApp = { appPickerTarget = "exit:${option.actionType.name}" }
+                                )
+                                Spacer(modifier = Modifier.padding(top = 4.dp))
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
+    if (showExitPicker) {
+        ExitActionPickerDialog(
+            alreadySelected = selectedExitActions.toList(),
+            onPick = { option ->
+                if (option !in selectedExitActions) {
+                    selectedExitActions.add(option)
+                }
+                showExitPicker = false
+            },
+            onDismiss = { showExitPicker = false }
+        )
+    }
+
+    bluetoothPickerTarget?.let { index ->
+        if (index in triggers.indices) {
+            BluetoothDevicePickerDialog(
+                onPick = { device ->
+                    triggers[index] = triggers[index].copy(
+                        config = mapOf(
+                            "deviceName" to device.name,
+                            "deviceAddress" to device.address,
+                            "event" to (triggers[index].config["event"] ?: "CONNECTED")
+                        )
+                    )
+                    bluetoothPickerTarget = null
+                },
+                onDismiss = { bluetoothPickerTarget = null }
+            )
+        } else {
+            bluetoothPickerTarget = null
+        }
+    }
+
     appPickerTarget?.let { target ->
+        val exitActionName = target.removePrefix("exit:")
+        if (exitActionName != target) {
+            val exitType = ActionType.entries.firstOrNull { it.name == exitActionName }
+            if (exitType == ActionType.SYSTEM_OPEN_APP) {
+                AppPickerDialog(
+                    onPickSingle = { app ->
+                        val existing = exitActionConfigs[ActionType.SYSTEM_OPEN_APP]
+                        val current = (existing?.get("packages") ?: existing?.get("package") ?: "")
+                            .split(',')
+                            .map { it.trim() }
+                            .filter { it.isNotEmpty() }
+                        val merged = (current + app.packageName).distinct()
+                        exitActionConfigs[ActionType.SYSTEM_OPEN_APP] = mapOf("packages" to merged.joinToString(","))
+                        appPickerTarget = null
+                    },
+                    onPickMultiple = { packages ->
+                        exitActionConfigs[ActionType.SYSTEM_OPEN_APP] = mapOf("packages" to packages.joinToString(",") { it.packageName })
+                        appPickerTarget = null
+                    },
+                    multiSelect = true,
+                    onDismiss = { appPickerTarget = null }
+                )
+            } else if (exitType != null) {
+                AppPickerDialog(
+                    onPickSingle = { app ->
+                        exitActionConfigs[exitType] = mapOf("package" to app.packageName)
+                        appPickerTarget = null
+                    },
+                    onDismiss = { appPickerTarget = null }
+                )
+            } else {
+                appPickerTarget = null
+            }
+            return@let
+        }
         val triggerIndex = target.removePrefix("trigger:").toIntOrNull()
         if (triggerIndex != null) {
             AppPickerDialog(

@@ -27,6 +27,18 @@ class DeviceEventMonitor @Inject constructor(
     private var registered = false
 
     private val lastRunAt = mutableMapOf<String, Long>()
+    /** Automations currently in their triggered state (to fire exit on the opposite event). */
+    private val activeStates = mutableMapOf<String, String>()
+
+    /** The event that ends the "active" phase of each device event. */
+    private val oppositeEvent = mapOf(
+        "SCREEN_ON" to "SCREEN_OFF",
+        "SCREEN_OFF" to "SCREEN_ON",
+        "POWER_CONNECTED" to "POWER_DISCONNECTED",
+        "POWER_DISCONNECTED" to "POWER_CONNECTED",
+        "HEADSET_CONNECTED" to "HEADSET_DISCONNECTED",
+        "HEADSET_DISCONNECTED" to "HEADSET_CONNECTED"
+    )
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(receiverContext: Context, intent: Intent) {
@@ -74,15 +86,23 @@ class DeviceEventMonitor @Inject constructor(
             val now = System.currentTimeMillis()
             automations
                 .filter { automation ->
-                    automation.enabled && automation.triggers.any { trigger ->
-                        trigger.type == TriggerType.DEVICE && trigger.config["event"] == event
-                    }
+                    automation.enabled && automation.triggers.any { it.type == TriggerType.DEVICE }
                 }
                 .forEach { automation ->
-                    val last = lastRunAt[automation.id] ?: 0L
-                    if (now - last > COOLDOWN_MS) {
-                        lastRunAt[automation.id] = now
-                        executionEngine.runAutomation(automation)
+                    val triggerEvent = automation.triggers.first { it.type == TriggerType.DEVICE }
+                        .config["event"] ?: "SCREEN_ON"
+                    if (triggerEvent == event) {
+                        val last = lastRunAt[automation.id] ?: 0L
+                        if (now - last > COOLDOWN_MS) {
+                            lastRunAt[automation.id] = now
+                            activeStates[automation.id] = event
+                            executionEngine.runAutomation(automation)
+                        }
+                    } else if (oppositeEvent[triggerEvent] == event) {
+                        // The condition ended: fire the exit behavior once.
+                        if (activeStates.remove(automation.id) != null) {
+                            executionEngine.runExit(automation)
+                        }
                     }
                 }
         }

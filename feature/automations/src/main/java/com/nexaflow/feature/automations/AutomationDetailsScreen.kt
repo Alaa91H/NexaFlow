@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.NotificationImportant
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Schedule
@@ -201,6 +202,27 @@ fun AutomationDetailsScreen(navController: NavController) {
                         }
                     }
                 }
+                SectionHeader(text = stringResource(R.string.section_exit_behavior))
+                NexaFlowCard {
+                    if (current.revertOnExit) {
+                        SettingRow(
+                            icon = Icons.Filled.Security,
+                            title = stringResource(R.string.exit_revert_label),
+                            subtitle = stringResource(R.string.exit_revert_sub)
+                        )
+                    } else if (current.exitActions.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.exit_nothing_sub),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    } else {
+                        current.exitActions.forEach { action ->
+                            val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
+                            SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes))
+                        }
+                    }
+                }
                 Button(
                     onClick = { viewModel.runNow() },
                     enabled = !running,
@@ -225,6 +247,8 @@ private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector
     TriggerType.CONNECTIVITY -> Triple(R.string.trigger_connectivity, R.string.trigger_connectivity_sub, Icons.Filled.Wifi)
     TriggerType.LOCATION -> Triple(R.string.trigger_location, R.string.trigger_location_sub, Icons.Filled.Place)
     TriggerType.SMS -> Triple(R.string.trigger_sms, R.string.trigger_sms_sub, Icons.Filled.NotificationImportant)
+    TriggerType.BLUETOOTH_DEVICE -> Triple(R.string.trigger_bluetooth, R.string.trigger_bluetooth_sub, Icons.Filled.Bluetooth)
+    TriggerType.RINGER_MODE -> Triple(R.string.trigger_ringer, R.string.trigger_ringer_sub, Icons.Filled.NotificationsActive)
 }
 
 /** Human-readable trigger detail (e.g. battery direction, time range, repeat mode). */
@@ -247,6 +271,9 @@ private fun triggerDetail(config: Map<String, String>): String {
         config["network"]?.let { add(it.lowercase()) }
         config["event"]?.let { add(it.lowercase()) }
         config["from"]?.takeIf { it.isNotBlank() }?.let { add("from $it") }
+        config["deviceName"]?.takeIf { it.isNotBlank() }?.let { add(it) }
+        config["stream"]?.let { add(it.lowercase()) }
+        config["mode"]?.let { add(it.lowercase()) }
     }
     return parts.joinToString(", ").ifEmpty { "default" }
 }
@@ -254,6 +281,7 @@ private fun triggerDetail(config: Map<String, String>): String {
 private fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (type) {
     ActionType.SYSTEM_BRIGHTNESS -> Triple(R.string.action_brightness, R.string.action_brightness_sub, Icons.Filled.FlashOn)
     ActionType.SYSTEM_VOLUME -> Triple(R.string.action_volume, R.string.action_volume_sub, Icons.AutoMirrored.Filled.VolumeUp)
+    ActionType.SYSTEM_STREAM_VOLUME -> Triple(R.string.action_stream_volume, R.string.action_stream_volume_sub, Icons.AutoMirrored.Filled.VolumeUp)
     ActionType.SYSTEM_DND -> Triple(R.string.action_dnd, R.string.action_dnd_sub, Icons.Filled.DoNotDisturb)
     ActionType.SYSTEM_SCREEN_ROTATION -> Triple(R.string.action_rotation, R.string.action_rotation_sub, Icons.Filled.ScreenRotation)
     ActionType.SYSTEM_OPEN_APP -> Triple(R.string.action_open_apps, R.string.action_open_apps_sub, Icons.Filled.Apps)

@@ -30,6 +30,8 @@ class LocationMonitor @Inject constructor(
     private var listening = false
     private val insideByAutomation = mutableMapOf<String, Boolean>()
     private val lastRunAt = mutableMapOf<String, Long>()
+    /** Automations currently in their triggered state (to fire exit when leaving). */
+    private val activeStates = mutableMapOf<String, Boolean>()
 
     private val listener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
@@ -112,7 +114,19 @@ class LocationMonitor @Inject constructor(
                     }
                     if (shouldRun && now - (lastRunAt[automation.id] ?: 0L) > COOLDOWN_MS) {
                         lastRunAt[automation.id] = now
+                        activeStates[automation.id] = true
                         executionEngine.runAutomation(automation)
+                    }
+                    // Exit behavior: fire when the configured state (ENTER=inside, EXIT=outside) ends.
+                    val activeShouldEnd = when (event) {
+                        "ENTER" -> !inside && activeStates[automation.id] == true
+                        "EXIT" -> inside && activeStates[automation.id] == true
+                        else -> false
+                    }
+                    if (activeShouldEnd && now - (lastRunAt[automation.id] ?: 0L) > COOLDOWN_MS) {
+                        lastRunAt[automation.id] = now
+                        activeStates.remove(automation.id)
+                        executionEngine.runExit(automation)
                     }
                     insideByAutomation[automation.id] = inside
                 }

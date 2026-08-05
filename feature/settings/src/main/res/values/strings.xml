@@ -67,4 +67,6 @@
     <string name="notification_monitoring_sub">Foreground service notification</string>
     <string name="notifications_off_hint">Notifications are disabled. Turn the master switch back on to restore them.</string>
     <string name="notifications_global_note">These settings affect only notifications posted by NexaFlow. App notifications can be managed in system settings.</string>
+    <string name="bluetooth_permission">Bluetooth permission</string>
+    <string name="bluetooth_permission_sub">Needed to detect paired devices (headphones, etc.)</string>
 </resources>
