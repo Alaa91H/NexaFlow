@@ -52,13 +52,20 @@ fun AppPickerDialog(
     onPickSingle: (InstalledApp) -> Unit,
     onDismiss: () -> Unit,
     onPickMultiple: ((List<InstalledApp>) -> Unit)? = null,
-    multiSelect: Boolean = false
+    multiSelect: Boolean = false,
+    preSelectedPackages: List<String> = emptyList()
 ) {
     val context = LocalContext.current
     val allApps = remember { loadAllApps(context) }
     var query by remember { mutableStateOf("") }
     var showSystem by remember { mutableStateOf(true) }
-    val selected = remember { mutableStateListOf<InstalledApp>() }
+    // Pre-check packages that are already selected so returning to the picker
+    // keeps the checkbox marked and lets the user add even more apps.
+    val selected = remember(allApps) {
+        mutableStateListOf<InstalledApp>().apply {
+            addAll(allApps.filter { it.packageName in preSelectedPackages })
+        }
+    }
 
     val filtered = allApps.filter { app ->
         (showSystem || !app.isSystemApp) &&
@@ -167,11 +174,6 @@ fun AppPickerDialog(
                                     text = app.label,
                                     style = MaterialTheme.typography.bodyLarge,
                                     fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                )
-                                Text(
-                                    text = app.packageName,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.secondary
                                 )
                             }
                             if (!multiSelect && isSelected) {

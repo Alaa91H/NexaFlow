@@ -5,4 +5,22 @@
     <string name="no_runs_subtitle">ستظهر عمليات تنفيذ الأتمتات هنا.</string>
     <string name="status_success">نجحت</string>
     <string name="status_failed">فشلت</string>
+    <string name="executed_via">عبر %1$s</string>
+    <string name="channel_root">الجذر</string>
+    <string name="channel_shizuku">شيزوكو</string>
+    <string name="channel_system_app">تطبيق النظام</string>
+    <string name="channel_adb">ADB</string>
+    <string name="channel_android">واجهة أندرويد</string>
+    <string name="channel_accessibility">إمكانية الوصول</string>
+    <string name="channel_unknown">غير معروف</string>
+    <string name="execution_details_title">تفاصيل التنفيذ</string>
+    <string name="execution_not_found_title">التنفيذ غير موجود</string>
+    <string name="execution_not_found_subtitle">سجل التنفيذ هذا لم يعد متوفراً.</string>
+    <string name="section_timeline">الخط الزمني</string>
+    <string name="no_timeline_detail">لم تُسجَّل تفاصيل لكل إجراء في هذا التشغيل.</string>
+    <string name="total_duration">الإجمالي</string>
+    <string name="duration_ms">مللي ثانية</string>
+    <string name="duration_s">ثانية</string>
+    <string name="action_restore_state">استعادة الحالة الأصلية</string>
+    <string name="action_unknown">إجراء غير معروف</string>
 </resources>

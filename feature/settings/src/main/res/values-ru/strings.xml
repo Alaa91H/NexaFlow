@@ -71,4 +71,17 @@
     <string name="bluetooth_permission_sub">Необходимо для обнаружения сопряжённых устройств (наушники и т. д.)</string>
     <string name="notification_access">Доступ к уведомлениям</string>
     <string name="notification_access_sub">Чтение и управление уведомлениями</string>
+    <string name="calendar_permission">Календарь</string>
+    <string name="calendar_permission_sub">Чтение событий для календарных триггеров</string>
+    <string name="execution_channel">Канал выполнения</string>
+    <string name="execution_channel_sub">Лучший провайдер для этого устройства, выбран автоматически</string>
+    <string name="channel_root">Root</string>
+    <string name="channel_shizuku">Shizuku</string>
+    <string name="channel_system_app">Системное приложение</string>
+    <string name="channel_adb">ADB</string>
+    <string name="channel_android">Android API</string>
+    <string name="channel_accessibility">Специальные возможности</string>
+    <string name="channel_none">Нет</string>
+    <string name="channel_detecting">Определение…</string>
+    <string name="refresh">Обновить</string>
 </resources>

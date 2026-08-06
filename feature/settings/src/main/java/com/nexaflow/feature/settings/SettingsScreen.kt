@@ -52,6 +52,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
+import com.nexaflow.core.compat.ChannelStatus
+import com.nexaflow.core.compat.ChannelStatusMapper
+import com.nexaflow.core.compat.ChannelTier
+import com.nexaflow.core.compat.ExecutionChannelSelector
 import com.nexaflow.core.engine.AppTriggerAccessibilityService
 import com.nexaflow.core.engine.MonitoringService
 import com.nexaflow.core.ui.NexaFlowCard
@@ -72,7 +76,21 @@ fun SettingsScreen(navController: NavController) {
     val snackbarHostState = remember { SnackbarHostState() }
     var accessibilityEnabled by remember { mutableStateOf(false) }
     var monitoringRunning by remember { mutableStateOf(false) }
+    var channelStatus by remember { mutableStateOf<ChannelStatus?>(null) }
     var showAbout by remember { mutableStateOf(false) }
+    val channelSelector = remember { ExecutionChannelSelector() }
+
+    fun refreshChannelStatus() {
+        // Single source of truth: the provider the selector picks for the live
+        // profile is passed straight into the mapper.
+        channelStatus = runCatching {
+            val profile = channelSelector.detect(context)
+            ChannelStatusMapper.map(
+                provider = channelSelector.selectFor(profile),
+                capabilityCount = profile.capabilities.size
+            )
+        }.getOrNull() ?: ChannelStatus.none()
+    }
     val stringBackupImportFailed = stringResource(R.string.backup_import_failed)
     val stringBackupExportFailed = stringResource(R.string.backup_export_failed)
     val stringShareBackupTitle = stringResource(R.string.share_backup_title)
@@ -137,11 +155,14 @@ fun SettingsScreen(navController: NavController) {
         }
     }
 
+    // ON_RESUME (replayed immediately when the observer is added while already
+    // resumed) drives the initial detection too — no separate LaunchedEffect.
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 accessibilityEnabled = AccessibilityStatus.isEnabled(context)
                 monitoringRunning = MonitoringService.isRunning
+                refreshChannelStatus()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -251,6 +272,10 @@ fun SettingsScreen(navController: NavController) {
             }
             item {
                 NexaFlowCard {
+                    ChannelStatusRow(
+                        status = channelStatus,
+                        onRefresh = { refreshChannelStatus() }
+                    )
                     SettingRow(
                         icon = Icons.Filled.Security,
                         title = stringResource(R.string.capability_center),

@@ -71,4 +71,17 @@
     <string name="bluetooth_permission_sub">مطلوب لاكتشاف الأجهزة المقترنة (سماعات، إلخ)</string>
     <string name="notification_access">الوصول إلى الإشعارات</string>
     <string name="notification_access_sub">قراءة الإشعارات وإدارتها</string>
+    <string name="calendar_permission">التقويم</string>
+    <string name="calendar_permission_sub">قراءة أحداثك لمشغلات التقويم</string>
+    <string name="execution_channel">قناة التنفيذ</string>
+    <string name="execution_channel_sub">أفضل موفّر لهذا الجهاز، يُختار تلقائياً</string>
+    <string name="channel_root">الجذر</string>
+    <string name="channel_shizuku">شيزوكو</string>
+    <string name="channel_system_app">تطبيق النظام</string>
+    <string name="channel_adb">ADB</string>
+    <string name="channel_android">واجهة أندرويد</string>
+    <string name="channel_accessibility">إمكانية الوصول</string>
+    <string name="channel_none">لا يوجد</string>
+    <string name="channel_detecting">جارٍ الكشف…</string>
+    <string name="refresh">تحديث</string>
 </resources>

@@ -2,6 +2,7 @@ package com.nexaflow.core.rom
 
 import android.content.pm.PackageManager
 import com.nexaflow.core.rom.model.SystemControlResult
+import com.nexaflow.core.security.SafeCommandBuilder
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuRemoteProcess
 
@@ -18,9 +19,11 @@ object PrivilegedRunner {
     fun isRootAvailable(): Boolean = SystemAppStatusDetector.isRootAvailable()
 
     fun runShell(command: String): SystemControlResult {
+        val safe = SafeCommandBuilder.validateUserCommand(command)
+            ?: return SystemControlResult.fail("Command rejected: unsafe characters or too long")
         return when {
-            isShizukuGranted() -> runShizuku(command)
-            isRootAvailable() -> runRoot(command)
+            isShizukuGranted() -> runShizuku(safe)
+            isRootAvailable() -> runRoot(safe)
             else -> SystemControlResult.fail("No elevated runtime available (Shizuku or root)")
         }
     }
@@ -30,8 +33,10 @@ object PrivilegedRunner {
         if (!isShizukuGranted()) {
             return SystemControlResult.fail("Shizuku is not granted. Open the Shizuku app and grant NexaFlow")
         }
+        val safe = SafeCommandBuilder.validateUserCommand(command)
+            ?: return SystemControlResult.fail("Command rejected: unsafe characters or too long")
         return try {
-            val process = createShizukuProcess(arrayOf("sh", "-c", command), null, null)
+            val process = createShizukuProcess(arrayOf("sh", "-c", safe), null, null)
             val output = process.inputStream.bufferedReader().readText()
             val exit = process.waitFor()
             process.destroy()
@@ -75,8 +80,10 @@ object PrivilegedRunner {
         if (!isRootAvailable()) {
             return SystemControlResult.fail("Root is not available (no su binary)")
         }
+        val safe = SafeCommandBuilder.validateUserCommand(command)
+            ?: return SystemControlResult.fail("Command rejected: unsafe characters or too long")
         return try {
-            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", command))
+            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", safe))
             val output = process.inputStream.bufferedReader().readText()
             val exit = process.waitFor()
             process.destroy()

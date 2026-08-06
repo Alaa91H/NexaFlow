@@ -7,10 +7,14 @@ import android.content.IntentFilter
 import android.os.BatteryManager
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.compat.EventSource
+import com.nexaflow.core.execution.compat.TriggerSource
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
+import com.nexaflow.domain.schedule.BatteryTriggerMatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -23,14 +27,24 @@ class BatteryMonitor @Inject constructor(
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
     @ApplicationScope private val scope: CoroutineScope
-) {
+) : EventSource {
+
+    override val sourceId: String = TriggerSource.BATTERY.sourceId
+
+    override val description: String = "Battery level & charger events"
 
     @Volatile
     private var registered = false
 
     private var alertedLow = false
     private var alertedChargeComplete = false
-    private val firedAbove = mutableSetOf<String>()
+    /**
+     * Active battery-trigger keys. Level-only triggers (chargerType = ANY) use
+     * the plain automation id; charger-specific triggers use "automationId|plugType"
+     * so switching chargers re-fires. Thread-safe: battery broadcasts are
+     * handled concurrently on the application scope.
+     */
+    private val activeBatteryTriggers: MutableSet<String> = ConcurrentHashMap.newKeySet()
     private val lastRunAt = mutableMapOf<String, Long>()
 
     private val receiver = object : BroadcastReceiver() {
@@ -40,9 +54,12 @@ class BatteryMonitor @Inject constructor(
                 BatteryManager.EXTRA_STATUS,
                 BatteryManager.BATTERY_STATUS_UNKNOWN
             )
-            handleBatteryChange(level, status)
+            val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
+            handleBatteryChange(level, status, plugged)
         }
     }
+
+    override fun start() = initialize()
 
     fun initialize() {
         if (registered) return
@@ -50,7 +67,7 @@ class BatteryMonitor @Inject constructor(
         context.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
     }
 
-    fun stop() {
+    override fun stop() {
         if (!registered) return
         registered = false
         try {
@@ -60,27 +77,45 @@ class BatteryMonitor @Inject constructor(
         }
     }
 
-    private fun handleBatteryChange(level: Int, status: Int) {
+    private fun handleBatteryChange(level: Int, status: Int, plugged: Int) {
         if (level <= 0) return
         scope.launch {
             val automations = repository.getAutomations().first()
             automations.filter { it.enabled }.forEach { automation ->
                 // Battery trigger: fire when the level crosses the configured
-                // threshold (ABOVE or BELOW), once per crossing.
+                // threshold (ABOVE or BELOW) AND the charger type matches
+                // (AC / USB / WIRELESS / ANY). The active key includes the plug
+                // type so switching chargers (e.g. USB → wireless) re-fires.
                 val batteryTrigger = automation.triggers.firstOrNull {
                     it.type == TriggerType.BATTERY
                 }
                 if (batteryTrigger != null) {
-                    val threshold = batteryTrigger.config["above"]?.toIntOrNull() ?: 80
-                    val direction = batteryTrigger.config["direction"] ?: "ABOVE"
-                    val crossed = if (direction == "BELOW") level <= threshold else level >= threshold
-                    if (crossed) {
-                        if (firedAbove.add(automation.id)) {
+                    val config = batteryTrigger.config
+                    val plugType = BatteryTriggerMatcher.plugTypeName(plugged)
+                    val active = BatteryTriggerMatcher.isActive(config, level, plugged)
+                    // Level-only triggers keep one key per automation so they fire
+                    // once per crossing; charger-specific triggers key by plug type
+                    // so switching chargers (e.g. USB → wireless) re-fires.
+                    val key =
+                        if (BatteryTriggerMatcher.configuredChargerType(config) == BatteryTriggerMatcher.CHARGER_ANY) {
+                            automation.id
+                        } else {
+                            "${automation.id}|$plugType"
+                        }
+                    if (active) {
+                        if (activeBatteryTriggers.add(key)) {
                             lastRunAt[automation.id] = System.currentTimeMillis()
                             executionEngine.runAutomation(automation)
                         }
                     } else {
-                        if (firedAbove.remove(automation.id)) {
+                        val prefix = "${automation.id}|"
+                        val hadActive = activeBatteryTriggers.any {
+                            it == automation.id || it.startsWith(prefix)
+                        }
+                        if (hadActive) {
+                            activeBatteryTriggers.removeAll {
+                                it == automation.id || it.startsWith(prefix)
+                            }
                             executionEngine.runExit(automation)
                         }
                     }

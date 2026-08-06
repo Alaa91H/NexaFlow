@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="builder_title">Nova automação</string>
+    <string name="builder_title">Nova tarefa</string>
     <string name="save">Salvar</string>
     <string name="name">Nome</string>
     <string name="name_hint">ex.: Tarefa matinal</string>
@@ -31,12 +31,49 @@
     <string name="event">Evento</string>
     <string name="location_hint">Requer permissão de localização e uma localização atual</string>
     <string name="grant">Conceder</string>
+    <string name="permission_explain_title">Por que essa permissão é necessária?</string>
+    <string name="permission_continue">Continuar</string>
+    <string name="permission_not_now">Agora não</string>
+    <string name="permission_location_title">Acesso à localização</string>
+    <string name="permission_location_body">O NexaFlow usa sua localização para executar tarefas ao entrar ou sair de um local.</string>
+    <string name="permission_sms_title">Ler mensagens</string>
+    <string name="permission_sms_body">Permite que as tarefas reajam quando uma mensagem chega e respondam automaticamente.</string>
+    <string name="permission_send_sms_title">Enviar mensagens</string>
+    <string name="permission_send_sms_body">Permite que uma tarefa envie uma mensagem como uma de suas ações.</string>
+    <string name="permission_camera_title">Acesso à câmera</string>
+    <string name="permission_camera_body">A ação de lanterna usa o flash da câmera. Nenhuma foto é tirada.</string>
+    <string name="permission_notifications_title">Notificações</string>
+    <string name="permission_notifications_body">O NexaFlow envia uma notificação quando uma tarefa é executada, para você saber o que aconteceu.</string>
+    <string name="permission_bluetooth_title">Dispositivos próximos</string>
+    <string name="permission_bluetooth_body">Permite que as tarefas detectem quando o seu dispositivo Bluetooth escolhido conecta ou desconecta.</string>
+    <string name="permission_calendar_title">Acesso ao calendário</string>
+    <string name="permission_calendar_body">Permite que as tarefas sejam executadas em torno de eventos do calendário, como antes de uma reunião.</string>
+    <string name="permission_generic_title">Permissão necessária</string>
+    <string name="permission_generic_body">Esta permissão permite que a tarefa escolhida funcione como esperado.</string>
+    <string name="special_write_settings_title">Modificar configurações do sistema</string>
+    <string name="special_write_settings_body">O NexaFlow precisa disso para ajustar brilho, tempo de tela, rotação e mais enquanto suas tarefas são executadas.</string>
+    <string name="special_dnd_title">Acesso a Não perturbar</string>
+    <string name="special_dnd_body">Permite que suas tarefas silenciem notificações ou restaurem o som automaticamente.</string>
+    <string name="special_notification_access_title">Acesso a notificações</string>
+    <string name="special_notification_access_body">Permite que as tarefas leiam notificações de apps, reajam ou bloqueiem por você.</string>
+    <string name="special_accessibility_title">Serviço de acessibilidade</string>
+    <string name="special_accessibility_body">O NexaFlow usa para detectar quando apps abrem e fechá-los automaticamente.</string>
+    <string name="special_shizuku_title">Shizuku</string>
+    <string name="special_shizuku_body">Permite que tarefas avançadas controlem configurações do sistema sem root. Inicie o Shizuku e conceda acesso uma vez.</string>
+    <string name="special_root_title">Acesso root</string>
+    <string name="special_root_body">Permite que tarefas executem comandos que precisam de root (su). Conceda a solicitação de superusuário quando aparecer.</string>
+    <string name="special_elevated_title">Privilégios elevados</string>
+    <string name="special_elevated_body">Esta ação precisa de root, Shizuku ou privilégios de app do sistema para controlar configurações protegidas.</string>
+    <string name="special_bluetooth_title">Bluetooth</string>
+    <string name="special_bluetooth_body">O NexaFlow precisa do Bluetooth ativado para detectar dispositivos pareados e executar tarefas quando conectam.</string>
+
+
     <string name="battery_above">Bateria acima do limite</string>
     <string name="battery_above_sub">Executar apenas quando a bateria estiver acima do nível</string>
     <string name="minimum_battery">Bateria mínima: %1$d%%</string>
 
     <string name="section_actions">ENTÃO (AÇÕES)</string>
-    <string name="save_automation">Salvar automação</string>
+    <string name="save_automation">Salvar tarefa</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancelar</string>
     <string name="action_brightness">Brilho</string>
@@ -160,7 +197,6 @@
     <string name="repeat_once">Uma vez</string>
     <string name="repeat_daily">Diário</string>
     <string name="repeat_specific_days">Dias específicos</string>
-    <string name="repeat_specific_date">Data específica</string>
     <string name="repeat_date_range">Intervalo de datas</string>
     <string name="select_days">Selecionar dias</string>
     <string name="day_mon">Seg</string>
@@ -173,7 +209,6 @@
     <string name="start_date">Data inicial</string>
     <string name="end_date">Data final</string>
     <string name="date_range_invalid">A data final deve ser posterior à data inicial</string>
-    <string name="specific_date">Data</string>
     <string name="pick_date">Escolher data</string>
     <string name="pick_on_map">Escolher no mapa</string>
     <string name="sms_from">De (número)</string>
@@ -182,6 +217,8 @@
     <string name="sms_contains_hint">Texto para corresponder (vazio = qualquer)</string>
     <string name="sms_reply">Resposta automática (opcional)</string>
     <string name="sms_reply_hint">Uma resposta será enviada automaticamente</string>
+    <string name="permission_denied_hint">Permissão necessária para ativar este recurso</string>
+
     <string name="sms_permission_hint">Requer permissão de SMS para ler mensagens</string>
     <string name="notification_permission_hint">Requer permissão de notificações</string>
     <string name="action_ring_volume">Volume do toque</string>
@@ -226,11 +263,7 @@
     <string name="move_down">Mover para baixo</string>
     <string name="remove_action">Remover ação</string>
     <string name="quick_save">Salvar rapidamente</string>
-    <string name="saved_successfully">Automação salva</string>
-    <string name="summary_if">SE</string>
-    <string name="summary_then">ENTÃO</string>
-    <string name="summary_no_triggers">Adicionar um gatilho</string>
-    <string name="summary_no_actions">Adicionar uma ação</string>
+    <string name="saved_successfully">Tarefa salva</string>
     <string name="step_when">Quando</string>
     <string name="step_then">Então</string>
     <string name="next">Próximo</string>
@@ -270,6 +303,8 @@
     <string name="action_stream_volume_sub">Ajuste qualquer canal de som com precisão</string>
     <string name="section_exit_behavior">Quando a tarefa termina</string>
     <string name="exit_behavior_hint">O que acontece quando a condição deixa de ser verdadeira?</string>
+    <string name="exit_auto_reply_label">Resposta automática (SMS)</string>
+
     <string name="exit_revert_label">Restaurar estado original</string>
     <string name="exit_revert_sub">O dispositivo volta ao estado anterior à tarefa</string>
     <string name="exit_nothing_sub">Nada acontece — a tarefa simplesmente termina</string>
@@ -303,4 +338,36 @@
     <string name="action_clear_app_notifications">Limpar notificações do app</string>
     <string name="action_clear_app_notifications_sub">Dispensar notificações de um app específico</string>
     <string name="block_label">Bloquear</string>
+    <string name="trigger_type_calendar">Calendário</string>
+    <string name="trigger_calendar">Evento do calendário</string>
+    <string name="any_calendar">Qualquer calendário</string>
+    <string name="choose_calendar">Escolher um calendário</string>
+    <string name="no_calendars_found">Nenhum calendário encontrado</string>
+    <string name="calendar_contains">O evento contém</string>
+    <string name="calendar_contains_hint">ex. reunião, dentista (vazio = qualquer)</string>
+    <string name="calendar_event_start">Começa</string>
+    <string name="calendar_event_end">Termina</string>
+    <string name="calendar_event_created">Adicionado ao calendário</string>
+    <string name="calendar_before_none">No início do evento</string>
+    <string name="calendar_before_minutes">Antes do evento: %1$d min</string>
+    <string name="calendar_permission_hint">Requer permissão de calendário para ler eventos</string>
+    <string name="charger_type_label">Tipo de carregador</string>
+    <string name="charger_any">Qualquer</string>
+    <string name="charger_ac">CA / Parede</string>
+    <string name="charger_usb">USB</string>
+    <string name="charger_wireless">Sem fio</string>
+    <string name="revert_when_ends">Reverter ao terminar a tarefa</string>
+    <string name="device_screen_on">Tela ligada</string>
+    <string name="device_screen_off">Tela desligada</string>
+    <string name="device_power_connected">Carregamento iniciado</string>
+    <string name="device_power_disconnected">Carregamento parado</string>
+    <string name="device_headset_connected">Fone conectado</string>
+    <string name="device_headset_disconnected">Fone desconectado</string>
+    <string name="device_bluetooth">Dispositivo Bluetooth</string>
+    <string name="network_wifi">Wi-Fi</string>
+    <string name="network_mobile">Dados móveis</string>
+    <string name="state_connected">Conectado</string>
+    <string name="state_disconnected">Desconectado</string>
+    <string name="exit_revert_actions_label">Reverter ações selecionadas</string>
+    <string name="repeat_selected">Selecionado: %1$s</string>
 </resources>

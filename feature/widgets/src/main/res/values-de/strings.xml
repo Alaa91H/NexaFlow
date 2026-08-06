@@ -12,4 +12,36 @@
     <string name="how_to_sub">Ziehe das Schnellschalter- oder Statuskarten-Widget auf deinen Bildschirm.</string>
     <string name="section_tip">TIPP</string>
     <string name="tip_text">Widgets aktualisieren sich automatisch, wenn eine Automatisierung läuft oder sich ihr Status ändert.</string>
+
+    <string name="section_tiles">SCHNELLEINSTELLUNGEN-KACHELN</string>
+
+    <string name="tile_1_label">Aufgabe 1</string>
+
+    <string name="tile_2_label">Aufgabe 2</string>
+
+    <string name="tile_3_label">Aufgabe 3</string>
+
+    <string name="tile_4_label">Aufgabe 4</string>
+
+    <string name="tile_1_desc">Schalte die erste Aufgabe direkt über die Schnelleinstellungen.</string>
+
+    <string name="tile_2_desc">Schalte die zweite Aufgabe direkt über die Schnelleinstellungen.</string>
+
+    <string name="tile_3_desc">Schalte die dritte Aufgabe direkt über die Schnelleinstellungen.</string>
+
+    <string name="tile_4_desc">Schalte die vierte Aufgabe direkt über die Schnelleinstellungen.</string>
+
+    <string name="tile_add">Zu Schnelleinstellungen hinzufügen</string>
+
+    <string name="tile_requires_android_13">Erfordert Android 13+</string>
+
+    <string name="tile_controls">Steuert</string>
+
+    <string name="tile_automatic">Automatisch (erste aktive Aufgabe)</string>
+
+    <string name="tile_choose_task">Aufgabe auswählen</string>
+
+    <string name="tile_cancel">Abbrechen</string>
+
+    <string name="tile_unbound">Keine Aufgabe</string>
 </resources>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="builder_title">新しい自動化</string>
+    <string name="builder_title">新しいタスク</string>
     <string name="save">保存</string>
     <string name="name">名前</string>
     <string name="name_hint">例：朝のタスク</string>
@@ -31,12 +31,49 @@
     <string name="event">イベント</string>
     <string name="location_hint">位置情報の許可と現在地の特定が必要です</string>
     <string name="grant">許可</string>
+    <string name="permission_explain_title">この権限が必要な理由</string>
+    <string name="permission_continue">続ける</string>
+    <string name="permission_not_now">今はしない</string>
+    <string name="permission_location_title">位置情報へのアクセス</string>
+    <string name="permission_location_body">NexaFlowは場所への出入り時にタスクを実行するため、位置情報を使用します。</string>
+    <string name="permission_sms_title">メッセージを読む</string>
+    <string name="permission_sms_body">メッセージ到着時にタスクが反応し、自動返信できるようになります。</string>
+    <string name="permission_send_sms_title">メッセージを送信</string>
+    <string name="permission_send_sms_body">タスクがアクションの1つとしてメッセージを送信できるようになります。</string>
+    <string name="permission_camera_title">カメラへのアクセス</string>
+    <string name="permission_camera_body">懐中電灯アクションはカメラのフラッシュを使用します。写真は撮影されません。</string>
+    <string name="permission_notifications_title">通知</string>
+    <string name="permission_notifications_body">タスク実行時にNexaFlowから通知が届き、何が起こったか確認できます。</string>
+    <string name="permission_bluetooth_title">近くのデバイス</string>
+    <string name="permission_bluetooth_body">選択したBluetoothデバイスの接続・切断をタスクが検出できるようになります。</string>
+    <string name="permission_calendar_title">カレンダーへのアクセス</string>
+    <string name="permission_calendar_body">会議の開始前など、カレンダーの予定に合わせてタスクを実行できるようになります。</string>
+    <string name="permission_generic_title">権限が必要です</string>
+    <string name="permission_generic_body">この権限により、選択したタスクが期待どおり動作します。</string>
+    <string name="special_write_settings_title">システム設定の変更</string>
+    <string name="special_write_settings_body">タスク実行中に明るさや画面のタイムアウト、回転などを調整するために必要です。</string>
+    <string name="special_dnd_title">おやすみモードへのアクセス</string>
+    <string name="special_dnd_body">タスクが通知をミュートしたり、サウンドを自動的に復元したりできるようにします。</string>
+    <string name="special_notification_access_title">通知へのアクセス</string>
+    <string name="special_notification_access_body">タスクがアプリの通知を読み取り、反応し、またはブロックできるようにします。</string>
+    <string name="special_accessibility_title">ユーザー補助サービス</string>
+    <string name="special_accessibility_body">アプリの起動を検出して自動的に閉じるために使用します。</string>
+    <string name="special_shizuku_title">Shizuku</string>
+    <string name="special_shizuku_body">高度なタスクがrootなしでシステム設定を操作できるようにします。Shizukuを起動し、一度だけアクセスを許可してください。</string>
+    <string name="special_root_title">rootアクセス</string>
+    <string name="special_root_body">タスクがroot (su) を必要とするコマンドを実行できるようにします。表示されたらスーパーユーザー要求を許可してください。</string>
+    <string name="special_elevated_title">昇格した権限</string>
+    <string name="special_elevated_body">保護された設定を操作するには、root、Shizuku、またはシステムアプリの権限が必要です。</string>
+    <string name="special_bluetooth_title">Bluetooth</string>
+    <string name="special_bluetooth_body">ペアリング済みデバイスを検出し、接続時にタスクを実行するためにBluetoothの有効化が必要です。</string>
+
+
     <string name="battery_above">バッテリーがしきい値を超えている</string>
     <string name="battery_above_sub">バッテリーがレベルを超えている場合のみ実行</string>
     <string name="minimum_battery">最小バッテリー: %1$d%%</string>
 
     <string name="section_actions">次に（アクション）</string>
-    <string name="save_automation">自動化を保存</string>
+    <string name="save_automation">タスクを保存</string>
     <string name="ok">OK</string>
     <string name="cancel">キャンセル</string>
     <string name="action_brightness">明るさ</string>
@@ -160,7 +197,6 @@
     <string name="repeat_once">1回</string>
     <string name="repeat_daily">毎日</string>
     <string name="repeat_specific_days">指定日</string>
-    <string name="repeat_specific_date">特定日</string>
     <string name="repeat_date_range">日付範囲</string>
     <string name="select_days">曜日を選択</string>
     <string name="day_mon">月</string>
@@ -173,7 +209,6 @@
     <string name="start_date">開始日</string>
     <string name="end_date">終了日</string>
     <string name="date_range_invalid">終了日は開始日より後にしてください</string>
-    <string name="specific_date">日付</string>
     <string name="pick_date">日付を選択</string>
     <string name="pick_on_map">地図で選択</string>
     <string name="sms_from">送信元（番号）</string>
@@ -182,6 +217,8 @@
     <string name="sms_contains_hint">一致テキスト（空 = すべて）</string>
     <string name="sms_reply">自動返信（任意）</string>
     <string name="sms_reply_hint">自動的に返信が送信されます</string>
+    <string name="permission_denied_hint">この機能を有効にするには権限が必要です</string>
+
     <string name="sms_permission_hint">メッセージの読み取りには SMS 権限が必要です</string>
     <string name="notification_permission_hint">通知権限が必要です</string>
     <string name="action_ring_volume">着信音量</string>
@@ -226,11 +263,7 @@
     <string name="move_down">下へ移動</string>
     <string name="remove_action">アクションを削除</string>
     <string name="quick_save">クイック保存</string>
-    <string name="saved_successfully">自動化を保存しました</string>
-    <string name="summary_if">もし</string>
-    <string name="summary_then">それなら</string>
-    <string name="summary_no_triggers">トリガーを追加</string>
-    <string name="summary_no_actions">アクションを追加</string>
+    <string name="saved_successfully">タスクを保存しました</string>
     <string name="step_when">いつ</string>
     <string name="step_then">それから</string>
     <string name="next">次へ</string>
@@ -270,6 +303,8 @@
     <string name="action_stream_volume_sub">任意のサウンドチャンネルを正確に設定</string>
     <string name="section_exit_behavior">タスク終了時</string>
     <string name="exit_behavior_hint">条件が満たされなくなったらどうしますか?</string>
+    <string name="exit_auto_reply_label">自動返信（SMS）</string>
+
     <string name="exit_revert_label">元の状態に戻す</string>
     <string name="exit_revert_sub">タスク実行前の状態に戻ります</string>
     <string name="exit_nothing_sub">何も起こりません — タスクは単に終了します</string>
@@ -303,4 +338,36 @@
     <string name="action_clear_app_notifications">アプリの通知を消去</string>
     <string name="action_clear_app_notifications_sub">特定のアプリの通知を破棄</string>
     <string name="block_label">ブロック</string>
+    <string name="trigger_type_calendar">カレンダー</string>
+    <string name="trigger_calendar">カレンダーの予定</string>
+    <string name="any_calendar">すべてのカレンダー</string>
+    <string name="choose_calendar">カレンダーを選択</string>
+    <string name="no_calendars_found">カレンダーが見つかりません</string>
+    <string name="calendar_contains">予定に含まれる文字</string>
+    <string name="calendar_contains_hint">例: 会議、歯医者 (空欄 = すべて)</string>
+    <string name="calendar_event_start">開始時</string>
+    <string name="calendar_event_end">終了時</string>
+    <string name="calendar_event_created">予定が追加された時</string>
+    <string name="calendar_before_none">予定開始時</string>
+    <string name="calendar_before_minutes">予定の%1$d分前</string>
+    <string name="calendar_permission_hint">予定を読むにはカレンダーの権限が必要です</string>
+    <string name="charger_type_label">充電器の種類</string>
+    <string name="charger_any">すべて</string>
+    <string name="charger_ac">AC / 壁</string>
+    <string name="charger_usb">USB</string>
+    <string name="charger_wireless">ワイヤレス</string>
+    <string name="revert_when_ends">タスク終了時に元に戻す</string>
+    <string name="device_screen_on">画面オン</string>
+    <string name="device_screen_off">画面オフ</string>
+    <string name="device_power_connected">充電開始</string>
+    <string name="device_power_disconnected">充電停止</string>
+    <string name="device_headset_connected">ヘッドセット接続</string>
+    <string name="device_headset_disconnected">ヘッドセット切断</string>
+    <string name="device_bluetooth">Bluetoothデバイス</string>
+    <string name="network_wifi">Wi-Fi</string>
+    <string name="network_mobile">モバイルデータ</string>
+    <string name="state_connected">接続済み</string>
+    <string name="state_disconnected">切断済み</string>
+    <string name="exit_revert_actions_label">選択した操作を元に戻す</string>
+    <string name="repeat_selected">選択: %1$s</string>
 </resources>

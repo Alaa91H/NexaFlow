@@ -12,4 +12,36 @@
     <string name="how_to_sub">将“快速切换”或“状态卡片”小组件拖到屏幕上。</string>
     <string name="section_tip">提示</string>
     <string name="tip_text">每当自动化运行或其状态改变时，小组件会自动更新。</string>
+
+    <string name="section_tiles">快捷设置磁贴</string>
+
+    <string name="tile_1_label">任务 1</string>
+
+    <string name="tile_2_label">任务 2</string>
+
+    <string name="tile_3_label">任务 3</string>
+
+    <string name="tile_4_label">任务 4</string>
+
+    <string name="tile_1_desc">直接从快捷设置面板切换第一个任务。</string>
+
+    <string name="tile_2_desc">直接从快捷设置面板切换第二个任务。</string>
+
+    <string name="tile_3_desc">直接从快捷设置面板切换第三个任务。</string>
+
+    <string name="tile_4_desc">直接从快捷设置面板切换第四个任务。</string>
+
+    <string name="tile_add">添加到快捷设置</string>
+
+    <string name="tile_requires_android_13">需要 Android 13+</string>
+
+    <string name="tile_controls">控制</string>
+
+    <string name="tile_automatic">自动（第一个已启用的任务）</string>
+
+    <string name="tile_choose_task">选择任务</string>
+
+    <string name="tile_cancel">取消</string>
+
+    <string name="tile_unbound">无任务</string>
 </resources>

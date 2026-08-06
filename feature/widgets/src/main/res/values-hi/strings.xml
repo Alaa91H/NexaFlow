@@ -12,4 +12,36 @@
     <string name="how_to_sub">त्वरित टॉगल या स्थिति कार्ड विजेट को अपनी स्क्रीन पर खींचें।</string>
     <string name="section_tip">सुझाव</string>
     <string name="tip_text">जब भी कोई ऑटोमेशन चलता है या उसकी स्थिति बदलती है, विजेट स्वतः अपडेट होते हैं।</string>
+
+    <string name="section_tiles">त्वरित सेटिंग्स टाइलें</string>
+
+    <string name="tile_1_label">कार्य 1</string>
+
+    <string name="tile_2_label">कार्य 2</string>
+
+    <string name="tile_3_label">कार्य 3</string>
+
+    <string name="tile_4_label">कार्य 4</string>
+
+    <string name="tile_1_desc">पहले कार्य को त्वरित सेटिंग्स पैनल से सीधे टॉगल करें।</string>
+
+    <string name="tile_2_desc">दूसरे कार्य को त्वरित सेटिंग्स पैनल से सीधे टॉगल करें।</string>
+
+    <string name="tile_3_desc">तीसरे कार्य को त्वरित सेटिंग्स पैनल से सीधे टॉगल करें।</string>
+
+    <string name="tile_4_desc">चौथे कार्य को त्वरित सेटिंग्स पैनल से सीधे टॉगल करें।</string>
+
+    <string name="tile_add">त्वरित सेटिंग्स में जोड़ें</string>
+
+    <string name="tile_requires_android_13">Android 13+ आवश्यक</string>
+
+    <string name="tile_controls">नियंत्रित करता है</string>
+
+    <string name="tile_automatic">स्वचालित (पहला सक्षम कार्य)</string>
+
+    <string name="tile_choose_task">कार्य चुनें</string>
+
+    <string name="tile_cancel">रद्द करें</string>
+
+    <string name="tile_unbound">कोई कार्य नहीं</string>
 </resources>

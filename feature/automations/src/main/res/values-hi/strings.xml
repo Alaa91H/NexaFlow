@@ -133,4 +133,10 @@
     <string name="action_block_notification_sub">किसी ऐप की सभी सूचनाएँ म्यूट करें</string>
     <string name="action_clear_app_notifications">ऐप सूचनाएँ साफ़ करें</string>
     <string name="action_clear_app_notifications_sub">किसी विशिष्ट ऐप की सूचनाएँ हटाएँ</string>
+    <string name="trigger_calendar">कैलेंडर इवेंट</string>
+    <string name="trigger_calendar_sub">जब कैलेंडर इवेंट मेल खाता है</string>
+    <string name="charger_any">कोई भी</string>
+    <string name="charger_ac">AC / दीवार</string>
+    <string name="charger_usb">USB</string>
+    <string name="charger_wireless">वायरलेस</string>
 </resources>

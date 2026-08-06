@@ -12,4 +12,36 @@
     <string name="how_to_sub">اسحب أداة «التبديل السريع» أو «بطاقة الحالة» إلى شاشتك.</string>
     <string name="section_tip">نصيحة</string>
     <string name="tip_text">تتحدث الأدوات تلقائياً كلما تم تشغيل أتمتة أو تغيرت حالتها.</string>
+
+    <string name="section_tiles">بلاطات الإعدادات السريعة</string>
+
+    <string name="tile_1_label">المهمة 1</string>
+
+    <string name="tile_2_label">المهمة 2</string>
+
+    <string name="tile_3_label">المهمة 3</string>
+
+    <string name="tile_4_label">المهمة 4</string>
+
+    <string name="tile_1_desc">بدّل المهمة الأولى مباشرة من لوحة الإعدادات السريعة.</string>
+
+    <string name="tile_2_desc">بدّل المهمة الثانية مباشرة من لوحة الإعدادات السريعة.</string>
+
+    <string name="tile_3_desc">بدّل المهمة الثالثة مباشرة من لوحة الإعدادات السريعة.</string>
+
+    <string name="tile_4_desc">بدّل المهمة الرابعة مباشرة من لوحة الإعدادات السريعة.</string>
+
+    <string name="tile_add">إضافة إلى الإعدادات السريعة</string>
+
+    <string name="tile_requires_android_13">يتطلب أندرويد 13 أو أحدث</string>
+
+    <string name="tile_controls">تتحكم في</string>
+
+    <string name="tile_automatic">تلقائي (أول مهمة مفعّلة)</string>
+
+    <string name="tile_choose_task">اختر المهمة</string>
+
+    <string name="tile_cancel">إلغاء</string>
+
+    <string name="tile_unbound">لا توجد مهمة</string>
 </resources>

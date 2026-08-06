@@ -10,7 +10,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        minSdk = 29
+        minSdk = 26
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -54,5 +54,6 @@ dependencies {
     ksp("com.google.dagger:hilt-compiler:2.60.1")
     implementation(project(":domain"))
     implementation(project(":core:ui-components"))
+    implementation(project(":feature:automations"))
     testImplementation("junit:junit:4.13.2")
 }

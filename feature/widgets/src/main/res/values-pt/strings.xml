@@ -12,4 +12,36 @@
     <string name="how_to_sub">Arraste o widget Alternância rápida ou Cartão de status para a tela.</string>
     <string name="section_tip">DICA</string>
     <string name="tip_text">Os widgets são atualizados automaticamente sempre que uma automação é executada ou muda de estado.</string>
+
+    <string name="section_tiles">BLOCO DE AJUSTES RÁPIDOS</string>
+
+    <string name="tile_1_label">Tarefa 1</string>
+
+    <string name="tile_2_label">Tarefa 2</string>
+
+    <string name="tile_3_label">Tarefa 3</string>
+
+    <string name="tile_4_label">Tarefa 4</string>
+
+    <string name="tile_1_desc">Alterne a primeira tarefa diretamente no painel de ajustes rápidos.</string>
+
+    <string name="tile_2_desc">Alterne a segunda tarefa diretamente no painel de ajustes rápidos.</string>
+
+    <string name="tile_3_desc">Alterne a terceira tarefa diretamente no painel de ajustes rápidos.</string>
+
+    <string name="tile_4_desc">Alterne a quarta tarefa diretamente no painel de ajustes rápidos.</string>
+
+    <string name="tile_add">Adicionar aos ajustes rápidos</string>
+
+    <string name="tile_requires_android_13">Requer Android 13+</string>
+
+    <string name="tile_controls">Controla</string>
+
+    <string name="tile_automatic">Automático (primeira tarefa ativa)</string>
+
+    <string name="tile_choose_task">Escolher tarefa</string>
+
+    <string name="tile_cancel">Cancelar</string>
+
+    <string name="tile_unbound">Sem tarefa</string>
 </resources>

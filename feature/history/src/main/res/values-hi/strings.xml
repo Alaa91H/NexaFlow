@@ -5,4 +5,22 @@
     <string name="no_runs_subtitle">आपके ऑटोमेशन निष्पादन यहाँ दिखाई देंगे।</string>
     <string name="status_success">सफल</string>
     <string name="status_failed">विफल</string>
+    <string name="executed_via">%1$s के माध्यम से</string>
+    <string name="channel_root">रूट</string>
+    <string name="channel_shizuku">शिज़ुकु</string>
+    <string name="channel_system_app">सिस्टम ऐप</string>
+    <string name="channel_adb">ADB</string>
+    <string name="channel_android">एंड्रॉइड API</string>
+    <string name="channel_accessibility">एक्सेसिबिलिटी</string>
+    <string name="channel_unknown">अज्ञात</string>
+    <string name="execution_details_title">निष्पादन विवरण</string>
+    <string name="execution_not_found_title">निष्पादन नहीं मिला</string>
+    <string name="execution_not_found_subtitle">यह निष्पादन रिकॉर्ड अब उपलब्ध नहीं है।</string>
+    <string name="section_timeline">टाइमलाइन</string>
+    <string name="no_timeline_detail">इस रन के लिए कोई प्रति-क्रिया विवरण दर्ज नहीं किया गया।</string>
+    <string name="total_duration">कुल</string>
+    <string name="duration_ms">मि.से.</string>
+    <string name="duration_s">सेकंड</string>
+    <string name="action_restore_state">मूल स्थिति पुनर्स्थापित करें</string>
+    <string name="action_unknown">अज्ञात क्रिया</string>
 </resources>

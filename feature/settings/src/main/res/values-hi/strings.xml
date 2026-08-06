@@ -71,4 +71,17 @@
     <string name="bluetooth_permission_sub">पेयर किए गए डिवाइस (हेडफ़ोन आदि) का पता लगाने के लिए आवश्यक</string>
     <string name="notification_access">सूचना एक्सेस</string>
     <string name="notification_access_sub">सूचनाएँ पढ़ें और प्रबंधित करें</string>
+    <string name="calendar_permission">कैलेंडर</string>
+    <string name="calendar_permission_sub">कैलेंडर ट्रिगर्स के लिए अपने इवेंट पढ़ें</string>
+    <string name="execution_channel">निष्पादन चैनल</string>
+    <string name="execution_channel_sub">इस डिवाइस के लिए सर्वश्रेष्ठ प्रदाता, स्वचालित रूप से चुना गया</string>
+    <string name="channel_root">रूट</string>
+    <string name="channel_shizuku">शिज़ुकु</string>
+    <string name="channel_system_app">सिस्टम ऐप</string>
+    <string name="channel_adb">ADB</string>
+    <string name="channel_android">एंड्रॉइड API</string>
+    <string name="channel_accessibility">एक्सेसिबिलिटी</string>
+    <string name="channel_none">कोई नहीं</string>
+    <string name="channel_detecting">पता लग रहा है…</string>
+    <string name="refresh">रीफ़्रेश</string>
 </resources>

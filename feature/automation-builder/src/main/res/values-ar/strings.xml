@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="builder_title">أتمتة جديدة</string>
+    <string name="builder_title">مهمة جديدة</string>
     <string name="save">حفظ</string>
     <string name="name">الاسم</string>
     <string name="name_hint">مثال: مهمة الصباح</string>
@@ -31,11 +31,48 @@
     <string name="event">الحدث</string>
     <string name="location_hint">يتطلب إذن الموقع وتثبيت موقع حالي</string>
     <string name="grant">منح</string>
+    <string name="permission_explain_title">لماذا نحتاج هذا الإذن؟</string>
+    <string name="permission_continue">متابعة</string>
+    <string name="permission_not_now">ليس الآن</string>
+    <string name="permission_location_title">الوصول إلى الموقع</string>
+    <string name="permission_location_body">يستخدم نيكسافلو موقعك لتشغيل المهام عند دخولك مكاناً أو مغادرته.</string>
+    <string name="permission_sms_title">قراءة الرسائل</string>
+    <string name="permission_sms_body">يتيح ذلك للمهام التفاعل عند وصول رسالة، والرد تلقائياً.</string>
+    <string name="permission_send_sms_title">إرسال الرسائل</string>
+    <string name="permission_send_sms_body">يتيح ذلك للمهمة إرسال رسالة كأحد إجراءاتها.</string>
+    <string name="permission_camera_title">الوصول إلى الكاميرا</string>
+    <string name="permission_camera_body">يستخدم إجراء المصباح فلاش الكاميرا. لا يتم التقاط أي صورة.</string>
+    <string name="permission_notifications_title">الإشعارات</string>
+    <string name="permission_notifications_body">يرسل لك نيكسافلو إشعاراً عند تشغيل مهمة، لتعرف ما حدث.</string>
+    <string name="permission_bluetooth_title">الأجهزة القريبة</string>
+    <string name="permission_bluetooth_body">يتيح ذلك للمهام اكتشاف اتصال جهاز البلوتوث المختار أو انقطاعه.</string>
+    <string name="permission_calendar_title">الوصول إلى التقويم</string>
+    <string name="permission_calendar_body">يتيح ذلك للمهام التشغيل حول أحداث التقويم، مثل قبل بدء اجتماع.</string>
+    <string name="permission_generic_title">إذن مطلوب</string>
+    <string name="permission_generic_body">يتيح هذا الإذن للمهمة المختارة العمل كما هو متوقع.</string>
+    <string name="special_write_settings_title">تعديل إعدادات النظام</string>
+    <string name="special_write_settings_body">يحتاج نيكسافلو إلى هذا لضبط السطوع ومهلة الشاشة والتدوير وغيرها أثناء تشغيل مهامك.</string>
+    <string name="special_dnd_title">الوصول إلى عدم الإزعاج</string>
+    <string name="special_dnd_body">يتيح لمهامك كتم الإشعارات أو إعادة الصوت تلقائياً.</string>
+    <string name="special_notification_access_title">الوصول إلى الإشعارات</string>
+    <string name="special_notification_access_body">يتيح للمهام قراءة إشعارات التطبيقات أو التفاعل معها أو حظرها.</string>
+    <string name="special_accessibility_title">خدمة إمكانية الوصول</string>
+    <string name="special_accessibility_body">يستخدمه نيكسافلو لمعرفة فتح التطبيقات وإغلاقها تلقائياً.</string>
+    <string name="special_shizuku_title">شيزوكو</string>
+    <string name="special_shizuku_body">يتيح للمهام المتقدمة التحكم في إعدادات النظام بدون جذر. شغّل شيزوكو وامنح الوصول مرة واحدة.</string>
+    <string name="special_root_title">صلاحيات الجذر</string>
+    <string name="special_root_body">يتيح للمهام تشغيل أوامر تحتاج صلاحيات الجذر (su). امنح طلب المستخدم الفائق عند ظهوره.</string>
+    <string name="special_elevated_title">صلاحيات موسّعة</string>
+    <string name="special_elevated_body">يحتاج هذا الإجراء إلى الجذر أو شيزوكو أو صلاحيات تطبيق نظام للتحكم في الإعدادات المحمية.</string>
+    <string name="special_bluetooth_title">البلوتوث</string>
+    <string name="special_bluetooth_body">يحتاج نيكسافلو إلى تفعيل البلوتوث لاكتشاف الأجهزة المقترنة وتشغيل المهام عند اتصالها.</string>
+
+
     <string name="battery_above">البطارية فوق الحد</string>
     <string name="battery_above_sub">التشغيل فقط عندما تكون البطارية فوق المستوى</string>
     <string name="minimum_battery">الحد الأدنى للبطارية: %1$d%%</string>
     <string name="section_actions">ثم (الإجراءات)</string>
-    <string name="save_automation">حفظ الأتمتة</string>
+    <string name="save_automation">حفظ المهمة</string>
     <string name="ok">حسناً</string>
     <string name="cancel">إلغاء</string>
     <string name="action_brightness">السطوع</string>
@@ -159,7 +196,6 @@
     <string name="repeat_once">مرة واحدة</string>
     <string name="repeat_daily">يوميًا</string>
     <string name="repeat_specific_days">أيام محددة</string>
-    <string name="repeat_specific_date">تاريخ محدد</string>
     <string name="repeat_date_range">نطاق تواريخ</string>
     <string name="select_days">اختر الأيام</string>
     <string name="day_mon">إث</string>
@@ -172,7 +208,6 @@
     <string name="start_date">تاريخ البداية</string>
     <string name="end_date">تاريخ النهاية</string>
     <string name="date_range_invalid">يجب أن يكون تاريخ النهاية بعد تاريخ البداية</string>
-    <string name="specific_date">التاريخ</string>
     <string name="pick_date">اختر تاريخاً</string>
     <string name="pick_on_map">اختر من الخريطة</string>
     <string name="sms_from">من (الرقم)</string>
@@ -181,6 +216,8 @@
     <string name="sms_contains_hint">نص للمطابقة (فارغ = أي نص)</string>
     <string name="sms_reply">رد تلقائي (اختياري)</string>
     <string name="sms_reply_hint">سيتم إرسال رد تلقائيًا</string>
+    <string name="permission_denied_hint">مطلوب إذن لتفعيل هذه الميزة</string>
+
     <string name="sms_permission_hint">يتطلب إذن الرسائل لقراءة الرسائل</string>
     <string name="notification_permission_hint">يتطلب إذن الإشعارات</string>
     <string name="action_ring_volume">صوت الرنين</string>
@@ -225,11 +262,7 @@
     <string name="move_down">تحريك للأسفل</string>
     <string name="remove_action">إزالة المهمة</string>
     <string name="quick_save">حفظ سريع</string>
-    <string name="saved_successfully">تم حفظ الأتمتة</string>
-    <string name="summary_if">إذا</string>
-    <string name="summary_then">ثم</string>
-    <string name="summary_no_triggers">أضف مشغلاً</string>
-    <string name="summary_no_actions">أضف مهمة</string>
+    <string name="saved_successfully">تم حفظ المهمة</string>
     <string name="step_when">عند</string>
     <string name="step_then">ثم</string>
     <string name="next">التالي</string>
@@ -269,6 +302,8 @@
     <string name="action_stream_volume_sub">ضبط أي قناة صوت بدقة</string>
     <string name="section_exit_behavior">عند انتهاء المهمة</string>
     <string name="exit_behavior_hint">ماذا يحدث عند انتهاء شرط المهمة؟</string>
+    <string name="exit_auto_reply_label">رد تلقائي (رسالة)</string>
+
     <string name="exit_revert_label">الرجوع للحالة الأصلية</string>
     <string name="exit_revert_sub">يعود الجهاز إلى حالته قبل تشغيل المهمة</string>
     <string name="exit_nothing_sub">لا يحدث شيء — تنتهي المهمة فقط</string>
@@ -302,4 +337,36 @@
     <string name="action_clear_app_notifications">مسح إشعارات تطبيق</string>
     <string name="action_clear_app_notifications_sub">إلغاء إشعارات تطبيق محدد</string>
     <string name="block_label">حظر</string>
+    <string name="trigger_type_calendar">التقويم</string>
+    <string name="trigger_calendar">حدث التقويم</string>
+    <string name="any_calendar">أي تقويم</string>
+    <string name="choose_calendar">اختر تقويماً</string>
+    <string name="no_calendars_found">لا توجد تقاويم</string>
+    <string name="calendar_contains">الحدث يحتوي</string>
+    <string name="calendar_contains_hint">مثال: اجتماع، طبيب (فارغ = أي شيء)</string>
+    <string name="calendar_event_start">عند البدء</string>
+    <string name="calendar_event_end">عند الانتهاء</string>
+    <string name="calendar_event_created">عند الإضافة للتقويم</string>
+    <string name="calendar_before_none">عند بداية الحدث</string>
+    <string name="calendar_before_minutes">قبل الحدث: %1$d دقيقة</string>
+    <string name="calendar_permission_hint">يتطلب إذن التقويم لقراءة الأحداث</string>
+    <string name="charger_type_label">نوع الشاحن</string>
+    <string name="charger_any">أي</string>
+    <string name="charger_ac">حائط</string>
+    <string name="charger_usb">USB</string>
+    <string name="charger_wireless">لاسلكي</string>
+    <string name="revert_when_ends">التراجع عند انتهاء المهمة</string>
+    <string name="device_screen_on">تشغيل الشاشة</string>
+    <string name="device_screen_off">إيقاف الشاشة</string>
+    <string name="device_power_connected">بدأ الشحن</string>
+    <string name="device_power_disconnected">توقف الشحن</string>
+    <string name="device_headset_connected">توصيل السماعة</string>
+    <string name="device_headset_disconnected">فصل السماعة</string>
+    <string name="device_bluetooth">جهاز بلوتوث</string>
+    <string name="network_wifi">واي فاي</string>
+    <string name="network_mobile">بيانات الجوال</string>
+    <string name="state_connected">متصل</string>
+    <string name="state_disconnected">غير متصل</string>
+    <string name="exit_revert_actions_label">التراجع عن الإجراءات المحددة</string>
+    <string name="repeat_selected">المحدد: %1$s</string>
 </resources>

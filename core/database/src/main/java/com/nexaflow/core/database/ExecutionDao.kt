@@ -14,6 +14,9 @@ interface ExecutionDao {
     @Query("SELECT * FROM execution_history ORDER BY executedAt DESC LIMIT 1")
     suspend fun getLatestExecution(): ExecutionRecordEntity?
 
+    @Query("SELECT * FROM execution_history WHERE id = :id")
+    suspend fun getExecutionById(id: String): ExecutionRecordEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExecution(record: ExecutionRecordEntity)
 

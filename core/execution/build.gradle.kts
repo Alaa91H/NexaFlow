@@ -7,7 +7,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        minSdk = 29
+        minSdk = 26
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
@@ -35,6 +35,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
     implementation(project(":domain"))
     implementation(project(":core:rom-integration"))
+    implementation(project(":core:compatibility"))
     implementation(project(":core:datastore"))
+    implementation(project(":core:common"))
+    implementation(project(":core:logging"))
     testImplementation("junit:junit:4.13.2")
 }

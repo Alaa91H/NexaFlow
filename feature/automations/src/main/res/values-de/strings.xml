@@ -133,4 +133,10 @@
     <string name="action_block_notification_sub">Alle Benachrichtigungen einer App stummschalten</string>
     <string name="action_clear_app_notifications">App-Benachrichtigungen löschen</string>
     <string name="action_clear_app_notifications_sub">Benachrichtigungen einer bestimmten App verwerfen</string>
+    <string name="trigger_calendar">Kalenderereignis</string>
+    <string name="trigger_calendar_sub">Wenn ein Kalenderereignis passt</string>
+    <string name="charger_any">Beliebig</string>
+    <string name="charger_ac">AC / Wand</string>
+    <string name="charger_usb">USB</string>
+    <string name="charger_wireless">Kabellos</string>
 </resources>

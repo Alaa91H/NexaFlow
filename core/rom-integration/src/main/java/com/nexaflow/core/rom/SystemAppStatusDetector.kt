@@ -3,6 +3,7 @@ package com.nexaflow.core.rom
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.os.Build
 import com.nexaflow.core.rom.model.IntegrationLevel
 import java.io.File
 
@@ -26,11 +27,26 @@ object SystemAppStatusDetector {
     fun isPlatformSigned(context: Context): Boolean {
         return try {
             val packageManager = context.packageManager
-            val flags = PackageManager.GET_SIGNING_CERTIFICATES
+            // On API 28+ use signingInfo (GET_SIGNING_CERTIFICATES); the legacy
+            // signatures field (GET_SIGNATURES) is only populated on API < 28, so
+            // the flag must match the branch — a shared flag would silently leave
+            // `signatures` null on older devices.
+            val useLegacy = Build.VERSION.SDK_INT < Build.VERSION_CODES.P
+            val flags = if (useLegacy) PackageManager.GET_SIGNATURES else PackageManager.GET_SIGNING_CERTIFICATES
             val ownPackage = packageManager.getPackageInfo(context.packageName, flags)
             val platformPackage = packageManager.getPackageInfo("android", flags)
-            val ownSignature = ownPackage.signingInfo?.apkContentsSigners?.firstOrNull() ?: return false
-            val platformSignature = platformPackage.signingInfo?.apkContentsSigners?.firstOrNull() ?: return false
+            val ownSignature = if (useLegacy) {
+                @Suppress("DEPRECATION")
+                ownPackage.signatures?.firstOrNull()
+            } else {
+                ownPackage.signingInfo?.apkContentsSigners?.firstOrNull()
+            } ?: return false
+            val platformSignature = if (useLegacy) {
+                @Suppress("DEPRECATION")
+                platformPackage.signatures?.firstOrNull()
+            } else {
+                platformPackage.signingInfo?.apkContentsSigners?.firstOrNull()
+            } ?: return false
             ownSignature.toByteArray().contentEquals(platformSignature.toByteArray())
         } catch (_: Throwable) {
             false

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="builder_title">Nouvelle automatisation</string>
+    <string name="builder_title">Nouvelle tâche</string>
     <string name="save">Enregistrer</string>
     <string name="name">Nom</string>
     <string name="name_hint">p. ex. Tâche du matin</string>
@@ -31,12 +31,49 @@
     <string name="event">Événement</string>
     <string name="location_hint">Nécessite l\u2019autorisation de localisation et une position actuelle</string>
     <string name="grant">Accorder</string>
+    <string name="permission_explain_title">Pourquoi cette autorisation est-elle nécessaire ?</string>
+    <string name="permission_continue">Continuer</string>
+    <string name="permission_not_now">Pas maintenant</string>
+    <string name="permission_location_title">Accès à la localisation</string>
+    <string name="permission_location_body">"NexaFlow utilise votre position pour exécuter des tâches à l'entrée ou à la sortie d'un lieu."</string>
+    <string name="permission_sms_title">Lire les messages</string>
+    <string name="permission_sms_body">"Permet aux tâches de réagir à l'arrivée d'un message et de répondre automatiquement."</string>
+    <string name="permission_send_sms_title">Envoyer des messages</string>
+    <string name="permission_send_sms_body">"Permet à une tâche d'envoyer un message parmi ses actions."</string>
+    <string name="permission_camera_title">Accès à la caméra</string>
+    <string name="permission_camera_body">"L'action lampe torche utilise le flash de la caméra. Aucune photo n'est jamais prise."</string>
+    <string name="permission_notifications_title">Notifications</string>
+    <string name="permission_notifications_body">"NexaFlow vous envoie une notification lorsqu'une tâche s'exécute, pour vous informer."</string>
+    <string name="permission_bluetooth_title">Appareils à proximité</string>
+    <string name="permission_bluetooth_body">Permet aux tâches de détecter la connexion ou la déconnexion de votre appareil Bluetooth choisi.</string>
+    <string name="permission_calendar_title">Accès au calendrier</string>
+    <string name="permission_calendar_body">"Permet aux tâches de s'exécuter autour d'événements du calendrier, comme avant une réunion."</string>
+    <string name="permission_generic_title">Autorisation requise</string>
+    <string name="permission_generic_body">Cette autorisation permet à la tâche choisie de fonctionner comme prévu.</string>
+    <string name="special_write_settings_title">Modifier les paramètres système</string>
+    <string name="special_write_settings_body">"NexaFlow en a besoin pour ajuster la luminosité, le délai d'extinction, la rotation et plus pendant vos tâches."</string>
+    <string name="special_dnd_title">Accès Ne pas déranger</string>
+    <string name="special_dnd_body">Permet à vos tâches de couper les notifications ou de rétablir le son automatiquement.</string>
+    <string name="special_notification_access_title">Accès aux notifications</string>
+    <string name="special_notification_access_body">"Permet aux tâches de lire les notifications, d'y réagir ou de les bloquer pour vous."</string>
+    <string name="special_accessibility_title">"Service d'accessibilité"</string>
+    <string name="special_accessibility_body">"NexaFlow l'utilise pour détecter l'ouverture des applications et les fermer automatiquement."</string>
+    <string name="special_shizuku_title">Shizuku</string>
+    <string name="special_shizuku_body">"Permet aux tâches avancées de contrôler les paramètres sans root. Démarrez Shizuku et accordez l'accès une fois."</string>
+    <string name="special_root_title">Accès root</string>
+    <string name="special_root_body">"Permet aux tâches d'exécuter des commandes nécessitant root (su). Accordez la demande de superutilisateur lorsqu'elle apparaît."</string>
+    <string name="special_elevated_title">Privilèges élevés</string>
+    <string name="special_elevated_body">"Cette action nécessite root, Shizuku ou des privilèges d'application système pour contrôler les paramètres protégés."</string>
+    <string name="special_bluetooth_title">Bluetooth</string>
+    <string name="special_bluetooth_body">NexaFlow a besoin du Bluetooth activé pour détecter les appareils appariés et exécuter des tâches à leur connexion.</string>
+
+
     <string name="battery_above">Batterie au-dessus du seuil</string>
     <string name="battery_above_sub">Exécuter uniquement si la batterie dépasse le niveau</string>
     <string name="minimum_battery">Batterie minimale : %1$d%%</string>
 
     <string name="section_actions">ALORS (ACTIONS)</string>
-    <string name="save_automation">Enregistrer l\u2019automatisation</string>
+    <string name="save_automation">Enregistrer la tâche</string>
     <string name="ok">OK</string>
     <string name="cancel">Annuler</string>
     <string name="action_brightness">Luminosité</string>
@@ -160,7 +197,6 @@
     <string name="repeat_once">Une fois</string>
     <string name="repeat_daily">Quotidien</string>
     <string name="repeat_specific_days">Jours précis</string>
-    <string name="repeat_specific_date">Date précise</string>
     <string name="repeat_date_range">Plage de dates</string>
     <string name="select_days">Choisir les jours</string>
     <string name="day_mon">Lun</string>
@@ -173,7 +209,6 @@
     <string name="start_date">Date de début</string>
     <string name="end_date">Date de fin</string>
     <string name="date_range_invalid">La date de fin doit être postérieure à la date de début</string>
-    <string name="specific_date">Date</string>
     <string name="pick_date">Choisir une date</string>
     <string name="pick_on_map">Choisir sur la carte</string>
     <string name="sms_from">De (numéro)</string>
@@ -182,6 +217,8 @@
     <string name="sms_contains_hint">"Texte à rechercher (vide = n'importe quoi)"</string>
     <string name="sms_reply">Réponse auto (optionnel)</string>
     <string name="sms_reply_hint">Une réponse sera envoyée automatiquement</string>
+    <string name="permission_denied_hint">Autorisation requise pour activer cette fonctionnalité</string>
+
     <string name="sms_permission_hint">Nécessite la permission SMS pour lire les messages</string>
     <string name="notification_permission_hint">Nécessite la permission de notifications</string>
     <string name="action_ring_volume">Volume de sonnerie</string>
@@ -226,11 +263,7 @@
     <string name="move_down">Descendre</string>
     <string name="remove_action">"Retirer l'action"</string>
     <string name="quick_save">Enregistrement rapide</string>
-    <string name="saved_successfully">Automatisation enregistrée</string>
-    <string name="summary_if">SI</string>
-    <string name="summary_then">ALORS</string>
-    <string name="summary_no_triggers">Ajouter un déclencheur</string>
-    <string name="summary_no_actions">Ajouter une action</string>
+    <string name="saved_successfully">Tâche enregistrée</string>
     <string name="step_when">Quand</string>
     <string name="step_then">Alors</string>
     <string name="next">Suivant</string>
@@ -270,6 +303,8 @@
     <string name="action_stream_volume_sub">"Réglez n'importe quel canal audio avec précision"</string>
     <string name="section_exit_behavior">Lorsque la tâche se termine</string>
     <string name="exit_behavior_hint">"Que se passe-t-il quand la condition n'est plus vraie ?"</string>
+    <string name="exit_auto_reply_label">Réponse automatique (SMS)</string>
+
     <string name="exit_revert_label">"Restaurer l'état d'origine"</string>
     <string name="exit_revert_sub">"L'appareil revient à son état d'avant la tâche"</string>
     <string name="exit_nothing_sub">Rien ne se passe : la tâche se termine simplement</string>
@@ -303,4 +338,36 @@
     <string name="action_clear_app_notifications">Effacer les notifications de l\'app</string>
     <string name="action_clear_app_notifications_sub">Rejeter les notifications d\'une app spécifique</string>
     <string name="block_label">Bloquer</string>
+    <string name="trigger_type_calendar">Calendrier</string>
+    <string name="trigger_calendar">Événement du calendrier</string>
+    <string name="any_calendar">N\'importe quel calendrier</string>
+    <string name="choose_calendar">Choisir un calendrier</string>
+    <string name="no_calendars_found">Aucun calendrier trouvé</string>
+    <string name="calendar_contains">L\'événement contient</string>
+    <string name="calendar_contains_hint">ex. réunion, dentiste (vide = n\'importe)</string>
+    <string name="calendar_event_start">Commence</string>
+    <string name="calendar_event_end">Se termine</string>
+    <string name="calendar_event_created">Ajouté au calendrier</string>
+    <string name="calendar_before_none">Au début de l\'événement</string>
+    <string name="calendar_before_minutes">Avant l\'événement : %1$d min</string>
+    <string name="calendar_permission_hint">Nécessite l\'autorisation du calendrier pour lire les événements</string>
+    <string name="charger_type_label">Type de chargeur</string>
+    <string name="charger_any">Peu importe</string>
+    <string name="charger_ac">Secteur / Mur</string>
+    <string name="charger_usb">USB</string>
+    <string name="charger_wireless">Sans fil</string>
+    <string name="revert_when_ends">Rétablir à la fin de la tâche</string>
+    <string name="device_screen_on">Écran allumé</string>
+    <string name="device_screen_off">Écran éteint</string>
+    <string name="device_power_connected">Charge démarrée</string>
+    <string name="device_power_disconnected">Charge arrêtée</string>
+    <string name="device_headset_connected">Casque connecté</string>
+    <string name="device_headset_disconnected">Casque déconnecté</string>
+    <string name="device_bluetooth">Appareil Bluetooth</string>
+    <string name="network_wifi">Wi-Fi</string>
+    <string name="network_mobile">Données mobiles</string>
+    <string name="state_connected">Connecté</string>
+    <string name="state_disconnected">Déconnecté</string>
+    <string name="exit_revert_actions_label">Rétablir les actions sélectionnées</string>
+    <string name="repeat_selected">Sélection : %1$s</string>
 </resources>

@@ -6,10 +6,13 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.service.quicksettings.TileService
 import android.widget.RemoteViews
 import com.nexaflow.core.database.AutomationDao
 import com.nexaflow.core.database.ExecutionDao
 import com.nexaflow.core.execution.ACTION_AUTOMATIONS_CHANGED
+import com.nexaflow.feature.widgets.TaskTileService
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -133,6 +136,18 @@ object WidgetUpdater {
         if (statusIds.isNotEmpty()) {
             val views = buildStatusViews(appContext, enabled, total, latest?.executedAt)
             statusIds.forEach { manager.updateAppWidget(it, views) }
+        }
+
+        // Keep the Quick Settings tiles in sync: request a listening state so
+        // each tile refreshes its label/state (API 33+).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            TaskTileService.allComponents(appContext).forEach { component ->
+                try {
+                    TileService.requestListeningState(appContext, component)
+                } catch (_: Throwable) {
+                    // Tile may not be added yet; ignore.
+                }
+            }
         }
     }
 

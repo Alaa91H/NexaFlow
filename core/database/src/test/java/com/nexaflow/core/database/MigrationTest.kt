@@ -42,7 +42,7 @@ class MigrationTest {
     }
 
     @Test
-    fun migrate1To5_preservesUserAutomations() {
+    fun migrate1To7_preservesUserAutomations() {
         helper.createDatabase(1).apply {
             execSQL(
                 "INSERT INTO `automations` " +
@@ -54,7 +54,7 @@ class MigrationTest {
             close()
         }
 
-        val migrated = helper.runMigrationsAndValidate(5, Migrations.ALL)
+        val migrated = helper.runMigrationsAndValidate(7, Migrations.ALL)
         migrated.prepare(
             "SELECT name, exitActionsJson, revertOnExit FROM `automations` WHERE id = 'a1'"
         ).use { stmt ->
@@ -85,7 +85,10 @@ class MigrationTest {
             close()
         }
 
-        val migrated = helper.runMigrationsAndValidate(5, listOf(Migrations.MIGRATION_3_4, Migrations.MIGRATION_4_5))
+        val migrated = helper.runMigrationsAndValidate(
+            7,
+            listOf(Migrations.MIGRATION_3_4, Migrations.MIGRATION_4_5, Migrations.MIGRATION_5_6, Migrations.MIGRATION_6_7)
+        )
         // The obsolete conditionsJson column must be gone.
         val columnNames = buildSet {
             migrated.prepare("PRAGMA table_info(`automations`)").use { stmt ->
@@ -119,7 +122,7 @@ class MigrationTest {
             close()
         }
 
-        val migrated = helper.runMigrationsAndValidate(5, listOf(Migrations.MIGRATION_4_5))
+        val migrated = helper.runMigrationsAndValidate(7, listOf(Migrations.MIGRATION_4_5, Migrations.MIGRATION_5_6, Migrations.MIGRATION_6_7))
         migrated.prepare("SELECT exitActionsJson, revertOnExit FROM `automations` WHERE id = 'a1'").use { stmt ->
             assertTrue(stmt.step())
             assertEquals("[]", stmt.getText(0))
@@ -129,19 +132,80 @@ class MigrationTest {
     }
 
     @Test
-    fun migrate1To5_keepsExecutionHistoryEmptyButValid() {
+    fun migrate5To6_addsChannelColumn() {
+        helper.createDatabase(5).apply {
+            execSQL(
+                "INSERT INTO `execution_history` " +
+                    "(`id`, `automationId`, `automationName`, `success`, `message`, `executedAt`) " +
+                    "VALUES ('e1', 'a1', 'Morning', 1, 'ok', 1700000000000)"
+            )
+            close()
+        }
+
+        val migrated = helper.runMigrationsAndValidate(7, listOf(Migrations.MIGRATION_5_6, Migrations.MIGRATION_6_7))
+        // Pre-v6 rows have no channel (null), and the column accepts new values.
+        migrated.prepare("SELECT channel FROM `execution_history` WHERE id = 'e1'").use { stmt ->
+            assertTrue(stmt.step())
+            assertTrue("channel must be NULL for pre-v6 rows", stmt.isNull(0))
+        }
+        migrated.execSQL(
+            "INSERT INTO `execution_history` " +
+                "(`id`, `automationId`, `automationName`, `success`, `message`, `executedAt`, `channel`) " +
+                "VALUES ('e2', 'a2', 'Night', 0, 'nope', 1700000000000, 'SHIZUKU')"
+        )
+        migrated.prepare("SELECT channel FROM `execution_history` WHERE id = 'e2'").use { stmt ->
+            assertTrue(stmt.step())
+            assertEquals("SHIZUKU", stmt.getText(0))
+        }
+        migrated.close()
+    }
+
+    @Test
+    fun migrate6To7_addsResultsJsonColumn() {
+        helper.createDatabase(6).apply {
+            execSQL(
+                "INSERT INTO `execution_history` " +
+                    "(`id`, `automationId`, `automationName`, `success`, `message`, `executedAt`, `channel`) " +
+                    "VALUES ('e1', 'a1', 'Morning', 1, 'ok', 1700000000000, 'ROOT')"
+            )
+            close()
+        }
+
+        val migrated = helper.runMigrationsAndValidate(7, listOf(Migrations.MIGRATION_6_7))
+        // Pre-v7 rows have no per-action results (null).
+        migrated.prepare("SELECT resultsJson FROM `execution_history` WHERE id = 'e1'").use { stmt ->
+            assertTrue(stmt.step())
+            assertTrue("resultsJson must be NULL for pre-v7 rows", stmt.isNull(0))
+        }
+        // The column accepts per-action JSON.
+        migrated.execSQL(
+            "INSERT INTO `execution_history` " +
+                "(`id`, `automationId`, `automationName`, `success`, `message`, `executedAt`, `channel`, `resultsJson`) " +
+                "VALUES ('e2', 'a2', 'Night', 1, 'nope', 1700000000000, 'SHIZUKU', " +
+                "'[{\"actionType\":\"SYSTEM_BRIGHTNESS\",\"success\":true,\"message\":\"ok\",\"durationMs\":12}]')"
+        )
+        migrated.prepare("SELECT resultsJson FROM `execution_history` WHERE id = 'e2'").use { stmt ->
+            assertTrue(stmt.step())
+            assertTrue(stmt.getText(0).contains("SYSTEM_BRIGHTNESS"))
+        }
+        migrated.close()
+    }
+
+    @Test
+    fun migrate1To7_keepsExecutionHistoryEmptyButValid() {
         // A v1 database has no execution_history; after the full chain the
         // table must exist and accept rows (schema validated by Room).
         helper.createDatabase(1).close()
-        val migrated = helper.runMigrationsAndValidate(5, Migrations.ALL)
+        val migrated = helper.runMigrationsAndValidate(7, Migrations.ALL)
         migrated.execSQL(
             "INSERT INTO `execution_history` " +
-                "(`id`, `automationId`, `automationName`, `success`, `message`, `executedAt`) " +
-                "VALUES ('e1', 'a1', 'Morning', 1, 'ok', 1700000000000)"
+                "(`id`, `automationId`, `automationName`, `success`, `message`, `executedAt`, `channel`) " +
+                "VALUES ('e1', 'a1', 'Morning', 1, 'ok', 1700000000000, 'ROOT')"
         )
-        migrated.prepare("SELECT automationName FROM `execution_history` WHERE id = 'e1'").use { stmt ->
+        migrated.prepare("SELECT automationName, channel FROM `execution_history` WHERE id = 'e1'").use { stmt ->
             assertTrue(stmt.step())
             assertEquals("Morning", stmt.getText(0))
+            assertEquals("ROOT", stmt.getText(1))
         }
         migrated.close()
     }

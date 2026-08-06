@@ -9,9 +9,4 @@
     <string name="widget_action">Alle aktivieren</string>
 
     <!-- Bottom navigation -->
-    <string name="tab_home">Start</string>
-    <string name="tab_modes">Modi</string>
-    <string name="tab_device">Gerät</string>
-    <string name="tab_history">Verlauf</string>
-    <string name="tab_settings">Einstellungen</string>
 </resources>

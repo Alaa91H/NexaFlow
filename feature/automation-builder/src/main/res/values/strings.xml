@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="builder_title">New Automation</string>
+    <string name="builder_title">New Task</string>
     <string name="save">Save</string>
     <string name="name">Name</string>
     <string name="name_hint">e.g. Morning task</string>
@@ -21,7 +21,6 @@
     <string name="repeat_once">Once</string>
     <string name="repeat_daily">Daily</string>
     <string name="repeat_specific_days">Days</string>
-    <string name="repeat_specific_date">Specific date</string>
     <string name="repeat_date_range">Date range</string>
     <string name="select_days">Select days</string>
     <string name="day_mon">Mon</string>
@@ -34,7 +33,6 @@
     <string name="start_date">Start date</string>
     <string name="end_date">End date</string>
     <string name="date_range_invalid">End date must be after the start date</string>
-    <string name="specific_date">Date</string>
     <string name="pick_date">Pick a date</string>
     <string name="pick_on_map">Pick on map</string>
     <string name="sms_from">From (number)</string>
@@ -43,6 +41,8 @@
     <string name="sms_contains_hint">Text to match (blank = any)</string>
     <string name="sms_reply">Auto-reply (optional)</string>
     <string name="sms_reply_hint">Reply sent back automatically</string>
+    <string name="permission_denied_hint">Permission required to enable this feature</string>
+
     <string name="sms_permission_hint">Needs SMS permission to read messages</string>
     <string name="notification_permission_hint">Needs notification permission</string>
     <string name="trigger_time">Trigger time</string>
@@ -60,6 +60,43 @@
     <string name="event">Event</string>
     <string name="location_hint">Needs location permission and a current location fix</string>
     <string name="grant">Grant</string>
+    <string name="permission_explain_title">Why is this permission needed?</string>
+    <string name="permission_continue">Continue</string>
+    <string name="permission_not_now">Not now</string>
+    <string name="permission_location_title">Location access</string>
+    <string name="permission_location_body">NexaFlow uses your location to run tasks when you enter or leave a place.</string>
+    <string name="permission_sms_title">Read messages</string>
+    <string name="permission_sms_body">This lets tasks react when a message arrives, and reply automatically.</string>
+    <string name="permission_send_sms_title">Send messages</string>
+    <string name="permission_send_sms_body">This lets a task send a message as one of its actions.</string>
+    <string name="permission_camera_title">Camera access</string>
+    <string name="permission_camera_body">The flashlight action uses the camera flash. No photo is ever taken.</string>
+    <string name="permission_notifications_title">Notifications</string>
+    <string name="permission_notifications_body">NexaFlow sends you a notification when a task runs, so you know what happened.</string>
+    <string name="permission_bluetooth_title">Nearby devices</string>
+    <string name="permission_bluetooth_body">This lets tasks detect when your chosen Bluetooth device connects or disconnects.</string>
+    <string name="permission_calendar_title">Calendar access</string>
+    <string name="permission_calendar_body">This lets tasks run around events in your calendar, like before a meeting starts.</string>
+    <string name="permission_generic_title">Permission needed</string>
+    <string name="permission_generic_body">This permission lets the chosen task work as expected.</string>
+    <string name="special_write_settings_title">Modify system settings</string>
+    <string name="special_write_settings_body">NexaFlow needs this to adjust brightness, screen timeout, rotation and more while your tasks run.</string>
+    <string name="special_dnd_title">Do Not Disturb access</string>
+    <string name="special_dnd_body">Lets your tasks silence notifications or restore sound automatically.</string>
+    <string name="special_notification_access_title">Notification access</string>
+    <string name="special_notification_access_body">Lets tasks read app notifications, react to them, or block them for you.</string>
+    <string name="special_accessibility_title">Accessibility service</string>
+    <string name="special_accessibility_body">NexaFlow uses it to detect when apps open and to close them automatically.</string>
+    <string name="special_shizuku_title">Shizuku</string>
+    <string name="special_shizuku_body">Lets advanced tasks control system settings without root. Start Shizuku and grant access once.</string>
+    <string name="special_root_title">Root access</string>
+    <string name="special_root_body">Lets tasks run commands that need root (su). Grant the superuser request when it appears.</string>
+    <string name="special_elevated_title">Elevated privileges</string>
+    <string name="special_elevated_body">This action needs root, Shizuku, or system-app privileges to control protected settings.</string>
+    <string name="special_bluetooth_title">Bluetooth</string>
+    <string name="special_bluetooth_body">NexaFlow needs Bluetooth turned on to detect paired devices and run tasks when they connect.</string>
+
+
     <string name="battery_above">Battery above threshold</string>
     <string name="battery_above_sub">Only run when battery is above the level</string>
     <string name="minimum_battery">Minimum battery: %1$d%%</string>
@@ -73,7 +110,7 @@
     <string name="category_system">System</string>
     <string name="category_battery">Battery</string>
     <string name="category_advanced">Advanced</string>
-    <string name="save_automation">Save Automation</string>
+    <string name="save_automation">Save Task</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="action_brightness">Brightness</string>
@@ -225,11 +262,7 @@
     <string name="app_count">%1$d app(s)</string>
     <string name="select">Select</string>
     <string name="quick_save">Quick save</string>
-    <string name="saved_successfully">Automation saved</string>
-    <string name="summary_if">IF</string>
-    <string name="summary_then">THEN</string>
-    <string name="summary_no_triggers">Add a trigger</string>
-    <string name="summary_no_actions">Add an action</string>
+    <string name="saved_successfully">Task saved</string>
     <string name="step_when">When</string>
     <string name="step_then">Then</string>
     <string name="next">Next</string>
@@ -269,6 +302,8 @@
     <string name="action_stream_volume_sub">Set any sound channel precisely</string>
     <string name="section_exit_behavior">When the task ends</string>
     <string name="exit_behavior_hint">What happens when the condition stops being true?</string>
+    <string name="exit_auto_reply_label">Auto-reply (SMS)</string>
+
     <string name="exit_revert_label">Restore original state</string>
     <string name="exit_revert_sub">The device returns to its state before the task ran</string>
     <string name="exit_nothing_sub">Nothing happens - the task simply ends</string>
@@ -302,4 +337,36 @@
     <string name="action_clear_app_notifications">Clear app notifications</string>
     <string name="action_clear_app_notifications_sub">Dismiss notifications of a specific app</string>
     <string name="block_label">Block</string>
+    <string name="trigger_type_calendar">Calendar</string>
+    <string name="trigger_calendar">Calendar event</string>
+    <string name="any_calendar">Any calendar</string>
+    <string name="choose_calendar">Choose a calendar</string>
+    <string name="no_calendars_found">No calendars found</string>
+    <string name="calendar_contains">Event contains</string>
+    <string name="calendar_contains_hint">e.g. meeting, dentist (blank = any)</string>
+    <string name="calendar_event_start">Starts</string>
+    <string name="calendar_event_end">Ends</string>
+    <string name="calendar_event_created">Added to calendar</string>
+    <string name="calendar_before_none">At event start</string>
+    <string name="calendar_before_minutes">Before event: %1$d min</string>
+    <string name="calendar_permission_hint">Needs calendar permission to read events</string>
+    <string name="charger_type_label">Charger type</string>
+    <string name="charger_any">Any</string>
+    <string name="charger_ac">AC / Wall</string>
+    <string name="charger_usb">USB</string>
+    <string name="charger_wireless">Wireless</string>
+    <string name="revert_when_ends">Revert when the task ends</string>
+    <string name="device_screen_on">Screen on</string>
+    <string name="device_screen_off">Screen off</string>
+    <string name="device_power_connected">Charging started</string>
+    <string name="device_power_disconnected">Charging stopped</string>
+    <string name="device_headset_connected">Headset connected</string>
+    <string name="device_headset_disconnected">Headset disconnected</string>
+    <string name="device_bluetooth">Bluetooth device</string>
+    <string name="network_wifi">Wi-Fi</string>
+    <string name="network_mobile">Mobile data</string>
+    <string name="state_connected">Connected</string>
+    <string name="state_disconnected">Disconnected</string>
+    <string name="exit_revert_actions_label">Revert selected actions</string>
+    <string name="repeat_selected">Selected: %1$s</string>
 </resources>

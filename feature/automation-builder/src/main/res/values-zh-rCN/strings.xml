@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="builder_title">新建自动化</string>
+    <string name="builder_title">新任务</string>
     <string name="save">保存</string>
     <string name="name">名称</string>
     <string name="name_hint">例如：晨间任务</string>
@@ -31,12 +31,49 @@
     <string name="event">事件</string>
     <string name="location_hint">需要位置权限和当前位置</string>
     <string name="grant">授予</string>
+    <string name="permission_explain_title">为什么需要此权限？</string>
+    <string name="permission_continue">继续</string>
+    <string name="permission_not_now">暂时不用</string>
+    <string name="permission_location_title">位置信息访问</string>
+    <string name="permission_location_body">NexaFlow 使用您的位置信息，在您进入或离开某个地点时运行任务。</string>
+    <string name="permission_sms_title">读取消息</string>
+    <string name="permission_sms_body">这允许任务在收到消息时做出反应，并自动回复。</string>
+    <string name="permission_send_sms_title">发送消息</string>
+    <string name="permission_send_sms_body">这允许任务作为其操作之一发送消息。</string>
+    <string name="permission_camera_title">相机访问</string>
+    <string name="permission_camera_body">手电筒操作使用相机闪光灯。绝不会拍照。</string>
+    <string name="permission_notifications_title">通知</string>
+    <string name="permission_notifications_body">NexaFlow 在任务运行时向您发送通知，让您了解发生了什么。</string>
+    <string name="permission_bluetooth_title">附近的设备</string>
+    <string name="permission_bluetooth_body">这允许任务检测您选择的蓝牙设备何时连接或断开。</string>
+    <string name="permission_calendar_title">日历访问</string>
+    <string name="permission_calendar_body">这允许任务围绕日历事件运行，例如在会议开始前。</string>
+    <string name="permission_generic_title">需要权限</string>
+    <string name="permission_generic_body">此权限让所选任务按预期工作。</string>
+    <string name="special_write_settings_title">修改系统设置</string>
+    <string name="special_write_settings_body">NexaFlow 需要此权限在任务运行时调整亮度、屏幕超时、旋转等设置。</string>
+    <string name="special_dnd_title">勿扰模式访问</string>
+    <string name="special_dnd_body">允许您的任务自动静音通知或恢复声音。</string>
+    <string name="special_notification_access_title">通知访问</string>
+    <string name="special_notification_access_body">让任务读取应用通知、对其做出反应或为您阻止它们。</string>
+    <string name="special_accessibility_title">无障碍服务</string>
+    <string name="special_accessibility_body">NexaFlow 使用它检测应用何时打开并自动关闭它们。</string>
+    <string name="special_shizuku_title">Shizuku</string>
+    <string name="special_shizuku_body">让高级任务无需 root 即可控制系统设置。启动 Shizuku 并授予一次访问权限。</string>
+    <string name="special_root_title">Root 访问</string>
+    <string name="special_root_body">让任务运行需要 root (su) 的命令。出现超级用户请求时请授予。</string>
+    <string name="special_elevated_title">提升的权限</string>
+    <string name="special_elevated_body">此操作需要 root、Shizuku 或系统应用权限来控制受保护的设置。</string>
+    <string name="special_bluetooth_title">蓝牙</string>
+    <string name="special_bluetooth_body">NexaFlow 需要开启蓝牙来检测已配对的设备并在它们连接时运行任务。</string>
+
+
     <string name="battery_above">电量高于阈值</string>
     <string name="battery_above_sub">仅当电量高于该水平时运行</string>
     <string name="minimum_battery">最低电量：%1$d%%</string>
 
     <string name="section_actions">然后（操作）</string>
-    <string name="save_automation">保存自动化</string>
+    <string name="save_automation">保存任务</string>
     <string name="ok">确定</string>
     <string name="cancel">取消</string>
     <string name="action_brightness">亮度</string>
@@ -160,7 +197,6 @@
     <string name="repeat_once">一次</string>
     <string name="repeat_daily">每天</string>
     <string name="repeat_specific_days">指定日期</string>
-    <string name="repeat_specific_date">特定日期</string>
     <string name="repeat_date_range">日期范围</string>
     <string name="select_days">选择日期</string>
     <string name="day_mon">一</string>
@@ -173,7 +209,6 @@
     <string name="start_date">开始日期</string>
     <string name="end_date">结束日期</string>
     <string name="date_range_invalid">结束日期必须在开始日期之后</string>
-    <string name="specific_date">日期</string>
     <string name="pick_date">选择日期</string>
     <string name="pick_on_map">在地图上选择</string>
     <string name="sms_from">发件人（号码）</string>
@@ -182,6 +217,8 @@
     <string name="sms_contains_hint">要匹配的文本（留空 = 任意）</string>
     <string name="sms_reply">自动回复（可选）</string>
     <string name="sms_reply_hint">将自动发送回复</string>
+    <string name="permission_denied_hint">需要权限才能启用此功能</string>
+
     <string name="sms_permission_hint">需要短信权限才能读取消息</string>
     <string name="notification_permission_hint">需要通知权限</string>
     <string name="action_ring_volume">铃声音量</string>
@@ -226,11 +263,7 @@
     <string name="move_down">下移</string>
     <string name="remove_action">移除操作</string>
     <string name="quick_save">快速保存</string>
-    <string name="saved_successfully">自动化已保存</string>
-    <string name="summary_if">如果</string>
-    <string name="summary_then">那么</string>
-    <string name="summary_no_triggers">添加触发器</string>
-    <string name="summary_no_actions">添加操作</string>
+    <string name="saved_successfully">任务已保存</string>
     <string name="step_when">当</string>
     <string name="step_then">那么</string>
     <string name="next">下一步</string>
@@ -270,6 +303,8 @@
     <string name="action_stream_volume_sub">精确调节任意声音通道</string>
     <string name="section_exit_behavior">任务结束时</string>
     <string name="exit_behavior_hint">当条件不再满足时会发生什么？</string>
+    <string name="exit_auto_reply_label">自动回复（短信）</string>
+
     <string name="exit_revert_label">恢复原始状态</string>
     <string name="exit_revert_sub">设备恢复到任务运行前的状态</string>
     <string name="exit_nothing_sub">什么都不会发生 — 任务直接结束</string>
@@ -303,4 +338,36 @@
     <string name="action_clear_app_notifications">清除应用通知</string>
     <string name="action_clear_app_notifications_sub">关闭特定应用的通知</string>
     <string name="block_label">屏蔽</string>
+    <string name="trigger_type_calendar">日历</string>
+    <string name="trigger_calendar">日历事件</string>
+    <string name="any_calendar">任意日历</string>
+    <string name="choose_calendar">选择日历</string>
+    <string name="no_calendars_found">未找到日历</string>
+    <string name="calendar_contains">事件包含</string>
+    <string name="calendar_contains_hint">例如：会议、牙医（留空 = 任意）</string>
+    <string name="calendar_event_start">开始时</string>
+    <string name="calendar_event_end">结束时</string>
+    <string name="calendar_event_created">添加到日历时</string>
+    <string name="calendar_before_none">事件开始时</string>
+    <string name="calendar_before_minutes">事件前：%1$d 分钟</string>
+    <string name="calendar_permission_hint">需要日历权限才能读取事件</string>
+    <string name="charger_type_label">充电器类型</string>
+    <string name="charger_any">任意</string>
+    <string name="charger_ac">交流电 / 墙插</string>
+    <string name="charger_usb">USB</string>
+    <string name="charger_wireless">无线</string>
+    <string name="revert_when_ends">任务结束时还原</string>
+    <string name="device_screen_on">屏幕开启</string>
+    <string name="device_screen_off">屏幕关闭</string>
+    <string name="device_power_connected">开始充电</string>
+    <string name="device_power_disconnected">停止充电</string>
+    <string name="device_headset_connected">耳机已连接</string>
+    <string name="device_headset_disconnected">耳机已断开</string>
+    <string name="device_bluetooth">蓝牙设备</string>
+    <string name="network_wifi">Wi-Fi</string>
+    <string name="network_mobile">移动数据</string>
+    <string name="state_connected">已连接</string>
+    <string name="state_disconnected">未连接</string>
+    <string name="exit_revert_actions_label">还原所选操作</string>
+    <string name="repeat_selected">已选择: %1$s</string>
 </resources>

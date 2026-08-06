@@ -5,4 +5,22 @@
     <string name="no_runs_subtitle">Здесь появятся ваши выполнения автоматизаций.</string>
     <string name="status_success">Успешно</string>
     <string name="status_failed">Сбой</string>
+    <string name="executed_via">через %1$s</string>
+    <string name="channel_root">Root</string>
+    <string name="channel_shizuku">Shizuku</string>
+    <string name="channel_system_app">Системное приложение</string>
+    <string name="channel_adb">ADB</string>
+    <string name="channel_android">Android API</string>
+    <string name="channel_accessibility">Специальные возможности</string>
+    <string name="channel_unknown">Неизвестно</string>
+    <string name="execution_details_title">Детали выполнения</string>
+    <string name="execution_not_found_title">Выполнение не найдено</string>
+    <string name="execution_not_found_subtitle">Эта запись выполнения больше недоступна.</string>
+    <string name="section_timeline">Хронология</string>
+    <string name="no_timeline_detail">Подробности по каждому действию для этого запуска не записаны.</string>
+    <string name="total_duration">Итого</string>
+    <string name="duration_ms">мс</string>
+    <string name="duration_s">с</string>
+    <string name="action_restore_state">Восстановить исходное состояние</string>
+    <string name="action_unknown">Неизвестное действие</string>
 </resources>

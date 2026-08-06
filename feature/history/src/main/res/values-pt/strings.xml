@@ -5,4 +5,22 @@
     <string name="no_runs_subtitle">Suas execuções de automação aparecerão aqui.</string>
     <string name="status_success">Sucesso</string>
     <string name="status_failed">Falhou</string>
+    <string name="executed_via">via %1$s</string>
+    <string name="channel_root">Root</string>
+    <string name="channel_shizuku">Shizuku</string>
+    <string name="channel_system_app">App do sistema</string>
+    <string name="channel_adb">ADB</string>
+    <string name="channel_android">API Android</string>
+    <string name="channel_accessibility">Acessibilidade</string>
+    <string name="channel_unknown">Desconhecido</string>
+    <string name="execution_details_title">Detalhes da execução</string>
+    <string name="execution_not_found_title">Execução não encontrada</string>
+    <string name="execution_not_found_subtitle">Este registro de execução não está mais disponível.</string>
+    <string name="section_timeline">Linha do tempo</string>
+    <string name="no_timeline_detail">Nenhum detalhe por ação foi registrado nesta execução.</string>
+    <string name="total_duration">Total</string>
+    <string name="duration_ms">ms</string>
+    <string name="duration_s">s</string>
+    <string name="action_restore_state">Restaurar estado original</string>
+    <string name="action_unknown">Ação desconhecida</string>
 </resources>

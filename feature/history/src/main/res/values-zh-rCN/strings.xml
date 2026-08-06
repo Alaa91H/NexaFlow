@@ -5,4 +5,22 @@
     <string name="no_runs_subtitle">您的自动化执行记录将显示在此处。</string>
     <string name="status_success">成功</string>
     <string name="status_failed">失败</string>
+    <string name="executed_via">通过%1$s</string>
+    <string name="channel_root">Root</string>
+    <string name="channel_shizuku">Shizuku</string>
+    <string name="channel_system_app">系统应用</string>
+    <string name="channel_adb">ADB</string>
+    <string name="channel_android">Android API</string>
+    <string name="channel_accessibility">无障碍</string>
+    <string name="channel_unknown">未知</string>
+    <string name="execution_details_title">执行详情</string>
+    <string name="execution_not_found_title">未找到执行</string>
+    <string name="execution_not_found_subtitle">此执行记录已不可用。</string>
+    <string name="section_timeline">时间线</string>
+    <string name="no_timeline_detail">此次运行未记录每个操作的详细信息。</string>
+    <string name="total_duration">总计</string>
+    <string name="duration_ms">毫秒</string>
+    <string name="duration_s">秒</string>
+    <string name="action_restore_state">恢复原始状态</string>
+    <string name="action_unknown">未知操作</string>
 </resources>

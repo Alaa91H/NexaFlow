@@ -71,4 +71,17 @@
     <string name="bluetooth_permission_sub">Erforderlich zum Erkennen gekoppelter Geräte (Kopfhörer usw.)</string>
     <string name="notification_access">Benachrichtigungszugriff</string>
     <string name="notification_access_sub">Benachrichtigungen lesen und verwalten</string>
+    <string name="calendar_permission">Kalender</string>
+    <string name="calendar_permission_sub">Ereignisse für Kalender-Trigger lesen</string>
+    <string name="execution_channel">Ausführungskanal</string>
+    <string name="execution_channel_sub">Bester Anbieter für dieses Gerät, automatisch ausgewählt</string>
+    <string name="channel_root">Root</string>
+    <string name="channel_shizuku">Shizuku</string>
+    <string name="channel_system_app">System-App</string>
+    <string name="channel_adb">ADB</string>
+    <string name="channel_android">Android-API</string>
+    <string name="channel_accessibility">Bedienungshilfe</string>
+    <string name="channel_none">Keine</string>
+    <string name="channel_detecting">Wird erkannt…</string>
+    <string name="refresh">Aktualisieren</string>
 </resources>

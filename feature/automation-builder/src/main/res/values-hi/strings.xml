@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="builder_title">नया ऑटोमेशन</string>
+    <string name="builder_title">नया कार्य</string>
     <string name="save">सहेजें</string>
     <string name="name">नाम</string>
     <string name="name_hint">जैसे: सुबह का कार्य</string>
@@ -31,12 +31,49 @@
     <string name="event">घटना</string>
     <string name="location_hint">स्थान अनुमति और वर्तमान स्थान की आवश्यकता है</string>
     <string name="grant">अनुमति दें</string>
+    <string name="permission_explain_title">इस अनुमति की आवश्यकता क्यों है?</string>
+    <string name="permission_continue">जारी रखें</string>
+    <string name="permission_not_now">अभी नहीं</string>
+    <string name="permission_location_title">स्थान पहुंच</string>
+    <string name="permission_location_body">किसी स्थान में प्रवेश या निकास पर कार्य चलाने के लिए NexaFlow आपके स्थान का उपयोग करता है।</string>
+    <string name="permission_sms_title">संदेश पढ़ें</string>
+    <string name="permission_sms_body">इससे संदेश आने पर कार्य प्रतिक्रिया कर सकते हैं और स्वतः उत्तर दे सकते हैं।</string>
+    <string name="permission_send_sms_title">संदेश भेजें</string>
+    <string name="permission_send_sms_body">इससे कोई कार्य अपनी क्रियाओं में से एक के रूप में संदेश भेज सकता है।</string>
+    <string name="permission_camera_title">कैमरा पहुंच</string>
+    <string name="permission_camera_body">टॉर्च क्रिया कैमरा फ्लैश का उपयोग करती है। कोई तस्वीर नहीं ली जाती।</string>
+    <string name="permission_notifications_title">सूचनाएँ</string>
+    <string name="permission_notifications_body">कोई कार्य चलने पर NexaFlow आपको सूचना भेजता है, ताकि आप जान सकें कि क्या हुआ।</string>
+    <string name="permission_bluetooth_title">आस-पास के डिवाइस</string>
+    <string name="permission_bluetooth_body">इससे कार्य यह पता लगा सकते हैं कि आपका चुना हुआ ब्लूटूथ डिवाइस कब जुड़ा या अलग हुआ।</string>
+    <string name="permission_calendar_title">कैलेंडर पहुंच</string>
+    <string name="permission_calendar_body">इससे कार्य कैलेंडर ईवेंट के आसपास चल सकते हैं, जैसे बैठक शुरू होने से पहले।</string>
+    <string name="permission_generic_title">अनुमति आवश्यक</string>
+    <string name="permission_generic_body">यह अनुमति चुने गए कार्य को अपेक्षित रूप से काम करने देती है।</string>
+    <string name="special_write_settings_title">सिस्टम सेटिंग्स बदलें</string>
+    <string name="special_write_settings_body">आपके कार्य चलते समय चमक, स्क्रीन टाइमआउट, रोटेशन और अधिक समायोजित करने के लिए NexaFlow को इसकी आवश्यकता है।</string>
+    <string name="special_dnd_title">डू नॉट डिस्टर्ब पहुंच</string>
+    <string name="special_dnd_body">आपके कार्यों को सूचनाएँ म्यूट करने या ध्वनि स्वचालित रूप से बहाल करने देता है।</string>
+    <string name="special_notification_access_title">सूचना पहुंच</string>
+    <string name="special_notification_access_body">कार्यों को ऐप सूचनाएँ पढ़ने, उन पर प्रतिक्रिया देने या उन्हें ब्लॉक करने देता है।</string>
+    <string name="special_accessibility_title">एक्सेसिबिलिटी सेवा</string>
+    <string name="special_accessibility_body">NexaFlow इसका उपयोग ऐप खुलने का पता लगाने और उन्हें स्वचालित रूप से बंद करने के लिए करता है।</string>
+    <string name="special_shizuku_title">शिज़ुकु</string>
+    <string name="special_shizuku_body">उन्नत कार्यों को बिना रूट के सिस्टम सेटिंग्स नियंत्रित करने देता है। शिज़ुकु शुरू करें और एक बार पहुंच दें।</string>
+    <string name="special_root_title">रूट पहुंच</string>
+    <string name="special_root_body">कार्यों को ऐसे कमांड चलाने देता है जिन्हें रूट (su) चाहिए। दिखने पर सुपरयूज़र अनुरोध दें।</string>
+    <string name="special_elevated_title">उन्नत विशेषाधिकार</string>
+    <string name="special_elevated_body">संरक्षित सेटिंग्स नियंत्रित करने के लिए इस क्रिया को रूट, शिज़ुकु या सिस्टम-ऐप विशेषाधिकार चाहिए।</string>
+    <string name="special_bluetooth_title">ब्लूटूथ</string>
+    <string name="special_bluetooth_body">जोड़े गए डिवाइस का पता लगाने और उनके कनेक्ट होने पर कार्य चलाने के लिए NexaFlow को ब्लूटूथ चालू चाहिए।</string>
+
+
     <string name="battery_above">बैटरी सीमा से ऊपर</string>
     <string name="battery_above_sub">केवल तभी चलाएँ जब बैटरी स्तर से ऊपर हो</string>
     <string name="minimum_battery">न्यूनतम बैटरी: %1$d%%</string>
 
     <string name="section_actions">फिर (क्रियाएँ)</string>
-    <string name="save_automation">ऑटोमेशन सहेजें</string>
+    <string name="save_automation">कार्य सहेजें</string>
     <string name="ok">ठीक है</string>
     <string name="cancel">रद्द करें</string>
     <string name="action_brightness">चमक</string>
@@ -160,7 +197,6 @@
     <string name="repeat_once">एक बार</string>
     <string name="repeat_daily">दैनिक</string>
     <string name="repeat_specific_days">खास दिन</string>
-    <string name="repeat_specific_date">विशिष्ट तिथि</string>
     <string name="repeat_date_range">तिथि सीमा</string>
     <string name="select_days">दिन चुनें</string>
     <string name="day_mon">सोम</string>
@@ -173,7 +209,6 @@
     <string name="start_date">आरंभ तिथि</string>
     <string name="end_date">समाप्ति तिथि</string>
     <string name="date_range_invalid">समाप्ति तिथि आरंभ तिथि के बाद होनी चाहिए</string>
-    <string name="specific_date">तिथि</string>
     <string name="pick_date">तिथि चुनें</string>
     <string name="pick_on_map">नक्शे से चुनें</string>
     <string name="sms_from">से (नंबर)</string>
@@ -182,6 +217,8 @@
     <string name="sms_contains_hint">मिलान हेतु टेक्स्ट (खाली = कोई भी)</string>
     <string name="sms_reply">स्वतः उत्तर (वैकल्पिक)</string>
     <string name="sms_reply_hint">उत्तर स्वतः भेजा जाएगा</string>
+    <string name="permission_denied_hint">इस सुविधा को सक्षम करने के लिए अनुमति आवश्यक है</string>
+
     <string name="sms_permission_hint">संदेश पढ़ने हेतु SMS अनुमति चाहिए</string>
     <string name="notification_permission_hint">सूचना अनुमति चाहिए</string>
     <string name="action_ring_volume">रिंग वॉल्यूम</string>
@@ -226,11 +263,7 @@
     <string name="move_down">नीचे ले जाएं</string>
     <string name="remove_action">कार्रवाई हटाएं</string>
     <string name="quick_save">त्वरित सहेजें</string>
-    <string name="saved_successfully">ऑटोमेशन सहेजा गया</string>
-    <string name="summary_if">यदि</string>
-    <string name="summary_then">फिर</string>
-    <string name="summary_no_triggers">ट्रिगर जोड़ें</string>
-    <string name="summary_no_actions">क्रिया जोड़ें</string>
+    <string name="saved_successfully">कार्य सहेजा गया</string>
     <string name="step_when">जब</string>
     <string name="step_then">फिर</string>
     <string name="next">अगला</string>
@@ -270,6 +303,8 @@
     <string name="action_stream_volume_sub">किसी भी ध्वनि चैनल को सटीक रूप से सेट करें</string>
     <string name="section_exit_behavior">जब कार्य समाप्त हो</string>
     <string name="exit_behavior_hint">शर्त पूरी न होने पर क्या होगा?</string>
+    <string name="exit_auto_reply_label">स्वचालित उत्तर (SMS)</string>
+
     <string name="exit_revert_label">मूल स्थिति बहाल करें</string>
     <string name="exit_revert_sub">डिवाइस कार्य से पहلे की स्थिति में लौट जाता है</string>
     <string name="exit_nothing_sub">कुछ नहीं होता — कार्य बस समाप्त हो जाता है</string>
@@ -303,4 +338,36 @@
     <string name="action_clear_app_notifications">ऐप सूचनाएँ साफ़ करें</string>
     <string name="action_clear_app_notifications_sub">किसी विशिष्ट ऐप की सूचनाएँ हटाएँ</string>
     <string name="block_label">ब्लॉक करें</string>
+    <string name="trigger_type_calendar">कैलेंडर</string>
+    <string name="trigger_calendar">कैलेंडर इवेंट</string>
+    <string name="any_calendar">कोई भी कैलेंडर</string>
+    <string name="choose_calendar">कैलेंडर चुनें</string>
+    <string name="no_calendars_found">कोई कैलेंडर नहीं मिला</string>
+    <string name="calendar_contains">इवेंट में शामिल है</string>
+    <string name="calendar_contains_hint">जैसे मीटिंग, डेंटिस्ट (खाली = कोई भी)</string>
+    <string name="calendar_event_start">शुरू होता है</string>
+    <string name="calendar_event_end">समाप्त होता है</string>
+    <string name="calendar_event_created">कैलेंडर में जोड़ा गया</string>
+    <string name="calendar_before_none">इवेंट शुरू होने पर</string>
+    <string name="calendar_before_minutes">इवेंट से पहले: %1$d मिनट</string>
+    <string name="calendar_permission_hint">इवेंट पढ़ने के लिए कैलेंडर अनुमति चाहिए</string>
+    <string name="charger_type_label">चार्जर प्रकार</string>
+    <string name="charger_any">कोई भी</string>
+    <string name="charger_ac">AC / दीवार</string>
+    <string name="charger_usb">USB</string>
+    <string name="charger_wireless">वायरलेस</string>
+    <string name="revert_when_ends">कार्य समाप्त होने पर पुनर्स्थापित करें</string>
+    <string name="device_screen_on">स्क्रीन चालू</string>
+    <string name="device_screen_off">स्क्रीन बंद</string>
+    <string name="device_power_connected">चार्जिंग शुरू</string>
+    <string name="device_power_disconnected">चार्जिंग रुकी</string>
+    <string name="device_headset_connected">हेडसेट कनेक्टेड</string>
+    <string name="device_headset_disconnected">हेडसेट डिस्कनेक्टेड</string>
+    <string name="device_bluetooth">ब्लूटूथ डिवाइस</string>
+    <string name="network_wifi">वाई-फ़ाई</string>
+    <string name="network_mobile">मोबाइल डेटा</string>
+    <string name="state_connected">कनेक्टेड</string>
+    <string name="state_disconnected">डिस्कनेक्टेड</string>
+    <string name="exit_revert_actions_label">चयनित क्रियाएँ पूर्ववत करें</string>
+    <string name="repeat_selected">चयनित: %1$s</string>
 </resources>

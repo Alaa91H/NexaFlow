@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="builder_title">Новая автоматизация</string>
+    <string name="builder_title">Новая задача</string>
     <string name="save">Сохранить</string>
     <string name="name">Имя</string>
     <string name="name_hint">напр.: Утренняя задача</string>
@@ -31,12 +31,49 @@
     <string name="event">Событие</string>
     <string name="location_hint">Требуется разрешение на местоположение и текущие координаты</string>
     <string name="grant">Предоставить</string>
+    <string name="permission_explain_title">Зачем нужно это разрешение?</string>
+    <string name="permission_continue">Продолжить</string>
+    <string name="permission_not_now">Не сейчас</string>
+    <string name="permission_location_title">Доступ к местоположению</string>
+    <string name="permission_location_body">NexaFlow использует ваше местоположение для запуска задач при входе или выходе из места.</string>
+    <string name="permission_sms_title">Чтение сообщений</string>
+    <string name="permission_sms_body">Позволяет задачам реагировать на приход сообщения и отвечать автоматически.</string>
+    <string name="permission_send_sms_title">Отправка сообщений</string>
+    <string name="permission_send_sms_body">Позволяет задаче отправлять сообщение в качестве одного из действий.</string>
+    <string name="permission_camera_title">Доступ к камере</string>
+    <string name="permission_camera_body">Действие фонарика использует вспышку камеры. Фото никогда не делается.</string>
+    <string name="permission_notifications_title">Уведомления</string>
+    <string name="permission_notifications_body">NexaFlow отправляет уведомление при запуске задачи, чтобы вы знали, что произошло.</string>
+    <string name="permission_bluetooth_title">Устройства рядом</string>
+    <string name="permission_bluetooth_body">Позволяет задачам определять подключение или отключение выбранного устройства Bluetooth.</string>
+    <string name="permission_calendar_title">Доступ к календарю</string>
+    <string name="permission_calendar_body">Позволяет задачам запускаться вокруг событий календаря, например перед началом встречи.</string>
+    <string name="permission_generic_title">Требуется разрешение</string>
+    <string name="permission_generic_body">Это разрешение позволяет выбранной задаче работать как ожидается.</string>
+    <string name="special_write_settings_title">Изменение системных настроек</string>
+    <string name="special_write_settings_body">NexaFlow нужен этот доступ для настройки яркости, тайм-аута экрана, поворота и другого во время выполнения задач.</string>
+    <string name="special_dnd_title">Доступ к режиму «Не беспокоить»</string>
+    <string name="special_dnd_body">Позволяет задачам автоматически отключать уведомления или восстанавливать звук.</string>
+    <string name="special_notification_access_title">Доступ к уведомлениям</string>
+    <string name="special_notification_access_body">Позволяет задачам читать уведомления приложений, реагировать на них или блокировать их.</string>
+    <string name="special_accessibility_title">Служба специальных возможностей</string>
+    <string name="special_accessibility_body">NexaFlow использует её для определения открытия приложений и их автоматического закрытия.</string>
+    <string name="special_shizuku_title">Shizuku</string>
+    <string name="special_shizuku_body">Позволяет расширенным задачам управлять настройками без root. Запустите Shizuku и предоставьте доступ один раз.</string>
+    <string name="special_root_title">Root-доступ</string>
+    <string name="special_root_body">Позволяет задачам выполнять команды, требующие root (su). Разрешите запрос суперпользователя, когда он появится.</string>
+    <string name="special_elevated_title">Расширенные привилегии</string>
+    <string name="special_elevated_body">Для управления защищёнными настройками этому действию нужны root, Shizuku или привилегии системного приложения.</string>
+    <string name="special_bluetooth_title">Bluetooth</string>
+    <string name="special_bluetooth_body">NexaFlow нужен включённый Bluetooth для обнаружения сопряжённых устройств и запуска задач при подключении.</string>
+
+
     <string name="battery_above">Батарея выше порога</string>
     <string name="battery_above_sub">Запускать только когда батарея выше уровня</string>
     <string name="minimum_battery">Минимальная батарея: %1$d%%</string>
 
     <string name="section_actions">ЗАТЕМ (ДЕЙСТВИЯ)</string>
-    <string name="save_automation">Сохранить автоматизацию</string>
+    <string name="save_automation">Сохранить задачу</string>
     <string name="ok">ОК</string>
     <string name="cancel">Отмена</string>
     <string name="action_brightness">Яркость</string>
@@ -160,7 +197,6 @@
     <string name="repeat_once">Один раз</string>
     <string name="repeat_daily">Ежедневно</string>
     <string name="repeat_specific_days">В выбранные дни</string>
-    <string name="repeat_specific_date">Конкретная дата</string>
     <string name="repeat_date_range">Диапазон дат</string>
     <string name="select_days">Выбрать дни</string>
     <string name="day_mon">Пн</string>
@@ -173,7 +209,6 @@
     <string name="start_date">Дата начала</string>
     <string name="end_date">Дата окончания</string>
     <string name="date_range_invalid">Дата окончания должна быть позже даты начала</string>
-    <string name="specific_date">Дата</string>
     <string name="pick_date">Выбрать дату</string>
     <string name="pick_on_map">Выбрать на карте</string>
     <string name="sms_from">От (номер)</string>
@@ -182,6 +217,8 @@
     <string name="sms_contains_hint">Текст для поиска (пусто = любой)</string>
     <string name="sms_reply">Автоответ (необязательно)</string>
     <string name="sms_reply_hint">Ответ будет отправлен автоматически</string>
+    <string name="permission_denied_hint">Требуется разрешение для включения этой функции</string>
+
     <string name="sms_permission_hint">Требуется разрешение SMS для чтения сообщений</string>
     <string name="notification_permission_hint">Требуется разрешение на уведомления</string>
     <string name="action_ring_volume">Громкость звонка</string>
@@ -226,11 +263,7 @@
     <string name="move_down">Вниз</string>
     <string name="remove_action">Удалить действие</string>
     <string name="quick_save">Быстрое сохранение</string>
-    <string name="saved_successfully">Автоматизация сохранена</string>
-    <string name="summary_if">ЕСЛИ</string>
-    <string name="summary_then">ТО</string>
-    <string name="summary_no_triggers">Добавить триггер</string>
-    <string name="summary_no_actions">Добавить действие</string>
+    <string name="saved_successfully">Задача сохранена</string>
     <string name="step_when">Когда</string>
     <string name="step_then">Затем</string>
     <string name="next">Далее</string>
@@ -270,6 +303,8 @@
     <string name="action_stream_volume_sub">Точная настройка любого звукового канала</string>
     <string name="section_exit_behavior">Когда задача завершается</string>
     <string name="exit_behavior_hint">Что делать, когда условие перестаёт выполняться?</string>
+    <string name="exit_auto_reply_label">Автоответ (SMS)</string>
+
     <string name="exit_revert_label">Вернуть исходное состояние</string>
     <string name="exit_revert_sub">Устرойство возвращается к состоянию до запуска задачи</string>
     <string name="exit_nothing_sub">Ничего не происходит — задача пرосто завершается</string>
@@ -303,4 +338,36 @@
     <string name="action_clear_app_notifications">Очистить уведомления приложения</string>
     <string name="action_clear_app_notifications_sub">Отклонить уведомления конкретного приложения</string>
     <string name="block_label">Заблокировать</string>
+    <string name="trigger_type_calendar">Календарь</string>
+    <string name="trigger_calendar">Событие календаря</string>
+    <string name="any_calendar">Любой календарь</string>
+    <string name="choose_calendar">Выберите календарь</string>
+    <string name="no_calendars_found">Календари не найдены</string>
+    <string name="calendar_contains">Событие содержит</string>
+    <string name="calendar_contains_hint">напр. встреча, стоматолог (пусто = любое)</string>
+    <string name="calendar_event_start">Начало</string>
+    <string name="calendar_event_end">Окончание</string>
+    <string name="calendar_event_created">Добавлено в календарь</string>
+    <string name="calendar_before_none">В начале события</string>
+    <string name="calendar_before_minutes">До события: %1$d мин</string>
+    <string name="calendar_permission_hint">Требуется разрешение календаря для чтения событий</string>
+    <string name="charger_type_label">Тип зарядного устройства</string>
+    <string name="charger_any">Любой</string>
+    <string name="charger_ac">Сеть / Розетка</string>
+    <string name="charger_usb">USB</string>
+    <string name="charger_wireless">Беспроводная</string>
+    <string name="revert_when_ends">Вернуть при завершении задачи</string>
+    <string name="device_screen_on">Экран включён</string>
+    <string name="device_screen_off">Экран выключен</string>
+    <string name="device_power_connected">Зарядка началась</string>
+    <string name="device_power_disconnected">Зарядка остановлена</string>
+    <string name="device_headset_connected">Наушники подключены</string>
+    <string name="device_headset_disconnected">Наушники отключены</string>
+    <string name="device_bluetooth">Устройство Bluetooth</string>
+    <string name="network_wifi">Wi-Fi</string>
+    <string name="network_mobile">Мобильные данные</string>
+    <string name="state_connected">Подключено</string>
+    <string name="state_disconnected">Отключено</string>
+    <string name="exit_revert_actions_label">Вернуть выбранные действия</string>
+    <string name="repeat_selected">Выбрано: %1$s</string>
 </resources>

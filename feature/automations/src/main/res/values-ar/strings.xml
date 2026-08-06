@@ -133,4 +133,10 @@
     <string name="action_block_notification_sub">كتم جميع إشعارات تطبيق</string>
     <string name="action_clear_app_notifications">مسح إشعارات تطبيق</string>
     <string name="action_clear_app_notifications_sub">إلغاء إشعارات تطبيق محدد</string>
+    <string name="trigger_calendar">حدث التقويم</string>
+    <string name="trigger_calendar_sub">عندما يطابق حدث تقويم</string>
+    <string name="charger_any">أي</string>
+    <string name="charger_ac">حائط</string>
+    <string name="charger_usb">USB</string>
+    <string name="charger_wireless">لاسلكي</string>
 </resources>

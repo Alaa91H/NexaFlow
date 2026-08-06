@@ -11,6 +11,7 @@ import com.nexaflow.core.capability.CapabilityCenterScreen
 import com.nexaflow.feature.automations.AutomationDetailsScreen
 import com.nexaflow.feature.builder.AutomationBuilderScreen
 import com.nexaflow.feature.dashboard.DashboardScreen
+import com.nexaflow.feature.history.ExecutionDetailsScreen
 import com.nexaflow.feature.history.HistoryScreen
 import com.nexaflow.feature.icons.IconPickerScreen
 import com.nexaflow.feature.settings.NotificationManagerScreen
@@ -48,6 +49,9 @@ fun NexaFlowApp() {
             }
             composable("history") {
                 HistoryScreen(navController = navController)
+            }
+            composable("execution_details/{recordId}") {
+                ExecutionDetailsScreen(navController = navController)
             }
             composable("capability_center") {
                 CapabilityCenterScreen()

@@ -1,5 +1,7 @@
 ﻿package com.nexaflow.feature.history
 
+import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -61,7 +63,10 @@ fun HistoryScreen(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(history) { entry ->
-                    HistoryCard(entry = entry)
+                    HistoryCard(
+                        entry = entry,
+                        onClick = { navController.navigate("execution_details/${entry.id}") }
+                    )
                 }
             }
         }
@@ -69,10 +74,10 @@ fun HistoryScreen(navController: NavController) {
 }
 
 @Composable
-private fun HistoryCard(entry: ExecutionRecord) {
+private fun HistoryCard(entry: ExecutionRecord, onClick: () -> Unit) {
     val locale = LocalConfiguration.current.locales[0]
     val timeFormat = remember(locale) { SimpleDateFormat("MMM d, HH:mm", locale) }
-    NexaFlowCard {
+    NexaFlowCard(modifier = Modifier.clickable { onClick() }) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -91,6 +96,18 @@ private fun HistoryCard(entry: ExecutionRecord) {
                     color = MaterialTheme.colorScheme.secondary,
                     maxLines = 1
                 )
+                // Show which execution channel actually ran this task (e.g. "via Root").
+                val channel = entry.channel
+                if (channel != null) {
+                    Text(
+                        text = stringResource(
+                            R.string.executed_via,
+                            stringResource(channelLabelRes(channel))
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
                 Text(
                     text = timeFormat.format(Date(entry.executedAt)),
                     style = MaterialTheme.typography.labelSmall,
@@ -103,5 +120,19 @@ private fun HistoryCard(entry: ExecutionRecord) {
                 contentColor = if (entry.success) Color(0xFF2FA84F) else Color(0xFFE5533D)
             )
         }
+    }
+}
+
+/** Maps the stored channel name to its localized label. */
+@StringRes
+internal fun channelLabelRes(channel: String): Int {
+    return when (channel) {
+        "ROOT" -> R.string.channel_root
+        "SHIZUKU" -> R.string.channel_shizuku
+        "SYSTEM_APP" -> R.string.channel_system_app
+        "ADB" -> R.string.channel_adb
+        "ANDROID" -> R.string.channel_android
+        "ACCESSIBILITY" -> R.string.channel_accessibility
+        else -> R.string.channel_unknown
     }
 }

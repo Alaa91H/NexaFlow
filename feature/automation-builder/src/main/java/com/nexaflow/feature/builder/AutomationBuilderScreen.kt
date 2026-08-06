@@ -181,70 +181,6 @@ internal val actionOptions = listOf(
 
 internal val actionCategories: List<ActionCategory> = ActionCategory.entries.toList()
 
-private fun TriggerType.summaryLabelRes(): Int = when (this) {
-    TriggerType.TIME -> R.string.trigger_type_time
-    TriggerType.BATTERY -> R.string.trigger_type_battery
-    TriggerType.APPLICATION -> R.string.trigger_type_app
-    TriggerType.DEVICE -> R.string.trigger_type_device
-    TriggerType.CONNECTIVITY -> R.string.trigger_type_connectivity
-    TriggerType.LOCATION -> R.string.trigger_type_location
-    TriggerType.SMS -> R.string.trigger_type_sms
-    TriggerType.BLUETOOTH_DEVICE -> R.string.trigger_type_bluetooth
-    TriggerType.RINGER_MODE -> R.string.trigger_type_ringer
-    TriggerType.NOTIFICATION -> R.string.trigger_type_notification
-}
-
-/** Samsung-style live "IF … THEN …" summary shown while building a task. */
-@Composable
-private fun BuilderSummaryCard(
-    triggers: List<TriggerDraft>,
-    actions: List<ActionOption>
-) {
-    NexaFlowCard {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            SummaryLine(
-                label = stringResource(R.string.summary_if),
-                text = if (triggers.isEmpty()) {
-                    stringResource(R.string.summary_no_triggers)
-                } else {
-                    triggers.map { stringResource(it.type.summaryLabelRes()) }.joinToString(" + ")
-                },
-                accent = Color(0xFF1B62B7)
-            )
-            SummaryLine(
-                label = stringResource(R.string.summary_then),
-                text = if (actions.isEmpty()) {
-                    stringResource(R.string.summary_no_actions)
-                } else {
-                    actions.map { stringResource(it.titleRes) }.joinToString(" + ")
-                },
-                accent = Color(0xFF2FA84F)
-            )
-        }
-    }
-}
-
-@Composable
-private fun SummaryLine(label: String, text: String, accent: Color) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-            color = accent,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = if (text.isBlank()) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface
-        )
-    }
-}
 
 /** Bottom save bar for the single-page task editor. */
 @Composable
@@ -279,7 +215,11 @@ private fun SelectedActionCard(
     onMoveDown: () -> Unit,
     onRemove: () -> Unit,
     onPickApp: () -> Unit,
-    context: Context
+    onRequestPermission: (Array<String>) -> Unit = {},
+    context: Context,
+    // Default keeps the pre-explain behavior (open settings directly) so a call
+    // site that forgets to wire the explain screen never gets a dead button.
+    onExplainSpecial: (SpecialPermission) -> Unit = { PermissionShortcuts.openSpecial(context, it) }
 ) {
     NexaFlowCard {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -340,22 +280,11 @@ private fun SelectedActionCard(
             )
             PermissionHintForAction(
                 actionType = option.actionType,
-                context = context
+                context = context,
+                onRequestPermission = onRequestPermission,
+                onExplainSpecial = onExplainSpecial
             )
         }
-    }
-}
-
-/** Design-time preview of the live IF … THEN summary card. */
-@Preview(name = "Builder summary", showBackground = true, widthDp = 400)
-@Preview(name = "Builder summary (dark)", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
-@Composable
-private fun BuilderSummaryCardPreview() {
-    MaterialTheme {
-        BuilderSummaryCard(
-            triggers = listOf(TriggerDraft(TriggerType.TIME, mapOf("time" to "08:00"))),
-            actions = actionOptions.filter { it.actionType == ActionType.SYSTEM_BRIGHTNESS }
-        )
     }
 }
 
@@ -390,6 +319,7 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
     var appPickerTarget by remember { mutableStateOf<String?>(null) }
     var mapPickerTarget by remember { mutableStateOf<Int?>(null) }
     var bluetoothPickerTarget by remember { mutableStateOf<Int?>(null) }
+    var calendarPickerTarget by remember { mutableStateOf<Int?>(null) }
     var showTriggerPicker by remember { mutableStateOf(false) }
     var showActionPicker by remember { mutableStateOf(false) }
     val actionConfigs = remember { mutableStateMapOf<ActionType, Map<String, String>>() }
@@ -455,6 +385,52 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
     }
 
     val isEditing = automationId != null
+
+    val stringPermissionDenied = stringResource(R.string.permission_denied_hint)
+    // Permission request currently waiting for the user to confirm the Samsung-style
+    // explain screen. The system dialog only opens after the user taps Continue.
+    var pendingPermissions by remember { mutableStateOf<Array<String>?>(null) }
+    // Special permission (settings-screen) request awaiting the explain screen.
+    var pendingSpecialPermission by remember { mutableStateOf<SpecialPermission?>(null) }
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()
+    ) { grants ->
+        // Surface denied permissions so the user knows why the feature may not work.
+        if (grants.values.any { !it }) {
+            scope.launch {
+                snackbarHostState.showSnackbar(stringPermissionDenied)
+            }
+        }
+    }
+
+    fun requestPermissions(permissions: Array<String>) {
+        // Already-granted permissions need neither the explain screen nor the
+        // system dialog, so skip straight past them on repeat visits.
+        val allGranted = permissions.all {
+            context.checkSelfPermission(it) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        }
+        if (allGranted) return
+        // Explain why the permission is needed BEFORE opening the system dialog.
+        pendingPermissions = permissions
+    }
+
+    fun explainSpecialPermission(special: SpecialPermission) {
+        // Explain why the permission is needed BEFORE opening its settings screen.
+        pendingSpecialPermission = special
+    }
+
+    /** First SMS trigger, if any — its "reply" config is edited in the exit section. */
+    val smsTriggerIndex = triggers.indexOfFirst { it.type == TriggerType.SMS }
+    // Looked up defensively inside the handler so removing/retargeting the SMS
+    // trigger mid-session can never hit a stale index.
+    fun updateSmsReply(reply: String) {
+        val idx = triggers.indexOfFirst { it.type == TriggerType.SMS }
+        if (idx in triggers.indices) {
+            triggers[idx] = triggers[idx].copy(
+                config = triggers[idx].config + ("reply" to reply)
+            )
+        }
+    }
 
     fun moveAction(from: Int, to: Int) {
         if (from !in selectedActions.indices || to !in selectedActions.indices) return
@@ -566,12 +542,6 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                 }
             }
 
-            // ── Live summary ─────────────────────────────────────────
-            BuilderSummaryCard(
-                triggers = triggers,
-                actions = selectedActions
-            )
-
             // ── WHEN (triggers) ──────────────────────────────────────
             SectionHeader(
                 text = stringResource(R.string.section_when),
@@ -584,16 +554,6 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                     }
                 }
             )
-            if (triggers.isEmpty()) {
-                NexaFlowCard {
-                    Text(
-                        text = stringResource(R.string.summary_no_triggers),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.padding(vertical = 6.dp)
-                    )
-                }
-            }
             triggers.forEachIndexed { index, draft ->
                 TriggerEditorCard(
                     draft = draft,
@@ -604,6 +564,9 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                     onRemove = { triggers.removeAt(index) },
                     onPickApp = { appPickerTarget = "trigger:$index" },
                     onPickBluetooth = { bluetoothPickerTarget = index },
+                    onPickCalendar = { calendarPickerTarget = index },
+                    onRequestPermission = { requestPermissions(it) },
+                    onExplainSpecial = { explainSpecialPermission(it) },
                     onPickFromMap = {
                         mapPickerTarget = index
                         try {
@@ -631,16 +594,6 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                     }
                 }
             )
-            if (selectedActions.isEmpty()) {
-                NexaFlowCard {
-                    Text(
-                        text = stringResource(R.string.summary_no_actions),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.padding(vertical = 6.dp)
-                    )
-                }
-            }
             selectedActions.forEachIndexed { index, option ->
                 SelectedActionCard(
                     option = option,
@@ -655,6 +608,8 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                         actionConfigs.remove(option.actionType)
                     },
                     onPickApp = { appPickerTarget = "action:${option.actionType.name}" },
+                    onRequestPermission = { requestPermissions(it) },
+                    onExplainSpecial = { explainSpecialPermission(it) },
                     context = context
                 )
             }
@@ -749,6 +704,26 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                             }
                         }
                     }
+                    // Auto-reply belongs with the exit behaviour: it is not an action,
+                    // so it lives here instead of inside the SMS trigger editor.
+                    // Note: the reply is still sent by SmsReceiver when the message
+                    // arrives (not when the task ends) — this field only configures it.
+                    if (smsTriggerIndex in triggers.indices && triggers[smsTriggerIndex].type == TriggerType.SMS) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        Text(
+                            text = stringResource(R.string.exit_auto_reply_label),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        OutlinedTextField(
+                            value = triggers[smsTriggerIndex].config["reply"] ?: "",
+                            onValueChange = { updateSmsReply(it) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(text = stringResource(R.string.sms_reply)) },
+                            placeholder = { Text(text = stringResource(R.string.sms_reply_hint)) },
+                            singleLine = true
+                        )
+                    }
                 }
             }
         }
@@ -810,19 +785,39 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
         }
     }
 
+    calendarPickerTarget?.let { index ->
+        if (index in triggers.indices) {
+            CalendarPickerDialog(
+                onPick = { calendar ->
+                    triggers[index] = triggers[index].copy(
+                        config = mapOf(
+                            "calendar" to calendar.name,
+                            "contains" to (triggers[index].config["contains"] ?: ""),
+                            "event" to (triggers[index].config["event"] ?: "EVENT_START"),
+                            "beforeMinutes" to (triggers[index].config["beforeMinutes"] ?: "0")
+                        )
+                    )
+                    calendarPickerTarget = null
+                },
+                onDismiss = { calendarPickerTarget = null }
+            )
+        } else {
+            calendarPickerTarget = null
+        }
+    }
+
     appPickerTarget?.let { target ->
         val exitActionName = target.removePrefix("exit:")
         if (exitActionName != target) {
             val exitType = ActionType.entries.firstOrNull { it.name == exitActionName }
             if (exitType == ActionType.SYSTEM_OPEN_APP) {
+                val existing = exitActionConfigs[ActionType.SYSTEM_OPEN_APP]
+                val pre = (existing?.get("packages") ?: existing?.get("package") ?: "")
+                    .split(',').map { it.trim() }.filter { it.isNotEmpty() }
                 AppPickerDialog(
                     onPickSingle = { app ->
-                        val existing = exitActionConfigs[ActionType.SYSTEM_OPEN_APP]
-                        val current = (existing?.get("packages") ?: existing?.get("package") ?: "")
-                            .split(',')
-                            .map { it.trim() }
-                            .filter { it.isNotEmpty() }
-                        val merged = (current + app.packageName).distinct()
+                        val current = pre + app.packageName
+                        val merged = current.distinct()
                         exitActionConfigs[ActionType.SYSTEM_OPEN_APP] = mapOf("packages" to merged.joinToString(","))
                         appPickerTarget = null
                     },
@@ -831,6 +826,7 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                         appPickerTarget = null
                     },
                     multiSelect = true,
+                    preSelectedPackages = pre,
                     onDismiss = { appPickerTarget = null }
                 )
             } else if (exitType != null) {
@@ -848,11 +844,14 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
         }
         val triggerIndex = target.removePrefix("trigger:").toIntOrNull()
         if (triggerIndex != null) {
+            val triggerPackages = (triggers[triggerIndex].config["packages"] ?: triggers[triggerIndex].config["package"] ?: "")
+                .split(',').map { it.trim() }.filter { it.isNotEmpty() }
             AppPickerDialog(
                 onPickSingle = { app ->
+                    val merged = (triggerPackages + app.packageName).distinct()
                     val current = triggers[triggerIndex]
                     triggers[triggerIndex] = current.copy(
-                        config = mapOf("packages" to app.packageName)
+                        config = mapOf("packages" to merged.joinToString(","))
                     )
                     appPickerTarget = null
                 },
@@ -864,6 +863,7 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                     appPickerTarget = null
                 },
                 multiSelect = true,
+                preSelectedPackages = triggerPackages,
                 onDismiss = { appPickerTarget = null }
             )
         } else {
@@ -877,24 +877,25 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                 else -> null
             }
             when {
-                isOpenApp -> AppPickerDialog(
-                    onPickSingle = { app ->
-                        val existing = actionConfigs[ActionType.SYSTEM_OPEN_APP]
-                        val current = (existing?.get("packages") ?: existing?.get("package") ?: "")
-                            .split(',')
-                            .map { it.trim() }
-                            .filter { it.isNotEmpty() }
-                        val merged = (current + app.packageName).distinct()
-                        actionConfigs[ActionType.SYSTEM_OPEN_APP] = mapOf("packages" to merged.joinToString(","))
-                        appPickerTarget = null
-                    },
-                    onPickMultiple = { packages ->
-                        actionConfigs[ActionType.SYSTEM_OPEN_APP] = mapOf("packages" to packages.joinToString(",") { it.packageName })
-                        appPickerTarget = null
-                    },
-                    multiSelect = true,
-                    onDismiss = { appPickerTarget = null }
-                )
+                isOpenApp -> {
+                    val existing = actionConfigs[ActionType.SYSTEM_OPEN_APP]
+                    val pre = (existing?.get("packages") ?: existing?.get("package") ?: "")
+                        .split(',').map { it.trim() }.filter { it.isNotEmpty() }
+                    AppPickerDialog(
+                        onPickSingle = { app ->
+                            val merged = (pre + app.packageName).distinct()
+                            actionConfigs[ActionType.SYSTEM_OPEN_APP] = mapOf("packages" to merged.joinToString(","))
+                            appPickerTarget = null
+                        },
+                        onPickMultiple = { packages ->
+                            actionConfigs[ActionType.SYSTEM_OPEN_APP] = mapOf("packages" to packages.joinToString(",") { it.packageName })
+                            appPickerTarget = null
+                        },
+                        multiSelect = true,
+                        preSelectedPackages = pre,
+                        onDismiss = { appPickerTarget = null }
+                    )
+                }
                 singlePickType != null -> AppPickerDialog(
                     onPickSingle = { app ->
                         actionConfigs[singlePickType] = mapOf("package" to app.packageName)
@@ -905,5 +906,27 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                 else -> appPickerTarget = null
             }
         }
+    }
+
+    // Samsung-style explain screens shown before granting a permission.
+    pendingPermissions?.let { permissions ->
+        PermissionExplainDialog(
+            info = remember(permissions) { permissionExplainInfo(permissions) },
+            onContinue = {
+                pendingPermissions = null
+                permissionLauncher.launch(permissions)
+            },
+            onDismiss = { pendingPermissions = null }
+        )
+    }
+    pendingSpecialPermission?.let { special ->
+        PermissionExplainDialog(
+            info = specialPermissionExplainInfo(special),
+            onContinue = {
+                pendingSpecialPermission = null
+                PermissionShortcuts.openSpecial(context, special)
+            },
+            onDismiss = { pendingSpecialPermission = null }
+        )
     }
 }

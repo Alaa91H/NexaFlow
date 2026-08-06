@@ -9,9 +9,4 @@
     <string name="widget_action">Включить все</string>
 
     <!-- Bottom navigation -->
-    <string name="tab_home">Главная</string>
-    <string name="tab_modes">Режимы</string>
-    <string name="tab_device">Устройство</string>
-    <string name="tab_history">История</string>
-    <string name="tab_settings">Настройки</string>
 </resources>

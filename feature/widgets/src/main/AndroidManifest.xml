@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Quick Settings tiles: each tile toggles one task (routine). -->
+    <application>
+        <service
+            android:name=".TaskTile1Service"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_1"
+            android:label="@string/tile_1_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".TaskTile2Service"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_2"
+            android:label="@string/tile_2_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".TaskTile3Service"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_3"
+            android:label="@string/tile_3_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".TaskTile4Service"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_4"
+            android:label="@string/tile_4_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+    </application>
+
+</manifest>

@@ -22,7 +22,9 @@ class AutomationMapperTest {
         enabled = true,
         triggers = listOf(
             Trigger(TriggerType.TIME, config = mapOf("time" to "22:00")),
-            Trigger(TriggerType.NOTIFICATION, config = mapOf("packages" to "com.whatsapp", "contains" to "order", "event" to "POSTED"))
+            Trigger(TriggerType.BATTERY, config = mapOf("direction" to "ABOVE", "above" to "80", "chargerType" to "WIRELESS")),
+            Trigger(TriggerType.NOTIFICATION, config = mapOf("packages" to "com.whatsapp", "contains" to "order", "event" to "POSTED")),
+            Trigger(TriggerType.CALENDAR, config = mapOf("calendar" to "Personal", "contains" to "meeting", "event" to "EVENT_START", "beforeMinutes" to "15"))
         ),
         actions = listOf(
             Action(ActionType.SYSTEM_BRIGHTNESS, config = mapOf("value" to "40")),
@@ -40,7 +42,7 @@ class AutomationMapperTest {
         assertEquals(automation.id, entity.id)
         assertEquals(automation.name, entity.name)
         assertEquals(automation.actions.size, 4)
-        assertEquals(automation.triggers.size, 2)
+        assertEquals(automation.triggers.size, 4)
 
         assertEquals(automation, entity.toDomain())
     }

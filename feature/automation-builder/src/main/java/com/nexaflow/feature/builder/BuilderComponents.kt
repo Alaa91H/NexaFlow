@@ -7,15 +7,20 @@ import android.provider.Settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -27,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -73,19 +79,79 @@ fun SliderRow(
     }
 }
 
+/**
+ * Samsung-style selection chip with a clearly highlighted selected state
+ * (filled primary tint + check icon + bolder label).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SelectChip(
+    selected: Boolean,
+    onClick: () -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    leadingIcon: ImageVector? = null
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        modifier = modifier,
+        leadingIcon = {
+            when {
+                selected -> Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                leadingIcon != null -> Icon(
+                    imageVector = leadingIcon,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        },
+        label = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+            )
+        },
+        colors = FilterChipDefaults.filterChipColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+            labelColor = MaterialTheme.colorScheme.onSurface,
+            iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
+            selectedLabelColor = MaterialTheme.colorScheme.primary,
+            selectedLeadingIconColor = MaterialTheme.colorScheme.primary
+        ),
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = selected,
+            borderColor = MaterialTheme.colorScheme.outlineVariant,
+            selectedBorderColor = MaterialTheme.colorScheme.primary
+        )
+    )
+}
+
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun OptionChips(
     options: List<String>,
     selected: String,
-    onSelect: (String) -> Unit
+    onSelect: (String) -> Unit,
+    labels: Map<String, String>? = null
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
         options.forEach { option ->
-            FilterChip(
+            SelectChip(
                 selected = selected == option,
                 onClick = { onSelect(option) },
-                label = { Text(text = option) }
+                label = labels?.get(option) ?: option
             )
         }
     }
@@ -164,8 +230,50 @@ fun ActionOptionRow(
 }
 
 @Composable
-fun PermissionHintForAction(actionType: ActionType, context: Context) {
-    val hint: Triple<Int, Int, (Context) -> Unit>? = when (actionType) {
+fun PermissionHintForAction(
+    actionType: ActionType,
+    context: Context,
+    onRequestPermission: (Array<String>) -> Unit = {},
+    // Default keeps the pre-explain behavior (open settings directly) so a call
+    // site that forgets to wire the explain screen never gets a dead button.
+    onExplainSpecial: (SpecialPermission) -> Unit = { PermissionShortcuts.openSpecial(context, it) }
+) {
+    // Runtime-requestable permissions are requested through the system dialog
+    // directly; special settings (write settings, DND, notification access,
+    // accessibility, Shizuku/root) still open their dedicated settings screen.
+    val runtimePermissions: List<String> = when (actionType) {
+        ActionType.SYSTEM_SEND_SMS -> listOf(android.Manifest.permission.SEND_SMS)
+        ActionType.SYSTEM_FLASHLIGHT -> listOf(android.Manifest.permission.CAMERA)
+        ActionType.SYSTEM_SEND_NOTIFICATION,
+        ActionType.SYSTEM_SEND_REMINDER,
+        ActionType.BATTERY_ALERTS,
+        ActionType.BATTERY_CHARGING_NOTIFICATIONS -> listOf(android.Manifest.permission.POST_NOTIFICATIONS)
+        ActionType.SYSTEM_LOCATION -> listOf(
+            android.Manifest.permission.ACCESS_FINE_LOCATION,
+            android.Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+        else -> emptyList()
+    }
+    if (runtimePermissions.isNotEmpty()) {
+        PermissionHint(
+            text = stringResource(
+                when (actionType) {
+                    ActionType.SYSTEM_SEND_SMS -> R.string.sms_permission_hint
+                    ActionType.SYSTEM_FLASHLIGHT -> R.string.flashlight_hint
+                    ActionType.SYSTEM_SEND_NOTIFICATION,
+                    ActionType.SYSTEM_SEND_REMINDER,
+                    ActionType.BATTERY_ALERTS,
+                    ActionType.BATTERY_CHARGING_NOTIFICATIONS -> R.string.notification_permission_hint
+                    else -> R.string.location_hint
+                }
+            ),
+            buttonLabel = stringResource(R.string.grant),
+            onClick = { onRequestPermission(runtimePermissions.toTypedArray()) }
+        )
+        return
+    }
+
+    val hint: Triple<Int, Int, SpecialPermission>? = when (actionType) {
         ActionType.SYSTEM_BRIGHTNESS,
         ActionType.SYSTEM_SCREEN_ROTATION,
         ActionType.SYSTEM_SCREEN_TIMEOUT,
@@ -175,28 +283,23 @@ fun PermissionHintForAction(actionType: ActionType, context: Context) {
         ActionType.SYSTEM_ANIMATIONS -> Triple(
             R.string.write_settings_hint,
             R.string.grant,
-            PermissionShortcuts::openWriteSettings
+            SpecialPermission.WRITE_SETTINGS
         )
         ActionType.SYSTEM_DND,
         ActionType.SYSTEM_RINGER_MODE -> Triple(
             R.string.dnd_hint,
             R.string.grant,
-            PermissionShortcuts::openNotificationPolicy
-        )
-        ActionType.SYSTEM_FLASHLIGHT -> Triple(
-            R.string.flashlight_hint,
-            R.string.grant,
-            PermissionShortcuts::openAppSettings
+            SpecialPermission.DND_ACCESS
         )
         ActionType.ADVANCED_SHIZUKU -> Triple(
             R.string.shizuku_hint,
             R.string.enable,
-            PermissionShortcuts::openShizukuManager
+            SpecialPermission.SHIZUKU
         )
         ActionType.ADVANCED_ROOT -> Triple(
             R.string.root_hint,
             R.string.grant,
-            PermissionShortcuts::openAppSettings
+            SpecialPermission.ROOT
         )
         ActionType.APPLICATION_CLOSE_APP,
         ActionType.SYSTEM_MOBILE_DATA,
@@ -205,36 +308,44 @@ fun PermissionHintForAction(actionType: ActionType, context: Context) {
         ActionType.SYSTEM_POWER_SAVER,
         ActionType.SYSTEM_LOCK_SCREEN,
         ActionType.SYSTEM_OPEN_RECENTS,
-        ActionType.SYSTEM_GO_HOME,
-        ActionType.SYSTEM_LOCATION -> Triple(
+        ActionType.SYSTEM_GO_HOME -> Triple(
             R.string.elevated_hint,
             R.string.info,
-            PermissionShortcuts::openAppSettings
+            SpecialPermission.ELEVATED
         )
-        ActionType.SYSTEM_SEND_SMS -> Triple(
-            R.string.sms_permission_hint,
-            R.string.grant,
-            PermissionShortcuts::openAppSettings
-        )
-        ActionType.SYSTEM_SEND_REMINDER,
         ActionType.SYSTEM_BLOCK_NOTIFICATION,
         ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS -> Triple(
             R.string.notification_access_hint,
             R.string.enable,
-            PermissionShortcuts::openNotificationAccessSettings
+            SpecialPermission.NOTIFICATION_ACCESS
         )
         else -> null
     }
-    hint?.let { (textRes, buttonRes, onClick) ->
+    hint?.let { (textRes, buttonRes, special) ->
         PermissionHint(
             text = stringResource(textRes),
             buttonLabel = stringResource(buttonRes),
-            onClick = { onClick(context) }
+            // Explain why the permission is needed BEFORE opening its settings screen.
+            onClick = { onExplainSpecial(special) }
         )
     }
 }
 
 object PermissionShortcuts {
+    /** Opens the dedicated system screen for a special permission. */
+    fun openSpecial(context: Context, type: SpecialPermission) {
+        when (type) {
+            SpecialPermission.WRITE_SETTINGS -> openWriteSettings(context)
+            SpecialPermission.DND_ACCESS -> openNotificationPolicy(context)
+            SpecialPermission.NOTIFICATION_ACCESS -> openNotificationAccessSettings(context)
+            SpecialPermission.ACCESSIBILITY -> openAccessibilitySettings(context)
+            SpecialPermission.SHIZUKU -> openShizukuManager(context)
+            SpecialPermission.ROOT,
+            SpecialPermission.ELEVATED -> openAppSettings(context)
+            SpecialPermission.BLUETOOTH -> openBluetoothSettings(context)
+        }
+    }
+
     fun openWriteSettings(context: Context) {
         try {
             context.startActivity(

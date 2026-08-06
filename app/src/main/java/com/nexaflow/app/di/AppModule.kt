@@ -9,6 +9,9 @@ import com.nexaflow.core.database.Migrations
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.compat.AutomationWorkflowRunner
+import com.nexaflow.core.logging.InMemoryLogStore
+import com.nexaflow.core.logging.LogStore
 import com.nexaflow.data.backup.BackupManager
 import com.nexaflow.data.repository.AutomationRepositoryImpl
 import com.nexaflow.data.repository.HistoryRepositoryImpl
@@ -79,11 +82,43 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideLogStore(): LogStore {
+        // In-memory for now; Phase 3 (task-manager/debug UI) will swap in a
+        // persistent Room-backed implementation behind the same interface.
+        return InMemoryLogStore()
+    }
+
+    @Provides
+    @Singleton
     fun provideExecutionEngine(
         @ApplicationContext context: Context,
         historyRepository: HistoryRepository,
-        notificationPreferences: NotificationPreferences
+        notificationPreferences: NotificationPreferences,
+        logStore: LogStore
     ): ExecutionEngine {
-        return ExecutionEngine(context, historyRepository, notificationPreferences)
+        return ExecutionEngine(
+            context,
+            historyRepository,
+            notificationPreferences,
+            logStore = logStore
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideAutomationWorkflowRunner(
+        @ApplicationContext context: Context,
+        historyRepository: HistoryRepository,
+        notificationPreferences: NotificationPreferences,
+        logStore: LogStore
+    ): AutomationWorkflowRunner {
+        // Phase 4 compatibility runner: executes legacy automations through the
+        // Phase-3 workflow engine (mapper + interpreter + state transaction).
+        return AutomationWorkflowRunner.forDevice(
+            context = context,
+            historyRepository = historyRepository,
+            notificationPreferences = notificationPreferences,
+            logStore = logStore
+        )
     }
 }

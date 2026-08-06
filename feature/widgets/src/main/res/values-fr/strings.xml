@@ -12,4 +12,36 @@
     <string name="how_to_sub">Faites glisser le widget Bascule rapide ou Carte d\u2019état sur votre écran.</string>
     <string name="section_tip">ASTUCE</string>
     <string name="tip_text">Les widgets se mettent à jour automatiquement à chaque exécution d\u2019automatisation ou changement d\u2019état.</string>
+
+    <string name="section_tiles">TUILES DE RÉGLAGES RAPIDES</string>
+
+    <string name="tile_1_label">Tâche 1</string>
+
+    <string name="tile_2_label">Tâche 2</string>
+
+    <string name="tile_3_label">Tâche 3</string>
+
+    <string name="tile_4_label">Tâche 4</string>
+
+    <string name="tile_1_desc">Basculez la première tâche directement depuis les réglages rapides.</string>
+
+    <string name="tile_2_desc">Basculez la deuxième tâche directement depuis les réglages rapides.</string>
+
+    <string name="tile_3_desc">Basculez la troisième tâche directement depuis les réglages rapides.</string>
+
+    <string name="tile_4_desc">Basculez la quatrième tâche directement depuis les réglages rapides.</string>
+
+    <string name="tile_add">Ajouter aux réglages rapides</string>
+
+    <string name="tile_requires_android_13">Nécessite Android 13+</string>
+
+    <string name="tile_controls">Contrôle</string>
+
+    <string name="tile_automatic">Automatique (première tâche active)</string>
+
+    <string name="tile_choose_task">Choisir une tâche</string>
+
+    <string name="tile_cancel">Annuler</string>
+
+    <string name="tile_unbound">Aucune tâche</string>
 </resources>

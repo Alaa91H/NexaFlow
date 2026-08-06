@@ -133,4 +133,10 @@
     <string name="action_block_notification_sub">Silence all notifications from an app</string>
     <string name="action_clear_app_notifications">Clear app notifications</string>
     <string name="action_clear_app_notifications_sub">Dismiss notifications of a specific app</string>
+    <string name="trigger_calendar">Calendar event</string>
+    <string name="trigger_calendar_sub">When a calendar event matches</string>
+    <string name="charger_any">Any</string>
+    <string name="charger_ac">AC / Wall</string>
+    <string name="charger_usb">USB</string>
+    <string name="charger_wireless">Wireless</string>
 </resources>

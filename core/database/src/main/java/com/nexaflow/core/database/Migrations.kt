@@ -89,5 +89,27 @@ object Migrations {
         }
     }
 
-    val ALL = listOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+    /**
+     * v5 -> v6: adds the execution-channel column to the history table so each
+     * run records which provider actually executed it ("ROOT", "SHIZUKU", ...).
+     * Nullable — pre-v6 rows simply have no channel.
+     */
+    val MIGRATION_5_6 = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `execution_history` ADD COLUMN `channel` TEXT")
+        }
+    }
+
+    /**
+     * v6 -> v7: adds the per-action results column (JSON) so the run details
+     * timeline can show each action's outcome and duration. Nullable — pre-v7
+     * rows have no detailed results.
+     */
+    val MIGRATION_6_7 = object : Migration(6, 7) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `execution_history` ADD COLUMN `resultsJson` TEXT")
+        }
+    }
+
+    val ALL = listOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
 }

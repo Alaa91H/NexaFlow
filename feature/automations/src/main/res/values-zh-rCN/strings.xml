@@ -133,4 +133,10 @@
     <string name="action_block_notification_sub">静音某个应用的所有通知</string>
     <string name="action_clear_app_notifications">清除应用通知</string>
     <string name="action_clear_app_notifications_sub">关闭特定应用的通知</string>
+    <string name="trigger_calendar">日历事件</string>
+    <string name="trigger_calendar_sub">当日历事件匹配时</string>
+    <string name="charger_any">任意</string>
+    <string name="charger_ac">交流电 / 墙插</string>
+    <string name="charger_usb">USB</string>
+    <string name="charger_wireless">无线</string>
 </resources>

@@ -71,4 +71,17 @@
     <string name="bluetooth_permission_sub">Eşleştirilmiş cihazları (kulaklık vb.) algılamak için gerekli</string>
     <string name="notification_access">Bildirim erişimi</string>
     <string name="notification_access_sub">Bildirimleri oku ve yönet</string>
+    <string name="calendar_permission">Takvim</string>
+    <string name="calendar_permission_sub">Takvim tetikleyicileri için etkinliklerinizi okuyun</string>
+    <string name="execution_channel">Yürütme kanalı</string>
+    <string name="execution_channel_sub">Bu cihaz için en iyi sağlayıcı, otomatik seçilir</string>
+    <string name="channel_root">Root</string>
+    <string name="channel_shizuku">Shizuku</string>
+    <string name="channel_system_app">Sistem uygulaması</string>
+    <string name="channel_adb">ADB</string>
+    <string name="channel_android">Android API</string>
+    <string name="channel_accessibility">Erişilebilirlik</string>
+    <string name="channel_none">Yok</string>
+    <string name="channel_detecting">Algılanıyor…</string>
+    <string name="refresh">Yenile</string>
 </resources>

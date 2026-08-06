@@ -19,6 +19,10 @@ class HistoryRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getExecutionById(id: String): ExecutionRecord? {
+        return executionDao.getExecutionById(id)?.toDomain()
+    }
+
     override suspend fun recordExecution(record: ExecutionRecord) {
         executionDao.insertExecution(record.toEntity())
     }

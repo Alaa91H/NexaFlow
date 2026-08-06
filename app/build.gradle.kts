@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.nexaflow.app"
-        minSdk = 29
+        minSdk = 26
         targetSdk = 37
         versionCode = 4
         versionName = "3.2.0-alpha"
@@ -84,6 +84,7 @@ dependencies {
     // Project Modules
     implementation(project(":core:database"))
     implementation(project(":core:datastore"))
+    implementation(project(":core:logging"))
     implementation(project(":core:automation-engine"))
     implementation(project(":core:execution"))
     implementation(project(":core:capability-manager"))

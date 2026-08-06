@@ -10,5 +10,9 @@ data class ExecutionRecordEntity(
     val automationName: String,
     val success: Boolean,
     val message: String,
-    val executedAt: Long
+    val executedAt: Long,
+    /** Execution provider that ran the actions; null for pre-v6 rows. */
+    val channel: String? = null,
+    /** Per-action outcomes as JSON (actionType/success/message/durationMs); null for pre-v7 rows. */
+    val resultsJson: String? = null
 )

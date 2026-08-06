@@ -35,7 +35,8 @@ enum class TriggerType {
     SMS,
     BLUETOOTH_DEVICE,
     RINGER_MODE,
-    NOTIFICATION
+    NOTIFICATION,
+    CALENDAR
 }
 
 data class Action(

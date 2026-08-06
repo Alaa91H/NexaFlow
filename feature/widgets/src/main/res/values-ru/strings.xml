@@ -12,4 +12,36 @@
     <string name="how_to_sub">Перетащите виджет «Быстрый переключатель» или «Карточка статуса» на экран.</string>
     <string name="section_tip">СОВЕТ</string>
     <string name="tip_text">Виджеты обновляются автоматически при каждом запуске автоматизации или изменении её состояния.</string>
+
+    <string name="section_tiles">ПЛИТКИ БЫСТРЫХ НАСТРОЕК</string>
+
+    <string name="tile_1_label">Задача 1</string>
+
+    <string name="tile_2_label">Задача 2</string>
+
+    <string name="tile_3_label">Задача 3</string>
+
+    <string name="tile_4_label">Задача 4</string>
+
+    <string name="tile_1_desc">Переключайте первую задачу прямо с панели быстрых настроек.</string>
+
+    <string name="tile_2_desc">Переключайте вторую задачу прямо с панели быстрых настроек.</string>
+
+    <string name="tile_3_desc">Переключайте третью задачу прямо с панели быстрых настроек.</string>
+
+    <string name="tile_4_desc">Переключайте четвёртую задачу прямо с панели быстрых настроек.</string>
+
+    <string name="tile_add">Добавить в быстрые настройки</string>
+
+    <string name="tile_requires_android_13">Требуется Android 13+</string>
+
+    <string name="tile_controls">Управляет</string>
+
+    <string name="tile_automatic">Автоматически (первая активная задача)</string>
+
+    <string name="tile_choose_task">Выбрать задачу</string>
+
+    <string name="tile_cancel">Отмена</string>
+
+    <string name="tile_unbound">Нет задачи</string>
 </resources>

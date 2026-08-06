@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.Tune
@@ -158,8 +159,20 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
             subtitleRes = R.string.notification_access_sub,
             icon = Icons.Filled.NotificationsActive,
             isGranted = { context ->
-                val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                nm.isNotificationListenerAccessGranted(ComponentName(context, com.nexaflow.core.engine.NotificationListener::class.java))
+                val component = ComponentName(context, com.nexaflow.core.engine.NotificationListener::class.java)
+                if (Build.VERSION.SDK_INT >= 27) {
+                    val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                    nm.isNotificationListenerAccessGranted(component)
+                } else {
+                    // API 26: no direct API — parse the enabled notification listeners.
+                    // Settings.Secure.ENABLED_NOTIFICATION_LISTENERS is a hidden
+                    // constant; use the raw key (stable since API 18).
+                    val enabled = Settings.Secure.getString(
+                        context.contentResolver,
+                        "enabled_notification_listeners"
+                    ) ?: ""
+                    enabled.split(':').any { ComponentName.unflattenFromString(it) == component }
+                }
             },
             openAction = { context ->
                 context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
@@ -199,6 +212,18 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
             icon = Icons.Filled.LocationOn,
             isGranted = { context ->
                 ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            },
+            openAction = { context ->
+                context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }
+        ),
+        PermissionEntry(
+            key = "calendar",
+            titleRes = R.string.calendar_permission,
+            subtitleRes = R.string.calendar_permission_sub,
+            icon = Icons.Filled.DateRange,
+            isGranted = { context ->
+                ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
             },
             openAction = { context ->
                 context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))

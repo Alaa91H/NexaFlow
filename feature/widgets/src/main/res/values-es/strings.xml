@@ -12,4 +12,36 @@
     <string name="how_to_sub">Arrastra el widget Alternancia rápida o Tarjeta de estado a tu pantalla.</string>
     <string name="section_tip">CONSEJO</string>
     <string name="tip_text">Los widgets se actualizan automáticamente cuando una automatización se ejecuta o cambia su estado.</string>
+
+    <string name="section_tiles">MOSAICOS DE AJUSTES RÁPIDOS</string>
+
+    <string name="tile_1_label">Tarea 1</string>
+
+    <string name="tile_2_label">Tarea 2</string>
+
+    <string name="tile_3_label">Tarea 3</string>
+
+    <string name="tile_4_label">Tarea 4</string>
+
+    <string name="tile_1_desc">Alterna la primera tarea directamente desde los ajustes rápidos.</string>
+
+    <string name="tile_2_desc">Alterna la segunda tarea directamente desde los ajustes rápidos.</string>
+
+    <string name="tile_3_desc">Alterna la tercera tarea directamente desde los ajustes rápidos.</string>
+
+    <string name="tile_4_desc">Alterna la cuarta tarea directamente desde los ajustes rápidos.</string>
+
+    <string name="tile_add">Añadir a ajustes rápidos</string>
+
+    <string name="tile_requires_android_13">Requiere Android 13+</string>
+
+    <string name="tile_controls">Controla</string>
+
+    <string name="tile_automatic">Automático (primera tarea activa)</string>
+
+    <string name="tile_choose_task">Elegir tarea</string>
+
+    <string name="tile_cancel">Cancelar</string>
+
+    <string name="tile_unbound">Sin tarea</string>
 </resources>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="builder_title">Yeni Otomasyon</string>
+    <string name="builder_title">Yeni görev</string>
     <string name="save">Kaydet</string>
     <string name="name">Ad</string>
     <string name="name_hint">örn. Sabah Görevi</string>
@@ -31,12 +31,49 @@
     <string name="event">Olay</string>
     <string name="location_hint">Konum izni ve güncel konum gerekir</string>
     <string name="grant">İzin Ver</string>
+    <string name="permission_explain_title">Bu izin neden gerekli?</string>
+    <string name="permission_continue">Devam</string>
+    <string name="permission_not_now">Şimdi değil</string>
+    <string name="permission_location_title">Konum erişimi</string>
+    <string name="permission_location_body">NexaFlow, bir yere girerken veya çıkarken görevleri çalıştırmak için konumunuzu kullanır.</string>
+    <string name="permission_sms_title">Mesajları oku</string>
+    <string name="permission_sms_body">Mesaj geldiğinde görevlerin tepki vermesini ve otomatik yanıtlamasını sağlar.</string>
+    <string name="permission_send_sms_title">Mesaj gönder</string>
+    <string name="permission_send_sms_body">Bir görevin eylemlerinden biri olarak mesaj göndermesini sağlar.</string>
+    <string name="permission_camera_title">Kamera erişimi</string>
+    <string name="permission_camera_body">El feneri eylemi kamera flaşını kullanır. Asla fotoğraf çekilmez.</string>
+    <string name="permission_notifications_title">Bildirimler</string>
+    <string name="permission_notifications_body">Bir görev çalıştığında NexaFlow size bildirim gönderir, böylece ne olduğunu bilirsiniz.</string>
+    <string name="permission_bluetooth_title">Yakındaki cihazlar</string>
+    <string name="permission_bluetooth_body">Görevlerin seçtiğiniz Bluetooth cihazının bağlanıp bağlanmadığını algılamasını sağlar.</string>
+    <string name="permission_calendar_title">Takvim erişimi</string>
+    <string name="permission_calendar_body">Görevlerin toplantı başlamadan önce gibi takvim etkinliklerinin çevresinde çalışmasını sağlar.</string>
+    <string name="permission_generic_title">İzin gerekli</string>
+    <string name="permission_generic_body">Bu izin, seçilen görevin beklendiği gibi çalışmasını sağlar.</string>
+    <string name="special_write_settings_title">Sistem ayarlarını değiştir</string>
+    <string name="special_write_settings_body">"NexaFlow'un görevleriniz çalışırken parlaklık, ekran zaman aşımı, döndürme ve daha fazlasını ayarlaması için gereklidir."</string>
+    <string name="special_dnd_title">Rahatsız Etmeyin erişimi</string>
+    <string name="special_dnd_body">Görevlerinizin bildirimleri sessize almasını veya sesi otomatik olarak geri yüklemesini sağlar.</string>
+    <string name="special_notification_access_title">Bildirim erişimi</string>
+    <string name="special_notification_access_body">Görevlerin uygulama bildirimlerini okumasını, tepki vermesini veya sizin için engellemesini sağlar.</string>
+    <string name="special_accessibility_title">Erişilebilirlik hizmeti</string>
+    <string name="special_accessibility_body">NexaFlow, uygulamaların ne zaman açıldığını algılamak ve otomatik kapatmak için kullanır.</string>
+    <string name="special_shizuku_title">Shizuku</string>
+    <string name="special_shizuku_body">"Gelişmiş görevlerin root olmadan sistem ayarlarını kontrol etmesini sağlar. Shizuku'yu başlatın ve bir kez erişim verin."</string>
+    <string name="special_root_title">Root erişimi</string>
+    <string name="special_root_body">Görevlerin root (su) gerektiren komutları çalıştırmasını sağlar. Göründüğünde süper kullanıcı isteğini onaylayın.</string>
+    <string name="special_elevated_title">Yükseltilmiş ayrıcalıklar</string>
+    <string name="special_elevated_body">Bu eylem, korumalı ayarları kontrol etmek için root, Shizuku veya sistem uygulaması ayrıcalıkları gerektirir.</string>
+    <string name="special_bluetooth_title">Bluetooth</string>
+    <string name="special_bluetooth_body">"NexaFlow'un eşleştirilmiş cihazları algılaması ve bağlandıklarında görevleri çalıştırması için Bluetooth'un açık olması gerekir."</string>
+
+
     <string name="battery_above">Pil eşiğin üzerinde</string>
     <string name="battery_above_sub">Yalnızca pil seviyenin üzerindeyken çalıştır</string>
     <string name="minimum_battery">Minimum pil: %1$d%%</string>
 
     <string name="section_actions">SONRA (EYLEMLER)</string>
-    <string name="save_automation">Otomasyonu Kaydet</string>
+    <string name="save_automation">Görevi kaydet</string>
     <string name="ok">Tamam</string>
     <string name="cancel">İptal</string>
     <string name="action_brightness">Parlaklık</string>
@@ -160,7 +197,6 @@
     <string name="repeat_once">Bir kez</string>
     <string name="repeat_daily">Her gün</string>
     <string name="repeat_specific_days">Belirli günler</string>
-    <string name="repeat_specific_date">Belirli tarih</string>
     <string name="repeat_date_range">Tarih aralığı</string>
     <string name="select_days">Günleri seç</string>
     <string name="day_mon">Pzt</string>
@@ -173,7 +209,6 @@
     <string name="start_date">Başlangıç tarihi</string>
     <string name="end_date">Bitiş tarihi</string>
     <string name="date_range_invalid">Bitiş tarihi başlangıç tarihinden sonra olmalı</string>
-    <string name="specific_date">Tarih</string>
     <string name="pick_date">Tarih seç</string>
     <string name="pick_on_map">Haritada seç</string>
     <string name="sms_from">Kimden (numara)</string>
@@ -182,6 +217,8 @@
     <string name="sms_contains_hint">Eşleşecek metin (boş = herhangi biri)</string>
     <string name="sms_reply">Otomatik yanıt (isteğe bağlı)</string>
     <string name="sms_reply_hint">Otomatik yanıt gönderilecek</string>
+    <string name="permission_denied_hint">Bu özelliği etkinleştirmek için izin gerekli</string>
+
     <string name="sms_permission_hint">Mesajları okumak için SMS izni gerekir</string>
     <string name="notification_permission_hint">Bildirim izni gerekir</string>
     <string name="action_ring_volume">Zil sesi</string>
@@ -226,11 +263,7 @@
     <string name="move_down">Aşağı taşı</string>
     <string name="remove_action">Eylemi kaldır</string>
     <string name="quick_save">Hızlı kaydet</string>
-    <string name="saved_successfully">Otomasyon kaydedildi</string>
-    <string name="summary_if">EĞER</string>
-    <string name="summary_then">O ZAMAN</string>
-    <string name="summary_no_triggers">Tetikleyici ekle</string>
-    <string name="summary_no_actions">Eylem ekle</string>
+    <string name="saved_successfully">Görev kaydedildi</string>
     <string name="step_when">Ne zaman</string>
     <string name="step_then">O zaman</string>
     <string name="next">İleri</string>
@@ -270,6 +303,8 @@
     <string name="action_stream_volume_sub">Herhangi bir ses kanalını hassas şekilde ayarla</string>
     <string name="section_exit_behavior">Görev bittiğinde</string>
     <string name="exit_behavior_hint">Koşul sağlanmadığında ne olsun?</string>
+    <string name="exit_auto_reply_label">Otomatik yanıt (SMS)</string>
+
     <string name="exit_revert_label">Orijinal duruma dön</string>
     <string name="exit_revert_sub">Cihaz, görevden önceki durumuna döner</string>
     <string name="exit_nothing_sub">Hiçbir şey olmaz — görev sona erer</string>
@@ -303,4 +338,36 @@
     <string name="action_clear_app_notifications">Uygulama bildirimlerini temizle</string>
     <string name="action_clear_app_notifications_sub">Belirli bir uygulamanın bildirimlerini kapat</string>
     <string name="block_label">Engelle</string>
+    <string name="trigger_type_calendar">Takvim</string>
+    <string name="trigger_calendar">Takvim etkinliği</string>
+    <string name="any_calendar">Herhangi bir takvim</string>
+    <string name="choose_calendar">Takvim seçin</string>
+    <string name="no_calendars_found">Takvim bulunamadı</string>
+    <string name="calendar_contains">Etkinlik şunları içeriyor</string>
+    <string name="calendar_contains_hint">örn. toplantı, dişçi (boş = herhangi biri)</string>
+    <string name="calendar_event_start">Başlar</string>
+    <string name="calendar_event_end">Biter</string>
+    <string name="calendar_event_created">Takvime eklendi</string>
+    <string name="calendar_before_none">Etkinlik başlangıcında</string>
+    <string name="calendar_before_minutes">Etkinlikten önce: %1$d dk</string>
+    <string name="calendar_permission_hint">Etkinlikleri okumak için takvim izni gerekir</string>
+    <string name="charger_type_label">Şarj cihazı türü</string>
+    <string name="charger_any">Herhangi biri</string>
+    <string name="charger_ac">AC / Duvar</string>
+    <string name="charger_usb">USB</string>
+    <string name="charger_wireless">Kablosuz</string>
+    <string name="revert_when_ends">Görev bitince geri al</string>
+    <string name="device_screen_on">Ekran açık</string>
+    <string name="device_screen_off">Ekran kapalı</string>
+    <string name="device_power_connected">Şarj başladı</string>
+    <string name="device_power_disconnected">Şarj durdu</string>
+    <string name="device_headset_connected">Kulaklık bağlandı</string>
+    <string name="device_headset_disconnected">Kulaklık çıkarıldı</string>
+    <string name="device_bluetooth">Bluetooth cihazı</string>
+    <string name="network_wifi">Wi-Fi</string>
+    <string name="network_mobile">Mobil veri</string>
+    <string name="state_connected">Bağlı</string>
+    <string name="state_disconnected">Bağlı değil</string>
+    <string name="exit_revert_actions_label">Seçili işlemleri geri al</string>
+    <string name="repeat_selected">Seçilen: %1$s</string>
 </resources>

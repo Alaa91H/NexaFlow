@@ -133,4 +133,10 @@
     <string name="action_block_notification_sub">Bir uygulamanın tüm bildirimlerini sessize al</string>
     <string name="action_clear_app_notifications">Uygulama bildirimlerini temizle</string>
     <string name="action_clear_app_notifications_sub">Belirli bir uygulamanın bildirimlerini kapat</string>
+    <string name="trigger_calendar">Takvim etkinliği</string>
+    <string name="trigger_calendar_sub">Bir takvim etkinliği eşleştiğinde</string>
+    <string name="charger_any">Herhangi biri</string>
+    <string name="charger_ac">AC / Duvar</string>
+    <string name="charger_usb">USB</string>
+    <string name="charger_wireless">Kablosuz</string>
 </resources>

@@ -340,6 +340,7 @@ private fun triggerLabel(type: TriggerType): Int = when (type) {
     TriggerType.BLUETOOTH_DEVICE -> R.string.trigger_bluetooth
     TriggerType.RINGER_MODE -> R.string.trigger_ringer
     TriggerType.NOTIFICATION -> R.string.trigger_notification
+    TriggerType.CALENDAR -> R.string.trigger_calendar
 }
 
 /** Design-time preview of a Samsung-style routine card. */

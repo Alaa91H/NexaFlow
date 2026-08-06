@@ -71,4 +71,17 @@
     <string name="bluetooth_permission_sub">检测已配对设备（耳机等）所必需</string>
     <string name="notification_access">通知使用权</string>
     <string name="notification_access_sub">读取和管理通知</string>
+    <string name="calendar_permission">日历</string>
+    <string name="calendar_permission_sub">读取日历事件用于日历触发器</string>
+    <string name="execution_channel">执行通道</string>
+    <string name="execution_channel_sub">为此设备自动选择的最佳提供方</string>
+    <string name="channel_root">Root</string>
+    <string name="channel_shizuku">Shizuku</string>
+    <string name="channel_system_app">系统应用</string>
+    <string name="channel_adb">ADB</string>
+    <string name="channel_android">Android API</string>
+    <string name="channel_accessibility">无障碍</string>
+    <string name="channel_none">无</string>
+    <string name="channel_detecting">正在检测…</string>
+    <string name="refresh">刷新</string>
 </resources>

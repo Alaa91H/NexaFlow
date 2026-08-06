@@ -29,6 +29,7 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,9 +65,9 @@ val triggerTypeOptions = listOf(
     TriggerType.CONNECTIVITY,
     TriggerType.LOCATION,
     TriggerType.SMS,
-    TriggerType.BLUETOOTH_DEVICE,
     TriggerType.RINGER_MODE,
-    TriggerType.NOTIFICATION
+    TriggerType.NOTIFICATION,
+    TriggerType.CALENDAR
 )
 
 private val repeatOptions = listOf(
@@ -76,7 +77,6 @@ private val repeatOptions = listOf(
     "WEEKENDS" to R.string.repeat_weekends,
     "SPECIFIC_DAYS" to R.string.repeat_specific_days,
     "MONTHLY" to R.string.repeat_monthly,
-    "SPECIFIC_DATE" to R.string.repeat_specific_date,
     "DATE_RANGE" to R.string.repeat_date_range
 )
 
@@ -93,7 +93,7 @@ private val weekdayOptions = listOf(
 /** Sensible default config for a freshly added trigger of the given type. */
 internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when (type) {
     TriggerType.TIME -> mapOf("time" to "08:00")
-    TriggerType.BATTERY -> mapOf("direction" to "ABOVE", "above" to "80")
+    TriggerType.BATTERY -> mapOf("direction" to "ABOVE", "above" to "80", "chargerType" to "ANY")
     TriggerType.APPLICATION -> mapOf("packages" to "")
     TriggerType.DEVICE -> mapOf("event" to "SCREEN_ON")
     TriggerType.CONNECTIVITY -> mapOf("network" to "WIFI", "state" to "CONNECTED")
@@ -102,6 +102,7 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.BLUETOOTH_DEVICE -> mapOf("deviceName" to "", "deviceAddress" to "", "event" to "CONNECTED")
     TriggerType.RINGER_MODE -> mapOf("mode" to "NORMAL")
     TriggerType.NOTIFICATION -> mapOf("packages" to "", "contains" to "", "event" to "POSTED")
+    TriggerType.CALENDAR -> mapOf("calendar" to "", "contains" to "", "event" to "EVENT_START", "beforeMinutes" to "0")
 }
 
 internal fun TriggerType.labelRes(): Int = when (this) {
@@ -115,6 +116,7 @@ internal fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.BLUETOOTH_DEVICE -> R.string.trigger_type_bluetooth
     TriggerType.RINGER_MODE -> R.string.trigger_type_ringer
     TriggerType.NOTIFICATION -> R.string.trigger_type_notification
+    TriggerType.CALENDAR -> R.string.trigger_type_calendar
 }
 
 internal fun TriggerType.icon(): ImageVector = when (this) {
@@ -128,6 +130,7 @@ internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.BLUETOOTH_DEVICE -> Icons.Filled.Bluetooth
     TriggerType.RINGER_MODE -> Icons.Filled.NotificationsActive
     TriggerType.NOTIFICATION -> Icons.Filled.NotificationsActive
+    TriggerType.CALENDAR -> Icons.Filled.DateRange
 }
 
 private fun parseDateMillis(value: String): Long? {
@@ -254,15 +257,16 @@ private fun TimeRepeatSection(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             repeatOptions.forEach { (value, labelRes) ->
-                FilterChip(
+                SelectChip(
                     selected = (draft.config["repeat"] ?: "DAILY") == value,
                     onClick = {
                         onConfigChange(draft.copy(config = draft.config + ("repeat" to value)))
                     },
-                    label = { Text(text = stringResource(labelRes), style = MaterialTheme.typography.labelMedium) }
+                    label = stringResource(labelRes)
                 )
             }
         }
+        RepeatSummary(draft = draft)
         when (draft.config["repeat"] ?: "DAILY") {
             "SPECIFIC_DAYS" -> {
                 Text(
@@ -277,13 +281,13 @@ private fun TimeRepeatSection(
                 ) {
                     weekdayOptions.forEach { (day, labelRes) ->
                         val selectedDays = draft.config["days"]?.split(',')?.mapNotNull { it.trim().toIntOrNull() }.orEmpty()
-                        FilterChip(
+                        SelectChip(
                             selected = day in selectedDays,
                             onClick = {
                                 val updated = if (day in selectedDays) selectedDays - day else selectedDays + day
                                 onConfigChange(draft.copy(config = draft.config + ("days" to updated.sorted().joinToString(","))))
                             },
-                            label = { Text(text = stringResource(labelRes), style = MaterialTheme.typography.labelMedium) }
+                            label = stringResource(labelRes)
                         )
                     }
                 }
@@ -297,13 +301,6 @@ private fun TimeRepeatSection(
                         onConfigChange(draft.copy(config = draft.config + ("monthDay" to value.toInt().toString())))
                     },
                     valueRange = 1f..28f
-                )
-            }
-            "SPECIFIC_DATE" -> {
-                DateField(
-                    label = stringResource(R.string.specific_date),
-                    value = draft.config["date"] ?: "",
-                    onClick = { onPickDate("date") }
                 )
             }
             "DATE_RANGE" -> {
@@ -331,6 +328,42 @@ private fun TimeRepeatSection(
     }
 }
 
+/** Live "Selected: …" line that makes the current repeat choice unambiguous. */
+@Composable
+private fun RepeatSummary(draft: TriggerDraft) {
+    val config = draft.config
+    val text = when (config["repeat"] ?: "DAILY") {
+        "ONCE" -> stringResource(R.string.repeat_once)
+        "DAILY" -> stringResource(R.string.repeat_daily)
+        "WEEKDAYS" -> stringResource(R.string.repeat_weekdays)
+        "WEEKENDS" -> stringResource(R.string.repeat_weekends)
+        "SPECIFIC_DAYS" -> {
+            val days = config["days"]?.split(',')?.mapNotNull { it.trim().toIntOrNull() }.orEmpty()
+            if (days.isEmpty()) stringResource(R.string.select_days)
+            else days.mapNotNull { day ->
+                weekdayOptions.firstOrNull { it.first == day }?.let { (_, res) -> stringResource(res) }
+            }.joinToString(", ")
+        }
+        "MONTHLY" -> {
+            val day = (config["monthDay"] ?: "1").toIntOrNull() ?: 1
+            stringResource(R.string.month_day_label, day)
+        }
+        "DATE_RANGE" -> {
+            val start = config["startDate"] ?: ""
+            val end = config["endDate"] ?: ""
+            if (start.isEmpty() && end.isEmpty()) stringResource(R.string.repeat_date_range)
+            else "$start → $end"
+        }
+        else -> stringResource(R.string.repeat_daily)
+    }
+    Text(
+        text = stringResource(R.string.repeat_selected, text),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.Medium
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun TriggerEditorCard(
@@ -340,7 +373,10 @@ fun TriggerEditorCard(
     onRemove: () -> Unit,
     onPickApp: () -> Unit,
     onPickFromMap: () -> Unit = {},
-    onPickBluetooth: () -> Unit = {}
+    onPickBluetooth: () -> Unit = {},
+    onPickCalendar: () -> Unit = {},
+    onRequestPermission: (Array<String>) -> Unit = {},
+    onExplainSpecial: (SpecialPermission) -> Unit = {}
 ) {
     val context = LocalContext.current
     var showTimePicker by remember { mutableStateOf(false) }
@@ -373,7 +409,7 @@ fun TriggerEditorCard(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 triggerTypeOptions.forEach { option ->
-                    FilterChip(
+                    SelectChip(
                         selected = draft.type == option,
                         onClick = {
                             // Keep values that already exist for this type (e.g. the chosen
@@ -386,19 +422,8 @@ fun TriggerEditorCard(
                                 )
                             )
                         },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = option.icon(),
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp),
-                                tint = if (draft.type == option) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.secondary
-                                }
-                            )
-                        },
-                        label = { Text(text = stringResource(option.labelRes())) }
+                        label = stringResource(option.labelRes()),
+                        leadingIcon = option.icon()
                     )
                 }
             }
@@ -411,7 +436,7 @@ fun TriggerEditorCard(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            FilterChip(
+                            SelectChip(
                                 selected = !rangeMode,
                                 onClick = {
                                     onConfigChange(
@@ -420,9 +445,9 @@ fun TriggerEditorCard(
                                         )
                                     )
                                 },
-                                label = { Text(text = stringResource(R.string.time_single)) }
+                                label = stringResource(R.string.time_single)
                             )
-                            FilterChip(
+                            SelectChip(
                                 selected = rangeMode,
                                 onClick = {
                                     onConfigChange(
@@ -434,7 +459,7 @@ fun TriggerEditorCard(
                                         )
                                     )
                                 },
-                                label = { Text(text = stringResource(R.string.time_range)) }
+                                label = stringResource(R.string.time_range)
                             )
                         }
                         if (rangeMode) {
@@ -496,6 +521,7 @@ fun TriggerEditorCard(
                 }
                 TriggerType.BATTERY -> {
                     val direction = draft.config["direction"] ?: "ABOVE"
+                    val chargerType = draft.config["chargerType"] ?: "ANY"
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         val threshold = (draft.config["above"] ?: "80").toIntOrNull() ?: 80
                         Row(
@@ -526,19 +552,19 @@ fun TriggerEditorCard(
                             }
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            FilterChip(
+                            SelectChip(
                                 selected = direction == "ABOVE",
                                 onClick = {
                                     onConfigChange(draft.copy(config = draft.config + ("direction" to "ABOVE")))
                                 },
-                                label = { Text(text = stringResource(R.string.battery_above)) }
+                                label = stringResource(R.string.battery_above)
                             )
-                            FilterChip(
+                            SelectChip(
                                 selected = direction == "BELOW",
                                 onClick = {
                                     onConfigChange(draft.copy(config = draft.config + ("direction" to "BELOW")))
                                 },
-                                label = { Text(text = stringResource(R.string.battery_below)) }
+                                label = stringResource(R.string.battery_below)
                             )
                         }
                         SliderRow(
@@ -555,6 +581,33 @@ fun TriggerEditorCard(
                             },
                             valueRange = 5f..100f
                         )
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        Text(
+                            text = stringResource(R.string.charger_type_label),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        val chargerOptions = listOf(
+                            "ANY" to R.string.charger_any,
+                            "AC" to R.string.charger_ac,
+                            "USB" to R.string.charger_usb,
+                            "WIRELESS" to R.string.charger_wireless
+                        )
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            chargerOptions.forEach { (value, labelRes) ->
+                                SelectChip(
+                                    selected = chargerType == value,
+                                    onClick = {
+                                        onConfigChange(draft.copy(config = draft.config + ("chargerType" to value)))
+                                    },
+                                    label = stringResource(labelRes)
+                                )
+                            }
+                        }
                     }
                 }
                 TriggerType.APPLICATION -> {
@@ -603,35 +656,122 @@ fun TriggerEditorCard(
                         PermissionHint(
                             text = stringResource(R.string.app_detection_hint),
                             buttonLabel = stringResource(R.string.enable),
-                            onClick = { PermissionShortcuts.openAccessibilitySettings(context) }
+                            onClick = { onExplainSpecial(SpecialPermission.ACCESSIBILITY) }
                         )
                     }
                 }
                 TriggerType.DEVICE -> {
-                    OptionChips(
-                        options = listOf(
-                            "SCREEN_ON",
-                            "SCREEN_OFF",
-                            "POWER_CONNECTED",
-                            "POWER_DISCONNECTED",
-                            "HEADSET_CONNECTED",
-                            "HEADSET_DISCONNECTED"
-                        ),
-                        selected = draft.config["event"] ?: "SCREEN_ON",
-                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
-                    )
+                    val event = draft.config["event"] ?: "SCREEN_ON"
+                    val isBluetooth = event == "BLUETOOTH_CONNECTED" || event == "BLUETOOTH_DISCONNECTED"
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        OptionChips(
+                            options = listOf(
+                                "SCREEN_ON",
+                                "SCREEN_OFF",
+                                "POWER_CONNECTED",
+                                "POWER_DISCONNECTED",
+                                "HEADSET_CONNECTED",
+                                "HEADSET_DISCONNECTED",
+                                "BLUETOOTH"
+                            ),
+                            labels = mapOf(
+                                "SCREEN_ON" to stringResource(R.string.device_screen_on),
+                                "SCREEN_OFF" to stringResource(R.string.device_screen_off),
+                                "POWER_CONNECTED" to stringResource(R.string.device_power_connected),
+                                "POWER_DISCONNECTED" to stringResource(R.string.device_power_disconnected),
+                                "HEADSET_CONNECTED" to stringResource(R.string.device_headset_connected),
+                                "HEADSET_DISCONNECTED" to stringResource(R.string.device_headset_disconnected),
+                                "BLUETOOTH" to stringResource(R.string.device_bluetooth)
+                            ),
+                            selected = if (isBluetooth) "BLUETOOTH" else event,
+                            onSelect = { value ->
+                                if (value == "BLUETOOTH") {
+                                    onConfigChange(
+                                        draft.copy(
+                                            config = draft.config +
+                                                ("event" to "BLUETOOTH_CONNECTED") +
+                                                ("deviceName" to (draft.config["deviceName"] ?: ""))
+                                        )
+                                    )
+                                } else {
+                                    onConfigChange(draft.copy(config = draft.config + ("event" to value)))
+                                }
+                            }
+                        )
+                        if (isBluetooth) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Bluetooth,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = stringResource(R.string.trigger_bluetooth),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        text = (draft.config["deviceName"] ?: "").ifBlank {
+                                            stringResource(R.string.no_bluetooth_device)
+                                        },
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+                            }
+                            OutlinedButton(
+                                onClick = onPickBluetooth,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(imageVector = Icons.Filled.Bluetooth, contentDescription = null)
+                                Text(
+                                    text = stringResource(R.string.choose_bluetooth_device),
+                                    modifier = Modifier.padding(start = 6.dp)
+                                )
+                            }
+                            Text(text = stringResource(R.string.state), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                            OptionChips(
+                                options = listOf("BLUETOOTH_CONNECTED", "BLUETOOTH_DISCONNECTED"),
+                                labels = mapOf(
+                                    "BLUETOOTH_CONNECTED" to stringResource(R.string.state_connected),
+                                    "BLUETOOTH_DISCONNECTED" to stringResource(R.string.state_disconnected)
+                                ),
+                                selected = event,
+                                onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
+                            )
+                            PermissionHint(
+                                text = stringResource(R.string.bluetooth_permission_hint),
+                                buttonLabel = stringResource(R.string.enable),
+                                onClick = { onRequestPermission(arrayOf(android.Manifest.permission.BLUETOOTH_CONNECT)) }
+                            )
+                        }
+                    }
                 }
                 TriggerType.CONNECTIVITY -> {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(text = stringResource(R.string.network), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                         OptionChips(
                             options = listOf("WIFI", "MOBILE"),
+                            labels = mapOf(
+                                "WIFI" to stringResource(R.string.network_wifi),
+                                "MOBILE" to stringResource(R.string.network_mobile)
+                            ),
                             selected = draft.config["network"] ?: "WIFI",
                             onSelect = { onConfigChange(draft.copy(config = draft.config + ("network" to it))) }
                         )
                         Text(text = stringResource(R.string.state), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                         OptionChips(
                             options = listOf("CONNECTED", "DISCONNECTED"),
+                            labels = mapOf(
+                                "CONNECTED" to stringResource(R.string.state_connected),
+                                "DISCONNECTED" to stringResource(R.string.state_disconnected)
+                            ),
                             selected = draft.config["state"] ?: "CONNECTED",
                             onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
                         )
@@ -673,7 +813,14 @@ fun TriggerEditorCard(
                         PermissionHint(
                             text = stringResource(R.string.location_hint),
                             buttonLabel = stringResource(R.string.grant),
-                            onClick = { PermissionShortcuts.openAppSettings(context) }
+                            onClick = {
+                                onRequestPermission(
+                                    arrayOf(
+                                        android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                        android.Manifest.permission.ACCESS_COARSE_LOCATION
+                                    )
+                                )
+                            }
                         )
                     }
                 }
@@ -695,18 +842,10 @@ fun TriggerEditorCard(
                             placeholder = { Text(text = stringResource(R.string.sms_contains_hint)) },
                             singleLine = true
                         )
-                        OutlinedTextField(
-                            value = draft.config["reply"] ?: "",
-                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("reply" to it))) },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(text = stringResource(R.string.sms_reply)) },
-                            placeholder = { Text(text = stringResource(R.string.sms_reply_hint)) },
-                            singleLine = true
-                        )
                         PermissionHint(
                             text = stringResource(R.string.sms_permission_hint),
                             buttonLabel = stringResource(R.string.grant),
-                            onClick = { PermissionShortcuts.openAppSettings(context) }
+                            onClick = { onRequestPermission(arrayOf(android.Manifest.permission.RECEIVE_SMS)) }
                         )
                     }
                 }
@@ -748,10 +887,10 @@ fun TriggerEditorCard(
                                 "SILENT" to R.string.ringer_silent
                             )
                             modes.forEach { (value, labelRes) ->
-                                FilterChip(
+                                SelectChip(
                                     selected = mode == value,
                                     onClick = { onConfigChange(draft.copy(config = draft.config + ("mode" to value))) },
-                                    label = { Text(text = stringResource(labelRes), style = MaterialTheme.typography.labelMedium) }
+                                    label = stringResource(labelRes)
                                 )
                             }
                         }
@@ -821,7 +960,99 @@ fun TriggerEditorCard(
                         PermissionHint(
                             text = stringResource(R.string.bluetooth_permission_hint),
                             buttonLabel = stringResource(R.string.enable),
-                            onClick = { PermissionShortcuts.openBluetoothSettings(context) }
+                            onClick = { onExplainSpecial(SpecialPermission.BLUETOOTH) }
+                        )
+                    }
+                }
+                TriggerType.CALENDAR -> {
+                    val calendarName = draft.config["calendar"] ?: ""
+                    val event = draft.config["event"] ?: "EVENT_START"
+                    val beforeMinutes = (draft.config["beforeMinutes"] ?: "0").toIntOrNull() ?: 0
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.DateRange,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.trigger_calendar),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = if (calendarName.isBlank()) {
+                                        stringResource(R.string.any_calendar)
+                                    } else {
+                                        calendarName
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        }
+                        OutlinedButton(
+                            onClick = onPickCalendar,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(imageVector = Icons.Filled.DateRange, contentDescription = null)
+                            Text(
+                                text = stringResource(R.string.choose_calendar),
+                                modifier = Modifier.padding(start = 6.dp)
+                            )
+                        }
+                        OutlinedTextField(
+                            value = draft.config["contains"] ?: "",
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("contains" to it))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(text = stringResource(R.string.calendar_contains)) },
+                            placeholder = { Text(text = stringResource(R.string.calendar_contains_hint)) },
+                            singleLine = true
+                        )
+                        Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            val events = listOf(
+                                "EVENT_START" to R.string.calendar_event_start,
+                                "EVENT_END" to R.string.calendar_event_end,
+                                "EVENT_CREATED" to R.string.calendar_event_created
+                            )
+                            events.forEach { (value, labelRes) ->
+                                SelectChip(
+                                    selected = event == value,
+                                    onClick = { onConfigChange(draft.copy(config = draft.config + ("event" to value))) },
+                                    label = stringResource(labelRes)
+                                )
+                            }
+                        }
+                        if (event == "EVENT_START") {
+                            SliderRow(
+                                label = if (beforeMinutes == 0) {
+                                    stringResource(R.string.calendar_before_none)
+                                } else {
+                                    stringResource(R.string.calendar_before_minutes, beforeMinutes)
+                                },
+                                value = beforeMinutes.toFloat(),
+                                onValueChange = { value ->
+                                    onConfigChange(
+                                        draft.copy(config = draft.config + ("beforeMinutes" to value.toInt().toString()))
+                                    )
+                                },
+                                valueRange = 0f..120f
+                            )
+                        }
+                        PermissionHint(
+                            text = stringResource(R.string.calendar_permission_hint),
+                            buttonLabel = stringResource(R.string.grant),
+                            onClick = { onRequestPermission(arrayOf(android.Manifest.permission.READ_CALENDAR)) }
                         )
                     }
                 }
@@ -886,7 +1117,7 @@ fun TriggerEditorCard(
                         PermissionHint(
                             text = stringResource(R.string.notification_access_hint),
                             buttonLabel = stringResource(R.string.enable),
-                            onClick = { PermissionShortcuts.openNotificationAccessSettings(context) }
+                            onClick = { onExplainSpecial(SpecialPermission.NOTIFICATION_ACCESS) }
                         )
                     }
                 }

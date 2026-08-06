@@ -34,4 +34,5 @@
     <string name="trigger_bluetooth">جهاز بلوتوث</string>
     <string name="trigger_ringer">وضع الصوت</string>
     <string name="trigger_notification">إشعار التطبيق</string>
+    <string name="trigger_calendar">حدث التقويم</string>
 </resources>

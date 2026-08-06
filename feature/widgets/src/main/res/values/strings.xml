@@ -12,4 +12,36 @@
     <string name="how_to_sub">Drag the Quick Toggle or Status Card widget onto your screen.</string>
     <string name="section_tip">TIP</string>
     <string name="tip_text">Widgets update automatically whenever an automation runs or its state changes.</string>
+
+    <string name="section_tiles">QUICK SETTINGS TILES</string>
+
+    <string name="tile_1_label">Task 1</string>
+
+    <string name="tile_2_label">Task 2</string>
+
+    <string name="tile_3_label">Task 3</string>
+
+    <string name="tile_4_label">Task 4</string>
+
+    <string name="tile_1_desc">Toggle the first task straight from the Quick Settings panel.</string>
+
+    <string name="tile_2_desc">Toggle the second task straight from the Quick Settings panel.</string>
+
+    <string name="tile_3_desc">Toggle the third task straight from the Quick Settings panel.</string>
+
+    <string name="tile_4_desc">Toggle the fourth task straight from the Quick Settings panel.</string>
+
+    <string name="tile_add">Add to Quick Settings</string>
+
+    <string name="tile_requires_android_13">Requires Android 13+</string>
+
+    <string name="tile_controls">Controls</string>
+
+    <string name="tile_automatic">Automatic (first enabled task)</string>
+
+    <string name="tile_choose_task">Choose task</string>
+
+    <string name="tile_cancel">Cancel</string>
+
+    <string name="tile_unbound">No task</string>
 </resources>

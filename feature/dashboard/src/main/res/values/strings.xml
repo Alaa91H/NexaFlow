@@ -34,4 +34,5 @@
     <string name="trigger_bluetooth">Bluetooth device</string>
     <string name="trigger_ringer">Sound mode</string>
     <string name="trigger_notification">App notification</string>
+    <string name="trigger_calendar">Calendar event</string>
 </resources>

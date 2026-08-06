@@ -1,11 +1,11 @@
 package com.nexaflow.core.engine.di
 
+import com.nexaflow.core.common.AppDispatchers
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import javax.inject.Singleton
 
@@ -15,8 +15,12 @@ object CoroutinesModule {
 
     @Provides
     @Singleton
+    fun provideAppDispatchers(): AppDispatchers = AppDispatchers.Default
+
+    @Provides
+    @Singleton
     @ApplicationScope
-    fun provideApplicationScope(): CoroutineScope {
-        return CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    fun provideApplicationScope(dispatchers: AppDispatchers): CoroutineScope {
+        return CoroutineScope(SupervisorJob() + dispatchers.default)
     }
 }

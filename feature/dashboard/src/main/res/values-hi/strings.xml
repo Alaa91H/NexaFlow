@@ -34,4 +34,5 @@
     <string name="trigger_bluetooth">ब्लूटूथ डिवाइस</string>
     <string name="trigger_ringer">ध्वनि मोड</string>
     <string name="trigger_notification">ऐप सूचना</string>
+    <string name="trigger_calendar">कैलेंडर इवेंट</string>
 </resources>

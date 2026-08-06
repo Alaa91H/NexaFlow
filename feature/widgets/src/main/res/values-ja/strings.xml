@@ -12,4 +12,36 @@
     <string name="how_to_sub">クイック切り替えまたはステータスカードのウィジェットを画面にドラッグします。</string>
     <string name="section_tip">ヒント</string>
     <string name="tip_text">自動化が実行されたり状態が変わったりすると、ウィジェットは自動的に更新されます。</string>
+
+    <string name="section_tiles">クイック設定タイル</string>
+
+    <string name="tile_1_label">タスク 1</string>
+
+    <string name="tile_2_label">タスク 2</string>
+
+    <string name="tile_3_label">タスク 3</string>
+
+    <string name="tile_4_label">タスク 4</string>
+
+    <string name="tile_1_desc">クイック設定パネルから最初のタスクを直接切り替えます。</string>
+
+    <string name="tile_2_desc">クイック設定パネルから2番目のタスクを直接切り替えます。</string>
+
+    <string name="tile_3_desc">クイック設定パネルから3番目のタスクを直接切り替えます。</string>
+
+    <string name="tile_4_desc">クイック設定パネルから4番目のタスクを直接切り替えます。</string>
+
+    <string name="tile_add">クイック設定に追加</string>
+
+    <string name="tile_requires_android_13">Android 13+が必要です</string>
+
+    <string name="tile_controls">操作対象</string>
+
+    <string name="tile_automatic">自動（最初の有効なタスク）</string>
+
+    <string name="tile_choose_task">タスクを選択</string>
+
+    <string name="tile_cancel">キャンセル</string>
+
+    <string name="tile_unbound">タスクなし</string>
 </resources>

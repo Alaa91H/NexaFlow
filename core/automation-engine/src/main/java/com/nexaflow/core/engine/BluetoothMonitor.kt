@@ -20,11 +20,15 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Fires automations with a BLUETOOTH_DEVICE trigger when a specific paired
- * Bluetooth device connects or disconnects (e.g. headphones). The trigger
- * config supports:
+ * Fires automations when a specific paired Bluetooth device connects or
+ * disconnects (e.g. headphones). Matches both the legacy BLUETOOTH_DEVICE
+ * trigger type and DEVICE triggers configured with the "BLUETOOTH" event
+ * (event = "BLUETOOTH_CONNECTED" / "BLUETOOTH_DISCONNECTED").
+ *
+ * The trigger config supports:
  *  - "deviceName": display name of the paired device (required)
- *  - "event": "CONNECTED" or "DISCONNECTED"
+ *  - "event": "CONNECTED"/"DISCONNECTED" (legacy) or
+ *    "BLUETOOTH_CONNECTED"/"BLUETOOTH_DISCONNECTED" (merged DEVICE trigger)
  */
 @Singleton
 class BluetoothMonitor @Inject constructor(
@@ -48,11 +52,13 @@ class BluetoothMonitor @Inject constructor(
                 @Suppress("DEPRECATION")
                 intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
             } ?: return
-            val event = when (intent.action) {
-                BluetoothDevice.ACTION_ACL_CONNECTED -> "CONNECTED"
-                BluetoothDevice.ACTION_ACL_DISCONNECTED -> "DISCONNECTED"
-                else -> return
+            val connected = intent.action == BluetoothDevice.ACTION_ACL_CONNECTED
+            if (intent.action != BluetoothDevice.ACTION_ACL_CONNECTED &&
+                intent.action != BluetoothDevice.ACTION_ACL_DISCONNECTED
+            ) {
+                return
             }
+            val event = if (connected) "CONNECTED" else "DISCONNECTED"
             val name = if (
                 android.os.Build.VERSION.SDK_INT < 31 ||
                 ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) ==
@@ -93,16 +99,16 @@ class BluetoothMonitor @Inject constructor(
             automations
                 .filter { automation ->
                     automation.enabled && automation.triggers.any { trigger ->
-                        trigger.type == TriggerType.BLUETOOTH_DEVICE &&
+                        isBluetoothTrigger(trigger.type) &&
                             matchesDevice(trigger.config, address, deviceName)
                     }
                 }
                 .forEach { automation ->
                     val deviceTriggers = automation.triggers.filter {
-                        it.type == TriggerType.BLUETOOTH_DEVICE && matchesDevice(it.config, address, deviceName)
+                        isBluetoothTrigger(it.type) && matchesDevice(it.config, address, deviceName)
                     }
-                    val firesOnConnect = deviceTriggers.any { (it.config["event"] ?: "CONNECTED") == "CONNECTED" }
-                    val firesOnDisconnect = deviceTriggers.any { (it.config["event"] ?: "CONNECTED") == "DISCONNECTED" }
+                    val firesOnConnect = deviceTriggers.any { wantsEvent(it.config, "CONNECTED") }
+                    val firesOnDisconnect = deviceTriggers.any { wantsEvent(it.config, "DISCONNECTED") }
                     if (event == "CONNECTED") {
                         if (firesOnConnect) {
                             val last = lastRunAt[automation.id] ?: 0L
@@ -131,6 +137,19 @@ class BluetoothMonitor @Inject constructor(
                         }
                     }
                 }
+        }
+    }
+
+    private fun isBluetoothTrigger(type: TriggerType): Boolean =
+        type == TriggerType.BLUETOOTH_DEVICE || type == TriggerType.DEVICE
+
+    /** True when the trigger fires for the given connect/disconnect event. */
+    private fun wantsEvent(config: Map<String, String>, event: String): Boolean {
+        val value = config["event"] ?: "CONNECTED"
+        return when (event) {
+            "CONNECTED" -> value == "CONNECTED" || value == "BLUETOOTH_CONNECTED"
+            "DISCONNECTED" -> value == "DISCONNECTED" || value == "BLUETOOTH_DISCONNECTED"
+            else -> false
         }
     }
 

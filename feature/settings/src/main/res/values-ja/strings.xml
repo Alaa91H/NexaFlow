@@ -71,4 +71,17 @@
     <string name="bluetooth_permission_sub">ペアリング済みデバイス（ヘッドホンなど）の検出に必要</string>
     <string name="notification_access">通知へのアクセス</string>
     <string name="notification_access_sub">通知の読み取りと管理</string>
+    <string name="calendar_permission">カレンダー</string>
+    <string name="calendar_permission_sub">カレンダートリガー用に予定を読み取ります</string>
+    <string name="execution_channel">実行チャネル</string>
+    <string name="execution_channel_sub">このデバイスに最適なプロバイダーを自動選択</string>
+    <string name="channel_root">Root</string>
+    <string name="channel_shizuku">Shizuku</string>
+    <string name="channel_system_app">システムアプリ</string>
+    <string name="channel_adb">ADB</string>
+    <string name="channel_android">Android API</string>
+    <string name="channel_accessibility">ユーザー補助</string>
+    <string name="channel_none">なし</string>
+    <string name="channel_detecting">検出中…</string>
+    <string name="refresh">更新</string>
 </resources>
