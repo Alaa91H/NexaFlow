@@ -60,7 +60,7 @@ jobs:
       with:
         name: nexaflow-release-apk
         path: app/build/outputs/apk/release/app-release.apk
-    - name: Create GitHub Release
+    - name: Create or Update GitHub Release
       if: startsWith(github.ref, 'refs/tags/')
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -69,11 +69,15 @@ jobs:
         if [[ "$GITHUB_REF_NAME" == *alpha* || "$GITHUB_REF_NAME" == *beta* || "$GITHUB_REF_NAME" == *rc* ]]; then
           PRERELEASE="--prerelease"
         fi
+        APK_NAME="NexaFlow-$GITHUB_REF_NAME.apk"
         if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-          echo "Release $GITHUB_REF_NAME already exists — skipping creation."
+          echo "Release $GITHUB_REF_NAME already exists — replacing APK asset with the latest build."
+          gh release delete-asset "$GITHUB_REF_NAME" "$APK_NAME" --yes >/dev/null 2>&1 || true
+          gh release delete-asset "$GITHUB_REF_NAME" "app-release.apk" --yes >/dev/null 2>&1 || true
+          gh release upload "$GITHUB_REF_NAME" "app/build/outputs/apk/release/app-release.apk#$APK_NAME" --clobber
         else
           gh release create "$GITHUB_REF_NAME" \
-            app/build/outputs/apk/release/app-release.apk \
+            "app/build/outputs/apk/release/app-release.apk#$APK_NAME" \
             --title "NexaFlow $GITHUB_REF_NAME" \
             --generate-notes \
             $PRERELEASE
