@@ -245,8 +245,8 @@
     <string name="trigger_app">When an app is opened</string>
     <string name="time_single">Single time</string>
     <string name="time_range">Time range</string>
-    <string name="range_start">Start</string>
-    <string name="range_end">End</string>
+    <string name="time_range_start">Start</string>
+    <string name="time_range_end">End</string>
     <string name="range_same_day">Same day</string>
     <string name="range_overnight">Overnight — ends the next day</string>
     <string name="trigger_type_bluetooth">Bluetooth device</string>
@@ -291,4 +291,15 @@
     <string name="repeat_weekends">Weekends</string>
     <string name="repeat_monthly">Monthly</string>
     <string name="month_day_label">Day of month: %1$d</string>
+    <string name="trigger_type_notification">Notification</string>
+    <string name="trigger_notification">App notification</string>
+    <string name="notification_contains">Keyword (optional)</string>
+    <string name="notification_contains_hint">e.g. delivery, message</string>
+    <string name="any_app">Any app</string>
+    <string name="notification_access_hint">Needs notification access to read notifications</string>
+    <string name="action_block_notification">Block notifications</string>
+    <string name="action_block_notification_sub">Silence all notifications from an app</string>
+    <string name="action_clear_app_notifications">Clear app notifications</string>
+    <string name="action_clear_app_notifications_sub">Dismiss notifications of a specific app</string>
+    <string name="block_label">Block</string>
 </resources>

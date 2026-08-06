@@ -58,6 +58,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -69,8 +70,10 @@ import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.SettingRow
 import com.nexaflow.core.ui.iconVector
+import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -249,6 +252,7 @@ private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector
     TriggerType.SMS -> Triple(R.string.trigger_sms, R.string.trigger_sms_sub, Icons.Filled.NotificationImportant)
     TriggerType.BLUETOOTH_DEVICE -> Triple(R.string.trigger_bluetooth, R.string.trigger_bluetooth_sub, Icons.Filled.Bluetooth)
     TriggerType.RINGER_MODE -> Triple(R.string.trigger_ringer, R.string.trigger_ringer_sub, Icons.Filled.NotificationsActive)
+    TriggerType.NOTIFICATION -> Triple(R.string.trigger_notification, R.string.trigger_notification_sub, Icons.Filled.NotificationsActive)
 }
 
 /** Human-readable trigger detail (e.g. battery direction, time range, repeat mode). */
@@ -274,6 +278,8 @@ private fun triggerDetail(config: Map<String, String>): String {
         config["deviceName"]?.takeIf { it.isNotBlank() }?.let { add(it) }
         config["stream"]?.let { add(it.lowercase()) }
         config["mode"]?.let { add(it.lowercase()) }
+        config["packages"]?.takeIf { it.isNotBlank() }?.let { add("${it.split(',').size} app(s)") }
+        config["contains"]?.takeIf { it.isNotBlank() }?.let { add("\"$it\"") }
     }
     return parts.joinToString(", ").ifEmpty { "default" }
 }
@@ -294,6 +300,8 @@ private fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> 
     ActionType.SYSTEM_MEDIA_NEXT -> Triple(R.string.action_media_next, R.string.action_media_next_sub, Icons.Filled.MusicNote)
     ActionType.SYSTEM_MEDIA_PREVIOUS -> Triple(R.string.action_media_prev, R.string.action_media_prev_sub, Icons.Filled.MusicNote)
     ActionType.SYSTEM_OPEN_URL -> Triple(R.string.action_open_url, R.string.action_open_url_sub, Icons.Filled.Link)
+    ActionType.SYSTEM_BLOCK_NOTIFICATION -> Triple(R.string.action_block_notification, R.string.action_block_notification_sub, Icons.Filled.NotificationsActive)
+    ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS -> Triple(R.string.action_clear_app_notifications, R.string.action_clear_app_notifications_sub, Icons.Filled.Notifications)
     ActionType.SYSTEM_CLEAR_NOTIFICATIONS -> Triple(R.string.action_clear_notifs, R.string.action_clear_notifs_sub, Icons.Filled.Notifications)
     ActionType.SYSTEM_EXPAND_STATUS_BAR -> Triple(R.string.action_expand_bar, R.string.action_expand_bar_sub, Icons.Filled.NotificationImportant)
     ActionType.SYSTEM_COLLAPSE_STATUS_BAR -> Triple(R.string.action_collapse_bar, R.string.action_collapse_bar_sub, Icons.Filled.NotificationImportant)
@@ -326,4 +334,64 @@ private fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> 
     ActionType.APPLICATION_CLOSE_APP -> Triple(R.string.action_close_app, R.string.action_close_app_sub, Icons.Filled.Close)
     ActionType.ADVANCED_SHIZUKU -> Triple(R.string.action_shizuku, R.string.action_shizuku_sub, Icons.Filled.Security)
     ActionType.ADVANCED_ROOT -> Triple(R.string.action_root, R.string.action_root_sub, Icons.Filled.Lock)
+}
+
+/** Design-time preview of the automation header + trigger/action cards. */
+@Preview(name = "Automation details", showBackground = true, widthDp = 400)
+@Preview(name = "Automation details (dark)", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun AutomationDetailsPreview() {
+    MaterialTheme {
+        androidx.compose.foundation.layout.Column(
+            modifier = androidx.compose.ui.Modifier.padding(16.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)
+        ) {
+            val sample = Automation(
+                id = "preview-1",
+                name = "Morning Mode",
+                description = "Start the day right",
+                icon = "sunny",
+                iconColor = 0xFFFFFFFF,
+                backgroundColor = 0xFFE8A33D,
+                category = "general",
+                priority = 1,
+                enabled = true,
+                triggers = listOf(Trigger(TriggerType.TIME, mapOf("time" to "08:00", "repeat" to "DAILY"))),
+                actions = listOf(Action(ActionType.SYSTEM_BRIGHTNESS, mapOf("level" to "60"))),
+                createdAt = 0,
+                updatedAt = 0
+            )
+            NexaFlowCard {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconBadge(
+                        icon = iconVector(sample.icon),
+                        containerColor = Color(sample.backgroundColor),
+                        contentColor = Color(sample.iconColor)
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(text = sample.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = sample.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+            }
+            SectionHeader(text = stringResource(R.string.section_triggers))
+            NexaFlowCard {
+                val (titleRes, subtitleRes, icon) = triggerPresentation(TriggerType.TIME)
+                SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes))
+            }
+            SectionHeader(text = stringResource(R.string.section_actions))
+            NexaFlowCard {
+                val (titleRes, subtitleRes, icon) = actionPresentation(ActionType.SYSTEM_BRIGHTNESS)
+                SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes))
+            }
+        }
+    }
 }

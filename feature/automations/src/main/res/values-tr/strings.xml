@@ -127,4 +127,10 @@
     <string name="exit_nothing_sub">Hiçbir şey olmaz — görev sona erer</string>
     <string name="trigger_ringer">Ses modu</string>
     <string name="trigger_ringer_sub">Ses modu değiştiğinde</string>
+    <string name="trigger_notification">Uygulama bildirimi</string>
+    <string name="trigger_notification_sub">Bir uygulama bildirim gönderdiğinde tetikle</string>
+    <string name="action_block_notification">Bildirimleri engelle</string>
+    <string name="action_block_notification_sub">Bir uygulamanın tüm bildirimlerini sessize al</string>
+    <string name="action_clear_app_notifications">Uygulama bildirimlerini temizle</string>
+    <string name="action_clear_app_notifications_sub">Belirli bir uygulamanın bildirimlerini kapat</string>
 </resources>

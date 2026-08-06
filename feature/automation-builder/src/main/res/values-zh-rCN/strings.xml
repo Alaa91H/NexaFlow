@@ -246,8 +246,8 @@
     <string name="trigger_app">当应用被打开时</string>
     <string name="time_single">单个时间</string>
     <string name="time_range">时间段</string>
-    <string name="range_start">开始</string>
-    <string name="range_end">结束</string>
+    <string name="time_range_start">开始</string>
+    <string name="time_range_end">结束</string>
     <string name="range_same_day">同一天</string>
     <string name="range_overnight">整夜 — 次日结束</string>
     <string name="trigger_type_bluetooth">蓝牙设备</string>
@@ -292,4 +292,15 @@
     <string name="repeat_weekends">周末</string>
     <string name="repeat_monthly">每月</string>
     <string name="month_day_label">每月第 %1$d 天</string>
+    <string name="trigger_type_notification">通知</string>
+    <string name="trigger_notification">应用通知</string>
+    <string name="notification_contains">关键词（可选）</string>
+    <string name="notification_contains_hint">例如：配送、消息</string>
+    <string name="any_app">任何应用</string>
+    <string name="notification_access_hint">需要通知使用权才能读取通知</string>
+    <string name="action_block_notification">屏蔽通知</string>
+    <string name="action_block_notification_sub">静音某个应用的所有通知</string>
+    <string name="action_clear_app_notifications">清除应用通知</string>
+    <string name="action_clear_app_notifications_sub">关闭特定应用的通知</string>
+    <string name="block_label">屏蔽</string>
 </resources>

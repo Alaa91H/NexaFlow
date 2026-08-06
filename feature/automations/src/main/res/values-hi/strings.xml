@@ -127,4 +127,10 @@
     <string name="exit_nothing_sub">कुछ नहीं होता — कार्य बस समाप्त हो जाता है</string>
     <string name="trigger_ringer">ध्वनि मोड</string>
     <string name="trigger_ringer_sub">जब ध्वनि मोड बदलता है</string>
+    <string name="trigger_notification">ऐप सूचना</string>
+    <string name="trigger_notification_sub">जब कोई ऐप सूचना भेजे तो ट्रिगर करें</string>
+    <string name="action_block_notification">सूचनाएँ ब्लॉक करें</string>
+    <string name="action_block_notification_sub">किसी ऐप की सभी सूचनाएँ म्यूट करें</string>
+    <string name="action_clear_app_notifications">ऐप सूचनाएँ साफ़ करें</string>
+    <string name="action_clear_app_notifications_sub">किसी विशिष्ट ऐप की सूचनाएँ हटाएँ</string>
 </resources>

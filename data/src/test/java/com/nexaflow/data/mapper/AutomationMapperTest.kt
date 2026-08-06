@@ -21,11 +21,14 @@ class AutomationMapperTest {
         priority = 2,
         enabled = true,
         triggers = listOf(
-            Trigger(TriggerType.TIME, config = mapOf("time" to "22:00"))
+            Trigger(TriggerType.TIME, config = mapOf("time" to "22:00")),
+            Trigger(TriggerType.NOTIFICATION, config = mapOf("packages" to "com.whatsapp", "contains" to "order", "event" to "POSTED"))
         ),
         actions = listOf(
             Action(ActionType.SYSTEM_BRIGHTNESS, config = mapOf("value" to "40")),
-            Action(ActionType.SYSTEM_DND, config = mapOf("enabled" to "true"))
+            Action(ActionType.SYSTEM_DND, config = mapOf("enabled" to "true")),
+            Action(ActionType.SYSTEM_BLOCK_NOTIFICATION, config = mapOf("package" to "com.game", "enabled" to "true")),
+            Action(ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS, config = mapOf("package" to "com.whatsapp"))
         ),
         createdAt = 1000L,
         updatedAt = 2000L
@@ -36,7 +39,8 @@ class AutomationMapperTest {
         val entity = automation.toEntity()
         assertEquals(automation.id, entity.id)
         assertEquals(automation.name, entity.name)
-        assertEquals(automation.actions.size, 2)
+        assertEquals(automation.actions.size, 4)
+        assertEquals(automation.triggers.size, 2)
 
         assertEquals(automation, entity.toDomain())
     }

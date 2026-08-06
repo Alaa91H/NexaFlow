@@ -33,4 +33,5 @@
     <string name="trigger_battery">Батарея</string>
     <string name="trigger_bluetooth">Устройство Bluetooth</string>
     <string name="trigger_ringer">Режим звука</string>
+    <string name="trigger_notification">Уведомление приложения</string>
 </resources>

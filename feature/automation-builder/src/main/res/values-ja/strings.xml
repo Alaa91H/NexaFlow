@@ -246,8 +246,8 @@
     <string name="trigger_app">アプリが開かれたとき</string>
     <string name="time_single">単一時刻</string>
     <string name="time_range">時間帯</string>
-    <string name="range_start">開始</string>
-    <string name="range_end">終了</string>
+    <string name="time_range_start">開始</string>
+    <string name="time_range_end">終了</string>
     <string name="range_same_day">同日</string>
     <string name="range_overnight">夜間 — 翌日に終了</string>
     <string name="trigger_type_bluetooth">Bluetooth デバイス</string>
@@ -292,4 +292,15 @@
     <string name="repeat_weekends">週末</string>
     <string name="repeat_monthly">毎月</string>
     <string name="month_day_label">月の日: %1$d</string>
+    <string name="trigger_type_notification">通知</string>
+    <string name="trigger_notification">アプリの通知</string>
+    <string name="notification_contains">キーワード（任意）</string>
+    <string name="notification_contains_hint">例: 配達、メッセージ</string>
+    <string name="any_app">すべてのアプリ</string>
+    <string name="notification_access_hint">通知を読み取るには通知へのアクセスが必要です</string>
+    <string name="action_block_notification">通知をブロック</string>
+    <string name="action_block_notification_sub">アプリのすべての通知をミュート</string>
+    <string name="action_clear_app_notifications">アプリの通知を消去</string>
+    <string name="action_clear_app_notifications_sub">特定のアプリの通知を破棄</string>
+    <string name="block_label">ブロック</string>
 </resources>

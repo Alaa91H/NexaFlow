@@ -127,4 +127,10 @@
     <string name="exit_nothing_sub">Ничего не происходит — задача пرосто завершается</string>
     <string name="trigger_ringer">Режим звука</string>
     <string name="trigger_ringer_sub">Когда меняется режим звука</string>
+    <string name="trigger_notification">Уведомление приложения</string>
+    <string name="trigger_notification_sub">Срабатывать, когда приложение отправляет уведомление</string>
+    <string name="action_block_notification">Заблокировать уведомления</string>
+    <string name="action_block_notification_sub">Отключить все уведомления приложения</string>
+    <string name="action_clear_app_notifications">Очистить уведомления приложения</string>
+    <string name="action_clear_app_notifications_sub">Отклонить уведомления конкретного приложения</string>
 </resources>

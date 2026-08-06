@@ -1,20 +1,23 @@
 package com.nexaflow.core.rom
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.media.AudioManager
-import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.provider.Settings
 import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import com.nexaflow.core.rom.model.RomCapability
 import com.nexaflow.core.rom.model.SystemControlResult
 
@@ -182,25 +185,30 @@ class SystemController(
     }
 
     @Suppress("DEPRECATION")
+    // BLUETOOTH_CONNECT is checked at runtime below (required only from API 31+);
+    // when missing we fall back to the privileged shell command. Lint's dataflow
+    // cannot prove the SDK-conditional guard, so the suppression is scoped here.
+    @SuppressLint("MissingPermission")
     fun setBluetooth(enabled: Boolean): SystemControlResult {
-        return try {
-            val adapter = BluetoothAdapter.getDefaultAdapter()
-                ?: return SystemControlResult.fail("Bluetooth is not available")
-            val set = try {
+        val adapter = BluetoothAdapter.getDefaultAdapter()
+            ?: return SystemControlResult.fail("Bluetooth is not available")
+        val hasPermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) ==
+            PackageManager.PERMISSION_GRANTED
+        val set = if (hasPermission) {
+            runCatching {
                 if (enabled) adapter.enable() else adapter.disable()
-            } catch (_: Throwable) {
-                false
-            }
-            if (set) {
-                SystemControlResult.ok(if (enabled) "Bluetooth enabled" else "Bluetooth disabled")
-            } else {
-                tryPrivileged(
-                    command = "svc bluetooth ${if (enabled) "enable" else "disable"}",
-                    successMessage = if (enabled) "Bluetooth enabled" else "Bluetooth disabled"
-                )
-            }
-        } catch (t: Throwable) {
-            SystemControlResult.fail("Failed to change Bluetooth: ${t.message}")
+            }.getOrDefault(false)
+        } else {
+            false
+        }
+        return if (set) {
+            SystemControlResult.ok(if (enabled) "Bluetooth enabled" else "Bluetooth disabled")
+        } else {
+            tryPrivileged(
+                command = "svc bluetooth ${if (enabled) "enable" else "disable"}",
+                successMessage = if (enabled) "Bluetooth enabled" else "Bluetooth disabled"
+            )
         }
     }
 
@@ -266,7 +274,7 @@ class SystemController(
     fun openUrl(url: String): SystemControlResult {
         if (url.isBlank()) return SystemControlResult.fail("No URL configured")
         return try {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            val intent = Intent(Intent.ACTION_VIEW, url.toUri())
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
             SystemControlResult.ok("Opened URL")
@@ -606,7 +614,7 @@ class SystemController(
         return try {
             val intent = Intent(
                 Intent.ACTION_VIEW,
-                Uri.parse("https://play.google.com/store/apps")
+                "https://play.google.com/store/apps".toUri()
             ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
             SystemControlResult.ok("Opened Play Store updates")
@@ -672,7 +680,7 @@ class SystemController(
         return try {
             val intent = Intent(
                 Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                Uri.parse("package:$packageName")
+                "package:$packageName".toUri()
             ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
             SystemControlResult.ok("Opened settings for $packageName")

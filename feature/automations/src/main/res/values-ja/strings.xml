@@ -127,4 +127,10 @@
     <string name="exit_nothing_sub">何も起こりません — タスクは単に終了します</string>
     <string name="trigger_ringer">サウンドモード</string>
     <string name="trigger_ringer_sub">サウンドモードが変わったとき</string>
+    <string name="trigger_notification">アプリの通知</string>
+    <string name="trigger_notification_sub">アプリが通知を投稿したときに実行</string>
+    <string name="action_block_notification">通知をブロック</string>
+    <string name="action_block_notification_sub">アプリのすべての通知をミュート</string>
+    <string name="action_clear_app_notifications">アプリの通知を消去</string>
+    <string name="action_clear_app_notifications_sub">特定のアプリの通知を破棄</string>
 </resources>

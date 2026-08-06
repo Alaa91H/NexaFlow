@@ -1,7 +1,11 @@
 package com.nexaflow.feature.builder
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.content.Context
+import android.content.pm.PackageManager
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 
 /** A paired Bluetooth device shown in the picker. */
 data class PairedDevice(
@@ -44,7 +49,8 @@ fun BluetoothDevicePickerDialog(
     onPick: (PairedDevice) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val devices = remember { loadPairedDevices() }
+    val context = LocalContext.current
+    val devices = remember { loadPairedDevices(context) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -103,10 +109,17 @@ fun BluetoothDevicePickerDialog(
     )
 }
 
-private fun loadPairedDevices(): List<PairedDevice> {
+// BLUETOOTH_CONNECT is checked at runtime above the runCatching block below;
+// lint's dataflow cannot follow the guard through the try/catch boundary, so the
+// suppression is scoped to this loader only.
+@SuppressLint("MissingPermission")
+private fun loadPairedDevices(context: Context): List<PairedDevice> {
+    if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+        return emptyList()
+    }
+    val adapter = BluetoothAdapter.getDefaultAdapter() ?: return emptyList()
+    if (!adapter.isEnabled) return emptyList()
     return runCatching {
-        val adapter = BluetoothAdapter.getDefaultAdapter() ?: return@runCatching emptyList()
-        if (!adapter.isEnabled) return@runCatching emptyList()
         adapter.bondedDevices
             .filter { it.type != BluetoothDevice.DEVICE_TYPE_LE }
             .mapNotNull { device ->

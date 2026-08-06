@@ -1,4 +1,4 @@
-﻿package com.nexaflow.feature.settings
+package com.nexaflow.feature.settings
 
 import android.content.ComponentName
 import android.content.Context
@@ -73,6 +73,10 @@ fun SettingsScreen(navController: NavController) {
     var accessibilityEnabled by remember { mutableStateOf(false) }
     var monitoringRunning by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
+    val stringBackupImportFailed = stringResource(R.string.backup_import_failed)
+    val stringBackupExportFailed = stringResource(R.string.backup_export_failed)
+    val stringShareBackupTitle = stringResource(R.string.share_backup_title)
+    val stringBackupImportedTemplate = stringResource(R.string.backup_imported)
 
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -83,7 +87,7 @@ fun SettingsScreen(navController: NavController) {
                     context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
                 }.getOrNull()
                 if (json.isNullOrBlank()) {
-                    snackbarHostState.showSnackbar(context.getString(R.string.backup_import_failed))
+                    snackbarHostState.showSnackbar(stringBackupImportFailed)
                 } else {
                     viewModel.importBackup(json)
                 }
@@ -95,9 +99,9 @@ fun SettingsScreen(navController: NavController) {
         viewModel.importResult.collect { result ->
             val message = when (result) {
                 is ImportResult.Success ->
-                    context.getString(R.string.backup_imported, result.count)
+                    stringBackupImportedTemplate.format(result.count)
                 ImportResult.InvalidFile ->
-                    context.getString(R.string.backup_import_failed)
+                    stringBackupImportFailed
             }
             snackbarHostState.showSnackbar(message)
         }
@@ -106,7 +110,7 @@ fun SettingsScreen(navController: NavController) {
     fun shareBackup() {
         viewModel.exportBackup { json ->
             if (json == null) {
-                scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.backup_export_failed)) }
+                scope.launch { snackbarHostState.showSnackbar(stringBackupExportFailed) }
                 return@exportBackup
             }
             val result = runCatching {
@@ -121,14 +125,14 @@ fun SettingsScreen(navController: NavController) {
                 val sendIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "application/json"
                     putExtra(Intent.EXTRA_STREAM, uri)
-                    putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.share_backup_title))
-                    putExtra(Intent.EXTRA_TEXT, context.getString(R.string.share_backup_title))
+                    putExtra(Intent.EXTRA_SUBJECT, stringShareBackupTitle)
+                    putExtra(Intent.EXTRA_TEXT, stringShareBackupTitle)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
-                context.startActivity(Intent.createChooser(sendIntent, context.getString(R.string.share_backup_title)))
+                context.startActivity(Intent.createChooser(sendIntent, stringShareBackupTitle))
             }
             if (result.isFailure) {
-                scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.backup_export_failed)) }
+                scope.launch { snackbarHostState.showSnackbar(stringBackupExportFailed) }
             }
         }
     }
@@ -165,7 +169,7 @@ fun SettingsScreen(navController: NavController) {
                         subtitle = if (accessibilityEnabled) stringResource(R.string.accessibility_enabled) else stringResource(R.string.accessibility_disabled),
                         trailing = {
                             Text(
-                                text = if (accessibilityEnabled) stringResource(R.string.state_on) else stringResource(R.string.state_off),
+                                text = if (accessibilityEnabled) stringResource(R.string.state_enabled) else stringResource(R.string.state_disabled),
                                 color = if (accessibilityEnabled) Color(0xFF2FA84F) else Color(0xFFE5533D),
                                 style = androidx.compose.material3.MaterialTheme.typography.labelLarge
                             )

@@ -8,8 +8,8 @@
     <string name="monitoring_service">İzleme hizmeti</string>
     <string name="monitoring_running">Çalışıyor — cihaz, pil, ağ ve konum izleniyor</string>
     <string name="monitoring_stopped">Durduruldu — tetikleyiciler yalnızca uygulama açıkken çalışır</string>
-    <string name="state_on">Açık</string>
-    <string name="state_off">Kapalı</string>
+    <string name="state_enabled">Açık</string>
+    <string name="state_disabled">Kapalı</string>
     <string name="section_appearance">GÖRÜNÜM</string>
     <string name="themes">Temalar</string>
     <string name="themes_sub">Karanlık mod ve vurgu rengi</string>
@@ -69,4 +69,6 @@
     <string name="notifications_global_note">Bu ayarlar yalnızca NexaFlow\'un gönderdiği bildirimleri etkiler. Uygulama bildirimleri sistem ayarlarından yönetilebilir.</string>
     <string name="bluetooth_permission">Bluetooth izni</string>
     <string name="bluetooth_permission_sub">Eşleştirilmiş cihazları (kulaklık vb.) algılamak için gerekli</string>
+    <string name="notification_access">Bildirim erişimi</string>
+    <string name="notification_access_sub">Bildirimleri oku ve yönet</string>
 </resources>

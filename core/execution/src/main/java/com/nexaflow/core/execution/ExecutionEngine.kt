@@ -143,6 +143,34 @@ class ExecutionEngine(
                 } else {
                     SystemControlResult.ok("Notifications disabled")
                 }
+            ActionType.SYSTEM_BLOCK_NOTIFICATION -> {
+                val packages = (action.config["packages"] ?: action.config["package"] ?: "")
+                    .split(',')
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                val blocked = action.config["enabled"]?.toBoolean() ?: true
+                if (packages.isEmpty()) {
+                    SystemControlResult.fail("No app selected")
+                } else {
+                    packages.forEach { NotificationAccess.setBlocked(it, blocked) }
+                    SystemControlResult.ok(
+                        if (blocked) "Blocked notifications for ${packages.size} app(s)"
+                        else "Unblocked notifications for ${packages.size} app(s)"
+                    )
+                }
+            }
+            ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS -> {
+                val packages = (action.config["packages"] ?: action.config["package"] ?: "")
+                    .split(',')
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                if (packages.isEmpty()) {
+                    SystemControlResult.fail("No app selected")
+                } else {
+                    packages.forEach { NotificationAccess.clearForPackage(it) }
+                    SystemControlResult.ok("Cleared notifications for ${packages.size} app(s)")
+                }
+            }
             ActionType.SYSTEM_WIFI ->
                 controller.setWifi(action.config["enabled"]?.toBoolean() ?: true)
             ActionType.SYSTEM_BLUETOOTH ->

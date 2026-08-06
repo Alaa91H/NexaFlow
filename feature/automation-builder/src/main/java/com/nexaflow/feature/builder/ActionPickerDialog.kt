@@ -29,13 +29,21 @@ import androidx.compose.ui.unit.dp
  * Searchable, multi-select action picker. Lets the user add several actions to
  * a task at once instead of scrolling the whole category list inline.
  */
+/** Searchable, multi-select action picker. Lets the user add several actions to
+ * a task at once instead of scrolling the whole category list inline.
+ */
+private data class SearchEntry(
+    val option: ActionOption,
+    val title: String,
+    val subtitle: String
+)
+
 @Composable
 fun ActionPickerDialog(
     alreadySelected: List<ActionOption>,
     onConfirm: (List<ActionOption>) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val context = LocalContext.current
     var query by remember { mutableStateOf("") }
     val picked = remember { mutableStateListOf<ActionOption>() }
 
@@ -54,17 +62,24 @@ fun ActionPickerDialog(
                     },
                     singleLine = true
                 )
+                val entries = actionOptions.map { option ->
+                    SearchEntry(
+                        option = option,
+                        title = stringResource(option.titleRes),
+                        subtitle = stringResource(option.subtitleRes)
+                    )
+                }
+                val trimmed = query.trim().lowercase()
+                val matched = entries.count { entry ->
+                    entry.option !in alreadySelected &&
+                        (trimmed.isEmpty() ||
+                            entry.title.lowercase().contains(trimmed) ||
+                            entry.subtitle.lowercase().contains(trimmed))
+                }
                 LazyColumn(
                     modifier = Modifier.heightIn(max = 400.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    val trimmed = query.trim().lowercase()
-                    val matched = actionOptions.count { option ->
-                        option !in alreadySelected &&
-                            (trimmed.isEmpty() ||
-                                context.getString(option.titleRes).lowercase().contains(trimmed) ||
-                                context.getString(option.subtitleRes).lowercase().contains(trimmed))
-                    }
                     if (matched == 0) {
                         item(key = "empty") {
                             Text(
@@ -76,24 +91,24 @@ fun ActionPickerDialog(
                         }
                     } else {
                         actionCategories.forEach { category ->
-                            val options = actionOptions.filter { option ->
-                                option !in alreadySelected &&
+                            val options = entries.filter { entry ->
+                                entry.option !in alreadySelected &&
                                     (trimmed.isEmpty() ||
-                                        context.getString(option.titleRes).lowercase().contains(trimmed) ||
-                                        context.getString(option.subtitleRes).lowercase().contains(trimmed))
+                                        entry.title.lowercase().contains(trimmed) ||
+                                        entry.subtitle.lowercase().contains(trimmed))
                             }
                             if (options.isNotEmpty()) {
                                 item(key = "header_${category.name}") {
-                                    itemHeader(text = stringResource(category.headerRes))
+                                    ItemHeader(text = stringResource(category.headerRes))
                                 }
-                                options.forEach { option ->
-                                    item(key = option.actionType.name) {
+                                options.forEach { entry ->
+                                    item(key = entry.option.actionType.name) {
                                         ActionOptionRow(
-                                            option = option,
-                                            checked = option in picked,
+                                            option = entry.option,
+                                            checked = entry.option in picked,
                                             onToggle = {
-                                                if (option in picked) picked.remove(option)
-                                                else picked.add(option)
+                                                if (entry.option in picked) picked.remove(entry.option)
+                                                else picked.add(entry.option)
                                             }
                                         )
                                     }

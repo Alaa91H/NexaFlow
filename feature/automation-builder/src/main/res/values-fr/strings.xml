@@ -246,8 +246,8 @@
     <string name="trigger_app">Lorsqu\'une application est ouverte</string>
     <string name="time_single">Heure unique</string>
     <string name="time_range">Plage horaire</string>
-    <string name="range_start">Début</string>
-    <string name="range_end">Fin</string>
+    <string name="time_range_start">Début</string>
+    <string name="time_range_end">Fin</string>
     <string name="range_same_day">Même jour</string>
     <string name="range_overnight">De nuit — se termine le lendemain</string>
     <string name="trigger_type_bluetooth">Appareil Bluetooth</string>
@@ -292,4 +292,15 @@
     <string name="repeat_weekends">Week-end</string>
     <string name="repeat_monthly">Mensuel</string>
     <string name="month_day_label">Jour du mois : %1$d</string>
+    <string name="trigger_type_notification">Notification</string>
+    <string name="trigger_notification">Notification d\'app</string>
+    <string name="notification_contains">Mot-clé (facultatif)</string>
+    <string name="notification_contains_hint">ex. livraison, message</string>
+    <string name="any_app">Toute application</string>
+    <string name="notification_access_hint">Nécessite l\'accès aux notifications pour les lire</string>
+    <string name="action_block_notification">Bloquer les notifications</string>
+    <string name="action_block_notification_sub">Silencer toutes les notifications d\'une app</string>
+    <string name="action_clear_app_notifications">Effacer les notifications de l\'app</string>
+    <string name="action_clear_app_notifications_sub">Rejeter les notifications d\'une app spécifique</string>
+    <string name="block_label">Bloquer</string>
 </resources>

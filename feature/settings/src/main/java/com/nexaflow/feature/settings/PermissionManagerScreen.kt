@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.Tune
@@ -149,6 +150,19 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
             },
             openAction = { context ->
                 context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName))
+            }
+        ),
+        PermissionEntry(
+            key = "notification_access",
+            titleRes = R.string.notification_access,
+            subtitleRes = R.string.notification_access_sub,
+            icon = Icons.Filled.NotificationsActive,
+            isGranted = { context ->
+                val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                nm.isNotificationListenerAccessGranted(ComponentName(context, com.nexaflow.core.engine.NotificationListener::class.java))
+            },
+            openAction = { context ->
+                context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             }
         ),
         PermissionEntry(

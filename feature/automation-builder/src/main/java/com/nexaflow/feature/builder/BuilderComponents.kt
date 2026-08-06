@@ -115,7 +115,7 @@ fun PermissionHint(
 }
 
 @Composable
-fun itemHeader(text: String) {
+fun ItemHeader(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelLarge,
@@ -216,10 +216,12 @@ fun PermissionHintForAction(actionType: ActionType, context: Context) {
             R.string.grant,
             PermissionShortcuts::openAppSettings
         )
-        ActionType.SYSTEM_SEND_REMINDER -> Triple(
-            R.string.notification_permission_hint,
-            R.string.grant,
-            PermissionShortcuts::openAppSettings
+        ActionType.SYSTEM_SEND_REMINDER,
+        ActionType.SYSTEM_BLOCK_NOTIFICATION,
+        ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS -> Triple(
+            R.string.notification_access_hint,
+            R.string.enable,
+            PermissionShortcuts::openNotificationAccessSettings
         )
         else -> null
     }
@@ -280,6 +282,14 @@ object PermissionShortcuts {
     fun openBluetoothSettings(context: Context) {
         try {
             context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+        } catch (_: Throwable) {
+            context.startActivity(Intent(Settings.ACTION_SETTINGS))
+        }
+    }
+
+    fun openNotificationAccessSettings(context: Context) {
+        try {
+            context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         } catch (_: Throwable) {
             context.startActivity(Intent(Settings.ACTION_SETTINGS))
         }

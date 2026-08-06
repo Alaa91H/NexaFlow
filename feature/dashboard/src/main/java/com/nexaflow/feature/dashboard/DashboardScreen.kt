@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -338,4 +339,40 @@ private fun triggerLabel(type: TriggerType): Int = when (type) {
     TriggerType.SMS -> R.string.trigger_sms
     TriggerType.BLUETOOTH_DEVICE -> R.string.trigger_bluetooth
     TriggerType.RINGER_MODE -> R.string.trigger_ringer
+    TriggerType.NOTIFICATION -> R.string.trigger_notification
+}
+
+/** Design-time preview of a Samsung-style routine card. */
+@Preview(name = "Routine card", showBackground = true, widthDp = 400)
+@Preview(name = "Routine card (dark)", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun RoutineCardPreview() {
+    MaterialTheme {
+        RoutineCard(
+            row = AutomationRow(
+                automation = Automation(
+                    id = "preview-1",
+                    name = "Morning Mode",
+                    description = "Start the day",
+                    icon = "sunny",
+                    iconColor = 0xFFFFFFFF,
+                    backgroundColor = 0xFFE8A33D,
+                    category = "general",
+                    priority = 1,
+                    enabled = true,
+                    triggers = listOf(com.nexaflow.domain.models.Trigger(TriggerType.TIME, mapOf("time" to "08:00"))),
+                    actions = listOf(com.nexaflow.domain.models.Action(com.nexaflow.domain.models.ActionType.SYSTEM_BRIGHTNESS, mapOf("level" to "60"))),
+                    createdAt = 0,
+                    updatedAt = 0
+                ),
+                lastRunAt = System.currentTimeMillis() - 3_600_000L
+            ),
+            summary = "Time · 1 action",
+            nextRun = "Next · today 8:00 PM",
+            isRunning = false,
+            onRun = {},
+            onToggle = {},
+            onClick = {}
+        )
+    }
 }

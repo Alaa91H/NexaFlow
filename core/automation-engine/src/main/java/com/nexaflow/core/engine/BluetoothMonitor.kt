@@ -1,10 +1,13 @@
 package com.nexaflow.core.engine
 
+import android.Manifest
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
@@ -50,7 +53,15 @@ class BluetoothMonitor @Inject constructor(
                 BluetoothDevice.ACTION_ACL_DISCONNECTED -> "DISCONNECTED"
                 else -> return
             }
-            val name = runCatching { device.name }.getOrNull() ?: device.address ?: ""
+            val name = if (
+                android.os.Build.VERSION.SDK_INT < 31 ||
+                ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) ==
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                runCatching { device.name }.getOrNull() ?: device.address ?: ""
+            } else {
+                device.address ?: ""
+            }
             handleEvent(device.address ?: "", name, event)
         }
     }

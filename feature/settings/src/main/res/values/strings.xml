@@ -8,8 +8,8 @@
     <string name="monitoring_service">Monitoring service</string>
     <string name="monitoring_running">Running — watching device, battery, network, location</string>
     <string name="monitoring_stopped">Stopped — triggers only fire while the app is open</string>
-    <string name="state_on">On</string>
-    <string name="state_off">Off</string>
+    <string name="state_enabled">On</string>
+    <string name="state_disabled">Off</string>
     <string name="section_appearance">APPEARANCE</string>
     <string name="themes">Themes</string>
     <string name="themes_sub">Dark mode and accent color</string>
@@ -69,4 +69,6 @@
     <string name="notifications_global_note">These settings affect only notifications posted by NexaFlow. App notifications can be managed in system settings.</string>
     <string name="bluetooth_permission">Bluetooth permission</string>
     <string name="bluetooth_permission_sub">Needed to detect paired devices (headphones, etc.)</string>
+    <string name="notification_access">Notification access</string>
+    <string name="notification_access_sub">Read and manage notifications</string>
 </resources>

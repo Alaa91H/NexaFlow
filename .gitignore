@@ -11,3 +11,6 @@ local.properties
 
 # Local Freebuff app state
 .freebuff/
+
+# Local Freebuff preview tool (not part of the app)
+preview/

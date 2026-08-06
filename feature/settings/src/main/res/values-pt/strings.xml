@@ -8,8 +8,8 @@
     <string name="monitoring_service">Serviço de monitoramento</string>
     <string name="monitoring_running">Em execução — monitora dispositivo, bateria, rede e localização</string>
     <string name="monitoring_stopped">Parado — gatilhos só disparam com o aplicativo aberto</string>
-    <string name="state_on">Ligado</string>
-    <string name="state_off">Desligado</string>
+    <string name="state_enabled">Ligado</string>
+    <string name="state_disabled">Desligado</string>
     <string name="section_appearance">APARÊNCIA</string>
     <string name="themes">Temas</string>
     <string name="themes_sub">Modo escuro e cor de destaque</string>
@@ -69,4 +69,6 @@
     <string name="notifications_global_note">Estas configurações afetam apenas as notificações enviadas pelo NexaFlow. As notificações do app podem ser gerenciadas nas configurações do sistema.</string>
     <string name="bluetooth_permission">Permissão de Bluetooth</string>
     <string name="bluetooth_permission_sub">Necessária para detectar dispositivos pareados (fones, etc.)</string>
+    <string name="notification_access">Acesso a notificações</string>
+    <string name="notification_access_sub">Ler e gerenciar notificações</string>
 </resources>

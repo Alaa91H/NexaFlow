@@ -127,4 +127,10 @@
     <string name="exit_nothing_sub">Es passiert nichts – die Aufgabe endet einfach</string>
     <string name="trigger_ringer">Tonmodus</string>
     <string name="trigger_ringer_sub">Wenn sich der Tonmodus ändert</string>
+    <string name="trigger_notification">App-Benachrichtigung</string>
+    <string name="trigger_notification_sub">Auslösen, wenn eine App eine Benachrichtigung sendet</string>
+    <string name="action_block_notification">Benachrichtigungen blockieren</string>
+    <string name="action_block_notification_sub">Alle Benachrichtigungen einer App stummschalten</string>
+    <string name="action_clear_app_notifications">App-Benachrichtigungen löschen</string>
+    <string name="action_clear_app_notifications_sub">Benachrichtigungen einer bestimmten App verwerfen</string>
 </resources>

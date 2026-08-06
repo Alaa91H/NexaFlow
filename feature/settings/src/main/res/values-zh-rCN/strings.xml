@@ -8,8 +8,8 @@
     <string name="monitoring_service">监控服务</string>
     <string name="monitoring_running">运行中 — 监控设备、电池、网络和位置</string>
     <string name="monitoring_stopped">已停止 — 仅当应用打开时触发器才触发</string>
-    <string name="state_on">开</string>
-    <string name="state_off">关</string>
+    <string name="state_enabled">开</string>
+    <string name="state_disabled">关</string>
     <string name="section_appearance">外观</string>
     <string name="themes">主题</string>
     <string name="themes_sub">深色模式和强调色</string>
@@ -69,4 +69,6 @@
     <string name="notifications_global_note">这些设置仅影响 NexaFlow 发送的通知。应用通知可在系统设置中管理。</string>
     <string name="bluetooth_permission">蓝牙权限</string>
     <string name="bluetooth_permission_sub">检测已配对设备（耳机等）所必需</string>
+    <string name="notification_access">通知使用权</string>
+    <string name="notification_access_sub">读取和管理通知</string>
 </resources>

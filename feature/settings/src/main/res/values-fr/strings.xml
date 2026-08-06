@@ -8,8 +8,8 @@
     <string name="monitoring_service">Service de surveillance</string>
     <string name="monitoring_running">En cours — surveille appareil, batterie, réseau et position</string>
     <string name="monitoring_stopped">Arrêté — les déclencheurs ne se déclenchent que lorsque l\u2019application est ouverte</string>
-    <string name="state_on">Activé</string>
-    <string name="state_off">Désactivé</string>
+    <string name="state_enabled">Activé</string>
+    <string name="state_disabled">Désactivé</string>
     <string name="section_appearance">APPARENCE</string>
     <string name="themes">Thèmes</string>
     <string name="themes_sub">Mode sombre et couleur d\u2019accent</string>
@@ -69,4 +69,6 @@
     <string name="notifications_global_note">Ces paramètres ne concernent que les notifications envoyées par NexaFlow. Les notifications de l\u2019app peuvent être gérées dans les paramètres système.</string>
     <string name="bluetooth_permission">Autorisation Bluetooth</string>
     <string name="bluetooth_permission_sub">Nécessaire pour détecter les appareils appariés (écouteurs, etc.)</string>
+    <string name="notification_access">Accès aux notifications</string>
+    <string name="notification_access_sub">Lire et gérer les notifications</string>
 </resources>

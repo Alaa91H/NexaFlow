@@ -127,4 +127,10 @@
     <string name="exit_nothing_sub">什么都不会发生 — 任务直接结束</string>
     <string name="trigger_ringer">声音模式</string>
     <string name="trigger_ringer_sub">当声音模式改变时</string>
+    <string name="trigger_notification">应用通知</string>
+    <string name="trigger_notification_sub">当应用发布通知时触发</string>
+    <string name="action_block_notification">屏蔽通知</string>
+    <string name="action_block_notification_sub">静音某个应用的所有通知</string>
+    <string name="action_clear_app_notifications">清除应用通知</string>
+    <string name="action_clear_app_notifications_sub">关闭特定应用的通知</string>
 </resources>

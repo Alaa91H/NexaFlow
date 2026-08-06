@@ -3,4 +3,5 @@
     <string name="monitoring_channel_name">مراقبة NexaFlow</string>
     <string name="monitoring_title">مراقبة NexaFlow</string>
     <string name="monitoring_text">تراقب مهامك المجدولة</string>
+    <string name="notification_listener_label">وصول NexaFlow للإشعارات</string>
 </resources>

@@ -65,7 +65,8 @@ val triggerTypeOptions = listOf(
     TriggerType.LOCATION,
     TriggerType.SMS,
     TriggerType.BLUETOOTH_DEVICE,
-    TriggerType.RINGER_MODE
+    TriggerType.RINGER_MODE,
+    TriggerType.NOTIFICATION
 )
 
 private val repeatOptions = listOf(
@@ -100,6 +101,7 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.SMS -> mapOf("from" to "", "contains" to "", "reply" to "")
     TriggerType.BLUETOOTH_DEVICE -> mapOf("deviceName" to "", "deviceAddress" to "", "event" to "CONNECTED")
     TriggerType.RINGER_MODE -> mapOf("mode" to "NORMAL")
+    TriggerType.NOTIFICATION -> mapOf("packages" to "", "contains" to "", "event" to "POSTED")
 }
 
 internal fun TriggerType.labelRes(): Int = when (this) {
@@ -112,6 +114,7 @@ internal fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.SMS -> R.string.trigger_type_sms
     TriggerType.BLUETOOTH_DEVICE -> R.string.trigger_type_bluetooth
     TriggerType.RINGER_MODE -> R.string.trigger_type_ringer
+    TriggerType.NOTIFICATION -> R.string.trigger_type_notification
 }
 
 internal fun TriggerType.icon(): ImageVector = when (this) {
@@ -124,6 +127,7 @@ internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.SMS -> Icons.AutoMirrored.Filled.Message
     TriggerType.BLUETOOTH_DEVICE -> Icons.Filled.Bluetooth
     TriggerType.RINGER_MODE -> Icons.Filled.NotificationsActive
+    TriggerType.NOTIFICATION -> Icons.Filled.NotificationsActive
 }
 
 private fun parseDateMillis(value: String): Long? {
@@ -437,12 +441,12 @@ fun TriggerEditorCard(
                             val start = draft.config["rangeStart"] ?: "08:00"
                             val end = draft.config["rangeEnd"] ?: "18:00"
                             TimeField(
-                                label = stringResource(R.string.range_start),
+                                label = stringResource(R.string.time_range_start),
                                 value = start,
                                 onClick = { timePickerTarget = "rangeStart"; showTimePicker = true }
                             )
                             TimeField(
-                                label = stringResource(R.string.range_end),
+                                label = stringResource(R.string.time_range_end),
                                 value = end,
                                 onClick = { timePickerTarget = "rangeEnd"; showTimePicker = true }
                             )
@@ -818,6 +822,71 @@ fun TriggerEditorCard(
                             text = stringResource(R.string.bluetooth_permission_hint),
                             buttonLabel = stringResource(R.string.enable),
                             onClick = { PermissionShortcuts.openBluetoothSettings(context) }
+                        )
+                    }
+                }
+                TriggerType.NOTIFICATION -> {
+                    val packages = (draft.config["packages"] ?: draft.config["package"] ?: "")
+                        .split(',')
+                        .map { it.trim() }
+                        .filter { it.isNotEmpty() }
+                    val event = draft.config["event"] ?: "POSTED"
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.NotificationsActive,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.trigger_notification),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = if (packages.isEmpty()) {
+                                        stringResource(R.string.any_app)
+                                    } else {
+                                        stringResource(R.string.selected_apps_count, packages.size)
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        }
+                        OutlinedButton(
+                            onClick = onPickApp,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(imageVector = Icons.Filled.Apps, contentDescription = null)
+                            Text(
+                                text = stringResource(R.string.choose_apps),
+                                modifier = Modifier.padding(start = 6.dp)
+                            )
+                        }
+                        OutlinedTextField(
+                            value = draft.config["contains"] ?: "",
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("contains" to it))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(text = stringResource(R.string.notification_contains)) },
+                            placeholder = { Text(text = stringResource(R.string.notification_contains_hint)) },
+                            singleLine = true
+                        )
+                        Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        OptionChips(
+                            options = listOf("POSTED", "REMOVED"),
+                            selected = event,
+                            onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
+                        )
+                        PermissionHint(
+                            text = stringResource(R.string.notification_access_hint),
+                            buttonLabel = stringResource(R.string.enable),
+                            onClick = { PermissionShortcuts.openNotificationAccessSettings(context) }
                         )
                     }
                 }

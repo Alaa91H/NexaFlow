@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -58,5 +60,19 @@ fun SettingRow(
                 tint = MaterialTheme.colorScheme.outline
             )
         }
+    }
+}
+
+@Preview(name = "SettingRow", showBackground = true)
+@Preview(name = "SettingRow (dark)", showBackground = true)
+@Composable
+private fun SettingRowPreview() {
+    MaterialTheme {
+        SettingRow(
+            icon = Icons.Filled.Wifi,
+            title = "Wi-Fi",
+            subtitle = "Connected to HomeNetwork",
+            onClick = {}
+        )
     }
 }

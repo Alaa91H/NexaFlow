@@ -8,8 +8,8 @@
     <string name="monitoring_service">監視サービス</string>
     <string name="monitoring_running">実行中 — 端末・バッテリー・ネットワーク・位置情報を監視</string>
     <string name="monitoring_stopped">停止中 — アプリが開いている間のみトリガーが作動</string>
-    <string name="state_on">オン</string>
-    <string name="state_off">オフ</string>
+    <string name="state_enabled">オン</string>
+    <string name="state_disabled">オフ</string>
     <string name="section_appearance">外観</string>
     <string name="themes">テーマ</string>
     <string name="themes_sub">ダークモードとアクセントカラー</string>
@@ -69,4 +69,6 @@
     <string name="notifications_global_note">これらの設定は NexaFlow が送信する通知のみに影響します。アプリの通知はシステム設定で管理できます。</string>
     <string name="bluetooth_permission">Bluetooth 権限</string>
     <string name="bluetooth_permission_sub">ペアリング済みデバイス（ヘッドホンなど）の検出に必要</string>
+    <string name="notification_access">通知へのアクセス</string>
+    <string name="notification_access_sub">通知の読み取りと管理</string>
 </resources>

@@ -34,7 +34,7 @@ fun ExitActionPickerDialog(
                     val options = actionOptions.filter { it.category == category && it !in alreadySelected }
                     if (options.isNotEmpty()) {
                         item(key = "header_${category.name}") {
-                            itemHeader(text = stringResource(category.headerRes))
+                            ItemHeader(text = stringResource(category.headerRes))
                         }
                         options.forEach { option ->
                             item(key = option.actionType.name) {

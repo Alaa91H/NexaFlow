@@ -8,8 +8,8 @@
     <string name="monitoring_service">خدمة المراقبة</string>
     <string name="monitoring_running">تعمل — تراقب الجهاز والبطارية والشبكة والموقع</string>
     <string name="monitoring_stopped">متوقفة — تعمل المشغّلات فقط أثناء فتح التطبيق</string>
-    <string name="state_on">مفعّل</string>
-    <string name="state_off">متوقف</string>
+    <string name="state_enabled">مفعّل</string>
+    <string name="state_disabled">متوقف</string>
     <string name="section_appearance">المظهر</string>
     <string name="themes">السمات</string>
     <string name="themes_sub">الوضع الداكن ولون التمييز</string>
@@ -69,4 +69,6 @@
     <string name="notifications_global_note">تؤثر هذه الإعدادات فقط على الإشعارات التي ترسلها NexaFlow. يمكن إدارة إشعارات التطبيق من إعدادات النظام.</string>
     <string name="bluetooth_permission">إذن البلوتوث</string>
     <string name="bluetooth_permission_sub">مطلوب لاكتشاف الأجهزة المقترنة (سماعات، إلخ)</string>
+    <string name="notification_access">الوصول إلى الإشعارات</string>
+    <string name="notification_access_sub">قراءة الإشعارات وإدارتها</string>
 </resources>

@@ -272,6 +272,39 @@ fun ActionConfigEditor(
                 }
             }
         }
+        ActionType.SYSTEM_BLOCK_NOTIFICATION -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = config["package"] ?: "",
+                    onValueChange = { onConfigChange(mapOf("package" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.package_name)) },
+                    singleLine = true
+                )
+                TextButton(onClick = onPickApp) {
+                    Text(text = stringResource(R.string.choose_from_installed))
+                }
+                ToggleConfigRow(
+                    label = stringResource(R.string.block_label),
+                    checked = config["enabled"]?.toBoolean() ?: true,
+                    onCheckedChange = { onConfigChange(config + ("enabled" to it.toString())) }
+                )
+            }
+        }
+        ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS -> {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                OutlinedTextField(
+                    value = config["package"] ?: "",
+                    onValueChange = { onConfigChange(mapOf("package" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.package_name)) },
+                    singleLine = true
+                )
+                TextButton(onClick = onPickApp) {
+                    Text(text = stringResource(R.string.choose_from_installed))
+                }
+            }
+        }
         ActionType.SYSTEM_SEND_NOTIFICATION -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(

@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -20,5 +21,25 @@ fun StatusPill(text: String, background: Color, contentColor: Color) {
             .padding(horizontal = 10.dp, vertical = 4.dp)
     ) {
         Text(text = text, color = contentColor, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+    }
+}
+
+@Preview(name = "StatusPill", showBackground = true)
+@Preview(name = "StatusPill (dark)", showBackground = true)
+@Composable
+private fun StatusPillPreview() {
+    androidx.compose.foundation.layout.Row(
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+    ) {
+        StatusPill(
+            text = "Active",
+            background = Color(0xFFE4F4E9),
+            contentColor = Color(0xFF2FA84F)
+        )
+        StatusPill(
+            text = "Off",
+            background = Color(0xFFEEEEEE),
+            contentColor = Color(0xFF555555)
+        )
     }
 }

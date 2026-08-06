@@ -245,8 +245,8 @@
     <string name="trigger_app">عند فتح تطبيق</string>
     <string name="time_single">وقت واحد</string>
     <string name="time_range">نطاق زمني</string>
-    <string name="range_start">البداية</string>
-    <string name="range_end">النهاية</string>
+    <string name="time_range_start">البداية</string>
+    <string name="time_range_end">النهاية</string>
     <string name="range_same_day">نفس اليوم</string>
     <string name="range_overnight">طوال الليل — ينتهي في اليوم التالي</string>
     <string name="trigger_type_bluetooth">جهاز بلوتوث</string>
@@ -291,4 +291,15 @@
     <string name="repeat_weekends">عطلة نهاية الأسبوع</string>
     <string name="repeat_monthly">شهرياً</string>
     <string name="month_day_label">يوم من الشهر: %1$d</string>
+    <string name="trigger_type_notification">الإشعارات</string>
+    <string name="trigger_notification">إشعار التطبيق</string>
+    <string name="notification_contains">كلمة مفتاحية (اختياري)</string>
+    <string name="notification_contains_hint">مثال: توصيل، رسالة</string>
+    <string name="any_app">أي تطبيق</string>
+    <string name="notification_access_hint">يتطلب الوصول إلى الإشعارات لقراءتها</string>
+    <string name="action_block_notification">حظر الإشعارات</string>
+    <string name="action_block_notification_sub">كتم جميع إشعارات تطبيق</string>
+    <string name="action_clear_app_notifications">مسح إشعارات تطبيق</string>
+    <string name="action_clear_app_notifications_sub">إلغاء إشعارات تطبيق محدد</string>
+    <string name="block_label">حظر</string>
 </resources>

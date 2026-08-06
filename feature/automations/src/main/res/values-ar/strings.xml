@@ -127,4 +127,10 @@
     <string name="exit_nothing_sub">لا يحدث شيء — تنتهي المهمة فقط</string>
     <string name="trigger_ringer">وضع الصوت</string>
     <string name="trigger_ringer_sub">عند تغيّر وضع الصوت</string>
+    <string name="trigger_notification">إشعار التطبيق</string>
+    <string name="trigger_notification_sub">تشغيل عند إصدار تطبيق إشعاراً</string>
+    <string name="action_block_notification">حظر الإشعارات</string>
+    <string name="action_block_notification_sub">كتم جميع إشعارات تطبيق</string>
+    <string name="action_clear_app_notifications">مسح إشعارات تطبيق</string>
+    <string name="action_clear_app_notifications_sub">إلغاء إشعارات تطبيق محدد</string>
 </resources>

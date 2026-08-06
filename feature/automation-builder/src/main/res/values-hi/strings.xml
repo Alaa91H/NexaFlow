@@ -246,8 +246,8 @@
     <string name="trigger_app">जब कोई ऐप खोला जाता है</string>
     <string name="time_single">एकल समय</string>
     <string name="time_range">समय सीमा</string>
-    <string name="range_start">आरंभ</string>
-    <string name="range_end">समाप्ति</string>
+    <string name="time_range_start">आरंभ</string>
+    <string name="time_range_end">समाप्ति</string>
     <string name="range_same_day">उसी दिन</string>
     <string name="range_overnight">रात भर — अगले दिन समाप्त</string>
     <string name="trigger_type_bluetooth">ब्लूटूथ डिवाइस</string>
@@ -292,4 +292,15 @@
     <string name="repeat_weekends">सप्ताहांत</string>
     <string name="repeat_monthly">मासिक</string>
     <string name="month_day_label">महीने का दिन: %1$d</string>
+    <string name="trigger_type_notification">सूचना</string>
+    <string name="trigger_notification">ऐप सूचना</string>
+    <string name="notification_contains">कीवर्ड (वैकल्पिक)</string>
+    <string name="notification_contains_hint">जैसे डिलीवरी, संदेश</string>
+    <string name="any_app">कोई भी ऐप</string>
+    <string name="notification_access_hint">सूचनाएँ पढ़ने के लिए सूचना एक्सेस आवश्यक है</string>
+    <string name="action_block_notification">सूचनाएँ ब्लॉक करें</string>
+    <string name="action_block_notification_sub">किसी ऐप की सभी सूचनाएँ म्यूट करें</string>
+    <string name="action_clear_app_notifications">ऐप सूचनाएँ साफ़ करें</string>
+    <string name="action_clear_app_notifications_sub">किसी विशिष्ट ऐप की सूचनाएँ हटाएँ</string>
+    <string name="block_label">ब्लॉक करें</string>
 </resources>

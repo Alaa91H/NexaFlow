@@ -127,4 +127,10 @@
     <string name="exit_nothing_sub">Nothing happens - the task simply ends</string>
     <string name="trigger_ringer">Sound mode</string>
     <string name="trigger_ringer_sub">When the sound mode changes</string>
+    <string name="trigger_notification">App notification</string>
+    <string name="trigger_notification_sub">Trigger when an app posts a notification</string>
+    <string name="action_block_notification">Block notifications</string>
+    <string name="action_block_notification_sub">Silence all notifications from an app</string>
+    <string name="action_clear_app_notifications">Clear app notifications</string>
+    <string name="action_clear_app_notifications_sub">Dismiss notifications of a specific app</string>
 </resources>

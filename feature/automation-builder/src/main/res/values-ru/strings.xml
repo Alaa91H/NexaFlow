@@ -246,8 +246,8 @@
     <string name="trigger_app">Когда открывается приложение</string>
     <string name="time_single">Одно время</string>
     <string name="time_range">Диапазон времени</string>
-    <string name="range_start">Начало</string>
-    <string name="range_end">Конец</string>
+    <string name="time_range_start">Начало</string>
+    <string name="time_range_end">Конец</string>
     <string name="range_same_day">Тот же день</string>
     <string name="range_overnight">Ночью — заканчивается на следующий день</string>
     <string name="trigger_type_bluetooth">Устройство Bluetooth</string>
@@ -292,4 +292,15 @@
     <string name="repeat_weekends">Выходные</string>
     <string name="repeat_monthly">Ежемесячно</string>
     <string name="month_day_label">День месяца: %1$d</string>
+    <string name="trigger_type_notification">Уведомление</string>
+    <string name="trigger_notification">Уведомление приложения</string>
+    <string name="notification_contains">Ключевое слово (необязательно)</string>
+    <string name="notification_contains_hint">например: доставка, сообщение</string>
+    <string name="any_app">Любое приложение</string>
+    <string name="notification_access_hint">Требуется доступ к уведомлениям для их чтения</string>
+    <string name="action_block_notification">Заблокировать уведомления</string>
+    <string name="action_block_notification_sub">Отключить все уведомления приложения</string>
+    <string name="action_clear_app_notifications">Очистить уведомления приложения</string>
+    <string name="action_clear_app_notifications_sub">Отклонить уведомления конкретного приложения</string>
+    <string name="block_label">Заблокировать</string>
 </resources>

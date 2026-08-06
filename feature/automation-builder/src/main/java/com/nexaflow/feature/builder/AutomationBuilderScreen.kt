@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.NotificationImportant
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Save
@@ -79,6 +80,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Observer
@@ -143,6 +145,8 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_media_prev, R.string.action_media_prev_sub, Icons.Filled.MusicNote, Color(0xFF7A5BD1), ActionType.SYSTEM_MEDIA_PREVIOUS, ActionCategory.MEDIA),
     // NOTIFICATIONS
     ActionOption(R.string.action_notification, R.string.action_notification_sub, Icons.Filled.NotificationImportant, Color(0xFFE8A33D), ActionType.SYSTEM_SEND_NOTIFICATION, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_block_notification, R.string.action_block_notification_sub, Icons.Filled.NotificationsOff, Color(0xFFE5533D), ActionType.SYSTEM_BLOCK_NOTIFICATION, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_clear_app_notifications, R.string.action_clear_app_notifications_sub, Icons.Filled.Notifications, Color(0xFFE8A33D), ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_clear_notifs, R.string.action_clear_notifs_sub, Icons.Filled.Notifications, Color(0xFFE8A33D), ActionType.SYSTEM_CLEAR_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_expand_bar, R.string.action_expand_bar_sub, Icons.Filled.NotificationImportant, Color(0xFF13A5A8), ActionType.SYSTEM_EXPAND_STATUS_BAR, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_collapse_bar, R.string.action_collapse_bar_sub, Icons.Filled.NotificationImportant, Color(0xFF13A5A8), ActionType.SYSTEM_COLLAPSE_STATUS_BAR, ActionCategory.NOTIFICATIONS),
@@ -187,6 +191,7 @@ private fun TriggerType.summaryLabelRes(): Int = when (this) {
     TriggerType.SMS -> R.string.trigger_type_sms
     TriggerType.BLUETOOTH_DEVICE -> R.string.trigger_type_bluetooth
     TriggerType.RINGER_MODE -> R.string.trigger_type_ringer
+    TriggerType.NOTIFICATION -> R.string.trigger_type_notification
 }
 
 /** Samsung-style live "IF … THEN …" summary shown while building a task. */
@@ -341,6 +346,19 @@ private fun SelectedActionCard(
     }
 }
 
+/** Design-time preview of the live IF … THEN summary card. */
+@Preview(name = "Builder summary", showBackground = true, widthDp = 400)
+@Preview(name = "Builder summary (dark)", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun BuilderSummaryCardPreview() {
+    MaterialTheme {
+        BuilderSummaryCard(
+            triggers = listOf(TriggerDraft(TriggerType.TIME, mapOf("time" to "08:00"))),
+            actions = actionOptions.filter { it.actionType == ActionType.SYSTEM_BRIGHTNESS }
+        )
+    }
+}
+
 /** Parses "geo:lat,lng..." (and geo:0,0?q=lat,lng) into a (lat, lng) pair. */
 private fun parseGeoUri(uri: String): Pair<Double, Double>? {
     if (!uri.startsWith("geo:")) return null
@@ -363,6 +381,9 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val stringNextNeedsTrigger = stringResource(R.string.next_needs_trigger)
+    val stringNextNeedsAction = stringResource(R.string.next_needs_action)
+    val stringSavedSuccessfully = stringResource(R.string.saved_successfully)
     var name by remember { mutableStateOf("") }
     val triggers = remember { mutableStateListOf<TriggerDraft>() }
     var selectedIconIndex by remember { mutableStateOf(0) }
@@ -450,11 +471,11 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
 
     fun save(closeAfterSave: Boolean = true) {
         if (triggers.isEmpty()) {
-            showSnackbar(context.getString(R.string.next_needs_trigger))
+            showSnackbar(stringNextNeedsTrigger)
             return
         }
         if (selectedActions.isEmpty()) {
-            showSnackbar(context.getString(R.string.next_needs_action))
+            showSnackbar(stringNextNeedsAction)
             return
         }
         val builtTriggers = triggers.map { draft ->
@@ -473,7 +494,7 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
         if (closeAfterSave) {
             navController.popBackStack()
         } else {
-            showSnackbar(context.getString(R.string.saved_successfully))
+            showSnackbar(stringSavedSuccessfully)
         }
     }
 
@@ -851,6 +872,8 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
             val singlePickType = when (actionTypeName) {
                 ActionType.APPLICATION_CLOSE_APP.name -> ActionType.APPLICATION_CLOSE_APP
                 ActionType.APPLICATION_OPEN_APP_SETTINGS.name -> ActionType.APPLICATION_OPEN_APP_SETTINGS
+                ActionType.SYSTEM_BLOCK_NOTIFICATION.name -> ActionType.SYSTEM_BLOCK_NOTIFICATION
+                ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS.name -> ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS
                 else -> null
             }
             when {
