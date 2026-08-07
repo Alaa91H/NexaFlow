@@ -304,9 +304,6 @@
     <string name="section_exit_behavior">任务结束时</string>
     <string name="exit_behavior_hint">当条件不再满足时会发生什么？</string>
     <string name="exit_auto_reply_label">自动回复（短信）</string>
-
-    <string name="exit_revert_label">恢复原始状态</string>
-    <string name="exit_revert_sub">设备恢复到任务运行前的状态</string>
     <string name="exit_nothing_sub">什么都不会发生 — 任务直接结束</string>
     <string name="add_exit_action">添加退出动作</string>
     <string name="pick_exit_action">选择退出动作</string>
@@ -362,7 +359,6 @@
     <string name="charger_ac">交流电 / 墙插</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">无线</string>
-    <string name="revert_when_ends">任务结束时还原</string>
     <string name="device_screen_on">屏幕开启</string>
     <string name="device_screen_off">屏幕关闭</string>
     <string name="device_power_connected">开始充电</string>
@@ -374,7 +370,6 @@
     <string name="network_mobile">移动数据</string>
     <string name="state_connected">已连接</string>
     <string name="state_disconnected">未连接</string>
-    <string name="exit_revert_actions_label">还原所选操作</string>
     <string name="repeat_selected">已选择: %1$s</string>
     <string name="end_behavior_label">任务结束时</string>
     <string name="end_leave">保持原样</string>

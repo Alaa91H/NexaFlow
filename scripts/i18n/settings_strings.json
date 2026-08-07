@@ -1,0 +1,68 @@
+{
+  "": {
+    "root_permission": "Root access",
+    "root_permission_sub": "Grant superuser access for elevated commands",
+    "shizuku_permission": "Shizuku",
+    "shizuku_permission_sub": "Run elevated commands via the Shizuku service"
+  },
+  "-ar": {
+    "root_permission": "صلاحيات الروت",
+    "root_permission_sub": "منح صلاحيات المستخدم المتميز للأوامر المتقدمة",
+    "shizuku_permission": "شيزوكو",
+    "shizuku_permission_sub": "تشغيل أوامر متقدمة عبر خدمة شيزوكو"
+  },
+  "-de": {
+    "root_permission": "Root-Zugriff",
+    "root_permission_sub": "Superuser-Zugriff für erweiterte Befehle gewähren",
+    "shizuku_permission": "Shizuku",
+    "shizuku_permission_sub": "Erweiterte Befehle über den Shizuku-Dienst ausführen"
+  },
+  "-es": {
+    "root_permission": "Acceso root",
+    "root_permission_sub": "Concede acceso de superusuario para comandos avanzados",
+    "shizuku_permission": "Shizuku",
+    "shizuku_permission_sub": "Ejecuta comandos avanzados mediante el servicio Shizuku"
+  },
+  "-fr": {
+    "root_permission": "Accès root",
+    "root_permission_sub": "Accorder l\\'accès superutilisateur pour les commandes avancées",
+    "shizuku_permission": "Shizuku",
+    "shizuku_permission_sub": "Exécuter des commandes avancées via le service Shizuku"
+  },
+  "-hi": {
+    "root_permission": "रूट एक्सेस",
+    "root_permission_sub": "उन्नत कमांड के लिए सुपरयूज़र एक्सेस दें",
+    "shizuku_permission": "शिज़ुकु",
+    "shizuku_permission_sub": "शिज़ुकु सेवा के माध्यम से उन्नत कमांड चलाएँ"
+  },
+  "-ja": {
+    "root_permission": "ルートアクセス",
+    "root_permission_sub": "高度なコマンドにスーパーユーザーアクセスを許可",
+    "shizuku_permission": "Shizuku",
+    "shizuku_permission_sub": "Shizukuサービス経由で高度なコマンドを実行"
+  },
+  "-pt": {
+    "root_permission": "Acesso root",
+    "root_permission_sub": "Conceda acesso de superusuário para comandos avançados",
+    "shizuku_permission": "Shizuku",
+    "shizuku_permission_sub": "Execute comandos avançados via serviço Shizuku"
+  },
+  "-ru": {
+    "root_permission": "Root-доступ",
+    "root_permission_sub": "Предоставьте доступ суперпользователя для расширенных команд",
+    "shizuku_permission": "Shizuku",
+    "shizuku_permission_sub": "Выполнять расширенные команды через службу Shizuku"
+  },
+  "-tr": {
+    "root_permission": "Root erişimi",
+    "root_permission_sub": "Gelişmiş komutlar için süper kullanıcı erişimi verin",
+    "shizuku_permission": "Shizuku",
+    "shizuku_permission_sub": "Shizuku hizmeti üzerinden gelişmiş komutlar çalıştırın"
+  },
+  "-zh-rCN": {
+    "root_permission": "Root 权限",
+    "root_permission_sub": "授予超级用户权限以执行高级命令",
+    "shizuku_permission": "Shizuku",
+    "shizuku_permission_sub": "通过 Shizuku 服务运行高级命令"
+  }
+}

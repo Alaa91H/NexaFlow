@@ -84,4 +84,8 @@
     <string name="channel_none">Нет</string>
     <string name="channel_detecting">Определение…</string>
     <string name="refresh">Обновить</string>
+    <string name="root_permission">Root-доступ</string>
+    <string name="root_permission_sub">Предоставьте доступ суперпользователя для расширенных команд</string>
+    <string name="shizuku_permission">Shizuku</string>
+    <string name="shizuku_permission_sub">Выполнять расширенные команды через службу Shizuku</string>
 </resources>

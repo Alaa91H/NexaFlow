@@ -303,9 +303,6 @@
     <string name="section_exit_behavior">When the task ends</string>
     <string name="exit_behavior_hint">What happens when the condition stops being true?</string>
     <string name="exit_auto_reply_label">Auto-reply (SMS)</string>
-
-    <string name="exit_revert_label">Restore original state</string>
-    <string name="exit_revert_sub">The device returns to its state before the task ran</string>
     <string name="exit_nothing_sub">Nothing happens - the task simply ends</string>
     <string name="add_exit_action">Add exit action</string>
     <string name="pick_exit_action">Pick an exit action</string>
@@ -361,7 +358,6 @@
     <string name="charger_ac">AC / Wall</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">Wireless</string>
-    <string name="revert_when_ends">Revert when the task ends</string>
     <string name="device_screen_on">Screen on</string>
     <string name="device_screen_off">Screen off</string>
     <string name="device_power_connected">Charging started</string>
@@ -373,7 +369,6 @@
     <string name="network_mobile">Mobile data</string>
     <string name="state_connected">Connected</string>
     <string name="state_disconnected">Disconnected</string>
-    <string name="exit_revert_actions_label">Revert selected actions</string>
     <string name="repeat_selected">Selected: %1$s</string>
     <string name="end_behavior_label">When the task ends</string>
     <string name="end_leave">Leave as is</string>

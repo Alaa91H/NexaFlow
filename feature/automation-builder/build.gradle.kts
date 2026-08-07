@@ -54,6 +54,9 @@ dependencies {
     ksp("com.google.dagger:hilt-compiler:2.60.1")
     implementation(project(":domain"))
     implementation(project(":core:ui-components"))
+    // Real root/Shizuku detection + elevated command execution.
+    implementation(project(":core:rom-integration"))
+    implementation("dev.rikka.shizuku:api:13.1.5")
     testImplementation("junit:junit:4.13.2")
 }
 

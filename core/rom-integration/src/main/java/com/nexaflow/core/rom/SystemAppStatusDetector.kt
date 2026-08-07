@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import com.nexaflow.core.rom.model.IntegrationLevel
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 object SystemAppStatusDetector {
     fun detect(context: Context): IntegrationLevel {
@@ -24,6 +25,7 @@ object SystemAppStatusDetector {
         }
     }
 
+    @Suppress("DEPRECATION")
     fun isPlatformSigned(context: Context): Boolean {
         return try {
             val packageManager = context.packageManager
@@ -36,13 +38,11 @@ object SystemAppStatusDetector {
             val ownPackage = packageManager.getPackageInfo(context.packageName, flags)
             val platformPackage = packageManager.getPackageInfo("android", flags)
             val ownSignature = if (useLegacy) {
-                @Suppress("DEPRECATION")
                 ownPackage.signatures?.firstOrNull()
             } else {
                 ownPackage.signingInfo?.apkContentsSigners?.firstOrNull()
             } ?: return false
             val platformSignature = if (useLegacy) {
-                @Suppress("DEPRECATION")
                 platformPackage.signatures?.firstOrNull()
             } else {
                 platformPackage.signingInfo?.apkContentsSigners?.firstOrNull()
@@ -53,16 +53,76 @@ object SystemAppStatusDetector {
         }
     }
 
+    /**
+     * True when a usable root shell is available.
+     *
+     * Modern root solutions (Magisk, KernelSU, APatch) do NOT install `su` at
+     * the classic fixed paths — they expose it dynamically through PATH. A
+     * path-existence check therefore reports "not rooted" even after the user
+     * granted root. We probe the same way Tasker/libsu/RootBeer do: resolve
+     * `su` from PATH and actually execute it to confirm a uid=0 shell answers.
+     */
     fun isRootAvailable(): Boolean {
+        val cached = rootProbeAt
+        if (cached > 0L && System.currentTimeMillis() - cached < ROOT_PROBE_TTL_MS) {
+            return rootProbeResult
+        }
+        val result = probeRoot()
+        rootProbeResult = result
+        rootProbeAt = System.currentTimeMillis()
+        return result
+    }
+
+    @Volatile
+    private var rootProbeResult = false
+    @Volatile
+    private var rootProbeAt = 0L
+    // Short TTL: a freshly granted root (via Magisk/KernelSU) must be picked up
+    // quickly by the permission manager without re-spawning a process too often.
+    private const val ROOT_PROBE_TTL_MS = 5_000L
+
+    private fun probeRoot(): Boolean {
+        // Fast path: classic static su locations (legacy SuperSU, some OEM ROMs).
         val suPaths = listOf(
             "/system/bin/su",
             "/system/xbin/su",
             "/sbin/su",
             "/su/bin/su",
             "/vendor/bin/su",
-            "/system/sbin/su"
+            "/system/sbin/su",
+            "/data/adb/magisk/busybox",
+            "/data/adb/ksu/bin/su",
+            "/data/adb/ap/bin/su"
         )
-        return suPaths.any { File(it).exists() }
+        if (suPaths.any { File(it).exists() }) return true
+        // Definitive probe: resolve su from PATH (Magisk/KernelSU/APatch) and
+        // run `id` as root. A successful uid=0 answer means root really works.
+        return suAnswersAsRoot()
+    }
+
+    private fun suAnswersAsRoot(): Boolean {
+        return try {
+            val process = ProcessBuilder("sh", "-c", "su -c id || su 0 id || /system/bin/su -c id")
+                .redirectErrorStream(true)
+                .start()
+            val output = StringBuilder()
+            val reader = Thread {
+                output.append(process.inputStream.bufferedReader().readText())
+            }
+            reader.start()
+            val exited = process.waitFor(3, TimeUnit.SECONDS)
+            if (!exited) {
+                process.destroyForcibly()
+                reader.join(1000)
+                return false
+            }
+            reader.join(1000)
+            process.destroy()
+            // su answered: the output of `id` contains "uid=0".
+            output.contains("uid=0")
+        } catch (_: Throwable) {
+            false
+        }
     }
 
     fun isShizukuAvailable(context: Context): Boolean {

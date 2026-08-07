@@ -84,4 +84,8 @@
     <string name="channel_none">Keine</string>
     <string name="channel_detecting">Wird erkannt…</string>
     <string name="refresh">Aktualisieren</string>
+    <string name="root_permission">Root-Zugriff</string>
+    <string name="root_permission_sub">Superuser-Zugriff für erweiterte Befehle gewähren</string>
+    <string name="shizuku_permission">Shizuku</string>
+    <string name="shizuku_permission_sub">Erweiterte Befehle über den Shizuku-Dienst ausführen</string>
 </resources>

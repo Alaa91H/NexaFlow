@@ -304,9 +304,6 @@
     <string name="section_exit_behavior">Cuando finaliza la tarea</string>
     <string name="exit_behavior_hint">¿Qué ocurre cuando la condición deja de cumplirse?</string>
     <string name="exit_auto_reply_label">Respuesta automática (SMS)</string>
-
-    <string name="exit_revert_label">Restaurar estado original</string>
-    <string name="exit_revert_sub">El dispositivo vuelve al estado anterior a la tarea</string>
     <string name="exit_nothing_sub">No ocurre nada: la tarea simplemente termina</string>
     <string name="add_exit_action">Añadir acción de salida</string>
     <string name="pick_exit_action">Elegir acción de salida</string>
@@ -362,7 +359,6 @@
     <string name="charger_ac">CA / Pared</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">Inalámbrico</string>
-    <string name="revert_when_ends">Revertir al finalizar la tarea</string>
     <string name="device_screen_on">Pantalla encendida</string>
     <string name="device_screen_off">Pantalla apagada</string>
     <string name="device_power_connected">Carga iniciada</string>
@@ -374,7 +370,6 @@
     <string name="network_mobile">Datos móviles</string>
     <string name="state_connected">Conectado</string>
     <string name="state_disconnected">Desconectado</string>
-    <string name="exit_revert_actions_label">Revertir acciones seleccionadas</string>
     <string name="repeat_selected">Seleccionado: %1$s</string>
     <string name="end_behavior_label">Cuando termina la tarea</string>
     <string name="end_leave">Dejar como está</string>

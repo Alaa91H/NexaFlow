@@ -304,9 +304,6 @@
     <string name="section_exit_behavior">Wenn die Aufgabe endet</string>
     <string name="exit_behavior_hint">Was passiert, wenn die Bedingung nicht mehr erfüllt ist?</string>
     <string name="exit_auto_reply_label">Automatische Antwort (SMS)</string>
-
-    <string name="exit_revert_label">Originalzustand wiederherstellen</string>
-    <string name="exit_revert_sub">Das Gerät kehrt in seinen Zustand vor der Aufgabe zurück</string>
     <string name="exit_nothing_sub">Es passiert nichts – die Aufgabe endet einfach</string>
     <string name="add_exit_action">Exit-Aktion hinzufügen</string>
     <string name="pick_exit_action">Exit-Aktion auswählen</string>
@@ -362,7 +359,6 @@
     <string name="charger_ac">AC / Wand</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">Kabellos</string>
-    <string name="revert_when_ends">Am Ende der Aufgabe zurücksetzen</string>
     <string name="device_screen_on">Bildschirm an</string>
     <string name="device_screen_off">Bildschirm aus</string>
     <string name="device_power_connected">Laden gestartet</string>
@@ -374,7 +370,6 @@
     <string name="network_mobile">Mobile Daten</string>
     <string name="state_connected">Verbunden</string>
     <string name="state_disconnected">Getrennt</string>
-    <string name="exit_revert_actions_label">Ausgewählte Aktionen zurücksetzen</string>
     <string name="repeat_selected">Ausgewählt: %1$s</string>
     <string name="end_behavior_label">Wenn die Aufgabe endet</string>
     <string name="end_leave">Unverändert lassen</string>

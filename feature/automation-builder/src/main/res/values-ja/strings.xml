@@ -304,9 +304,6 @@
     <string name="section_exit_behavior">タスク終了時</string>
     <string name="exit_behavior_hint">条件が満たされなくなったらどうしますか?</string>
     <string name="exit_auto_reply_label">自動返信（SMS）</string>
-
-    <string name="exit_revert_label">元の状態に戻す</string>
-    <string name="exit_revert_sub">タスク実行前の状態に戻ります</string>
     <string name="exit_nothing_sub">何も起こりません — タスクは単に終了します</string>
     <string name="add_exit_action">終了アクションを追加</string>
     <string name="pick_exit_action">終了アクションを選択</string>
@@ -362,7 +359,6 @@
     <string name="charger_ac">AC / 壁</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">ワイヤレス</string>
-    <string name="revert_when_ends">タスク終了時に元に戻す</string>
     <string name="device_screen_on">画面オン</string>
     <string name="device_screen_off">画面オフ</string>
     <string name="device_power_connected">充電開始</string>
@@ -374,7 +370,6 @@
     <string name="network_mobile">モバイルデータ</string>
     <string name="state_connected">接続済み</string>
     <string name="state_disconnected">切断済み</string>
-    <string name="exit_revert_actions_label">選択した操作を元に戻す</string>
     <string name="repeat_selected">選択: %1$s</string>
     <string name="end_behavior_label">タスク終了時</string>
     <string name="end_leave">そのままにする</string>

@@ -304,9 +304,6 @@
     <string name="section_exit_behavior">Lorsque la tâche se termine</string>
     <string name="exit_behavior_hint">"Que se passe-t-il quand la condition n'est plus vraie ?"</string>
     <string name="exit_auto_reply_label">Réponse automatique (SMS)</string>
-
-    <string name="exit_revert_label">"Restaurer l'état d'origine"</string>
-    <string name="exit_revert_sub">"L'appareil revient à son état d'avant la tâche"</string>
     <string name="exit_nothing_sub">Rien ne se passe : la tâche se termine simplement</string>
     <string name="add_exit_action">Ajouter une action de sortie</string>
     <string name="pick_exit_action">Choisir une action de sortie</string>
@@ -362,7 +359,6 @@
     <string name="charger_ac">Secteur / Mur</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">Sans fil</string>
-    <string name="revert_when_ends">Rétablir à la fin de la tâche</string>
     <string name="device_screen_on">Écran allumé</string>
     <string name="device_screen_off">Écran éteint</string>
     <string name="device_power_connected">Charge démarrée</string>
@@ -374,7 +370,6 @@
     <string name="network_mobile">Données mobiles</string>
     <string name="state_connected">Connecté</string>
     <string name="state_disconnected">Déconnecté</string>
-    <string name="exit_revert_actions_label">Rétablir les actions sélectionnées</string>
     <string name="repeat_selected">Sélection : %1$s</string>
     <string name="end_behavior_label">Quand la tâche se termine</string>
     <string name="end_leave">Laisser tel quel</string>

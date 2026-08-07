@@ -84,4 +84,8 @@
     <string name="channel_none">Yok</string>
     <string name="channel_detecting">Algılanıyor…</string>
     <string name="refresh">Yenile</string>
+    <string name="root_permission">Root erişimi</string>
+    <string name="root_permission_sub">Gelişmiş komutlar için süper kullanıcı erişimi verin</string>
+    <string name="shizuku_permission">Shizuku</string>
+    <string name="shizuku_permission_sub">Shizuku hizmeti üzerinden gelişmiş komutlar çalıştırın</string>
 </resources>

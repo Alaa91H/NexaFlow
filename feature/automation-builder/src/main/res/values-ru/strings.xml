@@ -304,9 +304,6 @@
     <string name="section_exit_behavior">Когда задача завершается</string>
     <string name="exit_behavior_hint">Что делать, когда условие перестаёт выполняться?</string>
     <string name="exit_auto_reply_label">Автоответ (SMS)</string>
-
-    <string name="exit_revert_label">Вернуть исходное состояние</string>
-    <string name="exit_revert_sub">Устرойство возвращается к состоянию до запуска задачи</string>
     <string name="exit_nothing_sub">Ничего не происходит — задача пرосто завершается</string>
     <string name="add_exit_action">Добавить действие выхода</string>
     <string name="pick_exit_action">Выбрать действие выхода</string>
@@ -362,7 +359,6 @@
     <string name="charger_ac">Сеть / Розетка</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">Беспроводная</string>
-    <string name="revert_when_ends">Вернуть при завершении задачи</string>
     <string name="device_screen_on">Экран включён</string>
     <string name="device_screen_off">Экран выключен</string>
     <string name="device_power_connected">Зарядка началась</string>
@@ -374,7 +370,6 @@
     <string name="network_mobile">Мобильные данные</string>
     <string name="state_connected">Подключено</string>
     <string name="state_disconnected">Отключено</string>
-    <string name="exit_revert_actions_label">Вернуть выбранные действия</string>
     <string name="repeat_selected">Выбрано: %1$s</string>
     <string name="end_behavior_label">Когда задача завершается</string>
     <string name="end_leave">Оставить как есть</string>

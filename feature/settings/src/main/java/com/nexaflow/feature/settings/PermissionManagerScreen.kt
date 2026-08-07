@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Sms
+import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -34,11 +35,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -50,6 +55,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.nexaflow.core.engine.AppTriggerAccessibilityService
+import com.nexaflow.core.rom.ElevatedAccessShortcuts
+import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
@@ -81,6 +88,18 @@ fun PermissionManagerScreen(navController: NavController) {
     }
 
     val entries = remember(refreshTick) { buildPermissionEntries() }
+    // Permission checks (the root probe can take up to ~3s) run off the main
+    // thread; the map is recomputed whenever the screen resumes so a freshly
+    // granted root is picked up.
+    val grantedStates = remember { mutableStateMapOf<String, Boolean>() }
+    LaunchedEffect(entries, refreshTick) {
+        val appContext = context.applicationContext
+        val computed = withContext(Dispatchers.IO) {
+            entries.associate { it.key to it.isGranted(appContext) }
+        }
+        grantedStates.clear()
+        grantedStates.putAll(computed)
+    }
 
     Scaffold(
         topBar = { NexaFlowTopBar(title = stringResource(R.string.permission_manager), onBack = { navController.popBackStack() }) }
@@ -105,7 +124,7 @@ fun PermissionManagerScreen(navController: NavController) {
             item {
                 NexaFlowCard {
                     entries.forEach { entry ->
-                        val granted = entry.isGranted(context)
+                        val granted = grantedStates[entry.key] ?: false
                         SettingRow(
                             icon = entry.icon,
                             title = stringResource(entry.titleRes),
@@ -228,6 +247,22 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
             openAction = { context ->
                 context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
             }
+        ),
+        PermissionEntry(
+            key = "root",
+            titleRes = R.string.root_permission,
+            subtitleRes = R.string.root_permission_sub,
+            icon = Icons.Filled.Terminal,
+            isGranted = { PrivilegedRunner.isRootAvailable() },
+            openAction = { context -> ElevatedAccessShortcuts.openRootManager(context) }
+        ),
+        PermissionEntry(
+            key = "shizuku",
+            titleRes = R.string.shizuku_permission,
+            subtitleRes = R.string.shizuku_permission_sub,
+            icon = Icons.Filled.Terminal,
+            isGranted = { PrivilegedRunner.isShizukuGranted() },
+            openAction = { context -> ElevatedAccessShortcuts.openShizuku(context) }
         ),
         PermissionEntry(
             key = "write_settings",

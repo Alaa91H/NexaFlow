@@ -303,9 +303,6 @@
     <string name="section_exit_behavior">عند انتهاء المهمة</string>
     <string name="exit_behavior_hint">ماذا يحدث عند انتهاء شرط المهمة؟</string>
     <string name="exit_auto_reply_label">رد تلقائي (رسالة)</string>
-
-    <string name="exit_revert_label">الرجوع للحالة الأصلية</string>
-    <string name="exit_revert_sub">يعود الجهاز إلى حالته قبل تشغيل المهمة</string>
     <string name="exit_nothing_sub">لا يحدث شيء — تنتهي المهمة فقط</string>
     <string name="add_exit_action">إضافة إجراء خروج</string>
     <string name="pick_exit_action">اختر إجراء الخروج</string>
@@ -361,7 +358,6 @@
     <string name="charger_ac">حائط</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">لاسلكي</string>
-    <string name="revert_when_ends">التراجع عند انتهاء المهمة</string>
     <string name="device_screen_on">تشغيل الشاشة</string>
     <string name="device_screen_off">إيقاف الشاشة</string>
     <string name="device_power_connected">بدأ الشحن</string>
@@ -373,7 +369,6 @@
     <string name="network_mobile">بيانات الجوال</string>
     <string name="state_connected">متصل</string>
     <string name="state_disconnected">غير متصل</string>
-    <string name="exit_revert_actions_label">التراجع عن الإجراءات المحددة</string>
     <string name="repeat_selected">المحدد: %1$s</string>
     <string name="end_behavior_label">عند انتهاء المهمة</string>
     <string name="end_leave">اتركه كما هو</string>

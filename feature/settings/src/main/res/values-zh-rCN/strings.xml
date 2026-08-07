@@ -84,4 +84,8 @@
     <string name="channel_none">无</string>
     <string name="channel_detecting">正在检测…</string>
     <string name="refresh">刷新</string>
+    <string name="root_permission">Root 权限</string>
+    <string name="root_permission_sub">授予超级用户权限以执行高级命令</string>
+    <string name="shizuku_permission">Shizuku</string>
+    <string name="shizuku_permission_sub">通过 Shizuku 服务运行高级命令</string>
 </resources>

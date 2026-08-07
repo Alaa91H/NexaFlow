@@ -304,9 +304,6 @@
     <string name="section_exit_behavior">Görev bittiğinde</string>
     <string name="exit_behavior_hint">Koşul sağlanmadığında ne olsun?</string>
     <string name="exit_auto_reply_label">Otomatik yanıt (SMS)</string>
-
-    <string name="exit_revert_label">Orijinal duruma dön</string>
-    <string name="exit_revert_sub">Cihaz, görevden önceki durumuna döner</string>
     <string name="exit_nothing_sub">Hiçbir şey olmaz — görev sona erer</string>
     <string name="add_exit_action">Çıkış eylemi ekle</string>
     <string name="pick_exit_action">Çıkış eylemi seç</string>
@@ -362,7 +359,6 @@
     <string name="charger_ac">AC / Duvar</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">Kablosuz</string>
-    <string name="revert_when_ends">Görev bitince geri al</string>
     <string name="device_screen_on">Ekran açık</string>
     <string name="device_screen_off">Ekran kapalı</string>
     <string name="device_power_connected">Şarj başladı</string>
@@ -374,7 +370,6 @@
     <string name="network_mobile">Mobil veri</string>
     <string name="state_connected">Bağlı</string>
     <string name="state_disconnected">Bağlı değil</string>
-    <string name="exit_revert_actions_label">Seçili işlemleri geri al</string>
     <string name="repeat_selected">Seçilen: %1$s</string>
     <string name="end_behavior_label">Görev bittiğinde</string>
     <string name="end_leave">Olduğu gibi bırak</string>

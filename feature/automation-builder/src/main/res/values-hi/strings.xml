@@ -304,9 +304,6 @@
     <string name="section_exit_behavior">जब कार्य समाप्त हो</string>
     <string name="exit_behavior_hint">शर्त पूरी न होने पर क्या होगा?</string>
     <string name="exit_auto_reply_label">स्वचालित उत्तर (SMS)</string>
-
-    <string name="exit_revert_label">मूल स्थिति बहाल करें</string>
-    <string name="exit_revert_sub">डिवाइस कार्य से पहلे की स्थिति में लौट जाता है</string>
     <string name="exit_nothing_sub">कुछ नहीं होता — कार्य बस समाप्त हो जाता है</string>
     <string name="add_exit_action">निकास क्रिया जोड़ें</string>
     <string name="pick_exit_action">निकास क्रिया चुनें</string>
@@ -362,7 +359,6 @@
     <string name="charger_ac">AC / दीवार</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">वायरलेस</string>
-    <string name="revert_when_ends">कार्य समाप्त होने पर पुनर्स्थापित करें</string>
     <string name="device_screen_on">स्क्रीन चालू</string>
     <string name="device_screen_off">स्क्रीन बंद</string>
     <string name="device_power_connected">चार्जिंग शुरू</string>
@@ -374,7 +370,6 @@
     <string name="network_mobile">मोबाइल डेटा</string>
     <string name="state_connected">कनेक्टेड</string>
     <string name="state_disconnected">डिस्कनेक्टेड</string>
-    <string name="exit_revert_actions_label">चयनित क्रियाएँ पूर्ववत करें</string>
     <string name="repeat_selected">चयनित: %1$s</string>
     <string name="end_behavior_label">जब कार्य समाप्त हो</string>
     <string name="end_leave">जैसा है वैसा छोड़ें</string>

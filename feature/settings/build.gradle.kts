@@ -56,6 +56,8 @@ dependencies {
     implementation(project(":core:automation-engine"))
     implementation(project(":core:compatibility"))
     implementation(project(":core:rom-integration"))
+    // In-app Shizuku permission dialog for the permission manager.
+    implementation("dev.rikka.shizuku:api:13.1.5")
     implementation(project(":core:datastore"))
     implementation(project(":core:ui-components"))
     testImplementation("junit:junit:4.13.2")

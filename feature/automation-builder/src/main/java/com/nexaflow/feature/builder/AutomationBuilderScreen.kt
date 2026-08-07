@@ -61,7 +61,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -95,6 +94,8 @@ import com.nexaflow.core.ui.iconVector
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.EndBehavior
+import com.nexaflow.domain.models.EndBehaviorCatalog
+import com.nexaflow.domain.models.EndMode
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.launch
@@ -337,7 +338,6 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
     val selectedActions = remember { mutableStateListOf<ActionOption>() }
     // Per-action end behavior (leave / restore / set value) applied when the task ends.
     val actionEndBehaviors = remember { mutableStateMapOf<ActionType, EndBehavior?>() }
-    var revertOnExit by remember { mutableStateOf(false) }
     var cooldownSeconds by remember { mutableStateOf(10) }
     val exitActionConfigs = remember { mutableStateMapOf<ActionType, Map<String, String>>() }
     val selectedExitActions = remember { mutableStateListOf<ActionOption>() }
@@ -365,7 +365,16 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                 actionEndBehaviors[option.actionType] = action.endBehavior
             }
         }
-        revertOnExit = loaded.revertOnExit
+        // Backward compatibility: the old global revert-on-exit toggle is now
+        // expressed per action. Expand it into per-action REVERT behaviors so
+        // existing tasks keep restoring exactly what they restored before.
+        if (loaded.revertOnExit) {
+            loaded.actions.forEach { action ->
+                if (action.endBehavior == null && EndBehaviorCatalog.supportsRevert(action.type)) {
+                    actionEndBehaviors[action.type] = EndBehavior(EndMode.REVERT)
+                }
+            }
+        }
         cooldownSeconds = loaded.cooldownSeconds
         selectedExitActions.clear()
         exitActionConfigs.clear()
@@ -488,7 +497,9 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
             triggers = builtTriggers,
             actions = actions,
             exitActions = exitActions,
-            revertOnExit = revertOnExit,
+            // Unified end behavior: each action carries its own end behavior
+            // (leave / restore / set value), so the global toggle stays off.
+            revertOnExit = false,
             cooldownSeconds = cooldownSeconds
         )
         // Aggressive permission flow: right after saving, request any missing
@@ -658,16 +669,17 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
             }
 
             // ── When the task ends (part of the task itself) ─────────
+            // Unified end behavior: every action configures its own "when the
+            // task ends" behavior (leave / restore / set value) inside its card,
+            // and this section holds the extra exit actions + per-task settings.
             SectionHeader(
                 text = stringResource(R.string.section_exit_behavior),
                 trailing = {
-                    if (!revertOnExit) {
-                        IconButton(onClick = { showExitPicker = true }) {
-                            Icon(
-                                imageVector = Icons.Filled.Add,
-                                contentDescription = stringResource(R.string.add_exit_action)
-                            )
-                        }
+                    IconButton(onClick = { showExitPicker = true }) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = stringResource(R.string.add_exit_action)
+                        )
                     }
                 }
             )
@@ -678,26 +690,6 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary
                     )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = stringResource(R.string.exit_revert_label),
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Switch(
-                            checked = revertOnExit,
-                            onCheckedChange = { enabled ->
-                                revertOnExit = enabled
-                                // Restoring the original state and custom exit actions are mutually
-                                // exclusive: enabling revert discards custom exit actions.
-                                if (enabled) {
-                                    selectedExitActions.clear()
-                                    exitActionConfigs.clear()
-                                }
-                            }
-                        )
-                    }
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     // Per-task cooldown: minimum gap between two runs from the same event.
                     Text(
@@ -711,53 +703,43 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                         onValueChange = { cooldownSeconds = it.toInt() },
                         valueRange = 0f..300f
                     )
-                    when {
-                        revertOnExit -> {
-                            Text(
-                                text = stringResource(R.string.exit_revert_sub),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        selectedExitActions.isEmpty() -> {
-                            Text(
-                                text = stringResource(R.string.exit_nothing_sub),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                        }
-                        else -> {
-                            selectedExitActions.forEach { option ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Text(
-                                        text = stringResource(option.titleRes),
-                                        modifier = Modifier.weight(1f),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                    IconButton(onClick = {
-                                        selectedExitActions.remove(option)
-                                        exitActionConfigs.remove(option.actionType)
-                                    }) {
-                                        Icon(
-                                            imageVector = Icons.Filled.Close,
-                                            contentDescription = stringResource(R.string.remove_action),
-                                            tint = MaterialTheme.colorScheme.secondary
-                                        )
-                                    }
-                                }
-                                val config = exitActionConfigs[option.actionType] ?: emptyMap()
-                                ActionConfigEditor(
-                                    option = option,
-                                    config = config,
-                                    onConfigChange = { exitActionConfigs[option.actionType] = it },
-                                    onPickApp = { appPickerTarget = "exit:${option.actionType.name}" }
+                    if (selectedExitActions.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.exit_nothing_sub),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    } else {
+                        selectedExitActions.forEach { option ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(option.titleRes),
+                                    modifier = Modifier.weight(1f),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold
                                 )
+                                IconButton(onClick = {
+                                    selectedExitActions.remove(option)
+                                    exitActionConfigs.remove(option.actionType)
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Close,
+                                        contentDescription = stringResource(R.string.remove_action),
+                                        tint = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
                             }
+                            val config = exitActionConfigs[option.actionType] ?: emptyMap()
+                            ActionConfigEditor(
+                                option = option,
+                                config = config,
+                                onConfigChange = { exitActionConfigs[option.actionType] = it },
+                                onPickApp = { appPickerTarget = "exit:${option.actionType.name}" }
+                            )
                         }
                     }
                     // Auto-reply belongs with the exit behaviour: it is not an action,

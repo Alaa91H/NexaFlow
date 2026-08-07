@@ -36,6 +36,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.nexaflow.core.rom.ElevatedAccessShortcuts
+import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.domain.models.ActionType
 
@@ -357,23 +359,14 @@ object PermissionShortcuts {
                 ).orEmpty()
                 enabled.split(':').any { it.contains(context.packageName) }
             }
-            // The builder module has no Shizuku API dependency; treat it as not
-            // granted so the explain flow offers the manager screen (which is
-            // the only actionable step from here anyway).
-            SpecialPermission.SHIZUKU -> false
-            SpecialPermission.ROOT -> {
-                // Best-effort: a root shell answers.
-                runCatching {
-                    val process = Runtime.getRuntime().exec("su -c echo ok")
-                    val ok = process.inputStream.bufferedReader().readText().trim() == "ok"
-                    process.destroy()
-                    ok
-                }.getOrDefault(false)
-            }
+            // Real detection via the rom-integration module (same probes the
+            // execution engine uses), so a previously granted Shizuku/root
+            // permission is never re-requested.
+            SpecialPermission.SHIZUKU -> PrivilegedRunner.isShizukuGranted()
+            SpecialPermission.ROOT -> PrivilegedRunner.isRootAvailable()
             SpecialPermission.ELEVATED -> {
                 // Elevated covers root/Shizuku/system; grant is best-effort.
-                isGranted(context, SpecialPermission.ROOT) ||
-                    isGranted(context, SpecialPermission.SHIZUKU)
+                PrivilegedRunner.isRootAvailable() || PrivilegedRunner.isShizukuGranted()
             }
             SpecialPermission.BLUETOOTH -> {
                 android.Manifest.permission.BLUETOOTH_CONNECT in context.packageManager
@@ -394,9 +387,11 @@ object PermissionShortcuts {
             SpecialPermission.DND_ACCESS -> openNotificationPolicy(context)
             SpecialPermission.NOTIFICATION_ACCESS -> openNotificationAccessSettings(context)
             SpecialPermission.ACCESSIBILITY -> openAccessibilitySettings(context)
-            SpecialPermission.SHIZUKU -> openShizukuManager(context)
+            // Shizuku: request the permission in-app when the server is already
+            // running (one tap, no detour); otherwise open the Shizuku app.
+            SpecialPermission.SHIZUKU -> ElevatedAccessShortcuts.openShizuku(context)
             SpecialPermission.ROOT,
-            SpecialPermission.ELEVATED -> openAppSettings(context)
+            SpecialPermission.ELEVATED -> ElevatedAccessShortcuts.openRootManager(context)
             SpecialPermission.BLUETOOTH -> openBluetoothSettings(context)
         }
     }
@@ -432,14 +427,6 @@ object PermissionShortcuts {
             context.startActivity(
                 Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))
             )
-        } catch (_: Throwable) {
-            context.startActivity(Intent(Settings.ACTION_SETTINGS))
-        }
-    }
-
-    fun openShizukuManager(context: Context) {
-        try {
-            context.startActivity(context.packageManager.getLaunchIntentForPackage("moe.shizuku.privileged.api"))
         } catch (_: Throwable) {
             context.startActivity(Intent(Settings.ACTION_SETTINGS))
         }
