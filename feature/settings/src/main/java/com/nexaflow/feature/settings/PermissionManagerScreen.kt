@@ -318,13 +318,7 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
                 val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
                 pm.isIgnoringBatteryOptimizations(context.packageName)
             },
-            openAction = { context ->
-                try {
-                    context.startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${context.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                } catch (_: Throwable) {
-                    context.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                }
-            }
+            openAction = { context -> ElevatedAccessShortcuts.requestBatteryOptimizationExemption(context) }
         )
     )
 }

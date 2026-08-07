@@ -37,8 +37,14 @@ class BatteryMonitor @Inject constructor(
     @Volatile
     private var registered = false
 
-    private var alertedLow = false
-    private var alertedChargeComplete = false
+    /**
+     * Automation ids that already fired their low-battery / charge-complete
+     * alert, so each automation fires once per crossing instead of on every
+     * broadcast while the condition still holds. Per-automation (not shared
+     * booleans) so one task's alert never suppresses another's.
+     */
+    private val alertedLowIds: MutableSet<String> = ConcurrentHashMap.newKeySet()
+    private val alertedChargeCompleteIds: MutableSet<String> = ConcurrentHashMap.newKeySet()
     /**
      * Active battery-trigger keys. Level-only triggers (chargerType = ANY) use
      * the plain automation id; charger-specific triggers use "automationId|plugType"
@@ -134,23 +140,23 @@ class BatteryMonitor @Inject constructor(
                 if (alertAction != null) {
                     val threshold = alertAction.config["below"]?.toIntOrNull() ?: 20
                     if (level <= threshold) {
-                        if (!alertedLow) {
-                            alertedLow = true
+                        // add() returns true only the first time: fires once per
+                        // automation per low-battery crossing.
+                        if (alertedLowIds.add(automation.id)) {
                             executionEngine.runAutomation(automation)
                         }
                     } else {
-                        alertedLow = false
+                        alertedLowIds.remove(automation.id)
                     }
                 }
 
                 if (chargeAction != null) {
                     if (status == BatteryManager.BATTERY_STATUS_FULL) {
-                        if (!alertedChargeComplete) {
-                            alertedChargeComplete = true
+                        if (alertedChargeCompleteIds.add(automation.id)) {
                             executionEngine.runAutomation(automation)
                         }
                     } else {
-                        alertedChargeComplete = false
+                        alertedChargeCompleteIds.remove(automation.id)
                     }
                 }
             }

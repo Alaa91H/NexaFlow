@@ -85,6 +85,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Observer
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.nexaflow.core.rom.ElevatedAccessShortcuts
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowIcons
@@ -445,6 +446,7 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
         pendingSpecialPermission = special
     }
 
+
     /** First SMS trigger, if any — its "reply" config is edited in the exit section. */
     val smsTriggerIndex = triggers.indexOfFirst { it.type == TriggerType.SMS }
     // Looked up defensively inside the handler so removing/retargeting the SMS
@@ -516,6 +518,11 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                 .firstOrNull { !PermissionShortcuts.isGranted(context, it) }
             if (missingSpecial != null) {
                 explainSpecialPermission(missingSpecial)
+            } else {
+                // All runtime/special permissions satisfied: keep the monitoring
+                // service alive in the background by requesting the battery
+                // optimization exemption right away (system dialog, one tap).
+                ElevatedAccessShortcuts.requestBatteryOptimizationExemption(context)
             }
         }
         if (closeAfterSave) {

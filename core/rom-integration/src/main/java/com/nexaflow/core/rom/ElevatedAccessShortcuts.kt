@@ -3,8 +3,11 @@ package com.nexaflow.core.rom
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
+import android.provider.Settings
 import rikka.shizuku.Shizuku
 
 /**
@@ -16,6 +19,32 @@ import rikka.shizuku.Shizuku
 object ElevatedAccessShortcuts {
 
     private const val SHIZUKU_REQUEST_CODE = 0x4E58
+
+    /**
+     * Shizuku delivers the grant-dialog result through a listener registered
+     * with [Shizuku.addRequestPermissionResultListener]. Without it the result
+     * is silently dropped and the app never observes the grant, so the
+     * permission manager would keep asking forever. Registered lazily once.
+     */
+    private val shizukuResultListener = Shizuku.OnRequestPermissionResultListener { requestCode, _ ->
+        if (requestCode == SHIZUKU_REQUEST_CODE) {
+            // The permission manager / builder re-check on resume, so no state
+            // to update here — the listener just needs to exist and stay alive.
+        }
+    }
+
+    @Volatile
+    private var shizukuListenerRegistered = false
+
+    private fun ensureShizukuResultListener() {
+        if (shizukuListenerRegistered) return
+        shizukuListenerRegistered = true
+        try {
+            Shizuku.addRequestPermissionResultListener(shizukuResultListener)
+        } catch (_: Throwable) {
+            shizukuListenerRegistered = false
+        }
+    }
 
     /**
      * Requests superuser access the way Tasker/Termux do: when a root manager
@@ -40,6 +69,34 @@ object ElevatedAccessShortcuts {
             SystemAppStatusDetector.refreshRootAvailability()
             Handler(Looper.getMainLooper()).post { onResult(granted) }
         }.start()
+    }
+
+    /**
+     * Requests the battery-optimization exemption through the system dialog
+     * (one tap, no detour) when the app is still restricted — background
+     * monitoring would otherwise be killed by Doze. No-op when already exempt.
+     */
+    fun requestBatteryOptimizationExemption(context: Context) {
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        if (powerManager.isIgnoringBatteryOptimizations(context.packageName)) return
+        try {
+            context.startActivity(
+                Intent(
+                    Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                    Uri.parse("package:${context.packageName}")
+                ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        } catch (_: Throwable) {
+            // Some OEMs block the direct request; fall back to the exemption list.
+            try {
+                context.startActivity(
+                    Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            } catch (_: Throwable) {
+                // Best-effort: the permission manager still offers this.
+            }
+        }
     }
 
     /** Opens the installed root manager, falling back to the Shizuku manager. */
@@ -78,6 +135,7 @@ object ElevatedAccessShortcuts {
             ) {
                 return // already granted
             }
+            ensureShizukuResultListener()
             Shizuku.requestPermission(SHIZUKU_REQUEST_CODE)
         } catch (_: Throwable) {
             openShizukuManager(context)

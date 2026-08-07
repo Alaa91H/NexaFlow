@@ -392,15 +392,21 @@ object PermissionShortcuts {
             SpecialPermission.SHIZUKU -> ElevatedAccessShortcuts.openShizuku(context)
             // Root: trigger the root manager's allow/deny grant dialog directly
             // (Magisk/KernelSU/APatch) instead of opening app info — one tap to
-            // grant, exactly how Tasker/Termux request root.
-            SpecialPermission.ROOT -> ElevatedAccessShortcuts.requestRootAccess(context)
+            // grant, exactly how Tasker/Termux request root. If the prompt is
+            // denied or times out, fall back to the root manager app so the
+            // user is never left with a dead tap.
+            SpecialPermission.ROOT -> ElevatedAccessShortcuts.requestRootAccess(context) { granted ->
+                if (!granted) ElevatedAccessShortcuts.openRootManager(context)
+            }
             // Elevated actions run through root, Shizuku, or a system app; prefer
             // an in-app Shizuku grant when available, otherwise the root dialog.
             SpecialPermission.ELEVATED -> {
                 if (PrivilegedRunner.isShizukuRunning()) {
                     ElevatedAccessShortcuts.openShizuku(context)
                 } else {
-                    ElevatedAccessShortcuts.requestRootAccess(context)
+                    ElevatedAccessShortcuts.requestRootAccess(context) { granted ->
+                        if (!granted) ElevatedAccessShortcuts.openRootManager(context)
+                    }
                 }
             }
             SpecialPermission.BLUETOOTH -> openBluetoothSettings(context)
