@@ -8,6 +8,7 @@ import android.os.Bundle
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
+import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -112,7 +113,7 @@ class LocationMonitor @Inject constructor(
                         "EXIT" -> !inside && wasInside != false
                         else -> false
                     }
-                    if (shouldRun && now - (lastRunAt[automation.id] ?: 0L) > COOLDOWN_MS) {
+                    if (shouldRun && now - (lastRunAt[automation.id] ?: 0L) > automation.cooldownMillis) {
                         lastRunAt[automation.id] = now
                         activeStates[automation.id] = true
                         executionEngine.runAutomation(automation)
@@ -123,7 +124,7 @@ class LocationMonitor @Inject constructor(
                         "EXIT" -> inside && activeStates[automation.id] == true
                         else -> false
                     }
-                    if (activeShouldEnd && now - (lastRunAt[automation.id] ?: 0L) > COOLDOWN_MS) {
+                    if (activeShouldEnd && now - (lastRunAt[automation.id] ?: 0L) > automation.cooldownMillis) {
                         lastRunAt[automation.id] = now
                         activeStates.remove(automation.id)
                         executionEngine.runExit(automation)
@@ -133,7 +134,4 @@ class LocationMonitor @Inject constructor(
         }
     }
 
-    companion object {
-        private const val COOLDOWN_MS = 60_000L
-    }
 }

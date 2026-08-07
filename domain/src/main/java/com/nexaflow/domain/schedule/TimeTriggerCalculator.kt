@@ -22,6 +22,8 @@ object TimeTriggerCalculator {
     const val REPEAT_WEEKENDS = "WEEKENDS"
     const val REPEAT_SPECIFIC_DAYS = "SPECIFIC_DAYS"
     const val REPEAT_MONTHLY = "MONTHLY"
+    /** Google-Tasks style: e.g. "first Monday" or "last Friday" of the month. */
+    const val REPEAT_MONTHLY_WEEKDAY = "MONTHLY_WEEKDAY"
     const val REPEAT_SPECIFIC_DATE = "SPECIFIC_DATE"
     const val REPEAT_DATE_RANGE = "DATE_RANGE"
 
@@ -97,6 +99,20 @@ object TimeTriggerCalculator {
             REPEAT_MONTHLY -> {
                 val monthDay = config["monthDay"]?.toIntOrNull() ?: 1
                 day.dayOfMonth == monthDay
+            }
+            REPEAT_MONTHLY_WEEKDAY -> {
+                val weekday = config["weekday"]?.toIntOrNull() ?: 0
+                if (dayOfWeek != weekday) return false
+                val weekOfMonth = config["weekOfMonth"] ?: "1"
+                // Occurrence of this weekday inside the month: (dayOfMonth - 1) / 7 + 1,
+                // which yields 1..5. "LAST" matches the final occurrence of the month.
+                val occurrence = (day.dayOfMonth - 1) / 7 + 1
+                if (weekOfMonth == "LAST") {
+                    // The last occurrence is when adding 7 days crosses into the next month.
+                    day.plusDays(7).month != day.month
+                } else {
+                    occurrence == (weekOfMonth.toIntOrNull() ?: -1)
+                }
             }
             REPEAT_SPECIFIC_DATE -> {
                 val date = config["date"]?.let(::parseDate)

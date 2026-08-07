@@ -323,9 +323,15 @@
     <string name="pick_trigger_type">Добавить триггер</string>
     <string name="next_needs_action">Сначала добавьте хотя бы одно действие</string>
     <string name="no_matching_actions">Нет подходящих действий</string>
-    <string name="repeat_weekdays">Будни</string>
-    <string name="repeat_weekends">Выходные</string>
     <string name="repeat_monthly">Ежемесячно</string>
+    <string name="repeat_monthly_weekday">Тот же день недели месяца</string>
+    <string name="week_of_month_label">Какая неделя месяца</string>
+    <string name="occurrence_first">1-я</string>
+    <string name="occurrence_second">2-я</string>
+    <string name="occurrence_third">3-я</string>
+    <string name="occurrence_fourth">4-я</string>
+    <string name="occurrence_last">Последняя</string>
+    <string name="monthly_weekday_summary">%1$s %2$s</string>
     <string name="month_day_label">День месяца: %1$d</string>
     <string name="trigger_type_notification">Уведомление</string>
     <string name="trigger_notification">Уведомление приложения</string>
@@ -370,4 +376,12 @@
     <string name="state_disconnected">Отключено</string>
     <string name="exit_revert_actions_label">Вернуть выбранные действия</string>
     <string name="repeat_selected">Выбрано: %1$s</string>
+    <string name="end_behavior_label">Когда задача завершается</string>
+    <string name="end_leave">Оставить как есть</string>
+    <string name="end_turn_on">Включить</string>
+    <string name="end_turn_off">Выключить</string>
+    <string name="end_revert">Восстановить исходное</string>
+    <string name="end_set_value">Задать значение</string>
+    <string name="cooldown_label">Интервал запуска: %1$d с</string>
+    <string name="cooldown_hint">Минимальный интервал между двумя запусками этой задачи</string>
 </resources>

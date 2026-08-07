@@ -11,6 +11,7 @@ import android.telephony.SmsManager
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
+import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -59,7 +60,7 @@ class SmsReceiver : BroadcastReceiver() {
                     }
                     .forEach { automation ->
                         val last = lastRunAt[automation.id] ?: 0L
-                        if (now - last > COOLDOWN_MS) {
+                        if (now - last > automation.cooldownMillis) {
                             lastRunAt[automation.id] = now
                             executionEngine.runAutomation(automation)
                             val reply = automation.triggers

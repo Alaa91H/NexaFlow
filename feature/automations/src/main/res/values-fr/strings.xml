@@ -139,4 +139,23 @@
     <string name="charger_ac">Secteur / Mur</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">Sans fil</string>
+    <string name="day_mon">Lun</string>
+    <string name="day_tue">Mar</string>
+    <string name="day_wed">Mer</string>
+    <string name="day_thu">Jeu</string>
+    <string name="day_fri">Ven</string>
+    <string name="day_sat">Sam</string>
+    <string name="day_sun">Dim</string>
+    <string name="occurrence_first">1er</string>
+    <string name="occurrence_second">2e</string>
+    <string name="occurrence_third">3e</string>
+    <string name="occurrence_fourth">4e</string>
+    <string name="occurrence_last">Dernière</string>
+    <string name="monthly_weekday_summary">%1$s %2$s</string>
+    <string name="end_summary">À la fin : %1$s</string>
+    <string name="end_leave">Laisser tel quel</string>
+    <string name="end_turn_on">Activer</string>
+    <string name="end_turn_off">Désactiver</string>
+    <string name="end_revert">Restaurer l\'original</string>
+    <string name="end_set_value">Définir une valeur</string>
 </resources>

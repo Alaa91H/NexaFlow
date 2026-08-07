@@ -139,4 +139,23 @@
     <string name="charger_ac">AC / 壁</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">ワイヤレス</string>
+    <string name="day_mon">月</string>
+    <string name="day_tue">火</string>
+    <string name="day_wed">水</string>
+    <string name="day_thu">木</string>
+    <string name="day_fri">金</string>
+    <string name="day_sat">土</string>
+    <string name="day_sun">日</string>
+    <string name="occurrence_first">第1</string>
+    <string name="occurrence_second">第2</string>
+    <string name="occurrence_third">第3</string>
+    <string name="occurrence_fourth">第4</string>
+    <string name="occurrence_last">最後</string>
+    <string name="monthly_weekday_summary">%1$s %2$s</string>
+    <string name="end_summary">終了時: %1$s</string>
+    <string name="end_leave">そのままにする</string>
+    <string name="end_turn_on">オン</string>
+    <string name="end_turn_off">オフ</string>
+    <string name="end_revert">元に戻す</string>
+    <string name="end_set_value">値を設定</string>
 </resources>

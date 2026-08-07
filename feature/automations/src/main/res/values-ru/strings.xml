@@ -139,4 +139,23 @@
     <string name="charger_ac">Сеть / Розетка</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">Беспроводная</string>
+    <string name="day_mon">Пн</string>
+    <string name="day_tue">Вт</string>
+    <string name="day_wed">Ср</string>
+    <string name="day_thu">Чт</string>
+    <string name="day_fri">Пт</string>
+    <string name="day_sat">Сб</string>
+    <string name="day_sun">Вс</string>
+    <string name="occurrence_first">1-я</string>
+    <string name="occurrence_second">2-я</string>
+    <string name="occurrence_third">3-я</string>
+    <string name="occurrence_fourth">4-я</string>
+    <string name="occurrence_last">Последняя</string>
+    <string name="monthly_weekday_summary">%1$s %2$s</string>
+    <string name="end_summary">В конце: %1$s</string>
+    <string name="end_leave">Оставить как есть</string>
+    <string name="end_turn_on">Включить</string>
+    <string name="end_turn_off">Выключить</string>
+    <string name="end_revert">Восстановить исходное</string>
+    <string name="end_set_value">Задать значение</string>
 </resources>

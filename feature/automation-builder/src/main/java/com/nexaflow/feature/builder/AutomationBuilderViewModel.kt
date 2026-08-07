@@ -44,7 +44,8 @@ class AutomationBuilderViewModel @Inject constructor(
         triggers: List<Trigger>,
         actions: List<Action>,
         exitActions: List<Action> = emptyList(),
-        revertOnExit: Boolean = false
+        revertOnExit: Boolean = false,
+        cooldownSeconds: Int = 10
     ) {
         viewModelScope.launch {
             val now = System.currentTimeMillis()
@@ -64,6 +65,7 @@ class AutomationBuilderViewModel @Inject constructor(
                 actions = actions,
                 exitActions = exitActions,
                 revertOnExit = revertOnExit,
+                cooldownSeconds = cooldownSeconds,
                 createdAt = prev?.createdAt ?: now,
                 updatedAt = now
             )

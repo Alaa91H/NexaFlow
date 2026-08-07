@@ -323,9 +323,15 @@
     <string name="pick_trigger_type">トリガーを追加</string>
     <string name="next_needs_action">先にアクションを1つ以上追加してください</string>
     <string name="no_matching_actions">一致するアクションがありません</string>
-    <string name="repeat_weekdays">平日</string>
-    <string name="repeat_weekends">週末</string>
     <string name="repeat_monthly">毎月</string>
+    <string name="repeat_monthly_weekday">月の同じ曜日</string>
+    <string name="week_of_month_label">月の何週目</string>
+    <string name="occurrence_first">第1</string>
+    <string name="occurrence_second">第2</string>
+    <string name="occurrence_third">第3</string>
+    <string name="occurrence_fourth">第4</string>
+    <string name="occurrence_last">最後</string>
+    <string name="monthly_weekday_summary">%1$s %2$s</string>
     <string name="month_day_label">月の日: %1$d</string>
     <string name="trigger_type_notification">通知</string>
     <string name="trigger_notification">アプリの通知</string>
@@ -370,4 +376,12 @@
     <string name="state_disconnected">切断済み</string>
     <string name="exit_revert_actions_label">選択した操作を元に戻す</string>
     <string name="repeat_selected">選択: %1$s</string>
+    <string name="end_behavior_label">タスク終了時</string>
+    <string name="end_leave">そのままにする</string>
+    <string name="end_turn_on">オン</string>
+    <string name="end_turn_off">オフ</string>
+    <string name="end_revert">元に戻す</string>
+    <string name="end_set_value">値を設定</string>
+    <string name="cooldown_label">実行間隔: %1$d 秒</string>
+    <string name="cooldown_hint">このタスクの2回の実行間の最小間隔</string>
 </resources>

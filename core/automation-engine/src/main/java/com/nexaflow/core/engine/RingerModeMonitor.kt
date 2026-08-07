@@ -8,6 +8,7 @@ import android.media.AudioManager
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
+import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -92,7 +93,7 @@ class RingerModeMonitor @Inject constructor(
                     val matchesAny = ringerTriggers.any { (it.config["mode"] ?: "NORMAL") == mode }
                     if (matchesAny) {
                         val last = lastRunAt[automation.id] ?: 0L
-                        if (now - last > COOLDOWN_MS) {
+                        if (now - last > automation.cooldownMillis) {
                             lastRunAt[automation.id] = now
                             activeModes[automation.id] = mode
                             executionEngine.runAutomation(automation)
@@ -105,7 +106,4 @@ class RingerModeMonitor @Inject constructor(
         }
     }
 
-    companion object {
-        private const val COOLDOWN_MS = 5_000L
-    }
 }

@@ -323,9 +323,15 @@
     <string name="pick_trigger_type">Ajouter un déclencheur</string>
     <string name="next_needs_action">"Ajoutez d'abord au moins une action"</string>
     <string name="no_matching_actions">Aucune action correspondante</string>
-    <string name="repeat_weekdays">Jours de semaine</string>
-    <string name="repeat_weekends">Week-end</string>
     <string name="repeat_monthly">Mensuel</string>
+    <string name="repeat_monthly_weekday">Même jour de la semaine du mois</string>
+    <string name="week_of_month_label">Quelle semaine du mois</string>
+    <string name="occurrence_first">1er</string>
+    <string name="occurrence_second">2e</string>
+    <string name="occurrence_third">3e</string>
+    <string name="occurrence_fourth">4e</string>
+    <string name="occurrence_last">Dernière</string>
+    <string name="monthly_weekday_summary">%1$s %2$s</string>
     <string name="month_day_label">Jour du mois : %1$d</string>
     <string name="trigger_type_notification">Notification</string>
     <string name="trigger_notification">Notification d\'app</string>
@@ -370,4 +376,12 @@
     <string name="state_disconnected">Déconnecté</string>
     <string name="exit_revert_actions_label">Rétablir les actions sélectionnées</string>
     <string name="repeat_selected">Sélection : %1$s</string>
+    <string name="end_behavior_label">Quand la tâche se termine</string>
+    <string name="end_leave">Laisser tel quel</string>
+    <string name="end_turn_on">Activer</string>
+    <string name="end_turn_off">Désactiver</string>
+    <string name="end_revert">Restaurer l\'original</string>
+    <string name="end_set_value">Définir une valeur</string>
+    <string name="cooldown_label">Intervalle d\'exécution : %1$d s</string>
+    <string name="cooldown_hint">Intervalle minimum entre deux exécutions de cette tâche</string>
 </resources>

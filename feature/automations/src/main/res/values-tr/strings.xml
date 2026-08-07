@@ -139,4 +139,23 @@
     <string name="charger_ac">AC / Duvar</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">Kablosuz</string>
+    <string name="day_mon">Pzt</string>
+    <string name="day_tue">Sal</string>
+    <string name="day_wed">Çar</string>
+    <string name="day_thu">Per</string>
+    <string name="day_fri">Cum</string>
+    <string name="day_sat">Cmt</string>
+    <string name="day_sun">Paz</string>
+    <string name="occurrence_first">1.</string>
+    <string name="occurrence_second">2.</string>
+    <string name="occurrence_third">3.</string>
+    <string name="occurrence_fourth">4.</string>
+    <string name="occurrence_last">Son</string>
+    <string name="monthly_weekday_summary">%1$s %2$s</string>
+    <string name="end_summary">Sonunda: %1$s</string>
+    <string name="end_leave">Olduğu gibi bırak</string>
+    <string name="end_turn_on">Aç</string>
+    <string name="end_turn_off">Kapat</string>
+    <string name="end_revert">Orijinali geri yükle</string>
+    <string name="end_set_value">Değer ayarla</string>
 </resources>

@@ -18,6 +18,7 @@ data class AutomationEntity(
     val actionsJson: String, // Store as JSON string
     val exitActionsJson: String = "[]", // Actions run when the condition ends
     val revertOnExit: Boolean = false, // Restore device state on exit instead
+    val cooldownSeconds: Int = 10, // Minimum gap between two runs of this task
     val createdAt: Long,
     val updatedAt: Long
 )

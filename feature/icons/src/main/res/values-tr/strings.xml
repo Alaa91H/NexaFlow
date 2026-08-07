@@ -2,4 +2,15 @@
 <resources>
     <string name="choose_icon_title">Simge Seç</string>
     <string name="done">Bitti</string>
+    <string name="search_icons">Simgeleri ara</string>
+    <string name="category_all">Tümü</string>
+    <string name="category_general">Genel</string>
+    <string name="category_connectivity">Bağlantı</string>
+    <string name="category_sound">Ses</string>
+    <string name="category_display">Ekran</string>
+    <string name="category_media">Medya</string>
+    <string name="category_system">Sistem</string>
+    <string name="category_battery">Pil</string>
+    <string name="category_time">Zaman</string>
+    <string name="category_location">Konum</string>
 </resources>

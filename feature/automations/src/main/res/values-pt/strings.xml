@@ -139,4 +139,23 @@
     <string name="charger_ac">CA / Parede</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">Sem fio</string>
+    <string name="day_mon">Seg</string>
+    <string name="day_tue">Ter</string>
+    <string name="day_wed">Qua</string>
+    <string name="day_thu">Qui</string>
+    <string name="day_fri">Sex</string>
+    <string name="day_sat">Sáb</string>
+    <string name="day_sun">Dom</string>
+    <string name="occurrence_first">1.º</string>
+    <string name="occurrence_second">2.º</string>
+    <string name="occurrence_third">3.º</string>
+    <string name="occurrence_fourth">4.º</string>
+    <string name="occurrence_last">Última</string>
+    <string name="monthly_weekday_summary">%1$s %2$s</string>
+    <string name="end_summary">No final: %1$s</string>
+    <string name="end_leave">Deixar como está</string>
+    <string name="end_turn_on">Ativar</string>
+    <string name="end_turn_off">Desativar</string>
+    <string name="end_revert">Restaurar original</string>
+    <string name="end_set_value">Definir valor</string>
 </resources>

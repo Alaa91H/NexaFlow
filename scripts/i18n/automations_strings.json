@@ -1,0 +1,90 @@
+{
+  "": {
+    "end_summary": "On end: %1$s",
+    "end_leave": "Leave as is",
+    "end_turn_on": "Turn on",
+    "end_turn_off": "Turn off",
+    "end_revert": "Restore original",
+    "end_set_value": "Set value"
+  },
+  "-ar": {
+    "end_summary": "عند الانتهاء: %1$s",
+    "end_leave": "اتركه كما هو",
+    "end_turn_on": "تشغيل",
+    "end_turn_off": "إيقاف",
+    "end_revert": "استعادة الحالة الأصلية",
+    "end_set_value": "تعيين قيمة"
+  },
+  "-de": {
+    "end_summary": "Am Ende: %1$s",
+    "end_leave": "Unverändert lassen",
+    "end_turn_on": "Einschalten",
+    "end_turn_off": "Ausschalten",
+    "end_revert": "Original wiederherstellen",
+    "end_set_value": "Wert festlegen"
+  },
+  "-es": {
+    "end_summary": "Al final: %1$s",
+    "end_leave": "Dejar como está",
+    "end_turn_on": "Activar",
+    "end_turn_off": "Desactivar",
+    "end_revert": "Restaurar original",
+    "end_set_value": "Establecer valor"
+  },
+  "-fr": {
+    "end_summary": "À la fin : %1$s",
+    "end_leave": "Laisser tel quel",
+    "end_turn_on": "Activer",
+    "end_turn_off": "Désactiver",
+    "end_revert": "Restaurer l'original",
+    "end_set_value": "Définir une valeur"
+  },
+  "-hi": {
+    "end_summary": "अंत में: %1$s",
+    "end_leave": "जैसा है वैसा छोड़ें",
+    "end_turn_on": "चालू करें",
+    "end_turn_off": "बंद करें",
+    "end_revert": "मूल स्थिति बहाल करें",
+    "end_set_value": "मान सेट करें"
+  },
+  "-ja": {
+    "end_summary": "終了時: %1$s",
+    "end_leave": "そのままにする",
+    "end_turn_on": "オン",
+    "end_turn_off": "オフ",
+    "end_revert": "元に戻す",
+    "end_set_value": "値を設定"
+  },
+  "-pt": {
+    "end_summary": "No final: %1$s",
+    "end_leave": "Deixar como está",
+    "end_turn_on": "Ativar",
+    "end_turn_off": "Desativar",
+    "end_revert": "Restaurar original",
+    "end_set_value": "Definir valor"
+  },
+  "-ru": {
+    "end_summary": "В конце: %1$s",
+    "end_leave": "Оставить как есть",
+    "end_turn_on": "Включить",
+    "end_turn_off": "Выключить",
+    "end_revert": "Восстановить исходное",
+    "end_set_value": "Задать значение"
+  },
+  "-tr": {
+    "end_summary": "Sonunda: %1$s",
+    "end_leave": "Olduğu gibi bırak",
+    "end_turn_on": "Aç",
+    "end_turn_off": "Kapat",
+    "end_revert": "Orijinali geri yükle",
+    "end_set_value": "Değer ayarla"
+  },
+  "-zh-rCN": {
+    "end_summary": "结束时：%1$s",
+    "end_leave": "保持原样",
+    "end_turn_on": "开启",
+    "end_turn_off": "关闭",
+    "end_revert": "恢复原始状态",
+    "end_set_value": "设置数值"
+  }
+}

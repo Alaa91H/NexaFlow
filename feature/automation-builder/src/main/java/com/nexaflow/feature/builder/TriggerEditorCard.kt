@@ -73,11 +73,19 @@ val triggerTypeOptions = listOf(
 private val repeatOptions = listOf(
     "ONCE" to R.string.repeat_once,
     "DAILY" to R.string.repeat_daily,
-    "WEEKDAYS" to R.string.repeat_weekdays,
-    "WEEKENDS" to R.string.repeat_weekends,
     "SPECIFIC_DAYS" to R.string.repeat_specific_days,
     "MONTHLY" to R.string.repeat_monthly,
+    "MONTHLY_WEEKDAY" to R.string.repeat_monthly_weekday,
     "DATE_RANGE" to R.string.repeat_date_range
+)
+
+/** Google-Tasks-style occurrence of a weekday inside a month (1st..4th / Last). */
+private val occurrenceOptions = listOf(
+    "1" to R.string.occurrence_first,
+    "2" to R.string.occurrence_second,
+    "3" to R.string.occurrence_third,
+    "4" to R.string.occurrence_fourth,
+    "LAST" to R.string.occurrence_last
 )
 
 private val weekdayOptions = listOf(
@@ -303,6 +311,50 @@ private fun TimeRepeatSection(
                     valueRange = 1f..28f
                 )
             }
+            "MONTHLY_WEEKDAY" -> {
+                val weekday = (draft.config["weekday"] ?: "1").toIntOrNull() ?: 1
+                val occurrence = draft.config["weekOfMonth"] ?: "1"
+                Text(
+                    text = stringResource(R.string.select_days),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    weekdayOptions.forEach { (day, labelRes) ->
+                        SelectChip(
+                            selected = weekday == day,
+                            onClick = {
+                                onConfigChange(draft.copy(config = draft.config + ("weekday" to day.toString())))
+                            },
+                            label = stringResource(labelRes)
+                        )
+                    }
+                }
+                Text(
+                    text = stringResource(R.string.week_of_month_label),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    occurrenceOptions.forEach { (value, labelRes) ->
+                        SelectChip(
+                            selected = occurrence == value,
+                            onClick = {
+                                onConfigChange(draft.copy(config = draft.config + ("weekOfMonth" to value)))
+                            },
+                            label = stringResource(labelRes)
+                        )
+                    }
+                }
+            }
             "DATE_RANGE" -> {
                 DateField(
                     label = stringResource(R.string.start_date),
@@ -335,8 +387,6 @@ private fun RepeatSummary(draft: TriggerDraft) {
     val text = when (config["repeat"] ?: "DAILY") {
         "ONCE" -> stringResource(R.string.repeat_once)
         "DAILY" -> stringResource(R.string.repeat_daily)
-        "WEEKDAYS" -> stringResource(R.string.repeat_weekdays)
-        "WEEKENDS" -> stringResource(R.string.repeat_weekends)
         "SPECIFIC_DAYS" -> {
             val days = config["days"]?.split(',')?.mapNotNull { it.trim().toIntOrNull() }.orEmpty()
             if (days.isEmpty()) stringResource(R.string.select_days)
@@ -347,6 +397,15 @@ private fun RepeatSummary(draft: TriggerDraft) {
         "MONTHLY" -> {
             val day = (config["monthDay"] ?: "1").toIntOrNull() ?: 1
             stringResource(R.string.month_day_label, day)
+        }
+        "MONTHLY_WEEKDAY" -> {
+            val weekday = (config["weekday"] ?: "1").toIntOrNull() ?: 1
+            val occurrence = config["weekOfMonth"] ?: "1"
+            val dayLabel = weekdayOptions.firstOrNull { it.first == weekday }
+                ?.let { (_, res) -> stringResource(res) }.orEmpty()
+            val occLabel = occurrenceOptions.firstOrNull { it.first == occurrence }
+                ?.let { (_, res) -> stringResource(res) } ?: occurrence
+            stringResource(R.string.monthly_weekday_summary, occLabel, dayLabel)
         }
         "DATE_RANGE" -> {
             val start = config["startDate"] ?: ""

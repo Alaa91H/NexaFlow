@@ -5,6 +5,7 @@ import android.view.accessibility.AccessibilityEvent
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
+import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -47,7 +48,7 @@ class AppTriggerAccessibilityService : AccessibilityService() {
                     val matches = automation.triggers.any { it.matchesPackage(packageName) }
                     if (matches) {
                         val last = lastRunAt[automation.id] ?: 0L
-                        if (now - last > COOLDOWN_MS) {
+                        if (now - last > automation.cooldownMillis) {
                             lastRunAt[automation.id] = now
                             activeApps[automation.id] = packageName
                             executionEngine.runAutomation(automation)
@@ -61,10 +62,6 @@ class AppTriggerAccessibilityService : AccessibilityService() {
     }
 
     override fun onInterrupt() = Unit
-
-    companion object {
-        private const val COOLDOWN_MS = 10_000L
-    }
 }
 
 /** True when the app trigger's config lists [packageName] (single or multi-select). */

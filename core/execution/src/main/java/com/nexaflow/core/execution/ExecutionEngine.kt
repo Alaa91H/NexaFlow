@@ -18,6 +18,7 @@ import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionExecutionResult
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.EndMode
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.repositories.HistoryRepository
 import kotlinx.coroutines.flow.first
@@ -38,16 +39,27 @@ class ExecutionEngine(
     private val channelSelector: ExecutionChannelSelector = ExecutionChannelSelector()
 ) {
 
-    /** Snapshots captured for automations with revertOnExit, keyed by automation id. */
-    private val snapshots = java.util.concurrent.ConcurrentHashMap<String, DeviceStateSnapshot>()
+    /**
+     * Snapshots captured for automations with revertOnExit, keyed by automation id.
+     * The value is nullable because a failed capture must not block the run; a
+     * null snapshot simply means "nothing to restore" on exit.
+     */
+    private val snapshots = java.util.concurrent.ConcurrentHashMap<String, DeviceStateSnapshot?>()
 
     suspend fun runAutomation(automation: Automation): ExecutionRecord {
         val startedAt = epochMillis.now()
         val controller = RomIntegrationManager.controller(context)
         val notif = notificationPreferences.settings.first()
         val channel = channelSelector.select(context)
-        if (automation.revertOnExit) {
-            snapshots[automation.id] = DeviceStateSnapshot.capture(context)
+        // Capture the device state when the run needs to restore anything on
+        // exit: either the global revert-on-exit toggle or any action configured
+        // with a per-action "restore original" end behavior. A failed snapshot
+        // must never block the actual actions (e.g. an unreadable stream on an
+        // unusual ROM used to abort the whole run before any action executed).
+        val needsSnapshot = automation.revertOnExit ||
+            automation.actions.any { it.endBehavior?.mode == EndMode.REVERT }
+        if (needsSnapshot) {
+            snapshots[automation.id] = runCatching { DeviceStateSnapshot.capture(context) }.getOrNull()
         }
         val results = automation.actions.map { action ->
             val actionStartedAt = epochMillis.now()
@@ -124,15 +136,42 @@ class ExecutionEngine(
                 )
             }
         } else {
-            automation.exitActions.map { action ->
-                val actionStartedAt = epochMillis.now()
-                val result = executeAction(action, controller, notif, channel)
-                ActionExecutionResult(
-                    actionType = action.type.name,
-                    success = result.success,
-                    message = result.message,
-                    durationMs = epochMillis.now() - actionStartedAt
-                )
+            mutableListOf<ActionExecutionResult>().apply {
+                // Adaptive per-action end behavior: each action configured with an
+                // end behavior (leave / restore original / set a specific value)
+                // is honored exactly as configured, before the custom exit actions.
+                val snapshot = snapshots.remove(automation.id)
+                automation.actions.forEach { action ->
+                    val behavior = action.endBehavior ?: return@forEach
+                    val actionStartedAt = epochMillis.now()
+                    val result: SystemControlResult = when (behavior.mode) {
+                        EndMode.LEAVE -> null
+                        EndMode.REVERT -> snapshot?.restoreSetting(context, action)
+                            ?: SystemControlResult.fail("No captured state to restore for ${action.type.name}")
+                        EndMode.SET_VALUE -> executeAction(action.withConfig(behavior.config), controller, notif, channel)
+                    } ?: return@forEach
+                    add(
+                        ActionExecutionResult(
+                            actionType = "${action.type.name}_END",
+                            success = result.success,
+                            message = result.message,
+                            durationMs = epochMillis.now() - actionStartedAt
+                        )
+                    )
+                }
+                // The explicitly configured exit actions run last.
+                automation.exitActions.forEach { action ->
+                    val actionStartedAt = epochMillis.now()
+                    val result = executeAction(action, controller, notif, channel)
+                    add(
+                        ActionExecutionResult(
+                            actionType = action.type.name,
+                            success = result.success,
+                            message = result.message,
+                            durationMs = epochMillis.now() - actionStartedAt
+                        )
+                    )
+                }
             }
         }
         val record = ExecutionRecord(

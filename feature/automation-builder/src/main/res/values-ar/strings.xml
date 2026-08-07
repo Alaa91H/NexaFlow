@@ -322,9 +322,15 @@
     <string name="pick_trigger_type">إضافة مشغّل</string>
     <string name="next_needs_action">أضف إجراءً واحداً على الأقل أولاً</string>
     <string name="no_matching_actions">لا توجد إجراءات مطابقة</string>
-    <string name="repeat_weekdays">أيام الأسبوع</string>
-    <string name="repeat_weekends">عطلة نهاية الأسبوع</string>
     <string name="repeat_monthly">شهرياً</string>
+    <string name="repeat_monthly_weekday">نفس اليوم من الشهر</string>
+    <string name="week_of_month_label">أي أسبوع من الشهر</string>
+    <string name="occurrence_first">الأول</string>
+    <string name="occurrence_second">الثاني</string>
+    <string name="occurrence_third">الثالث</string>
+    <string name="occurrence_fourth">الرابع</string>
+    <string name="occurrence_last">الأخير</string>
+    <string name="monthly_weekday_summary">%2$s %1$s</string>
     <string name="month_day_label">يوم من الشهر: %1$d</string>
     <string name="trigger_type_notification">الإشعارات</string>
     <string name="trigger_notification">إشعار التطبيق</string>
@@ -369,4 +375,12 @@
     <string name="state_disconnected">غير متصل</string>
     <string name="exit_revert_actions_label">التراجع عن الإجراءات المحددة</string>
     <string name="repeat_selected">المحدد: %1$s</string>
+    <string name="end_behavior_label">عند انتهاء المهمة</string>
+    <string name="end_leave">اتركه كما هو</string>
+    <string name="end_turn_on">تشغيل</string>
+    <string name="end_turn_off">إيقاف</string>
+    <string name="end_revert">استعادة الحالة الأصلية</string>
+    <string name="end_set_value">تعيين قيمة</string>
+    <string name="cooldown_label">فاصل التشغيل: %1$d ث</string>
+    <string name="cooldown_hint">أقل فاصل بين تشغيلين لهذه المهمة</string>
 </resources>

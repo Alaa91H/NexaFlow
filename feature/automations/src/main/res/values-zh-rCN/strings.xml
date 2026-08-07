@@ -139,4 +139,23 @@
     <string name="charger_ac">交流电 / 墙插</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">无线</string>
+    <string name="day_mon">周一</string>
+    <string name="day_tue">周二</string>
+    <string name="day_wed">周三</string>
+    <string name="day_thu">周四</string>
+    <string name="day_fri">周五</string>
+    <string name="day_sat">周六</string>
+    <string name="day_sun">周日</string>
+    <string name="occurrence_first">第1周</string>
+    <string name="occurrence_second">第2周</string>
+    <string name="occurrence_third">第3周</string>
+    <string name="occurrence_fourth">第4周</string>
+    <string name="occurrence_last">最后一周</string>
+    <string name="monthly_weekday_summary">%1$s %2$s</string>
+    <string name="end_summary">结束时：%1$s</string>
+    <string name="end_leave">保持原样</string>
+    <string name="end_turn_on">开启</string>
+    <string name="end_turn_off">关闭</string>
+    <string name="end_revert">恢复原始状态</string>
+    <string name="end_set_value">设置数值</string>
 </resources>

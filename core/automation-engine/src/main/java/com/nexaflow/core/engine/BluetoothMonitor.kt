@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
+import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -112,7 +113,7 @@ class BluetoothMonitor @Inject constructor(
                     if (event == "CONNECTED") {
                         if (firesOnConnect) {
                             val last = lastRunAt[automation.id] ?: 0L
-                            if (now - last > COOLDOWN_MS) {
+                            if (now - last > automation.cooldownMillis) {
                                 lastRunAt[automation.id] = now
                                 activeConnections[automation.id] = address
                                 executionEngine.runAutomation(automation)
@@ -125,7 +126,7 @@ class BluetoothMonitor @Inject constructor(
                     } else {
                         if (firesOnDisconnect) {
                             val last = lastRunAt[automation.id] ?: 0L
-                            if (now - last > COOLDOWN_MS) {
+                            if (now - last > automation.cooldownMillis) {
                                 lastRunAt[automation.id] = now
                                 activeConnections[automation.id] = address
                                 executionEngine.runAutomation(automation)
@@ -160,9 +161,5 @@ class BluetoothMonitor @Inject constructor(
         val storedAddress = config["deviceAddress"].orEmpty()
         return deviceName.equals(configuredName, ignoreCase = true) ||
             (storedAddress.isNotEmpty() && storedAddress.equals(address, ignoreCase = true))
-    }
-
-    companion object {
-        private const val COOLDOWN_MS = 5_000L
     }
 }

@@ -186,7 +186,17 @@ fun AutomationDetailsScreen(navController: NavController) {
                     } else {
                         current.actions.forEach { action ->
                             val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
-                            SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes))
+                            SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes), trailing = {
+                                // Per-action adaptive end behavior, e.g. "On end: Restore original".
+                                val endText = endBehaviorText(action)
+                                if (endText != null) {
+                                    Text(
+                                        text = endText,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            })
                         }
                     }
                 }
@@ -254,7 +264,13 @@ private fun triggerDetail(config: Map<String, String>): String {
             if (dir == "BELOW") add("< ${config["above"] ?: ""}%") else add("> ${config["above"] ?: ""}%")
         }
         config["chargerType"]?.takeIf { it != "ANY" && it.isNotBlank() }?.let { add(chargerTypeText(it)) }
-        config["repeat"]?.let { if (it != "DAILY") add(it.lowercase()) }
+        config["repeat"]?.let { repeat ->
+            when (repeat) {
+                "DAILY" -> Unit
+                "MONTHLY_WEEKDAY" -> add(monthlyWeekdayText(config))
+                else -> add(repeat.lowercase())
+            }
+        }
         config["days"]?.let { add(it) }
         config["date"]?.let { add(it) }
         config["startDate"]?.let { add("$it → ${config["endDate"]}") }
@@ -271,6 +287,57 @@ private fun triggerDetail(config: Map<String, String>): String {
         config["beforeMinutes"]?.takeIf { it != "0" && it.isNotBlank() }?.let { add("-$it min") }
     }
     return parts.joinToString(", ").ifEmpty { "default" }
+}
+
+/**
+ * Google-Tasks-style summary for a MONTHLY_WEEKDAY trigger, e.g.
+ * "1st Mon" or "Last Fri", composed from the localized occurrence and day.
+ */
+@Composable
+private fun monthlyWeekdayText(config: Map<String, String>): String {
+    val dayRes = when (config["weekday"]?.toIntOrNull()) {
+        1 -> R.string.day_mon
+        2 -> R.string.day_tue
+        3 -> R.string.day_wed
+        4 -> R.string.day_thu
+        5 -> R.string.day_fri
+        6 -> R.string.day_sat
+        7 -> R.string.day_sun
+        else -> null
+    }
+    val occurrenceRes = when (config["weekOfMonth"] ?: "1") {
+        "1" -> R.string.occurrence_first
+        "2" -> R.string.occurrence_second
+        "3" -> R.string.occurrence_third
+        "4" -> R.string.occurrence_fourth
+        "LAST" -> R.string.occurrence_last
+        else -> null
+    }
+    if (dayRes == null || occurrenceRes == null) return ""
+    return stringResource(
+        R.string.monthly_weekday_summary,
+        stringResource(occurrenceRes),
+        stringResource(dayRes)
+    )
+}
+
+/** Localized per-action end-behavior label, or null when the action stays as is. */
+@Composable
+private fun endBehaviorText(action: Action): String? {
+    val behavior = action.endBehavior ?: return null
+    val label = when (behavior.mode) {
+        com.nexaflow.domain.models.EndMode.LEAVE -> return null
+        com.nexaflow.domain.models.EndMode.REVERT -> stringResource(R.string.end_revert)
+        com.nexaflow.domain.models.EndMode.SET_VALUE -> {
+            if (action.type in com.nexaflow.domain.models.EndBehaviorCatalog.toggleActions) {
+                if (behavior.config["enabled"] == "true") stringResource(R.string.end_turn_on)
+                else stringResource(R.string.end_turn_off)
+            } else {
+                stringResource(R.string.end_set_value)
+            }
+        }
+    }
+    return stringResource(R.string.end_summary, label)
 }
 
 /** Localized charger-type label shown in the battery trigger detail. */

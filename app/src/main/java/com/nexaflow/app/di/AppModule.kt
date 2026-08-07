@@ -36,7 +36,7 @@ object AppModule {
             AppDatabase::class.java,
             "nexaflow.db"
         ).addMigrations(*Migrations.ALL.toTypedArray())
-            .fallbackToDestructiveMigrationOnDowngrade()
+            .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
             .build()
     }
 

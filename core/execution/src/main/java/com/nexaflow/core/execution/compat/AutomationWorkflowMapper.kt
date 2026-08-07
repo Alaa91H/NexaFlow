@@ -4,6 +4,7 @@ import com.nexaflow.core.execution.workflow.Workflow
 import com.nexaflow.core.execution.workflow.WorkflowNode
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.EndMode
 import com.nexaflow.domain.models.Trigger
 
 /**
@@ -43,12 +44,24 @@ object AutomationWorkflowMapper {
                 actionNode("run", automation.id, index, action)
             }
         )
-        val exitRoot = if (automation.exitActions.isEmpty()) {
+        // Per-action adaptive end behavior (SET_VALUE) is synthesized into the
+        // exit workflow so the compat runner honors it too. REVERT is handled by
+        // the global revertOnExit snapshot path (per-setting revert lives in the
+        // ExecutionEngine's DeviceStateSnapshot.restoreSetting).
+        val endBehaviorNodes = automation.actions.mapIndexedNotNull { index, action ->
+            val behavior = action.endBehavior
+            if (behavior?.mode == EndMode.SET_VALUE) {
+                actionNode("exit", automation.id, index, action.withConfig(behavior.config))
+            } else {
+                null
+            }
+        }
+        val exitRoot = if (automation.exitActions.isEmpty() && endBehaviorNodes.isEmpty()) {
             null
         } else {
             WorkflowNode.SequenceNode(
                 id = "exit:${automation.id}",
-                children = automation.exitActions.mapIndexed { index, action ->
+                children = endBehaviorNodes + automation.exitActions.mapIndexed { index, action ->
                     actionNode("exit", automation.id, index, action)
                 }
             )

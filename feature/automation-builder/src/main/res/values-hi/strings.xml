@@ -323,9 +323,15 @@
     <string name="pick_trigger_type">ट्रिगर जोड़ें</string>
     <string name="next_needs_action">पहले कम से कम एक क्रिया जोड़ें</string>
     <string name="no_matching_actions">कोई मिलती-जुलती क्रिया नहीं</string>
-    <string name="repeat_weekdays">कार्यदिवस</string>
-    <string name="repeat_weekends">सप्ताहांत</string>
     <string name="repeat_monthly">मासिक</string>
+    <string name="repeat_monthly_weekday">महीने का वही दिन</string>
+    <string name="week_of_month_label">महीने का कौन सा सप्ताह</string>
+    <string name="occurrence_first">पहला</string>
+    <string name="occurrence_second">दूसरा</string>
+    <string name="occurrence_third">तीसरा</string>
+    <string name="occurrence_fourth">चौथा</string>
+    <string name="occurrence_last">आख़िरी</string>
+    <string name="monthly_weekday_summary">%1$s %2$s</string>
     <string name="month_day_label">महीने का दिन: %1$d</string>
     <string name="trigger_type_notification">सूचना</string>
     <string name="trigger_notification">ऐप सूचना</string>
@@ -370,4 +376,12 @@
     <string name="state_disconnected">डिस्कनेक्टेड</string>
     <string name="exit_revert_actions_label">चयनित क्रियाएँ पूर्ववत करें</string>
     <string name="repeat_selected">चयनित: %1$s</string>
+    <string name="end_behavior_label">जब कार्य समाप्त हो</string>
+    <string name="end_leave">जैसा है वैसा छोड़ें</string>
+    <string name="end_turn_on">चालू करें</string>
+    <string name="end_turn_off">बंद करें</string>
+    <string name="end_revert">मूल स्थिति बहाल करें</string>
+    <string name="end_set_value">मान सेट करें</string>
+    <string name="cooldown_label">रन अंतराल: %1$d सेकंड</string>
+    <string name="cooldown_hint">इस कार्य के दो रन के बीच न्यूनतम अंतराल</string>
 </resources>

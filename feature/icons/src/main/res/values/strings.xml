@@ -2,4 +2,15 @@
 <resources>
     <string name="choose_icon_title">Choose Icon</string>
     <string name="done">Done</string>
+    <string name="search_icons">Search icons</string>
+    <string name="category_all">All</string>
+    <string name="category_general">General</string>
+    <string name="category_connectivity">Connectivity</string>
+    <string name="category_sound">Sound</string>
+    <string name="category_display">Display</string>
+    <string name="category_media">Media</string>
+    <string name="category_system">System</string>
+    <string name="category_battery">Battery</string>
+    <string name="category_time">Time</string>
+    <string name="category_location">Location</string>
 </resources>

@@ -20,6 +20,7 @@ fun AutomationEntity.toDomain(): Automation {
         actions = converters.toActionList(actionsJson),
         exitActions = converters.toActionList(exitActionsJson),
         revertOnExit = revertOnExit,
+        cooldownSeconds = cooldownSeconds,
         createdAt = createdAt,
         updatedAt = updatedAt
     )
@@ -41,6 +42,7 @@ fun Automation.toEntity(): AutomationEntity {
         actionsJson = converters.fromActionList(actions),
         exitActionsJson = converters.fromActionList(exitActions),
         revertOnExit = revertOnExit,
+        cooldownSeconds = cooldownSeconds,
         createdAt = createdAt,
         updatedAt = updatedAt
     )

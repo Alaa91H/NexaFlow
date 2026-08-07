@@ -440,13 +440,14 @@ class SystemController(
     fun setNfc(enabled: Boolean): SystemControlResult {
         return try {
             val nfcManager = context.getSystemService("nfc")
-            if (nfcManager != null) {
-                val set = runCatching {
-                    RomSystemApiBridge.invokeInstance(nfcManager, "setNfcEnabled", enabled)
-                }.isSuccess
-                if (set) {
-                    return SystemControlResult.ok(if (enabled) "NFC enabled" else "NFC disabled")
-                }
+            // Only trust the reflection path when it actually returned true; a
+            // failed reflection must fall through to the shell command instead
+            // of reporting a fake success (which left NFC untouched).
+            val viaBridge = nfcManager?.let { manager ->
+                RomSystemApiBridge.invokeInstance(manager, "setNfcEnabled", enabled) == true
+            } ?: false
+            if (viaBridge) {
+                return SystemControlResult.ok(if (enabled) "NFC enabled" else "NFC disabled")
             }
             tryPrivileged(
                 command = "svc nfc ${if (enabled) "enable" else "disable"}",

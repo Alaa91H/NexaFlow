@@ -139,4 +139,23 @@
     <string name="charger_ac">AC / Wand</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">Kabellos</string>
+    <string name="day_mon">Mo</string>
+    <string name="day_tue">Di</string>
+    <string name="day_wed">Mi</string>
+    <string name="day_thu">Do</string>
+    <string name="day_fri">Fr</string>
+    <string name="day_sat">Sa</string>
+    <string name="day_sun">So</string>
+    <string name="occurrence_first">1.</string>
+    <string name="occurrence_second">2.</string>
+    <string name="occurrence_third">3.</string>
+    <string name="occurrence_fourth">4.</string>
+    <string name="occurrence_last">Letzte</string>
+    <string name="monthly_weekday_summary">%1$s %2$s</string>
+    <string name="end_summary">Am Ende: %1$s</string>
+    <string name="end_leave">Unverändert lassen</string>
+    <string name="end_turn_on">Einschalten</string>
+    <string name="end_turn_off">Ausschalten</string>
+    <string name="end_revert">Original wiederherstellen</string>
+    <string name="end_set_value">Wert festlegen</string>
 </resources>

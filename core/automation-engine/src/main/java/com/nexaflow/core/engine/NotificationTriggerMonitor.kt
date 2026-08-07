@@ -5,6 +5,7 @@ import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.NotificationAccess
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.TriggerType
+import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -54,7 +55,7 @@ class NotificationTriggerMonitor @Inject constructor(
                     val firesOnRemoved = notificationTriggers.any { (it.config["event"] ?: "POSTED") == "REMOVED" }
                     if (firesOnPosted) {
                         val last = lastRunAt[automation.id] ?: 0L
-                        if (now - last > COOLDOWN_MS) {
+                        if (now - last > automation.cooldownMillis) {
                             lastRunAt[automation.id] = now
                             activeStates[automation.id] = packageName
                             executionEngine.runAutomation(automation)
@@ -88,7 +89,7 @@ class NotificationTriggerMonitor @Inject constructor(
                     if (firesOnRemoved) {
                         val last = lastRunAt[automation.id] ?: 0L
                         val now = System.currentTimeMillis()
-                        if (now - last > COOLDOWN_MS) {
+                        if (now - last > automation.cooldownMillis) {
                             lastRunAt[automation.id] = now
                             activeStates[automation.id] = packageName
                             executionEngine.runAutomation(automation)
@@ -147,7 +148,4 @@ class NotificationTriggerMonitor @Inject constructor(
         return haystack.contains(contains, ignoreCase = true)
     }
 
-    companion object {
-        private const val COOLDOWN_MS = 5_000L
-    }
 }

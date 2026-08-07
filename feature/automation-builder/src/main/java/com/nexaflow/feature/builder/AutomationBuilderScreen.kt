@@ -94,6 +94,7 @@ import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.iconVector
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
+import com.nexaflow.domain.models.EndBehavior
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.launch
@@ -211,6 +212,8 @@ private fun SelectedActionCard(
     total: Int,
     config: Map<String, String>,
     onConfigChange: (Map<String, String>) -> Unit,
+    endBehavior: EndBehavior?,
+    onEndBehaviorChange: (EndBehavior?) -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
     onRemove: () -> Unit,
@@ -278,6 +281,14 @@ private fun SelectedActionCard(
                 onConfigChange = onConfigChange,
                 onPickApp = onPickApp
             )
+            // The task's end behavior is configured inside each action (part of
+            // the action itself) so each action decides what happens when the
+            // task's condition stops being true.
+            EndBehaviorEditor(
+                actionType = option.actionType,
+                behavior = endBehavior,
+                onBehaviorChange = onEndBehaviorChange
+            )
             PermissionHintForAction(
                 actionType = option.actionType,
                 context = context,
@@ -324,7 +335,10 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
     var showActionPicker by remember { mutableStateOf(false) }
     val actionConfigs = remember { mutableStateMapOf<ActionType, Map<String, String>>() }
     val selectedActions = remember { mutableStateListOf<ActionOption>() }
+    // Per-action end behavior (leave / restore / set value) applied when the task ends.
+    val actionEndBehaviors = remember { mutableStateMapOf<ActionType, EndBehavior?>() }
     var revertOnExit by remember { mutableStateOf(false) }
+    var cooldownSeconds by remember { mutableStateOf(10) }
     val exitActionConfigs = remember { mutableStateMapOf<ActionType, Map<String, String>>() }
     val selectedExitActions = remember { mutableStateListOf<ActionOption>() }
     var showExitPicker by remember { mutableStateOf(false) }
@@ -343,13 +357,16 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
         loaded.triggers.forEach { triggers.add(TriggerDraft(it.type, it.config)) }
         selectedActions.clear()
         actionConfigs.clear()
+        actionEndBehaviors.clear()
         loaded.actions.forEach { action ->
             actionOptions.find { it.actionType == action.type }?.let { option ->
                 selectedActions.add(option)
                 actionConfigs[option.actionType] = action.config
+                actionEndBehaviors[option.actionType] = action.endBehavior
             }
         }
         revertOnExit = loaded.revertOnExit
+        cooldownSeconds = loaded.cooldownSeconds
         selectedExitActions.clear()
         exitActionConfigs.clear()
         loaded.exitActions.forEach { action ->
@@ -457,7 +474,13 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
         val builtTriggers = triggers.map { draft ->
             Trigger(draft.type, draft.config)
         }
-        val actions = selectedActions.map { Action(it.actionType, actionConfigs[it.actionType] ?: emptyMap()) }
+        val actions = selectedActions.map {
+            Action(
+                type = it.actionType,
+                config = actionConfigs[it.actionType] ?: emptyMap(),
+                endBehavior = actionEndBehaviors[it.actionType]
+            )
+        }
         val exitActions = selectedExitActions.map { Action(it.actionType, exitActionConfigs[it.actionType] ?: emptyMap()) }
         viewModel.saveAutomation(
             name = name,
@@ -465,8 +488,25 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
             triggers = builtTriggers,
             actions = actions,
             exitActions = exitActions,
-            revertOnExit = revertOnExit
+            revertOnExit = revertOnExit,
+            cooldownSeconds = cooldownSeconds
         )
+        // Aggressive permission flow: right after saving, request any missing
+        // runtime permission through the system dialog immediately, and explain
+        // the first missing special (settings-screen) permission — no detour.
+        val missingRuntime = PermissionCatalog.allRuntimePermissions(builtTriggers, actions, exitActions)
+            .filter {
+                context.checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            }
+        if (missingRuntime.isNotEmpty()) {
+            requestPermissions(missingRuntime.toTypedArray())
+        } else {
+            val missingSpecial = PermissionCatalog.allSpecialPermissions(builtTriggers, actions, exitActions)
+                .firstOrNull { !PermissionShortcuts.isGranted(context, it) }
+            if (missingSpecial != null) {
+                explainSpecialPermission(missingSpecial)
+            }
+        }
         if (closeAfterSave) {
             navController.popBackStack()
         } else {
@@ -601,11 +641,14 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                     total = selectedActions.size,
                     config = actionConfigs[option.actionType] ?: emptyMap(),
                     onConfigChange = { actionConfigs[option.actionType] = it },
+                    endBehavior = actionEndBehaviors[option.actionType],
+                    onEndBehaviorChange = { actionEndBehaviors[option.actionType] = it },
                     onMoveUp = { moveAction(index, index - 1) },
                     onMoveDown = { moveAction(index, index + 1) },
                     onRemove = {
                         selectedActions.remove(option)
                         actionConfigs.remove(option.actionType)
+                        actionEndBehaviors.remove(option.actionType)
                     },
                     onPickApp = { appPickerTarget = "action:${option.actionType.name}" },
                     onRequestPermission = { requestPermissions(it) },
@@ -655,6 +698,19 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                             }
                         )
                     }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    // Per-task cooldown: minimum gap between two runs from the same event.
+                    Text(
+                        text = stringResource(R.string.cooldown_label, cooldownSeconds),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    SliderRow(
+                        label = stringResource(R.string.cooldown_hint),
+                        value = cooldownSeconds.toFloat(),
+                        onValueChange = { cooldownSeconds = it.toInt() },
+                        valueRange = 0f..300f
+                    )
                     when {
                         revertOnExit -> {
                             Text(

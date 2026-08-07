@@ -2,4 +2,15 @@
 <resources>
     <string name="choose_icon_title">Symbol wählen</string>
     <string name="done">Fertig</string>
+    <string name="search_icons">Symbole suchen</string>
+    <string name="category_all">Alle</string>
+    <string name="category_general">Allgemein</string>
+    <string name="category_connectivity">Konnektivität</string>
+    <string name="category_sound">Ton</string>
+    <string name="category_display">Anzeige</string>
+    <string name="category_media">Medien</string>
+    <string name="category_system">System</string>
+    <string name="category_battery">Akku</string>
+    <string name="category_time">Zeit</string>
+    <string name="category_location">Standort</string>
 </resources>

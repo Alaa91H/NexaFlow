@@ -2,4 +2,15 @@
 <resources>
     <string name="choose_icon_title">Выберите значок</string>
     <string name="done">Готово</string>
+    <string name="search_icons">Найти иконки</string>
+    <string name="category_all">Все</string>
+    <string name="category_general">Общие</string>
+    <string name="category_connectivity">Подключение</string>
+    <string name="category_sound">Звук</string>
+    <string name="category_display">Экран</string>
+    <string name="category_media">Медиа</string>
+    <string name="category_system">Система</string>
+    <string name="category_battery">Батарея</string>
+    <string name="category_time">Время</string>
+    <string name="category_location">Местоположение</string>
 </resources>

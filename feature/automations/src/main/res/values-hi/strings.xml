@@ -139,4 +139,23 @@
     <string name="charger_ac">AC / दीवार</string>
     <string name="charger_usb">USB</string>
     <string name="charger_wireless">वायरलेस</string>
+    <string name="day_mon">सोम</string>
+    <string name="day_tue">मंगल</string>
+    <string name="day_wed">बुध</string>
+    <string name="day_thu">गुरु</string>
+    <string name="day_fri">शुक्र</string>
+    <string name="day_sat">शनि</string>
+    <string name="day_sun">रवि</string>
+    <string name="occurrence_first">पहला</string>
+    <string name="occurrence_second">दूसरा</string>
+    <string name="occurrence_third">तीसरा</string>
+    <string name="occurrence_fourth">चौथा</string>
+    <string name="occurrence_last">आख़िरी</string>
+    <string name="monthly_weekday_summary">%1$s %2$s</string>
+    <string name="end_summary">अंत में: %1$s</string>
+    <string name="end_leave">जैसा है वैसा छोड़ें</string>
+    <string name="end_turn_on">चालू करें</string>
+    <string name="end_turn_off">बंद करें</string>
+    <string name="end_revert">मूल स्थिति बहाल करें</string>
+    <string name="end_set_value">मान सेट करें</string>
 </resources>

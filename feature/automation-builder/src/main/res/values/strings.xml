@@ -322,9 +322,15 @@
     <string name="pick_trigger_type">Add trigger</string>
     <string name="next_needs_action">Add at least one action</string>
     <string name="no_matching_actions">No matching actions</string>
-    <string name="repeat_weekdays">Weekdays</string>
-    <string name="repeat_weekends">Weekends</string>
     <string name="repeat_monthly">Monthly</string>
+    <string name="repeat_monthly_weekday">Same weekday of month</string>
+    <string name="week_of_month_label">Which week of the month</string>
+    <string name="occurrence_first">1st</string>
+    <string name="occurrence_second">2nd</string>
+    <string name="occurrence_third">3rd</string>
+    <string name="occurrence_fourth">4th</string>
+    <string name="occurrence_last">Last</string>
+    <string name="monthly_weekday_summary">%1$s %2$s</string>
     <string name="month_day_label">Day of month: %1$d</string>
     <string name="trigger_type_notification">Notification</string>
     <string name="trigger_notification">App notification</string>
@@ -369,4 +375,12 @@
     <string name="state_disconnected">Disconnected</string>
     <string name="exit_revert_actions_label">Revert selected actions</string>
     <string name="repeat_selected">Selected: %1$s</string>
+    <string name="end_behavior_label">When the task ends</string>
+    <string name="end_leave">Leave as is</string>
+    <string name="end_turn_on">Turn on</string>
+    <string name="end_turn_off">Turn off</string>
+    <string name="end_revert">Restore original</string>
+    <string name="end_set_value">Set value</string>
+    <string name="cooldown_label">Run cooldown: %1$d s</string>
+    <string name="cooldown_hint">Minimum gap between two runs of this task</string>
 </resources>

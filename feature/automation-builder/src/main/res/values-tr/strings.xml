@@ -323,9 +323,15 @@
     <string name="pick_trigger_type">Tetikleyici ekle</string>
     <string name="next_needs_action">Önce en az bir eylem ekleyin</string>
     <string name="no_matching_actions">Eşleşen eylem yok</string>
-    <string name="repeat_weekdays">Hafta içi</string>
-    <string name="repeat_weekends">Hafta sonu</string>
     <string name="repeat_monthly">Aylık</string>
+    <string name="repeat_monthly_weekday">Ayın aynı günü</string>
+    <string name="week_of_month_label">Ayın kaçıncı haftası</string>
+    <string name="occurrence_first">1.</string>
+    <string name="occurrence_second">2.</string>
+    <string name="occurrence_third">3.</string>
+    <string name="occurrence_fourth">4.</string>
+    <string name="occurrence_last">Son</string>
+    <string name="monthly_weekday_summary">%1$s %2$s</string>
     <string name="month_day_label">Ayın günü: %1$d</string>
     <string name="trigger_type_notification">Bildirim</string>
     <string name="trigger_notification">Uygulama bildirimi</string>
@@ -370,4 +376,12 @@
     <string name="state_disconnected">Bağlı değil</string>
     <string name="exit_revert_actions_label">Seçili işlemleri geri al</string>
     <string name="repeat_selected">Seçilen: %1$s</string>
+    <string name="end_behavior_label">Görev bittiğinde</string>
+    <string name="end_leave">Olduğu gibi bırak</string>
+    <string name="end_turn_on">Aç</string>
+    <string name="end_turn_off">Kapat</string>
+    <string name="end_revert">Orijinali geri yükle</string>
+    <string name="end_set_value">Değer ayarla</string>
+    <string name="cooldown_label">Çalışma aralığı: %1$d sn</string>
+    <string name="cooldown_hint">Bu görevin iki çalışması arasındaki minimum aralık</string>
 </resources>

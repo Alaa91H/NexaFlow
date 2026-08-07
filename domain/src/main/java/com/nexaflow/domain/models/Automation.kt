@@ -16,9 +16,14 @@ data class Automation(
     val exitActions: List<Action> = emptyList(),
     /** When true, exit restores the device to its pre-run state instead of exitActions. */
     val revertOnExit: Boolean = false,
+    /** Minimum gap (seconds) between two runs of this task from the same event. */
+    val cooldownSeconds: Int = 10,
     val createdAt: Long,
     val updatedAt: Long
 )
+
+/** Cooldown as milliseconds for the monitors' event de-duplication. */
+val Automation.cooldownMillis: Long get() = (cooldownSeconds.coerceAtLeast(0)) * 1000L
 
 data class Trigger(
     val type: TriggerType,
@@ -41,8 +46,13 @@ enum class TriggerType {
 
 data class Action(
     val type: ActionType,
-    val config: Map<String, String>
-)
+    val config: Map<String, String>,
+    /** Per-action behavior applied when the task ends (null = leave as is). */
+    val endBehavior: EndBehavior? = null
+) {
+    /** Returns a copy whose run config is replaced (used for SET_VALUE end behavior). */
+    fun withConfig(config: Map<String, String>): Action = copy(config = config)
+}
 
 enum class ActionType {
     SYSTEM_BRIGHTNESS,

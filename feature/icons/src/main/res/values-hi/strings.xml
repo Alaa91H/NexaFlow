@@ -2,4 +2,15 @@
 <resources>
     <string name="choose_icon_title">आइकन चुनें</string>
     <string name="done">हो गया</string>
+    <string name="search_icons">आइकन खोजें</string>
+    <string name="category_all">सभी</string>
+    <string name="category_general">सामान्य</string>
+    <string name="category_connectivity">कनेक्टिविटी</string>
+    <string name="category_sound">ध्वनि</string>
+    <string name="category_display">डिस्प्ले</string>
+    <string name="category_media">मीडिया</string>
+    <string name="category_system">सिस्टम</string>
+    <string name="category_battery">बैटरी</string>
+    <string name="category_time">समय</string>
+    <string name="category_location">स्थान</string>
 </resources>

@@ -2,4 +2,15 @@
 <resources>
     <string name="choose_icon_title">アイコンを選択</string>
     <string name="done">完了</string>
+    <string name="search_icons">アイコンを検索</string>
+    <string name="category_all">すべて</string>
+    <string name="category_general">一般</string>
+    <string name="category_connectivity">接続</string>
+    <string name="category_sound">サウンド</string>
+    <string name="category_display">表示</string>
+    <string name="category_media">メディア</string>
+    <string name="category_system">システム</string>
+    <string name="category_battery">バッテリー</string>
+    <string name="category_time">時間</string>
+    <string name="category_location">場所</string>
 </resources>

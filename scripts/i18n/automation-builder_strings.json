@@ -1,0 +1,112 @@
+{
+  "": {
+    "end_behavior_label": "When the task ends",
+    "end_leave": "Leave as is",
+    "end_turn_on": "Turn on",
+    "end_turn_off": "Turn off",
+    "end_revert": "Restore original",
+    "end_set_value": "Set value",
+    "cooldown_label": "Run cooldown: %1$d s",
+    "cooldown_hint": "Minimum gap between two runs of this task"
+  },
+  "-ar": {
+    "end_behavior_label": "عند انتهاء المهمة",
+    "end_leave": "اتركه كما هو",
+    "end_turn_on": "تشغيل",
+    "end_turn_off": "إيقاف",
+    "end_revert": "استعادة الحالة الأصلية",
+    "end_set_value": "تعيين قيمة",
+    "cooldown_label": "فاصل التشغيل: %1$d ث",
+    "cooldown_hint": "أقل فاصل بين تشغيلين لهذه المهمة"
+  },
+  "-de": {
+    "end_behavior_label": "Wenn die Aufgabe endet",
+    "end_leave": "Unverändert lassen",
+    "end_turn_on": "Einschalten",
+    "end_turn_off": "Ausschalten",
+    "end_revert": "Original wiederherstellen",
+    "end_set_value": "Wert festlegen",
+    "cooldown_label": "Ausführungsintervall: %1$d s",
+    "cooldown_hint": "Mindestabstand zwischen zwei Ausführungen dieser Aufgabe"
+  },
+  "-es": {
+    "end_behavior_label": "Cuando termina la tarea",
+    "end_leave": "Dejar como está",
+    "end_turn_on": "Activar",
+    "end_turn_off": "Desactivar",
+    "end_revert": "Restaurar original",
+    "end_set_value": "Establecer valor",
+    "cooldown_label": "Intervalo de ejecución: %1$d s",
+    "cooldown_hint": "Intervalo mínimo entre dos ejecuciones de esta tarea"
+  },
+  "-fr": {
+    "end_behavior_label": "Quand la tâche se termine",
+    "end_leave": "Laisser tel quel",
+    "end_turn_on": "Activer",
+    "end_turn_off": "Désactiver",
+    "end_revert": "Restaurer l'original",
+    "end_set_value": "Définir une valeur",
+    "cooldown_label": "Intervalle d'exécution : %1$d s",
+    "cooldown_hint": "Intervalle minimum entre deux exécutions de cette tâche"
+  },
+  "-hi": {
+    "end_behavior_label": "जब कार्य समाप्त हो",
+    "end_leave": "जैसा है वैसा छोड़ें",
+    "end_turn_on": "चालू करें",
+    "end_turn_off": "बंद करें",
+    "end_revert": "मूल स्थिति बहाल करें",
+    "end_set_value": "मान सेट करें",
+    "cooldown_label": "रन अंतराल: %1$d सेकंड",
+    "cooldown_hint": "इस कार्य के दो रन के बीच न्यूनतम अंतराल"
+  },
+  "-ja": {
+    "end_behavior_label": "タスク終了時",
+    "end_leave": "そのままにする",
+    "end_turn_on": "オン",
+    "end_turn_off": "オフ",
+    "end_revert": "元に戻す",
+    "end_set_value": "値を設定",
+    "cooldown_label": "実行間隔: %1$d 秒",
+    "cooldown_hint": "このタスクの2回の実行間の最小間隔"
+  },
+  "-pt": {
+    "end_behavior_label": "Quando a tarefa termina",
+    "end_leave": "Deixar como está",
+    "end_turn_on": "Ativar",
+    "end_turn_off": "Desativar",
+    "end_revert": "Restaurar original",
+    "end_set_value": "Definir valor",
+    "cooldown_label": "Intervalo de execução: %1$d s",
+    "cooldown_hint": "Intervalo mínimo entre duas execuções desta tarefa"
+  },
+  "-ru": {
+    "end_behavior_label": "Когда задача завершается",
+    "end_leave": "Оставить как есть",
+    "end_turn_on": "Включить",
+    "end_turn_off": "Выключить",
+    "end_revert": "Восстановить исходное",
+    "end_set_value": "Задать значение",
+    "cooldown_label": "Интервал запуска: %1$d с",
+    "cooldown_hint": "Минимальный интервал между двумя запусками этой задачи"
+  },
+  "-tr": {
+    "end_behavior_label": "Görev bittiğinde",
+    "end_leave": "Olduğu gibi bırak",
+    "end_turn_on": "Aç",
+    "end_turn_off": "Kapat",
+    "end_revert": "Orijinali geri yükle",
+    "end_set_value": "Değer ayarla",
+    "cooldown_label": "Çalışma aralığı: %1$d sn",
+    "cooldown_hint": "Bu görevin iki çalışması arasındaki minimum aralık"
+  },
+  "-zh-rCN": {
+    "end_behavior_label": "任务结束时",
+    "end_leave": "保持原样",
+    "end_turn_on": "开启",
+    "end_turn_off": "关闭",
+    "end_revert": "恢复原始状态",
+    "end_set_value": "设置数值",
+    "cooldown_label": "运行间隔：%1$d 秒",
+    "cooldown_hint": "此任务两次运行之间的最小间隔"
+  }
+}

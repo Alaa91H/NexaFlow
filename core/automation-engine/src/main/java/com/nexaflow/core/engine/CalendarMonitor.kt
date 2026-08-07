@@ -13,6 +13,7 @@ import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.TriggerType
+import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -202,7 +203,7 @@ class CalendarMonitor @Inject constructor(
     private fun fire(automation: Automation) {
         val now = System.currentTimeMillis()
         val last = lastRunAt[automation.id] ?: 0L
-        if (now - last <= COOLDOWN_MS) return
+        if (now - last <= automation.cooldownMillis) return
         lastRunAt[automation.id] = now
         scope.launch { executionEngine.runAutomation(automation) }
     }
@@ -315,7 +316,6 @@ class CalendarMonitor @Inject constructor(
     )
 
     companion object {
-        private const val COOLDOWN_MS = 5_000L
         private const val RESCAN_INTERVAL_MS = 60_000L
         private const val LOOK_BEHIND_MS = 2 * 60 * 60 * 1000L
         private const val LOOK_AHEAD_MS = 3 * 24 * 60 * 60 * 1000L

@@ -323,9 +323,15 @@
     <string name="pick_trigger_type">添加触发器</string>
     <string name="next_needs_action">请先添加至少一个操作</string>
     <string name="no_matching_actions">没有匹配的操作</string>
-    <string name="repeat_weekdays">工作日</string>
-    <string name="repeat_weekends">周末</string>
     <string name="repeat_monthly">每月</string>
+    <string name="repeat_monthly_weekday">每月同一天</string>
+    <string name="week_of_month_label">每月的第几周</string>
+    <string name="occurrence_first">第1周</string>
+    <string name="occurrence_second">第2周</string>
+    <string name="occurrence_third">第3周</string>
+    <string name="occurrence_fourth">第4周</string>
+    <string name="occurrence_last">最后一周</string>
+    <string name="monthly_weekday_summary">%1$s %2$s</string>
     <string name="month_day_label">每月第 %1$d 天</string>
     <string name="trigger_type_notification">通知</string>
     <string name="trigger_notification">应用通知</string>
@@ -370,4 +376,12 @@
     <string name="state_disconnected">未连接</string>
     <string name="exit_revert_actions_label">还原所选操作</string>
     <string name="repeat_selected">已选择: %1$s</string>
+    <string name="end_behavior_label">任务结束时</string>
+    <string name="end_leave">保持原样</string>
+    <string name="end_turn_on">开启</string>
+    <string name="end_turn_off">关闭</string>
+    <string name="end_revert">恢复原始状态</string>
+    <string name="end_set_value">设置数值</string>
+    <string name="cooldown_label">运行间隔：%1$d 秒</string>
+    <string name="cooldown_hint">此任务两次运行之间的最小间隔</string>
 </resources>

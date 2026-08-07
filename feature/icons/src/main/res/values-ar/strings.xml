@@ -2,4 +2,15 @@
 <resources>
     <string name="choose_icon_title">اختر أيقونة</string>
     <string name="done">تم</string>
+    <string name="search_icons">ابحث في الأيقونات</string>
+    <string name="category_all">الكل</string>
+    <string name="category_general">عام</string>
+    <string name="category_connectivity">الاتصال</string>
+    <string name="category_sound">الصوت</string>
+    <string name="category_display">العرض</string>
+    <string name="category_media">الوسائط</string>
+    <string name="category_system">النظام</string>
+    <string name="category_battery">البطارية</string>
+    <string name="category_time">الوقت</string>
+    <string name="category_location">الموقع</string>
 </resources>

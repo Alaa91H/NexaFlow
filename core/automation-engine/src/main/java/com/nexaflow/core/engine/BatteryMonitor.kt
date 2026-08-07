@@ -11,6 +11,7 @@ import com.nexaflow.core.execution.compat.EventSource
 import com.nexaflow.core.execution.compat.TriggerSource
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.TriggerType
+import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.schedule.BatteryTriggerMatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -103,8 +104,10 @@ class BatteryMonitor @Inject constructor(
                             "${automation.id}|$plugType"
                         }
                     if (active) {
-                        if (activeBatteryTriggers.add(key)) {
-                            lastRunAt[automation.id] = System.currentTimeMillis()
+                        val last = lastRunAt[automation.id] ?: 0L
+                        val now = System.currentTimeMillis()
+                        if (activeBatteryTriggers.add(key) && now - last > automation.cooldownMillis) {
+                            lastRunAt[automation.id] = now
                             executionEngine.runAutomation(automation)
                         }
                     } else {

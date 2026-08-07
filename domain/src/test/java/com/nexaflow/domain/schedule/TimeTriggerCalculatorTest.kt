@@ -174,6 +174,99 @@ class TimeTriggerCalculatorTest {
     }
 
     @Test
+    fun `monthly weekday first monday fires on the first monday of the month`() {
+        // August 2026: Mondays are the 3rd, 10th, 17th, 24th, 31st.
+        val from = millisOf(2026, 8, 1, 0, 0)
+        val config = mapOf(
+            "time" to "08:00",
+            "repeat" to "MONTHLY_WEEKDAY",
+            "weekday" to "1",
+            "weekOfMonth" to "1"
+        )
+        val next = TimeTriggerCalculator.nextFireTime(config, from)
+        assertNotNull(next)
+        assertEquals(LocalDate.of(2026, 8, 3), localDateOf(next!!))
+    }
+
+    @Test
+    fun `monthly weekday second wednesday fires on the 2nd wednesday`() {
+        // August 2026: Wednesdays are the 5th, 12th, 19th, 26th.
+        val from = millisOf(2026, 8, 1, 0, 0)
+        val config = mapOf(
+            "time" to "08:00",
+            "repeat" to "MONTHLY_WEEKDAY",
+            "weekday" to "3",
+            "weekOfMonth" to "2"
+        )
+        val next = TimeTriggerCalculator.nextFireTime(config, from)
+        assertNotNull(next)
+        assertEquals(LocalDate.of(2026, 8, 12), localDateOf(next!!))
+    }
+
+    @Test
+    fun `monthly weekday last friday fires on the final friday`() {
+        // August 2026: Fridays are the 7th, 14th, 21st, 28th.
+        val from = millisOf(2026, 8, 1, 0, 0)
+        val config = mapOf(
+            "time" to "08:00",
+            "repeat" to "MONTHLY_WEEKDAY",
+            "weekday" to "5",
+            "weekOfMonth" to "LAST"
+        )
+        val next = TimeTriggerCalculator.nextFireTime(config, from)
+        assertNotNull(next)
+        assertEquals(LocalDate.of(2026, 8, 28), localDateOf(next!!))
+    }
+
+    @Test
+    fun `monthly weekday rolls to the next month when the occurrence passed`() {
+        // After the 1st Monday of August (the 3rd), the next 1st Monday is in September.
+        val from = millisOf(2026, 8, 4, 0, 0)
+        val config = mapOf(
+            "time" to "08:00",
+            "repeat" to "MONTHLY_WEEKDAY",
+            "weekday" to "1",
+            "weekOfMonth" to "1"
+        )
+        val next = TimeTriggerCalculator.nextFireTime(config, from)
+        assertNotNull(next)
+        assertEquals(LocalDate.of(2026, 9, 7), localDateOf(next!!))
+    }
+
+    @Test
+    fun `monthly weekday does not fire on the same weekday of a different occurrence`() {
+        // 2026-08-10 is the 2nd Monday; config asks for the 1st Monday only.
+        val from = millisOf(2026, 8, 10, 0, 0)
+        val config = mapOf(
+            "time" to "08:00",
+            "repeat" to "MONTHLY_WEEKDAY",
+            "weekday" to "1",
+            "weekOfMonth" to "1"
+        )
+        val next = TimeTriggerCalculator.nextFireTime(config, from)
+        assertNotNull(next)
+        // Skips to the 1st Monday of September (the 7th).
+        assertEquals(LocalDate.of(2026, 9, 7), localDateOf(next!!))
+    }
+
+    @Test
+    fun `monthly weekday time range schedules at range start on the matching day`() {
+        // First Sunday of August 2026 is the 2nd.
+        val from = millisOf(2026, 8, 1, 7, 0)
+        val config = mapOf(
+            "timeMode" to "RANGE",
+            "rangeStart" to "22:00",
+            "rangeEnd" to "06:00",
+            "repeat" to "MONTHLY_WEEKDAY",
+            "weekday" to "7",
+            "weekOfMonth" to "1"
+        )
+        val next = TimeTriggerCalculator.nextFireTime(config, from)
+        assertNotNull(next)
+        assertEquals(LocalDate.of(2026, 8, 2), localDateOf(next!!))
+    }
+
+    @Test
     fun `weekdays fires monday to friday only`() {
         // 2026-08-07 is a Friday; the next fire must stay on a weekday.
         val from = millisOf(2026, 8, 7, 12, 0)

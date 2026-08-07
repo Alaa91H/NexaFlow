@@ -332,6 +332,61 @@ fun PermissionHintForAction(
 }
 
 object PermissionShortcuts {
+    /**
+     * True when the special permission is already granted on this device, so
+     * the aggressive flow skips already-satisfied requirements.
+     */
+    fun isGranted(context: Context, type: SpecialPermission): Boolean = try {
+        when (type) {
+            SpecialPermission.WRITE_SETTINGS -> Settings.System.canWrite(context)
+            SpecialPermission.DND_ACCESS -> {
+                val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+                nm.isNotificationPolicyAccessGranted
+            }
+            SpecialPermission.NOTIFICATION_ACCESS -> {
+                val flat = Settings.Secure.getString(
+                    context.contentResolver,
+                    "enabled_notification_listeners"
+                ).orEmpty()
+                flat.split(':').any { it == context.packageName }
+            }
+            SpecialPermission.ACCESSIBILITY -> {
+                val enabled = Settings.Secure.getString(
+                    context.contentResolver,
+                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+                ).orEmpty()
+                enabled.split(':').any { it.contains(context.packageName) }
+            }
+            // The builder module has no Shizuku API dependency; treat it as not
+            // granted so the explain flow offers the manager screen (which is
+            // the only actionable step from here anyway).
+            SpecialPermission.SHIZUKU -> false
+            SpecialPermission.ROOT -> {
+                // Best-effort: a root shell answers.
+                runCatching {
+                    val process = Runtime.getRuntime().exec("su -c echo ok")
+                    val ok = process.inputStream.bufferedReader().readText().trim() == "ok"
+                    process.destroy()
+                    ok
+                }.getOrDefault(false)
+            }
+            SpecialPermission.ELEVATED -> {
+                // Elevated covers root/Shizuku/system; grant is best-effort.
+                isGranted(context, SpecialPermission.ROOT) ||
+                    isGranted(context, SpecialPermission.SHIZUKU)
+            }
+            SpecialPermission.BLUETOOTH -> {
+                android.Manifest.permission.BLUETOOTH_CONNECT in context.packageManager
+                    .getPackageInfo(context.packageName, 0)
+                    .requestedPermissions.orEmpty() &&
+                    context.checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) ==
+                    android.content.pm.PackageManager.PERMISSION_GRANTED
+            }
+        }
+    } catch (_: Throwable) {
+        false
+    }
+
     /** Opens the dedicated system screen for a special permission. */
     fun openSpecial(context: Context, type: SpecialPermission) {
         when (type) {

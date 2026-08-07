@@ -7,6 +7,7 @@ import android.net.NetworkCapabilities
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
+import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -91,7 +92,7 @@ class ConnectivityMonitor @Inject constructor(
                     }
                     if (networkMatch && state == desiredState) {
                         val last = lastRunAt[automation.id] ?: 0L
-                        if (now - last > COOLDOWN_MS) {
+                        if (now - last > automation.cooldownMillis) {
                             lastRunAt[automation.id] = now
                             activeStates[automation.id] = state
                             executionEngine.runAutomation(automation)
@@ -105,7 +106,4 @@ class ConnectivityMonitor @Inject constructor(
         }
     }
 
-    companion object {
-        private const val COOLDOWN_MS = 5_000L
-    }
 }

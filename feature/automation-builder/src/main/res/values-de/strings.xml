@@ -323,9 +323,15 @@
     <string name="pick_trigger_type">Auslöser hinzufügen</string>
     <string name="next_needs_action">Füge zuerst mindestens eine Aktion hinzu</string>
     <string name="no_matching_actions">Keine passenden Aktionen</string>
-    <string name="repeat_weekdays">Wochentage</string>
-    <string name="repeat_weekends">Wochenende</string>
     <string name="repeat_monthly">Monatlich</string>
+    <string name="repeat_monthly_weekday">Gleicher Wochentag im Monat</string>
+    <string name="week_of_month_label">Welche Woche des Monats</string>
+    <string name="occurrence_first">1.</string>
+    <string name="occurrence_second">2.</string>
+    <string name="occurrence_third">3.</string>
+    <string name="occurrence_fourth">4.</string>
+    <string name="occurrence_last">Letzte</string>
+    <string name="monthly_weekday_summary">%1$s %2$s</string>
     <string name="month_day_label">Tag des Monats: %1$d</string>
     <string name="trigger_type_notification">Benachrichtigung</string>
     <string name="trigger_notification">App-Benachrichtigung</string>
@@ -370,4 +376,12 @@
     <string name="state_disconnected">Getrennt</string>
     <string name="exit_revert_actions_label">Ausgewählte Aktionen zurücksetzen</string>
     <string name="repeat_selected">Ausgewählt: %1$s</string>
+    <string name="end_behavior_label">Wenn die Aufgabe endet</string>
+    <string name="end_leave">Unverändert lassen</string>
+    <string name="end_turn_on">Einschalten</string>
+    <string name="end_turn_off">Ausschalten</string>
+    <string name="end_revert">Original wiederherstellen</string>
+    <string name="end_set_value">Wert festlegen</string>
+    <string name="cooldown_label">Ausführungsintervall: %1$d s</string>
+    <string name="cooldown_hint">Mindestabstand zwischen zwei Ausführungen dieser Aufgabe</string>
 </resources>
