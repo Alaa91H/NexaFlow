@@ -73,6 +73,11 @@ object SystemAppStatusDetector {
         return result
     }
 
+    /** Drops the cached probe result so the next check re-probes the device. */
+    fun refreshRootAvailability() {
+        rootProbeAt = 0L
+    }
+
     @Volatile
     private var rootProbeResult = false
     @Volatile
@@ -81,23 +86,55 @@ object SystemAppStatusDetector {
     // quickly by the permission manager without re-spawning a process too often.
     private const val ROOT_PROBE_TTL_MS = 5_000L
 
+    private val suPaths = listOf(
+        "/system/bin/su",
+        "/system/xbin/su",
+        "/sbin/su",
+        "/su/bin/su",
+        "/vendor/bin/su",
+        "/system/sbin/su",
+        "/data/adb/magisk/busybox",
+        "/data/adb/ksu/bin/su",
+        "/data/adb/ap/bin/su"
+    )
+
     private fun probeRoot(): Boolean {
         // Fast path: classic static su locations (legacy SuperSU, some OEM ROMs).
-        val suPaths = listOf(
-            "/system/bin/su",
-            "/system/xbin/su",
-            "/sbin/su",
-            "/su/bin/su",
-            "/vendor/bin/su",
-            "/system/sbin/su",
-            "/data/adb/magisk/busybox",
-            "/data/adb/ksu/bin/su",
-            "/data/adb/ap/bin/su"
-        )
         if (suPaths.any { File(it).exists() }) return true
         // Definitive probe: resolve su from PATH (Magisk/KernelSU/APatch) and
         // run `id` as root. A successful uid=0 answer means root really works.
         return suAnswersAsRoot()
+    }
+
+    /**
+     * True when a root manager's `su` binary is present, regardless of whether
+     * this app has been granted yet. Resolves `su` from PATH with `command -v`
+     * (Magisk/KernelSU/APatch expose it dynamically) without actually invoking
+     * it, so no grant dialog is triggered by mere detection.
+     */
+    fun isSuBinaryAvailable(): Boolean {
+        if (suPaths.any { File(it).exists() }) return true
+        return try {
+            val process = ProcessBuilder("sh", "-c", "command -v su")
+                .redirectErrorStream(true)
+                .start()
+            val output = StringBuilder()
+            val reader = Thread {
+                output.append(process.inputStream.bufferedReader().readText())
+            }
+            reader.start()
+            val exited = process.waitFor(2, TimeUnit.SECONDS)
+            if (!exited) {
+                process.destroyForcibly()
+                reader.join(1000)
+                return false
+            }
+            reader.join(1000)
+            process.destroy()
+            output.isNotBlank()
+        } catch (_: Throwable) {
+            false
+        }
     }
 
     private fun suAnswersAsRoot(): Boolean {

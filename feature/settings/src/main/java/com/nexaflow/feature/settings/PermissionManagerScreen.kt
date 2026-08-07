@@ -254,7 +254,14 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
             subtitleRes = R.string.root_permission_sub,
             icon = Icons.Filled.Terminal,
             isGranted = { PrivilegedRunner.isRootAvailable() },
-            openAction = { context -> ElevatedAccessShortcuts.openRootManager(context) }
+            // Request root through the root manager's grant dialog (one tap),
+            // never through app info. If the prompt is denied/times out, fall
+            // back to opening the root manager app so the user can grant there.
+            openAction = { context ->
+                ElevatedAccessShortcuts.requestRootAccess(context) { granted ->
+                    if (!granted) ElevatedAccessShortcuts.openRootManager(context)
+                }
+            }
         ),
         PermissionEntry(
             key = "shizuku",

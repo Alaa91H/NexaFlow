@@ -390,8 +390,19 @@ object PermissionShortcuts {
             // Shizuku: request the permission in-app when the server is already
             // running (one tap, no detour); otherwise open the Shizuku app.
             SpecialPermission.SHIZUKU -> ElevatedAccessShortcuts.openShizuku(context)
-            SpecialPermission.ROOT,
-            SpecialPermission.ELEVATED -> ElevatedAccessShortcuts.openRootManager(context)
+            // Root: trigger the root manager's allow/deny grant dialog directly
+            // (Magisk/KernelSU/APatch) instead of opening app info — one tap to
+            // grant, exactly how Tasker/Termux request root.
+            SpecialPermission.ROOT -> ElevatedAccessShortcuts.requestRootAccess(context)
+            // Elevated actions run through root, Shizuku, or a system app; prefer
+            // an in-app Shizuku grant when available, otherwise the root dialog.
+            SpecialPermission.ELEVATED -> {
+                if (PrivilegedRunner.isShizukuRunning()) {
+                    ElevatedAccessShortcuts.openShizuku(context)
+                } else {
+                    ElevatedAccessShortcuts.requestRootAccess(context)
+                }
+            }
             SpecialPermission.BLUETOOTH -> openBluetoothSettings(context)
         }
     }
@@ -417,16 +428,6 @@ object PermissionShortcuts {
     fun openAccessibilitySettings(context: Context) {
         try {
             context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-        } catch (_: Throwable) {
-            context.startActivity(Intent(Settings.ACTION_SETTINGS))
-        }
-    }
-
-    fun openAppSettings(context: Context) {
-        try {
-            context.startActivity(
-                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))
-            )
         } catch (_: Throwable) {
             context.startActivity(Intent(Settings.ACTION_SETTINGS))
         }

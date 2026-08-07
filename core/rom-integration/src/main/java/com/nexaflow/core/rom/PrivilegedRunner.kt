@@ -5,6 +5,7 @@ import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.core.security.SafeCommandBuilder
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuRemoteProcess
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 object PrivilegedRunner {
@@ -98,6 +99,65 @@ object PrivilegedRunner {
         }
     }
 
+    /**
+     * Actually invokes `su` with a long timeout so the root manager
+     * (Magisk/KernelSU/APatch) can show its allow/deny grant dialog and wait
+     * for the user. Returns true once the shell answers as uid=0 (granted).
+     * This is the same mechanism Tasker/libsu use to request root in one tap.
+     *
+     * Tries the same invocation forms as [runRoot]: bare `su` (PATH-resolved,
+     * Magisk/KernelSU/APatch), `su 0` (some APatch builds) and the classic
+     * `/system/bin/su` (legacy SuperSU/OEM ROMs where su is not on PATH). It
+     * only falls through when the binary itself is missing (command not found)
+     * — a denial or timeout from one form stops the loop so the user is not
+     * spammed with repeated grant dialogs.
+     */
+    fun triggerSuPrompt(): Boolean {
+        if (!SystemAppStatusDetector.isSuBinaryAvailable()) return false
+        val attempts = listOf(
+            arrayOf("su", "-c", "id"),
+            arrayOf("su", "0", "-c", "id"),
+            arrayOf("/system/bin/su", "-c", "id")
+        )
+        for (attempt in attempts) {
+            val outcome = runSuGrantProbe(attempt)
+            // null = binary not found at this location → try the next one.
+            if (outcome == null) continue
+            return outcome
+        }
+        return false
+    }
+
+    /**
+     * Runs one su grant probe. Returns true (granted), false (denied or
+     * timed-out), or null when the binary was not found (command not found).
+     */
+    private fun runSuGrantProbe(cmd: Array<String>): Boolean? {
+        return try {
+            val process = ProcessBuilder(*cmd).redirectErrorStream(true).start()
+            val output = StringBuilder()
+            val reader = Thread {
+                output.append(process.inputStream.bufferedReader().readText())
+            }
+            reader.start()
+            // Long timeout: the grant dialog stays up until the user answers.
+            val exited = process.waitFor(SU_GRANT_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            if (!exited) {
+                process.destroyForcibly()
+                reader.join(1000)
+                return false
+            }
+            reader.join(1000)
+            val exit = process.exitValue()
+            process.destroy()
+            exit == 0 && output.contains("uid=0")
+        } catch (_: IOException) {
+            null // binary not present at this location
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
     fun runRoot(command: String): SystemControlResult {
         if (!isRootAvailable()) {
             return SystemControlResult.fail(
@@ -155,4 +215,5 @@ object PrivilegedRunner {
     }
 
     private const val ROOT_TIMEOUT_MS = 10_000L
+    private const val SU_GRANT_TIMEOUT_MS = 30_000L
 }
