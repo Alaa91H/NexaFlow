@@ -1,6 +1,9 @@
 package com.nexaflow.domain.models
 
+import androidx.compose.runtime.Immutable
+
 /** Outcome of one action inside an execution run, kept for the run-details timeline. */
+@Immutable
 data class ActionExecutionResult(
     /** ActionType.name (e.g. "SYSTEM_BRIGHTNESS"). */
     val actionType: String,
@@ -17,6 +20,7 @@ data class ActionExecutionResult(
  * per-action timeline (each action's outcome + duration) shown on the run
  * details screen; empty for pre-v7 records.
  */
+@Immutable
 data class ExecutionRecord(
     val id: String,
     val automationId: String,

@@ -122,6 +122,34 @@ object Migrations {
         }
     }
 
+    /**
+     * v8 -> v9: adds the global variables table backing the Tasker-style
+     * %variable system. Purely additive — no existing table changes.
+     */
+    val MIGRATION_8_9 = object : Migration(8, 9) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `global_variables` (" +
+                    "`id` TEXT NOT NULL, " +
+                    "`name` TEXT NOT NULL, " +
+                    "`value` TEXT NOT NULL, " +
+                    "`updatedAt` INTEGER NOT NULL, " +
+                    "PRIMARY KEY(`id`))"
+            )
+        }
+    }
+
+    /**
+     * v9 -> v10: adds the constraints column to automations (JSON-encoded gate
+     * checks). Default '[]' keeps every existing row valid — constraints are
+     * optional and an empty list means "no gate".
+     */
+    val MIGRATION_9_10 = object : Migration(9, 10) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `automations` ADD COLUMN `constraintsJson` TEXT NOT NULL DEFAULT '[]'")
+        }
+    }
+
     val ALL = listOf(
         MIGRATION_1_2,
         MIGRATION_2_3,
@@ -129,6 +157,8 @@ object Migrations {
         MIGRATION_4_5,
         MIGRATION_5_6,
         MIGRATION_6_7,
-        MIGRATION_7_8
+        MIGRATION_7_8,
+        MIGRATION_8_9,
+        MIGRATION_9_10
     )
 }

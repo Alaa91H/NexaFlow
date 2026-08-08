@@ -15,4 +15,12 @@
     <string name="section_capabilities">Fähigkeiten</string>
     <string name="section_about">Über</string>
     <string name="security_patch">Sicherheitspatch: %1$s</string>
+    <string name="section_sms">SMS</string>
+    <string name="sms_android17_title">Android-17-SMS-Verzögerung</string>
+    <string name="sms_android17_body">Unter Android 17 werden Verifizierungs-SMS Apps mit Ziel-SDK 37 drei Stunden lang verborgen. Aktiviere unten die Sofort-Zustellung, um sie über einen Zustimmungsdialog sofort zu lesen — ohne SMS-Berechtigung.</string>
+    <string name="sms_consent_label">Sofort-Zustellung (Zustimmungsdialog)</string>
+    <string name="sms_consent_sub">Systemdialog zum Genehmigen jeder eingehenden Nachricht anzeigen</string>
+    <string name="sms_consent_arm">Jetzt zuhören</string>
+    <string name="sms_consent_listening">Hört zu</string>
+    <string name="sms_consent_unavailable">Google Play-Dienste für sofortige SMS-Zustellung erforderlich</string>
 </resources>

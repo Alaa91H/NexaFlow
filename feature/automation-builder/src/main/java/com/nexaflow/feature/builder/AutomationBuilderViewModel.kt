@@ -4,19 +4,51 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.Constraint
+import com.nexaflow.domain.models.GlobalVariable
+import com.nexaflow.domain.models.PluginInfo
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.repositories.AutomationRepository
+import com.nexaflow.domain.repositories.PluginRepository
+import com.nexaflow.domain.repositories.VariableRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class AutomationBuilderViewModel @Inject constructor(
-    private val repository: AutomationRepository
+    private val repository: AutomationRepository,
+    private val variableRepository: VariableRepository,
+    private val pluginRepository: PluginRepository
 ) : ViewModel() {
+
+    /** User-defined global variables, so the editor can offer %VAR insertion. */
+    val variables: StateFlow<List<GlobalVariable>> = variableRepository.getVariables()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /**
+     * All saved tasks, so the notification action can attach interactive
+     * buttons that run another task straight from the notification.
+     */
+    val automations: StateFlow<List<Automation>> = repository.getAutomations()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Installed external plugins (Locale protocol), for the plugin action. */
+    private val _plugins = MutableStateFlow<List<PluginInfo>>(emptyList())
+    val plugins: StateFlow<List<PluginInfo>> = _plugins
+
+    /** Re-discovers installed plugins from the package manager. */
+    fun refreshPlugins() {
+        viewModelScope.launch {
+            _plugins.value = runCatching { pluginRepository.discoverPlugins() }
+                .getOrDefault(_plugins.value)
+        }
+    }
 
     /** Draft id reused across quick-saves so they update instead of duplicating. */
     private var draftId: String? = null
@@ -43,6 +75,7 @@ class AutomationBuilderViewModel @Inject constructor(
         icon: String,
         triggers: List<Trigger>,
         actions: List<Action>,
+        constraints: List<Constraint> = emptyList(),
         exitActions: List<Action> = emptyList(),
         revertOnExit: Boolean = false,
         cooldownSeconds: Int = 10
@@ -63,6 +96,7 @@ class AutomationBuilderViewModel @Inject constructor(
                 enabled = prev?.enabled ?: true,
                 triggers = triggers,
                 actions = actions,
+                constraints = constraints,
                 exitActions = exitActions,
                 revertOnExit = revertOnExit,
                 cooldownSeconds = cooldownSeconds,

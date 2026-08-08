@@ -18,6 +18,8 @@ import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.NotificationImportant
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Place
@@ -58,6 +60,8 @@ import com.nexaflow.core.ui.iconVector
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.Constraint
+import com.nexaflow.domain.models.ConstraintType
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 
@@ -175,6 +179,32 @@ fun AutomationDetailsScreen(navController: NavController) {
                         }
                     }
                 }
+                SectionHeader(text = stringResource(R.string.section_constraints))
+                NexaFlowCard {
+                    if (current.constraints.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.no_constraints),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    } else {
+                        current.constraints.forEach { constraint ->
+                            val (titleRes, icon) = constraintPresentation(constraint.type)
+                            SettingRow(
+                                icon = icon,
+                                title = stringResource(titleRes),
+                                subtitle = stringResource(R.string.constraint_subtitle),
+                                trailing = {
+                                    Text(
+                                        text = constraintDetail(constraint.config),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
                 SectionHeader(text = stringResource(R.string.section_actions))
                 NexaFlowCard {
                     if (current.actions.isEmpty()) {
@@ -234,6 +264,24 @@ fun AutomationDetailsScreen(navController: NavController) {
                 }
             }
         }
+    }
+}
+
+private fun constraintPresentation(type: ConstraintType): Pair<Int, ImageVector> = when (type) {
+    ConstraintType.WIFI -> R.string.constraint_type_wifi to Icons.Filled.Wifi
+    ConstraintType.BATTERY -> R.string.constraint_type_battery to Icons.Filled.BatteryChargingFull
+    ConstraintType.SCREEN_LOCKED -> R.string.constraint_type_screen_locked to Icons.Filled.Lock
+    ConstraintType.HEADSET -> R.string.constraint_type_headset to Icons.Filled.Headphones
+}
+
+/** Human-readable constraint detail (e.g. battery "< 20%"). */
+private fun constraintDetail(config: Map<String, String>): String {
+    val direction = config["direction"]
+    val level = config["level"]
+    return when {
+        direction != null && level != null ->
+            if (direction == "ABOVE") "> $level%" else "< $level%"
+        else -> "✓"
     }
 }
 

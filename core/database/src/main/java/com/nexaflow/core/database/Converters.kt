@@ -4,10 +4,23 @@ import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.nexaflow.domain.models.Action
+import com.nexaflow.domain.models.Constraint
 import com.nexaflow.domain.models.Trigger
 
 class Converters {
     private val gson = Gson()
+
+    @TypeConverter
+    fun fromConstraintList(value: List<Constraint>): String {
+        val type = object : TypeToken<List<Constraint>>() {}.type
+        return gson.toJson(value, type)
+    }
+
+    @TypeConverter
+    fun toConstraintList(value: String): List<Constraint> {
+        val type = object : TypeToken<List<Constraint>>() {}.type
+        return gson.fromJson(value, type)
+    }
 
     @TypeConverter
     fun fromTriggerList(value: List<Trigger>): String {

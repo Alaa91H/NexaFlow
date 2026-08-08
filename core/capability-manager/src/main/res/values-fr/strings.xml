@@ -15,4 +15,12 @@
     <string name="section_capabilities">Capacités</string>
     <string name="section_about">À propos</string>
     <string name="security_patch">Correctif de sécurité : %1$s</string>
+    <string name="section_sms">SMS</string>
+    <string name="sms_android17_title">Délai SMS Android 17</string>
+    <string name="sms_android17_body">Sur Android 17, les SMS de vérification sont masqués aux applications ciblant le SDK 37 pendant 3 heures. Activez la livraison instantanée pour les lire immédiatement via une boîte de consentement, sans permission SMS.</string>
+    <string name="sms_consent_label">Livraison instantanée (boîte de consentement)</string>
+    <string name="sms_consent_sub">Afficher une boîte de dialogue système pour approuver chaque message</string>
+    <string name="sms_consent_arm">Commencer à écouter</string>
+    <string name="sms_consent_listening">"À l'écoute"</string>
+    <string name="sms_consent_unavailable">Google Play services requis pour la livraison instantanée des SMS</string>
 </resources>

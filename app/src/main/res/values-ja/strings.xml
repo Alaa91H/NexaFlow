@@ -9,4 +9,10 @@
     <string name="widget_action">すべて有効にする</string>
 
     <!-- Bottom navigation -->
+    <string name="widget_no_automations">自動化はありません</string>
+    <string name="widget_active_count">%1$d / %2$d アクティブ</string>
+    <string name="widget_enable_all">すべて有効にする</string>
+    <string name="widget_disable_all">すべて無効にする</string>
+    <string name="widget_status_count_format">%1$d / %2$d</string>
+    <string name="widget_last_run_format">最終実行: %1$s</string>
 </resources>

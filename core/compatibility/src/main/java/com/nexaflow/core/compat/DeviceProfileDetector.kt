@@ -2,7 +2,7 @@ package com.nexaflow.core.compat
 
 import android.content.Context
 import android.os.Build
-import android.provider.Settings
+import com.nexaflow.core.rom.PermissionStatus
 import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.rom.RomIntegrationManager
 import com.nexaflow.core.rom.SystemAppStatusDetector
@@ -28,13 +28,6 @@ object DeviceProfileDetector {
     }
 
     /** True when our AccessibilityService is among the enabled services. */
-    private fun isAccessibilityEnabled(context: Context): Boolean {
-        return runCatching {
-            val enabled = Settings.Secure.getString(
-                context.contentResolver,
-                "enabled_accessibility_services"
-            ) ?: return false
-            enabled.split(':').any { it == context.packageName }
-        }.getOrDefault(false)
-    }
+    private fun isAccessibilityEnabled(context: Context): Boolean =
+        PermissionStatus.isAccessibilityServiceEnabled(context)
 }

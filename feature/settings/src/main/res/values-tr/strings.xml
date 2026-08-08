@@ -88,4 +88,21 @@
     <string name="root_permission_sub">Gelişmiş komutlar için süper kullanıcı erişimi verin</string>
     <string name="shizuku_permission">Shizuku</string>
     <string name="shizuku_permission_sub">Shizuku hizmeti üzerinden gelişmiş komutlar çalıştırın</string>
+    <string name="oem_compat_title">NexaFlow\'un arka planda çalışmasını sağlayın</string>
+    <string name="oem_compat_sub">Bu ROM, NexaFlow\'u arka planda durdurabilir. Görevlerinizin her zaman güvenilir şekilde çalışması için otomatik başlatmaya izin verin.</string>
+    <string name="oem_compat_action">Ayarları aç</string>
+    <string name="dismiss">Kapat</string>
+    <string name="plugins">Eklentiler</string>
+    <string name="plugins_sub">Harici eklenti işlemlerini yönet</string>
+    <string name="plugin_manager_title">Eklentiler</string>
+    <string name="plugin_manager_sub">Bu cihazda yüklü harici otomasyon eklentileri</string>
+    <string name="plugin_refresh">Yenile</string>
+    <string name="plugin_test">Test</string>
+    <string name="plugin_no_plugins">Yüklü eklenti yok</string>
+    <string name="plugin_no_plugins_hint">Yeni işlemler eklemek için Tasker veya MacroDroid uyumlu bir eklenti kurun</string>
+    <string name="plugin_open_info">Uygulama bilgisi</string>
+    <string name="plugin_test_failed">Eklenti başarısız</string>
+    <string name="plugin_test_timeout">Eklenti zamanında yanıt vermedi</string>
+    <string name="plugin_test_pending">Eklenti hâlâ çalışıyor</string>
+    <string name="plugin_test_success">Eklenti başarıyla yanıt verdi</string>
 </resources>

@@ -20,6 +20,8 @@ jobs:
         cache: gradle
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+    - name: Verify string parity across all locales
+      run: python3 scripts/check_strings_parity.py
     - name: Run Android Lint
       run: ./gradlew lintDebug
     - name: Upload Lint Report

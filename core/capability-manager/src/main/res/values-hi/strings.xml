@@ -15,4 +15,12 @@
     <string name="section_capabilities">क्षमताएँ</string>
     <string name="section_about">परिचय</string>
     <string name="security_patch">सुरक्षा पैच: %1$s</string>
+    <string name="section_sms">एसएमएस</string>
+    <string name="sms_android17_title">Android 17 SMS विलंब</string>
+    <string name="sms_android17_body">Android 17 पर, SDK 37 लक्षित करने वाले ऐप्स से सत्यापन SMS 3 घंटे के लिए छिपाए जाते हैं। सहमति संवाद के माध्यम से तुरंत पढ़ने के लिए नीचे त्वरित डिलीवरी सक्षम करें — बिना SMS अनुमति के।</string>
+    <string name="sms_consent_label">त्वरित डिलीवरी (सहमति संवाद)</string>
+    <string name="sms_consent_sub">प्रत्येक आने वाले संदेश को स्वीकृत करने के लिए सिस्टम संवाद दिखाएं</string>
+    <string name="sms_consent_arm">अभी सुनना शुरू करें</string>
+    <string name="sms_consent_listening">सुन रहा है</string>
+    <string name="sms_consent_unavailable">त्वरित SMS डिलीवरी के लिए Google Play services आवश्यक है</string>
 </resources>

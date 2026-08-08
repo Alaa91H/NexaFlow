@@ -4,4 +4,7 @@
     <string name="monitoring_title">Surveillance NexaFlow</string>
     <string name="monitoring_text">Surveille vos automatisations</string>
     <string name="notification_listener_label">Accès aux notifications NexaFlow</string>
+    <string name="oem_autostart_channel">Démarrage automatique de NexaFlow</string>
+    <string name="oem_autostart_title">Activer le démarrage automatique de NexaFlow</string>
+    <string name="oem_autostart_text">NexaFlow pourrait cesser de fonctionner en arrière-plan après un redémarrage sur cet appareil. Touchez pour ouvrir les réglages de démarrage automatique.</string>
 </resources>

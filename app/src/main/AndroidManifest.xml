@@ -75,6 +75,7 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="com.nexaflow.core.engine.action.RUN_AUTOMATION" />
+                <action android:name="com.nexaflow.core.engine.action.START_MONITORING" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
@@ -91,9 +92,36 @@
             </intent-filter>
         </receiver>
 
+        <!--
+            Android 17 (API 37) SMS User Consent path: Play services delivers
+            the user-approved message here instantly, without READ_SMS. This
+            receiver is exported because Play services sends the broadcast.
+        -->
+        <receiver
+            android:name="com.nexaflow.core.engine.SmsConsentReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.auth.api.phone.SMS_CONSENT_REQUEST" />
+            </intent-filter>
+        </receiver>
+
         <receiver
             android:name="com.nexaflow.core.execution.ReminderAlarmReceiver"
             android:exported="false" />
+
+        <!--
+            Interactive notification action buttons: a button's PendingIntent
+            broadcasts RUN_TASK_FROM_NOTIFICATION, which this receiver routes
+            to the execution engine. Exported=false because only our own
+            PendingIntents (created in NotificationActionButtons) target it.
+        -->
+        <receiver
+            android:name="com.nexaflow.core.engine.NotificationActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.nexaflow.core.execution.action.RUN_TASK_FROM_NOTIFICATION" />
+            </intent-filter>
+        </receiver>
 
         <receiver
             android:name=".NexaFlowToggleWidgetProvider"

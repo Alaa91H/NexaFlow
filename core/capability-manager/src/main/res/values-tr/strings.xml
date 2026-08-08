@@ -15,4 +15,12 @@
     <string name="section_capabilities">Yetenekler</string>
     <string name="section_about">Hakkında</string>
     <string name="security_patch">Güvenlik yaması: %1$s</string>
+    <string name="section_sms">SMS</string>
+    <string name="sms_android17_title">Android 17 SMS gecikmesi</string>
+    <string name="sms_android17_body">"Android 17'de doğrulama SMS'leri SDK 37 hedefli uygulamalardan 3 saat gizlenir. Aşağıdan anında teslimi etkinleştirerek onay iletişim kutusuyla hemen okuyun — SMS izni gerekmez."</string>
+    <string name="sms_consent_label">Anında teslim (onay iletişim kutusu)</string>
+    <string name="sms_consent_sub">Her gelen mesajı onaylamak için bir sistem iletişim kutusu göster</string>
+    <string name="sms_consent_arm">Şimdi dinlemeye başla</string>
+    <string name="sms_consent_listening">Dinliyor</string>
+    <string name="sms_consent_unavailable">Anında SMS teslimi için Google Play services gerekli</string>
 </resources>

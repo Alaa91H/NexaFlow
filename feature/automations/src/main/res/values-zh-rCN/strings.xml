@@ -10,7 +10,6 @@
     <string name="no_actions">未配置操作。</string>
     <string name="run_now">立即运行</string>
     <string name="running">运行中…</string>
-    <string name="always_true">始终为真</string>
     <string name="trigger_time">时间</string>
     <string name="trigger_time_sub">在预定时间触发</string>
     <string name="trigger_app">应用</string>
@@ -158,4 +157,15 @@
     <string name="end_turn_off">关闭</string>
     <string name="end_revert">恢复原始状态</string>
     <string name="end_set_value">设置数值</string>
+    <string name="action_http_request">HTTP 请求</string>
+    <string name="action_http_request_sub">发送网络请求</string>
+    <string name="action_plugin">插件操作</string>
+    <string name="action_plugin_sub">运行外部插件</string>
+    <string name="section_constraints">约束</string>
+    <string name="no_constraints">无约束 - 每次触发时运行</string>
+    <string name="constraint_subtitle">任务运行前必须为真</string>
+    <string name="constraint_type_wifi">Wi-Fi 已连接</string>
+    <string name="constraint_type_battery">电池电量</string>
+    <string name="constraint_type_screen_locked">屏幕已锁定</string>
+    <string name="constraint_type_headset">耳机已连接</string>
 </resources>

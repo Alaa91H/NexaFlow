@@ -10,12 +10,14 @@ import androidx.navigation.compose.rememberNavController
 import com.nexaflow.core.capability.CapabilityCenterScreen
 import com.nexaflow.feature.automations.AutomationDetailsScreen
 import com.nexaflow.feature.builder.AutomationBuilderScreen
+import com.nexaflow.feature.builder.VariablesScreen
 import com.nexaflow.feature.dashboard.DashboardScreen
 import com.nexaflow.feature.history.ExecutionDetailsScreen
 import com.nexaflow.feature.history.HistoryScreen
 import com.nexaflow.feature.icons.IconPickerScreen
 import com.nexaflow.feature.settings.NotificationManagerScreen
 import com.nexaflow.feature.settings.PermissionManagerScreen
+import com.nexaflow.feature.settings.PluginManagerScreen
 import com.nexaflow.feature.settings.SettingsScreen
 import com.nexaflow.feature.themes.ThemeScreen
 import com.nexaflow.feature.widgets.WidgetsScreen
@@ -47,6 +49,9 @@ fun NexaFlowApp() {
             composable("notification_manager") {
                 NotificationManagerScreen(navController = navController)
             }
+            composable("plugins") {
+                PluginManagerScreen(navController = navController)
+            }
             composable("history") {
                 HistoryScreen(navController = navController)
             }
@@ -58,6 +63,9 @@ fun NexaFlowApp() {
             }
             composable("icon_picker") {
                 IconPickerScreen(navController = navController)
+            }
+            composable("variables") {
+                VariablesScreen(navController = navController)
             }
             composable("themes") {
                 ThemeScreen(navController = navController)

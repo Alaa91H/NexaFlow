@@ -36,6 +36,11 @@ kotlin {
     }
 }
 
+composeCompiler {
+    metricsDestination = layout.buildDirectory.dir("compose-metrics")
+    reportsDestination = layout.buildDirectory.dir("compose-reports")
+}
+
 dependencies {
     implementation("androidx.core:core-ktx:1.19.0")
     implementation(platform("androidx.compose:compose-bom:2026.06.01"))

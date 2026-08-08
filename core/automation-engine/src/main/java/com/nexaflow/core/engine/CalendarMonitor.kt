@@ -9,6 +9,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.CalendarContract
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.Automation
@@ -258,9 +259,7 @@ class CalendarMonitor @Inject constructor(
         val names = calendarNames()
         val events = ArrayList<CalendarEvent>()
 
-        val uri = Uri.parse(
-            "content://${CalendarContract.AUTHORITY}/instances/when/$begin/$end"
-        )
+        val uri = "content://${CalendarContract.AUTHORITY}/instances/when/$begin/$end".toUri()
         val projection = arrayOf(
             CalendarContract.Instances.EVENT_ID,
             CalendarContract.Instances.CALENDAR_ID,

@@ -10,7 +10,6 @@
     <string name="no_actions">Yapılandırılmış eylem yok.</string>
     <string name="run_now">Şimdi Çalıştır</string>
     <string name="running">Çalışıyor…</string>
-    <string name="always_true">Her zaman doğru</string>
     <string name="trigger_time">Zaman</string>
     <string name="trigger_time_sub">Planlanan bir saatte tetikle</string>
     <string name="trigger_app">Uygulama</string>
@@ -158,4 +157,15 @@
     <string name="end_turn_off">Kapat</string>
     <string name="end_revert">Orijinali geri yükle</string>
     <string name="end_set_value">Değer ayarla</string>
+    <string name="action_http_request">HTTP isteği</string>
+    <string name="action_http_request_sub">Bir web isteği gönder</string>
+    <string name="action_plugin">Eklenti işlemi</string>
+    <string name="action_plugin_sub">Harici bir eklenti çalıştır</string>
+    <string name="section_constraints">Kısıtlar</string>
+    <string name="no_constraints">Kısıt yok - her tetikleyicide çalışır</string>
+    <string name="constraint_subtitle">Bu görev çalışmadan önce doğru olmalı</string>
+    <string name="constraint_type_wifi">Wi-Fi bağlı</string>
+    <string name="constraint_type_battery">Pil seviyesi</string>
+    <string name="constraint_type_screen_locked">Ekran kilitli</string>
+    <string name="constraint_type_headset">Kulaklık bağlı</string>
 </resources>

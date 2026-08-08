@@ -10,7 +10,6 @@
     <string name="no_actions">No actions configured.</string>
     <string name="run_now">Run Now</string>
     <string name="running">Running…</string>
-    <string name="always_true">Always true</string>
     <string name="trigger_time">Time</string>
     <string name="trigger_time_sub">Trigger at a scheduled time</string>
     <string name="trigger_app">App</string>
@@ -158,4 +157,15 @@
     <string name="end_turn_off">Turn off</string>
     <string name="end_revert">Restore original</string>
     <string name="end_set_value">Set value</string>
+    <string name="action_http_request">HTTP request</string>
+    <string name="action_http_request_sub">Send a web request</string>
+    <string name="action_plugin">Plugin action</string>
+    <string name="action_plugin_sub">Run an external plugin</string>
+    <string name="section_constraints">Constraints</string>
+    <string name="no_constraints">No constraints - runs whenever the trigger fires</string>
+    <string name="constraint_subtitle">Must be true before this task runs</string>
+    <string name="constraint_type_wifi">Wi-Fi connected</string>
+    <string name="constraint_type_battery">Battery level</string>
+    <string name="constraint_type_screen_locked">Screen locked</string>
+    <string name="constraint_type_headset">Headset connected</string>
 </resources>

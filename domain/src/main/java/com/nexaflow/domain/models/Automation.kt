@@ -1,5 +1,13 @@
 package com.nexaflow.domain.models
 
+import androidx.compose.runtime.Immutable
+
+/**
+ * A user-defined task. Treated as immutable (Compose @Immutable contract):
+ * never mutate an instance or its nested config maps after construction —
+ * replace via copy() instead.
+ */
+@Immutable
 data class Automation(
     val id: String,
     val name: String,
@@ -12,6 +20,11 @@ data class Automation(
     val enabled: Boolean,
     val triggers: List<Trigger>,
     val actions: List<Action>,
+    /**
+     * Gate checks (MacroDroid-style constraints) that must ALL pass before the
+     * task's actions run. When any fails, the run is skipped.
+     */
+    val constraints: List<Constraint> = emptyList(),
     /** Actions executed when the task's condition stops being true. */
     val exitActions: List<Action> = emptyList(),
     /** When true, exit restores the device to its pre-run state instead of exitActions. */
@@ -25,6 +38,8 @@ data class Automation(
 /** Cooldown as milliseconds for the monitors' event de-duplication. */
 val Automation.cooldownMillis: Long get() = (cooldownSeconds.coerceAtLeast(0)) * 1000L
 
+@Immutable
+// config must never be mutated in place (Compose @Immutable contract).
 data class Trigger(
     val type: TriggerType,
     val config: Map<String, String>
@@ -44,6 +59,8 @@ enum class TriggerType {
     CALENDAR
 }
 
+@Immutable
+// config must never be mutated in place (Compose @Immutable contract).
 data class Action(
     val type: ActionType,
     val config: Map<String, String>,
@@ -103,5 +120,14 @@ enum class ActionType {
     APPLICATION_LAUNCH_APP,
     APPLICATION_CLOSE_APP,
     ADVANCED_SHIZUKU,
-    ADVANCED_ROOT
+    ADVANCED_ROOT,
+    /** HTTP request (GET/POST/...) — URL and body support %variable injection. */
+    SYSTEM_HTTP_REQUEST,
+    /**
+     * External plugin action (Locale protocol): fires a plugin's FIRE_SETTING
+     * receiver with the saved config bundle. Config keys: `package` (app
+     * package), `receiver` (receiver class), `bundleJson` (serialized config,
+     * opaque to %variable resolution), `blurb` (display summary).
+     */
+    PLUGIN_FIRE
 }

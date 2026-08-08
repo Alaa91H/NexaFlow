@@ -10,7 +10,6 @@
     <string name="no_actions">لا توجد إجراءات مكوّنة.</string>
     <string name="run_now">تشغيل الآن</string>
     <string name="running">جارٍ التشغيل…</string>
-    <string name="always_true">صحيح دائماً</string>
     <string name="trigger_time">الوقت</string>
     <string name="trigger_time_sub">تشغيل في وقت محدد</string>
     <string name="trigger_app">التطبيق</string>
@@ -158,4 +157,15 @@
     <string name="end_turn_off">إيقاف</string>
     <string name="end_revert">استعادة الحالة الأصلية</string>
     <string name="end_set_value">تعيين قيمة</string>
+    <string name="action_http_request">طلب HTTP</string>
+    <string name="action_http_request_sub">إرسال طلب ويب</string>
+    <string name="action_plugin">إجراء إضافة</string>
+    <string name="action_plugin_sub">تشغيل إضافة خارجية</string>
+    <string name="section_constraints">القيود</string>
+    <string name="no_constraints">لا قيود - تعمل عند أي مشغل</string>
+    <string name="constraint_subtitle">يجب أن يتحقق قبل تنفيذ المهمة</string>
+    <string name="constraint_type_wifi">واي فاي متصل</string>
+    <string name="constraint_type_battery">مستوى البطارية</string>
+    <string name="constraint_type_screen_locked">الشاشة مقفلة</string>
+    <string name="constraint_type_headset">سماعة متصلة</string>
 </resources>

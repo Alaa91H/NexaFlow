@@ -9,18 +9,24 @@ import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.NotificationSettings
 import com.nexaflow.core.execution.handler.ActionExecutionContext
 import com.nexaflow.core.execution.handler.ActionRegistry
+import com.nexaflow.core.execution.variables.BuiltinVariables
 import com.nexaflow.core.logging.ExecutionTimelineEntry
 import com.nexaflow.core.logging.InMemoryLogStore
 import com.nexaflow.core.logging.LogStore
+import com.nexaflow.core.execution.constraints.ConstraintStateReader
 import com.nexaflow.core.rom.RomIntegrationManager
 import com.nexaflow.core.rom.SystemController
 import com.nexaflow.core.rom.model.SystemControlResult
+import com.nexaflow.domain.constraints.ConstraintEvaluator
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionExecutionResult
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.ConstraintSnapshot
 import com.nexaflow.domain.models.EndMode
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.repositories.HistoryRepository
+import com.nexaflow.domain.repositories.VariableRepository
+import com.nexaflow.domain.variables.VariableResolver
 import kotlinx.coroutines.flow.first
 import java.util.UUID
 
@@ -36,7 +42,13 @@ class ExecutionEngine(
     private val actionRegistry: ActionRegistry = ActionRegistry.default(),
     private val logStore: LogStore = InMemoryLogStore(),
     private val epochMillis: EpochMillis = EpochMillis.System,
-    private val channelSelector: ExecutionChannelSelector = ExecutionChannelSelector()
+    private val channelSelector: ExecutionChannelSelector = ExecutionChannelSelector(),
+    // Optional user-defined %variables. Null (default) keeps the engine fully
+    // functional with only the built-in device-context variables.
+    private val variableRepository: VariableRepository? = null,
+    // Test seam: pins the device state used by the constraint gate so tests
+    // can exercise pass/block deterministically without real system probes.
+    private val constraintStateProvider: (() -> ConstraintSnapshot?)? = null
 ) {
 
     /**
@@ -51,6 +63,31 @@ class ExecutionEngine(
         val controller = RomIntegrationManager.controller(context)
         val notif = notificationPreferences.settings.first()
         val channel = channelSelector.select(context)
+        // Constraint gate: every configured constraint must pass before the
+        // task runs. A blocked run is recorded (not silently dropped) so the
+        // user can see why nothing happened. Captured before any state snapshot
+        // so a blocked run never leaks a snapshot that would never be restored.
+        if (automation.constraints.isNotEmpty()) {
+            val state = constraintStateProvider?.invoke()
+                ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
+            if (state == null || !ConstraintEvaluator.allSatisfied(automation.constraints, state)) {
+                // A deliberately-blocked run is not a failure: success=true keeps
+                // history stats honest, while the BLOCKED timeline kind + the
+                // "Skipped:" prefix let UIs surface why nothing ran.
+                val record = ExecutionRecord(
+                    id = UUID.randomUUID().toString(),
+                    automationId = automation.id,
+                    automationName = automation.name,
+                    success = true,
+                    message = "Skipped: constraints not met",
+                    executedAt = startedAt,
+                    channel = channel?.type?.name
+                )
+                historyRepository.recordExecution(record)
+                recordTimeline(automation, "BLOCKED", record, startedAt)
+                return record
+            }
+        }
         // Capture the device state when the run needs to restore anything on
         // exit: either the global revert-on-exit toggle or any action configured
         // with a per-action "restore original" end behavior. A failed snapshot
@@ -61,9 +98,12 @@ class ExecutionEngine(
         if (needsSnapshot) {
             snapshots[automation.id] = runCatching { DeviceStateSnapshot.capture(context) }.getOrNull()
         }
+        // Resolve %variables once per run (single repo read + device probe),
+        // then apply pure string substitution per action.
+        val variables = runCatching { resolveVariables() }.getOrDefault(emptyMap())
         val results = automation.actions.map { action ->
             val actionStartedAt = epochMillis.now()
-            val result = executeAction(action, controller, notif, channel)
+            val result = executeAction(resolveAction(action, variables), controller, notif, channel)
             ActionExecutionResult(
                 actionType = action.type.name,
                 success = result.success,
@@ -137,6 +177,9 @@ class ExecutionEngine(
             }
         } else {
             mutableListOf<ActionExecutionResult>().apply {
+                // %variables resolved only when exit actions actually run — pure
+                // revert tasks never pay the extra repo read + device probe.
+                val variables = runCatching { resolveVariables() }.getOrDefault(emptyMap())
                 // Adaptive per-action end behavior: each action configured with an
                 // end behavior (leave / restore original / set a specific value)
                 // is honored exactly as configured, before the custom exit actions.
@@ -148,7 +191,7 @@ class ExecutionEngine(
                         EndMode.LEAVE -> null
                         EndMode.REVERT -> snapshot?.restoreSetting(context, action)
                             ?: SystemControlResult.fail("No captured state to restore for ${action.type.name}")
-                        EndMode.SET_VALUE -> executeAction(action.withConfig(behavior.config), controller, notif, channel)
+                        EndMode.SET_VALUE -> executeAction(resolveAction(action.withConfig(behavior.config), variables), controller, notif, channel)
                     } ?: return@forEach
                     add(
                         ActionExecutionResult(
@@ -162,7 +205,7 @@ class ExecutionEngine(
                 // The explicitly configured exit actions run last.
                 automation.exitActions.forEach { action ->
                     val actionStartedAt = epochMillis.now()
-                    val result = executeAction(action, controller, notif, channel)
+                    val result = executeAction(resolveAction(action, variables), controller, notif, channel)
                     add(
                         ActionExecutionResult(
                             actionType = action.type.name,
@@ -193,6 +236,35 @@ class ExecutionEngine(
     /** Discards any stored snapshot (e.g. when the automation is deleted). */
     fun clearSnapshot(automationId: String) {
         snapshots.remove(automationId)
+    }
+
+    /**
+     * Config keys that carry structured data (JSON) rather than free text:
+     * %variable substitution would corrupt them, so they are skipped.
+     */
+    private val opaqueConfigKeys = setOf("bundleJson", "action_buttons")
+
+    /**
+     * Resolves %variable placeholders (built-ins + user globals) inside every
+     * text-bearing config value before the handler sees it. Unknown names are
+     * left untouched. Pure string substitution — the variable map is resolved
+     * once per run by the caller. Opaque (structured) keys are skipped.
+     */
+    private fun resolveAction(action: Action, variables: Map<String, String>): Action {
+        if (variables.isEmpty()) return action
+        return action.copy(
+            config = action.config.mapValues { (key, value) ->
+                if (key in opaqueConfigKeys) value
+                else VariableResolver.resolve(value, variables)
+            }
+        )
+    }
+
+    private suspend fun resolveVariables(): Map<String, String> {
+        val builtins = runCatching { BuiltinVariables.provide(context) }.getOrDefault(emptyMap())
+        val globals = runCatching { variableRepository?.getVariablesOnce().orEmpty() }.getOrDefault(emptyList())
+        if (globals.isEmpty()) return builtins
+        return builtins + globals.associate { it.name to it.value }
     }
 
     private suspend fun executeAction(

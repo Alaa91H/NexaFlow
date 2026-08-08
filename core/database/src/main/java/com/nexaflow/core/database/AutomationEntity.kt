@@ -16,6 +16,7 @@ data class AutomationEntity(
     val enabled: Boolean,
     val triggersJson: String, // Store as JSON string
     val actionsJson: String, // Store as JSON string
+    val constraintsJson: String = "[]", // Gate checks that must all pass before running
     val exitActionsJson: String = "[]", // Actions run when the condition ends
     val revertOnExit: Boolean = false, // Restore device state on exit instead
     val cooldownSeconds: Int = 10, // Minimum gap between two runs of this task

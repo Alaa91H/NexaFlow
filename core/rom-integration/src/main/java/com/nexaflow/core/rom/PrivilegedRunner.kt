@@ -129,10 +129,18 @@ object PrivilegedRunner {
     }
 
     /**
+     * Test seam: replaces the real process spawn so tests can simulate each
+     * root manager's behavior (granted / denied / command-not-found) without
+     * spawning actual `su` processes on the host.
+     */
+    internal var suProbe: ((Array<String>) -> Boolean?)? = null
+
+    /**
      * Runs one su grant probe. Returns true (granted), false (denied or
      * timed-out), or null when the binary was not found (command not found).
      */
     private fun runSuGrantProbe(cmd: Array<String>): Boolean? {
+        suProbe?.let { return it(cmd) }
         return try {
             val process = ProcessBuilder(*cmd).redirectErrorStream(true).start()
             val output = StringBuilder()

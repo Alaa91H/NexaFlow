@@ -10,7 +10,6 @@
     <string name="no_actions">Nenhuma ação configurada.</string>
     <string name="run_now">Executar agora</string>
     <string name="running">Executando…</string>
-    <string name="always_true">Sempre verdadeiro</string>
     <string name="trigger_time">Hora</string>
     <string name="trigger_time_sub">Disparar em um horário agendado</string>
     <string name="trigger_app">Aplicativo</string>
@@ -158,4 +157,15 @@
     <string name="end_turn_off">Desativar</string>
     <string name="end_revert">Restaurar original</string>
     <string name="end_set_value">Definir valor</string>
+    <string name="action_http_request">Requisição HTTP</string>
+    <string name="action_http_request_sub">Enviar uma requisição web</string>
+    <string name="action_plugin">Ação de plugin</string>
+    <string name="action_plugin_sub">Executar um plugin externo</string>
+    <string name="section_constraints">Condições</string>
+    <string name="no_constraints">Sem condições - roda a cada gatilho</string>
+    <string name="constraint_subtitle">Deve ser verdadeiro antes de a tarefa rodar</string>
+    <string name="constraint_type_wifi">Wi-Fi conectado</string>
+    <string name="constraint_type_battery">Nível da bateria</string>
+    <string name="constraint_type_screen_locked">Tela bloqueada</string>
+    <string name="constraint_type_headset">Fone conectado</string>
 </resources>

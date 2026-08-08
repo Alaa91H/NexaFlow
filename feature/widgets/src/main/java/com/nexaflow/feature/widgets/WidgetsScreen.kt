@@ -37,7 +37,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,6 +46,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
@@ -102,7 +102,7 @@ private val quickTiles = listOf(
 fun WidgetsScreen(navController: NavController, viewModel: WidgetsViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val installed = remember(context) { installedWidgets(context) }
-    val automations by viewModel.automations.collectAsState()
+    val automations by viewModel.automations.collectAsStateWithLifecycle()
     var bindingSlot by remember { mutableStateOf<Int?>(null) }
 
     Scaffold(topBar = { NexaFlowTopBar(title = stringResource(R.string.widgets_title), onBack = { navController.popBackStack() }) }) { padding ->

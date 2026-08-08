@@ -4,4 +4,7 @@
     <string name="monitoring_title">مراقبة NexaFlow</string>
     <string name="monitoring_text">تراقب مهامك المجدولة</string>
     <string name="notification_listener_label">وصول NexaFlow للإشعارات</string>
+    <string name="oem_autostart_channel">التشغيل التلقائي لـ NexaFlow</string>
+    <string name="oem_autostart_title">فعّل التشغيل التلقائي لـ NexaFlow</string>
+    <string name="oem_autostart_text">قد يتوقف NexaFlow عن العمل في الخلفية بعد إعادة تشغيل هذا الجهاز. اضغط لفتح إعدادات التشغيل التلقائي.</string>
 </resources>

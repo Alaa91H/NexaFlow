@@ -15,4 +15,12 @@
     <string name="section_capabilities">Возможности</string>
     <string name="section_about">О приложении</string>
     <string name="security_patch">Патч безопасности: %1$s</string>
+    <string name="section_sms">SMS</string>
+    <string name="sms_android17_title">Задержка SMS в Android 17</string>
+    <string name="sms_android17_body">В Android 17 SMS с кодами проверки скрыты от приложений с target SDK 37 на 3 часа. Включите мгновенную доставку ниже, чтобы читать их сразу через диалог согласия — без разрешения на SMS.</string>
+    <string name="sms_consent_label">Мгновенная доставка (диалог согласия)</string>
+    <string name="sms_consent_sub">Показывать системный диалог для одобрения каждого входящего сообщения</string>
+    <string name="sms_consent_arm">Начать прослушивание</string>
+    <string name="sms_consent_listening">Слушает</string>
+    <string name="sms_consent_unavailable">Для мгновенной доставки SMS требуется Google Play services</string>
 </resources>

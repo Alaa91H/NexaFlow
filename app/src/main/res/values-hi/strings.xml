@@ -9,4 +9,10 @@
     <string name="widget_action">सभी सक्षम करें</string>
 
     <!-- Bottom navigation -->
+    <string name="widget_no_automations">कोई ऑटोमेशन नहीं</string>
+    <string name="widget_active_count">%1$d में से %2$d सक्रिय</string>
+    <string name="widget_enable_all">सभी सक्षम करें</string>
+    <string name="widget_disable_all">सभी अक्षम करें</string>
+    <string name="widget_status_count_format">%1$d / %2$d</string>
+    <string name="widget_last_run_format">अंतिम रन: %1$s</string>
 </resources>

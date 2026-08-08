@@ -28,12 +28,22 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
+}
+
+composeCompiler {
+    metricsDestination = layout.buildDirectory.dir("compose-metrics")
+    reportsDestination = layout.buildDirectory.dir("compose-reports")
 }
 
 dependencies {
@@ -54,9 +64,17 @@ dependencies {
     ksp("com.google.dagger:hilt-compiler:2.60.1")
     implementation(project(":domain"))
     implementation(project(":core:ui-components"))
+    implementation(project(":core:plugin-sdk"))
+    // Notification action buttons reuse the core model + PendingIntent builder.
+    implementation(project(":core:execution"))
     // Real root/Shizuku detection + elevated command execution.
     implementation(project(":core:rom-integration"))
     implementation("dev.rikka.shizuku:api:13.1.5")
     testImplementation("junit:junit:4.13.2")
+    // Compose UI tests running under Robolectric (semantics assertions on the
+    // live badge states). ui-test-manifest is already a debugImplementation.
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    testImplementation("androidx.test:core:1.6.1")
+    testImplementation("org.robolectric:robolectric:4.16.1")
 }
 

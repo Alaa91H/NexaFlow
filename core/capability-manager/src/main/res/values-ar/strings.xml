@@ -15,4 +15,12 @@
     <string name="section_capabilities">القدرات</string>
     <string name="section_about">حول</string>
     <string name="security_patch">تصحيح الأمان: %1$s</string>
+    <string name="section_sms">الرسائل النصية</string>
+    <string name="sms_android17_title">تأخير الرسائل في أندرويد 17</string>
+    <string name="sms_android17_body">على أندرويد 17، تُخفى رسائل رموز التحقق من التطبيقات التي تستهدف SDK 37 لمدة 3 ساعات. فعّل التسليم الفوري أدناه لقراءتها فوراً عبر نافذة موافقة — دون الحاجة لأذونات الرسائل.</string>
+    <string name="sms_consent_label">التسليم الفوري (نافذة موافقة)</string>
+    <string name="sms_consent_sub">عرض نافذة نظام للموافقة على كل رسالة واردة</string>
+    <string name="sms_consent_arm">ابدأ الاستماع الآن</string>
+    <string name="sms_consent_listening">يستمع الآن</string>
+    <string name="sms_consent_unavailable">خدمات Google Play مطلوبة للتسليم الفوري للرسائل</string>
 </resources>

@@ -5,7 +5,18 @@
     "end_turn_on": "Turn on",
     "end_turn_off": "Turn off",
     "end_revert": "Restore original",
-    "end_set_value": "Set value"
+    "end_set_value": "Set value",
+    "action_http_request": "HTTP request",
+    "action_http_request_sub": "Send a web request",
+    "action_plugin": "Plugin action",
+    "action_plugin_sub": "Run an external plugin",
+    "section_constraints": "Constraints",
+    "no_constraints": "No constraints - runs whenever the trigger fires",
+    "constraint_subtitle": "Must be true before this task runs",
+    "constraint_type_wifi": "Wi-Fi connected",
+    "constraint_type_battery": "Battery level",
+    "constraint_type_screen_locked": "Screen locked",
+    "constraint_type_headset": "Headset connected"
   },
   "-ar": {
     "end_summary": "عند الانتهاء: %1$s",
@@ -13,7 +24,18 @@
     "end_turn_on": "تشغيل",
     "end_turn_off": "إيقاف",
     "end_revert": "استعادة الحالة الأصلية",
-    "end_set_value": "تعيين قيمة"
+    "end_set_value": "تعيين قيمة",
+    "action_http_request": "طلب HTTP",
+    "action_http_request_sub": "إرسال طلب ويب",
+    "action_plugin": "إجراء إضافة",
+    "action_plugin_sub": "تشغيل إضافة خارجية",
+    "section_constraints": "القيود",
+    "no_constraints": "لا قيود - تعمل عند أي مشغل",
+    "constraint_subtitle": "يجب أن يتحقق قبل تنفيذ المهمة",
+    "constraint_type_wifi": "واي فاي متصل",
+    "constraint_type_battery": "مستوى البطارية",
+    "constraint_type_screen_locked": "الشاشة مقفلة",
+    "constraint_type_headset": "سماعة متصلة"
   },
   "-de": {
     "end_summary": "Am Ende: %1$s",
@@ -21,7 +43,18 @@
     "end_turn_on": "Einschalten",
     "end_turn_off": "Ausschalten",
     "end_revert": "Original wiederherstellen",
-    "end_set_value": "Wert festlegen"
+    "end_set_value": "Wert festlegen",
+    "action_http_request": "HTTP-Anfrage",
+    "action_http_request_sub": "Eine Webanfrage senden",
+    "action_plugin": "Plugin-Aktion",
+    "action_plugin_sub": "Externes Plugin ausführen",
+    "section_constraints": "Bedingungen",
+    "no_constraints": "Keine Bedingungen - läuft bei jedem Auslöser",
+    "constraint_subtitle": "Muss erfüllt sein, bevor die Aufgabe läuft",
+    "constraint_type_wifi": "Wi-Fi verbunden",
+    "constraint_type_battery": "Akku-Stand",
+    "constraint_type_screen_locked": "Bildschirm gesperrt",
+    "constraint_type_headset": "Headset verbunden"
   },
   "-es": {
     "end_summary": "Al final: %1$s",
@@ -29,7 +62,18 @@
     "end_turn_on": "Activar",
     "end_turn_off": "Desactivar",
     "end_revert": "Restaurar original",
-    "end_set_value": "Establecer valor"
+    "end_set_value": "Establecer valor",
+    "action_http_request": "Solicitud HTTP",
+    "action_http_request_sub": "Enviar una solicitud web",
+    "action_plugin": "Acción de complemento",
+    "action_plugin_sub": "Ejecutar un complemento externo",
+    "section_constraints": "Condiciones",
+    "no_constraints": "Sin condiciones - se ejecuta con cada disparador",
+    "constraint_subtitle": "Debe cumplirse antes de ejecutar la tarea",
+    "constraint_type_wifi": "Wi-Fi conectado",
+    "constraint_type_battery": "Nivel de batería",
+    "constraint_type_screen_locked": "Pantalla bloqueada",
+    "constraint_type_headset": "Auriculares conectados"
   },
   "-fr": {
     "end_summary": "À la fin : %1$s",
@@ -37,7 +81,18 @@
     "end_turn_on": "Activer",
     "end_turn_off": "Désactiver",
     "end_revert": "Restaurer l'original",
-    "end_set_value": "Définir une valeur"
+    "end_set_value": "Définir une valeur",
+    "action_http_request": "Requête HTTP",
+    "action_http_request_sub": "Envoyer une requête web",
+    "action_plugin": "Action de plugin",
+    "action_plugin_sub": "Exécuter un plugin externe",
+    "section_constraints": "Conditions",
+    "no_constraints": "\"Aucune condition - s'exécute à chaque déclencheur\"",
+    "constraint_subtitle": "\"Doit être vrai avant l'exécution de la tâche\"",
+    "constraint_type_wifi": "Wi-Fi connecté",
+    "constraint_type_battery": "Niveau de batterie",
+    "constraint_type_screen_locked": "Écran verrouillé",
+    "constraint_type_headset": "Casque connecté"
   },
   "-hi": {
     "end_summary": "अंत में: %1$s",
@@ -45,7 +100,18 @@
     "end_turn_on": "चालू करें",
     "end_turn_off": "बंद करें",
     "end_revert": "मूल स्थिति बहाल करें",
-    "end_set_value": "मान सेट करें"
+    "end_set_value": "मान सेट करें",
+    "action_http_request": "HTTP अनुरोध",
+    "action_http_request_sub": "एक वेब अनुरोध भेजें",
+    "action_plugin": "प्लगइन क्रिया",
+    "action_plugin_sub": "बाहरी प्लगइन चलाएँ",
+    "section_constraints": "बाधाएँ",
+    "no_constraints": "कोई बाधा नहीं - हर ट्रिगर पर चलता है",
+    "constraint_subtitle": "टास्क चलने से पहले सत्य होना चाहिए",
+    "constraint_type_wifi": "वाई-फ़ाई जुड़ा",
+    "constraint_type_battery": "बैटरी स्तर",
+    "constraint_type_screen_locked": "स्क्रीन लॉक",
+    "constraint_type_headset": "हेडसेट जुड़ा"
   },
   "-ja": {
     "end_summary": "終了時: %1$s",
@@ -53,7 +119,18 @@
     "end_turn_on": "オン",
     "end_turn_off": "オフ",
     "end_revert": "元に戻す",
-    "end_set_value": "値を設定"
+    "end_set_value": "値を設定",
+    "action_http_request": "HTTPリクエスト",
+    "action_http_request_sub": "Webリクエストを送信",
+    "action_plugin": "プラグイン操作",
+    "action_plugin_sub": "外部プラグインを実行",
+    "section_constraints": "制約",
+    "no_constraints": "制約なし - トリガーごとに実行",
+    "constraint_subtitle": "このタスクの実行前に満たされる必要があります",
+    "constraint_type_wifi": "Wi-Fi 接続中",
+    "constraint_type_battery": "バッテリー残量",
+    "constraint_type_screen_locked": "画面ロック中",
+    "constraint_type_headset": "ヘッドセット接続"
   },
   "-pt": {
     "end_summary": "No final: %1$s",
@@ -61,7 +138,18 @@
     "end_turn_on": "Ativar",
     "end_turn_off": "Desativar",
     "end_revert": "Restaurar original",
-    "end_set_value": "Definir valor"
+    "end_set_value": "Definir valor",
+    "action_http_request": "Requisição HTTP",
+    "action_http_request_sub": "Enviar uma requisição web",
+    "action_plugin": "Ação de plugin",
+    "action_plugin_sub": "Executar um plugin externo",
+    "section_constraints": "Condições",
+    "no_constraints": "Sem condições - roda a cada gatilho",
+    "constraint_subtitle": "Deve ser verdadeiro antes de a tarefa rodar",
+    "constraint_type_wifi": "Wi-Fi conectado",
+    "constraint_type_battery": "Nível da bateria",
+    "constraint_type_screen_locked": "Tela bloqueada",
+    "constraint_type_headset": "Fone conectado"
   },
   "-ru": {
     "end_summary": "В конце: %1$s",
@@ -69,7 +157,18 @@
     "end_turn_on": "Включить",
     "end_turn_off": "Выключить",
     "end_revert": "Восстановить исходное",
-    "end_set_value": "Задать значение"
+    "end_set_value": "Задать значение",
+    "action_http_request": "HTTP-запрос",
+    "action_http_request_sub": "Отправить веб-запрос",
+    "action_plugin": "Действие плагина",
+    "action_plugin_sub": "Запустить внешний плагин",
+    "section_constraints": "Условия",
+    "no_constraints": "Без условий - запускается по любому триггеру",
+    "constraint_subtitle": "Должно выполняться до запуска задачи",
+    "constraint_type_wifi": "Wi-Fi подключён",
+    "constraint_type_battery": "Уровень заряда",
+    "constraint_type_screen_locked": "Экран заблокирован",
+    "constraint_type_headset": "Гарнитура подключена"
   },
   "-tr": {
     "end_summary": "Sonunda: %1$s",
@@ -77,7 +176,18 @@
     "end_turn_on": "Aç",
     "end_turn_off": "Kapat",
     "end_revert": "Orijinali geri yükle",
-    "end_set_value": "Değer ayarla"
+    "end_set_value": "Değer ayarla",
+    "action_http_request": "HTTP isteği",
+    "action_http_request_sub": "Bir web isteği gönder",
+    "action_plugin": "Eklenti işlemi",
+    "action_plugin_sub": "Harici bir eklenti çalıştır",
+    "section_constraints": "Kısıtlar",
+    "no_constraints": "Kısıt yok - her tetikleyicide çalışır",
+    "constraint_subtitle": "Bu görev çalışmadan önce doğru olmalı",
+    "constraint_type_wifi": "Wi-Fi bağlı",
+    "constraint_type_battery": "Pil seviyesi",
+    "constraint_type_screen_locked": "Ekran kilitli",
+    "constraint_type_headset": "Kulaklık bağlı"
   },
   "-zh-rCN": {
     "end_summary": "结束时：%1$s",
@@ -85,6 +195,17 @@
     "end_turn_on": "开启",
     "end_turn_off": "关闭",
     "end_revert": "恢复原始状态",
-    "end_set_value": "设置数值"
+    "end_set_value": "设置数值",
+    "action_http_request": "HTTP 请求",
+    "action_http_request_sub": "发送网络请求",
+    "action_plugin": "插件操作",
+    "action_plugin_sub": "运行外部插件",
+    "section_constraints": "约束",
+    "no_constraints": "无约束 - 每次触发时运行",
+    "constraint_subtitle": "任务运行前必须为真",
+    "constraint_type_wifi": "Wi-Fi 已连接",
+    "constraint_type_battery": "电池电量",
+    "constraint_type_screen_locked": "屏幕已锁定",
+    "constraint_type_headset": "耳机已连接"
   }
 }

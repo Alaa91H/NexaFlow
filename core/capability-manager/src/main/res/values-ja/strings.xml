@@ -15,4 +15,12 @@
     <string name="section_capabilities">機能</string>
     <string name="section_about">について</string>
     <string name="security_patch">セキュリティパッチ: %1$s</string>
+    <string name="section_sms">SMS</string>
+    <string name="sms_android17_title">Android 17 のSMS遅延</string>
+    <string name="sms_android17_body">Android 17では、SDK 37を対象とするアプリには認証SMSが3時間表示されません。同意ダイアログで即時配信を有効にすると、SMS権限なしで即座に読めます。</string>
+    <string name="sms_consent_label">即時配信（同意ダイアログ）</string>
+    <string name="sms_consent_sub">受信メッセージごとに承認ダイアログを表示</string>
+    <string name="sms_consent_arm">今すぐ受信開始</string>
+    <string name="sms_consent_listening">受信中</string>
+    <string name="sms_consent_unavailable">SMSの即時配信にはGoogle Play servicesが必要です</string>
 </resources>

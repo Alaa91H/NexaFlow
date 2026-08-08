@@ -10,7 +10,6 @@
     <string name="no_actions">アクションが設定されていません。</string>
     <string name="run_now">今すぐ実行</string>
     <string name="running">実行中…</string>
-    <string name="always_true">常に真</string>
     <string name="trigger_time">時刻</string>
     <string name="trigger_time_sub">指定時刻にトリガー</string>
     <string name="trigger_app">アプリ</string>
@@ -158,4 +157,15 @@
     <string name="end_turn_off">オフ</string>
     <string name="end_revert">元に戻す</string>
     <string name="end_set_value">値を設定</string>
+    <string name="action_http_request">HTTPリクエスト</string>
+    <string name="action_http_request_sub">Webリクエストを送信</string>
+    <string name="action_plugin">プラグイン操作</string>
+    <string name="action_plugin_sub">外部プラグインを実行</string>
+    <string name="section_constraints">制約</string>
+    <string name="no_constraints">制約なし - トリガーごとに実行</string>
+    <string name="constraint_subtitle">このタスクの実行前に満たされる必要があります</string>
+    <string name="constraint_type_wifi">Wi-Fi 接続中</string>
+    <string name="constraint_type_battery">バッテリー残量</string>
+    <string name="constraint_type_screen_locked">画面ロック中</string>
+    <string name="constraint_type_headset">ヘッドセット接続</string>
 </resources>

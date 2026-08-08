@@ -47,5 +47,10 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":core:rom-integration"))
     implementation(project(":core:ui-components"))
+    implementation(project(":core:datastore"))
+    implementation(project(":core:automation-engine"))
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
+    implementation("com.google.dagger:hilt-android:2.60.1")
+    implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
     testImplementation("junit:junit:4.13.2")
 }

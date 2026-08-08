@@ -10,7 +10,6 @@
     <string name="no_actions">Действия не настроены.</string>
     <string name="run_now">Выполнить сейчас</string>
     <string name="running">Выполняется…</string>
-    <string name="always_true">Всегда истинно</string>
     <string name="trigger_time">Время</string>
     <string name="trigger_time_sub">Срабатывание по расписанию</string>
     <string name="trigger_app">Приложение</string>
@@ -158,4 +157,15 @@
     <string name="end_turn_off">Выключить</string>
     <string name="end_revert">Восстановить исходное</string>
     <string name="end_set_value">Задать значение</string>
+    <string name="action_http_request">HTTP-запрос</string>
+    <string name="action_http_request_sub">Отправить веб-запрос</string>
+    <string name="action_plugin">Действие плагина</string>
+    <string name="action_plugin_sub">Запустить внешний плагин</string>
+    <string name="section_constraints">Условия</string>
+    <string name="no_constraints">Без условий - запускается по любому триггеру</string>
+    <string name="constraint_subtitle">Должно выполняться до запуска задачи</string>
+    <string name="constraint_type_wifi">Wi-Fi подключён</string>
+    <string name="constraint_type_battery">Уровень заряда</string>
+    <string name="constraint_type_screen_locked">Экран заблокирован</string>
+    <string name="constraint_type_headset">Гарнитура подключена</string>
 </resources>

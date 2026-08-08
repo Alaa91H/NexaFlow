@@ -153,10 +153,21 @@ object WidgetUpdater {
 
     private fun buildToggleViews(context: Context, enabled: Int, total: Int): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_toggle)
-        views.setTextViewText(R.id.widget_subtitle, if (total == 0) "No automations" else "$enabled of $total active")
+        views.setTextViewText(
+            R.id.widget_subtitle,
+            if (total == 0) {
+                context.getString(R.string.widget_no_automations)
+            } else {
+                context.getString(R.string.widget_active_count, enabled, total)
+            }
+        )
         views.setTextViewText(
             R.id.widget_action,
-            if (enabled > 0) "Disable all" else "Enable all"
+            if (enabled > 0) {
+                context.getString(R.string.widget_disable_all)
+            } else {
+                context.getString(R.string.widget_enable_all)
+            }
         )
         val intent = Intent(context, NexaFlowToggleWidgetProvider::class.java)
             .setAction(ACTION_TOGGLE_ALL)
@@ -172,10 +183,17 @@ object WidgetUpdater {
 
     private fun buildStatusViews(context: Context, enabled: Int, total: Int, lastRunAt: Long?): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_status)
-        views.setTextViewText(R.id.widget_status_count, "$enabled / $total")
+        views.setTextViewText(
+            R.id.widget_status_count,
+            context.getString(R.string.widget_status_count_format, enabled, total)
+        )
         views.setTextViewText(
             R.id.widget_status_last,
-            if (lastRunAt == null) "Last run: --" else "Last run: ${formatTime(lastRunAt)}"
+            if (lastRunAt == null) {
+                context.getString(R.string.widget_status_last)
+            } else {
+                context.getString(R.string.widget_last_run_format, formatTime(lastRunAt))
+            }
         )
         return views
     }

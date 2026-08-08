@@ -4,4 +4,7 @@
     <string name="monitoring_title">Supervisión de NexaFlow</string>
     <string name="monitoring_text">Vigilando tus automatizaciones</string>
     <string name="notification_listener_label">Acceso a notificaciones de NexaFlow</string>
+    <string name="oem_autostart_channel">Inicio automático de NexaFlow</string>
+    <string name="oem_autostart_title">Habilita el inicio automático de NexaFlow</string>
+    <string name="oem_autostart_text">NexaFlow podría dejar de ejecutarse en segundo plano tras un reinicio en este dispositivo. Toca para abrir los ajustes de inicio automático.</string>
 </resources>

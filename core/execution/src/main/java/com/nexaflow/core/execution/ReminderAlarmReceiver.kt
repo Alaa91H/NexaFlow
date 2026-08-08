@@ -26,7 +26,7 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
         )
         notificationManager.createNotificationChannel(channel)
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(com.nexaflow.core.rom.R.drawable.ic_stat_nexaflow)
             .setContentTitle(title)
             .setContentText(text)
             .setAutoCancel(true)

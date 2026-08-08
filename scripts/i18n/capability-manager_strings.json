@@ -1,0 +1,112 @@
+{
+  "": {
+    "section_sms": "SMS",
+    "sms_android17_title": "Android 17 SMS delay",
+    "sms_android17_body": "On Android 17, verification-code SMS are hidden from apps targeting SDK 37 for 3 hours. Enable instant delivery below to read them immediately via a consent dialog — no SMS permission needed.",
+    "sms_consent_label": "Instant delivery (consent dialog)",
+    "sms_consent_sub": "Show a system dialog to approve each incoming message",
+    "sms_consent_arm": "Start listening now",
+    "sms_consent_listening": "Listening",
+    "sms_consent_unavailable": "Google Play services required for instant SMS delivery"
+  },
+  "-ar": {
+    "section_sms": "الرسائل النصية",
+    "sms_android17_title": "تأخير الرسائل في أندرويد 17",
+    "sms_android17_body": "على أندرويد 17، تُخفى رسائل رموز التحقق من التطبيقات التي تستهدف SDK 37 لمدة 3 ساعات. فعّل التسليم الفوري أدناه لقراءتها فوراً عبر نافذة موافقة — دون الحاجة لأذونات الرسائل.",
+    "sms_consent_label": "التسليم الفوري (نافذة موافقة)",
+    "sms_consent_sub": "عرض نافذة نظام للموافقة على كل رسالة واردة",
+    "sms_consent_arm": "ابدأ الاستماع الآن",
+    "sms_consent_listening": "يستمع الآن",
+    "sms_consent_unavailable": "خدمات Google Play مطلوبة للتسليم الفوري للرسائل"
+  },
+  "-de": {
+    "section_sms": "SMS",
+    "sms_android17_title": "Android-17-SMS-Verzögerung",
+    "sms_android17_body": "Unter Android 17 werden Verifizierungs-SMS Apps mit Ziel-SDK 37 drei Stunden lang verborgen. Aktiviere unten die Sofort-Zustellung, um sie über einen Zustimmungsdialog sofort zu lesen — ohne SMS-Berechtigung.",
+    "sms_consent_label": "Sofort-Zustellung (Zustimmungsdialog)",
+    "sms_consent_sub": "Systemdialog zum Genehmigen jeder eingehenden Nachricht anzeigen",
+    "sms_consent_arm": "Jetzt zuhören",
+    "sms_consent_listening": "Hört zu",
+    "sms_consent_unavailable": "Google Play-Dienste für sofortige SMS-Zustellung erforderlich"
+  },
+  "-es": {
+    "section_sms": "SMS",
+    "sms_android17_title": "Retraso de SMS en Android 17",
+    "sms_android17_body": "En Android 17, los SMS de verificación se ocultan a las apps con SDK 37 durante 3 horas. Activa la entrega instantánea para leerlos al momento mediante un diálogo de consentimiento, sin permiso de SMS.",
+    "sms_consent_label": "Entrega instantánea (diálogo de consentimiento)",
+    "sms_consent_sub": "Mostrar un diálogo del sistema para aprobar cada mensaje entrante",
+    "sms_consent_arm": "Empezar a escuchar ahora",
+    "sms_consent_listening": "Escuchando",
+    "sms_consent_unavailable": "Se requiere Google Play services para la entrega instantánea de SMS"
+  },
+  "-fr": {
+    "section_sms": "SMS",
+    "sms_android17_title": "Délai SMS Android 17",
+    "sms_android17_body": "Sur Android 17, les SMS de vérification sont masqués aux applications ciblant le SDK 37 pendant 3 heures. Activez la livraison instantanée pour les lire immédiatement via une boîte de consentement, sans permission SMS.",
+    "sms_consent_label": "Livraison instantanée (boîte de consentement)",
+    "sms_consent_sub": "Afficher une boîte de dialogue système pour approuver chaque message",
+    "sms_consent_arm": "Commencer à écouter",
+    "sms_consent_listening": "\"À l'écoute\"",
+    "sms_consent_unavailable": "Google Play services requis pour la livraison instantanée des SMS"
+  },
+  "-hi": {
+    "section_sms": "एसएमएस",
+    "sms_android17_title": "Android 17 SMS विलंब",
+    "sms_android17_body": "Android 17 पर, SDK 37 लक्षित करने वाले ऐप्स से सत्यापन SMS 3 घंटे के लिए छिपाए जाते हैं। सहमति संवाद के माध्यम से तुरंत पढ़ने के लिए नीचे त्वरित डिलीवरी सक्षम करें — बिना SMS अनुमति के।",
+    "sms_consent_label": "त्वरित डिलीवरी (सहमति संवाद)",
+    "sms_consent_sub": "प्रत्येक आने वाले संदेश को स्वीकृत करने के लिए सिस्टम संवाद दिखाएं",
+    "sms_consent_arm": "अभी सुनना शुरू करें",
+    "sms_consent_listening": "सुन रहा है",
+    "sms_consent_unavailable": "त्वरित SMS डिलीवरी के लिए Google Play services आवश्यक है"
+  },
+  "-ja": {
+    "section_sms": "SMS",
+    "sms_android17_title": "Android 17 のSMS遅延",
+    "sms_android17_body": "Android 17では、SDK 37を対象とするアプリには認証SMSが3時間表示されません。同意ダイアログで即時配信を有効にすると、SMS権限なしで即座に読めます。",
+    "sms_consent_label": "即時配信（同意ダイアログ）",
+    "sms_consent_sub": "受信メッセージごとに承認ダイアログを表示",
+    "sms_consent_arm": "今すぐ受信開始",
+    "sms_consent_listening": "受信中",
+    "sms_consent_unavailable": "SMSの即時配信にはGoogle Play servicesが必要です"
+  },
+  "-pt": {
+    "section_sms": "SMS",
+    "sms_android17_title": "Atraso de SMS no Android 17",
+    "sms_android17_body": "No Android 17, SMS de verificação ficam ocultos de apps com SDK 37 por 3 horas. Ative a entrega instantânea abaixo para lê-los imediatamente por uma caixa de consentimento — sem permissão de SMS.",
+    "sms_consent_label": "Entrega instantânea (caixa de consentimento)",
+    "sms_consent_sub": "Mostrar um diálogo do sistema para aprovar cada mensagem recebida",
+    "sms_consent_arm": "Começar a escutar agora",
+    "sms_consent_listening": "Ouvindo",
+    "sms_consent_unavailable": "Google Play services é necessário para entrega instantânea de SMS"
+  },
+  "-ru": {
+    "section_sms": "SMS",
+    "sms_android17_title": "Задержка SMS в Android 17",
+    "sms_android17_body": "В Android 17 SMS с кодами проверки скрыты от приложений с target SDK 37 на 3 часа. Включите мгновенную доставку ниже, чтобы читать их сразу через диалог согласия — без разрешения на SMS.",
+    "sms_consent_label": "Мгновенная доставка (диалог согласия)",
+    "sms_consent_sub": "Показывать системный диалог для одобрения каждого входящего сообщения",
+    "sms_consent_arm": "Начать прослушивание",
+    "sms_consent_listening": "Слушает",
+    "sms_consent_unavailable": "Для мгновенной доставки SMS требуется Google Play services"
+  },
+  "-tr": {
+    "section_sms": "SMS",
+    "sms_android17_title": "Android 17 SMS gecikmesi",
+    "sms_android17_body": "\"Android 17'de doğrulama SMS'leri SDK 37 hedefli uygulamalardan 3 saat gizlenir. Aşağıdan anında teslimi etkinleştirerek onay iletişim kutusuyla hemen okuyun — SMS izni gerekmez.\"",
+    "sms_consent_label": "Anında teslim (onay iletişim kutusu)",
+    "sms_consent_sub": "Her gelen mesajı onaylamak için bir sistem iletişim kutusu göster",
+    "sms_consent_arm": "Şimdi dinlemeye başla",
+    "sms_consent_listening": "Dinliyor",
+    "sms_consent_unavailable": "Anında SMS teslimi için Google Play services gerekli"
+  },
+  "-zh-rCN": {
+    "section_sms": "短信",
+    "sms_android17_title": "Android 17 短信延迟",
+    "sms_android17_body": "在 Android 17 上，针对 SDK 37 的应用将在 3 小时内隐藏验证码短信。请启用下面的即时投递，通过同意对话框立即读取——无需短信权限。",
+    "sms_consent_label": "即时投递（同意对话框）",
+    "sms_consent_sub": "显示系统对话框以批准每条收到的消息",
+    "sms_consent_arm": "立即开始接收",
+    "sms_consent_listening": "正在接收",
+    "sms_consent_unavailable": "即时短信投递需要 Google Play services"
+  }
+}

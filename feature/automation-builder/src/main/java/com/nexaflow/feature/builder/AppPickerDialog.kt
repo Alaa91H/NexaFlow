@@ -3,7 +3,6 @@ package com.nexaflow.feature.builder
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
-import android.graphics.drawable.Drawable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
@@ -26,6 +26,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -34,17 +35,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
+/**
+ * An installed launcher app. Immutable and keeps no icon reference: the icon
+ * is loaded lazily per item (keyed by package name) so stability is preserved
+ * without eagerly rendering every app's bitmap upfront.
+ */
+@Immutable
 data class InstalledApp(
     val label: String,
     val packageName: String,
-    val isSystemApp: Boolean = false,
-    val icon: Drawable? = null
+    val isSystemApp: Boolean = false
 )
 
 @Composable
@@ -138,16 +145,11 @@ fun AppPickerDialog(
                                     }
                                 )
                             }
-                            val iconBitmap = app.icon?.let { drawable ->
-                                val bitmap = android.graphics.Bitmap.createBitmap(
-                                    drawable.intrinsicWidth.coerceAtLeast(1),
-                                    drawable.intrinsicHeight.coerceAtLeast(1),
-                                    android.graphics.Bitmap.Config.ARGB_8888
-                                )
-                                val canvas = android.graphics.Canvas(bitmap)
-                                drawable.setBounds(0, 0, canvas.width, canvas.height)
-                                drawable.draw(canvas)
-                                bitmap.asImageBitmap()
+                            // Lazy icon render: only items actually composed pay
+                            // the bitmap cost, keyed by package so it is stable
+                            // across recompositions of the same row.
+                            val iconBitmap = remember(app.packageName) {
+                                loadAppIcon(context, app.packageName)
                             }
                             if (iconBitmap != null) {
                                 androidx.compose.foundation.Image(
@@ -159,7 +161,7 @@ fun AppPickerDialog(
                                 )
                             } else {
                                 Icon(
-                                    imageVector = Icons.Filled.Check,
+                                    imageVector = Icons.Filled.Android,
                                     contentDescription = null,
                                     modifier = Modifier.size(40.dp),
                                     tint = MaterialTheme.colorScheme.surfaceVariant
@@ -205,6 +207,21 @@ fun AppPickerDialog(
     )
 }
 
+/**
+ * Renders one app's launcher icon to a stable [ImageBitmap], or null.
+ * Renders at a fixed density-scaled size (~72dp) so vector and adaptive icons
+ * draw crisp inside the 40.dp slot instead of upscaling from intrinsic size.
+ */
+private fun loadAppIcon(context: Context, packageName: String): ImageBitmap? = runCatching {
+    val drawable = context.packageManager.getApplicationIcon(packageName)
+    val size = (72 * context.resources.displayMetrics.density).toInt().coerceAtLeast(48)
+    val bitmap = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(bitmap)
+    drawable.setBounds(0, 0, size, size)
+    drawable.draw(canvas)
+    bitmap.asImageBitmap()
+}.getOrNull()
+
 private fun loadAllApps(context: Context): List<InstalledApp> {
     return try {
         val packageManager = context.packageManager
@@ -217,12 +234,10 @@ private fun loadAllApps(context: Context): List<InstalledApp> {
                 } catch (_: Throwable) {
                     info.packageName
                 }
-                val icon = runCatching { packageManager.getApplicationIcon(info.applicationInfo) }.getOrNull()
                 InstalledApp(
                     label = label,
                     packageName = info.packageName,
-                    isSystemApp = (info.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0,
-                    icon = icon
+                    isSystemApp = (info.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
                 )
             }
             .distinctBy { it.packageName }

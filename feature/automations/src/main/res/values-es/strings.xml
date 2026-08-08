@@ -10,7 +10,6 @@
     <string name="no_actions">No hay acciones configuradas.</string>
     <string name="run_now">Ejecutar ahora</string>
     <string name="running">Ejecutando…</string>
-    <string name="always_true">Siempre verdadero</string>
     <string name="trigger_time">Hora</string>
     <string name="trigger_time_sub">Disparar a una hora programada</string>
     <string name="trigger_app">App</string>
@@ -158,4 +157,15 @@
     <string name="end_turn_off">Desactivar</string>
     <string name="end_revert">Restaurar original</string>
     <string name="end_set_value">Establecer valor</string>
+    <string name="action_http_request">Solicitud HTTP</string>
+    <string name="action_http_request_sub">Enviar una solicitud web</string>
+    <string name="action_plugin">Acción de complemento</string>
+    <string name="action_plugin_sub">Ejecutar un complemento externo</string>
+    <string name="section_constraints">Condiciones</string>
+    <string name="no_constraints">Sin condiciones - se ejecuta con cada disparador</string>
+    <string name="constraint_subtitle">Debe cumplirse antes de ejecutar la tarea</string>
+    <string name="constraint_type_wifi">Wi-Fi conectado</string>
+    <string name="constraint_type_battery">Nivel de batería</string>
+    <string name="constraint_type_screen_locked">Pantalla bloqueada</string>
+    <string name="constraint_type_headset">Auriculares conectados</string>
 </resources>

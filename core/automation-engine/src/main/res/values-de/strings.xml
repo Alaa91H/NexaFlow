@@ -4,4 +4,7 @@
     <string name="monitoring_title">NexaFlow-Überwachung</string>
     <string name="monitoring_text">Beobachtet deine Automationen</string>
     <string name="notification_listener_label">NexaFlow Benachrichtigungszugriff</string>
+    <string name="oem_autostart_channel">NexaFlow-Autostart</string>
+    <string name="oem_autostart_title">Autostart für NexaFlow aktivieren</string>
+    <string name="oem_autostart_text">NexaFlow könnte nach einem Neustart auf diesem Gerät im Hintergrund beendet werden. Tippe, um die Autostart-Einstellungen zu öffnen.</string>
 </resources>

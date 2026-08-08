@@ -1,6 +1,8 @@
 package com.nexaflow.core.execution.handler
 
 import com.nexaflow.core.execution.NotificationAccess
+import com.nexaflow.core.execution.NotificationActionButton
+import com.nexaflow.core.execution.NotificationActionButtons
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
@@ -22,10 +24,14 @@ class NotificationActionsHandler : ActionHandler {
         return when (action.type) {
             ActionType.SYSTEM_SEND_NOTIFICATION ->
                 if (notif.enabled && notif.executionEnabled) {
+                    // Optional interactive buttons: each runs a configured task
+                    // straight from the notification via a PendingIntent broadcast.
+                    val buttons = NotificationActionButton.fromConfig(action.config["action_buttons"])
                     ctx.controller.sendNotification(
                         action.config["title"] ?: "NexaFlow",
                         action.config["text"] ?: "Automation executed",
-                        sound = action.config["sound"] ?: "DEFAULT"
+                        sound = action.config["sound"] ?: "DEFAULT",
+                        actions = NotificationActionButtons.toNotificationActions(ctx.appContext, buttons)
                     )
                 } else {
                     SystemControlResult.ok("Notifications disabled")

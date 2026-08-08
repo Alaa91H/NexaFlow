@@ -1,5 +1,7 @@
 package com.nexaflow.domain.models
 
+import androidx.compose.runtime.Immutable
+
 /**
  * What a task should do with one of its actions when the task's condition
  * stops being true (Samsung Modes & Routines style).
@@ -14,6 +16,8 @@ enum class EndMode {
     SET_VALUE
 }
 
+@Immutable
+// config must never be mutated in place (Compose @Immutable contract).
 data class EndBehavior(
     val mode: EndMode = EndMode.LEAVE,
     /** Value applied at the end when [mode] is [EndMode.SET_VALUE]. */

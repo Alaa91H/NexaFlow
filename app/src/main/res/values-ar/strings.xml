@@ -9,4 +9,10 @@
     <string name="widget_action">تفعيل الكل</string>
 
     <!-- Bottom navigation -->
+    <string name="widget_no_automations">لا توجد أتمتات</string>
+    <string name="widget_active_count">%1$d من %2$d نشطة</string>
+    <string name="widget_enable_all">تفعيل الكل</string>
+    <string name="widget_disable_all">تعطيل الكل</string>
+    <string name="widget_status_count_format">%1$d / %2$d</string>
+    <string name="widget_last_run_format">آخر تشغيل: %1$s</string>
 </resources>

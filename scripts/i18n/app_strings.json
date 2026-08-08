@@ -1,0 +1,90 @@
+{
+  "": {
+    "widget_no_automations": "No automations",
+    "widget_active_count": "%1$d of %2$d active",
+    "widget_enable_all": "Enable all",
+    "widget_disable_all": "Disable all",
+    "widget_status_count_format": "%1$d / %2$d",
+    "widget_last_run_format": "Last run: %1$s"
+  },
+  "-ar": {
+    "widget_no_automations": "لا توجد أتمتات",
+    "widget_active_count": "%1$d من %2$d نشطة",
+    "widget_enable_all": "تفعيل الكل",
+    "widget_disable_all": "تعطيل الكل",
+    "widget_status_count_format": "%1$d / %2$d",
+    "widget_last_run_format": "آخر تشغيل: %1$s"
+  },
+  "-de": {
+    "widget_no_automations": "Keine Automatisierungen",
+    "widget_active_count": "%1$d von %2$d aktiv",
+    "widget_enable_all": "Alle aktivieren",
+    "widget_disable_all": "Alle deaktivieren",
+    "widget_status_count_format": "%1$d / %2$d",
+    "widget_last_run_format": "Letzte Ausführung: %1$s"
+  },
+  "-es": {
+    "widget_no_automations": "Sin automatizaciones",
+    "widget_active_count": "%1$d de %2$d activas",
+    "widget_enable_all": "Activar todas",
+    "widget_disable_all": "Desactivar todas",
+    "widget_status_count_format": "%1$d / %2$d",
+    "widget_last_run_format": "Última ejecución: %1$s"
+  },
+  "-fr": {
+    "widget_no_automations": "Aucune automatisation",
+    "widget_active_count": "%1$d sur %2$d actives",
+    "widget_enable_all": "Tout activer",
+    "widget_disable_all": "Tout désactiver",
+    "widget_status_count_format": "%1$d / %2$d",
+    "widget_last_run_format": "Dernière exécution : %1$s"
+  },
+  "-hi": {
+    "widget_no_automations": "कोई ऑटोमेशन नहीं",
+    "widget_active_count": "%1$d में से %2$d सक्रिय",
+    "widget_enable_all": "सभी सक्षम करें",
+    "widget_disable_all": "सभी अक्षम करें",
+    "widget_status_count_format": "%1$d / %2$d",
+    "widget_last_run_format": "अंतिम रन: %1$s"
+  },
+  "-ja": {
+    "widget_no_automations": "自動化はありません",
+    "widget_active_count": "%1$d / %2$d アクティブ",
+    "widget_enable_all": "すべて有効にする",
+    "widget_disable_all": "すべて無効にする",
+    "widget_status_count_format": "%1$d / %2$d",
+    "widget_last_run_format": "最終実行: %1$s"
+  },
+  "-pt": {
+    "widget_no_automations": "Nenhuma automação",
+    "widget_active_count": "%1$d de %2$d ativas",
+    "widget_enable_all": "Ativar todas",
+    "widget_disable_all": "Desativar todas",
+    "widget_status_count_format": "%1$d / %2$d",
+    "widget_last_run_format": "Última execução: %1$s"
+  },
+  "-ru": {
+    "widget_no_automations": "Нет автоматизаций",
+    "widget_active_count": "%1$d из %2$d активны",
+    "widget_enable_all": "Включить все",
+    "widget_disable_all": "Выключить все",
+    "widget_status_count_format": "%1$d / %2$d",
+    "widget_last_run_format": "Последний запуск: %1$s"
+  },
+  "-tr": {
+    "widget_no_automations": "Otomasyon yok",
+    "widget_active_count": "%1$d / %2$d aktif",
+    "widget_enable_all": "Tümünü etkinleştir",
+    "widget_disable_all": "Tümünü devre dışı bırak",
+    "widget_status_count_format": "%1$d / %2$d",
+    "widget_last_run_format": "Son çalıştırma: %1$s"
+  },
+  "-zh-rCN": {
+    "widget_no_automations": "没有自动化",
+    "widget_active_count": "%1$d / %2$d 个活动",
+    "widget_enable_all": "全部启用",
+    "widget_disable_all": "全部禁用",
+    "widget_status_count_format": "%1$d / %2$d",
+    "widget_last_run_format": "上次运行: %1$s"
+  }
+}

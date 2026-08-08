@@ -2,11 +2,14 @@ package com.nexaflow.app.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.nexaflow.core.database.AppDatabase
 import com.nexaflow.core.database.AutomationDao
 import com.nexaflow.core.database.ExecutionDao
 import com.nexaflow.core.database.Migrations
+import com.nexaflow.core.database.VariableDao
 import com.nexaflow.core.datastore.NotificationPreferences
+import com.nexaflow.core.datastore.SmsPreferences
 import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.compat.AutomationWorkflowRunner
@@ -15,8 +18,12 @@ import com.nexaflow.core.logging.LogStore
 import com.nexaflow.data.backup.BackupManager
 import com.nexaflow.data.repository.AutomationRepositoryImpl
 import com.nexaflow.data.repository.HistoryRepositoryImpl
+import com.nexaflow.data.repository.PluginRepositoryImpl
+import com.nexaflow.data.repository.VariableRepositoryImpl
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.repositories.HistoryRepository
+import com.nexaflow.domain.repositories.PluginRepository
+import com.nexaflow.domain.repositories.VariableRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -35,7 +42,11 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "nexaflow.db"
-        ).addMigrations(*Migrations.ALL.toTypedArray())
+        )
+            // WAL allows concurrent readers while writing, eliminating
+            // read/write lock contention under the engine's write-heavy load.
+            .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
+            .addMigrations(*Migrations.ALL.toTypedArray())
             .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
             .build()
     }
@@ -51,6 +62,23 @@ object AppModule {
     }
 
     @Provides
+    fun provideVariableDao(database: AppDatabase): VariableDao {
+        return database.variableDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideVariableRepository(dao: VariableDao): VariableRepository {
+        return VariableRepositoryImpl(dao)
+    }
+
+    @Provides
+    @Singleton
+    fun providePluginRepository(@ApplicationContext context: Context): PluginRepository {
+        return PluginRepositoryImpl(context)
+    }
+
+    @Provides
     @Singleton
     fun provideThemePreferences(@ApplicationContext context: Context): ThemePreferences {
         return ThemePreferences(context)
@@ -60,6 +88,12 @@ object AppModule {
     @Singleton
     fun provideNotificationPreferences(@ApplicationContext context: Context): NotificationPreferences {
         return NotificationPreferences(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSmsPreferences(@ApplicationContext context: Context): SmsPreferences {
+        return SmsPreferences(context)
     }
 
     @Provides
@@ -94,13 +128,15 @@ object AppModule {
         @ApplicationContext context: Context,
         historyRepository: HistoryRepository,
         notificationPreferences: NotificationPreferences,
-        logStore: LogStore
+        logStore: LogStore,
+        variableRepository: VariableRepository
     ): ExecutionEngine {
         return ExecutionEngine(
             context,
             historyRepository,
             notificationPreferences,
-            logStore = logStore
+            logStore = logStore,
+            variableRepository = variableRepository
         )
     }
 

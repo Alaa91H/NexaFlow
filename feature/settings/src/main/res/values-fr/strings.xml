@@ -88,4 +88,21 @@
     <string name="root_permission_sub">Accorder l\'accès superutilisateur pour les commandes avancées</string>
     <string name="shizuku_permission">Shizuku</string>
     <string name="shizuku_permission_sub">Exécuter des commandes avancées via le service Shizuku</string>
+    <string name="oem_compat_title">Gardez NexaFlow actif en arrière-plan</string>
+    <string name="oem_compat_sub">Ce ROM peut arrêter NexaFlow en arrière-plan. Autorisez le démarrage automatique pour que vos tâches s\u2019exécutent toujours de manière fiable.</string>
+    <string name="oem_compat_action">Ouvrir les paramètres</string>
+    <string name="dismiss">Ignorer</string>
+    <string name="plugins">Extensions</string>
+    <string name="plugins_sub">Gérer les actions des plugins externes</string>
+    <string name="plugin_manager_title">Extensions</string>
+    <string name="plugin_manager_sub">"Plugins d'automatisation externes installés sur cet appareil"</string>
+    <string name="plugin_refresh">Actualiser</string>
+    <string name="plugin_test">Tester</string>
+    <string name="plugin_no_plugins">Aucun plugin installé</string>
+    <string name="plugin_no_plugins_hint">Installez un plugin compatible Tasker ou MacroDroid pour ajouter de nouvelles actions</string>
+    <string name="plugin_open_info">"Infos de l'app"</string>
+    <string name="plugin_test_failed">Échec du plugin</string>
+    <string name="plugin_test_timeout">"Le plugin n'a pas répondu à temps"</string>
+    <string name="plugin_test_pending">Le plugin travaille encore</string>
+    <string name="plugin_test_success">Le plugin a répondu correctement</string>
 </resources>

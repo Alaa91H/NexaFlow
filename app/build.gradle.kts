@@ -13,8 +13,8 @@ android {
         applicationId = "com.nexaflow.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 8
-        versionName = "3.6.0-alpha"
+        versionCode = 9
+        versionName = "3.7.0-alpha"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -24,7 +24,11 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8 full code shrinking + resource shrinking: smaller APK and
+            // faster cold start for end users. Keep rules for the reflection
+            // surfaces (Shizuku, Gson-serialized models) live in proguard-rules.pro.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             // Sign release builds with the debug keystore so CI can produce an
             // installable APK without exposing production signing keys.
@@ -51,9 +55,18 @@ kotlin {
     }
 }
 
+// Compose Compiler metrics: emits per-module skippability/stability reports to
+// build/compose-metrics + build/compose-reports so the team can audit which
+// composables skip recomposition and which classes are treated as unstable.
+composeCompiler {
+    metricsDestination = layout.buildDirectory.dir("compose-metrics")
+    reportsDestination = layout.buildDirectory.dir("compose-reports")
+}
+
 dependencies {
     implementation("androidx.core:core-ktx:1.19.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
     implementation("androidx.activity:activity-compose:1.13.0")
     implementation(platform("androidx.compose:compose-bom:2026.06.01"))
     implementation("androidx.compose.ui:ui")

@@ -10,7 +10,6 @@
     <string name="no_actions">Keine Aktionen konfiguriert.</string>
     <string name="run_now">Jetzt ausführen</string>
     <string name="running">Wird ausgeführt…</string>
-    <string name="always_true">Immer wahr</string>
     <string name="trigger_time">Zeit</string>
     <string name="trigger_time_sub">Zu einer geplanten Zeit auslösen</string>
     <string name="trigger_app">App</string>
@@ -158,4 +157,15 @@
     <string name="end_turn_off">Ausschalten</string>
     <string name="end_revert">Original wiederherstellen</string>
     <string name="end_set_value">Wert festlegen</string>
+    <string name="action_http_request">HTTP-Anfrage</string>
+    <string name="action_http_request_sub">Eine Webanfrage senden</string>
+    <string name="action_plugin">Plugin-Aktion</string>
+    <string name="action_plugin_sub">Externes Plugin ausführen</string>
+    <string name="section_constraints">Bedingungen</string>
+    <string name="no_constraints">Keine Bedingungen - läuft bei jedem Auslöser</string>
+    <string name="constraint_subtitle">Muss erfüllt sein, bevor die Aufgabe läuft</string>
+    <string name="constraint_type_wifi">Wi-Fi verbunden</string>
+    <string name="constraint_type_battery">Akku-Stand</string>
+    <string name="constraint_type_screen_locked">Bildschirm gesperrt</string>
+    <string name="constraint_type_headset">Headset verbunden</string>
 </resources>

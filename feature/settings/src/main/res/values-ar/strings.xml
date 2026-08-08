@@ -88,4 +88,21 @@
     <string name="root_permission_sub">منح صلاحيات المستخدم المتميز للأوامر المتقدمة</string>
     <string name="shizuku_permission">شيزوكو</string>
     <string name="shizuku_permission_sub">تشغيل أوامر متقدمة عبر خدمة شيزوكو</string>
+    <string name="oem_compat_title">أبقِ NexaFlow يعمل في الخلفية</string>
+    <string name="oem_compat_sub">قد يوقف هذا النظام NexaFlow في الخلفية. اسمح بالتشغيل التلقائي لتعمل مهامك دائماً بشكل موثوق.</string>
+    <string name="oem_compat_action">فتح الإعدادات</string>
+    <string name="dismiss">تجاهل</string>
+    <string name="plugins">الإضافات</string>
+    <string name="plugins_sub">إدارة إجراءات الإضافات الخارجية</string>
+    <string name="plugin_manager_title">الإضافات</string>
+    <string name="plugin_manager_sub">إضافات الأتمتة الخارجية المثبتة على هذا الجهاز</string>
+    <string name="plugin_refresh">تحديث</string>
+    <string name="plugin_test">اختبار</string>
+    <string name="plugin_no_plugins">لا توجد إضافات مثبتة</string>
+    <string name="plugin_no_plugins_hint">ثبّت إضافة متوافقة مع Tasker أو MacroDroid لإضافة إجراءات جديدة</string>
+    <string name="plugin_open_info">معلومات التطبيق</string>
+    <string name="plugin_test_failed">فشل الإضافة</string>
+    <string name="plugin_test_timeout">لم تستجب الإضافة في الوقت المحدد</string>
+    <string name="plugin_test_pending">الإضافة ما زالت تعمل</string>
+    <string name="plugin_test_success">استجابت الإضافة بنجاح</string>
 </resources>

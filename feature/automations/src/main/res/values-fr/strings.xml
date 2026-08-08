@@ -10,7 +10,6 @@
     <string name="no_actions">Aucune action configurée.</string>
     <string name="run_now">Exécuter maintenant</string>
     <string name="running">Exécution…</string>
-    <string name="always_true">Toujours vrai</string>
     <string name="trigger_time">Heure</string>
     <string name="trigger_time_sub">Se déclencher à une heure planifiée</string>
     <string name="trigger_app">Application</string>
@@ -158,4 +157,15 @@
     <string name="end_turn_off">Désactiver</string>
     <string name="end_revert">Restaurer l\'original</string>
     <string name="end_set_value">Définir une valeur</string>
+    <string name="action_http_request">Requête HTTP</string>
+    <string name="action_http_request_sub">Envoyer une requête web</string>
+    <string name="action_plugin">Action de plugin</string>
+    <string name="action_plugin_sub">Exécuter un plugin externe</string>
+    <string name="section_constraints">Conditions</string>
+    <string name="no_constraints">"Aucune condition - s'exécute à chaque déclencheur"</string>
+    <string name="constraint_subtitle">"Doit être vrai avant l'exécution de la tâche"</string>
+    <string name="constraint_type_wifi">Wi-Fi connecté</string>
+    <string name="constraint_type_battery">Niveau de batterie</string>
+    <string name="constraint_type_screen_locked">Écran verrouillé</string>
+    <string name="constraint_type_headset">Casque connecté</string>
 </resources>

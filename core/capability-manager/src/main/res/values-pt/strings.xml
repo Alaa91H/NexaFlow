@@ -15,4 +15,12 @@
     <string name="section_capabilities">Recursos</string>
     <string name="section_about">Sobre</string>
     <string name="security_patch">Patch de segurança: %1$s</string>
+    <string name="section_sms">SMS</string>
+    <string name="sms_android17_title">Atraso de SMS no Android 17</string>
+    <string name="sms_android17_body">No Android 17, SMS de verificação ficam ocultos de apps com SDK 37 por 3 horas. Ative a entrega instantânea abaixo para lê-los imediatamente por uma caixa de consentimento — sem permissão de SMS.</string>
+    <string name="sms_consent_label">Entrega instantânea (caixa de consentimento)</string>
+    <string name="sms_consent_sub">Mostrar um diálogo do sistema para aprovar cada mensagem recebida</string>
+    <string name="sms_consent_arm">Começar a escutar agora</string>
+    <string name="sms_consent_listening">Ouvindo</string>
+    <string name="sms_consent_unavailable">Google Play services é necessário para entrega instantânea de SMS</string>
 </resources>

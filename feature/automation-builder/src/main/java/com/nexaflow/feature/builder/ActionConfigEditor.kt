@@ -1,25 +1,41 @@
 package com.nexaflow.feature.builder
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.nexaflow.core.execution.NotificationActionButton
 import com.nexaflow.domain.models.ActionType
+import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.variables.VariableResolver
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -27,7 +43,12 @@ fun ActionConfigEditor(
     option: ActionOption,
     config: Map<String, String>,
     onConfigChange: (Map<String, String>) -> Unit,
-    onPickApp: () -> Unit
+    onPickApp: () -> Unit,
+    availableVariables: List<String> = emptyList(),
+    // Re-launches the plugin's EDIT_SETTING activity (plugin actions only).
+    onPluginConfigure: (() -> Unit)? = null,
+    // Saved tasks the notification action can attach as interactive buttons.
+    automations: List<Automation> = emptyList()
 ) {
     when (option.actionType) {
         ActionType.SYSTEM_BRIGHTNESS -> {
@@ -116,6 +137,11 @@ fun ActionConfigEditor(
                     label = { Text(text = stringResource(R.string.text)) },
                     singleLine = true
                 )
+                VariableInsertChips(
+                    availableVariables = availableVariables,
+                    currentValue = config["text"] ?: "",
+                    onValueChange = { onConfigChange(config + ("text" to it)) }
+                )
             }
         }
         ActionType.SYSTEM_SEND_REMINDER -> {
@@ -133,6 +159,11 @@ fun ActionConfigEditor(
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = stringResource(R.string.reminder_text)) },
                     singleLine = true
+                )
+                VariableInsertChips(
+                    availableVariables = availableVariables,
+                    currentValue = config["text"] ?: "",
+                    onValueChange = { onConfigChange(config + ("text" to it)) }
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -321,6 +352,11 @@ fun ActionConfigEditor(
                     label = { Text(text = stringResource(R.string.text)) },
                     singleLine = true
                 )
+                VariableInsertChips(
+                    availableVariables = availableVariables,
+                    currentValue = config["text"] ?: "",
+                    onValueChange = { onConfigChange(config + ("text" to it)) }
+                )
                 Text(text = stringResource(R.string.sound_label), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 val sounds = listOf(
                     "DEFAULT" to stringResource(R.string.sound_default),
@@ -342,6 +378,19 @@ fun ActionConfigEditor(
                         )
                     }
                 }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                // Interactive action buttons: each runs another saved task
+                // straight from the notification (PendingIntent → receiver).
+                NotificationButtonsEditor(
+                    buttons = NotificationActionButton.fromConfig(config["action_buttons"]),
+                    automations = automations,
+                    onButtonsChange = { buttons ->
+                        onConfigChange(
+                            if (buttons.isEmpty()) config - "action_buttons"
+                            else config + ("action_buttons" to NotificationActionButton.toConfig(buttons))
+                        )
+                    }
+                )
             }
         }
         ActionType.SYSTEM_WAIT -> {
@@ -366,14 +415,67 @@ fun ActionConfigEditor(
             )
         }
         ActionType.SYSTEM_OPEN_URL -> {
-            OutlinedTextField(
-                value = config["url"] ?: "",
-                onValueChange = { onConfigChange(mapOf("url" to it)) },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = stringResource(R.string.url)) },
-                placeholder = { Text(text = stringResource(R.string.url_hint)) },
-                singleLine = true
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = config["url"] ?: "",
+                    onValueChange = { onConfigChange(mapOf("url" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.url)) },
+                    placeholder = { Text(text = stringResource(R.string.url_hint)) },
+                    singleLine = true
+                )
+                VariableInsertChips(
+                    availableVariables = availableVariables,
+                    currentValue = config["url"] ?: "",
+                    onValueChange = { onConfigChange(mapOf("url" to it)) }
+                )
+            }
+        }
+        ActionType.SYSTEM_HTTP_REQUEST -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = config["url"] ?: "",
+                    onValueChange = { onConfigChange(config + ("url" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.url)) },
+                    placeholder = { Text(text = "https://api.example.com/data") },
+                    singleLine = true
+                )
+                VariableInsertChips(
+                    availableVariables = availableVariables,
+                    currentValue = config["url"] ?: "",
+                    onValueChange = { onConfigChange(config + ("url" to it)) }
+                )
+                Text(text = stringResource(R.string.http_method), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                val methods = listOf("GET", "POST", "PUT", "PATCH", "DELETE")
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    methods.forEach { method ->
+                        FilterChip(
+                            selected = (config["method"] ?: "GET") == method,
+                            onClick = { onConfigChange(config + ("method" to method)) },
+                            label = { Text(text = method, style = MaterialTheme.typography.labelMedium) }
+                        )
+                    }
+                }
+                OutlinedTextField(
+                    value = config["body"] ?: "",
+                    onValueChange = { onConfigChange(config + ("body" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.http_body)) },
+                    placeholder = { Text(text = stringResource(R.string.http_body_hint)) },
+                    minLines = 2,
+                    maxLines = 4
+                )
+                VariableInsertChips(
+                    availableVariables = availableVariables,
+                    currentValue = config["body"] ?: "",
+                    onValueChange = { onConfigChange(config + ("body" to it)) }
+                )
+            }
         }
         ActionType.BATTERY_ALERTS,
         ActionType.BATTERY_CHARGING_NOTIFICATIONS -> {
@@ -392,6 +494,11 @@ fun ActionConfigEditor(
                     label = { Text(text = stringResource(R.string.message_optional)) },
                     singleLine = true
                 )
+                VariableInsertChips(
+                    availableVariables = availableVariables,
+                    currentValue = config["message"] ?: "",
+                    onValueChange = { onConfigChange(config + ("message" to it)) }
+                )
             }
         }
         ActionType.ADVANCED_SHIZUKU,
@@ -403,6 +510,34 @@ fun ActionConfigEditor(
                 label = { Text(text = stringResource(R.string.shell_command)) },
                 placeholder = { Text(text = stringResource(R.string.shell_hint)) }
             )
+        }
+        ActionType.PLUGIN_FIRE -> {
+            val blurb = config["blurb"].orEmpty()
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (blurb.isBlank()) {
+                    Text(
+                        text = stringResource(R.string.plugin_not_configured),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                } else {
+                    Text(
+                        text = blurb,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = config["package"].orEmpty(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+                if (onPluginConfigure != null) {
+                    TextButton(onClick = onPluginConfigure) {
+                        Text(text = stringResource(R.string.plugin_reconfigure))
+                    }
+                }
+            }
         }
         ActionType.APPLICATION_CLOSE_APP -> {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -439,6 +574,57 @@ fun ActionConfigEditor(
     }
 }
 
+/**
+ * Samsung-style insert row: tapping a chip appends its `%NAME` placeholder to
+ * the field's current text so users never type the syntax by hand. Built-in
+ * and user-global variables share the row.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun VariableInsertChips(
+    availableVariables: List<String>,
+    currentValue: String,
+    onValueChange: (String) -> Unit
+) {
+    if (availableVariables.isEmpty()) return
+    // Variables already referenced in the field's text are shown as selected
+    // (live feedback that the insertion is in effect).
+    val used = remember(currentValue) {
+        VariableResolver.referencedPlaceholders(currentValue).map { it.lowercase() }.toSet()
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = stringResource(R.string.insert_variable_hint),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.secondary
+        )
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            availableVariables.forEach { name ->
+                FilterChip(
+                    selected = name.lowercase() in used,
+                    onClick = {
+                        val placeholder = "%$name"
+                        onValueChange(
+                            if (currentValue.isBlank()) placeholder
+                            else "$currentValue $placeholder"
+                        )
+                    },
+                    label = {
+                        Text(
+                            text = "%$name",
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun ToggleConfigRow(
     label: String,
@@ -453,6 +639,127 @@ private fun ToggleConfigRow(
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange
+        )
+    }
+}
+
+/**
+ * Samsung-style editor for notification action buttons: attach up to three
+ * tasks that run straight from the notification when it is shown. Tapping a
+ * row opens a picker of the other saved tasks; each picked task becomes a
+ * button labelled with the task name.
+ */
+@Composable
+private fun NotificationButtonsEditor(
+    buttons: List<NotificationActionButton>,
+    automations: List<Automation>,
+    onButtonsChange: (List<NotificationActionButton>) -> Unit
+) {
+    var showPicker by remember { mutableStateOf(false) }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = stringResource(R.string.notification_buttons_title),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = stringResource(R.string.notification_buttons_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.secondary
+        )
+        if (buttons.isEmpty()) {
+            Text(
+                text = stringResource(R.string.notification_buttons_empty),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        } else {
+            buttons.forEach { button ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = button.label,
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    IconButton(onClick = {
+                        onButtonsChange(buttons.filterNot { it.automationId == button.automationId })
+                    }) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = stringResource(R.string.notification_button_remove),
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+            }
+        }
+        // Android caps a notification at three action buttons.
+        if (buttons.size < 3) {
+            TextButton(
+                onClick = { showPicker = true },
+                enabled = automations.isNotEmpty()
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 4.dp)
+                )
+                Text(text = stringResource(R.string.notification_buttons_add))
+            }
+        }
+    }
+
+    if (showPicker) {
+        AlertDialog(
+            onDismissRequest = { showPicker = false },
+            title = { Text(text = stringResource(R.string.notification_buttons_picker_title)) },
+            text = {
+                Column {
+                    if (automations.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.notification_buttons_picker_empty),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    } else {
+                        // Never offer a task twice — already-attached buttons are
+                        // hidden from the picker so duplicate entries can't stack.
+                        val selectedIds = buttons.map { it.automationId }.toSet()
+                        automations.filterNot { it.id in selectedIds }.forEach { automation ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onButtonsChange(buttons + NotificationActionButton(automation.name, automation.id))
+                                        showPicker = false
+                                    }
+                                    .padding(vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = automation.name,
+                                    modifier = Modifier.weight(1f),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Icon(
+                                    imageVector = Icons.Filled.Add,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.outline
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showPicker = false }) {
+                    Text(text = stringResource(R.string.cancel))
+                }
+            }
         )
     }
 }

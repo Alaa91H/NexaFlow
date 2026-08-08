@@ -15,4 +15,12 @@
     <string name="section_capabilities">能力</string>
     <string name="section_about">关于</string>
     <string name="security_patch">安全补丁：%1$s</string>
+    <string name="section_sms">短信</string>
+    <string name="sms_android17_title">Android 17 短信延迟</string>
+    <string name="sms_android17_body">在 Android 17 上，针对 SDK 37 的应用将在 3 小时内隐藏验证码短信。请启用下面的即时投递，通过同意对话框立即读取——无需短信权限。</string>
+    <string name="sms_consent_label">即时投递（同意对话框）</string>
+    <string name="sms_consent_sub">显示系统对话框以批准每条收到的消息</string>
+    <string name="sms_consent_arm">立即开始接收</string>
+    <string name="sms_consent_listening">正在接收</string>
+    <string name="sms_consent_unavailable">即时短信投递需要 Google Play services</string>
 </resources>

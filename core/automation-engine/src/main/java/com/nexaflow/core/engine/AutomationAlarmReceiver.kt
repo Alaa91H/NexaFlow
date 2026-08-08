@@ -38,6 +38,13 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
             restoreAfterBoot(context)
             return
         }
+        if (intent.action == MonitoringService.ACTION_START_MONITORING) {
+            // Fired by the alarm scheduled in restoreAfterBoot: Android 15+
+            // forbids launching time-limited FGS types from BOOT_COMPLETED, so
+            // the service is started from here instead of the boot receiver.
+            MonitoringService.start(context.applicationContext)
+            return
+        }
         if (intent.action != AutomationScheduler.ACTION_RUN_AUTOMATION &&
             intent.action != AutomationScheduler.ACTION_END_AUTOMATION
         ) return
@@ -92,7 +99,10 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
     private fun restoreAfterBoot(context: Context) {
         try {
             scheduler.initialize()
-            MonitoringService.start(context.applicationContext)
+            // Best practice on Android 15+: schedule an exact alarm that fires
+            // a few seconds after boot and starts monitoring from the alarm
+            // receiver, instead of launching the FGS directly from here.
+            MonitoringService.scheduleStart(context.applicationContext)
         } catch (t: Throwable) {
             Log.e("AutomationAlarmReceiver", "Failed to restore after boot", t)
         }

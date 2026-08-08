@@ -4,4 +4,7 @@
     <string name="monitoring_title">Мониторинг NexaFlow</string>
     <string name="monitoring_text">Следит за вашими автоматизациями</string>
     <string name="notification_listener_label">Доступ NexaFlow к уведомлениям</string>
+    <string name="oem_autostart_channel">Автозапуск NexaFlow</string>
+    <string name="oem_autostart_title">Включите автозапуск NexaFlow</string>
+    <string name="oem_autostart_text">NexaFlow может перестать работать в фоновом режиме после перезагрузки на этом устройстве. Нажмите, чтобы открыть настройки автозапуска.</string>
 </resources>

@@ -741,12 +741,17 @@ class SystemController(
      *  - BEEP: a single short beep (played even without notification sound)
      *  - SILENT: no sound
      *  - anything else (DEFAULT): the channel default
+     *
+     * [actions] are attached as interactive action buttons (built upstream with
+     * [com.nexaflow.core.execution.NotificationActionButtons]); tapping one
+     * routes a PendingIntent broadcast to run a specific task.
      */
     fun sendNotification(
         title: String,
         text: String,
         channelId: String = "nexaflow_actions",
-        sound: String = "DEFAULT"
+        sound: String = "DEFAULT",
+        actions: List<NotificationCompat.Action> = emptyList()
     ): SystemControlResult {
         return try {
             val notificationManager = context.getSystemService(NotificationManager::class.java)
@@ -765,7 +770,7 @@ class SystemController(
             }
 
             val builder = NotificationCompat.Builder(context, channelId)
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setSmallIcon(R.drawable.ic_stat_nexaflow)
                 .setContentTitle(title)
                 .setContentText(text)
                 .setAutoCancel(true)
@@ -775,6 +780,7 @@ class SystemController(
             if (sound == "SILENT") {
                 builder.setSilent(true)
             }
+            actions.forEach { builder.addAction(it) }
             notificationManager.notify(1001, builder.build())
 
             if (sound == "BEEP") {

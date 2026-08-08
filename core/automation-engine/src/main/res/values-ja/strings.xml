@@ -4,4 +4,7 @@
     <string name="monitoring_title">NexaFlow監視</string>
     <string name="monitoring_text">自動化を監視中</string>
     <string name="notification_listener_label">NexaFlow 通知アクセス</string>
+    <string name="oem_autostart_channel">NexaFlowの自動起動</string>
+    <string name="oem_autostart_title">NexaFlowの自動起動を有効にする</string>
+    <string name="oem_autostart_text">この端末では再起動後にNexaFlowがバックグラウンドで停止する可能性があります。タップして自動起動設定を開きます。</string>
 </resources>

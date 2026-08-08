@@ -4,4 +4,7 @@
     <string name="monitoring_title">NexaFlow 监控</string>
     <string name="monitoring_text">正在监控您的自动化任务</string>
     <string name="notification_listener_label">NexaFlow 通知使用权</string>
+    <string name="oem_autostart_channel">NexaFlow 自动启动</string>
+    <string name="oem_autostart_title">为 NexaFlow 启用自动启动</string>
+    <string name="oem_autostart_text">在此设备上重启后，NexaFlow 可能会停止在后台运行。点按以打开自动启动设置。</string>
 </resources>

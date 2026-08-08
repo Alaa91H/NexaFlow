@@ -162,7 +162,7 @@ fun IconPickerScreen(navController: NavController) {
                     }
                 }
             }
-            items(filtered) { entry ->
+            items(filtered, key = { it.name }) { entry ->
                 val isSelected = entry.name == selected?.name
                 Icon(
                     imageVector = entry.icon,

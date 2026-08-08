@@ -1,5 +1,7 @@
 package com.nexaflow.domain.models
 
+import androidx.compose.runtime.Immutable
+
 /**
  * A permission (runtime or special) a task needs to run a trigger or action.
  *
@@ -9,6 +11,7 @@ package com.nexaflow.domain.models
  *   notification listener, accessibility, Shizuku/root) that cannot be granted
  *   by a dialog and need their dedicated system screen.
  */
+@Immutable
 data class PermissionRequirement(
     val owner: String,
     val runtimePermissions: List<String> = emptyList(),

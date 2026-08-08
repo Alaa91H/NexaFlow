@@ -2,7 +2,6 @@ package com.nexaflow.feature.settings
 
 import android.app.AlarmManager
 import android.app.NotificationManager
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -10,8 +9,10 @@ import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
@@ -29,6 +31,7 @@ import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -40,10 +43,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -54,8 +60,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
-import com.nexaflow.core.engine.AppTriggerAccessibilityService
 import com.nexaflow.core.rom.ElevatedAccessShortcuts
+import com.nexaflow.core.rom.OemCompat
+import com.nexaflow.core.rom.PermissionStatus
 import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
@@ -101,6 +108,13 @@ fun PermissionManagerScreen(navController: NavController) {
         grantedStates.putAll(computed)
     }
 
+    // OEM background-restriction guidance (MIUI/HyperOS, One UI, ColorOS,
+    // OxygenOS): shown once per launch with a dismissible flag.
+    val oemDeepLink = remember { OemCompat.autostartDeepLink(context) }
+    val oemShown = remember { OemCompat.hasVendorAutostartGate() }
+    var oemDismissed by rememberSaveable { mutableStateOf(false) }
+    val showOemHint = oemShown && oemDeepLink != null && !oemDismissed
+
     Scaffold(
         topBar = { NexaFlowTopBar(title = stringResource(R.string.permission_manager), onBack = { navController.popBackStack() }) }
     ) { padding ->
@@ -117,6 +131,54 @@ fun PermissionManagerScreen(navController: NavController) {
                     color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
+            }
+            if (showOemHint) {
+                item {
+                    NexaFlowCard(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Info,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.oem_compat_title),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = stringResource(R.string.oem_compat_sub),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            TextButton(onClick = { oemDismissed = true }) {
+                                Text(text = stringResource(R.string.dismiss))
+                            }
+                            TextButton(onClick = {
+                                context.startActivity(
+                                    oemDeepLink.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                )
+                            }) {
+                                Text(
+                                    text = stringResource(R.string.oem_compat_action),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                }
             }
             item {
                 SectionHeader(text = stringResource(R.string.section_automation))
@@ -154,9 +216,7 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
             subtitleRes = R.string.accessibility_disabled,
             icon = Icons.Filled.Accessibility,
             isGranted = { context -> isAccessibilityEnabled(context) },
-            openAction = { context ->
-                context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            }
+            openAction = { context -> PermissionStatus.openAccessibilitySettings(context) }
         ),
         PermissionEntry(
             key = "notifications",
@@ -177,25 +237,8 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
             titleRes = R.string.notification_access,
             subtitleRes = R.string.notification_access_sub,
             icon = Icons.Filled.NotificationsActive,
-            isGranted = { context ->
-                val component = ComponentName(context, com.nexaflow.core.engine.NotificationListener::class.java)
-                if (Build.VERSION.SDK_INT >= 27) {
-                    val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                    nm.isNotificationListenerAccessGranted(component)
-                } else {
-                    // API 26: no direct API — parse the enabled notification listeners.
-                    // Settings.Secure.ENABLED_NOTIFICATION_LISTENERS is a hidden
-                    // constant; use the raw key (stable since API 18).
-                    val enabled = Settings.Secure.getString(
-                        context.contentResolver,
-                        "enabled_notification_listeners"
-                    ) ?: ""
-                    enabled.split(':').any { ComponentName.unflattenFromString(it) == component }
-                }
-            },
-            openAction = { context ->
-                context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            }
+            isGranted = { context -> PermissionStatus.isNotificationListenerGranted(context) },
+            openAction = { context -> PermissionStatus.openNotificationAccessSettings(context) }
         ),
         PermissionEntry(
             key = "sms",
@@ -206,9 +249,7 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
                 ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED ||
                     ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED
             },
-            openAction = { context ->
-                context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            }
+            openAction = { context -> PermissionStatus.openAppDetails(context) }
         ),
         PermissionEntry(
             key = "bluetooth",
@@ -220,9 +261,7 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
                     ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
                 } else true
             },
-            openAction = { context ->
-                context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            }
+            openAction = { context -> PermissionStatus.openAppDetails(context) }
         ),
         PermissionEntry(
             key = "location",
@@ -232,9 +271,7 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
             isGranted = { context ->
                 ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
             },
-            openAction = { context ->
-                context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            }
+            openAction = { context -> PermissionStatus.openAppDetails(context) }
         ),
         PermissionEntry(
             key = "calendar",
@@ -244,9 +281,7 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
             isGranted = { context ->
                 ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
             },
-            openAction = { context ->
-                context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            }
+            openAction = { context -> PermissionStatus.openAppDetails(context) }
         ),
         PermissionEntry(
             key = "root",
@@ -277,9 +312,7 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
             subtitleRes = R.string.write_settings_permission_sub,
             icon = Icons.Filled.Tune,
             isGranted = { context -> Settings.System.canWrite(context) },
-            openAction = { context ->
-                context.startActivity(Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:${context.packageName}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            }
+            openAction = { context -> PermissionStatus.openWriteSettings(context) }
         ),
         PermissionEntry(
             key = "dnd",
@@ -290,9 +323,7 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
                 val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 nm.isNotificationPolicyAccessGranted
             },
-            openAction = { context ->
-                context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            }
+            openAction = { context -> PermissionStatus.openNotificationPolicy(context) }
         ),
         PermissionEntry(
             key = "exact_alarms",
@@ -323,11 +354,5 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
     )
 }
 
-private fun isAccessibilityEnabled(context: Context): Boolean {
-    val expected = ComponentName(context, AppTriggerAccessibilityService::class.java)
-    val enabled = Settings.Secure.getString(
-        context.contentResolver,
-        Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-    ) ?: return false
-    return enabled.split(':').any { ComponentName.unflattenFromString(it) == expected }
-}
+private fun isAccessibilityEnabled(context: Context): Boolean =
+    PermissionStatus.isAccessibilityServiceEnabled(context)

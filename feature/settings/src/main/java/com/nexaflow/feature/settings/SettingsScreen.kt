@@ -1,10 +1,8 @@
 package com.nexaflow.feature.settings
 
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
@@ -16,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.Notifications
@@ -56,8 +55,8 @@ import com.nexaflow.core.compat.ChannelStatus
 import com.nexaflow.core.compat.ChannelStatusMapper
 import com.nexaflow.core.compat.ChannelTier
 import com.nexaflow.core.compat.ExecutionChannelSelector
-import com.nexaflow.core.engine.AppTriggerAccessibilityService
 import com.nexaflow.core.engine.MonitoringService
+import com.nexaflow.core.rom.PermissionStatus
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
@@ -288,6 +287,12 @@ fun SettingsScreen(navController: NavController) {
                         subtitle = stringResource(R.string.execution_history_sub),
                         onClick = { navController.navigate("history") }
                     )
+                    SettingRow(
+                        icon = Icons.Filled.Extension,
+                        title = stringResource(R.string.plugins),
+                        subtitle = stringResource(R.string.plugins_sub),
+                        onClick = { navController.navigate("plugins") }
+                    )
                 }
             }
             item {
@@ -337,21 +342,11 @@ fun SettingsScreen(navController: NavController) {
 }
 
 private object AccessibilityStatus {
-    fun isEnabled(context: Context): Boolean {
-        val expected = ComponentName(context, AppTriggerAccessibilityService::class.java)
-        val enabledServices = Settings.Secure.getString(
-            context.contentResolver,
-            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-        ) ?: return false
-        return enabledServices.split(':').any { ComponentName.unflattenFromString(it) == expected }
-    }
+    fun isEnabled(context: Context): Boolean =
+        PermissionStatus.isAccessibilityServiceEnabled(context)
 
-    fun openSettings(context: Context) {
-        context.startActivity(
-            Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        )
-    }
+    fun openSettings(context: Context) =
+        PermissionStatus.openAccessibilitySettings(context)
 }
 
 private fun appVersion(context: Context): String {

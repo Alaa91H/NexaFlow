@@ -6,12 +6,13 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -33,9 +34,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Android 15+ enforces edge-to-edge for targetSdk 35+; opt in
+        // explicitly so every API level draws behind the system bars
+        // uniformly (status/nav bars stay transparent, Scaffolds handle insets).
+        enableEdgeToEdge()
         requestNotificationPermissionIfNeeded()
         setContent {
-            val theme by themePreferences.theme.collectAsState(initial = ThemeSettings())
+            val theme by themePreferences.theme.collectAsStateWithLifecycle(initialValue = ThemeSettings())
             NexaFlowTheme(themeMode = theme.mode, accent = theme.accent) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),

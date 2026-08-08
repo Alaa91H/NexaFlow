@@ -62,7 +62,7 @@ fun HistoryScreen(navController: NavController) {
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(history) { entry ->
+                items(history, key = { it.id }) { entry ->
                     HistoryCard(
                         entry = entry,
                         onClick = { navController.navigate("execution_details/${entry.id}") }

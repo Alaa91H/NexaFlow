@@ -18,8 +18,10 @@ class NexaFlowApplication : Application() {
         try {
             MonitoringService.start(this)
         } catch (_: Throwable) {
-            // Foreground service start can be restricted by the OS (e.g. from boot);
-            // scheduling still works, and monitoring resumes on the next app launch.
+            // Foreground service start can be restricted by the OS (e.g. a
+            // process recreation in the background). Schedule a short alarm
+            // instead; the receiver starts monitoring from the alarm context.
+            MonitoringService.scheduleStart(this)
         }
     }
 }

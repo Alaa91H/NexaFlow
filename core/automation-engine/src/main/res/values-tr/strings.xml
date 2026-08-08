@@ -4,4 +4,7 @@
     <string name="monitoring_title">NexaFlow izleme</string>
     <string name="monitoring_text">Otomasyonlarınız izleniyor</string>
     <string name="notification_listener_label">NexaFlow bildirim erişimi</string>
+    <string name="oem_autostart_channel">NexaFlow otomatik başlatma</string>
+    <string name="oem_autostart_title">NexaFlow için otomatik başlatmayı etkinleştir</string>
+    <string name="oem_autostart_text">NexaFlow, bu cihazda yeniden başlatmanın ardından arka planda çalışmayı durdurabilir. Otomatik başlatma ayarlarını açmak için dokunun.</string>
 </resources>

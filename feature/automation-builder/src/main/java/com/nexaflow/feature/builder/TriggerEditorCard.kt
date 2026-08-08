@@ -435,7 +435,10 @@ fun TriggerEditorCard(
     onPickBluetooth: () -> Unit = {},
     onPickCalendar: () -> Unit = {},
     onRequestPermission: (Array<String>) -> Unit = {},
-    onExplainSpecial: (SpecialPermission) -> Unit = {}
+    onExplainSpecial: (SpecialPermission) -> Unit = {},
+    // Re-probes the live permission badges when the screen resumes (e.g. after
+    // returning from the accessibility or notification-access settings screen).
+    refreshKey: Int = 0
 ) {
     val context = LocalContext.current
     var showTimePicker by remember { mutableStateOf(false) }
@@ -712,10 +715,15 @@ fun TriggerEditorCard(
                                 modifier = Modifier.padding(start = 6.dp)
                             )
                         }
-                        PermissionHint(
-                            text = stringResource(R.string.app_detection_hint),
-                            buttonLabel = stringResource(R.string.enable),
-                            onClick = { onExplainSpecial(SpecialPermission.ACCESSIBILITY) }
+                        // Live accessibility-service badge (granted / not granted)
+                        // refreshed on resume; tapping it explains and opens the
+                        // accessibility settings screen.
+                        SpecialPermissionStatusRow(
+                            hintText = stringResource(R.string.app_detection_hint),
+                            special = SpecialPermission.ACCESSIBILITY,
+                            context = context,
+                            refreshKey = refreshKey,
+                            onRequest = { onExplainSpecial(SpecialPermission.ACCESSIBILITY) }
                         )
                     }
                 }
@@ -1016,10 +1024,20 @@ fun TriggerEditorCard(
                             selected = event,
                             onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
                         )
-                        PermissionHint(
-                            text = stringResource(R.string.bluetooth_permission_hint),
-                            buttonLabel = stringResource(R.string.enable),
-                            onClick = { onExplainSpecial(SpecialPermission.BLUETOOTH) }
+                        // Live badge for the BLUETOOTH_CONNECT runtime permission:
+                        // tapping requests it through the system dialog (after the
+                        // explain screen) instead of the Bluetooth settings screen,
+                        // which cannot grant a runtime permission.
+                        SpecialPermissionStatusRow(
+                            hintText = stringResource(R.string.bluetooth_permission_hint),
+                            special = SpecialPermission.BLUETOOTH,
+                            context = context,
+                            refreshKey = refreshKey,
+                            onRequest = {
+                                onRequestPermission(
+                                    arrayOf(android.Manifest.permission.BLUETOOTH_CONNECT)
+                                )
+                            }
                         )
                     }
                 }
@@ -1173,10 +1191,15 @@ fun TriggerEditorCard(
                             selected = event,
                             onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
                         )
-                        PermissionHint(
-                            text = stringResource(R.string.notification_access_hint),
-                            buttonLabel = stringResource(R.string.enable),
-                            onClick = { onExplainSpecial(SpecialPermission.NOTIFICATION_ACCESS) }
+                        // Live notification-listener badge (granted / not granted)
+                        // refreshed on resume; tapping it explains and opens the
+                        // notification access settings screen.
+                        SpecialPermissionStatusRow(
+                            hintText = stringResource(R.string.notification_access_hint),
+                            special = SpecialPermission.NOTIFICATION_ACCESS,
+                            context = context,
+                            refreshKey = refreshKey,
+                            onRequest = { onExplainSpecial(SpecialPermission.NOTIFICATION_ACCESS) }
                         )
                     }
                 }

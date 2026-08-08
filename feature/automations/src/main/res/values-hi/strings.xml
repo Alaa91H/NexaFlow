@@ -10,7 +10,6 @@
     <string name="no_actions">कोई क्रिया कॉन्फ़िगर नहीं।</string>
     <string name="run_now">अभी चलाएँ</string>
     <string name="running">चल रहा है…</string>
-    <string name="always_true">हमेशा सत्य</string>
     <string name="trigger_time">समय</string>
     <string name="trigger_time_sub">निर्धारित समय पर ट्रिगर</string>
     <string name="trigger_app">ऐप</string>
@@ -158,4 +157,15 @@
     <string name="end_turn_off">बंद करें</string>
     <string name="end_revert">मूल स्थिति बहाल करें</string>
     <string name="end_set_value">मान सेट करें</string>
+    <string name="action_http_request">HTTP अनुरोध</string>
+    <string name="action_http_request_sub">एक वेब अनुरोध भेजें</string>
+    <string name="action_plugin">प्लगइन क्रिया</string>
+    <string name="action_plugin_sub">बाहरी प्लगइन चलाएँ</string>
+    <string name="section_constraints">बाधाएँ</string>
+    <string name="no_constraints">कोई बाधा नहीं - हर ट्रिगर पर चलता है</string>
+    <string name="constraint_subtitle">टास्क चलने से पहले सत्य होना चाहिए</string>
+    <string name="constraint_type_wifi">वाई-फ़ाई जुड़ा</string>
+    <string name="constraint_type_battery">बैटरी स्तर</string>
+    <string name="constraint_type_screen_locked">स्क्रीन लॉक</string>
+    <string name="constraint_type_headset">हेडसेट जुड़ा</string>
 </resources>

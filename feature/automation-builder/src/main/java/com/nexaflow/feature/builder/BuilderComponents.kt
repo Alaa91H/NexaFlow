@@ -2,7 +2,6 @@ package com.nexaflow.feature.builder
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
@@ -29,17 +29,28 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.rom.ElevatedAccessShortcuts
+import com.nexaflow.core.rom.PermissionStatus
 import com.nexaflow.core.rom.PrivilegedRunner
+import com.nexaflow.core.rom.SystemAppStatusDetector
 import com.nexaflow.core.ui.IconBadge
+import com.nexaflow.core.ui.StatusPill
 import com.nexaflow.domain.models.ActionType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -182,6 +193,141 @@ fun PermissionHint(
     }
 }
 
+/**
+ * Live state of a special permission shown in an action card.
+ *
+ * - [GRANTED]: the permission is currently granted (green pill).
+ * - [AVAILABLE]: grantable now — root/Shizuku present but not yet granted
+ *   (amber pill, the row stays tappable).
+ * - [NOT_AVAILABLE]: not granted, or the elevated channel is absent entirely
+ *   (grey pill). Binary permissions never report [AVAILABLE].
+ */
+enum class SpecialStatus { GRANTED, AVAILABLE, NOT_AVAILABLE }
+
+/** True when the permission is binary (granted or not) with no intermediate state. */
+private fun SpecialPermission.isBinary(): Boolean =
+    this != SpecialPermission.ROOT &&
+        this != SpecialPermission.SHIZUKU &&
+        this != SpecialPermission.ELEVATED
+
+/**
+ * Pure status resolution for a special permission — extracted from the
+ * composable so the probe logic is unit-testable without Compose. The root
+ * TTL cache is refreshed first so a freshly granted root is never hidden
+ * behind a stale cached result.
+ */
+internal fun resolveSpecialStatus(context: Context, special: SpecialPermission): SpecialStatus = when (special) {
+    SpecialPermission.ROOT -> {
+        SystemAppStatusDetector.refreshRootAvailability()
+        when {
+            PermissionShortcuts.isGranted(context, SpecialPermission.ROOT) -> SpecialStatus.GRANTED
+            SystemAppStatusDetector.isSuBinaryAvailable() -> SpecialStatus.AVAILABLE
+            else -> SpecialStatus.NOT_AVAILABLE
+        }
+    }
+    SpecialPermission.SHIZUKU -> when {
+        PermissionShortcuts.isGranted(context, SpecialPermission.SHIZUKU) -> SpecialStatus.GRANTED
+        PrivilegedRunner.isShizukuRunning() -> SpecialStatus.AVAILABLE
+        else -> SpecialStatus.NOT_AVAILABLE
+    }
+    SpecialPermission.ELEVATED -> {
+        SystemAppStatusDetector.refreshRootAvailability()
+        when {
+            PermissionShortcuts.isGranted(context, SpecialPermission.ELEVATED) -> SpecialStatus.GRANTED
+            SystemAppStatusDetector.isSuBinaryAvailable() || PrivilegedRunner.isShizukuRunning() ->
+                SpecialStatus.AVAILABLE
+            else -> SpecialStatus.NOT_AVAILABLE
+        }
+    }
+    // Binary permissions (write settings, DND, notification access,
+    // accessibility, bluetooth): granted or not — no middle state.
+    else -> if (PermissionShortcuts.isGranted(context, special)) {
+        SpecialStatus.GRANTED
+    } else {
+        SpecialStatus.NOT_AVAILABLE
+    }
+}
+
+/**
+ * Samsung-style live status row shown inside an action card for ANY special
+ * permission — root, Shizuku, elevated, write settings, DND access,
+ * notification access, accessibility, bluetooth. Instead of a plain button it
+ * shows a colour-coded pill (green = granted, amber = grantable now for the
+ * elevated trio, grey = not granted) that refreshes when the screen resumes —
+ * after returning from the root manager, Shizuku grant dialog or a settings
+ * screen the badge updates without reopening the task.
+ */
+@Composable
+fun SpecialPermissionStatusRow(
+    hintText: String,
+    special: SpecialPermission,
+    context: Context,
+    refreshKey: Int = 0,
+    onRequest: () -> Unit,
+    // Test seam: pins the live status so Compose UI tests can render each
+    // visual state deterministically without touching the real system probes.
+    probe: (() -> SpecialStatus)? = null
+) {
+    var status by remember(special) { mutableStateOf(SpecialStatus.NOT_AVAILABLE) }
+    // Re-probe on every refresh tick (e.g. ON_RESUME after a grant dialog) and
+    // on first composition. The root probe can take up to a few seconds, so it
+    // runs off the main thread. The root TTL cache is invalidated first so a
+    // freshly granted root is never hidden behind a stale cached result.
+    LaunchedEffect(refreshKey, special, probe) {
+        status = if (probe != null) {
+            probe()
+        } else {
+            withContext(Dispatchers.IO) { resolveSpecialStatus(context, special) }
+        }
+    }
+    val (pillText, pillBg, pillFg) = when (status) {
+        SpecialStatus.GRANTED -> Triple(
+            stringResource(R.string.elevated_status_granted),
+            Color(0xFFE4F4E9),
+            Color(0xFF2FA84F)
+        )
+        SpecialStatus.AVAILABLE -> Triple(
+            stringResource(R.string.elevated_status_available),
+            Color(0xFFFDF3E0),
+            Color(0xFFE8A33D)
+        )
+        SpecialStatus.NOT_AVAILABLE -> Triple(
+            stringResource(
+                if (special.isBinary()) R.string.special_status_not_granted else R.string.elevated_status_unavailable
+            ),
+            MaterialTheme.colorScheme.surfaceVariant,
+            MaterialTheme.colorScheme.secondary
+        )
+    }
+    // The whole row is the button: tap it (or the pill) to start the grant flow.
+    // A chevron hints the row is tappable — no separate button, matching the
+    // "badge instead of a button" Samsung-style request.
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("special_status_row")
+            .clickable(enabled = status != SpecialStatus.GRANTED, onClick = onRequest),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = hintText,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.secondary
+        )
+        StatusPill(text = pillText, background = pillBg, contentColor = pillFg)
+        if (status != SpecialStatus.GRANTED) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.testTag("special_status_chevron")
+            )
+        }
+    }
+}
+
 @Composable
 fun ItemHeader(text: String) {
     Text(
@@ -235,6 +381,7 @@ fun ActionOptionRow(
 fun PermissionHintForAction(
     actionType: ActionType,
     context: Context,
+    refreshKey: Int = 0,
     onRequestPermission: (Array<String>) -> Unit = {},
     // Default keeps the pre-explain behavior (open settings directly) so a call
     // site that forgets to wire the explain screen never gets a dead button.
@@ -275,34 +422,18 @@ fun PermissionHintForAction(
         return
     }
 
-    val hint: Triple<Int, Int, SpecialPermission>? = when (actionType) {
+    val hint: Pair<Int, SpecialPermission>? = when (actionType) {
         ActionType.SYSTEM_BRIGHTNESS,
         ActionType.SYSTEM_SCREEN_ROTATION,
         ActionType.SYSTEM_SCREEN_TIMEOUT,
         ActionType.SYSTEM_STAY_AWAKE,
         ActionType.SYSTEM_AUTO_BRIGHTNESS,
         ActionType.SYSTEM_DARK_MODE,
-        ActionType.SYSTEM_ANIMATIONS -> Triple(
-            R.string.write_settings_hint,
-            R.string.grant,
-            SpecialPermission.WRITE_SETTINGS
-        )
+        ActionType.SYSTEM_ANIMATIONS -> R.string.write_settings_hint to SpecialPermission.WRITE_SETTINGS
         ActionType.SYSTEM_DND,
-        ActionType.SYSTEM_RINGER_MODE -> Triple(
-            R.string.dnd_hint,
-            R.string.grant,
-            SpecialPermission.DND_ACCESS
-        )
-        ActionType.ADVANCED_SHIZUKU -> Triple(
-            R.string.shizuku_hint,
-            R.string.enable,
-            SpecialPermission.SHIZUKU
-        )
-        ActionType.ADVANCED_ROOT -> Triple(
-            R.string.root_hint,
-            R.string.grant,
-            SpecialPermission.ROOT
-        )
+        ActionType.SYSTEM_RINGER_MODE -> R.string.dnd_hint to SpecialPermission.DND_ACCESS
+        ActionType.ADVANCED_SHIZUKU -> R.string.shizuku_hint to SpecialPermission.SHIZUKU
+        ActionType.ADVANCED_ROOT -> R.string.root_hint to SpecialPermission.ROOT
         ActionType.APPLICATION_CLOSE_APP,
         ActionType.SYSTEM_MOBILE_DATA,
         ActionType.SYSTEM_HOTSPOT,
@@ -310,25 +441,22 @@ fun PermissionHintForAction(
         ActionType.SYSTEM_POWER_SAVER,
         ActionType.SYSTEM_LOCK_SCREEN,
         ActionType.SYSTEM_OPEN_RECENTS,
-        ActionType.SYSTEM_GO_HOME -> Triple(
-            R.string.elevated_hint,
-            R.string.info,
-            SpecialPermission.ELEVATED
-        )
+        ActionType.SYSTEM_GO_HOME -> R.string.elevated_hint to SpecialPermission.ELEVATED
         ActionType.SYSTEM_BLOCK_NOTIFICATION,
-        ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS -> Triple(
-            R.string.notification_access_hint,
-            R.string.enable,
-            SpecialPermission.NOTIFICATION_ACCESS
-        )
+        ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS -> R.string.notification_access_hint to SpecialPermission.NOTIFICATION_ACCESS
         else -> null
     }
-    hint?.let { (textRes, buttonRes, special) ->
-        PermissionHint(
-            text = stringResource(textRes),
-            buttonLabel = stringResource(buttonRes),
-            // Explain why the permission is needed BEFORE opening its settings screen.
-            onClick = { onExplainSpecial(special) }
+    hint?.let { (textRes, special) ->
+        // Every special permission shows a live colour-coded status pill
+        // (granted / grantable / not granted) inside the card itself, refreshed
+        // on resume, instead of a plain button. Tapping the row explains why
+        // the permission is needed BEFORE opening its settings screen.
+        SpecialPermissionStatusRow(
+            hintText = stringResource(textRes),
+            special = special,
+            context = context,
+            refreshKey = refreshKey,
+            onRequest = { onExplainSpecial(special) }
         )
     }
 }
@@ -345,20 +473,8 @@ object PermissionShortcuts {
                 val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
                 nm.isNotificationPolicyAccessGranted
             }
-            SpecialPermission.NOTIFICATION_ACCESS -> {
-                val flat = Settings.Secure.getString(
-                    context.contentResolver,
-                    "enabled_notification_listeners"
-                ).orEmpty()
-                flat.split(':').any { it == context.packageName }
-            }
-            SpecialPermission.ACCESSIBILITY -> {
-                val enabled = Settings.Secure.getString(
-                    context.contentResolver,
-                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-                ).orEmpty()
-                enabled.split(':').any { it.contains(context.packageName) }
-            }
+            SpecialPermission.NOTIFICATION_ACCESS -> PermissionStatus.isNotificationListenerGranted(context)
+            SpecialPermission.ACCESSIBILITY -> PermissionStatus.isAccessibilityServiceEnabled(context)
             // Real detection via the rom-integration module (same probes the
             // execution engine uses), so a previously granted Shizuku/root
             // permission is never re-requested.
@@ -413,31 +529,12 @@ object PermissionShortcuts {
         }
     }
 
-    fun openWriteSettings(context: Context) {
-        try {
-            context.startActivity(
-                Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:${context.packageName}"))
-            )
-        } catch (_: Throwable) {
-            context.startActivity(Intent(Settings.ACTION_SETTINGS))
-        }
-    }
+    fun openWriteSettings(context: Context) = PermissionStatus.openWriteSettings(context)
 
-    fun openNotificationPolicy(context: Context) {
-        try {
-            context.startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))
-        } catch (_: Throwable) {
-            context.startActivity(Intent(Settings.ACTION_SETTINGS))
-        }
-    }
+    fun openNotificationPolicy(context: Context) = PermissionStatus.openNotificationPolicy(context)
 
-    fun openAccessibilitySettings(context: Context) {
-        try {
-            context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-        } catch (_: Throwable) {
-            context.startActivity(Intent(Settings.ACTION_SETTINGS))
-        }
-    }
+    fun openAccessibilitySettings(context: Context) =
+        PermissionStatus.openAccessibilitySettings(context)
 
     fun openBluetoothSettings(context: Context) {
         try {
@@ -447,11 +544,6 @@ object PermissionShortcuts {
         }
     }
 
-    fun openNotificationAccessSettings(context: Context) {
-        try {
-            context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-        } catch (_: Throwable) {
-            context.startActivity(Intent(Settings.ACTION_SETTINGS))
-        }
-    }
+    fun openNotificationAccessSettings(context: Context) =
+        PermissionStatus.openNotificationAccessSettings(context)
 }

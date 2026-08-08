@@ -10,9 +10,11 @@ import android.provider.Telephony
 import android.telephony.SmsManager
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
-import com.nexaflow.domain.models.TriggerType
+import com.nexaflow.core.execution.variables.BuiltinVariables
 import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
+import com.nexaflow.domain.repositories.VariableRepository
+import com.nexaflow.domain.variables.VariableResolver
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -39,6 +41,9 @@ class SmsReceiver : BroadcastReceiver() {
     @Inject
     lateinit var executionEngine: ExecutionEngine
 
+    @Inject
+    lateinit var variableRepository: VariableRepository
+
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) return
         if (context.checkSelfPermission(Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) return
@@ -52,22 +57,21 @@ class SmsReceiver : BroadcastReceiver() {
             try {
                 val automations = repository.getAutomations().first()
                 val now = System.currentTimeMillis()
-                automations
-                    .filter { automation ->
-                        automation.enabled && automation.triggers.any { trigger ->
-                            trigger.type == TriggerType.SMS && matches(trigger.config, sender, body)
-                        }
-                    }
+                SmsTriggerMatcher.matchingAutomations(automations, sender, body)
                     .forEach { automation ->
-                        val last = lastRunAt[automation.id] ?: 0L
+                        val last = SmsTriggerMatcher.lastRunAt[automation.id] ?: 0L
                         if (now - last > automation.cooldownMillis) {
-                            lastRunAt[automation.id] = now
+                            SmsTriggerMatcher.lastRunAt[automation.id] = now
                             executionEngine.runAutomation(automation)
-                            val reply = automation.triggers
-                                .first { it.type == TriggerType.SMS }
-                                .config["reply"]
+                            val reply = SmsTriggerMatcher.replyOf(automation)
                             if (!reply.isNullOrBlank()) {
-                                sendReply(context, sender, reply)
+                                // Auto-reply text supports the same %variables
+                                // as action texts (built-ins + user globals).
+                                val resolved = VariableResolver.resolve(
+                                    reply,
+                                    resolveReplyVariables(context)
+                                )
+                                sendReply(context, sender, resolved)
                             }
                         }
                     }
@@ -77,12 +81,11 @@ class SmsReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun matches(config: Map<String, String>, sender: String, body: String): Boolean {
-        val from = config["from"].orEmpty().trim()
-        val contains = config["contains"].orEmpty().trim()
-        val fromMatch = from.isEmpty() || sender.contains(from, ignoreCase = true)
-        val textMatch = contains.isEmpty() || body.contains(contains, ignoreCase = true)
-        return fromMatch && textMatch
+    private suspend fun resolveReplyVariables(context: Context): Map<String, String> = try {
+        BuiltinVariables.provide(context) +
+            variableRepository.getVariablesOnce().associate { it.name to it.value }
+    } catch (_: Throwable) {
+        emptyMap()
     }
 
     @SuppressLint("MissingPermission")
@@ -96,8 +99,4 @@ class SmsReceiver : BroadcastReceiver() {
         }
     }
 
-    companion object {
-        private const val COOLDOWN_MS = 5_000L
-        private val lastRunAt = java.util.concurrent.ConcurrentHashMap<String, Long>()
-    }
 }

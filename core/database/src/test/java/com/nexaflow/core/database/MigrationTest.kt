@@ -233,6 +233,74 @@ class MigrationTest {
     }
 
     @Test
+    fun migrate8To9_addsGlobalVariablesTable() {
+        helper.createDatabase(8).apply {
+            execSQL(
+                "INSERT INTO `automations` " +
+                    "(`id`, `name`, `description`, `icon`, `iconColor`, `backgroundColor`, `category`, " +
+                    "`priority`, `enabled`, `triggersJson`, `actionsJson`, `exitActionsJson`, `revertOnExit`, " +
+                    "`cooldownSeconds`, `createdAt`, `updatedAt`) " +
+                    "VALUES ('a1', 'Gym', 'Workout time', 'bolt', 4280566455, 4291611852, 'general', " +
+                    "1, 1, '[]', '[]', '[]', 0, 10, 1700000000000, 1700000000000)"
+            )
+            close()
+        }
+
+        val migrated = helper.runMigrationsAndValidate(9, listOf(Migrations.MIGRATION_8_9))
+        // The new global_variables table exists and accepts rows.
+        migrated.execSQL(
+            "INSERT INTO `global_variables` " +
+                "(`id`, `name`, `value`, `updatedAt`) " +
+                "VALUES ('g1', 'HomeAddress', '123 Main St', 1700000000000)"
+        )
+        migrated.prepare("SELECT name, value FROM `global_variables` WHERE id = 'g1'").use { stmt ->
+            assertTrue(stmt.step())
+            assertEquals("HomeAddress", stmt.getText(0))
+            assertEquals("123 Main St", stmt.getText(1))
+        }
+        // Existing automation rows survive the additive migration untouched.
+        migrated.prepare("SELECT name, cooldownSeconds FROM `automations` WHERE id = 'a1'").use { stmt ->
+            assertTrue(stmt.step())
+            assertEquals("Gym", stmt.getText(0))
+            assertEquals(10L, stmt.getLong(1))
+        }
+        migrated.close()
+    }
+
+    @Test
+    fun migrate9To10_addsConstraintsColumnWithDefault() {
+        helper.createDatabase(9).apply {
+            execSQL(
+                "INSERT INTO `automations` " +
+                    "(`id`, `name`, `description`, `icon`, `iconColor`, `backgroundColor`, `category`, " +
+                    "`priority`, `enabled`, `triggersJson`, `actionsJson`, `exitActionsJson`, `revertOnExit`, " +
+                    "`cooldownSeconds`, `createdAt`, `updatedAt`) " +
+                    "VALUES ('a1', 'Gym', 'Workout time', 'bolt', 4280566455, 4291611852, 'general', " +
+                    "1, 1, '[]', '[]', '[]', 0, 10, 1700000000000, 1700000000000)"
+            )
+            close()
+        }
+
+        val migrated = helper.runMigrationsAndValidate(10, listOf(Migrations.MIGRATION_9_10))
+        // Existing rows get the empty-constraints default.
+        migrated.prepare("SELECT name, constraintsJson FROM `automations` WHERE id = 'a1'").use { stmt ->
+            assertTrue(stmt.step())
+            assertEquals("Gym", stmt.getText(0))
+            assertEquals("[]", stmt.getText(1))
+        }
+        // The new column accepts constraint JSON.
+        migrated.execSQL(
+            "UPDATE `automations` SET constraintsJson = " +
+                "'[{\"type\":\"WIFI\",\"config\":{}}]' WHERE id = 'a1'"
+        )
+        migrated.prepare("SELECT constraintsJson FROM `automations` WHERE id = 'a1'").use { stmt ->
+            assertTrue(stmt.step())
+            assertTrue(stmt.getText(0).contains("WIFI"))
+        }
+        migrated.close()
+    }
+
+    @Test
     fun migrate1To8_keepsExecutionHistoryEmptyButValid() {
         // A v1 database has no execution_history; after the full chain the
         // table must exist and accept rows (schema validated by Room).

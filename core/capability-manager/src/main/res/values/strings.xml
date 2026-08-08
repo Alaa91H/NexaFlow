@@ -15,4 +15,12 @@
     <string name="section_capabilities">Capabilities</string>
     <string name="section_about">About</string>
     <string name="security_patch">Security patch: %1$s</string>
+    <string name="section_sms">SMS</string>
+    <string name="sms_android17_title">Android 17 SMS delay</string>
+    <string name="sms_android17_body">On Android 17, verification-code SMS are hidden from apps targeting SDK 37 for 3 hours. Enable instant delivery below to read them immediately via a consent dialog — no SMS permission needed.</string>
+    <string name="sms_consent_label">Instant delivery (consent dialog)</string>
+    <string name="sms_consent_sub">Show a system dialog to approve each incoming message</string>
+    <string name="sms_consent_arm">Start listening now</string>
+    <string name="sms_consent_listening">Listening</string>
+    <string name="sms_consent_unavailable">Google Play services required for instant SMS delivery</string>
 </resources>

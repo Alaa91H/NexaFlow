@@ -1,5 +1,6 @@
 package com.nexaflow.core.execution.handler
 
+import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
@@ -11,6 +12,12 @@ import com.nexaflow.core.rom.model.SystemControlResult
 /** Schedules a one-shot reminder notification via AlarmManager. */
 object ReminderScheduler {
 
+    /**
+     * Exact alarms are guarded at runtime via [AlarmManager.canScheduleExactAlarms]
+     * (falling back to an inexact alarm) and the whole body is wrapped in a
+     * try/catch, so the lint guard below documents the deliberate fallback.
+     */
+    @SuppressLint("MissingPermission") // guarded via canScheduleExactAlarms() fallback
     fun schedule(
         context: Context,
         title: String,

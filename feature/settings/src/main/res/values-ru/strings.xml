@@ -88,4 +88,21 @@
     <string name="root_permission_sub">Предоставьте доступ суперпользователя для расширенных команд</string>
     <string name="shizuku_permission">Shizuku</string>
     <string name="shizuku_permission_sub">Выполнять расширенные команды через службу Shizuku</string>
+    <string name="oem_compat_title">Оставляйте NexaFlow работать в фоне</string>
+    <string name="oem_compat_sub">Эта прошивка может останавливать NexaFlow в фоне. Разрешите автозапуск, чтобы ваши задачи всегда выполнялись надёжно.</string>
+    <string name="oem_compat_action">Открыть настройки</string>
+    <string name="dismiss">Скрыть</string>
+    <string name="plugins">Плагины</string>
+    <string name="plugins_sub">Управление действиями внешних плагинов</string>
+    <string name="plugin_manager_title">Плагины</string>
+    <string name="plugin_manager_sub">Внешние плагины автоматизации, установленные на этом устройстве</string>
+    <string name="plugin_refresh">Обновить</string>
+    <string name="plugin_test">Тест</string>
+    <string name="plugin_no_plugins">Плагины не установлены</string>
+    <string name="plugin_no_plugins_hint">Установите плагин, совместимый с Tasker или MacroDroid, чтобы добавить новые действия</string>
+    <string name="plugin_open_info">О приложении</string>
+    <string name="plugin_test_failed">Сбой плагина</string>
+    <string name="plugin_test_timeout">Плагин не ответил вовремя</string>
+    <string name="plugin_test_pending">Плагин ещё работает</string>
+    <string name="plugin_test_success">Плагин ответил успешно</string>
 </resources>

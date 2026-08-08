@@ -109,6 +109,9 @@ Pre-release tags (`alpha` / `beta` / `rc`) are published as pre-releases automat
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — module map and the
   Trigger → Scheduler → Engine → Execution → History data flow.
+- [`docs/PLUGIN_SDK.md`](docs/PLUGIN_SDK.md) — the Locale plugin protocol (EDIT_SETTING /
+  FIRE_SETTING + Bundle JSON + Blurb) and the experimental `core/plugin-sdk` blueprint for
+  third-party plugin developers.
 
 ## Contributing
 

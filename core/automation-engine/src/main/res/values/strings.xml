@@ -4,4 +4,7 @@
     <string name="monitoring_title">NexaFlow monitoring</string>
     <string name="monitoring_text">Watching your automations</string>
     <string name="notification_listener_label">NexaFlow notification access</string>
+    <string name="oem_autostart_channel">NexaFlow auto-start</string>
+    <string name="oem_autostart_title">Enable auto-start for NexaFlow</string>
+    <string name="oem_autostart_text">NexaFlow may stop running in the background after a reboot on this device. Tap to open the auto-start settings.</string>
 </resources>

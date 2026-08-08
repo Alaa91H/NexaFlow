@@ -88,4 +88,21 @@
     <string name="root_permission_sub">高度なコマンドにスーパーユーザーアクセスを許可</string>
     <string name="shizuku_permission">Shizuku</string>
     <string name="shizuku_permission_sub">Shizukuサービス経由で高度なコマンドを実行</string>
+    <string name="oem_compat_title">NexaFlowをバックグラウンドで実行し続ける</string>
+    <string name="oem_compat_sub">このROMはバックグラウンドでNexaFlowを停止する場合があります。タスクを確実に実行するため自動起動を許可してください。</string>
+    <string name="oem_compat_action">設定を開く</string>
+    <string name="dismiss">閉じる</string>
+    <string name="plugins">プラグイン</string>
+    <string name="plugins_sub">外部プラグイン操作を管理</string>
+    <string name="plugin_manager_title">プラグイン</string>
+    <string name="plugin_manager_sub">このデバイスにインストールされた外部オートメーションプラグイン</string>
+    <string name="plugin_refresh">更新</string>
+    <string name="plugin_test">テスト</string>
+    <string name="plugin_no_plugins">プラグインがインストールされていません</string>
+    <string name="plugin_no_plugins_hint">新しい操作を追加するには Tasker または MacroDroid 互換プラグインをインストールしてください</string>
+    <string name="plugin_open_info">アプリ情報</string>
+    <string name="plugin_test_failed">プラグインが失敗しました</string>
+    <string name="plugin_test_timeout">プラグインが時間内に応答しませんでした</string>
+    <string name="plugin_test_pending">プラグインはまだ動作中です</string>
+    <string name="plugin_test_success">プラグインが正常に応答しました</string>
 </resources>

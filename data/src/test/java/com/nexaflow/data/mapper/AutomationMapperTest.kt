@@ -3,9 +3,12 @@ package com.nexaflow.data.mapper
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.Constraint
+import com.nexaflow.domain.models.ConstraintType
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AutomationMapperTest {
@@ -32,6 +35,10 @@ class AutomationMapperTest {
             Action(ActionType.SYSTEM_BLOCK_NOTIFICATION, config = mapOf("package" to "com.game", "enabled" to "true")),
             Action(ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS, config = mapOf("package" to "com.whatsapp"))
         ),
+        constraints = listOf(
+            Constraint(ConstraintType.WIFI),
+            Constraint(ConstraintType.BATTERY, mapOf("direction" to "ABOVE", "level" to "30"))
+        ),
         createdAt = 1000L,
         updatedAt = 2000L
     )
@@ -56,10 +63,22 @@ class AutomationMapperTest {
     }
 
     @Test
+    fun constraintsRoundTrip() {
+        val entity = automation.toEntity()
+        val restored = entity.toDomain()
+        assertEquals(automation.constraints, restored.constraints)
+        assertTrue(
+            "constraintsJson must be persisted",
+            entity.constraintsJson.contains("WIFI") && entity.constraintsJson.contains("BATTERY")
+        )
+    }
+
+    @Test
     fun emptyListsRoundTrip() {
         val plain = automation.copy(
             triggers = emptyList(),
-            actions = emptyList()
+            actions = emptyList(),
+            constraints = emptyList()
         )
         assertEquals(plain, plain.toEntity().toDomain())
     }

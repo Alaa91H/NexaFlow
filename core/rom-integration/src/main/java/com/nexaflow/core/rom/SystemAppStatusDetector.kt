@@ -86,7 +86,12 @@ object SystemAppStatusDetector {
     // quickly by the permission manager without re-spawning a process too often.
     private const val ROOT_PROBE_TTL_MS = 5_000L
 
-    private val suPaths = listOf(
+    /**
+     * Static `su` locations covering legacy SuperSU/OEM ROMs plus the modern
+     * root managers (Magisk, KernelSU, APatch). Kept `internal` so tests can
+     * assert the paths stay present.
+     */
+    internal val suPaths = listOf(
         "/system/bin/su",
         "/system/xbin/su",
         "/sbin/su",
@@ -97,6 +102,15 @@ object SystemAppStatusDetector {
         "/data/adb/ksu/bin/su",
         "/data/adb/ap/bin/su"
     )
+
+    /**
+     * Test seam: replaces the PATH-resolution probe so tests can simulate
+     * Magisk/KernelSU/APatch (su on PATH) without spawning real processes.
+     */
+    internal var pathResolution: (() -> Boolean)? = null
+
+    /** Test seam: replaces the uid=0 probe for deterministic root-grant tests. */
+    internal var rootProbe: (() -> Boolean)? = null
 
     private fun probeRoot(): Boolean {
         // Fast path: classic static su locations (legacy SuperSU, some OEM ROMs).
@@ -114,6 +128,11 @@ object SystemAppStatusDetector {
      */
     fun isSuBinaryAvailable(): Boolean {
         if (suPaths.any { File(it).exists() }) return true
+        return resolveSuFromPath()
+    }
+
+    private fun resolveSuFromPath(): Boolean {
+        pathResolution?.let { return it() }
         return try {
             val process = ProcessBuilder("sh", "-c", "command -v su")
                 .redirectErrorStream(true)
@@ -138,6 +157,7 @@ object SystemAppStatusDetector {
     }
 
     private fun suAnswersAsRoot(): Boolean {
+        rootProbe?.let { return it() }
         return try {
             val process = ProcessBuilder("sh", "-c", "su -c id || su 0 id || /system/bin/su -c id")
                 .redirectErrorStream(true)

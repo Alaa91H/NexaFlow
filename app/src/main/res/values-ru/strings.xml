@@ -9,4 +9,10 @@
     <string name="widget_action">Включить все</string>
 
     <!-- Bottom navigation -->
+    <string name="widget_no_automations">Нет автоматизаций</string>
+    <string name="widget_active_count">%1$d из %2$d активны</string>
+    <string name="widget_enable_all">Включить все</string>
+    <string name="widget_disable_all">Выключить все</string>
+    <string name="widget_status_count_format">%1$d / %2$d</string>
+    <string name="widget_last_run_format">Последний запуск: %1$s</string>
 </resources>

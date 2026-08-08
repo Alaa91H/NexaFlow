@@ -1,8 +1,10 @@
 package com.nexaflow.feature.builder
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -26,11 +28,14 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DoNotDisturb
+import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.Functions
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MusicNote
@@ -82,9 +87,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.Observer
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
+import com.nexaflow.core.pluginsdk.LocaleContract
+import com.nexaflow.core.pluginsdk.PluginConfigParser
 import com.nexaflow.core.rom.ElevatedAccessShortcuts
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
@@ -94,7 +104,11 @@ import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.iconVector
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
+import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.Constraint
+import com.nexaflow.domain.models.ConstraintType
 import com.nexaflow.domain.models.EndBehavior
+import com.nexaflow.domain.models.PluginInfo
 import com.nexaflow.domain.models.EndBehaviorCatalog
 import com.nexaflow.domain.models.EndMode
 import com.nexaflow.domain.models.Trigger
@@ -110,7 +124,8 @@ enum class ActionCategory(val headerRes: Int) {
     APPS(R.string.category_apps),
     SYSTEM(R.string.category_system),
     BATTERY(R.string.category_battery),
-    ADVANCED(R.string.category_advanced)
+    ADVANCED(R.string.category_advanced),
+    PLUGINS(R.string.category_plugins)
 }
 
 data class ActionOption(
@@ -160,6 +175,7 @@ internal val actionOptions = listOf(
     // SYSTEM
     ActionOption(R.string.action_flashlight, R.string.action_flashlight_sub, Icons.Filled.FlashOn, Color(0xFFE8A33D), ActionType.SYSTEM_FLASHLIGHT, ActionCategory.SYSTEM),
     ActionOption(R.string.action_open_url, R.string.action_open_url_sub, Icons.Filled.Link, Color(0xFF1B62B7), ActionType.SYSTEM_OPEN_URL, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_http_request, R.string.action_http_request_sub, Icons.Filled.Public, Color(0xFF13A5A8), ActionType.SYSTEM_HTTP_REQUEST, ActionCategory.SYSTEM),
     ActionOption(R.string.action_power_saver, R.string.action_power_saver_sub, Icons.Filled.BatteryAlert, Color(0xFF2FA84F), ActionType.SYSTEM_POWER_SAVER, ActionCategory.SYSTEM),
     ActionOption(R.string.action_animations, R.string.action_animations_sub, Icons.Filled.Palette, Color(0xFF7A5BD1), ActionType.SYSTEM_ANIMATIONS, ActionCategory.SYSTEM),
     ActionOption(R.string.action_lock_screen, R.string.action_lock_screen_sub, Icons.Filled.Lock, Color(0xFFE5533D), ActionType.SYSTEM_LOCK_SCREEN, ActionCategory.SYSTEM),
@@ -179,7 +195,9 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_charging_alert, R.string.action_charging_alert_sub, Icons.Filled.BatteryAlert, Color(0xFF2FA84F), ActionType.BATTERY_CHARGING_NOTIFICATIONS, ActionCategory.BATTERY),
     // ADVANCED
     ActionOption(R.string.action_shizuku, R.string.action_shizuku_sub, Icons.Filled.Terminal, Color(0xFF1B62B7), ActionType.ADVANCED_SHIZUKU, ActionCategory.ADVANCED),
-    ActionOption(R.string.action_root, R.string.action_root_sub, Icons.Filled.Terminal, Color(0xFFE5533D), ActionType.ADVANCED_ROOT, ActionCategory.ADVANCED)
+    ActionOption(R.string.action_root, R.string.action_root_sub, Icons.Filled.Terminal, Color(0xFFE5533D), ActionType.ADVANCED_ROOT, ActionCategory.ADVANCED),
+    // PLUGINS
+    ActionOption(R.string.action_plugin, R.string.action_plugin_sub, Icons.Filled.Extension, Color(0xFF7A5BD1), ActionType.PLUGIN_FIRE, ActionCategory.PLUGINS)
 )
 
 internal val actionCategories: List<ActionCategory> = ActionCategory.entries.toList()
@@ -221,10 +239,16 @@ private fun SelectedActionCard(
     onRemove: () -> Unit,
     onPickApp: () -> Unit,
     onRequestPermission: (Array<String>) -> Unit = {},
+    refreshKey: Int = 0,
     context: Context,
     // Default keeps the pre-explain behavior (open settings directly) so a call
     // site that forgets to wire the explain screen never gets a dead button.
-    onExplainSpecial: (SpecialPermission) -> Unit = { PermissionShortcuts.openSpecial(context, it) }
+    onExplainSpecial: (SpecialPermission) -> Unit = { PermissionShortcuts.openSpecial(context, it) },
+    availableVariables: List<String> = emptyList(),
+    // Saved tasks the notification action can attach as interactive buttons.
+    automations: List<Automation> = emptyList(),
+    // Re-launches the plugin's EDIT_SETTING activity (plugin actions only).
+    onPluginConfigure: () -> Unit = {}
 ) {
     NexaFlowCard {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -281,7 +305,10 @@ private fun SelectedActionCard(
                 option = option,
                 config = config,
                 onConfigChange = onConfigChange,
-                onPickApp = onPickApp
+                onPickApp = onPickApp,
+                availableVariables = availableVariables,
+                onPluginConfigure = onPluginConfigure,
+                automations = automations
             )
             // The task's end behavior is configured inside each action (part of
             // the action itself) so each action decides what happens when the
@@ -294,6 +321,7 @@ private fun SelectedActionCard(
             PermissionHintForAction(
                 actionType = option.actionType,
                 context = context,
+                refreshKey = refreshKey,
                 onRequestPermission = onRequestPermission,
                 onExplainSpecial = onExplainSpecial
             )
@@ -321,6 +349,17 @@ private fun parseGeoUri(uri: String): Pair<Double, Double>? {
 fun AutomationBuilderScreen(navController: NavController, automationId: String? = null) {
     val viewModel: AutomationBuilderViewModel = hiltViewModel()
     val context = LocalContext.current
+    val variables by viewModel.variables.collectAsStateWithLifecycle()
+    // Saved tasks available for notification action buttons (run from a notification).
+    val automations by viewModel.automations.collectAsStateWithLifecycle()
+    // %VARIABLE chips offered in text fields: user globals first, then the most
+    // useful device-context built-ins (full set still works when typed by hand).
+    val availableVariables = remember(variables) {
+        variables.map { it.name } + listOf(
+            "DATE", "TIME", "DATETIME", "BATTERY", "CHARGING", "WIFI", "BLUETOOTH",
+            "RINGER", "SCREEN", "AIRPLANE", "NETWORK", "BRIGHTNESS", "BRAND", "MODEL", "SDK"
+        )
+    }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val stringNextNeedsTrigger = stringResource(R.string.next_needs_trigger)
@@ -328,6 +367,8 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
     val stringSavedSuccessfully = stringResource(R.string.saved_successfully)
     var name by remember { mutableStateOf("") }
     val triggers = remember { mutableStateListOf<TriggerDraft>() }
+    val constraints = remember { mutableStateListOf<ConstraintDraft>() }
+    var showConstraintPicker by remember { mutableStateOf(false) }
     var selectedIconIndex by remember { mutableStateOf(0) }
     var appPickerTarget by remember { mutableStateOf<String?>(null) }
     var mapPickerTarget by remember { mutableStateOf<Int?>(null) }
@@ -344,6 +385,77 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
     val selectedExitActions = remember { mutableStateListOf<ActionOption>() }
     var showExitPicker by remember { mutableStateOf(false) }
 
+    // ── External plugins (Locale protocol) ─────────────────────────
+    val plugins by viewModel.plugins.collectAsStateWithLifecycle()
+    var pluginPickerTarget by remember { mutableStateOf(false) }
+    var pluginLauncherPackage by remember { mutableStateOf<String?>(null) }
+    var pluginLauncherReceiver by remember { mutableStateOf<String?>(null) }
+    val pluginLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val pkg = pluginLauncherPackage
+        val receiver = pluginLauncherReceiver
+        pluginLauncherPackage = null
+        pluginLauncherReceiver = null
+        if (result.resultCode == Activity.RESULT_OK && result.data != null && pkg != null && receiver != null) {
+            val bundle: Bundle? = result.data?.getBundleExtra(LocaleContract.EXTRA_BUNDLE)
+            val blurb = result.data?.getStringExtra(LocaleContract.EXTRA_STRING_BLURB)
+                ?: result.data?.getStringExtra(LocaleContract.EXTRA_BLURB).orEmpty()
+            // Prefer the JSON convention; fall back to legacy flat extras.
+            val configMap = if (bundle != null) {
+                PluginConfigParser.fromBundle(bundle).ifEmpty {
+                    PluginConfigParser.flattenBundle(bundle)
+                }
+            } else {
+                emptyMap()
+            }
+            actionConfigs[ActionType.PLUGIN_FIRE] = mapOf(
+                "package" to pkg,
+                "receiver" to receiver,
+                "blurb" to blurb,
+                "bundleJson" to PluginConfigParser.toJson(configMap)
+            )
+        } else {
+            // Canceled/failed: drop the plugin action unless it was configured earlier.
+            if ((actionConfigs[ActionType.PLUGIN_FIRE] ?: emptyMap()).isEmpty()) {
+                selectedActions.removeAll { it.actionType == ActionType.PLUGIN_FIRE }
+            }
+        }
+    }
+    val stringPluginNoEdit = stringResource(R.string.plugin_no_edit)
+    fun configurePlugin(packageName: String?, receiver: String?, config: Map<String, String>) {
+        val pkg = packageName ?: return
+        val rec = receiver ?: return
+        pluginLauncherPackage = pkg
+        pluginLauncherReceiver = rec
+        val intent = Intent(LocaleContract.ACTION_EDIT_SETTING).apply {
+            `package` = pkg
+            putExtra(LocaleContract.EXTRA_STRING_BREADCRUMB, "NexaFlow")
+        }
+        // Reconfiguring: hand the saved bundle back so the plugin can pre-fill.
+        val savedJson = config["bundleJson"]
+        if (!savedJson.isNullOrBlank()) {
+            runCatching {
+                intent.putExtra(
+                    LocaleContract.EXTRA_BUNDLE,
+                    PluginConfigParser.toBundle(PluginConfigParser.parseJson(savedJson))
+                )
+            }
+        }
+        try {
+            pluginLauncher.launch(intent)
+        } catch (_: Throwable) {
+            pluginLauncherPackage = null
+            pluginLauncherReceiver = null
+            scope.launch { snackbarHostState.showSnackbar(stringPluginNoEdit) }
+            // The plugin has no edit screen: never leave a stuck, unconfigured
+            // action behind (the user can still add other plugins).
+            if ((actionConfigs[ActionType.PLUGIN_FIRE] ?: emptyMap()).isEmpty()) {
+                selectedActions.removeAll { it.actionType == ActionType.PLUGIN_FIRE }
+            }
+        }
+    }
+
     // Edit mode: load the existing automation once and pre-fill the drafts.
     LaunchedEffect(automationId) {
         automationId?.let { viewModel.loadAutomation(it) }
@@ -356,6 +468,8 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
         selectedIconIndex = NexaFlowIcons.all.indexOfFirst { it.first == loaded.icon }.coerceAtLeast(0)
         triggers.clear()
         loaded.triggers.forEach { triggers.add(TriggerDraft(it.type, it.config)) }
+        constraints.clear()
+        loaded.constraints.forEach { constraints.add(ConstraintDraft(it.type, it.config)) }
         selectedActions.clear()
         actionConfigs.clear()
         actionEndBehaviors.clear()
@@ -409,6 +523,21 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
         onDispose {
             savedStateHandle?.getLiveData<Int>("selected_icon")?.removeObserver(observer)
         }
+    }
+
+    // Live elevated-permission status (root/Shizuku): re-probe the action
+    // cards every time the screen resumes — e.g. after returning from the
+    // Magisk/KernelSU grant dialog or the Shizuku grant screen — so the
+    // colour-coded badge reflects the freshly granted state without leaving
+    // and re-opening the task.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var permissionRefreshTick by remember { mutableStateOf(0) }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) permissionRefreshTick++
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     val isEditing = automationId != null
@@ -492,12 +621,14 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                 endBehavior = actionEndBehaviors[it.actionType]
             )
         }
+        val builtConstraints = constraints.map { Constraint(it.type, it.config) }
         val exitActions = selectedExitActions.map { Action(it.actionType, exitActionConfigs[it.actionType] ?: emptyMap()) }
         viewModel.saveAutomation(
             name = name,
             icon = NexaFlowIcons.all[selectedIconIndex].first,
             triggers = builtTriggers,
             actions = actions,
+            constraints = builtConstraints,
             exitActions = exitActions,
             // Unified end behavior: each action carries its own end behavior
             // (leave / restore / set value), so the global toggle stays off.
@@ -538,6 +669,9 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                 title = if (isEditing) stringResource(R.string.edit_task_title) else stringResource(R.string.builder_title),
                 onBack = { navController.popBackStack() },
                 actions = {
+                    IconButton(onClick = { navController.navigate("variables") }) {
+                        Icon(imageVector = Icons.Filled.Functions, contentDescription = stringResource(R.string.variables_title))
+                    }
                     IconButton(onClick = { save(closeAfterSave = false) }) {
                         Icon(imageVector = Icons.Filled.Save, contentDescription = stringResource(R.string.quick_save))
                     }
@@ -625,6 +759,7 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                     onPickCalendar = { calendarPickerTarget = index },
                     onRequestPermission = { requestPermissions(it) },
                     onExplainSpecial = { explainSpecialPermission(it) },
+                    refreshKey = permissionRefreshTick,
                     onPickFromMap = {
                         mapPickerTarget = index
                         try {
@@ -638,6 +773,35 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                         }
                     }
                 )
+            }
+
+            // ── IF (constraints) ────────────────────────────────────
+            SectionHeader(
+                text = stringResource(R.string.section_constraints),
+                trailing = {
+                    IconButton(onClick = { showConstraintPicker = true }) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = stringResource(R.string.add_constraint)
+                        )
+                    }
+                }
+            )
+            if (constraints.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.constraints_empty_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            } else {
+                constraints.forEachIndexed { index, draft ->
+                    ConstraintEditorCard(
+                        draft = draft,
+                        index = index,
+                        onConfigChange = { constraints[index] = it },
+                        onRemove = { constraints.removeAt(index) }
+                    )
+                }
             }
 
             // ── THEN (actions) ───────────────────────────────────────
@@ -671,7 +835,17 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                     onPickApp = { appPickerTarget = "action:${option.actionType.name}" },
                     onRequestPermission = { requestPermissions(it) },
                     onExplainSpecial = { explainSpecialPermission(it) },
-                    context = context
+                    refreshKey = permissionRefreshTick,
+                    context = context,
+                    availableVariables = availableVariables,
+                    automations = automations,
+                    onPluginConfigure = {
+                        configurePlugin(
+                            actionConfigs[ActionType.PLUGIN_FIRE]?.get("package"),
+                            actionConfigs[ActionType.PLUGIN_FIRE]?.get("receiver"),
+                            actionConfigs[ActionType.PLUGIN_FIRE] ?: emptyMap()
+                        )
+                    }
                 )
             }
 
@@ -745,7 +919,9 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                                 option = option,
                                 config = config,
                                 onConfigChange = { exitActionConfigs[option.actionType] = it },
-                                onPickApp = { appPickerTarget = "exit:${option.actionType.name}" }
+                                onPickApp = { appPickerTarget = "exit:${option.actionType.name}" },
+                                availableVariables = availableVariables,
+                                automations = automations
                             )
                         }
                     }
@@ -784,6 +960,16 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
         )
     }
 
+    if (showConstraintPicker) {
+        ConstraintTypePickerDialog(
+            onPick = { type ->
+                constraints.add(ConstraintDraft(type, defaultConstraintConfig(type)))
+                showConstraintPicker = false
+            },
+            onDismiss = { showConstraintPicker = false }
+        )
+    }
+
     if (showActionPicker) {
         ActionPickerDialog(
             alreadySelected = selectedActions.toList(),
@@ -792,8 +978,30 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                     if (option !in selectedActions) selectedActions.add(option)
                 }
                 showActionPicker = false
+                // A picked plugin action immediately asks which plugin to use.
+                if (picked.any { it.actionType == ActionType.PLUGIN_FIRE }) {
+                    pluginPickerTarget = true
+                }
             },
             onDismiss = { showActionPicker = false }
+        )
+    }
+
+    if (pluginPickerTarget) {
+        PluginPickerDialog(
+            plugins = plugins,
+            onRefresh = { viewModel.refreshPlugins() },
+            onPick = { plugin ->
+                pluginPickerTarget = false
+                configurePlugin(plugin.packageName, plugin.receiverClass, emptyMap())
+            },
+            onDismiss = {
+                pluginPickerTarget = false
+                // Dropping the picker without configuring removes the stub action.
+                if ((actionConfigs[ActionType.PLUGIN_FIRE] ?: emptyMap()).isEmpty()) {
+                    selectedActions.removeAll { it.actionType == ActionType.PLUGIN_FIRE }
+                }
+            }
         )
     }
 
