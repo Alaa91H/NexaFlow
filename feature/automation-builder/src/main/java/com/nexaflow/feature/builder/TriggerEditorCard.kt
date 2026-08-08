@@ -715,6 +715,13 @@ fun TriggerEditorCard(
                                 modifier = Modifier.padding(start = 6.dp)
                             )
                         }
+                        // Samsung-style lifecycle hint: the task runs while the
+                        // app stays open and its end options apply on close.
+                        Text(
+                            text = stringResource(R.string.trigger_app_while_open),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
                         // Live accessibility-service badge (granted / not granted)
                         // refreshed on resume; tapping it explains and opens the
                         // accessibility settings screen.

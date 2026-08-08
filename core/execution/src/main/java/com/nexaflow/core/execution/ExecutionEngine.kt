@@ -136,8 +136,16 @@ class ExecutionEngine(
      */
     suspend fun runExit(automation: Automation): ExecutionRecord {
         val startedAt = epochMillis.now()
-        // Nothing to do when there are no exit actions and no state to restore.
-        if (!automation.revertOnExit && automation.exitActions.isEmpty()) {
+        // Nothing to do when there are no exit actions, no per-action end
+        // behaviors and no state to restore. The per-action check is what makes
+        // the unified builder model work: without it, a task that only configures
+        // "when the task ends" options inside its actions (leave / restore / set
+        // value) would silently never run them on exit.
+        val hasPerActionEndBehavior = automation.actions.any { it.endBehavior != null }
+        if (!automation.revertOnExit &&
+            automation.exitActions.isEmpty() &&
+            !hasPerActionEndBehavior
+        ) {
             val record = ExecutionRecord(
                 id = UUID.randomUUID().toString(),
                 automationId = automation.id,
@@ -153,6 +161,9 @@ class ExecutionEngine(
         val controller = RomIntegrationManager.controller(context)
         val notif = notificationPreferences.settings.first()
         val channel = channelSelector.select(context)
+        // revertOnExit deliberately supersedes both per-action end behaviors and
+        // exitActions: the whole device state is restored instead. Do not "fix"
+        // this to run them too — that would double-apply end actions after a revert.
         val actionResults = if (automation.revertOnExit) {
             val snapshot = snapshots.remove(automation.id)
             if (snapshot != null) {

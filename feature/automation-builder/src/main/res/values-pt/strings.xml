@@ -424,4 +424,7 @@
     <string name="notification_button_remove">Remover botão</string>
     <string name="notification_buttons_picker_title">Escolha uma tarefa para executar</string>
     <string name="notification_buttons_picker_empty">Nenhuma outra tarefa salva ainda</string>
+    <string name="trigger_app_while_open">Executa ao abrir o app e permanece ativo até fechá-lo; em seguida, aplica as opções de término da tarefa.</string>
+    <string name="exit_per_action_title">Opções de término por ação</string>
+    <string name="exit_extra_actions_label">Ações adicionais ao término da tarefa</string>
 </resources>

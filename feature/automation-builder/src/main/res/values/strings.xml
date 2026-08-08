@@ -423,4 +423,7 @@
     <string name="notification_button_remove">Remove button</string>
     <string name="notification_buttons_picker_title">Choose a task to run</string>
     <string name="notification_buttons_picker_empty">No other tasks saved yet</string>
+    <string name="trigger_app_while_open">Runs when the app opens and stays active until it closes, then applies the end options of the task.</string>
+    <string name="exit_per_action_title">Per-action end options</string>
+    <string name="exit_extra_actions_label">Extra actions when the task ends</string>
 </resources>

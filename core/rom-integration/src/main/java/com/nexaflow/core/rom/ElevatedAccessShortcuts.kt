@@ -26,12 +26,20 @@ object ElevatedAccessShortcuts {
      * is silently dropped and the app never observes the grant, so the
      * permission manager would keep asking forever. Registered lazily once.
      */
-    private val shizukuResultListener = Shizuku.OnRequestPermissionResultListener { requestCode, _ ->
-        if (requestCode == SHIZUKU_REQUEST_CODE) {
-            // The permission manager / builder re-check on resume, so no state
-            // to update here — the listener just needs to exist and stay alive.
+    private val shizukuResultListener = Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
+        // Shizuku 13.1.5 delivers the grant result as an int: PERMISSION_GRANTED
+        // (0) when granted, PERMISSION_DENIED (-1) otherwise.
+        if (requestCode == SHIZUKU_REQUEST_CODE &&
+            grantResult == PackageManager.PERMISSION_GRANTED
+        ) {
+            // Grant landed: arm the elevated shell channel immediately so the
+            // next elevated command runs through the AIDL UserService.
+            shizukuAppContext?.let { ShizukuShellBridge.initialize(it) }
         }
     }
+
+    @Volatile
+    private var shizukuAppContext: Context? = null
 
     @Volatile
     private var shizukuListenerRegistered = false
@@ -133,8 +141,12 @@ object ElevatedAccessShortcuts {
             if (Shizuku.isPreV11() ||
                 Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
             ) {
-                return // already granted
+                // Already granted: (re)arm the UserService bind so elevated
+                // commands use the AIDL channel instead of the legacy path.
+                ShizukuShellBridge.initialize(context)
+                return
             }
+            shizukuAppContext = context.applicationContext
             ensureShizukuResultListener()
             Shizuku.requestPermission(SHIZUKU_REQUEST_CODE)
         } catch (_: Throwable) {

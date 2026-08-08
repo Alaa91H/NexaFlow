@@ -158,7 +158,7 @@ object WidgetUpdater {
             if (total == 0) {
                 context.getString(R.string.widget_no_automations)
             } else {
-                context.getString(R.string.widget_active_count, enabled, total)
+                context.getString(R.string.widget_active_count, enabled.toString(), total.toString())
             }
         )
         views.setTextViewText(

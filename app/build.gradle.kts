@@ -13,8 +13,8 @@ android {
         applicationId = "com.nexaflow.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 9
-        versionName = "3.7.0-alpha"
+        versionCode = 10
+        versionName = "3.8.0-alpha"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

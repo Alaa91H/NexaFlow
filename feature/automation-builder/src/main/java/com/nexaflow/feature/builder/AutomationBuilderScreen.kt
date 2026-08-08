@@ -232,8 +232,6 @@ private fun SelectedActionCard(
     total: Int,
     config: Map<String, String>,
     onConfigChange: (Map<String, String>) -> Unit,
-    endBehavior: EndBehavior?,
-    onEndBehaviorChange: (EndBehavior?) -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
     onRemove: () -> Unit,
@@ -309,14 +307,6 @@ private fun SelectedActionCard(
                 availableVariables = availableVariables,
                 onPluginConfigure = onPluginConfigure,
                 automations = automations
-            )
-            // The task's end behavior is configured inside each action (part of
-            // the action itself) so each action decides what happens when the
-            // task's condition stops being true.
-            EndBehaviorEditor(
-                actionType = option.actionType,
-                behavior = endBehavior,
-                onBehaviorChange = onEndBehaviorChange
             )
             PermissionHintForAction(
                 actionType = option.actionType,
@@ -823,8 +813,6 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                     total = selectedActions.size,
                     config = actionConfigs[option.actionType] ?: emptyMap(),
                     onConfigChange = { actionConfigs[option.actionType] = it },
-                    endBehavior = actionEndBehaviors[option.actionType],
-                    onEndBehaviorChange = { actionEndBehaviors[option.actionType] = it },
                     onMoveUp = { moveAction(index, index - 1) },
                     onMoveDown = { moveAction(index, index + 1) },
                     onRemove = {
@@ -849,10 +837,10 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                 )
             }
 
-            // ── When the task ends (part of the task itself) ─────────
-            // Unified end behavior: every action configures its own "when the
-            // task ends" behavior (leave / restore / set value) inside its card,
-            // and this section holds the extra exit actions + per-task settings.
+            // ── When the task ends (one unified place, part of the task) ──
+            // Single home for ALL end behavior: per-action end options (what
+            // each action does when the condition stops being true) plus any
+            // extra exit actions, the run cooldown and the SMS auto-reply.
             SectionHeader(
                 text = stringResource(R.string.section_exit_behavior),
                 trailing = {
@@ -872,6 +860,50 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                         color = MaterialTheme.colorScheme.secondary
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    // Per-action end options: every selected action decides what
+                    // happens to it when the task's condition stops being true.
+                    val endCapableActions = selectedActions.filter {
+                        EndBehaviorCatalog.supportsEndBehavior(it.actionType)
+                    }
+                    if (endCapableActions.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.exit_nothing_sub),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(R.string.exit_per_action_title),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        endCapableActions.forEach { option ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                IconBadge(
+                                    icon = option.icon,
+                                    containerColor = option.color.copy(alpha = 0.15f),
+                                    contentColor = option.color
+                                )
+                                Text(
+                                    text = stringResource(option.titleRes),
+                                    modifier = Modifier.weight(1f),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                            EndBehaviorEditor(
+                                actionType = option.actionType,
+                                behavior = actionEndBehaviors[option.actionType],
+                                onBehaviorChange = { actionEndBehaviors[option.actionType] = it },
+                                showLabel = false
+                            )
+                        }
+                    }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     // Per-task cooldown: minimum gap between two runs from the same event.
                     Text(
                         text = stringResource(R.string.cooldown_label, cooldownSeconds),
@@ -884,13 +916,13 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                         onValueChange = { cooldownSeconds = it.toInt() },
                         valueRange = 0f..300f
                     )
-                    if (selectedExitActions.isEmpty()) {
+                    if (selectedExitActions.isNotEmpty()) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         Text(
-                            text = stringResource(R.string.exit_nothing_sub),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary
+                            text = stringResource(R.string.exit_extra_actions_label),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
                         )
-                    } else {
                         selectedExitActions.forEach { option ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),

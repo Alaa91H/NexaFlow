@@ -99,7 +99,8 @@
         -->
         <receiver
             android:name="com.nexaflow.core.engine.SmsConsentReceiver"
-            android:exported="true">
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
                 <action android:name="com.google.android.gms.auth.api.phone.SMS_CONSENT_REQUEST" />
             </intent-filter>

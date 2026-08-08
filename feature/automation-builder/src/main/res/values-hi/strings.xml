@@ -424,4 +424,7 @@
     <string name="notification_button_remove">बटन हटाएँ</string>
     <string name="notification_buttons_picker_title">चलाने के लिए कार्य चुनें</string>
     <string name="notification_buttons_picker_empty">अभी कोई अन्य कार्य सहेजा नहीं गया</string>
+    <string name="trigger_app_while_open">ऐप खोलने पर चलता है और बंद होने तक सक्रिय रहता है, फिर कार्य के समाप्ति विकल्प लागू होते हैं।</string>
+    <string name="exit_per_action_title">प्रति क्रिया समाप्ति विकल्प</string>
+    <string name="exit_extra_actions_label">समाप्ति पर अतिरिक्त क्रियाएँ</string>
 </resources>

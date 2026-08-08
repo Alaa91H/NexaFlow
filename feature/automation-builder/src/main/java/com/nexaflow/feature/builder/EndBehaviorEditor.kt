@@ -30,21 +30,28 @@ import com.nexaflow.domain.models.EndMode
  *
  * This is the per-action replacement for the old global revert toggle: each
  * action decides on its own what should happen when the task's condition ends.
+ *
+ * [showLabel] hides the "When the task ends" header so the editor can be
+ * embedded inside the unified end-behavior card, once per action, without
+ * repeating the title.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EndBehaviorEditor(
     actionType: ActionType,
     behavior: EndBehavior?,
-    onBehaviorChange: (EndBehavior?) -> Unit
+    onBehaviorChange: (EndBehavior?) -> Unit,
+    showLabel: Boolean = true
 ) {
     if (!EndBehaviorCatalog.supportsEndBehavior(actionType)) return
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(
-            text = stringResource(R.string.end_behavior_label),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold
-        )
+        if (showLabel) {
+            Text(
+                text = stringResource(R.string.end_behavior_label),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
         if (actionType in EndBehaviorCatalog.toggleActions) {
             val on = behavior?.mode == EndMode.SET_VALUE && behavior.config["enabled"] == "true"
             val off = behavior?.mode == EndMode.SET_VALUE && behavior.config["enabled"] == "false"

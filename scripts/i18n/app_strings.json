@@ -1,7 +1,7 @@
 {
   "": {
     "widget_no_automations": "No automations",
-    "widget_active_count": "%1$d of %2$d active",
+    "widget_active_count": "%1$s of %2$s active",
     "widget_enable_all": "Enable all",
     "widget_disable_all": "Disable all",
     "widget_status_count_format": "%1$d / %2$d",

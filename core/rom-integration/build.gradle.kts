@@ -22,6 +22,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    buildFeatures {
+        // IUserShellService.aidl (Shizuku UserService contract) must be compiled
+        // into the generated Java stubs used by the shell bridge and service.
+        aidl = true
+    }
 }
 
 kotlin {

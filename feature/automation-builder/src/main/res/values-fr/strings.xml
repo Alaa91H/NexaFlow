@@ -424,4 +424,7 @@
     <string name="notification_button_remove">Supprimer le bouton</string>
     <string name="notification_buttons_picker_title">Choisissez une tâche à exécuter</string>
     <string name="notification_buttons_picker_empty">"Aucune autre tâche enregistrée pour l'instant"</string>
+    <string name="trigger_app_while_open">"S'exécute à l'ouverture de l'application et reste actif jusqu'à sa fermeture, puis applique les options de fin de la tâche."</string>
+    <string name="exit_per_action_title">Options de fin par action</string>
+    <string name="exit_extra_actions_label">Actions supplémentaires à la fin de la tâche</string>
 </resources>

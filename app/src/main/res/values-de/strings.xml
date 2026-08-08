@@ -10,7 +10,7 @@
 
     <!-- Bottom navigation -->
     <string name="widget_no_automations">Keine Automatisierungen</string>
-    <string name="widget_active_count">%1$d von %2$d aktiv</string>
+    <string name="widget_active_count">%1$s von %2$s aktiv</string>
     <string name="widget_enable_all">Alle aktivieren</string>
     <string name="widget_disable_all">Alle deaktivieren</string>
     <string name="widget_status_count_format">%1$d / %2$d</string>

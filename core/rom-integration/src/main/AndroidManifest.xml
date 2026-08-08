@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        Shizuku UserService: Shizuku starts this component in a process forked
+        from its own server (root / shell uid), giving exec() elevated power.
+        android:process MUST match ShizukuShellBridge's processNameSuffix
+        (":shell") so the service runs in the Shizuku-spawned process instead
+        of the app's own unprivileged process.
+    -->
+    <application>
+        <service
+            android:name=".UserShellService"
+            android:exported="false"
+            android:process=":shell" />
+    </application>
+</manifest>

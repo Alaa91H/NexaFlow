@@ -10,7 +10,7 @@
 
     <!-- Bottom navigation -->
     <string name="widget_no_automations">Otomasyon yok</string>
-    <string name="widget_active_count">%1$d / %2$d aktif</string>
+    <string name="widget_active_count">%1$s / %2$s aktif</string>
     <string name="widget_enable_all">Tümünü etkinleştir</string>
     <string name="widget_disable_all">Tümünü devre dışı bırak</string>
     <string name="widget_status_count_format">%1$d / %2$d</string>

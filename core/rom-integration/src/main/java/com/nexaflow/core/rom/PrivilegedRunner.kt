@@ -4,7 +4,6 @@ import android.content.pm.PackageManager
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.core.security.SafeCommandBuilder
 import rikka.shizuku.Shizuku
-import rikka.shizuku.ShizukuRemoteProcess
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
@@ -51,52 +50,19 @@ object PrivilegedRunner {
         }
     }
 
-    @Suppress("DEPRECATION")
+    /**
+     * Runs one command through the Shizuku channel. Prefers the bound AIDL
+     * UserService ([ShizukuShellBridge]) and gracefully falls back to the
+     * legacy `Shizuku.newProcess` reflection path while API 13.x servers are
+     * still in the wild (`newProcess` is removed in Shizuku API 14).
+     */
     fun runShizuku(command: String): SystemControlResult {
         if (!isShizukuGranted()) {
             return SystemControlResult.fail("Shizuku is not granted. Open the Shizuku app and grant NexaFlow")
         }
         val safe = SafeCommandBuilder.validateUserCommand(command)
             ?: return SystemControlResult.fail("Command rejected: unsafe characters or too long")
-        return try {
-            val process = createShizukuProcess(arrayOf("sh", "-c", safe), null, null)
-            val output = process.inputStream.bufferedReader().readText()
-            val exit = process.waitFor()
-            process.destroy()
-            if (exit == 0) {
-                SystemControlResult.ok(output.trim().ifBlank { "Command executed" })
-            } else {
-                SystemControlResult.fail("Command failed (exit $exit): ${output.trim()}")
-            }
-        } catch (t: Throwable) {
-            SystemControlResult.fail("Shizuku execution failed: ${t.message}")
-        }
-    }
-
-    /**
-     * Since Shizuku API 13.1.5, [Shizuku.newProcess] was made private (it is deprecated and
-     * planned for removal in API 14). It still exists in the current release, so invoke it via
-     * reflection. If a future API version removes it entirely, fail with a clear message.
-     */
-    private fun createShizukuProcess(
-        cmd: Array<String>,
-        env: Array<String>?,
-        dir: String?
-    ): ShizukuRemoteProcess {
-        try {
-            val method = Shizuku::class.java.getDeclaredMethod(
-                "newProcess",
-                Array<String>::class.java,
-                Array<String>::class.java,
-                String::class.java
-            )
-            method.isAccessible = true
-            return method.invoke(null, cmd, env, dir) as ShizukuRemoteProcess
-        } catch (t: Throwable) {
-            throw IllegalStateException(
-                "Shizuku.newProcess is unavailable in this Shizuku API version", t
-            )
-        }
+        return ShizukuShellBridge.execute(safe)
     }
 
     /**
