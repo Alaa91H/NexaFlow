@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_action_revert">Restaurer l\'état d\'origine</string>
+    <string name="notification_action_run_now">Exécuter la tâche maintenant</string>
+    <string name="notification_action_reply_label">Répondre</string>
+    <string name="notification_action_dismiss">Ignorer</string>
+</resources>

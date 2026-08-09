@@ -1,7 +1,7 @@
 plugins {
-    id("com.android.library")
-    id("com.google.dagger.hilt.android")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -38,20 +38,20 @@ kotlin {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.19.0")
+    implementation(libs.androidx.core.core.ktx)
     // SMS User Consent API: instant OTP/verification-SMS path on Android 17
     // (API 37) where SMS_RECEIVED_ACTION + provider rows are withheld for 3h.
-    implementation("com.google.android.gms:play-services-auth-api-phone:18.1.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
-    implementation("com.google.dagger:hilt-android:2.60.1")
-    ksp("com.google.dagger:hilt-compiler:2.60.1")
+    implementation(libs.com.google.android.gms.play.services.auth.api.phone)
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.android)
+    implementation(libs.com.google.dagger.hilt.android)
+    ksp(libs.com.google.dagger.hilt.compiler)
     implementation(project(":domain"))
     implementation(project(":core:execution"))
     implementation(project(":core:rom-integration"))
     implementation(project(":core:common"))
     implementation(project(":core:datastore"))
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("androidx.test:core:1.7.0")
-    testImplementation("org.robolectric:robolectric:4.16.1")
+    testImplementation(libs.junit.junit)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.org.robolectric.robolectric)
 }

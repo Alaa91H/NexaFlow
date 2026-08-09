@@ -1,6 +1,7 @@
 package com.nexaflow.core.execution
 
 import android.content.Context
+import androidx.paging.PagingSource
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.handler.ActionExecutionContext
@@ -53,6 +54,8 @@ class ExecutionEngineConstraintsTest {
     private class RecordingHistory : HistoryRepository {
         val messages = mutableListOf<String>()
         override fun getExecutionHistory(): Flow<List<ExecutionRecord>> = flowOf(emptyList())
+        override fun getExecutionPaging(): PagingSource<Int, ExecutionRecord> =
+            emptyPagingSource()
         override suspend fun getExecutionById(id: String): ExecutionRecord? = null
         override suspend fun recordExecution(record: ExecutionRecord) {
             messages += record.message

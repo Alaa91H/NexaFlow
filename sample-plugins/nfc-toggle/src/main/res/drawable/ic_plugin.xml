@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Monochrome layer for the adaptive launcher icon (Android 13+ themed icons).
+    A single-color glyph so the system can recolor it for themed launchers.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#000000"
+        android:pathData="M8,12a4,4 0 0 1 8,0 M10,12a2,2 0 0 1 4,0 M11,12h2v4h-2z" />
+</vector>

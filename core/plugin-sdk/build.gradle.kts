@@ -1,6 +1,6 @@
 plugins {
     // AGP 9.x includes built-in Kotlin support; no separate Kotlin plugin.
-    id("com.android.library")
+    alias(libs.plugins.android.library)
 }
 
 android {
@@ -36,11 +36,11 @@ kotlin {
 }
 
 dependencies {
-    api("androidx.core:core-ktx:1.19.0")
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("androidx.test:core:1.7.0")
+    // Pure framework protocol module: android.os/content/app + org.json only.
+    testImplementation(libs.junit.junit)
+    testImplementation(libs.androidx.test.core)
     // Bundle round-trips exercise the real android.os.Bundle implementation, so
     // PluginConfigParserTest runs under Robolectric (android.jar stubs throw
     // "not mocked" in plain JVM tests).
-    testImplementation("org.robolectric:robolectric:4.16.1")
+    testImplementation(libs.org.robolectric.robolectric)
 }

@@ -1,13 +1,18 @@
 package com.nexaflow.core.datastore
 
 import android.content.Context
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-private val Context.smsDataStore by preferencesDataStore(name = "nexaflow_sms")
+private val Context.smsDataStore by preferencesDataStore(
+    name = "nexaflow_sms",
+    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() }
+)
 
 /**
  * Android 17 (API 37) blocks OTP/verification SMS from apps targeting SDK 37

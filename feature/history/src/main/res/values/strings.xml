@@ -23,4 +23,7 @@
     <string name="duration_s">s</string>
     <string name="action_restore_state">Restore original state</string>
     <string name="action_unknown">Unknown action</string>
+    <string name="history_load_error_title">"Couldn't load history"</string>
+    <string name="history_load_error_subtitle">Something went wrong while reading your history.</string>
+    <string name="history_retry">Retry</string>
 </resources>

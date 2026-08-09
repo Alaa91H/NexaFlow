@@ -1,6 +1,7 @@
 package com.nexaflow.domain.models
 
 import androidx.compose.runtime.Immutable
+import kotlinx.serialization.Serializable
 
 /**
  * What a task should do with one of its actions when the task's condition
@@ -10,6 +11,7 @@ import androidx.compose.runtime.Immutable
  * - [EndMode.REVERT] — restore the device setting to its pre-run state.
  * - [EndMode.SET_VALUE] — apply a specific value at the end (e.g. volume 0).
  */
+@Serializable
 enum class EndMode {
     LEAVE,
     REVERT,
@@ -17,6 +19,7 @@ enum class EndMode {
 }
 
 @Immutable
+@Serializable
 // config must never be mutated in place (Compose @Immutable contract).
 data class EndBehavior(
     val mode: EndMode = EndMode.LEAVE,

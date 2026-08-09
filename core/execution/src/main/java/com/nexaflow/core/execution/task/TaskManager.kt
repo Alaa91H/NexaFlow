@@ -106,7 +106,9 @@ class TaskManager(
 
     private val activeTaskId = java.util.concurrent.atomic.AtomicReference<String?>(null)
 
-    private val worker = scope.launch { processQueue() }
+    init {
+        scope.launch { processQueue() }
+    }
 
     /** Enqueues [task] and returns its id. */
     fun enqueue(task: PendingTask): String {
@@ -144,34 +146,44 @@ class TaskManager(
 
     private suspend fun processQueue() {
         while (currentCoroutineContext().isActive) {
-            val envelope = synchronized(lock) {
-                // Mark the task active atomically with the poll so awaitIdle() never
-                // sees an empty queue + idle worker while a task is about to start.
-                val polled = queue.poll()
-                if (polled != null) activeTaskId.set(polled.task.id)
-                polled
-            } ?: run {
-                delay(25)
-                continue
-            }
-            if (envelope.task.id in cancelledIds) {
-                cancelledIds.remove(envelope.task.id)
-                // Publish BEFORE clearing the active id: otherwise awaitIdle() can
-                // observe an empty queue + idle worker while the Cancelled result
-                // is not yet visible, and return before the cancellation lands.
-                publish(TaskResult.Cancelled(envelope.task.id))
-                activeTaskId.set(null)
-                continue
-            }
-            // Run in a child job so cancel(taskId) can stop it independently.
-            val job = scope.launch { runWithRetry(envelope) }
-            runningJobs[envelope.task.id] = job
-            job.join()
-            runningJobs.remove(envelope.task.id)
-            // A task that completed (or failed) normally is no longer cancellable;
-            // drop any stale cancellation marker to avoid an unbounded set.
-            cancelledIds.remove(envelope.task.id)
+            val envelope = pollOrWait()
+            if (envelope != null) processEnvelope(envelope)
         }
+    }
+
+    /**
+     * Pops the next task, or waits briefly when the queue is empty. Marks the
+     * task active atomically with the poll so awaitIdle() never sees an empty
+     * queue + idle worker while a task is about to start.
+     */
+    private suspend fun pollOrWait(): Envelope? {
+        val polled = synchronized(lock) {
+            val head = queue.poll()
+            if (head != null) activeTaskId.set(head.task.id)
+            head
+        }
+        if (polled == null) delay(25)
+        return polled
+    }
+
+    private suspend fun processEnvelope(envelope: Envelope) {
+        if (envelope.task.id in cancelledIds) {
+            cancelledIds.remove(envelope.task.id)
+            // Publish BEFORE clearing the active id: otherwise awaitIdle() can
+            // observe an empty queue + idle worker while the Cancelled result
+            // is not yet visible, and return before the cancellation lands.
+            publish(TaskResult.Cancelled(envelope.task.id))
+            activeTaskId.set(null)
+            return
+        }
+        // Run in a child job so cancel(taskId) can stop it independently.
+        val job = scope.launch { runWithRetry(envelope) }
+        runningJobs[envelope.task.id] = job
+        job.join()
+        runningJobs.remove(envelope.task.id)
+        // A task that completed (or failed) normally is no longer cancellable;
+        // drop any stale cancellation marker to avoid an unbounded set.
+        cancelledIds.remove(envelope.task.id)
     }
 
     private suspend fun runWithRetry(envelope: Envelope) {
@@ -187,7 +199,7 @@ class TaskManager(
                     return
                 }
                 attempts++
-                val outcome = runAttempt(task, attempts)
+                val outcome = runAttempt(task)
                 // A cancellation that lands while the task is running (e.g. before
                 // the child job is registered in runningJobs) must still surface as
                 // Cancelled, not Success.
@@ -245,7 +257,7 @@ class TaskManager(
         data class Error(val message: String, val durationMs: Long) : Attempt
     }
 
-    private suspend fun runAttempt(task: PendingTask, attempt: Int): Attempt {
+    private suspend fun runAttempt(task: PendingTask): Attempt {
         val startedAt = epochMillis.now()
         return try {
             val result = task.timeoutMs?.let { timeout ->

@@ -168,4 +168,11 @@
     <string name="constraint_type_battery">مستوى البطارية</string>
     <string name="constraint_type_screen_locked">الشاشة مقفلة</string>
     <string name="constraint_type_headset">سماعة متصلة</string>
+    <string name="trigger_sensor">مستشعر</string>
+    <string name="trigger_sensor_sub">التشغيل عند أحداث مستشعرات الجهاز</string>
+    <string name="trigger_webhook">ويب هوك</string>
+    <string name="trigger_webhook_sub">التشغيل عبر طلب HTTP محلي</string>
+    <string name="add_shortcut">إضافة اختصار</string>
+    <string name="shortcut_added">تمت إضافة الاختصار إلى الشاشة الرئيسية</string>
+    <string name="shortcut_in_app_shortcuts">أُضيف إلى اختصارات التطبيق</string>
 </resources>

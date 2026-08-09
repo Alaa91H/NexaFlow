@@ -12,6 +12,10 @@ standalone APK that NexaFlow (and every other Locale-compatible host) can discov
 as a first-class action. This document is the complete developer contract plus the blueprint
 for the first-party SDK module that removes the boilerplate.
 
+> **Want working code instead of prose?** The [`sample-plugins/`](../sample-plugins/) folder is a
+> complete, buildable reference plugin (NFC toggle) with **zero external libraries** — copy it,
+> swap the logic, ship. It implements the raw protocol this document specifies end-to-end.
+
 ---
 
 ## 1. Why the Locale protocol?
@@ -251,11 +255,11 @@ abstract class PluginFireReceiver : BroadcastReceiver() {
         val config = PluginConfigParser.fromBundle(
             intent.getBundleExtra(LocaleContract.EXTRA_BUNDLE))
         val result = onFire(context, config)          // suspend-friendly: use goAsync()
-        if (intent.isOrderedBroadcast) {
+        if (receiver.isOrderedBroadcast) {
             resultCode = result.toResultCode()
             if (result is Failed) {
-                resultData = result.message
                 // %err / %errmsg extras for Tasker-compatible error UI
+                // (the data field is left untouched — errors ride in extras)
             }
         }
     }
@@ -277,7 +281,8 @@ abstract class PluginEditActivity : Activity() {
         setResult(RESULT_OK, out)
         finish()
     }
-    override fun onBackPressed() { setResult(RESULT_CANCELED); finish() }
+    // Back is NOT overridden: finishing without save() already delivers
+    // RESULT_CANCELED to the host, on every API level incl. 33+ predictive back.
 }
 ```
 
@@ -318,15 +323,18 @@ class FlashlightFireReceiver : PluginFireReceiver() {
 | **H3** | Engine: `PluginFireClient` (explicit ordered broadcast + `FLAG_INCLUDE_STOPPED_PACKAGES` + timeout) + `PluginFireHandler` in the registry; result codes surfaced as execution messages. Plugin manager screen (list / test fire / app info) in Settings. | ✅ Done |
 | **H4** | Tasker variable hand-off (`VARIABLE_REPLACE_KEYS`) so plugins can read `%var`; then condition plugins (`EDIT_CONDITION`/`QUERY_CONDITION`) and, optionally, event plugins. | 🚧 Planned |
 
-Acceptance gate for H2+: `PluginFireExecutorTest` (Robolectric) covering OK/Pending/Failed/
-timeout, a fake plugin APK in the instrumentation test, and full `test assembleDebug
-assembleRelease lintDebug` on every PR.
+Acceptance gate for H2+: `PluginFireClientRoundTripTest` (Robolectric) drives the client's
+explicit ordered FIRE_SETTING broadcast against a fake plugin receiver declared in
+`core/execution/src/test/AndroidManifest.xml`, covering OK/Pending/Failed end-to-end;
+`PluginFireClientTest` covers absent-package / blank-receiver non-success paths; and full
+`test assembleDebug assembleRelease lintDebug` runs on every PR.
 
 ---
 
 ## 7. Developer checklist
 
-Before publishing a plugin:
+Before publishing a plugin (and if you want a copy-paste starting point, see
+[`sample-plugins/`](../sample-plugins/)):
 
 - [ ] `EDIT_SETTING` + `FIRE_SETTING` declared with `exported="true"`; `installLocation="internalOnly"`.
 - [ ] Result bundle < 25 KB, primitives/Strings/arrays only; JSON under `config` key.

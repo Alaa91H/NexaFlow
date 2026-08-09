@@ -75,6 +75,8 @@
     <string name="permission_bluetooth_body">This lets tasks detect when your chosen Bluetooth device connects or disconnects.</string>
     <string name="permission_calendar_title">Calendar access</string>
     <string name="permission_calendar_body">This lets tasks run around events in your calendar, like before a meeting starts.</string>
+    <string name="permission_local_network_title">Local network access</string>
+    <string name="permission_local_network_body">Lets HTTP tasks reach devices on your home network, like smart plugs or media hubs.</string>
     <string name="permission_generic_title">Permission needed</string>
     <string name="permission_generic_body">This permission lets the chosen task work as expected.</string>
     <string name="special_write_settings_title">Modify system settings</string>
@@ -387,6 +389,8 @@
     <string name="variable_name_error">Letters, digits and underscore only</string>
     <string name="variable_value">Value</string>
     <string name="variables_value_hint">e.g. Home Address</string>
+    <string name="variable_sensitive">Sensitive (encrypted)</string>
+    <string name="variable_sensitive_sub">Store this value encrypted on this device (tokens, passwords). Decrypted only when a task runs.</string>
     <string name="add_variable">Add variable</string>
     <string name="delete_variable">Delete</string>
     <string name="insert_variable_hint">Insert:</string>
@@ -426,4 +430,28 @@
     <string name="trigger_app_while_open">Runs when the app opens and stays active until it closes, then applies the end options of the task.</string>
     <string name="exit_per_action_title">Per-action end options</string>
     <string name="exit_extra_actions_label">Extra actions when the task ends</string>
+    <string name="notification_button_reply">Reply with text</string>
+    <string name="notification_button_reply_title">Reply variable</string>
+    <string name="notification_button_reply_hint">Typing in the notification stores the text into this variable so the task can use it (e.g. %MyReply).</string>
+    <string name="notification_button_reply_label">Variable name (without %)</string>
+    <string name="notification_button_reply_sub">Writes reply to %s</string>
+    <string name="trigger_type_sensor">Sensor</string>
+    <string name="sensor_kind">Sensor</string>
+    <string name="sensor_proximity">Proximity</string>
+    <string name="sensor_shake">Shake</string>
+    <string name="sensor_light">Light</string>
+    <string name="sensor_step">Steps</string>
+    <string name="sensor_event_covered">Covered</string>
+    <string name="sensor_event_uncovered">Uncovered</string>
+    <string name="sensor_event_above">Above</string>
+    <string name="sensor_event_below">Below</string>
+    <string name="sensor_threshold_label">Above %d lux</string>
+    <string name="sensor_sensitivity_label">Sensitivity: %d</string>
+    <string name="sensor_step_hint">Runs every time you take a step.</string>
+    <string name="sensor_permission_hint">Step counting needs the activity recognition permission.</string>
+    <string name="trigger_type_webhook">Webhook</string>
+    <string name="webhook_path">Path</string>
+    <string name="webhook_token">Token (optional)</string>
+    <string name="webhook_token_hint">Secret header value</string>
+    <string name="webhook_url_hint">Send an HTTP request to http://127.0.0.1:8765/path from this device to trigger the task.</string>
 </resources>

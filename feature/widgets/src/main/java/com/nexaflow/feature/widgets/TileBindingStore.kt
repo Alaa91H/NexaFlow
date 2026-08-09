@@ -1,6 +1,7 @@
 package com.nexaflow.feature.widgets
 
 import android.content.Context
+import androidx.core.content.edit
 
 /**
  * Persists which task each quick-settings tile slot controls. An empty value
@@ -17,9 +18,8 @@ object TileBindingStore {
             ?.takeIf { it.isNotEmpty() }
 
     fun setBinding(context: Context, slot: Int, automationId: String?) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .edit()
-            .putString(PREFIX + slot, automationId.orEmpty())
-            .apply()
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit {
+            putString(PREFIX + slot, automationId.orEmpty())
+        }
     }
 }

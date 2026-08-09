@@ -24,4 +24,6 @@
     <string name="preview_dark">Koyu önizleme</string>
     <string name="preview_light">Açık önizleme</string>
     <string name="primary_accent">Ana vurgu</string>
+    <string name="dynamic_color">Dinamik renk</string>
+    <string name="dynamic_color_sub">Duvar kâğıdı renklerini kullan (Material You)</string>
 </resources>

@@ -168,4 +168,11 @@
     <string name="constraint_type_battery">बैटरी स्तर</string>
     <string name="constraint_type_screen_locked">स्क्रीन लॉक</string>
     <string name="constraint_type_headset">हेडसेट जुड़ा</string>
+    <string name="trigger_sensor">सेंसर</string>
+    <string name="trigger_sensor_sub">डिवाइस सेंसर घटनाओं पर ट्रिगर</string>
+    <string name="trigger_webhook">वेबहुक</string>
+    <string name="trigger_webhook_sub">स्थानीय HTTP अनुरोध से ट्रिगर करें</string>
+    <string name="add_shortcut">शॉर्टकट जोड़ें</string>
+    <string name="shortcut_added">होम स्क्रीन पर शॉर्टकट जोड़ा गया</string>
+    <string name="shortcut_in_app_shortcuts">ऐप शॉर्टकट में जोड़ा गया</string>
 </resources>

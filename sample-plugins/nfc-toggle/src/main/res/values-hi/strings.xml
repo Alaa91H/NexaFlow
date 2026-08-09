@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plugin_name">NFC टॉगल</string>
+    <string name="switch_label">NFC चालू करें</string>
+    <string name="save">सहेजें</string>
+    <string name="blurb_enable">NFC: चालू करें</string>
+    <string name="blurb_disable">NFC: बंद करें</string>
+</resources>

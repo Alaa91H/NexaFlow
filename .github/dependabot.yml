@@ -1,0 +1,29 @@
+# Supply-chain hygiene: keeps Gradle dependencies and GitHub Actions up to
+# date. Each PR automatically runs the full CI gate (tests + assemble +
+# lint + detekt + release), so a bad bump never merges silently.
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      androidx:
+        patterns:
+          - "androidx.*"
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin*"
+          - "org.jetbrains.kotlinx*"
+      compose:
+        patterns:
+          - "compose*"
+          - "io.coil-kt*"
+    versioning-strategy: increase
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5

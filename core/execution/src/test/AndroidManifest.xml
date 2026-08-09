@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Test-only manifest for core/execution. Robolectric resolves the client's
+  explicit FIRE_SETTING broadcast only when the receiver is declared here —
+  dynamically registered receivers never receive explicit-component
+  broadcasts. Mimics a real installed Locale plugin.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <receiver
+            android:name="com.nexaflow.core.execution.plugin.FakePluginReceiverForTest"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.twofortyfouram.locale.intent.action.FIRE_SETTING" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>

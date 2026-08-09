@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_action_revert">मूल स्थिति पुनर्स्थापित करें</string>
+    <string name="notification_action_run_now">अभी कार्य चलाएँ</string>
+    <string name="notification_action_reply_label">जवाब</string>
+    <string name="notification_action_dismiss">खारिज करें</string>
+</resources>

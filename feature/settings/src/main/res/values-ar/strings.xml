@@ -29,6 +29,9 @@
     <string name="about_license">مرخّص بموجب رخصة MIT.</string>
     <string name="ok">حسناً</string>
     <string name="section_backup">نسخ احتياطي</string>
+    <string name="section_privacy">الخصوصية</string>
+    <string name="crash_reporting">الإبلاغ عن الأعطال</string>
+    <string name="crash_reporting_sub">ساعد في تحسين NexaFlow بمشاركة تقارير الأعطال مجهولة الهوية. غير مفعّل افتراضياً أبداً؛ لا تُرسل أي بيانات شخصية.</string>
     <string name="backup_export">تصدير ومشاركة</string>
     <string name="backup_export_sub">حفظ جميع الأتمتة كملف JSON</string>
     <string name="backup_import">استيراد من ملف</string>
@@ -105,4 +108,20 @@
     <string name="plugin_test_timeout">لم تستجب الإضافة في الوقت المحدد</string>
     <string name="plugin_test_pending">الإضافة ما زالت تعمل</string>
     <string name="plugin_test_success">استجابت الإضافة بنجاح</string>
+    <string name="section_updates">التحديثات</string>
+    <string name="update_check">التحقق من التحديثات</string>
+    <string name="update_check_sub">التحقق من GitHub لوجود نسخة أحدث</string>
+    <string name="update_checking">جارٍ التحقق من التحديثات…</string>
+    <string name="update_latest">أنت على أحدث إصدار</string>
+    <string name="update_latest_sub">أحدث إصدار: %1$s</string>
+    <string name="state_ok">حسناً</string>
+    <string name="state_update">تحديث</string>
+    <string name="update_available">يتوفر تحديث</string>
+    <string name="update_available_sub">النسخة %1$s جاهزة للتثبيت</string>
+    <string name="update_downloading">جارٍ التنزيل…</string>
+    <string name="update_error">فشل التحقق من التحديث</string>
+    <string name="update_no_apk">لا يحتوي هذا الإصدار على APK قابل للتنزيل</string>
+    <string name="update_download_failed">فشل التنزيل أو التحقق</string>
+    <string name="update_install_failed">تعذر فتح المثبّت</string>
+    <string name="update_check_failed">تعذر الوصول إلى GitHub. حاول لاحقاً.</string>
 </resources>

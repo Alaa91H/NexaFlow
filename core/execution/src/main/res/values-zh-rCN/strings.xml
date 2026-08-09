@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_action_revert">恢复原始状态</string>
+    <string name="notification_action_run_now">立即运行任务</string>
+    <string name="notification_action_reply_label">回复</string>
+    <string name="notification_action_dismiss">关闭</string>
+</resources>

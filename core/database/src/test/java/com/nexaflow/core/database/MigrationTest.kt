@@ -301,6 +301,66 @@ class MigrationTest {
     }
 
     @Test
+    fun migrate10To11_addsSensitiveColumnWithDefault() {
+        helper.createDatabase(10).apply {
+            execSQL(
+                "INSERT INTO `global_variables` " +
+                    "(`id`, `name`, `value`, `updatedAt`) " +
+                    "VALUES ('g1', 'HomeAddress', '123 Main St', 1700000000000)"
+            )
+            close()
+        }
+
+        val migrated = helper.runMigrationsAndValidate(11, listOf(Migrations.MIGRATION_10_11))
+        // Existing variables default to non-sensitive (plaintext stays readable).
+        migrated.prepare("SELECT name, value, sensitive FROM `global_variables` WHERE id = 'g1'").use { stmt ->
+            assertTrue(stmt.step())
+            assertEquals("HomeAddress", stmt.getText(0))
+            assertEquals("123 Main St", stmt.getText(1))
+            assertEquals(0, stmt.getLong(2))
+        }
+        // The new column accepts the sensitive flag.
+        migrated.execSQL(
+            "INSERT INTO `global_variables` " +
+                "(`id`, `name`, `value`, `updatedAt`, `sensitive`) " +
+                "VALUES ('g2', 'ApiToken', '*encrypted*', 1700000000000, 1)"
+        )
+        migrated.prepare("SELECT sensitive FROM `global_variables` WHERE id = 'g2'").use { stmt ->
+            assertTrue(stmt.step())
+            assertEquals(1, stmt.getLong(0))
+        }
+        migrated.close()
+    }
+
+    @Test
+    fun migrate11To12_addsExecutedAtIndex() {
+        helper.createDatabase(11).apply {
+            execSQL(
+                "INSERT INTO `execution_history` " +
+                    "(`id`, `automationId`, `automationName`, `success`, `message`, `executedAt`, `channel`, `resultsJson`) " +
+                    "VALUES ('e1', 'a1', 'Morning', 1, 'ok', 1700000000000, 'ROOT', NULL)"
+            )
+            close()
+        }
+
+        val migrated = helper.runMigrationsAndValidate(12, listOf(Migrations.MIGRATION_11_12))
+        // The index exists after the migration.
+        migrated.prepare(
+            "SELECT name FROM sqlite_master WHERE type='index' AND name='index_execution_history_executedAt'"
+        ).use { stmt ->
+            assertTrue(stmt.step())
+            assertEquals("index_execution_history_executedAt", stmt.getText(0))
+        }
+        // Existing rows survive untouched.
+        migrated.prepare("SELECT automationName, executedAt FROM `execution_history` WHERE id = 'e1'").use { stmt ->
+            assertTrue(stmt.step())
+            assertEquals("Morning", stmt.getText(0))
+            assertEquals(1700000000000L, stmt.getLong(1))
+        }
+        migrated.close()
+    }
+
+    @Test
     fun migrate1To8_keepsExecutionHistoryEmptyButValid() {
         // A v1 database has no execution_history; after the full chain the
         // table must exist and accept rows (schema validated by Room).

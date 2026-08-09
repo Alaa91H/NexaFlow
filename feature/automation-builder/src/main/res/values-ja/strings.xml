@@ -46,6 +46,8 @@
     <string name="permission_bluetooth_body">選択したBluetoothデバイスの接続・切断をタスクが検出できるようになります。</string>
     <string name="permission_calendar_title">カレンダーへのアクセス</string>
     <string name="permission_calendar_body">会議の開始前など、カレンダーの予定に合わせてタスクを実行できるようになります。</string>
+    <string name="permission_local_network_title">ローカルネットワークへのアクセス</string>
+    <string name="permission_local_network_body">スマートプラグやメディアハブなど、自宅ネットワークのデバイスにHTTPタスクがアクセスできるようにします。</string>
     <string name="permission_generic_title">権限が必要です</string>
     <string name="permission_generic_body">この権限により、選択したタスクが期待どおり動作します。</string>
     <string name="special_write_settings_title">システム設定の変更</string>
@@ -388,6 +390,8 @@
     <string name="variable_name_error">英数字とアンダースコアのみ</string>
     <string name="variable_value">値</string>
     <string name="variables_value_hint">例: 自宅の住所</string>
+    <string name="variable_sensitive">機密（暗号化）</string>
+    <string name="variable_sensitive_sub">この値をこの端末に暗号化して保存します（トークン、パスワード）。タスク実行時のみ復号されます。</string>
     <string name="add_variable">変数を追加</string>
     <string name="delete_variable">削除</string>
     <string name="insert_variable_hint">挿入:</string>
@@ -427,4 +431,28 @@
     <string name="trigger_app_while_open">アプリを開くと実行され、閉じるまでアクティブな状態が続き、その後タスクの終了オプションが適用されます。</string>
     <string name="exit_per_action_title">アクションごとの終了オプション</string>
     <string name="exit_extra_actions_label">終了時の追加アクション</string>
+    <string name="notification_button_reply">テキストで返信</string>
+    <string name="notification_button_reply_title">返信変数</string>
+    <string name="notification_button_reply_hint">通知に入力したテキストはこの変数に保存され、タスクから利用できます（例: %MyReply）。</string>
+    <string name="notification_button_reply_label">変数名（%なし）</string>
+    <string name="notification_button_reply_sub">返信を%sに書き込み</string>
+    <string name="trigger_type_sensor">センサー</string>
+    <string name="sensor_kind">センサーの種類</string>
+    <string name="sensor_proximity">近接</string>
+    <string name="sensor_shake">シェイク</string>
+    <string name="sensor_light">光</string>
+    <string name="sensor_step">歩数</string>
+    <string name="sensor_event_covered">覆われた</string>
+    <string name="sensor_event_uncovered">覆われていない</string>
+    <string name="sensor_event_above">以上</string>
+    <string name="sensor_event_below">以下</string>
+    <string name="sensor_threshold_label">%d ルクス以上</string>
+    <string name="sensor_sensitivity_label">感度: %d</string>
+    <string name="sensor_step_hint">歩くたびに実行されます。</string>
+    <string name="sensor_permission_hint">歩数計測にはアクティビティ認識の許可が必要です。</string>
+    <string name="trigger_type_webhook">ウェブフック</string>
+    <string name="webhook_path">パス</string>
+    <string name="webhook_token">トークン（任意）</string>
+    <string name="webhook_token_hint">秘密のヘッダー値</string>
+    <string name="webhook_url_hint">この端末から http://127.0.0.1:8765/path にHTTPリクエストを送信するとタスクが実行されます。</string>
 </resources>

@@ -1,8 +1,8 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.plugin.compose")
-    id("com.google.dagger.hilt.android")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -13,12 +13,24 @@ android {
         applicationId = "com.nexaflow.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 10
-        versionName = "3.8.0-alpha"
+        versionCode = 11
+        versionName = "3.9.0-alpha"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+        }
+
+        // Sentry DSN for crash reporting (P0-2). Populated from CI env; empty in
+        // local builds so Sentry stays inert until the user opts in AND a DSN
+        // is configured. Never commit a real DSN to source control.
+        buildConfigField(
+            "String",
+            "SENTRY_DSN",
+            "\"${providers.gradleProperty("NEXAFLOW_SENTRY_DSN").orElse("").get()}\""
+        )
+        buildFeatures {
+            buildConfig = true
         }
     }
 
@@ -64,38 +76,51 @@ composeCompiler {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.19.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
-    implementation("androidx.activity:activity-compose:1.13.0")
-    implementation(platform("androidx.compose:compose-bom:2026.06.01"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.3.0")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2026.06.01"))
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    implementation(libs.androidx.core.core.ktx)
+    implementation(libs.androidx.lifecycle.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.lifecycle.runtime.compose)
+    implementation(libs.androidx.activity.activity.compose)
+    implementation(platform(libs.androidx.compose.compose.bom))
+    implementation(libs.androidx.compose.ui.ui)
+    implementation(libs.androidx.compose.ui.ui.graphics)
+    implementation(libs.androidx.compose.ui.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3.material3)
+    testImplementation(libs.junit.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.ui.test.manifest)
 
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.60.1")
-    ksp("com.google.dagger:hilt-compiler:2.60.1")
+    implementation(libs.com.google.dagger.hilt.android)
+    ksp(libs.com.google.dagger.hilt.compiler)
 
     // Navigation Compose
-    implementation("androidx.navigation:navigation-compose:2.9.8")
+    implementation(libs.androidx.navigation.navigation.compose)
+    implementation(libs.androidx.work.work.runtime.ktx)
+    implementation(libs.androidx.hilt.hilt.work)
+    ksp(libs.androidx.hilt.hilt.compiler)
+    // Crash/ANR reporting, opt-in only (see PrivacyPreferences). The NDK
+    // artifact is excluded: NexaFlow is pure Kotlin/Java, so native crash
+    // handling is unnecessary and its .so files break 16 KB page alignment.
+    implementation(libs.io.sentry.sentry.android) {
+        exclude(group = "io.sentry", module = "sentry-android-ndk")
+    }
+    // Applies the bundled baseline profile (app/src/main/baseline-prof.txt) at
+    // install time on API 29+, pre-compiling the startup/hot path (P0-3).
+    implementation(libs.androidx.profileinstaller.profileinstaller)
 
     // Room
-    implementation("androidx.room:room-runtime:2.8.4")
+    implementation(libs.androidx.room.room.runtime)
 
     // Shizuku provider (referenced from the manifest for ROM integration)
-    implementation("dev.rikka.shizuku:provider:13.1.5")
+    implementation(libs.dev.rikka.shizuku.provider)
 
     // Project Modules
     implementation(project(":core:database"))
+    implementation(project(":core:security"))
     implementation(project(":core:datastore"))
     implementation(project(":core:logging"))
     implementation(project(":core:automation-engine"))

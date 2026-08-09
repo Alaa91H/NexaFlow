@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.DoNotDisturb
 import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
@@ -75,6 +76,8 @@ fun permissionExplainInfo(permissions: Array<String>): PermissionExplainInfo = w
         PermissionExplainInfo(Icons.Filled.Bluetooth, Color(0xFF2FA84F), R.string.permission_bluetooth_title, R.string.permission_bluetooth_body)
     permissions.any { it == android.Manifest.permission.READ_CALENDAR } ->
         PermissionExplainInfo(Icons.Filled.DateRange, Color(0xFFE5533D), R.string.permission_calendar_title, R.string.permission_calendar_body)
+    permissions.any { it == android.Manifest.permission.ACCESS_LOCAL_NETWORK } ->
+        PermissionExplainInfo(Icons.Filled.Language, Color(0xFF13A5A8), R.string.permission_local_network_title, R.string.permission_local_network_body)
     else ->
         PermissionExplainInfo(Icons.Filled.Lock, Color(0xFF1B62B7), R.string.permission_generic_title, R.string.permission_generic_body)
 }

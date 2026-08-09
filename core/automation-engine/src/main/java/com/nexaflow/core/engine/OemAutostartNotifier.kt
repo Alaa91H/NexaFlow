@@ -8,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.edit
 import com.nexaflow.core.rom.OemCompat
 
 /**
@@ -23,15 +22,16 @@ import com.nexaflow.core.rom.OemCompat
  * whenever monitoring starts (app launch, boot restore, restart alarm), a
  * single notification nudges the user to the vendor's auto-start screen.
  *
- * The hint is shown at most once per install (a prefs flag is set before the
- * notification is posted), and only when notifications are actually enabled,
- * so it never spams. Posting is best-effort — a failure must never crash the
- * monitoring service.
+ * The hint is delivered at most once per install through a single shared
+ * flag ([OemCompat.isHintDelivered]) that is also consulted by the in-app
+ * Permission Manager OemCompat card: whichever channel claims the hint first
+ * keeps the other silent, so the user is never alerted twice. The flag is set
+ * before the notification is posted, and posting only happens when
+ * notifications are actually enabled, so it never spams. Posting is
+ * best-effort — a failure must never crash the monitoring service.
  */
 object OemAutostartNotifier {
 
-    private const val PREFS = "nexaflow_oem"
-    private const val KEY_AUTOSTART_HINT_SHOWN = "autostart_hint_shown"
     private const val CHANNEL_ID = "nexaflow_autostart"
     private const val NOTIFICATION_ID = 3001
     private const val REQUEST_CODE = 43001
@@ -65,15 +65,16 @@ object OemAutostartNotifier {
             if (!hasAutostartGate) return
             // Best-effort deep link: skip when the vendor screen isn't installed.
             if (autostartDeepLink == null) return
-            // Never spam: one hint per install.
-            val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            if (prefs.getBoolean(KEY_AUTOSTART_HINT_SHOWN, false)) return
+            // Never spam: one hint per install, shared with the in-app card.
+            // The card claims it by dismissing/acting on it (markHintDelivered),
+            // so a notification already delivered means the card stays hidden.
+            if (OemCompat.isHintDelivered(context)) return
             // Silent when the user disabled notifications / denied the runtime
             // permission — a notification they can't see shouldn't consume the
             // one-time hint.
             if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
-            // Mark BEFORE posting so a failed post still counts as shown.
-            prefs.edit { putBoolean(KEY_AUTOSTART_HINT_SHOWN, true) }
+            // Mark BEFORE posting so a failed post still counts as delivered.
+            OemCompat.markHintDelivered(context)
 
             val notificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

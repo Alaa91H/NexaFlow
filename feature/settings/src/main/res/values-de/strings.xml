@@ -29,6 +29,9 @@
     <string name="about_license">Lizenziert unter der MIT-Lizenz.</string>
     <string name="ok">OK</string>
     <string name="section_backup">SICHERUNG</string>
+    <string name="section_privacy">Datenschutz</string>
+    <string name="crash_reporting">Absturzberichte</string>
+    <string name="crash_reporting_sub">Helfen Sie mit, NexaFlow zu verbessern, indem Sie anonyme Absturzberichte teilen. Standardmäßig nie aktiviert; es werden keine persönlichen Daten gesendet.</string>
     <string name="backup_export">Exportieren und teilen</string>
     <string name="backup_export_sub">Alle Automatisierungen als JSON-Datei speichern</string>
     <string name="backup_import">Aus Datei importieren</string>
@@ -105,4 +108,20 @@
     <string name="plugin_test_timeout">Plugin hat nicht rechtzeitig geantwortet</string>
     <string name="plugin_test_pending">Plugin arbeitet noch</string>
     <string name="plugin_test_success">Plugin hat geantwortet</string>
+    <string name="section_updates">Updates</string>
+    <string name="update_check">Nach Updates suchen</string>
+    <string name="update_check_sub">Auf GitHub nach einer neueren Version suchen</string>
+    <string name="update_checking">Suche nach Updates…</string>
+    <string name="update_latest">Sie sind auf dem neuesten Stand</string>
+    <string name="update_latest_sub">Neueste Version: %1$s</string>
+    <string name="state_ok">OK</string>
+    <string name="state_update">UPDATE</string>
+    <string name="update_available">Update verfügbar</string>
+    <string name="update_available_sub">Version %1$s ist bereit zur Installation</string>
+    <string name="update_downloading">Wird heruntergeladen…</string>
+    <string name="update_error">Updateprüfung fehlgeschlagen</string>
+    <string name="update_no_apk">Diese Version hat kein herunterladbares APK</string>
+    <string name="update_download_failed">Download oder Prüfung fehlgeschlagen</string>
+    <string name="update_install_failed">Installationsprogramm konnte nicht geöffnet werden</string>
+    <string name="update_check_failed">GitHub nicht erreichbar. Später erneut versuchen.</string>
 </resources>

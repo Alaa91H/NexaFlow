@@ -20,6 +20,32 @@ import com.nexaflow.core.rom.model.RomFamily
  */
 object OemCompat {
 
+    private const val PREFS = "nexaflow_oem"
+    // Reuses the legacy notifier key so installs that already saw the one-time
+    // notification keep their acknowledged state (no re-alert after upgrade).
+    private const val KEY_AUTOSTART_HINT_DELIVERED = "autostart_hint_shown"
+
+    /**
+     * True once the OEM autostart guidance was delivered through either
+     * channel: the in-app Permission Manager card or the engine notification.
+     * A single shared flag guarantees the user is never alerted twice.
+     */
+    fun isHintDelivered(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean(KEY_AUTOSTART_HINT_DELIVERED, false)
+
+    /**
+     * Marks the guidance as delivered so the other channel stays silent:
+     * the notification suppresses the card, and dismissing / acting on the
+     * card suppresses the notification.
+     */
+    fun markHintDelivered(context: Context) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_AUTOSTART_HINT_DELIVERED, true)
+            .apply()
+    }
+
     /** True when the running ROM is one of the vendor families that gate
      *  background execution behind an autostart / app-sleeping switch. */
     fun hasVendorAutostartGate(): Boolean {

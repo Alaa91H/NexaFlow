@@ -1,5 +1,6 @@
 package com.nexaflow.feature.builder
 
+import android.annotation.SuppressLint
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.PermissionRequirement
@@ -18,6 +19,9 @@ import com.nexaflow.domain.models.TriggerType
 object PermissionCatalog {
 
     /** Runtime (system-dialog) permissions required by an action. */
+    // ACCESS_LOCAL_NETWORK is an API 37 constant; requesting it on older
+    // devices is a safe no-op, so the InlinedApi warning is suppressed here.
+    @SuppressLint("InlinedApi")
     fun runtimePermissionsFor(actionType: ActionType): List<String> = when (actionType) {
         ActionType.SYSTEM_SEND_SMS -> listOf(android.Manifest.permission.SEND_SMS)
         ActionType.SYSTEM_FLASHLIGHT -> listOf(android.Manifest.permission.CAMERA)
@@ -29,6 +33,11 @@ object PermissionCatalog {
             android.Manifest.permission.ACCESS_FINE_LOCATION,
             android.Manifest.permission.ACCESS_COARSE_LOCATION
         )
+        // Android 17 (API 37) makes ACCESS_LOCAL_NETWORK mandatory to reach
+        // LAN devices (home-assistant hubs, NAS, smart plugs). HTTP requests
+        // to private IPs / mDNS names need it; public URLs do not, but the
+        // permission is harmless to request up-front for the HTTP action.
+        ActionType.SYSTEM_HTTP_REQUEST -> listOf(android.Manifest.permission.ACCESS_LOCAL_NETWORK)
         else -> emptyList()
     }
 
@@ -68,6 +77,7 @@ object PermissionCatalog {
         TriggerType.CALENDAR -> listOf(android.Manifest.permission.READ_CALENDAR)
         TriggerType.NOTIFICATION -> listOf(android.Manifest.permission.POST_NOTIFICATIONS)
         TriggerType.BLUETOOTH_DEVICE -> listOf(android.Manifest.permission.BLUETOOTH_CONNECT)
+        TriggerType.SENSOR -> listOf(android.Manifest.permission.ACTIVITY_RECOGNITION)
         else -> emptyList()
     }
 

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Adaptive-icon foreground: just the NFC glyph, drawn inside the safe zone
+    (center 66% of the canvas) so launchers' masks never crop it.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M44,54a10,10 0 0 1 20,0 M49,54a5,5 0 0 1 10,0 M52,54h4v8h-4z" />
+</vector>

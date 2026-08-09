@@ -23,4 +23,7 @@
     <string name="duration_s">с</string>
     <string name="action_restore_state">Восстановить исходное состояние</string>
     <string name="action_unknown">Неизвестное действие</string>
+    <string name="history_load_error_title">Не удалось загрузить историю</string>
+    <string name="history_load_error_subtitle">При чтении истории произошла ошибка.</string>
+    <string name="history_retry">Повторить</string>
 </resources>

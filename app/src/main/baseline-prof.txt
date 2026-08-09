@@ -1,0 +1,57 @@
+# NexaFlow Baseline Profile (P0-3)
+#
+# Curated startup/hot-path rules for the primary user journeys: cold start →
+# dashboard → automation list → builder. AGP bundles this file into release
+# APKs as assets/dexopt/baseline.prof and the Jetpack ProfileInstaller applies
+# it at install time, pre-compiling these classes for faster first runs.
+#
+# Regenerate with a real profile on a device when the UI changes materially:
+#   ./gradlew :baseline-profile:connectedAndroidTest
+# then replace this file with the generated profile.
+
+# --- App entry & shell ---
+Lcom/nexaflow/app/MainActivity;
+Lcom/nexaflow/app/NexaFlowApplication;
+Lcom/nexaflow/app/NexaFlowApp;
+Lcom/nexaflow/app/ui/theme/ThemeKt;
+HSPLcom/nexaflow/app/MainActivity;->onCreate(Landroid/os/Bundle;)V
+
+# --- Dashboard (primary screen) ---
+Lcom/nexaflow/feature/dashboard/DashboardScreenKt;
+Lcom/nexaflow/feature/dashboard/DashboardViewModel;
+
+# --- Navigation shell ---
+Landroidx/navigation/NavController;
+Landroidx/navigation/compose/NavHostKt;
+
+# --- Compose runtime core (hot rendering path) ---
+Landroidx/compose/runtime/ComposerImpl;
+Landroidx/compose/runtime/ComposerKt;
+Landroidx/compose/runtime/CompositionImpl;
+Landroidx/compose/runtime/SlotTable;
+HSPLandroidx/compose/runtime/ComposerImpl;->updateValue(Ljava/lang/Object;)V
+HSPLandroidx/compose/runtime/ComposerImpl;->updatedNodeCount(I)I
+
+# --- Compose UI platform ---
+Landroidx/compose/ui/platform/AndroidComposeView;
+Landroidx/compose/ui/graphics/drawscope/CanvasDrawScope;
+
+# --- Lazy lists (automation list) ---
+Landroidx/compose/foundation/lazy/LazyListKt;
+Landroidx/compose/foundation/lazy/LazyColumnKt;
+
+# --- Material3 hot components ---
+Landroidx/compose/material3/SurfaceKt;
+Landroidx/compose/material3/AppBarKt;
+Landroidx/compose/material3/TextKt;
+
+# --- Activity / lifecycle ---
+Landroidx/activity/ComponentActivity;
+Landroidx/lifecycle/LifecycleRegistry;
+
+# --- Room (automation repository reads on startup) ---
+Landroidx/room/RoomDatabase;
+
+# --- Coroutines (engine + UI dispatchers) ---
+Lkotlinx/coroutines/Dispatchers;
+Lkotlinx/coroutines/BuildersKt;

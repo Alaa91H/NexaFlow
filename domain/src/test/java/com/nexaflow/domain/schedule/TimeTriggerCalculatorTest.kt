@@ -3,7 +3,9 @@ package com.nexaflow.domain.schedule
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -57,6 +59,83 @@ class TimeTriggerCalculatorTest {
         val next = TimeTriggerCalculator.nextFireTime(config, from)
         assertNotNull(next)
         assertEquals(LocalDate.of(2026, 8, 11), localDateOf(next!!))
+    }
+
+    // ── DST transitions ────────────────────────────────────────────────────────
+    // Wall-clock schedules must survive daylight-saving transitions. These tests
+    // pass an explicit zone so they pin the behavior regardless of the host zone.
+
+    private fun zoned(zoneId: String, year: Int, month: Int, day: Int, hour: Int, minute: Int): Long =
+        ZonedDateTime.of(year, month, day, hour, minute, 0, 0, ZoneId.of(zoneId))
+            .toInstant()
+            .toEpochMilli()
+
+    @Test
+    fun `daily schedule across spring-forward keeps local wall-clock time`() {
+        // 2026-03-29 02:00 CET -> CEST (spring forward, 23h day).
+        // A 08:00 schedule fired on the 28th at 07:00 UTC; the next fire on
+        // the 29th must still be 08:00 CEST = 06:00 UTC (1h earlier UTC).
+        val berlin = ZoneId.of("Europe/Berlin")
+        // After 08:00 on the 28th, so the next fire is on the 29th — the day
+        // the clocks jump forward.
+        val before = zoned("Europe/Berlin", 2026, 3, 28, 12, 0)
+        val next = TimeTriggerCalculator.nextFireTime(mapOf("time" to "08:00"), before, berlin)
+        assertNotNull(next)
+        val zdt = Instant.ofEpochMilli(next!!).atZone(berlin)
+        assertEquals("must remain 08:00 local", 8, zdt.hour)
+        assertEquals(LocalDate.of(2026, 3, 29), zdt.toLocalDate())
+        // 08:00 CEST == 06:00 UTC; without DST awareness it would be 07:00 UTC.
+        assertEquals("08:00 CEST", 6, zdt.toInstant().atZone(java.time.ZoneOffset.UTC).hour)
+    }
+
+    @Test
+    fun `daily schedule across fall-back keeps local wall-clock time`() {
+        // 2026-10-25 03:00 CEST -> CET (fall back, 25h day).
+        // A 08:00 schedule on the 25th must still be 08:00 CET = 07:00 UTC.
+        val berlin = ZoneId.of("Europe/Berlin")
+        // After 08:00 on the 24th, so the next fire is on the 25th — the day
+        // the clocks fall back.
+        val before = zoned("Europe/Berlin", 2026, 10, 24, 12, 0)
+        val next = TimeTriggerCalculator.nextFireTime(mapOf("time" to "08:00"), before, berlin)
+        assertNotNull(next)
+        val zdt = Instant.ofEpochMilli(next!!).atZone(berlin)
+        assertEquals("must remain 08:00 local", 8, zdt.hour)
+        assertEquals(LocalDate.of(2026, 10, 25), zdt.toLocalDate())
+        assertEquals("08:00 CET", 7, zdt.toInstant().atZone(java.time.ZoneOffset.UTC).hour)
+    }
+
+    @Test
+    fun `daily schedule at the spring-forward gap hour resolves to the later instant`() {
+        // 02:30 on 2026-03-29 does not exist (02:00-03:00 jumps to 03:00
+        // CEST). ZonedDateTime resolves to the shifted instant; the result
+        // must still be a valid local time on the 29th.
+        val berlin = ZoneId.of("Europe/Berlin")
+        val before = zoned("Europe/Berlin", 2026, 3, 28, 12, 0)
+        val next = TimeTriggerCalculator.nextFireTime(mapOf("time" to "02:30"), before, berlin)
+        assertNotNull(next)
+        val zdt = Instant.ofEpochMilli(next!!).atZone(berlin)
+        assertEquals(LocalDate.of(2026, 3, 29), zdt.toLocalDate())
+        assertTrue("02:30 resolves into 03:00-04:00 window", zdt.hour in 3..4)
+    }
+
+    @Test
+    fun `weekly schedule on a DST day keeps weekday and local time`() {
+        // 2026-03-08 02:00 EST -> EDT (spring forward in the US).
+        val ny = ZoneId.of("America/New_York")
+        // After 09:00 on the 7th, so the next fire is Sunday the 8th — the day
+        // the US springs forward.
+        val before = zoned("America/New_York", 2026, 3, 7, 12, 0)
+        val next = TimeTriggerCalculator.nextFireTime(
+            mapOf("time" to "09:00", "repeat" to "SPECIFIC_DAYS", "days" to "7"),
+            before,
+            ny
+        )
+        assertNotNull(next)
+        val zdt = Instant.ofEpochMilli(next!!).atZone(ny)
+        assertEquals(DayOfWeek.SUNDAY, zdt.dayOfWeek)
+        assertEquals("must remain 09:00 local", 9, zdt.hour)
+        // 09:00 EDT == 13:00 UTC; without DST awareness it would be 14:00 UTC.
+        assertEquals(13, zdt.toInstant().atZone(java.time.ZoneOffset.UTC).hour)
     }
 
     @Test

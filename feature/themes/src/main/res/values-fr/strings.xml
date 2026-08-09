@@ -24,4 +24,6 @@
     <string name="preview_dark">Aperçu sombre</string>
     <string name="preview_light">Aperçu clair</string>
     <string name="primary_accent">Accent principal</string>
+    <string name="dynamic_color">Couleur dynamique</string>
+    <string name="dynamic_color_sub">"Utiliser les couleurs du fond d'écran (Material You)"</string>
 </resources>

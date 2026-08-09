@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_action_revert">Ursprünglichen Zustand wiederherstellen</string>
+    <string name="notification_action_run_now">Aufgabe jetzt ausführen</string>
+    <string name="notification_action_reply_label">Antwort</string>
+    <string name="notification_action_dismiss">Schließen</string>
+</resources>

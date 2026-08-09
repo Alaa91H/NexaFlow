@@ -109,11 +109,25 @@ fun PermissionManagerScreen(navController: NavController) {
     }
 
     // OEM background-restriction guidance (MIUI/HyperOS, One UI, ColorOS,
-    // OxygenOS): shown once per launch with a dismissible flag.
+    // OxygenOS): delivered through ONE channel per install. If the engine
+    // notification already claimed the shared flag (OemCompat.isHintDelivered)
+    // the card stays hidden; dismissing or acting on the card claims the flag
+    // so the notification never fires later — the user is never alerted twice.
     val oemDeepLink = remember { OemCompat.autostartDeepLink(context) }
     val oemShown = remember { OemCompat.hasVendorAutostartGate() }
     var oemDismissed by rememberSaveable { mutableStateOf(false) }
-    val showOemHint = oemShown && oemDeepLink != null && !oemDismissed
+    val showOemHint =
+        oemShown && oemDeepLink != null && !OemCompat.isHintDelivered(context) && !oemDismissed
+
+    // Only deliberate interaction (dismiss or acting) claims the shared hint:
+    // marking it while merely rendering would flip showOemHint mid-frame on
+    // the next recomposition and make the card vanish. A user who sees the
+    // card without interacting keeps the hint available for the notification
+    // channel later — never both at the same time.
+    fun claimOemHint() {
+        oemDismissed = true
+        OemCompat.markHintDelivered(context)
+    }
 
     Scaffold(
         topBar = { NexaFlowTopBar(title = stringResource(R.string.permission_manager), onBack = { navController.popBackStack() }) }
@@ -163,10 +177,11 @@ fun PermissionManagerScreen(navController: NavController) {
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.End
                         ) {
-                            TextButton(onClick = { oemDismissed = true }) {
+                            TextButton(onClick = { claimOemHint() }) {
                                 Text(text = stringResource(R.string.dismiss))
                             }
                             TextButton(onClick = {
+                                claimOemHint()
                                 context.startActivity(
                                     oemDeepLink.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 )

@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.library")
+    alias(libs.plugins.android.library)
 }
 
 android {
@@ -36,10 +36,10 @@ kotlin {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.19.0")
-    implementation("javax.inject:javax.inject:1")
+    implementation(libs.androidx.core.core.ktx)
+    implementation(libs.javax.inject.javax.inject)
     implementation(project(":core:security"))
-    implementation("dev.rikka.shizuku:api:13.1.5")
-    implementation("dev.rikka.shizuku:provider:13.1.5")
-    testImplementation("junit:junit:4.13.2")
+    implementation(libs.dev.rikka.shizuku.api)
+    implementation(libs.dev.rikka.shizuku.provider)
+    testImplementation(libs.junit.junit)
 }

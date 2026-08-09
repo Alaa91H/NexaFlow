@@ -1,6 +1,7 @@
 plugins {
-    id("com.android.library")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -32,13 +33,18 @@ kotlin {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.19.0")
-    implementation("javax.inject:javax.inject:1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
-    implementation("com.google.code.gson:gson:2.14.0")
+    implementation(libs.androidx.core.core.ktx)
+    implementation(libs.androidx.paging.paging.common)
+    implementation(libs.javax.inject.javax.inject)
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
+    // kotlinx.serialization JSON runtime for BackupManager + execution records.
+    // R8 keep rules for the generated serializers live in app/proguard-rules.pro
+    // (kotlinx is NOT safe to shrink without them).
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
     implementation(project(":domain"))
     implementation(project(":core:database"))
     implementation(project(":core:datastore"))
+    implementation(project(":core:security"))
     implementation(project(":core:plugin-sdk"))
-    testImplementation("junit:junit:4.13.2")
+    testImplementation(libs.junit.junit)
 }

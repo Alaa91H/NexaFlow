@@ -17,7 +17,20 @@ data class ActionExecutionContext(
      * The best execution channel selected for this run (Phase 6). Null when
      * the legacy engine (which hard-codes its runtime) built the context.
      */
-    val channel: ExecutionProvider? = null
+    val channel: ExecutionProvider? = null,
+    /**
+     * Id of the enclosing task (when the engine knows it). Handlers that send
+     * notifications can attach the "restore original state" button that routes
+     * back to `runExit` for this task. Null when the engine has no automation
+     * context (e.g. the workflow runner's shared executor).
+     */
+    val automationId: String? = null,
+    /**
+     * Whether the enclosing task restores its state when it ends. When true,
+     * notification-sending handlers append the revert action button so the
+     * user can restore the pre-run state straight from the notification.
+     */
+    val revertOnExit: Boolean = false
 )
 
 /**

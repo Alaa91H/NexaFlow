@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Adaptive launcher icon. Required because the app targets SDK 37 with
+    minSdk 26 — lint emits MissingAdaptiveIcon otherwise, and launchers render
+    the masked layers below. All minSdk-26+ devices support adaptive icons, so
+    this single anydpi-v26 resource is sufficient.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+    <monochrome android:drawable="@drawable/ic_plugin" />
+</adaptive-icon>

@@ -29,6 +29,9 @@
     <string name="about_license">Распространяется по лицензии MIT.</string>
     <string name="ok">ОК</string>
     <string name="section_backup">РЕЗЕРВНАЯ КОПИЯ</string>
+    <string name="section_privacy">Конфиденциальность</string>
+    <string name="crash_reporting">Отчёты о сбоях</string>
+    <string name="crash_reporting_sub">Помогите улучшить NexaFlow, отправляя анонимные отчёты о сбоях. По умолчанию никогда не включено; личные данные не отправляются.</string>
     <string name="backup_export">Экспорт и отправка</string>
     <string name="backup_export_sub">Сохранить все автоматизации в JSON-файл</string>
     <string name="backup_import">Импорт из файла</string>
@@ -105,4 +108,20 @@
     <string name="plugin_test_timeout">Плагин не ответил вовремя</string>
     <string name="plugin_test_pending">Плагин ещё работает</string>
     <string name="plugin_test_success">Плагин ответил успешно</string>
+    <string name="section_updates">Обновления</string>
+    <string name="update_check">Проверить обновления</string>
+    <string name="update_check_sub">Проверить GitHub на наличие новой версии</string>
+    <string name="update_checking">Проверка обновлений…</string>
+    <string name="update_latest">У вас актуальная версия</string>
+    <string name="update_latest_sub">Последний релиз: %1$s</string>
+    <string name="state_ok">ОК</string>
+    <string name="state_update">ОБНОВИТЬ</string>
+    <string name="update_available">Доступно обновление</string>
+    <string name="update_available_sub">Версия %1$s готова к установке</string>
+    <string name="update_downloading">Загрузка…</string>
+    <string name="update_error">Не удалось проверить обновления</string>
+    <string name="update_no_apk">В этом релизе нет загружаемого APK</string>
+    <string name="update_download_failed">Ошибка загрузки или проверки</string>
+    <string name="update_install_failed">Не удалось открыть установщик</string>
+    <string name="update_check_failed">Не удалось связаться с GitHub. Повторите позже.</string>
 </resources>

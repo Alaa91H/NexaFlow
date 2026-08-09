@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_action_revert">Orijinal durumu geri yükle</string>
+    <string name="notification_action_run_now">Görevi şimdi çalıştır</string>
+    <string name="notification_action_reply_label">Yanıtla</string>
+    <string name="notification_action_dismiss">Kapat</string>
+</resources>

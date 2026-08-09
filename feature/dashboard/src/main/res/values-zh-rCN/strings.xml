@@ -35,4 +35,6 @@
     <string name="trigger_ringer">声音模式</string>
     <string name="trigger_notification">应用通知</string>
     <string name="trigger_calendar">日历事件</string>
+    <string name="trigger_sensor">传感器</string>
+    <string name="trigger_webhook">网络钩子</string>
 </resources>

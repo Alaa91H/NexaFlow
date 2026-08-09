@@ -1,13 +1,11 @@
 package com.nexaflow.data.mapper
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.nexaflow.core.database.ExecutionRecordEntity
 import com.nexaflow.domain.models.ActionExecutionResult
 import com.nexaflow.domain.models.ExecutionRecord
+import kotlinx.serialization.json.Json
 
-private val gson = Gson()
-private val resultsType = object : TypeToken<List<ActionExecutionResult>>() {}.type
+private val json = Json { ignoreUnknownKeys = true }
 
 fun ExecutionRecordEntity.toDomain(): ExecutionRecord {
     return ExecutionRecord(
@@ -18,8 +16,10 @@ fun ExecutionRecordEntity.toDomain(): ExecutionRecord {
         message = message,
         executedAt = executedAt,
         channel = channel,
-        actionResults = resultsJson?.let { json ->
-            runCatching { gson.fromJson<List<ActionExecutionResult>>(json, resultsType) }.getOrNull()
+        actionResults = resultsJson?.let { jsonText ->
+            runCatching {
+                json.decodeFromString<List<ActionExecutionResult>>(jsonText)
+            }.getOrNull()
         } ?: emptyList()
     )
 }
@@ -33,6 +33,7 @@ fun ExecutionRecord.toEntity(): ExecutionRecordEntity {
         message = message,
         executedAt = executedAt,
         channel = channel,
-        resultsJson = actionResults.takeIf { it.isNotEmpty() }?.let { gson.toJson(it, resultsType) }
+        resultsJson = actionResults.takeIf { it.isNotEmpty() }
+            ?.let { json.encodeToString<List<ActionExecutionResult>>(it) }
     )
 }

@@ -14,5 +14,11 @@ data class GlobalVariable(
     /** Variable name without the leading `%`, e.g. "HomeAddress". */
     val name: String,
     val value: String,
-    val updatedAt: Long
+    val updatedAt: Long,
+    /**
+     * When true the value is encrypted at rest (tokens, passwords, secrets
+     * injected into action texts). Stored as ciphertext in the database;
+     * decrypted transparently by the repository when read.
+     */
+    val sensitive: Boolean = false
 )

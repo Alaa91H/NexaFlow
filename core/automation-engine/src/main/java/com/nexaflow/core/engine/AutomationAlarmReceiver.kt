@@ -10,6 +10,7 @@ import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,6 +37,18 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
             intent.action == ALARM_PERMISSION_CHANGED_ACTION
         ) {
             restoreAfterBoot(context)
+            return
+        }
+        // The user changed the clock or crossed into another time zone: every
+        // RTC-based alarm (computed from the previous zone) is now wrong.
+        // Recompute all schedules from scratch. RTC_WALL_CLOCK alarms are NOT
+        // shifted automatically, so without this the next fire time silently
+        // drifts by the offset — the classic "9am task now fires at 8am" bug.
+        if (intent.action == Intent.ACTION_TIME_CHANGED ||
+            intent.action == Intent.ACTION_TIMEZONE_CHANGED ||
+            intent.action == TIMEZONE_OFFSET_CHANGED_ACTION
+        ) {
+            rescheduleAll()
             return
         }
         if (intent.action == MonitoringService.ACTION_START_MONITORING) {
@@ -108,9 +121,27 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
         }
     }
 
+    /**
+     * Recomputes every time trigger after a clock/time-zone change. Runs on
+     * the application scope (not goAsync) because it only touches the
+     * scheduler and the repository — no user-visible work is blocked.
+     */
+    private fun rescheduleAll() {
+        try {
+            scope.launch {
+                scheduler.rescheduleAll(repository.getAutomations().first())
+            }
+        } catch (t: Throwable) {
+            Log.e("AutomationAlarmReceiver", "Failed to reschedule after time change", t)
+        }
+    }
+
     companion object {
         const val ALARM_PERMISSION_CHANGED_ACTION =
             "android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED"
+        /** Android 17: sent when a fixed UTC offset changes without a zone switch. */
+        const val TIMEZONE_OFFSET_CHANGED_ACTION =
+            "android.intent.action.TIMEZONE_OFFSET_CHANGED"
         private const val WAKE_LOCK_TIMEOUT_MS = 30_000L
     }
 }

@@ -9,5 +9,11 @@ data class GlobalVariableEntity(
     /** Variable name without the leading `%`. */
     val name: String,
     val value: String,
-    val updatedAt: Long
+    val updatedAt: Long,
+    /**
+     * When true the value is encrypted at rest via Android Keystore
+     * (AES-GCM) — for tokens, passwords and other secrets injected into
+     * action texts with %NAME.
+     */
+    val sensitive: Boolean = false
 )

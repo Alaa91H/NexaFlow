@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
@@ -656,6 +657,8 @@ private fun NotificationButtonsEditor(
     onButtonsChange: (List<NotificationActionButton>) -> Unit
 ) {
     var showPicker by remember { mutableStateOf(false) }
+    var replyEditorButton by remember { mutableStateOf<NotificationActionButton?>(null) }
+    var replyEditorVariable by remember { mutableStateOf("") }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(R.string.notification_buttons_title),
@@ -675,24 +678,55 @@ private fun NotificationButtonsEditor(
             )
         } else {
             buttons.forEach { button ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = button.label,
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    IconButton(onClick = {
-                        onButtonsChange(buttons.filterNot { it.automationId == button.automationId })
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = stringResource(R.string.notification_button_remove),
-                            tint = MaterialTheme.colorScheme.secondary
-                        )
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = button.label,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            // Subtitle: the reply variable the button writes to
+                            // (P2-1), so the user sees the target at a glance.
+                            if (!button.replyVariable.isNullOrBlank()) {
+                                Text(
+                                    text = stringResource(
+                                        R.string.notification_button_reply_sub,
+                                        "%" + button.replyVariable
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        }
+                        // Reply toggle: turns this button into a text-input
+                        // action that stores the typed reply into a %variable.
+                        IconButton(onClick = {
+                            replyEditorVariable = button.replyVariable.orEmpty()
+                            replyEditorButton = button
+                        }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Reply,
+                                contentDescription = stringResource(R.string.notification_button_reply),
+                                tint = if (button.replyVariable.isNullOrBlank()) {
+                                    MaterialTheme.colorScheme.secondary
+                                } else {
+                                    MaterialTheme.colorScheme.primary
+                                }
+                            )
+                        }
+                        IconButton(onClick = {
+                            onButtonsChange(buttons.filterNot { it.automationId == button.automationId })
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = stringResource(R.string.notification_button_remove),
+                                tint = MaterialTheme.colorScheme.secondary
+                            )
+                        }
                     }
                 }
             }
@@ -757,6 +791,57 @@ private fun NotificationButtonsEditor(
             },
             confirmButton = {
                 TextButton(onClick = { showPicker = false }) {
+                    Text(text = stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    // Reply-variable editor: a small dialog setting the %variable that receives
+    // the text typed into this button's RemoteInput field. Blank clears it.
+    replyEditorButton?.let { button ->
+        AlertDialog(
+            onDismissRequest = {
+                replyEditorButton = null
+                replyEditorVariable = ""
+            },
+            title = { Text(text = stringResource(R.string.notification_button_reply_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = stringResource(R.string.notification_button_reply_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    OutlinedTextField(
+                        value = replyEditorVariable,
+                        onValueChange = { replyEditorVariable = it.trim() },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(text = stringResource(R.string.notification_button_reply_label)) },
+                        placeholder = { Text(text = "MyReply") },
+                        singleLine = true
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val updated = buttons.map {
+                        if (it.automationId == button.automationId) {
+                            it.copy(replyVariable = replyEditorVariable.takeIf { v -> v.isNotBlank() })
+                        } else it
+                    }
+                    onButtonsChange(updated)
+                    replyEditorButton = null
+                    replyEditorVariable = ""
+                }) {
+                    Text(text = stringResource(R.string.save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    replyEditorButton = null
+                    replyEditorVariable = ""
+                }) {
                     Text(text = stringResource(R.string.cancel))
                 }
             }

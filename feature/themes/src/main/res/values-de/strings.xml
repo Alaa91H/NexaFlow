@@ -24,4 +24,6 @@
     <string name="preview_dark">Dunkle Vorschau</string>
     <string name="preview_light">Helle Vorschau</string>
     <string name="primary_accent">Primäre Akzentfarbe</string>
+    <string name="dynamic_color">Dynamische Farbe</string>
+    <string name="dynamic_color_sub">Wallpaper-Farben verwenden (Material You)</string>
 </resources>

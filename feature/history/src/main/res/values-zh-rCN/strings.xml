@@ -23,4 +23,7 @@
     <string name="duration_s">秒</string>
     <string name="action_restore_state">恢复原始状态</string>
     <string name="action_unknown">未知操作</string>
+    <string name="history_load_error_title">无法加载历史记录</string>
+    <string name="history_load_error_subtitle">读取历史记录时出现问题。</string>
+    <string name="history_retry">重试</string>
 </resources>

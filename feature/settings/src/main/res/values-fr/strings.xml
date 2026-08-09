@@ -29,6 +29,9 @@
     <string name="about_license">Sous licence MIT.</string>
     <string name="ok">OK</string>
     <string name="section_backup">SAUVEGARDE</string>
+    <string name="section_privacy">Confidentialité</string>
+    <string name="crash_reporting">Signalement des plantages</string>
+    <string name="crash_reporting_sub">"Aidez à améliorer NexaFlow en partageant des rapports de plantage anonymes. Jamais activé par défaut ; aucune donnée personnelle n'est envoyée."</string>
     <string name="backup_export">Exporter et partager</string>
     <string name="backup_export_sub">Enregistrer toutes les automatisations en fichier JSON</string>
     <string name="backup_import">Importer depuis un fichier</string>
@@ -105,4 +108,20 @@
     <string name="plugin_test_timeout">"Le plugin n'a pas répondu à temps"</string>
     <string name="plugin_test_pending">Le plugin travaille encore</string>
     <string name="plugin_test_success">Le plugin a répondu correctement</string>
+    <string name="section_updates">Mises à jour</string>
+    <string name="update_check">Rechercher des mises à jour</string>
+    <string name="update_check_sub">Vérifier sur GitHub une version plus récente</string>
+    <string name="update_checking">Recherche de mises à jour…</string>
+    <string name="update_latest">Vous êtes à jour</string>
+    <string name="update_latest_sub">Dernière version : %1$s</string>
+    <string name="state_ok">OK</string>
+    <string name="state_update">MISE À JOUR</string>
+    <string name="update_available">Mise à jour disponible</string>
+    <string name="update_available_sub">La version %1$s est prête à installer</string>
+    <string name="update_downloading">Téléchargement…</string>
+    <string name="update_error">Échec de la recherche de mise à jour</string>
+    <string name="update_no_apk">"Cette version n'a pas d'APK téléchargeable"</string>
+    <string name="update_download_failed">Échec du téléchargement ou de la vérification</string>
+    <string name="update_install_failed">"Impossible d'ouvrir l'installateur"</string>
+    <string name="update_check_failed">Impossible de joindre GitHub. Réessayez plus tard.</string>
 </resources>

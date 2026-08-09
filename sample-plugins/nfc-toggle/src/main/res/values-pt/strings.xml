@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plugin_name">Alternar NFC</string>
+    <string name="switch_label">Ativar NFC</string>
+    <string name="save">Salvar</string>
+    <string name="blurb_enable">NFC: ativar</string>
+    <string name="blurb_disable">NFC: desativar</string>
+</resources>

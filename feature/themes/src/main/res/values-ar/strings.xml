@@ -24,4 +24,6 @@
     <string name="preview_dark">معاينة داكنة</string>
     <string name="preview_light">معاينة فاتحة</string>
     <string name="primary_accent">اللون الأساسي</string>
+    <string name="dynamic_color">اللون الديناميكي</string>
+    <string name="dynamic_color_sub">استخدام ألوان الخلفية (Material You)</string>
 </resources>

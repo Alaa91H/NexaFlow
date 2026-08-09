@@ -29,12 +29,21 @@ object TimeTriggerCalculator {
 
     private const val MAX_SEARCH_DAYS = 370
 
-    fun nextFireTime(config: Map<String, String>, fromMillis: Long): Long? {
+    /**
+     * [zone] is injectable for testing DST transitions; production callers use
+     * the system default. Wall-clock schedules are computed against this zone,
+     * so a daily 08:00 keeps firing at 08:00 local across daylight-saving
+     * shifts (the classic "now fires at 09:00" bug would need RTC-based math).
+     */
+    fun nextFireTime(
+        config: Map<String, String>,
+        fromMillis: Long,
+        zone: ZoneId = ZoneId.systemDefault()
+    ): Long? {
         // A time-range window schedules at the window start each day.
         val time = if (config["timeMode"] == "RANGE") config["rangeStart"] ?: config["time"] else config["time"]
         if (time.isNullOrBlank()) return null
         val localTime = runCatching { LocalTime.parse(time) }.getOrNull() ?: return null
-        val zone = ZoneId.systemDefault()
         val today = ZonedDateTime.ofInstant(Instant.ofEpochMilli(fromMillis), zone).toLocalDate()
         val repeat = config["repeat"] ?: REPEAT_DAILY
 
@@ -69,13 +78,16 @@ object TimeTriggerCalculator {
      * starts at [windowStartMillis] ends. Handles overnight ranges (e.g.
      * 22:00 -> 06:00 ends the next day). Returns null for non-range configs.
      */
-    fun windowEndMillis(config: Map<String, String>, windowStartMillis: Long): Long? {
+    fun windowEndMillis(
+        config: Map<String, String>,
+        windowStartMillis: Long,
+        zone: ZoneId = ZoneId.systemDefault()
+    ): Long? {
         if (config["timeMode"] != "RANGE") return null
         val start = config["rangeStart"] ?: return null
         val end = config["rangeEnd"] ?: return null
         val startTime = runCatching { LocalTime.parse(start) }.getOrNull() ?: return null
         val endTime = runCatching { LocalTime.parse(end) }.getOrNull() ?: return null
-        val zone = ZoneId.systemDefault()
         val startZdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(windowStartMillis), zone)
         val startMinutes = startTime.hour * 60 + startTime.minute
         val endMinutes = endTime.hour * 60 + endTime.minute

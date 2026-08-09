@@ -1,17 +1,18 @@
 package com.nexaflow.data.backup
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.repositories.AutomationRepository
 import kotlinx.coroutines.flow.first
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 /**
  * Portable JSON backup file produced by [BackupManager.export].
  * [version] allows future format migrations.
  */
+@Serializable
 data class BackupFile(
     val version: Int,
     val exportedAt: Long,
@@ -27,16 +28,21 @@ sealed interface ImportResult {
  * Exports and imports all automations as a single pretty-printed JSON file,
  * so users can back up, restore, or share their automations between devices.
  *
- * Import is strict: Gson silently tolerates a lot (missing fields become
- * null, unknown enum names become null), so we validate every entry before
- * touching the repository. A malformed file is rejected wholesale instead of
- * half-importing corrupt automations that would crash the engine later.
+ * Serialization is kotlinx.serialization (compile-time, R8-safe — no reflective
+ * keep rules needed), with a strict-but-tolerant decoder: unknown keys from
+ * newer versions are ignored, missing fields fall back to model defaults, and
+ * any structurally invalid input (bad enums, null list entries, wrong types)
+ * fails the whole import instead of half-importing corrupt automations.
  */
 class BackupManager(
     private val automationRepository: AutomationRepository
 ) {
 
-    private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
+    private val json: Json = Json {
+        prettyPrint = true
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
 
     suspend fun export(): BackupFile {
         val automations = automationRepository.getAutomations().first()
@@ -47,48 +53,46 @@ class BackupManager(
         )
     }
 
-    fun toJson(backup: BackupFile): String = gson.toJson(backup)
+    fun toJson(backup: BackupFile): String = json.encodeToString(backup)
 
-    suspend fun import(json: String): ImportResult {
+    suspend fun import(jsonText: String): ImportResult {
         val backup = try {
-            gson.fromJson(json, BackupFile::class.java)
+            json.decodeFromString<BackupFile>(jsonText)
         } catch (_: Exception) {
+            // Malformed JSON, unknown enum names, wrong types, `[null, …]`
+            // entries — all land here and reject the file wholesale.
             return ImportResult.InvalidFile
         }
-        // Reject malformed/foreign files before any write happens:
-        //  - missing automations list, or
-        //  - a version that is out of the supported range (negative, zero, or
-        //    from a newer format we cannot migrate yet).
-        val automations = backup?.automations
-        if (automations == null || backup.version !in 1..BACKUP_VERSION) {
+        // Reject foreign files: a version out of the supported range (negative,
+        // zero, or from a newer format we cannot migrate yet).
+        if (backup.version !in 1..BACKUP_VERSION) {
             return ImportResult.InvalidFile
         }
-        // Validate the whole set first; only save once everything is sound so
-        // a single corrupt entry cannot leave the database half-imported.
-        // Null-safe: Gson happily parses `[null, {...}]` into runtime-null
-        // elements even though the Kotlin list type is non-null.
-        if (automations.any { it?.isWellFormed() != true }) {
+        // Semantic validation: kotlinx guarantees types/enums are correct, but
+        // blank ids/names would still produce broken tasks.
+        if (backup.automations.any { !it.isWellFormed() }) {
             return ImportResult.InvalidFile
         }
-        automations.forEach { automationRepository.saveAutomation(it) }
-        return ImportResult.Success(automations.size)
+        backup.automations.forEach { automationRepository.saveAutomation(it) }
+        return ImportResult.Success(backup.automations.size)
     }
 
     /**
-     * Structural sanity check for one automation parsed from JSON. Gson leaves
-     * unknown enums and missing maps as null, so we must not let them through.
-     * Null-safe inner access also covers `[null]` entries inside the lists.
+     * Semantic sanity check for one automation parsed from JSON. Types and
+     * enum values are already enforced by kotlinx; this only rejects entries
+     * with blank identifiers/names that would break routing or the UI.
      */
     private fun Automation.isWellFormed(): Boolean =
         id.isNotBlank() &&
             name.isNotBlank() &&
-            triggers != null && triggers.all { it?.isWellFormed() == true } &&
-            actions != null && actions.all { it?.isWellFormed() == true } &&
-            exitActions != null && exitActions.all { it?.isWellFormed() == true }
+            triggers.all { it.isWellFormed() } &&
+            actions.all { it.isWellFormed() } &&
+            exitActions.all { it.isWellFormed() } &&
+            constraints.all { it.type.name.isNotBlank() }
 
-    private fun Trigger.isWellFormed(): Boolean = type != null && config != null
+    private fun Trigger.isWellFormed(): Boolean = type.name.isNotBlank() && config.keys.all { it.isNotBlank() }
 
-    private fun Action.isWellFormed(): Boolean = type != null && config != null
+    private fun Action.isWellFormed(): Boolean = type.name.isNotBlank() && config.keys.all { it.isNotBlank() }
 
     companion object {
         const val BACKUP_VERSION = 1

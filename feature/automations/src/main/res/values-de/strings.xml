@@ -168,4 +168,11 @@
     <string name="constraint_type_battery">Akku-Stand</string>
     <string name="constraint_type_screen_locked">Bildschirm gesperrt</string>
     <string name="constraint_type_headset">Headset verbunden</string>
+    <string name="trigger_sensor">Sensor</string>
+    <string name="trigger_sensor_sub">Bei Gerätesensorereignissen auslösen</string>
+    <string name="trigger_webhook">Webhook</string>
+    <string name="trigger_webhook_sub">Über eine lokale HTTP-Anfrage auslösen</string>
+    <string name="add_shortcut">Verknüpfung hinzufügen</string>
+    <string name="shortcut_added">Verknüpfung zum Startbildschirm hinzugefügt</string>
+    <string name="shortcut_in_app_shortcuts">Zu den App-Verknüpfungen hinzugefügt</string>
 </resources>

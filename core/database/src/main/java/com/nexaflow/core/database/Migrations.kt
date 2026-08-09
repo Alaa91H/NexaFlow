@@ -150,6 +150,34 @@ object Migrations {
         }
     }
 
+    /**
+     * v10 -> v11: adds the sensitive flag to global variables so secret
+     * values (tokens, passwords) can be encrypted at rest via Keystore.
+     * Default 0 keeps every existing variable readable as plaintext.
+     */
+    val MIGRATION_10_11 = object : Migration(10, 11) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE `global_variables` ADD COLUMN `sensitive` INTEGER NOT NULL DEFAULT 0"
+            )
+        }
+    }
+
+    /**
+     * v11 -> v12: adds an index on execution_history.executedAt. The history
+     * list sorts by this column and the retention pruner filters on it, so the
+     * index keeps both queries fast as the table approaches the 1,000-record
+     * ceiling. Pure additive — no data changes.
+     */
+    val MIGRATION_11_12 = object : Migration(11, 12) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_execution_history_executedAt` " +
+                    "ON `execution_history` (`executedAt`)"
+            )
+        }
+    }
+
     val ALL = listOf(
         MIGRATION_1_2,
         MIGRATION_2_3,
@@ -159,6 +187,8 @@ object Migrations {
         MIGRATION_6_7,
         MIGRATION_7_8,
         MIGRATION_8_9,
-        MIGRATION_9_10
+        MIGRATION_9_10,
+        MIGRATION_10_11,
+        MIGRATION_11_12
     )
 }

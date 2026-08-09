@@ -29,6 +29,9 @@
     <string name="about_license">Licenciado sob a Licença MIT.</string>
     <string name="ok">OK</string>
     <string name="section_backup">CÓPIA DE SEGURANÇA</string>
+    <string name="section_privacy">Privacidade</string>
+    <string name="crash_reporting">Relatórios de falhas</string>
+    <string name="crash_reporting_sub">Ajude a melhorar o NexaFlow partilhando relatórios de falhas anónimos. Nunca ativado por defeito; nenhum dado pessoal é enviado.</string>
     <string name="backup_export">Exportar e compartilhar</string>
     <string name="backup_export_sub">Salvar todas as automações como arquivo JSON</string>
     <string name="backup_import">Importar do arquivo</string>
@@ -105,4 +108,20 @@
     <string name="plugin_test_timeout">O plugin não respondeu a tempo</string>
     <string name="plugin_test_pending">O plugin ainda está trabalhando</string>
     <string name="plugin_test_success">O plugin respondeu com sucesso</string>
+    <string name="section_updates">Atualizações</string>
+    <string name="update_check">Verificar atualizações</string>
+    <string name="update_check_sub">Verificar no GitHub uma versão mais recente</string>
+    <string name="update_checking">Verificando atualizações…</string>
+    <string name="update_latest">Você está atualizado</string>
+    <string name="update_latest_sub">Última versão: %1$s</string>
+    <string name="state_ok">OK</string>
+    <string name="state_update">ATUALIZAR</string>
+    <string name="update_available">Atualização disponível</string>
+    <string name="update_available_sub">A versão %1$s está pronta para instalar</string>
+    <string name="update_downloading">Baixando…</string>
+    <string name="update_error">Falha ao verificar atualizações</string>
+    <string name="update_no_apk">Esta versão não tem APK para download</string>
+    <string name="update_download_failed">Falha no download ou na verificação</string>
+    <string name="update_install_failed">Não foi possível abrir o instalador</string>
+    <string name="update_check_failed">Não foi possível acessar o GitHub. Tente novamente mais tarde.</string>
 </resources>

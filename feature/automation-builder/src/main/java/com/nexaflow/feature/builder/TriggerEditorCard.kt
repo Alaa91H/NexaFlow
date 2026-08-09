@@ -24,7 +24,9 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.Web
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -67,7 +69,9 @@ val triggerTypeOptions = listOf(
     TriggerType.SMS,
     TriggerType.RINGER_MODE,
     TriggerType.NOTIFICATION,
-    TriggerType.CALENDAR
+    TriggerType.CALENDAR,
+    TriggerType.SENSOR,
+    TriggerType.WEBHOOK
 )
 
 private val repeatOptions = listOf(
@@ -111,6 +115,8 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.RINGER_MODE -> mapOf("mode" to "NORMAL")
     TriggerType.NOTIFICATION -> mapOf("packages" to "", "contains" to "", "event" to "POSTED")
     TriggerType.CALENDAR -> mapOf("calendar" to "", "contains" to "", "event" to "EVENT_START", "beforeMinutes" to "0")
+    TriggerType.SENSOR -> mapOf("sensor" to "PROXIMITY", "event" to "COVERED", "threshold" to "200", "sensitivity" to "14")
+    TriggerType.WEBHOOK -> mapOf("path" to "/nexaflow", "method" to "POST", "token" to "")
 }
 
 internal fun TriggerType.labelRes(): Int = when (this) {
@@ -125,6 +131,8 @@ internal fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.RINGER_MODE -> R.string.trigger_type_ringer
     TriggerType.NOTIFICATION -> R.string.trigger_type_notification
     TriggerType.CALENDAR -> R.string.trigger_type_calendar
+    TriggerType.SENSOR -> R.string.trigger_type_sensor
+    TriggerType.WEBHOOK -> R.string.trigger_type_webhook
 }
 
 internal fun TriggerType.icon(): ImageVector = when (this) {
@@ -139,6 +147,8 @@ internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.RINGER_MODE -> Icons.Filled.NotificationsActive
     TriggerType.NOTIFICATION -> Icons.Filled.NotificationsActive
     TriggerType.CALENDAR -> Icons.Filled.DateRange
+    TriggerType.SENSOR -> Icons.Filled.Sensors
+    TriggerType.WEBHOOK -> Icons.Filled.Web
 }
 
 private fun parseDateMillis(value: String): Long? {
@@ -1137,6 +1147,189 @@ fun TriggerEditorCard(
                             text = stringResource(R.string.calendar_permission_hint),
                             buttonLabel = stringResource(R.string.grant),
                             onClick = { onRequestPermission(arrayOf(android.Manifest.permission.READ_CALENDAR)) }
+                        )
+                    }
+                }
+                TriggerType.SENSOR -> {
+                    val sensor = draft.config["sensor"] ?: "PROXIMITY"
+                    val event = draft.config["event"] ?: "COVERED"
+                    val threshold = (draft.config["threshold"] ?: "200").toIntOrNull() ?: 200
+                    val sensitivity = (draft.config["sensitivity"] ?: "14").toIntOrNull() ?: 14
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = stringResource(R.string.sensor_kind),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            val kinds = listOf(
+                                "PROXIMITY" to R.string.sensor_proximity,
+                                "SHAKE" to R.string.sensor_shake,
+                                "LIGHT" to R.string.sensor_light,
+                                "STEP" to R.string.sensor_step
+                            )
+                            kinds.forEach { (value, labelRes) ->
+                                SelectChip(
+                                    selected = sensor == value,
+                                    onClick = {
+                                        onConfigChange(
+                                            draft.copy(config = draft.config + ("sensor" to value))
+                                        )
+                                    },
+                                    label = stringResource(labelRes)
+                                )
+                            }
+                        }
+                        when (sensor) {
+                            "PROXIMITY" -> {
+                                Text(
+                                    text = stringResource(R.string.event),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                FlowRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    val events = listOf(
+                                        "COVERED" to R.string.sensor_event_covered,
+                                        "UNCOVERED" to R.string.sensor_event_uncovered
+                                    )
+                                    events.forEach { (value, labelRes) ->
+                                        SelectChip(
+                                            selected = event == value,
+                                            onClick = {
+                                                onConfigChange(
+                                                    draft.copy(config = draft.config + ("event" to value))
+                                                )
+                                            },
+                                            label = stringResource(labelRes)
+                                        )
+                                    }
+                                }
+                            }
+                            "LIGHT" -> {
+                                Text(
+                                    text = stringResource(R.string.event),
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                FlowRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    val events = listOf(
+                                        "ABOVE" to R.string.sensor_event_above,
+                                        "BELOW" to R.string.sensor_event_below
+                                    )
+                                    events.forEach { (value, labelRes) ->
+                                        SelectChip(
+                                            selected = event == value,
+                                            onClick = {
+                                                onConfigChange(
+                                                    draft.copy(config = draft.config + ("event" to value))
+                                                )
+                                            },
+                                            label = stringResource(labelRes)
+                                        )
+                                    }
+                                }
+                                SliderRow(
+                                    label = stringResource(R.string.sensor_threshold_label, threshold),
+                                    value = threshold.toFloat(),
+                                    onValueChange = { value ->
+                                        onConfigChange(
+                                            draft.copy(config = draft.config + ("threshold" to value.toInt().toString()))
+                                        )
+                                    },
+                                    valueRange = 5f..1000f
+                                )
+                            }
+                            "SHAKE" -> {
+                                SliderRow(
+                                    label = stringResource(R.string.sensor_sensitivity_label, sensitivity),
+                                    value = sensitivity.toFloat(),
+                                    onValueChange = { value ->
+                                        onConfigChange(
+                                            draft.copy(config = draft.config + ("sensitivity" to value.toInt().toString()))
+                                        )
+                                    },
+                                    valueRange = 5f..30f
+                                )
+                            }
+                            "STEP" -> {
+                                Text(
+                                    text = stringResource(R.string.sensor_step_hint),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                                // Raw step-counter reads on Android 10+ need the
+                                // ACTIVITY_RECOGNITION runtime permission.
+                                PermissionHint(
+                                    text = stringResource(R.string.sensor_permission_hint),
+                                    buttonLabel = stringResource(R.string.grant),
+                                    onClick = {
+                                        onRequestPermission(
+                                            arrayOf(android.Manifest.permission.ACTIVITY_RECOGNITION)
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+                TriggerType.WEBHOOK -> {
+                    val path = draft.config["path"] ?: "/nexaflow"
+                    val method = draft.config["method"] ?: "POST"
+                    val token = draft.config["token"] ?: ""
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = path,
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("path" to it))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(text = stringResource(R.string.webhook_path)) },
+                            placeholder = { Text(text = "/nexaflow") },
+                            singleLine = true
+                        )
+                        Text(
+                            text = stringResource(R.string.event),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            val methods = listOf("POST", "GET", "ANY")
+                            methods.forEach { value ->
+                                SelectChip(
+                                    selected = method == value,
+                                    onClick = {
+                                        onConfigChange(draft.copy(config = draft.config + ("method" to value)))
+                                    },
+                                    label = value
+                                )
+                            }
+                        }
+                        OutlinedTextField(
+                            value = token,
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("token" to it))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(text = stringResource(R.string.webhook_token)) },
+                            placeholder = { Text(text = stringResource(R.string.webhook_token_hint)) },
+                            singleLine = true
+                        )
+                        Text(
+                            text = stringResource(R.string.webhook_url_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
                         )
                     }
                 }

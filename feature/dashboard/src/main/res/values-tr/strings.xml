@@ -35,4 +35,6 @@
     <string name="trigger_ringer">Ses modu</string>
     <string name="trigger_notification">Uygulama bildirimi</string>
     <string name="trigger_calendar">Takvim etkinliği</string>
+    <string name="trigger_sensor">Sensör</string>
+    <string name="trigger_webhook">Webhook</string>
 </resources>

@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
+import com.nexaflow.core.rom.OemCompat
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -20,6 +21,10 @@ import org.robolectric.annotation.Config
  * shown when monitoring starts on an OEM ROM with an autostart gate. The
  * internal overload pins the vendor probes, so the dedup / permission / deep
  * link logic is tested without touching real system properties.
+ *
+ * The alert flag is shared with the in-app Permission Manager OemCompat card
+ * via [OemCompat.isHintDelivered]: whichever channel claims it first keeps the
+ * other silent, so the user is never alerted twice.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
@@ -70,6 +75,27 @@ class OemAutostartNotifierTest {
         OemAutostartNotifier.maybeShow(context, hasAutostartGate = true, autostartDeepLink = null)
 
         assertTrue(postedNotifications().isEmpty())
+    }
+
+    @Test
+    fun cardAlreadyDelivered_suppressesNotification() {
+        // The in-app OemCompat card claimed the shared hint first: the engine
+        // notification must stay silent even on a gated ROM with a deep link.
+        OemCompat.markHintDelivered(context)
+
+        OemAutostartNotifier.maybeShow(context, hasAutostartGate = true, autostartDeepLink = Intent(Intent.ACTION_VIEW))
+
+        assertTrue(postedNotifications().isEmpty())
+    }
+
+    @Test
+    fun notificationDelivered_marksSharedFlag() {
+        // Posting the notification claims the shared hint: the in-app card
+        // (which reads OemCompat.isHintDelivered) must not appear afterwards.
+        OemAutostartNotifier.maybeShow(context, hasAutostartGate = true, autostartDeepLink = Intent(Intent.ACTION_VIEW))
+
+        assertEquals(1, postedNotifications().size)
+        assertTrue(OemCompat.isHintDelivered(context))
     }
 
     @Test

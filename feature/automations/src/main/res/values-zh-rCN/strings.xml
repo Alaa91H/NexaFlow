@@ -168,4 +168,11 @@
     <string name="constraint_type_battery">电池电量</string>
     <string name="constraint_type_screen_locked">屏幕已锁定</string>
     <string name="constraint_type_headset">耳机已连接</string>
+    <string name="trigger_sensor">传感器</string>
+    <string name="trigger_sensor_sub">根据设备传感器事件触发</string>
+    <string name="trigger_webhook">网络钩子</string>
+    <string name="trigger_webhook_sub">通过本地 HTTP 请求触发</string>
+    <string name="add_shortcut">添加快捷方式</string>
+    <string name="shortcut_added">快捷方式已添加到主屏幕</string>
+    <string name="shortcut_in_app_shortcuts">已添加到应用快捷方式</string>
 </resources>

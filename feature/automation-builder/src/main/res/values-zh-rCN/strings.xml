@@ -46,6 +46,8 @@
     <string name="permission_bluetooth_body">这允许任务检测您选择的蓝牙设备何时连接或断开。</string>
     <string name="permission_calendar_title">日历访问</string>
     <string name="permission_calendar_body">这允许任务围绕日历事件运行，例如在会议开始前。</string>
+    <string name="permission_local_network_title">本地网络访问</string>
+    <string name="permission_local_network_body">让 HTTP 任务能够访问家庭网络中的设备，例如智能插座或媒体中心。</string>
     <string name="permission_generic_title">需要权限</string>
     <string name="permission_generic_body">此权限让所选任务按预期工作。</string>
     <string name="special_write_settings_title">修改系统设置</string>
@@ -388,6 +390,8 @@
     <string name="variable_name_error">仅限字母、数字和下划线</string>
     <string name="variable_value">值</string>
     <string name="variables_value_hint">例如：家庭地址</string>
+    <string name="variable_sensitive">敏感（加密）</string>
+    <string name="variable_sensitive_sub">将此值加密存储在本设备上（令牌、密码）。仅在任务运行时解密。</string>
     <string name="add_variable">添加变量</string>
     <string name="delete_variable">删除</string>
     <string name="insert_variable_hint">插入：</string>
@@ -427,4 +431,28 @@
     <string name="trigger_app_while_open">打开应用时执行，并保持生效直至关闭，然后应用任务的结束选项。</string>
     <string name="exit_per_action_title">每个操作的结束选项</string>
     <string name="exit_extra_actions_label">结束时执行额外操作</string>
+    <string name="notification_button_reply">文字回复</string>
+    <string name="notification_button_reply_title">回复变量</string>
+    <string name="notification_button_reply_hint">在通知中输入的文本会存入此变量，供任务使用（例如 %MyReply）。</string>
+    <string name="notification_button_reply_label">变量名（不含%）</string>
+    <string name="notification_button_reply_sub">将回复写入%s</string>
+    <string name="trigger_type_sensor">传感器</string>
+    <string name="sensor_kind">传感器类型</string>
+    <string name="sensor_proximity">距离</string>
+    <string name="sensor_shake">摇晃</string>
+    <string name="sensor_light">光线</string>
+    <string name="sensor_step">步数</string>
+    <string name="sensor_event_covered">遮挡</string>
+    <string name="sensor_event_uncovered">未遮挡</string>
+    <string name="sensor_event_above">高于</string>
+    <string name="sensor_event_below">低于</string>
+    <string name="sensor_threshold_label">高于 %d 勒克斯</string>
+    <string name="sensor_sensitivity_label">灵敏度: %d</string>
+    <string name="sensor_step_hint">每走一步都会运行。</string>
+    <string name="sensor_permission_hint">计步需要活动识别权限。</string>
+    <string name="trigger_type_webhook">网络钩子</string>
+    <string name="webhook_path">路径</string>
+    <string name="webhook_token">令牌（可选）</string>
+    <string name="webhook_token_hint">密钥标头值</string>
+    <string name="webhook_url_hint">从本设备向 http://127.0.0.1:8765/path 发送 HTTP 请求即可触发任务。</string>
 </resources>

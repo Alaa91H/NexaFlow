@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Shared FileProvider paths for exporting automation backups. -->
+<!-- Shared FileProvider paths for exporting automation backups and for the
+     in-app update installer to share the downloaded APK. -->
 <paths>
     <cache-path
         name="backup"
         path="backup/" />
+    <cache-path
+        name="updates"
+        path="updates/" />
 </paths>

@@ -1,5 +1,7 @@
 ﻿package com.nexaflow.feature.automations
 
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddToHomeScreen
 import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Bolt
@@ -26,6 +29,8 @@ import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Sensors
+import androidx.compose.material.icons.filled.Web
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,6 +52,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.graphics.drawable.IconCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -87,6 +95,18 @@ fun AutomationDetailsScreen(navController: NavController) {
                 title = stringResource(R.string.automation_title),
                 onBack = { navController.popBackStack() },
                 actions = {
+                    // P2-5: pin this task as a home-screen shortcut that runs it
+                    // through the nexaflow://run-task/{id} deep link.
+                    IconButton(
+                        onClick = {
+                            automation?.let { createTaskShortcut(context, it) }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.AddToHomeScreen,
+                            contentDescription = stringResource(R.string.add_shortcut)
+                        )
+                    }
                     IconButton(
                         onClick = {
                             automation?.let {
@@ -285,6 +305,37 @@ private fun constraintDetail(config: Map<String, String>): String {
     }
 }
 
+/**
+ * P2-5: publishes a dynamic shortcut for [automation] (app-long-press menu) and
+ * requests a home-screen pin (system dialog) that runs the task via the
+ * `nexaflow://run-task/{id}` deep link handled by MainActivity.
+ */
+private fun createTaskShortcut(context: android.content.Context, automation: Automation) {
+    val uri = Uri.parse("nexaflow://run-task/${automation.id}")
+    val intent = Intent(Intent.ACTION_VIEW, uri)
+    val shortcut = ShortcutInfoCompat.Builder(context, "task_" + automation.id)
+        .setShortLabel(automation.name.take(10))
+        .setLongLabel(automation.name)
+        .setIcon(
+            IconCompat.createWithResource(
+                context,
+                com.nexaflow.core.rom.R.drawable.ic_stat_nexaflow
+            )
+        )
+        .setIntent(intent)
+        .build()
+    ShortcutManagerCompat.pushDynamicShortcut(context, shortcut)
+    // Best effort — some launchers reject the pin request.
+    val supported = ShortcutManagerCompat.requestPinShortcut(context, shortcut, null)
+    Toast.makeText(
+        context,
+        context.getString(
+            if (supported) R.string.shortcut_added else R.string.shortcut_in_app_shortcuts
+        ),
+        Toast.LENGTH_LONG
+    ).show()
+}
+
 private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector> = when (type) {
     TriggerType.TIME -> Triple(R.string.trigger_time, R.string.trigger_time_sub, Icons.Filled.Schedule)
     TriggerType.BATTERY -> Triple(R.string.trigger_battery, R.string.trigger_battery_sub, Icons.Filled.BatteryChargingFull)
@@ -297,6 +348,8 @@ private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector
     TriggerType.RINGER_MODE -> Triple(R.string.trigger_ringer, R.string.trigger_ringer_sub, Icons.Filled.NotificationsActive)
     TriggerType.NOTIFICATION -> Triple(R.string.trigger_notification, R.string.trigger_notification_sub, Icons.Filled.NotificationsActive)
     TriggerType.CALENDAR -> Triple(R.string.trigger_calendar, R.string.trigger_calendar_sub, Icons.Filled.DateRange)
+    TriggerType.SENSOR -> Triple(R.string.trigger_sensor, R.string.trigger_sensor_sub, Icons.Filled.Sensors)
+    TriggerType.WEBHOOK -> Triple(R.string.trigger_webhook, R.string.trigger_webhook_sub, Icons.Filled.Web)
 }
 
 /** Human-readable trigger detail (e.g. battery direction, time range, repeat mode). */

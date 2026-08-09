@@ -15,4 +15,5 @@
     <string name="widget_disable_all">Desactivar todas</string>
     <string name="widget_status_count_format">%1$d / %2$d</string>
     <string name="widget_last_run_format">Última ejecución: %1$s</string>
+    <string name="deep_link_run_toast">Ejecutado: %1$s</string>
 </resources>

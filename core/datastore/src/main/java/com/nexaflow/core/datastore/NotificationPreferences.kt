@@ -1,13 +1,20 @@
 package com.nexaflow.core.datastore
 
 import android.content.Context
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-private val Context.notificationDataStore by preferencesDataStore(name = "nexaflow_notifications")
+private val Context.notificationDataStore by preferencesDataStore(
+    name = "nexaflow_notifications",
+    // If a crash mid-write corrupts the file, reset to defaults instead of
+    // throwing on every startup read (see Privacy/Sms/Theme for the same guard).
+    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() }
+)
 
 /**
  * Per-category control over which notifications NexaFlow is allowed to show.

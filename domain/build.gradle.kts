@@ -1,5 +1,6 @@
 plugins {
-    id("com.android.library")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -31,14 +32,18 @@ kotlin {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.19.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+    implementation(libs.androidx.core.core.ktx)
+    implementation(libs.androidx.paging.paging.common)
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
+    // Runtime for the @Serializable annotations on the domain models (used by
+    // BackupManager and the execution-record mapper in :data).
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.core)
     // Only the @Immutable/@Stable annotations are used, so Compose consumers
     // (feature modules) can treat these cross-module models as stable and skip
     // needless recomposition. runtime-annotation is the annotation-only
     // artifact; 1.11.4 matches the compose-bom 2026.06.01 mapping used by the
     // UI modules (pinned explicitly so the transitive constraint propagates).
-    implementation("androidx.compose.runtime:runtime-annotation:1.11.4")
-    implementation("javax.inject:javax.inject:1")
-    testImplementation("junit:junit:4.13.2")
+    implementation(libs.androidx.compose.runtime.runtime.annotation)
+    implementation(libs.javax.inject.javax.inject)
+    testImplementation(libs.junit.junit)
 }

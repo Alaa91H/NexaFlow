@@ -9,12 +9,15 @@ import com.nexaflow.core.database.ExecutionDao
 import com.nexaflow.core.database.Migrations
 import com.nexaflow.core.database.VariableDao
 import com.nexaflow.core.datastore.NotificationPreferences
+import com.nexaflow.core.datastore.PrivacyPreferences
 import com.nexaflow.core.datastore.SmsPreferences
 import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.compat.AutomationWorkflowRunner
 import com.nexaflow.core.logging.InMemoryLogStore
 import com.nexaflow.core.logging.LogStore
+import com.nexaflow.core.security.KeystoreSecureStorage
+import com.nexaflow.core.security.SecureStorage
 import com.nexaflow.data.backup.BackupManager
 import com.nexaflow.data.repository.AutomationRepositoryImpl
 import com.nexaflow.data.repository.HistoryRepositoryImpl
@@ -68,8 +71,15 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideVariableRepository(dao: VariableDao): VariableRepository {
-        return VariableRepositoryImpl(dao)
+    fun provideSecureStorage(@ApplicationContext context: Context): SecureStorage {
+        // Keystore AES-GCM; encrypts sensitive variable values at rest.
+        return KeystoreSecureStorage(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideVariableRepository(dao: VariableDao, secureStorage: SecureStorage): VariableRepository {
+        return VariableRepositoryImpl(dao, secureStorage)
     }
 
     @Provides
@@ -94,6 +104,12 @@ object AppModule {
     @Singleton
     fun provideSmsPreferences(@ApplicationContext context: Context): SmsPreferences {
         return SmsPreferences(context)
+    }
+
+    @Provides
+    @Singleton
+    fun providePrivacyPreferences(@ApplicationContext context: Context): PrivacyPreferences {
+        return PrivacyPreferences(context)
     }
 
     @Provides

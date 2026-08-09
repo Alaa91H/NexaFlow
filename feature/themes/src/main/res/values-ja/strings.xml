@@ -24,4 +24,6 @@
     <string name="preview_dark">ダークプレビュー</string>
     <string name="preview_light">ライトプレビュー</string>
     <string name="primary_accent">メインアクセント</string>
+    <string name="dynamic_color">ダイナミックカラー</string>
+    <string name="dynamic_color_sub">壁紙の色を使用（Material You）</string>
 </resources>

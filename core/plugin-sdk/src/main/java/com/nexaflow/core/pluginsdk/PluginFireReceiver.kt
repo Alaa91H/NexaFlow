@@ -39,8 +39,9 @@ abstract class PluginFireReceiver : BroadcastReceiver() {
             resultCode = result.toResultCode()
             val failed = result as? PluginResult.Failed
             if (failed != null) {
-                resultData = failed.message
                 // Tasker-compatible error extras (net.dinglisch.android.tasker.extras).
+                // resultData is deliberately left untouched: the fire contract
+                // carries errors via %err/%errmsg extras, not the data field.
                 val extras = Bundle()
                 extras.putInt("net.dinglisch.android.tasker.extras.ERR", failed.code.coerceIn(0, 999))
                 extras.putString("net.dinglisch.android.tasker.extras.ERRMSG", failed.message)

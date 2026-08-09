@@ -23,4 +23,7 @@
     <string name="duration_s">sn</string>
     <string name="action_restore_state">Orijinal durumu geri yükle</string>
     <string name="action_unknown">Bilinmeyen eylem</string>
+    <string name="history_load_error_title">Geçmiş yüklenemedi</string>
+    <string name="history_load_error_subtitle">Geçmişiniz okunurken bir sorun oluştu.</string>
+    <string name="history_retry">Yeniden dene</string>
 </resources>

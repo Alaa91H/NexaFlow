@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_action_revert">Восстановить исходное состояние</string>
+    <string name="notification_action_run_now">Запустить задачу сейчас</string>
+    <string name="notification_action_reply_label">Ответить</string>
+    <string name="notification_action_dismiss">Отклонить</string>
+</resources>

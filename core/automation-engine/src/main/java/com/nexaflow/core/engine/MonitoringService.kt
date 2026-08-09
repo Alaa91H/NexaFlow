@@ -45,6 +45,12 @@ class MonitoringService : Service() {
     lateinit var calendarMonitor: CalendarMonitor
 
     @Inject
+    lateinit var sensorMonitor: SensorMonitor
+
+    @Inject
+    lateinit var webhookServer: WebhookServer
+
+    @Inject
     lateinit var smsConsentManager: SmsConsentManager
 
     @Inject
@@ -61,6 +67,8 @@ class MonitoringService : Service() {
         bluetoothMonitor.initialize()
         ringerModeMonitor.initialize()
         calendarMonitor.initialize()
+        sensorMonitor.initialize()
+        webhookServer.initialize()
         armSmsConsentIfEnabled()
     }
 
@@ -69,6 +77,9 @@ class MonitoringService : Service() {
         // OxygenOS) background monitoring is silently killed after a reboot
         // unless the user enables auto-start. Nudge once, via a notification
         // that deep-links to the vendor screen, whenever monitoring starts.
+        // The notification shares a single flag with the Permission Manager
+        // OemCompat card (OemCompat.isHintDelivered), so the user is never
+        // alerted by both channels.
         OemAutostartNotifier.maybeShow(this)
         return START_STICKY
     }
@@ -112,6 +123,8 @@ class MonitoringService : Service() {
         bluetoothMonitor.stop()
         ringerModeMonitor.stop()
         calendarMonitor.stop()
+        sensorMonitor.stop()
+        webhookServer.stop()
     }
 
     /**

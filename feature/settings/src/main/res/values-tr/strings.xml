@@ -29,6 +29,9 @@
     <string name="about_license">MIT Lisansı altında lisanslıdır.</string>
     <string name="ok">Tamam</string>
     <string name="section_backup">YEDEKLEME</string>
+    <string name="section_privacy">Gizlilik</string>
+    <string name="crash_reporting">Çökme raporları</string>
+    <string name="crash_reporting_sub">"Anonim çökme raporlarını paylaşarak NexaFlow'u geliştirmeye yardımcı olun. Varsayılan olarak asla etkin değildir; kişisel veri gönderilmez."</string>
     <string name="backup_export">Dışa aktar ve paylaş</string>
     <string name="backup_export_sub">Tüm otomasyonları JSON dosyası olarak kaydet</string>
     <string name="backup_import">Dosyadan içe aktar</string>
@@ -105,4 +108,20 @@
     <string name="plugin_test_timeout">Eklenti zamanında yanıt vermedi</string>
     <string name="plugin_test_pending">Eklenti hâlâ çalışıyor</string>
     <string name="plugin_test_success">Eklenti başarıyla yanıt verdi</string>
+    <string name="section_updates">Güncellemeler</string>
+    <string name="update_check">Güncellemeleri kontrol et</string>
+    <string name="update_check_sub">"GitHub'da daha yeni bir sürüm ara"</string>
+    <string name="update_checking">Güncellemeler kontrol ediliyor…</string>
+    <string name="update_latest">Güncel sürümdesiniz</string>
+    <string name="update_latest_sub">Son sürüm: %1$s</string>
+    <string name="state_ok">Tamam</string>
+    <string name="state_update">GÜNCELLE</string>
+    <string name="update_available">Güncelleme mevcut</string>
+    <string name="update_available_sub">%1$s sürümü kuruluma hazır</string>
+    <string name="update_downloading">İndiriliyor…</string>
+    <string name="update_error">Güncelleme kontrolü başarısız</string>
+    <string name="update_no_apk">Bu sürümde indirilebilir APK yok</string>
+    <string name="update_download_failed">İndirme veya doğrulama başarısız</string>
+    <string name="update_install_failed">Yükleyici açılamadı</string>
+    <string name="update_check_failed">"GitHub'a ulaşılamadı. Daha sonra tekrar deneyin."</string>
 </resources>

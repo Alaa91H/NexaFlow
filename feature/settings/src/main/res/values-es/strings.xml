@@ -29,6 +29,9 @@
     <string name="about_license">Licenciado bajo la Licencia MIT.</string>
     <string name="ok">Aceptar</string>
     <string name="section_backup">COPIA DE SEGURIDAD</string>
+    <string name="section_privacy">Privacidad</string>
+    <string name="crash_reporting">Informes de errores</string>
+    <string name="crash_reporting_sub">Ayuda a mejorar NexaFlow compartiendo informes de errores anónimos. Nunca activado por defecto; no se envían datos personales.</string>
     <string name="backup_export">Exportar y compartir</string>
     <string name="backup_export_sub">Guardar todas las automatizaciones como archivo JSON</string>
     <string name="backup_import">Importar desde archivo</string>
@@ -105,4 +108,20 @@
     <string name="plugin_test_timeout">El complemento no respondió a tiempo</string>
     <string name="plugin_test_pending">El complemento sigue trabajando</string>
     <string name="plugin_test_success">El complemento respondió correctamente</string>
+    <string name="section_updates">Actualizaciones</string>
+    <string name="update_check">Buscar actualizaciones</string>
+    <string name="update_check_sub">Buscar una versión más reciente en GitHub</string>
+    <string name="update_checking">Buscando actualizaciones…</string>
+    <string name="update_latest">Estás actualizado</string>
+    <string name="update_latest_sub">Última versión: %1$s</string>
+    <string name="state_ok">OK</string>
+    <string name="state_update">ACTUALIZAR</string>
+    <string name="update_available">Actualización disponible</string>
+    <string name="update_available_sub">La versión %1$s está lista para instalar</string>
+    <string name="update_downloading">Descargando…</string>
+    <string name="update_error">Error al buscar actualizaciones</string>
+    <string name="update_no_apk">Esta versión no tiene un APK descargable</string>
+    <string name="update_download_failed">Falló la descarga o la verificación</string>
+    <string name="update_install_failed">No se pudo abrir el instalador</string>
+    <string name="update_check_failed">No se pudo acceder a GitHub. Inténtalo más tarde.</string>
 </resources>

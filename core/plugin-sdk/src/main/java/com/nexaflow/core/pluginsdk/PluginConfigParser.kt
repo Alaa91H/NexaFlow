@@ -32,7 +32,7 @@ object PluginConfigParser {
      */
     fun toBundle(config: Map<String, Any?>): Bundle {
         val bundle = Bundle().apply {
-            putString(KEY_CONFIG, JSONObject(config).toString())
+            putString(KEY_CONFIG, encode(config))
             putInt(KEY_SDK_VERSION, SDK_VERSION)
         }
         // serializedSize() is a hidden API; measure through a real Parcel, the
@@ -42,6 +42,16 @@ object PluginConfigParser {
             throw PluginBundleTooLargeException(size)
         }
         return bundle
+    }
+
+    /** Encodes [config] as JSON, failing fast with a clear message on bad values. */
+    private fun encode(config: Map<String, Any?>): String = try {
+        JSONObject(config).toString()
+    } catch (e: org.json.JSONException) {
+        throw IllegalArgumentException(
+            "Plugin config contains a non-serializable value (primitives/Strings only)",
+            e
+        )
     }
 
     /** Real serialized byte size of a bundle (public-API Parcel round-trip). */

@@ -46,6 +46,8 @@
     <string name="permission_bluetooth_body">يتيح ذلك للمهام اكتشاف اتصال جهاز البلوتوث المختار أو انقطاعه.</string>
     <string name="permission_calendar_title">الوصول إلى التقويم</string>
     <string name="permission_calendar_body">يتيح ذلك للمهام التشغيل حول أحداث التقويم، مثل قبل بدء اجتماع.</string>
+    <string name="permission_local_network_title">الوصول إلى الشبكة المحلية</string>
+    <string name="permission_local_network_body">يتيح ذلك لمهام HTTP الوصول إلى الأجهزة على شبكة منزلك، مثل المقابس الذكية أو مراكز الوسائط.</string>
     <string name="permission_generic_title">إذن مطلوب</string>
     <string name="permission_generic_body">يتيح هذا الإذن للمهمة المختارة العمل كما هو متوقع.</string>
     <string name="special_write_settings_title">تعديل إعدادات النظام</string>
@@ -387,6 +389,8 @@
     <string name="variable_name_error">أحرف وأرقام وشرطة سفلية فقط</string>
     <string name="variable_value">القيمة</string>
     <string name="variables_value_hint">مثال: عنوان المنزل</string>
+    <string name="variable_sensitive">حساس (مشفّر)</string>
+    <string name="variable_sensitive_sub">خزّن هذه القيمة مشفّرة على هذا الجهاز (رموز، كلمات مرور). تُفكّ فقط عند تشغيل مهمة.</string>
     <string name="add_variable">إضافة متغير</string>
     <string name="delete_variable">حذف</string>
     <string name="insert_variable_hint">إدراج:</string>
@@ -426,4 +430,28 @@
     <string name="trigger_app_while_open">يُنفَّذ عند فتح التطبيق ويبقى مفعّلاً حتى إغلاقه، ثم تُطبَّق خيارات انتهاء المهمة.</string>
     <string name="exit_per_action_title">خيارات نهاية كل إجراء</string>
     <string name="exit_extra_actions_label">إجراءات إضافية عند الانتهاء</string>
+    <string name="notification_button_reply">رد بنص</string>
+    <string name="notification_button_reply_title">متغير الرد</string>
+    <string name="notification_button_reply_hint">تخزَّن الكتابة في الإشعار داخل هذا المتغير ليستخدمها المهمة (مثال %MyReply).</string>
+    <string name="notification_button_reply_label">اسم المتغير (بدون %)</string>
+    <string name="notification_button_reply_sub">يكتب الرد إلى %s</string>
+    <string name="trigger_type_sensor">مستشعر</string>
+    <string name="sensor_kind">نوع المستشعر</string>
+    <string name="sensor_proximity">القرب</string>
+    <string name="sensor_shake">اهتزاز</string>
+    <string name="sensor_light">الضوء</string>
+    <string name="sensor_step">الخطوات</string>
+    <string name="sensor_event_covered">مغطى</string>
+    <string name="sensor_event_uncovered">مكشوف</string>
+    <string name="sensor_event_above">أعلى من</string>
+    <string name="sensor_event_below">أقل من</string>
+    <string name="sensor_threshold_label">أعلى من %d لوكس</string>
+    <string name="sensor_sensitivity_label">الحساسية: %d</string>
+    <string name="sensor_step_hint">تُنفَّذ مع كل خطوة تخطوها.</string>
+    <string name="sensor_permission_hint">عدّ الخطوات يتطلب إذن التعرف على النشاط.</string>
+    <string name="trigger_type_webhook">ويب هوك</string>
+    <string name="webhook_path">المسار</string>
+    <string name="webhook_token">الرمز (اختياري)</string>
+    <string name="webhook_token_hint">قيمة الرأس السرية</string>
+    <string name="webhook_url_hint">أرسل طلب HTTP إلى http://127.0.0.1:8765/path من هذا الجهاز لتشغيل المهمة.</string>
 </resources>

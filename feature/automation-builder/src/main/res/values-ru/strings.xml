@@ -46,6 +46,8 @@
     <string name="permission_bluetooth_body">Позволяет задачам определять подключение или отключение выбранного устройства Bluetooth.</string>
     <string name="permission_calendar_title">Доступ к календарю</string>
     <string name="permission_calendar_body">Позволяет задачам запускаться вокруг событий календаря, например перед началом встречи.</string>
+    <string name="permission_local_network_title">Доступ к локальной сети</string>
+    <string name="permission_local_network_body">Позволяет HTTP-задачам обращаться к устройствам домашней сети, например к умным розеткам или медиацентрам.</string>
     <string name="permission_generic_title">Требуется разрешение</string>
     <string name="permission_generic_body">Это разрешение позволяет выбранной задаче работать как ожидается.</string>
     <string name="special_write_settings_title">Изменение системных настроек</string>
@@ -388,6 +390,8 @@
     <string name="variable_name_error">Только буквы, цифры и подчёркивание</string>
     <string name="variable_value">Значение</string>
     <string name="variables_value_hint">например, домашний адрес</string>
+    <string name="variable_sensitive">Конфиденциально (шифруется)</string>
+    <string name="variable_sensitive_sub">Хранит это значение в зашифрованном виде на устройстве (токены, пароли). Расшифровывается только при выполнении задачи.</string>
     <string name="add_variable">Добавить переменную</string>
     <string name="delete_variable">Удалить</string>
     <string name="insert_variable_hint">Вставить:</string>
@@ -427,4 +431,28 @@
     <string name="trigger_app_while_open">Выполняется при открытии приложения и остаётся активным, пока оно открыто; затем применяются параметры завершения задачи.</string>
     <string name="exit_per_action_title">Параметры завершения для каждого действия</string>
     <string name="exit_extra_actions_label">Дополнительные действия при завершении задачи</string>
+    <string name="notification_button_reply">Ответить текстом</string>
+    <string name="notification_button_reply_title">Переменная ответа</string>
+    <string name="notification_button_reply_hint">Ввод в уведомлении сохраняется в эту переменную, чтобы задача могла его использовать (например, %MyReply).</string>
+    <string name="notification_button_reply_label">Имя переменной (без %)</string>
+    <string name="notification_button_reply_sub">Записывает ответ в %s</string>
+    <string name="trigger_type_sensor">Датчик</string>
+    <string name="sensor_kind">Тип датчика</string>
+    <string name="sensor_proximity">Приближение</string>
+    <string name="sensor_shake">Встряска</string>
+    <string name="sensor_light">Свет</string>
+    <string name="sensor_step">Шаги</string>
+    <string name="sensor_event_covered">Закрыт</string>
+    <string name="sensor_event_uncovered">Открыт</string>
+    <string name="sensor_event_above">Выше</string>
+    <string name="sensor_event_below">Ниже</string>
+    <string name="sensor_threshold_label">Выше %d лк</string>
+    <string name="sensor_sensitivity_label">Чувствительность: %d</string>
+    <string name="sensor_step_hint">Запускается при каждом шаге.</string>
+    <string name="sensor_permission_hint">Подсчёт шагов требует разрешения на распознавание активности.</string>
+    <string name="trigger_type_webhook">Вебхук</string>
+    <string name="webhook_path">Путь</string>
+    <string name="webhook_token">Токен (необязательно)</string>
+    <string name="webhook_token_hint">Секретное значение заголовка</string>
+    <string name="webhook_url_hint">Отправьте HTTP-запрос на http://127.0.0.1:8765/path с этого устройства, чтобы запустить задачу.</string>
 </resources>

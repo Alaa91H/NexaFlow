@@ -228,7 +228,6 @@ private fun RoutineCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 RoutineMetaLine(
-                    automation = row.automation,
                     nextRun = nextRun,
                     lastRunAt = row.lastRunAt
                 )
@@ -260,7 +259,6 @@ private fun RoutineCard(
 /** Samsung-style "Next run · 8:00 PM · Last run · 2 h ago" meta line under the title. */
 @Composable
 private fun RoutineMetaLine(
-    automation: Automation,
     nextRun: String?,
     lastRunAt: Long?
 ) {
@@ -341,6 +339,8 @@ private fun triggerLabel(type: TriggerType): Int = when (type) {
     TriggerType.RINGER_MODE -> R.string.trigger_ringer
     TriggerType.NOTIFICATION -> R.string.trigger_notification
     TriggerType.CALENDAR -> R.string.trigger_calendar
+    TriggerType.SENSOR -> R.string.trigger_sensor
+    TriggerType.WEBHOOK -> R.string.trigger_webhook
 }
 
 /** Design-time preview of a Samsung-style routine card. */

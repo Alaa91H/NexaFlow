@@ -103,7 +103,14 @@ class ExecutionEngine(
         val variables = runCatching { resolveVariables() }.getOrDefault(emptyMap())
         val results = automation.actions.map { action ->
             val actionStartedAt = epochMillis.now()
-            val result = executeAction(resolveAction(action, variables), controller, notif, channel)
+            val result = executeAction(
+                resolveAction(action, variables),
+                controller,
+                notif,
+                channel,
+                automation.id,
+                automation.revertOnExit
+            )
             ActionExecutionResult(
                 actionType = action.type.name,
                 success = result.success,
@@ -282,11 +289,16 @@ class ExecutionEngine(
         action: Action,
         controller: SystemController,
         notif: NotificationSettings,
-        channel: ExecutionProvider?
+        channel: ExecutionProvider?,
+        automationId: String? = null,
+        revertOnExit: Boolean = false
     ): SystemControlResult {
         val handler = actionRegistry.handlerFor(action.type)
             ?: return SystemControlResult.fail("No handler registered for ${action.type}")
-        return handler.execute(action, ActionExecutionContext(context, controller, notif, channel))
+        return handler.execute(
+            action,
+            ActionExecutionContext(context, controller, notif, channel, automationId, revertOnExit)
+        )
     }
 
     private suspend fun recordTimeline(

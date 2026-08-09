@@ -25,7 +25,7 @@ class VariablesViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** Adds a new variable, generating a fresh id. */
-    fun add(name: String, value: String) {
+    fun add(name: String, value: String, sensitive: Boolean = false) {
         val trimmed = name.trim()
         if (trimmed.isBlank() || !NAME_REGEX.matches(trimmed)) return
         viewModelScope.launch {
@@ -34,14 +34,15 @@ class VariablesViewModel @Inject constructor(
                     id = UUID.randomUUID().toString(),
                     name = trimmed,
                     value = value,
-                    updatedAt = System.currentTimeMillis()
+                    updatedAt = System.currentTimeMillis(),
+                    sensitive = sensitive
                 )
             )
         }
     }
 
     /** Updates an existing variable, keeping its id. */
-    fun update(id: String, name: String, value: String) {
+    fun update(id: String, name: String, value: String, sensitive: Boolean = false) {
         val trimmed = name.trim()
         if (trimmed.isBlank() || !NAME_REGEX.matches(trimmed)) return
         viewModelScope.launch {
@@ -50,7 +51,8 @@ class VariablesViewModel @Inject constructor(
                     id = id,
                     name = trimmed,
                     value = value,
-                    updatedAt = System.currentTimeMillis()
+                    updatedAt = System.currentTimeMillis(),
+                    sensitive = sensitive
                 )
             )
         }

@@ -35,4 +35,6 @@
     <string name="trigger_ringer">サウンドモード</string>
     <string name="trigger_notification">アプリの通知</string>
     <string name="trigger_calendar">カレンダーの予定</string>
+    <string name="trigger_sensor">センサー</string>
+    <string name="trigger_webhook">ウェブフック</string>
 </resources>

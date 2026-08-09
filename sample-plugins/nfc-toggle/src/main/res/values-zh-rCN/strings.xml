@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plugin_name">切换 NFC</string>
+    <string name="switch_label">开启 NFC</string>
+    <string name="save">保存</string>
+    <string name="blurb_enable">NFC：开启</string>
+    <string name="blurb_disable">NFC：关闭</string>
+</resources>

@@ -24,4 +24,6 @@
     <string name="preview_dark">Тёмный предпросмотр</string>
     <string name="preview_light">Светлый предпросмотр</string>
     <string name="primary_accent">Основной акцент</string>
+    <string name="dynamic_color">Динамический цвет</string>
+    <string name="dynamic_color_sub">Использовать цвета обоев (Material You)</string>
 </resources>

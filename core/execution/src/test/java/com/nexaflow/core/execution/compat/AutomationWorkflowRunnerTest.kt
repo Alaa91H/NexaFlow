@@ -1,6 +1,8 @@
 package com.nexaflow.core.execution.compat
 
+import androidx.paging.PagingSource
 import com.nexaflow.core.compat.DeviceProfile
+import com.nexaflow.core.execution.emptyPagingSource
 import com.nexaflow.core.compat.ExecutionProvider
 import com.nexaflow.core.compat.ExecutionProviderType
 import com.nexaflow.core.execution.state.StateTransactionStore
@@ -27,6 +29,8 @@ class AutomationWorkflowRunnerTest {
     private class FakeHistoryRepository : HistoryRepository {
         val records = mutableListOf<ExecutionRecord>()
         override fun getExecutionHistory(): Flow<List<ExecutionRecord>> = flowOf(records.toList())
+        override fun getExecutionPaging(): PagingSource<Int, ExecutionRecord> =
+            emptyPagingSource()
         override suspend fun getExecutionById(id: String): ExecutionRecord? =
             records.firstOrNull { it.id == id }
         override suspend fun recordExecution(record: ExecutionRecord) {

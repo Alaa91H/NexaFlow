@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_action_revert">استرجاع الحالة الأصلية</string>
+    <string name="notification_action_run_now">تشغيل المهمة الآن</string>
+    <string name="notification_action_reply_label">رد</string>
+    <string name="notification_action_dismiss">تجاهل</string>
+</resources>

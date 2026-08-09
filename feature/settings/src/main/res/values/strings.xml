@@ -29,6 +29,9 @@
     <string name="about_license">Licensed under the MIT License.</string>
     <string name="ok">OK</string>
     <string name="section_backup">BACKUP</string>
+    <string name="section_privacy">Privacy</string>
+    <string name="crash_reporting">Crash reporting</string>
+    <string name="crash_reporting_sub">Help improve NexaFlow by sharing anonymous crash reports. Never enabled by default; no personal data is ever sent.</string>
     <string name="backup_export">Export &amp; share</string>
     <string name="backup_export_sub">Save all automations as a JSON file</string>
     <string name="backup_import">Import from file</string>
@@ -105,4 +108,20 @@
     <string name="plugin_test_timeout">Plugin did not respond in time</string>
     <string name="plugin_test_pending">Plugin is still working</string>
     <string name="plugin_test_success">Plugin responded OK</string>
+    <string name="section_updates">Updates</string>
+    <string name="update_check">Check for updates</string>
+    <string name="update_check_sub">Check GitHub for a newer version</string>
+    <string name="update_checking">Checking for updates…</string>
+    <string name="update_latest">You are up to date</string>
+    <string name="update_latest_sub">Latest release: %1$s</string>
+    <string name="state_ok">OK</string>
+    <string name="state_update">UPDATE</string>
+    <string name="update_available">Update available</string>
+    <string name="update_available_sub">Version %1$s is ready to install</string>
+    <string name="update_downloading">Downloading…</string>
+    <string name="update_error">Update check failed</string>
+    <string name="update_no_apk">This release has no downloadable APK</string>
+    <string name="update_download_failed">Download or verification failed</string>
+    <string name="update_install_failed">Could not open the installer</string>
+    <string name="update_check_failed">Could not reach GitHub. Try again later.</string>
 </resources>

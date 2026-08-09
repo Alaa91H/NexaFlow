@@ -1,9 +1,11 @@
 package com.nexaflow.domain.models
 
 import androidx.compose.runtime.Immutable
+import kotlinx.serialization.Serializable
 
 /** Outcome of one action inside an execution run, kept for the run-details timeline. */
 @Immutable
+@Serializable
 data class ActionExecutionResult(
     /** ActionType.name (e.g. "SYSTEM_BRIGHTNESS"). */
     val actionType: String,

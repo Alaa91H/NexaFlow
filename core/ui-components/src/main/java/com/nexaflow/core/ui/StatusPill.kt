@@ -14,9 +14,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun StatusPill(text: String, background: Color, contentColor: Color) {
+fun StatusPill(
+    text: String,
+    background: Color,
+    contentColor: Color,
+    modifier: Modifier = Modifier
+) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .background(color = background, shape = RoundedCornerShape(50))
             .padding(horizontal = 10.dp, vertical = 4.dp)
     ) {

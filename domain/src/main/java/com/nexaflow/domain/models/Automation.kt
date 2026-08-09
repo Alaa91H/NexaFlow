@@ -1,6 +1,7 @@
 package com.nexaflow.domain.models
 
 import androidx.compose.runtime.Immutable
+import kotlinx.serialization.Serializable
 
 /**
  * A user-defined task. Treated as immutable (Compose @Immutable contract):
@@ -8,6 +9,7 @@ import androidx.compose.runtime.Immutable
  * replace via copy() instead.
  */
 @Immutable
+@Serializable
 data class Automation(
     val id: String,
     val name: String,
@@ -39,12 +41,14 @@ data class Automation(
 val Automation.cooldownMillis: Long get() = (cooldownSeconds.coerceAtLeast(0)) * 1000L
 
 @Immutable
+@Serializable
 // config must never be mutated in place (Compose @Immutable contract).
 data class Trigger(
     val type: TriggerType,
     val config: Map<String, String>
 )
 
+@Serializable
 enum class TriggerType {
     TIME,
     BATTERY,
@@ -56,10 +60,23 @@ enum class TriggerType {
     BLUETOOTH_DEVICE,
     RINGER_MODE,
     NOTIFICATION,
-    CALENDAR
+    CALENDAR,
+    /**
+     * Device sensor events (proximity, shake, light, step counter). Config
+     * keys: `sensor` (PROXIMITY/SHAKE/LIGHT/STEP), `event` (COVERED/UNCOVERED,
+     * ABOVE/BELOW for light), `threshold` (lux for LIGHT), `sensitivity`
+     * (shake g-force threshold, default 14).
+     */
+    SENSOR,
+    /**
+     * Local HTTP webhook: a loopback server accepts requests on `path` (and
+     * optionally `method` + `token`) and fires the task, Tasker-webhook style.
+     */
+    WEBHOOK
 }
 
 @Immutable
+@Serializable
 // config must never be mutated in place (Compose @Immutable contract).
 data class Action(
     val type: ActionType,
@@ -71,6 +88,7 @@ data class Action(
     fun withConfig(config: Map<String, String>): Action = copy(config = config)
 }
 
+@Serializable
 enum class ActionType {
     SYSTEM_BRIGHTNESS,
     SYSTEM_VOLUME,

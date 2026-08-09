@@ -77,10 +77,7 @@ data class CronSchedule(
     companion object {
         private const val MAX_SEARCH_DAYS = 730
 
-        private val ALL_MINUTE = (0..59).toSet()
-        private val ALL_HOUR = (0..23).toSet()
         private val ALL_DAY_OF_MONTH = (1..31).toSet()
-        private val ALL_MONTH = (1..12).toSet()
         // Parsed DOW is normalized to 0..6 (7 -> 0), so the "unrestricted" set
         // used for the DOM/DOW OR-rule detection must match the normalized form.
         private val ALL_DAY_OF_WEEK = (0..6).toSet()

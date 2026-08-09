@@ -35,4 +35,6 @@
     <string name="trigger_ringer">Mode sonore</string>
     <string name="trigger_notification">Notification d\'app</string>
     <string name="trigger_calendar">Événement du calendrier</string>
+    <string name="trigger_sensor">Capteur</string>
+    <string name="trigger_webhook">Webhook</string>
 </resources>

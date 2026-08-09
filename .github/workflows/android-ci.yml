@@ -22,6 +22,8 @@ jobs:
       run: chmod +x gradlew
     - name: Verify string parity across all locales
       run: python3 scripts/check_strings_parity.py
+    - name: Run Detekt static analysis
+      run: ./gradlew detekt
     - name: Run Android Lint
       run: ./gradlew lintDebug
     - name: Upload Lint Report
@@ -52,6 +54,8 @@ jobs:
       run: ./gradlew testDebugUnitTest
     - name: Build with Gradle
       run: ./gradlew assembleDebug assembleRelease
+    - name: Verify 16 KB page-size alignment of native libraries
+      run: python3 scripts/check_16kb.py app/build/outputs/apk/release/app-release.apk
     - name: Upload Debug APK
       uses: actions/upload-artifact@v7
       with:

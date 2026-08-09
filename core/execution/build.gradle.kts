@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.library")
+    alias(libs.plugins.android.library)
 }
 
 android {
@@ -36,8 +36,8 @@ kotlin {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.19.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+    implementation(libs.androidx.core.core.ktx)
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
     implementation(project(":domain"))
     implementation(project(":core:rom-integration"))
     implementation(project(":core:compatibility"))
@@ -45,7 +45,8 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:logging"))
     implementation(project(":core:plugin-sdk"))
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("androidx.test:core:1.7.0")
-    testImplementation("org.robolectric:robolectric:4.16.1")
+    testImplementation(libs.junit.junit)
+    testImplementation(libs.androidx.paging.paging.common)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.org.robolectric.robolectric)
 }

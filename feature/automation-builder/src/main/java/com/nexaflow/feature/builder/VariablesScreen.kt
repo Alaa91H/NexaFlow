@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Functions
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -20,6 +21,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -114,12 +117,22 @@ fun VariablesScreen(navController: NavController) {
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "%${variable.name}",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "%${variable.name}",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    if (variable.sensitive) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Lock,
+                                            contentDescription = stringResource(R.string.variable_sensitive),
+                                            modifier = Modifier.padding(start = 6.dp),
+                                            tint = MaterialTheme.colorScheme.secondary
+                                        )
+                                    }
+                                }
                                 Text(
                                     text = variable.value.ifBlank { stringResource(R.string.variables_empty_value) },
                                     style = MaterialTheme.typography.bodyMedium,
@@ -163,8 +176,9 @@ fun VariablesScreen(navController: NavController) {
         VariableEditDialog(
             initialName = "",
             initialValue = "",
-            onSave = { name, value ->
-                viewModel.add(name, value)
+            initialSensitive = false,
+            onSave = { name, value, sensitive ->
+                viewModel.add(name, value, sensitive)
                 showAdd = false
             },
             onDismiss = { showAdd = false }
@@ -175,8 +189,9 @@ fun VariablesScreen(navController: NavController) {
         VariableEditDialog(
             initialName = variable.name,
             initialValue = variable.value,
-            onSave = { name, value ->
-                viewModel.update(variable.id, name, value)
+            initialSensitive = variable.sensitive,
+            onSave = { name, value, sensitive ->
+                viewModel.update(variable.id, name, value, sensitive)
                 editing = null
             },
             onDismiss = { editing = null }
@@ -188,13 +203,15 @@ fun VariablesScreen(navController: NavController) {
 private fun VariableEditDialog(
     initialName: String,
     initialValue: String,
-    onSave: (String, String) -> Unit,
+    initialSensitive: Boolean,
+    onSave: (String, String, Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
     // Keyed on the initial values so editing a different variable never shows
     // the previous one's stale state (the dialog stays in the same slot).
     var name by remember(initialName) { mutableStateOf(initialName) }
     var value by remember(initialValue) { mutableStateOf(initialValue) }
+    var sensitive by remember(initialSensitive) { mutableStateOf(initialSensitive) }
     val nameValid = name.trim().matches(Regex("[A-Za-z_][A-Za-z0-9_]*"))
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -227,11 +244,29 @@ private fun VariableEditDialog(
                     label = { Text(text = stringResource(R.string.variable_value)) },
                     placeholder = { Text(text = stringResource(R.string.variables_value_hint)) }
                 )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.variable_sensitive),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        Text(
+                            text = stringResource(R.string.variable_sensitive_sub),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    Switch(checked = sensitive, onCheckedChange = { sensitive = it })
+                }
             }
         },
         confirmButton = {
             TextButton(
-                onClick = { onSave(name, value) },
+                onClick = { onSave(name, value, sensitive) },
                 enabled = nameValid
             ) {
                 Text(text = stringResource(R.string.save))

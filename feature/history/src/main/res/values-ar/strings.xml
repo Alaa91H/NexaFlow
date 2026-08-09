@@ -23,4 +23,7 @@
     <string name="duration_s">ثانية</string>
     <string name="action_restore_state">استعادة الحالة الأصلية</string>
     <string name="action_unknown">إجراء غير معروف</string>
+    <string name="history_load_error_title">تعذّر تحميل السجل</string>
+    <string name="history_load_error_subtitle">حدث خطأ ما أثناء قراءة سجلك.</string>
+    <string name="history_retry">إعادة المحاولة</string>
 </resources>

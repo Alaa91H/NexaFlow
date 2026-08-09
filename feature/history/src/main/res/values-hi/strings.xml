@@ -23,4 +23,7 @@
     <string name="duration_s">सेकंड</string>
     <string name="action_restore_state">मूल स्थिति पुनर्स्थापित करें</string>
     <string name="action_unknown">अज्ञात क्रिया</string>
+    <string name="history_load_error_title">इतिहास लोड नहीं हो सका</string>
+    <string name="history_load_error_subtitle">आपका इतिहास पढ़ते समय कुछ गड़बड़ हुई।</string>
+    <string name="history_retry">पुनः प्रयास करें</string>
 </resources>

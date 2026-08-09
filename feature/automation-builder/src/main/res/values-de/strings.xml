@@ -46,6 +46,8 @@
     <string name="permission_bluetooth_body">So erkennen Aufgaben, wenn sich dein gewähltes Bluetooth-Gerät verbindet oder trennt.</string>
     <string name="permission_calendar_title">Kalenderzugriff</string>
     <string name="permission_calendar_body">So können Aufgaben rund um Kalenderereignisse ausgeführt werden, z. B. vor Beginn eines Meetings.</string>
+    <string name="permission_local_network_title">Zugriff auf lokales Netzwerk</string>
+    <string name="permission_local_network_body">Erlaubt HTTP-Aufgaben, Geräte im Heimnetzwerk zu erreichen, z. B. Smart-Plugs oder Media-Hubs.</string>
     <string name="permission_generic_title">Berechtigung erforderlich</string>
     <string name="permission_generic_body">Diese Berechtigung lässt die gewählte Aufgabe wie erwartet funktionieren.</string>
     <string name="special_write_settings_title">Systemeinstellungen ändern</string>
@@ -388,6 +390,8 @@
     <string name="variable_name_error">Nur Buchstaben, Ziffern und Unterstrich</string>
     <string name="variable_value">Wert</string>
     <string name="variables_value_hint">z. B. Heimadresse</string>
+    <string name="variable_sensitive">Sensibel (verschlüsselt)</string>
+    <string name="variable_sensitive_sub">Speichert diesen Wert verschlüsselt auf diesem Gerät (Tokens, Passwörter). Wird nur beim Ausführen einer Aufgabe entschlüsselt.</string>
     <string name="add_variable">Variable hinzufügen</string>
     <string name="delete_variable">Löschen</string>
     <string name="insert_variable_hint">Einfügen:</string>
@@ -427,4 +431,28 @@
     <string name="trigger_app_while_open">Wird beim Öffnen der App ausgeführt und bleibt aktiv, bis sie geschlossen wird; danach werden die Abschlussoptionen der Aufgabe angewendet.</string>
     <string name="exit_per_action_title">Endoptionen pro Aktion</string>
     <string name="exit_extra_actions_label">Zusätzliche Aktionen beim Ende der Aufgabe</string>
+    <string name="notification_button_reply">Mit Text antworten</string>
+    <string name="notification_button_reply_title">Antwortvariable</string>
+    <string name="notification_button_reply_hint">Die Eingabe in der Benachrichtigung wird in dieser Variable gespeichert, damit die Aufgabe sie nutzen kann (z. B. %MyReply).</string>
+    <string name="notification_button_reply_label">Variablenname (ohne %)</string>
+    <string name="notification_button_reply_sub">Antwort wird nach %s geschrieben</string>
+    <string name="trigger_type_sensor">Sensor</string>
+    <string name="sensor_kind">Sensorart</string>
+    <string name="sensor_proximity">Nähe</string>
+    <string name="sensor_shake">Schütteln</string>
+    <string name="sensor_light">Licht</string>
+    <string name="sensor_step">Schritte</string>
+    <string name="sensor_event_covered">Abgedeckt</string>
+    <string name="sensor_event_uncovered">Aufgedeckt</string>
+    <string name="sensor_event_above">Über</string>
+    <string name="sensor_event_below">Unter</string>
+    <string name="sensor_threshold_label">Über %d Lux</string>
+    <string name="sensor_sensitivity_label">Empfindlichkeit: %d</string>
+    <string name="sensor_step_hint">Wird bei jedem Schritt ausgeführt.</string>
+    <string name="sensor_permission_hint">Die Schritterkennung benötigt die Berechtigung zur Aktivitätserkennung.</string>
+    <string name="trigger_type_webhook">Webhook</string>
+    <string name="webhook_path">Pfad</string>
+    <string name="webhook_token">Token (optional)</string>
+    <string name="webhook_token_hint">Geheimer Header-Wert</string>
+    <string name="webhook_url_hint">Sende eine HTTP-Anfrage an http://127.0.0.1:8765/path von diesem Gerät, um die Aufgabe auszulösen.</string>
 </resources>

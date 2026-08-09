@@ -35,7 +35,9 @@ enum class TriggerSource(val sourceId: String) {
     BLUETOOTH_DEVICE("bluetooth"),
     RINGER_MODE("ringer"),
     NOTIFICATION("notification"),
-    CALENDAR("calendar");
+    CALENDAR("calendar"),
+    SENSOR("sensor"),
+    WEBHOOK("webhook");
 
     companion object {
         fun forTrigger(type: TriggerType): TriggerSource = when (type) {
@@ -50,6 +52,8 @@ enum class TriggerSource(val sourceId: String) {
             TriggerType.RINGER_MODE -> RINGER_MODE
             TriggerType.NOTIFICATION -> NOTIFICATION
             TriggerType.CALENDAR -> CALENDAR
+            TriggerType.SENSOR -> SENSOR
+            TriggerType.WEBHOOK -> WEBHOOK
         }
     }
 }

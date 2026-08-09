@@ -29,6 +29,9 @@
     <string name="about_license">MITライセンスの下で提供されています。</string>
     <string name="ok">OK</string>
     <string name="section_backup">バックアップ</string>
+    <string name="section_privacy">プライバシー</string>
+    <string name="crash_reporting">クラッシュレポート</string>
+    <string name="crash_reporting_sub">匿名のクラッシュレポートを共有して NexaFlow の改善にご協力ください。デフォルトでは無効で、個人データは送信されません。</string>
     <string name="backup_export">エクスポートして共有</string>
     <string name="backup_export_sub">すべての自動化をJSONファイルとして保存</string>
     <string name="backup_import">ファイルからインポート</string>
@@ -105,4 +108,20 @@
     <string name="plugin_test_timeout">プラグインが時間内に応答しませんでした</string>
     <string name="plugin_test_pending">プラグインはまだ動作中です</string>
     <string name="plugin_test_success">プラグインが正常に応答しました</string>
+    <string name="section_updates">アップデート</string>
+    <string name="update_check">アップデートを確認</string>
+    <string name="update_check_sub">GitHubで新しいバージョンを確認</string>
+    <string name="update_checking">アップデートを確認中…</string>
+    <string name="update_latest">最新です</string>
+    <string name="update_latest_sub">最新リリース: %1$s</string>
+    <string name="state_ok">OK</string>
+    <string name="state_update">更新</string>
+    <string name="update_available">アップデートがあります</string>
+    <string name="update_available_sub">バージョン %1$s をインストールできます</string>
+    <string name="update_downloading">ダウンロード中…</string>
+    <string name="update_error">アップデート確認に失敗</string>
+    <string name="update_no_apk">このリリースにはダウンロード可能なAPKがありません</string>
+    <string name="update_download_failed">ダウンロードまたは検証に失敗</string>
+    <string name="update_install_failed">インストーラーを開けませんでした</string>
+    <string name="update_check_failed">GitHubに接続できません。後でもう一度お試しください。</string>
 </resources>

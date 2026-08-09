@@ -24,4 +24,6 @@
     <string name="preview_dark">Vista previa oscura</string>
     <string name="preview_light">Vista previa clara</string>
     <string name="primary_accent">Acento principal</string>
+    <string name="dynamic_color">Color dinámico</string>
+    <string name="dynamic_color_sub">Usar colores del fondo de pantalla (Material You)</string>
 </resources>

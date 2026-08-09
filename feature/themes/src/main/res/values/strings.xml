@@ -24,4 +24,6 @@
     <string name="preview_dark">Dark preview</string>
     <string name="preview_light">Light preview</string>
     <string name="primary_accent">Primary accent</string>
+    <string name="dynamic_color">Dynamic color</string>
+    <string name="dynamic_color_sub">Use wallpaper colors (Material You)</string>
 </resources>

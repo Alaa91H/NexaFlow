@@ -4,6 +4,11 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!--
+        Android 17 (API 37): mandatory to reach LAN devices (smart hubs, NAS).
+        Requested as a runtime permission for the HTTP request action.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
@@ -14,6 +19,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -49,12 +56,24 @@
         android:name="android.hardware.camera.flash"
         android:required="false" />
 
+    <!--
+        Android 16+ (API 36+) Safer Intents hardening: an incoming intent from
+        another app must match the target component's intent filter to be
+        delivered. Every exported component below declares the matching filters
+        (SmsReceiver/SMS_RECEIVED, SmsConsentReceiver/SMS_CONSENT_REQUEST,
+        widgets/APPWIDGET_UPDATE, deep links/VIEW). Same-app PendingIntents
+        (alarms, notification buttons, widget toggles) are explicitly exempt
+        by the platform, so none of our internal routing is affected.
+    -->
     <application
         android:name=".NexaFlowApplication"
         android:allowBackup="false"
+        android:enableOnBackInvokedCallback="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
+        android:intentMatchingFlags="enforceIntentFilter"
+        tools:targetApi="36"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
@@ -62,11 +81,28 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.NexaFlow">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!--
+                Deep link (P2-5): nexaflow://run-task/{automationId} runs the
+                task directly, e.g. from a home-screen shortcut or Tasker.
+                Handled in MainActivity (singleTop + onNewIntent).
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="nexaflow"
+                    android:host="run-task"
+                    android:pathPrefix="/" />
             </intent-filter>
         </activity>
 
@@ -80,6 +116,15 @@
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
                 <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+                <!--
+                    Re-schedule time triggers when the clock or time zone
+                    changes (travel, manual clock edits, DST transitions): RTC
+                    alarms are not shifted automatically, so without these the
+                    next fire time drifts by the offset.
+                -->
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.TIMEZONE_OFFSET_CHANGED" />
             </intent-filter>
         </receiver>
 
@@ -111,6 +156,15 @@
             android:exported="false" />
 
         <!--
+            Dismiss action buttons on reminders/battery alerts: a button's
+            PendingIntent broadcasts DISMISS_NOTIFICATION with the notification
+            id; this plain receiver cancels it (no engine needed).
+        -->
+        <receiver
+            android:name="com.nexaflow.core.execution.NotificationDismissReceiver"
+            android:exported="false" />
+
+        <!--
             Interactive notification action buttons: a button's PendingIntent
             broadcasts RUN_TASK_FROM_NOTIFICATION, which this receiver routes
             to the execution engine. Exported=false because only our own
@@ -121,6 +175,7 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="com.nexaflow.core.execution.action.RUN_TASK_FROM_NOTIFICATION" />
+                <action android:name="com.nexaflow.core.execution.action.REVERT_TASK_FROM_NOTIFICATION" />
             </intent-filter>
         </receiver>
 

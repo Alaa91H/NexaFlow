@@ -46,6 +46,8 @@
     <string name="permission_bluetooth_body">इससे कार्य यह पता लगा सकते हैं कि आपका चुना हुआ ब्लूटूथ डिवाइस कब जुड़ा या अलग हुआ।</string>
     <string name="permission_calendar_title">कैलेंडर पहुंच</string>
     <string name="permission_calendar_body">इससे कार्य कैलेंडर ईवेंट के आसपास चल सकते हैं, जैसे बैठक शुरू होने से पहले।</string>
+    <string name="permission_local_network_title">स्थानीय नेटवर्क एक्सेस</string>
+    <string name="permission_local_network_body">HTTP कार्यों को आपके होम नेटवर्क के उपकरणों तक पहुँचने देता है, जैसे स्मार्ट प्लग या मीडिया हब।</string>
     <string name="permission_generic_title">अनुमति आवश्यक</string>
     <string name="permission_generic_body">यह अनुमति चुने गए कार्य को अपेक्षित रूप से काम करने देती है।</string>
     <string name="special_write_settings_title">सिस्टम सेटिंग्स बदलें</string>
@@ -388,6 +390,8 @@
     <string name="variable_name_error">केवल अक्षर, अंक और अंडरस्कोर</string>
     <string name="variable_value">मान</string>
     <string name="variables_value_hint">जैसे घर का पता</string>
+    <string name="variable_sensitive">संवेदनशील (एन्क्रिप्टेड)</string>
+    <string name="variable_sensitive_sub">इस मान को इस डिवाइस पर एन्क्रिप्टेड रखें (टोकन, पासवर्ड)। केवल कार्य चलने पर डिक्रिप्ट होता है।</string>
     <string name="add_variable">चर जोड़ें</string>
     <string name="delete_variable">हटाएँ</string>
     <string name="insert_variable_hint">डालें:</string>
@@ -427,4 +431,28 @@
     <string name="trigger_app_while_open">ऐप खोलने पर चलता है और बंद होने तक सक्रिय रहता है, फिर कार्य के समाप्ति विकल्प लागू होते हैं।</string>
     <string name="exit_per_action_title">प्रति क्रिया समाप्ति विकल्प</string>
     <string name="exit_extra_actions_label">समाप्ति पर अतिरिक्त क्रियाएँ</string>
+    <string name="notification_button_reply">टेक्स्ट से जवाब दें</string>
+    <string name="notification_button_reply_title">जवाब वेरिएबल</string>
+    <string name="notification_button_reply_hint">नोटिफ़िकेशन में टाइप किया गया टेक्स्ट इस वेरिएबल में सहेजा जाता है ताकि कार्य उसे इस्तेमाल कर सके (जैसे %MyReply)।</string>
+    <string name="notification_button_reply_label">वेरिएबल नाम (% के बिना)</string>
+    <string name="notification_button_reply_sub">%s में जवाब लिखता है</string>
+    <string name="trigger_type_sensor">सेंसर</string>
+    <string name="sensor_kind">सेंसर प्रकार</string>
+    <string name="sensor_proximity">निकटता</string>
+    <string name="sensor_shake">हिलाना</string>
+    <string name="sensor_light">रोशनी</string>
+    <string name="sensor_step">कदम</string>
+    <string name="sensor_event_covered">ढका हुआ</string>
+    <string name="sensor_event_uncovered">खुला</string>
+    <string name="sensor_event_above">ऊपर</string>
+    <string name="sensor_event_below">नीचे</string>
+    <string name="sensor_threshold_label">%d लक्स से ऊपर</string>
+    <string name="sensor_sensitivity_label">संवेदनशीलता: %d</string>
+    <string name="sensor_step_hint">हर कदम पर चलता है।</string>
+    <string name="sensor_permission_hint">कदम गिनती के लिए गतिविधि पहचान की अनुमति चाहिए।</string>
+    <string name="trigger_type_webhook">वेबहुक</string>
+    <string name="webhook_path">पथ</string>
+    <string name="webhook_token">टोकन (वैकल्पिक)</string>
+    <string name="webhook_token_hint">गुप्त हेडर मान</string>
+    <string name="webhook_url_hint">कार्य ट्रिगर करने के लिए इस डिवाइस से http://127.0.0.1:8765/path पर HTTP अनुरोध भेजें।</string>
 </resources>

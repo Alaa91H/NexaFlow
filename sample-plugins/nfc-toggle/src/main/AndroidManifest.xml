@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Reference Locale plugin manifest. Every rule here is a HARD requirement of
+    the protocol (docs/PLUGIN_SDK.md §2.7) — copy it verbatim for your plugin:
+      - android:installLocation="internalOnly"  (hosts reject external storage)
+      - EDIT_SETTING activity: exported="true" + intent-filter
+      - FIRE_SETTING receiver: exported="true" + intent-filter
+    Plugins live in their own APK/process — no shared UID, no dependency on
+    NexaFlow or any library.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:installLocation="internalOnly">
+
+    <application
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/plugin_name"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Material.Light">
+
+        <!-- Configure: host launches this exported activity to edit the action. -->
+        <activity
+            android:name=".NfcToggleEditActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.twofortyfouram.locale.intent.action.EDIT_SETTING" />
+            </intent-filter>
+        </activity>
+
+        <!--
+            Execute: host fires this exported receiver. Exported=true is what
+            makes discovery possible; lint's ExportedReceiver warning is a
+            deliberate, protocol-mandated exception (the host is untrusted by
+            design — it only ever sends protocol intents).
+        -->
+        <receiver
+            android:name=".NfcToggleFireReceiver"
+            android:exported="true"
+            tools:ignore="ExportedReceiver">
+            <intent-filter>
+                <action android:name="com.twofortyfouram.locale.intent.action.FIRE_SETTING" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

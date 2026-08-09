@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.library")
+    alias(libs.plugins.android.library)
 }
 
 android {
@@ -31,7 +31,7 @@ kotlin {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.19.0")
+    implementation(libs.androidx.core.core.ktx)
     implementation(project(":core:rom-integration"))
-    testImplementation("junit:junit:4.13.2")
+    testImplementation(libs.junit.junit)
 }

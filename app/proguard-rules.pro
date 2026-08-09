@@ -12,24 +12,20 @@
 -keep class rikka.shizuku.** { *; }
 -dontwarn rikka.shizuku.**
 
-# --- Gson-serialized models ------------------------------------------------
-# BackupManager (export/import), Converters and ExecutionRecordMapper
-# serialize these classes with Gson, which reads field names via reflection.
-# Obfuscating the field names would silently corrupt backups and the Room
-# JSON columns, so keep the full class structure.
--keep class com.nexaflow.domain.models.** { *; }
--keep class com.nexaflow.data.backup.** { *; }
--keep class com.nexaflow.data.mapper.** { *; }
-
-# Attributes Gson relies on for generics (TypeToken<List<Trigger>>).
--keepattributes Signature
--keepattributes InnerClasses, EnclosingMethod
-
-# --- Enums -----------------------------------------------------------------
-# Gson serializes enum constants by name (Enum.name()/valueOf via reflection).
--keepclassmembers enum * {
-    public static **[] values();
-    public static ** valueOf(java.lang.String);
+# --- kotlinx.serialization ---------------------------------------------------
+# All JSON serialization (Room columns, BackupManager export/import,
+# ExecutionRecordMapper) uses kotlinx.serialization. R8 cannot infer the
+# generated $$serializer classes and Companion serializer() members; without
+# these rules release builds would silently produce corrupt JSON. Keep rules
+# follow the official kotlinx.serialization documentation.
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
+-keep,includedescriptorclasses class com.nexaflow.**$$serializer { *; }
+-keepclassmembers class com.nexaflow.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.nexaflow.** {
+    kotlinx.serialization.KSerializer serializer(...);
 }
 
 # --- Hilt / Dagger ----------------------------------------------------------

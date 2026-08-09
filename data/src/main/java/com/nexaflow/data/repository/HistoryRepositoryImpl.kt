@@ -1,8 +1,10 @@
 package com.nexaflow.data.repository
 
+import androidx.paging.PagingSource
 import com.nexaflow.core.database.ExecutionDao
 import com.nexaflow.data.mapper.toDomain
 import com.nexaflow.data.mapper.toEntity
+import com.nexaflow.data.paging.MappedPagingSource
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.repositories.HistoryRepository
 import kotlinx.coroutines.flow.Flow
@@ -17,6 +19,10 @@ class HistoryRepositoryImpl @Inject constructor(
         return executionDao.getAllExecutions().map { list ->
             list.map { it.toDomain() }
         }
+    }
+
+    override fun getExecutionPaging(): PagingSource<Int, ExecutionRecord> {
+        return MappedPagingSource(executionDao.getExecutionsPaged()) { it.toDomain() }
     }
 
     override suspend fun getExecutionById(id: String): ExecutionRecord? {

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_action_revert">Restore original state</string>
+    <string name="notification_action_run_now">Run task now</string>
+    <string name="notification_action_reply_label">Reply</string>
+    <string name="notification_action_dismiss">Dismiss</string>
+</resources>

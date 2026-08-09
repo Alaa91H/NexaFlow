@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plugin_name">NFC切り替え</string>
+    <string name="switch_label">NFCをオンにする</string>
+    <string name="save">保存</string>
+    <string name="blurb_enable">NFC: オン</string>
+    <string name="blurb_disable">NFC: オフ</string>
+</resources>

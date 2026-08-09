@@ -1,0 +1,98 @@
+[versions]
+v1 = "1"
+v1_11_0 = "1.11.0"
+v1_11_4 = "1.11.4"
+v1_13_0 = "1.13.0"
+v1_19_0 = "1.19.0"
+v1_2_1 = "1.2.1"
+v1_3_0 = "1.3.0"
+v1_4_0 = "1.4.0"
+v1_4_1 = "1.4.1"
+v1_7_0 = "1.7.0"
+v1_9_0 = "1.9.0"
+v13_1_5 = "13.1.5"
+v18_1_0 = "18.1.0"
+v2_11_0 = "2.11.0"
+v2_11_2 = "2.11.2"
+v2_14_0 = "2.14.0"
+v2_4_0 = "2.4.0"
+v2_6_2 = "2.6.2"
+v2_60_1 = "2.60.1"
+v2_8_4 = "2.8.4"
+v2_9_8 = "2.9.8"
+v20240303 = "20240303"
+v2026_06_01 = "2026.06.01"
+v3_4_1 = "3.4.1"
+v3_7_0 = "3.7.0"
+v4_13_2 = "4.13.2"
+v4_16_1 = "4.16.1"
+v8_52_0 = "8.52.0"
+pv2_3_11 = "2.3.11"
+pv2_4_10 = "2.4.10"
+pv2_60_1 = "2.60.1"
+pv9_3_1 = "9.3.1"
+
+[libraries]
+androidx-activity-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "v1_13_0" }
+androidx-benchmark-benchmark-macro-junit4 = { module = "androidx.benchmark:benchmark-macro-junit4", version.ref = "v1_4_1" }
+androidx-compose-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "v2026_06_01" }
+androidx-compose-material-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
+androidx-compose-material3-material3 = { module = "androidx.compose.material3:material3" }
+androidx-compose-runtime-runtime-annotation = { module = "androidx.compose.runtime:runtime-annotation", version.ref = "v1_11_4" }
+androidx-compose-ui-ui = { module = "androidx.compose.ui:ui" }
+androidx-compose-ui-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
+androidx-compose-ui-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+androidx-compose-ui-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+androidx-compose-ui-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+androidx-compose-ui-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+androidx-core-core-ktx = { module = "androidx.core:core-ktx", version.ref = "v1_19_0" }
+androidx-datastore-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "v1_2_1" }
+androidx-hilt-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "v1_4_0" }
+androidx-hilt-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "v1_4_0" }
+androidx-hilt-hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "v1_4_0" }
+androidx-lifecycle-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "v2_11_0" }
+androidx-lifecycle-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "v2_11_0" }
+androidx-lifecycle-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "v2_11_0" }
+androidx-lifecycle-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "v2_11_0" }
+androidx-navigation-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "v2_9_8" }
+androidx-profileinstaller-profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "v1_4_1" }
+androidx-room-room-compiler = { module = "androidx.room:room-compiler", version.ref = "v2_8_4" }
+androidx-room-room-ktx = { module = "androidx.room:room-ktx", version.ref = "v2_8_4" }
+androidx-paging-paging-common = { module = "androidx.paging:paging-common", version.ref = "v3_4_1" }
+androidx-paging-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "v3_4_1" }
+androidx-paging-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "v3_4_1" }
+androidx-room-room-paging = { module = "androidx.room:room-paging", version.ref = "v2_8_4" }
+androidx-room-room-runtime = { module = "androidx.room:room-runtime", version.ref = "v2_8_4" }
+androidx-room-room-testing = { module = "androidx.room:room-testing", version.ref = "v2_8_4" }
+androidx-sqlite-sqlite-framework = { module = "androidx.sqlite:sqlite-framework", version.ref = "v2_6_2" }
+androidx-test-core = { module = "androidx.test:core", version.ref = "v1_7_0" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "v1_7_0" }
+androidx-test-espresso-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "v3_7_0" }
+androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "v1_3_0" }
+androidx-test-uiautomator-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "v2_4_0" }
+androidx-work-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "v2_11_2" }
+com-google-android-gms-play-services-auth-api-phone = { module = "com.google.android.gms:play-services-auth-api-phone", version.ref = "v18_1_0" }
+com-google-code-gson-gson = { module = "com.google.code.gson:gson", version.ref = "v2_14_0" }
+com-google-dagger-hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "v2_60_1" }
+com-google-dagger-hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "v2_60_1" }
+dev-rikka-shizuku-api = { module = "dev.rikka.shizuku:api", version.ref = "v13_1_5" }
+dev-rikka-shizuku-provider = { module = "dev.rikka.shizuku:provider", version.ref = "v13_1_5" }
+io-sentry-sentry-android = { module = "io.sentry:sentry-android", version.ref = "v8_52_0" }
+javax-inject-javax-inject = { module = "javax.inject:javax.inject", version.ref = "v1" }
+junit-junit = { module = "junit:junit", version.ref = "v4_13_2" }
+org-jetbrains-kotlinx-kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "v1_11_0" }
+org-jetbrains-kotlinx-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "v1_11_0" }
+org-jetbrains-kotlinx-kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "v1_11_0" }
+org-jetbrains-kotlinx-kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "v1_9_0" }
+org-jetbrains-kotlinx-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "v1_9_0" }
+org-json-json = { module = "org.json:json", version.ref = "v20240303" }
+org-robolectric-robolectric = { module = "org.robolectric:robolectric", version.ref = "v4_16_1" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "pv9_3_1" }
+android-library = { id = "com.android.library", version.ref = "pv9_3_1" }
+hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "pv2_60_1" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "pv2_4_10" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "pv2_4_10" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "pv2_4_10" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "pv2_3_11" }

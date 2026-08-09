@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import com.nexaflow.core.execution.EXTRA_AUTOMATION_ID
 import com.nexaflow.core.execution.ReminderAlarmReceiver
 import com.nexaflow.core.rom.model.SystemControlResult
 
@@ -23,7 +24,8 @@ object ReminderScheduler {
         title: String,
         text: String,
         hour: Int,
-        minute: Int
+        minute: Int,
+        automationId: String? = null
     ): SystemControlResult {
         return try {
             val zone = java.time.ZoneId.systemDefault()
@@ -51,6 +53,11 @@ object ReminderScheduler {
                 .setAction(ReminderAlarmReceiver.ACTION_SHOW_REMINDER)
                 .putExtra(ReminderAlarmReceiver.EXTRA_TITLE, title.ifBlank { "Reminder" })
                 .putExtra(ReminderAlarmReceiver.EXTRA_TEXT, text.ifBlank { "You asked me to remind you." })
+            // Carried so the reminder notification can offer a "Run task now"
+            // button that routes back to the enclosing task via the engine.
+            if (!automationId.isNullOrBlank()) {
+                intent.putExtra(EXTRA_AUTOMATION_ID, automationId)
+            }
             val pendingIntent = PendingIntent.getBroadcast(
                 context,
                 at.toInt(),

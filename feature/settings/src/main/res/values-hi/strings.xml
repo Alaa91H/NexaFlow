@@ -29,6 +29,9 @@
     <string name="about_license">MIT लाइसेंस के तहत लाइसेंस प्राप्त।</string>
     <string name="ok">ठीक है</string>
     <string name="section_backup">बैकअप</string>
+    <string name="section_privacy">गोपनीयता</string>
+    <string name="crash_reporting">क्रैश रिपोर्टिंग</string>
+    <string name="crash_reporting_sub">अनाम क्रैश रिपोर्ट साझा करके NexaFlow को बेहतर बनाने में मदद करें। डिफ़ॉल्ट रूप से कभी सक्षम नहीं; कोई व्यक्तिगत डेटा नहीं भेजा जाता।</string>
     <string name="backup_export">निर्यात और साझा करें</string>
     <string name="backup_export_sub">सभी ऑटोमेशन को JSON फ़ाइल के रूप में सहेजें</string>
     <string name="backup_import">फ़ाइल से आयात करें</string>
@@ -105,4 +108,20 @@
     <string name="plugin_test_timeout">प्लगइन ने समय पर जवाब नहीं दिया</string>
     <string name="plugin_test_pending">प्लगइन अभी भी काम कर रहा है</string>
     <string name="plugin_test_success">प्लगइन ने सफलतापूर्वक जवाब दिया</string>
+    <string name="section_updates">अपडेट</string>
+    <string name="update_check">अपडेट जाँचें</string>
+    <string name="update_check_sub">GitHub पर नया संस्करण जाँचें</string>
+    <string name="update_checking">अपडेट जाँच रहे हैं…</string>
+    <string name="update_latest">आप अप-टू-डेट हैं</string>
+    <string name="update_latest_sub">नवीनतम रिलीज़: %1$s</string>
+    <string name="state_ok">ठीक है</string>
+    <string name="state_update">अपडेट</string>
+    <string name="update_available">अपडेट उपलब्ध है</string>
+    <string name="update_available_sub">संस्करण %1$s इंस्टॉल करने के लिए तैयार है</string>
+    <string name="update_downloading">डाउनलोड हो रहा है…</string>
+    <string name="update_error">अपडेट जाँच विफल</string>
+    <string name="update_no_apk">इस रिलीज़ में डाउनलोड करने योग्य APK नहीं है</string>
+    <string name="update_download_failed">डाउनलोड या सत्यापन विफल</string>
+    <string name="update_install_failed">इंस्टॉलर नहीं खोल सके</string>
+    <string name="update_check_failed">GitHub तक नहीं पहुँच सके। बाद में पुनः प्रयास करें।</string>
 </resources>

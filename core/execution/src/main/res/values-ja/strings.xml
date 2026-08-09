@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_action_revert">元の状態に戻す</string>
+    <string name="notification_action_run_now">タスクを今すぐ実行</string>
+    <string name="notification_action_reply_label">返信</string>
+    <string name="notification_action_dismiss">閉じる</string>
+</resources>

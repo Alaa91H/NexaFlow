@@ -168,4 +168,11 @@
     <string name="constraint_type_battery">Pil seviyesi</string>
     <string name="constraint_type_screen_locked">Ekran kilitli</string>
     <string name="constraint_type_headset">Kulaklık bağlı</string>
+    <string name="trigger_sensor">Sensör</string>
+    <string name="trigger_sensor_sub">Cihaz sensör olaylarında tetikle</string>
+    <string name="trigger_webhook">Webhook</string>
+    <string name="trigger_webhook_sub">Yerel HTTP isteğiyle tetikle</string>
+    <string name="add_shortcut">Kısayol ekle</string>
+    <string name="shortcut_added">Kısayol ana ekrana eklendi</string>
+    <string name="shortcut_in_app_shortcuts">Uygulama kısayollarına eklendi</string>
 </resources>

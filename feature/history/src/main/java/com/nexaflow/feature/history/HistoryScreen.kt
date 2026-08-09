@@ -3,23 +3,25 @@
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,8 +31,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.nexaflow.core.ui.EmptyState
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
@@ -45,16 +49,47 @@ import java.util.Locale
 @Composable
 fun HistoryScreen(navController: NavController) {
     val viewModel: HistoryViewModel = hiltViewModel()
-    val history by viewModel.history.collectAsStateWithLifecycle()
+    // Streams pages from Room instead of materializing the whole table.
+    val history = viewModel.pagingData.collectAsLazyPagingItems()
 
     Scaffold(topBar = { NexaFlowTopBar(title = stringResource(R.string.history_title), onBack = { navController.popBackStack() }) }) { padding ->
-        if (history.isEmpty()) {
+        when (val refresh = history.loadState.refresh) {
+            is LoadState.Loading -> {
+                if (history.itemCount == 0) {
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(padding),
+                        contentAlignment = Alignment.Center
+                    ) { CircularProgressIndicator() }
+                }
+            }
+            is LoadState.Error -> {
+                if (history.itemCount == 0) {
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(padding),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        EmptyState(
+                            icon = Icons.Filled.History,
+                            title = stringResource(R.string.history_load_error_title),
+                            subtitle = stringResource(R.string.history_load_error_subtitle)
+                        )
+                        TextButton(onClick = { history.retry() }) {
+                            Text(stringResource(R.string.history_retry))
+                        }
+                    }
+                }
+            }
+            else -> Unit
+        }
+
+        if (history.itemCount == 0 && history.loadState.refresh is LoadState.NotLoading) {
             EmptyState(
                 icon = Icons.Filled.History,
                 title = stringResource(R.string.no_runs_title),
                 subtitle = stringResource(R.string.no_runs_subtitle)
             )
-        } else {
+        } else if (history.itemCount > 0) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -62,11 +97,38 @@ fun HistoryScreen(navController: NavController) {
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(history, key = { it.id }) { entry ->
-                    HistoryCard(
-                        entry = entry,
-                        onClick = { navController.navigate("execution_details/${entry.id}") }
-                    )
+                // Paging 3.4 API: LazyPagingItems exposes stable key/contentType
+                // factories; the list itself is streamed via items(count = ...).
+                items(
+                    count = history.itemCount,
+                    key = history.itemKey { it.id }
+                ) { index ->
+                    val entry = history[index]
+                    if (entry != null) {
+                        HistoryCard(
+                            entry = entry,
+                            onClick = { navController.navigate("execution_details/${entry.id}") }
+                        )
+                    }
+                }
+                when (val append = history.loadState.append) {
+                    is LoadState.Loading -> item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) { CircularProgressIndicator(modifier = Modifier.size(28.dp)) }
+                    }
+                    is LoadState.Error -> item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            TextButton(onClick = { history.retry() }) {
+                                Text(stringResource(R.string.history_retry))
+                            }
+                        }
+                    }
+                    else -> Unit
                 }
             }
         }

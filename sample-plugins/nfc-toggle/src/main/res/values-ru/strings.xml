@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plugin_name">Переключение NFC</string>
+    <string name="switch_label">Включить NFC</string>
+    <string name="save">Сохранить</string>
+    <string name="blurb_enable">NFC: включить</string>
+    <string name="blurb_disable">NFC: выключить</string>
+</resources>

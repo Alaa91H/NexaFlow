@@ -58,8 +58,8 @@ abstract class PluginEditActivity : Activity() {
     protected fun savedBundle(): Bundle? =
         intent?.getBundleExtra(LocaleContract.EXTRA_BUNDLE)
 
-    override fun onBackPressed() {
-        setResult(RESULT_CANCELED)
-        finish()
-    }
+    // Back handling is deliberately NOT overridden: finishing the activity
+    // without [save] delivers RESULT_CANCELED to the host automatically, on
+    // every API level (including 33+ predictive back, where overriding the
+    // deprecated onBackPressed would also emit a compile warning).
 }

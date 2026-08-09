@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plugin_name">تبديل NFC</string>
+    <string name="switch_label">تشغيل NFC</string>
+    <string name="save">حفظ</string>
+    <string name="blurb_enable">NFC: تشغيل</string>
+    <string name="blurb_disable">NFC: إيقاف</string>
+</resources>

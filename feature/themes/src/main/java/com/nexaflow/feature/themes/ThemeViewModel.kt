@@ -27,4 +27,8 @@ class ThemeViewModel @Inject constructor(
     fun setAccent(accent: String) {
         viewModelScope.launch { themePreferences.setAccent(accent) }
     }
+
+    fun setDynamicColor(enabled: Boolean) {
+        viewModelScope.launch { themePreferences.setDynamicColor(enabled) }
+    }
 }

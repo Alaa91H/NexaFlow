@@ -1,6 +1,7 @@
 package com.nexaflow.domain.models
 
 import androidx.compose.runtime.Immutable
+import kotlinx.serialization.Serializable
 
 /**
  * A gate check (MacroDroid-style constraint) that must be satisfied BEFORE a
@@ -12,11 +13,13 @@ import androidx.compose.runtime.Immutable
  *   [ConstraintType.BATTERY]). Never mutate in place (Compose @Immutable).
  */
 @Immutable
+@Serializable
 data class Constraint(
     val type: ConstraintType,
     val config: Map<String, String> = emptyMap()
 )
 
+@Serializable
 enum class ConstraintType {
     /** The device must be connected to a Wi-Fi network. */
     WIFI,

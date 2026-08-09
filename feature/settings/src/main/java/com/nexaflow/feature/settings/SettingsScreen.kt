@@ -18,6 +18,8 @@ import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Security
@@ -34,6 +36,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -244,6 +247,94 @@ fun SettingsScreen(navController: NavController) {
                         title = stringResource(R.string.backup_import),
                         subtitle = stringResource(R.string.backup_import_sub),
                         onClick = { importLauncher.launch(arrayOf("application/json", "text/plain", "text/*", "*/*")) }
+                    )
+                }
+            }
+            item {
+                SectionHeader(text = stringResource(R.string.section_updates))
+            }
+            item {
+                val updateViewModel: UpdateViewModel = hiltViewModel()
+                val updateState by updateViewModel.state.collectAsState()
+                NexaFlowCard {
+                    when (val state = updateState) {
+                        UpdateUiState.Idle -> SettingRow(
+                            icon = Icons.Filled.SystemUpdate,
+                            title = stringResource(R.string.update_check),
+                            subtitle = stringResource(R.string.update_check_sub),
+                            onClick = { updateViewModel.check() }
+                        )
+                        UpdateUiState.Checking -> SettingRow(
+                            icon = Icons.Filled.SystemUpdate,
+                            title = stringResource(R.string.update_checking),
+                            subtitle = stringResource(R.string.update_check_sub)
+                        )
+                        is UpdateUiState.Latest -> SettingRow(
+                            icon = Icons.Filled.SystemUpdate,
+                            title = stringResource(R.string.update_latest),
+                            subtitle = stringResource(R.string.update_latest_sub, state.info.version),
+                            trailing = {
+                                Text(
+                                    text = stringResource(R.string.state_ok),
+                                    color = Color(0xFF2FA84F),
+                                    style = androidx.compose.material3.MaterialTheme.typography.labelLarge
+                                )
+                            },
+                            onClick = { updateViewModel.check() }
+                        )
+                        is UpdateUiState.Available -> {
+                            SettingRow(
+                                icon = Icons.Filled.SystemUpdate,
+                                title = stringResource(R.string.update_available),
+                                subtitle = stringResource(R.string.update_available_sub, state.info.version),
+                                trailing = {
+                                    Text(
+                                        text = stringResource(R.string.state_update),
+                                        color = Color(0xFF1E88E5),
+                                        style = androidx.compose.material3.MaterialTheme.typography.labelLarge
+                                    )
+                                },
+                                onClick = { updateViewModel.downloadAndInstall() }
+                            )
+                        }
+                        UpdateUiState.Downloading -> SettingRow(
+                            icon = Icons.Filled.SystemUpdate,
+                            title = stringResource(R.string.update_downloading),
+                            subtitle = stringResource(R.string.update_check_sub)
+                        )
+                        is UpdateUiState.Error -> SettingRow(
+                            icon = Icons.Filled.SystemUpdate,
+                            title = stringResource(R.string.update_error),
+                            subtitle = stringResource(
+                                when (state.message) {
+                                    "update_no_apk" -> R.string.update_no_apk
+                                    "update_download_failed" -> R.string.update_download_failed
+                                    "update_install_failed" -> R.string.update_install_failed
+                                    else -> R.string.update_check_failed
+                                }
+                            ),
+                            onClick = { updateViewModel.check() }
+                        )
+                    }
+                }
+            }
+            item {
+                SectionHeader(text = stringResource(R.string.section_privacy))
+            }
+            item {
+                val privacyViewModel: PrivacyViewModel = hiltViewModel()
+                val crashReporting by privacyViewModel.crashReportingEnabled.collectAsState()
+                NexaFlowCard {
+                    SettingRow(
+                        icon = Icons.Filled.Shield,
+                        title = stringResource(R.string.crash_reporting),
+                        subtitle = stringResource(R.string.crash_reporting_sub),
+                        trailing = {
+                            Switch(
+                                checked = crashReporting,
+                                onCheckedChange = { privacyViewModel.setCrashReportingEnabled(it) }
+                            )
+                        }
                     )
                 }
             }

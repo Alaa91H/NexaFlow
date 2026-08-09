@@ -1,5 +1,6 @@
 package com.nexaflow.core.database
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -11,6 +12,13 @@ import kotlinx.coroutines.flow.Flow
 interface ExecutionDao {
     @Query("SELECT * FROM execution_history ORDER BY executedAt DESC")
     fun getAllExecutions(): Flow<List<ExecutionRecordEntity>>
+
+    /**
+     * Pageable view of the same table — the history screen streams pages of
+     * [PAGE_SIZE] instead of materializing the whole table on every change.
+     */
+    @Query("SELECT * FROM execution_history ORDER BY executedAt DESC")
+    fun getExecutionsPaged(): PagingSource<Int, ExecutionRecordEntity>
 
     @Query("SELECT * FROM execution_history ORDER BY executedAt DESC LIMIT 1")
     suspend fun getLatestExecution(): ExecutionRecordEntity?
@@ -51,5 +59,7 @@ interface ExecutionDao {
         const val RETENTION_MS = 60L * 24 * 60 * 60 * 1000
         /** Hard ceiling on stored execution records. */
         const val RETAIN_LIMIT = 1_000
+        /** Rows fetched per page by the history pager. */
+        const val PAGE_SIZE = 30
     }
 }

@@ -1,0 +1,97 @@
+# NexaFlow curated Detekt configuration (P2-8).
+# Built on top of the default rule set; noisy/stylistic rules that would
+# produce hundreds of findings without catching real bugs are disabled.
+
+build:
+  maxIssues: 0
+
+style:
+  active: true
+  MagicNumber:
+    active: false
+  # Compose @Preview functions look "unused" to detekt; the valuable check is
+  # UnusedPrivateProperty (dead fields), which stays active.
+  UnusedPrivateMember:
+    active: false
+  UnusedPrivateProperty:
+    active: true
+  WildcardImport:
+    active: false
+  MaxLineLength:
+    active: false
+  ReturnCount:
+    active: false
+  ThrowsCount:
+    active: false
+  ForbiddenComment:
+    active: false
+  UnusedParameter:
+    active: true
+  LoopWithTooManyJumpStatements:
+    active: false
+
+complexity:
+  active: true
+  CyclomaticComplexMethod:
+    active: false
+  CognitiveComplexMethod:
+    active: false
+  LongMethod:
+    active: false
+  LongParameterList:
+    active: false
+  NestedBlockDepth:
+    active: false
+  ComplexCondition:
+    active: false
+  TooManyFunctions:
+    thresholdInClasses: 50
+    thresholdInObjects: 25
+    thresholdInInterfaces: 20
+    thresholdInFiles: 40
+  LargeClass:
+    active: true
+    threshold: 900
+
+coroutines:
+  active: true
+  GlobalCoroutineUsage:
+    active: false
+
+naming:
+  active: true
+  FunctionNaming:
+    active: false
+  VariableNaming:
+    active: false
+  # Files holding both a composable dialog and its data classes (InstalledApp,
+  # ConstraintDraft, …) legitimately mismatch the single-declaration rule.
+  MatchingDeclarationName:
+    active: false
+
+exceptions:
+  active: true
+  TooGenericExceptionCaught:
+    active: false
+  SwallowedException:
+    active: false
+  PrintStackTrace:
+    active: false
+
+performance:
+  active: true
+  SpreadOperator:
+    active: false
+
+potential-bugs:
+  active: true
+  EqualsAlwaysReturnsTrueOrFalse:
+    active: true
+  ExplicitGarbageCollectionCall:
+    active: true
+  UnconditionalJumpStatementInLoop:
+    active: true
+  DoubleMutabilityForCollection:
+    active: true
+  UnusedUnaryOperator:
+    active: true

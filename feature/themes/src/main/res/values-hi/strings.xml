@@ -24,4 +24,6 @@
     <string name="preview_dark">डार्क पूर्वावलोकन</string>
     <string name="preview_light">लाइट पूर्वावलोकन</string>
     <string name="primary_accent">मुख्य एक्सेंट</string>
+    <string name="dynamic_color">डायनामिक रंग</string>
+    <string name="dynamic_color_sub">वॉलपेपर रंगों का उपयोग करें (Material You)</string>
 </resources>

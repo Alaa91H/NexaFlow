@@ -1,9 +1,11 @@
 package com.nexaflow.app
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -19,6 +21,8 @@ import androidx.lifecycle.lifecycleScope
 import com.nexaflow.app.ui.theme.NexaFlowTheme
 import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.datastore.ThemeSettings
+import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,6 +32,12 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var themePreferences: ThemePreferences
+
+    @Inject
+    lateinit var executionEngine: ExecutionEngine
+
+    @Inject
+    lateinit var automationRepository: AutomationRepository
 
     private val requestNotificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -39,9 +49,15 @@ class MainActivity : ComponentActivity() {
         // uniformly (status/nav bars stay transparent, Scaffolds handle insets).
         enableEdgeToEdge()
         requestNotificationPermissionIfNeeded()
+        // Deep link (P2-5): nexaflow://run-task/{id} runs the task directly.
+        handleDeepLink(intent)
         setContent {
             val theme by themePreferences.theme.collectAsStateWithLifecycle(initialValue = ThemeSettings())
-            NexaFlowTheme(themeMode = theme.mode, accent = theme.accent) {
+            NexaFlowTheme(
+                themeMode = theme.mode,
+                accent = theme.accent,
+                dynamicColor = theme.dynamicColor
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -52,9 +68,39 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        // singleTop: a second deep link while the activity is alive arrives here.
+        handleDeepLink(intent)
+    }
+
     override fun onStart() {
         super.onStart()
         lifecycleScope.launch { WidgetUpdater.refreshAll(applicationContext) }
+    }
+
+    /**
+     * Runs the task targeted by a `nexaflow://run-task/{automationId}` deep
+     * link. Missing/unknown ids are ignored silently so the app just opens
+     * normally for any other launch.
+     */
+    private fun handleDeepLink(intent: Intent?) {
+        val uri = intent?.data ?: return
+        if (uri.scheme != "nexaflow" || uri.host != "run-task") return
+        val id = uri.path?.trim('/') ?: return
+        if (id.isBlank()) return
+        lifecycleScope.launch {
+            val automation = automationRepository.getAutomationById(id)
+            if (automation != null) {
+                val record = executionEngine.runAutomation(automation)
+                Toast.makeText(
+                    this@MainActivity,
+                    getString(R.string.deep_link_run_toast, automation.name) + " — " + record.message,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
 
     private fun requestNotificationPermissionIfNeeded() {

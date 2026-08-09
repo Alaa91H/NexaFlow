@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android 11 and older backup rules: the plugin holds no user data worth
+    backing up (config lives in the host), so the whole app is excluded —
+    consistent with allowBackup="false" and the Android 12+ data-extraction
+    rules above.
+-->
+<full-backup-content>
+    <exclude domain="root" path="." />
+</full-backup-content>

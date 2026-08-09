@@ -46,6 +46,8 @@
     <string name="permission_bluetooth_body">Permite que las tareas detecten cuándo tu dispositivo Bluetooth elegido se conecta o desconecta.</string>
     <string name="permission_calendar_title">Acceso al calendario</string>
     <string name="permission_calendar_body">Permite que las tareas se ejecuten alrededor de eventos del calendario, como antes de una reunión.</string>
+    <string name="permission_local_network_title">Acceso a la red local</string>
+    <string name="permission_local_network_body">Permite que las tareas HTTP alcancen dispositivos de tu red doméstica, como enchufes inteligentes o hubs multimedia.</string>
     <string name="permission_generic_title">Permiso necesario</string>
     <string name="permission_generic_body">Este permiso permite que la tarea elegida funcione como se espera.</string>
     <string name="special_write_settings_title">Modificar ajustes del sistema</string>
@@ -388,6 +390,8 @@
     <string name="variable_name_error">Solo letras, dígitos y guion bajo</string>
     <string name="variable_value">Valor</string>
     <string name="variables_value_hint">p. ej. Dirección de casa</string>
+    <string name="variable_sensitive">Sensible (cifrado)</string>
+    <string name="variable_sensitive_sub">Guarda este valor cifrado en este dispositivo (tokens, contraseñas). Se descifra solo al ejecutar una tarea.</string>
     <string name="add_variable">Añadir variable</string>
     <string name="delete_variable">Eliminar</string>
     <string name="insert_variable_hint">Insertar:</string>
@@ -427,4 +431,28 @@
     <string name="trigger_app_while_open">Se ejecuta al abrir la app y permanece activo hasta que se cierra; después aplica las opciones de finalización de la tarea.</string>
     <string name="exit_per_action_title">Opciones de finalización por acción</string>
     <string name="exit_extra_actions_label">Acciones adicionales al finalizar la tarea</string>
+    <string name="notification_button_reply">Responder con texto</string>
+    <string name="notification_button_reply_title">Variable de respuesta</string>
+    <string name="notification_button_reply_hint">Escribir en la notificación guarda el texto en esta variable para que la tarea pueda usarlo (p. ej. %MyReply).</string>
+    <string name="notification_button_reply_label">Nombre de variable (sin %)</string>
+    <string name="notification_button_reply_sub">Escribe la respuesta en %s</string>
+    <string name="trigger_type_sensor">Sensor</string>
+    <string name="sensor_kind">Tipo de sensor</string>
+    <string name="sensor_proximity">Proximidad</string>
+    <string name="sensor_shake">Agitar</string>
+    <string name="sensor_light">Luz</string>
+    <string name="sensor_step">Pasos</string>
+    <string name="sensor_event_covered">Cubierto</string>
+    <string name="sensor_event_uncovered">Descubierto</string>
+    <string name="sensor_event_above">Por encima</string>
+    <string name="sensor_event_below">Por debajo</string>
+    <string name="sensor_threshold_label">Por encima de %d lux</string>
+    <string name="sensor_sensitivity_label">Sensibilidad: %d</string>
+    <string name="sensor_step_hint">Se ejecuta con cada paso.</string>
+    <string name="sensor_permission_hint">El conteo de pasos necesita el permiso de reconocimiento de actividad.</string>
+    <string name="trigger_type_webhook">Webhook</string>
+    <string name="webhook_path">Ruta</string>
+    <string name="webhook_token">Token (opcional)</string>
+    <string name="webhook_token_hint">Valor de cabecera secreto</string>
+    <string name="webhook_url_hint">Envía una solicitud HTTP a http://127.0.0.1:8765/path desde este dispositivo para activar la tarea.</string>
 </resources>

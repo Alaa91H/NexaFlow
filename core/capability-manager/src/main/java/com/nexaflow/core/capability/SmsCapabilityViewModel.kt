@@ -1,12 +1,10 @@
 package com.nexaflow.core.capability
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexaflow.core.datastore.SmsPreferences
 import com.nexaflow.core.engine.SmsConsentManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +20,6 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class SmsCapabilityViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val smsPreferences: SmsPreferences,
     private val consentManager: SmsConsentManager
 ) : ViewModel() {

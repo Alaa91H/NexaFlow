@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.library")
+    alias(libs.plugins.android.library)
 }
 
 android {
@@ -30,8 +30,8 @@ kotlin {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
     // Dispatchers.Main used by AppDispatchers.Default needs the Android artifact.
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
-    testImplementation("junit:junit:4.13.2")
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.android)
+    testImplementation(libs.junit.junit)
 }

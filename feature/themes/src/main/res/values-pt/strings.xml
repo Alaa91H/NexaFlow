@@ -24,4 +24,6 @@
     <string name="preview_dark">Visualização escura</string>
     <string name="preview_light">Visualização clara</string>
     <string name="primary_accent">Destaque principal</string>
+    <string name="dynamic_color">Cor dinâmica</string>
+    <string name="dynamic_color_sub">Usar cores do papel de parede (Material You)</string>
 </resources>

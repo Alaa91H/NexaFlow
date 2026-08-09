@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plugin_name">NFC Toggle</string>
+    <string name="switch_label">Turn on NFC</string>
+    <string name="save">Save</string>
+    <string name="blurb_enable">NFC: turn on</string>
+    <string name="blurb_disable">NFC: turn off</string>
+</resources>

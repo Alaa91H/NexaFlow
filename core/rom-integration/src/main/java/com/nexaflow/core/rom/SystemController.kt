@@ -781,7 +781,7 @@ class SystemController(
                 builder.setSilent(true)
             }
             actions.forEach { builder.addAction(it) }
-            notificationManager.notify(1001, builder.build())
+            notificationManager.notify(ACTION_NOTIFICATION_ID, builder.build())
 
             if (sound == "BEEP") {
                 playBeep()
@@ -810,5 +810,10 @@ class SystemController(
     private fun tryPrivileged(command: String, successMessage: String): SystemControlResult {
         val result = PrivilegedRunner.runShell(command)
         return if (result.success) SystemControlResult.ok(successMessage) else result
+    }
+
+    companion object {
+        /** Notification id used by [sendNotification]; exposed so dismiss buttons can cancel it. */
+        const val ACTION_NOTIFICATION_ID = 1001
     }
 }

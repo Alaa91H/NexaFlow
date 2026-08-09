@@ -76,6 +76,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -355,24 +356,26 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
     val stringNextNeedsTrigger = stringResource(R.string.next_needs_trigger)
     val stringNextNeedsAction = stringResource(R.string.next_needs_action)
     val stringSavedSuccessfully = stringResource(R.string.saved_successfully)
-    var name by remember { mutableStateOf("") }
-    val triggers = remember { mutableStateListOf<TriggerDraft>() }
-    val constraints = remember { mutableStateListOf<ConstraintDraft>() }
+    // P2-11: the editable draft survives rotation AND process death via
+    // rememberSaveable (custom savers serialize the immutable drafts to Bundle).
+    var name by rememberSaveable { mutableStateOf("") }
+    val triggers = rememberSaveable(saver = TriggerDraftListSaver) { mutableStateListOf<TriggerDraft>() }
+    val constraints = rememberSaveable(saver = ConstraintDraftListSaver) { mutableStateListOf<ConstraintDraft>() }
     var showConstraintPicker by remember { mutableStateOf(false) }
-    var selectedIconIndex by remember { mutableStateOf(0) }
+    var selectedIconIndex by rememberSaveable { mutableStateOf(0) }
     var appPickerTarget by remember { mutableStateOf<String?>(null) }
     var mapPickerTarget by remember { mutableStateOf<Int?>(null) }
     var bluetoothPickerTarget by remember { mutableStateOf<Int?>(null) }
     var calendarPickerTarget by remember { mutableStateOf<Int?>(null) }
     var showTriggerPicker by remember { mutableStateOf(false) }
     var showActionPicker by remember { mutableStateOf(false) }
-    val actionConfigs = remember { mutableStateMapOf<ActionType, Map<String, String>>() }
-    val selectedActions = remember { mutableStateListOf<ActionOption>() }
+    val actionConfigs = rememberSaveable(saver = ActionConfigMapSaver) { mutableStateMapOf<ActionType, Map<String, String>>() }
+    val selectedActions = rememberSaveable(saver = ActionOptionListSaver) { mutableStateListOf<ActionOption>() }
     // Per-action end behavior (leave / restore / set value) applied when the task ends.
-    val actionEndBehaviors = remember { mutableStateMapOf<ActionType, EndBehavior?>() }
-    var cooldownSeconds by remember { mutableStateOf(10) }
-    val exitActionConfigs = remember { mutableStateMapOf<ActionType, Map<String, String>>() }
-    val selectedExitActions = remember { mutableStateListOf<ActionOption>() }
+    val actionEndBehaviors = rememberSaveable(saver = ActionEndBehaviorMapSaver) { mutableStateMapOf<ActionType, EndBehavior?>() }
+    var cooldownSeconds by rememberSaveable { mutableStateOf(10) }
+    val exitActionConfigs = rememberSaveable(saver = ActionConfigMapSaver) { mutableStateMapOf<ActionType, Map<String, String>>() }
+    val selectedExitActions = rememberSaveable(saver = ActionOptionListSaver) { mutableStateListOf<ActionOption>() }
     var showExitPicker by remember { mutableStateOf(false) }
 
     // ── External plugins (Locale protocol) ─────────────────────────

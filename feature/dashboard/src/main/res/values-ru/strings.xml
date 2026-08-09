@@ -35,4 +35,6 @@
     <string name="trigger_ringer">Режим звука</string>
     <string name="trigger_notification">Уведомление приложения</string>
     <string name="trigger_calendar">Событие календаря</string>
+    <string name="trigger_sensor">Датчик</string>
+    <string name="trigger_webhook">Вебхук</string>
 </resources>
