@@ -3,6 +3,14 @@
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
+      <trusted-artifacts>
+         <!-- BOM metadata files are republished on Maven Central over time, so their
+              checksums legitimately drift (junit-bom, kotlinx-coroutines-bom,
+              guava-parent). Trust their metadata by filename pattern. -->
+         <trust file="guava-parent-.*[.]pom" regex="true"/>
+         <trust file="junit-bom-.*[.]module" regex="true"/>
+         <trust file="kotlinx-coroutines-bom-.*[.]pom" regex="true"/>
+      </trusted-artifacts>
    </configuration>
    <components>
       <component group="androidx.activity" name="activity" version="1.13.0">
