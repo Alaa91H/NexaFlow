@@ -154,12 +154,18 @@ class ConnectivityMonitor @Inject constructor(
  * requested source; more representative on dual-SIM and hybrid-voice setups)
  * for everything else. Returns null when telephony is unavailable.
  */
+// Every privileged read below is wrapped in runCatching and degrades to the
+// legacy network type (or null) when the READ_PHONE_STATE/READ_BASIC_PHONE_STATE
+// grant is missing — lint cannot prove that, so the calls are suppressed here.
+@Suppress("MissingPermission")
 fun currentCellularGeneration(context: Context): String? {
     val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
         ?: return null
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
         // Requires READ_PHONE_STATE on API 31+; degrade gracefully when the
         // permission is missing and rely on the network type instead.
+        // (getNetworkRegistrationInfoList and the access-technology getters
+        // require API 30, hence the R guard.)
         val serviceState = runCatching { telephony.serviceState }.getOrNull()
         val onReal5g = serviceState?.networkRegistrationInfoList.orEmpty().any { info ->
             info.domain == NetworkRegistrationInfo.DOMAIN_PS &&

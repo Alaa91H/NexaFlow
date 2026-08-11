@@ -124,6 +124,9 @@ object LocationAccess {
      * null when the permission is missing, providers are all off, or no fix
      * arrives in time.
      */
+    // The permission is checked explicitly at the top (hasLocationPermission);
+    // lint cannot trace the guard through the coroutine continuation below.
+    @android.annotation.SuppressLint("MissingPermission")
     suspend fun getCurrentLocation(context: Context, timeoutMs: Long = DEFAULT_FIX_TIMEOUT_MS): Location? {
         if (!hasLocationPermission(context)) return null
         val manager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
