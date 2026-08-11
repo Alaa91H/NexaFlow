@@ -181,17 +181,23 @@ class MonitoringService : Service() {
 
     private fun startAsForeground() {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        // IMPORTANCE_MIN keeps the monitoring notification out of the status
+        // bar and completely silent — no sound, no heads-up, no icon. Android
+        // still requires an FGS notification while the service runs, but this
+        // is the quietest form it can take.
         val channel = NotificationChannel(
             CHANNEL_ID,
             getString(R.string.monitoring_channel_name),
-            NotificationManager.IMPORTANCE_LOW
+            NotificationManager.IMPORTANCE_MIN
         )
         notificationManager.createNotificationChannel(channel)
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(com.nexaflow.core.rom.R.drawable.ic_stat_nexaflow)
             .setContentTitle(getString(R.string.monitoring_title))
             .setContentText(getString(R.string.monitoring_text))
-            .setOngoing(true)
+            // Not ongoing: on Android 13+ the user can swipe the notification
+            // away and it stays dismissed (the service keeps running).
+            .setOngoing(false)
             .build()
         ServiceCompat.startForeground(
             this,

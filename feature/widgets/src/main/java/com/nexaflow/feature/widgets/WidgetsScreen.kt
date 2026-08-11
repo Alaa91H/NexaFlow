@@ -17,11 +17,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.ToggleOn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -52,6 +56,7 @@ import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
+import com.nexaflow.core.ui.iconVector
 
 private data class WidgetModel(
     val id: String,
@@ -94,7 +99,11 @@ private val quickTiles = listOf(
     TileModel(1, R.string.tile_1_label, R.string.tile_1_desc, Icons.Filled.Bolt, Color(0xFF1B62B7), TaskTile1Service::class.java),
     TileModel(2, R.string.tile_2_label, R.string.tile_2_desc, Icons.Filled.PlayArrow, Color(0xFF2FA84F), TaskTile2Service::class.java),
     TileModel(3, R.string.tile_3_label, R.string.tile_3_desc, Icons.Filled.Pause, Color(0xFF9C6ADE), TaskTile3Service::class.java),
-    TileModel(4, R.string.tile_4_label, R.string.tile_4_desc, Icons.Filled.CheckCircle, Color(0xFFE8833A), TaskTile4Service::class.java)
+    TileModel(4, R.string.tile_4_label, R.string.tile_4_desc, Icons.Filled.CheckCircle, Color(0xFFE8833A), TaskTile4Service::class.java),
+    TileModel(5, R.string.tile_5_label, R.string.tile_5_desc, Icons.Filled.Star, Color(0xFFE8A33D), TaskTile5Service::class.java),
+    TileModel(6, R.string.tile_6_label, R.string.tile_6_desc, Icons.Filled.Home, Color(0xFF13A5A8), TaskTile6Service::class.java),
+    TileModel(7, R.string.tile_7_label, R.string.tile_7_desc, Icons.Filled.BatteryChargingFull, Color(0xFF2FA84F), TaskTile7Service::class.java),
+    TileModel(8, R.string.tile_8_label, R.string.tile_8_desc, Icons.Filled.MusicNote, Color(0xFF7A5BD1), TaskTile8Service::class.java)
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,6 +112,7 @@ fun WidgetsScreen(navController: NavController, viewModel: WidgetsViewModel = hi
     val context = LocalContext.current
     val installed = remember(context) { installedWidgets(context) }
     val automations by viewModel.automations.collectAsStateWithLifecycle()
+    val bindings by viewModel.bindings.collectAsStateWithLifecycle()
     var bindingSlot by remember { mutableStateOf<Int?>(null) }
 
     Scaffold(topBar = { NexaFlowTopBar(title = stringResource(R.string.widgets_title), onBack = { navController.popBackStack() }) }) { padding ->
@@ -117,8 +127,9 @@ fun WidgetsScreen(navController: NavController, viewModel: WidgetsViewModel = hi
                 SectionHeader(text = stringResource(R.string.section_tiles))
             }
             items(quickTiles) { tile ->
-                val boundId = viewModel.bindingFor(tile.slot)
-                val boundName = automations.firstOrNull { it.id == boundId }?.name
+                val boundId = bindings[tile.slot]
+                val boundTask = automations.firstOrNull { it.id == boundId }
+                val boundName = boundTask?.name
                 NexaFlowCard {
                     Column {
                         Row(
@@ -126,7 +137,13 @@ fun WidgetsScreen(navController: NavController, viewModel: WidgetsViewModel = hi
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            IconBadge(icon = tile.icon, containerColor = tile.color)
+                            // The tile shows the bound task's own icon (the same
+                            // one chosen in the task editor), falling back to the
+                            // slot's default icon when unbound.
+                            IconBadge(
+                                icon = boundTask?.let { iconVector(it.icon) } ?: tile.icon,
+                                containerColor = boundTask?.let { Color(it.iconColor) } ?: tile.color
+                            )
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = stringResource(tile.labelRes),
@@ -278,7 +295,7 @@ fun WidgetsScreen(navController: NavController, viewModel: WidgetsViewModel = hi
     bindingSlot?.let { slot ->
         TileBindingDialog(
             automations = automations,
-            currentBinding = viewModel.bindingFor(slot),
+            currentBinding = bindings[slot],
             onSelect = { automationId ->
                 viewModel.setBinding(slot, automationId)
                 bindingSlot = null
@@ -314,12 +331,18 @@ private fun TileBindingDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onSelect(automation.id) },
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         RadioButton(selected = currentBinding == automation.id, onClick = { onSelect(automation.id) })
+                        IconBadge(
+                            icon = iconVector(automation.icon),
+                            containerColor = Color(automation.iconColor),
+                            size = 32
+                        )
                         Text(
                             text = automation.name,
-                            modifier = Modifier.padding(start = 4.dp)
+                            modifier = Modifier.padding(start = 2.dp)
                         )
                     }
                 }

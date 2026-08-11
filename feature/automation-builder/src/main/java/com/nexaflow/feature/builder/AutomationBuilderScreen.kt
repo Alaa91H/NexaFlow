@@ -3,8 +3,8 @@ package com.nexaflow.feature.builder
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -91,9 +91,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.Observer
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
+import com.nexaflow.core.engine.LocationAccess
 import com.nexaflow.core.pluginsdk.LocaleContract
 import com.nexaflow.core.pluginsdk.PluginConfigParser
 import com.nexaflow.core.rom.ElevatedAccessShortcuts
@@ -149,12 +151,14 @@ internal val actionOptions = listOf(
     // SOUND
     ActionOption(R.string.action_volume, R.string.action_volume_sub, Icons.AutoMirrored.Filled.VolumeUp, Color(0xFF7A5BD1), ActionType.SYSTEM_VOLUME, ActionCategory.SOUND),
     ActionOption(R.string.action_stream_volume, R.string.action_stream_volume_sub, Icons.AutoMirrored.Filled.VolumeUp, Color(0xFF7A5BD1), ActionType.SYSTEM_STREAM_VOLUME, ActionCategory.SOUND),
+    ActionOption(R.string.action_set_ringtone, R.string.action_set_ringtone_sub, Icons.Filled.MusicNote, Color(0xFFE8A33D), ActionType.SYSTEM_SET_RINGTONE, ActionCategory.SOUND),
     ActionOption(R.string.action_ringer, R.string.action_ringer_sub, Icons.AutoMirrored.Filled.VolumeUp, Color(0xFF7A5BD1), ActionType.SYSTEM_RINGER_MODE, ActionCategory.SOUND),
     ActionOption(R.string.action_dnd, R.string.action_dnd_sub, Icons.Filled.DoNotDisturb, Color(0xFFE5533D), ActionType.SYSTEM_DND, ActionCategory.SOUND),
     // CONNECTIVITY
     ActionOption(R.string.action_wifi, R.string.action_wifi_sub, Icons.Filled.Wifi, Color(0xFF1B62B7), ActionType.SYSTEM_WIFI, ActionCategory.CONNECTIVITY),
     ActionOption(R.string.action_bluetooth, R.string.action_bluetooth_sub, Icons.Filled.Bluetooth, Color(0xFF2FA84F), ActionType.SYSTEM_BLUETOOTH, ActionCategory.CONNECTIVITY),
     ActionOption(R.string.action_mobile_data, R.string.action_mobile_data_sub, Icons.Filled.SignalCellularAlt, Color(0xFF13A5A8), ActionType.SYSTEM_MOBILE_DATA, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_network_mode, R.string.action_network_mode_sub, Icons.Filled.SignalCellularAlt, Color(0xFF13A5A8), ActionType.SYSTEM_NETWORK_MODE, ActionCategory.CONNECTIVITY),
     ActionOption(R.string.action_hotspot, R.string.action_hotspot_sub, Icons.Filled.Wifi, Color(0xFF2FA84F), ActionType.SYSTEM_HOTSPOT, ActionCategory.CONNECTIVITY),
     ActionOption(R.string.action_nfc, R.string.action_nfc_sub, Icons.Filled.Nfc, Color(0xFF1B62B7), ActionType.SYSTEM_NFC, ActionCategory.CONNECTIVITY),
     ActionOption(R.string.action_airplane, R.string.action_airplane_sub, Icons.Filled.AirplanemodeActive, Color(0xFF13A5A8), ActionType.SYSTEM_AIRPLANE_MODE, ActionCategory.CONNECTIVITY),
@@ -320,24 +324,13 @@ private fun SelectedActionCard(
     }
 }
 
-/** Parses "geo:lat,lng..." (and geo:0,0?q=lat,lng) into a (lat, lng) pair. */
-private fun parseGeoUri(uri: String): Pair<Double, Double>? {
-    if (!uri.startsWith("geo:")) return null
-    val coordsPart = uri.removePrefix("geo:").substringBefore("?")
-    val parts = coordsPart.split(',')
-    if (parts.size < 2) return null
-    val lat = parts[0].toDoubleOrNull() ?: return null
-    val lng = parts[1].toDoubleOrNull() ?: return null
-    if (lat == 0.0 && lng == 0.0) {
-        // Some map apps return geo:0,0?q=<address> instead of coordinates.
-        return null
-    }
-    return lat to lng
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AutomationBuilderScreen(navController: NavController, automationId: String? = null) {
+fun AutomationBuilderScreen(
+    navController: NavController,
+    automationId: String? = null,
+    savedStateHandle: SavedStateHandle? = null
+) {
     val viewModel: AutomationBuilderViewModel = hiltViewModel()
     val context = LocalContext.current
     val variables by viewModel.variables.collectAsStateWithLifecycle()
@@ -356,6 +349,7 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
     val stringNextNeedsTrigger = stringResource(R.string.next_needs_trigger)
     val stringNextNeedsAction = stringResource(R.string.next_needs_action)
     val stringSavedSuccessfully = stringResource(R.string.saved_successfully)
+    val stringLocationFixFailed = stringResource(R.string.location_fix_failed)
     // P2-11: the editable draft survives rotation AND process death via
     // rememberSaveable (custom savers serialize the immutable drafts to Bundle).
     var name by rememberSaveable { mutableStateOf("") }
@@ -364,7 +358,6 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
     var showConstraintPicker by remember { mutableStateOf(false) }
     var selectedIconIndex by rememberSaveable { mutableStateOf(0) }
     var appPickerTarget by remember { mutableStateOf<String?>(null) }
-    var mapPickerTarget by remember { mutableStateOf<Int?>(null) }
     var bluetoothPickerTarget by remember { mutableStateOf<Int?>(null) }
     var calendarPickerTarget by remember { mutableStateOf<Int?>(null) }
     var showTriggerPicker by remember { mutableStateOf(false) }
@@ -373,7 +366,6 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
     val selectedActions = rememberSaveable(saver = ActionOptionListSaver) { mutableStateListOf<ActionOption>() }
     // Per-action end behavior (leave / restore / set value) applied when the task ends.
     val actionEndBehaviors = rememberSaveable(saver = ActionEndBehaviorMapSaver) { mutableStateMapOf<ActionType, EndBehavior?>() }
-    var cooldownSeconds by rememberSaveable { mutableStateOf(10) }
     val exitActionConfigs = rememberSaveable(saver = ActionConfigMapSaver) { mutableStateMapOf<ActionType, Map<String, String>>() }
     val selectedExitActions = rememberSaveable(saver = ActionOptionListSaver) { mutableStateListOf<ActionOption>() }
     var showExitPicker by remember { mutableStateOf(false) }
@@ -483,7 +475,6 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                 }
             }
         }
-        cooldownSeconds = loaded.cooldownSeconds
         selectedExitActions.clear()
         exitActionConfigs.clear()
         loaded.exitActions.forEach { action ->
@@ -493,28 +484,127 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
             }
         }
     }
-    val mapLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        val index = mapPickerTarget ?: return@rememberLauncherForActivityResult
-        mapPickerTarget = null
-        val data = result.data?.data?.toString().orEmpty()
-        val coords = parseGeoUri(data)
-        if (coords != null && index in triggers.indices) {
-            val current = triggers[index]
-            triggers[index] = current.copy(
-                config = current.config + ("lat" to coords.first.toString()) + ("lng" to coords.second.toString())
-            )
+    /**
+     * The builder's own savedStateHandle, stable for this destination: the
+     * icon picker writes its result here, and the in-app map picker does the
+     * same (plus the trigger index it was opened for). Reading it from the
+     * navController instead would re-point at the top entry while a picker is
+     * open and drop the result. The caller passes the entry's handle; fall
+     * back to reading it once from the controller for standalone composition.
+     */
+    val stableSavedStateHandle = remember {
+        savedStateHandle ?: navController.currentBackStackEntry?.savedStateHandle
+    }
+
+    /**
+     * Opens the in-app map picker for a trigger. External maps apps are a
+     * dead end for picking: modern Google Maps no longer handles ACTION_PICK
+     * (and ACTION_VIEW never returns a point), so the builder now opens its
+     * own OpenStreetMap screen where a crosshair + confirm button return the
+     * exact coordinates via the shared savedStateHandle.
+     */
+    fun launchMapPicker(index: Int) {
+        // Remember which trigger the picker was opened for. It lives in the
+        // builder's own savedStateHandle (survives the navigation round-trip
+        // and process death) so the returned point lands on the right row.
+        stableSavedStateHandle?.set("map_picker_target", index)
+        navController.navigate("map_picker")
+    }
+
+    // ── "Use my current location": silently enable location (privileged),
+    // grab a fix, fill the coordinates, then restore the previous mode. When no
+    // elevated runtime exists, opens the system location settings and resumes
+    // on return — the whole flow needs no permission dialogs beyond the one-time
+    // runtime location permission.
+    var pendingUseLocationIndex by remember { mutableStateOf<Int?>(null) }
+    // Toggled by the permission/settings launchers so their callbacks can resume
+    // the locate flow without a forward reference to the local function below.
+    var resumeLocationFill by remember { mutableStateOf(false) }
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) resumeLocationFill = true
+    }
+    val locationSettingsLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        // Back from the system location settings: retry the pending fill.
+        resumeLocationFill = true
+    }
+    fun locateAndFill(index: Int) {
+        if (index !in triggers.indices) return
+        if (!LocationAccess.hasLocationPermission(context)) {
+            pendingUseLocationIndex = index
+            locationPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+            return
+        }
+        scope.launch {
+            // Everything below must never crash the builder: location services,
+            // elevated shells and the single-shot fix can all throw on odd ROM
+            // states, and an uncaught exception here would FC the whole app.
+            try {
+                val wasEnabled = LocationAccess.isLocationEnabled(context)
+                val previousMode = LocationAccess.currentLocationMode(context)
+                val enabled = if (wasEnabled) true else LocationAccess.enableLocationSilently(context)
+                if (!enabled) {
+                    // No privileged path: one tap in the system settings screen.
+                    pendingUseLocationIndex = index
+                    runCatching {
+                        locationSettingsLauncher.launch(
+                            Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                        )
+                    }
+                    return@launch
+                }
+                val fix = LocationAccess.getCurrentLocation(context, 12_000)
+                if (fix != null && index in triggers.indices) {
+                    triggers[index] = triggers[index].copy(
+                        config = triggers[index].config +
+                            ("lat" to fix.latitude.toString()) +
+                            ("lng" to fix.longitude.toString())
+                    )
+                } else {
+                    scope.launch { snackbarHostState.showSnackbar(stringLocationFixFailed) }
+                }
+                if (!wasEnabled) LocationAccess.restoreLocationModeIfWeChanged(context, previousMode)
+            } catch (t: Throwable) {
+                Log.w("LocateFill", "Current-location fill failed", t)
+                scope.launch { snackbarHostState.showSnackbar(stringLocationFixFailed) }
+            }
+        }
+    }
+    // Resumes a locate flow interrupted by the permission or settings screens.
+    LaunchedEffect(resumeLocationFill) {
+        if (resumeLocationFill) {
+            resumeLocationFill = false
+            pendingUseLocationIndex?.let { locateAndFill(it) }
         }
     }
     val scrollState = rememberScrollState()
 
-    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
-    DisposableEffect(savedStateHandle) {
+    // Receive the icon picked in IconPickerScreen. The handle must stay bound
+    // to THIS builder entry (see stableSavedStateHandle above).
+    DisposableEffect(stableSavedStateHandle) {
         val observer = Observer<Int> { index ->
             selectedIconIndex = index
         }
-        savedStateHandle?.getLiveData<Int>("selected_icon")?.observeForever(observer)
+        stableSavedStateHandle?.getLiveData<Int>("selected_icon")?.observeForever(observer)
+        val locationObserver = Observer<String> { value ->
+            val coords = value.split(',')
+            val lat = coords.getOrNull(0)?.toDoubleOrNull()
+            val lng = coords.getOrNull(1)?.toDoubleOrNull()
+            val index = stableSavedStateHandle?.get<Int>("map_picker_target") ?: return@Observer
+            if (lat != null && lng != null && index in triggers.indices) {
+                triggers[index] = triggers[index].copy(
+                    config = triggers[index].config + ("lat" to lat.toString()) + ("lng" to lng.toString())
+                )
+                stableSavedStateHandle?.set("map_picker_target", null)
+            }
+        }
+        stableSavedStateHandle?.getLiveData<String>("picked_location")?.observeForever(locationObserver)
         onDispose {
-            savedStateHandle?.getLiveData<Int>("selected_icon")?.removeObserver(observer)
+            stableSavedStateHandle?.getLiveData<Int>("selected_icon")?.removeObserver(observer)
+            stableSavedStateHandle?.getLiveData<String>("picked_location")?.removeObserver(locationObserver)
         }
     }
 
@@ -527,7 +617,28 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
     var permissionRefreshTick by remember { mutableStateOf(0) }
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) permissionRefreshTick++
+            if (event == Lifecycle.Event.ON_RESUME) {
+                permissionRefreshTick++
+                // Coming back from the picker: the handle always holds the
+                // latest pick even if the LiveData observer missed the event,
+                // so re-apply it to keep the badge in sync.
+                stableSavedStateHandle?.get<Int>("selected_icon")?.let {
+                    if (it in NexaFlowIcons.all.indices) selectedIconIndex = it
+                }
+                // Same for a location picked on the in-app map.
+                stableSavedStateHandle?.get<String>("picked_location")?.let { value ->
+                    val coords = value.split(',')
+                    val lat = coords.getOrNull(0)?.toDoubleOrNull()
+                    val lng = coords.getOrNull(1)?.toDoubleOrNull()
+                    val index = stableSavedStateHandle?.get<Int>("map_picker_target")
+                    if (lat != null && lng != null && index != null && index in triggers.indices) {
+                        triggers[index] = triggers[index].copy(
+                            config = triggers[index].config + ("lat" to lat.toString()) + ("lng" to lng.toString())
+                        )
+                        stableSavedStateHandle?.set("map_picker_target", null)
+                    }
+                }
+            }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
@@ -604,6 +715,13 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
             showSnackbar(stringNextNeedsAction)
             return
         }
+        // The picker writes the selection into this entry's savedStateHandle.
+        // Re-read it here as the source of truth: the LiveData observer may
+        // miss the event under device recomposition timing, but the handle
+        // itself always holds the latest pick.
+        stableSavedStateHandle?.get<Int>("selected_icon")?.let {
+            if (it in NexaFlowIcons.all.indices) selectedIconIndex = it
+        }
         val builtTriggers = triggers.map { draft ->
             Trigger(draft.type, draft.config)
         }
@@ -625,8 +743,11 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
             exitActions = exitActions,
             // Unified end behavior: each action carries its own end behavior
             // (leave / restore / set value), so the global toggle stays off.
+            // Runs are always immediate: the cooldown UI was removed entirely
+            // and the engine gate is pinned to zero so every trigger fires at
+            // once, no matter how often the event repeats.
             revertOnExit = false,
-            cooldownSeconds = cooldownSeconds
+            cooldownSeconds = 0
         )
         // Aggressive permission flow: right after saving, request any missing
         // runtime permission through the system dialog immediately, and explain
@@ -753,18 +874,8 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                     onRequestPermission = { requestPermissions(it) },
                     onExplainSpecial = { explainSpecialPermission(it) },
                     refreshKey = permissionRefreshTick,
-                    onPickFromMap = {
-                        mapPickerTarget = index
-                        try {
-                            mapLauncher.launch(
-                                Intent(Intent.ACTION_PICK, Uri.parse("geo:0,0?z=15")).apply {
-                                    `package` = "com.google.android.apps.maps"
-                                }
-                            )
-                        } catch (_: Throwable) {
-                            mapLauncher.launch(Intent(Intent.ACTION_PICK, Uri.parse("geo:0,0?z=15")))
-                        }
-                    }
+                    onPickFromMap = { launchMapPicker(index) },
+                    onUseCurrentLocation = { locateAndFill(index) }
                 )
             }
 
@@ -907,18 +1018,6 @@ fun AutomationBuilderScreen(navController: NavController, automationId: String? 
                         }
                     }
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    // Per-task cooldown: minimum gap between two runs from the same event.
-                    Text(
-                        text = stringResource(R.string.cooldown_label, cooldownSeconds),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    SliderRow(
-                        label = stringResource(R.string.cooldown_hint),
-                        value = cooldownSeconds.toFloat(),
-                        onValueChange = { cooldownSeconds = it.toInt() },
-                        valueRange = 0f..300f
-                    )
                     if (selectedExitActions.isNotEmpty()) {
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         Text(

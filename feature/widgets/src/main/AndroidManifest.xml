@@ -46,6 +46,50 @@
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
         </service>
+
+        <service
+            android:name=".TaskTile5Service"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_5"
+            android:label="@string/tile_5_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".TaskTile6Service"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_6"
+            android:label="@string/tile_6_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".TaskTile7Service"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_7"
+            android:label="@string/tile_7_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".TaskTile8Service"
+            android:exported="true"
+            android:icon="@drawable/ic_tile_8"
+            android:label="@string/tile_8_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

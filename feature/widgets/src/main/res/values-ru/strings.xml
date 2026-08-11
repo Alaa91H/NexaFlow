@@ -44,4 +44,13 @@
     <string name="tile_cancel">Отмена</string>
 
     <string name="tile_unbound">Нет задачи</string>
+
+    <string name="tile_5_label">Задача 5</string>
+    <string name="tile_6_label">Задача 6</string>
+    <string name="tile_7_label">Задача 7</string>
+    <string name="tile_8_label">Задача 8</string>
+    <string name="tile_5_desc">Переключайте пятую задачу прямо из панели быстрых настроек.</string>
+    <string name="tile_6_desc">Переключайте шестую задачу прямо из панели быстрых настроек.</string>
+    <string name="tile_7_desc">Переключайте седьмую задачу прямо из панели быстрых настроек.</string>
+    <string name="tile_8_desc">Переключайте восьмую задачу прямо из панели быстрых настроек.</string>
 </resources>

@@ -1,13 +1,18 @@
 package com.nexaflow.feature.dashboard
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,6 +25,9 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SignalCellularAlt
+import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,6 +36,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -48,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.nexaflow.core.engine.currentCellularGeneration
 import com.nexaflow.core.ui.EmptyState
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
@@ -59,6 +70,7 @@ import com.nexaflow.domain.schedule.TimeTriggerCalculator
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.delay
 
 @Composable
 fun DashboardScreen(navController: NavController) {
@@ -104,6 +116,8 @@ fun DashboardScreen(navController: NavController) {
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.secondary
                         )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        ConnectivityStatusRow(context = LocalContext.current)
                     }
                     IconButton(onClick = { navController.navigate("settings") }) {
                         Icon(imageVector = Icons.Filled.Settings, contentDescription = stringResource(R.string.dashboard_settings))
@@ -187,6 +201,94 @@ fun DashboardScreen(navController: NavController) {
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
+    }
+}
+
+/**
+ * Live connection status: the active transport (Wi-Fi / mobile data / offline)
+ * plus the device's current cellular generation (2G/3G/4G/5G), refreshed every
+ * few seconds while the dashboard is visible.
+ */
+@Composable
+private fun ConnectivityStatusRow(context: Context) {
+    var status by remember { mutableStateOf(readConnectivityStatus(context)) }
+    LaunchedEffect(context) {
+        while (true) {
+            status = readConnectivityStatus(context)
+            delay(5_000)
+        }
+    }
+    val (transport, generation) = status
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        StatusChip(
+            icon = when (transport) {
+                "WIFI" -> Icons.Filled.Wifi
+                "CELLULAR" -> Icons.Filled.SignalCellularAlt
+                else -> Icons.Filled.WifiOff
+            },
+            label = when (transport) {
+                "WIFI" -> stringResource(R.string.status_wifi)
+                "CELLULAR" -> stringResource(R.string.status_mobile_data)
+                else -> stringResource(R.string.status_offline)
+            },
+            tint = if (transport == "NONE") {
+                MaterialTheme.colorScheme.outline
+            } else {
+                MaterialTheme.colorScheme.primary
+            }
+        )
+        generation?.let {
+            StatusChip(
+                icon = Icons.Filled.SignalCellularAlt,
+                label = it,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+/** Small rounded status pill. */
+@Composable
+private fun StatusChip(icon: ImageVector, label: String, tint: Color) {
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        contentColor = tint
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp)
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
+}
+
+/** Active transport id + readable cellular generation (same real-5G detection as the runtime). */
+private fun readConnectivityStatus(context: Context): Pair<String, String?> {
+    val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val capabilities = manager.getNetworkCapabilities(manager.activeNetwork)
+    val hasWifi = capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
+    val hasCellular = capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true
+    val generation = currentCellularGeneration(context)
+    return when {
+        hasWifi -> "WIFI" to generation
+        hasCellular -> "CELLULAR" to generation
+        else -> "NONE" to generation
     }
 }
 
@@ -340,6 +442,7 @@ private fun triggerLabel(type: TriggerType): Int = when (type) {
     TriggerType.NOTIFICATION -> R.string.trigger_notification
     TriggerType.CALENDAR -> R.string.trigger_calendar
     TriggerType.SENSOR -> R.string.trigger_sensor
+    TriggerType.NETWORK_MODE -> R.string.trigger_type_network_mode
     TriggerType.WEBHOOK -> R.string.trigger_webhook
 }
 

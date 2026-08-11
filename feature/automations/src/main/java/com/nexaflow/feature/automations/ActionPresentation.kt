@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
@@ -62,7 +63,9 @@ fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (
     ActionType.SYSTEM_AUTO_BRIGHTNESS -> Triple(R.string.action_auto_brightness, R.string.action_auto_brightness_sub, Icons.Filled.FlashOn)
     ActionType.SYSTEM_RINGER_MODE -> Triple(R.string.action_ringer, R.string.action_ringer_sub, Icons.AutoMirrored.Filled.VolumeUp)
     ActionType.SYSTEM_MOBILE_DATA -> Triple(R.string.action_mobile_data, R.string.action_mobile_data_sub, Icons.Filled.Wifi)
+    ActionType.SYSTEM_NETWORK_MODE -> Triple(R.string.action_network_mode, R.string.action_network_mode_sub, Icons.Filled.SignalCellularAlt)
     ActionType.SYSTEM_HOTSPOT -> Triple(R.string.action_hotspot, R.string.action_hotspot_sub, Icons.Filled.Wifi)
+    ActionType.SYSTEM_SET_RINGTONE -> Triple(R.string.action_set_ringtone, R.string.action_set_ringtone_sub, Icons.Filled.MusicNote)
     ActionType.SYSTEM_NFC -> Triple(R.string.action_nfc, R.string.action_nfc_sub, Icons.Filled.Wifi)
     ActionType.SYSTEM_POWER_SAVER -> Triple(R.string.action_power_saver, R.string.action_power_saver_sub, Icons.Filled.BatteryChargingFull)
     ActionType.SYSTEM_ANIMATIONS -> Triple(R.string.action_animations, R.string.action_animations_sub, Icons.Filled.ScreenRotation)

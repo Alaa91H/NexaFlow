@@ -172,7 +172,14 @@
     <string name="trigger_sensor_sub">डिवाइस सेंसर घटनाओं पर ट्रिगर</string>
     <string name="trigger_webhook">वेबहुक</string>
     <string name="trigger_webhook_sub">स्थानीय HTTP अनुरोध से ट्रिगर करें</string>
+    <string name="trigger_type_network_mode">सेलुलर नेटवर्क</string>
+    <string name="trigger_type_network_mode_sub">जब डिवाइस का सेलुलर नेटवर्क चयनित पीढ़ी से मेल खाता है तो ट्रिगर (वास्तविक 5G पहचान)</string>
     <string name="add_shortcut">शॉर्टकट जोड़ें</string>
     <string name="shortcut_added">होम स्क्रीन पर शॉर्टकट जोड़ा गया</string>
     <string name="shortcut_in_app_shortcuts">ऐप शॉर्टकट में जोड़ा गया</string>
+
+    <string name="action_network_mode_sub">2G, 3G, 4G, 5G या ऑटो पर बल दें</string>
+    <string name="action_network_mode">नेटवर्क मोड</string>
+    <string name="action_set_ringtone_sub">डिफ़ॉल्ट कॉल रिंगटोन चुनें</string>
+    <string name="action_set_ringtone">रिंगटोन सेट करें</string>
 </resources>

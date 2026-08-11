@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">NexaFlow</string>
+    <string name="app_name">Scheduled Tasks</string>
     <string name="accessibility_service_description">Detects when configured apps are opened to run automations with an App trigger. Only the top-most app is observed; nothing is read from the screen.</string>
 
     <!-- Widgets -->

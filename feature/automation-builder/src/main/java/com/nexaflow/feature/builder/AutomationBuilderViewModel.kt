@@ -2,6 +2,7 @@ package com.nexaflow.feature.builder
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nexaflow.core.engine.BatteryMonitor
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Constraint
@@ -24,7 +25,8 @@ import javax.inject.Inject
 class AutomationBuilderViewModel @Inject constructor(
     private val repository: AutomationRepository,
     private val variableRepository: VariableRepository,
-    private val pluginRepository: PluginRepository
+    private val pluginRepository: PluginRepository,
+    private val batteryMonitor: BatteryMonitor
 ) : ViewModel() {
 
     /** User-defined global variables, so the editor can offer %VAR insertion. */
@@ -78,7 +80,9 @@ class AutomationBuilderViewModel @Inject constructor(
         constraints: List<Constraint> = emptyList(),
         exitActions: List<Action> = emptyList(),
         revertOnExit: Boolean = false,
-        cooldownSeconds: Int = 10
+        // Always immediate: the cooldown UI was removed and every trigger now
+        // fires at once; the engine gate stays pinned to zero.
+        cooldownSeconds: Int = 0
     ) {
         viewModelScope.launch {
             val now = System.currentTimeMillis()
@@ -105,6 +109,11 @@ class AutomationBuilderViewModel @Inject constructor(
             )
             existing = automation
             repository.saveAutomation(automation)
+            // Battery triggers only evaluate on ACTION_BATTERY_CHANGED broadcasts;
+            // a task saved while the level is already steady below the threshold
+            // would wait for the battery to move again. Re-evaluate now so a
+            // freshly saved low-battery task runs immediately when applicable.
+            batteryMonitor.refresh()
         }
     }
 

@@ -53,6 +53,7 @@ enum class TriggerSource(val sourceId: String) {
             TriggerType.NOTIFICATION -> NOTIFICATION
             TriggerType.CALENDAR -> CALENDAR
             TriggerType.SENSOR -> SENSOR
+            TriggerType.NETWORK_MODE -> CONNECTIVITY
             TriggerType.WEBHOOK -> WEBHOOK
         }
     }

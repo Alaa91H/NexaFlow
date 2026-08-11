@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">NexaFlow</string>
+    <string name="app_name">Tareas programadas</string>
     <string name="accessibility_service_description">Detecta cuándo se abren las aplicaciones configuradas para ejecutar automatizaciones con disparador de aplicación. Solo se observa la aplicación en primer plano; no se lee nada de la pantalla.</string>
     <string name="widget_status_title">Automatizaciones activas</string>
     <string name="widget_status_count">0 / 0</string>

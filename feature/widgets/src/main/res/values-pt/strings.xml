@@ -44,4 +44,13 @@
     <string name="tile_cancel">Cancelar</string>
 
     <string name="tile_unbound">Sem tarefa</string>
+
+    <string name="tile_5_label">Tarefa 5</string>
+    <string name="tile_6_label">Tarefa 6</string>
+    <string name="tile_7_label">Tarefa 7</string>
+    <string name="tile_8_label">Tarefa 8</string>
+    <string name="tile_5_desc">Alterna a quinta tarefa diretamente no painel de definições rápidas.</string>
+    <string name="tile_6_desc">Alterna a sexta tarefa diretamente no painel de definições rápidas.</string>
+    <string name="tile_7_desc">Alterna a sétima tarefa diretamente no painel de definições rápidas.</string>
+    <string name="tile_8_desc">Alterna a oitava tarefa diretamente no painel de definições rápidas.</string>
 </resources>

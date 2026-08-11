@@ -44,4 +44,13 @@
     <string name="tile_cancel">取消</string>
 
     <string name="tile_unbound">无任务</string>
+
+    <string name="tile_5_label">任务 5</string>
+    <string name="tile_6_label">任务 6</string>
+    <string name="tile_7_label">任务 7</string>
+    <string name="tile_8_label">任务 8</string>
+    <string name="tile_5_desc">直接从快速设置面板切换第五个任务。</string>
+    <string name="tile_6_desc">直接从快速设置面板切换第六个任务。</string>
+    <string name="tile_7_desc">直接从快速设置面板切换第七个任务。</string>
+    <string name="tile_8_desc">直接从快速设置面板切换第八个任务。</string>
 </resources>

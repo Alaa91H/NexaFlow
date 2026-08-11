@@ -44,4 +44,13 @@
     <string name="tile_cancel">Abbrechen</string>
 
     <string name="tile_unbound">Keine Aufgabe</string>
+
+    <string name="tile_5_label">Aufgabe 5</string>
+    <string name="tile_6_label">Aufgabe 6</string>
+    <string name="tile_7_label">Aufgabe 7</string>
+    <string name="tile_8_label">Aufgabe 8</string>
+    <string name="tile_5_desc">Schalte die fünfte Aufgabe direkt über das Schnelleinstellungsfeld um.</string>
+    <string name="tile_6_desc">Schalte die sechste Aufgabe direkt über das Schnelleinstellungsfeld um.</string>
+    <string name="tile_7_desc">Schalte die siebte Aufgabe direkt über das Schnelleinstellungsfeld um.</string>
+    <string name="tile_8_desc">Schalte die achte Aufgabe direkt über das Schnelleinstellungsfeld um.</string>
 </resources>

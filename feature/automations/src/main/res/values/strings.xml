@@ -74,6 +74,10 @@
     <string name="action_ringer_sub">Normal, vibrate or silent</string>
     <string name="action_mobile_data">Mobile Data</string>
     <string name="action_mobile_data_sub">Toggle mobile data</string>
+    <string name="action_network_mode">Network mode</string>
+    <string name="action_network_mode_sub">Force 2G, 3G, 4G, 5G or auto</string>
+    <string name="action_set_ringtone">Set ringtone</string>
+    <string name="action_set_ringtone_sub">Pick the default call ringtone</string>
     <string name="action_hotspot">Hotspot</string>
     <string name="action_hotspot_sub">Toggle Wi-Fi hotspot</string>
     <string name="action_nfc">NFC</string>
@@ -172,6 +176,8 @@
     <string name="trigger_sensor_sub">Trigger on device sensor events</string>
     <string name="trigger_webhook">Webhook</string>
     <string name="trigger_webhook_sub">Trigger from a local HTTP request</string>
+    <string name="trigger_type_network_mode">Cellular network</string>
+    <string name="trigger_type_network_mode_sub">Fires when the device\'s cellular network matches the selected generation (real 5G detection)</string>
     <string name="add_shortcut">Add shortcut</string>
     <string name="shortcut_added">Shortcut added to home screen</string>
     <string name="shortcut_in_app_shortcuts">Added to app shortcuts</string>

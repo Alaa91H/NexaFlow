@@ -17,3 +17,8 @@ preview/
 
 # Kotlin daemon error logs
 .kotlin/
+
+# Release signing material — never commit keystores or credentials.
+/keystore/*.jks
+/keystore/*.keystore
+/keystore/keystore.properties

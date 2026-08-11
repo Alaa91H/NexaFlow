@@ -59,6 +59,12 @@ enum class TriggerType {
     SMS,
     BLUETOOTH_DEVICE,
     RINGER_MODE,
+    /**
+     * Cellular network generation (2G/3G/4G/5G). A standalone trigger that
+     * fires when the device's data network matches the configured generation.
+     * Config key: `state` (AUTO/2G/3G/4G/5G).
+     */
+    NETWORK_MODE,
     NOTIFICATION,
     CALENDAR,
     /**
@@ -115,6 +121,12 @@ enum class ActionType {
     SYSTEM_AUTO_BRIGHTNESS,
     SYSTEM_RINGER_MODE,
     SYSTEM_MOBILE_DATA,
+    /**
+     * Forces the preferred cellular network generation (2G/3G/4G/5G). Config
+     * key: `mode` (AUTO/2G/3G/4G/5G). Requires elevated/root (the setting is
+     * radio-global, `preferred_network_mode`).
+     */
+    SYSTEM_NETWORK_MODE,
     SYSTEM_HOTSPOT,
     SYSTEM_NFC,
     SYSTEM_POWER_SAVER,
@@ -126,6 +138,11 @@ enum class ActionType {
     SYSTEM_GO_HOME,
     APPLICATION_OPEN_APP_SETTINGS,
     SYSTEM_RING_VOLUME,
+    /**
+     * Sets the device's default ringtone to the picked notification/ringtone
+     * URI. Config key: `uri`. Revert restores the previous default ringtone.
+     */
+    SYSTEM_SET_RINGTONE,
     SYSTEM_LOCATION,
     SYSTEM_OPEN_PLAY_UPDATES,
     SYSTEM_OPEN_GALAXY_STORE,

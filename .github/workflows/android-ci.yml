@@ -52,7 +52,20 @@ jobs:
       run: chmod +x gradlew
     - name: Run unit tests
       run: ./gradlew testDebugUnitTest
+    - name: Restore release signing keystore
+      if: ${{ secrets.NEXAFLOW_KEYSTORE_BASE64 != '' }}
+      env:
+        KEYSTORE_B64: ${{ secrets.NEXAFLOW_KEYSTORE_BASE64 }}
+      run: |
+        mkdir -p keystore
+        echo "$KEYSTORE_B64" | base64 -d > keystore/nexaflow-release.jks
+        # The build reads NEXAFLOW_* env vars over keystore.properties.
     - name: Build with Gradle
+      env:
+        NEXAFLOW_KEYSTORE_FILE: keystore/nexaflow-release.jks
+        NEXAFLOW_KEYSTORE_PASSWORD: ${{ secrets.NEXAFLOW_KEYSTORE_PASSWORD }}
+        NEXAFLOW_KEY_ALIAS: ${{ secrets.NEXAFLOW_KEY_ALIAS }}
+        NEXAFLOW_KEY_PASSWORD: ${{ secrets.NEXAFLOW_KEY_PASSWORD }}
       run: ./gradlew assembleDebug assembleRelease
     - name: Verify 16 KB page-size alignment of native libraries
       run: python3 scripts/check_16kb.py app/build/outputs/apk/release/app-release.apk

@@ -134,8 +134,12 @@ object TimeTriggerCalculator {
         }
     }
 
-    private fun parseDate(value: String): LocalDate {
+    private fun parseDate(value: String): LocalDate? {
+        // A malformed stored date (legacy data, manual edit, localized format)
+        // must degrade to "no date bound", never throw: this runs in the
+        // scheduler's startup collect and the dashboard's next-run preview, so
+        // an uncaught DateTimeParseException would force-close the app on open.
         return runCatching { LocalDate.parse(value) }.getOrNull()
-            ?: LocalDate.parse(value.replace('/', '-'))
+            ?: runCatching { LocalDate.parse(value.replace('/', '-')) }.getOrNull()
     }
 }

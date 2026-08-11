@@ -172,7 +172,14 @@
     <string name="trigger_sensor_sub">Запуск по событиям датчиков устройства</string>
     <string name="trigger_webhook">Вебхук</string>
     <string name="trigger_webhook_sub">Запуск по локальному HTTP-запросу</string>
+    <string name="trigger_type_network_mode">Сотовая сеть</string>
+    <string name="trigger_type_network_mode_sub">Срабатывает, когда сотовая сеть соответствует выбранному поколению (настоящее определение 5G)</string>
     <string name="add_shortcut">Добавить ярлык</string>
     <string name="shortcut_added">Ярлык добавлен на главный экран</string>
     <string name="shortcut_in_app_shortcuts">Добавлено в ярлыки приложения</string>
+
+    <string name="action_network_mode_sub">Принудительно 2G, 3G, 4G, 5G или авто</string>
+    <string name="action_network_mode">Режим сети</string>
+    <string name="action_set_ringtone_sub">Выбрать рингтон звонков по умолчанию</string>
+    <string name="action_set_ringtone">Установить рингтон</string>
 </resources>

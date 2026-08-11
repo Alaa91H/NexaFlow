@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">NexaFlow</string>
+    <string name="app_name">Tarefas agendadas</string>
     <string name="accessibility_service_description">Detecta quando aplicativos configurados são abertos para executar automações com gatilho de aplicativo. Apenas o aplicativo em primeiro plano é observado; nada é lido da tela.</string>
     <string name="widget_status_title">Automações ativas</string>
     <string name="widget_status_count">0 / 0</string>

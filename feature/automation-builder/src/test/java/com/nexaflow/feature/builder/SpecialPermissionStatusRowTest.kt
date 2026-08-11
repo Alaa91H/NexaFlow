@@ -3,7 +3,6 @@ package com.nexaflow.feature.builder
 import android.content.Context
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -52,27 +51,26 @@ class SpecialPermissionStatusRowTest {
         }
     }
 
-    // --- GRANTED: green pill, tap disabled, no chevron ---------------------
+    // --- GRANTED: the row disappears entirely (no permanent badge) ----------
 
     @Test
-    fun grantedState_showsGrantedPill_disablesClick_hidesChevron() {
+    fun grantedState_hidesTheWholeRow() {
         setRow(status = SpecialStatus.GRANTED)
 
+        // The row exists only to collect a missing permission: once granted it
+        // must vanish from the card — no pill, no chevron, no hint text.
+        composeRule.onNodeWithTag("special_status_row").assertDoesNotExist()
         composeRule.onNodeWithText(context.getString(R.string.elevated_status_granted))
-            .assertIsDisplayed()
-        // The whole row is the button: once granted the tap must be inert.
-        composeRule.onNodeWithTag("special_status_row").assertIsNotEnabled()
+            .assertDoesNotExist()
         composeRule.onNodeWithTag("special_status_chevron").assertDoesNotExist()
     }
 
     @Test
-    fun grantedState_clickDoesNotTriggerOnRequest() {
+    fun grantedState_doesNotTriggerOnRequest() {
         var requests = 0
         setRow(status = SpecialStatus.GRANTED, onRequest = { requests++ })
 
-        composeRule.onNodeWithTag("special_status_row").performClick()
-        composeRule.waitForIdle()
-
+        composeRule.onNodeWithTag("special_status_row").assertDoesNotExist()
         assertEquals(0, requests)
     }
 

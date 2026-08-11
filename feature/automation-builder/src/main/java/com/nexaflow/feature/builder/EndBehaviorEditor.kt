@@ -83,6 +83,26 @@ fun EndBehaviorEditor(
                     )
                 }
             }
+        } else if (actionType in EndBehaviorCatalog.revertOnlyActions) {
+            // Non-numeric changes (a picked ringtone): the only end options are
+            // "leave as is" or "restore the previous one" — a fixed value
+            // makes no sense for a URI.
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                SelectChip(
+                    selected = behavior == null || behavior.mode == EndMode.LEAVE,
+                    onClick = { onBehaviorChange(null) },
+                    label = stringResource(R.string.end_leave)
+                )
+                SelectChip(
+                    selected = behavior?.mode == EndMode.REVERT,
+                    onClick = { onBehaviorChange(EndBehavior(EndMode.REVERT)) },
+                    label = stringResource(R.string.end_revert)
+                )
+            }
         } else {
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
@@ -129,6 +149,7 @@ private fun defaultEndValue(type: ActionType): Map<String, String> = when (type)
     ActionType.SYSTEM_RINGER_MODE -> mapOf("mode" to "NORMAL")
     ActionType.SYSTEM_SCREEN_TIMEOUT -> mapOf("seconds" to "60")
     ActionType.SYSTEM_SCREEN_ROTATION -> mapOf("autoRotate" to "true")
+    ActionType.SYSTEM_NETWORK_MODE -> mapOf("mode" to "AUTO")
     else -> emptyMap()
 }
 
@@ -163,11 +184,18 @@ private fun EndValueEditor(
             )
         }
         ActionType.SYSTEM_STREAM_VOLUME -> {
+            // Same channel list as the action editor: the user picks exactly
+            // which stream (media, ringtone, notifications, alarm, ...) gets
+            // the end-of-task value, so the end behavior matches the action.
             val streams = listOf(
                 "MUSIC" to stringResource(R.string.stream_music),
                 "RING" to stringResource(R.string.stream_ring),
                 "NOTIFICATION" to stringResource(R.string.stream_notification),
-                "ALARM" to stringResource(R.string.stream_alarm)
+                "ALARM" to stringResource(R.string.stream_alarm),
+                "VOICE_CALL" to stringResource(R.string.stream_voice_call),
+                "SYSTEM" to stringResource(R.string.stream_system),
+                "DTMF" to stringResource(R.string.stream_dtmf),
+                "ACCESSIBILITY" to stringResource(R.string.stream_accessibility)
             )
             val selectedStream = config["stream"] ?: "MUSIC"
             val value = config["value"]?.toIntOrNull() ?: 50
@@ -236,6 +264,28 @@ private fun EndValueEditor(
                     checked = config["autoRotate"]?.toBoolean() ?: true,
                     onCheckedChange = { onConfigChange(mapOf("autoRotate" to it.toString())) }
                 )
+            }
+        }
+        ActionType.SYSTEM_NETWORK_MODE -> {
+            val modes = listOf(
+                "AUTO" to stringResource(R.string.network_mode_auto),
+                "2G" to stringResource(R.string.network_mode_2g),
+                "3G" to stringResource(R.string.network_mode_3g),
+                "4G" to stringResource(R.string.network_mode_4g),
+                "5G" to stringResource(R.string.network_mode_5g)
+            )
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                modes.forEach { (value, label) ->
+                    SelectChip(
+                        selected = (config["mode"] ?: "AUTO") == value,
+                        onClick = { onConfigChange(mapOf("mode" to value)) },
+                        label = label
+                    )
+                }
             }
         }
         else -> Unit

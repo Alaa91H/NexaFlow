@@ -172,7 +172,14 @@
     <string name="trigger_sensor_sub">端末のセンサーイベントで実行</string>
     <string name="trigger_webhook">ウェブフック</string>
     <string name="trigger_webhook_sub">ローカルのHTTPリクエストで実行</string>
+    <string name="trigger_type_network_mode">携帯ネットワーク</string>
+    <string name="trigger_type_network_mode_sub">デバイスの携帯ネットワークが選択した世代と一致したときに発火（実際の5G検出）</string>
     <string name="add_shortcut">ショートカットを追加</string>
     <string name="shortcut_added">ホーム画面にショートカットを追加しました</string>
     <string name="shortcut_in_app_shortcuts">アプリのショートカットに追加しました</string>
+
+    <string name="action_network_mode_sub">2G/3G/4G/5Gまたは自動を強制</string>
+    <string name="action_network_mode">ネットワークモード</string>
+    <string name="action_set_ringtone_sub">デフォルトの着信音を選択</string>
+    <string name="action_set_ringtone">着信音を設定</string>
 </resources>

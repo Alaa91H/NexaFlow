@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#3F51B5</color>
+    <!-- Fallback for legacy launchers without adaptive-icon support; the
+         adaptive background itself is the indigo→violet gradient. -->
+    <!-- Fallback for launchers without adaptive-icon support: light pastel base. -->
+    <color name="ic_launcher_background">#C9D4FF</color>
 </resources>

@@ -124,4 +124,25 @@
     <string name="update_download_failed">ダウンロードまたは検証に失敗</string>
     <string name="update_install_failed">インストーラーを開けませんでした</string>
     <string name="update_check_failed">GitHubに接続できません。後でもう一度お試しください。</string>
+    <string name="section_location">位置情報</string>
+    <string name="location_check_interval">オフ時の位置情報チェック</string>
+    <string name="location_check_interval_manual_sub">タスク内で「現在地を使用」をタップした時のみチェック</string>
+    <string name="location_check_interval_auto_sub">一定間隔でバックグラウンド自動チェック</string>
+    <string name="location_check_title">位置情報チェック間隔</string>
+    <string name="location_check_manual">手動</string>
+    <string name="location_check_15">15分ごと</string>
+    <string name="location_check_30">30分ごと</string>
+    <string name="location_check_60">1時間ごと</string>
+    <string name="location_check_180">3時間ごと</string>
+    <string name="location_check_360">6時間ごと</string>
+
+    <string name="backup_save">ファイルに保存</string>
+    <string name="backup_save_failed">バックアップファイルを保存できませんでした</string>
+    <string name="backup_saved">バックアップを保存しました</string>
+    <string name="backup_save_sub">バックアップをローカルファイルに保存</string>
+
+    <string name="location_check_custom">カスタム…</string>
+    <string name="location_check_custom_minutes">%1$d分ごと</string>
+    <string name="location_check_minutes">分</string>
+    <string name="location_check_apply">適用</string>
 </resources>

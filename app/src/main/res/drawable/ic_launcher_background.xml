@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Launcher background: light pastel Material You gradient (soft indigo →
+    violet) with a gentle top-left glow. The light field is a deliberate
+    departure from the previous dark-blue background, so the icon reads as a
+    completely new identity on every launcher and in dark mode.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="0"
+                android:endX="108"
+                android:endY="108">
+                <item android:color="#FFC9D4FF" />
+                <item android:color="#FFE0C9FF" android:offset="0.6" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Soft highlight in the top-left corner for depth. -->
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="22"
+                android:centerY="20"
+                android:gradientRadius="80">
+                <item android:color="#55FFFFFF" />
+                <item android:color="#00FFFFFF" android:offset="0.55" />
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>

@@ -72,6 +72,36 @@ class BatteryMonitor @Inject constructor(
         if (registered) return
         registered = true
         context.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        // ACTION_BATTERY_CHANGED is sticky: registering delivers the current
+        // level immediately, so an already-crossed threshold fires right away
+        // (e.g. the app starts while the battery is below the target).
+    }
+
+    /**
+     * Re-evaluates every battery trigger against the CURRENT battery state.
+     *
+     * ACTION_BATTERY_CHANGED only fires when the level/status actually changes,
+     * so a freshly saved task whose threshold is already crossed (battery is
+     * steady below the target, charger already at the right type) would never
+     * run until the battery moved again. The builder calls this right after
+     * saving so the condition is checked immediately.
+     */
+    fun refresh() {
+        scope.launch {
+            // Read the latest sticky state (no new broadcast needed).
+            val sticky = runCatching {
+                context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+            }.getOrNull()
+            if (sticky == null) return@launch
+            handleBatteryChange(
+                sticky.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, -1),
+                sticky.getIntExtra(
+                    android.os.BatteryManager.EXTRA_STATUS,
+                    android.os.BatteryManager.BATTERY_STATUS_UNKNOWN
+                ),
+                sticky.getIntExtra(android.os.BatteryManager.EXTRA_PLUGGED, 0)
+            )
+        }
     }
 
     override fun stop() {
@@ -99,7 +129,13 @@ class BatteryMonitor @Inject constructor(
                 if (batteryTrigger != null) {
                     val config = batteryTrigger.config
                     val plugType = BatteryTriggerMatcher.plugTypeName(plugged)
-                    val active = BatteryTriggerMatcher.isActive(config, level, plugged)
+                    // Charging state is derived from the battery status (charging
+                    // or full = charging), independent of the plug mask — a
+                    // full battery still counts as "charging" so CHARGING-state
+                    // triggers stay satisfied while on the charger.
+                    val charging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                        status == BatteryManager.BATTERY_STATUS_FULL
+                    val active = BatteryTriggerMatcher.isActive(config, level, plugged, charging)
                     // Level-only triggers keep one key per automation so they fire
                     // once per crossing; charger-specific triggers key by plug type
                     // so switching chargers (e.g. USB → wireless) re-fires.

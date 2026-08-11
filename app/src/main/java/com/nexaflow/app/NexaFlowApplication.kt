@@ -2,15 +2,24 @@ package com.nexaflow.app
 
 import android.app.Application
 import android.os.StrictMode
+import android.util.Log
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
+import com.nexaflow.app.work.LocationCheckScheduler
 import com.nexaflow.app.work.MaintenanceWorker
+import com.nexaflow.core.datastore.LocationPreferences
 import com.nexaflow.core.engine.AutomationScheduler
 import com.nexaflow.core.engine.MonitoringService
+import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.rom.ShizukuShellBridge
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltAndroidApp
-class NexaFlowApplication : Application() {
+class NexaFlowApplication : Application(), Configuration.Provider {
 
     @Inject
     lateinit var scheduler: AutomationScheduler
@@ -18,20 +27,54 @@ class NexaFlowApplication : Application() {
     @Inject
     lateinit var sentryReporter: SentryReporter
 
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
+
+    @Inject
+    lateinit var locationPreferences: LocationPreferences
+
+    @Inject
+    @ApplicationScope
+    lateinit var appScope: CoroutineScope
+
+    /**
+     * WorkManager must construct MaintenanceWorker through Hilt (it has an
+     * @AssistedInject constructor — the default factory would fail with "no
+     * default constructor"). The default androidx.startup initializer is
+     * removed in the manifest so this configuration is the one used.
+     */
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
+
     override fun onCreate() {
         super.onCreate()
         if (BuildConfig.DEBUG) {
             enableStrictMode()
         }
-        // Arm the Shizuku UserService (AIDL) channel early so elevated commands
-        // already use it — Shizuku.newProcess is removed in Shizuku API 14.
-        ShizukuShellBridge.initialize(this)
-        // Opt-in crash/ANR reporting: reacts to the Settings > Privacy toggle.
-        sentryReporter.attach()
-        // Periodic history pruning through WorkManager (Doze-aware, survives
-        // service death). KEEP so an update never spawns duplicate jobs.
-        MaintenanceWorker.schedule(this)
-        scheduler.initialize()
+        // Everything below is best-effort startup wiring: a failure in any
+        // single piece (Shizuku bridge, Sentry, WorkManager, scheduler,
+        // monitoring service) must never prevent the app from opening.
+        runCatching { ShizukuShellBridge.initialize(this) }
+            .onFailure { Log.e(TAG, "Shizuku init failed", it) }
+        runCatching { sentryReporter.attach() }
+            .onFailure { Log.e(TAG, "Sentry attach failed", it) }
+        runCatching { MaintenanceWorker.schedule(this) }
+            .onFailure { Log.e(TAG, "Maintenance worker schedule failed", it) }
+        // Periodic location re-check (Settings > Location): schedule at the
+        // user's chosen interval so location-triggered tasks keep verifying
+        // even while the system location switch is off.
+        runCatching {
+            appScope.launch {
+                LocationCheckScheduler.schedule(
+                    this@NexaFlowApplication,
+                    locationPreferences.checkIntervalMinutes.first()
+                )
+            }
+        }.onFailure { Log.e(TAG, "Location check schedule failed", it) }
+        runCatching { scheduler.initialize() }
+            .onFailure { Log.e(TAG, "Scheduler init failed", it) }
         try {
             MonitoringService.start(this)
         } catch (_: Throwable) {
@@ -43,10 +86,13 @@ class NexaFlowApplication : Application() {
     }
 
     /**
-     * Debug-only watchdog: crashes (via the uncaught handler) on main-thread
-     * disk/network I/O, unbounded receivers, leaked activities, and other
-     * policy violations — the same class of bug as the in-app update checker
-     * downloading APKs on the main thread. Never active in release builds.
+     * Debug-only watchdog: logs main-thread disk I/O, unbounded receivers,
+     * leaked activities, and other policy violations, and crashes ONLY on
+     * main-thread NETWORK — the same class of bug as the in-app update
+     * checker downloading APKs on the main thread. Disk access stays logged
+     * (not fatal): Room/DataStore are legitimately reached from the main
+     * dispatcher (e.g. viewModelScope), and penaltyDeath on disk made debug
+     * builds FC on service creation and "Run now". Never active in release.
      */
     private fun enableStrictMode() {
         StrictMode.setThreadPolicy(
@@ -55,7 +101,8 @@ class NexaFlowApplication : Application() {
                 .detectDiskWrites()
                 .detectNetwork()
                 .detectCustomSlowCalls()
-                .penaltyDeath()
+                .penaltyLog()
+                .penaltyDeathOnNetwork()
                 .build()
         )
         StrictMode.setVmPolicy(
@@ -67,5 +114,9 @@ class NexaFlowApplication : Application() {
                 .penaltyLog()
                 .build()
         )
+    }
+
+    private companion object {
+        const val TAG = "NexaFlowApp"
     }
 }

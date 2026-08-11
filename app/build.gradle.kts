@@ -1,9 +1,32 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
+
+// Release signing: prefer the project keystore (keystore/keystore.properties,
+// gitignored — carries the SAME key that signed the currently installed app,
+// so updates install over it without data loss). Falls back to CI-provided
+// env vars, then to the debug keystore so ad-hoc builds never break.
+val keystoreProps = Properties().apply {
+    val f = rootProject.file("keystore/keystore.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+val releaseStoreFile = providers.environmentVariable("NEXAFLOW_KEYSTORE_FILE")
+    .orNull?.takeIf { it.isNotBlank() }
+    ?: keystoreProps.getProperty("storeFile")?.takeIf { it.isNotBlank() }
+val releaseStorePassword = providers.environmentVariable("NEXAFLOW_KEYSTORE_PASSWORD")
+    .orNull?.takeIf { it.isNotBlank() }
+    ?: keystoreProps.getProperty("storePassword")
+val releaseKeyAlias = providers.environmentVariable("NEXAFLOW_KEY_ALIAS")
+    .orNull?.takeIf { it.isNotBlank() }
+    ?: keystoreProps.getProperty("keyAlias")
+val releaseKeyPassword = providers.environmentVariable("NEXAFLOW_KEY_PASSWORD")
+    .orNull?.takeIf { it.isNotBlank() }
+    ?: keystoreProps.getProperty("keyPassword")
 
 android {
     namespace = "com.nexaflow.app"
@@ -13,8 +36,8 @@ android {
         applicationId = "com.nexaflow.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 11
-        versionName = "3.9.0-alpha"
+        versionCode = 12
+        versionName = "3.9.1-alpha"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -29,8 +52,50 @@ android {
             "SENTRY_DSN",
             "\"${providers.gradleProperty("NEXAFLOW_SENTRY_DSN").orElse("").get()}\""
         )
-        buildFeatures {
-            buildConfig = true
+    buildFeatures {
+        buildConfig = true
+    }
+    testOptions {
+        unitTests {
+            // Robolectric needs the merged manifest + resources on the test
+            // classpath to inspect providers and run Android framework code.
+            isIncludeAndroidResources = true
+            all {
+                // The app targets SDK 37; Robolectric 4.17 supports it (4.16
+                // threw "targetSdkVersion=37 > maxSdkVersion=36"), but 4.17's
+                // SDK 36/37 sandboxes need Java 21 while this build runs Java
+                // 17 — the tests pin @Config(sdk=[35]) instead. On JDK 17+
+                // Robolectric also needs --add-opens flags to reach OpenJDK
+                // internals (see robolectric.org/getting-started).
+                it.jvmArgs(
+                    "--add-opens=java.base/java.lang=ALL-UNNAMED",
+                    "--add-opens=java.base/java.util=ALL-UNNAMED",
+                    "--add-opens=java.base/java.io=ALL-UNNAMED",
+                    "--add-opens=java.base/java.net=ALL-UNNAMED",
+                    "--add-opens=java.base/java.security=ALL-UNNAMED",
+                    "--add-opens=java.base/java.text=ALL-UNNAMED",
+                    "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
+                    "--add-opens=java.desktop/java.awt.font=ALL-UNNAMED",
+                    "--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+                )
+            }
+        }
+    }
+}
+
+    signingConfigs {
+        create("release") {
+            // Only configure when a real keystore is available; the release
+            // build type falls back to the debug config otherwise.
+            val storeFileValue = releaseStoreFile?.let { file(it) }
+            if (storeFileValue?.exists() == true && !releaseStorePassword.isNullOrBlank()
+                && !releaseKeyAlias.isNullOrBlank() && !releaseKeyPassword.isNullOrBlank()
+            ) {
+                storeFile = storeFileValue
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
         }
     }
 
@@ -42,9 +107,11 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Sign release builds with the debug keystore so CI can produce an
-            // installable APK without exposing production signing keys.
-            signingConfig = signingConfigs.getByName("debug")
+            // Sign with the project keystore when configured; otherwise fall
+            // back to the debug keystore so CI/ad-hoc builds stay installable.
+            signingConfig = signingConfigs.findByName("release")?.takeIf {
+                it.storeFile?.exists() == true
+            } ?: signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -86,6 +153,12 @@ dependencies {
     implementation(libs.androidx.compose.ui.ui.tooling.preview)
     implementation(libs.androidx.compose.material3.material3)
     testImplementation(libs.junit.junit)
+    // Robolectric: the merged-manifest test asserts SentryInitProvider is
+    // stripped (tools:node="remove") so a DSN-less build boots, and the
+    // SentryReporter tests exercise the enable/disable paths on the JVM.
+    testImplementation(libs.org.robolectric.robolectric)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.espresso.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.compose.bom))

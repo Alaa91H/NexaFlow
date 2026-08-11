@@ -28,7 +28,12 @@ class KeystoreSecureStorage(
     private val keyAlias: String = DEFAULT_KEY_ALIAS
 ) : SecureStorage {
 
-    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    // Lazily opened: Hilt services (e.g. NotificationListener) construct this
+    // on the main thread at service creation, and touching disk there trips
+    // the debug StrictMode watchdog (penaltyDeath) — an avoidable open-FC.
+    private val prefs by lazy {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    }
 
     override suspend fun get(key: String): String? {
         val encoded = prefs.getString(key, null) ?: return null

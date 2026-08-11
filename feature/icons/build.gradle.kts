@@ -26,6 +26,11 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 kotlin {
@@ -47,4 +52,9 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":core:ui-components"))
     testImplementation(libs.junit.junit)
+    // Compose UI tests running under Robolectric: verify the picker's result
+    // (previousBackStackEntry.savedStateHandle) reaches the caller's observer.
+    testImplementation(libs.androidx.compose.ui.ui.test.junit4)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.org.robolectric.robolectric)
 }

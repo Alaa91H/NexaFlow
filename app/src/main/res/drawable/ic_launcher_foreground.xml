@@ -1,10 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Launcher foreground: the Google Tasks mark — a bold checkmark in a deep
+    indigo-to-violet gradient — paired with a small clock in the corner, so
+    the glyph reads "المهام المجدولة / Scheduled Tasks" (tasks + time).
+    Language-neutral: the same mark works in LTR and RTL launchers.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+
+    <!-- Bold gradient checkmark (the Tasks symbol). -->
     <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M62,31c-6,0 -11,3 -13.5,8l-2.5,-8H34l7,20l-7,20h12l4,-13c2.5,5 7.5,8 12,8c8.5,0 14,-5 14,-12c0,-8 -7,-11 -9,-16c-1,-2.5 -1,-4 1,-4c3.5,0 7,3 10,7l8,-6C80,31 72,31 62,31zM60.5,51c0,3 -2,5 -5,5c-3,0 -6,-2 -6,-6c0,-4 2,-6 5,-6c3,0 6,3 6,7z" />
+        android:pathData="M35,56L47,68L73,40"
+        android:fillColor="#00000000"
+        android:strokeWidth="11"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:type="linear"
+                android:startX="35"
+                android:startY="68"
+                android:endX="73"
+                android:endY="40">
+                <item android:color="#FF3D5AFE" />
+                <item android:color="#FF8E4DFF" android:offset="0.65" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Small clock: "scheduled" hint in the corner. -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF5B5CF6"
+        android:strokeWidth="2.6"
+        android:pathData="M79,78m-7.5,0a7.5,7.5 0 1 0 15,0a7.5,7.5 0 1 0 -15,0" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF5B5CF6"
+        android:strokeWidth="2.4"
+        android:strokeLineCap="round"
+        android:pathData="M79,78L79,73.6" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF5B5CF6"
+        android:strokeWidth="2.4"
+        android:strokeLineCap="round"
+        android:pathData="M79,78L83.6,81.2" />
 </vector>

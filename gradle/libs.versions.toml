@@ -21,11 +21,12 @@ v2_60_1 = "2.60.1"
 v2_8_4 = "2.8.4"
 v2_9_8 = "2.9.8"
 v20240303 = "20240303"
+v6_1_20 = "6.1.20"
 v2026_06_01 = "2026.06.01"
 v3_4_1 = "3.4.1"
 v3_7_0 = "3.7.0"
 v4_13_2 = "4.13.2"
-v4_16_1 = "4.16.1"
+v4_17_beta2 = "4.17-beta-2"
 v8_52_0 = "8.52.0"
 pv2_3_11 = "2.3.11"
 pv2_4_10 = "2.4.10"
@@ -76,6 +77,7 @@ com-google-code-gson-gson = { module = "com.google.code.gson:gson", version.ref 
 com-google-dagger-hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "v2_60_1" }
 com-google-dagger-hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "v2_60_1" }
 dev-rikka-shizuku-api = { module = "dev.rikka.shizuku:api", version.ref = "v13_1_5" }
+org-osmdroid-osmdroid-android = { module = "org.osmdroid:osmdroid-android", version.ref = "v6_1_20" }
 dev-rikka-shizuku-provider = { module = "dev.rikka.shizuku:provider", version.ref = "v13_1_5" }
 io-sentry-sentry-android = { module = "io.sentry:sentry-android", version.ref = "v8_52_0" }
 javax-inject-javax-inject = { module = "javax.inject:javax.inject", version.ref = "v1" }
@@ -86,7 +88,7 @@ org-jetbrains-kotlinx-kotlinx-coroutines-test = { module = "org.jetbrains.kotlin
 org-jetbrains-kotlinx-kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "v1_9_0" }
 org-jetbrains-kotlinx-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "v1_9_0" }
 org-json-json = { module = "org.json:json", version.ref = "v20240303" }
-org-robolectric-robolectric = { module = "org.robolectric:robolectric", version.ref = "v4_16_1" }
+org-robolectric-robolectric = { module = "org.robolectric:robolectric", version.ref = "v4_17_beta2" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "pv9_3_1" }

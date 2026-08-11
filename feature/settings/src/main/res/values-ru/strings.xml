@@ -124,4 +124,25 @@
     <string name="update_download_failed">Ошибка загрузки или проверки</string>
     <string name="update_install_failed">Не удалось открыть установщик</string>
     <string name="update_check_failed">Не удалось связаться с GitHub. Повторите позже.</string>
+    <string name="section_location">Местоположение</string>
+    <string name="location_check_interval">Проверять местоположение, когда оно выключено</string>
+    <string name="location_check_interval_manual_sub">Проверять только при нажатии «Использовать моё местоположение» в задаче</string>
+    <string name="location_check_interval_auto_sub">Автоматическая проверка в фоне через заданный интервал</string>
+    <string name="location_check_title">Интервал проверки местоположения</string>
+    <string name="location_check_manual">Вручную</string>
+    <string name="location_check_15">Каждые 15 минут</string>
+    <string name="location_check_30">Каждые 30 минут</string>
+    <string name="location_check_60">Каждый час</string>
+    <string name="location_check_180">Каждые 3 часа</string>
+    <string name="location_check_360">Каждые 6 часов</string>
+
+    <string name="backup_save">Сохранить в файл</string>
+    <string name="backup_save_failed">Не удалось сохранить файл резервной копии</string>
+    <string name="backup_saved">Резервная копия сохранена</string>
+    <string name="backup_save_sub">Записать резервную копию в локальный файл</string>
+
+    <string name="location_check_custom">Свой…</string>
+    <string name="location_check_custom_minutes">Каждые %1$d минут</string>
+    <string name="location_check_minutes">Минут</string>
+    <string name="location_check_apply">Применить</string>
 </resources>

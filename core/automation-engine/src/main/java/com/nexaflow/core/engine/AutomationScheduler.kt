@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.TriggerType
@@ -43,6 +44,8 @@ class AutomationScheduler @Inject constructor(
         val desired = mutableSetOf<String>()
         automations.forEach { automation ->
             if (automation.enabled && automation.triggers.any { it.type == TriggerType.TIME }) {
+                // One malformed stored config (legacy data) must never break the
+                // whole reschedule pass — skip it and keep the rest scheduled.
                 schedule(automation)
                 desired.add(automation.id)
             }
@@ -54,21 +57,27 @@ class AutomationScheduler @Inject constructor(
     }
 
     fun schedule(automation: Automation) {
-        val config = automation.triggers
-            .firstOrNull { it.type == TriggerType.TIME }
-            ?.config ?: return
-        val time = config["time"]
-        if (time.isNullOrBlank()) return
-        val triggerAt = TimeTriggerCalculator.nextFireTime(config, fromMillis = System.currentTimeMillis())
-        if (triggerAt == null) return
-        setAlarm(triggerAt, buildPendingIntent(automation.id, ACTION_RUN_AUTOMATION))
-        // A time-range trigger also schedules an end-of-window alarm that runs
-        // the exit/revert behavior when the range closes.
-        if (config["timeMode"] == "RANGE") {
-            val endAt = TimeTriggerCalculator.windowEndMillis(config, triggerAt)
-            if (endAt != null && endAt > System.currentTimeMillis()) {
-                setAlarm(endAt, buildPendingIntent(automation.id, ACTION_END_AUTOMATION))
+        try {
+            val config = automation.triggers
+                .firstOrNull { it.type == TriggerType.TIME }
+                ?.config ?: return
+            val time = config["time"]
+            if (time.isNullOrBlank()) return
+            val triggerAt = TimeTriggerCalculator.nextFireTime(config, fromMillis = System.currentTimeMillis())
+            if (triggerAt == null) return
+            setAlarm(triggerAt, buildPendingIntent(automation.id, ACTION_RUN_AUTOMATION))
+            // A time-range trigger also schedules an end-of-window alarm that runs
+            // the exit/revert behavior when the range closes.
+            if (config["timeMode"] == "RANGE") {
+                val endAt = TimeTriggerCalculator.windowEndMillis(config, triggerAt)
+                if (endAt != null && endAt > System.currentTimeMillis()) {
+                    setAlarm(endAt, buildPendingIntent(automation.id, ACTION_END_AUTOMATION))
+                }
             }
+        } catch (t: Throwable) {
+            // Never let a single task's schedule computation crash the startup
+            // collect or take down the app (see CoroutinesModule handler).
+            Log.e("AutomationScheduler", "Failed to schedule ${automation.id}", t)
         }
     }
 

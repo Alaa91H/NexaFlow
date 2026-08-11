@@ -172,7 +172,14 @@
     <string name="trigger_sensor_sub">Cihaz sensör olaylarında tetikle</string>
     <string name="trigger_webhook">Webhook</string>
     <string name="trigger_webhook_sub">Yerel HTTP isteğiyle tetikle</string>
+    <string name="trigger_type_network_mode">Hücresel ağ</string>
+    <string name="trigger_type_network_mode_sub">Cihazın hücresel ağı seçilen nesille eşleştiğinde tetiklenir (gerçek 5G algılama)</string>
     <string name="add_shortcut">Kısayol ekle</string>
     <string name="shortcut_added">Kısayol ana ekrana eklendi</string>
     <string name="shortcut_in_app_shortcuts">Uygulama kısayollarına eklendi</string>
+
+    <string name="action_network_mode_sub">2G, 3G, 4G, 5G veya otomatik zorla</string>
+    <string name="action_network_mode">Ağ modu</string>
+    <string name="action_set_ringtone_sub">Varsayılan arama zil sesini seç</string>
+    <string name="action_set_ringtone">Zil sesini ayarla</string>
 </resources>

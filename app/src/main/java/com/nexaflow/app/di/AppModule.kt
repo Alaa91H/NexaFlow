@@ -8,6 +8,7 @@ import com.nexaflow.core.database.AutomationDao
 import com.nexaflow.core.database.ExecutionDao
 import com.nexaflow.core.database.Migrations
 import com.nexaflow.core.database.VariableDao
+import com.nexaflow.core.datastore.LocationPreferences
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.PrivacyPreferences
 import com.nexaflow.core.datastore.SmsPreferences
@@ -110,6 +111,12 @@ object AppModule {
     @Singleton
     fun providePrivacyPreferences(@ApplicationContext context: Context): PrivacyPreferences {
         return PrivacyPreferences(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideLocationPreferences(@ApplicationContext context: Context): LocationPreferences {
+        return LocationPreferences(context)
     }
 
     @Provides

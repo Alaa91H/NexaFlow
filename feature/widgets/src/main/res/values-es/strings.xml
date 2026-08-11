@@ -44,4 +44,13 @@
     <string name="tile_cancel">Cancelar</string>
 
     <string name="tile_unbound">Sin tarea</string>
+
+    <string name="tile_5_label">Tarea 5</string>
+    <string name="tile_6_label">Tarea 6</string>
+    <string name="tile_7_label">Tarea 7</string>
+    <string name="tile_8_label">Tarea 8</string>
+    <string name="tile_5_desc">Alterna la quinta tarea directamente desde el panel de ajustes rápidos.</string>
+    <string name="tile_6_desc">Alterna la sexta tarea directamente desde el panel de ajustes rápidos.</string>
+    <string name="tile_7_desc">Alterna la séptima tarea directamente desde el panel de ajustes rápidos.</string>
+    <string name="tile_8_desc">Alterna la octava tarea directamente desde el panel de ajustes rápidos.</string>
 </resources>

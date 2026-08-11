@@ -37,13 +37,15 @@ class DeviceStateSnapshot private constructor(
     private val bluetoothEnabled: Boolean?,
     private val nfcEnabled: Boolean?,
     private val mobileDataEnabled: Boolean?,
+    private val networkMode: String?,
     private val hotspotEnabled: Boolean?,
     private val airplaneModeEnabled: Boolean?,
     private val dndEnabled: Boolean?,
     private val flashlightEnabled: Boolean?,
     private val powerSaverEnabled: Boolean?,
     private val animationsEnabled: Boolean?,
-    private val locationEnabled: Boolean?
+    private val locationEnabled: Boolean?,
+    private val ringtoneUri: String?
 ) {
 
     fun restore(context: Context) {
@@ -54,6 +56,9 @@ class DeviceStateSnapshot private constructor(
         restoreToggle(controller::setBluetooth, bluetoothEnabled)
         restoreToggle(controller::setNfc, nfcEnabled)
         restoreToggle(controller::setMobileData, mobileDataEnabled)
+        networkMode?.let {
+            runCatching { controller.setNetworkMode(it) }
+        }
         restoreToggle(controller::setHotspot, hotspotEnabled)
         restoreToggle(controller::setAirplaneMode, airplaneModeEnabled)
         restoreToggle(controller::setDoNotDisturb, dndEnabled)
@@ -77,6 +82,12 @@ class DeviceStateSnapshot private constructor(
             ActionType.SYSTEM_BLUETOOTH -> restoreToggle(controller::setBluetooth, bluetoothEnabled)
             ActionType.SYSTEM_NFC -> restoreToggle(controller::setNfc, nfcEnabled)
             ActionType.SYSTEM_MOBILE_DATA -> restoreToggle(controller::setMobileData, mobileDataEnabled)
+            ActionType.SYSTEM_NETWORK_MODE -> {
+                val mode = networkMode ?: return SystemControlResult.ok("Nothing to restore")
+                runCatching { controller.setNetworkMode(mode) }.getOrElse {
+                    SystemControlResult.fail("Restore failed: ${it.message}")
+                }
+            }
             ActionType.SYSTEM_HOTSPOT -> restoreToggle(controller::setHotspot, hotspotEnabled)
             ActionType.SYSTEM_AIRPLANE_MODE -> restoreToggle(controller::setAirplaneMode, airplaneModeEnabled)
             ActionType.SYSTEM_DND -> restoreToggle(controller::setDoNotDisturb, dndEnabled)
@@ -101,6 +112,12 @@ class DeviceStateSnapshot private constructor(
                 }.getOrElse { SystemControlResult.fail(it.message ?: "restore failed") }
             ActionType.SYSTEM_RINGER_MODE ->
                 runCatching { controller.setRingerMode(ringerModeName(ringerMode)) }.getOrElse { SystemControlResult.fail(it.message ?: "restore failed") }
+            ActionType.SYSTEM_SET_RINGTONE -> {
+                val uri = ringtoneUri ?: return SystemControlResult.ok("Nothing to restore")
+                runCatching { controller.setRingtone(uri) }.getOrElse {
+                    SystemControlResult.fail("Restore failed: ${it.message}")
+                }
+            }
             ActionType.SYSTEM_SCREEN_TIMEOUT ->
                 runCatching { controller.setScreenTimeout(screenTimeout / 1000) }.getOrElse { SystemControlResult.fail(it.message ?: "restore failed") }
             else -> SystemControlResult.ok("Nothing to restore for ${type.name}")
@@ -208,6 +225,9 @@ class DeviceStateSnapshot private constructor(
                 bluetoothEnabled = globalBool(context, Settings.Global.BLUETOOTH_ON),
                 nfcEnabled = globalBool(context, "nfc_on"),
                 mobileDataEnabled = globalBool(context, "mobile_data"),
+                networkMode = runCatching {
+                    Settings.Global.getInt(context.contentResolver, "preferred_network_mode", -1)
+                }.getOrNull()?.takeIf { it >= 0 }?.toString(),
                 hotspotEnabled = globalBool(context, "tether_on"),
                 airplaneModeEnabled = globalBool(context, Settings.Global.AIRPLANE_MODE_ON),
                 dndEnabled = runCatching {
@@ -229,7 +249,8 @@ class DeviceStateSnapshot private constructor(
                         "location_mode",
                         0
                     ) != 0
-                }.getOrNull()
+                }.getOrNull(),
+                ringtoneUri = RomIntegrationManager.controller(context).currentDefaultRingtone()
             )
         }
 

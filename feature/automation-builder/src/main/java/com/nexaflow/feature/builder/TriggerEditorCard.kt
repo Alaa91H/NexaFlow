@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,10 +22,15 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Sensors
+import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.Web
 import androidx.compose.material3.DatePicker
@@ -37,6 +43,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -53,11 +60,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.nexaflow.core.engine.currentCellularGeneration
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.domain.models.TriggerType
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+
+private const val LOCATION_RADIUS_MIN_M = 50
+private const val LOCATION_RADIUS_MAX_M = 2000
+// (max - min) / step - 1: 50 m granularity between the endpoints.
+private const val LOCATION_RADIUS_STEPS = (LOCATION_RADIUS_MAX_M - LOCATION_RADIUS_MIN_M) / 50 - 1
 
 val triggerTypeOptions = listOf(
     TriggerType.TIME,
@@ -65,6 +78,7 @@ val triggerTypeOptions = listOf(
     TriggerType.APPLICATION,
     TriggerType.DEVICE,
     TriggerType.CONNECTIVITY,
+    TriggerType.NETWORK_MODE,
     TriggerType.LOCATION,
     TriggerType.SMS,
     TriggerType.RINGER_MODE,
@@ -109,6 +123,7 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.APPLICATION -> mapOf("packages" to "")
     TriggerType.DEVICE -> mapOf("event" to "SCREEN_ON")
     TriggerType.CONNECTIVITY -> mapOf("network" to "WIFI", "state" to "CONNECTED")
+    TriggerType.NETWORK_MODE -> mapOf("state" to "4G")
     TriggerType.LOCATION -> mapOf("lat" to "", "lng" to "", "radius" to "100", "event" to "ENTER")
     TriggerType.SMS -> mapOf("from" to "", "contains" to "", "reply" to "")
     TriggerType.BLUETOOTH_DEVICE -> mapOf("deviceName" to "", "deviceAddress" to "", "event" to "CONNECTED")
@@ -125,6 +140,7 @@ internal fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.APPLICATION -> R.string.trigger_type_app
     TriggerType.DEVICE -> R.string.trigger_type_device
     TriggerType.CONNECTIVITY -> R.string.trigger_type_connectivity
+    TriggerType.NETWORK_MODE -> R.string.trigger_type_network_mode
     TriggerType.LOCATION -> R.string.trigger_type_location
     TriggerType.SMS -> R.string.trigger_type_sms
     TriggerType.BLUETOOTH_DEVICE -> R.string.trigger_type_bluetooth
@@ -141,6 +157,7 @@ internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.APPLICATION -> Icons.Filled.Apps
     TriggerType.DEVICE -> Icons.Filled.Bolt
     TriggerType.CONNECTIVITY -> Icons.Filled.Wifi
+    TriggerType.NETWORK_MODE -> Icons.Filled.SignalCellularAlt
     TriggerType.LOCATION -> Icons.Filled.Place
     TriggerType.SMS -> Icons.AutoMirrored.Filled.Message
     TriggerType.BLUETOOTH_DEVICE -> Icons.Filled.Bluetooth
@@ -305,7 +322,8 @@ private fun TimeRepeatSection(
                                 val updated = if (day in selectedDays) selectedDays - day else selectedDays + day
                                 onConfigChange(draft.copy(config = draft.config + ("days" to updated.sorted().joinToString(","))))
                             },
-                            label = stringResource(labelRes)
+                            label = stringResource(labelRes),
+                            showCheck = false
                         )
                     }
                 }
@@ -340,7 +358,8 @@ private fun TimeRepeatSection(
                             onClick = {
                                 onConfigChange(draft.copy(config = draft.config + ("weekday" to day.toString())))
                             },
-                            label = stringResource(labelRes)
+                            label = stringResource(labelRes),
+                            showCheck = false
                         )
                     }
                 }
@@ -442,6 +461,7 @@ fun TriggerEditorCard(
     onRemove: () -> Unit,
     onPickApp: () -> Unit,
     onPickFromMap: () -> Unit = {},
+    onUseCurrentLocation: () -> Unit = {},
     onPickBluetooth: () -> Unit = {},
     onPickCalendar: () -> Unit = {},
     onRequestPermission: (Array<String>) -> Unit = {},
@@ -454,18 +474,39 @@ fun TriggerEditorCard(
     var showTimePicker by remember { mutableStateOf(false) }
     var timePickerTarget by remember { mutableStateOf("time") } // "time" | "rangeStart" | "rangeEnd"
     var datePickerTarget by remember { mutableStateOf<String?>(null) } // "date" | "startDate" | "endDate"
+    // Collapsed by default: the card shows the trigger type; tapping it
+    // expands the type picker and the ordered options for that type.
+    var expanded by remember { mutableStateOf(false) }
 
     NexaFlowCard {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = stringResource(R.string.trigger_n, index + 1),
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                Icon(
+                    imageVector = draft.type.icon(),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.trigger_n, index + 1),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Text(
+                        text = stringResource(draft.type.labelRes()),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                Icon(
+                    imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.outline
                 )
                 IconButton(onClick = onRemove) {
                     Icon(
@@ -475,6 +516,7 @@ fun TriggerEditorCard(
                     )
                 }
             }
+            if (!expanded) return@Column
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -594,6 +636,7 @@ fun TriggerEditorCard(
                 TriggerType.BATTERY -> {
                     val direction = draft.config["direction"] ?: "ABOVE"
                     val chargerType = draft.config["chargerType"] ?: "ANY"
+                    val chargingState = draft.config["chargingState"] ?: "ANY"
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         val threshold = (draft.config["above"] ?: "80").toIntOrNull() ?: 80
                         Row(
@@ -623,6 +666,13 @@ fun TriggerEditorCard(
                                 )
                             }
                         }
+                        // ── Battery level (independent of charging) ──────────
+                        Text(
+                            text = stringResource(R.string.battery_level_section),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             SelectChip(
                                 selected = direction == "ABOVE",
@@ -654,10 +704,37 @@ fun TriggerEditorCard(
                             valueRange = 5f..100f
                         )
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        // ── Charging state (plug + charger type, separate) ────
+                        Text(
+                            text = stringResource(R.string.charging_state_section),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        val chargingOptions = listOf(
+                            "ANY" to R.string.charging_any,
+                            "CHARGING" to R.string.charging_yes,
+                            "NOT_CHARGING" to R.string.charging_no
+                        )
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            chargingOptions.forEach { (value, labelRes) ->
+                                SelectChip(
+                                    selected = chargingState == value,
+                                    onClick = {
+                                        onConfigChange(draft.copy(config = draft.config + ("chargingState" to value)))
+                                    },
+                                    label = stringResource(labelRes)
+                                )
+                            }
+                        }
                         Text(
                             text = stringResource(R.string.charger_type_label),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
                         )
                         val chargerOptions = listOf(
                             "ANY" to R.string.charger_any,
@@ -829,75 +906,223 @@ fun TriggerEditorCard(
                                 selected = event,
                                 onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
                             )
-                            PermissionHint(
+                            RuntimePermissionHint(
+                                context = context,
+                                permissions = listOf(android.Manifest.permission.BLUETOOTH_CONNECT),
                                 text = stringResource(R.string.bluetooth_permission_hint),
                                 buttonLabel = stringResource(R.string.enable),
-                                onClick = { onRequestPermission(arrayOf(android.Manifest.permission.BLUETOOTH_CONNECT)) }
+                                onRequest = { onRequestPermission(arrayOf(android.Manifest.permission.BLUETOOTH_CONNECT)) }
                             )
                         }
                     }
                 }
                 TriggerType.CONNECTIVITY -> {
+                    val network = draft.config["network"] ?: "WIFI"
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(text = stringResource(R.string.network), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        // WIFI / MOBILE / hotspot ON-OFF / cellular network mode
+                        // (2G/3G/4G/5G) — each with its own state vocabulary.
                         OptionChips(
-                            options = listOf("WIFI", "MOBILE"),
+                            options = listOf("WIFI", "MOBILE", "HOTSPOT", "NETWORK_MODE"),
                             labels = mapOf(
                                 "WIFI" to stringResource(R.string.network_wifi),
-                                "MOBILE" to stringResource(R.string.network_mobile)
+                                "MOBILE" to stringResource(R.string.network_mobile),
+                                "HOTSPOT" to stringResource(R.string.network_hotspot),
+                                "NETWORK_MODE" to stringResource(R.string.network_mode)
                             ),
-                            selected = draft.config["network"] ?: "WIFI",
-                            onSelect = { onConfigChange(draft.copy(config = draft.config + ("network" to it))) }
+                            selected = network,
+                            onSelect = {
+                                onConfigChange(
+                                    draft.copy(
+                                        config = draft.config + ("network" to it) +
+                                            ("state" to when (it) {
+                                                "HOTSPOT" -> "ON"
+                                                "NETWORK_MODE" -> "4G"
+                                                else -> "CONNECTED"
+                                            })
+                                    )
+                                )
+                            }
                         )
                         Text(text = stringResource(R.string.state), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        when (network) {
+                            "HOTSPOT" -> OptionChips(
+                                options = listOf("ON", "OFF"),
+                                labels = mapOf(
+                                    "ON" to stringResource(R.string.state_on),
+                                    "OFF" to stringResource(R.string.state_off)
+                                ),
+                                selected = draft.config["state"] ?: "ON",
+                                onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                            )
+                            "NETWORK_MODE" -> OptionChips(
+                                options = listOf("AUTO", "2G", "3G", "4G", "5G"),
+                                labels = mapOf(
+                                    "AUTO" to stringResource(R.string.network_mode_auto),
+                                    "2G" to stringResource(R.string.network_mode_2g),
+                                    "3G" to stringResource(R.string.network_mode_3g),
+                                    "4G" to stringResource(R.string.network_mode_4g),
+                                    "5G" to stringResource(R.string.network_mode_5g)
+                                ),
+                                selected = draft.config["state"] ?: "4G",
+                                onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                            )
+                            else -> OptionChips(
+                                options = listOf("CONNECTED", "DISCONNECTED"),
+                                labels = mapOf(
+                                    "CONNECTED" to stringResource(R.string.state_connected),
+                                    "DISCONNECTED" to stringResource(R.string.state_disconnected)
+                                ),
+                                selected = draft.config["state"] ?: "CONNECTED",
+                                onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                            )
+                        }
+                    }
+                }
+                TriggerType.NETWORK_MODE -> {
+                    var currentGen by remember { mutableStateOf(currentCellularGeneration(context)) }
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        // Live read of the device's actual cellular generation,
+                        // using the same real-5G detection as the runtime monitor.
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.network_mode_current),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text(
+                                text = currentGen ?: stringResource(R.string.network_mode_unknown),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
+                            )
+                            IconButton(onClick = { currentGen = currentCellularGeneration(context) }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Refresh,
+                                    contentDescription = stringResource(R.string.refresh)
+                                )
+                            }
+                        }
+                        Text(
+                            text = stringResource(R.string.network_mode_current_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Text(
+                            text = stringResource(R.string.network_mode_fire_when),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
                         OptionChips(
-                            options = listOf("CONNECTED", "DISCONNECTED"),
+                            options = listOf("AUTO", "2G", "3G", "4G", "5G"),
                             labels = mapOf(
-                                "CONNECTED" to stringResource(R.string.state_connected),
-                                "DISCONNECTED" to stringResource(R.string.state_disconnected)
+                                "AUTO" to stringResource(R.string.network_mode_auto),
+                                "2G" to stringResource(R.string.network_mode_2g),
+                                "3G" to stringResource(R.string.network_mode_3g),
+                                "4G" to stringResource(R.string.network_mode_4g),
+                                "5G" to stringResource(R.string.network_mode_5g)
                             ),
-                            selected = draft.config["state"] ?: "CONNECTED",
+                            selected = draft.config["state"] ?: "4G",
                             onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
                         )
                     }
                 }
                 TriggerType.LOCATION -> {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = onPickFromMap) {
-                            Icon(imageVector = Icons.Filled.Map, contentDescription = null)
-                            Text(text = stringResource(R.string.pick_on_map), modifier = Modifier.padding(start = 4.dp))
+                        // Two ways to set the location: current position or map.
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(
+                                onClick = onUseCurrentLocation,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(imageVector = Icons.Filled.MyLocation, contentDescription = null)
+                                Text(
+                                    text = stringResource(R.string.use_current_location),
+                                    modifier = Modifier.padding(start = 4.dp)
+                                )
+                            }
+                            OutlinedButton(
+                                onClick = onPickFromMap,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(imageVector = Icons.Filled.Map, contentDescription = null)
+                                Text(
+                                    text = stringResource(R.string.pick_on_map),
+                                    modifier = Modifier.padding(start = 4.dp)
+                                )
+                            }
                         }
-                        OutlinedTextField(
-                            value = draft.config["lat"] ?: "",
-                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("lat" to it))) },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(text = stringResource(R.string.latitude)) },
-                            singleLine = true
+                        // Read-only summary of the chosen point (replaces the
+                        // old manual latitude/longitude text fields).
+                        val lat = draft.config["lat"] ?: ""
+                        val lng = draft.config["lng"] ?: ""
+                        if (lat.isNotBlank() && lng.isNotBlank()) {
+                            Text(
+                                text = stringResource(R.string.location_coordinates, lat, lng),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        } else {
+                            Text(
+                                text = stringResource(R.string.location_not_set),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                        // Radius slider.
+                        val radius = (draft.config["radius"]?.toIntOrNull() ?: 100)
+                            .coerceIn(LOCATION_RADIUS_MIN_M, LOCATION_RADIUS_MAX_M)
+                        Text(
+                            text = stringResource(R.string.radius_meters_format, radius),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
                         )
-                        OutlinedTextField(
-                            value = draft.config["lng"] ?: "",
-                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("lng" to it))) },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(text = stringResource(R.string.longitude)) },
-                            singleLine = true
+                        Slider(
+                            value = radius.toFloat(),
+                            onValueChange = { value ->
+                                onConfigChange(
+                                    draft.copy(
+                                        config = draft.config + ("radius" to value.toInt().toString())
+                                    )
+                                )
+                            },
+                            valueRange = LOCATION_RADIUS_MIN_M.toFloat()..LOCATION_RADIUS_MAX_M.toFloat(),
+                            steps = LOCATION_RADIUS_STEPS
                         )
-                        OutlinedTextField(
-                            value = draft.config["radius"] ?: "100",
-                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("radius" to it))) },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(text = stringResource(R.string.radius_meters)) },
-                            singleLine = true
-                        )
-                        Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                        OptionChips(
-                            options = listOf("ENTER", "EXIT"),
-                            selected = draft.config["event"] ?: "ENTER",
-                            onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
-                        )
-                        PermissionHint(
+                        // Inside / outside the defined location.
+                        val event = draft.config["event"] ?: "ENTER"
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilterChip(
+                                selected = event == "ENTER",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("event" to "ENTER")))
+                                },
+                                label = { Text(text = stringResource(R.string.location_inside)) },
+                                modifier = Modifier.weight(1f)
+                            )
+                            FilterChip(
+                                selected = event == "EXIT",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("event" to "EXIT")))
+                                },
+                                label = { Text(text = stringResource(R.string.location_outside)) },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        RuntimePermissionHint(
+                            context = context,
+                            permissions = listOf(
+                                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                android.Manifest.permission.ACCESS_COARSE_LOCATION
+                            ),
                             text = stringResource(R.string.location_hint),
                             buttonLabel = stringResource(R.string.grant),
-                            onClick = {
+                            onRequest = {
                                 onRequestPermission(
                                     arrayOf(
                                         android.Manifest.permission.ACCESS_FINE_LOCATION,
@@ -926,10 +1151,12 @@ fun TriggerEditorCard(
                             placeholder = { Text(text = stringResource(R.string.sms_contains_hint)) },
                             singleLine = true
                         )
-                        PermissionHint(
+                        RuntimePermissionHint(
+                            context = context,
+                            permissions = listOf(android.Manifest.permission.RECEIVE_SMS),
                             text = stringResource(R.string.sms_permission_hint),
                             buttonLabel = stringResource(R.string.grant),
-                            onClick = { onRequestPermission(arrayOf(android.Manifest.permission.RECEIVE_SMS)) }
+                            onRequest = { onRequestPermission(arrayOf(android.Manifest.permission.RECEIVE_SMS)) }
                         )
                     }
                 }
@@ -1143,10 +1370,12 @@ fun TriggerEditorCard(
                                 valueRange = 0f..120f
                             )
                         }
-                        PermissionHint(
+                        RuntimePermissionHint(
+                            context = context,
+                            permissions = listOf(android.Manifest.permission.READ_CALENDAR),
                             text = stringResource(R.string.calendar_permission_hint),
                             buttonLabel = stringResource(R.string.grant),
-                            onClick = { onRequestPermission(arrayOf(android.Manifest.permission.READ_CALENDAR)) }
+                            onRequest = { onRequestPermission(arrayOf(android.Manifest.permission.READ_CALENDAR)) }
                         )
                     }
                 }
@@ -1271,10 +1500,12 @@ fun TriggerEditorCard(
                                 )
                                 // Raw step-counter reads on Android 10+ need the
                                 // ACTIVITY_RECOGNITION runtime permission.
-                                PermissionHint(
+                                RuntimePermissionHint(
+                                    context = context,
+                                    permissions = listOf(android.Manifest.permission.ACTIVITY_RECOGNITION),
                                     text = stringResource(R.string.sensor_permission_hint),
                                     buttonLabel = stringResource(R.string.grant),
-                                    onClick = {
+                                    onRequest = {
                                         onRequestPermission(
                                             arrayOf(android.Manifest.permission.ACTIVITY_RECOGNITION)
                                         )

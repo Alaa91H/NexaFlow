@@ -22,8 +22,16 @@ class WidgetsViewModel @Inject constructor(
     val automations: StateFlow<List<Automation>> = repository.getAutomations()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    /** Returns the task pinned to [slot], or null for automatic binding. */
-    fun bindingFor(slot: Int): String? = TileBindingStore.bindingFor(context, slot)
+    /**
+     * Live binding per slot. Backed by a SharedPreferences listener so the UI
+     * recomposes the moment a task is pinned — the tile icon switches instantly.
+     */
+    val bindings: StateFlow<Map<Int, String?>> = TileBindingStore.bindingsFlow(context)
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            TileBindingStore.allBindings(context)
+        )
 
     /** Pins [automationId] to [slot]; pass null to restore automatic binding. */
     fun setBinding(slot: Int, automationId: String?) {

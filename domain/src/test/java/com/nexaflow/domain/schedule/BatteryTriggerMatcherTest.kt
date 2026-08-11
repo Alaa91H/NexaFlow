@@ -95,4 +95,56 @@ class BatteryTriggerMatcherTest {
         assertFalse(BatteryTriggerMatcher.isActive(config, 70, BatteryTriggerMatcher.PLUGGED_AC))
         assertTrue(BatteryTriggerMatcher.isActive(config, 90, BatteryTriggerMatcher.PLUGGED_AC))
     }
+
+    @Test
+    fun `charging state filter requires the device to be charging`() {
+        val chargingConfig = baseConfig + ("chargingState" to "CHARGING")
+        assertTrue(
+            BatteryTriggerMatcher.isActive(chargingConfig, 85, BatteryTriggerMatcher.PLUGGED_AC, charging = true)
+        )
+        assertFalse(
+            BatteryTriggerMatcher.isActive(chargingConfig, 85, BatteryTriggerMatcher.PLUGGED_AC, charging = false)
+        )
+    }
+
+    @Test
+    fun `not charging filter requires the device to be unplugged from charging`() {
+        val notChargingConfig = baseConfig + ("chargingState" to "NOT_CHARGING")
+        assertTrue(
+            BatteryTriggerMatcher.isActive(notChargingConfig, 85, 0, charging = false)
+        )
+        assertFalse(
+            BatteryTriggerMatcher.isActive(notChargingConfig, 85, BatteryTriggerMatcher.PLUGGED_AC, charging = true)
+        )
+    }
+
+    @Test
+    fun `charging state and charger type combine independently`() {
+        val config = baseConfig + mapOf(
+            "chargingState" to "CHARGING",
+            "chargerType" to "WIRELESS"
+        )
+        assertTrue(
+            BatteryTriggerMatcher.isActive(
+                config, 90, BatteryTriggerMatcher.PLUGGED_WIRELESS, charging = true
+            )
+        )
+        // Charging but via the wrong plug type.
+        assertFalse(
+            BatteryTriggerMatcher.isActive(
+                config, 90, BatteryTriggerMatcher.PLUGGED_USB, charging = true
+            )
+        )
+        // Right plug type but not charging (plugged mask alone does not count).
+        assertFalse(
+            BatteryTriggerMatcher.isActive(
+                config, 90, BatteryTriggerMatcher.PLUGGED_WIRELESS, charging = false
+            )
+        )
+    }
+
+    @Test
+    fun `missing charging state defaults to any`() {
+        assertTrue(BatteryTriggerMatcher.isActive(baseConfig, 85, 0, charging = false))
+    }
 }

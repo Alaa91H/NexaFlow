@@ -124,4 +124,25 @@
     <string name="update_download_failed">डाउनलोड या सत्यापन विफल</string>
     <string name="update_install_failed">इंस्टॉलर नहीं खोल सके</string>
     <string name="update_check_failed">GitHub तक नहीं पहुँच सके। बाद में पुनः प्रयास करें।</string>
+    <string name="section_location">स्थान</string>
+    <string name="location_check_interval">बंद होने पर स्थान सत्यापित करें</string>
+    <string name="location_check_interval_manual_sub">किसी कार्य में «मेरा स्थान उपयोग करें» दबाने पर ही जाँचें</string>
+    <string name="location_check_interval_auto_sub">निश्चित अंतराल पर पृष्ठभूमि में स्वतः जाँचें</string>
+    <string name="location_check_title">स्थान जाँच अंतराल</string>
+    <string name="location_check_manual">मैन्युअल</string>
+    <string name="location_check_15">हर 15 मिनट</string>
+    <string name="location_check_30">हर 30 मिनट</string>
+    <string name="location_check_60">हर घंटे</string>
+    <string name="location_check_180">हर 3 घंटे</string>
+    <string name="location_check_360">हर 6 घंटे</string>
+
+    <string name="backup_save">फ़ाइल में सहेजें</string>
+    <string name="backup_save_failed">बैकअप फ़ाइल सहेजी नहीं जा सकी</string>
+    <string name="backup_saved">बैकअप सहेज गया</string>
+    <string name="backup_save_sub">बैकअप को स्थاनीय फ़ाइल में लिखें</string>
+
+    <string name="location_check_custom">कस्टम…</string>
+    <string name="location_check_custom_minutes">हर %1$d मिनट</string>
+    <string name="location_check_minutes">मिनट</string>
+    <string name="location_check_apply">लागू करें</string>
 </resources>

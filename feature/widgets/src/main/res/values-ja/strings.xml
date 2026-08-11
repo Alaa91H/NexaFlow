@@ -44,4 +44,13 @@
     <string name="tile_cancel">キャンセル</string>
 
     <string name="tile_unbound">タスクなし</string>
+
+    <string name="tile_5_label">タスク 5</string>
+    <string name="tile_6_label">タスク 6</string>
+    <string name="tile_7_label">タスク 7</string>
+    <string name="tile_8_label">タスク 8</string>
+    <string name="tile_5_desc">クイック設定パネルから5番目のタスクを切り替えます。</string>
+    <string name="tile_6_desc">クイック設定パネルから6番目のタスクを切り替えます。</string>
+    <string name="tile_7_desc">クイック設定パネルから7番目のタスクを切り替えます。</string>
+    <string name="tile_8_desc">クイック設定パネルから8番目のタスクを切り替えます。</string>
 </resources>

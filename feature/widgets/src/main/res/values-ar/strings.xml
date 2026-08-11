@@ -44,4 +44,13 @@
     <string name="tile_cancel">إلغاء</string>
 
     <string name="tile_unbound">لا توجد مهمة</string>
+
+    <string name="tile_5_label">المهمة 5</string>
+    <string name="tile_6_label">المهمة 6</string>
+    <string name="tile_7_label">المهمة 7</string>
+    <string name="tile_8_label">المهمة 8</string>
+    <string name="tile_5_desc">بدّل المهمة الخامسة مباشرة من لوحة الإعدادات السريعة.</string>
+    <string name="tile_6_desc">بدّل المهمة السادسة مباشرة من لوحة الإعدادات السريعة.</string>
+    <string name="tile_7_desc">بدّل المهمة السابعة مباشرة من لوحة الإعدادات السريعة.</string>
+    <string name="tile_8_desc">بدّل المهمة الثامنة مباشرة من لوحة الإعدادات السريعة.</string>
 </resources>

@@ -2,6 +2,9 @@
 <resources>
     <string name="dashboard_title">NexaFlow</string>
     <string name="dashboard_subtitle">按您的方式自动执行设备操作</string>
+    <string name="status_wifi">Wi-Fi</string>
+    <string name="status_mobile_data">移动数据</string>
+    <string name="status_offline">离线</string>
     <string name="dashboard_settings">设置</string>
     <string name="search_hint">搜索任务</string>
     <string name="clear_search">清除搜索</string>
@@ -37,4 +40,5 @@
     <string name="trigger_calendar">日历事件</string>
     <string name="trigger_sensor">传感器</string>
     <string name="trigger_webhook">网络钩子</string>
+    <string name="trigger_type_network_mode">蜂窝网络</string>
 </resources>

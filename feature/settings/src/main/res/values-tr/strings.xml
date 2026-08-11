@@ -124,4 +124,25 @@
     <string name="update_download_failed">İndirme veya doğrulama başarısız</string>
     <string name="update_install_failed">Yükleyici açılamadı</string>
     <string name="update_check_failed">"GitHub'a ulaşılamadı. Daha sonra tekrar deneyin."</string>
+    <string name="section_location">Konum</string>
+    <string name="location_check_interval">Kapalıyken konumu doğrula</string>
+    <string name="location_check_interval_manual_sub">Yalnızca bir görevde «Konumumu kullan»a dokunduğunda denetle</string>
+    <string name="location_check_interval_auto_sub">Sabit aralıklarla arka planda otomatik denetle</string>
+    <string name="location_check_title">Konum denetim aralığı</string>
+    <string name="location_check_manual">Manuel</string>
+    <string name="location_check_15">Her 15 dakikada bir</string>
+    <string name="location_check_30">Her 30 dakikada bir</string>
+    <string name="location_check_60">Her saat</string>
+    <string name="location_check_180">Her 3 saatte bir</string>
+    <string name="location_check_360">Her 6 saatte bir</string>
+
+    <string name="backup_save">Dosyaya kaydet</string>
+    <string name="backup_save_failed">Yedek dosyası kaydedilemedi</string>
+    <string name="backup_saved">Yedek kaydedildi</string>
+    <string name="backup_save_sub">Yedeği yerel bir dosyaya yaz</string>
+
+    <string name="location_check_custom">Özel…</string>
+    <string name="location_check_custom_minutes">Her %1$d dakikada bir</string>
+    <string name="location_check_minutes">Dakika</string>
+    <string name="location_check_apply">Uygula</string>
 </resources>

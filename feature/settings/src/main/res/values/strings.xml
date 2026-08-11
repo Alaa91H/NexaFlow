@@ -34,6 +34,10 @@
     <string name="crash_reporting_sub">Help improve NexaFlow by sharing anonymous crash reports. Never enabled by default; no personal data is ever sent.</string>
     <string name="backup_export">Export &amp; share</string>
     <string name="backup_export_sub">Save all automations as a JSON file</string>
+    <string name="backup_save">Save to file</string>
+    <string name="backup_save_sub">Write the backup to a local file</string>
+    <string name="backup_saved">Backup saved</string>
+    <string name="backup_save_failed">Could not save the backup file</string>
     <string name="backup_import">Import from file</string>
     <string name="backup_import_sub">Restore automations from a JSON backup</string>
     <string name="backup_imported">Imported %1$d automation(s)</string>
@@ -124,4 +128,19 @@
     <string name="update_download_failed">Download or verification failed</string>
     <string name="update_install_failed">Could not open the installer</string>
     <string name="update_check_failed">Could not reach GitHub. Try again later.</string>
+    <string name="section_location">Location</string>
+    <string name="location_check_interval">Verify location when switched off</string>
+    <string name="location_check_interval_manual_sub">Check only when you tap "Use my location" inside a task</string>
+    <string name="location_check_interval_auto_sub">Auto-check in the background at a fixed interval</string>
+    <string name="location_check_title">Location check interval</string>
+    <string name="location_check_manual">Manual</string>
+    <string name="location_check_15">Every 15 minutes</string>
+    <string name="location_check_30">Every 30 minutes</string>
+    <string name="location_check_60">Every hour</string>
+    <string name="location_check_180">Every 3 hours</string>
+    <string name="location_check_360">Every 6 hours</string>
+    <string name="location_check_custom">Custom…</string>
+    <string name="location_check_custom_minutes">Every %1$d minutes</string>
+    <string name="location_check_minutes">Minutes</string>
+    <string name="location_check_apply">Apply</string>
 </resources>

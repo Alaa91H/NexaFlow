@@ -124,4 +124,25 @@
     <string name="update_download_failed">Falló la descarga o la verificación</string>
     <string name="update_install_failed">No se pudo abrir el instalador</string>
     <string name="update_check_failed">No se pudo acceder a GitHub. Inténtalo más tarde.</string>
+    <string name="section_location">Ubicación</string>
+    <string name="location_check_interval">Verificar ubicación cuando está desactivada</string>
+    <string name="location_check_interval_manual_sub">Comprobar solo al pulsar «Usar mi ubicación» en una tarea</string>
+    <string name="location_check_interval_auto_sub">Verificación automática en segundo plano a intervalos fijos</string>
+    <string name="location_check_title">Intervalo de verificación de ubicación</string>
+    <string name="location_check_manual">Manual</string>
+    <string name="location_check_15">Cada 15 minutos</string>
+    <string name="location_check_30">Cada 30 minutos</string>
+    <string name="location_check_60">Cada hora</string>
+    <string name="location_check_180">Cada 3 horas</string>
+    <string name="location_check_360">Cada 6 horas</string>
+
+    <string name="backup_save">Guardar en archivo</string>
+    <string name="backup_save_failed">No se pudo guardar la copia de seguridad</string>
+    <string name="backup_saved">Copia de seguridad guardada</string>
+    <string name="backup_save_sub">Escribir la copia de seguridad en un archivo local</string>
+
+    <string name="location_check_custom">Personalizado…</string>
+    <string name="location_check_custom_minutes">Cada %1$d minutos</string>
+    <string name="location_check_minutes">Minutos</string>
+    <string name="location_check_apply">Aplicar</string>
 </resources>

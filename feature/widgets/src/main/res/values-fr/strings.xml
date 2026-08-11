@@ -44,4 +44,13 @@
     <string name="tile_cancel">Annuler</string>
 
     <string name="tile_unbound">Aucune tâche</string>
+
+    <string name="tile_5_label">Tâche 5</string>
+    <string name="tile_6_label">Tâche 6</string>
+    <string name="tile_7_label">Tâche 7</string>
+    <string name="tile_8_label">Tâche 8</string>
+    <string name="tile_5_desc">Bascule la cinquième tâche directement depuis le panneau des réglages rapides.</string>
+    <string name="tile_6_desc">Bascule la sixième tâche directement depuis le panneau des réglages rapides.</string>
+    <string name="tile_7_desc">Bascule la septième tâche directement depuis le panneau des réglages rapides.</string>
+    <string name="tile_8_desc">Bascule la huitième tâche directement depuis le panneau des réglages rapides.</string>
 </resources>

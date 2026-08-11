@@ -2,6 +2,9 @@
 <resources>
     <string name="dashboard_title">NexaFlow</string>
     <string name="dashboard_subtitle">Automatisiere dein Gerät nach deinen Regeln</string>
+    <string name="status_wifi">WLAN</string>
+    <string name="status_mobile_data">Mobile Daten</string>
+    <string name="status_offline">Offline</string>
     <string name="dashboard_settings">Einstellungen</string>
     <string name="search_hint">Aufgaben suchen</string>
     <string name="clear_search">Suche löschen</string>
@@ -37,4 +40,5 @@
     <string name="trigger_calendar">Kalenderereignis</string>
     <string name="trigger_sensor">Sensor</string>
     <string name="trigger_webhook">Webhook</string>
+    <string name="trigger_type_network_mode">Mobilfunknetz</string>
 </resources>

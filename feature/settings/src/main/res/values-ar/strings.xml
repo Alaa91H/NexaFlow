@@ -124,4 +124,25 @@
     <string name="update_download_failed">فشل التنزيل أو التحقق</string>
     <string name="update_install_failed">تعذر فتح المثبّت</string>
     <string name="update_check_failed">تعذر الوصول إلى GitHub. حاول لاحقاً.</string>
+    <string name="section_location">الموقع</string>
+    <string name="location_check_interval">التحقق من الموقع عند تعطيله</string>
+    <string name="location_check_interval_manual_sub">التحقق فقط عند الضغط على «استخدام موقعي» داخل مهمة</string>
+    <string name="location_check_interval_auto_sub">تحقق تلقائي في الخلفية بفاصل زمني ثابت</string>
+    <string name="location_check_title">مدة التحقق من الموقع</string>
+    <string name="location_check_manual">يدوي</string>
+    <string name="location_check_15">كل 15 دقيقة</string>
+    <string name="location_check_30">كل 30 دقيقة</string>
+    <string name="location_check_60">كل ساعة</string>
+    <string name="location_check_180">كل 3 ساعات</string>
+    <string name="location_check_360">كل 6 ساعات</string>
+
+    <string name="backup_save">حفظ في ملف</string>
+    <string name="backup_save_failed">تعذر حفظ ملف النسخة الاحتياطية</string>
+    <string name="backup_saved">تم حفظ النسخة الاحتياطية</string>
+    <string name="backup_save_sub">اكتب النسخة الاحتياطية إلى ملف محلي</string>
+
+    <string name="location_check_custom">مخصص…</string>
+    <string name="location_check_custom_minutes">كل %1$d دقيقة</string>
+    <string name="location_check_minutes">دقائق</string>
+    <string name="location_check_apply">تطبيق</string>
 </resources>

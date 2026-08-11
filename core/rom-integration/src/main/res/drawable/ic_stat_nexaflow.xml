@@ -1,27 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Branded notification small icon (white silhouette on transparent).
-  Notification small icons render as an alpha mask, so the glyph is a single
-  white path — the same "N" mark used by the launcher foreground, scaled to
-  the standard 24dp notification size.
+  Notification small icon (white silhouette on transparent). Android renders
+  notification small icons as an alpha mask tinted with the system accent, so
+  the glyph is a single-colour path — the bold checkmark from the launcher
+  identity (المهام المجدولة / Scheduled Tasks). A lone check reads clearly
+  at the standard 24dp status-bar size.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <!-- The launcher path is drawn for the 108dp adaptive-icon safe zone, so
-         the glyph only spans ~50% of the canvas. Scale it around the glyph
-         centre and drop it to the canvas centre so the mark fills the 24dp
-         notification area and reads clearly in the status bar. -->
-    <group
-        android:scaleX="1.5"
-        android:scaleY="1.5"
-        android:pivotX="53"
-        android:pivotY="41.5"
-        android:translateY="12.5">
-        <path
-            android:fillColor="#FFFFFFFF"
-            android:pathData="M62,31c-6,0 -11,3 -13.5,8l-2.5,-8H34l7,20l-7,20h12l4,-13c2.5,5 7.5,8 12,8c8.5,0 14,-5 14,-12c0,-8 -7,-11 -9,-16c-1,-2.5 -1,-4 1,-4c3.5,0 7,3 10,7l8,-6C80,31 72,31 62,31zM60.5,51c0,3 -2,5 -5,5c-3,0 -6,-2 -6,-6c0,-4 2,-6 5,-6c3,0 6,3 6,7z" />
-    </group>
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="3.4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M4.2,12.6L9.8,18.2L19.8,5.8" />
 </vector>

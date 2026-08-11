@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -77,7 +78,15 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        lifecycleScope.launch { WidgetUpdater.refreshAll(applicationContext) }
+        lifecycleScope.launch {
+            try {
+                WidgetUpdater.refreshAll(applicationContext)
+            } catch (t: Throwable) {
+                // Widget refresh is best-effort — a transient DB or widget
+                // error must never force-close the app on every open.
+                Log.e("MainActivity", "Widget refresh failed", t)
+            }
+        }
     }
 
     /**

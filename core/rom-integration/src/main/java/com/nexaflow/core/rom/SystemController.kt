@@ -582,6 +582,69 @@ class SystemController(
         }
     }
 
+    /**
+     * Forces the preferred cellular network generation. The numeric values
+     * are the radio-global `preferred_network_mode` constants (1 = GSM only,
+     * 2 = WCDMA only, 13 = LTE only, 22 = NR only, 20 = NR/LTE/WCDMA/GSM
+     * full auto). Writing that global setting requires an elevated runtime
+     * (root/Shizuku) or MODIFY_PHONE_STATE; devices without the matching
+     * radio band simply keep the previous mode.
+     */
+    fun setNetworkMode(mode: String): SystemControlResult {
+        val value = when (mode) {
+            "2G" -> 1      // GSM only
+            "3G" -> 2      // WCDMA only
+            "4G" -> 13     // LTE only
+            "5G" -> 22     // NR only
+            else -> 20     // AUTO: NR/LTE/WCDMA/GSM
+        }
+        return tryPrivileged(
+            command = "settings put global preferred_network_mode $value",
+            successMessage = "Network mode set to $mode"
+        )
+    }
+
+    /** The currently configured default ringtone URI, or null when unreadable. */
+    fun currentDefaultRingtone(): String? = runCatching {
+        android.media.RingtoneManager.getDefaultUri(
+            android.media.RingtoneManager.TYPE_RINGTONE
+        )?.toString()
+    }.getOrNull()
+
+    /**
+     * Sets the default ringtone to a content URI (from the ringtone picker).
+     * Requires the WRITE_SETTINGS appop; an elevated runtime grants it on the
+     * fly and retries once before giving up.
+     */
+    fun setRingtone(uri: String): SystemControlResult {
+        return try {
+            android.media.RingtoneManager.setActualDefaultRingtoneUri(
+                context,
+                android.media.RingtoneManager.TYPE_RINGTONE,
+                uri.toUri()
+            )
+            SystemControlResult.ok("Ringtone set")
+        } catch (t: Throwable) {
+            val appopGranted = tryPrivileged(
+                command = "appops set ${context.packageName} WRITE_SETTINGS allow",
+                successMessage = ""
+            ).success
+            if (!appopGranted) {
+                return SystemControlResult.fail("Failed to set ringtone: ${t.message}")
+            }
+            try {
+                android.media.RingtoneManager.setActualDefaultRingtoneUri(
+                    context,
+                    android.media.RingtoneManager.TYPE_RINGTONE,
+                    uri.toUri()
+                )
+                SystemControlResult.ok("Ringtone set (via elevated appop)")
+            } catch (t2: Throwable) {
+                SystemControlResult.fail("Failed to set ringtone: ${t2.message}")
+            }
+        }
+    }
+
     /** Toggle GPS/location. Requires WRITE_SECURE_SETTINGS or an elevated runtime. */
     @Suppress("DEPRECATION")
     fun setLocationEnabled(enabled: Boolean): SystemControlResult {

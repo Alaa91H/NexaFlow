@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import com.nexaflow.core.capability.CapabilityCenterScreen
 import com.nexaflow.feature.automations.AutomationDetailsScreen
 import com.nexaflow.feature.builder.AutomationBuilderScreen
+import com.nexaflow.feature.builder.MapPickerScreen
 import com.nexaflow.feature.builder.VariablesScreen
 import com.nexaflow.feature.dashboard.DashboardScreen
 import com.nexaflow.feature.history.ExecutionDetailsScreen
@@ -37,7 +38,12 @@ fun NexaFlowApp() {
             composable("automation_builder?automationId={automationId}") { entry ->
                 AutomationBuilderScreen(
                     navController = navController,
-                    automationId = entry.arguments?.getString("automationId")
+                    automationId = entry.arguments?.getString("automationId"),
+                    // The entry's handle is stable for this destination; the
+                    // icon picker writes its result here. Reading it from the
+                    // navController instead would re-point at the top entry
+                    // while the picker is open and drop the result.
+                    savedStateHandle = entry.savedStateHandle
                 )
             }
             composable("automation_details/{automationId}") {
@@ -63,6 +69,9 @@ fun NexaFlowApp() {
             }
             composable("icon_picker") {
                 IconPickerScreen(navController = navController)
+            }
+            composable("map_picker") {
+                MapPickerScreen(navController = navController)
             }
             composable("variables") {
                 VariablesScreen(navController = navController)

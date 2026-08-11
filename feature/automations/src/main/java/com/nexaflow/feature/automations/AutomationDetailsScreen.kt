@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Sensors
+import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.Web
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Button
@@ -349,6 +350,7 @@ private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector
     TriggerType.NOTIFICATION -> Triple(R.string.trigger_notification, R.string.trigger_notification_sub, Icons.Filled.NotificationsActive)
     TriggerType.CALENDAR -> Triple(R.string.trigger_calendar, R.string.trigger_calendar_sub, Icons.Filled.DateRange)
     TriggerType.SENSOR -> Triple(R.string.trigger_sensor, R.string.trigger_sensor_sub, Icons.Filled.Sensors)
+    TriggerType.NETWORK_MODE -> Triple(R.string.trigger_type_network_mode, R.string.trigger_type_network_mode_sub, Icons.Filled.SignalCellularAlt)
     TriggerType.WEBHOOK -> Triple(R.string.trigger_webhook, R.string.trigger_webhook_sub, Icons.Filled.Web)
 }
 

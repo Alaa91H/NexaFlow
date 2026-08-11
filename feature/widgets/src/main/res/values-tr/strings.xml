@@ -44,4 +44,13 @@
     <string name="tile_cancel">İptal</string>
 
     <string name="tile_unbound">Görev yok</string>
+
+    <string name="tile_5_label">Görev 5</string>
+    <string name="tile_6_label">Görev 6</string>
+    <string name="tile_7_label">Görev 7</string>
+    <string name="tile_8_label">Görev 8</string>
+    <string name="tile_5_desc">Beşinci görevi doğrudan Hızlı Ayarlar panelinden değiştirin.</string>
+    <string name="tile_6_desc">Altıncı görevi doğrudan Hızlı Ayarlar panelinden değiştirin.</string>
+    <string name="tile_7_desc">Yedinci görevi doğrudan Hızlı Ayarlar panelinden değiştirin.</string>
+    <string name="tile_8_desc">Sekizinci görevi doğrudan Hızlı Ayarlar panelinden değiştirin.</string>
 </resources>

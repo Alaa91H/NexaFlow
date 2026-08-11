@@ -61,12 +61,22 @@ object EndBehaviorCatalog {
         ActionType.SYSTEM_RING_VOLUME,
         ActionType.SYSTEM_RINGER_MODE,
         ActionType.SYSTEM_SCREEN_TIMEOUT,
-        ActionType.SYSTEM_SCREEN_ROTATION
+        ActionType.SYSTEM_SCREEN_ROTATION,
+        ActionType.SYSTEM_NETWORK_MODE
+    )
+
+    /**
+     * Actions whose only end option is "restore the previous value" — a
+     * non-numeric change (a chosen ringtone) where a fixed end value would be
+     * meaningless, but reverting to what the user had before is natural.
+     */
+    val revertOnlyActions: Set<ActionType> = setOf(
+        ActionType.SYSTEM_SET_RINGTONE
     )
 
     /** True when the action offers per-action end behavior at all. */
     fun supportsEndBehavior(type: ActionType): Boolean =
-        type in toggleActions || type in valueActions
+        type in toggleActions || type in valueActions || type in revertOnlyActions
 
     /**
      * True when the action can restore its previous state on exit.

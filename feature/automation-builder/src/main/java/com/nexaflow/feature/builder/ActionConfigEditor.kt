@@ -1,5 +1,10 @@
 package com.nexaflow.feature.builder
 
+import android.content.Intent
+import android.media.RingtoneManager
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -30,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -113,6 +120,106 @@ fun ActionConfigEditor(
                     onValueChange = { onConfigChange(config + ("value" to it.toInt().toString())) },
                     valueRange = 0f..100f
                 )
+            }
+        }
+        ActionType.SYSTEM_NETWORK_MODE -> {
+            val modes = listOf(
+                "AUTO" to stringResource(R.string.network_mode_auto),
+                "2G" to stringResource(R.string.network_mode_2g),
+                "3G" to stringResource(R.string.network_mode_3g),
+                "4G" to stringResource(R.string.network_mode_4g),
+                "5G" to stringResource(R.string.network_mode_5g)
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = stringResource(R.string.network_mode_label),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    modes.forEach { (value, label) ->
+                        FilterChip(
+                            selected = (config["mode"] ?: "AUTO") == value,
+                            onClick = { onConfigChange(mapOf("mode" to value)) },
+                            label = { Text(text = label, style = MaterialTheme.typography.labelMedium) }
+                        )
+                    }
+                }
+                Text(
+                    text = stringResource(R.string.network_mode_sub),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
+        ActionType.SYSTEM_SET_RINGTONE -> {
+            val context = LocalContext.current
+            // Ringtone picker returns the chosen URI in the result intent; the
+            // URI is stored so execution (and revert) can apply it later.
+            val ringtoneLauncher = rememberLauncherForActivityResult(
+                ActivityResultContracts.StartActivityForResult()
+            ) { result ->
+                val uri = result.data?.getStringExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+                    ?: result.data?.let { data ->
+                        runCatching {
+                            data.getParcelableExtra<Uri>(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+                        }.getOrNull()?.toString()
+                    }
+                if (!uri.isNullOrBlank()) {
+                    onConfigChange(config + ("uri" to uri))
+                }
+            }
+            val ringtoneTitle = stringResource(R.string.choose_ringtone)
+            val buildRingtoneIntent = {
+                Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
+                    putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_RINGTONE)
+                    putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, ringtoneTitle)
+                    putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
+                    putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+                    config["uri"]?.let { putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, Uri.parse(it)) }
+                }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = stringResource(R.string.ringtone_label),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                val currentUri = config["uri"]
+                val ringtoneName = currentUri?.let { uri ->
+                    runCatching {
+                        RingtoneManager.getRingtone(context, Uri.parse(uri))?.getTitle(context)
+                    }.getOrNull()
+                }
+                androidx.compose.material3.OutlinedButton(
+                    onClick = {
+                        val intent = buildRingtoneIntent()
+                        if (intent.resolveActivity(context.packageManager) != null) {
+                            ringtoneLauncher.launch(intent)
+                        } else {
+                            // No ringtone picker activity available: fall back to
+                            // the default ringtone silently rather than crashing.
+                            onConfigChange(
+                                config + ("uri" to RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE).toString())
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(imageVector = Icons.Filled.MusicNote, contentDescription = null)
+                    Text(
+                        text = if (!ringtoneName.isNullOrBlank()) {
+                            ringtoneName
+                        } else {
+                            stringResource(R.string.choose_ringtone)
+                        },
+                        modifier = Modifier.padding(start = 6.dp)
+                    )
+                }
             }
         }
         ActionType.SYSTEM_LOCATION -> {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">NexaFlow</string>
+    <string name="app_name">अनुसूचित कार्य</string>
     <string name="accessibility_service_description">कॉन्फ़िगर किए गए ऐप खुलने पर ऐप ट्रिगर वाली ऑटोमेशन चलाने का पता लगाता है। केवल सबसे ऊपर वाला ऐप देखा जाता है; स्क्रीन से कुछ भी नहीं पढ़ा जाता।</string>
     <string name="widget_status_title">सक्रिय ऑटोमेशन</string>
     <string name="widget_status_count">0 / 0</string>

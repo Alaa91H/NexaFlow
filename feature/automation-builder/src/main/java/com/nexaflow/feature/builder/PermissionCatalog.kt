@@ -56,12 +56,14 @@ object PermissionCatalog {
         ActionType.ADVANCED_ROOT -> SpecialPermission.ROOT
         ActionType.APPLICATION_CLOSE_APP,
         ActionType.SYSTEM_MOBILE_DATA,
+        ActionType.SYSTEM_NETWORK_MODE,
         ActionType.SYSTEM_HOTSPOT,
         ActionType.SYSTEM_NFC,
         ActionType.SYSTEM_POWER_SAVER,
         ActionType.SYSTEM_LOCK_SCREEN,
         ActionType.SYSTEM_OPEN_RECENTS,
         ActionType.SYSTEM_GO_HOME -> SpecialPermission.ELEVATED
+        ActionType.SYSTEM_SET_RINGTONE -> SpecialPermission.WRITE_SETTINGS
         ActionType.SYSTEM_BLOCK_NOTIFICATION,
         ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS -> SpecialPermission.NOTIFICATION_ACCESS
         else -> null

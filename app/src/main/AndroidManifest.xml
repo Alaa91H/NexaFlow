@@ -29,6 +29,17 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
     <uses-permission android:name="android.permission.READ_LOGS" />
+    <!--
+        Phone-state read for genuine 5G detection in the NETWORK_MODE trigger:
+        the legacy getNetworkType() reports LTE on NSA (LTE-anchored) networks,
+        so the ServiceState NR registration is read instead. READ_BASIC_PHONE_STATE
+        (API 33+) is auto-granted and covers getServiceState(); READ_PHONE_STATE
+        covers older versions.
+    -->
+    <uses-permission
+        android:name="android.permission.READ_PHONE_STATE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_BASIC_PHONE_STATE" />
     <uses-permission android:name="android.permission.MODIFY_PHONE_STATE" />
     <uses-permission android:name="android.permission.STATUS_BAR" />
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
@@ -236,6 +247,44 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <!--
+            WorkManager is configured through NexaFlowApplication's
+            Configuration.Provider (so @HiltWorker MaintenanceWorker gets its
+            Hilt-injected constructor). The default androidx.startup initializer
+            would otherwise initialize WorkManager with the plain WorkerFactory
+            first and make every @HiltWorker fail to construct at runtime —
+            remove it here so only our configuration is used.
+        -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
+
+        <!--
+            THE OPEN-CRASH FIX: sentry-android-core registers SentryInitProvider
+            (and SentryPerformanceProvider) for automatic initialization on every
+            app start. Sentry throws "DSN is required" and force-closes the app
+            when no NEXAFLOW_SENTRY_DSN was baked into the build (CI releases),
+            before Application.onCreate even runs. Sentry is opted in manually
+            (and DSN-guarded) by SentryReporter, so auto-init is removed here —
+            the app always opens, and crash reporting still works on builds that
+            carry a DSN when the user enables it in Settings > Privacy.
+        -->
+        <provider
+            android:name="io.sentry.android.core.SentryInitProvider"
+            android:authorities="${applicationId}.SentryInitProvider"
+            tools:node="remove" />
+        <provider
+            android:name="io.sentry.android.core.SentryPerformanceProvider"
+            android:authorities="${applicationId}.SentryPerformanceProvider"
+            tools:node="remove" />
     </application>
 
 </manifest>

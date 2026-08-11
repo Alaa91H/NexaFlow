@@ -23,6 +23,14 @@
 
     <string name="tile_4_label">Task 4</string>
 
+    <string name="tile_5_label">Task 5</string>
+
+    <string name="tile_6_label">Task 6</string>
+
+    <string name="tile_7_label">Task 7</string>
+
+    <string name="tile_8_label">Task 8</string>
+
     <string name="tile_1_desc">Toggle the first task straight from the Quick Settings panel.</string>
 
     <string name="tile_2_desc">Toggle the second task straight from the Quick Settings panel.</string>
@@ -30,6 +38,14 @@
     <string name="tile_3_desc">Toggle the third task straight from the Quick Settings panel.</string>
 
     <string name="tile_4_desc">Toggle the fourth task straight from the Quick Settings panel.</string>
+
+    <string name="tile_5_desc">Toggle the fifth task straight from the Quick Settings panel.</string>
+
+    <string name="tile_6_desc">Toggle the sixth task straight from the Quick Settings panel.</string>
+
+    <string name="tile_7_desc">Toggle the seventh task straight from the Quick Settings panel.</string>
+
+    <string name="tile_8_desc">Toggle the eighth task straight from the Quick Settings panel.</string>
 
     <string name="tile_add">Add to Quick Settings</string>
 

@@ -13,6 +13,7 @@ class SoundActionsHandler : ActionHandler {
         ActionType.SYSTEM_STREAM_VOLUME,
         ActionType.SYSTEM_RINGER_MODE,
         ActionType.SYSTEM_RING_VOLUME,
+        ActionType.SYSTEM_SET_RINGTONE,
         ActionType.SYSTEM_DND
     )
 
@@ -29,6 +30,8 @@ class SoundActionsHandler : ActionHandler {
                 ctx.controller.setRingerMode(action.config["mode"] ?: "NORMAL")
             ActionType.SYSTEM_RING_VOLUME ->
                 ctx.controller.setRingVolume(action.config["value"]?.toIntOrNull() ?: 50)
+            ActionType.SYSTEM_SET_RINGTONE ->
+                ctx.controller.setRingtone(action.config["uri"] ?: "")
             ActionType.SYSTEM_DND ->
                 ctx.controller.setDoNotDisturb(action.config["enabled"]?.toBoolean() ?: true)
             else -> SystemControlResult.fail("Unsupported action ${action.type}")

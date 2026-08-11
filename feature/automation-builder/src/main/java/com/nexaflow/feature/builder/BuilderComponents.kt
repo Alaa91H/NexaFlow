@@ -103,7 +103,10 @@ fun SelectChip(
     onClick: () -> Unit,
     label: String,
     modifier: Modifier = Modifier,
-    leadingIcon: ImageVector? = null
+    leadingIcon: ImageVector? = null,
+    // Weekday chips show selection purely by colour (no check mark), keeping
+    // the row compact now that the day names are spelled out in full.
+    showCheck: Boolean = true
 ) {
     FilterChip(
         selected = selected,
@@ -111,7 +114,7 @@ fun SelectChip(
         modifier = modifier,
         leadingIcon = {
             when {
-                selected -> Icon(
+                selected && showCheck -> Icon(
                     imageVector = Icons.Filled.Check,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp)
@@ -190,6 +193,27 @@ fun PermissionHint(
         TextButton(onClick = onClick) {
             Text(text = buttonLabel)
         }
+    }
+}
+
+/**
+ * A permission hint row that only exists while at least one of the given
+ * runtime permissions is still missing — once everything is granted the row
+ * disappears entirely (no permanent "granted" reminder in the cards).
+ */
+@Composable
+fun RuntimePermissionHint(
+    context: Context,
+    permissions: List<String>,
+    text: String,
+    buttonLabel: String,
+    onRequest: () -> Unit
+) {
+    val anyMissing = permissions.any {
+        context.checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED
+    }
+    if (anyMissing) {
+        PermissionHint(text = text, buttonLabel = buttonLabel, onClick = onRequest)
     }
 }
 
@@ -280,6 +304,10 @@ fun SpecialPermissionStatusRow(
             withContext(Dispatchers.IO) { resolveSpecialStatus(context, special) }
         }
     }
+    // The row exists only to collect a missing permission. Once granted, it
+    // disappears entirely — no permanent "granted" badge cluttering the card.
+    if (status == SpecialStatus.GRANTED) return
+
     val (pillText, pillBg, pillFg) = when (status) {
         SpecialStatus.GRANTED -> Triple(
             stringResource(R.string.elevated_status_granted),
@@ -404,21 +432,28 @@ fun PermissionHintForAction(
         else -> emptyList()
     }
     if (runtimePermissions.isNotEmpty()) {
-        PermissionHint(
-            text = stringResource(
-                when (actionType) {
-                    ActionType.SYSTEM_SEND_SMS -> R.string.sms_permission_hint
-                    ActionType.SYSTEM_FLASHLIGHT -> R.string.flashlight_hint
-                    ActionType.SYSTEM_SEND_NOTIFICATION,
-                    ActionType.SYSTEM_SEND_REMINDER,
-                    ActionType.BATTERY_ALERTS,
-                    ActionType.BATTERY_CHARGING_NOTIFICATIONS -> R.string.notification_permission_hint
-                    else -> R.string.location_hint
-                }
-            ),
-            buttonLabel = stringResource(R.string.grant),
-            onClick = { onRequestPermission(runtimePermissions.toTypedArray()) }
-        )
+        // The hint exists only to collect a missing permission: once every
+        // permission of this action is granted, the row disappears entirely.
+        val allGranted = runtimePermissions.all {
+            context.checkSelfPermission(it) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        }
+        if (!allGranted) {
+            PermissionHint(
+                text = stringResource(
+                    when (actionType) {
+                        ActionType.SYSTEM_SEND_SMS -> R.string.sms_permission_hint
+                        ActionType.SYSTEM_FLASHLIGHT -> R.string.flashlight_hint
+                        ActionType.SYSTEM_SEND_NOTIFICATION,
+                        ActionType.SYSTEM_SEND_REMINDER,
+                        ActionType.BATTERY_ALERTS,
+                        ActionType.BATTERY_CHARGING_NOTIFICATIONS -> R.string.notification_permission_hint
+                        else -> R.string.location_hint
+                    }
+                ),
+                buttonLabel = stringResource(R.string.grant),
+                onClick = { onRequestPermission(runtimePermissions.toTypedArray()) }
+            )
+        }
         return
     }
 
@@ -429,13 +464,15 @@ fun PermissionHintForAction(
         ActionType.SYSTEM_STAY_AWAKE,
         ActionType.SYSTEM_AUTO_BRIGHTNESS,
         ActionType.SYSTEM_DARK_MODE,
-        ActionType.SYSTEM_ANIMATIONS -> R.string.write_settings_hint to SpecialPermission.WRITE_SETTINGS
+        ActionType.SYSTEM_ANIMATIONS,
+        ActionType.SYSTEM_SET_RINGTONE -> R.string.write_settings_hint to SpecialPermission.WRITE_SETTINGS
         ActionType.SYSTEM_DND,
         ActionType.SYSTEM_RINGER_MODE -> R.string.dnd_hint to SpecialPermission.DND_ACCESS
         ActionType.ADVANCED_SHIZUKU -> R.string.shizuku_hint to SpecialPermission.SHIZUKU
         ActionType.ADVANCED_ROOT -> R.string.root_hint to SpecialPermission.ROOT
         ActionType.APPLICATION_CLOSE_APP,
         ActionType.SYSTEM_MOBILE_DATA,
+        ActionType.SYSTEM_NETWORK_MODE,
         ActionType.SYSTEM_HOTSPOT,
         ActionType.SYSTEM_NFC,
         ActionType.SYSTEM_POWER_SAVER,

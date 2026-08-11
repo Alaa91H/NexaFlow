@@ -70,6 +70,13 @@ dependencies {
     // Real root/Shizuku detection + elevated command execution.
     implementation(project(":core:rom-integration"))
     implementation(libs.dev.rikka.shizuku.api)
+    // LocationAccess (silent location toggle + single-shot fix) for the
+    // location trigger editor.
+    implementation(project(":core:automation-engine"))
+    // In-app OpenStreetMap picker (no Google API key needed): the map-picking
+    // button used to hand off to an external maps app, but modern Google Maps
+    // no longer supports ACTION_PICK, so the user never got a point back.
+    implementation(libs.org.osmdroid.osmdroid.android)
     testImplementation(libs.junit.junit)
     // Compose UI tests running under Robolectric (semantics assertions on the
     // live badge states). ui-test-manifest is already a debugImplementation.
