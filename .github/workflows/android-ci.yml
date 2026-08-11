@@ -52,13 +52,17 @@ jobs:
       run: chmod +x gradlew
     - name: Run unit tests
       run: ./gradlew testDebugUnitTest
-    - name: Restore release signing keystore
-      if: ${{ secrets.NEXAFLOW_KEYSTORE_BASE64 != '' }}
+    - name: Restore release signing keystore (when configured)
       env:
         KEYSTORE_B64: ${{ secrets.NEXAFLOW_KEYSTORE_BASE64 }}
       run: |
-        mkdir -p keystore
-        echo "$KEYSTORE_B64" | base64 -d > keystore/nexaflow-release.jks
+        if [ -n "$KEYSTORE_B64" ]; then
+          mkdir -p keystore
+          echo "$KEYSTORE_B64" | base64 -d > keystore/nexaflow-release.jks
+          echo "Release keystore restored."
+        else
+          echo "No keystore secret configured - the build will fall back to the debug signing config."
+        fi
         # The build reads NEXAFLOW_* env vars over keystore.properties.
     - name: Build with Gradle
       env:

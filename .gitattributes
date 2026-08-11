@@ -1,0 +1,4 @@
+# GitHub Actions rejects workflow files whose line endings get mangled;
+# keep them in LF regardless of the platform checkout settings.
+/.github/workflows/*.yml text eol=lf
+/.github/workflows/*.yaml text eol=lf
