@@ -3,7 +3,7 @@
 > **النطاق:** تفكيك معماري مجهري لمشروع NexaFlow («المهام المجدولة») — محرك الأتمتة على الجهاز
 > (On-Device Engine) كما يعمل اليوم، وتصميم تطوره إلى منصة iPaaS هجينة (جهاز + سحابة) بمعايير 2026.
 > كل حكم تقني مبني على البنية الفعلية في المستودع (وحدات `core/*`, `feature/*`, compileSdk/targetSdk 37,
-> minSdk 26, Java 21 toolchain, +472 اختباراً) — **تفصيل مباشر بلا تنظير، وكل اختيار مقارن ببدائله.
+> minSdk 26, Java 21 toolchain, +550 اختباراً) — **تفصيل مباشر بلا تنظير، وكل اختيار مقارن ببدائله.
 > Last verified against the working tree:** August 2026.
 
 ---
@@ -242,17 +242,18 @@ retry_delay(n) = min(cap, base * 2^(n-1)) + random(0, jitter*cap)
 
 > القاعدة: كل مرحلة تُسلم شيئاً يعمل ويُختبر؛ لا ننتقل قبل اجتياز اختبارات المرحلة. الأرقام تقديرية.
 
-### المرحلة 0 — تحصين الأساس (0–2 أسبوع) — ✅ جزئياً منجز
+### المرحلة 0 — تحصين الأساس — ✅ منجز
 - [x] شبكة أمان البطارية 60s (zero-wakeup) · [x] إقلاع بلا DSN (MergedManifestNoSentryTest) · [x] Java 21 toolchain
-- [ ] **TriggerIndex**: فهرس `sourceId → ids` من `Flow` قاعدة البيانات + تحديث عند الحفظ + اختبارات ذرية (O(1) بدل O(N))
-- [ ] **PayloadContext**: `WorkflowRunContext` (runId, variables, delta) يمر عبر ExecutionEngine
+- [x] **TriggerIndex**: `core/automation-engine/.../engine/TriggerIndex.kt` — فهرس `sourceId → ids` يُبنى من `Flow` القاعدة ويُحدَّث عند الحفظ، `bySource` بـ O(1)، مزوَّد عبر Hilt (`EngineModule`) ويُشغَّل في `MonitoringService` (12 اختباراً ذرياً)
+- [x] **PayloadContext**: `core/execution/.../execution/WorkflowRunContext.kt` — دلتا JSON Merge Patch بحد 256KB + JSONPath، يمر عبر `ExecutionEngine.runAutomation` إلى المعالجات (21 اختباراً)
 
-### المرحلة 1 — محرك DAG (2–6 أسبوع)
-- [ ] `DagNode` في domain (id, type, inputSelector, outputPath, retryPolicy, compensate)
-- [ ] محوّل المخطط (trigger→actions→exit) إلى **DAG مُتحقق** — كشف الدورة عبر **Kahn's algorithm** (قائمة TopologicalOrder تُبنى وتُختبر)
-- [ ] `RetryPolicy` لكل إجراء: exponential backoff + jitter + idempotency key
-- [ ] JSONPath selectors على PayloadContext (تطبيقا الموقع والبيانات)
-- [ ] اختبارات ذرية لكل خوارزمية (نمط BatteryTriggerMatcher)
+### المرحلة 1 — محرك DAG — ✅ منجز
+- [x] `DagNode` + `DagGraph` + `RetryPolicy` في `domain/workflow/DagNode.kt` (id, type, input, outputPath, retry, compensate)
+- [x] محوّل `Automation → DAG مُتحقق` في `domain/workflow/DagCompiler.kt` — كشف الدورة عبر `kahnTopologicalSort` (ترتيب طوبولوجي أو null للرفض قبل التنفيذ) — 19 اختباراً
+- [x] `RetryExecutor` في `domain/workflow/RetryExecutor.kt` — backoff كامل + jitter + idempotency key + تصنيف قابل/دائم (10 اختبارات)
+- [x] JSONPath selectors على PayloadContext — قراءة/كتابة `$`/`$.a.b`/`$.a[0].b`/`$[0]` في `WorkflowRunContext`
+- [x] **تطبيق retry على الشبكة**: `HttpRequestHandler` يعيد المحاولة على 5xx/429/فشل اتصال بتراجع أُسّي، يرفض 4xx فوراً، ويحمل `Idempotency-Key` ثابتة عبر المحاولات — 11 اختباراً
+- [x] اختبارات ذرية لكل خوارزمية (نمط BatteryTriggerMatcher)
 
 ### المرحلة 2 — الباني المرئي (6–10 أسبوع)
 - [ ] Web: React Flow — لوحة عقد (سحب/إفلات) تصدّر DAG JSON Schema
@@ -293,9 +294,10 @@ retry_delay(n) = min(cap, base * 2^(n-1)) + random(0, jitter*cap)
 
 ## 12. الخلاصة التنفيذية
 
-- **تملك اليوم:** محرك أحداث كامل على الجهاز (11 مصدر، إجراءات صوت/شبكة/ROM/بلوتوث، قيود، سلوك خروج، تكامل Evolution X، أمان Keystore، +472 اختباراً) — أساس صلب لا يُهدم.
-- **الفجوات الحرجة:** لا DAG (تسلسل فقط)، لا سياق بيانات، لا retry، لا فهرسة مشغّلات، لا سحابة.
-- **أعلى عائد بأقل جهد:** المرحلة 0 (TriggerIndex + PayloadContext) ثم 1 (DAG + Retry) — ترقية من «أتمتة بسيطة» إلى «محرك سير عمل» دون إعادة بناء الواجهة، وكل خطوة قابلة للاختبار الذري.
+- **تملك اليوم:** محرك أحداث كامل على الجهاز (11 مصدر، إجراءات صوت/شبكة/ROM/بلوتوث، قيود، سلوك خروج، تكامل Evolution X، أمان Keystore، +550 اختباراً) — أساس صلب لا يُهدم.
+- **محرك سير العمل (المرحلة 0+1) مكتمل فعلياً:** TriggerIndex (O(1)) · WorkflowRunContext (دلتا + حد 256KB + JSONPath) يمر عبر المحرك · DagNode + محوّل Kahn مُتحقق · RetryExecutor مطبّق على الشبكة مع Idempotency-Key.
+- **الفجوات الحرجة المتبقية:** ربط مخرجات العقد (outputPath → context) في المعالجات · JSONPath selectors في المحرر · سجلات per-node · الباني المرئي (React Flow) · السحابة.
+- **أعلى عائد تالٍ:** المرحلة 2 (الباني المرئي + تعيين الحقول + per-node logs) ثم المرحلة 3 (Gateway + Kafka + Temporal) — التراكيب المحلية جاهزة للتصدير كـ DAG JSON Schema.
 - **الاتجاه المعماري:** الهجين — خصوصية الجهاز (تحكم بالنظام/شبكة/موقع) + اتساق السحابة وتوسعها وذكائها، عبر Edge sync مع إزالة الازدواج.
 
 ---
@@ -361,7 +363,9 @@ retry_delay(n) = min(cap, base * 2^(n-1)) + random(0, jitter*cap)
 }
 ```
 
-## أ.2 المرحلة 0 — عقود Kotlin جاهزة (في المستودع الحالي)
+## أ.2 المرحلة 0 — عقود Kotlin (منفّذة — انظر الملفات الفعلية في أ.4)
+
+> **ملاحظة التنفيذ:** العقود أدناه نفِّذت فعلياً مع تحسينين مقصودين عن النص الحرفي: (1) دلتا `WorkflowRunContext` شجرة متداخلة بدل خريطة مسطّحة — وإلا لكان `$.weather.temp` يطمس `$.weather.humidity`؛ (2) `require()` بدل `throw IllegalArgumentException` لإرضاء detekt `UseRequire`. البقاء مع الملفات الفعلية المذكورة في أ.4 هو المرجع.
 
 ### TriggerIndex — `core/automation-engine/.../engine/TriggerIndex.kt`
 
@@ -494,12 +498,20 @@ fun kahnTopologicalSort(edges: Map<String, Set<String>>): List<String>? {
 //   edges {A→[B], B→[C]}        → [A, B, C]
 ```
 
-## أ.4 تسلسل التنفيذ المقترح (أقرب 3 خطوات، كل خطوة قابلة للتسليم)
+## أ.4 تسلسل التنفيذ — ✅ الخطوات الثلاث منجزة (الحالة الفعلية)
 
-| # | الخطوة | الملف | الاختبار |
+| # | الخطوة | الملف الفعلي | الحالة والاختبارات |
 |---|---|---|---|
-| 1 | `TriggerIndex` + `start()` في ApplicationScope | `core/automation-engine/.../TriggerIndex.kt` | فهرس يُبنى من Flow ويُحدَّث عند الحفظ؛ `bySource` يعيد المشتركين فقط |
-| 2 | `WorkflowRunContext` يمر عبر `ExecutionEngine.runAutomation` | `core/execution/.../WorkflowRunContext.kt` | دلتا + حد 256KB + JSONPath قراءة/كتابة |
-| 3 | `RetryPolicy` + `RetryExecutor` على إجراءات الشبكة | `core/execution/.../RetryPolicy.kt` | backoff مصداق + jitter ضمن النطاق + idempotency ثابت |
+| 1 | `TriggerIndex` + `start()` في ApplicationScope | `core/automation-engine/.../engine/TriggerIndex.kt` (+ `di/EngineModule.kt`، حقن في `MonitoringService`) | ✅ 12 اختباراً ذرياً — فهرس يُبنى من Flow ويُحدَّث عند الحفظ؛ `bySource` يعيد المشتركين فقط (O(1)) |
+| 2 | `WorkflowRunContext` يمر عبر `ExecutionEngine.runAutomation` | `core/execution/.../execution/WorkflowRunContext.kt` (+ حقل `runContext` في `ActionExecutionContext`) | ✅ 21 اختباراً — دلتا JSON Merge Patch + حد 256KB (رفض قبل التحوير) + JSONPath قراءة/كتابة + مرور نفس المثيل للمعالجات |
+| 3 | `RetryPolicy` + `RetryExecutor` على إجراءات الشبكة | `domain/.../workflow/RetryExecutor.kt` + `RetryPolicy` في `DagNode.kt`، مطبّق في `core/execution/.../handler/HttpRequestHandler.kt` | ✅ 21 اختباراً (10 للرياضيات + 11 للتنفيذ) — backoff مصداق + jitter ضمن النطاق + idempotency ثابت + 4xx دائم بلا محاولة + `Idempotency-Key` على الشبكة |
 
-> **الاتفاقية:** كل خطوة تُسلَّم مع اختبارات ذرية خضراء وdetekt نظيف — نفس معيار الإصدارات السابقة (مثل `BatteryTriggerMatcher` و`MergedManifestNoSentryTest`).
+> **الاتفاقية:** كل خطوة تُسلَّم مع اختبارات ذرية خضراء وdetekt نظيف — نفس معيار الإصدارات السابقة (مثل `BatteryTriggerMatcher` و`MergedManifestNoSentryTest`). إجمالي الاختبارات بعد الخطوات الثلاث: **+550** (18 وحدة).
+
+### أ.4.1 الخطوات التالية (من حيث توقف التنفيذ)
+
+| # | الخطوة | الملف المتوقع | الاختبار المتوقع |
+|---|---|---|---|
+| 4 | ربط مخرجات العقد: `outputPath → context.put(...)` في المعالجات (يبدأ بـ `HttpRequestHandler` كتابة `status`/`body`) | `core/execution/.../handler/*.kt` | اختبار: عقدة B تقرأ عبر `get(outputPath)` ما كتبته عقدة A |
+| 5 | JSONPath selectors في المحرر: حقل مرجع `%` يقرأ من سياق التشغيل | `feature/automation-builder` | اختبار ذري لقرار `%variable` من `WorkflowRunContext` |
+| 6 | سجل per-node (input/output) في `ExecutionRecord`/الخط الزمني | `core/execution` + `feature/history` | اختبار: كل عقدة لها مدخل/مخرج مقنّع |

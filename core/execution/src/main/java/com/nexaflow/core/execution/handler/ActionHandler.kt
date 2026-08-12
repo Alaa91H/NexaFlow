@@ -3,6 +3,7 @@ package com.nexaflow.core.execution.handler
 import android.content.Context
 import com.nexaflow.core.compat.ExecutionProvider
 import com.nexaflow.core.datastore.NotificationSettings
+import com.nexaflow.core.execution.WorkflowRunContext
 import com.nexaflow.core.rom.SystemController
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
@@ -30,7 +31,14 @@ data class ActionExecutionContext(
      * notification-sending handlers append the revert action button so the
      * user can restore the pre-run state straight from the notification.
      */
-    val revertOnExit: Boolean = false
+    val revertOnExit: Boolean = false,
+    /**
+     * The per-run payload context (Phase 2): a JSON Merge Patch delta with a
+     * 256KB budget. Handlers read prior node outputs via [WorkflowRunContext.get]
+     * and publish their own via [WorkflowRunContext.put]. Null when the engine
+     * does not thread a context (e.g. exit-behavior runs).
+     */
+    val runContext: WorkflowRunContext? = null
 )
 
 /**

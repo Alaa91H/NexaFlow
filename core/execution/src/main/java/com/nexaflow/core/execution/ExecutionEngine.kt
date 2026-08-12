@@ -58,8 +58,16 @@ class ExecutionEngine(
      */
     private val snapshots = java.util.concurrent.ConcurrentHashMap<String, DeviceStateSnapshot?>()
 
-    suspend fun runAutomation(automation: Automation): ExecutionRecord {
+    suspend fun runAutomation(
+        automation: Automation,
+        // Phase-2 payload context (JSON Merge Patch delta, 256KB budget). When
+        // null, a fresh context is created for this run so handlers always see
+        // one — callers may also pass their own to seed or inspect it.
+        runContext: WorkflowRunContext? = null,
+    ): ExecutionRecord {
         val startedAt = epochMillis.now()
+        // Local name avoids shadowing the [Context] property used below.
+        val payloadContext = runContext ?: WorkflowRunContext.create(automation.id, startedAt)
         val controller = RomIntegrationManager.controller(context)
         val notif = notificationPreferences.settings.first()
         val channel = channelSelector.select(context)
@@ -109,7 +117,8 @@ class ExecutionEngine(
                 notif,
                 channel,
                 automation.id,
-                automation.revertOnExit
+                automation.revertOnExit,
+                payloadContext
             )
             ActionExecutionResult(
                 actionType = action.type.name,
@@ -291,13 +300,22 @@ class ExecutionEngine(
         notif: NotificationSettings,
         channel: ExecutionProvider?,
         automationId: String? = null,
-        revertOnExit: Boolean = false
+        revertOnExit: Boolean = false,
+        runContext: WorkflowRunContext? = null
     ): SystemControlResult {
         val handler = actionRegistry.handlerFor(action.type)
             ?: return SystemControlResult.fail("No handler registered for ${action.type}")
         return handler.execute(
             action,
-            ActionExecutionContext(context, controller, notif, channel, automationId, revertOnExit)
+            ActionExecutionContext(
+                appContext = context,
+                controller = controller,
+                notificationSettings = notif,
+                channel = channel,
+                automationId = automationId,
+                revertOnExit = revertOnExit,
+                runContext = runContext
+            )
         )
     }
 

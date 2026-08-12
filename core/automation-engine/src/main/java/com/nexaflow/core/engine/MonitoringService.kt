@@ -59,6 +59,9 @@ class MonitoringService : Service() {
     @Inject
     lateinit var smsPreferences: SmsPreferences
 
+    @Inject
+    lateinit var triggerIndex: TriggerIndex
+
     override fun onCreate() {
         super.onCreate()
         isRunning = true
@@ -74,6 +77,9 @@ class MonitoringService : Service() {
         romSettingMonitor.initialize()
         webhookServer.initialize()
         armSmsConsentIfEnabled()
+        // Build the O(1) trigger index and keep it in sync with the database
+        // (rebuilt on every save/enable-toggle via the Room-backed flow).
+        scope.launch { triggerIndex.start() }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
