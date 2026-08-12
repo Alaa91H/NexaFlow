@@ -297,3 +297,209 @@ retry_delay(n) = min(cap, base * 2^(n-1)) + random(0, jitter*cap)
 - **الفجوات الحرجة:** لا DAG (تسلسل فقط)، لا سياق بيانات، لا retry، لا فهرسة مشغّلات، لا سحابة.
 - **أعلى عائد بأقل جهد:** المرحلة 0 (TriggerIndex + PayloadContext) ثم 1 (DAG + Retry) — ترقية من «أتمتة بسيطة» إلى «محرك سير عمل» دون إعادة بناء الواجهة، وكل خطوة قابلة للاختبار الذري.
 - **الاتجاه المعماري:** الهجين — خصوصية الجهاز (تحكم بالنظام/شبكة/موقع) + اتساق السحابة وتوسعها وذكائها، عبر Edge sync مع إزالة الازدواج.
+
+---
+
+# الملحق أ — عقود التنفيذ الجاهزة (Implementation Contracts)
+
+> هذه النسخة الثالثة من التقرير تُضيف **عقوداً قابلة للتنفيذ مباشرة** — كل بند يقابل ملفاً/واجهة في المستودع الحالي، بمعرّفات مطابقة لاتفاقيات المشروع (`domain`, `core/automation-engine`, `core/execution`). الهدف: أن يبدأ التنفيذ من «التصميم» إلى «الشفرة» دون قرارات مفتوحة.
+
+## أ.1 مخطط DAG — JSON Schema (إصدار v1)
+
+```jsonc
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NexaFlowWorkflow",
+  "type": "object",
+  "required": ["schemaVersion", "id", "name", "trigger", "nodes"],
+  "properties": {
+    "schemaVersion": { "const": "1" },
+    "id": { "type": "string", "pattern": "^[a-z0-9-]{8,64}$" },
+    "name": { "type": "string", "maxLength": 80 },
+    "trigger": {
+      "type": "object",
+      "required": ["type", "config"],
+      "properties": {
+        "type": { "enum": ["TIME","BATTERY","CONNECTIVITY","LOCATION","CALENDAR","SENSOR","BLUETOOTH","RINGER","ROM_SETTING","WEBHOOK","CELLULAR","SMS_APP"] },
+        "config": { "type": "object" }   // يُتحقق منه بمخطط فرعي per-type
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/nodeRef" }   // كل قيد = عقدة شرط في DAG
+    },
+    "nodes": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/node" },
+      "minItems": 1
+    },
+    "exit": { "$ref": "#/definitions/node" }          // سلوك «عند انتهاء الشرط»
+  },
+  "definitions": {
+    "node": {
+      "type": "object",
+      "required": ["id", "type", "input"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9-]{1,48}$" },
+        "type": { "enum": ["ACTION_SOUND","ACTION_RINGER","ACTION_VOLUME","ACTION_NETWORK","ACTION_HOTSPOT","ACTION_NOTIFY","ACTION_REMINDER","ACTION_ROM","ACTION_NFC","CONDITION","CUSTOM_CODE"] },
+        "input": { "type": "object", "additionalProperties": true },
+        "outputPath": { "type": "string" },           // JSONPath إلى PayloadContext
+        "retry": {
+          "type": "object",
+          "properties": {
+            "maxAttempts": { "type": "integer", "minimum": 1, "default": 3 },
+            "baseDelayMs": { "type": "integer", "default": 1000 },
+            "capMs": { "type": "integer", "default": 60000 },
+            "jitter": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.2 }
+          }
+        },
+        "compensate": { "$ref": "#/definitions/node" } // إجراء عكسي (Saga)
+      }
+    },
+    "nodeRef": { "type": "string", "description": "مرجع بمعرّف عقدة في nodes[]" }
+  }
+}
+```
+
+## أ.2 المرحلة 0 — عقود Kotlin جاهزة (في المستودع الحالي)
+
+### TriggerIndex — `core/automation-engine/.../engine/TriggerIndex.kt`
+
+```kotlin
+/** فهرس sourceId → معرفات المهام — يلغي filter{enabled} الخطي في Event Dispatcher. */
+class TriggerIndex(
+    private val automationsFlow: Flow<List<Automation>>,   // Flow قاعدة البيانات القائمة
+) {
+    private val index = ConcurrentHashMap<String, MutableSet<String>>()  // sourceId → ids
+    private val all = ConcurrentHashMap<String, Automation>()            // id → snapshot
+
+    /** يُشغَّل مرة واحدة في ApplicationScope؛ يعيد بناء الفهرس عند أي تغيير في القاعدة. */
+    suspend fun start() {
+        automationsFlow.collect { list ->
+            index.clear(); all.clear()
+            list.filter { it.enabled }.forEach { a ->
+                a.triggers.forEach { t -> index.computeIfAbsent(t.sourceId) { HashSet() }.add(a.id) }
+                all[a.id] = a
+            }
+        }
+    }
+
+    /** O(1): يعيد المهام المشتركة في مصدر حدث معيّن — بدل فحص كل المهام. */
+    fun bySource(sourceId: String): List<Automation> =
+        index[sourceId]?.mapNotNull { all[it] } ?: emptyList()
+
+    fun snapshot(id: String): Automation? = all[id]
+}
+```
+
+### WorkflowRunContext — `core/execution/.../execution/WorkflowRunContext.kt`
+
+```kotlin
+/** سياق تنفيذ واحد يمر عبر العقد — دلتا فقط (JSON Merge Patch) بحد أعلى للذاكرة. */
+class WorkflowRunContext(
+    val runId: String,                 // UUID لكل تنفيذ — يطبع في history و OTel
+    val automationId: String,
+    val triggeredAt: Long,
+) {
+    private val patch = mutableMapOf<String, Any?>()   // مسار JSONPath → قيمة (دلتا)
+    private var bytesEstimate = 0
+
+    companion object { const val MAX_BYTES = 256 * 1024 }
+
+    /** يكتب عبر مسار صريح فقط — لا أثر جانبي خفي. */
+    fun put(path: String, value: Any?) {
+        val delta = estimate(value)
+        check(bytesEstimate + delta <= MAX_BYTES) { "PayloadContext تجاوز حد 256KB" }
+        patch[path] = value; bytesEstimate += delta
+    }
+
+    /** JSONPath selector: $.weather.temp → يقرأ من الدلتا (ويتوسع لاحقاً لتخزين خارجي). */
+    @Suppress("UNCHECKED_CAST")
+    fun get(path: String): Any? {
+        if (!path.startsWith("$.")) return null
+        val segments = path.removePrefix("$.").split(".")
+        var node: Any? = patch[segments.firstOrNull() ?: return null]
+        for (seg in segments.drop(1)) {
+            node = when (node) {
+                is Map<*, *> -> node[seg]
+                else -> null
+            }
+            if (node == null) return null
+        }
+        return node
+    }
+
+    private fun estimate(v: Any?): Int = when (v) {
+        null -> 4
+        is String -> v.length + 16
+        is Number -> 16
+        is Boolean -> 4
+        is Map<*, *> -> v.entries.sumOf { estimate(it.key) + estimate(it.value) }
+        is Iterable<*> -> v.sumOf { estimate(it) }
+        else -> 64
+    }
+}
+```
+
+### RetryPolicy — `core/execution/.../execution/RetryPolicy.kt`
+
+```kotlin
+/** Exponential backoff + jitter — مطابق للعقد retry في مخطط DAG. */
+data class RetryPolicy(
+    val maxAttempts: Int = 3,
+    val baseDelayMs: Long = 1000,
+    val capMs: Long = 60000,
+    val jitter: Double = 0.2,
+)
+
+class RetryExecutor(private val rng: Random = Random.Default) {
+    /** يعيد delay للمحاولة n (1-based) — min(cap, base·2^(n-1)) + jitter. */
+    fun delayMs(attempt: Int, policy: RetryPolicy): Long {
+        val exp = policy.baseDelayMs * (1L shl (attempt - 1).coerceAtMost(6))
+        val capped = exp.coerceAtMost(policy.capMs)
+        val jitterAmt = (capped * policy.jitter).toLong()
+        return capped + if (jitterAmt > 0) rng.nextLong(-jitterAmt, jitterAmt + 1) else 0L
+    }
+
+    /** Idempotency key — التكرار لا يكرر الأثر. */
+    fun idempotencyKey(workflowId: String, nodeId: String, inputHash: String): String =
+        sha256("$workflowId|$nodeId|$inputHash")
+}
+```
+
+## أ.3 خوارزمية Kahn — كشف الدورة في المحوّل (المرحلة 1)
+
+```kotlin
+/** يعيد ترتيباً طوبولوجياً أو null إذا وُجدت دورة — يُستخدم في محوّل المخطط → DAG. */
+fun kahnTopologicalSort(edges: Map<String, Set<String>>): List<String>? {
+    val indegree = HashMap<String, Int>().also { m ->
+        edges.keys.forEach { m[it] = 0 }
+        edges.forEach { (_, deps) -> deps.forEach { d -> m[d] = (m[d] ?: 0) + 1 } }
+    }
+    val queue = ArrayDeque<String>().apply { indegree.filterValues { it == 0 }.keys.forEach { add(it) } }
+    val order = ArrayList<String>(indegree.size)
+    while (queue.isNotEmpty()) {
+        val node = queue.removeFirst()
+        order.add(node)
+        edges[node]?.forEach { dep ->
+            val d = indegree[dep]!! - 1; indegree[dep] = d
+            if (d == 0) queue.addLast(dep)
+        }
+    }
+    return if (order.size == indegree.size) order else null   // null = دورة → رفض المخطط
+}
+
+// اختبار ذري (نمط BatteryTriggerMatcher):
+//   edges {A→[B], B→[C], C→[A]} → null   (دورة)
+//   edges {A→[B], B→[C]}        → [A, B, C]
+```
+
+## أ.4 تسلسل التنفيذ المقترح (أقرب 3 خطوات، كل خطوة قابلة للتسليم)
+
+| # | الخطوة | الملف | الاختبار |
+|---|---|---|---|
+| 1 | `TriggerIndex` + `start()` في ApplicationScope | `core/automation-engine/.../TriggerIndex.kt` | فهرس يُبنى من Flow ويُحدَّث عند الحفظ؛ `bySource` يعيد المشتركين فقط |
+| 2 | `WorkflowRunContext` يمر عبر `ExecutionEngine.runAutomation` | `core/execution/.../WorkflowRunContext.kt` | دلتا + حد 256KB + JSONPath قراءة/كتابة |
+| 3 | `RetryPolicy` + `RetryExecutor` على إجراءات الشبكة | `core/execution/.../RetryPolicy.kt` | backoff مصداق + jitter ضمن النطاق + idempotency ثابت |
+
+> **الاتفاقية:** كل خطوة تُسلَّم مع اختبارات ذرية خضراء وdetekt نظيف — نفس معيار الإصدارات السابقة (مثل `BatteryTriggerMatcher` و`MergedManifestNoSentryTest`).
