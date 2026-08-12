@@ -33,7 +33,9 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(com.nexaflow.core.rom.R.drawable.ic_stat_nexaflow)
             // M3: brand-tinted small icon + action icons; reminder semantics.
+            // Colorized (API 31+) fills the header with the brand color.
             .setColor(context.getColor(com.nexaflow.core.rom.R.color.notification_brand_color))
+            .setColorized(true)
             .setContentTitle(title)
             .setContentText(text)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)

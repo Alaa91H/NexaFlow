@@ -146,7 +146,7 @@ New adaptive icon (drawable-only, launcher-safe):
 > future material3 bump exposes `MotionScheme`, switch `NexaFlowSprings` to
 > read the theme scheme — the call sites don't change.
 | **P4 — Simplification pass** ✅ | Audited Dashboard/Builder/Capability Center/Settings/Widgets against §4; unified the two remaining radio-button pickers (location interval, tile binding) to the Google checkmark-row pattern via shared `CheckableRow` | `CheckableRow.kt`, `SettingsScreen.kt`, `WidgetsScreen.kt` | assembleDebug green; detekt clean |
-| **P5 — Notifications & widget** | M3 notification styling (already done) + widget card radius 24dp, icon sync | widget module, notification channel colors | widget matches app theme |
+| **P5 — Notifications & widget** ✅ | Colorized M3 notifications on all four builders (setColorized(true), API 31+ ignored below); channel colors verified equal to the theme primary (#0B57D0 day / #A8C7FA night = GoogleBlue seed); widget = QS tiles: card radius 24dp via NexaFlowCard → shapes.medium, tile icon/label synced to the bound task at runtime | `MonitoringService.kt`, `OemAutostartNotifier.kt`, `ReminderAlarmReceiver.kt`, `SystemController.kt` | module tests + detekt green |
 
 ---
 
