@@ -23,11 +23,14 @@ import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -437,6 +440,7 @@ private fun EvolutionXCard(
  * actually present on the device (via `settings list`), lets the user edit any
  * value and writes it back through the elevated runtime.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EvolutionSettingsDialog(onDismiss: () -> Unit) {
     val context = LocalContext.current
@@ -455,66 +459,78 @@ private fun EvolutionSettingsDialog(onDismiss: () -> Unit) {
         loading = false
     }
 
-    AlertDialog(
+    // Google 2026: browsing content opens as a full-height modal bottom sheet.
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(R.string.evolution_custom_settings)) },
-        text = {
-            Column(
-                modifier = Modifier
-                    .height(400.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                if (loading) {
-                    Text(
-                        text = stringResource(R.string.evolution_no_custom_settings),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                } else if (entries.isEmpty()) {
-                    Text(
-                        text = stringResource(R.string.evolution_no_custom_settings),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                } else {
-                    entries.forEach { entry ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = entry.key,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Text(
-                                    text = stringResource(
-                                        R.string.evolution_setting_value,
-                                        entry.value
-                                    ),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            }
-                            TextButton(onClick = {
-                                editing = entry
-                                editValue = entry.value
-                            }) {
-                                Text(text = stringResource(R.string.evolution_edit_setting))
-                            }
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
+        Text(
+            text = stringResource(R.string.evolution_custom_settings),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 8.dp)
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(400.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            if (loading) {
+                Text(
+                    text = stringResource(R.string.evolution_no_custom_settings),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            } else if (entries.isEmpty()) {
+                Text(
+                    text = stringResource(R.string.evolution_no_custom_settings),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            } else {
+                entries.forEach { entry ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = entry.key,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = stringResource(
+                                    R.string.evolution_setting_value,
+                                    entry.value
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                        TextButton(onClick = {
+                            editing = entry
+                            editValue = entry.value
+                        }) {
+                            Text(text = stringResource(R.string.evolution_edit_setting))
                         }
                     }
                 }
             }
-        },
-        confirmButton = {
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 12.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
             TextButton(onClick = onDismiss) {
                 Text(text = stringResource(R.string.ok))
             }
         }
-    )
+    }
 
     editing?.let { entry ->
         AlertDialog(

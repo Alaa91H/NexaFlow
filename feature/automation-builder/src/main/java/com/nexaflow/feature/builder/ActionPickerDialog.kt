@@ -2,18 +2,21 @@ package com.nexaflow.feature.builder
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -38,6 +41,7 @@ private data class SearchEntry(
     val subtitle: String
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActionPickerDialog(
     alreadySelected: List<ActionOption>,
@@ -47,11 +51,21 @@ fun ActionPickerDialog(
     var query by remember { mutableStateOf("") }
     val picked = remember { mutableStateListOf<ActionOption>() }
 
-    AlertDialog(
+    // Google 2026: selection tasks open as a full-height modal bottom sheet,
+    // not a centered dialog.
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(R.string.pick_actions)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
+        Text(
+            text = stringResource(R.string.pick_actions),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 8.dp)
+        )
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
@@ -77,7 +91,7 @@ fun ActionPickerDialog(
                             entry.subtitle.lowercase().contains(trimmed))
                 }
                 LazyColumn(
-                    modifier = Modifier.heightIn(max = 400.dp),
+                    modifier = Modifier.fillMaxWidth().weight(1f, fill = false),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     if (matched == 0) {
@@ -118,8 +132,15 @@ fun ActionPickerDialog(
                     }
                 }
             }
-        },
-        confirmButton = {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 12.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(R.string.cancel))
+            }
             TextButton(
                 onClick = { onConfirm(picked.toList()) },
                 enabled = picked.isNotEmpty()
@@ -132,11 +153,6 @@ fun ActionPickerDialog(
                     }
                 )
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(R.string.cancel))
-            }
         }
-    )
+    }
 }

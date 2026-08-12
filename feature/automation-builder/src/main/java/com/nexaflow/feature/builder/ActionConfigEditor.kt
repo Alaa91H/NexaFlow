@@ -25,8 +25,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -801,6 +803,7 @@ private fun ToggleConfigRow(
  * row opens a picker of the other saved tasks; each picked task becomes a
  * button labelled with the task name.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun NotificationButtonsEditor(
     buttons: List<NotificationActionButton>,
@@ -899,53 +902,67 @@ private fun NotificationButtonsEditor(
     }
 
     if (showPicker) {
-        AlertDialog(
+        // Google 2026: selection tasks open as a full-height modal bottom sheet.
+        ModalBottomSheet(
             onDismissRequest = { showPicker = false },
-            title = { Text(text = stringResource(R.string.notification_buttons_picker_title)) },
-            text = {
-                Column {
-                    if (automations.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.notification_buttons_picker_empty),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    } else {
-                        // Never offer a task twice — already-attached buttons are
-                        // hidden from the picker so duplicate entries can't stack.
-                        val selectedIds = buttons.map { it.automationId }.toSet()
-                        automations.filterNot { it.id in selectedIds }.forEach { automation ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        onButtonsChange(buttons + NotificationActionButton(automation.name, automation.id))
-                                        showPicker = false
-                                    }
-                                    .padding(vertical = 10.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = automation.name,
-                                    modifier = Modifier.weight(1f),
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Icon(
-                                    imageVector = Icons.Filled.Add,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.outline
-                                )
-                            }
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Text(
+                text = stringResource(R.string.notification_buttons_picker_title),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 8.dp)
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+            ) {
+                if (automations.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.notification_buttons_picker_empty),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                } else {
+                    // Never offer a task twice — already-attached buttons are
+                    // hidden from the picker so duplicate entries can't stack.
+                    val selectedIds = buttons.map { it.automationId }.toSet()
+                    automations.filterNot { it.id in selectedIds }.forEach { automation ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onButtonsChange(buttons + NotificationActionButton(automation.name, automation.id))
+                                    showPicker = false
+                                }
+                                .padding(vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = automation.name,
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Icon(
+                                imageVector = Icons.Filled.Add,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.outline
+                            )
                         }
                     }
                 }
-            },
-            confirmButton = {
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 12.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
                 TextButton(onClick = { showPicker = false }) {
                     Text(text = stringResource(R.string.cancel))
                 }
             }
-        )
+        }
     }
 
     // Reply-variable editor: a small dialog setting the %variable that receives

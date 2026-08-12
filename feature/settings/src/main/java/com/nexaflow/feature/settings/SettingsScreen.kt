@@ -241,6 +241,24 @@ fun SettingsScreen(navController: NavController) {
             item {
                 val updateViewModel: UpdateViewModel = hiltViewModel()
                 val updateState by updateViewModel.state.collectAsState()
+                var updateDialogInfo by remember { mutableStateOf<UpdateInfo?>(null) }
+                // Auto-open the update dialog the moment a newer APK is found;
+                // close it on success (Idle → installer) or failure (Error).
+                LaunchedEffect(updateState) {
+                    when (updateState) {
+                        is UpdateUiState.Available -> updateDialogInfo = (updateState as UpdateUiState.Available).info
+                        UpdateUiState.Idle, is UpdateUiState.Error -> updateDialogInfo = null
+                        else -> Unit
+                    }
+                }
+                updateDialogInfo?.let { info ->
+                    UpdateDialog(
+                        info = info,
+                        downloading = updateState is UpdateUiState.Downloading,
+                        onDownloadAndInstall = { updateViewModel.downloadAndInstall() },
+                        onDismiss = { updateDialogInfo = null }
+                    )
+                }
                 NexaFlowCard {
                     when (val state = updateState) {
                         UpdateUiState.Idle -> SettingRow(
@@ -279,7 +297,7 @@ fun SettingsScreen(navController: NavController) {
                                         style = androidx.compose.material3.MaterialTheme.typography.labelLarge
                                     )
                                 },
-                                onClick = { updateViewModel.downloadAndInstall() }
+                                onClick = { updateDialogInfo = state.info }
                             )
                         }
                         UpdateUiState.Downloading -> SettingRow(

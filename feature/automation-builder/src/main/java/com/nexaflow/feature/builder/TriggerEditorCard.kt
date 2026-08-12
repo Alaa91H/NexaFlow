@@ -33,14 +33,15 @@ import androidx.compose.material.icons.filled.Web
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -58,7 +59,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.rememberCoroutineScope
@@ -1652,20 +1652,30 @@ fun TriggerEditorCard(
                         )
                     }
                     if (showKeyPicker) {
-                        AlertDialog(
+                        // Google 2026: selection tasks open as a full-height modal bottom sheet.
+                        ModalBottomSheet(
                             onDismissRequest = { showKeyPicker = false },
-                            title = { Text(text = stringResource(R.string.rom_setting_pick_title)) },
-                            text = {
-                                if (liveKeys.isEmpty()) {
-                                    Text(
-                                        text = stringResource(R.string.rom_setting_pick_empty),
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                } else {
-                                    LazyColumn(
-                                        modifier = Modifier.heightIn(max = 360.dp)
-                                    ) {
-                                        items(liveKeys, key = { it.displayKey }) { entry ->
+                            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+                        ) {
+                        Text(
+                            text = stringResource(R.string.rom_setting_pick_title),
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 8.dp)
+                        )
+                        if (liveKeys.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.rom_setting_pick_empty),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(horizontal = 24.dp)
+                            )
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f, fill = false)
+                                    .padding(horizontal = 24.dp)
+                            ) {
+                                items(liveKeys, key = { it.displayKey }) { entry ->
                                             Row(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
@@ -1704,16 +1714,19 @@ fun TriggerEditorCard(
                                                     )
                                                 }
                                             }
-                                        }
-                                    }
-                                }
-                            },
-                            confirmButton = {
-                                TextButton(onClick = { showKeyPicker = false }) {
-                                    Text(text = stringResource(R.string.cancel))
-                                }
+                                        }                                }
                             }
-                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 12.dp),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            TextButton(onClick = { showKeyPicker = false }) {
+                                Text(text = stringResource(R.string.cancel))
+                            }
+                        }
+                        }
                     }
                 }
                 TriggerType.NOTIFICATION -> {

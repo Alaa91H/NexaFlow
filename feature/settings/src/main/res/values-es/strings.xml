@@ -114,6 +114,10 @@
     <string name="update_available">Actualización disponible</string>
     <string name="update_available_sub">La versión %1$s está lista para instalar</string>
     <string name="update_downloading">Descargando…</string>
+    <string name="update_dialog_title">Actualización disponible</string>
+    <string name="update_dialog_download">Descargar e instalar</string>
+    <string name="update_dialog_later">Más tarde</string>
+    <string name="update_dialog_size">Tamaño: %1$s</string>
     <string name="update_error">Error al buscar actualizaciones</string>
     <string name="update_no_apk">Esta versión no tiene un APK descargable</string>
     <string name="update_download_failed">Falló la descarga o la verificación</string>

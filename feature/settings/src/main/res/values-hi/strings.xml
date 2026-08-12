@@ -114,6 +114,10 @@
     <string name="update_available">अपडेट उपलब्ध है</string>
     <string name="update_available_sub">संस्करण %1$s इंस्टॉल करने के लिए तैयार है</string>
     <string name="update_downloading">डाउनलोड हो रहा है…</string>
+    <string name="update_dialog_title">अपडेट उपलब्ध है</string>
+    <string name="update_dialog_download">डाउनलोड करें और इنس्टॉल करें</string>
+    <string name="update_dialog_later">बाद में</string>
+    <string name="update_dialog_size">आकार: %1$s</string>
     <string name="update_error">अपडेट जाँच विफल</string>
     <string name="update_no_apk">इस रिलीज़ में डाउनलोड करने योग्य APK नहीं है</string>
     <string name="update_download_failed">डाउनलोड या सत्यापन विफल</string>

@@ -114,6 +114,10 @@
     <string name="update_available">Доступно обновление</string>
     <string name="update_available_sub">Версия %1$s готова к установке</string>
     <string name="update_downloading">Загрузка…</string>
+    <string name="update_dialog_title">Доступно обновление</string>
+    <string name="update_dialog_download">Скачать и установить</string>
+    <string name="update_dialog_later">Позже</string>
+    <string name="update_dialog_size">Размер: %1$s</string>
     <string name="update_error">Не удалось проверить обновления</string>
     <string name="update_no_apk">В этом релизе нет загружаемого APK</string>
     <string name="update_download_failed">Ошибка загрузки или проверки</string>

@@ -114,6 +114,10 @@
     <string name="update_available">Güncelleme mevcut</string>
     <string name="update_available_sub">%1$s sürümü kuruluma hazır</string>
     <string name="update_downloading">İndiriliyor…</string>
+    <string name="update_dialog_title">Güncelleme mevcut</string>
+    <string name="update_dialog_download">İndir ve kur</string>
+    <string name="update_dialog_later">Sonra</string>
+    <string name="update_dialog_size">Boyut: %1$s</string>
     <string name="update_error">Güncelleme kontrolü başarısız</string>
     <string name="update_no_apk">Bu sürümde indirilebilir APK yok</string>
     <string name="update_download_failed">İndirme veya doğrulama başarısız</string>

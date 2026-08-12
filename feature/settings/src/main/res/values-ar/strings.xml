@@ -114,6 +114,10 @@
     <string name="update_available">يتوفر تحديث</string>
     <string name="update_available_sub">النسخة %1$s جاهزة للتثبيت</string>
     <string name="update_downloading">جارٍ التنزيل…</string>
+    <string name="update_dialog_title">يتوفر تحديث</string>
+    <string name="update_dialog_download">تنزيل وتثبيت</string>
+    <string name="update_dialog_later">لاحقاً</string>
+    <string name="update_dialog_size">الحجم: %1$s</string>
     <string name="update_error">فشل التحقق من التحديث</string>
     <string name="update_no_apk">لا يحتوي هذا الإصدار على APK قابل للتنزيل</string>
     <string name="update_download_failed">فشل التنزيل أو التحقق</string>

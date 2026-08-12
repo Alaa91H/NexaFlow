@@ -24,14 +24,15 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -188,6 +189,7 @@ fun WidgetsScreen(navController: NavController, viewModel: WidgetsViewModel = hi
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TileBindingDialog(
     automations: List<com.nexaflow.domain.models.Automation>,
@@ -195,44 +197,48 @@ private fun TileBindingDialog(
     onSelect: (String?) -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
+    // Google 2026: selection tasks open as a full-height modal bottom sheet.
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(R.string.tile_choose_task)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                // Google-style single-choice rows: the selected option carries
-                // a trailing checkmark instead of a radio button.
-                CheckableRow(
-                    selected = currentBinding == null,
-                    onClick = { onSelect(null) }
-                ) {
-                    Text(text = stringResource(R.string.tile_automatic))
-                }
-                automations.forEach { automation ->
-                    CheckableRow(
-                        selected = currentBinding == automation.id,
-                        onClick = { onSelect(automation.id) }
-                    ) {
-                        IconBadge(
-                            icon = iconVector(automation.icon),
-                            containerColor = Color(automation.iconColor),
-                            size = 32
-                        )
-                        Text(
-                            text = automation.name,
-                            modifier = Modifier.padding(start = 2.dp)
-                        )
-                    }
-                }
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
+        Text(
+            text = stringResource(R.string.tile_choose_task),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 8.dp)
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            // Google-style single-choice rows: the selected option carries
+            // a trailing checkmark instead of a radio button.
+            CheckableRow(
+                selected = currentBinding == null,
+                onClick = { onSelect(null) }
+            ) {
+                Text(text = stringResource(R.string.tile_automatic))
             }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(R.string.tile_cancel))
+            automations.forEach { automation ->
+                CheckableRow(
+                    selected = currentBinding == automation.id,
+                    onClick = { onSelect(automation.id) }
+                ) {
+                    IconBadge(
+                        icon = iconVector(automation.icon),
+                        containerColor = Color(automation.iconColor),
+                        size = 32
+                    )
+                    Text(
+                        text = automation.name,
+                        modifier = Modifier.padding(start = 2.dp)
+                    )
+                }
             }
         }
-    )
+    }
 }
 
 /**
