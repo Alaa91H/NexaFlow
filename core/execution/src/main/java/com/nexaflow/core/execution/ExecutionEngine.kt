@@ -111,8 +111,12 @@ class ExecutionEngine(
         val variables = runCatching { resolveVariables() }.getOrDefault(emptyMap())
         val results = automation.actions.map { action ->
             val actionStartedAt = epochMillis.now()
+            // Actions run sequentially and each handler may publish to the
+            // shared context (Step 4), so %CTX selectors are resolved here —
+            // after the previous node ran, before this node dispatches.
+            val resolved = resolveContextRefs(resolveAction(action, variables), payloadContext)
             val result = executeAction(
-                resolveAction(action, variables),
+                resolved,
                 controller,
                 notif,
                 channel,
@@ -286,6 +290,20 @@ class ExecutionEngine(
             }
         )
     }
+
+    /**
+     * Resolves `%CTX.<jsonpath>` selectors (Step 5) against the shared run
+     * context so a node can consume the output of an earlier node. Runs after
+     * [resolveAction] (so %NAME is already substituted) and after the previous
+     * actions executed — the context then holds what they published.
+     */
+    private fun resolveContextRefs(action: Action, runContext: WorkflowRunContext): Action =
+        action.copy(
+            config = action.config.mapValues { (key, value) ->
+                if (key in opaqueConfigKeys) value
+                else ContextVariableResolver.resolve(value, runContext)
+            }
+        )
 
     private suspend fun resolveVariables(): Map<String, String> {
         val builtins = runCatching { BuiltinVariables.provide(context) }.getOrDefault(emptyMap())

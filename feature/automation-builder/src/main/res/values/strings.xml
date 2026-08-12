@@ -422,6 +422,7 @@
     <string name="variable_sensitive_sub">Store this value encrypted on this device (tokens, passwords). Decrypted only when a task runs.</string>
     <string name="add_variable">Add variable</string>
     <string name="delete_variable">Delete</string>
+    <string name="insert_context_hint">Reference an earlier step\'s output</string>
     <string name="insert_variable_hint">Insert:</string>
     <string name="edit">Edit</string>
     <string name="category_plugins">Plugins</string>

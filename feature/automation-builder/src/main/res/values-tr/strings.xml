@@ -397,6 +397,7 @@
     <string name="variable_sensitive_sub">Bu değeri cihazda şifreli saklar (belirteçler, parolalar). Yalnızca bir görev çalıştığında çözülür.</string>
     <string name="add_variable">Değişken ekle</string>
     <string name="delete_variable">Sil</string>
+    <string name="insert_context_hint">Önceki adımın çıktısına başvur</string>
     <string name="insert_variable_hint">Ekle:</string>
     <string name="edit">Düzenle</string>
     <string name="category_plugins">Eklentiler</string>

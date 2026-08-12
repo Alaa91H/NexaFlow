@@ -50,7 +50,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -84,6 +83,7 @@ import androidx.navigation.NavController
 import com.nexaflow.core.datastore.LocationPreferences
 import com.nexaflow.core.compat.ChannelTier
 import com.nexaflow.core.ui.NexaFlowCard
+import com.nexaflow.core.ui.CheckableRow
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.SettingRow
@@ -471,24 +471,17 @@ private fun LocationIntervalDialog(
         title = { Text(stringResource(R.string.location_check_title)) },
         text = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // Preset durations — pick one, then Apply.
+                // Preset durations — Google-style single-choice rows: the
+                // selected option carries a trailing checkmark.
                 val presetOptions = LocationPreferences.PRESETS.filter { it > 0 }
                 presetOptions.forEachIndexed { index, presetMinutes ->
                     if (index > 0) {
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { picked = presetMinutes }
-                            .padding(vertical = 2.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    CheckableRow(
+                        selected = picked == presetMinutes,
+                        onClick = { picked = presetMinutes }
                     ) {
-                        RadioButton(
-                            selected = picked == presetMinutes,
-                            onClick = { picked = presetMinutes }
-                        )
                         Text(
                             text = stringResource(locationIntervalLabel(presetMinutes).first),
                             style = MaterialTheme.typography.bodyLarge
@@ -497,18 +490,10 @@ private fun LocationIntervalDialog(
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 // Manual option — sits above the counter it drives.
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { pickManual() }
-                        .padding(vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                CheckableRow(
+                    selected = picked == 0,
+                    onClick = { pickManual() }
                 ) {
-                    RadioButton(
-                        selected = picked == 0,
-                        onClick = { pickManual() }
-                    )
                     Column {
                         Text(
                             text = stringResource(R.string.location_check_manual),

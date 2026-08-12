@@ -29,7 +29,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -50,6 +49,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.nexaflow.core.ui.IconBadge
+import com.nexaflow.core.ui.CheckableRow
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
@@ -200,24 +200,19 @@ private fun TileBindingDialog(
         title = { Text(text = stringResource(R.string.tile_choose_task)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onSelect(null) },
-                    verticalAlignment = Alignment.CenterVertically
+                // Google-style single-choice rows: the selected option carries
+                // a trailing checkmark instead of a radio button.
+                CheckableRow(
+                    selected = currentBinding == null,
+                    onClick = { onSelect(null) }
                 ) {
-                    RadioButton(selected = currentBinding == null, onClick = { onSelect(null) })
                     Text(text = stringResource(R.string.tile_automatic))
                 }
                 automations.forEach { automation ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(automation.id) },
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    CheckableRow(
+                        selected = currentBinding == automation.id,
+                        onClick = { onSelect(automation.id) }
                     ) {
-                        RadioButton(selected = currentBinding == automation.id, onClick = { onSelect(automation.id) })
                         IconBadge(
                             icon = iconVector(automation.icon),
                             containerColor = Color(automation.iconColor),

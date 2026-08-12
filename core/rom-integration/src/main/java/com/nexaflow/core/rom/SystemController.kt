@@ -580,29 +580,14 @@ class SystemController(
         } catch (t: Throwable) {
             SystemControlResult.fail("Failed to set ring volume: ${t.message}")
         }
-    }
-
-    /**
-     * Forces the preferred cellular network generation. The numeric values
-     * are the radio-global `preferred_network_mode` constants (1 = GSM only,
-     * 2 = WCDMA only, 13 = LTE only, 22 = NR only, 20 = NR/LTE/WCDMA/GSM
-     * full auto). Writing that global setting requires an elevated runtime
-     * (root/Shizuku) or MODIFY_PHONE_STATE; devices without the matching
-     * radio band simply keep the previous mode.
+    }    /**
+     * Forces the preferred cellular network generation (2G/3G/4G/5G).
+     * Delegates to [NetworkModeController], which applies the modern
+     * per-subscription `setAllowedNetworkTypesForReason` bitmask API with
+     * legacy and elevated-shell fallbacks and verifies the result.
      */
-    fun setNetworkMode(mode: String): SystemControlResult {
-        val value = when (mode) {
-            "2G" -> 1      // GSM only
-            "3G" -> 2      // WCDMA only
-            "4G" -> 13     // LTE only
-            "5G" -> 22     // NR only
-            else -> 20     // AUTO: NR/LTE/WCDMA/GSM
-        }
-        return tryPrivileged(
-            command = "settings put global preferred_network_mode $value",
-            successMessage = "Network mode set to $mode"
-        )
-    }
+    fun setNetworkMode(mode: String): SystemControlResult =
+        NetworkModeController(context).setNetworkMode(mode)
 
     /** The currently configured default ringtone URI, or null when unreadable. */
     fun currentDefaultRingtone(): String? = runCatching {

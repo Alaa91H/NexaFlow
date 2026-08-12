@@ -397,6 +397,7 @@
     <string name="variable_sensitive_sub">Guarda este valor cifrado en este dispositivo (tokens, contraseñas). Se descifra solo al ejecutar una tarea.</string>
     <string name="add_variable">Añadir variable</string>
     <string name="delete_variable">Eliminar</string>
+    <string name="insert_context_hint">Referenciar la salida de un paso anterior</string>
     <string name="insert_variable_hint">Insertar:</string>
     <string name="edit">Editar</string>
     <string name="category_plugins">Complementos</string>

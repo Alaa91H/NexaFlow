@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Launcher foreground: the Google Tasks mark — a bold two-tone checkmark
-    (indigo → violet, drawn as two solid segments so the gradient feel
-    survives every launcher) — paired with a small clock in the corner, so
-    the glyph reads "المهام المجدولة / Scheduled Tasks" (tasks + time).
-    Language-neutral: the same mark works in LTR and RTL launchers.
-    No aapt:attr gradients — only solid colors, 100% launcher-safe.
+    Launcher foreground — Google 2026 recipe: white bold glyph on the vivid
+    gradient. A rounded checkmark ("المهام المجدولة / Scheduled Tasks") with a
+    small clock in the corner (scheduled + time). Language-neutral; works in
+    LTR and RTL launchers. No aapt:attr gradients — solid white only, 100%
+    launcher-safe.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
@@ -13,40 +12,33 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Bold checkmark, up-stroke (indigo). -->
+    <!-- Bold checkmark (single white path, rounded joins). -->
     <path
-        android:pathData="M35,56L47,68"
+        android:pathData="M33,54L46,67L75,38"
         android:fillColor="#00000000"
-        android:strokeColor="#FF3D5AFE"
-        android:strokeWidth="11"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="12"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
 
-    <!-- Bold checkmark, down-stroke (violet) — overlaps for a smooth join. -->
+    <!-- Small clock ring. -->
     <path
-        android:pathData="M47,68L73,40"
         android:fillColor="#00000000"
-        android:strokeColor="#FF8E4DFF"
-        android:strokeWidth="11"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2.8"
+        android:pathData="M80,80m-8,0a8,8 0 1 0 16,0a8,8 0 1 0 -16,0" />
 
-    <!-- Small clock: "scheduled" hint in the corner. -->
+    <!-- Clock hands. -->
     <path
         android:fillColor="#00000000"
-        android:strokeColor="#FF5B5CF6"
+        android:strokeColor="#FFFFFFFF"
         android:strokeWidth="2.6"
-        android:pathData="M79,78m-7.5,0a7.5,7.5 0 1 0 15,0a7.5,7.5 0 1 0 -15,0" />
+        android:strokeLineCap="round"
+        android:pathData="M80,80L80,74.8" />
     <path
         android:fillColor="#00000000"
-        android:strokeColor="#FF5B5CF6"
-        android:strokeWidth="2.4"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2.6"
         android:strokeLineCap="round"
-        android:pathData="M79,78L79,73.6" />
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#FF5B5CF6"
-        android:strokeWidth="2.4"
-        android:strokeLineCap="round"
-        android:pathData="M79,78L83.6,81.2" />
+        android:pathData="M80,80L85.4,83.8" />
 </vector>

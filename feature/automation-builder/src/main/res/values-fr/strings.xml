@@ -397,6 +397,7 @@
     <string name="variable_sensitive_sub">"Stocke cette valeur chiffrée sur cet appareil (jetons, mots de passe). Déchiffrée uniquement à l'exécution d'une tâche."</string>
     <string name="add_variable">Ajouter une variable</string>
     <string name="delete_variable">Supprimer</string>
+    <string name="insert_context_hint">Référencer la sortie d\'une étape précédente</string>
     <string name="insert_variable_hint">Insérer :</string>
     <string name="edit">Modifier</string>
     <string name="category_plugins">Extensions</string>

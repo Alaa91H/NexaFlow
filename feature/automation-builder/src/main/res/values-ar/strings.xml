@@ -396,6 +396,7 @@
     <string name="variable_sensitive_sub">خزّن هذه القيمة مشفّرة على هذا الجهاز (رموز، كلمات مرور). تُفكّ فقط عند تشغيل مهمة.</string>
     <string name="add_variable">إضافة متغير</string>
     <string name="delete_variable">حذف</string>
+    <string name="insert_context_hint">أشر إلى مخرجات خطوة سابقة</string>
     <string name="insert_variable_hint">إدراج:</string>
     <string name="edit">تعديل</string>
     <string name="category_plugins">الإضافات</string>

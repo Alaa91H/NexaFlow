@@ -29,6 +29,13 @@ import kotlinx.coroutines.withContext
  *
  * The transport is injectable for atomic tests; [HttpURLConnectionTransport] is
  * the production default.
+ *
+ * Step 4 (Appendix A.4.1): when the action configures `outputPath` (a JSONPath
+ * into the shared [WorkflowRunContext]), the terminal outcome is published at
+ * that path as `{status, body}` — on success **and** failure — so a downstream
+ * node can read it via `WorkflowRunContext.get(outputPath)` and branch on
+ * `status`. The body in the context is the **full** response body; only the
+ * status message is display-truncated.
  */
 class HttpRequestHandler(
     private val retryExecutor: RetryExecutor = RetryExecutor(),
@@ -43,6 +50,7 @@ class HttpRequestHandler(
         val method = action.config["method"].orEmpty().uppercase().ifBlank { "GET" }
         val body = action.config["body"].orEmpty()
         val timeoutMs = (action.config["timeoutMs"]?.toLongOrNull() ?: 10_000L).coerceIn(1_000L, 60_000L)
+        val outputPath = action.config["outputPath"].orEmpty().trim()
         val policy = retryPolicy(action.config)
         // Stable across every attempt of the same logical call.
         val idempotencyKey = retryExecutor.idempotencyKey(
@@ -55,28 +63,78 @@ class HttpRequestHandler(
             "Idempotency-Key" to idempotencyKey
         )
         return withContext(Dispatchers.IO) {
-            for (attempt in 1..policy.maxAttempts) {
-                val result = transport.execute(url, method, body, timeoutMs.toInt(), headers)
-                val code = result.code
-                if (code in 200..299) {
-                    return@withContext SystemControlResult.ok(formatResult(code, result.snippet))
-                }
-                val retryable = code == 0 || code in 500..599 || code == 429
-                if (retryable && attempt < policy.maxAttempts) {
-                    delay(retryExecutor.delayMs(attempt, policy))
-                    continue
-                }
-                return@withContext if (retryable && policy.maxAttempts > 1) {
-                    SystemControlResult.fail(
-                        "${formatResult(code, result.snippet)} (after ${policy.maxAttempts} attempts)"
-                    )
-                } else {
-                    SystemControlResult.fail(formatResult(code, result.snippet))
-                }
+            // A single transport call drives both the retry loop and the
+            // published outcome, so the final code/body are known here.
+            var finalCode = 0
+            var finalBody = ""
+            val outcome: SystemControlResult = runRetryLoop(
+                url = url,
+                method = method,
+                body = body,
+                timeoutMs = timeoutMs.toInt(),
+                headers = headers,
+                policy = policy
+            ) { code, snippet ->
+                finalCode = code
+                finalBody = snippet
             }
-            // Unreachable: RetryPolicy guarantees maxAttempts >= 1.
-            SystemControlResult.fail("HTTP failed")
+            publishOutput(ctx, outputPath, finalCode, finalBody)
+            outcome
         }
+    }
+
+    /**
+     * Executes attempts with backoff until a terminal outcome is reached.
+     * [onAttempt] receives every attempt's code + body so the caller can
+     * capture the final one for [WorkflowRunContext] publication.
+     */
+    private suspend fun runRetryLoop(
+        url: String,
+        method: String,
+        body: String,
+        timeoutMs: Int,
+        headers: Map<String, String>,
+        policy: RetryPolicy,
+        onAttempt: (code: Int, body: String) -> Unit,
+    ): SystemControlResult {
+        for (attempt in 1..policy.maxAttempts) {
+            val result = transport.execute(url, method, body, timeoutMs, headers)
+            onAttempt(result.code, result.snippet)
+            val code = result.code
+            if (code in 200..299) {
+                return SystemControlResult.ok(formatResult(code, result.snippet))
+            }
+            val retryable = code == 0 || code in 500..599 || code == 429
+            if (retryable && attempt < policy.maxAttempts) {
+                delay(retryExecutor.delayMs(attempt, policy))
+                continue
+            }
+            return if (retryable && policy.maxAttempts > 1) {
+                SystemControlResult.fail(
+                    "${formatResult(code, result.snippet)} (after ${policy.maxAttempts} attempts)"
+                )
+            } else {
+                SystemControlResult.fail(formatResult(code, result.snippet))
+            }
+        }
+        // Unreachable: RetryPolicy guarantees maxAttempts >= 1.
+        return SystemControlResult.fail("HTTP failed")
+    }
+
+    /**
+     * Best-effort publication of the terminal outcome to the shared run
+     * context. A write failure (e.g. the 256KB budget) must never turn a
+     * successful HTTP call into a failed one, so it is swallowed.
+     */
+    private fun publishOutput(
+        ctx: ActionExecutionContext,
+        outputPath: String,
+        code: Int,
+        body: String,
+    ) {
+        if (outputPath.isBlank()) return
+        val runContext = ctx.runContext ?: return
+        runCatching { runContext.put(outputPath, mapOf("status" to code, "body" to body)) }
     }
 
     /**
@@ -95,7 +153,7 @@ class HttpRequestHandler(
     }
 
     private fun formatResult(code: Int, snippet: String): String =
-        "HTTP $code" + if (snippet.isNotEmpty()) " - $snippet" else ""
+        "HTTP $code" + if (snippet.isNotEmpty()) " - ${snippet.take(80)}" else ""
 
     private companion object {
         val BODY_METHODS = setOf("POST", "PUT", "PATCH", "DELETE")
@@ -159,7 +217,7 @@ private class HttpURLConnectionTransport : HttpTransport {
                     ?.use { it.readText() }
                     .orEmpty()
             }
-            HttpAttempt(code, response.trim().take(80).ifBlank { "" })
+            HttpAttempt(code, response.trim().ifBlank { "" })
         } catch (e: Exception) {
             HttpAttempt(0, e.message ?: e.javaClass.simpleName)
         } finally {

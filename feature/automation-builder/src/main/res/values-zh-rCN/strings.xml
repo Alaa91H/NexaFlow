@@ -397,6 +397,7 @@
     <string name="variable_sensitive_sub">将此值加密存储在本设备上（令牌、密码）。仅在任务运行时解密。</string>
     <string name="add_variable">添加变量</string>
     <string name="delete_variable">删除</string>
+    <string name="insert_context_hint">引用上一步骤的输出</string>
     <string name="insert_variable_hint">插入：</string>
     <string name="edit">编辑</string>
     <string name="category_plugins">插件</string>

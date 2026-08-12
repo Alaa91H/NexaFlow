@@ -554,6 +554,10 @@ fun ActionConfigEditor(
                     currentValue = config["url"] ?: "",
                     onValueChange = { onConfigChange(config + ("url" to it)) }
                 )
+                ContextPathInsertChips(
+                    currentValue = config["url"] ?: "",
+                    onValueChange = { onConfigChange(config + ("url" to it)) }
+                )
                 Text(text = stringResource(R.string.http_method), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                 val methods = listOf("GET", "POST", "PUT", "PATCH", "DELETE")
                 FlowRow(
@@ -580,6 +584,10 @@ fun ActionConfigEditor(
                 )
                 VariableInsertChips(
                     availableVariables = availableVariables,
+                    currentValue = config["body"] ?: "",
+                    onValueChange = { onConfigChange(config + ("body" to it)) }
+                )
+                ContextPathInsertChips(
                     currentValue = config["body"] ?: "",
                     onValueChange = { onConfigChange(config + ("body" to it)) }
                 )
@@ -729,6 +737,42 @@ private fun VariableInsertChips(
                     }
                 )
             }
+        }
+    }
+}
+
+/**
+ * Step-5 insert row: tapping the chip appends a `%CTX.$` reference placeholder
+ * to the field so the user can feed the output of an earlier node (published
+ * via its `outputPath`) into this one. The JSONPath is typed after the `$`.
+ */
+@Composable
+private fun ContextPathInsertChips(
+    currentValue: String,
+    onValueChange: (String) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = stringResource(R.string.insert_context_hint),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.secondary
+        )
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            FilterChip(
+                selected = currentValue.contains("%CTX.", ignoreCase = true),
+                onClick = {
+                    val placeholder = "%CTX.$"
+                    onValueChange(
+                        if (currentValue.isBlank()) placeholder
+                        else "$currentValue $placeholder"
+                    )
+                },
+                label = { Text(text = "%CTX.$", style = MaterialTheme.typography.labelSmall) }
+            )
         }
     }
 }

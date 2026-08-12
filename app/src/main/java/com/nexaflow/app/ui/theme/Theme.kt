@@ -18,15 +18,18 @@ import androidx.core.view.WindowCompat
 import com.nexaflow.core.datastore.ThemeMode
 
 /**
- * Google Material 3 shape system — the spec's tonal shapes: 4 / 8 / 12 / 16 /
- * 28 dp. Google apps pair small radii on chips and buttons with generous 16dp
- * cards and fully rounded bottom sheets.
+ * Material 3 Expressive shape system (Google's 2025-2026 design language):
+ * 8 / 12 / 16 / 24 / 28 dp. Compared with the original M3 scale (4/8/12/16/28)
+ * the radii step up across the board — pills on small controls, 24dp cards,
+ * 28dp sheets — which is exactly how Google's current apps (Tasks, Calendar,
+ * Clock) present surfaces. Every component consumes these tokens via
+ * `MaterialTheme.shapes`, so one change re-skins the whole app.
  */
 private val GoogleShapes = Shapes(
-    extraSmall = RoundedCornerShape(4.dp),
-    small = RoundedCornerShape(8.dp),
-    medium = RoundedCornerShape(12.dp),
-    large = RoundedCornerShape(16.dp),
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(24.dp),
     extraLarge = RoundedCornerShape(28.dp)
 )
 

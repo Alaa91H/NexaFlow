@@ -1,13 +1,23 @@
 package com.nexaflow.app
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.nexaflow.core.capability.CapabilityCenterScreen
+import com.nexaflow.core.ui.NavigationDestination
+import com.nexaflow.core.ui.NexaFlowNavigationBar
 import com.nexaflow.feature.automations.AutomationDetailsScreen
 import com.nexaflow.feature.builder.AutomationBuilderScreen
 import com.nexaflow.feature.builder.MapPickerScreen
@@ -26,7 +36,47 @@ import com.nexaflow.feature.widgets.WidgetsScreen
 @Composable
 fun NexaFlowApp() {
     val navController = rememberNavController()
-    Scaffold { innerPadding ->
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
+
+    val topLevelDestinations = listOf(
+        NavigationDestination(
+            route = "dashboard",
+            label = stringResource(com.nexaflow.feature.dashboard.R.string.dashboard_title),
+            icon = Icons.Filled.Checklist
+        ),
+        NavigationDestination(
+            route = "history",
+            label = stringResource(com.nexaflow.feature.history.R.string.history_title),
+            icon = Icons.Filled.History
+        ),
+        NavigationDestination(
+            route = "settings",
+            label = stringResource(com.nexaflow.feature.settings.R.string.settings_title),
+            icon = Icons.Filled.Settings
+        )
+    )
+    val showBottomBar = currentRoute in topLevelDestinations.map { it.route }
+
+    Scaffold(
+        bottomBar = {
+            if (showBottomBar) {
+                NexaFlowNavigationBar(
+                    currentRoute = currentRoute,
+                    destinations = topLevelDestinations,
+                    onNavigate = { route ->
+                        navController.navigate(route) {
+                            // Tab semantics: keep each top-level tab's own state
+                            // and only pop back to the start destination.
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
+            }
+        }
+    ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = "dashboard",

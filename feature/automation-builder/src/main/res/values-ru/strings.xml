@@ -397,6 +397,7 @@
     <string name="variable_sensitive_sub">Хранит это значение в зашифрованном виде на устройстве (токены, пароли). Расшифровывается только при выполнении задачи.</string>
     <string name="add_variable">Добавить переменную</string>
     <string name="delete_variable">Удалить</string>
+    <string name="insert_context_hint">Ссылка на вывод предыдущего шага</string>
     <string name="insert_variable_hint">Вставить:</string>
     <string name="edit">Изменить</string>
     <string name="category_plugins">Плагины</string>

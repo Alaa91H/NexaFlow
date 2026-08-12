@@ -397,6 +397,7 @@
     <string name="variable_sensitive_sub">इस मान को इस डिवाइस पर एन्क्रिप्टेड रखें (टोकन, पासवर्ड)। केवल कार्य चलने पर डिक्रिप्ट होता है।</string>
     <string name="add_variable">चर जोड़ें</string>
     <string name="delete_variable">हटाएँ</string>
+    <string name="insert_context_hint">पिछले चरण के आउटपुट का संदर्भ लें</string>
     <string name="insert_variable_hint">डालें:</string>
     <string name="edit">संपादित करें</string>
     <string name="category_plugins">प्लगइन</string>

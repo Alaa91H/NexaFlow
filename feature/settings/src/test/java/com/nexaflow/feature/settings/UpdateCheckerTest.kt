@@ -51,6 +51,39 @@ class UpdateCheckerTest {
     }
 
     @Test
+    fun pickLatestPublishedRelease_picksNewestFromList() {
+        val json = """
+        [
+          {"tag_name": "v3.15.0-alpha", "draft": false, "prerelease": true, "assets": [{"name": "app-release.apk"}]},
+          {"tag_name": "v3.14.0-alpha", "draft": false, "prerelease": true, "assets": []}
+        ]
+        """.trimIndent()
+        val chosen = UpdateChecker.pickLatestPublishedRelease(json)
+        assertTrue(chosen != null)
+        // The newest entry wins even though every release is a prerelease.
+        assertEquals("v3.15.0-alpha", UpdateChecker.parseRelease(chosen!!)!!.version)
+    }
+
+    @Test
+    fun pickLatestPublishedRelease_skipsDrafts() {
+        val json = """
+        [
+          {"tag_name": "v9.9.9-draft", "draft": true, "assets": []},
+          {"tag_name": "v3.15.0-alpha", "draft": false, "prerelease": true, "assets": []}
+        ]
+        """.trimIndent()
+        val chosen = UpdateChecker.pickLatestPublishedRelease(json)
+        assertEquals("v3.15.0-alpha", UpdateChecker.parseRelease(chosen!!)!!.version)
+    }
+
+    @Test
+    fun pickLatestPublishedRelease_emptyOrInvalidReturnsNull() {
+        assertNull(UpdateChecker.pickLatestPublishedRelease("[]"))
+        assertNull(UpdateChecker.pickLatestPublishedRelease("not-json{"))
+        assertNull(UpdateChecker.pickLatestPublishedRelease("""[{"tag_name": "x", "draft": true}]"""))
+    }
+
+    @Test
     fun parseRelease_ignoresNonApkAssets() {
         val json = """
         {

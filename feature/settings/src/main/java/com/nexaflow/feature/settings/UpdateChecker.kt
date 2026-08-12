@@ -8,6 +8,7 @@ import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
+import org.json.JSONArray
 import org.json.JSONObject
 
 /** Result of checking GitHub for the latest release. */
@@ -39,6 +40,12 @@ object UpdateChecker {
     private const val LATEST_URL = "https://api.github.com/repos/$REPO/releases/latest"
 
     /**
+     * Newest-first releases page. Used when `releases/latest` 404s because
+     * every release is a prerelease (see [pickLatestPublishedRelease]).
+     */
+    private const val RELEASES_URL = "https://api.github.com/repos/$REPO/releases?per_page=5"
+
+    /**
      * Parses the GitHub "latest release" JSON payload. Pure — no I/O.
      * Returns null when the payload is not a usable release.
      */
@@ -65,24 +72,55 @@ object UpdateChecker {
         UpdateInfo(version, apkUrl, apkSize, sha256, notes)
     }.getOrNull()
 
-    /** Fetches the latest release JSON from the GitHub API. */
+    /**
+     * Fetches the newest usable release JSON from the GitHub API.
+     *
+     * `releases/latest` only returns the newest *stable* release (non-draft,
+     * non-prerelease) and responds 404 when a project ships every release as
+     * a prerelease (e.g. `-alpha` tags) — so on any non-200 it falls back to
+     * the releases list and picks the newest published release, prereleases
+     * included.
+     */
     suspend fun fetchLatestJson(): String? = kotlinx.coroutines.withContext(
         kotlinx.coroutines.Dispatchers.IO
     ) {
-        runCatching {
-            val connection = URL(LATEST_URL).openConnection() as HttpURLConnection
-            connection.setRequestProperty("Accept", "application/vnd.github+json")
-            connection.setRequestProperty("User-Agent", "NexaFlow")
-            connection.connectTimeout = 15_000
-            connection.readTimeout = 15_000
-            try {
-                if (connection.responseCode != 200) return@runCatching null
-                connection.inputStream.bufferedReader().use { it.readText() }
-            } finally {
-                connection.disconnect()
-            }
-        }.getOrNull()
+        val fromLatest = fetchJson(LATEST_URL)
+        if (fromLatest != null) return@withContext fromLatest
+        val releasesList = fetchJson(RELEASES_URL) ?: return@withContext null
+        pickLatestPublishedRelease(releasesList)
     }
+
+    /**
+     * Pure: picks the JSON of the newest published (non-draft) release from a
+     * `GET /releases` payload. The list is newest-first, so the first non-draft
+     * entry wins. Prereleases deliberately count — this project ships every
+     * release as `-alpha`/`-beta`, which is exactly why the plain `latest`
+     * endpoint 404s. Returns null when the payload has no usable release.
+     */
+    fun pickLatestPublishedRelease(releasesJson: String): String? = runCatching {
+        val array = JSONArray(releasesJson)
+        for (i in 0 until array.length()) {
+            val release = array.optJSONObject(i) ?: continue
+            if (release.optBoolean("draft", false)) continue
+            return@runCatching release.toString()
+        }
+        null
+    }.getOrNull()
+
+    /** Body of a 200 response, or null on any other status / error. */
+    private fun fetchJson(url: String): String? = runCatching {
+        val connection = URL(url).openConnection() as HttpURLConnection
+        connection.setRequestProperty("Accept", "application/vnd.github+json")
+        connection.setRequestProperty("User-Agent", "NexaFlow")
+        connection.connectTimeout = 15_000
+        connection.readTimeout = 15_000
+        try {
+            if (connection.responseCode != 200) return@runCatching null
+            connection.inputStream.bufferedReader().use { it.readText() }
+        } finally {
+            connection.disconnect()
+        }
+    }.getOrNull()
 
     /**
      * Downloads [url] into `cacheDir/updates/nexaflow-latest.apk`. When

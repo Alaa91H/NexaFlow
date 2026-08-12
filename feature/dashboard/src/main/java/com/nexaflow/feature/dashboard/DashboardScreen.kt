@@ -11,8 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bolt
@@ -26,6 +25,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,8 +52,12 @@ import androidx.navigation.NavController
 import com.nexaflow.core.ui.EmptyState
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
+import com.nexaflow.core.ui.NexaFlowFloatingActionButton
+import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
+import com.nexaflow.core.ui.rememberPinnedTopBarScrollBehavior
 import com.nexaflow.core.ui.iconVector
+import com.nexaflow.core.ui.nexaFlowEntrance
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.schedule.TimeTriggerCalculator
@@ -81,37 +86,41 @@ fun DashboardScreen(navController: NavController) {
         else rows.filter { it.automation.name.contains(searchQuery, ignoreCase = true) }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    val scrollBehavior = rememberPinnedTopBarScrollBehavior()
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            NexaFlowTopBar(
+                title = stringResource(R.string.dashboard_title),
+                subtitle = stringResource(R.string.dashboard_subtitle),
+                actions = {
+                    IconButton(onClick = { navController.navigate("settings") }) {
+                        Icon(
+                            imageVector = Icons.Filled.Settings,
+                            contentDescription = stringResource(R.string.dashboard_settings)
+                        )
+                    }
+                },
+                containerColor = Color.Transparent,
+                scrollBehavior = scrollBehavior
+            )
+        },
+        floatingActionButton = {
+            NexaFlowFloatingActionButton(
+                onClick = { navController.navigate("automation_builder") },
+                icon = Icons.Filled.Add,
+                label = stringResource(R.string.new_routine)
+            )
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp),
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 88.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.dashboard_title),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = stringResource(R.string.dashboard_subtitle),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    }
-                    IconButton(onClick = { navController.navigate("settings") }) {
-                        Icon(imageVector = Icons.Filled.Settings, contentDescription = stringResource(R.string.dashboard_settings))
-                    }
-                }
-            }
-
-            // ---- Instant search (Samsung-style filter field) ----
+            // ---- Instant search ----
             item {
                 OutlinedTextField(
                     value = searchQuery,
@@ -132,7 +141,7 @@ fun DashboardScreen(navController: NavController) {
                         }
                     },
                     singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
+                    shape = MaterialTheme.shapes.medium,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
@@ -140,19 +149,9 @@ fun DashboardScreen(navController: NavController) {
                 )
             }
 
-            // ---- Routines (Samsung-style list with header "+") ----
+            // ---- Routines ----
             item {
-                SectionHeader(
-                    text = stringResource(R.string.section_routines),
-                    trailing = {
-                        IconButton(onClick = { navController.navigate("automation_builder") }) {
-                            Icon(
-                                imageVector = Icons.Filled.Add,
-                                contentDescription = stringResource(R.string.new_routine)
-                            )
-                        }
-                    }
-                )
+                SectionHeader(text = stringResource(R.string.section_routines))
             }
             if (rows.isEmpty()) {
                 item {
@@ -171,26 +170,25 @@ fun DashboardScreen(navController: NavController) {
                     )
                 }
             }
-            items(filteredRows, key = { it.automation.id }) { row ->
+            itemsIndexed(filteredRows, key = { _, row -> row.automation.id }) { index, row ->
                 RoutineCard(
                     row = row,
                     summary = automationSummary(row.automation),
                     nextRun = nextRunText(row.automation),
                     isRunning = row.automation.id in runningIds,
+                    // Google-2026 Keep-style cascade: each card springs in a
+                    // beat after the one above it.
+                    modifier = Modifier.nexaFlowEntrance(delayMillis = index * 40),
                     onRun = { viewModel.runNow(row.automation) },
                     onToggle = { viewModel.toggleAutomation(row.automation, it) },
                     onClick = { navController.navigate("automation_details/${row.automation.id}") }
                 )
             }
         }
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
     }
 }
 
-/** Routine card with a natural-language summary, live switch, and Samsung-style play button. */
+/** Routine card with a natural-language summary, live switch, and play button. */
 @Composable
 private fun RoutineCard(
     row: AutomationRow,
@@ -199,9 +197,10 @@ private fun RoutineCard(
     isRunning: Boolean,
     onRun: () -> Unit,
     onToggle: (Boolean) -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    NexaFlowCard(modifier = Modifier.clickable(onClick = onClick)) {
+    NexaFlowCard(modifier = modifier.clickable(onClick = onClick)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -375,7 +374,8 @@ private fun RoutineCardPreview() {
             isRunning = false,
             onRun = {},
             onToggle = {},
-            onClick = {}
+            onClick = {},
+            modifier = Modifier
         )
     }
 }

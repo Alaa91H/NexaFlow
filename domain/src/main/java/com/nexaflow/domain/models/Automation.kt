@@ -131,8 +131,10 @@ enum class ActionType {
     SYSTEM_MOBILE_DATA,
     /**
      * Forces the preferred cellular network generation (2G/3G/4G/5G). Config
-     * key: `mode` (AUTO/2G/3G/4G/5G). Requires elevated/root (the setting is
-     * radio-global, `preferred_network_mode`).
+     * key: `mode` (AUTO/2G/3G/4G/5G). Applied per active SIM through the
+     * modern `setAllowedNetworkTypesForReason` bitmask API (Android 11+) with
+     * legacy `setPreferredNetworkType` and elevated `settings` writes as
+     * fallbacks. Requires MODIFY_PHONE_STATE or a system/privileged install.
      */
     SYSTEM_NETWORK_MODE,
     SYSTEM_HOTSPOT,

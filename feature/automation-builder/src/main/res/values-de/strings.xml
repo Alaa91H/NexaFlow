@@ -397,6 +397,7 @@
     <string name="variable_sensitive_sub">Speichert diesen Wert verschlüsselt auf diesem Gerät (Tokens, Passwörter). Wird nur beim Ausführen einer Aufgabe entschlüsselt.</string>
     <string name="add_variable">Variable hinzufügen</string>
     <string name="delete_variable">Löschen</string>
+    <string name="insert_context_hint">Auf Ausgabe eines früheren Schritts verweisen</string>
     <string name="insert_variable_hint">Einfügen:</string>
     <string name="edit">Bearbeiten</string>
     <string name="category_plugins">Plugins</string>

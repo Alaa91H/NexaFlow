@@ -397,6 +397,7 @@
     <string name="variable_sensitive_sub">Guarda este valor encriptado neste dispositivo (tokens, palavras-passe). Só é desencriptado quando uma tarefa é executada.</string>
     <string name="add_variable">Adicionar variável</string>
     <string name="delete_variable">Excluir</string>
+    <string name="insert_context_hint">Referenciar a saída de uma etapa anterior</string>
     <string name="insert_variable_hint">Inserir:</string>
     <string name="edit">Editar</string>
     <string name="category_plugins">Plugins</string>
