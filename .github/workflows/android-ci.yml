@@ -70,6 +70,9 @@ jobs:
         NEXAFLOW_KEYSTORE_PASSWORD: ${{ secrets.NEXAFLOW_KEYSTORE_PASSWORD }}
         NEXAFLOW_KEY_ALIAS: ${{ secrets.NEXAFLOW_KEY_ALIAS }}
         NEXAFLOW_KEY_PASSWORD: ${{ secrets.NEXAFLOW_KEY_PASSWORD }}
+        # Google Maps API key for the embedded map picker; baked into every
+        # distributed APK so the map works for all users, not just local builds.
+        NEXAFLOW_MAPS_API_KEY: ${{ secrets.NEXAFLOW_MAPS_API_KEY }}
       run: ./gradlew assembleDebug assembleRelease
     - name: Verify 16 KB page-size alignment of native libraries
       run: python3 scripts/check_16kb.py app/build/outputs/apk/release/app-release.apk
