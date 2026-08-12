@@ -255,6 +255,19 @@
         </provider>
 
         <!--
+            Target of the «Save locally» row inside the backup share sheet.
+            Exported so the system share sheet can start it; it shows no UI
+            and just opens the SAF picker to write the cached backup.
+        -->
+        <activity
+            android:name=".SaveBackupActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:label="@string/save_locally_label"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:noHistory="true" />
+
+        <!--
             WorkManager is configured through NexaFlowApplication's
             Configuration.Provider (so @HiltWorker MaintenanceWorker gets its
             Hilt-injected constructor). The default androidx.startup initializer

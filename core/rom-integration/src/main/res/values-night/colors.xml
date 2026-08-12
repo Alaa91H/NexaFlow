@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material 3 brand color for notifications in dark mode
+         (Google Blue primary 80) — keeps contrast on dark surfaces. -->
+    <color name="notification_brand_color">#A8C7FA</color>
+</resources>

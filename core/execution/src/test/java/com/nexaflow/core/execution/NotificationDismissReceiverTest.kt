@@ -14,7 +14,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
-import org.robolectric.annotation.Config
 
 /**
  * Verifies the plain [NotificationDismissReceiver]: a DISMISS broadcast cancels
@@ -22,7 +21,6 @@ import org.robolectric.annotation.Config
  * ignores everything else (other actions, missing id).
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
 class NotificationDismissReceiverTest {
 
     private val context: Context = ApplicationProvider.getApplicationContext()

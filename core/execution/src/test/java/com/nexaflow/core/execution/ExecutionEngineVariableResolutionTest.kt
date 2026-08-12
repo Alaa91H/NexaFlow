@@ -25,7 +25,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
 /**
  * Verifies the Tasker-style %variable resolution in [ExecutionEngine]: user
@@ -35,7 +34,6 @@ import org.robolectric.annotation.Config
  * real device state.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
 class ExecutionEngineVariableResolutionTest {
 
     private lateinit var context: Context

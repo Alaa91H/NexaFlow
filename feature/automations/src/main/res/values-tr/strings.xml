@@ -172,6 +172,8 @@
     <string name="trigger_sensor_sub">Cihaz sensör olaylarında tetikle</string>
     <string name="trigger_webhook">Webhook</string>
     <string name="trigger_webhook_sub">Yerel HTTP isteğiyle tetikle</string>
+    <string name="trigger_rom_setting">ROM ayarı</string>
+    <string name="trigger_rom_setting_sub">Gerçek bir Evolution X ayarı eşleştiğinde çalışır</string>
     <string name="trigger_type_network_mode">Hücresel ağ</string>
     <string name="trigger_type_network_mode_sub">Cihazın hücresel ağı seçilen nesille eşleştiğinde tetiklenir (gerçek 5G algılama)</string>
     <string name="add_shortcut">Kısayol ekle</string>

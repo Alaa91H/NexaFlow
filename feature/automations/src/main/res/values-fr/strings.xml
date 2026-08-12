@@ -172,6 +172,8 @@
     <string name="trigger_sensor_sub">Déclencher sur les événements des capteurs</string>
     <string name="trigger_webhook">Webhook</string>
     <string name="trigger_webhook_sub">Déclencher via une requête HTTP locale</string>
+    <string name="trigger_rom_setting">Réglage de la ROM</string>
+    <string name="trigger_rom_setting_sub">"Se déclenche quand un réglage réel d'Evolution X correspond"</string>
     <string name="trigger_type_network_mode">Réseau cellulaire</string>
     <string name="trigger_type_network_mode_sub">Se déclenche quand le réseau cellulaire correspond à la génération sélectionnée (détection 5G réelle)</string>
     <string name="add_shortcut">Ajouter un raccourci</string>

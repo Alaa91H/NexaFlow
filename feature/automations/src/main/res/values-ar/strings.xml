@@ -172,6 +172,8 @@
     <string name="trigger_sensor_sub">التشغيل عند أحداث مستشعرات الجهاز</string>
     <string name="trigger_webhook">ويب هوك</string>
     <string name="trigger_webhook_sub">التشغيل عبر طلب HTTP محلي</string>
+    <string name="trigger_rom_setting">إعداد ROM</string>
+    <string name="trigger_rom_setting_sub">يعمل عند تطابق إعداد Evolution X حقيقي</string>
     <string name="trigger_type_network_mode">الشبكة الخلوية</string>
     <string name="trigger_type_network_mode_sub">يُنفَّذ عندما يطابق الجيل الخلوي للجهاز الجيل المحدد (كشف 5G حقيقي)</string>
     <string name="add_shortcut">إضافة اختصار</string>

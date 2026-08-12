@@ -172,6 +172,8 @@
     <string name="trigger_sensor_sub">根据设备传感器事件触发</string>
     <string name="trigger_webhook">网络钩子</string>
     <string name="trigger_webhook_sub">通过本地 HTTP 请求触发</string>
+    <string name="trigger_rom_setting">ROM 设置</string>
+    <string name="trigger_rom_setting_sub">当真实的 Evolution X 设置匹配时运行</string>
     <string name="trigger_type_network_mode">蜂窝网络</string>
     <string name="trigger_type_network_mode_sub">当设备的蜂窝网络与所选代际匹配时触发（真实5G检测）</string>
     <string name="add_shortcut">添加快捷方式</string>

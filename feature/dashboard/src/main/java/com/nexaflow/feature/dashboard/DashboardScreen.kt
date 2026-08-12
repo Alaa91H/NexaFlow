@@ -342,6 +342,7 @@ private fun triggerLabel(type: TriggerType): Int = when (type) {
     TriggerType.SENSOR -> R.string.trigger_sensor
     TriggerType.NETWORK_MODE -> R.string.trigger_type_network_mode
     TriggerType.WEBHOOK -> R.string.trigger_webhook
+    TriggerType.ROM_SETTING -> R.string.trigger_rom_setting
 }
 
 /** Design-time preview of a Samsung-style routine card. */
@@ -358,7 +359,7 @@ private fun RoutineCardPreview() {
                     description = "Start the day",
                     icon = "sunny",
                     iconColor = 0xFFFFFFFF,
-                    backgroundColor = 0xFFE8A33D,
+                    backgroundColor = 0xFF8F4C00,
                     category = "general",
                     priority = 1,
                     enabled = true,

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="builder_title">新しいタスク</string>
+    <string name="task_card_title">タスク</string>
     <string name="save">保存</string>
     <string name="name">名前</string>
     <string name="name_hint">例：朝のタスク</string>
@@ -9,7 +10,6 @@
     <string name="section_when">いつ（トリガー）</string>
     <string name="trigger_n">トリガー %1$d</string>
     <string name="remove_trigger">トリガーを削除</string>
-    <string name="add_another_trigger">別のトリガーを追加</string>
     <string name="trigger_type_time">時刻</string>
     <string name="trigger_type_battery">バッテリー</string>
     <string name="trigger_type_app">アプリ</string>
@@ -189,7 +189,7 @@
     <string name="action_open_app_settings">アプリ設定</string>
     <string name="action_open_app_settings_sub">アプリの設定ページを開く</string>
     <string name="timeout_label">画面タイムアウト: %1$d 秒</string>
-    <string name="ringer_normal">通常</string>
+    <string name="ringer_normal">着信中</string>
     <string name="ringer_vibrate">バイブ</string>
     <string name="ringer_silent">サイレント</string>
     <string name="hour">時</string>
@@ -458,6 +458,21 @@
     <string name="webhook_token">トークン（任意）</string>
     <string name="webhook_token_hint">秘密のヘッダー値</string>
     <string name="webhook_url_hint">この端末から http://127.0.0.1:8765/path にHTTPリクエストを送信するとタスクが実行されます。</string>
+    <string name="rom_setting_current_value">現在: %1$s</string>
+    <string name="rom_setting_equals">等しい</string>
+    <string name="rom_setting_hint">実際のROM設定が一致したときに実行します。権限なしでデバイスから読み取ります。</string>
+    <string name="rom_setting_key">設定キー</string>
+    <string name="rom_setting_namespace">名前空間</string>
+    <string name="rom_setting_namespace_global">グローバル</string>
+    <string name="rom_setting_namespace_secure">セキュア</string>
+    <string name="rom_setting_namespace_system">システム</string>
+    <string name="rom_setting_not_equals">等しくない</string>
+    <string name="rom_setting_operator">条件</string>
+    <string name="rom_setting_pick_empty">Evolution X / LineageOS のキーが見つかりません。この機能には root、Shizuku、またはシステムインストールが必要です。</string>
+    <string name="rom_setting_pick_from_rom">このROMからキーを選ぶ</string>
+    <string name="rom_setting_pick_title">このデバイスで見つかったROM設定</string>
+    <string name="rom_setting_value">目標値</string>
+    <string name="trigger_type_rom_setting">ROM設定</string>
     <string name="use_current_location">現在地を使用</string>
     <string name="location_coordinates">場所: %1$s, %2$s</string>
     <string name="location_not_set">位置がまだ設定されていません</string>

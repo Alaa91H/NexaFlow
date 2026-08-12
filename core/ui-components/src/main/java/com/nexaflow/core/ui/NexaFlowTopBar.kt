@@ -22,7 +22,7 @@ fun NexaFlowTopBar(
     title: String,
     onBack: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
-    containerColor: Color = MaterialTheme.colorScheme.surface,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
     contentColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     TopAppBar(
@@ -31,7 +31,7 @@ fun NexaFlowTopBar(
                 text = title,
                 color = contentColor,
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Normal,
                 maxLines = 1
             )
         },

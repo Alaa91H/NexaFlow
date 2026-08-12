@@ -234,7 +234,7 @@ fun PermissionManagerScreen(navController: NavController) {
                                 TextButton(onClick = { entry.openAction(context) }) {
                                     Text(
                                         text = stringResource(if (granted) R.string.granted else R.string.grant),
-                                        color = if (granted) Color(0xFF2FA84F) else MaterialTheme.colorScheme.primary
+                                        color = if (granted) Color(0xFF006D3C) else MaterialTheme.colorScheme.primary
                                     )
                                 }
                             },

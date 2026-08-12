@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material 3 brand color for notification small icons / action tints
+         (Google Blue primary 40, light scheme). The small icon is rendered
+         monochrome by the system on Android 12+; this tints it on older
+         versions and tints action-button icons everywhere. -->
+    <color name="notification_brand_color">#0B57D0</color>
+</resources>

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">अनुसूचित कार्य</string>
-    <string name="accessibility_service_description">कॉन्फ़िगर किए गए ऐप खुलने पर ऐप ट्रिगर वाली ऑटोमेशन चलाने का पता लगाता है। केवल सबसे ऊपर वाला ऐप देखा जाता है; स्क्रीन से कुछ भी नहीं पढ़ा जाता।</string>
+    <string name="backup_saved">बैकअप सहेज गया</string>
+    <string name="backup_save_failed">बैकअप फ़ाइल सहेजी नहीं जा सकी</string>
+    <string name="save_locally_label">स्थानीय रूप से सहेजें</string>    <string name="accessibility_service_description">कॉन्फ़िगर किए गए ऐप खुलने पर ऐप ट्रिगर वाली ऑटोमेशन चलाने का पता लगाता है। केवल सबसे ऊपर वाला ऐप देखा जाता है; स्क्रीन से कुछ भी नहीं पढ़ा जाता।</string>
     <string name="widget_status_title">सक्रिय ऑटोमेशन</string>
     <string name="widget_status_count">0 / 0</string>
     <string name="widget_status_last">अंतिम रन: —</string>

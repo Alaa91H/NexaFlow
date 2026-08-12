@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="builder_title">Новая задача</string>
+    <string name="task_card_title">Задача</string>
     <string name="save">Сохранить</string>
     <string name="name">Имя</string>
     <string name="name_hint">напр.: Утренняя задача</string>
@@ -9,7 +10,6 @@
     <string name="section_when">КОГДА (ТРИГГЕРЫ)</string>
     <string name="trigger_n">Триггер %1$d</string>
     <string name="remove_trigger">Удалить триггер</string>
-    <string name="add_another_trigger">Добавить ещё триггер</string>
     <string name="trigger_type_time">Время</string>
     <string name="trigger_type_battery">Батарея</string>
     <string name="trigger_type_app">Приложение</string>
@@ -189,7 +189,7 @@
     <string name="action_open_app_settings">Настройки приложения</string>
     <string name="action_open_app_settings_sub">Открыть страницу настроек приложения</string>
     <string name="timeout_label">Тайм-аут экрана: %1$d с</string>
-    <string name="ringer_normal">Обычный</string>
+    <string name="ringer_normal">Звонок</string>
     <string name="ringer_vibrate">Вибрация</string>
     <string name="ringer_silent">Беззвучный</string>
     <string name="hour">Час</string>
@@ -458,6 +458,21 @@
     <string name="webhook_token">Токен (необязательно)</string>
     <string name="webhook_token_hint">Секретное значение заголовка</string>
     <string name="webhook_url_hint">Отправьте HTTP-запрос на http://127.0.0.1:8765/path с этого устройства, чтобы запустить задачу.</string>
+    <string name="rom_setting_current_value">Текущее: %1$s</string>
+    <string name="rom_setting_equals">Равно</string>
+    <string name="rom_setting_hint">Срабатывает, когда реальная настройка ROM совпадает. Читается с устройства без разрешений.</string>
+    <string name="rom_setting_key">Ключ настройки</string>
+    <string name="rom_setting_namespace">Пространство имён</string>
+    <string name="rom_setting_namespace_global">Глобальные</string>
+    <string name="rom_setting_namespace_secure">Защищённые</string>
+    <string name="rom_setting_namespace_system">Система</string>
+    <string name="rom_setting_not_equals">Не равно</string>
+    <string name="rom_setting_operator">Условие</string>
+    <string name="rom_setting_pick_empty">Ключи Evolution X / LineageOS не найдены. Эта функция требует root, Shizuku или установки в систему.</string>
+    <string name="rom_setting_pick_from_rom">Выбрать ключ из этой ROM</string>
+    <string name="rom_setting_pick_title">Настройки ROM, найденные на устройстве</string>
+    <string name="rom_setting_value">Целевое значение</string>
+    <string name="trigger_type_rom_setting">Настройка ROM</string>
     <string name="use_current_location">Использовать моё текущее местоположение</string>
     <string name="location_coordinates">Местоположение: %1$s, %2$s</string>
     <string name="location_not_set">Местоположение ещё не задано</string>

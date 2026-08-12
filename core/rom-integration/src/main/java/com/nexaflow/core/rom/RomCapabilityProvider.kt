@@ -39,10 +39,15 @@ class RomCapabilityProvider(
                 val notificationManager = context.getSystemService(NotificationManager::class.java)
                 notificationManager.isNotificationPolicyAccessGranted
             }
+            // Evolution X is a fork of LineageOS and ships its full privileged
+            // SDK + vendor hardware HALs, so the LineageOS-derived capabilities
+            // apply to both families whenever the app runs elevated.
             RomCapability.LINEAGEOS_SDK ->
-                romFamily == RomFamily.LINEAGE_OS && isElevated()
+                isLineageDerived() && isElevated()
             RomCapability.LINEAGEOS_HARDWARE ->
-                romFamily == RomFamily.LINEAGE_OS && isElevated()
+                isLineageDerived() && isElevated()
+            RomCapability.EVOLUTION_X_SETTINGS ->
+                romFamily == RomFamily.EVOLUTION_X && isElevated()
             RomCapability.MIUI_HIDDEN_API ->
                 (romFamily == RomFamily.MIUI || romFamily == RomFamily.HYPER_OS) && isElevated()
             RomCapability.COLOROS_HIDDEN_API ->
@@ -64,5 +69,12 @@ class RomCapabilityProvider(
             integrationLevel == IntegrationLevel.SYSTEM_APP ||
             integrationLevel == IntegrationLevel.ROOT ||
             integrationLevel == IntegrationLevel.SHIZUKU
+    }
+
+    /** LineageOS and its forks (Evolution X, crDroid, ...) share the same SDK/HALs. */
+    private fun isLineageDerived(): Boolean {
+        return romFamily == RomFamily.LINEAGE_OS ||
+            romFamily == RomFamily.EVOLUTION_X ||
+            romFamily == RomFamily.CR_DROID
     }
 }

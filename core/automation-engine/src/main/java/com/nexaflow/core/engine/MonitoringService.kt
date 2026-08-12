@@ -48,6 +48,9 @@ class MonitoringService : Service() {
     lateinit var sensorMonitor: SensorMonitor
 
     @Inject
+    lateinit var romSettingMonitor: RomSettingMonitor
+
+    @Inject
     lateinit var webhookServer: WebhookServer
 
     @Inject
@@ -68,6 +71,7 @@ class MonitoringService : Service() {
         ringerModeMonitor.initialize()
         calendarMonitor.initialize()
         sensorMonitor.initialize()
+        romSettingMonitor.initialize()
         webhookServer.initialize()
         armSmsConsentIfEnabled()
     }
@@ -193,8 +197,17 @@ class MonitoringService : Service() {
         notificationManager.createNotificationChannel(channel)
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(com.nexaflow.core.rom.R.drawable.ic_stat_nexaflow)
+            // M3: brand-tinted small icon; service category for FGS semantics.
+            .setColor(getColor(com.nexaflow.core.rom.R.color.notification_brand_color))
             .setContentTitle(getString(R.string.monitoring_title))
             .setContentText(getString(R.string.monitoring_text))
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            // Never re-alert while the same foreground notification is live.
+            .setOnlyAlertOnce(true)
+            // Android 14+: show the FGS notification immediately instead of
+            // deferring it into the 10-second quiet window.
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             // Not ongoing: on Android 13+ the user can swipe the notification
             // away and it stays dismissed (the service keeps running).
             .setOngoing(false)

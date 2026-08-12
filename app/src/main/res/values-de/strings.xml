@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Geplante Aufgaben</string>
-    <string name="accessibility_service_description">Erkennt, wann konfigurierte Apps geöffnet werden, um Automatisierungen mit App-Trigger auszuführen. Nur die oberste App wird beobachtet; vom Bildschirm wird nichts gelesen.</string>
+    <string name="backup_saved">Backup gespeichert</string>
+    <string name="backup_save_failed">Backup konnte nicht gespeichert werden</string>
+    <string name="save_locally_label">Lokal speichern</string>    <string name="accessibility_service_description">Erkennt, wann konfigurierte Apps geöffnet werden, um Automatisierungen mit App-Trigger auszuführen. Nur die oberste App wird beobachtet; vom Bildschirm wird nichts gelesen.</string>
     <string name="widget_status_title">Aktive Automatisierungen</string>
     <string name="widget_status_count">0 / 0</string>
     <string name="widget_status_last">Letzte Ausführung: —</string>

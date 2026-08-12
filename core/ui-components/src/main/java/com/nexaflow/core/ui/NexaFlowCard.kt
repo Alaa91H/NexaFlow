@@ -1,7 +1,6 @@
 package com.nexaflow.core.ui
 
 import android.content.res.Configuration
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
@@ -15,19 +14,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
+/**
+ * Google-style filled card. Borderless, 16dp radius, resting on the tonal
+ * surface-container tier — the same recipe Google apps (Tasks, Keep, Clock)
+ * use for content blocks.
+ */
 @Composable
 fun NexaFlowCard(
     modifier: Modifier = Modifier,
-    border: Boolean = true,
-    containerColor: Color = MaterialTheme.colorScheme.surface,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
         modifier = modifier,
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = containerColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = if (border) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp), content = content)
     }

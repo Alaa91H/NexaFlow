@@ -12,12 +12,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 
 /**
- * Samsung-style section header. Shows the section title with an optional
- * trailing action (e.g. a "+" add button) aligned to the end.
+ * Google-style section header. Shows the section title in the M3 title-small
+ * role on the onSurfaceVariant color, with an optional trailing action
+ * (e.g. a "+" add button) aligned to the end.
  */
 @Composable
 fun SectionHeader(
@@ -33,8 +33,7 @@ fun SectionHeader(
         Text(
             text = text,
             style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.secondary,
-            fontWeight = FontWeight.SemiBold
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         if (trailing != null) {
             trailing()

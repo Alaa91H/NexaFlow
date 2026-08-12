@@ -123,8 +123,8 @@ private fun RunSummaryCard(record: ExecutionRecord) {
     val totalMs = record.actionResults.sumOf { it.durationMs }
     val msLabel = stringResource(R.string.duration_ms)
     val sLabel = stringResource(R.string.duration_s)
-    val successColor = Color(0xFF2FA84F)
-    val failColor = Color(0xFFE5533D)
+    val successColor = Color(0xFF006D3C)
+    val failColor = Color(0xFFBA1A1A)
     val successBg = Color(0xFFE4F4E9)
     val failBg = Color(0xFFFBEAE7)
 
@@ -205,8 +205,8 @@ private fun RunSummaryCard(record: ExecutionRecord) {
 private fun TimelineRow(result: ActionExecutionResult) {
     val msLabel = stringResource(R.string.duration_ms)
     val sLabel = stringResource(R.string.duration_s)
-    val successColor = Color(0xFF2FA84F)
-    val failColor = Color(0xFFE5533D)
+    val successColor = Color(0xFF006D3C)
+    val failColor = Color(0xFFBA1A1A)
     val successBg = Color(0xFFE4F4E9)
     val failBg = Color(0xFFFBEAE7)
 
@@ -221,7 +221,7 @@ private fun TimelineRow(result: ActionExecutionResult) {
         IconBadge(
             icon = icon,
             containerColor = if (result.success) Color(0xFFEAF2FE) else failBg,
-            contentColor = if (result.success) Color(0xFF1B62B7) else failColor,
+            contentColor = if (result.success) Color(0xFF0B57D0) else failColor,
             size = 40
         )
         Column(modifier = Modifier.weight(1f)) {

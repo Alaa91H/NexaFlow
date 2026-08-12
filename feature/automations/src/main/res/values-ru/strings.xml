@@ -172,6 +172,8 @@
     <string name="trigger_sensor_sub">Запуск по событиям датчиков устройства</string>
     <string name="trigger_webhook">Вебхук</string>
     <string name="trigger_webhook_sub">Запуск по локальному HTTP-запросу</string>
+    <string name="trigger_rom_setting">Настройка ROM</string>
+    <string name="trigger_rom_setting_sub">Срабатывает при совпадении реальной настройки Evolution X</string>
     <string name="trigger_type_network_mode">Сотовая сеть</string>
     <string name="trigger_type_network_mode_sub">Срабатывает, когда сотовая сеть соответствует выбранному поколению (настоящее определение 5G)</string>
     <string name="add_shortcut">Добавить ярлык</string>

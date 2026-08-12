@@ -21,7 +21,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
-import org.robolectric.annotation.Config
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -30,7 +29,6 @@ import kotlinx.coroutines.runBlocking
  * \"Dismiss\" (cancels the posted alert through NotificationDismissReceiver).
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
 class BatteryAlertActionsTest {
 
     private val context: Context = ApplicationProvider.getApplicationContext()

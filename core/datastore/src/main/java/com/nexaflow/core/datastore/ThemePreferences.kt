@@ -30,8 +30,12 @@ enum class ThemeMode(val storedValue: String) {
 data class ThemeSettings(
     val mode: ThemeMode = ThemeMode.SYSTEM,
     val accent: String = "blue",
-    /** Android 12+ Material You colors from the wallpaper (P2-7). */
-    val dynamicColor: Boolean = false
+    /**
+     * Android 12+ Material You colors from the wallpaper. True by default —
+     * the same experience as every Google app; the user can disable it in
+     * Settings to use the accent seed schemes instead.
+     */
+    val dynamicColor: Boolean = true
 )
 
 class ThemePreferences(private val context: Context) {
@@ -42,7 +46,7 @@ class ThemePreferences(private val context: Context) {
         ThemeSettings(
             mode = ThemeMode.fromStored(preferences[KEY_THEME_MODE]),
             accent = preferences[KEY_ACCENT] ?: "blue",
-            dynamicColor = preferences[KEY_DYNAMIC_COLOR] ?: false
+            dynamicColor = preferences[KEY_DYNAMIC_COLOR] ?: true
         )
     }
 

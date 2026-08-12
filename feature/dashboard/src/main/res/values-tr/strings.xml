@@ -37,5 +37,6 @@
     <string name="trigger_calendar">Takvim etkinliği</string>
     <string name="trigger_sensor">Sensör</string>
     <string name="trigger_webhook">Webhook</string>
+    <string name="trigger_rom_setting">ROM ayarı</string>
     <string name="trigger_type_network_mode">Hücresel ağ</string>
 </resources>

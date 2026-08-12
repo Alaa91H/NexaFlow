@@ -24,7 +24,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
 /**
  * Verifies [ExecutionEngine.runExit]: the task's end behavior actually executes.
@@ -35,7 +34,6 @@ import org.robolectric.annotation.Config
  * model. A task configured only with per-action end options never ran them.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
 class ExecutionEngineExitBehaviorTest {
 
     private lateinit var context: Context

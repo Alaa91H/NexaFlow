@@ -11,7 +11,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
 /**
  * Guards the string-based coupling between the PendingIntent builder (in
@@ -21,7 +20,6 @@ import org.robolectric.annotation.Config
  * moment the class or the action constant drifts.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
 class NotificationActionReceiverContractTest {
 
     @Test

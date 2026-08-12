@@ -17,7 +17,10 @@ import com.nexaflow.domain.schedule.BatteryTriggerMatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,8 +37,26 @@ class BatteryMonitor @Inject constructor(
 
     override val description: String = "Battery level & charger events"
 
+    /** Safety-net cadence: re-check the sticky battery state every minute. */
+    private val safetyNetIntervalMs: Long = 60_000L
+
     @Volatile
     private var registered = false
+
+    /**
+     * Periodic safety-net job that re-reads the sticky battery state once a
+     * minute so a crossed threshold is caught even if the ACTION_BATTERY_CHANGED
+     * broadcast was missed (brief suspension, Doze transition).
+     */
+    private var safetyNetJob: Job? = null
+
+    /** Last battery state we actually evaluated, to skip no-op ticks. */
+    @Volatile
+    private var lastHandledLevel = -1
+    @Volatile
+    private var lastHandledStatus = -1
+    @Volatile
+    private var lastHandledPlugged = -1
 
     /**
      * Automation ids that already fired their low-battery / charge-complete
@@ -75,6 +96,57 @@ class BatteryMonitor @Inject constructor(
         // ACTION_BATTERY_CHANGED is sticky: registering delivers the current
         // level immediately, so an already-crossed threshold fires right away
         // (e.g. the app starts while the battery is below the target).
+        startSafetyNet()
+    }
+
+    /**
+     * Safety-net tick: re-reads the sticky ACTION_BATTERY_CHANGED state every
+     * minute and re-evaluates every battery trigger against it.
+     *
+     * ACTION_BATTERY_CHANGED only fires when the level/status actually changes,
+     * and a broadcast can be missed (the app briefly suspended, a Doze
+     * transition, a dropped pending intent), so the pure broadcast path could
+     * silently skip a crossed threshold. This loop guarantees the threshold is
+     * caught within one minute of being crossed.
+     *
+     * Battery-conscious by design (per Android background-work guidance):
+     *  - The loop piggybacks on the always-running monitoring foreground
+     *    service, so it costs no extra wakeups — the device is already awake.
+     *  - Reading the sticky broadcast is a single binder call; no IPC to
+     *    another process, no battery-service query.
+     *  - When level/status/plugged are identical to the last evaluated state
+     *    (the overwhelming common case minute-to-minute), the tick skips the
+     *    re-evaluation entirely — no database read, no CPU work.
+     *  - Newly saved triggers are handled by [refresh] from the builder, so an
+     *    unchanged battery can never miss a fresh threshold.
+     */
+    private fun startSafetyNet() {
+        if (safetyNetJob?.isActive == true) return
+        safetyNetJob = scope.launch {
+            while (isActive) {
+                delay(safetyNetIntervalMs)
+                val sticky = runCatching {
+                    context.registerReceiver(
+                        null,
+                        IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+                    )
+                }.getOrNull() ?: continue
+                val level = sticky.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+                val status = sticky.getIntExtra(
+                    BatteryManager.EXTRA_STATUS,
+                    BatteryManager.BATTERY_STATUS_UNKNOWN
+                )
+                val plugged = sticky.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
+                if (level == lastHandledLevel &&
+                    status == lastHandledStatus &&
+                    plugged == lastHandledPlugged
+                ) {
+                    // Nothing changed since the last broadcast — nothing to catch.
+                    continue
+                }
+                handleBatteryChange(level, status, plugged)
+            }
+        }
     }
 
     /**
@@ -107,6 +179,8 @@ class BatteryMonitor @Inject constructor(
     override fun stop() {
         if (!registered) return
         registered = false
+        safetyNetJob?.cancel()
+        safetyNetJob = null
         try {
             context.unregisterReceiver(receiver)
         } catch (_: Throwable) {
@@ -116,6 +190,11 @@ class BatteryMonitor @Inject constructor(
 
     private fun handleBatteryChange(level: Int, status: Int, plugged: Int) {
         if (level <= 0) return
+        // Record the state we evaluated so the safety-net loop can skip no-op
+        // ticks (identical state = no broadcast missed = nothing to catch).
+        lastHandledLevel = level
+        lastHandledStatus = status
+        lastHandledPlugged = plugged
         scope.launch {
             val automations = repository.getAutomations().first()
             automations.filter { it.enabled }.forEach { automation ->

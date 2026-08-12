@@ -22,7 +22,7 @@ fun StatCard(
     icon: ImageVector? = null,
     modifier: Modifier = Modifier
 ) {
-    NexaFlowCard(modifier = modifier, border = false) {
+    NexaFlowCard(modifier = modifier) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally

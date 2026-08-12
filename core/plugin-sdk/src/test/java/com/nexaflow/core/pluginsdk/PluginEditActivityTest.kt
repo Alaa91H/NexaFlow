@@ -10,7 +10,6 @@ import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
-import org.robolectric.annotation.Config
 
 /**
  * Robolectric tests for [PluginEditActivity]'s protocol contract: [save] must
@@ -19,7 +18,6 @@ import org.robolectric.annotation.Config
  * RESULT_CANCELED for the host.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
 class PluginEditActivityTest {
 
     private class TestEditActivity : PluginEditActivity() {

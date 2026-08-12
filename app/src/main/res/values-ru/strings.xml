@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Запланированные задачи</string>
-    <string name="accessibility_service_description">Определяет, когда открываются настроенные приложения, чтобы выполнять автоматизации с триггером по приложению. Наблюдается только верхнее приложение; с экрана ничего не считывается.</string>
+    <string name="backup_saved">Резервная копия сохранена</string>
+    <string name="backup_save_failed">Не удалось сохранить файл резервной копии</string>
+    <string name="save_locally_label">Сохранить локально</string>    <string name="accessibility_service_description">Определяет, когда открываются настроенные приложения, чтобы выполнять автоматизации с триггером по приложению. Наблюдается только верхнее приложение; с экрана ничего не считывается.</string>
     <string name="widget_status_title">Активные автоматизации</string>
     <string name="widget_status_count">0 / 0</string>
     <string name="widget_status_last">Последний запуск: —</string>

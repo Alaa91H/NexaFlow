@@ -15,7 +15,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
-import org.robolectric.annotation.Config
 
 /**
  * Verifies the sample's ordered-broadcast result contract end-to-end: the host
@@ -27,7 +26,6 @@ import org.robolectric.annotation.Config
  * OK path is hardware-dependent and verified on a real device.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
 class NfcToggleFireReceiverTest {
 
     private lateinit var context: Context

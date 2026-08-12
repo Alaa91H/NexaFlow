@@ -12,7 +12,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
-import org.robolectric.annotation.Config
 
 /**
  * Verifies the interactive action buttons on reminder notifications:
@@ -22,7 +21,6 @@ import org.robolectric.annotation.Config
  *  - a reminder without a task id gets only the Dismiss button
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
 class ReminderAlarmReceiverTest {
 
     private val context: Context = ApplicationProvider.getApplicationContext()

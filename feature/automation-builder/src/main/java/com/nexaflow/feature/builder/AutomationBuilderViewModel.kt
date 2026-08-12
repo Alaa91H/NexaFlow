@@ -93,7 +93,7 @@ class AutomationBuilderViewModel @Inject constructor(
                 name = name.ifBlank { "Untitled Task" },
                 description = buildDescription(triggers, actions),
                 icon = icon,
-                iconColor = prev?.iconColor ?: 0xFF1B62B7,
+                iconColor = prev?.iconColor ?: 0xFF0B57D0,
                 backgroundColor = prev?.backgroundColor ?: 0xFFE3EEFA,
                 category = prev?.category ?: "custom",
                 priority = prev?.priority ?: 1,

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="builder_title">مهمة جديدة</string>
+    <string name="task_card_title">المهمة</string>
     <string name="save">حفظ</string>
     <string name="name">الاسم</string>
     <string name="name_hint">مثال: مهمة الصباح</string>
@@ -9,7 +10,6 @@
     <string name="section_when">متى (المشغّلات)</string>
     <string name="trigger_n">المشغّل %1$d</string>
     <string name="remove_trigger">إزالة المشغّل</string>
-    <string name="add_another_trigger">إضافة مشغّل آخر</string>
     <string name="trigger_type_time">الوقت</string>
     <string name="trigger_type_battery">البطارية</string>
     <string name="trigger_type_app">التطبيق</string>
@@ -166,7 +166,7 @@
     <string name="action_dark_mode">الوضع الداكن</string>
     <string name="action_dark_mode_sub">فرض الوضع الداكن أو الفاتح</string>
     <string name="action_ringer">وضع الرنين</string>
-    <string name="action_ringer_sub">عادي، اهتزاز أو صامت</string>
+    <string name="action_ringer_sub">رنين، اهتزاز أو صامت</string>
     <string name="action_mobile_data">بيانات الجوال</string>
     <string name="action_mobile_data_sub">تشغيل أو إيقاف بيانات الجوال</string>
     <string name="action_hotspot">نقطة الاتصال</string>
@@ -188,7 +188,7 @@
     <string name="action_open_app_settings">إعدادات التطبيق</string>
     <string name="action_open_app_settings_sub">فتح صفحة إعدادات التطبيق</string>
     <string name="timeout_label">مهلة الشاشة: %1$d ث</string>
-    <string name="ringer_normal">عادي</string>
+    <string name="ringer_normal">رنين</string>
     <string name="ringer_vibrate">اهتزاز</string>
     <string name="ringer_silent">صامت</string>
     <string name="hour">الساعة</string>
@@ -457,6 +457,21 @@
     <string name="webhook_token">الرمز (اختياري)</string>
     <string name="webhook_token_hint">قيمة الرأس السرية</string>
     <string name="webhook_url_hint">أرسل طلب HTTP إلى http://127.0.0.1:8765/path من هذا الجهاز لتشغيل المهمة.</string>
+    <string name="rom_setting_current_value">الحالي: %1$s</string>
+    <string name="rom_setting_equals">يساوي</string>
+    <string name="rom_setting_hint">يعمل عند تطابق إعداد الروم الحقيقي. يُقرأ من الجهاز دون أذونات.</string>
+    <string name="rom_setting_key">مفتاح الإعداد</string>
+    <string name="rom_setting_namespace">مساحة الأسماء</string>
+    <string name="rom_setting_namespace_global">عام</string>
+    <string name="rom_setting_namespace_secure">آمن</string>
+    <string name="rom_setting_namespace_system">النظام</string>
+    <string name="rom_setting_not_equals">لا يساوي</string>
+    <string name="rom_setting_operator">الشرط</string>
+    <string name="rom_setting_pick_empty">لا توجد مفاتيح Evolution X / LineageOS. هذه الميزة تحتاج root أو Shizuku أو تثبيت النظام.</string>
+    <string name="rom_setting_pick_from_rom">اختر مفتاحاً من هذا الروم</string>
+    <string name="rom_setting_pick_title">إعدادات الروم الموجودة على هذا الجهاز</string>
+    <string name="rom_setting_value">القيمة المستهدفة</string>
+    <string name="trigger_type_rom_setting">إعداد ROM</string>
     <string name="use_current_location">استخدام موقعي الحالي</string>
     <string name="location_coordinates">الموقع: %1$s، %2$s</string>
     <string name="location_not_set">لم يتم تحديد موقع بعد</string>

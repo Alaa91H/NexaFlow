@@ -17,7 +17,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
 /**
  * Sentry activation rules (P0-2, privacy-first): Sentry must stay completely
@@ -32,7 +31,6 @@ import org.robolectric.annotation.Config
 // The app targets SDK 37 but Robolectric 4.17 sandboxes for SDK 36+ need
 // Java 21 while this build runs Java 17; these tests are SDK-agnostic, so
 // run them on 35 (the newest SDK that supports Java 17).
-@Config(sdk = [35])
 class SentryReporterTest {
 
     private lateinit var app: Application

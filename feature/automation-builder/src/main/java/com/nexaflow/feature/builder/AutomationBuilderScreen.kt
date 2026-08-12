@@ -143,70 +143,111 @@ data class ActionOption(
 
 internal val actionOptions = listOf(
     // DISPLAY
-    ActionOption(R.string.action_brightness, R.string.action_brightness_sub, Icons.Filled.FlashOn, Color(0xFF1B62B7), ActionType.SYSTEM_BRIGHTNESS, ActionCategory.DISPLAY),
-    ActionOption(R.string.action_rotation, R.string.action_rotation_sub, Icons.Filled.ScreenRotation, Color(0xFF13A5A8), ActionType.SYSTEM_SCREEN_ROTATION, ActionCategory.DISPLAY),
-    ActionOption(R.string.action_screen_timeout, R.string.action_screen_timeout_sub, Icons.Filled.ScreenRotation, Color(0xFF1B62B7), ActionType.SYSTEM_SCREEN_TIMEOUT, ActionCategory.DISPLAY),
-    ActionOption(R.string.action_stay_awake, R.string.action_stay_awake_sub, Icons.Filled.WbSunny, Color(0xFFE8A33D), ActionType.SYSTEM_STAY_AWAKE, ActionCategory.DISPLAY),
-    ActionOption(R.string.action_auto_brightness, R.string.action_auto_brightness_sub, Icons.Filled.FlashOn, Color(0xFF1B62B7), ActionType.SYSTEM_AUTO_BRIGHTNESS, ActionCategory.DISPLAY),
-    ActionOption(R.string.action_dark_mode, R.string.action_dark_mode_sub, Icons.Filled.DarkMode, Color(0xFF7A5BD1), ActionType.SYSTEM_DARK_MODE, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_brightness, R.string.action_brightness_sub, Icons.Filled.FlashOn, Color(0xFF0B57D0), ActionType.SYSTEM_BRIGHTNESS, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_rotation, R.string.action_rotation_sub, Icons.Filled.ScreenRotation, Color(0xFF006A6C), ActionType.SYSTEM_SCREEN_ROTATION, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_screen_timeout, R.string.action_screen_timeout_sub, Icons.Filled.ScreenRotation, Color(0xFF0B57D0), ActionType.SYSTEM_SCREEN_TIMEOUT, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_stay_awake, R.string.action_stay_awake_sub, Icons.Filled.WbSunny, Color(0xFF8F4C00), ActionType.SYSTEM_STAY_AWAKE, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_auto_brightness, R.string.action_auto_brightness_sub, Icons.Filled.FlashOn, Color(0xFF0B57D0), ActionType.SYSTEM_AUTO_BRIGHTNESS, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_dark_mode, R.string.action_dark_mode_sub, Icons.Filled.DarkMode, Color(0xFF6750A4), ActionType.SYSTEM_DARK_MODE, ActionCategory.DISPLAY),
     // SOUND
-    ActionOption(R.string.action_volume, R.string.action_volume_sub, Icons.AutoMirrored.Filled.VolumeUp, Color(0xFF7A5BD1), ActionType.SYSTEM_VOLUME, ActionCategory.SOUND),
-    ActionOption(R.string.action_stream_volume, R.string.action_stream_volume_sub, Icons.AutoMirrored.Filled.VolumeUp, Color(0xFF7A5BD1), ActionType.SYSTEM_STREAM_VOLUME, ActionCategory.SOUND),
-    ActionOption(R.string.action_set_ringtone, R.string.action_set_ringtone_sub, Icons.Filled.MusicNote, Color(0xFFE8A33D), ActionType.SYSTEM_SET_RINGTONE, ActionCategory.SOUND),
-    ActionOption(R.string.action_ringer, R.string.action_ringer_sub, Icons.AutoMirrored.Filled.VolumeUp, Color(0xFF7A5BD1), ActionType.SYSTEM_RINGER_MODE, ActionCategory.SOUND),
-    ActionOption(R.string.action_dnd, R.string.action_dnd_sub, Icons.Filled.DoNotDisturb, Color(0xFFE5533D), ActionType.SYSTEM_DND, ActionCategory.SOUND),
+    ActionOption(R.string.action_volume, R.string.action_volume_sub, Icons.AutoMirrored.Filled.VolumeUp, Color(0xFF6750A4), ActionType.SYSTEM_VOLUME, ActionCategory.SOUND),
+    ActionOption(R.string.action_stream_volume, R.string.action_stream_volume_sub, Icons.AutoMirrored.Filled.VolumeUp, Color(0xFF6750A4), ActionType.SYSTEM_STREAM_VOLUME, ActionCategory.SOUND),
+    ActionOption(R.string.action_set_ringtone, R.string.action_set_ringtone_sub, Icons.Filled.MusicNote, Color(0xFF8F4C00), ActionType.SYSTEM_SET_RINGTONE, ActionCategory.SOUND),
+    ActionOption(R.string.action_ringer, R.string.action_ringer_sub, Icons.AutoMirrored.Filled.VolumeUp, Color(0xFF6750A4), ActionType.SYSTEM_RINGER_MODE, ActionCategory.SOUND),
+    ActionOption(R.string.action_dnd, R.string.action_dnd_sub, Icons.Filled.DoNotDisturb, Color(0xFFBA1A1A), ActionType.SYSTEM_DND, ActionCategory.SOUND),
     // CONNECTIVITY
-    ActionOption(R.string.action_wifi, R.string.action_wifi_sub, Icons.Filled.Wifi, Color(0xFF1B62B7), ActionType.SYSTEM_WIFI, ActionCategory.CONNECTIVITY),
-    ActionOption(R.string.action_bluetooth, R.string.action_bluetooth_sub, Icons.Filled.Bluetooth, Color(0xFF2FA84F), ActionType.SYSTEM_BLUETOOTH, ActionCategory.CONNECTIVITY),
-    ActionOption(R.string.action_mobile_data, R.string.action_mobile_data_sub, Icons.Filled.SignalCellularAlt, Color(0xFF13A5A8), ActionType.SYSTEM_MOBILE_DATA, ActionCategory.CONNECTIVITY),
-    ActionOption(R.string.action_network_mode, R.string.action_network_mode_sub, Icons.Filled.SignalCellularAlt, Color(0xFF13A5A8), ActionType.SYSTEM_NETWORK_MODE, ActionCategory.CONNECTIVITY),
-    ActionOption(R.string.action_hotspot, R.string.action_hotspot_sub, Icons.Filled.Wifi, Color(0xFF2FA84F), ActionType.SYSTEM_HOTSPOT, ActionCategory.CONNECTIVITY),
-    ActionOption(R.string.action_nfc, R.string.action_nfc_sub, Icons.Filled.Nfc, Color(0xFF1B62B7), ActionType.SYSTEM_NFC, ActionCategory.CONNECTIVITY),
-    ActionOption(R.string.action_airplane, R.string.action_airplane_sub, Icons.Filled.AirplanemodeActive, Color(0xFF13A5A8), ActionType.SYSTEM_AIRPLANE_MODE, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_wifi, R.string.action_wifi_sub, Icons.Filled.Wifi, Color(0xFF0B57D0), ActionType.SYSTEM_WIFI, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_bluetooth, R.string.action_bluetooth_sub, Icons.Filled.Bluetooth, Color(0xFF006D3C), ActionType.SYSTEM_BLUETOOTH, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_mobile_data, R.string.action_mobile_data_sub, Icons.Filled.SignalCellularAlt, Color(0xFF006A6C), ActionType.SYSTEM_MOBILE_DATA, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_network_mode, R.string.action_network_mode_sub, Icons.Filled.SignalCellularAlt, Color(0xFF006A6C), ActionType.SYSTEM_NETWORK_MODE, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_hotspot, R.string.action_hotspot_sub, Icons.Filled.Wifi, Color(0xFF006D3C), ActionType.SYSTEM_HOTSPOT, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_nfc, R.string.action_nfc_sub, Icons.Filled.Nfc, Color(0xFF0B57D0), ActionType.SYSTEM_NFC, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_airplane, R.string.action_airplane_sub, Icons.Filled.AirplanemodeActive, Color(0xFF006A6C), ActionType.SYSTEM_AIRPLANE_MODE, ActionCategory.CONNECTIVITY),
     // MEDIA
-    ActionOption(R.string.action_media_play, R.string.action_media_play_sub, Icons.Filled.MusicNote, Color(0xFF7A5BD1), ActionType.SYSTEM_MEDIA_PLAY_PAUSE, ActionCategory.MEDIA),
-    ActionOption(R.string.action_media_next, R.string.action_media_next_sub, Icons.Filled.MusicNote, Color(0xFF7A5BD1), ActionType.SYSTEM_MEDIA_NEXT, ActionCategory.MEDIA),
-    ActionOption(R.string.action_media_prev, R.string.action_media_prev_sub, Icons.Filled.MusicNote, Color(0xFF7A5BD1), ActionType.SYSTEM_MEDIA_PREVIOUS, ActionCategory.MEDIA),
+    ActionOption(R.string.action_media_play, R.string.action_media_play_sub, Icons.Filled.MusicNote, Color(0xFF6750A4), ActionType.SYSTEM_MEDIA_PLAY_PAUSE, ActionCategory.MEDIA),
+    ActionOption(R.string.action_media_next, R.string.action_media_next_sub, Icons.Filled.MusicNote, Color(0xFF6750A4), ActionType.SYSTEM_MEDIA_NEXT, ActionCategory.MEDIA),
+    ActionOption(R.string.action_media_prev, R.string.action_media_prev_sub, Icons.Filled.MusicNote, Color(0xFF6750A4), ActionType.SYSTEM_MEDIA_PREVIOUS, ActionCategory.MEDIA),
     // NOTIFICATIONS
-    ActionOption(R.string.action_notification, R.string.action_notification_sub, Icons.Filled.NotificationImportant, Color(0xFFE8A33D), ActionType.SYSTEM_SEND_NOTIFICATION, ActionCategory.NOTIFICATIONS),
-    ActionOption(R.string.action_block_notification, R.string.action_block_notification_sub, Icons.Filled.NotificationsOff, Color(0xFFE5533D), ActionType.SYSTEM_BLOCK_NOTIFICATION, ActionCategory.NOTIFICATIONS),
-    ActionOption(R.string.action_clear_app_notifications, R.string.action_clear_app_notifications_sub, Icons.Filled.Notifications, Color(0xFFE8A33D), ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
-    ActionOption(R.string.action_clear_notifs, R.string.action_clear_notifs_sub, Icons.Filled.Notifications, Color(0xFFE8A33D), ActionType.SYSTEM_CLEAR_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
-    ActionOption(R.string.action_expand_bar, R.string.action_expand_bar_sub, Icons.Filled.NotificationImportant, Color(0xFF13A5A8), ActionType.SYSTEM_EXPAND_STATUS_BAR, ActionCategory.NOTIFICATIONS),
-    ActionOption(R.string.action_collapse_bar, R.string.action_collapse_bar_sub, Icons.Filled.NotificationImportant, Color(0xFF13A5A8), ActionType.SYSTEM_COLLAPSE_STATUS_BAR, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_notification, R.string.action_notification_sub, Icons.Filled.NotificationImportant, Color(0xFF8F4C00), ActionType.SYSTEM_SEND_NOTIFICATION, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_block_notification, R.string.action_block_notification_sub, Icons.Filled.NotificationsOff, Color(0xFFBA1A1A), ActionType.SYSTEM_BLOCK_NOTIFICATION, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_clear_app_notifications, R.string.action_clear_app_notifications_sub, Icons.Filled.Notifications, Color(0xFF8F4C00), ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_clear_notifs, R.string.action_clear_notifs_sub, Icons.Filled.Notifications, Color(0xFF8F4C00), ActionType.SYSTEM_CLEAR_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_expand_bar, R.string.action_expand_bar_sub, Icons.Filled.NotificationImportant, Color(0xFF006A6C), ActionType.SYSTEM_EXPAND_STATUS_BAR, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_collapse_bar, R.string.action_collapse_bar_sub, Icons.Filled.NotificationImportant, Color(0xFF006A6C), ActionType.SYSTEM_COLLAPSE_STATUS_BAR, ActionCategory.NOTIFICATIONS),
     // APPS
-    ActionOption(R.string.action_open_apps, R.string.action_open_apps_sub, Icons.Filled.Apps, Color(0xFF2FA84F), ActionType.SYSTEM_OPEN_APP, ActionCategory.APPS),
-    ActionOption(R.string.action_close_app, R.string.action_close_app_sub, Icons.Filled.Close, Color(0xFFE5533D), ActionType.APPLICATION_CLOSE_APP, ActionCategory.APPS),
-    ActionOption(R.string.action_open_app_settings, R.string.action_open_app_settings_sub, Icons.Filled.Settings, Color(0xFF1B62B7), ActionType.APPLICATION_OPEN_APP_SETTINGS, ActionCategory.APPS),
+    ActionOption(R.string.action_open_apps, R.string.action_open_apps_sub, Icons.Filled.Apps, Color(0xFF006D3C), ActionType.SYSTEM_OPEN_APP, ActionCategory.APPS),
+    ActionOption(R.string.action_close_app, R.string.action_close_app_sub, Icons.Filled.Close, Color(0xFFBA1A1A), ActionType.APPLICATION_CLOSE_APP, ActionCategory.APPS),
+    ActionOption(R.string.action_open_app_settings, R.string.action_open_app_settings_sub, Icons.Filled.Settings, Color(0xFF0B57D0), ActionType.APPLICATION_OPEN_APP_SETTINGS, ActionCategory.APPS),
     // SYSTEM
-    ActionOption(R.string.action_flashlight, R.string.action_flashlight_sub, Icons.Filled.FlashOn, Color(0xFFE8A33D), ActionType.SYSTEM_FLASHLIGHT, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_open_url, R.string.action_open_url_sub, Icons.Filled.Link, Color(0xFF1B62B7), ActionType.SYSTEM_OPEN_URL, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_http_request, R.string.action_http_request_sub, Icons.Filled.Public, Color(0xFF13A5A8), ActionType.SYSTEM_HTTP_REQUEST, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_power_saver, R.string.action_power_saver_sub, Icons.Filled.BatteryAlert, Color(0xFF2FA84F), ActionType.SYSTEM_POWER_SAVER, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_animations, R.string.action_animations_sub, Icons.Filled.Palette, Color(0xFF7A5BD1), ActionType.SYSTEM_ANIMATIONS, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_lock_screen, R.string.action_lock_screen_sub, Icons.Filled.Lock, Color(0xFFE5533D), ActionType.SYSTEM_LOCK_SCREEN, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_set_alarm, R.string.action_set_alarm_sub, Icons.Filled.Schedule, Color(0xFF13A5A8), ActionType.SYSTEM_SET_ALARM, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_open_recents, R.string.action_open_recents_sub, Icons.Filled.Apps, Color(0xFF1B62B7), ActionType.SYSTEM_OPEN_RECENTS, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_go_home, R.string.action_go_home_sub, Icons.Filled.Home, Color(0xFF2FA84F), ActionType.SYSTEM_GO_HOME, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_ring_volume, R.string.action_ring_volume_sub, Icons.Filled.PhoneAndroid, Color(0xFF7A5BD1), ActionType.SYSTEM_RING_VOLUME, ActionCategory.SOUND),
-    ActionOption(R.string.action_location, R.string.action_location_sub, Icons.Filled.LocationOn, Color(0xFF2FA84F), ActionType.SYSTEM_LOCATION, ActionCategory.CONNECTIVITY),
-    ActionOption(R.string.action_play_updates, R.string.action_play_updates_sub, Icons.Filled.Storefront, Color(0xFF13A5A8), ActionType.SYSTEM_OPEN_PLAY_UPDATES, ActionCategory.APPS),
-    ActionOption(R.string.action_galaxy_store, R.string.action_galaxy_store_sub, Icons.Filled.Storefront, Color(0xFF1B62B7), ActionType.SYSTEM_OPEN_GALAXY_STORE, ActionCategory.APPS),
-    ActionOption(R.string.action_send_sms, R.string.action_send_sms_sub, Icons.Filled.NotificationImportant, Color(0xFF2FA84F), ActionType.SYSTEM_SEND_SMS, ActionCategory.NOTIFICATIONS),
-    ActionOption(R.string.action_reminder, R.string.action_reminder_sub, Icons.Filled.NotificationsActive, Color(0xFFE8A33D), ActionType.SYSTEM_SEND_REMINDER, ActionCategory.NOTIFICATIONS),
-    ActionOption(R.string.action_open_settings, R.string.action_open_settings_sub, Icons.Filled.Settings, Color(0xFF1B62B7), ActionType.SYSTEM_OPEN_SETTINGS, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_wait, R.string.action_wait_sub, Icons.Filled.Schedule, Color(0xFF7A5BD1), ActionType.SYSTEM_WAIT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_flashlight, R.string.action_flashlight_sub, Icons.Filled.FlashOn, Color(0xFF8F4C00), ActionType.SYSTEM_FLASHLIGHT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_url, R.string.action_open_url_sub, Icons.Filled.Link, Color(0xFF0B57D0), ActionType.SYSTEM_OPEN_URL, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_http_request, R.string.action_http_request_sub, Icons.Filled.Public, Color(0xFF006A6C), ActionType.SYSTEM_HTTP_REQUEST, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_power_saver, R.string.action_power_saver_sub, Icons.Filled.BatteryAlert, Color(0xFF006D3C), ActionType.SYSTEM_POWER_SAVER, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_animations, R.string.action_animations_sub, Icons.Filled.Palette, Color(0xFF6750A4), ActionType.SYSTEM_ANIMATIONS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_lock_screen, R.string.action_lock_screen_sub, Icons.Filled.Lock, Color(0xFFBA1A1A), ActionType.SYSTEM_LOCK_SCREEN, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_set_alarm, R.string.action_set_alarm_sub, Icons.Filled.Schedule, Color(0xFF006A6C), ActionType.SYSTEM_SET_ALARM, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_recents, R.string.action_open_recents_sub, Icons.Filled.Apps, Color(0xFF0B57D0), ActionType.SYSTEM_OPEN_RECENTS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_go_home, R.string.action_go_home_sub, Icons.Filled.Home, Color(0xFF006D3C), ActionType.SYSTEM_GO_HOME, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_ring_volume, R.string.action_ring_volume_sub, Icons.Filled.PhoneAndroid, Color(0xFF6750A4), ActionType.SYSTEM_RING_VOLUME, ActionCategory.SOUND),
+    ActionOption(R.string.action_location, R.string.action_location_sub, Icons.Filled.LocationOn, Color(0xFF006D3C), ActionType.SYSTEM_LOCATION, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_play_updates, R.string.action_play_updates_sub, Icons.Filled.Storefront, Color(0xFF006A6C), ActionType.SYSTEM_OPEN_PLAY_UPDATES, ActionCategory.APPS),
+    ActionOption(R.string.action_galaxy_store, R.string.action_galaxy_store_sub, Icons.Filled.Storefront, Color(0xFF0B57D0), ActionType.SYSTEM_OPEN_GALAXY_STORE, ActionCategory.APPS),
+    ActionOption(R.string.action_send_sms, R.string.action_send_sms_sub, Icons.Filled.NotificationImportant, Color(0xFF006D3C), ActionType.SYSTEM_SEND_SMS, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_reminder, R.string.action_reminder_sub, Icons.Filled.NotificationsActive, Color(0xFF8F4C00), ActionType.SYSTEM_SEND_REMINDER, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_open_settings, R.string.action_open_settings_sub, Icons.Filled.Settings, Color(0xFF0B57D0), ActionType.SYSTEM_OPEN_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_wait, R.string.action_wait_sub, Icons.Filled.Schedule, Color(0xFF6750A4), ActionType.SYSTEM_WAIT, ActionCategory.SYSTEM),
     // BATTERY
-    ActionOption(R.string.action_battery_alert, R.string.action_battery_alert_sub, Icons.Filled.BatteryAlert, Color(0xFFE5533D), ActionType.BATTERY_ALERTS, ActionCategory.BATTERY),
-    ActionOption(R.string.action_charging_alert, R.string.action_charging_alert_sub, Icons.Filled.BatteryAlert, Color(0xFF2FA84F), ActionType.BATTERY_CHARGING_NOTIFICATIONS, ActionCategory.BATTERY),
+    ActionOption(R.string.action_battery_alert, R.string.action_battery_alert_sub, Icons.Filled.BatteryAlert, Color(0xFFBA1A1A), ActionType.BATTERY_ALERTS, ActionCategory.BATTERY),
+    ActionOption(R.string.action_charging_alert, R.string.action_charging_alert_sub, Icons.Filled.BatteryAlert, Color(0xFF006D3C), ActionType.BATTERY_CHARGING_NOTIFICATIONS, ActionCategory.BATTERY),
     // ADVANCED
-    ActionOption(R.string.action_shizuku, R.string.action_shizuku_sub, Icons.Filled.Terminal, Color(0xFF1B62B7), ActionType.ADVANCED_SHIZUKU, ActionCategory.ADVANCED),
-    ActionOption(R.string.action_root, R.string.action_root_sub, Icons.Filled.Terminal, Color(0xFFE5533D), ActionType.ADVANCED_ROOT, ActionCategory.ADVANCED),
+    ActionOption(R.string.action_shizuku, R.string.action_shizuku_sub, Icons.Filled.Terminal, Color(0xFF0B57D0), ActionType.ADVANCED_SHIZUKU, ActionCategory.ADVANCED),
+    ActionOption(R.string.action_root, R.string.action_root_sub, Icons.Filled.Terminal, Color(0xFFBA1A1A), ActionType.ADVANCED_ROOT, ActionCategory.ADVANCED),
     // PLUGINS
-    ActionOption(R.string.action_plugin, R.string.action_plugin_sub, Icons.Filled.Extension, Color(0xFF7A5BD1), ActionType.PLUGIN_FIRE, ActionCategory.PLUGINS)
+    ActionOption(R.string.action_plugin, R.string.action_plugin_sub, Icons.Filled.Extension, Color(0xFF6750A4), ActionType.PLUGIN_FIRE, ActionCategory.PLUGINS)
 )
 
 internal val actionCategories: List<ActionCategory> = ActionCategory.entries.toList()
+
+/**
+ * Single-select list of trigger types. Shown only while no trigger is
+ * chosen; tapping a row picks it as THE trigger of the task and the list
+ * folds away, leaving the expanded editor.
+ */
+@Composable
+private fun TriggerSelectList(
+    onSelect: (TriggerType) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        triggerTypeOptions.forEach { type ->
+            Surface(
+                shape = MaterialTheme.shapes.small,
+                color = Color.Transparent,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onSelect(type) }
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    IconBadge(
+                        icon = type.icon(),
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = stringResource(type.labelRes()),
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Normal,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+    }
+}
 
 
 /** Bottom save bar for the single-page task editor. */
@@ -361,7 +402,6 @@ fun AutomationBuilderScreen(
     var appPickerTarget by remember { mutableStateOf<String?>(null) }
     var bluetoothPickerTarget by remember { mutableStateOf<Int?>(null) }
     var calendarPickerTarget by remember { mutableStateOf<Int?>(null) }
-    var showTriggerPicker by remember { mutableStateOf(false) }
     var showActionPicker by remember { mutableStateOf(false) }
     val actionConfigs = rememberSaveable(saver = ActionConfigMapSaver) { mutableStateMapOf<ActionType, Map<String, String>>() }
     val selectedActions = rememberSaveable(saver = ActionOptionListSaver) { mutableStateListOf<ActionOption>() }
@@ -826,59 +866,53 @@ fun AutomationBuilderScreen(
                 .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // ── Name + icon (one card) ────────────────────────────────
+            // ── Name + icon (small card: icon beside the name box) ────
             NexaFlowCard {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(text = stringResource(R.string.name), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    IconBadge(
+                        icon = iconVector(NexaFlowIcons.all[selectedIconIndex].first),
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clickable { navController.navigate("icon_picker") }
+                    )
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.weight(1f),
                         placeholder = { Text(text = stringResource(R.string.name_hint)) },
                         singleLine = true
                     )
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { navController.navigate("icon_picker") },
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        IconBadge(
-                            icon = iconVector(NexaFlowIcons.all[selectedIconIndex].first),
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(text = stringResource(R.string.icon), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                            Text(
-                                text = stringResource(R.string.tap_to_choose_icon),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.outline
-                        )
-                    }
                 }
             }
 
-            // ── WHEN (triggers) ──────────────────────────────────────
-            SectionHeader(
-                text = stringResource(R.string.section_when),
-                trailing = {
-                    IconButton(onClick = { showTriggerPicker = true }) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = stringResource(R.string.add_another_trigger)
+            // ── Task card: triggers + constraints + actions + exit ──
+            // One merged card, always expanded — it never collapses.
+            NexaFlowCard {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = stringResource(R.string.task_card_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    // ── WHEN (triggers) ──────────────────────────────
+                    SectionHeader(text = stringResource(R.string.section_when))
+                    // Single-select list of triggers, visible only while no
+                    // trigger is chosen. Picking one folds the list away and
+                    // leaves just its expanded editor (which keeps its own
+                    // type chips for later changes).
+                    if (triggers.isEmpty()) {
+                        TriggerSelectList(
+                            onSelect = { type ->
+                                triggers.clear()
+                                triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
+                            }
                         )
                     }
-                }
-            )
-            triggers.forEachIndexed { index, draft ->
+                    triggers.forEachIndexed { index, draft ->
                 TriggerEditorCard(
                     draft = draft,
                     index = index,
@@ -897,9 +931,10 @@ fun AutomationBuilderScreen(
                 )
             }
 
-            // ── IF (constraints) ────────────────────────────────────
-            SectionHeader(
-                text = stringResource(R.string.section_constraints),
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    // ── IF (constraints) ────────────────────────────
+                    SectionHeader(
+                        text = stringResource(R.string.section_constraints),
                 trailing = {
                     IconButton(onClick = { showConstraintPicker = true }) {
                         Icon(
@@ -926,9 +961,10 @@ fun AutomationBuilderScreen(
                 }
             }
 
-            // ── THEN (actions) ───────────────────────────────────────
-            SectionHeader(
-                text = stringResource(R.string.section_actions),
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    // ── THEN (actions) ──────────────────────────────
+                    SectionHeader(
+                        text = stringResource(R.string.section_actions),
                 trailing = {
                     IconButton(onClick = { showActionPicker = true }) {
                         Icon(
@@ -969,29 +1005,19 @@ fun AutomationBuilderScreen(
                 )
             }
 
-            // ── When the task ends (one unified place, part of the task) ──
-            // Single home for ALL end behavior: per-action end options (what
-            // each action does when the condition stops being true) plus any
-            // extra exit actions, the run cooldown and the SMS auto-reply.
-            SectionHeader(
-                text = stringResource(R.string.section_exit_behavior),
-                trailing = {
-                    IconButton(onClick = { showExitPicker = true }) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = stringResource(R.string.add_exit_action)
-                        )
-                    }
-                }
-            )
-            NexaFlowCard {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = stringResource(R.string.exit_behavior_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    // ── When the task ends ───────────────────────────
+                    SectionHeader(
+                        text = stringResource(R.string.section_exit_behavior),
+                        trailing = {
+                            IconButton(onClick = { showExitPicker = true }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Add,
+                                    contentDescription = stringResource(R.string.add_exit_action)
+                                )
+                            }
+                        }
+                    )
                     // Per-action end options: every selected action decides what
                     // happens to it when the task's condition stops being true.
                     val endCapableActions = selectedActions.filter {
@@ -1100,16 +1126,6 @@ fun AutomationBuilderScreen(
                 }
             }
         }
-    }
-
-    if (showTriggerPicker) {
-        TriggerTypePickerDialog(
-            onPick = { type ->
-                triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
-                showTriggerPicker = false
-            },
-            onDismiss = { showTriggerPicker = false }
-        )
     }
 
     if (showConstraintPicker) {

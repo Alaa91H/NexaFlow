@@ -172,6 +172,8 @@
     <string name="trigger_sensor_sub">Activar con eventos de sensores del dispositivo</string>
     <string name="trigger_webhook">Webhook</string>
     <string name="trigger_webhook_sub">Activar mediante una solicitud HTTP local</string>
+    <string name="trigger_rom_setting">Ajuste de ROM</string>
+    <string name="trigger_rom_setting_sub">Se ejecuta cuando un ajuste real de Evolution X coincide</string>
     <string name="trigger_type_network_mode">Red celular</string>
     <string name="trigger_type_network_mode_sub">Se dispara cuando la red celular coincide con la generación seleccionada (detección 5G real)</string>
     <string name="add_shortcut">Añadir acceso directo</string>

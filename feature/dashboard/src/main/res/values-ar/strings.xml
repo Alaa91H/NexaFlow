@@ -37,5 +37,6 @@
     <string name="trigger_calendar">حدث التقويم</string>
     <string name="trigger_sensor">مستشعر</string>
     <string name="trigger_webhook">ويب هوك</string>
+    <string name="trigger_rom_setting">إعداد ROM</string>
     <string name="trigger_type_network_mode">الشبكة الخلوية</string>
 </resources>

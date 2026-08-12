@@ -39,7 +39,7 @@ private fun StatusPillPreview() {
         StatusPill(
             text = "Active",
             background = Color(0xFFE4F4E9),
-            contentColor = Color(0xFF2FA84F)
+            contentColor = Color(0xFF006D3C)
         )
         StatusPill(
             text = "Off",

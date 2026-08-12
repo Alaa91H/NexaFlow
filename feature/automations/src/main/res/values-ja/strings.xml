@@ -172,6 +172,8 @@
     <string name="trigger_sensor_sub">端末のセンサーイベントで実行</string>
     <string name="trigger_webhook">ウェブフック</string>
     <string name="trigger_webhook_sub">ローカルのHTTPリクエストで実行</string>
+    <string name="trigger_rom_setting">ROM設定</string>
+    <string name="trigger_rom_setting_sub">実際のEvolution X設定が一致したときに実行</string>
     <string name="trigger_type_network_mode">携帯ネットワーク</string>
     <string name="trigger_type_network_mode_sub">デバイスの携帯ネットワークが選択した世代と一致したときに発火（実際の5G検出）</string>
     <string name="add_shortcut">ショートカットを追加</string>

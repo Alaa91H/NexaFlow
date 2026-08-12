@@ -1,4 +1,5 @@
 import java.util.Properties
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 
 plugins {
     alias(libs.plugins.android.application)
@@ -36,8 +37,8 @@ android {
         applicationId = "com.nexaflow.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 13
-        versionName = "3.10.0-alpha"
+        versionCode = 14
+        versionName = "3.11.0-alpha"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -53,9 +54,14 @@ android {
             "\"${providers.gradleProperty("NEXAFLOW_SENTRY_DSN").orElse("").get()}\""
         )
         // Google Maps API key for the embedded map picker. Optional: an empty
-        // key renders a setup hint instead of a map. Never commit a real key.
-        manifestPlaceholders["MAPS_API_KEY"] =
-            providers.gradleProperty("NEXAFLOW_MAPS_API_KEY").orElse("").get()
+        // key renders a setup hint instead of a map. Resolved the same way as
+        // the signing secrets: CI env var, then keystore.properties
+        // (gitignored), then empty. Never commit a real key.
+        val mapsApiKey = providers.environmentVariable("NEXAFLOW_MAPS_API_KEY")
+            .orNull?.takeIf { it.isNotBlank() }
+            ?: keystoreProps.getProperty("mapsApiKey")?.takeIf { it.isNotBlank() }
+            .orEmpty()
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     buildFeatures {
         buildConfig = true
     }
@@ -65,24 +71,36 @@ android {
             // classpath to inspect providers and run Android framework code.
             isIncludeAndroidResources = true
             all {
-                // The app targets SDK 37; Robolectric 4.17 supports it (4.16
-                // threw "targetSdkVersion=37 > maxSdkVersion=36"), but 4.17's
-                // SDK 36/37 sandboxes need Java 21 while this build runs Java
-                // 17 — the tests pin @Config(sdk=[35]) instead. On JDK 17+
-                // Robolectric also needs --add-opens flags to reach OpenJDK
-                // internals (see robolectric.org/getting-started).
+                // The app targets SDK 37; Robolectric 4.17 supports it, but its
+                // SDK 36/37 sandboxes need a Java 21 JVM. Run the unit-test JVM
+                // on a Java 21 Gradle toolchain (auto-provisioned by Gradle) so
+                // tests exercise the real targetSdk (37) instead of pinning
+                // @Config(sdk=[35]). On JDK 16+ Robolectric also needs
+                // --add-opens flags to reach OpenJDK internals.
+                it.javaLauncher.set(javaToolchains.launcherFor {
+                    languageVersion.set(JavaLanguageVersion.of(21))
+                })
                 it.jvmArgs(
                     "--add-opens=java.base/java.lang=ALL-UNNAMED",
-                    "--add-opens=java.base/java.util=ALL-UNNAMED",
+                    "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+                    "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
                     "--add-opens=java.base/java.io=ALL-UNNAMED",
                     "--add-opens=java.base/java.net=ALL-UNNAMED",
+                    "--add-opens=java.base/java.nio=ALL-UNNAMED",
+                    "--add-opens=java.base/java.util=ALL-UNNAMED",
+                    "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
+                    "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
                     "--add-opens=java.base/java.security=ALL-UNNAMED",
                     "--add-opens=java.base/java.text=ALL-UNNAMED",
                     "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
+                    "--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED",
+                    "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+                    "--add-opens=java.base/sun.nio.cs=ALL-UNNAMED",
+                    "--add-opens=java.base/sun.security.action=ALL-UNNAMED",
+                    "--add-opens=java.base/sun.util.calendar=ALL-UNNAMED",
                     "--add-opens=java.desktop/java.awt.font=ALL-UNNAMED",
                     "--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-                )
-            }
+                )            }
         }
     }
 }

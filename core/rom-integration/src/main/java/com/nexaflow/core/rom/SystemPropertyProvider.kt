@@ -13,7 +13,11 @@ internal object SystemPropertyProvider {
         parseBuildProp()
     }
 
+    /** Test seam: injects fake property values so RomDetector is testable on the JVM. */
+    internal var injectedProperties: Map<String, String>? = null
+
     fun get(name: String): String {
+        injectedProperties?.let { return it[name] ?: "" }
         try {
             val clazz = systemPropertiesClass
             if (clazz != null) {

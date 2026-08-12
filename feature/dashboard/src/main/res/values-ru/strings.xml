@@ -37,5 +37,6 @@
     <string name="trigger_calendar">Событие календаря</string>
     <string name="trigger_sensor">Датчик</string>
     <string name="trigger_webhook">Вебхук</string>
+    <string name="trigger_rom_setting">Настройка ROM</string>
     <string name="trigger_type_network_mode">Сотовая сеть</string>
 </resources>

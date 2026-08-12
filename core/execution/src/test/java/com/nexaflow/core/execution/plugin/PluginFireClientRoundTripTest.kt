@@ -17,7 +17,6 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
-import org.robolectric.annotation.Config
 
 /**
  * Full protocol round-trip for [PluginFireClient]: the fake plugin receiver
@@ -30,7 +29,6 @@ import org.robolectric.annotation.Config
  * idled — so the test idles it repeatedly until the client's fire completes.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
 class PluginFireClientRoundTripTest {
 
     private val context get() = RuntimeEnvironment.getApplication()

@@ -37,7 +37,12 @@ import org.robolectric.annotation.GraphicsMode
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-// Pinned to the highest SDK Robolectric 4.16.1 supports (project pattern).
+// Compose-UI tests stay pinned to SDK 35: Espresso 3.7.0's
+// InputManagerEventInjectionStrategy reflectively calls the static
+// InputManager.getInstance(), which was removed from Robolectric's
+// android-all for SDK 37 (AOSP moved to context-based lookup). Every
+// non-Compose test in the repo runs on the real SDK 37 via the Java 21
+// toolchain; this test only asserts UI semantics, so 35 is sufficient.
 @Config(sdk = [35])
 class IconPickerResultTest {
 

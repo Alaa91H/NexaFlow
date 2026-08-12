@@ -32,8 +32,12 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
         notificationManager.createNotificationChannel(channel)
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(com.nexaflow.core.rom.R.drawable.ic_stat_nexaflow)
+            // M3: brand-tinted small icon + action icons; reminder semantics.
+            .setColor(context.getColor(com.nexaflow.core.rom.R.color.notification_brand_color))
             .setContentTitle(title)
             .setContentText(text)
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
         // Run the enclosing task straight from the reminder when the scheduler

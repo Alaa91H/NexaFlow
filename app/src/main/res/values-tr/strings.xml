@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Zamanlanmış Görevler</string>
-    <string name="accessibility_service_description">Yapılandırılan uygulamaların, uygulama tetikleyicili otomasyonları çalıştırmak için açıldığını algılar. Yalnızca en üstteki uygulama izlenir; ekrandan hiçbir şey okunmaz.</string>
+    <string name="backup_saved">Yedek kaydedildi</string>
+    <string name="backup_save_failed">Yedek dosyası kaydedilemedi</string>
+    <string name="save_locally_label">Yerel olarak kaydet</string>    <string name="accessibility_service_description">Yapılandırılan uygulamaların, uygulama tetikleyicili otomasyonları çalıştırmak için açıldığını algılar. Yalnızca en üstteki uygulama izlenir; ekrandan hiçbir şey okunmaz.</string>
     <string name="widget_status_title">Etkin otomasyonlar</string>
     <string name="widget_status_count">0 / 0</string>
     <string name="widget_status_last">Son çalıştırma: —</string>

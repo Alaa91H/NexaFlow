@@ -1,36 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Launcher foreground: the Google Tasks mark — a bold checkmark in a deep
-    indigo-to-violet gradient — paired with a small clock in the corner, so
+    Launcher foreground: the Google Tasks mark — a bold two-tone checkmark
+    (indigo → violet, drawn as two solid segments so the gradient feel
+    survives every launcher) — paired with a small clock in the corner, so
     the glyph reads "المهام المجدولة / Scheduled Tasks" (tasks + time).
     Language-neutral: the same mark works in LTR and RTL launchers.
+    No aapt:attr gradients — only solid colors, 100% launcher-safe.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Bold gradient checkmark (the Tasks symbol). -->
+    <!-- Bold checkmark, up-stroke (indigo). -->
     <path
-        android:pathData="M35,56L47,68L73,40"
+        android:pathData="M35,56L47,68"
         android:fillColor="#00000000"
+        android:strokeColor="#FF3D5AFE"
         android:strokeWidth="11"
         android:strokeLineCap="round"
-        android:strokeLineJoin="round">
-        <aapt:attr name="android:strokeColor">
-            <gradient
-                android:type="linear"
-                android:startX="35"
-                android:startY="68"
-                android:endX="73"
-                android:endY="40">
-                <item android:color="#FF3D5AFE" />
-                <item android:color="#FF8E4DFF" android:offset="0.65" />
-            </gradient>
-        </aapt:attr>
-    </path>
+        android:strokeLineJoin="round" />
+
+    <!-- Bold checkmark, down-stroke (violet) — overlaps for a smooth join. -->
+    <path
+        android:pathData="M47,68L73,40"
+        android:fillColor="#00000000"
+        android:strokeColor="#FF8E4DFF"
+        android:strokeWidth="11"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
 
     <!-- Small clock: "scheduled" hint in the corner. -->
     <path

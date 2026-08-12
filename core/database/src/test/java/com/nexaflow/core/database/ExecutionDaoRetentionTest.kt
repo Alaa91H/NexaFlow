@@ -11,14 +11,12 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
 /**
  * Verifies the execution-history retention policy: time-based pruning, the
  * count ceiling, and the atomic insert+prune path used by the repository.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
 class ExecutionDaoRetentionTest {
 
     private lateinit var db: AppDatabase

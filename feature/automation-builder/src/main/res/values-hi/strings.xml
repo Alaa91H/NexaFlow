@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="builder_title">नया कार्य</string>
+    <string name="task_card_title">कार्य</string>
     <string name="save">सहेजें</string>
     <string name="name">नाम</string>
     <string name="name_hint">जैसे: सुबह का कार्य</string>
@@ -9,7 +10,6 @@
     <string name="section_when">कब (ट्रिगर)</string>
     <string name="trigger_n">ट्रिगर %1$d</string>
     <string name="remove_trigger">ट्रिगर हटाएँ</string>
-    <string name="add_another_trigger">एक और ट्रिगर जोड़ें</string>
     <string name="trigger_type_time">समय</string>
     <string name="trigger_type_battery">बैटरी</string>
     <string name="trigger_type_app">ऐप</string>
@@ -189,7 +189,7 @@
     <string name="action_open_app_settings">ऐप सेटिंग्स</string>
     <string name="action_open_app_settings_sub">ऐप की सेटिंग्स पेज खोलें</string>
     <string name="timeout_label">स्क्रीन टाइमआउट: %1$d से</string>
-    <string name="ringer_normal">सामान्य</string>
+    <string name="ringer_normal">रिंगिंग</string>
     <string name="ringer_vibrate">वाइब्रेट</string>
     <string name="ringer_silent">साइलेंट</string>
     <string name="hour">घंटा</string>
@@ -458,6 +458,21 @@
     <string name="webhook_token">टोकन (वैकल्पिक)</string>
     <string name="webhook_token_hint">गुप्त हेडर मान</string>
     <string name="webhook_url_hint">कार्य ट्रिगर करने के लिए इस डिवाइस से http://127.0.0.1:8765/path पर HTTP अनुरोध भेजें।</string>
+    <string name="rom_setting_current_value">वर्तमान: %1$s</string>
+    <string name="rom_setting_equals">बराबर</string>
+    <string name="rom_setting_hint">जब वास्तविक ROM सेटिंग मेल खाती है तो चलता है। बिना अनुमति डिवाइस से पढ़ा जाता है।</string>
+    <string name="rom_setting_key">सेटिंग कुंजी</string>
+    <string name="rom_setting_namespace">नेमस्पेस</string>
+    <string name="rom_setting_namespace_global">ग्लोबल</string>
+    <string name="rom_setting_namespace_secure">सुरक्षित</string>
+    <string name="rom_setting_namespace_system">सिस्टम</string>
+    <string name="rom_setting_not_equals">बराबर नहीं</string>
+    <string name="rom_setting_operator">शर्त</string>
+    <string name="rom_setting_pick_empty">कोई Evolution X / LineageOS कुंजी नहीं मिली। इस सुविधा के लिए root, Shizuku या सिस्टम इंस्टॉल चाहिए।</string>
+    <string name="rom_setting_pick_from_rom">इस ROM से कुंजी चुनें</string>
+    <string name="rom_setting_pick_title">इस डिवाइस पर मिली ROM सेटिंग्स</string>
+    <string name="rom_setting_value">लक्ष्य मान</string>
+    <string name="trigger_type_rom_setting">ROM सेटिंग</string>
     <string name="use_current_location">मेरा वर्तमान स्थान उपयोग करें</string>
     <string name="location_coordinates">स्थान: %1$s, %2$s</string>
     <string name="location_not_set">अभी तक कोई स्थान निर्धारित नहीं</string>

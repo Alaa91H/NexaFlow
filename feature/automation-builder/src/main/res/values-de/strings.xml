@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="builder_title">Neue Aufgabe</string>
+    <string name="task_card_title">Aufgabe</string>
     <string name="save">Speichern</string>
     <string name="name">Name</string>
     <string name="name_hint">z. B. Morgenaufgabe</string>
@@ -9,7 +10,6 @@
     <string name="section_when">WANN (TRIGGER)</string>
     <string name="trigger_n">Trigger %1$d</string>
     <string name="remove_trigger">Trigger entfernen</string>
-    <string name="add_another_trigger">Weiteren Trigger hinzufügen</string>
     <string name="trigger_type_time">Zeit</string>
     <string name="trigger_type_battery">Akku</string>
     <string name="trigger_type_app">App</string>
@@ -189,7 +189,7 @@
     <string name="action_open_app_settings">App-Einstellungen</string>
     <string name="action_open_app_settings_sub">Einstellungsseite einer App öffnen</string>
     <string name="timeout_label">Bildschirm-Timeout: %1$d s</string>
-    <string name="ringer_normal">Normal</string>
+    <string name="ringer_normal">Klingeln</string>
     <string name="ringer_vibrate">Vibrieren</string>
     <string name="ringer_silent">Lautlos</string>
     <string name="hour">Stunde</string>
@@ -458,6 +458,21 @@
     <string name="webhook_token">Token (optional)</string>
     <string name="webhook_token_hint">Geheimer Header-Wert</string>
     <string name="webhook_url_hint">Sende eine HTTP-Anfrage an http://127.0.0.1:8765/path von diesem Gerät, um die Aufgabe auszulösen.</string>
+    <string name="rom_setting_current_value">Aktuell: %1$s</string>
+    <string name="rom_setting_equals">Gleich</string>
+    <string name="rom_setting_hint">Läuft, wenn die echte ROM-Einstellung übereinstimmt. Vom Gerät gelesen, keine Berechtigung nötig.</string>
+    <string name="rom_setting_key">Einstellungsschlüssel</string>
+    <string name="rom_setting_namespace">Namensraum</string>
+    <string name="rom_setting_namespace_global">Global</string>
+    <string name="rom_setting_namespace_secure">Secure</string>
+    <string name="rom_setting_namespace_system">System</string>
+    <string name="rom_setting_not_equals">Ungleich</string>
+    <string name="rom_setting_operator">Bedingung</string>
+    <string name="rom_setting_pick_empty">Keine Evolution X / LineageOS-Schlüssel gefunden. Diese Funktion benötigt root, Shizuku oder eine Systeminstallation.</string>
+    <string name="rom_setting_pick_from_rom">Schlüssel aus diesem ROM wählen</string>
+    <string name="rom_setting_pick_title">Auf diesem Gerät gefundene ROM-Einstellungen</string>
+    <string name="rom_setting_value">Zielwert</string>
+    <string name="trigger_type_rom_setting">ROM-Einstellung</string>
     <string name="use_current_location">Meinen aktuellen Standort verwenden</string>
     <string name="location_coordinates">Standort: %1$s, %2$s</string>
     <string name="location_not_set">Noch kein Standort festgelegt</string>

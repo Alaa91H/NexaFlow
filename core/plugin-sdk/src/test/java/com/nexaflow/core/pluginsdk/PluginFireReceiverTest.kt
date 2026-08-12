@@ -15,7 +15,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
-import org.robolectric.annotation.Config
 
 /**
  * Robolectric tests for [PluginFireReceiver]'s ordered-broadcast protocol
@@ -23,7 +22,6 @@ import org.robolectric.annotation.Config
  * code and — on failure — the Tasker-compatible %err / %errmsg extras.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
 class PluginFireReceiverTest {
 
     private lateinit var context: Context

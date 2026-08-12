@@ -23,4 +23,25 @@
     <string name="sms_consent_arm">Начать прослушивание</string>
     <string name="sms_consent_listening">Слушает</string>
     <string name="sms_consent_unavailable">Для мгновенной доставки SMS требуется Google Play services</string>
+    <string name="section_evolution">Evolution X</string>
+    <string name="evolution_rom_version">Версия ROM: %1$s</string>
+    <string name="evolution_build_type">Тип сборки: %1$s</string>
+    <string name="evolution_system_app_hint">Установите как системное приложение, чтобы разблокировать все привилегированные возможности без root для каждой команды.</string>
+    <string name="evolution_install_system_app">Установить как системное приложение</string>
+    <string name="evolution_install_system_app_confirm">Создать модуль Magisk, размещающий NexaFlow в /system/priv-app с полным привилегированным списком? Перезагрузка активирует его. Модуль можно удалить из приложения Magisk.</string>
+    <string name="evolution_install_done">Модуль установлен. Перезагрузите устройство, чтобы активировать NexaFlow как системное приложение.</string>
+    <string name="evolution_install_failed">Ошибка установки</string>
+    <string name="evolution_custom_settings">Пользовательские настройки ROM</string>
+    <string name="evolution_custom_settings_sub">Просмотр ключей Evolver Evolution X / LineageOS на этом устройстве</string>
+    <string name="evolution_no_custom_settings">Пользовательские настройки не найдены — запустите с root или Shizuku, чтобы вывести их</string>
+    <string name="evolution_setting_value">Значение: %1$s</string>
+    <string name="evolution_key_required">Ключ</string>
+    <string name="evolution_setting_write">Записать</string>
+    <string name="evolution_edit_setting">Изменить настройку</string>
+    <string name="cancel">Отмена</string>
+    <string name="save">Сохранить</string>
+    <string name="ok">ОК</string>
+    <string name="evolution_already_system_app">Уже системное приложение</string>
+    <string name="evolution_not_elevated">Требуется root или Shizuku</string>
+    <string name="evolution_cancel">Отмена</string>
 </resources>

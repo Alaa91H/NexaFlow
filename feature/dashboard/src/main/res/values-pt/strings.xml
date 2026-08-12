@@ -37,5 +37,6 @@
     <string name="trigger_calendar">Evento do calendário</string>
     <string name="trigger_sensor">Sensor</string>
     <string name="trigger_webhook">Webhook</string>
+    <string name="trigger_rom_setting">Configuração da ROM</string>
     <string name="trigger_type_network_mode">Rede celular</string>
 </resources>

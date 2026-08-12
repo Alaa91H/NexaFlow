@@ -49,13 +49,15 @@ import com.nexaflow.core.ui.SectionHeader
 
 private data class AccentOption(val key: String, val color: Color, val labelRes: Int)
 
+// Seed colors match the accentSeeds in app:ui:theme — Google Blue #0B57D0
+// is the default, so the swatch previews exactly what the scheme produces.
 private val accentOptions = listOf(
-    AccentOption("blue", Color(0xFF1B62B7), R.string.accent_blue),
-    AccentOption("green", Color(0xFF2FA84F), R.string.accent_green),
-    AccentOption("red", Color(0xFFE5533D), R.string.accent_red),
-    AccentOption("purple", Color(0xFF7A5BD1), R.string.accent_purple),
-    AccentOption("amber", Color(0xFFE8A33D), R.string.accent_amber),
-    AccentOption("teal", Color(0xFF13A5A8), R.string.accent_teal)
+    AccentOption("blue", Color(0xFF0B57D0), R.string.accent_blue),
+    AccentOption("green", Color(0xFF006D3C), R.string.accent_green),
+    AccentOption("red", Color(0xFFBA1A1A), R.string.accent_red),
+    AccentOption("purple", Color(0xFF6750A4), R.string.accent_purple),
+    AccentOption("amber", Color(0xFF8F4C00), R.string.accent_amber),
+    AccentOption("teal", Color(0xFF006A6C), R.string.accent_teal)
 )
 
 private data class ModeOption(
@@ -232,7 +234,7 @@ fun ThemeScreen(navController: NavController) {
                         ) {
                             IconBadge(
                                 icon = Icons.Filled.Palette,
-                                containerColor = accentOptions.firstOrNull { it.key == theme.accent }?.color ?: Color(0xFF1B62B7)
+                                containerColor = accentOptions.firstOrNull { it.key == theme.accent }?.color ?: Color(0xFF0B57D0)
                             )
                             Column {
                                 Text(text = stringResource(R.string.theme_name), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
@@ -251,7 +253,7 @@ fun ThemeScreen(navController: NavController) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(
-                                    color = accentOptions.firstOrNull { it.key == theme.accent }?.color ?: Color(0xFF1B62B7),
+                                    color = accentOptions.firstOrNull { it.key == theme.accent }?.color ?: Color(0xFF0B57D0),
                                     shape = MaterialTheme.shapes.medium
                                 )
                                 .padding(12.dp)

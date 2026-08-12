@@ -23,4 +23,25 @@
     <string name="sms_consent_arm">Começar a escutar agora</string>
     <string name="sms_consent_listening">Ouvindo</string>
     <string name="sms_consent_unavailable">Google Play services é necessário para entrega instantânea de SMS</string>
+    <string name="section_evolution">Evolution X</string>
+    <string name="evolution_rom_version">Versão do ROM: %1$s</string>
+    <string name="evolution_build_type">Tipo de compilação: %1$s</string>
+    <string name="evolution_system_app_hint">Instale como aplicativo de sistema para desbloquear todas as capacidades privilegiadas sem root por comando.</string>
+    <string name="evolution_install_system_app">Instalar como aplicativo de sistema</string>
+    <string name="evolution_install_system_app_confirm">Criar um módulo Magisk que coloca o NexaFlow em /system/priv-app com a lista de permissões privilegiadas completa? A reinicialização o ativa. O módulo permanece removível no app do Magisk.</string>
+    <string name="evolution_install_done">Módulo instalado. Reinicie para ativar o NexaFlow como aplicativo de sistema.</string>
+    <string name="evolution_install_failed">Falha na instalação</string>
+    <string name="evolution_custom_settings">Configurações personalizadas do ROM</string>
+    <string name="evolution_custom_settings_sub">Navegar pelas chaves Evolver do Evolution X / LineageOS neste dispositivo</string>
+    <string name="evolution_no_custom_settings">Nenhuma configuração personalizada encontrada — execute com root ou Shizuku para listá-las</string>
+    <string name="evolution_setting_value">Valor: %1$s</string>
+    <string name="evolution_key_required">Chave</string>
+    <string name="evolution_setting_write">Escrever</string>
+    <string name="evolution_edit_setting">Editar configuração</string>
+    <string name="cancel">Cancelar</string>
+    <string name="save">Salvar</string>
+    <string name="ok">OK</string>
+    <string name="evolution_already_system_app">Já é um aplicativo de sistema</string>
+    <string name="evolution_not_elevated">Requer root ou Shizuku</string>
+    <string name="evolution_cancel">Cancelar</string>
 </resources>

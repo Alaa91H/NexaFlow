@@ -65,14 +65,14 @@ private data class TileModel(
 )
 
 private val quickTiles = listOf(
-    TileModel(1, R.string.tile_1_label, R.string.tile_1_desc, Icons.Filled.Bolt, Color(0xFF1B62B7), TaskTile1Service::class.java),
-    TileModel(2, R.string.tile_2_label, R.string.tile_2_desc, Icons.Filled.PlayArrow, Color(0xFF2FA84F), TaskTile2Service::class.java),
+    TileModel(1, R.string.tile_1_label, R.string.tile_1_desc, Icons.Filled.Bolt, Color(0xFF0B57D0), TaskTile1Service::class.java),
+    TileModel(2, R.string.tile_2_label, R.string.tile_2_desc, Icons.Filled.PlayArrow, Color(0xFF006D3C), TaskTile2Service::class.java),
     TileModel(3, R.string.tile_3_label, R.string.tile_3_desc, Icons.Filled.Pause, Color(0xFF9C6ADE), TaskTile3Service::class.java),
     TileModel(4, R.string.tile_4_label, R.string.tile_4_desc, Icons.Filled.CheckCircle, Color(0xFFE8833A), TaskTile4Service::class.java),
-    TileModel(5, R.string.tile_5_label, R.string.tile_5_desc, Icons.Filled.Star, Color(0xFFE8A33D), TaskTile5Service::class.java),
-    TileModel(6, R.string.tile_6_label, R.string.tile_6_desc, Icons.Filled.Home, Color(0xFF13A5A8), TaskTile6Service::class.java),
-    TileModel(7, R.string.tile_7_label, R.string.tile_7_desc, Icons.Filled.BatteryChargingFull, Color(0xFF2FA84F), TaskTile7Service::class.java),
-    TileModel(8, R.string.tile_8_label, R.string.tile_8_desc, Icons.Filled.MusicNote, Color(0xFF7A5BD1), TaskTile8Service::class.java)
+    TileModel(5, R.string.tile_5_label, R.string.tile_5_desc, Icons.Filled.Star, Color(0xFF8F4C00), TaskTile5Service::class.java),
+    TileModel(6, R.string.tile_6_label, R.string.tile_6_desc, Icons.Filled.Home, Color(0xFF006A6C), TaskTile6Service::class.java),
+    TileModel(7, R.string.tile_7_label, R.string.tile_7_desc, Icons.Filled.BatteryChargingFull, Color(0xFF006D3C), TaskTile7Service::class.java),
+    TileModel(8, R.string.tile_8_label, R.string.tile_8_desc, Icons.Filled.MusicNote, Color(0xFF6750A4), TaskTile8Service::class.java)
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

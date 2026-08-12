@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Scheduled Tasks</string>
+    <string name="backup_saved">Backup saved</string>
+    <string name="backup_save_failed">Could not save the backup file</string>
+    <string name="save_locally_label">Save locally</string>
     <string name="accessibility_service_description">Detects when configured apps are opened to run automations with an App trigger. Only the top-most app is observed; nothing is read from the screen.</string>
 
     <!-- Widgets -->

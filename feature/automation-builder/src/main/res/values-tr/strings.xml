@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="builder_title">Yeni görev</string>
+    <string name="task_card_title">Görev</string>
     <string name="save">Kaydet</string>
     <string name="name">Ad</string>
     <string name="name_hint">örn. Sabah Görevi</string>
@@ -9,7 +10,6 @@
     <string name="section_when">NE ZAMAN (TETİKLEYİCİLER)</string>
     <string name="trigger_n">Tetikleyici %1$d</string>
     <string name="remove_trigger">Tetikleyiciyi kaldır</string>
-    <string name="add_another_trigger">Başka bir tetikleyici ekle</string>
     <string name="trigger_type_time">Zaman</string>
     <string name="trigger_type_battery">Pil</string>
     <string name="trigger_type_app">Uygulama</string>
@@ -189,7 +189,7 @@
     <string name="action_open_app_settings">Uygulama ayarları</string>
     <string name="action_open_app_settings_sub">Bir uygulamanın ayarlar sayfasını aç</string>
     <string name="timeout_label">Ekran zaman aşımı: %1$d sn</string>
-    <string name="ringer_normal">Normal</string>
+    <string name="ringer_normal">Zil sesi</string>
     <string name="ringer_vibrate">Titreşim</string>
     <string name="ringer_silent">Sessiz</string>
     <string name="hour">Saat</string>
@@ -458,6 +458,21 @@
     <string name="webhook_token">Token (isteğe bağlı)</string>
     <string name="webhook_token_hint">Gizli başlık değeri</string>
     <string name="webhook_url_hint">Görevi tetiklemek için bu cihazdan http://127.0.0.1:8765/path adresine HTTP isteği gönderin.</string>
+    <string name="rom_setting_current_value">Geçerli: %1$s</string>
+    <string name="rom_setting_equals">Eşittir</string>
+    <string name="rom_setting_hint">Gerçek ROM ayarı eşleştiğinde çalışır. İzin gerekmeden cihazdan okunur.</string>
+    <string name="rom_setting_key">Ayar anahtarı</string>
+    <string name="rom_setting_namespace">Ad alanı</string>
+    <string name="rom_setting_namespace_global">Genel</string>
+    <string name="rom_setting_namespace_secure">Güvenli</string>
+    <string name="rom_setting_namespace_system">Sistem</string>
+    <string name="rom_setting_not_equals">Eşit değil</string>
+    <string name="rom_setting_operator">Koşul</string>
+    <string name="rom_setting_pick_empty">Evolution X / LineageOS anahtarı bulunamadı. Bu özellik root, Shizuku veya sistem kurulumu gerektirir.</string>
+    <string name="rom_setting_pick_from_rom">"Bu ROM'dan bir anahtar seç"</string>
+    <string name="rom_setting_pick_title">Bu cihazda bulunan ROM ayarları</string>
+    <string name="rom_setting_value">Hedef değer</string>
+    <string name="trigger_type_rom_setting">ROM ayarı</string>
     <string name="use_current_location">Mevcut konumumu kullan</string>
     <string name="location_coordinates">Konum: %1$s, %2$s</string>
     <string name="location_not_set">Henüz konum ayarlanmadı</string>

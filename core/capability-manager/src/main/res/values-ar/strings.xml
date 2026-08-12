@@ -23,4 +23,25 @@
     <string name="sms_consent_arm">ابدأ الاستماع الآن</string>
     <string name="sms_consent_listening">يستمع الآن</string>
     <string name="sms_consent_unavailable">خدمات Google Play مطلوبة للتسليم الفوري للرسائل</string>
+    <string name="section_evolution">Evolution X</string>
+    <string name="evolution_rom_version">إصدار الروم: %1$s</string>
+    <string name="evolution_build_type">نوع البناء: %1$s</string>
+    <string name="evolution_system_app_hint">ثبّت التطبيق كتطبيق نظام لفتح كل القدرات المميزة دون root لكل أمر.</string>
+    <string name="evolution_install_system_app">تثبيت كتطبيق نظام</string>
+    <string name="evolution_install_system_app_confirm">إنشاء وحدة Magisk تضع NexaFlow في /system/priv-app مع القائمة المميزة الكاملة؟ إعادة التشغيل تفعّلها. تبقى الوحدة قابلة للإزالة من تطبيق Magisk.</string>
+    <string name="evolution_install_done">تم تثبيت الوحدة. أعد التشغيل لتفعيل NexaFlow كتطبيق نظام.</string>
+    <string name="evolution_install_failed">فشل التثبيت</string>
+    <string name="evolution_custom_settings">إعدادات الروم المخصصة</string>
+    <string name="evolution_custom_settings_sub">تصفّح مفاتيح Evolver الخاصة بـ Evolution X / LineageOS الموجودة على الجهاز</string>
+    <string name="evolution_no_custom_settings">لا توجد إعدادات مخصصة — شغّل مع root أو Shizuku لعرضها</string>
+    <string name="evolution_setting_value">القيمة: %1$s</string>
+    <string name="evolution_key_required">المفتاح</string>
+    <string name="evolution_setting_write">كتابة</string>
+    <string name="evolution_edit_setting">تعديل الإعداد</string>
+    <string name="cancel">إلغاء</string>
+    <string name="save">حفظ</string>
+    <string name="ok">موافق</string>
+    <string name="evolution_already_system_app">أنت تطبيق نظام بالفعل</string>
+    <string name="evolution_not_elevated">مطلوب root أو Shizuku</string>
+    <string name="evolution_cancel">إلغاء</string>
 </resources>

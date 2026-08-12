@@ -352,6 +352,7 @@ private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector
     TriggerType.SENSOR -> Triple(R.string.trigger_sensor, R.string.trigger_sensor_sub, Icons.Filled.Sensors)
     TriggerType.NETWORK_MODE -> Triple(R.string.trigger_type_network_mode, R.string.trigger_type_network_mode_sub, Icons.Filled.SignalCellularAlt)
     TriggerType.WEBHOOK -> Triple(R.string.trigger_webhook, R.string.trigger_webhook_sub, Icons.Filled.Web)
+    TriggerType.ROM_SETTING -> Triple(R.string.trigger_rom_setting, R.string.trigger_rom_setting_sub, Icons.Filled.Bolt)
 }
 
 /** Human-readable trigger detail (e.g. battery direction, time range, repeat mode). */
@@ -468,7 +469,7 @@ private fun AutomationDetailsPreview() {
                 description = "Start the day right",
                 icon = "sunny",
                 iconColor = 0xFFFFFFFF,
-                backgroundColor = 0xFFE8A33D,
+                backgroundColor = 0xFF8F4C00,
                 category = "general",
                 priority = 1,
                 enabled = true,

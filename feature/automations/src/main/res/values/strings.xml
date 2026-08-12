@@ -176,6 +176,8 @@
     <string name="trigger_sensor_sub">Trigger on device sensor events</string>
     <string name="trigger_webhook">Webhook</string>
     <string name="trigger_webhook_sub">Trigger from a local HTTP request</string>
+    <string name="trigger_rom_setting">ROM setting</string>
+    <string name="trigger_rom_setting_sub">Fires when a real Evolution X setting matches</string>
     <string name="trigger_type_network_mode">Cellular network</string>
     <string name="trigger_type_network_mode_sub">Fires when the device\'s cellular network matches the selected generation (real 5G detection)</string>
     <string name="add_shortcut">Add shortcut</string>

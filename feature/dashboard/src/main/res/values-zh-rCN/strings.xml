@@ -37,5 +37,6 @@
     <string name="trigger_calendar">日历事件</string>
     <string name="trigger_sensor">传感器</string>
     <string name="trigger_webhook">网络钩子</string>
+    <string name="trigger_rom_setting">ROM 设置</string>
     <string name="trigger_type_network_mode">蜂窝网络</string>
 </resources>

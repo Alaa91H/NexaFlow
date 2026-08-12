@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="builder_title">新任务</string>
+    <string name="task_card_title">任务</string>
     <string name="save">保存</string>
     <string name="name">名称</string>
     <string name="name_hint">例如：晨间任务</string>
@@ -9,7 +10,6 @@
     <string name="section_when">何时（触发器）</string>
     <string name="trigger_n">触发器 %1$d</string>
     <string name="remove_trigger">移除触发器</string>
-    <string name="add_another_trigger">添加另一个触发器</string>
     <string name="trigger_type_time">时间</string>
     <string name="trigger_type_battery">电池</string>
     <string name="trigger_type_app">应用</string>
@@ -189,7 +189,7 @@
     <string name="action_open_app_settings">应用设置</string>
     <string name="action_open_app_settings_sub">打开应用设置页面</string>
     <string name="timeout_label">屏幕超时：%1$d 秒</string>
-    <string name="ringer_normal">正常</string>
+    <string name="ringer_normal">响铃</string>
     <string name="ringer_vibrate">振动</string>
     <string name="ringer_silent">静音</string>
     <string name="hour">小时</string>
@@ -458,6 +458,21 @@
     <string name="webhook_token">令牌（可选）</string>
     <string name="webhook_token_hint">密钥标头值</string>
     <string name="webhook_url_hint">从本设备向 http://127.0.0.1:8765/path 发送 HTTP 请求即可触发任务。</string>
+    <string name="rom_setting_current_value">当前：%1$s</string>
+    <string name="rom_setting_equals">等于</string>
+    <string name="rom_setting_hint">当真实 ROM 设置匹配时运行。无需权限，从设备读取。</string>
+    <string name="rom_setting_key">设置键</string>
+    <string name="rom_setting_namespace">命名空间</string>
+    <string name="rom_setting_namespace_global">全局</string>
+    <string name="rom_setting_namespace_secure">安全</string>
+    <string name="rom_setting_namespace_system">系统</string>
+    <string name="rom_setting_not_equals">不等于</string>
+    <string name="rom_setting_operator">条件</string>
+    <string name="rom_setting_pick_empty">未找到 Evolution X / LineageOS 键。此功能需要 root、Shizuku 或系统安装。</string>
+    <string name="rom_setting_pick_from_rom">从此 ROM 选择键</string>
+    <string name="rom_setting_pick_title">在此设备上找到的 ROM 设置</string>
+    <string name="rom_setting_value">目标值</string>
+    <string name="trigger_type_rom_setting">ROM 设置</string>
     <string name="use_current_location">使用我的当前位置</string>
     <string name="location_coordinates">位置: %1$s, %2$s</string>
     <string name="location_not_set">尚未设置位置</string>

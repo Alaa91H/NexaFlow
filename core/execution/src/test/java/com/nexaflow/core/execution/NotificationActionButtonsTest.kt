@@ -11,7 +11,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
-import org.robolectric.annotation.Config
 
 /**
  * Verifies the notification action button protocol:
@@ -21,7 +20,6 @@ import org.robolectric.annotation.Config
  *    [NotificationActionReceiver] class with the right automation id extra
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
 class NotificationActionButtonsTest {
 
     private val context: Context = ApplicationProvider.getApplicationContext()

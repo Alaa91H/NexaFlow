@@ -23,4 +23,25 @@
     <string name="sms_consent_arm">अभी सुनना शुरू करें</string>
     <string name="sms_consent_listening">सुन रहा है</string>
     <string name="sms_consent_unavailable">त्वरित SMS डिलीवरी के लिए Google Play services आवश्यक है</string>
+    <string name="section_evolution">Evolution X</string>
+    <string name="evolution_rom_version">ROM संस्करण: %1$s</string>
+    <string name="evolution_build_type">बिल्ड प्रकार: %1$s</string>
+    <string name="evolution_system_app_hint">प्रत्येक कमांड के लिए root के बिना सभी विशेषाधिकार क्षमताओं को अनलॉक करने के लिए सिस्टम ऐप के रूप में इंस्टॉल करें।</string>
+    <string name="evolution_install_system_app">सिस्टम ऐप के रूप में इंस्टॉल करें</string>
+    <string name="evolution_install_system_app_confirm">एक Magisk मॉड्यूल बनाएं जो NexaFlow को पूर्ण विशेषाधिकार व्हाइटलिस्ट के साथ /system/priv-app में रखता है? रिबूट इसे सक्रिय करता है। मॉड्यूल Magisk ऐप से हटाने योग्य रहता है।</string>
+    <string name="evolution_install_done">मॉड्यूल इंस्टॉल हो गया। NexaFlow को सिस्टम ऐप के रूप में सक्रिय करने के लिए रिबूट करें।</string>
+    <string name="evolution_install_failed">इंस्टॉल विफल</string>
+    <string name="evolution_custom_settings">कस्टम ROM सेटिंग्स</string>
+    <string name="evolution_custom_settings_sub">इस डिवाइस पर मौजूद Evolution X / LineageOS Evolver कुंजियाँ ब्राउज़ करें</string>
+    <string name="evolution_no_custom_settings">कोई कस्टम ROM सेटिंग नहीं मिली — सूचीबद्ध करने के लिए root या Shizuku के साथ चलाएँ</string>
+    <string name="evolution_setting_value">मान: %1$s</string>
+    <string name="evolution_key_required">कुंजी</string>
+    <string name="evolution_setting_write">लिखें</string>
+    <string name="evolution_edit_setting">सेटिंग संपादित करें</string>
+    <string name="cancel">रद्द करें</string>
+    <string name="save">सहेजें</string>
+    <string name="ok">ठीक है</string>
+    <string name="evolution_already_system_app">पहले से ही सिस्टम ऐप</string>
+    <string name="evolution_not_elevated">root या Shizuku आवश्यक</string>
+    <string name="evolution_cancel">रद्द करें</string>
 </resources>

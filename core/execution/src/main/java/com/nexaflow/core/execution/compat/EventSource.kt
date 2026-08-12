@@ -55,6 +55,7 @@ enum class TriggerSource(val sourceId: String) {
             TriggerType.SENSOR -> SENSOR
             TriggerType.NETWORK_MODE -> CONNECTIVITY
             TriggerType.WEBHOOK -> WEBHOOK
+            TriggerType.ROM_SETTING -> DEVICE
         }
     }
 }

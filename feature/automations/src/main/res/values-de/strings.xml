@@ -172,6 +172,8 @@
     <string name="trigger_sensor_sub">Bei Gerätesensorereignissen auslösen</string>
     <string name="trigger_webhook">Webhook</string>
     <string name="trigger_webhook_sub">Über eine lokale HTTP-Anfrage auslösen</string>
+    <string name="trigger_rom_setting">ROM-Einstellung</string>
+    <string name="trigger_rom_setting_sub">Läuft, wenn eine echte Evolution X-Einstellung übereinstimmt</string>
     <string name="trigger_type_network_mode">Mobilfunknetz</string>
     <string name="trigger_type_network_mode_sub">Löst aus, wenn das Mobilfunknetz der gewählten Generation entspricht (echte 5G-Erkennung)</string>
     <string name="add_shortcut">Verknüpfung hinzufügen</string>

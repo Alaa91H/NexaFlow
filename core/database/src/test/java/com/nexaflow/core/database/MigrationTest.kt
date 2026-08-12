@@ -12,7 +12,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 import java.io.File
 
 /**
@@ -23,7 +22,6 @@ import java.io.File
  * exported schema JSON files in `core/database/schemas`.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
 class MigrationTest {
 
     private val dbFile = File(System.getProperty("java.io.tmpdir"), "nexaflow-migration-test.db")

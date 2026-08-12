@@ -9,7 +9,6 @@ import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
-import org.robolectric.annotation.Config
 
 /**
  * Verifies the sample edit activity's protocol contract: saving finishes with
@@ -17,7 +16,6 @@ import org.robolectric.annotation.Config
  * and backing out without saving leaves the default RESULT_CANCELED.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
 class NfcToggleEditActivityTest {
 
     @Test

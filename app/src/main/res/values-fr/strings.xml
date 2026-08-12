@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Tâches planifiées</string>
-    <string name="accessibility_service_description">Détecte l\u2019ouverture des applications configurées pour exécuter les automatisations déclenchées par une application. Seule l\u2019application au premier plan est observée ; rien n\u2019est lu à l\u2019écran.</string>
+    <string name="backup_saved">Sauvegarde enregistrée</string>
+    <string name="backup_save_failed">Impossible d’enregistrer la sauvegarde</string>
+    <string name="save_locally_label">Enregistrer localement</string>    <string name="accessibility_service_description">Détecte l\u2019ouverture des applications configurées pour exécuter les automatisations déclenchées par une application. Seule l\u2019application au premier plan est observée ; rien n\u2019est lu à l\u2019écran.</string>
     <string name="widget_status_title">Automatisations actives</string>
     <string name="widget_status_count">0 / 0</string>
     <string name="widget_status_last">Dernière exécution : —</string>

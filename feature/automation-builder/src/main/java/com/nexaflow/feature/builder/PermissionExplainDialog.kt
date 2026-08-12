@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.filled.Accessibility
@@ -63,23 +62,23 @@ enum class SpecialPermission {
  */
 fun permissionExplainInfo(permissions: Array<String>): PermissionExplainInfo = when {
     permissions.any { it == android.Manifest.permission.ACCESS_FINE_LOCATION || it == android.Manifest.permission.ACCESS_COARSE_LOCATION } ->
-        PermissionExplainInfo(Icons.Filled.LocationOn, Color(0xFF2FA84F), R.string.permission_location_title, R.string.permission_location_body)
+        PermissionExplainInfo(Icons.Filled.LocationOn, Color(0xFF006D3C), R.string.permission_location_title, R.string.permission_location_body)
     permissions.any { it == android.Manifest.permission.RECEIVE_SMS } ->
-        PermissionExplainInfo(Icons.AutoMirrored.Filled.Message, Color(0xFF1B62B7), R.string.permission_sms_title, R.string.permission_sms_body)
+        PermissionExplainInfo(Icons.AutoMirrored.Filled.Message, Color(0xFF0B57D0), R.string.permission_sms_title, R.string.permission_sms_body)
     permissions.any { it == android.Manifest.permission.SEND_SMS } ->
-        PermissionExplainInfo(Icons.AutoMirrored.Filled.Message, Color(0xFF13A5A8), R.string.permission_send_sms_title, R.string.permission_send_sms_body)
+        PermissionExplainInfo(Icons.AutoMirrored.Filled.Message, Color(0xFF006A6C), R.string.permission_send_sms_title, R.string.permission_send_sms_body)
     permissions.any { it == android.Manifest.permission.CAMERA } ->
-        PermissionExplainInfo(Icons.Filled.FlashOn, Color(0xFFE8A33D), R.string.permission_camera_title, R.string.permission_camera_body)
+        PermissionExplainInfo(Icons.Filled.FlashOn, Color(0xFF8F4C00), R.string.permission_camera_title, R.string.permission_camera_body)
     permissions.any { it == android.Manifest.permission.POST_NOTIFICATIONS } ->
-        PermissionExplainInfo(Icons.Filled.NotificationsActive, Color(0xFF7A5BD1), R.string.permission_notifications_title, R.string.permission_notifications_body)
+        PermissionExplainInfo(Icons.Filled.NotificationsActive, Color(0xFF6750A4), R.string.permission_notifications_title, R.string.permission_notifications_body)
     permissions.any { it == android.Manifest.permission.BLUETOOTH_CONNECT } ->
-        PermissionExplainInfo(Icons.Filled.Bluetooth, Color(0xFF2FA84F), R.string.permission_bluetooth_title, R.string.permission_bluetooth_body)
+        PermissionExplainInfo(Icons.Filled.Bluetooth, Color(0xFF006D3C), R.string.permission_bluetooth_title, R.string.permission_bluetooth_body)
     permissions.any { it == android.Manifest.permission.READ_CALENDAR } ->
-        PermissionExplainInfo(Icons.Filled.DateRange, Color(0xFFE5533D), R.string.permission_calendar_title, R.string.permission_calendar_body)
+        PermissionExplainInfo(Icons.Filled.DateRange, Color(0xFFBA1A1A), R.string.permission_calendar_title, R.string.permission_calendar_body)
     permissions.any { it == android.Manifest.permission.ACCESS_LOCAL_NETWORK } ->
-        PermissionExplainInfo(Icons.Filled.Language, Color(0xFF13A5A8), R.string.permission_local_network_title, R.string.permission_local_network_body)
+        PermissionExplainInfo(Icons.Filled.Language, Color(0xFF006A6C), R.string.permission_local_network_title, R.string.permission_local_network_body)
     else ->
-        PermissionExplainInfo(Icons.Filled.Lock, Color(0xFF1B62B7), R.string.permission_generic_title, R.string.permission_generic_body)
+        PermissionExplainInfo(Icons.Filled.Lock, Color(0xFF0B57D0), R.string.permission_generic_title, R.string.permission_generic_body)
 }
 
 /**
@@ -89,25 +88,25 @@ fun permissionExplainInfo(permissions: Array<String>): PermissionExplainInfo = w
  */
 fun specialPermissionExplainInfo(type: SpecialPermission): PermissionExplainInfo = when (type) {
     SpecialPermission.WRITE_SETTINGS ->
-        PermissionExplainInfo(Icons.Filled.Settings, Color(0xFF1B62B7), R.string.special_write_settings_title, R.string.special_write_settings_body)
+        PermissionExplainInfo(Icons.Filled.Settings, Color(0xFF0B57D0), R.string.special_write_settings_title, R.string.special_write_settings_body)
     SpecialPermission.DND_ACCESS ->
-        PermissionExplainInfo(Icons.Filled.DoNotDisturb, Color(0xFFE5533D), R.string.special_dnd_title, R.string.special_dnd_body)
+        PermissionExplainInfo(Icons.Filled.DoNotDisturb, Color(0xFFBA1A1A), R.string.special_dnd_title, R.string.special_dnd_body)
     SpecialPermission.NOTIFICATION_ACCESS ->
-        PermissionExplainInfo(Icons.Filled.Notifications, Color(0xFFE8A33D), R.string.special_notification_access_title, R.string.special_notification_access_body)
+        PermissionExplainInfo(Icons.Filled.Notifications, Color(0xFF8F4C00), R.string.special_notification_access_title, R.string.special_notification_access_body)
     SpecialPermission.ACCESSIBILITY ->
-        PermissionExplainInfo(Icons.Filled.Accessibility, Color(0xFF7A5BD1), R.string.special_accessibility_title, R.string.special_accessibility_body)
+        PermissionExplainInfo(Icons.Filled.Accessibility, Color(0xFF6750A4), R.string.special_accessibility_title, R.string.special_accessibility_body)
     SpecialPermission.SHIZUKU ->
-        PermissionExplainInfo(Icons.Filled.Terminal, Color(0xFF13A5A8), R.string.special_shizuku_title, R.string.special_shizuku_body)
+        PermissionExplainInfo(Icons.Filled.Terminal, Color(0xFF006A6C), R.string.special_shizuku_title, R.string.special_shizuku_body)
     SpecialPermission.ROOT ->
-        PermissionExplainInfo(Icons.Filled.Terminal, Color(0xFFE5533D), R.string.special_root_title, R.string.special_root_body)
+        PermissionExplainInfo(Icons.Filled.Terminal, Color(0xFFBA1A1A), R.string.special_root_title, R.string.special_root_body)
     SpecialPermission.ELEVATED ->
-        PermissionExplainInfo(Icons.Filled.Lock, Color(0xFF7A5BD1), R.string.special_elevated_title, R.string.special_elevated_body)
+        PermissionExplainInfo(Icons.Filled.Lock, Color(0xFF6750A4), R.string.special_elevated_title, R.string.special_elevated_body)
     SpecialPermission.BLUETOOTH ->
-        PermissionExplainInfo(Icons.Filled.Bluetooth, Color(0xFF2FA84F), R.string.special_bluetooth_title, R.string.special_bluetooth_body)
+        PermissionExplainInfo(Icons.Filled.Bluetooth, Color(0xFF006D3C), R.string.special_bluetooth_title, R.string.special_bluetooth_body)
 }
 
 /**
- * Samsung-style explain screen shown inside the editor right before a permission
+ * Google-style explain screen shown inside the editor right before a permission
  * is granted (either the system permission dialog or a dedicated settings screen):
  * a large tinted icon, a short reason and a clear Continue action.
  */
@@ -119,7 +118,7 @@ fun PermissionExplainDialog(
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(24.dp),
+            shape = MaterialTheme.shapes.extraLarge,
             color = MaterialTheme.colorScheme.surface,
             modifier = Modifier.fillMaxWidth()
         ) {

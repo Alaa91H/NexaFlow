@@ -5,7 +5,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
 /**
  * Tests for the bundle ⇄ JSON convention (docs/PLUGIN_SDK.md §3): round-trip
@@ -16,7 +15,6 @@ import org.robolectric.annotation.Config
  * tests throw "not mocked") — same reason the SDK's own parser tests do.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
 class PluginConfigTest {
 
     @Test

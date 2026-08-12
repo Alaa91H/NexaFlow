@@ -11,35 +11,52 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.nexaflow.core.rom.EvolutionXSettingsBridge
 import com.nexaflow.core.rom.RomIntegrationManager
+import com.nexaflow.core.rom.SystemAppInstaller
+import com.nexaflow.core.rom.model.IntegrationLevel
 import com.nexaflow.core.rom.model.RomCapability
+import com.nexaflow.core.rom.model.RomFamily
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.StatusPill
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun CapabilityCenterScreen() {
@@ -133,6 +150,15 @@ fun CapabilityCenterScreen() {
                         )
                     }
                 }
+            }
+        }
+
+        if (EvolutionXSettingsBridge.isEvolutionX(context)) {
+            item {
+                SectionHeader(text = stringResource(R.string.section_evolution))
+            }
+            item {
+                EvolutionXCard(buildInfo = buildInfo, integrationLevel = integrationLevel)
             }
         }
 
@@ -260,7 +286,7 @@ private fun SmsAwarenessCard(viewModel: SmsCapabilityViewModel = hiltViewModel()
                             StatusPill(
                                 text = stringResource(R.string.sms_consent_listening),
                                 background = Color(0xFFE4F4E9),
-                                contentColor = Color(0xFF2FA84F)
+                                contentColor = Color(0xFF006D3C)
                             )
                         }
                     }
@@ -274,6 +300,281 @@ private fun SmsAwarenessCard(viewModel: SmsCapabilityViewModel = hiltViewModel()
                 }
             }
         }
+    }
+}
+
+/**
+ * Evolution X deep-integration card: shows the detected ROM version + build
+ * type, offers "install as a system app" (Magisk module with the privileged
+ * whitelist) when not yet a system app, and a browse/edit dialog for the
+ * ROM's custom Evolver settings keys.
+ */
+@Composable
+private fun EvolutionXCard(
+    buildInfo: com.nexaflow.core.rom.model.RomBuildInfo,
+    integrationLevel: IntegrationLevel
+) {
+    val context = LocalContext.current
+    var showSettingsDialog by remember { mutableStateOf(false) }
+    var installMessage by remember { mutableStateOf<String?>(null) }
+    val notElevatedMsg = stringResource(R.string.evolution_not_elevated)
+    val installConfirmMsg = stringResource(R.string.evolution_install_system_app_confirm)
+    val installDoneMsg = stringResource(R.string.evolution_install_done)
+    val installFailedMsg = stringResource(R.string.evolution_install_failed)
+    val isSystemApp = integrationLevel == IntegrationLevel.SYSTEM_APP ||
+        integrationLevel == IntegrationLevel.PRIVILEGED_SYSTEM_APP ||
+        integrationLevel == IntegrationLevel.PLATFORM_SIGNED_SYSTEM_APP
+
+    NexaFlowCard {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            IconBadge(
+                icon = Icons.Filled.Smartphone,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                if (buildInfo.evolutionVersion.isNotBlank()) {
+                    Text(
+                        text = stringResource(
+                            R.string.evolution_rom_version,
+                            buildInfo.evolutionVersion
+                        ),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                if (buildInfo.evolutionBuildType.isNotBlank()) {
+                    Text(
+                        text = stringResource(
+                            R.string.evolution_build_type,
+                            buildInfo.evolutionBuildType
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.integration_level, integrationLevel.displayName),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+            if (isSystemApp) {
+                StatusPill(
+                    text = stringResource(R.string.evolution_already_system_app),
+                    background = Color(0xFF006D3C),
+                    contentColor = Color.White
+                )
+            }
+        }
+
+        if (!isSystemApp) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = stringResource(R.string.evolution_system_app_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = {
+                    val elevated = integrationLevel == IntegrationLevel.ROOT ||
+                        integrationLevel == IntegrationLevel.SHIZUKU
+                    if (!elevated) {
+                        installMessage = notElevatedMsg
+                        return@Button
+                    }
+                    installMessage = installConfirmMsg
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = stringResource(R.string.evolution_install_system_app))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+        TextButton(
+            onClick = { showSettingsDialog = true },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = stringResource(R.string.evolution_custom_settings))
+        }
+    }
+
+    if (showSettingsDialog) {
+        EvolutionSettingsDialog(onDismiss = { showSettingsDialog = false })
+    }
+
+    installMessage?.let { message ->
+        AlertDialog(
+            onDismissRequest = { installMessage = null },
+            confirmButton = {
+                TextButton(onClick = {
+                    installMessage = null
+                    val result = SystemAppInstaller.install(context)
+                    installMessage = if (result.success) installDoneMsg else installFailedMsg
+                }) {
+                    Text(text = stringResource(R.string.evolution_install_system_app))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { installMessage = null }) {
+                    Text(text = stringResource(R.string.evolution_cancel))
+                }
+            },
+            title = { Text(text = stringResource(R.string.evolution_install_system_app)) },
+            text = { Text(text = message) }
+        )
+    }
+}
+
+/**
+ * Browse / edit dialog for the ROM's custom settings keys. Lists the keys
+ * actually present on the device (via `settings list`), lets the user edit any
+ * value and writes it back through the elevated runtime.
+ */
+@Composable
+private fun EvolutionSettingsDialog(onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    var entries by remember { mutableStateOf<List<EvolutionXSettingsBridge.SettingEntry>>(emptyList()) }
+    var loading by remember { mutableStateOf(true) }
+    var editing by remember { mutableStateOf<EvolutionXSettingsBridge.SettingEntry?>(null) }
+    var editValue by remember { mutableStateOf("") }
+    var writeError by remember { mutableStateOf<String?>(null) }
+    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        val loaded = withContext(Dispatchers.IO) {
+            EvolutionXSettingsBridge.listCustomKeys()
+        }
+        entries = loaded
+        loading = false
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = stringResource(R.string.evolution_custom_settings)) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .height(400.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                if (loading) {
+                    Text(
+                        text = stringResource(R.string.evolution_no_custom_settings),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                } else if (entries.isEmpty()) {
+                    Text(
+                        text = stringResource(R.string.evolution_no_custom_settings),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                } else {
+                    entries.forEach { entry ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = entry.key,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    text = stringResource(
+                                        R.string.evolution_setting_value,
+                                        entry.value
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                            TextButton(onClick = {
+                                editing = entry
+                                editValue = entry.value
+                            }) {
+                                Text(text = stringResource(R.string.evolution_edit_setting))
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(R.string.ok))
+            }
+        }
+    )
+
+    editing?.let { entry ->
+        AlertDialog(
+            onDismissRequest = { editing = null },
+            title = { Text(text = stringResource(R.string.evolution_edit_setting)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "${entry.namespace.shellName} · ${entry.key}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    OutlinedTextField(
+                        value = editValue,
+                        onValueChange = { editValue = it },
+                        label = { Text(text = stringResource(R.string.evolution_setting_value, "")) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    writeError?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    coroutineScope.launch {
+                        val result = withContext(Dispatchers.IO) {
+                            EvolutionXSettingsBridge.write(
+                                context,
+                                entry.namespace,
+                                entry.key,
+                                editValue
+                            )
+                        }
+                        if (result.success) {
+                            editing = null
+                            writeError = null
+                            // Reload so the list reflects the new value.
+                            entries = withContext(Dispatchers.IO) {
+                                EvolutionXSettingsBridge.listCustomKeys()
+                            }
+                        } else {
+                            writeError = result.message
+                        }
+                    }
+                }) {
+                    Text(text = stringResource(R.string.evolution_setting_write))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { editing = null }) {
+                    Text(text = stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 }
 
@@ -295,7 +596,7 @@ private fun CapabilityCard(
             IconBadge(
                 icon = Icons.Filled.Security,
                 containerColor = if (available) {
-                    Color(0xFF2FA84F)
+                    Color(0xFF006D3C)
                 } else {
                     MaterialTheme.colorScheme.surfaceVariant
                 },
@@ -316,7 +617,7 @@ private fun CapabilityCard(
             if (available) {
                 StatusPill(
                     text = stringResource(R.string.available),
-                    background = Color(0xFF2FA84F),
+                    background = Color(0xFF006D3C),
                     contentColor = Color.White
                 )
             } else {

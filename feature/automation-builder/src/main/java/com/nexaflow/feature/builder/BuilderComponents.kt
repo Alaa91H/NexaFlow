@@ -312,12 +312,12 @@ fun SpecialPermissionStatusRow(
         SpecialStatus.GRANTED -> Triple(
             stringResource(R.string.elevated_status_granted),
             Color(0xFFE4F4E9),
-            Color(0xFF2FA84F)
+            Color(0xFF006D3C)
         )
         SpecialStatus.AVAILABLE -> Triple(
             stringResource(R.string.elevated_status_available),
             Color(0xFFFDF3E0),
-            Color(0xFFE8A33D)
+            Color(0xFF8F4C00)
         )
         SpecialStatus.NOT_AVAILABLE -> Triple(
             stringResource(

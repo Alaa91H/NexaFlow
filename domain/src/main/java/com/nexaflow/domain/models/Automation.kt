@@ -78,7 +78,15 @@ enum class TriggerType {
      * Local HTTP webhook: a loopback server accepts requests on `path` (and
      * optionally `method` + `token`) and fires the task, Tasker-webhook style.
      */
-    WEBHOOK
+    WEBHOOK,
+    /**
+     * A real Evolution X / LineageOS custom setting. Reads the actual value
+     * from the ROM's Settings provider through [EvolutionXSettingsBridge] and
+     * fires when it matches the configured target. Config keys: `namespace`
+     * (SYSTEM/SECURE/GLOBAL), `key` (e.g. `evo_disable_animation`),
+     * `operator` (EQUALS/NOT_EQUALS), `value`.
+     */
+    ROM_SETTING
 }
 
 @Immutable

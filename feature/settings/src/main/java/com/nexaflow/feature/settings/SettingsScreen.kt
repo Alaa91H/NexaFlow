@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Extension
@@ -40,6 +39,8 @@ import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Security
+import androidx.core.content.FileProvider
+import java.io.File
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.AlertDialog
@@ -118,42 +119,54 @@ fun SettingsScreen(navController: NavController) {
         }
     }
 
-    // One combined action: pick where to save the backup (SAF create-document),
-    // write the JSON there, then immediately open the share sheet with that
-    // same file so it can be sent to any app — save and share in one tap.
-    val stringBackupSaved = stringResource(R.string.backup_saved)
+    // One professional flow: write the backup to cache, then open the system
+    // share sheet with that file. The sheet includes this app as a target
+    // («Save locally») at the top, so a single tap exports *and* shares.
     val stringBackupSaveFailed = stringResource(R.string.backup_save_failed)
-    val saveAndShareLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("application/json")
-    ) { uri ->
-        if (uri != null) {
-            scope.launch {
-                viewModel.exportBackup { json ->
-                    scope.launch {
-                        val written = json != null && runCatching {
-                            context.contentResolver.openOutputStream(uri)?.use { stream ->
-                                stream.write(json.toByteArray())
-                            }
-                        }.isSuccess
-                        if (!written) {
-                            snackbarHostState.showSnackbar(stringBackupSaveFailed)
-                            return@launch
+    val onExportShare: () -> Unit = {
+        scope.launch {
+            viewModel.exportBackup { json ->
+                if (json == null) {
+                    scope.launch { snackbarHostState.showSnackbar(stringBackupSaveFailed) }
+                    return@exportBackup
+                }
+                val file = runCatching {
+                    val dir = File(context.cacheDir, "backup").apply { mkdirs() }
+                    File(dir, "nexaflow_backup.json").apply { writeText(json) }
+                }.getOrNull()
+                if (file == null) {
+                    scope.launch { snackbarHostState.showSnackbar(stringBackupSaveFailed) }
+                    return@exportBackup
+                }
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    file
+                )
+                // Share the cached file with any app.
+                val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "application/json"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    putExtra(Intent.EXTRA_SUBJECT, stringShareBackupTitle)
+                    putExtra(Intent.EXTRA_TEXT, stringShareBackupTitle)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                // «Save locally» pinned as the first target of the share sheet.
+                // Built by class name: feature:settings cannot depend on the
+                // app module, and the explicit component needs no import.
+                val saveLocallyIntent = Intent().apply {
+                    setClassName(context, "com.nexaflow.app.SaveBackupActivity")
+                    action = "com.nexaflow.app.action.SAVE_BACKUP"
+                    putExtra("extra_file_path", file.absolutePath)
+                }
+                runCatching {
+                    context.startActivity(
+                        Intent.createChooser(sendIntent, stringShareBackupTitle).apply {
+                            putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf(saveLocallyIntent))
                         }
-                        snackbarHostState.showSnackbar(stringBackupSaved)
-                        // Share the just-saved file with any app.
-                        val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "application/json"
-                            putExtra(Intent.EXTRA_STREAM, uri)
-                            putExtra(Intent.EXTRA_SUBJECT, stringShareBackupTitle)
-                            putExtra(Intent.EXTRA_TEXT, stringShareBackupTitle)
-                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        }
-                        runCatching {
-                            context.startActivity(Intent.createChooser(sendIntent, stringShareBackupTitle))
-                        }.onFailure {
-                            snackbarHostState.showSnackbar(stringBackupSaveFailed)
-                        }
-                    }
+                    )
+                }.onFailure {
+                    scope.launch { snackbarHostState.showSnackbar(stringBackupSaveFailed) }
                 }
             }
         }
@@ -212,7 +225,7 @@ fun SettingsScreen(navController: NavController) {
                         icon = Icons.Filled.Upload,
                         title = stringResource(R.string.backup_export),
                         subtitle = stringResource(R.string.backup_export_sub),
-                        onClick = { saveAndShareLauncher.launch("nexaflow_backup.json") }
+                        onClick = onExportShare
                     )
                     SettingRow(
                         icon = Icons.Filled.Download,
@@ -248,7 +261,7 @@ fun SettingsScreen(navController: NavController) {
                             trailing = {
                                 Text(
                                     text = stringResource(R.string.state_ok),
-                                    color = Color(0xFF2FA84F),
+                                    color = Color(0xFF006D3C),
                                     style = androidx.compose.material3.MaterialTheme.typography.labelLarge
                                 )
                             },
@@ -262,7 +275,7 @@ fun SettingsScreen(navController: NavController) {
                                 trailing = {
                                     Text(
                                         text = stringResource(R.string.state_update),
-                                        color = Color(0xFF1E88E5),
+                                        color = MaterialTheme.colorScheme.primary,
                                         style = androidx.compose.material3.MaterialTheme.typography.labelLarge
                                     )
                                 },
@@ -515,7 +528,7 @@ private fun LocationIntervalDialog(
                 // container. Time is read left-to-right (hours : minutes) even
                 // in RTL locales, so the row is pinned to LTR.
                 Surface(
-                    shape = RoundedCornerShape(18.dp),
+                    shape = MaterialTheme.shapes.medium,
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -616,8 +629,8 @@ private fun StepperCounter(
             modifier = Modifier
                 .width(78.dp)
                 .height(48.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .clip(MaterialTheme.shapes.medium)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
                 .pointerInput(state, range) {
                     var accumulated = 0f
                     detectVerticalDragGestures { dragChange, dragAmount ->

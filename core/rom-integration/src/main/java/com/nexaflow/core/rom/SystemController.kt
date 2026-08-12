@@ -834,8 +834,13 @@ class SystemController(
 
             val builder = NotificationCompat.Builder(context, channelId)
                 .setSmallIcon(R.drawable.ic_stat_nexaflow)
+                // M3: brand-tinted small icon + action icons.
+                .setColor(context.getColor(R.color.notification_brand_color))
                 .setContentTitle(title)
                 .setContentText(text)
+                .setCategory(NotificationCompat.CATEGORY_STATUS)
+                // M3: keep task details off the lock screen.
+                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
                 .setAutoCancel(true)
             if (sound == "RINGTONE" || sound == "NOTIFICATION") {
                 soundUri?.let { builder.setSound(it) }
@@ -874,6 +879,30 @@ class SystemController(
         val result = PrivilegedRunner.runShell(command)
         return if (result.success) SystemControlResult.ok(successMessage) else result
     }
+
+    /**
+     * Writes any ROM custom setting (Evolution X / LineageOS Evolver keys)
+     * through the [EvolutionXSettingsBridge]. Convenience used by the deep
+     * ROM-integration actions.
+     */
+    fun writeRomSetting(
+        namespace: EvolutionXSettingsBridge.Namespace,
+        key: String,
+        value: String
+    ): SystemControlResult =
+        EvolutionXSettingsBridge.write(context, namespace, key, value)
+
+    /**
+     * Toggles the Quick Settings "smart pulldown" / notification access flags
+     * used by LineageOS-family ROMs (e.g. `quick_settings_tiles`). Writes the
+     * given Evolver key to 1/0 through the elevated runtime.
+     */
+    fun setRomToggle(
+        key: String,
+        enabled: Boolean,
+        namespace: EvolutionXSettingsBridge.Namespace = EvolutionXSettingsBridge.Namespace.SECURE
+    ): SystemControlResult =
+        writeRomSetting(namespace, key, if (enabled) "1" else "0")
 
     companion object {
         /** Notification id used by [sendNotification]; exposed so dismiss buttons can cancel it. */

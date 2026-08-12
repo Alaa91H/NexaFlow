@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="builder_title">New Task</string>
+    <string name="task_card_title">Task</string>
     <string name="save">Save</string>
     <string name="name">Name</string>
     <string name="name_hint">e.g. Morning task</string>
@@ -9,7 +10,6 @@
     <string name="section_when">WHEN (TRIGGERS)</string>
     <string name="trigger_n">Trigger %1$d</string>
     <string name="remove_trigger">Remove trigger</string>
-    <string name="add_another_trigger">Add another trigger</string>
     <string name="trigger_type_time">Time</string>
     <string name="trigger_type_battery">Battery</string>
     <string name="trigger_type_app">App</string>
@@ -161,7 +161,7 @@
     <string name="action_dark_mode">Dark mode</string>
     <string name="action_dark_mode_sub">Force dark theme on or off</string>
     <string name="action_ringer">Ringer mode</string>
-    <string name="action_ringer_sub">Normal, vibrate or silent</string>
+    <string name="action_ringer_sub">Ringing, vibrate or silent</string>
     <string name="action_mobile_data">Mobile data</string>
     <string name="action_mobile_data_sub">Turn mobile data on or off</string>
     <string name="action_hotspot">Hotspot</string>
@@ -243,7 +243,7 @@
     <string name="url_hint">https://example.com</string>
     <string name="alert_below">Alert below: %1$d%%</string>
     <string name="timeout_label">Screen timeout: %1$d s</string>
-    <string name="ringer_normal">Normal</string>
+    <string name="ringer_normal">Ringing</string>
     <string name="ringer_vibrate">Vibrate</string>
     <string name="ringer_silent">Silent</string>
     <string name="hour">Hour</string>
@@ -483,6 +483,21 @@
     <string name="webhook_token">Token (optional)</string>
     <string name="webhook_token_hint">Secret header value</string>
     <string name="webhook_url_hint">Send an HTTP request to http://127.0.0.1:8765/path from this device to trigger the task.</string>
+    <string name="trigger_type_rom_setting">ROM setting</string>
+    <string name="rom_setting_namespace">Namespace</string>
+    <string name="rom_setting_namespace_system">System</string>
+    <string name="rom_setting_namespace_secure">Secure</string>
+    <string name="rom_setting_namespace_global">Global</string>
+    <string name="rom_setting_key">Setting key</string>
+    <string name="rom_setting_pick_from_rom">Pick a key from this ROM</string>
+    <string name="rom_setting_pick_title">ROM settings found on this device</string>
+    <string name="rom_setting_pick_empty">No Evolution X / LineageOS keys found. This feature needs root, Shizuku or a system install.</string>
+    <string name="rom_setting_current_value">Current: %1$s</string>
+    <string name="rom_setting_operator">Condition</string>
+    <string name="rom_setting_equals">Equals</string>
+    <string name="rom_setting_not_equals">Not equals</string>
+    <string name="rom_setting_value">Target value</string>
+    <string name="rom_setting_hint">Runs when the real ROM setting matches. Read from the device, no permission needed.</string>
     <string name="use_current_location">Use my current location</string>
     <string name="location_coordinates">Location: %1$s, %2$s</string>
     <string name="location_not_set">No location set yet</string>

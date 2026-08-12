@@ -6,7 +6,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
 /**
  * Guards the time-change handling in [AutomationAlarmReceiver]: the receiver
@@ -16,7 +15,6 @@ import org.robolectric.annotation.Config
  * strings so a rename never silently breaks the re-scheduling path.
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
 class AutomationAlarmReceiverTimeChangeTest {
 
     @Test

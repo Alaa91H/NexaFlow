@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
@@ -171,12 +170,12 @@ fun IconPickerScreen(navController: NavController) {
                         .size(64.dp)
                         .background(
                             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-                            shape = RoundedCornerShape(18.dp)
+                            shape = MaterialTheme.shapes.large
                         )
                         .border(
                             width = if (isSelected) 0.dp else 1.dp,
                             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                            shape = RoundedCornerShape(18.dp)
+                            shape = MaterialTheme.shapes.large
                         )
                         .clickable { selectedIndex = filtered.indexOfFirst { it.name == entry.name } },
                     tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.secondary

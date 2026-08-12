@@ -22,8 +22,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Place
@@ -36,6 +34,7 @@ import androidx.compose.material.icons.filled.Web
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -60,9 +59,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.rememberCoroutineScope
 import com.nexaflow.core.engine.currentCellularGeneration
+import com.nexaflow.core.rom.EvolutionXSettingsBridge
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.domain.models.TriggerType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -85,7 +92,8 @@ val triggerTypeOptions = listOf(
     TriggerType.NOTIFICATION,
     TriggerType.CALENDAR,
     TriggerType.SENSOR,
-    TriggerType.WEBHOOK
+    TriggerType.WEBHOOK,
+    TriggerType.ROM_SETTING
 )
 
 private val repeatOptions = listOf(
@@ -132,6 +140,7 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.CALENDAR -> mapOf("calendar" to "", "contains" to "", "event" to "EVENT_START", "beforeMinutes" to "0")
     TriggerType.SENSOR -> mapOf("sensor" to "PROXIMITY", "event" to "COVERED", "threshold" to "200", "sensitivity" to "14")
     TriggerType.WEBHOOK -> mapOf("path" to "/nexaflow", "method" to "POST", "token" to "")
+    TriggerType.ROM_SETTING -> mapOf("namespace" to "SYSTEM", "key" to "", "operator" to "EQUALS", "value" to "")
 }
 
 internal fun TriggerType.labelRes(): Int = when (this) {
@@ -149,6 +158,7 @@ internal fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.CALENDAR -> R.string.trigger_type_calendar
     TriggerType.SENSOR -> R.string.trigger_type_sensor
     TriggerType.WEBHOOK -> R.string.trigger_type_webhook
+    TriggerType.ROM_SETTING -> R.string.trigger_type_rom_setting
 }
 
 internal fun TriggerType.icon(): ImageVector = when (this) {
@@ -166,6 +176,7 @@ internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.CALENDAR -> Icons.Filled.DateRange
     TriggerType.SENSOR -> Icons.Filled.Sensors
     TriggerType.WEBHOOK -> Icons.Filled.Web
+    TriggerType.ROM_SETTING -> Icons.Filled.Bolt
 }
 
 private fun parseDateMillis(value: String): Long? {
@@ -474,16 +485,12 @@ fun TriggerEditorCard(
     var showTimePicker by remember { mutableStateOf(false) }
     var timePickerTarget by remember { mutableStateOf("time") } // "time" | "rangeStart" | "rangeEnd"
     var datePickerTarget by remember { mutableStateOf<String?>(null) } // "date" | "startDate" | "endDate"
-    // Collapsed by default: the card shows the trigger type; tapping it
-    // expands the type picker and the ordered options for that type.
-    var expanded by remember { mutableStateOf(false) }
-
+    // Always expanded: the card shows the trigger type plus the type picker
+    // and the ordered options for that type. The task card never collapses.
     NexaFlowCard {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { expanded = !expanded },
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -503,11 +510,6 @@ fun TriggerEditorCard(
                         fontWeight = FontWeight.SemiBold
                     )
                 }
-                Icon(
-                    imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.outline
-                )
                 IconButton(onClick = onRemove) {
                     Icon(
                         imageVector = Icons.Filled.Close,
@@ -516,7 +518,6 @@ fun TriggerEditorCard(
                     )
                 }
             }
-            if (!expanded) return@Column
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -1561,6 +1562,158 @@ fun TriggerEditorCard(
                             text = stringResource(R.string.webhook_url_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+                TriggerType.ROM_SETTING -> {
+                    val namespace = draft.config["namespace"] ?: "SYSTEM"
+                    val operator = draft.config["operator"] ?: "EQUALS"
+                    val key = draft.config["key"] ?: ""
+                    val value = draft.config["value"] ?: ""
+                    val scope = rememberCoroutineScope()
+                    var showKeyPicker by remember { mutableStateOf(false) }
+                    var liveKeys by remember { mutableStateOf<List<EvolutionXSettingsBridge.SettingEntry>>(emptyList()) }
+                    var keysLoading by remember { mutableStateOf(false) }
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        // ── Namespace (system / secure / global) ────────────
+                        Text(
+                            text = stringResource(R.string.rom_setting_namespace),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        OptionChips(
+                            options = listOf("SYSTEM", "SECURE", "GLOBAL"),
+                            labels = mapOf(
+                                "SYSTEM" to stringResource(R.string.rom_setting_namespace_system),
+                                "SECURE" to stringResource(R.string.rom_setting_namespace_secure),
+                                "GLOBAL" to stringResource(R.string.rom_setting_namespace_global)
+                            ),
+                            selected = namespace,
+                            onSelect = { onConfigChange(draft.copy(config = draft.config + ("namespace" to it))) }
+                        )
+                        // ── Key: free text + live picker from the ROM ──────
+                        OutlinedTextField(
+                            value = key,
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("key" to it))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(text = stringResource(R.string.rom_setting_key)) },
+                            placeholder = { Text(text = "evo_…") },
+                            singleLine = true
+                        )
+                        OutlinedButton(
+                            onClick = {
+                                keysLoading = true
+                                scope.launch {
+                                    liveKeys = withContext(Dispatchers.IO) {
+                                        EvolutionXSettingsBridge.listCustomKeys()
+                                    }
+                                    keysLoading = false
+                                    showKeyPicker = true
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !keysLoading
+                        ) {
+                            Icon(
+                                imageVector = if (keysLoading) Icons.Filled.Refresh else Icons.Filled.Bolt,
+                                contentDescription = null
+                            )
+                            Text(
+                                text = stringResource(R.string.rom_setting_pick_from_rom),
+                                modifier = Modifier.padding(start = 6.dp)
+                            )
+                        }
+                        // ── Operator + target value ─────────────────────────
+                        Text(
+                            text = stringResource(R.string.rom_setting_operator),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        OptionChips(
+                            options = listOf("EQUALS", "NOT_EQUALS"),
+                            labels = mapOf(
+                                "EQUALS" to stringResource(R.string.rom_setting_equals),
+                                "NOT_EQUALS" to stringResource(R.string.rom_setting_not_equals)
+                            ),
+                            selected = operator,
+                            onSelect = { onConfigChange(draft.copy(config = draft.config + ("operator" to it))) }
+                        )
+                        OutlinedTextField(
+                            value = value,
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("value" to it))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(text = stringResource(R.string.rom_setting_value)) },
+                            placeholder = { Text(text = "1") },
+                            singleLine = true
+                        )
+                        Text(
+                            text = stringResource(R.string.rom_setting_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    if (showKeyPicker) {
+                        AlertDialog(
+                            onDismissRequest = { showKeyPicker = false },
+                            title = { Text(text = stringResource(R.string.rom_setting_pick_title)) },
+                            text = {
+                                if (liveKeys.isEmpty()) {
+                                    Text(
+                                        text = stringResource(R.string.rom_setting_pick_empty),
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                } else {
+                                    LazyColumn(
+                                        modifier = Modifier.heightIn(max = 360.dp)
+                                    ) {
+                                        items(liveKeys, key = { it.displayKey }) { entry ->
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable {
+                                                        onConfigChange(
+                                                            draft.copy(
+                                                                config = draft.config +
+                                                                    ("namespace" to entry.namespace.name) +
+                                                                    ("key" to entry.key)
+                                                            )
+                                                        )
+                                                        showKeyPicker = false
+                                                    }
+                                                    .padding(vertical = 10.dp, horizontal = 4.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Filled.Bolt,
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.padding(end = 10.dp)
+                                                )
+                                                Column {
+                                                    Text(
+                                                        text = entry.displayKey,
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        fontWeight = FontWeight.Medium
+                                                    )
+                                                    Text(
+                                                        text = stringResource(
+                                                            R.string.rom_setting_current_value,
+                                                            entry.value
+                                                        ),
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.secondary
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            confirmButton = {
+                                TextButton(onClick = { showKeyPicker = false }) {
+                                    Text(text = stringResource(R.string.cancel))
+                                }
+                            }
                         )
                     }
                 }

@@ -148,7 +148,7 @@ private fun HistoryCard(entry: ExecutionRecord, onClick: () -> Unit) {
             IconBadge(
                 icon = Icons.Filled.Bolt,
                 containerColor = if (entry.success) Color(0xFFE4F4E9) else Color(0xFFFBEAE7),
-                contentColor = if (entry.success) Color(0xFF2FA84F) else Color(0xFFE5533D)
+                contentColor = if (entry.success) Color(0xFF006D3C) else Color(0xFFBA1A1A)
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = entry.automationName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
@@ -179,7 +179,7 @@ private fun HistoryCard(entry: ExecutionRecord, onClick: () -> Unit) {
             StatusPill(
                 text = if (entry.success) stringResource(R.string.status_success) else stringResource(R.string.status_failed),
                 background = if (entry.success) Color(0xFFE4F4E9) else Color(0xFFFBEAE7),
-                contentColor = if (entry.success) Color(0xFF2FA84F) else Color(0xFFE5533D)
+                contentColor = if (entry.success) Color(0xFF006D3C) else Color(0xFFBA1A1A)
             )
         }
     }

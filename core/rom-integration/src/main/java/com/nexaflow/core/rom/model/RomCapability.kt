@@ -52,6 +52,10 @@ enum class RomCapability(
         "LineageOS hardware",
         "Vendor hardware features exposed by LineageOS (LED, vibration, display, ...)."
     ),
+    EVOLUTION_X_SETTINGS(
+        "Evolution X settings",
+        "Read and write Evolution X custom settings (Evolver keys) on LineageOS-based builds."
+    ),
     MIUI_HIDDEN_API(
         "MIUI / HyperOS APIs",
         "Xiaomi system APIs exposed when running as a system component."
