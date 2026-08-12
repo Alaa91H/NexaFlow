@@ -1,6 +1,8 @@
 package com.nexaflow.core.rom
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
 import android.telephony.SubscriptionManager
@@ -125,13 +127,24 @@ class NetworkModeController(
     /** Active subscription ids, falling back to the primary slot id (or 0). */
     @Suppress("DEPRECATION")
     private fun activeSubscriptionIds(telephony: TelephonyManager): List<Int> {
-        val ids = runCatching {
-            SubscriptionManager.from(context).activeSubscriptionInfoList
-                ?.map { it.subscriptionId }.orEmpty()
-        }.getOrDefault(emptyList())
+        val granted = context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) ==
+            PackageManager.PERMISSION_GRANTED
+        val ids = if (granted) {
+            runCatching {
+                SubscriptionManager.from(context).activeSubscriptionInfoList
+                    ?.map { it.subscriptionId }.orEmpty()
+            }.getOrDefault(emptyList())
+        } else {
+            emptyList()
+        }
         if (ids.isNotEmpty()) return ids.distinct()
-        val subId = runCatching { telephony.subscriptionId }
-            .getOrDefault(SubscriptionManager.INVALID_SUBSCRIPTION_ID)
+        // TelephonyManager#getSubscriptionId was only added in API 30.
+        val subId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            runCatching { telephony.subscriptionId }
+                .getOrDefault(SubscriptionManager.INVALID_SUBSCRIPTION_ID)
+        } else {
+            SubscriptionManager.INVALID_SUBSCRIPTION_ID
+        }
         val safe = if (subId == SubscriptionManager.INVALID_SUBSCRIPTION_ID) 0 else subId
         return listOf(safe)
     }

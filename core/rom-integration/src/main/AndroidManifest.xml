@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Reading the active subscription list is required to address the
+         correct SIM when switching the preferred network mode on multi-SIM
+         devices. READ_PHONE_STATE is a runtime permission the app requests
+         as part of its phone-mode capability. -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
     <!--
         Shizuku UserService: Shizuku starts this component in a process forked
         from its own server (root / shell uid), giving exec() elevated power.
