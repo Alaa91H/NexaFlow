@@ -1,225 +1,299 @@
-# 🚀 تقرير معمارية تنفيذي متكامل — منصة أتمتة المهام (Automation & iPaaS)
+# 🚀 تقرير معمارية تنفيذي متكامل (نسخة مجهرية) — منصة أتمتة المهام (Automation & iPaaS)
 
-> **نطاق التقرير:** تحليل معماري مجهري لمشروع NexaFlow («المهام المجدولة») — محرك أتمتة على الجهاز
-> (On-Device Engine) اليوم، وتطوره نحو منصة iPaaS هجينة (جهاز + سحابة) بمعايير 2026.
-> كل حكم تقني هنا مبني على البنية الفعلية في المستودع (وحدات `core/*`, `feature/*`,
-> `compileSdk/targetSdk 37`, `minSdk 26`, Java 21 toolchain، +472 اختباراً) وليس تنظيراً.
-> **Last verified against the working tree:** August 2026.
+> **النطاق:** تفكيك معماري مجهري لمشروع NexaFlow («المهام المجدولة») — محرك الأتمتة على الجهاز
+> (On-Device Engine) كما يعمل اليوم، وتصميم تطوره إلى منصة iPaaS هجينة (جهاز + سحابة) بمعايير 2026.
+> كل حكم تقني مبني على البنية الفعلية في المستودع (وحدات `core/*`, `feature/*`, compileSdk/targetSdk 37,
+> minSdk 26, Java 21 toolchain, +472 اختباراً) — **تفصيل مباشر بلا تنظير، وكل اختيار مقارن ببدائله.
+> Last verified against the working tree:** August 2026.
 
 ---
 
-## 1. الهيكلية المعمارية لمنصة الأتمتة — مسار الحدث من Webhook حتى نهاية السلسلة
+## 1. معمارية محرك الأتمتة — مسار الحدث مجهرياً (Event-Driven + Message Broker + DAG)
 
-### 1.1 الحالة الحالية (On-Device Engine — ما يعمل اليوم فعلاً)
+### 1.1 الحالة الحالية (On-Device Engine) — طبقة-بطبقة
 
 ```
-                              ┌────────────────────────────────────────────┐
-                              │  app (Hilt graph, M3 theme, Navigation)    │
-                              └───────────────┬────────────────────────────┘
-                                              │
-        ┌─────────────────────────────────────┼─────────────────────────────────────┐
-        │            feature/* (UI)           │              core/* (المحرك)        │
-        │  builder ── dashboard ── automations│                                       │
-        │  settings ── themes ── widgets      │                                       │
-        │  history ── icons ── capability-ctr │                                       │
-        └─────────────────────────────────────┼─────────────────────────────────────┘
-                                              ▼
-┌──────────────────────────────────────────────────────────────────────────────────┐
-│                        core/automation-engine (MonitoringService — FGS)          │
-│                                                                                  │
-│   EVENT SOURCES (EventSource/TriggerSource) — كل مصدر يسجّل نفسه كقناة أحداث:     │
-│   ┌─────────┐ ┌──────────┐ ┌───────────┐ ┌──────────┐ ┌─────────┐ ┌────────────┐ │
-│   │Battery  │ │Device    │ │Connectivity│ │Location  │ │Bluetooth│ │RingerMode │ │
-│   │Monitor  │ │EventMon  │ │Monitor    │ │Monitor   │ │Monitor  │ │Monitor     │ │
-│   └────┬────┘ └────┬─────┘ └─────┬─────┘ └────┬─────┘ └────┬────┘ └─────┬──────┘ │
-│   ┌─────────┐ ┌──────────┐ ┌───────────┐ ┌──────────┐ ┌─────────┐ ┌────────────┐ │
-│   │Calendar │ │Sensor    │ │RomSetting │ │Webhook   │ │Cellular │ │SMS/App     │ │
-│   │Monitor  │ │Monitor   │ │Monitor    │ │Server    │ │Monitor  │ │Listeners   │ │
-│   └────┬────┘ └────┬─────┘ └─────┬─────┘ └────┬─────┘ └────┬────┘ └────────────┘ │
-│        ▼           ▼             ▼            ▼            ▼                     │
-│   ┌────────────────────────────────────────────────────────────────────────────┐ │
-│   │           Event Dispatcher (كوروتين على ApplicationScope، مصفّاة)          │ │
-│   │   automations.filter{enabled} → trigger match → constraints → cooldown     │ │
-│   └───────────────────────────────────┬────────────────────────────────────────┘ │
-└───────────────────────────────────────┼──────────────────────────────────────────┘
-                                        ▼
-                        ┌───────────────────────────────┐
-                        │  core/execution/ExecutionEngine│
-                        │  runAutomation(automation)     │
-                        │  runExit(automation)           │
-                        └───────┬───────────────┬────────┘
-                                ▼               ▼
-                   ┌──────────────────┐  ┌────────────────────┐
-                   │ ACTION HANDLERS  │  │ EXIT BEHAVIOR      │
-                   │ (صوت/رنين/حجم،    │  │ (عند انتهاء الشرط   │
-                   │ شبكة 2G-5G،       │  │  → إجراءات منفصلة)  │
-                   │ واي-فاي هوتسبوت،  │  └────────────────────┘
-                   │ إشعار/تذكير،      │
-                   │ إعدادات ROM،      │
-                   │ NFC plugin…)      │
-                   └────────┬─────────┘
+┌───────────────────────────────────────────────────────────────────────────────┐
+│ app — Hilt Graph / M3 Theme / Navigation (feature/*: builder, dashboard,      │
+│       automations, settings, themes, widgets, history, icons, capability-ctr) │
+└──────────────────────────────────┬────────────────────────────────────────────┘
+                                   ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│ core/automation-engine — MonitoringService (FGS, SPECIAL_USE, START_STICKY)   │
+│                                                                               │
+│  EVENT SOURCES — كل مصدر يطبّق EventSource (sourceId + وصف + start/stop):     │
+│  ┌─────────┐ ┌───────────┐ ┌────────────┐ ┌──────────┐ ┌─────────┐ ┌──────────┐│
+│  │ Battery │ │ Device    │ │Connectivity│ │ Location │ │Bluetooth│ │RingerMode││
+│  │ Monitor │ │EventMon   │ │Monitor     │ │Monitor   │ │ Monitor │ │ Monitor  ││
+│  └────┬────┘ └─────┬─────┘ └─────┬──────┘ └────┬─────┘ └────┬────┘ └────┬─────┘│
+│  ┌─────────┐ ┌─────────┐ ┌────────────┐ ┌───────────┐ ┌────────┐ ┌───────────┐│
+│  │ Calendar│ │ Sensor  │ │RomSetting  │ │ Webhook   │ │Cellular │ │ SMS/App   ││
+│  │ Monitor │ │ Monitor │ │Monitor     │ │ Server    │ │Monitor  │ │Listeners  ││
+│  └────┬────┘ └────┬────┘ └─────┬──────┘ └─────┬─────┘ └───┬────┘ └─────┬─────┘│
+│       ▼           ▼            ▼              ▼           ▼            ▼      │
+│  ┌─────────────────────────────────────────────────────────────────────────┐   │
+│  │ Event Dispatcher — Coroutine على ApplicationScope (SupervisorJob)      │   │
+│  │ 1) filter{enabled} (يُستبدل بـ TriggerIndex في المرحلة 0)              │   │
+│  │ 2) TriggerMatcher ذري (TimeTriggerCalculator, BatteryTriggerMatcher)   │   │
+│  │ 3) ConstraintStateReader (بطارية/شحن/موقع داخل/خارج)                    │   │
+│  │ 4) Cooldown (cooldownMillis لكل مهمة)                                   │   │
+│  └──────────────────────────────────┬──────────────────────────────────────┘   │
+└─────────────────────────────────────┼─────────────────────────────────────────┘
+                                      ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│ core/execution — ExecutionEngine                                              │
+│   runAutomation(automation) → ActionHandlers (صوت/رنين/حجم، شبكة 2G-5G،        │
+│                                هوتسبوت، إشعار، تذكير، ROM، NFC plugin…)        │
+│   runExit(automation)      → ExitActions عند انتهاء شرط المشغّل                │
+│   Constraints: قبل كل تنفيذ تُقرأ الحالة الفعلية (لا يُثق بالحدث وحده)         │
+└───────────────────────────┬───────────────────────────────────────────────────┘
                             ▼
-              ┌───────────────────────────┐
-              │ Persistence & History     │
-              │ Room + Migrations         │
-              │ DataStore (prefs)         │
-              │ KeystoreSecureStorage     │
-              └───────────────────────────┘
+   Persistence: Room (+ Migrations) · DataStore · KeystoreSecureStorage
+   History: سجل تنفيذ لكل مهمة (feature/history)
 ```
 
-**مسار الحدث الحالي (مثال Webhook):**
-`طلب HTTP → WebhookServer (embedded, core/automation-engine) → ربط sourceId=WEBHOOK → مصفّاة المشغّلات → ConstraintStateReader (بطارية/شحن/موقع) → cooldown → ExecutionEngine → handlers → سجل history`
+**مسار حدث Webhook مجهرياً:** `HTTP POST → WebhookServer (embedded, HttpServer على المنفذ المحلي) → تحقق الطلب → sourceId=WEBHOOK → مصفّاة المشغّلات → ConstraintStateReader → cooldown → ExecutionEngine → handlers → سطر history`.
 
-**الخصائص التي تعمل اليوم (أساس التقرير):**
-- محرك حدثي على الجهاز: كل مراقب = `EventSource` بقناة مستقلة + تجميع عبر الـ `ApplicationScope`.
-- جداول زمنية ذرية قابلة للاختبار: `TimeTriggerCalculator`, `BatteryTriggerMatcher` (منطق نقي JVM).
-- شبكة أمان دورية للبطارية كل 60 ثانية (zero-wakeup، ملتصقة بـ FGS، skip-if-unchanged).
-- قيود (Constraints) تُقرأ قبل التنفيذ + سلوك «عند انتهاء الشرط» (`runExit`).
-- مصادقة DSN اختيارية (SentryReporter) + اختبار MergedManifestNoSentryTest يضمن إقلاعاً بلا DSN.
-- تكامل ROM: EvolutionXSettingsBridge, RomSettingMonitor, SystemAppInstaller, RomDetector.
-- أمان: KeystoreSecureStorage + Shizuku للامتيازات، خصوصية إشعارات M3.
+**ملاحظة دقيقة عن «Exactly-once» على الجهاز:** بث `ACTION_BATTERY_CHANGED` قد يُفقد؛ لهذا وُجدت شبكة الأمان الدورية (60s، ملتصقة بـ FGS، `skip-if-unchanged`). هذا هو نمط **at-least-once مع إزالة الازدواج** (`activeBatteryTriggers` + `cooldownMillis`) — وليس ضماناً حرفياً، وهو ما سنبنيه عليه سحابياً.
 
-### 1.2 البنية المستهدفة (Hybrid On-Device + Cloud iPaaS — مرحلة التوسع)
+### 1.2 البنية المستهدفة — عمق البروتوكولات (Event Streaming + Durable Workflows)
 
 ```
-Webhook / OAuth / Schedule ──► Cloud Gateway (K8s Ingress + API Gateway)
-                                    │
-        ┌───────────────────────────┼───────────────────────────────┐
-        ▼                           ▼                               ▼
-┌─────────────────┐      ┌────────────────────┐        ┌────────────────────┐
-│ Event Ingest    │      │ Message Broker     │        │ Control Plane      │
-│ (Webhook →      │      │ Kafka (مواضيع      │        │ (Workflow Registry │
-│  DLQ فورية)     │      │  per-tenant +      │        │  DAGs, Secrets,    │
-│                 │      │  Event Log)        │        │  Rate Limits)      │
-└────────┬────────┘      └─────────┬──────────┘        └─────────┬──────────┘
-         │                        │                            │
-         ▼                        ▼                            ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        WORKFLOW RUNTIME (Go + Temporal)                  │
-│  DAG Compiler → Decision Tasks → Activity Tasks → State (Payload/Context)│
-│  Retry (exponential+backoff) ── Idempotency keys ── Saga/Compensation    │
-│  ┌──────────────┐ ┌───────────────┐ ┌──────────────────┐                 │
-│  │ Trigger Node │→│ Action Node   │→│ Custom Code Node │→ (branch/loop)  │
-│  └──────────────┘ └───────────────┘ └──────────────────┘                 │
-└───────────────────────────┬─────────────────────────────────────────────┘
-                            │
-        ┌───────────────────┼───────────────────────┐
-        ▼                   ▼                       ▼
-┌──────────────┐   ┌────────────────┐   ┌────────────────────────┐
-│ Connectors   │   │ Sandbox        │   │ Observability          │
-│ (OAuth2/     │   │ (WASM +        │   │ (OpenTelemetry traces, │
-│  Webhooks/   │   │  Firecracker)  │   │  per-node input/output │
-│  Polling)    │   └────────────────┘   │  logs, DLQ + Alerts)   │
-└──────────────┘                        └────────────────────────┘
-                            │
-                            ▼
-        ┌───────────────────────────────────────┐
-        │  AI Layer: NL2Flow (Text→Workflow),    │
-        │  Semantic Field Mapping, Error-Agent   │
-        └───────────────────────────────────────┘
+┌────────────────────────────  Cloud Gateway (K8s Ingress + API Gateway + WAF) ─┐
+│  Webhook (توقيع HMAC-SHA256) · OAuth2 Callback · Schedule (Temporal)          │
+└───────────┬───────────────────────────────────────────────────────────────────┘
+            ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│ Event Ingest — Outbox Pattern (معاملاتي)                                      │
+│  الطلب يكتب Order/Event في قاعدة البيانات **داخل نفس المعاملة** ← Outbox      │
+│  Debezium CDC (WAL) يقرأ الـ outbox → Kafka — يمنع «فقدان حدث بين طلبين»      │
+└───────────┬───────────────────────────────────────────────────────────────────┘
+            ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│ Message Broker — Kafka (Redpanda بديل متوافق API)                             │
+│  موضوعات: events.<tenant> (مقسّم على tenantId), dlq.<tenant>, audit           │
+│  ترتيب مضمون per-partition (مفتاح = workflowId) → سلسلة واحدة لا تختلط        │
+│  Consumer Groups لكل عقدة — موازاة أفقية داخل نفس السلسلة بأمان               │
+└───────────┬───────────────────────────────────────────────────────────────────┘
+            ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│ Control Plane — PostgreSQL (Workflow Registry, DAG JSON Schema, Secrets refs, │
+│                            Rate-Limit quotas, Idempotency keys)               │
+└───────────┬───────────────────────────────────────────────────────────────────┘
+            ▼
+┌───────────────────────────────────────────────────────────────────────────────┐
+│ Workflow Runtime — Go + Temporal                                              │
+│  DAG Compiler: JSON → DAG (تحقق من الدورة عبر Kahn) → Decision Tasks          │
+│  كل عقدة = Activity مؤكدة (Idempotency Key = hash(workflowId, nodeId, input)) │
+│  الحالة = Event History (تخزين مؤقت دائم) — استئناف تام بعد موت أي عقدة       │
+│  Saga: كل عقدة قابلة للعكس تُسجّل compensate → تراجع منسّق عند الفشل          │
+└───────────┬───────────────────────────────────────────────────────────────────┘
+            ▼
+┌───────────────┬───────────────────┬───────────────────────┬──────────────────┐
+│ Connectors    │ Sandbox           │ Observability         │ AI Layer         │
+│ OAuth2(PKCE)  │ WASM (Wazero)     │ OTel traces/metrics/  │ NL2Flow →        │
+│ Webhook+HMAC  │ + Firecracker     │ logs (معرّف تنفيذ واحد)│ Schema-validated │
+│ Polling (تكيّف)│ لكود ثقيل         │ per-node in/out logs  │ Auto-mapping     │
+│ REST/GraphQL  │                   │ DLQ + Alerts          │ Error-Agent      │
+└───────────────┴───────────────────┴───────────────────────┴──────────────────┘
 ```
 
-**الفرق الجوهري:** اليوم المحرك يعيش داخل عملية Android (المراقبون يسجّلون في الذاكرة)،
-أما الهدف فمحرك سير عمل مستقل عن الواجهة، والأحداث تدخل عبر ناقل رسائل موزّع،
-وDAG هو منتج من الدرجة الأولى (يُجمَّع ويُتحقق منه قبل التنفيذ).
+**لماذا هذا الشكل تحديداً:**
+- **Outbox Pattern** يحل المشكلة الكلاسيكية «الطلب نجح لكن الحدث ضاع»: الكتابة في قاعدة البيانات والنشر في Kafka تتم بنفس المعاملة عبر CDC.
+- **Kafka Event Log** هو العمود الفقري لكل من `Replay` (إعادة معالجة سلسلة فاشلة من بدايتها)، `Audit`، و`DLQ` — الثلاثة غير ممكنة بكفاءة على Redis Streams (ذاكرة أولاً) أو RabbitMQ (توجيه لا تخزين تاريخي).
+- **Temporal** يملك Event History دائم لكل سير عمل — الموت المفاجئ لعقدة لا يضيع حالة؛ تُستأنف من آخر حدث معالَج.
 
 ---
 
-## 2. جدول أدوات المنظومة (Tech Stack Matrix)
+## 2. التكامل والمكدس التكنولوجي (Integrations & API Strategy)
 
-| الطبقة | التقنية المختارة | البديل | سبب التفوق |
-|---|---|---|---|
-| **لغة المحرك الأساسية (On-Device)** | Kotlin + Coroutines (موجودة) | RxJava | مدمجة في النظام البيئي الحالي، تفاضلية النفقات، `@ApplicationScope` يوزّع العمل عبر `Dispatchers`، تكامل كامل مع Compose |
-| **لغة محرك السحابة (Workflow Runtime)** | Go | Node.js / Python | تزامن خفيف (goroutines لكل عقدة)، بدء فوري، كتابة أخطاء أقل في وقت التشغيل، أفضل أداء/تكلفة لآلاف الـ activity tasks |
-| **سير عمل طويلة العمر (Durable Execution)** | Temporal | BullMQ / Celery | مدمج فيه exactly-once + retry + Saga + وضع إيقاف مؤقت/استئناف للأعوام؛ BullMQ يتطلب بناء كل هذا يدوياً |
-| **ناقل الرسائل** | **Kafka** | Redis Streams / RabbitMQ | RabbitMQ: راوتر AMQP ممتاز لكن سجل الأحداث وإعادة التشغيل من بداية الحدث يحتاج التخزين. Redis: ذاكرة أولاً — لا سجل دائم بمعيار موزّع. Kafka يعطي **Event Log** قابل لإعادة التشغيل (Replay) وهو العمود الفقري لكل من `Exactly-once` و`DLQ` و`Audit` |
-| **قاعدة بيانات المهام (Metadata)** | PostgreSQL (موجودة كهيكل Room على الجهاز؛ سحابياً PG + pg_partman) | MySQL / MongoDB | معاملات ACID لسجل المهام، JSONB لتخزين config العقد، تمدد معماري نظيف من مخطط Room الحالي (Room ↔ PG/JPA تعيين حقل-بحقل) |
-| **تخزين الأحداث/القياس** | ClickHouse | Elasticsearch | استعلامات تحليلية على سجلات التنفيذ بعمودية عالية؛ ES أفضل بحث نصي لكنه أثقل تكلفة لتدفق السجلات |
-| **واجهة البناء المرئي** | React Flow (@xyflow/react) — على الويب؛ وعلى الجهاز تبقى Compose | Rete.js / Drawflow | React Flow: أقدم وأقوى منظومة عقد (نماذج مخصصة، تحكم برمجي كامل بـ viewport، تكامل مع Zustand/Redux)، ومجتمع ضخم لدعم DAG |
-| **عزل كود المستخدم (Sandbox)** | **WebAssembly (Wasmtime/Wazero)** + قفص Firecracker microVM للأكواد الأثقل | Docker لكل خطوة | Docker: دورة حياة ثقيلة (ثوانٍ لتشغيل حاوية) وفاتورة أمان أعلى لكل تنفيذ. Wasm: بدء ~ms، حدود ذاكرة صارمة، بلا وصول للنظام إلا عبر imports صريحة — أنسب لـ «Custom Code Steps» عالية التردد |
-| **تخزين الأسرار** | Vault (Hashicorp) + KMS (تشفير مزدوج، دورة مفاتيح) | أعمدة مشفرة في DB | فصل مسؤوليات: Vault يملك الأسرار، KMS يملك المفاتيح؛ إبطال/تدوير فوري بلا إعادة نشر؛ شهادة SOC2 جاهزة |
-| **الترخيص/الربط الخارجي** | OAuth2.0 (Authorization Code + PKCE) كأساس لكل Connector، Webhooks للدفع، Polling احتياطي | API Keys فقط | OAuth2 يمنح إبطالاً مركزياً وتفويضاً جزئياً؛ Webhooks يقلل الحمل (حدث واحد بدل استطلاع)، Polling يبقى للمصادر بلا webhook |
-| **المراقبة** | OpenTelemetry (traces + metrics + logs موحّدة) → Prometheus → Grafana | سجلات نصية | تتبع موزّع من Webhook حتى آخر عقدة بمعرّف تنفيذ واحد؛ السجلات النصية لا تربط الطلب عبر الخدمات |
-| **الذكاء الاصطناعي** | LLM عبر وكيل محدد الأهداف (وظيفة واحدة: تحويل نص→DAG بصيغة JSON Schema صارمة) + فحوصات مخطط | LLM حر بلا مخطط | كل خروج LLM يُتحقق منه ضد Schema للـ DAG قبل القبول (validation-first) — يمنع هلاوس العقد غير الموجودة |
-| **المنطق الزمني** | Temporal Schedules + Cron بالثواني | AlarmManager وحده | على الجهاز AlarmManager يبقى للجدول؛ في السحابة Temporal Schedules توفر دقة+استمرارية عبر إعادة التشغيل |
+### 2.1 استراتيجية الـ Connectors (SDK داخلي موحّد)
 
----
-
-## 3. جدول تفكيك وتحسين المنطق (Logic & Algorithm Matrix)
-
-| الخوارزمية/الآلية | المنطق الحالي (On-Device) | الحل المطوَّر (Hybrid iPaaS) |
+| آلية الربط | متى | التفاصيل المجهرية |
 |---|---|---|
-| **مطابقة المشغّلات (Trigger Match)** | `automations.filter{enabled}` لكل حدث + مطابقة `TriggerType` — فحص خطي لكل مهمة | **فهرس نشر/اشتراك**: عند حفظ المهمة تُسجَّل في `TriggerIndex (sourceId → ids)`؛ الحدث يصل للفهرس فيقرأ فقط المهام المشتركة بالقناة (O(1) بدل O(N)) |
-| **إعادة المحاولة (Retry)** | محاولة واحدة + تجاهل فوري عند الفشل | **Exponential Backoff + Jitter** (`min(2^n*base, cap) + random(0,jitter)`) مع **Idempotency Key** لكل محاولة — يمنع ازدواج تنفيذ الإجراء الحسّاس (مثل تبديل الشبكة) عند إعادة المحاولة |
-| **منع الازدواج (Deduplication)** | `activeBatteryTriggers` + `cooldownMillis` في الذاكرة | عتبة الجلسة في ذاكرة موزّعة (Redis) + **عتبة دائمة** في قاعدة البيانات (صعود/هبوط مُسجَّل) — ينجو من إعادة تشغيل أي عقدة |
-| **تتبع الحالة بين العقد (Payload Context)** | لا يوجد سياق بين الخطوات (كل إجراء مستقل) | **Payload JSON Path** عبر ممر ضيق: كل عقدة تُعلن `input: "$.paths[].lat"` وتكتب `output: "$.result"` — تخزين دلتا فقط (JSON Merge Patch) بدل نسخ كامل يقلل الذاكرة/الشبكة لسير العمل الضخم |
-| **حدود المعدل (Rate Limiting)** | لا يوجد — تحكم يدوي | **خوارزمية Token Bucket لكل Connector/tenant** (Redis Lua atomic) + **Backoff احتراماً لرؤوس `Retry-After`** في الاستجابات؛ تعليق سلس (throttle) بدل فشل جماعي |
-| **مطابقة الخروج (Exit Matching)** | `runExit` عند انتهاء الشرط | **تعبيرات حالة على مستوى المحرك**: `when(trigger_state).is_inactive_for(5m) → runExit` — نفس الآلية لكن بجدولة زمنية مؤكدة عبر Temporal |
-| **المزامنة الرائعة (Backpressure)** | غير موجودة — المعالجة فورية | **Consumer lag كإشارة تحكم**: لو تأخر الـ consumer عن الموضوع تجاوز حداً → تفعيل windowed processing (تجميع الأحداث المتشابهة) وتأجيل غير الحساس |
-| **الفشل في منتصف السلسلة (Partial Failure)** | الإجراءات متسلسلة؛ فشل واحد يوقف الباقي | **Saga/Compensation**: كل عقدة قابلة للعكس تُسجَّل `compensate`؛ عند فشل العقدة 3 تُنفَّذ تعويضات 2 و1 بالعكس — اتساق نهائي بلا مهمة «نصف منفذة» |
-| **معالجة ملايين المهام (Throughput)** | جهاز واحد، تزامن كوروتين | **Sharding**: التقسيم حسب `tenantId % partitions` مع **Consumer Group** لكل عقدة — موازاة أفقية بلا ترتيب مكسور داخل السلسلة الواحدة |
-| **ضمان التسليم (Delivery)** | بث النظام (قد يُفقد) + شبكة أمان دورية | **At-least-once + Idempotency** (وليس exactly-once الحرفي): التنفيذ قد يتكرر لكن أثره لا — هذا هو exactly-once العملي المعتمد في Temporal |
+| **OAuth2.0 (Authorization Code + PKCE)** | كل Connector لمستخدم نهائي | `code_verifier` عشوائي 43-128 حرفاً، `code_challenge = base64url(sha256(verifier))`؛ الـ refresh_token **مُدوَّر عند كل تجديد** ومخزّن في Vault (وليس في DB)؛ عند رفض refresh → إبطال الاتصال وإشعار المستخدم |
+| **Webhooks (دفع)** | المصادر التي تدعمها | توقيع الطلب `HMAC-SHA256(secret, body)` + مقارنة `timing-safe`؛ إرجاع `202` فوراً و`4xx` للرسائل المكررة (Idempotency-Key) |
+| **Polling (تكيّف)** | مصادر بلا Webhook | **Backoff تكيّفي**: يبدأ كل 60s؛ عند 429 يضاعف الفاصل حتى سقف (مثلاً 15 دقيقة)؛ عند نشاط متزايد يخفض — توازن بين الفورية والتكلفة |
+| **REST vs GraphQL** | REST للـ Connectors الخارجيين (تخزين مؤقت بسيط)، GraphQL داخلياً لواجهة السير | GraphQL داخلياً يقلل الحقول الزائدة للـ Dashboard؛ خارجياً REST هو المعيار الأوسع للربط |
+
+### 2.2 لغات وأطر المعالجة والبناء
+
+| الوجهة | الاختيار | البديل | لماذا |
+|---|---|---|---|
+| On-Device | **Kotlin + Coroutines** (موجود) | RxJava | تفاضلية نفقات، تكامل Compose/Hilt، صفر هجرة |
+| Runtime سحابي | **Go** | Node.js | goroutine لكل عقدة (~2KB بدل ~4MB لخيط JVM)، بدء ~ms، كثافة عالية لكل GB عند آلاف الـ workflows |
+| Durable Workflows | **Temporal SDK (Go)** | BullMQ/Celery | Event History + Saga + retry مدمج |
+| Builder ويب | **React + TypeScript + React Flow** | Rete.js/Drawflow | منظومة عقد أعمق، تحكم برمجي كامل، مجتمع ضخم |
+| Builder جهاز | **Compose (موجود)** | — | استمرار، لا هجرة |
 
 ---
 
-## 4. خارطة طريق التنفيذ المجهرية (Micro-Implementation Roadmap)
+## 3. المنطق البرمجي والخوارزميات — تفكيك مجهري
 
-> القاعدة: **كل مرحلة تُسلم شيئاً قابلاً للاختبار والاستخدام**، والانتقال ينتظر اجتياز اختبارات المرحلة.
-> الأولوية: تحصين ما يعمل → توسيع النموذج الذري → سحابة → ذكاء.
+### 3.1 إعادة المحاولة الذكية (Exponential Backoff + Jitter)
 
-### المرحلة 0 — تحصين الأساس (0–2 أسابيع) ✅ جزئياً منجز
-- [x] شبكة أمان البطارية (60s، zero-wakeup) — منجز
-- [x] ضمان إقلاع بلا DSN (MergedManifestNoSentryTest) — منجز
-- [x] Java 21 toolchain واختبارات SDK 37 — منجز
-- [ ] **TriggerIndex**: تحويل `filter{enabled}` الخطي إلى فهرس `sourceId → ids` مع `Flow` من قاعدة البيانات (أساس المرحلة 1)
-- [ ] **Context Payload**: نموذج `WorkflowRunContext` (معرّف التنفيذ، متغيرات، دلتا النتائج) يمر عبر الـ ExecutionEngine
+```
+retry_delay(n) = min(cap, base * 2^(n-1)) + random(0, jitter*cap)
+   base=1s, cap=60s, jitter=0.2
+   n=1 → ~1s   n=2 → ~2s   n=3 → ~4s   …   n=7+ → ~60s
+```
+- **فئات الأخطاء:** أخطاء قابلة لإعادة المحاولة (5xx, timeouts, 429 مع `Retry-After`) تُعاد؛ أخطاء دائمة (4xx validation) تُفشل فوراً إلى DLQ — لا نحرق محاولات على خطأ لن ينجح.
+- **Idempotency Key** لكل محاولة: `sha256(workflowId|nodeId|inputHash)` — التكرار لا يكرر الأثر (مهم جداً لإجراءات حساسة مثل تبديل وضع الشبكة أو إرسال رسالة).
 
-### المرحلة 1 — محرك DAG حقيقي (2–6 أسابيع)
-- [ ] نموذج `DagNode` في `domain` (id, type, inputSelector, outputPath, retryPolicy, compensate)
-- [ ] محوّل المخطط الحالي (trigger→actions→exit) إلى **DAG مُتحقق منه** (كشف الدورات عبر Kahn's algorithm)
+### 3.2 إدارة الحالة بين العقد (Payload Context) بأقل ذاكرة
+
+```
+عقدة A: output → "$.weather.temp" = 21.4
+عقدة B: input  ← "$.weather"    (JSONPath selector)
+التخزين: JSON Merge Patch (دلتا فقط) — لا نسخة كاملة من السياق بعد كل عقدة
+الحد الأعلى: 256KB لكل سياق تنفيذ (تنبيه عند الاقتراب) — يمنع انفجار الذاكرة
+الوصول: قراءة-فقط داخل العقدة؛ الكتابة فقط عبر إعلان output صريح (لا أثر جانبي خفي)
+```
+
+### 3.3 حدود المعدل (Rate Limiting) الموزّعة
+
+- **Token Bucket** في Redis بـ Lua atomic (معدل + سعة لكل Connector/tenant).
+- احترام رؤوس `429` و`Retry-After` — تعليق السلسلة (throttle) بدل فشل جماعي.
+- عند استنفاد الحصة: إعادة جدولة العقدة (Temporal) بدل إسقاط الحدث.
+
+### 3.4 مطابقة المشغّلات — من O(N) إلى O(1)
+
+- **اليوم:** `automations.filter{enabled}` لكل حدث → فحص خطي.
+- **الهدف (المرحلة 0):** `TriggerIndex(sourceId → ids)` يُبنى من `Flow` قاعدة البيانات ويُحدَّث عند الحفظ؛ الحدث يصل للفهرس فيقرأ المشتركين فقط. مع `DAG` يصبح فحص `enabled + constraints` جزءاً من الـ Decision Task.
+
+---
+
+## 4. تكامل الذكاء الاصطناعي (AI-Powered Automation)
+
+| القدرة | الخط أنابيب المجهري | الضمانات |
+|---|---|---|
+| **NL2Flow (نص → سير عمل)** | 1) LLM → **JSON Schema صارم** للـ DAG ← 2) **فحص مخطط** (عقد موجودة، حقول مطلوبة، أنواع) ← 3) عرض في الباني للمراجعة | أي مخرج لا يجتاز الفحص يُرفض — يمنع هلاوس العقد؛ LLM اقتراح وليس قرار |
+| **Auto-mapping دلالي** | تضمينات (embeddings) لحقول المصدر/الهدف → تشابه جيب التمام ← إعادة ترتيب بـ LLM (إعادة ترتيب قصيرة) → اقتراحات قابلة للتأكيد | المستخدم يؤكد كل تعيين قبل الحفظ |
+| **Error-Agent** | عند فشل سير عمل: RAG فوق سجلات التنفيذ (أي عقدة، أي input، أي خطأ) → اقتراح إصلاح محدد بالسياق | **لا تعديل ذاتي أبداً** — اقتراح فقط، التنفيذ بموافقة صريحة |
+
+---
+
+## 5. تجربة المستخدم وباني سير العمل (Visual Builder)
+
+- **React Flow (ويب):** عقد مخصصة (Trigger/Action/Condition/Custom Code)، Handles موزّعة، Minimap، أدوات توازن تلقائي، Undo/Redo عبر Zustand.
+- **الوضع الحي (Live Test Mode):** تنفيذ تجريبي ببيانات وهمية (Mock) داخل الباني → إبراز العقدة الجارية ومسار البيانات (Input→Output لكل عقدة) بلونين — رؤية فورية قبل النشر.
+- **عرض مسار التنفيذ:** كل تنفيذ حقيقي يحمل `traceId` → في صفحة التاريخ يُعرض المسار الكامل: كل عقدة، زمنها، مدخلاتها/مخرجاتها (من OTel).
+- **جهاز (Compose):** يبقى المحرر الحالي (بطاقات مشغّلات/قيود/إجراءات) — يُضاف لاحقاً عرض مسار التنفيذ في `feature/history`.
+
+---
+
+## 6. بيئة التنفيذ الآمنة (Sandboxing & Security)
+
+| الطبقة | الاختيار | التفاصيل المجهرية |
+|---|---|---|
+| **كود المستخدم (خفيف، عالي التردد)** | **WebAssembly — Wazero/Wasmtime** | حدود ذاكرة صارمة (مثلاً 32MB)، **لا وصول للنظام إطلاقاً** إلا عبر imports صريحة (لا شبكة افتراضياً، لا FS، لا env)، بدء ~ms، حد CPU (نفقات مُقاسة) |
+| **كود ثقيل (سيلينيوم/معالجة ملفات)** | **Firecracker microVM** | VM خفيفة (~125ms إقلاع، 5MB ذاكرة) بدل حاوية ثقيلة؛ عزل نواة كامل |
+| **لماذا ليس Docker لكل خطوة** | — | حاوية لكل تنفيذ = 1-3 ثواني إقلاع + سطح هجوم نواة مشتركة — غير اقتصادية لملايين الخطوات |
+| **الأسرار** | **Vault + KMS (تشفير مزدوج)** | Vault يملك الأسرار، KMS يملك المفاتيح؛ تدوير/إبطال فوري؛ كل تشفير AES-256-GCM؛ لا أسرار في السجلات أو الـ payload (references فقط) |
+| **الجهاز** | **KeystoreSecureStorage (موجود)** | مفاتيح في Keystore Android (Hardware-backed حيثما توفّر) — تبقى حتى بعد تشفير السحابة |
+
+---
+
+## 7. المراقبة والسجلات والشفافية (Observability & Execution Logs)
+
+- **OpenTelemetry موحّد:** `traceId` واحد من Webhook حتى آخر عقدة؛ كل عقدة تسجّل **input/output** (مقنّعاً للأسرار) + الزمن + الحالة.
+- **DLQ (Dead Letter Queue):** رسالة فشلت نهائياً (بعد استنفاد الـ retries) → `dlq.<tenant>` مع سبب الفشل + عدد المحاولات → تنبيه بلا ضجيج (threshold + تجميع) + واجهة «إعادة تشغيل من DLQ».
+- **التنبيهات:** تجميع حسب النمط (نفس الخطأ × N في نافذة زمنية) — تنبيه واحد بدل آلاف.
+- **سجل التنفيذ للمستخدم:** صفحة history تعرض per-node in/out — شفافية كاملة («أي بيانات دخلت وأي خرجت»).
+
+---
+
+## 8. المرونة والاستمرارية (Resiliency & Fault Tolerance)
+
+| التهديد | الحل المجهري |
+|---|---|
+| موت عقدة في منتصف السلسلة | Temporal Event History → استئناف من آخر حدث معالَج (لا إعادة من البداية) |
+| ازدواج التنفيذ بعد إعادة المحاولة | **At-least-once + Idempotency** (وليس exactly-once الحرفي المكلف): الأثر لا يتكرر حتى لو تكرر الطلب |
+| «حدث نجح والطلب لم يُسجَّل» | **Outbox Pattern** (كتابة + نشر بنفس المعاملة عبر CDC) |
+| فقدان ترتيب السلسلة عند التوسع | مفتاح القسمة = workflowId → partition واحد → ترتيب مضمون |
+| فشل قواعد البيانات | PostgreSQL HA (Patroni/etcd) + فشل تلقائي |
+| الكوارث | **Chaos Testing** أسبوعي: قتل عقدة/خادم/شبكة في منتصف تنفيذ → تحقق من الاستئناف (اختبار آلي في CI للبنية السحابية) |
+| انقطاع الشبكة على الجهاز | الجهاز كـ **Edge Node**: تنفيذ محلي فوري، مزامنة النتائج عند عودة الاتصال (إزالة ازدواج عبر Idempotency) |
+
+---
+
+## 9. جدول أدوات المنظومة (Tech Stack Matrix — موسّع)
+
+| الطبقة | المختار | البديل | سبب التفوق (المقارنة) |
+|---|---|---|---|
+| محرك الجهاز | Kotlin + Coroutines | RxJava | تفاضلية، تكامل Hilt/Compose، لا هجرة |
+| Runtime سحابي | Go | Node/Python | goroutine ~2KB، بدء ms، كثافة ×50 للطلبات الخاملة |
+| Durable Workflows | Temporal | BullMQ/Celery | Event History + Saga + retry مدمج؛ BullMQ يبنيها يدوياً |
+| ناقل الرسائل | **Kafka** | Redis Streams / RabbitMQ | سجل دائم قابل لإعادة التشغيل (Replay) → DLQ/Audit/Exactly-once؛ Redis بلا سجل موزّع دائم، RabbitMQ موجّه لا تاريخي |
+| CDC للـ Outbox | Debezium (PostgreSQL WAL) | استطلاع يدوي للـ outbox | قراءة WAL بلا عبء على قاعدة الإنتاج، زمن تأخير ~ms |
+| بيانات المهام | PostgreSQL (+ JSONB) | MySQL/Mongo | ACID + JSONB؛ تعيين حقل-بحقل نظيف من مخطط Room |
+| قياس السجلات | ClickHouse | Elasticsearch | تحليلات عمودية بثمن أقل لتدفق السجلات |
+| Builder | React Flow (ويب) + Compose (جهاز) | Rete.js/Drawflow | أعمق منظومة عقد، مجتمع ضخم، تحكم كامل |
+| Sandbox | WASM (Wazero) + Firecracker | Docker لكل خطوة | ms بدل ثوانٍ؛ ذاكرة صارمة؛ عزل كامل بدون نواة مشتركة |
+| الأسرار | Vault + KMS | أعمدة مشفرة | تدوير/إبطال فوري، فصل مسؤوليات، SOC2 |
+| الربط | OAuth2(PKCE) + Webhook + Polling | API Keys | إبطال مركزي، تفويض جزئي، حمل أقل |
+| المراقبة | OpenTelemetry → Prometheus → Grafana | سجلات نصية | trace موزّع بمعرّف واحد |
+| الذكاء | LLM + JSON Schema صارم | LLM حر | فحص المخطط قبل القبول — صفر هلاوس |
+| Cache/معدلات | Redis (Lua atomic) | MySQL locks | ذرية موزّعة بالملي ثانية |
+
+---
+
+## 10. خارطة الطريق المجهرية (Micro-Implementation Roadmap)
+
+> القاعدة: كل مرحلة تُسلم شيئاً يعمل ويُختبر؛ لا ننتقل قبل اجتياز اختبارات المرحلة. الأرقام تقديرية.
+
+### المرحلة 0 — تحصين الأساس (0–2 أسبوع) — ✅ جزئياً منجز
+- [x] شبكة أمان البطارية 60s (zero-wakeup) · [x] إقلاع بلا DSN (MergedManifestNoSentryTest) · [x] Java 21 toolchain
+- [ ] **TriggerIndex**: فهرس `sourceId → ids` من `Flow` قاعدة البيانات + تحديث عند الحفظ + اختبارات ذرية (O(1) بدل O(N))
+- [ ] **PayloadContext**: `WorkflowRunContext` (runId, variables, delta) يمر عبر ExecutionEngine
+
+### المرحلة 1 — محرك DAG (2–6 أسبوع)
+- [ ] `DagNode` في domain (id, type, inputSelector, outputPath, retryPolicy, compensate)
+- [ ] محوّل المخطط (trigger→actions→exit) إلى **DAG مُتحقق** — كشف الدورة عبر **Kahn's algorithm** (قائمة TopologicalOrder تُبنى وتُختبر)
 - [ ] `RetryPolicy` لكل إجراء: exponential backoff + jitter + idempotency key
-- [ ] `PayloadContext` + JSON Path selectors (بدء بتطبيقين فعليين: الموقع والبيانات)
-- [ ] اختبارات ذرية لكل خوارزمية (نمط `BatteryTriggerMatcher` الحالي)
+- [ ] JSONPath selectors على PayloadContext (تطبيقا الموقع والبيانات)
+- [ ] اختبارات ذرية لكل خوارزمية (نمط BatteryTriggerMatcher)
 
-### المرحلة 2 — باني مرئي حقيقي (6–10 أسابيع)
-- [ ] Web: `React Flow` + `@xyflow/react` — لوحة عقد (سحب/إفلات) تصدّر `DAG JSON Schema`
-- [ ] معاينة حية: محاكي تنفيذ يعرض مسار البيانات بين العقد (إبراز العقدة الجارية)
-- [ ] تعيين الحقول رسومياً (Source field → Target field) مع تحقق النوع
-- [ ] تصدير/استيراد JSON + إصدار السير (Versioning)
+### المرحلة 2 — الباني المرئي (6–10 أسبوع)
+- [ ] Web: React Flow — لوحة عقد (سحب/إفلات) تصدّر DAG JSON Schema
+- [ ] Live Test Mode: محاكي ببيانات وهمية + إبراز العقدة الجارية + مسار البيانات
+- [ ] تعيين حقول رسومي (Source→Target) مع تحقق النوع
+- [ ] Versioning + استيراد/تصدير JSON
 
-### المرحلة 3 — السحابة (10–16 أسبوعاً)
-- [ ] **Gateway**: Webhook ingest → Kafka (موضوعات لكل tenant، ضغط، DLQ فوري)
-- [ ] **Runtime Go + Temporal**: تشغيل نفس DAG JSON؛ كل عقدة Activity مؤكدة بـ idempotency key
-- [ ] **Connectors v1**: OAuth2 (PKCE) + Webhook + Polling — Google، Slack، Telegram، Weather، HTTP عام
-- [ ] **Vault + KMS** للأسرار، **Redis Token Bucket** للمعدلات
-- [ ] **OpenTelemetry**: trace واحد من Webhook حتى آخر عقدة + سجل input/output لكل عقدة
+### المرحلة 3 — السحابة (10–16 أسبوع)
+- [ ] Gateway + Kafka (مواضيع لكل tenant) + Outbox عبر Debezium
+- [ ] Runtime Go + Temporal (تشغيل نفس DAG JSON؛ كل عقدة Activity مؤكدة)
+- [ ] Connectors v1: Google، Slack، Telegram، Weather، HTTP عام (OAuth2 + Webhook + Polling)
+- [ ] Vault + KMS + Token Bucket (Redis)
+- [ ] OTel: trace واحد + per-node input/output logs
 
-### المرحلة 4 — الذكاء الاصطناعي (16–20 أسبوعاً)
-- [ ] **NL2Flow**: LLM → JSON Schema صارم → فحص مخطط → عرض في الباني
-- [ ] **Auto-mapping**: تضمينات دلالية لحقول المصدر/الهدف (semantic matching) مع اقتراحات قابلة للتأكيد
-- [ ] **Error-Agent**: عند فشل سير عمل → اقتراح إصلاح بالسياق (ما العقدة، ما المدخلات، ما الخطأ) — لا تعديل ذاتي بدون موافقة
+### المرحلة 4 — الذكاء (16–20 أسبوع)
+- [ ] NL2Flow: LLM → JSON Schema → فحص → عرض في الباني
+- [ ] Auto-mapping دلالي (تضمينات + إعادة ترتيب LLM) باقتراحات مؤكَّدة
+- [ ] Error-Agent (RAG على السجلات، اقتراحات بموافقة)
 
-### المرحلة 5 — التوسع والأمان (20+ أسبوعاً)
-- [ ] **Sandbox**: Wasm (Wazero/Wasmtime) لكود المستخدم + قفص Firecracker للخطوات الثقيلة
+### المرحلة 5 — التوسع والأمان (20+ أسبوع)
+- [ ] Sandbox: WASM (Wazero) + Firecracker
 - [ ] Sharding + autoscaling (KEDA على lag الكافكا)
-- [ ] اختبارات تحميل (ملايين الأحداث/اليوم) + Chaos (قتل عقدة في منتصف سلسلة → استئناف)
-- [ ] ضبط الـ On-Device ليعمل كـ **Edge Node** (مزامنة مع السحابة عند الاتصال، تنفيذ محلي عند الانقطاع)
+- [ ] Chaos tests + اختبارات تحميل (ملايين الأحداث/اليوم)
+- [ ] الجهاز كـ **Edge Node** (مزامنة + إزالة ازدواج عبر Idempotency)
 
 ---
 
-## 5. القرارات التقنية الحرجة (لماذا هذه دون غيرها)
+## 11. القرارات الحرجة — الموجز
 
-1. **Kafka فوق Redis Streams**: التطبيق يحتاج إعادة تشغيل التاريخ (Replay) لكل تنفيذ مكتمل وإعادة معالجة بعد فشل عقدة؛ Kafka يسجل كل شيء ويسمح بـ `reset to beginning` لكل Consumer Group — Redis يخزّن في الذاكرة مع حدود ترحيل.
-2. **Go فوق Node للـ Runtime**: كل عقدة سير عمل = إما goroutine خفيفة أو Task بحدود زمنية؛ Go يعطي كثافة عالية لكل GB مقارنة بـ Node (حمل ~50× أقل لكل طلب خامل) — حاسم عند آلاف الـ workflows المتزامنة.
-3. **Wasm فوق Docker للساندبوكس**: حاويات Docker لخطوة كود واحدة = 1-3 ثواني إقلاع + سطح هجوم أكبر (نواة مشتركة)؛ Wasm معزول بذاكرة 32-bit صارمة ويقلع في أجزاء من المللي ثانية — لخطوات المستخدم الصغيرة هو الفارق بين «تجربة فورية» و«بانتظار».
-4. **At-least-once + Idempotency فوق Exactly-once الحرفي**: الـ exactly-once الموزع الحقيقي (مثل تنسيق المعاملات الموزعة) مكلف ويزيد زمن الاستجابة بشكل كبير؛ التطبيق العملي المعتمد في Temporal هو at-least-once مع مفاتيح عدم تكرار — النتيجة للمستخدم واحدة تماماً.
-5. **Temporal فوق بناء صفّ طوابير مخصص**: بناء خزنة حالة + scheduler + retry + saga يدوياً = 6-12 شهر عمل إضافي وأخطاء حدودية مستعصية؛ Temporal يحزمها كمنتج مختبَر مع نموذج ذهني موثّق.
+1. **Kafka فوق Redis**: إعادة تشغيل التاريخ لكل تنفيذ يحتاج سجلاً دائماً موزّعاً — Redis تخزين ذاكرة أولاً.
+2. **Go فوق Node**: حمل ~50× أقل لكل طلب خامل — حاسم عند آلاف الـ workflows.
+3. **WASM فوق Docker**: «تجربة فورية» مقابل «بانتظار» لخطوات المستخدم عالية التردد.
+4. **At-least-once + Idempotency فوق Exactly-once الحرفي**: المعاملات الموزعة الحقيقية مكلفة وبطيئة؛ مفتاح النجاح عدم تكرار الأثر — والنتيجة للمستخدم واحدة.
+5. **Temporal فوق صفّ مخصص**: 6–12 شهر عمل إضافي وأخطاء حدودية — Temporal يحزمها كمنتج مختبَر.
+6. **Outbox فوق النشر المباشر**: القناة الوحيدة التي تضمن «طلب ناجح = حدث موجود» عند الفشل المفاجئ.
 
 ---
 
-## 6. خلاصة تنفيذية
+## 12. الخلاصة التنفيذية
 
-- **ما تملكه اليوم فعلاً**: محرك أحداث كامل على الجهاز (11 مصدر حدث، إجراءات صوت/شبكة/إشعار/ROM/بلوتوث، قيود، سلوك خروج، تكامل ROM Evolution X، أمان Keystore، خصوصية M3) مع 472+ اختباراً وبنية وحدات نظيفة.
-- **الفجوة الحرجة**: لا DAG (تسلسل فقط)، لا سياق بيانات بين الخطوات، لا retry، لا فهرسة مشغّلات، لا سحابة.
-- **الأثر الأكبر بأقل جهد**: المرحلة 0 (TriggerIndex + PayloadContext) و1 (DAG + Retry) — ترفع المنصة من «أتمتة بسيطة» إلى «محرك سير عمل» دون أي إعادة بناء للواجهة.
-- **الاتجاه المعماري الصحيح**: الهجين (جهاز + سحابة) لأن جوهر التطبيق خصوصيته **محلية/لحظية** (تحكم بالنظام، شبكة، موقع) بينما السحابة تضيف **الاتساق والتوسع والذكاء** — وهما لا يتنافسان بل يتكاملان عبر Edge sync.
+- **تملك اليوم:** محرك أحداث كامل على الجهاز (11 مصدر، إجراءات صوت/شبكة/ROM/بلوتوث، قيود، سلوك خروج، تكامل Evolution X، أمان Keystore، +472 اختباراً) — أساس صلب لا يُهدم.
+- **الفجوات الحرجة:** لا DAG (تسلسل فقط)، لا سياق بيانات، لا retry، لا فهرسة مشغّلات، لا سحابة.
+- **أعلى عائد بأقل جهد:** المرحلة 0 (TriggerIndex + PayloadContext) ثم 1 (DAG + Retry) — ترقية من «أتمتة بسيطة» إلى «محرك سير عمل» دون إعادة بناء الواجهة، وكل خطوة قابلة للاختبار الذري.
+- **الاتجاه المعماري:** الهجين — خصوصية الجهاز (تحكم بالنظام/شبكة/موقع) + اتساق السحابة وتوسعها وذكائها، عبر Edge sync مع إزالة الازدواج.
