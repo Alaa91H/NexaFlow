@@ -1,17 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="widgets_title">Widgets</string>
-    <string name="section_available">AVAILABLE WIDGETS</string>
-    <string name="widget_quick_toggle">Quick Toggle</string>
-    <string name="widget_quick_toggle_desc">Enable or disable all automations from your home screen with one tap.</string>
-    <string name="widget_status_card">Status Card</string>
-    <string name="widget_status_card_desc">Live view of active automations and the last run time.</string>
-    <string name="widget_not_added">Not added to your home screen yet.</string>
-    <string name="section_how_to">HOW TO ADD</string>
-    <string name="how_to_text">Long-press an empty spot on your home screen, tap Widgets, then find NexaFlow.</string>
-    <string name="how_to_sub">Drag the Quick Toggle or Status Card widget onto your screen.</string>
-    <string name="section_tip">TIP</string>
-    <string name="tip_text">Widgets update automatically whenever an automation runs or its state changes.</string>
+    <string name="widgets_title">Quick settings</string>
 
     <string name="section_tiles">QUICK SETTINGS TILES</string>
 

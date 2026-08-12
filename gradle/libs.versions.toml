@@ -12,6 +12,7 @@ v1_7_0 = "1.7.0"
 v1_9_0 = "1.9.0"
 v13_1_5 = "13.1.5"
 v18_1_0 = "18.1.0"
+v19_2_0 = "19.2.0"
 v2_11_0 = "2.11.0"
 v2_11_2 = "2.11.2"
 v2_14_0 = "2.14.0"
@@ -21,7 +22,6 @@ v2_60_1 = "2.60.1"
 v2_8_4 = "2.8.4"
 v2_9_8 = "2.9.8"
 v20240303 = "20240303"
-v6_1_20 = "6.1.20"
 v2026_06_01 = "2026.06.01"
 v3_4_1 = "3.4.1"
 v3_7_0 = "3.7.0"
@@ -73,11 +73,11 @@ androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "v
 androidx-test-uiautomator-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "v2_4_0" }
 androidx-work-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "v2_11_2" }
 com-google-android-gms-play-services-auth-api-phone = { module = "com.google.android.gms:play-services-auth-api-phone", version.ref = "v18_1_0" }
+com-google-android-gms-play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "v19_2_0" }
 com-google-code-gson-gson = { module = "com.google.code.gson:gson", version.ref = "v2_14_0" }
 com-google-dagger-hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "v2_60_1" }
 com-google-dagger-hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "v2_60_1" }
 dev-rikka-shizuku-api = { module = "dev.rikka.shizuku:api", version.ref = "v13_1_5" }
-org-osmdroid-osmdroid-android = { module = "org.osmdroid:osmdroid-android", version.ref = "v6_1_20" }
 dev-rikka-shizuku-provider = { module = "dev.rikka.shizuku:provider", version.ref = "v13_1_5" }
 io-sentry-sentry-android = { module = "io.sentry:sentry-android", version.ref = "v8_52_0" }
 javax-inject-javax-inject = { module = "javax.inject:javax.inject", version.ref = "v1" }

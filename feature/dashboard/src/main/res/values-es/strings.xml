@@ -2,9 +2,6 @@
 <resources>
     <string name="dashboard_title">NexaFlow</string>
     <string name="dashboard_subtitle">Automatiza tu dispositivo a tu manera</string>
-    <string name="status_wifi">Wi-Fi</string>
-    <string name="status_mobile_data">Datos móviles</string>
-    <string name="status_offline">Sin conexión</string>
     <string name="dashboard_settings">Ajustes</string>
     <string name="search_hint">Buscar tareas</string>
     <string name="clear_search">Borrar búsqueda</string>

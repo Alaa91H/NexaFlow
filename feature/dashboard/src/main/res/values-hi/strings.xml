@@ -2,9 +2,6 @@
 <resources>
     <string name="dashboard_title">NexaFlow</string>
     <string name="dashboard_subtitle">अपने डिवाइस को अपने तरीके से स्वचालित करें</string>
-    <string name="status_wifi">वाई-फ़ाई</string>
-    <string name="status_mobile_data">मोबाइल डेटा</string>
-    <string name="status_offline">ऑफ़लाइन</string>
     <string name="dashboard_settings">सेटिंग्स</string>
     <string name="search_hint">कार्य खोजें</string>
     <string name="clear_search">खोज साफ़ करें</string>

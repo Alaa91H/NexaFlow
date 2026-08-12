@@ -59,7 +59,6 @@ dependencies {
     ksp(libs.com.google.dagger.hilt.compiler)
     implementation(project(":domain"))
     implementation(project(":core:execution"))
-    implementation(project(":core:automation-engine"))
     implementation(project(":core:ui-components"))
     testImplementation(libs.junit.junit)
 }

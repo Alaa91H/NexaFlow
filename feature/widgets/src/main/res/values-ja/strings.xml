@@ -1,17 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="widgets_title">ウィジェット</string>
-    <string name="section_available">利用可能なウィジェット</string>
-    <string name="widget_quick_toggle">クイック切り替え</string>
-    <string name="widget_quick_toggle_desc">ホーム画面からワンタップですべての自動化を有効または無効にします。</string>
-    <string name="widget_status_card">ステータスカード</string>
-    <string name="widget_status_card_desc">アクティブな自動化と最終実行時刻のライブ表示。</string>
-    <string name="widget_not_added">まだホーム画面に追加されていません。</string>
-    <string name="section_how_to">追加方法</string>
-    <string name="how_to_text">ホーム画面の空きスペースを長押しし、ウィジェットをタップしてNexaFlowを探します。</string>
-    <string name="how_to_sub">クイック切り替えまたはステータスカードのウィジェットを画面にドラッグします。</string>
-    <string name="section_tip">ヒント</string>
-    <string name="tip_text">自動化が実行されたり状態が変わったりすると、ウィジェットは自動的に更新されます。</string>
+    <string name="widgets_title">クイック設定</string>
 
     <string name="section_tiles">クイック設定タイル</string>
 

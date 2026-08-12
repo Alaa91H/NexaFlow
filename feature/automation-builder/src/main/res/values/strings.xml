@@ -492,4 +492,8 @@
     <string name="location_fix_failed">"Couldn't get your location. Enable location and try again."</string>
     <string name="map_unavailable">No map app found</string>
     <string name="confirm_location">Confirm location</string>
+    <string name="map_search_hint">Search for a place</string>
+    <string name="map_pick_hint">Tap the map to place the point — drag the marker to fine-tune</string>
+    <string name="map_no_key">"Google Maps isn't configured yet. Add NEXAFLOW_MAPS_API_KEY to gradle.properties and rebuild."</string>
+    <string name="map_search_not_found">Place not found</string>
 </resources>

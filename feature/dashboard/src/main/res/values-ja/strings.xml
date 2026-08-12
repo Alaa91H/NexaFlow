@@ -2,9 +2,6 @@
 <resources>
     <string name="dashboard_title">NexaFlow</string>
     <string name="dashboard_subtitle">お好みに合わせてデバイスを自動化</string>
-    <string name="status_wifi">Wi-Fi</string>
-    <string name="status_mobile_data">モバイルデータ</string>
-    <string name="status_offline">オフライン</string>
     <string name="dashboard_settings">設定</string>
     <string name="search_hint">タスクを検索</string>
     <string name="clear_search">検索をクリア</string>

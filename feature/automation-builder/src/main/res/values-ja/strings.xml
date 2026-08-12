@@ -494,4 +494,8 @@
     <string name="network_hotspot">ホットスポット</string>
     <string name="charging_state_section">充電状態</string>
     <string name="charging_no">充電なし</string>
+    <string name="map_search_hint">場所を検索</string>
+    <string name="map_pick_hint">マップをタップして地点を配置 — マーカーをドラッグして微調整</string>
+    <string name="map_no_key">Googleマップがまだ設定されていません。gradle.propertiesにNEXAFLOW_MAPS_API_KEYを追加して再ビルドしてください。</string>
+    <string name="map_search_not_found">場所が見つかりません</string>
 </resources>

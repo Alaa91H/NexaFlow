@@ -36,8 +36,8 @@ android {
         applicationId = "com.nexaflow.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 12
-        versionName = "3.9.1-alpha"
+        versionCode = 13
+        versionName = "3.10.0-alpha"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -52,6 +52,10 @@ android {
             "SENTRY_DSN",
             "\"${providers.gradleProperty("NEXAFLOW_SENTRY_DSN").orElse("").get()}\""
         )
+        // Google Maps API key for the embedded map picker. Optional: an empty
+        // key renders a setup hint instead of a map. Never commit a real key.
+        manifestPlaceholders["MAPS_API_KEY"] =
+            providers.gradleProperty("NEXAFLOW_MAPS_API_KEY").orElse("").get()
     buildFeatures {
         buildConfig = true
     }

@@ -73,10 +73,10 @@ dependencies {
     // LocationAccess (silent location toggle + single-shot fix) for the
     // location trigger editor.
     implementation(project(":core:automation-engine"))
-    // In-app OpenStreetMap picker (no Google API key needed): the map-picking
-    // button used to hand off to an external maps app, but modern Google Maps
-    // no longer supports ACTION_PICK, so the user never got a point back.
-    implementation(libs.org.osmdroid.osmdroid.android)
+    // Embedded Google Maps picker: display + search + point + marker + radius
+    // circle. The key is optional (NEXAFLOW_MAPS_API_KEY gradle property);
+    // without it the screen shows a setup hint instead of a blank map.
+    implementation(libs.com.google.android.gms.play.services.maps)
     testImplementation(libs.junit.junit)
     // Compose UI tests running under Robolectric (semantics assertions on the
     // live badge states). ui-test-manifest is already a debugImplementation.

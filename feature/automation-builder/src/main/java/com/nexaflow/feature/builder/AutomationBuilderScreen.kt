@@ -117,6 +117,7 @@ import com.nexaflow.domain.models.EndMode
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 enum class ActionCategory(val headerRes: Int) {
     DISPLAY(R.string.category_display),
@@ -508,6 +509,15 @@ fun AutomationBuilderScreen(
         // builder's own savedStateHandle (survives the navigation round-trip
         // and process death) so the returned point lands on the right row.
         stableSavedStateHandle?.set("map_picker_target", index)
+        // Seed the embedded map with the trigger's current point + radius.
+        val cfg = triggers.getOrNull(index)?.config.orEmpty()
+        val lat = cfg["lat"]?.toDoubleOrNull() ?: 0.0
+        val lng = cfg["lng"]?.toDoubleOrNull() ?: 0.0
+        val radius = cfg["radius"]?.toIntOrNull() ?: 100
+        stableSavedStateHandle?.set(
+            "map_picker_init",
+            String.format(Locale.US, "%f,%f,%d", lat, lng, radius)
+        )
         navController.navigate("map_picker")
     }
 
@@ -595,8 +605,12 @@ fun AutomationBuilderScreen(
             val lng = coords.getOrNull(1)?.toDoubleOrNull()
             val index = stableSavedStateHandle?.get<Int>("map_picker_target") ?: return@Observer
             if (lat != null && lng != null && index in triggers.indices) {
+                val radius = stableSavedStateHandle?.get<String>("picked_radius")?.toIntOrNull()
                 triggers[index] = triggers[index].copy(
-                    config = triggers[index].config + ("lat" to lat.toString()) + ("lng" to lng.toString())
+                    config = triggers[index].config +
+                        ("lat" to lat.toString()) +
+                        ("lng" to lng.toString()) +
+                        (if (radius != null) mapOf("radius" to radius.toString()) else emptyMap())
                 )
                 stableSavedStateHandle?.set("map_picker_target", null)
             }
@@ -625,15 +639,19 @@ fun AutomationBuilderScreen(
                 stableSavedStateHandle?.get<Int>("selected_icon")?.let {
                     if (it in NexaFlowIcons.all.indices) selectedIconIndex = it
                 }
-                // Same for a location picked on the in-app map.
+                // Same for a location picked on the embedded map.
                 stableSavedStateHandle?.get<String>("picked_location")?.let { value ->
                     val coords = value.split(',')
                     val lat = coords.getOrNull(0)?.toDoubleOrNull()
                     val lng = coords.getOrNull(1)?.toDoubleOrNull()
                     val index = stableSavedStateHandle?.get<Int>("map_picker_target")
                     if (lat != null && lng != null && index != null && index in triggers.indices) {
+                        val radius = stableSavedStateHandle?.get<String>("picked_radius")?.toIntOrNull()
                         triggers[index] = triggers[index].copy(
-                            config = triggers[index].config + ("lat" to lat.toString()) + ("lng" to lng.toString())
+                            config = triggers[index].config +
+                                ("lat" to lat.toString()) +
+                                ("lng" to lng.toString()) +
+                                (if (radius != null) mapOf("radius" to radius.toString()) else emptyMap())
                         )
                         stableSavedStateHandle?.set("map_picker_target", null)
                     }

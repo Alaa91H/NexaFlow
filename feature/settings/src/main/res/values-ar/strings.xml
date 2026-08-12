@@ -13,8 +13,8 @@
     <string name="section_appearance">المظهر</string>
     <string name="themes">السمات</string>
     <string name="themes_sub">الوضع الداكن ولون التمييز</string>
-    <string name="widgets">الأدوات</string>
-    <string name="widgets_sub">أدوات الشاشة الرئيسية</string>
+    <string name="widgets">الإعدادات السريعة</string>
+    <string name="widgets_sub">مفاتيح سريعة للمهام على الشاشة</string>
     <string name="section_integration">التكامل</string>
     <string name="capability_center">مركز القدرات</string>
     <string name="capability_center_sub">ميزات النظام والأذونات</string>
@@ -23,22 +23,16 @@
     <string name="section_about">حول</string>
     <string name="about_nexaflow">حول NexaFlow</string>
     <string name="version">الإصدار %1$s</string>
-    <string name="rom_integration">تكامل ROM</string>
-    <string name="rom_integration_sub">وصول على مستوى النظام عند تضمينه في ROM</string>
     <string name="about_description">محرك أتمتة متقدم يدرك السياق لنظام أندرويد. أتمت جهازك باستخدام مشغّلات الوقت والتطبيق والجهاز والاتصال والموقع.</string>
     <string name="about_license">مرخّص بموجب رخصة MIT.</string>
     <string name="ok">حسناً</string>
     <string name="section_backup">نسخ احتياطي</string>
-    <string name="section_privacy">الخصوصية</string>
-    <string name="crash_reporting">الإبلاغ عن الأعطال</string>
-    <string name="crash_reporting_sub">ساعد في تحسين NexaFlow بمشاركة تقارير الأعطال مجهولة الهوية. غير مفعّل افتراضياً أبداً؛ لا تُرسل أي بيانات شخصية.</string>
     <string name="backup_export">تصدير ومشاركة</string>
-    <string name="backup_export_sub">حفظ جميع الأتمتة كملف JSON</string>
+    <string name="backup_export_sub">احفظ النسخة الاحتياطية في ملف ثم شاركها مع أي تطبيق</string>
     <string name="backup_import">استيراد من ملف</string>
     <string name="backup_import_sub">استعادة الأتمتة من نسخة احتياطية JSON</string>
     <string name="backup_imported">تم استيراد %1$d أتمتة</string>
     <string name="backup_import_failed">ملف نسخ احتياطي غير صالح أو غير مدعوم</string>
-    <string name="backup_export_failed">فشل التصدير</string>
     <string name="share_backup_title">مشاركة النسخة الاحتياطية للأتمتة</string>
     <string name="permission_manager">مدير الأذونات</string>
     <string name="permission_manager_sub">تحقق من الأذونات التي تحتاجها NexaFlow وامنحها</string>
@@ -95,6 +89,7 @@
     <string name="oem_compat_sub">قد يوقف هذا النظام NexaFlow في الخلفية. اسمح بالتشغيل التلقائي لتعمل مهامك دائماً بشكل موثوق.</string>
     <string name="oem_compat_action">فتح الإعدادات</string>
     <string name="dismiss">تجاهل</string>
+    <string name="cancel">إلغاء</string>
     <string name="plugins">الإضافات</string>
     <string name="plugins_sub">إدارة إجراءات الإضافات الخارجية</string>
     <string name="plugin_manager_title">الإضافات</string>
@@ -135,14 +130,16 @@
     <string name="location_check_60">كل ساعة</string>
     <string name="location_check_180">كل 3 ساعات</string>
     <string name="location_check_360">كل 6 ساعات</string>
-
-    <string name="backup_save">حفظ في ملف</string>
     <string name="backup_save_failed">تعذر حفظ ملف النسخة الاحتياطية</string>
     <string name="backup_saved">تم حفظ النسخة الاحتياطية</string>
-    <string name="backup_save_sub">اكتب النسخة الاحتياطية إلى ملف محلي</string>
-
     <string name="location_check_custom">مخصص…</string>
     <string name="location_check_custom_minutes">كل %1$d دقيقة</string>
-    <string name="location_check_minutes">دقائق</string>
+    <string name="location_check_minutes">الدقائق</string>
+    <string name="location_check_hours">الساعات</string>
+    <string name="location_check_custom_hours">كل %1$d ساعات</string>
+    <string name="location_check_custom_h_m">كل %1$d س %2$d د</string>
+    <string name="increase">زيادة</string>
+    <string name="decrease">تقليل</string>
     <string name="location_check_apply">تطبيق</string>
+    <string name="section_services">الخدمات</string>
 </resources>

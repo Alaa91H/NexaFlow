@@ -1,17 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="widgets_title">小组件</string>
-    <string name="section_available">可用小组件</string>
-    <string name="widget_quick_toggle">快速切换</string>
-    <string name="widget_quick_toggle_desc">一键从主屏幕启用或禁用所有自动化。</string>
-    <string name="widget_status_card">状态卡片</string>
-    <string name="widget_status_card_desc">实时查看活动自动化及上次运行时间。</string>
-    <string name="widget_not_added">尚未添加到主屏幕。</string>
-    <string name="section_how_to">如何添加</string>
-    <string name="how_to_text">长按主屏幕空白处，点击“小组件”，然后找到 NexaFlow。</string>
-    <string name="how_to_sub">将“快速切换”或“状态卡片”小组件拖到屏幕上。</string>
-    <string name="section_tip">提示</string>
-    <string name="tip_text">每当自动化运行或其状态改变时，小组件会自动更新。</string>
+    <string name="widgets_title">快捷设置</string>
 
     <string name="section_tiles">快捷设置磁贴</string>
 

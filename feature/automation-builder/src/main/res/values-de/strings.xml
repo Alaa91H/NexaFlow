@@ -494,4 +494,8 @@
     <string name="network_hotspot">Hotspot</string>
     <string name="charging_state_section">Ladestatus</string>
     <string name="charging_no">Wird nicht geladen</string>
+    <string name="map_search_hint">Ort suchen</string>
+    <string name="map_pick_hint">Tippen Sie auf die Karte, um den Punkt zu setzen — ziehen Sie die Markierung zum Anpassen</string>
+    <string name="map_no_key">Google Maps ist noch nicht konfiguriert. Fügen Sie NEXAFLOW_MAPS_API_KEY zu gradle.properties hinzu und bauen Sie neu.</string>
+    <string name="map_search_not_found">Ort nicht gefunden</string>
 </resources>

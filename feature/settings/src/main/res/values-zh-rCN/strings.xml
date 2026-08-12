@@ -13,8 +13,8 @@
     <string name="section_appearance">外观</string>
     <string name="themes">主题</string>
     <string name="themes_sub">深色模式和强调色</string>
-    <string name="widgets">小组件</string>
-    <string name="widgets_sub">主屏幕小组件</string>
+    <string name="widgets">快捷设置</string>
+    <string name="widgets_sub">适用于您任务的快捷设置磁贴</string>
     <string name="section_integration">集成</string>
     <string name="capability_center">能力中心</string>
     <string name="capability_center_sub">ROM 功能和权限</string>
@@ -23,22 +23,16 @@
     <string name="section_about">关于</string>
     <string name="about_nexaflow">关于 NexaFlow</string>
     <string name="version">版本 %1$s</string>
-    <string name="rom_integration">ROM 集成</string>
-    <string name="rom_integration_sub">集成到 ROM 时的系统级访问</string>
     <string name="about_description">适用于 Android 的高级情境感知自动化引擎。使用时间、应用、设备、网络和位置触发器自动化您的设备。</string>
     <string name="about_license">根据 MIT 许可证授权。</string>
     <string name="ok">确定</string>
     <string name="section_backup">备份</string>
-    <string name="section_privacy">隐私</string>
-    <string name="crash_reporting">崩溃报告</string>
-    <string name="crash_reporting_sub">通过分享匿名崩溃报告帮助改进 NexaFlow。默认从不启用；不会发送任何个人数据。</string>
     <string name="backup_export">导出并分享</string>
-    <string name="backup_export_sub">将所有自动化保存为 JSON 文件</string>
+    <string name="backup_export_sub">将备份保存到文件，然后与任何应用分享</string>
     <string name="backup_import">从文件导入</string>
     <string name="backup_import_sub">从 JSON 备份恢复自动化</string>
     <string name="backup_imported">已导入 %1$d 个自动化</string>
     <string name="backup_import_failed">无效或不支持的备份文件</string>
-    <string name="backup_export_failed">导出失败</string>
     <string name="share_backup_title">分享自动化备份</string>
     <string name="permission_manager">权限管理器</string>
     <string name="permission_manager_sub">检查并授予 NexaFlow 所需的权限</string>
@@ -95,6 +89,7 @@
     <string name="oem_compat_sub">此 ROM 可能会在后台停止 NexaFlow。请允许自启动，确保任务始终可靠运行。</string>
     <string name="oem_compat_action">打开设置</string>
     <string name="dismiss">忽略</string>
+    <string name="cancel">取消</string>
     <string name="plugins">插件</string>
     <string name="plugins_sub">管理外部插件操作</string>
     <string name="plugin_manager_title">插件</string>
@@ -135,14 +130,16 @@
     <string name="location_check_60">每小时</string>
     <string name="location_check_180">每3小时</string>
     <string name="location_check_360">每6小时</string>
-
-    <string name="backup_save">保存到文件</string>
     <string name="backup_save_failed">无法保存备份文件</string>
     <string name="backup_saved">备份已保存</string>
-    <string name="backup_save_sub">将备份写入本地文件</string>
-
     <string name="location_check_custom">自定义…</string>
     <string name="location_check_custom_minutes">每 %1$d 分钟</string>
     <string name="location_check_minutes">分钟</string>
+    <string name="location_check_hours">小时</string>
+    <string name="location_check_custom_hours">每 %1$d 小时</string>
+    <string name="location_check_custom_h_m">每 %1$d 小时 %2$d 分钟</string>
+    <string name="increase">增加</string>
+    <string name="decrease">减少</string>
     <string name="location_check_apply">应用</string>
+    <string name="section_services">服务</string>
 </resources>

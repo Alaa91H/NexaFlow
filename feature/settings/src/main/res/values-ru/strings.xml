@@ -13,8 +13,8 @@
     <string name="section_appearance">ВНЕШНИЙ ВИД</string>
     <string name="themes">Темы</string>
     <string name="themes_sub">Тёмный режим и акцентный цвет</string>
-    <string name="widgets">Виджеты</string>
-    <string name="widgets_sub">Виджеты главного экрана</string>
+    <string name="widgets">Быстрые настройки</string>
+    <string name="widgets_sub">Плитки быстрых настроек для ваших задач</string>
     <string name="section_integration">ИНТЕГРАЦИЯ</string>
     <string name="capability_center">Центр возможностей</string>
     <string name="capability_center_sub">Функции ROM и разрешения</string>
@@ -23,22 +23,16 @@
     <string name="section_about">О ПРИЛОЖЕНИИ</string>
     <string name="about_nexaflow">О NexaFlow</string>
     <string name="version">Версия %1$s</string>
-    <string name="rom_integration">Интеграция ROM</string>
-    <string name="rom_integration_sub">Системный доступ при встраивании в ROM</string>
     <string name="about_description">Передовой контекстно-зависимый движок автоматизации для Android. Автоматизируйте устройство с помощью триггеров времени, приложений, устройства, сети и местоположения.</string>
     <string name="about_license">Распространяется по лицензии MIT.</string>
     <string name="ok">ОК</string>
     <string name="section_backup">РЕЗЕРВНАЯ КОПИЯ</string>
-    <string name="section_privacy">Конфиденциальность</string>
-    <string name="crash_reporting">Отчёты о сбоях</string>
-    <string name="crash_reporting_sub">Помогите улучшить NexaFlow, отправляя анонимные отчёты о сбоях. По умолчанию никогда не включено; личные данные не отправляются.</string>
     <string name="backup_export">Экспорт и отправка</string>
-    <string name="backup_export_sub">Сохранить все автоматизации в JSON-файл</string>
+    <string name="backup_export_sub">Сохраните резервную копию в файл, затем поделитесь ею в любом приложении</string>
     <string name="backup_import">Импорт из файла</string>
     <string name="backup_import_sub">Восстановить автоматизации из JSON-копии</string>
     <string name="backup_imported">Импортировано: %1$d</string>
     <string name="backup_import_failed">Недействительный или неподдерживаемый файл резервной копии</string>
-    <string name="backup_export_failed">Ошибка экспорта</string>
     <string name="share_backup_title">Отправить резервную копию автоматизаций</string>
     <string name="permission_manager">Диспетчер разрешений</string>
     <string name="permission_manager_sub">Проверяйте и выдавайте разрешения, необходимые NexaFlow</string>
@@ -95,6 +89,7 @@
     <string name="oem_compat_sub">Эта прошивка может останавливать NexaFlow в фоне. Разрешите автозапуск, чтобы ваши задачи всегда выполнялись надёжно.</string>
     <string name="oem_compat_action">Открыть настройки</string>
     <string name="dismiss">Скрыть</string>
+    <string name="cancel">Отмена</string>
     <string name="plugins">Плагины</string>
     <string name="plugins_sub">Управление действиями внешних плагинов</string>
     <string name="plugin_manager_title">Плагины</string>
@@ -135,14 +130,16 @@
     <string name="location_check_60">Каждый час</string>
     <string name="location_check_180">Каждые 3 часа</string>
     <string name="location_check_360">Каждые 6 часов</string>
-
-    <string name="backup_save">Сохранить в файл</string>
     <string name="backup_save_failed">Не удалось сохранить файл резервной копии</string>
     <string name="backup_saved">Резервная копия сохранена</string>
-    <string name="backup_save_sub">Записать резервную копию в локальный файл</string>
-
     <string name="location_check_custom">Свой…</string>
     <string name="location_check_custom_minutes">Каждые %1$d минут</string>
-    <string name="location_check_minutes">Минут</string>
+    <string name="location_check_minutes">Минуты</string>
+    <string name="location_check_hours">Часы</string>
+    <string name="location_check_custom_hours">Каждые %1$d ч</string>
+    <string name="location_check_custom_h_m">Каждые %1$d ч %2$d мин</string>
+    <string name="increase">Увеличить</string>
+    <string name="decrease">Уменьшить</string>
     <string name="location_check_apply">Применить</string>
+    <string name="section_services">СЛУЖБЫ</string>
 </resources>

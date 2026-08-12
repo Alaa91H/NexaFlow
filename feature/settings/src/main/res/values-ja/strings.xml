@@ -13,8 +13,8 @@
     <string name="section_appearance">外観</string>
     <string name="themes">テーマ</string>
     <string name="themes_sub">ダークモードとアクセントカラー</string>
-    <string name="widgets">ウィジェット</string>
-    <string name="widgets_sub">ホーム画面ウィジェット</string>
+    <string name="widgets">クイック設定</string>
+    <string name="widgets_sub">タスク用のクイック設定タイル</string>
     <string name="section_integration">統合</string>
     <string name="capability_center">機能センター</string>
     <string name="capability_center_sub">ROM機能と権限</string>
@@ -23,22 +23,16 @@
     <string name="section_about">情報</string>
     <string name="about_nexaflow">NexaFlowについて</string>
     <string name="version">バージョン %1$s</string>
-    <string name="rom_integration">ROM統合</string>
-    <string name="rom_integration_sub">ROMに組み込まれた際のシステムレベルアクセス</string>
     <string name="about_description">Android向けの高度なコンテキスト認識型自動化エンジン。時刻・アプリ・端末・接続・位置情報のトリガーで端末を自動化します。</string>
     <string name="about_license">MITライセンスの下で提供されています。</string>
     <string name="ok">OK</string>
     <string name="section_backup">バックアップ</string>
-    <string name="section_privacy">プライバシー</string>
-    <string name="crash_reporting">クラッシュレポート</string>
-    <string name="crash_reporting_sub">匿名のクラッシュレポートを共有して NexaFlow の改善にご協力ください。デフォルトでは無効で、個人データは送信されません。</string>
     <string name="backup_export">エクスポートして共有</string>
-    <string name="backup_export_sub">すべての自動化をJSONファイルとして保存</string>
+    <string name="backup_export_sub">バックアップをファイルに保存して、任意のアプリで共有</string>
     <string name="backup_import">ファイルからインポート</string>
     <string name="backup_import_sub">JSONバックアップから自動化を復元</string>
     <string name="backup_imported">%1$d 件の自動化をインポートしました</string>
     <string name="backup_import_failed">無効またはサポートされていないバックアップファイル</string>
-    <string name="backup_export_failed">エクスポートに失敗しました</string>
     <string name="share_backup_title">自動化バックアップを共有</string>
     <string name="permission_manager">権限マネージャー</string>
     <string name="permission_manager_sub">NexaFlow に必要な権限を確認して付与</string>
@@ -95,6 +89,7 @@
     <string name="oem_compat_sub">このROMはバックグラウンドでNexaFlowを停止する場合があります。タスクを確実に実行するため自動起動を許可してください。</string>
     <string name="oem_compat_action">設定を開く</string>
     <string name="dismiss">閉じる</string>
+    <string name="cancel">キャンセル</string>
     <string name="plugins">プラグイン</string>
     <string name="plugins_sub">外部プラグイン操作を管理</string>
     <string name="plugin_manager_title">プラグイン</string>
@@ -135,14 +130,16 @@
     <string name="location_check_60">1時間ごと</string>
     <string name="location_check_180">3時間ごと</string>
     <string name="location_check_360">6時間ごと</string>
-
-    <string name="backup_save">ファイルに保存</string>
     <string name="backup_save_failed">バックアップファイルを保存できませんでした</string>
     <string name="backup_saved">バックアップを保存しました</string>
-    <string name="backup_save_sub">バックアップをローカルファイルに保存</string>
-
     <string name="location_check_custom">カスタム…</string>
     <string name="location_check_custom_minutes">%1$d分ごと</string>
     <string name="location_check_minutes">分</string>
+    <string name="location_check_hours">時間</string>
+    <string name="location_check_custom_hours">%1$d時間ごと</string>
+    <string name="location_check_custom_h_m">%1$d時間%2$d分ごと</string>
+    <string name="increase">増やす</string>
+    <string name="decrease">減らす</string>
     <string name="location_check_apply">適用</string>
+    <string name="section_services">サービス</string>
 </resources>

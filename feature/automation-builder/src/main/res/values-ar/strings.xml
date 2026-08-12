@@ -493,4 +493,8 @@
     <string name="network_hotspot">نقطة الاتصال</string>
     <string name="charging_state_section">حالة الشحن</string>
     <string name="charging_no">لا يشحن</string>
+    <string name="map_search_hint">ابحث عن مكان</string>
+    <string name="map_pick_hint">اضغط على الخريطة لتحديد النقطة — واسحب العلامة للضبط الدقيق</string>
+    <string name="map_no_key">خرائط جوجل غير مكوّنة بعد. أضف NEXAFLOW_MAPS_API_KEY إلى gradle.properties وأعد البناء.</string>
+    <string name="map_search_not_found">لم يُعثر على المكان</string>
 </resources>

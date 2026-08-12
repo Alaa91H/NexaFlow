@@ -494,4 +494,8 @@
     <string name="network_hotspot">Etkin nokta</string>
     <string name="charging_state_section">Şarj durumu</string>
     <string name="charging_no">Şarj olmuyor</string>
+    <string name="map_search_hint">Bir yer arayın</string>
+    <string name="map_pick_hint">Noktayı koymak için haritaya dokunun — hassas ayar için işaretçiyi sürükleyin</string>
+    <string name="map_no_key">Google Haritalar henüz yapılandırılmadı. gradle.properties dosyasına NEXAFLOW_MAPS_API_KEY ekleyin ve yeniden derleyin.</string>
+    <string name="map_search_not_found">Yer bulunamadı</string>
 </resources>

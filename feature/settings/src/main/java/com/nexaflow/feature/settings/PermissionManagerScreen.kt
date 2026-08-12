@@ -26,7 +26,9 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material.icons.filled.Tune
@@ -34,6 +36,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -60,6 +63,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
+import com.nexaflow.core.compat.ChannelStatus
+import com.nexaflow.core.compat.ChannelStatusMapper
+import com.nexaflow.core.compat.ExecutionChannelSelector
+import com.nexaflow.core.engine.MonitoringService
 import com.nexaflow.core.rom.ElevatedAccessShortcuts
 import com.nexaflow.core.rom.OemCompat
 import com.nexaflow.core.rom.PermissionStatus
@@ -84,11 +91,28 @@ fun PermissionManagerScreen(navController: NavController) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var refreshTick by remember { mutableStateOf(0) }
+    var monitoringRunning by remember { mutableStateOf(MonitoringService.isRunning) }
+    var channelStatus by remember { mutableStateOf<ChannelStatus?>(null) }
+    val channelSelector = remember { ExecutionChannelSelector() }
+
+    fun refreshChannelStatus() {
+        channelStatus = runCatching {
+            val profile = channelSelector.detect(context)
+            ChannelStatusMapper.map(
+                provider = channelSelector.selectFor(profile),
+                capabilityCount = profile.capabilities.size
+            )
+        }.getOrNull() ?: ChannelStatus.none()
+    }
 
     // Re-check permissions whenever the screen resumes (after returning from settings).
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) refreshTick++
+            if (event == Lifecycle.Event.ON_RESUME) {
+                refreshTick++
+                monitoringRunning = MonitoringService.isRunning
+                refreshChannelStatus()
+            }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
@@ -217,6 +241,44 @@ fun PermissionManagerScreen(navController: NavController) {
                             onClick = { entry.openAction(context) }
                         )
                     }
+                }
+            }
+            // Services & channels (moved here from the settings root): the
+            // execution channel, the background monitoring service and the
+            // Capability Center all live inside the permission hub.
+            item {
+                SectionHeader(text = stringResource(R.string.section_services))
+            }
+            item {
+                NexaFlowCard {
+                    ChannelStatusRow(
+                        status = channelStatus,
+                        onRefresh = { refreshChannelStatus() }
+                    )
+                    SettingRow(
+                        icon = Icons.Filled.MonitorHeart,
+                        title = stringResource(R.string.monitoring_service),
+                        subtitle = if (monitoringRunning) stringResource(R.string.monitoring_running) else stringResource(R.string.monitoring_stopped),
+                        trailing = {
+                            Switch(
+                                checked = monitoringRunning,
+                                onCheckedChange = { checked ->
+                                    if (checked) {
+                                        MonitoringService.start(context)
+                                    } else {
+                                        MonitoringService.stop(context)
+                                    }
+                                    monitoringRunning = checked
+                                }
+                            )
+                        }
+                    )
+                    SettingRow(
+                        icon = Icons.Filled.Security,
+                        title = stringResource(R.string.capability_center),
+                        subtitle = stringResource(R.string.capability_center_sub),
+                        onClick = { navController.navigate("capability_center") }
+                    )
                 }
             }
         }

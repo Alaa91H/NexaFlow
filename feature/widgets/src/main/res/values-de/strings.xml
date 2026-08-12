@@ -1,17 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="widgets_title">Widgets</string>
-    <string name="section_available">VERFÜGBARE WIDGETS</string>
-    <string name="widget_quick_toggle">Schnellschalter</string>
-    <string name="widget_quick_toggle_desc">Aktiviere oder deaktiviere alle Automatisierungen mit einem Tipp vom Startbildschirm.</string>
-    <string name="widget_status_card">Statuskarte</string>
-    <string name="widget_status_card_desc">Live-Ansicht aktiver Automatisierungen und der letzten Ausführung.</string>
-    <string name="widget_not_added">Noch nicht zu deinem Startbildschirm hinzugefügt.</string>
-    <string name="section_how_to">SO HINZUFÜGEN</string>
-    <string name="how_to_text">Halte eine leere Stelle auf dem Startbildschirm gedrückt, tippe auf Widgets und suche NexaFlow.</string>
-    <string name="how_to_sub">Ziehe das Schnellschalter- oder Statuskarten-Widget auf deinen Bildschirm.</string>
-    <string name="section_tip">TIPP</string>
-    <string name="tip_text">Widgets aktualisieren sich automatisch, wenn eine Automatisierung läuft oder sich ihr Status ändert.</string>
+    <string name="widgets_title">Schnelleinstellungen</string>
 
     <string name="section_tiles">SCHNELLEINSTELLUNGEN-KACHELN</string>
 

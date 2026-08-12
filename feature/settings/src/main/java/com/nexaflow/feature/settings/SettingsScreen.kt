@@ -5,109 +5,99 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
-import com.nexaflow.core.compat.ChannelStatus
-import com.nexaflow.core.compat.ChannelStatusMapper
 import com.nexaflow.core.datastore.LocationPreferences
 import com.nexaflow.core.compat.ChannelTier
-import com.nexaflow.core.compat.ExecutionChannelSelector
-import com.nexaflow.core.engine.MonitoringService
-import com.nexaflow.core.rom.PermissionStatus
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.SettingRow
 import com.nexaflow.data.backup.ImportResult
 import kotlinx.coroutines.launch
-import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(navController: NavController) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
     val viewModel: SettingsViewModel = hiltViewModel()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    var accessibilityEnabled by remember { mutableStateOf(false) }
-    var monitoringRunning by remember { mutableStateOf(false) }
-    var channelStatus by remember { mutableStateOf<ChannelStatus?>(null) }
     var showAbout by remember { mutableStateOf(false) }
-    val channelSelector = remember { ExecutionChannelSelector() }
-
-    fun refreshChannelStatus() {
-        // Single source of truth: the provider the selector picks for the live
-        // profile is passed straight into the mapper.
-        channelStatus = runCatching {
-            val profile = channelSelector.detect(context)
-            ChannelStatusMapper.map(
-                provider = channelSelector.selectFor(profile),
-                capabilityCount = profile.capabilities.size
-            )
-        }.getOrNull() ?: ChannelStatus.none()
-    }
     val stringBackupImportFailed = stringResource(R.string.backup_import_failed)
-    val stringBackupExportFailed = stringResource(R.string.backup_export_failed)
     val stringShareBackupTitle = stringResource(R.string.share_backup_title)
     val stringBackupImportedTemplate = stringResource(R.string.backup_imported)
 
@@ -128,11 +118,12 @@ fun SettingsScreen(navController: NavController) {
         }
     }
 
-    // Save the backup directly to a local file (SAF create-document) — the
-    // user picks the folder/name, then the JSON is written there.
+    // One combined action: pick where to save the backup (SAF create-document),
+    // write the JSON there, then immediately open the share sheet with that
+    // same file so it can be sent to any app — save and share in one tap.
     val stringBackupSaved = stringResource(R.string.backup_saved)
     val stringBackupSaveFailed = stringResource(R.string.backup_save_failed)
-    val saveBackupLauncher = rememberLauncherForActivityResult(
+    val saveAndShareLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
         if (uri != null) {
@@ -144,9 +135,24 @@ fun SettingsScreen(navController: NavController) {
                                 stream.write(json.toByteArray())
                             }
                         }.isSuccess
-                        snackbarHostState.showSnackbar(
-                            if (written) stringBackupSaved else stringBackupSaveFailed
-                        )
+                        if (!written) {
+                            snackbarHostState.showSnackbar(stringBackupSaveFailed)
+                            return@launch
+                        }
+                        snackbarHostState.showSnackbar(stringBackupSaved)
+                        // Share the just-saved file with any app.
+                        val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "application/json"
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                            putExtra(Intent.EXTRA_SUBJECT, stringShareBackupTitle)
+                            putExtra(Intent.EXTRA_TEXT, stringShareBackupTitle)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        runCatching {
+                            context.startActivity(Intent.createChooser(sendIntent, stringShareBackupTitle))
+                        }.onFailure {
+                            snackbarHostState.showSnackbar(stringBackupSaveFailed)
+                        }
                     }
                 }
             }
@@ -165,49 +171,8 @@ fun SettingsScreen(navController: NavController) {
         }
     }
 
-    fun shareBackup() {
-        viewModel.exportBackup { json ->
-            if (json == null) {
-                scope.launch { snackbarHostState.showSnackbar(stringBackupExportFailed) }
-                return@exportBackup
-            }
-            val result = runCatching {
-                val dir = File(context.cacheDir, "backup").apply { mkdirs() }
-                val file = File(dir, "nexaflow_backup.json")
-                file.writeText(json)
-                val uri: Uri = FileProvider.getUriForFile(
-                    context,
-                    "${context.packageName}.fileprovider",
-                    file
-                )
-                val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                    type = "application/json"
-                    putExtra(Intent.EXTRA_STREAM, uri)
-                    putExtra(Intent.EXTRA_SUBJECT, stringShareBackupTitle)
-                    putExtra(Intent.EXTRA_TEXT, stringShareBackupTitle)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
-                context.startActivity(Intent.createChooser(sendIntent, stringShareBackupTitle))
-            }
-            if (result.isFailure) {
-                scope.launch { snackbarHostState.showSnackbar(stringBackupExportFailed) }
-            }
-        }
-    }
-
     // ON_RESUME (replayed immediately when the observer is added while already
     // resumed) drives the initial detection too — no separate LaunchedEffect.
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                accessibilityEnabled = AccessibilityStatus.isEnabled(context)
-                monitoringRunning = MonitoringService.isRunning
-                refreshChannelStatus()
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-    }
 
     Scaffold(
         topBar = { NexaFlowTopBar(title = stringResource(R.string.settings_title), onBack = { navController.popBackStack() }) },
@@ -224,37 +189,6 @@ fun SettingsScreen(navController: NavController) {
             }
             item {
                 NexaFlowCard {
-                    SettingRow(
-                        icon = Icons.Filled.Accessibility,
-                        title = stringResource(R.string.accessibility_service),
-                        subtitle = if (accessibilityEnabled) stringResource(R.string.accessibility_enabled) else stringResource(R.string.accessibility_disabled),
-                        trailing = {
-                            Text(
-                                text = if (accessibilityEnabled) stringResource(R.string.state_enabled) else stringResource(R.string.state_disabled),
-                                color = if (accessibilityEnabled) Color(0xFF2FA84F) else Color(0xFFE5533D),
-                                style = androidx.compose.material3.MaterialTheme.typography.labelLarge
-                            )
-                        },
-                        onClick = { AccessibilityStatus.openSettings(context) }
-                    )
-                    SettingRow(
-                        icon = Icons.Filled.MonitorHeart,
-                        title = stringResource(R.string.monitoring_service),
-                        subtitle = if (monitoringRunning) stringResource(R.string.monitoring_running) else stringResource(R.string.monitoring_stopped),
-                        trailing = {
-                            Switch(
-                                checked = monitoringRunning,
-                                onCheckedChange = { checked ->
-                                    if (checked) {
-                                        MonitoringService.start(context)
-                                    } else {
-                                        MonitoringService.stop(context)
-                                    }
-                                    monitoringRunning = checked
-                                }
-                            )
-                        }
-                    )
                     SettingRow(
                         icon = Icons.Filled.Security,
                         title = stringResource(R.string.permission_manager),
@@ -278,13 +212,7 @@ fun SettingsScreen(navController: NavController) {
                         icon = Icons.Filled.Upload,
                         title = stringResource(R.string.backup_export),
                         subtitle = stringResource(R.string.backup_export_sub),
-                        onClick = { shareBackup() }
-                    )
-                    SettingRow(
-                        icon = Icons.Filled.Save,
-                        title = stringResource(R.string.backup_save),
-                        subtitle = stringResource(R.string.backup_save_sub),
-                        onClick = { saveBackupLauncher.launch("nexaflow_backup.json") }
+                        onClick = { saveAndShareLauncher.launch("nexaflow_backup.json") }
                     )
                     SettingRow(
                         icon = Icons.Filled.Download,
@@ -363,26 +291,6 @@ fun SettingsScreen(navController: NavController) {
                 }
             }
             item {
-                SectionHeader(text = stringResource(R.string.section_privacy))
-            }
-            item {
-                val privacyViewModel: PrivacyViewModel = hiltViewModel()
-                val crashReporting by privacyViewModel.crashReportingEnabled.collectAsState()
-                NexaFlowCard {
-                    SettingRow(
-                        icon = Icons.Filled.Shield,
-                        title = stringResource(R.string.crash_reporting),
-                        subtitle = stringResource(R.string.crash_reporting_sub),
-                        trailing = {
-                            Switch(
-                                checked = crashReporting,
-                                onCheckedChange = { privacyViewModel.setCrashReportingEnabled(it) }
-                            )
-                        }
-                    )
-                }
-            }
-            item {
                 SectionHeader(text = stringResource(R.string.section_location))
             }
             item {
@@ -398,12 +306,12 @@ fun SettingsScreen(navController: NavController) {
                             else R.string.location_check_interval_auto_sub
                         ),
                         trailing = {
-                            val (labelRes, arg) = locationIntervalLabel(checkInterval)
+                            val (labelRes, arg1, arg2) = locationIntervalLabel(checkInterval)
                             Text(
-                                text = if (arg != null) {
-                                    stringResource(labelRes, arg)
-                                } else {
-                                    stringResource(labelRes)
+                                text = when {
+                                    arg1 != null && arg2 != null -> stringResource(labelRes, arg1, arg2)
+                                    arg1 != null -> stringResource(labelRes, arg1)
+                                    else -> stringResource(labelRes)
                                 },
                                 color = MaterialTheme.colorScheme.primary,
                                 style = androidx.compose.material3.MaterialTheme.typography.labelLarge
@@ -447,16 +355,6 @@ fun SettingsScreen(navController: NavController) {
             }
             item {
                 NexaFlowCard {
-                    ChannelStatusRow(
-                        status = channelStatus,
-                        onRefresh = { refreshChannelStatus() }
-                    )
-                    SettingRow(
-                        icon = Icons.Filled.Security,
-                        title = stringResource(R.string.capability_center),
-                        subtitle = stringResource(R.string.capability_center_sub),
-                        onClick = { navController.navigate("capability_center") }
-                    )
                     SettingRow(
                         icon = Icons.Filled.PlayArrow,
                         title = stringResource(R.string.execution_history),
@@ -481,12 +379,6 @@ fun SettingsScreen(navController: NavController) {
                         title = stringResource(R.string.about_nexaflow),
                         subtitle = stringResource(R.string.version, appVersion(context)),
                         onClick = { showAbout = true }
-                    )
-                    SettingRow(
-                        icon = Icons.Filled.Settings,
-                        title = stringResource(R.string.rom_integration),
-                        subtitle = stringResource(R.string.rom_integration_sub),
-                        onClick = { navController.navigate("capability_center") }
                     )
                 }
             }
@@ -517,24 +409,23 @@ fun SettingsScreen(navController: NavController) {
     }
 }
 
-private object AccessibilityStatus {
-    fun isEnabled(context: Context): Boolean =
-        PermissionStatus.isAccessibilityServiceEnabled(context)
-
-    fun openSettings(context: Context) =
-        PermissionStatus.openAccessibilitySettings(context)
-}
-
-/** String resource (+ optional format arg) for a check-interval in minutes. */
-private fun locationIntervalLabel(minutes: Int): Pair<Int, Int?> = when (minutes) {
-    15 -> R.string.location_check_15 to null
-    30 -> R.string.location_check_30 to null
-    60 -> R.string.location_check_60 to null
-    180 -> R.string.location_check_180 to null
-    360 -> R.string.location_check_360 to null
-    0 -> R.string.location_check_manual to null
-    // Any other positive value is a user-typed custom interval.
-    else -> R.string.location_check_custom_minutes to minutes
+/**
+ * String resource (+ optional format args) for a check-interval in minutes.
+ * Custom intervals render as hours:minutes when >= 1 hour, else plain minutes.
+ */
+private fun locationIntervalLabel(minutes: Int): Triple<Int, Int?, Int?> = when (minutes) {
+    15 -> Triple(R.string.location_check_15, null, null)
+    30 -> Triple(R.string.location_check_30, null, null)
+    60 -> Triple(R.string.location_check_60, null, null)
+    180 -> Triple(R.string.location_check_180, null, null)
+    360 -> Triple(R.string.location_check_360, null, null)
+    0 -> Triple(R.string.location_check_manual, null, null)
+    // Any other positive value is a user-set custom interval.
+    else -> when {
+        minutes % 60 == 0 -> Triple(R.string.location_check_custom_hours, minutes / 60, null)
+        minutes >= 60 -> Triple(R.string.location_check_custom_h_m, minutes / 60, minutes % 60)
+        else -> Triple(R.string.location_check_custom_minutes, minutes, null)
+    }
 }
 
 /**
@@ -549,91 +440,238 @@ private fun LocationIntervalDialog(
     onDismiss: () -> Unit
 ) {
     val isCustom = selected !in LocationPreferences.PRESETS
-    var editingCustom by remember { mutableStateOf(isCustom) }
-    var customText by remember {
-        mutableStateOf(if (isCustom && selected > 0) selected.toString() else "")
+    // Locally selected option (radio). Picking never closes the dialog — the
+    // user reviews the choice and confirms with Apply (or cancels).
+    // picked == 0 means manual (custom) mode, backed by the counter below.
+    var picked by remember { mutableStateOf(if (isCustom) 0 else selected) }
+    val initialMinutes = if (isCustom && selected > 0) selected else 0
+    var hours by remember { mutableStateOf(initialMinutes / 60) }
+    var minutes by remember { mutableStateOf(initialMinutes % 60) }
+    val total = hours * 60 + minutes
+    // Switching to manual from a preset never applies an empty (0) interval.
+    val pickManual: () -> Unit = {
+        if (picked != 0 && total == 0) minutes = 30
+        picked = 0
     }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.location_check_title)) },
         text = {
-            Column {
-                LocationPreferences.PRESETS.forEachIndexed { index, minutes ->
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // Preset durations — pick one, then Apply.
+                val presetOptions = LocationPreferences.PRESETS.filter { it > 0 }
+                presetOptions.forEachIndexed { index, presetMinutes ->
                     if (index > 0) {
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     }
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onSelect(minutes) }
-                            .padding(vertical = 10.dp),
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            .clickable { picked = presetMinutes }
+                            .padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         RadioButton(
-                            selected = selected == minutes,
-                            onClick = { onSelect(minutes) }
+                            selected = picked == presetMinutes,
+                            onClick = { picked = presetMinutes }
                         )
                         Text(
-                            text = stringResource(
-                                locationIntervalLabel(minutes).first
-                            ),
+                            text = stringResource(locationIntervalLabel(presetMinutes).first),
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                // Manual option — sits above the counter it drives.
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { editingCustom = true }
-                        .padding(vertical = 10.dp),
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        .clickable { pickManual() }
+                        .padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     RadioButton(
-                        selected = isCustom,
-                        onClick = { editingCustom = true }
+                        selected = picked == 0,
+                        onClick = { pickManual() }
                     )
-                    Text(
-                        text = stringResource(R.string.location_check_custom),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-                if (editingCustom) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = customText,
-                            onValueChange = { customText = it.filter(Char::isDigit).take(4) },
-                            modifier = Modifier.weight(1f),
-                            label = { Text(stringResource(R.string.location_check_minutes)) },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    Column {
+                        Text(
+                            text = stringResource(R.string.location_check_manual),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
                         )
-                        Button(
-                            onClick = {
-                                customText.toIntOrNull()
-                                    ?.takeIf { it >= 1 }
-                                    ?.let { minutes ->
-                                        onSelect(minutes)
-                                        editingCustom = false
-                                    }
-                            }
+                        Text(
+                            text = stringResource(R.string.location_check_custom),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                // The hours:minutes counter is always visible — up/down buttons
+                // AND drag-to-scroll on the value itself, grouped in a tonal
+                // container. Time is read left-to-right (hours : minutes) even
+                // in RTL locales, so the row is pinned to LTR.
+                Surface(
+                    shape = RoundedCornerShape(18.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CompositionLocalProvider(
+                            LocalLayoutDirection provides LayoutDirection.Ltr
                         ) {
-                            Text(stringResource(R.string.location_check_apply))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                StepperCounter(
+                                    value = hours,
+                                    range = 0..23,
+                                    label = stringResource(R.string.location_check_hours),
+                                    onValueChange = { hours = it }
+                                )
+                                Text(
+                                    text = ":",
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 2.dp, vertical = 30.dp)
+                                )
+                                StepperCounter(
+                                    value = minutes,
+                                    range = 0..59,
+                                    label = stringResource(R.string.location_check_minutes),
+                                    onValueChange = { minutes = it }
+                                )
+                            }
                         }
                     }
                 }
             }
         },
+        // Apply saves the chosen option — the dialog only closes on Apply/
+        // Cancel, never on a plain selection.
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.dismiss)) }
+            TextButton(
+                onClick = { onSelect(if (picked == 0) total else picked) },
+                enabled = true
+            ) {
+                Text(stringResource(R.string.location_check_apply))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
         }
     )
+}
+
+/**
+ * A large value stepper column: up/down buttons plus drag-to-scroll on the
+ * value itself (drag up increases, drag down decreases, ~28dp per step).
+ * The displayed value wraps within [range] (e.g. minutes 0..59 stays put at
+ * the edges; hours never exceed 23).
+ */
+@Composable
+private fun StepperCounter(
+    value: Int,
+    range: IntRange,
+    label: String,
+    onValueChange: (Int) -> Unit
+) {
+    val state = remember { mutableStateOf(value.coerceIn(range)) }
+    // Re-sync when the parent resets the dialog or switches presets.
+    LaunchedEffect(value) { state.value = value.coerceIn(range) }
+    val change by rememberUpdatedState(onValueChange)
+    val applyDelta = { delta: Int ->
+        val next = (state.value + delta).coerceIn(range)
+        if (next != state.value) {
+            state.value = next
+            change(next)
+        }
+    }
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.secondary
+        )
+        IconButton(
+            onClick = { applyDelta(+1) },
+            modifier = Modifier.size(32.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.KeyboardArrowUp,
+                contentDescription = stringResource(R.string.increase)
+            )
+        }
+        Box(
+            modifier = Modifier
+                .width(78.dp)
+                .height(48.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .pointerInput(state, range) {
+                    var accumulated = 0f
+                    detectVerticalDragGestures { dragChange, dragAmount ->
+                        dragChange.consume()
+                        accumulated += dragAmount
+                        val step = 28.dp.toPx()
+                        var delta = 0
+                        while (accumulated <= -step) {
+                            accumulated += step
+                            delta++
+                        }
+                        while (accumulated >= step) {
+                            accumulated -= step
+                            delta--
+                        }
+                        if (delta != 0) {
+                            val next = (state.value + delta).coerceIn(range)
+                            if (next != state.value) {
+                                state.value = next
+                                change(next)
+                            }
+                        }
+                    }
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            // Smooth value transition: digits slide/fade in the drag direction,
+            // and tabular numerals keep the width fixed so nothing jitters.
+            AnimatedContent(
+                targetState = state.value,
+                transitionSpec = {
+                    val direction = if (targetState > initialState) 1 else -1
+                    (slideInVertically { it / 3 * direction } + fadeIn()) togetherWith
+                        (slideOutVertically { -it / 3 * direction } + fadeOut())
+                },
+                label = "counterValue"
+            ) { currentValue ->
+                Text(
+                    text = currentValue.toString().padStart(2, '0'),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+        IconButton(
+            onClick = { applyDelta(-1) },
+            modifier = Modifier.size(32.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.KeyboardArrowDown,
+                contentDescription = stringResource(R.string.decrease)
+            )
+        }
+    }
 }
 
 private fun appVersion(context: Context): String {

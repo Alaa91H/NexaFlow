@@ -13,8 +13,8 @@
     <string name="section_appearance">APARÊNCIA</string>
     <string name="themes">Temas</string>
     <string name="themes_sub">Modo escuro e cor de destaque</string>
-    <string name="widgets">Widgets</string>
-    <string name="widgets_sub">Widgets da tela inicial</string>
+    <string name="widgets">Definições rápidas</string>
+    <string name="widgets_sub">Peças de definições rápidas para as suas tarefas</string>
     <string name="section_integration">INTEGRAÇÃO</string>
     <string name="capability_center">Central de recursos</string>
     <string name="capability_center_sub">Recursos ROM e permissões</string>
@@ -23,22 +23,16 @@
     <string name="section_about">SOBRE</string>
     <string name="about_nexaflow">Sobre o NexaFlow</string>
     <string name="version">Versão %1$s</string>
-    <string name="rom_integration">Integração ROM</string>
-    <string name="rom_integration_sub">Acesso ao sistema quando integrado a uma ROM</string>
     <string name="about_description">Um mecanismo avançado de automação ciente de contexto para Android. Automatize seu dispositivo com gatilhos de hora, aplicativo, dispositivo, conectividade e localização.</string>
     <string name="about_license">Licenciado sob a Licença MIT.</string>
     <string name="ok">OK</string>
     <string name="section_backup">CÓPIA DE SEGURANÇA</string>
-    <string name="section_privacy">Privacidade</string>
-    <string name="crash_reporting">Relatórios de falhas</string>
-    <string name="crash_reporting_sub">Ajude a melhorar o NexaFlow partilhando relatórios de falhas anónimos. Nunca ativado por defeito; nenhum dado pessoal é enviado.</string>
     <string name="backup_export">Exportar e compartilhar</string>
-    <string name="backup_export_sub">Salvar todas as automações como arquivo JSON</string>
+    <string name="backup_export_sub">Guarde a cópia de segurança num ficheiro e depois partilhe-a com qualquer app</string>
     <string name="backup_import">Importar do arquivo</string>
     <string name="backup_import_sub">Restaurar automações de uma cópia JSON</string>
     <string name="backup_imported">%1$d automação(ões) importada(s)</string>
     <string name="backup_import_failed">Arquivo de backup inválido ou não compatível</string>
-    <string name="backup_export_failed">Falha ao exportar</string>
     <string name="share_backup_title">Compartilhar backup de automações</string>
     <string name="permission_manager">Gerenciador de permissões</string>
     <string name="permission_manager_sub">Verifique e conceda as permissões que o NexaFlow precisa</string>
@@ -95,6 +89,7 @@
     <string name="oem_compat_sub">Este ROM pode parar o NexaFlow em segundo plano. Permita a inicialização automática para que suas tarefas sempre sejam executadas com confiabilidade.</string>
     <string name="oem_compat_action">Abrir configurações</string>
     <string name="dismiss">Dispensar</string>
+    <string name="cancel">Cancelar</string>
     <string name="plugins">Plugins</string>
     <string name="plugins_sub">Gerenciar ações de plugins externos</string>
     <string name="plugin_manager_title">Plugins</string>
@@ -135,14 +130,16 @@
     <string name="location_check_60">A cada hora</string>
     <string name="location_check_180">A cada 3 horas</string>
     <string name="location_check_360">A cada 6 horas</string>
-
-    <string name="backup_save">Guardar em ficheiro</string>
     <string name="backup_save_failed">Não foi possível guardar a cópia de segurança</string>
     <string name="backup_saved">Cópia de segurança guardada</string>
-    <string name="backup_save_sub">Escrever a cópia de segurança num ficheiro local</string>
-
     <string name="location_check_custom">Personalizado…</string>
     <string name="location_check_custom_minutes">A cada %1$d minutos</string>
     <string name="location_check_minutes">Minutos</string>
+    <string name="location_check_hours">Horas</string>
+    <string name="location_check_custom_hours">A cada %1$d horas</string>
+    <string name="location_check_custom_h_m">A cada %1$d h %2$d min</string>
+    <string name="increase">Aumentar</string>
+    <string name="decrease">Diminuir</string>
     <string name="location_check_apply">Aplicar</string>
+    <string name="section_services">SERVIÇOS</string>
 </resources>

@@ -89,6 +89,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.NexaFlow">
+        <!-- Google Maps API key for the embedded map picker; empty by default
+             (NEXAFLOW_MAPS_API_KEY gradle property). Without a key the picker
+             shows a setup hint instead of a map. -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${MAPS_API_KEY}" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

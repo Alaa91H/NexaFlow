@@ -494,4 +494,8 @@
     <string name="network_hotspot">Точка доступа</string>
     <string name="charging_state_section">Состояние зарядки</string>
     <string name="charging_no">Не заряжается</string>
+    <string name="map_search_hint">Найти место</string>
+    <string name="map_pick_hint">Коснитесь карты, чтобы поставить точку — перетащите маркер для точной настройки</string>
+    <string name="map_no_key">Google Карты ещё не настроены. Добавьте NEXAFLOW_MAPS_API_KEY в gradle.properties и пересоберите.</string>
+    <string name="map_search_not_found">Место не найдено</string>
 </resources>

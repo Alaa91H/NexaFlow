@@ -494,4 +494,8 @@
     <string name="network_hotspot">热点</string>
     <string name="charging_state_section">充电状态</string>
     <string name="charging_no">未充电</string>
+    <string name="map_search_hint">搜索地点</string>
+    <string name="map_pick_hint">点击地图放置点 — 拖动标记进行微调</string>
+    <string name="map_no_key">Google 地图尚未配置。请在 gradle.properties 中添加 NEXAFLOW_MAPS_API_KEY 并重新构建。</string>
+    <string name="map_search_not_found">未找到地点</string>
 </resources>

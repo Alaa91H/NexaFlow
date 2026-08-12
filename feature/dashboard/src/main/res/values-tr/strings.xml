@@ -2,9 +2,6 @@
 <resources>
     <string name="dashboard_title">NexaFlow</string>
     <string name="dashboard_subtitle">Cihazınızı kendi yönteminizle otomatikleştirin</string>
-    <string name="status_wifi">Wi-Fi</string>
-    <string name="status_mobile_data">Mobil veri</string>
-    <string name="status_offline">Çevrimdışı</string>
     <string name="dashboard_settings">Ayarlar</string>
     <string name="search_hint">Görevlerde ara</string>
     <string name="clear_search">Aramayı temizle</string>
