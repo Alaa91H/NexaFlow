@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Root Android Lint configuration, applied to every Android module by the
+    convention in build.gradle.kts.
+
+    Zero-tolerance for unused resources: any orphaned string, drawable, color,
+    layout, or dimen makes `lintDebug` fail (severity=error). This is the real
+    Lint UnusedResources analysis — dependency/cross-module aware by design —
+    so a string that is referenced anywhere (including across modules via a
+    dependency's R class) is never flagged, while a genuinely dead resource
+    blocks the build and is reported by the CI script
+    scripts/check_lint_unused_resources.py.
+-->
+<lint>
+    <issue id="UnusedResources" severity="error" />
+</lint>

@@ -2,7 +2,6 @@
 <resources>
     <!-- Fallback for legacy launchers without adaptive-icon support; matches
          the solid white adaptive background. -->
-    <color name="ic_launcher_background">#FFFFFF</color>
     <!-- Branded splash (core-splashscreen): matches the white canvas so the
          splash flows into the adaptive icon seamlessly. -->
     <color name="splash_background">#FFFFFF</color>

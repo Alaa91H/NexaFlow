@@ -30,3 +30,24 @@ tasks.register("detekt") {
     description = "Runs Detekt on every module (aggregate gate)."
     dependsOn(subprojects.map { it.tasks.named("detekt") })
 }
+
+// Zero-tolerance for unused resources: every Android module (application or
+// library) uses the single root lint.xml where UnusedResources is an error, so
+// one `./gradlew lintDebug` gates the whole codebase on the real Lint
+// analysis (cross-module aware). Any new orphaned string/resource fails CI.
+fun Project.configureUnusedResourcesGate() {
+    // AGP 9 keeps the lint DSL nested inside the `android` extension (the
+    // top-level `lint` extension was removed), so resolve it from there.
+    val android = extensions.getByName("android")
+    val lintDsl: com.android.build.api.dsl.Lint = when (android) {
+        is com.android.build.api.dsl.ApplicationExtension -> android.lint
+        is com.android.build.api.dsl.LibraryExtension -> android.lint
+        else -> error("Unexpected android extension type: ${android::class.java.name}")
+    }
+    lintDsl.lintConfig = rootProject.file("lint.xml")
+}
+
+subprojects {
+    plugins.withId("com.android.application") { configureUnusedResourcesGate() }
+    plugins.withId("com.android.library") { configureUnusedResourcesGate() }
+}

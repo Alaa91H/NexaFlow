@@ -22,10 +22,15 @@ jobs:
       run: chmod +x gradlew
     - name: Verify string parity across all locales
       run: python3 scripts/check_strings_parity.py
+    - name: Verify no orphaned or removed advanced-user strings
+      run: python3 scripts/check_orphan_strings.py
     - name: Run Detekt static analysis
       run: ./gradlew detekt
     - name: Run Android Lint
       run: ./gradlew lintDebug
+    - name: Report unused resources (zero-tolerance gate)
+      if: always()
+      run: python3 scripts/check_lint_unused_resources.py
     - name: Upload Lint Report
       if: failure()
       uses: actions/upload-artifact@v7
