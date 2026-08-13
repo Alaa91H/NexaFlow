@@ -229,7 +229,20 @@ fun PermissionManagerScreen(navController: NavController) {
                 }
                 if (canAutoGrant) {
                     var autoGranting by remember { mutableStateOf(false) }
-                    var grantMessage by remember { mutableStateOf<String?>(null) }
+                    var grantFailed by remember { mutableStateOf(false) }
+                    var grantResult by remember {
+                        mutableStateOf<RootPermissionGranter.Result?>(null)
+                    }
+                    val grantMessage: String? = when {
+                        grantFailed -> stringResource(R.string.root_grant_failed)
+                        grantResult != null -> stringResource(
+                            R.string.root_grant_done,
+                            grantResult!!.runtimeGranted.size,
+                            grantResult!!.appOpsGranted.size,
+                            if (grantResult!!.batteryExempted) 1 else 0
+                        )
+                        else -> null
+                    }
                     NexaFlowCard {
                         SettingRow(
                             icon = Icons.Filled.Security,
@@ -238,22 +251,18 @@ fun PermissionManagerScreen(navController: NavController) {
                             trailing = {
                                 TextButton(onClick = {
                                     autoGranting = true
-                                    grantMessage = null
+                                    grantFailed = false
+                                    grantResult = null
                                     Thread {
                                         val result = runCatching {
                                             RootPermissionGranter.grantAll(context.applicationContext)
                                         }.getOrNull()
                                         autoGranting = false
                                         refreshTick++
-                                        grantMessage = if (result == null) {
-                                            context.getString(R.string.root_grant_failed)
+                                        if (result == null) {
+                                            grantFailed = true
                                         } else {
-                                            context.getString(
-                                                R.string.root_grant_done,
-                                                result.runtimeGranted.size,
-                                                result.appOpsGranted.size,
-                                                if (result.batteryExempted) 1 else 0
-                                            )
+                                            grantResult = result
                                         }
                                     }.start()
                                 }) {
@@ -268,7 +277,7 @@ fun PermissionManagerScreen(navController: NavController) {
                         )
                         if (grantMessage != null) {
                             Text(
-                                text = grantMessage!!,
+                                text = grantMessage,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
