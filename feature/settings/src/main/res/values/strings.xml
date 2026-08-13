@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_title">Settings</string>
-    <string name="section_automation">AUTOMATION</string>
+    <string name="section_automation">Automation</string>
     <string name="accessibility_service">Accessibility service</string>
     <string name="accessibility_enabled">Enabled — app triggers are detected</string>
     <string name="accessibility_disabled">Off — app triggers won\'t fire</string>
@@ -10,23 +10,23 @@
     <string name="monitoring_stopped">Stopped — triggers only fire while the app is open</string>
     <string name="state_enabled">On</string>
     <string name="state_disabled">Off</string>
-    <string name="section_appearance">APPEARANCE</string>
+    <string name="section_appearance">Appearance</string>
     <string name="themes">Themes</string>
     <string name="themes_sub">Dark mode and accent color</string>
     <string name="widgets">Quick settings</string>
     <string name="widgets_sub">Quick settings tiles for your tasks</string>
-    <string name="section_integration">INTEGRATION</string>
+    <string name="section_integration">Integration</string>
     <string name="capability_center">Capability Center</string>
     <string name="capability_center_sub">ROM features and permissions</string>
     <string name="execution_history">Execution History</string>
     <string name="execution_history_sub">View automation runs</string>
-    <string name="section_about">ABOUT</string>
+    <string name="section_about">About</string>
     <string name="about_nexaflow">About NexaFlow</string>
     <string name="version">Version %1$s</string>
     <string name="about_description">An advanced context-aware automation engine for Android. Automate your device using time, app, device, connectivity and location triggers.</string>
     <string name="about_license">Licensed under the MIT License.</string>
     <string name="ok">OK</string>
-    <string name="section_backup">BACKUP</string>
+    <string name="section_backup">Backup</string>
     <string name="backup_export">Export &amp; share</string>
     <string name="backup_export_sub">Save the backup to a file, then share it with any app</string>
     <string name="backup_saved">Backup saved</string>
@@ -74,6 +74,12 @@
     <string name="calendar_permission_sub">Read your events for calendar triggers</string>
     <string name="root_permission">Root access</string>
     <string name="root_permission_sub">Grant superuser access for elevated commands</string>
+    <string name="root_grant_all">Grant all permissions automatically</string>
+    <string name="root_grant_all_sub">Root/Shizuku: grant every permission silently, no prompts</string>
+    <string name="root_grant_all_action">Grant all</string>
+    <string name="root_granting">Granting…</string>
+    <string name="root_grant_done">Done — %1$d runtime, %2$d app-ops, %3$d battery exempt</string>
+    <string name="root_grant_failed">Could not grant via root. Check your root manager.</string>
     <string name="shizuku_permission">Shizuku</string>
     <string name="shizuku_permission_sub">Run elevated commands via the Shizuku service</string>
     <string name="execution_channel">Execution channel</string>
@@ -112,7 +118,7 @@
     <string name="update_latest">You are up to date</string>
     <string name="update_latest_sub">Latest release: %1$s</string>
     <string name="state_ok">OK</string>
-    <string name="state_update">UPDATE</string>
+    <string name="state_update">Update</string>
     <string name="update_available">Update available</string>
     <string name="update_available_sub">Version %1$s is ready to install</string>
     <string name="update_downloading">Downloading…</string>
@@ -145,5 +151,5 @@
     <string name="increase">Increase</string>
     <string name="decrease">Decrease</string>
     <string name="location_check_apply">Apply</string>
-    <string name="section_services">SERVICES</string>
+    <string name="section_services">Services</string>
 </resources>

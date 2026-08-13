@@ -37,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
@@ -249,13 +248,13 @@ fun MapPickerScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (apiKey.isBlank()) {
                 // No Google Maps key configured — explain instead of a blank map.
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                     ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -323,8 +322,7 @@ fun MapPickerScreen(navController: NavController) {
                 // Activation radius — mirrors the geofence radius of the task.
                 Text(
                     text = stringResource(R.string.radius_meters_format, radius),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleSmall
                 )
                 Slider(
                     value = radius.toFloat(),

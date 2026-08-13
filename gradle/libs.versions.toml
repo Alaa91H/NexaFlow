@@ -47,6 +47,7 @@ androidx-compose-ui-ui-test-manifest = { module = "androidx.compose.ui:ui-test-m
 androidx-compose-ui-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-compose-ui-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 androidx-core-core-ktx = { module = "androidx.core:core-ktx", version.ref = "v1_19_0" }
+androidx-core-core-splashscreen = { module = "androidx.core:core-splashscreen", version = "1.0.1" }
 androidx-datastore-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "v1_2_1" }
 androidx-hilt-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "v1_4_0" }
 androidx-hilt-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "v1_4_0" }

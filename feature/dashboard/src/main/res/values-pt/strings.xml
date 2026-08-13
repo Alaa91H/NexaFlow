@@ -8,7 +8,7 @@
     <string name="no_search_results_title">Sem resultados</string>
     <string name="no_search_results_sub">Nenhuma tarefa corresponde à sua pesquisa.</string>
     <string name="run_now">Executar agora</string>
-    <string name="section_routines">TAREFAS AGENDADAS</string>
+    <string name="section_routines">Tarefas agendadas</string>
     <string name="new_routine">Nova tarefa</string>
     <string name="empty_automations_title">Ainda não há tarefas</string>
     <string name="empty_automations_sub">Toque em + para criar a primeira tarefa.</string>

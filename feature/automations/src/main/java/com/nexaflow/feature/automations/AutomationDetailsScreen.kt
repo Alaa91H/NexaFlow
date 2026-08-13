@@ -50,7 +50,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.pm.ShortcutInfoCompat
@@ -154,8 +153,7 @@ fun AutomationDetailsScreen(navController: NavController) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = current.name,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
+                                style = MaterialTheme.typography.titleMedium
                             )
                             Text(
                                 text = current.description,
@@ -490,7 +488,7 @@ private fun AutomationDetailsPreview() {
                         contentColor = Color(sample.iconColor)
                     )
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(text = sample.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(text = sample.name, style = MaterialTheme.typography.titleMedium)
                         Text(
                             text = sample.description,
                             style = MaterialTheme.typography.bodySmall,

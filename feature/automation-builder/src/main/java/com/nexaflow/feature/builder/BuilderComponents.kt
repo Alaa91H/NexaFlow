@@ -134,7 +134,7 @@ fun SelectChip(
             )
         },
         colors = FilterChipDefaults.filterChipColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.4f),
             labelColor = MaterialTheme.colorScheme.onSurface,
             iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
             selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
@@ -323,7 +323,7 @@ fun SpecialPermissionStatusRow(
             stringResource(
                 if (special.isBinary()) R.string.special_status_not_granted else R.string.elevated_status_unavailable
             ),
-            MaterialTheme.colorScheme.surfaceVariant,
+            MaterialTheme.colorScheme.surfaceContainerHighest,
             MaterialTheme.colorScheme.secondary
         )
     }
@@ -362,7 +362,6 @@ fun ItemHeader(text: String) {
         text = text,
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
-        fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
     )
 }
@@ -389,8 +388,7 @@ fun ActionOptionRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = stringResource(option.titleRes),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold
+                style = MaterialTheme.typography.titleSmall
             )
             Text(
                 text = stringResource(option.subtitleRes),

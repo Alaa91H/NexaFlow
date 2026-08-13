@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_title">Configurações</string>
-    <string name="section_automation">AUTOMAÇÃO</string>
+    <string name="section_automation">Automação</string>
     <string name="accessibility_service">Serviço de acessibilidade</string>
     <string name="accessibility_enabled">Ativado — gatilhos de aplicativos são detectados</string>
     <string name="accessibility_disabled">Desativado — gatilhos de aplicativos não serão acionados</string>
@@ -10,23 +10,23 @@
     <string name="monitoring_stopped">Parado — gatilhos só disparam com o aplicativo aberto</string>
     <string name="state_enabled">Ligado</string>
     <string name="state_disabled">Desligado</string>
-    <string name="section_appearance">APARÊNCIA</string>
+    <string name="section_appearance">Aparência</string>
     <string name="themes">Temas</string>
     <string name="themes_sub">Modo escuro e cor de destaque</string>
     <string name="widgets">Definições rápidas</string>
     <string name="widgets_sub">Peças de definições rápidas para as suas tarefas</string>
-    <string name="section_integration">INTEGRAÇÃO</string>
+    <string name="section_integration">Integração</string>
     <string name="capability_center">Central de recursos</string>
     <string name="capability_center_sub">Recursos ROM e permissões</string>
     <string name="execution_history">Histórico de execução</string>
     <string name="execution_history_sub">Ver execuções de automações</string>
-    <string name="section_about">SOBRE</string>
+    <string name="section_about">Sobre</string>
     <string name="about_nexaflow">Sobre o NexaFlow</string>
     <string name="version">Versão %1$s</string>
     <string name="about_description">Um mecanismo avançado de automação ciente de contexto para Android. Automatize seu dispositivo com gatilhos de hora, aplicativo, dispositivo, conectividade e localização.</string>
     <string name="about_license">Licenciado sob a Licença MIT.</string>
     <string name="ok">OK</string>
-    <string name="section_backup">CÓPIA DE SEGURANÇA</string>
+    <string name="section_backup">Cópia de segurança</string>
     <string name="backup_export">Exportar e compartilhar</string>
     <string name="backup_export_sub">Guarde a cópia de segurança num ficheiro e depois partilhe-a com qualquer app</string>
     <string name="backup_import">Importar do arquivo</string>
@@ -83,6 +83,12 @@
     <string name="refresh">Atualizar</string>
     <string name="root_permission">Acesso root</string>
     <string name="root_permission_sub">Conceda acesso de superusuário para comandos avançados</string>
+    <string name="root_grant_all">Conceder todas as permissões automaticamente</string>
+    <string name="root_grant_all_sub">Root/Shizuku: conceder cada permissão sem avisos</string>
+    <string name="root_grant_all_action">Conceder tudo</string>
+    <string name="root_granting">Concedendo…</string>
+    <string name="root_grant_done">Pronto — %1$d runtime, %2$d app-ops, %3$d isenção de bateria</string>
+    <string name="root_grant_failed">Não foi possível conceder via root. Verifique seu gerenciador root.</string>
     <string name="shizuku_permission">Shizuku</string>
     <string name="shizuku_permission_sub">Execute comandos avançados via serviço Shizuku</string>
     <string name="oem_compat_title">Mantenha o NexaFlow ativo em segundo plano</string>
@@ -110,7 +116,7 @@
     <string name="update_latest">Você está atualizado</string>
     <string name="update_latest_sub">Última versão: %1$s</string>
     <string name="state_ok">OK</string>
-    <string name="state_update">ATUALIZAR</string>
+    <string name="state_update">Atualizar</string>
     <string name="update_available">Atualização disponível</string>
     <string name="update_available_sub">A versão %1$s está pronta para instalar</string>
     <string name="update_downloading">Baixando…</string>
@@ -145,5 +151,5 @@
     <string name="increase">Aumentar</string>
     <string name="decrease">Diminuir</string>
     <string name="location_check_apply">Aplicar</string>
-    <string name="section_services">SERVIÇOS</string>
+    <string name="section_services">Serviços</string>
 </resources>

@@ -50,10 +50,10 @@ fun ChannelStatusRow(
     }
     val (background, content) = when (status?.tier) {
         ChannelTier.ELEVATED -> Color(0xFFE4F4E9) to Color(0xFF006D3C)
-        ChannelTier.STANDARD -> Color(0xFFE3F0FA) to Color(0xFF1E6FD9)
-        ChannelTier.ACCESSIBILITY -> Color(0xFFFFF2E0) to Color(0xFFB26A00)
-        ChannelTier.NONE -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.secondary
-        null -> MaterialTheme.colorScheme.surfaceVariant to MaterialTheme.colorScheme.outline
+        ChannelTier.STANDARD -> Color(0xFFE3F0FA) to Color(0xFF0B57D0)
+        ChannelTier.ACCESSIBILITY -> Color(0xFFFFF2E0) to Color(0xFF8F4C00)
+        ChannelTier.NONE -> MaterialTheme.colorScheme.surfaceContainerHighest to MaterialTheme.colorScheme.secondary
+        null -> MaterialTheme.colorScheme.surfaceContainerHighest to MaterialTheme.colorScheme.outline
     }
     SettingRow(
         icon = Icons.Filled.Bolt,

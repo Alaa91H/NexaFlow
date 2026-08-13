@@ -129,7 +129,7 @@ private fun RunSummaryCard(record: ExecutionRecord) {
     val failBg = Color(0xFFFBEAE7)
 
     NexaFlowCard {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -143,8 +143,7 @@ private fun RunSummaryCard(record: ExecutionRecord) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = record.automationName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleMedium
                     )
                     Text(
                         text = record.message,
@@ -191,8 +190,7 @@ private fun RunSummaryCard(record: ExecutionRecord) {
                     )
                     Text(
                         text = formatDuration(totalMs, msLabel, sLabel),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.titleSmall
                     )
                 }
             }

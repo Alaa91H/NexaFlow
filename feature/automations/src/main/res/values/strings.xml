@@ -4,9 +4,9 @@
     <string name="delete">Delete</string>
     <string name="not_found_title">Automation not found</string>
     <string name="not_found_subtitle">It may have been deleted.</string>
-    <string name="section_triggers">TRIGGERS</string>
+    <string name="section_triggers">Triggers</string>
     <string name="no_triggers">No triggers configured.</string>
-    <string name="section_actions">ACTIONS</string>
+    <string name="section_actions">Actions</string>
     <string name="no_actions">No actions configured.</string>
     <string name="run_now">Run Now</string>
     <string name="running">Running…</string>

@@ -2,7 +2,7 @@
 <resources>
     <string name="widgets_title">Quick settings</string>
 
-    <string name="section_tiles">QUICK SETTINGS TILES</string>
+    <string name="section_tiles">Quick settings tiles</string>
 
     <string name="tile_1_label">Task 1</string>
 

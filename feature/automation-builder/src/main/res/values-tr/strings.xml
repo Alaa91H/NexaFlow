@@ -7,7 +7,7 @@
     <string name="name_hint">örn. Sabah Görevi</string>
     <string name="icon">Simge</string>
     <string name="tap_to_choose_icon">Simge seçmek için dokunun</string>
-    <string name="section_when">NE ZAMAN (TETİKLEYİCİLER)</string>
+    <string name="section_when">Ne zaman (tetikleyiciler)</string>
     <string name="trigger_n">Tetikleyici %1$d</string>
     <string name="remove_trigger">Tetikleyiciyi kaldır</string>
     <string name="trigger_type_time">Zaman</string>
@@ -75,7 +75,7 @@
     <string name="battery_above_sub">Yalnızca pil seviyenin üzerindeyken çalıştır</string>
     <string name="minimum_battery">Minimum pil: %1$d%%</string>
 
-    <string name="section_actions">SONRA (EYLEMLER)</string>
+    <string name="section_actions">Sonra (eylemler)</string>
     <string name="save_automation">Görevi kaydet</string>
     <string name="ok">Tamam</string>
     <string name="cancel">İptal</string>
@@ -410,7 +410,7 @@
     <string name="plugin_reconfigure">Yapılandır</string>
     <string name="plugin_refresh">Yenile</string>
     <string name="plugin_no_edit">Bu eklentinin yapılandırma ekranı yok</string>
-    <string name="section_constraints">EĞER (KISITLAR)</string>
+    <string name="section_constraints">Eğer (kısıtlar)</string>
     <string name="add_constraint">Kısıt ekle</string>
     <string name="constraints_empty_hint">Kısıt yok - görev her tetikleyicide çalışır. Kontrol için koşullar ekleyin.</string>
     <string name="constraint_n">Kısıt %1$d</string>

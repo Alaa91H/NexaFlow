@@ -2,7 +2,7 @@
 <resources>
     <string name="widgets_title">Быстрые настройки</string>
 
-    <string name="section_tiles">ПЛИТКИ БЫСТРЫХ НАСТРОЕК</string>
+    <string name="section_tiles">Плитки быстрых настроек</string>
 
     <string name="tile_1_label">Задача 1</string>
 

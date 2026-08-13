@@ -7,7 +7,7 @@
     <string name="name_hint">ex.: Tarefa matinal</string>
     <string name="icon">Ícone</string>
     <string name="tap_to_choose_icon">Toque para escolher um ícone</string>
-    <string name="section_when">QUANDO (GATILHOS)</string>
+    <string name="section_when">Quando (gatilhos)</string>
     <string name="trigger_n">Gatilho %1$d</string>
     <string name="remove_trigger">Remover gatilho</string>
     <string name="trigger_type_time">Hora</string>
@@ -75,7 +75,7 @@
     <string name="battery_above_sub">Executar apenas quando a bateria estiver acima do nível</string>
     <string name="minimum_battery">Bateria mínima: %1$d%%</string>
 
-    <string name="section_actions">ENTÃO (AÇÕES)</string>
+    <string name="section_actions">Então (ações)</string>
     <string name="save_automation">Salvar tarefa</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancelar</string>
@@ -410,7 +410,7 @@
     <string name="plugin_reconfigure">Configurar</string>
     <string name="plugin_refresh">Atualizar</string>
     <string name="plugin_no_edit">Este plugin não tem tela de configuração</string>
-    <string name="section_constraints">SE (CONDIÇÕES)</string>
+    <string name="section_constraints">Se (condições)</string>
     <string name="add_constraint">Adicionar condição</string>
     <string name="constraints_empty_hint">Sem condições - a tarefa roda a cada gatilho. Adicione condições para controlá-la.</string>
     <string name="constraint_n">Condição %1$d</string>

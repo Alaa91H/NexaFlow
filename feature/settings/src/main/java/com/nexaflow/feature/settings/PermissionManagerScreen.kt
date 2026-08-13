@@ -49,7 +49,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
@@ -71,6 +70,7 @@ import com.nexaflow.core.rom.ElevatedAccessShortcuts
 import com.nexaflow.core.rom.OemCompat
 import com.nexaflow.core.rom.PermissionStatus
 import com.nexaflow.core.rom.PrivilegedRunner
+import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
@@ -187,8 +187,7 @@ fun PermissionManagerScreen(navController: NavController) {
                             Column(Modifier.weight(1f)) {
                                 Text(
                                     text = stringResource(R.string.oem_compat_title),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold
+                                    style = MaterialTheme.typography.titleSmall
                                 )
                                 Text(
                                     text = stringResource(R.string.oem_compat_sub),
@@ -221,6 +220,62 @@ fun PermissionManagerScreen(navController: NavController) {
             }
             item {
                 SectionHeader(text = stringResource(R.string.section_automation))
+            }
+            // Root / Shizuku users: one button grants every permission silently
+            // instead of tapping through each system screen.
+            item {
+                val canAutoGrant = remember {
+                    PrivilegedRunner.isRootAvailable() || PrivilegedRunner.isShizukuGranted()
+                }
+                if (canAutoGrant) {
+                    var autoGranting by remember { mutableStateOf(false) }
+                    var grantMessage by remember { mutableStateOf<String?>(null) }
+                    NexaFlowCard {
+                        SettingRow(
+                            icon = Icons.Filled.Security,
+                            title = stringResource(R.string.root_grant_all),
+                            subtitle = stringResource(R.string.root_grant_all_sub),
+                            trailing = {
+                                TextButton(onClick = {
+                                    autoGranting = true
+                                    grantMessage = null
+                                    Thread {
+                                        val result = runCatching {
+                                            RootPermissionGranter.grantAll(context.applicationContext)
+                                        }.getOrNull()
+                                        autoGranting = false
+                                        refreshTick++
+                                        grantMessage = if (result == null) {
+                                            context.getString(R.string.root_grant_failed)
+                                        } else {
+                                            context.getString(
+                                                R.string.root_grant_done,
+                                                result.runtimeGranted.size,
+                                                result.appOpsGranted.size,
+                                                if (result.batteryExempted) 1 else 0
+                                            )
+                                        }
+                                    }.start()
+                                }) {
+                                    Text(
+                                        text = stringResource(
+                                            if (autoGranting) R.string.root_granting else R.string.root_grant_all_action
+                                        ),
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        )
+                        if (grantMessage != null) {
+                            Text(
+                                text = grantMessage!!,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
+                            )
+                        }
+                    }
+                }
             }
             item {
                 NexaFlowCard {

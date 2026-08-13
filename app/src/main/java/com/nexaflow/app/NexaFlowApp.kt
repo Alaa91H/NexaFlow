@@ -1,5 +1,9 @@
 package com.nexaflow.app
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Checklist
@@ -17,6 +21,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.nexaflow.core.capability.CapabilityCenterScreen
 import com.nexaflow.core.ui.NavigationDestination
+import com.nexaflow.core.ui.NexaFlowSprings
+import com.nexaflow.core.ui.isSystemReduceMotionEnabled
 import com.nexaflow.core.ui.NexaFlowNavigationBar
 import com.nexaflow.feature.automations.AutomationDetailsScreen
 import com.nexaflow.feature.builder.AutomationBuilderScreen
@@ -57,6 +63,15 @@ fun NexaFlowApp() {
         )
     )
     val showBottomBar = currentRoute in topLevelDestinations.map { it.route }
+    // Google 2026: directional spring navigation. Reduce-motion is hoisted
+    // here (it is @Composable, the NavHost transition lambdas are not) and
+    // degrades to a plain crossfade when the user disables animations.
+    val reduceMotion = isSystemReduceMotionEnabled()
+    // Spring for the slide itself — IntOffset spring, not the Float one.
+    val slideSpring = spring<androidx.compose.ui.unit.IntOffset>(
+        dampingRatio = 0.8f,
+        stiffness = androidx.compose.animation.core.Spring.StiffnessMedium
+    )
 
     Scaffold(
         bottomBar = {
@@ -80,7 +95,53 @@ fun NexaFlowApp() {
         NavHost(
             navController = navController,
             startDestination = "dashboard",
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            enterTransition = {
+                // Google 2026: directional spring slide-in (content arrives
+                // from the right, matching Android's system navigation).
+                if (reduceMotion) {
+                    fadeIn()
+                } else {
+                    slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = slideSpring,
+                        initialOffset = { it / 8 }
+                    ) + fadeIn(animationSpec = NexaFlowSprings.Default)
+                }
+            },
+            exitTransition = {
+                if (reduceMotion) {
+                    fadeOut()
+                } else {
+                    slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = slideSpring,
+                        targetOffset = { it / 12 }
+                    ) + fadeOut(animationSpec = NexaFlowSprings.Default)
+                }
+            },
+            popEnterTransition = {
+                if (reduceMotion) {
+                    fadeIn()
+                } else {
+                    slideIntoContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = slideSpring,
+                        initialOffset = { it / 8 }
+                    ) + fadeIn(animationSpec = NexaFlowSprings.Default)
+                }
+            },
+            popExitTransition = {
+                if (reduceMotion) {
+                    fadeOut()
+                } else {
+                    slideOutOfContainer(
+                        towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = slideSpring,
+                        targetOffset = { it / 12 }
+                    ) + fadeOut(animationSpec = NexaFlowSprings.Default)
+                }
+            }
         ) {
             composable("dashboard") {
                 DashboardScreen(navController = navController)

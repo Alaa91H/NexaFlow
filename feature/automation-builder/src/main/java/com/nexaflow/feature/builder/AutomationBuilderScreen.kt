@@ -1,5 +1,7 @@
 package com.nexaflow.feature.builder
 
+import androidx.compose.ui.text.font.FontWeight
+
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -84,7 +86,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -233,7 +234,7 @@ private fun TriggerSelectList(
                 ) {
                     IconBadge(
                         icon = type.icon(),
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
@@ -316,8 +317,7 @@ private fun SelectedActionCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(option.titleRes),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.titleSmall
                     )
                     Text(
                         text = stringResource(option.subtitleRes),
@@ -876,6 +876,7 @@ fun AutomationBuilderScreen(
                     IconBadge(
                         icon = iconVector(NexaFlowIcons.all[selectedIconIndex].first),
                         containerColor = MaterialTheme.colorScheme.primary,
+                        size = 48,
                         modifier = Modifier.clickable { navController.navigate("icon_picker") }
                     )
                     OutlinedTextField(
@@ -891,11 +892,10 @@ fun AutomationBuilderScreen(
             // ── Task card: triggers + constraints + actions + exit ──
             // One merged card, always expanded — it never collapses.
             NexaFlowCard {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
                         text = stringResource(R.string.task_card_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.titleMedium
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     // ── WHEN (triggers) ──────────────────────────────
@@ -1032,8 +1032,7 @@ fun AutomationBuilderScreen(
                     } else {
                         Text(
                             text = stringResource(R.string.exit_per_action_title),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.titleSmall
                         )
                         endCapableActions.forEach { option ->
                             Row(
@@ -1049,8 +1048,7 @@ fun AutomationBuilderScreen(
                                 Text(
                                     text = stringResource(option.titleRes),
                                     modifier = Modifier.weight(1f),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold
+                                    style = MaterialTheme.typography.titleSmall
                                 )
                             }
                             EndBehaviorEditor(
@@ -1066,8 +1064,7 @@ fun AutomationBuilderScreen(
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         Text(
                             text = stringResource(R.string.exit_extra_actions_label),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.titleSmall
                         )
                         selectedExitActions.forEach { option ->
                             Row(
@@ -1078,8 +1075,7 @@ fun AutomationBuilderScreen(
                                 Text(
                                     text = stringResource(option.titleRes),
                                     modifier = Modifier.weight(1f),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold
+                                    style = MaterialTheme.typography.titleSmall
                                 )
                                 IconButton(onClick = {
                                     selectedExitActions.remove(option)
@@ -1111,8 +1107,7 @@ fun AutomationBuilderScreen(
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         Text(
                             text = stringResource(R.string.exit_auto_reply_label),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.titleSmall
                         )
                         OutlinedTextField(
                             value = triggers[smsTriggerIndex].config["reply"] ?: "",

@@ -176,7 +176,7 @@ fun AppPickerDialog(
                                 imageVector = Icons.Filled.Android,
                                 contentDescription = null,
                                 modifier = Modifier.size(40.dp),
-                                tint = MaterialTheme.colorScheme.surfaceVariant
+                                tint = MaterialTheme.colorScheme.surfaceContainerHighest
                             )
                         }
                         Column(

@@ -8,7 +8,7 @@
     <string name="no_search_results_title">No results</string>
     <string name="no_search_results_sub">No tasks match your search.</string>
     <string name="run_now">Run now</string>
-    <string name="section_routines">SCHEDULED TASKS</string>
+    <string name="section_routines">Scheduled tasks</string>
     <string name="new_routine">New task</string>
     <string name="empty_automations_title">No tasks yet</string>
     <string name="empty_automations_sub">Tap + to create your first task.</string>

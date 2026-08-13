@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark-mode splash background: a deep violet from the launcher gradient
+         so the splash stays branded without flashing white at night. -->
+    <color name="splash_background">#5E35B1</color>
+</resources>

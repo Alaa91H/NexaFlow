@@ -8,7 +8,7 @@
     <string name="no_search_results_title">Нет результатов</string>
     <string name="no_search_results_sub">Ни одна задача не соответствует вашему запросу.</string>
     <string name="run_now">Запустить сейчас</string>
-    <string name="section_routines">ПЛАНОВЫЕ ЗАДАЧИ</string>
+    <string name="section_routines">Плановые задачи</string>
     <string name="new_routine">Новая задача</string>
     <string name="empty_automations_title">Пока нет задач</string>
     <string name="empty_automations_sub">Нажмите +, чтобы создать первую задачу.</string>

@@ -4,9 +4,9 @@
     <string name="delete">Sil</string>
     <string name="not_found_title">Otomasyon bulunamadı</string>
     <string name="not_found_subtitle">Silinmiş olabilir.</string>
-    <string name="section_triggers">TETİKLEYİCİLER</string>
+    <string name="section_triggers">Tetikleyiciler</string>
     <string name="no_triggers">Yapılandırılmış tetikleyici yok.</string>
-    <string name="section_actions">EYLEMLER</string>
+    <string name="section_actions">Eylemler</string>
     <string name="no_actions">Yapılandırılmış eylem yok.</string>
     <string name="run_now">Şimdi Çalıştır</string>
     <string name="running">Çalışıyor…</string>

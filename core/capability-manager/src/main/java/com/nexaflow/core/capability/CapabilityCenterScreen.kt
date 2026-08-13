@@ -109,8 +109,7 @@ fun CapabilityCenterScreen() {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = stringResource(R.string.detected_rom, buildInfo.family.displayName),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.titleSmall
                         )
                         Text(
                             text = "${buildInfo.brand} · ${buildInfo.model} (${buildInfo.device})",
@@ -129,7 +128,7 @@ fun CapabilityCenterScreen() {
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -137,14 +136,13 @@ fun CapabilityCenterScreen() {
                 ) {
                     IconBadge(
                         icon = Icons.Filled.Tune,
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = stringResource(R.string.integration_level, integrationLevel.displayName),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.titleSmall
                         )
                         Text(
                             text = integrationLevel.description,
@@ -178,7 +176,7 @@ fun CapabilityCenterScreen() {
                 trailing = {
                     StatusPill(
                         text = stringResource(R.string.capabilities_count, availableCount),
-                        background = MaterialTheme.colorScheme.surfaceVariant,
+                        background = MaterialTheme.colorScheme.surfaceContainerHighest,
                         contentColor = MaterialTheme.colorScheme.secondary
                     )
                 }
@@ -204,14 +202,13 @@ fun CapabilityCenterScreen() {
                 ) {
                     IconBadge(
                         icon = Icons.Filled.Info,
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Column {
                         Text(
                             text = stringResource(R.string.about_privileged),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.titleSmall
                         )
                         Text(
                             text = stringResource(R.string.about_privileged_text),
@@ -251,8 +248,7 @@ private fun SmsAwarenessCard(viewModel: SmsCapabilityViewModel = hiltViewModel()
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     text = stringResource(R.string.sms_android17_title),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleSmall
                 )
                 Text(
                     text = stringResource(R.string.sms_android17_body),
@@ -346,8 +342,7 @@ private fun EvolutionXCard(
                             R.string.evolution_rom_version,
                             buildInfo.evolutionVersion
                         ),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.titleSmall
                     )
                 }
                 if (buildInfo.evolutionBuildType.isNotBlank()) {
@@ -376,7 +371,7 @@ private fun EvolutionXCard(
         }
 
         if (!isSystemApp) {
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = stringResource(R.string.evolution_system_app_hint),
                 style = MaterialTheme.typography.bodySmall,
@@ -399,7 +394,7 @@ private fun EvolutionXCard(
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         TextButton(
             onClick = { showSettingsDialog = true },
             modifier = Modifier.fillMaxWidth()
@@ -614,15 +609,14 @@ private fun CapabilityCard(
                 containerColor = if (available) {
                     Color(0xFF006D3C)
                 } else {
-                    MaterialTheme.colorScheme.surfaceVariant
+                    MaterialTheme.colorScheme.surfaceContainerHighest
                 },
                 contentColor = if (available) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = capability.displayName,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleSmall
                 )
                 Text(
                     text = capability.description,
@@ -639,13 +633,13 @@ private fun CapabilityCard(
             } else {
                 StatusPill(
                     text = stringResource(R.string.not_available),
-                    background = Color(0xFFB3261E),
-                    contentColor = Color.White
+                    background = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
                 )
             }
         }
         if (grantIntent != null) {
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Button(
                 onClick = { CapabilityGrantHelper.launch(context, grantIntent) },
                 modifier = Modifier.fillMaxWidth()

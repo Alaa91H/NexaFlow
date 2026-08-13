@@ -8,7 +8,7 @@
     <string name="no_search_results_title">Aucun résultat</string>
     <string name="no_search_results_sub">Aucune tâche ne correspond à votre recherche.</string>
     <string name="run_now">Exécuter maintenant</string>
-    <string name="section_routines">TÂCHES PLANIFIÉES</string>
+    <string name="section_routines">Tâches planifiées</string>
     <string name="new_routine">Nouvelle tâche</string>
     <string name="empty_automations_title">Aucune tâche pour l\\u2019instant</string>
     <string name="empty_automations_sub">Touchez + pour créer votre première tâche.</string>

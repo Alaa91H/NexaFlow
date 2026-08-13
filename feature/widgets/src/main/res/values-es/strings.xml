@@ -2,7 +2,7 @@
 <resources>
     <string name="widgets_title">Ajustes rápidos</string>
 
-    <string name="section_tiles">MOSAICOS DE AJUSTES RÁPIDOS</string>
+    <string name="section_tiles">Mosaicos de ajustes rápidos</string>
 
     <string name="tile_1_label">Tarea 1</string>
 

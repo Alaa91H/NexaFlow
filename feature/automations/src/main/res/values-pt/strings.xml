@@ -4,9 +4,9 @@
     <string name="delete">Excluir</string>
     <string name="not_found_title">Automação não encontrada</string>
     <string name="not_found_subtitle">Ela pode ter sido excluída.</string>
-    <string name="section_triggers">GATILHOS</string>
+    <string name="section_triggers">Gatilhos</string>
     <string name="no_triggers">Nenhum gatilho configurado.</string>
-    <string name="section_actions">AÇÕES</string>
+    <string name="section_actions">Ações</string>
     <string name="no_actions">Nenhuma ação configurada.</string>
     <string name="run_now">Executar agora</string>
     <string name="running">Executando…</string>

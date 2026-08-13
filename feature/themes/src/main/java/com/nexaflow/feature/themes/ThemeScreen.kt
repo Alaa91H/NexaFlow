@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -92,7 +90,7 @@ fun ThemeScreen(navController: NavController) {
             }
             item {
                 NexaFlowCard {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         modeOptions.forEach { option ->
                             val selected = theme.mode == option.mode
                             Row(
@@ -108,14 +106,13 @@ fun ThemeScreen(navController: NavController) {
                                     containerColor = if (selected) {
                                         MaterialTheme.colorScheme.primary
                                     } else {
-                                        MaterialTheme.colorScheme.surfaceVariant
+                                        MaterialTheme.colorScheme.surfaceContainerHighest
                                     }
                                 )
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = stringResource(option.titleRes),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.SemiBold
+                                        style = MaterialTheme.typography.titleSmall
                                     )
                                     Text(
                                         text = stringResource(option.subtitleRes),
@@ -154,14 +151,13 @@ fun ThemeScreen(navController: NavController) {
                                     containerColor = if (theme.dynamicColor) {
                                         MaterialTheme.colorScheme.primary
                                     } else {
-                                        MaterialTheme.colorScheme.surfaceVariant
+                                        MaterialTheme.colorScheme.surfaceContainerHighest
                                     }
                                 )
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = stringResource(R.string.dynamic_color),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.SemiBold
+                                        style = MaterialTheme.typography.titleSmall
                                     )
                                     Text(
                                         text = stringResource(R.string.dynamic_color_sub),
@@ -227,7 +223,7 @@ fun ThemeScreen(navController: NavController) {
             }
             item {
                 NexaFlowCard {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -237,7 +233,7 @@ fun ThemeScreen(navController: NavController) {
                                 containerColor = accentOptions.firstOrNull { it.key == theme.accent }?.color ?: Color(0xFF0B57D0)
                             )
                             Column {
-                                Text(text = stringResource(R.string.theme_name), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                                Text(text = stringResource(R.string.theme_name), style = MaterialTheme.typography.titleSmall)
                                 Text(
                                     text = when (theme.mode) {
                                         ThemeMode.SYSTEM -> stringResource(R.string.preview_system)

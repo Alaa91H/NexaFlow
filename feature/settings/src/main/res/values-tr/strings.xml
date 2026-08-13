@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_title">Ayarlar</string>
-    <string name="section_automation">OTOMASYON</string>
+    <string name="section_automation">Otomasyon</string>
     <string name="accessibility_service">Erişilebilirlik hizmeti</string>
     <string name="accessibility_enabled">Etkin — uygulama tetikleyicileri algılanıyor</string>
     <string name="accessibility_disabled">Kapalı — uygulama tetikleyicileri çalışmaz</string>
@@ -10,23 +10,23 @@
     <string name="monitoring_stopped">Durduruldu — tetikleyiciler yalnızca uygulama açıkken çalışır</string>
     <string name="state_enabled">Açık</string>
     <string name="state_disabled">Kapalı</string>
-    <string name="section_appearance">GÖRÜNÜM</string>
+    <string name="section_appearance">Görünüm</string>
     <string name="themes">Temalar</string>
     <string name="themes_sub">Karanlık mod ve vurgu rengi</string>
     <string name="widgets">Hızlı ayarlar</string>
     <string name="widgets_sub">Görevleriniz için hızlı ayar kutucukları</string>
-    <string name="section_integration">ENTEGRASYON</string>
+    <string name="section_integration">Entegrasyon</string>
     <string name="capability_center">Yetenek Merkezi</string>
     <string name="capability_center_sub">ROM özellikleri ve izinler</string>
     <string name="execution_history">Yürütme Geçmişi</string>
     <string name="execution_history_sub">Otomasyon çalışmalarını görüntüle</string>
-    <string name="section_about">HAKKINDA</string>
+    <string name="section_about">Hakkında</string>
     <string name="about_nexaflow">NexaFlow Hakkında</string>
     <string name="version">Sürüm %1$s</string>
     <string name="about_description">Android için gelişmiş, bağlam farkında otomasyon motoru. Zaman, uygulama, cihaz, bağlantı ve konum tetikleyicileriyle cihazını otomatikleştir.</string>
     <string name="about_license">MIT Lisansı altında lisanslıdır.</string>
     <string name="ok">Tamam</string>
-    <string name="section_backup">YEDEKLEME</string>
+    <string name="section_backup">Yedekleme</string>
     <string name="backup_export">Dışa aktar ve paylaş</string>
     <string name="backup_export_sub">Yedeği bir dosyaya kaydedin ve ardından herhangi bir uygulamayla paylaşın</string>
     <string name="backup_import">Dosyadan içe aktar</string>
@@ -83,6 +83,12 @@
     <string name="refresh">Yenile</string>
     <string name="root_permission">Root erişimi</string>
     <string name="root_permission_sub">Gelişmiş komutlar için süper kullanıcı erişimi verin</string>
+    <string name="root_grant_all">Tüm izinleri otomatik olarak ver</string>
+    <string name="root_grant_all_sub">Root/Shizuku: her izni istemsiz, sessizce ver</string>
+    <string name="root_grant_all_action">Tümünü ver</string>
+    <string name="root_granting">Veriliyor…</string>
+    <string name="root_grant_done">Bitti — %1$d runtime, %2$d app-ops, %3$d pil muafiyeti</string>
+    <string name="root_grant_failed">Root ile verilemedi. Root yöneticinizi kontrol edin.</string>
     <string name="shizuku_permission">Shizuku</string>
     <string name="shizuku_permission_sub">Shizuku hizmeti üzerinden gelişmiş komutlar çalıştırın</string>
     <string name="oem_compat_title">NexaFlow\'un arka planda çalışmasını sağlayın</string>
@@ -110,7 +116,7 @@
     <string name="update_latest">Güncel sürümdesiniz</string>
     <string name="update_latest_sub">Son sürüm: %1$s</string>
     <string name="state_ok">Tamam</string>
-    <string name="state_update">GÜNCELLE</string>
+    <string name="state_update">Güncelle</string>
     <string name="update_available">Güncelleme mevcut</string>
     <string name="update_available_sub">%1$s sürümü kuruluma hazır</string>
     <string name="update_downloading">İndiriliyor…</string>
@@ -145,5 +151,5 @@
     <string name="increase">Artır</string>
     <string name="decrease">Azalt</string>
     <string name="location_check_apply">Uygula</string>
-    <string name="section_services">HİZMETLER</string>
+    <string name="section_services">Hizmetler</string>
 </resources>

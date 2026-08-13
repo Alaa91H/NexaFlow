@@ -7,7 +7,7 @@
     <string name="name_hint">p. ej. Tarea matutina</string>
     <string name="icon">Icono</string>
     <string name="tap_to_choose_icon">Toca para elegir un icono</string>
-    <string name="section_when">CUÁNDO (DISPARADORES)</string>
+    <string name="section_when">Cuándo (disparadores)</string>
     <string name="trigger_n">Disparador %1$d</string>
     <string name="remove_trigger">Quitar disparador</string>
     <string name="trigger_type_time">Hora</string>
@@ -75,7 +75,7 @@
     <string name="battery_above_sub">Solo ejecutar cuando la batería supere el nivel</string>
     <string name="minimum_battery">Batería mínima: %1$d%%</string>
 
-    <string name="section_actions">ENTONCES (ACCIONES)</string>
+    <string name="section_actions">Entonces (acciones)</string>
     <string name="save_automation">Guardar tarea</string>
     <string name="ok">Aceptar</string>
     <string name="cancel">Cancelar</string>
@@ -410,7 +410,7 @@
     <string name="plugin_reconfigure">Configurar</string>
     <string name="plugin_refresh">Actualizar</string>
     <string name="plugin_no_edit">Este complemento no tiene pantalla de configuración</string>
-    <string name="section_constraints">SI (CONDICIONES)</string>
+    <string name="section_constraints">Si (condiciones)</string>
     <string name="add_constraint">Añadir condición</string>
     <string name="constraints_empty_hint">Sin condiciones - la tarea se ejecuta con cada disparador. Añade condiciones para controlarla.</string>
     <string name="constraint_n">Condición %1$d</string>

@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -151,7 +150,7 @@ private fun HistoryCard(entry: ExecutionRecord, onClick: () -> Unit) {
                 contentColor = if (entry.success) Color(0xFF006D3C) else Color(0xFFBA1A1A)
             )
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = entry.automationName, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text(text = entry.automationName, style = MaterialTheme.typography.titleSmall)
                 Text(
                     text = entry.message,
                     style = MaterialTheme.typography.bodySmall,

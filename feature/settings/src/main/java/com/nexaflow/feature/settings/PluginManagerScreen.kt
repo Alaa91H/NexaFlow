@@ -43,7 +43,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -148,8 +147,7 @@ fun PluginManagerScreen(navController: NavController) {
                         ) {
                             Text(
                                 text = stringResource(R.string.plugin_no_plugins),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold
+                                style = MaterialTheme.typography.titleSmall
                             )
                             Text(
                                 text = stringResource(R.string.plugin_no_plugins_hint),
@@ -192,8 +190,7 @@ fun PluginManagerScreen(navController: NavController) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = plugin.label,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold
+                                    style = MaterialTheme.typography.titleSmall
                                 )
                                 Text(
                                     text = plugin.packageName,

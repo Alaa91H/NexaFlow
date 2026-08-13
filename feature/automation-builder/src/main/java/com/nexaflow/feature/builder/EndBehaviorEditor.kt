@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.EndBehavior
@@ -48,8 +47,7 @@ fun EndBehaviorEditor(
         if (showLabel) {
             Text(
                 text = stringResource(R.string.end_behavior_label),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold
+                style = MaterialTheme.typography.titleSmall
             )
         }
         if (actionType in EndBehaviorCatalog.toggleActions) {

@@ -2,7 +2,7 @@
 <resources>
     <string name="widgets_title">Hızlı ayarlar</string>
 
-    <string name="section_tiles">HIZLI AYARLAR DÖŞEMELERİ</string>
+    <string name="section_tiles">Hızlı ayarlar döşemeleri</string>
 
     <string name="tile_1_label">Görev 1</string>
 

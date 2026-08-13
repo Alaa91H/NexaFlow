@@ -8,7 +8,7 @@
     <string name="no_search_results_title">Sonuç yok</string>
     <string name="no_search_results_sub">Aramanızla eşleşen görev yok.</string>
     <string name="run_now">Şimdi çalıştır</string>
-    <string name="section_routines">ZAMANLANMIŞ GÖREVLER</string>
+    <string name="section_routines">Zamanlanmış görevler</string>
     <string name="new_routine">Yeni görev</string>
     <string name="empty_automations_title">Henüz görev yok</string>
     <string name="empty_automations_sub">İlk görevi oluşturmak için + simgesine dokunun.</string>

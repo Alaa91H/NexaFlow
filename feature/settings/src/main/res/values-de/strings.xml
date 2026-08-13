@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_title">Einstellungen</string>
-    <string name="section_automation">AUTOMATISIERUNG</string>
+    <string name="section_automation">Automatisierung</string>
     <string name="accessibility_service">Barrierefreiheitsdienst</string>
     <string name="accessibility_enabled">Aktiviert — App-Trigger werden erkannt</string>
     <string name="accessibility_disabled">Aus — App-Trigger werden nicht ausgelöst</string>
@@ -10,23 +10,23 @@
     <string name="monitoring_stopped">Gestoppt — Trigger feuern nur bei geöffneter App</string>
     <string name="state_enabled">An</string>
     <string name="state_disabled">Aus</string>
-    <string name="section_appearance">DARSTELLUNG</string>
+    <string name="section_appearance">Darstellung</string>
     <string name="themes">Designs</string>
     <string name="themes_sub">Dunkelmodus und Akzentfarbe</string>
     <string name="widgets">Schnelleinstellungen</string>
     <string name="widgets_sub">Schnelleinstellungen-Kacheln für deine Aufgaben</string>
-    <string name="section_integration">INTEGRATION</string>
+    <string name="section_integration">Integration</string>
     <string name="capability_center">Fähigkeitszentrum</string>
     <string name="capability_center_sub">ROM-Funktionen und Berechtigungen</string>
     <string name="execution_history">Ausführungsverlauf</string>
     <string name="execution_history_sub">Automatisierungsläufe anzeigen</string>
-    <string name="section_about">ÜBER</string>
+    <string name="section_about">Über</string>
     <string name="about_nexaflow">Über NexaFlow</string>
     <string name="version">Version %1$s</string>
     <string name="about_description">Eine fortschrittliche kontextbewusste Automatisierungs-Engine für Android. Automatisiere dein Gerät mit Zeit-, App-, Geräte-, Konnektivitäts- und Standort-Triggern.</string>
     <string name="about_license">Lizenziert unter der MIT-Lizenz.</string>
     <string name="ok">OK</string>
-    <string name="section_backup">SICHERUNG</string>
+    <string name="section_backup">Sicherung</string>
     <string name="backup_export">Exportieren und teilen</string>
     <string name="backup_export_sub">Backup in einer Datei speichern und dann mit jeder App teilen</string>
     <string name="backup_import">Aus Datei importieren</string>
@@ -83,6 +83,12 @@
     <string name="refresh">Aktualisieren</string>
     <string name="root_permission">Root-Zugriff</string>
     <string name="root_permission_sub">Superuser-Zugriff für erweiterte Befehle gewähren</string>
+    <string name="root_grant_all">Alle Berechtigungen automatisch erteilen</string>
+    <string name="root_grant_all_sub">Root/Shizuku: alle Berechtigungen ohne Abfragen erteilen</string>
+    <string name="root_grant_all_action">Alle erteilen</string>
+    <string name="root_granting">Wird erteilt…</string>
+    <string name="root_grant_done">Fertig — %1$d Laufzeit, %2$d App-ops, %3$d Akku-Ausnahme</string>
+    <string name="root_grant_failed">Erteilen über Root fehlgeschlagen. Root-Manager prüfen.</string>
     <string name="shizuku_permission">Shizuku</string>
     <string name="shizuku_permission_sub">Erweiterte Befehle über den Shizuku-Dienst ausführen</string>
     <string name="oem_compat_title">NexaFlow im Hintergrund aktiv halten</string>
@@ -110,7 +116,7 @@
     <string name="update_latest">Sie sind auf dem neuesten Stand</string>
     <string name="update_latest_sub">Neueste Version: %1$s</string>
     <string name="state_ok">OK</string>
-    <string name="state_update">UPDATE</string>
+    <string name="state_update">Update</string>
     <string name="update_available">Update verfügbar</string>
     <string name="update_available_sub">Version %1$s ist bereit zur Installation</string>
     <string name="update_downloading">Wird heruntergeladen…</string>
@@ -145,5 +151,5 @@
     <string name="increase">Erhöhen</string>
     <string name="decrease">Verringern</string>
     <string name="location_check_apply">Übernehmen</string>
-    <string name="section_services">DIENSTE</string>
+    <string name="section_services">Dienste</string>
 </resources>

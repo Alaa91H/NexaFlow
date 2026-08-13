@@ -4,9 +4,9 @@
     <string name="delete">Löschen</string>
     <string name="not_found_title">Automatisierung nicht gefunden</string>
     <string name="not_found_subtitle">Sie wurde möglicherweise gelöscht.</string>
-    <string name="section_triggers">TRIGGER</string>
+    <string name="section_triggers">Trigger</string>
     <string name="no_triggers">Keine Trigger konfiguriert.</string>
-    <string name="section_actions">AKTIONEN</string>
+    <string name="section_actions">Aktionen</string>
     <string name="no_actions">Keine Aktionen konfiguriert.</string>
     <string name="run_now">Jetzt ausführen</string>
     <string name="running">Wird ausgeführt…</string>

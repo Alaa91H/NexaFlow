@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="themes_title">Temas</string>
-    <string name="section_appearance">APARÊNCIA</string>
+    <string name="section_appearance">Aparência</string>
     <string name="mode_system">Padrão do sistema</string>
     <string name="mode_system_sub">Segue o tema do dispositivo</string>
     <string name="mode_light">Claro</string>
@@ -10,7 +10,7 @@
     <string name="mode_dark_sub">Sempre usar o tema escuro</string>
     <string name="theme_follows_system">Segue a aparência do sistema automaticamente</string>
     <string name="theme_manual">Substituição manual do tema selecionada</string>
-    <string name="section_accent">COR DE DESTAQUE</string>
+    <string name="section_accent">Cor de destaque</string>
     <string name="accent_selected">Selecionado: %1$s</string>
     <string name="accent_blue">Azul</string>
     <string name="accent_green">Verde</string>
@@ -18,7 +18,7 @@
     <string name="accent_purple">Roxo</string>
     <string name="accent_amber">Âmbar</string>
     <string name="accent_teal">Verde-azulado</string>
-    <string name="section_preview">VISUALIZAÇÃO</string>
+    <string name="section_preview">Visualização</string>
     <string name="theme_name">Tema do NexaFlow</string>
     <string name="preview_system">Aparência do sistema</string>
     <string name="preview_dark">Visualização escura</string>

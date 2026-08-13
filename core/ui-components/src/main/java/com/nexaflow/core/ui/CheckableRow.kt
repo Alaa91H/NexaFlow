@@ -42,7 +42,7 @@ fun CheckableRow(
                 role = Role.RadioButton,
                 onClick = onClick
             )
-            .padding(horizontal = 4.dp, vertical = 10.dp),
+            .padding(horizontal = 4.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {

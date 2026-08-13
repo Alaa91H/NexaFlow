@@ -4,9 +4,9 @@
     <string name="delete">Supprimer</string>
     <string name="not_found_title">Automatisation introuvable</string>
     <string name="not_found_subtitle">Elle a peut-être été supprimée.</string>
-    <string name="section_triggers">DÉCLENCHEURS</string>
+    <string name="section_triggers">Déclencheurs</string>
     <string name="no_triggers">Aucun déclencheur configuré.</string>
-    <string name="section_actions">ACTIONS</string>
+    <string name="section_actions">Actions</string>
     <string name="no_actions">Aucune action configurée.</string>
     <string name="run_now">Exécuter maintenant</string>
     <string name="running">Exécution…</string>

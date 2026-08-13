@@ -2,7 +2,7 @@
 <resources>
     <string name="widgets_title">Schnelleinstellungen</string>
 
-    <string name="section_tiles">SCHNELLEINSTELLUNGEN-KACHELN</string>
+    <string name="section_tiles">Schnelleinstellungen-Kacheln</string>
 
     <string name="tile_1_label">Aufgabe 1</string>
 

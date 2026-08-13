@@ -84,7 +84,7 @@ fun CalendarPickerDialog(
                             .clickable {
                                 onPick(CalendarOption(name = "", color = 0))
                             }
-                            .padding(vertical = 10.dp),
+                            .padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
@@ -112,7 +112,7 @@ fun CalendarPickerDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onPick(calendar) }
-                            .padding(vertical = 10.dp),
+                            .padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {

@@ -37,8 +37,8 @@ android {
         applicationId = "com.nexaflow.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 21
-        versionName = "3.18.0-alpha"
+        versionCode = 23
+        versionName = "3.20.0-alpha"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -166,6 +166,7 @@ composeCompiler {
 
 dependencies {
     implementation(libs.androidx.core.core.ktx)
+    implementation(libs.androidx.core.core.splashscreen)
     implementation(libs.androidx.lifecycle.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.activity.compose)

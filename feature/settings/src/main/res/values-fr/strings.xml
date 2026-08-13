@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_title">Paramètres</string>
-    <string name="section_automation">AUTOMATISATION</string>
+    <string name="section_automation">Automatisation</string>
     <string name="accessibility_service">Service d\u2019accessibilité</string>
     <string name="accessibility_enabled">Activé — les déclencheurs d\u2019application sont détectés</string>
     <string name="accessibility_disabled">Désactivé — les déclencheurs d\u2019application ne se déclencheront pas</string>
@@ -10,23 +10,23 @@
     <string name="monitoring_stopped">Arrêté — les déclencheurs ne se déclenchent que lorsque l\u2019application est ouverte</string>
     <string name="state_enabled">Activé</string>
     <string name="state_disabled">Désactivé</string>
-    <string name="section_appearance">APPARENCE</string>
+    <string name="section_appearance">Apparence</string>
     <string name="themes">Thèmes</string>
     <string name="themes_sub">Mode sombre et couleur d\u2019accent</string>
     <string name="widgets">Réglages rapides</string>
     <string name="widgets_sub">Tuiles de réglages rapides pour vos tâches</string>
-    <string name="section_integration">INTÉGRATION</string>
+    <string name="section_integration">Intégration</string>
     <string name="capability_center">Centre de capacités</string>
     <string name="capability_center_sub">Fonctions ROM et autorisations</string>
     <string name="execution_history">Historique d\u2019exécution</string>
     <string name="execution_history_sub">Voir les exécutions des automatisations</string>
-    <string name="section_about">À PROPOS</string>
+    <string name="section_about">À propos</string>
     <string name="about_nexaflow">À propos de NexaFlow</string>
     <string name="version">Version %1$s</string>
     <string name="about_description">Un moteur d\u2019automatisation avancé et contextuel pour Android. Automatisez votre appareil avec des déclencheurs d\u2019heure, d\u2019application, d\u2019appareil, de connectivité et de position.</string>
     <string name="about_license">Sous licence MIT.</string>
     <string name="ok">OK</string>
-    <string name="section_backup">SAUVEGARDE</string>
+    <string name="section_backup">Sauvegarde</string>
     <string name="backup_export">Exporter et partager</string>
     <string name="backup_export_sub">"Enregistrez la sauvegarde dans un fichier, puis partagez-la avec n'importe quelle app"</string>
     <string name="backup_import">Importer depuis un fichier</string>
@@ -83,6 +83,11 @@
     <string name="refresh">Actualiser</string>
     <string name="root_permission">Accès root</string>
     <string name="root_permission_sub">Accorder l\'accès superutilisateur pour les commandes avancées</string>
+    <string name="root_grant_all">Accorder tous les permissions automatiquement</string>
+    <string name="root_grant_all_sub">Root/Shizuku : accorder chaque permission sans invite</string>
+    <string name="root_grant_all_action">Tout accorder</string>
+    <string name="root_granting">Accord en cours…</string>
+    <string name="root_grant_done">Terminé — %1$d runtime, %2$d app-ops, %3$d exemption batterie</string>        <string name="root_grant_failed">Échec de l\'octroi via root. Vérifiez votre gestionnaire root.</string>
     <string name="shizuku_permission">Shizuku</string>
     <string name="shizuku_permission_sub">Exécuter des commandes avancées via le service Shizuku</string>
     <string name="oem_compat_title">Gardez NexaFlow actif en arrière-plan</string>
@@ -110,7 +115,7 @@
     <string name="update_latest">Vous êtes à jour</string>
     <string name="update_latest_sub">Dernière version : %1$s</string>
     <string name="state_ok">OK</string>
-    <string name="state_update">MISE À JOUR</string>
+    <string name="state_update">Mise à jour</string>
     <string name="update_available">Mise à jour disponible</string>
     <string name="update_available_sub">La version %1$s est prête à installer</string>
     <string name="update_downloading">Téléchargement…</string>
@@ -145,5 +150,5 @@
     <string name="increase">Augmenter</string>
     <string name="decrease">Diminuer</string>
     <string name="location_check_apply">Appliquer</string>
-    <string name="section_services">SERVICES</string>
+    <string name="section_services">Services</string>
 </resources>

@@ -7,7 +7,7 @@
     <string name="name_hint">p. ex. Tâche du matin</string>
     <string name="icon">Icône</string>
     <string name="tap_to_choose_icon">Touchez pour choisir une icône</string>
-    <string name="section_when">QUAND (DÉCLENCHEURS)</string>
+    <string name="section_when">Quand (déclencheurs)</string>
     <string name="trigger_n">Déclencheur %1$d</string>
     <string name="remove_trigger">Retirer le déclencheur</string>
     <string name="trigger_type_time">Heure</string>
@@ -75,7 +75,7 @@
     <string name="battery_above_sub">Exécuter uniquement si la batterie dépasse le niveau</string>
     <string name="minimum_battery">Batterie minimale : %1$d%%</string>
 
-    <string name="section_actions">ALORS (ACTIONS)</string>
+    <string name="section_actions">Alors (actions)</string>
     <string name="save_automation">Enregistrer la tâche</string>
     <string name="ok">OK</string>
     <string name="cancel">Annuler</string>
@@ -410,7 +410,7 @@
     <string name="plugin_reconfigure">Configurer</string>
     <string name="plugin_refresh">Actualiser</string>
     <string name="plugin_no_edit">"Ce plugin n'a pas d'écran de configuration"</string>
-    <string name="section_constraints">SI (CONDITIONS)</string>
+    <string name="section_constraints">Si (conditions)</string>
     <string name="add_constraint">Ajouter une condition</string>
     <string name="constraints_empty_hint">"Aucune condition - la tâche s'exécute à chaque déclencheur. Ajoutez des conditions pour la contrôler."</string>
     <string name="constraint_n">Condition %1$d</string>

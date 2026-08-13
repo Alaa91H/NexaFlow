@@ -205,11 +205,11 @@ private fun DateField(
         modifier = Modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.small)
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f))
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Icon(
             imageVector = Icons.Filled.DateRange,
@@ -247,11 +247,11 @@ private fun TimeField(
         modifier = Modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.small)
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f))
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Icon(
             imageVector = Icons.Filled.Schedule,
@@ -290,11 +290,10 @@ private fun TimeRepeatSection(
     onConfigChange: (TriggerDraft) -> Unit,
     onPickDate: (String) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = stringResource(R.string.repeat_label),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold
+            style = MaterialTheme.typography.titleSmall
         )
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
@@ -316,8 +315,7 @@ private fun TimeRepeatSection(
             "SPECIFIC_DAYS" -> {
                 Text(
                     text = stringResource(R.string.select_days),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleSmall
                 )
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
@@ -354,8 +352,7 @@ private fun TimeRepeatSection(
                 val occurrence = draft.config["weekOfMonth"] ?: "1"
                 Text(
                     text = stringResource(R.string.select_days),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleSmall
                 )
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
@@ -375,8 +372,7 @@ private fun TimeRepeatSection(
                 }
                 Text(
                     text = stringResource(R.string.week_of_month_label),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleSmall
                 )
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
@@ -487,7 +483,7 @@ fun TriggerEditorCard(
     // Always expanded: the card shows the trigger type plus the type picker
     // and the ordered options for that type. The task card never collapses.
     NexaFlowCard {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -505,8 +501,7 @@ fun TriggerEditorCard(
                     )
                     Text(
                         text = stringResource(draft.type.labelRes()),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
+                        style = MaterialTheme.typography.titleSmall
                     )
                 }
                 IconButton(onClick = onRemove) {
@@ -544,7 +539,7 @@ fun TriggerEditorCard(
             when (draft.type) {
                 TriggerType.TIME -> {
                     val rangeMode = draft.config["timeMode"] == "RANGE"
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         FlowRow(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -612,8 +607,7 @@ fun TriggerEditorCard(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = stringResource(R.string.trigger_time),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.SemiBold
+                                        style = MaterialTheme.typography.titleSmall
                                     )
                                     Text(
                                         text = stringResource(R.string.repeat_daily),
@@ -637,12 +631,12 @@ fun TriggerEditorCard(
                     val direction = draft.config["direction"] ?: "ABOVE"
                     val chargerType = draft.config["chargerType"] ?: "ANY"
                     val chargingState = draft.config["chargingState"] ?: "ANY"
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         val threshold = (draft.config["above"] ?: "80").toIntOrNull() ?: 80
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.BatteryChargingFull,
@@ -652,8 +646,7 @@ fun TriggerEditorCard(
                             Column {
                                 Text(
                                     text = stringResource(R.string.battery_trigger_title),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold
+                                    style = MaterialTheme.typography.titleSmall
                                 )
                                 Text(
                                     text = if (direction == "ABOVE") {
@@ -670,7 +663,6 @@ fun TriggerEditorCard(
                         Text(
                             text = stringResource(R.string.battery_level_section),
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -708,7 +700,6 @@ fun TriggerEditorCard(
                         Text(
                             text = stringResource(R.string.charging_state_section),
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.primary
                         )
                         val chargingOptions = listOf(
@@ -768,7 +759,7 @@ fun TriggerEditorCard(
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Apps,
@@ -778,8 +769,7 @@ fun TriggerEditorCard(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = stringResource(R.string.trigger_app),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold
+                                    style = MaterialTheme.typography.titleSmall
                                 )
                                 Text(
                                     text = if (packages.isEmpty()) {
@@ -825,7 +815,7 @@ fun TriggerEditorCard(
                     val event = draft.config["event"] ?: "SCREEN_ON"
                     val isBluetooth = event == "BLUETOOTH_CONNECTED" || event == "BLUETOOTH_DISCONNECTED"
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall)
                         OptionChips(
                             options = listOf(
                                 "SCREEN_ON",
@@ -864,7 +854,7 @@ fun TriggerEditorCard(
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.Bluetooth,
@@ -874,8 +864,7 @@ fun TriggerEditorCard(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = stringResource(R.string.trigger_bluetooth),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.SemiBold
+                                        style = MaterialTheme.typography.titleSmall
                                     )
                                     Text(
                                         text = (draft.config["deviceName"] ?: "").ifBlank {
@@ -896,7 +885,7 @@ fun TriggerEditorCard(
                                     modifier = Modifier.padding(start = 6.dp)
                                 )
                             }
-                            Text(text = stringResource(R.string.state), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                            Text(text = stringResource(R.string.state), style = MaterialTheme.typography.titleSmall)
                             OptionChips(
                                 options = listOf("BLUETOOTH_CONNECTED", "BLUETOOTH_DISCONNECTED"),
                                 labels = mapOf(
@@ -919,7 +908,7 @@ fun TriggerEditorCard(
                 TriggerType.CONNECTIVITY -> {
                     val network = draft.config["network"] ?: "WIFI"
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(text = stringResource(R.string.network), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        Text(text = stringResource(R.string.network), style = MaterialTheme.typography.titleSmall)
                         // WIFI / MOBILE / hotspot ON-OFF / cellular network mode
                         // (2G/3G/4G/5G) — each with its own state vocabulary.
                         OptionChips(
@@ -944,7 +933,7 @@ fun TriggerEditorCard(
                                 )
                             }
                         )
-                        Text(text = stringResource(R.string.state), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        Text(text = stringResource(R.string.state), style = MaterialTheme.typography.titleSmall)
                         when (network) {
                             "HOTSPOT" -> OptionChips(
                                 options = listOf("ON", "OFF"),
@@ -991,15 +980,13 @@ fun TriggerEditorCard(
                         ) {
                             Text(
                                 text = stringResource(R.string.network_mode_current),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold
+                                style = MaterialTheme.typography.titleSmall
                             )
                             Spacer(modifier = Modifier.weight(1f))
                             Text(
                                 text = currentGen ?: stringResource(R.string.network_mode_unknown),
                                 style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
+                                color = MaterialTheme.colorScheme.primary
                             )
                             IconButton(onClick = { currentGen = currentCellularGeneration(context) }) {
                                 Icon(
@@ -1015,8 +1002,7 @@ fun TriggerEditorCard(
                         )
                         Text(
                             text = stringResource(R.string.network_mode_fire_when),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.titleSmall
                         )
                         OptionChips(
                             options = listOf("AUTO", "2G", "3G", "4G", "5G"),
@@ -1079,8 +1065,7 @@ fun TriggerEditorCard(
                             .coerceIn(LOCATION_RADIUS_MIN_M, LOCATION_RADIUS_MAX_M)
                         Text(
                             text = stringResource(R.string.radius_meters_format, radius),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.titleSmall
                         )
                         Slider(
                             value = radius.toFloat(),
@@ -1166,7 +1151,7 @@ fun TriggerEditorCard(
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.NotificationsActive,
@@ -1176,8 +1161,7 @@ fun TriggerEditorCard(
                             Column {
                                 Text(
                                     text = stringResource(R.string.trigger_ringer),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold
+                                    style = MaterialTheme.typography.titleSmall
                                 )
                                 Text(
                                     text = stringResource(R.string.trigger_ringer_sub),
@@ -1186,7 +1170,7 @@ fun TriggerEditorCard(
                                 )
                             }
                         }
-                        Text(text = stringResource(R.string.ringer_mode_label), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        Text(text = stringResource(R.string.ringer_mode_label), style = MaterialTheme.typography.titleSmall)
                         FlowRow(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -1228,7 +1212,7 @@ fun TriggerEditorCard(
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Bluetooth,
@@ -1238,8 +1222,7 @@ fun TriggerEditorCard(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = stringResource(R.string.trigger_bluetooth),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold
+                                    style = MaterialTheme.typography.titleSmall
                                 )
                                 Text(
                                     text = if (deviceName.isBlank()) {
@@ -1262,7 +1245,7 @@ fun TriggerEditorCard(
                                 modifier = Modifier.padding(start = 6.dp)
                             )
                         }
-                        Text(text = stringResource(R.string.state), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        Text(text = stringResource(R.string.state), style = MaterialTheme.typography.titleSmall)
                         OptionChips(
                             options = listOf("CONNECTED", "DISCONNECTED"),
                             selected = event,
@@ -1293,7 +1276,7 @@ fun TriggerEditorCard(
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.DateRange,
@@ -1303,8 +1286,7 @@ fun TriggerEditorCard(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = stringResource(R.string.trigger_calendar),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold
+                                    style = MaterialTheme.typography.titleSmall
                                 )
                                 Text(
                                     text = if (calendarName.isBlank()) {
@@ -1335,7 +1317,7 @@ fun TriggerEditorCard(
                             placeholder = { Text(text = stringResource(R.string.calendar_contains_hint)) },
                             singleLine = true
                         )
-                        Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall)
                         FlowRow(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -1387,8 +1369,7 @@ fun TriggerEditorCard(
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
                             text = stringResource(R.string.sensor_kind),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.titleSmall
                         )
                         FlowRow(
                             modifier = Modifier.fillMaxWidth(),
@@ -1417,8 +1398,7 @@ fun TriggerEditorCard(
                             "PROXIMITY" -> {
                                 Text(
                                     text = stringResource(R.string.event),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold
+                                    style = MaterialTheme.typography.titleSmall
                                 )
                                 FlowRow(
                                     modifier = Modifier.fillMaxWidth(),
@@ -1445,8 +1425,7 @@ fun TriggerEditorCard(
                             "LIGHT" -> {
                                 Text(
                                     text = stringResource(R.string.event),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold
+                                    style = MaterialTheme.typography.titleSmall
                                 )
                                 FlowRow(
                                     modifier = Modifier.fillMaxWidth(),
@@ -1530,8 +1509,7 @@ fun TriggerEditorCard(
                         )
                         Text(
                             text = stringResource(R.string.event),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.titleSmall
                         )
                         FlowRow(
                             modifier = Modifier.fillMaxWidth(),
@@ -1577,8 +1555,7 @@ fun TriggerEditorCard(
                         // ── Namespace (system / secure / global) ────────────
                         Text(
                             text = stringResource(R.string.rom_setting_namespace),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.titleSmall
                         )
                         OptionChips(
                             options = listOf("SYSTEM", "SECURE", "GLOBAL"),
@@ -1625,8 +1602,7 @@ fun TriggerEditorCard(
                         // ── Operator + target value ─────────────────────────
                         Text(
                             text = stringResource(R.string.rom_setting_operator),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.titleSmall
                         )
                         OptionChips(
                             options = listOf("EQUALS", "NOT_EQUALS"),
@@ -1689,7 +1665,7 @@ fun TriggerEditorCard(
                                                         )
                                                         showKeyPicker = false
                                                     }
-                                                    .padding(vertical = 10.dp, horizontal = 4.dp),
+                                                    .padding(vertical = 12.dp, horizontal = 4.dp),
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
                                                 Icon(
@@ -1739,7 +1715,7 @@ fun TriggerEditorCard(
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.NotificationsActive,
@@ -1749,8 +1725,7 @@ fun TriggerEditorCard(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = stringResource(R.string.trigger_notification),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold
+                                    style = MaterialTheme.typography.titleSmall
                                 )
                                 Text(
                                     text = if (packages.isEmpty()) {
@@ -1781,7 +1756,7 @@ fun TriggerEditorCard(
                             placeholder = { Text(text = stringResource(R.string.notification_contains_hint)) },
                             singleLine = true
                         )
-                        Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall)
                         OptionChips(
                             options = listOf("POSTED", "REMOVED"),
                             selected = event,

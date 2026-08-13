@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_title">Настройки</string>
-    <string name="section_automation">АВТОМАТИЗАЦИЯ</string>
+    <string name="section_automation">Автоматизация</string>
     <string name="accessibility_service">Служба специальных возможностей</string>
     <string name="accessibility_enabled">Включена — триггеры приложений обнаруживаются</string>
     <string name="accessibility_disabled">Выключена — триггеры приложений не сработают</string>
@@ -10,23 +10,23 @@
     <string name="monitoring_stopped">Остановлена — триггеры срабатывают только при открытом приложении</string>
     <string name="state_enabled">Вкл</string>
     <string name="state_disabled">Выкл</string>
-    <string name="section_appearance">ВНЕШНИЙ ВИД</string>
+    <string name="section_appearance">Внешний вид</string>
     <string name="themes">Темы</string>
     <string name="themes_sub">Тёмный режим и акцентный цвет</string>
     <string name="widgets">Быстрые настройки</string>
     <string name="widgets_sub">Плитки быстрых настроек для ваших задач</string>
-    <string name="section_integration">ИНТЕГРАЦИЯ</string>
+    <string name="section_integration">Интеграция</string>
     <string name="capability_center">Центр возможностей</string>
     <string name="capability_center_sub">Функции ROM и разрешения</string>
     <string name="execution_history">История выполнения</string>
     <string name="execution_history_sub">Просмотр запусков автоматизаций</string>
-    <string name="section_about">О ПРИЛОЖЕНИИ</string>
+    <string name="section_about">О приложении</string>
     <string name="about_nexaflow">О NexaFlow</string>
     <string name="version">Версия %1$s</string>
     <string name="about_description">Передовой контекстно-зависимый движок автоматизации для Android. Автоматизируйте устройство с помощью триггеров времени, приложений, устройства, сети и местоположения.</string>
     <string name="about_license">Распространяется по лицензии MIT.</string>
     <string name="ok">ОК</string>
-    <string name="section_backup">РЕЗЕРВНАЯ КОПИЯ</string>
+    <string name="section_backup">Резервная копия</string>
     <string name="backup_export">Экспорт и отправка</string>
     <string name="backup_export_sub">Сохраните резервную копию в файл, затем поделитесь ею в любом приложении</string>
     <string name="backup_import">Импорт из файла</string>
@@ -83,6 +83,12 @@
     <string name="refresh">Обновить</string>
     <string name="root_permission">Root-доступ</string>
     <string name="root_permission_sub">Предоставьте доступ суперпользователя для расширенных команд</string>
+    <string name="root_grant_all">Выдать все разрешения автоматически</string>
+    <string name="root_grant_all_sub">Root/Shizuku: выдать все разрешения без запросов</string>
+    <string name="root_grant_all_action">Выдать все</string>
+    <string name="root_granting">Выдача…</string>
+    <string name="root_grant_done">Готово — %1$d runtime, %2$d app-ops, %3$d исключений батареи</string>
+    <string name="root_grant_failed">Не удалось выдать через root. Проверьте менеджер root.</string>
     <string name="shizuku_permission">Shizuku</string>
     <string name="shizuku_permission_sub">Выполнять расширенные команды через службу Shizuku</string>
     <string name="oem_compat_title">Оставляйте NexaFlow работать в фоне</string>
@@ -110,7 +116,7 @@
     <string name="update_latest">У вас актуальная версия</string>
     <string name="update_latest_sub">Последний релиз: %1$s</string>
     <string name="state_ok">ОК</string>
-    <string name="state_update">ОБНОВИТЬ</string>
+    <string name="state_update">Обновить</string>
     <string name="update_available">Доступно обновление</string>
     <string name="update_available_sub">Версия %1$s готова к установке</string>
     <string name="update_downloading">Загрузка…</string>
@@ -145,5 +151,5 @@
     <string name="increase">Увеличить</string>
     <string name="decrease">Уменьшить</string>
     <string name="location_check_apply">Применить</string>
-    <string name="section_services">СЛУЖБЫ</string>
+    <string name="section_services">Службы</string>
 </resources>

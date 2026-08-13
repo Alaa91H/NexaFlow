@@ -116,8 +116,7 @@ fun WidgetsScreen(navController: NavController, viewModel: WidgetsViewModel = hi
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = stringResource(tile.labelRes),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold
+                                    style = MaterialTheme.typography.titleSmall
                                 )
                                 Text(
                                     text = stringResource(tile.descriptionRes),

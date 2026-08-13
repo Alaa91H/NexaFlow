@@ -8,7 +8,7 @@
     <string name="no_search_results_title">Keine Ergebnisse</string>
     <string name="no_search_results_sub">Keine Aufgaben passen zu deiner Suche.</string>
     <string name="run_now">Jetzt ausführen</string>
-    <string name="section_routines">GEPLANTE AUFGABEN</string>
+    <string name="section_routines">Geplante Aufgaben</string>
     <string name="new_routine">Neue Aufgabe</string>
     <string name="empty_automations_title">Noch keine Aufgaben</string>
     <string name="empty_automations_sub">Tippe auf +, um deine erste Aufgabe zu erstellen.</string>

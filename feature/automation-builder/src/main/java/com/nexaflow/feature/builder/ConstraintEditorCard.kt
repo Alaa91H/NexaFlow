@@ -30,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
@@ -123,7 +122,7 @@ fun ConstraintTypePickerDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onPick(type) }
-                        .padding(vertical = 10.dp),
+                        .padding(vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -135,8 +134,7 @@ fun ConstraintTypePickerDialog(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = stringResource(type.labelRes()),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.titleSmall
                         )
                         Text(
                             text = stringResource(type.subtitleRes()),
@@ -173,7 +171,7 @@ fun ConstraintEditorCard(
     onRemove: () -> Unit
 ) {
     NexaFlowCard {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -181,8 +179,7 @@ fun ConstraintEditorCard(
                 Text(
                     text = stringResource(R.string.constraint_n, index + 1),
                     modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleSmall
                 )
                 IconButton(onClick = onRemove) {
                     Icon(

@@ -2,7 +2,7 @@
 <resources>
     <string name="widgets_title">Definições rápidas</string>
 
-    <string name="section_tiles">BLOCO DE AJUSTES RÁPIDOS</string>
+    <string name="section_tiles">Bloco de ajustes rápidos</string>
 
     <string name="tile_1_label">Tarefa 1</string>
 

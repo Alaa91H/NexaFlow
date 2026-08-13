@@ -2,7 +2,7 @@
 <resources>
     <string name="widgets_title">Réglages rapides</string>
 
-    <string name="section_tiles">TUILES DE RÉGLAGES RAPIDES</string>
+    <string name="section_tiles">Tuiles de réglages rapides</string>
 
     <string name="tile_1_label">Tâche 1</string>
 

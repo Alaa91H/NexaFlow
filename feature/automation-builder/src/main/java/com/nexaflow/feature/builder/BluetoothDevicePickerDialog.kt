@@ -1,5 +1,7 @@
 package com.nexaflow.feature.builder
 
+import androidx.compose.ui.text.font.FontWeight
+
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -31,7 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 
@@ -83,7 +84,7 @@ fun BluetoothDevicePickerDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onPick(device) }
-                            .padding(vertical = 10.dp),
+                            .padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {

@@ -7,7 +7,7 @@
     <string name="name_hint">напр.: Утренняя задача</string>
     <string name="icon">Значок</string>
     <string name="tap_to_choose_icon">Нажмите, чтобы выбрать значок</string>
-    <string name="section_when">КОГДА (ТРИГГЕРЫ)</string>
+    <string name="section_when">Когда (триггеры)</string>
     <string name="trigger_n">Триггер %1$d</string>
     <string name="remove_trigger">Удалить триггер</string>
     <string name="trigger_type_time">Время</string>
@@ -75,7 +75,7 @@
     <string name="battery_above_sub">Запускать только когда батарея выше уровня</string>
     <string name="minimum_battery">Минимальная батарея: %1$d%%</string>
 
-    <string name="section_actions">ЗАТЕМ (ДЕЙСТВИЯ)</string>
+    <string name="section_actions">Затем (действия)</string>
     <string name="save_automation">Сохранить задачу</string>
     <string name="ok">ОК</string>
     <string name="cancel">Отмена</string>
@@ -410,7 +410,7 @@
     <string name="plugin_reconfigure">Настроить</string>
     <string name="plugin_refresh">Обновить</string>
     <string name="plugin_no_edit">У этого плагина нет экрана настройки</string>
-    <string name="section_constraints">ЕСЛИ (УСЛОВИЯ)</string>
+    <string name="section_constraints">Если (условия)</string>
     <string name="add_constraint">Добавить условие</string>
     <string name="constraints_empty_hint">Без условий - задача запускается по любому триггеру. Добавьте условия для управления.</string>
     <string name="constraint_n">Условие %1$d</string>

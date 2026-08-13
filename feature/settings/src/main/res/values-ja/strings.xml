@@ -83,6 +83,12 @@
     <string name="refresh">更新</string>
     <string name="root_permission">ルートアクセス</string>
     <string name="root_permission_sub">高度なコマンドにスーパーユーザーアクセスを許可</string>
+    <string name="root_grant_all">すべての権限を自動的に付与</string>
+    <string name="root_grant_all_sub">Root/Shizuku: プロンプトなしで全権限を付与</string>
+    <string name="root_grant_all_action">すべて付与</string>
+    <string name="root_granting">付与中…</string>
+    <string name="root_grant_done">完了 — ランタイム %1$d、アプリオプ %2$d、バッテリー免除 %3$d</string>
+    <string name="root_grant_failed">ルート経由で付与できませんでした。ルートマネージャーを確認してください。</string>
     <string name="shizuku_permission">Shizuku</string>
     <string name="shizuku_permission_sub">Shizukuサービス経由で高度なコマンドを実行</string>
     <string name="oem_compat_title">NexaFlowをバックグラウンドで実行し続ける</string>

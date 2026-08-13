@@ -7,7 +7,7 @@
     <string name="name_hint">e.g. Morning task</string>
     <string name="icon">Icon</string>
     <string name="tap_to_choose_icon">Tap to choose an icon</string>
-    <string name="section_when">WHEN (TRIGGERS)</string>
+    <string name="section_when">When (triggers)</string>
     <string name="trigger_n">Trigger %1$d</string>
     <string name="remove_trigger">Remove trigger</string>
     <string name="trigger_type_time">Time</string>
@@ -103,7 +103,7 @@
     <string name="battery_above">Battery above threshold</string>
     <string name="battery_above_sub">Only run when battery is above the level</string>
     <string name="minimum_battery">Minimum battery: %1$d%%</string>
-    <string name="section_actions">THEN (ACTIONS)</string>
+    <string name="section_actions">Then (actions)</string>
     <string name="category_display">Display</string>
     <string name="category_sound">Sound</string>
     <string name="category_connectivity">Connectivity</string>
@@ -435,7 +435,7 @@
     <string name="plugin_reconfigure">Configure</string>
     <string name="plugin_refresh">Refresh</string>
     <string name="plugin_no_edit">This plugin has no configuration screen</string>
-    <string name="section_constraints">IF (CONSTRAINTS)</string>
+    <string name="section_constraints">If (constraints)</string>
     <string name="add_constraint">Add constraint</string>
     <string name="constraints_empty_hint">No constraints - the task runs whenever the trigger fires. Add conditions to gate it.</string>
     <string name="constraint_n">Constraint %1$d</string>

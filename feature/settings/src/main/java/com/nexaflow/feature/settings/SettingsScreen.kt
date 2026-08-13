@@ -515,8 +515,7 @@ private fun LocationIntervalDialog(
                     Column {
                         Text(
                             text = stringResource(R.string.location_check_manual),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold
+                            style = MaterialTheme.typography.titleSmall
                         )
                         Text(
                             text = stringResource(R.string.location_check_custom),
@@ -532,7 +531,7 @@ private fun LocationIntervalDialog(
                 // in RTL locales, so the row is pinned to LTR.
                 Surface(
                     shape = MaterialTheme.shapes.medium,
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.55f),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 10.dp)

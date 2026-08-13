@@ -8,7 +8,7 @@
     <string name="no_search_results_title">Sin resultados</string>
     <string name="no_search_results_sub">Ninguna tarea coincide con tu búsqueda.</string>
     <string name="run_now">Ejecutar ahora</string>
-    <string name="section_routines">TAREAS PROGRAMADAS</string>
+    <string name="section_routines">Tareas programadas</string>
     <string name="new_routine">Nueva tarea</string>
     <string name="empty_automations_title">Aún no hay tareas</string>
     <string name="empty_automations_sub">Toca + para crear tu primera tarea.</string>

@@ -40,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.execution.NotificationActionButton
 import com.nexaflow.domain.models.ActionType
@@ -102,7 +101,7 @@ fun ActionConfigEditor(
             val selectedStream = config["stream"] ?: "MUSIC"
             val value = config["value"]?.toIntOrNull() ?: 50
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(text = stringResource(R.string.stream_label), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text(text = stringResource(R.string.stream_label), style = MaterialTheme.typography.titleSmall)
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -135,8 +134,7 @@ fun ActionConfigEditor(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = stringResource(R.string.network_mode_label),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleSmall
                 )
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
@@ -188,8 +186,7 @@ fun ActionConfigEditor(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = stringResource(R.string.ringtone_label),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleSmall
                 )
                 val currentUri = config["uri"]
                 val ringtoneName = currentUri?.let { uri ->
@@ -467,7 +464,7 @@ fun ActionConfigEditor(
                     currentValue = config["text"] ?: "",
                     onValueChange = { onConfigChange(config + ("text" to it)) }
                 )
-                Text(text = stringResource(R.string.sound_label), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text(text = stringResource(R.string.sound_label), style = MaterialTheme.typography.titleSmall)
                 val sounds = listOf(
                     "DEFAULT" to stringResource(R.string.sound_default),
                     "RINGTONE" to stringResource(R.string.sound_ringtone),
@@ -560,7 +557,7 @@ fun ActionConfigEditor(
                     currentValue = config["url"] ?: "",
                     onValueChange = { onConfigChange(config + ("url" to it)) }
                 )
-                Text(text = stringResource(R.string.http_method), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                Text(text = stringResource(R.string.http_method), style = MaterialTheme.typography.titleSmall)
                 val methods = listOf("GET", "POST", "PUT", "PATCH", "DELETE")
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
@@ -641,8 +638,7 @@ fun ActionConfigEditor(
                 } else {
                     Text(
                         text = blurb,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
                         text = config["package"].orEmpty(),
@@ -816,8 +812,7 @@ private fun NotificationButtonsEditor(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(R.string.notification_buttons_title),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold
+            style = MaterialTheme.typography.titleSmall
         )
         Text(
             text = stringResource(R.string.notification_buttons_hint),
@@ -935,7 +930,7 @@ private fun NotificationButtonsEditor(
                                     onButtonsChange(buttons + NotificationActionButton(automation.name, automation.id))
                                     showPicker = false
                                 }
-                                .padding(vertical = 10.dp),
+                                .padding(vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
