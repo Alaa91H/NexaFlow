@@ -3,14 +3,14 @@ package com.nexaflow.core.ui
 import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FiniteAnimationSpec
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MotionScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,28 +24,34 @@ import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.delay
 
 /**
- * Google 2026 (M3 Expressive) motion tokens.
+ * Google 2026 (M3 Expressive) motion, sourced from the active
+ * [MotionScheme] (material3 1.5+, where the scheme is public API).
  *
- * These are the documented M3 Expressive spring values (m3.material.io —
- * "Emphasized" spring motion): the expressive scheme replaces tweens with
- * springs at 400/800 stiffness and ~0.8 damping, giving the slight overshoot
- * ("squish") that defines the 2025–2026 Google feel. The androidx material3
- * version the Compose BOM resolves (1.4.0) ships `MotionScheme` as an
- * internal API, so we expose the same springs directly and keep one motion
- * language across the app.
+ * material3 1.4.0 shipped `MotionScheme` as an internal API, so we previously
+ * exposed the documented M3 Expressive spring constants by hand. Since the
+ * project moved to material3 1.5.0-alpha26, `MotionScheme`, its
+ * `standard()`/`expressive()` factories, `MaterialTheme.motionScheme` and the
+ * `MotionSchemeKeyTokens` accessors are public — so this file now reads the
+ * actual scheme the app's theme was built with instead of duplicating
+ * constants. One motion language across the app, driven by the real tokens.
  */
 object NexaFlowSprings {
-    /** Default entrance/exit spring — 400 stiffness, 0.8 damping (slight bounce). */
-    val Default = spring<Float>(
-        dampingRatio = 0.8f,
-        stiffness = Spring.StiffnessMedium // 400
-    )
+    /**
+     * Default entrance/exit spring — the scheme's default spatial spec
+     * (slight overshoot, the 2025–2026 Google "emphasized" language).
+     */
+    @Composable
+    fun default(): FiniteAnimationSpec<Float> {
+        if (isSystemReduceMotionEnabled()) return tween(0)
+        return MaterialTheme.motionScheme.defaultSpatialSpec()
+    }
 
-    /** Fast micro-interaction spring — 800 stiffness, 0.85 damping (quick, quiet). */
-    val Fast = spring<Float>(
-        dampingRatio = 0.85f,
-        stiffness = Spring.StiffnessHigh // 800
-    )
+    /** Fast micro-interaction spring — the scheme's fast spatial spec. */
+    @Composable
+    fun fast(): FiniteAnimationSpec<Float> {
+        if (isSystemReduceMotionEnabled()) return tween(0)
+        return MaterialTheme.motionScheme.fastSpatialSpec()
+    }
 }
 
 /**
@@ -65,39 +71,24 @@ fun isSystemReduceMotionEnabled(): Boolean {
     }
 }
 
-/**
- * The Material3 1.4.0 expressive-motion APIs (`MotionScheme`, its tokens and
- * the `value()` accessor) are still `internal` in the release the project's
- * Compose BOM resolves — verified against the artifact's Kotlin metadata.
- * The documented M3 Expressive spring constants (400/800 stiffness, ~0.8
- * damping — the 2025–2026 Google "emphasized" language with its slight
- * overshoot) are therefore exposed here in generic form, so spatial motion
- * (IntOffset/IntSize specs for expand/slide) and effects (Float fade specs)
- * share one motion language. Falls back to an instant tween when the user
- * disabled animations.
- */
-private fun <T> spatialSpring(slow: Boolean): FiniteAnimationSpec<T> = spring(
-    dampingRatio = if (slow) 0.7f else 0.8f,
-    stiffness = if (slow) Spring.StiffnessLow else Spring.StiffnessMedium
-)
+/** Reads the current [MotionScheme] from the app theme. */
+@Composable
+private fun currentMotionScheme(): MotionScheme = MaterialTheme.motionScheme
 
-private fun <T> effectsSpring(slow: Boolean): FiniteAnimationSpec<T> = spring(
-    dampingRatio = if (slow) 0.9f else 0.85f,
-    stiffness = if (slow) Spring.StiffnessMedium else Spring.StiffnessHigh
-)
-
-/** Spatial spring (expanding/collapsing, sliding) — M3 Expressive. */
+/** Spatial spring (expanding/collapsing, sliding) — from the active scheme. */
 @Composable
 fun <T> nexaFlowSpatialSpec(slow: Boolean = false): FiniteAnimationSpec<T> {
     if (isSystemReduceMotionEnabled()) return tween(0)
-    return spatialSpring(slow)
+    val scheme = currentMotionScheme()
+    return if (slow) scheme.slowSpatialSpec() else scheme.defaultSpatialSpec()
 }
 
-/** Effects spring (fades) — M3 Expressive. */
+/** Effects spring (fades) — from the active scheme. */
 @Composable
 fun <T> nexaFlowEffectsSpec(slow: Boolean = false): FiniteAnimationSpec<T> {
     if (isSystemReduceMotionEnabled()) return tween(0)
-    return effectsSpring(slow)
+    val scheme = currentMotionScheme()
+    return if (slow) scheme.slowEffectsSpec() else scheme.defaultEffectsSpec()
 }
 
 /**
@@ -176,12 +167,12 @@ fun Modifier.nexaFlowEntrance(delayMillis: Int = 0): Modifier = composed {
         var started by remember { mutableStateOf(false) }
         val alpha by animateFloatAsState(
             targetValue = if (started) 1f else 0f,
-            animationSpec = NexaFlowSprings.Default,
+            animationSpec = NexaFlowSprings.default(),
             label = "nexaflowEntranceAlpha"
         )
         val scale by animateFloatAsState(
             targetValue = if (started) 1f else 0.97f,
-            animationSpec = NexaFlowSprings.Default,
+            animationSpec = NexaFlowSprings.default(),
             label = "nexaflowEntranceScale"
         )
         LaunchedEffect(Unit) {

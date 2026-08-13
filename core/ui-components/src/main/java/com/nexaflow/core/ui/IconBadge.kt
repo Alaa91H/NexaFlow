@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nexaflow.core.ui.Dimens.Space3
 
 /**
  * Google-style circular icon badge — the tonal circle Google apps use to
@@ -42,7 +43,7 @@ fun IconBadge(
 @Preview(name = "IconBadge (dark)", showBackground = true)
 @Composable
 private fun IconBadgePreview() {
-    Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp)) {
+    Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(Space3)) {
         IconBadge(
             icon = Icons.Filled.Bolt,
             containerColor = Color(0xFF0B57D0)

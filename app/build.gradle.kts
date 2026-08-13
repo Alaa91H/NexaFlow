@@ -37,8 +37,8 @@ android {
         applicationId = "com.nexaflow.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 24
-        versionName = "3.21.0-alpha"
+        versionCode = 25
+        versionName = "3.22.0-alpha"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -175,6 +175,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.ui.graphics)
     implementation(libs.androidx.compose.ui.ui.tooling.preview)
     implementation(libs.androidx.compose.material3.material3)
+    implementation(libs.androidx.compose.material3.window.size)
     testImplementation(libs.junit.junit)
     // Robolectric: the merged-manifest test asserts SentryInitProvider is
     // stripped (tools:node="remove") so a DSN-less build boots, and the

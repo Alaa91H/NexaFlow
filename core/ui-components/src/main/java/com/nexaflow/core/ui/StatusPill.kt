@@ -11,6 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nexaflow.core.ui.Dimens.Space1
+import com.nexaflow.core.ui.Dimens.Space2
+import com.nexaflow.core.ui.Dimens.Space3
 
 @Composable
 fun StatusPill(
@@ -22,7 +25,7 @@ fun StatusPill(
     Box(
         modifier = modifier
             .background(color = background, shape = RoundedCornerShape(50))
-            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .padding(horizontal = Space3, vertical = Space1)
     ) {
         Text(
             text = text,
@@ -37,7 +40,7 @@ fun StatusPill(
 @Composable
 private fun StatusPillPreview() {
     androidx.compose.foundation.layout.Row(
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(Space2)
     ) {
         StatusPill(
             text = "Active",

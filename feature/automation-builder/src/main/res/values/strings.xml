@@ -411,21 +411,7 @@
     <string name="action_http_request_sub">Send a web request</string>
     <string name="http_method">Method</string>
     <string name="http_body">Body</string>
-    <string name="http_body_hint">{"key": "value"}</string>
-    <string name="variables_title">Variables</string>
-    <string name="variables_help_title">Global variables</string>
-    <string name="variables_help">Insert %%NAME anywhere in an action text. Built-in device variables: %%DATE, %%TIME, %%DATETIME, %%BATTERY, %%CHARGING, %%WIFI, %%BLUETOOTH, %%RINGER, %%SCREEN, %%AIRPLANE, %%NETWORK, %%BRIGHTNESS, %%BRAND, %%MODEL, %%SDK. Unknown names are left as-is.</string>
-    <string name="variables_empty">No variables yet</string>
-    <string name="variables_empty_value">Empty</string>
-    <string name="variable_name">Name</string>
-    <string name="variable_name_error">Letters, digits and underscore only</string>
-    <string name="variable_value">Value</string>
-    <string name="variables_value_hint">e.g. Home Address</string>
-    <string name="variable_sensitive">Sensitive (encrypted)</string>
-    <string name="variable_sensitive_sub">Store this value encrypted on this device (tokens, passwords). Decrypted only when a task runs.</string>
-    <string name="add_variable">Add variable</string>
-    <string name="delete_variable">Delete</string>
-    <string name="insert_context_hint">Reference an earlier step\'s output</string>
+    <string name="http_body_hint">{"key": "value"}</string><string name="insert_context_hint">Reference an earlier step\'s output</string>
     <string name="insert_variable_hint">Insert:</string>
     <string name="edit">Edit</string>
     <string name="category_plugins">Plugins</string>

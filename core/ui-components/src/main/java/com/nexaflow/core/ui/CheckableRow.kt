@@ -15,7 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
+import com.nexaflow.core.ui.Dimens.Space1
+import com.nexaflow.core.ui.Dimens.Space3
 
 /**
  * Google-style single-choice row: the content on the left, and a trailing
@@ -42,9 +43,9 @@ fun CheckableRow(
                 role = Role.RadioButton,
                 onClick = onClick
             )
-            .padding(horizontal = 4.dp, vertical = 12.dp),
+            .padding(horizontal = Space1, vertical = Space3),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(Space3)
     ) {
         content()
         Spacer(modifier = Modifier.weight(1f))

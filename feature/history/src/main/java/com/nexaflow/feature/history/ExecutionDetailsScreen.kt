@@ -24,7 +24,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -34,6 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.nexaflow.core.ui.EmptyState
 import com.nexaflow.core.ui.IconBadge
+import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
@@ -123,10 +123,10 @@ private fun RunSummaryCard(record: ExecutionRecord) {
     val totalMs = record.actionResults.sumOf { it.durationMs }
     val msLabel = stringResource(R.string.duration_ms)
     val sLabel = stringResource(R.string.duration_s)
-    val successColor = Color(0xFF006D3C)
-    val failColor = Color(0xFFBA1A1A)
-    val successBg = Color(0xFFE4F4E9)
-    val failBg = Color(0xFFFBEAE7)
+    val successColor = NexaFlowTheme.colors.success
+    val failColor = MaterialTheme.colorScheme.error
+    val successBg = NexaFlowTheme.colors.successContainer
+    val failBg = MaterialTheme.colorScheme.errorContainer
 
     NexaFlowCard {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -203,10 +203,10 @@ private fun RunSummaryCard(record: ExecutionRecord) {
 private fun TimelineRow(result: ActionExecutionResult) {
     val msLabel = stringResource(R.string.duration_ms)
     val sLabel = stringResource(R.string.duration_s)
-    val successColor = Color(0xFF006D3C)
-    val failColor = Color(0xFFBA1A1A)
-    val successBg = Color(0xFFE4F4E9)
-    val failBg = Color(0xFFFBEAE7)
+    val successColor = NexaFlowTheme.colors.success
+    val failColor = MaterialTheme.colorScheme.error
+    val successBg = NexaFlowTheme.colors.successContainer
+    val failBg = MaterialTheme.colorScheme.errorContainer
 
     val (titleRes, icon) = actionTitleAndIcon(result.actionType)
     Row(
@@ -218,8 +218,8 @@ private fun TimelineRow(result: ActionExecutionResult) {
     ) {
         IconBadge(
             icon = icon,
-            containerColor = if (result.success) Color(0xFFEAF2FE) else failBg,
-            contentColor = if (result.success) Color(0xFF0B57D0) else failColor,
+            containerColor = if (result.success) MaterialTheme.colorScheme.primaryContainer else failBg,
+            contentColor = if (result.success) MaterialTheme.colorScheme.onPrimaryContainer else failColor,
             size = 40
         )
         Column(modifier = Modifier.weight(1f)) {

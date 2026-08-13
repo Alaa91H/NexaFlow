@@ -386,21 +386,7 @@
     <string name="action_http_request_sub">Отправить веб-запрос</string>
     <string name="http_method">Метод</string>
     <string name="http_body">Тело</string>
-    <string name="http_body_hint">{"key": "value"}</string>
-    <string name="variables_title">Переменные</string>
-    <string name="variables_help_title">Глобальные переменные</string>
-    <string name="variables_help">Вставьте %%NAME в любой текст действия. Встроенные переменные устройства: %%DATE, %%TIME, %%DATETIME, %%BATTERY, %%CHARGING, %%WIFI, %%BLUETOOTH, %%RINGER, %%SCREEN, %%AIRPLANE, %%NETWORK, %%BRIGHTNESS, %%BRAND, %%MODEL, %%SDK. Неизвестные имена остаются как есть.</string>
-    <string name="variables_empty">Переменных пока нет</string>
-    <string name="variables_empty_value">Пусто</string>
-    <string name="variable_name">Имя</string>
-    <string name="variable_name_error">Только буквы, цифры и подчёркивание</string>
-    <string name="variable_value">Значение</string>
-    <string name="variables_value_hint">например, домашний адрес</string>
-    <string name="variable_sensitive">Конфиденциально (шифруется)</string>
-    <string name="variable_sensitive_sub">Хранит это значение в зашифрованном виде на устройстве (токены, пароли). Расшифровывается только при выполнении задачи.</string>
-    <string name="add_variable">Добавить переменную</string>
-    <string name="delete_variable">Удалить</string>
-    <string name="insert_context_hint">Ссылка на вывод предыдущего шага</string>
+    <string name="http_body_hint">{"key": "value"}</string><string name="insert_context_hint">Ссылка на вывод предыдущего шага</string>
     <string name="insert_variable_hint">Вставить:</string>
     <string name="edit">Изменить</string>
     <string name="category_plugins">Плагины</string>

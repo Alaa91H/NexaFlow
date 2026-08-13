@@ -36,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -48,6 +47,7 @@ import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.rom.SystemAppStatusDetector
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.StatusPill
+import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.domain.models.ActionType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -311,13 +311,13 @@ fun SpecialPermissionStatusRow(
     val (pillText, pillBg, pillFg) = when (status) {
         SpecialStatus.GRANTED -> Triple(
             stringResource(R.string.elevated_status_granted),
-            Color(0xFFE4F4E9),
-            Color(0xFF006D3C)
+            NexaFlowTheme.colors.successContainer,
+            NexaFlowTheme.colors.success
         )
         SpecialStatus.AVAILABLE -> Triple(
             stringResource(R.string.elevated_status_available),
-            Color(0xFFFDF3E0),
-            Color(0xFF8F4C00)
+            NexaFlowTheme.colors.warningContainer,
+            NexaFlowTheme.colors.warning
         )
         SpecialStatus.NOT_AVAILABLE -> Triple(
             stringResource(

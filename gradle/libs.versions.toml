@@ -1,7 +1,7 @@
 [versions]
 v1 = "1"
 v1_11_0 = "1.11.0"
-v1_11_4 = "1.11.4"
+v1_12_0 = "1.12.0"
 v1_13_0 = "1.13.0"
 v1_19_0 = "1.19.0"
 v1_2_1 = "1.2.1"
@@ -22,7 +22,8 @@ v2_60_1 = "2.60.1"
 v2_8_4 = "2.8.4"
 v2_9_8 = "2.9.8"
 v20240303 = "20240303"
-v2026_06_01 = "2026.06.01"
+v2026_08_00 = "2026.08.00"
+vM3_1_5_0_alpha26 = "1.5.0-alpha26"
 v3_4_1 = "3.4.1"
 v3_7_0 = "3.7.0"
 v4_13_2 = "4.13.2"
@@ -36,10 +37,11 @@ pv9_3_1 = "9.3.1"
 [libraries]
 androidx-activity-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "v1_13_0" }
 androidx-benchmark-benchmark-macro-junit4 = { module = "androidx.benchmark:benchmark-macro-junit4", version.ref = "v1_4_1" }
-androidx-compose-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "v2026_06_01" }
+androidx-compose-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "v2026_08_00" }
 androidx-compose-material-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
-androidx-compose-material3-material3 = { module = "androidx.compose.material3:material3" }
-androidx-compose-runtime-runtime-annotation = { module = "androidx.compose.runtime:runtime-annotation", version.ref = "v1_11_4" }
+androidx-compose-material3-material3 = { module = "androidx.compose.material3:material3", version.ref = "vM3_1_5_0_alpha26" }
+androidx-compose-material3-window-size = { module = "androidx.compose.material3:material3-window-size-class" }
+androidx-compose-runtime-runtime-annotation = { module = "androidx.compose.runtime:runtime-annotation", version.ref = "v1_12_0" }
 androidx-compose-ui-ui = { module = "androidx.compose.ui:ui" }
 androidx-compose-ui-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
 androidx-compose-ui-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }

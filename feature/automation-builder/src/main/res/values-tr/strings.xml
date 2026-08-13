@@ -386,21 +386,7 @@
     <string name="action_http_request_sub">Bir web isteği gönder</string>
     <string name="http_method">Yöntem</string>
     <string name="http_body">Gövde</string>
-    <string name="http_body_hint">{"key": "value"}</string>
-    <string name="variables_title">Değişkenler</string>
-    <string name="variables_help_title">Genel değişkenler</string>
-    <string name="variables_help">"%%NAME'i herhangi bir eylem metnine ekleyin. Yerleşik cihaz değişkenleri: %%DATE, %%TIME, %%DATETIME, %%BATTERY, %%CHARGING, %%WIFI, %%BLUETOOTH, %%RINGER, %%SCREEN, %%AIRPLANE, %%NETWORK, %%BRIGHTNESS, %%BRAND, %%MODEL, %%SDK. Bilinmeyen adlar olduğu gibi bırakılır."</string>
-    <string name="variables_empty">Henüz değişken yok</string>
-    <string name="variables_empty_value">Boş</string>
-    <string name="variable_name">Ad</string>
-    <string name="variable_name_error">Yalnızca harf, rakam ve alt çizgi</string>
-    <string name="variable_value">Değer</string>
-    <string name="variables_value_hint">örn. Ev adresi</string>
-    <string name="variable_sensitive">Hassas (şifreli)</string>
-    <string name="variable_sensitive_sub">Bu değeri cihazda şifreli saklar (belirteçler, parolalar). Yalnızca bir görev çalıştığında çözülür.</string>
-    <string name="add_variable">Değişken ekle</string>
-    <string name="delete_variable">Sil</string>
-    <string name="insert_context_hint">Önceki adımın çıktısına başvur</string>
+    <string name="http_body_hint">{"key": "value"}</string><string name="insert_context_hint">Önceki adımın çıktısına başvur</string>
     <string name="insert_variable_hint">Ekle:</string>
     <string name="edit">Düzenle</string>
     <string name="category_plugins">Eklentiler</string>

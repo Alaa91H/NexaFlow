@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.History
+import com.nexaflow.core.ui.LoadingState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -25,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -37,6 +37,7 @@ import androidx.paging.compose.itemKey
 import com.nexaflow.core.ui.EmptyState
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
+import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.StatusPill
 import com.nexaflow.domain.models.ExecutionRecord
@@ -55,10 +56,9 @@ fun HistoryScreen(navController: NavController) {
         when (val refresh = history.loadState.refresh) {
             is LoadState.Loading -> {
                 if (history.itemCount == 0) {
-                    Box(
-                        modifier = Modifier.fillMaxSize().padding(padding),
-                        contentAlignment = Alignment.Center
-                    ) { CircularProgressIndicator() }
+                    LoadingState(
+                        modifier = Modifier.fillMaxSize().padding(padding)
+                    )
                 }
             }
             is LoadState.Error -> {
@@ -146,8 +146,8 @@ private fun HistoryCard(entry: ExecutionRecord, onClick: () -> Unit) {
         ) {
             IconBadge(
                 icon = Icons.Filled.Bolt,
-                containerColor = if (entry.success) Color(0xFFE4F4E9) else Color(0xFFFBEAE7),
-                contentColor = if (entry.success) Color(0xFF006D3C) else Color(0xFFBA1A1A)
+                containerColor = if (entry.success) NexaFlowTheme.colors.successContainer else MaterialTheme.colorScheme.errorContainer,
+                contentColor = if (entry.success) NexaFlowTheme.colors.success else MaterialTheme.colorScheme.error
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = entry.automationName, style = MaterialTheme.typography.titleSmall)
@@ -177,8 +177,8 @@ private fun HistoryCard(entry: ExecutionRecord, onClick: () -> Unit) {
             }
             StatusPill(
                 text = if (entry.success) stringResource(R.string.status_success) else stringResource(R.string.status_failed),
-                background = if (entry.success) Color(0xFFE4F4E9) else Color(0xFFFBEAE7),
-                contentColor = if (entry.success) Color(0xFF006D3C) else Color(0xFFBA1A1A)
+                background = if (entry.success) NexaFlowTheme.colors.successContainer else MaterialTheme.colorScheme.errorContainer,
+                contentColor = if (entry.success) NexaFlowTheme.colors.success else MaterialTheme.colorScheme.error
             )
         }
     }

@@ -62,6 +62,7 @@ import com.nexaflow.core.ui.iconVector
 import com.nexaflow.core.ui.nexaFlowEntrance
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.TriggerType
+import kotlin.comparisons.minOf
 import com.nexaflow.domain.schedule.TimeTriggerCalculator
 import java.time.Instant
 import java.time.ZoneId
@@ -201,8 +202,11 @@ fun DashboardScreen(navController: NavController) {
                     nextRun = nextRunText(row.automation),
                     isRunning = row.automation.id in runningIds,
                     // Google-2026 Keep-style cascade: each card springs in a
-                    // beat after the one above it.
-                    modifier = Modifier.nexaFlowEntrance(delayMillis = index * 40),
+                    // beat after the one above it, capped so a long list still
+                    // feels instant (no multi-second tail).
+                    modifier = Modifier.nexaFlowEntrance(
+                        delayMillis = minOf(index * 40, 400)
+                    ),
                     onRun = { viewModel.runNow(row.automation) },
                     onToggle = { viewModel.toggleAutomation(row.automation, it) },
                     onClick = { navController.navigate("automation_details/${row.automation.id}") }

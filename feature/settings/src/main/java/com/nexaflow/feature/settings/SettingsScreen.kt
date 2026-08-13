@@ -90,6 +90,7 @@ import com.nexaflow.core.ui.CheckableRow
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.SettingRow
+import com.nexaflow.core.ui.settingsGroup
 import com.nexaflow.data.backup.ImportResult
 import kotlinx.coroutines.launch
 
@@ -104,6 +105,12 @@ fun SettingsScreen(navController: NavController) {
     val stringBackupImportFailed = stringResource(R.string.backup_import_failed)
     val stringShareBackupTitle = stringResource(R.string.share_backup_title)
     val stringBackupImportedTemplate = stringResource(R.string.backup_imported)
+    // Section titles hoisted because settingsGroup is a LazyListScope
+    // extension (non-composable) and cannot call stringResource itself.
+    val sectionAutomationTitle = stringResource(R.string.section_automation)
+    val sectionBackupTitle = stringResource(R.string.section_backup)
+    val sectionAppearanceTitle = stringResource(R.string.section_appearance)
+    val sectionAboutTitle = stringResource(R.string.section_about)
 
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -200,43 +207,33 @@ fun SettingsScreen(navController: NavController) {
                 .padding(padding),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp)
         ) {
-            item {
-                SectionHeader(text = stringResource(R.string.section_automation))
+            settingsGroup(title = sectionAutomationTitle) {
+                SettingRow(
+                    icon = Icons.Filled.Security,
+                    title = stringResource(R.string.permission_manager),
+                    subtitle = stringResource(R.string.permission_manager_sub),
+                    onClick = { navController.navigate("permission_manager") }
+                )
+                SettingRow(
+                    icon = Icons.Filled.Notifications,
+                    title = stringResource(R.string.notification_manager),
+                    subtitle = stringResource(R.string.notification_manager_sub),
+                    onClick = { navController.navigate("notification_manager") }
+                )
             }
-            item {
-                NexaFlowCard {
-                    SettingRow(
-                        icon = Icons.Filled.Security,
-                        title = stringResource(R.string.permission_manager),
-                        subtitle = stringResource(R.string.permission_manager_sub),
-                        onClick = { navController.navigate("permission_manager") }
-                    )
-                    SettingRow(
-                        icon = Icons.Filled.Notifications,
-                        title = stringResource(R.string.notification_manager),
-                        subtitle = stringResource(R.string.notification_manager_sub),
-                        onClick = { navController.navigate("notification_manager") }
-                    )
-                }
-            }
-            item {
-                SectionHeader(text = stringResource(R.string.section_backup))
-            }
-            item {
-                NexaFlowCard {
-                    SettingRow(
-                        icon = Icons.Filled.Upload,
-                        title = stringResource(R.string.backup_export),
-                        subtitle = stringResource(R.string.backup_export_sub),
-                        onClick = onExportShare
-                    )
-                    SettingRow(
-                        icon = Icons.Filled.Download,
-                        title = stringResource(R.string.backup_import),
-                        subtitle = stringResource(R.string.backup_import_sub),
-                        onClick = { importLauncher.launch(arrayOf("application/json", "text/plain", "text/*", "*/*")) }
-                    )
-                }
+            settingsGroup(title = sectionBackupTitle) {
+                SettingRow(
+                    icon = Icons.Filled.Upload,
+                    title = stringResource(R.string.backup_export),
+                    subtitle = stringResource(R.string.backup_export_sub),
+                    onClick = onExportShare
+                )
+                SettingRow(
+                    icon = Icons.Filled.Download,
+                    title = stringResource(R.string.backup_import),
+                    subtitle = stringResource(R.string.backup_import_sub),
+                    onClick = { importLauncher.launch(arrayOf("application/json", "text/plain", "text/*", "*/*")) }
+                )
             }
             item {
                 SectionHeader(text = stringResource(R.string.section_updates))
@@ -365,37 +362,27 @@ fun SettingsScreen(navController: NavController) {
                     )
                 }
             }
-            item {
-                SectionHeader(text = stringResource(R.string.section_appearance))
+            settingsGroup(title = sectionAppearanceTitle) {
+                SettingRow(
+                    icon = Icons.Filled.Palette,
+                    title = stringResource(R.string.themes),
+                    subtitle = stringResource(R.string.themes_sub),
+                    onClick = { navController.navigate("themes") }
+                )
+                SettingRow(
+                    icon = Icons.Filled.Widgets,
+                    title = stringResource(R.string.widgets),
+                    subtitle = stringResource(R.string.widgets_sub),
+                    onClick = { navController.navigate("widgets") }
+                )
             }
-            item {
-                NexaFlowCard {
-                    SettingRow(
-                        icon = Icons.Filled.Palette,
-                        title = stringResource(R.string.themes),
-                        subtitle = stringResource(R.string.themes_sub),
-                        onClick = { navController.navigate("themes") }
-                    )
-                    SettingRow(
-                        icon = Icons.Filled.Widgets,
-                        title = stringResource(R.string.widgets),
-                        subtitle = stringResource(R.string.widgets_sub),
-                        onClick = { navController.navigate("widgets") }
-                    )
-                }
-            }
-            item {
-                SectionHeader(text = stringResource(R.string.section_about))
-            }
-            item {
-                NexaFlowCard {
-                    SettingRow(
-                        icon = Icons.Filled.Info,
-                        title = stringResource(R.string.about_nexaflow),
-                        subtitle = stringResource(R.string.version, appVersion(context)),
-                        onClick = { showAbout = true }
-                    )
-                }
+            settingsGroup(title = sectionAboutTitle) {
+                SettingRow(
+                    icon = Icons.Filled.Info,
+                    title = stringResource(R.string.about_nexaflow),
+                    subtitle = stringResource(R.string.version, appVersion(context)),
+                    onClick = { showAbout = true }
+                )
             }
             item {
                 // ── Hidden expert section ───────────────────────────

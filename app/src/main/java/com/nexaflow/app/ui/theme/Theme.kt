@@ -5,10 +5,12 @@ import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -16,6 +18,9 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.nexaflow.core.datastore.ThemeMode
+import com.nexaflow.core.ui.theme.DarkNexaFlowColors
+import com.nexaflow.core.ui.theme.LightNexaFlowColors
+import com.nexaflow.core.ui.theme.LocalNexaFlowColors
 
 /**
  * Material 3 Expressive shape system (Google's 2025-2026 design language):
@@ -66,10 +71,22 @@ fun NexaFlowTheme(
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        shapes = GoogleShapes,
-        content = content
-    )
+    CompositionLocalProvider(
+        LocalNexaFlowColors provides if (darkTheme) DarkNexaFlowColors else LightNexaFlowColors
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            // Google 2026: the expressive motion scheme (springs at
+            // ~0.6-0.8 damping / 200-800 stiffness — the slight overshoot
+            // that defines M3 Expressive). Every built-in component that
+            // animates from the scheme — bottom sheets, menus, dialogs,
+            // scrims, list items — follows it automatically, and the app's
+            // custom motion helpers (nexaFlowSpatialSpec etc.) read
+            // MaterialTheme.motionScheme so they stay in the same language.
+            motionScheme = MotionScheme.expressive(),
+            typography = Typography,
+            shapes = GoogleShapes,
+            content = content
+        )
+    }
 }

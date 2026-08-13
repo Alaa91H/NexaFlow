@@ -22,6 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nexaflow.core.ui.Dimens.RowIconSize
+import com.nexaflow.core.ui.Dimens.Space2
+import com.nexaflow.core.ui.Dimens.Space3
 
 @Composable
 fun SettingRow(
@@ -36,13 +39,13 @@ fun SettingRow(
         modifier = modifier
             .fillMaxWidth()
             .clickable(enabled = onClick != null) { onClick?.invoke() }
-            .padding(vertical = 12.dp),
+            .padding(vertical = Space3),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(Space3)
     ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
+                .size(RowIconSize.dp)
                 .background(
                     color = MaterialTheme.colorScheme.surfaceContainerHighest,
                     shape = CircleShape

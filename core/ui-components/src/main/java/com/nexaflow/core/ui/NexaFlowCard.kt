@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nexaflow.core.ui.Dimens.Space4
 
 /**
  * Google-style filled card. Borderless, 16dp radius, resting on the tonal
@@ -31,7 +32,7 @@ fun NexaFlowCard(
         colors = CardDefaults.cardColors(containerColor = containerColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp), content = content)
+        Column(modifier = Modifier.padding(Space4), content = content)
     }
 }
 

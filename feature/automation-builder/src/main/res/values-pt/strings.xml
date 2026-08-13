@@ -386,21 +386,7 @@
     <string name="action_http_request_sub">Enviar uma requisição web</string>
     <string name="http_method">Método</string>
     <string name="http_body">Corpo</string>
-    <string name="http_body_hint">{"key": "value"}</string>
-    <string name="variables_title">Variáveis</string>
-    <string name="variables_help_title">Variáveis globais</string>
-    <string name="variables_help">Insira %%NAME em qualquer texto de ação. Variáveis integradas do dispositivo: %%DATE, %%TIME, %%DATETIME, %%BATTERY, %%CHARGING, %%WIFI, %%BLUETOOTH, %%RINGER, %%SCREEN, %%AIRPLANE, %%NETWORK, %%BRIGHTNESS, %%BRAND, %%MODEL, %%SDK. Nomes desconhecidos são mantidos como estão.</string>
-    <string name="variables_empty">Ainda não há variáveis</string>
-    <string name="variables_empty_value">Vazio</string>
-    <string name="variable_name">Nome</string>
-    <string name="variable_name_error">Somente letras, dígitos e sublinhado</string>
-    <string name="variable_value">Valor</string>
-    <string name="variables_value_hint">ex.: Endereço residencial</string>
-    <string name="variable_sensitive">Sensível (encriptado)</string>
-    <string name="variable_sensitive_sub">Guarda este valor encriptado neste dispositivo (tokens, palavras-passe). Só é desencriptado quando uma tarefa é executada.</string>
-    <string name="add_variable">Adicionar variável</string>
-    <string name="delete_variable">Excluir</string>
-    <string name="insert_context_hint">Referenciar a saída de uma etapa anterior</string>
+    <string name="http_body_hint">{"key": "value"}</string><string name="insert_context_hint">Referenciar a saída de uma etapa anterior</string>
     <string name="insert_variable_hint">Inserir:</string>
     <string name="edit">Editar</string>
     <string name="category_plugins">Plugins</string>

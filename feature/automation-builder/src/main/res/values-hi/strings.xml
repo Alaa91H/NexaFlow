@@ -386,21 +386,7 @@
     <string name="action_http_request_sub">एक वेब अनुरोध भेजें</string>
     <string name="http_method">तरीका</string>
     <string name="http_body">बॉडी</string>
-    <string name="http_body_hint">{"key": "value"}</string>
-    <string name="variables_title">चर</string>
-    <string name="variables_help_title">वैश्विक चर</string>
-    <string name="variables_help">किसी भी क्रिया पाठ में %%NAME डालें। अंतर्निहित डिवाइस चर: %%DATE, %%TIME, %%DATETIME, %%BATTERY, %%CHARGING, %%WIFI, %%BLUETOOTH, %%RINGER, %%SCREEN, %%AIRPLANE, %%NETWORK, %%BRIGHTNESS, %%BRAND, %%MODEL, %%SDK। अज्ञात नाम वैसे ही छोड़ दिए जाते हैं।</string>
-    <string name="variables_empty">अभी कोई चर नहीं</string>
-    <string name="variables_empty_value">खाली</string>
-    <string name="variable_name">नाम</string>
-    <string name="variable_name_error">केवल अक्षर, अंक और अंडरस्कोर</string>
-    <string name="variable_value">मान</string>
-    <string name="variables_value_hint">जैसे घर का पता</string>
-    <string name="variable_sensitive">संवेदनशील (एन्क्रिप्टेड)</string>
-    <string name="variable_sensitive_sub">इस मान को इस डिवाइस पर एन्क्रिप्टेड रखें (टोकन, पासवर्ड)। केवल कार्य चलने पर डिक्रिप्ट होता है।</string>
-    <string name="add_variable">चर जोड़ें</string>
-    <string name="delete_variable">हटाएँ</string>
-    <string name="insert_context_hint">पिछले चरण के आउटपुट का संदर्भ लें</string>
+    <string name="http_body_hint">{"key": "value"}</string><string name="insert_context_hint">पिछले चरण के आउटपुट का संदर्भ लें</string>
     <string name="insert_variable_hint">डालें:</string>
     <string name="edit">संपादित करें</string>
     <string name="category_plugins">प्लगइन</string>

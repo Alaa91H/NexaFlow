@@ -51,7 +51,6 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.FlashlightOn
-import androidx.compose.material.icons.filled.Functions
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.HourglassEmpty
@@ -878,9 +877,6 @@ fun AutomationBuilderScreen(
                     if (step == 1) step = 0 else navController.popBackStack()
                 },
                 actions = {
-                    IconButton(onClick = { navController.navigate("variables") }) {
-                        Icon(imageVector = Icons.Filled.Functions, contentDescription = stringResource(R.string.variables_title))
-                    }
                     IconButton(onClick = { save(closeAfterSave = false) }) {
                         Icon(imageVector = Icons.Filled.Save, contentDescription = stringResource(R.string.quick_save))
                     }

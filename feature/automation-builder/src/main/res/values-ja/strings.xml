@@ -386,21 +386,7 @@
     <string name="action_http_request_sub">Webリクエストを送信</string>
     <string name="http_method">メソッド</string>
     <string name="http_body">本文</string>
-    <string name="http_body_hint">{"key": "value"}</string>
-    <string name="variables_title">変数</string>
-    <string name="variables_help_title">グローバル変数</string>
-    <string name="variables_help">%%NAMEをアクションのテキストに挿入します。組み込みのデバイス変数: %%DATE、%%TIME、%%DATETIME、%%BATTERY、%%CHARGING、%%WIFI、%%BLUETOOTH、%%RINGER、%%SCREEN、%%AIRPLANE、%%NETWORK、%%BRIGHTNESS、%%BRAND、%%MODEL、%%SDK。不明な名前はそのまま残ります。</string>
-    <string name="variables_empty">変数はまだありません</string>
-    <string name="variables_empty_value">空</string>
-    <string name="variable_name">名前</string>
-    <string name="variable_name_error">英数字とアンダースコアのみ</string>
-    <string name="variable_value">値</string>
-    <string name="variables_value_hint">例: 自宅の住所</string>
-    <string name="variable_sensitive">機密（暗号化）</string>
-    <string name="variable_sensitive_sub">この値をこの端末に暗号化して保存します（トークン、パスワード）。タスク実行時のみ復号されます。</string>
-    <string name="add_variable">変数を追加</string>
-    <string name="delete_variable">削除</string>
-    <string name="insert_context_hint">前のステップの出力を参照</string>
+    <string name="http_body_hint">{"key": "value"}</string><string name="insert_context_hint">前のステップの出力を参照</string>
     <string name="insert_variable_hint">挿入:</string>
     <string name="edit">編集</string>
     <string name="category_plugins">プラグイン</string>

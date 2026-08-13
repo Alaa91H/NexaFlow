@@ -1,14 +1,20 @@
 package com.nexaflow.app
 
 import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.activity.compose.LocalActivity
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -18,10 +24,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.nexaflow.core.ui.Dimens
 import com.nexaflow.core.ui.NavigationDestination
-import com.nexaflow.core.ui.NexaFlowSprings
-import com.nexaflow.core.ui.isSystemReduceMotionEnabled
+import com.nexaflow.core.ui.NavigationStyle
 import com.nexaflow.core.ui.NexaFlowNavigationBar
+import com.nexaflow.core.ui.NexaFlowNavigationRail
+import com.nexaflow.core.ui.isSystemReduceMotionEnabled
+import com.nexaflow.core.ui.nexaFlowEffectsSpec
+import com.nexaflow.core.ui.nexaFlowSpatialSpec
+import com.nexaflow.core.ui.navigationStyleFor
 import com.nexaflow.feature.automations.AutomationDetailsScreen
 import com.nexaflow.feature.builder.AutomationBuilderScreen
 import com.nexaflow.feature.builder.MapPickerScreen
@@ -36,6 +47,7 @@ import com.nexaflow.feature.settings.SettingsScreen
 import com.nexaflow.feature.themes.ThemeScreen
 import com.nexaflow.feature.widgets.WidgetsScreen
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun NexaFlowApp() {
     val navController = rememberNavController()
@@ -54,16 +66,26 @@ fun NexaFlowApp() {
             icon = Icons.Filled.Settings
         )
     )
-    val showBottomBar = currentRoute in topLevelDestinations.map { it.route }
+    val isTopLevel = currentRoute in topLevelDestinations.map { it.route }
+
+    // Adaptive navigation (M3 window size classes): expanded/extra-large
+    // windows (tablets, foldables, desktop) get a navigation rail; compact
+    // and medium keep the bottom bar. The NavHost graph is shared — only the
+    // chrome changes — so back-stack state survives window resizes.
+    val windowSizeClass = calculateWindowSizeClass(LocalActivity.current ?: return@NexaFlowApp)
+    val navStyle = navigationStyleFor(windowSizeClass.widthSizeClass, isTopLevel)
+    val useRail = navStyle == NavigationStyle.RAIL
+    val showBottomBar = navStyle == NavigationStyle.BOTTOM_BAR
     // Google 2026: directional spring navigation. Reduce-motion is hoisted
     // here (it is @Composable, the NavHost transition lambdas are not) and
     // degrades to a plain crossfade when the user disables animations.
     val reduceMotion = isSystemReduceMotionEnabled()
-    // Spring for the slide itself — IntOffset spring, not the Float one.
-    val slideSpring = spring<androidx.compose.ui.unit.IntOffset>(
-        dampingRatio = 0.8f,
-        stiffness = androidx.compose.animation.core.Spring.StiffnessMedium
-    )
+    // Spring for the slide itself — IntOffset spring, not the Float one,
+    // from the active M3 MotionScheme (captured here because the NavHost
+    // enter/exit lambdas are not @Composable).
+    val slideSpring = nexaFlowSpatialSpec<androidx.compose.ui.unit.IntOffset>()
+    // Fade spec from the same scheme.
+    val fadeSpec = nexaFlowEffectsSpec<Float>()
 
     Scaffold(
         bottomBar = {
@@ -84,7 +106,24 @@ fun NexaFlowApp() {
             }
         }
     ) { innerPadding ->
-        NavHost(
+        Row(modifier = Modifier.fillMaxSize()) {
+            // Expanded windows: navigation rail at the start, content beside
+            // it. Row flips automatically with RTL (start = right in Arabic).
+            if (useRail && isTopLevel) {
+                NexaFlowNavigationRail(
+                    currentRoute = currentRoute,
+                    destinations = topLevelDestinations,
+                    onNavigate = { route ->
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    modifier = Modifier.width(Dimens.NavigationRailWidth)
+                )
+            }
+            NavHost(
             navController = navController,
             startDestination = "dashboard",
             modifier = Modifier.padding(innerPadding),
@@ -98,7 +137,7 @@ fun NexaFlowApp() {
                         towards = AnimatedContentTransitionScope.SlideDirection.Left,
                         animationSpec = slideSpring,
                         initialOffset = { it / 8 }
-                    ) + fadeIn(animationSpec = NexaFlowSprings.Default)
+                    ) + fadeIn(animationSpec = fadeSpec)
                 }
             },
             exitTransition = {
@@ -109,7 +148,7 @@ fun NexaFlowApp() {
                         towards = AnimatedContentTransitionScope.SlideDirection.Left,
                         animationSpec = slideSpring,
                         targetOffset = { it / 12 }
-                    ) + fadeOut(animationSpec = NexaFlowSprings.Default)
+                    ) + fadeOut(animationSpec = fadeSpec)
                 }
             },
             popEnterTransition = {
@@ -120,7 +159,7 @@ fun NexaFlowApp() {
                         towards = AnimatedContentTransitionScope.SlideDirection.Right,
                         animationSpec = slideSpring,
                         initialOffset = { it / 8 }
-                    ) + fadeIn(animationSpec = NexaFlowSprings.Default)
+                    ) + fadeIn(animationSpec = fadeSpec)
                 }
             },
             popExitTransition = {
@@ -131,7 +170,7 @@ fun NexaFlowApp() {
                         towards = AnimatedContentTransitionScope.SlideDirection.Right,
                         animationSpec = slideSpring,
                         targetOffset = { it / 12 }
-                    ) + fadeOut(animationSpec = NexaFlowSprings.Default)
+                    ) + fadeOut(animationSpec = fadeSpec)
                 }
             }
         ) {
@@ -182,6 +221,7 @@ fun NexaFlowApp() {
             composable("settings") {
                 SettingsScreen(navController = navController)
             }
+        }
         }
     }
 }

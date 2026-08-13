@@ -17,19 +17,22 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nexaflow.core.ui.Dimens.Space12
+import com.nexaflow.core.ui.Dimens.Space6
+import com.nexaflow.core.ui.Dimens.EmptyStateIconSize
 
 @Composable
 fun EmptyState(icon: ImageVector, title: String, subtitle: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 48.dp, horizontal = 24.dp),
+            .padding(vertical = Space12, horizontal = Space6),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            modifier = Modifier.size(56.dp),
+            modifier = Modifier.size(EmptyStateIconSize.dp),
             tint = MaterialTheme.colorScheme.outline
         )
         Text(

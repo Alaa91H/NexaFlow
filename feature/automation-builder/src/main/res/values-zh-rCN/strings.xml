@@ -386,21 +386,7 @@
     <string name="action_http_request_sub">发送网络请求</string>
     <string name="http_method">方法</string>
     <string name="http_body">请求体</string>
-    <string name="http_body_hint">{"key": "value"}</string>
-    <string name="variables_title">变量</string>
-    <string name="variables_help_title">全局变量</string>
-    <string name="variables_help">在任意操作文本中插入 %%NAME。内置设备变量：%%DATE、%%TIME、%%DATETIME、%%BATTERY、%%CHARGING、%%WIFI、%%BLUETOOTH、%%RINGER、%%SCREEN、%%AIRPLANE、%%NETWORK、%%BRIGHTNESS、%%BRAND、%%MODEL、%%SDK。未知名称保持原样。</string>
-    <string name="variables_empty">暂无变量</string>
-    <string name="variables_empty_value">空</string>
-    <string name="variable_name">名称</string>
-    <string name="variable_name_error">仅限字母、数字和下划线</string>
-    <string name="variable_value">值</string>
-    <string name="variables_value_hint">例如：家庭地址</string>
-    <string name="variable_sensitive">敏感（加密）</string>
-    <string name="variable_sensitive_sub">将此值加密存储在本设备上（令牌、密码）。仅在任务运行时解密。</string>
-    <string name="add_variable">添加变量</string>
-    <string name="delete_variable">删除</string>
-    <string name="insert_context_hint">引用上一步骤的输出</string>
+    <string name="http_body_hint">{"key": "value"}</string><string name="insert_context_hint">引用上一步骤的输出</string>
     <string name="insert_variable_hint">插入：</string>
     <string name="edit">编辑</string>
     <string name="category_plugins">插件</string>
