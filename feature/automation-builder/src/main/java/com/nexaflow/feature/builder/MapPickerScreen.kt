@@ -114,6 +114,7 @@ fun MapPickerScreen(navController: NavController) {
     // Hoisted at composition so coroutines below never read resources lazily.
     val mapSearchNotFoundText = stringResource(R.string.map_search_not_found)
     val locationFixFailedText = stringResource(R.string.location_fix_failed)
+    val mapNoKeyText = stringResource(R.string.map_no_key)
 
     // Google Maps SDK reads the key from the manifest meta-data. Empty key =>
     // show a setup hint instead of initializing a blank map.
@@ -128,6 +129,12 @@ fun MapPickerScreen(navController: NavController) {
     }
 
     // The MapView lives for the whole composition; lifecycle events drive it.
+    // Google Maps requires the FULL sequence onCreate -> onStart -> onResume
+    // (and onPause -> onStop -> onDestroy) — skipping onStart is the classic
+    // cause of a permanently blank map box. The observer also replays the
+    // current state on attach, because a Compose screen can be composed while
+    // the lifecycle is already RESUMED, in which case no further START/RESUME
+    // event ever fires and the map would stay blank.
     val mapView = remember {
         MapView(context).apply {
             onCreate(Bundle())
@@ -136,13 +143,24 @@ fun MapPickerScreen(navController: NavController) {
     DisposableEffect(lifecycleOwner, mapView) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
+                Lifecycle.Event.ON_START -> mapView.onStart()
                 Lifecycle.Event.ON_RESUME -> mapView.onResume()
                 Lifecycle.Event.ON_PAUSE -> mapView.onPause()
+                Lifecycle.Event.ON_STOP -> mapView.onStop()
                 Lifecycle.Event.ON_DESTROY -> mapView.onDestroy()
+                Lifecycle.Event.ON_CREATE -> {}
                 else -> {}
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
+        // Replay the current state in case we attached after lifecycle events
+        // already fired (composition while RESUMED).
+        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+            mapView.onStart()
+        }
+        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            mapView.onResume()
+        }
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
             mapView.onDestroy()
@@ -308,7 +326,16 @@ fun MapPickerScreen(navController: NavController) {
                     update = { view ->
                         if (!mapRequested) {
                             mapRequested = true
-                            view.getMapAsync { g -> setupMap(g) }
+                            // Guard against a null GoogleMap (auth failure or
+                            // missing key) so the screen degrades gracefully
+                            // instead of crashing or freezing blank.
+                            view.getMapAsync { g ->
+                                if (g != null) {
+                                    setupMap(g)
+                                } else {
+                                    searchError = mapNoKeyText
+                                }
+                            }
                         }
                     }
                 )

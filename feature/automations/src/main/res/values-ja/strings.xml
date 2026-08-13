@@ -152,7 +152,7 @@
     <string name="occurrence_last">最後</string>
     <string name="monthly_weekday_summary">%1$s %2$s</string>
     <string name="end_summary">終了時: %1$s</string>
-    <string name="end_leave">そのままにする</string>
+
     <string name="end_turn_on">オン</string>
     <string name="end_turn_off">オフ</string>
     <string name="end_revert">元に戻す</string>

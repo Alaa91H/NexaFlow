@@ -3,23 +3,25 @@
     <string name="settings_title">الإعدادات</string>
     <string name="section_automation">الأتمتة</string>
     <string name="accessibility_service">خدمة إمكانية الوصول</string>
-    <string name="accessibility_enabled">مفعّلة — يتم اكتشاف مشغّلات التطبيق</string>
+
     <string name="accessibility_disabled">متوقفة — لن تعمل مشغّلات التطبيق</string>
-    <string name="monitoring_service">خدمة المراقبة</string>
-    <string name="monitoring_running">تعمل — تراقب الجهاز والبطارية والشبكة والموقع</string>
-    <string name="monitoring_stopped">متوقفة — تعمل المشغّلات فقط أثناء فتح التطبيق</string>
-    <string name="state_enabled">مفعّل</string>
-    <string name="state_disabled">متوقف</string>
+
+    
+
+    
+
     <string name="section_appearance">المظهر</string>
     <string name="themes">السمات</string>
     <string name="themes_sub">الوضع الداكن ولون التمييز</string>
     <string name="widgets">الإعدادات السريعة</string>
     <string name="widgets_sub">مفاتيح سريعة للمهام على الشاشة</string>
-    <string name="section_integration">التكامل</string>
-    <string name="capability_center">مركز القدرات</string>
-    <string name="capability_center_sub">ميزات النظام والأذونات</string>
+
+    
+
     <string name="execution_history">سجل التنفيذ</string>
     <string name="execution_history_sub">عرض عمليات تشغيل الأتمتات</string>
+    <string name="expert_section_title">خيارات الخبير</string>
+    <string name="expert_section_sub">سجل التنفيذ والمكوّنات الإضافية والأدوات المتقدمة</string>
     <string name="section_about">حول</string>
     <string name="about_nexaflow">حول NexaFlow</string>
     <string name="version">الإصدار %1$s</string>
@@ -70,17 +72,17 @@
     <string name="notification_access_sub">قراءة الإشعارات وإدارتها</string>
     <string name="calendar_permission">التقويم</string>
     <string name="calendar_permission_sub">قراءة أحداثك لمشغلات التقويم</string>
-    <string name="execution_channel">قناة التنفيذ</string>
-    <string name="execution_channel_sub">أفضل موفّر لهذا الجهاز، يُختار تلقائياً</string>
-    <string name="channel_root">الجذر</string>
-    <string name="channel_shizuku">شيزوكو</string>
-    <string name="channel_system_app">تطبيق النظام</string>
-    <string name="channel_adb">ADB</string>
-    <string name="channel_android">واجهة أندرويد</string>
-    <string name="channel_accessibility">إمكانية الوصول</string>
-    <string name="channel_none">لا يوجد</string>
-    <string name="channel_detecting">جارٍ الكشف…</string>
-    <string name="refresh">تحديث</string>
+
+    
+
+    
+
+    
+
+    
+
+    
+
     <string name="root_permission">صلاحيات الروت</string>
     <string name="root_permission_sub">منح صلاحيات المستخدم المتميز للأوامر المتقدمة</string>
     <string name="root_grant_all">منح جميع الصلاحيات تلقائياً</string>
@@ -141,7 +143,7 @@
     <string name="location_check_180">كل 3 ساعات</string>
     <string name="location_check_360">كل 6 ساعات</string>
     <string name="backup_save_failed">تعذر حفظ ملف النسخة الاحتياطية</string>
-    <string name="backup_saved">تم حفظ النسخة الاحتياطية</string>
+
     <string name="location_check_custom">مخصص…</string>
     <string name="location_check_custom_minutes">كل %1$d دقيقة</string>
     <string name="location_check_minutes">الدقائق</string>
@@ -151,5 +153,5 @@
     <string name="increase">زيادة</string>
     <string name="decrease">تقليل</string>
     <string name="location_check_apply">تطبيق</string>
-    <string name="section_services">الخدمات</string>
+
 </resources>

@@ -152,7 +152,7 @@
     <string name="occurrence_last">Последняя</string>
     <string name="monthly_weekday_summary">%1$s %2$s</string>
     <string name="end_summary">В конце: %1$s</string>
-    <string name="end_leave">Оставить как есть</string>
+
     <string name="end_turn_on">Включить</string>
     <string name="end_turn_off">Выключить</string>
     <string name="end_revert">Восстановить исходное</string>

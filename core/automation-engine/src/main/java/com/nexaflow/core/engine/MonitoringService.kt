@@ -14,6 +14,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.SmsPreferences
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -60,12 +61,36 @@ class MonitoringService : Service() {
     lateinit var smsPreferences: SmsPreferences
 
     @Inject
+    lateinit var notificationPreferences: NotificationPreferences
+
+    @Inject
     lateinit var triggerIndex: TriggerIndex
+
+    /**
+     * Mirror of the Notification Manager's «monitoring notification» toggle.
+     * Starts hidden (matching the [NotificationSettings.monitoringEnabled]
+     * default) and is kept in sync by [applyMonitoringChannel] while the
+     * service runs, so the very first [startAsForeground] already uses the
+     * right visibility without waiting for the DataStore read.
+     */
+    @Volatile
+    private var notificationVisible = false
 
     override fun onCreate() {
         super.onCreate()
         isRunning = true
         startAsForeground()
+        // Live binding: when the user toggles «Monitoring service» in
+        // Settings > Notifications, the FGS notification is hidden (channel
+        // drops to IMPORTANCE_NONE — no card anywhere, not even the shade)
+        // or re-shown (IMPORTANCE_MIN — silent, no status-bar icon). The
+        // flow emits the current value immediately on start, so the channel
+        // is corrected milliseconds after the first startForeground.
+        scope.launch {
+            notificationPreferences.settings.collect { settings ->
+                applyMonitoringChannel(settings.enabled && settings.monitoringEnabled)
+            }
+        }
         batteryMonitor.initialize()
         deviceEventMonitor.initialize()
         connectivityMonitor.initialize()
@@ -189,18 +214,43 @@ class MonitoringService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    /**
+     * Applies the user's «monitoring notification» choice to the live FGS
+     * notification: hidden channels use IMPORTANCE_NONE (the notification is
+     * never posted to the shade) and visible ones use IMPORTANCE_MIN (silent,
+     * no status-bar icon — the quietest form Android permits while the
+     * foreground service runs). Re-issuing startForeground with the same
+     * service and id simply replaces the notification in place.
+     */
+    private fun applyMonitoringChannel(visible: Boolean) {
+        notificationVisible = visible
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(
+            NotificationChannel(
+                CHANNEL_ID,
+                getString(R.string.monitoring_channel_name),
+                channelImportance(visible)
+            ).apply { setShowBadge(visible) }
+        )
+        startAsForeground()
+    }
+
     private fun startAsForeground() {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val visible = notificationVisible
         // IMPORTANCE_MIN keeps the monitoring notification out of the status
-        // bar and completely silent — no sound, no heads-up, no icon. Android
-        // still requires an FGS notification while the service runs, but this
-        // is the quietest form it can take.
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            getString(R.string.monitoring_channel_name),
-            NotificationManager.IMPORTANCE_MIN
+        // bar and completely silent — no sound, no heads-up, no icon. When the
+        // user hides it (Settings > Notifications) the channel drops to
+        // IMPORTANCE_NONE and the notification never appears at all. Android
+        // still requires the FGS notification to exist while the service runs,
+        // but this is the quietest form it can take.
+        notificationManager.createNotificationChannel(
+            NotificationChannel(
+                CHANNEL_ID,
+                getString(R.string.monitoring_channel_name),
+                channelImportance(visible)
+            ).apply { setShowBadge(visible) }
         )
-        notificationManager.createNotificationChannel(channel)
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(com.nexaflow.core.rom.R.drawable.ic_stat_nexaflow)
             // M3: brand-tinted small icon; service category for FGS semantics.
@@ -214,6 +264,9 @@ class MonitoringService : Service() {
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             // Never re-alert while the same foreground notification is live.
             .setOnlyAlertOnce(true)
+            // No launcher badge for the service card (set on the channel) — it
+            // is ambient, not an event, and badges would make it look unread.
+            .setLocalOnly(true)
             // Android 14+: show the FGS notification immediately instead of
             // deferring it into the 10-second quiet window.
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
@@ -234,6 +287,14 @@ class MonitoringService : Service() {
     }
 
     companion object {
+        /**
+         * Channel importance for the monitoring notification: IMPORTANCE_NONE
+         * hides it entirely (no card in the shade), IMPORTANCE_MIN shows it
+         * silently (no sound, no heads-up, no status-bar icon).
+         */
+        internal fun channelImportance(visible: Boolean): Int =
+            if (visible) NotificationManager.IMPORTANCE_MIN else NotificationManager.IMPORTANCE_NONE
+
         private const val CHANNEL_ID = "nexaflow_monitoring"
         private const val NOTIFICATION_ID = 2001
         private const val RESTART_REQUEST_CODE = 42001

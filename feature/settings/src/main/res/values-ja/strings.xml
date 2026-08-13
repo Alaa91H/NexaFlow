@@ -3,23 +3,25 @@
     <string name="settings_title">設定</string>
     <string name="section_automation">自動化</string>
     <string name="accessibility_service">アクセシビリティサービス</string>
-    <string name="accessibility_enabled">有効 — アプリトリガーが検出されます</string>
+
     <string name="accessibility_disabled">オフ — アプリトリガーは作動しません</string>
-    <string name="monitoring_service">監視サービス</string>
-    <string name="monitoring_running">実行中 — 端末・バッテリー・ネットワーク・位置情報を監視</string>
-    <string name="monitoring_stopped">停止中 — アプリが開いている間のみトリガーが作動</string>
-    <string name="state_enabled">オン</string>
-    <string name="state_disabled">オフ</string>
+
+    
+
+    
+
     <string name="section_appearance">外観</string>
     <string name="themes">テーマ</string>
     <string name="themes_sub">ダークモードとアクセントカラー</string>
     <string name="widgets">クイック設定</string>
     <string name="widgets_sub">タスク用のクイック設定タイル</string>
-    <string name="section_integration">統合</string>
-    <string name="capability_center">機能センター</string>
-    <string name="capability_center_sub">ROM機能と権限</string>
+
+    
+
     <string name="execution_history">実行履歴</string>
     <string name="execution_history_sub">自動化の実行を表示</string>
+    <string name="expert_section_title">上級者向けオプション</string>
+    <string name="expert_section_sub">実行ログ、プラグイン、高度なツール</string>
     <string name="section_about">情報</string>
     <string name="about_nexaflow">NexaFlowについて</string>
     <string name="version">バージョン %1$s</string>
@@ -70,17 +72,17 @@
     <string name="notification_access_sub">通知の読み取りと管理</string>
     <string name="calendar_permission">カレンダー</string>
     <string name="calendar_permission_sub">カレンダートリガー用に予定を読み取ります</string>
-    <string name="execution_channel">実行チャネル</string>
-    <string name="execution_channel_sub">このデバイスに最適なプロバイダーを自動選択</string>
-    <string name="channel_root">Root</string>
-    <string name="channel_shizuku">Shizuku</string>
-    <string name="channel_system_app">システムアプリ</string>
-    <string name="channel_adb">ADB</string>
-    <string name="channel_android">Android API</string>
-    <string name="channel_accessibility">ユーザー補助</string>
-    <string name="channel_none">なし</string>
-    <string name="channel_detecting">検出中…</string>
-    <string name="refresh">更新</string>
+
+    
+
+    
+
+    
+
+    
+
+    
+
     <string name="root_permission">ルートアクセス</string>
     <string name="root_permission_sub">高度なコマンドにスーパーユーザーアクセスを許可</string>
     <string name="root_grant_all">すべての権限を自動的に付与</string>
@@ -141,7 +143,7 @@
     <string name="location_check_180">3時間ごと</string>
     <string name="location_check_360">6時間ごと</string>
     <string name="backup_save_failed">バックアップファイルを保存できませんでした</string>
-    <string name="backup_saved">バックアップを保存しました</string>
+
     <string name="location_check_custom">カスタム…</string>
     <string name="location_check_custom_minutes">%1$d分ごと</string>
     <string name="location_check_minutes">分</string>
@@ -151,5 +153,5 @@
     <string name="increase">増やす</string>
     <string name="decrease">減らす</string>
     <string name="location_check_apply">適用</string>
-    <string name="section_services">サービス</string>
+
 </resources>

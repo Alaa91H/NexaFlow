@@ -32,14 +32,14 @@
     <string name="evolution_install_done">تم تثبيت الوحدة. أعد التشغيل لتفعيل NexaFlow كتطبيق نظام.</string>
     <string name="evolution_install_failed">فشل التثبيت</string>
     <string name="evolution_custom_settings">إعدادات الروم المخصصة</string>
-    <string name="evolution_custom_settings_sub">تصفّح مفاتيح Evolver الخاصة بـ Evolution X / LineageOS الموجودة على الجهاز</string>
+
     <string name="evolution_no_custom_settings">لا توجد إعدادات مخصصة — شغّل مع root أو Shizuku لعرضها</string>
     <string name="evolution_setting_value">القيمة: %1$s</string>
-    <string name="evolution_key_required">المفتاح</string>
+
     <string name="evolution_setting_write">كتابة</string>
     <string name="evolution_edit_setting">تعديل الإعداد</string>
     <string name="cancel">إلغاء</string>
-    <string name="save">حفظ</string>
+
     <string name="ok">موافق</string>
     <string name="evolution_already_system_app">أنت تطبيق نظام بالفعل</string>
     <string name="evolution_not_elevated">مطلوب root أو Shizuku</string>

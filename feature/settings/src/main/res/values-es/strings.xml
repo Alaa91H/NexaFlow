@@ -3,23 +3,25 @@
     <string name="settings_title">Ajustes</string>
     <string name="section_automation">Automatización</string>
     <string name="accessibility_service">Servicio de accesibilidad</string>
-    <string name="accessibility_enabled">Activado — se detectan los disparadores de apps</string>
+
     <string name="accessibility_disabled">Apagado — los disparadores de apps no se activarán</string>
-    <string name="monitoring_service">Servicio de monitoreo</string>
-    <string name="monitoring_running">En ejecución — observa dispositivo, batería, red y ubicación</string>
-    <string name="monitoring_stopped">Detenido — los disparadores solo se activan con la app abierta</string>
-    <string name="state_enabled">Sí</string>
-    <string name="state_disabled">No</string>
+
+    
+
+    
+
     <string name="section_appearance">Apariencia</string>
     <string name="themes">Temas</string>
     <string name="themes_sub">Modo oscuro y color de acento</string>
     <string name="widgets">Ajustes rápidos</string>
     <string name="widgets_sub">Iconos de ajustes rápidos para tus tareas</string>
-    <string name="section_integration">Integración</string>
-    <string name="capability_center">Centro de capacidades</string>
-    <string name="capability_center_sub">Funciones ROM y permisos</string>
+
+    
+
     <string name="execution_history">Historial de ejecución</string>
     <string name="execution_history_sub">Ver ejecuciones de automatizaciones</string>
+    <string name="expert_section_title">Opciones avanzadas</string>
+    <string name="expert_section_sub">Registro de ejecución, complementos y herramientas avanzadas</string>
     <string name="section_about">Acerca de</string>
     <string name="about_nexaflow">Acerca de NexaFlow</string>
     <string name="version">Versión %1$s</string>
@@ -70,17 +72,17 @@
     <string name="notification_access_sub">Leer y gestionar notificaciones</string>
     <string name="calendar_permission">Calendario</string>
     <string name="calendar_permission_sub">Leer tus eventos para los disparadores de calendario</string>
-    <string name="execution_channel">Canal de ejecución</string>
-    <string name="execution_channel_sub">Mejor proveedor para este dispositivo, seleccionado automáticamente</string>
-    <string name="channel_root">Root</string>
-    <string name="channel_shizuku">Shizuku</string>
-    <string name="channel_system_app">App del sistema</string>
-    <string name="channel_adb">ADB</string>
-    <string name="channel_android">API de Android</string>
-    <string name="channel_accessibility">Accesibilidad</string>
-    <string name="channel_none">Ninguno</string>
-    <string name="channel_detecting">Detectando…</string>
-    <string name="refresh">Actualizar</string>
+
+    
+
+    
+
+    
+
+    
+
+    
+
     <string name="root_permission">Acceso root</string>
     <string name="root_permission_sub">Concede acceso de superusuario para comandos avanzados</string>
     <string name="root_grant_all">Otorgar todos los permisos automáticamente</string>
@@ -141,7 +143,7 @@
     <string name="location_check_180">Cada 3 horas</string>
     <string name="location_check_360">Cada 6 horas</string>
     <string name="backup_save_failed">No se pudo guardar la copia de seguridad</string>
-    <string name="backup_saved">Copia de seguridad guardada</string>
+
     <string name="location_check_custom">Personalizado…</string>
     <string name="location_check_custom_minutes">Cada %1$d minutos</string>
     <string name="location_check_minutes">Minutos</string>
@@ -151,5 +153,5 @@
     <string name="increase">Aumentar</string>
     <string name="decrease">Disminuir</string>
     <string name="location_check_apply">Aplicar</string>
-    <string name="section_services">Servicios</string>
+
 </resources>

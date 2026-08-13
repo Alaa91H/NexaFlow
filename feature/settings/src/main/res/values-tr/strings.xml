@@ -3,23 +3,25 @@
     <string name="settings_title">Ayarlar</string>
     <string name="section_automation">Otomasyon</string>
     <string name="accessibility_service">Erişilebilirlik hizmeti</string>
-    <string name="accessibility_enabled">Etkin — uygulama tetikleyicileri algılanıyor</string>
+
     <string name="accessibility_disabled">Kapalı — uygulama tetikleyicileri çalışmaz</string>
-    <string name="monitoring_service">İzleme hizmeti</string>
-    <string name="monitoring_running">Çalışıyor — cihaz, pil, ağ ve konum izleniyor</string>
-    <string name="monitoring_stopped">Durduruldu — tetikleyiciler yalnızca uygulama açıkken çalışır</string>
-    <string name="state_enabled">Açık</string>
-    <string name="state_disabled">Kapalı</string>
+
+    
+
+    
+
     <string name="section_appearance">Görünüm</string>
     <string name="themes">Temalar</string>
     <string name="themes_sub">Karanlık mod ve vurgu rengi</string>
     <string name="widgets">Hızlı ayarlar</string>
     <string name="widgets_sub">Görevleriniz için hızlı ayar kutucukları</string>
-    <string name="section_integration">Entegrasyon</string>
-    <string name="capability_center">Yetenek Merkezi</string>
-    <string name="capability_center_sub">ROM özellikleri ve izinler</string>
+
+    
+
     <string name="execution_history">Yürütme Geçmişi</string>
     <string name="execution_history_sub">Otomasyon çalışmalarını görüntüle</string>
+    <string name="expert_section_title">Uzman seçenekleri</string>
+    <string name="expert_section_sub">Yürütme günlüğü, eklentiler ve gelişmiş araçlar</string>
     <string name="section_about">Hakkında</string>
     <string name="about_nexaflow">NexaFlow Hakkında</string>
     <string name="version">Sürüm %1$s</string>
@@ -70,17 +72,17 @@
     <string name="notification_access_sub">Bildirimleri oku ve yönet</string>
     <string name="calendar_permission">Takvim</string>
     <string name="calendar_permission_sub">Takvim tetikleyicileri için etkinliklerinizi okuyun</string>
-    <string name="execution_channel">Yürütme kanalı</string>
-    <string name="execution_channel_sub">Bu cihaz için en iyi sağlayıcı, otomatik seçilir</string>
-    <string name="channel_root">Root</string>
-    <string name="channel_shizuku">Shizuku</string>
-    <string name="channel_system_app">Sistem uygulaması</string>
-    <string name="channel_adb">ADB</string>
-    <string name="channel_android">Android API</string>
-    <string name="channel_accessibility">Erişilebilirlik</string>
-    <string name="channel_none">Yok</string>
-    <string name="channel_detecting">Algılanıyor…</string>
-    <string name="refresh">Yenile</string>
+
+    
+
+    
+
+    
+
+    
+
+    
+
     <string name="root_permission">Root erişimi</string>
     <string name="root_permission_sub">Gelişmiş komutlar için süper kullanıcı erişimi verin</string>
     <string name="root_grant_all">Tüm izinleri otomatik olarak ver</string>
@@ -141,7 +143,7 @@
     <string name="location_check_180">Her 3 saatte bir</string>
     <string name="location_check_360">Her 6 saatte bir</string>
     <string name="backup_save_failed">Yedek dosyası kaydedilemedi</string>
-    <string name="backup_saved">Yedek kaydedildi</string>
+
     <string name="location_check_custom">Özel…</string>
     <string name="location_check_custom_minutes">Her %1$d dakikada bir</string>
     <string name="location_check_minutes">Dakika</string>
@@ -151,5 +153,5 @@
     <string name="increase">Artır</string>
     <string name="decrease">Azalt</string>
     <string name="location_check_apply">Uygula</string>
-    <string name="section_services">Hizmetler</string>
+
 </resources>

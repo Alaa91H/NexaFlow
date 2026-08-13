@@ -1,5 +1,6 @@
 package com.nexaflow.app
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -24,10 +25,9 @@ class SaveBackupActivity : ComponentActivity() {
     private val createDocument =
         registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
             if (uri != null) {
-                val filePath = intent?.getStringExtra(EXTRA_FILE_PATH)
-                val ok = filePath != null && runCatching {
+                val ok = runCatching {
                     contentResolver.openOutputStream(uri)?.use { out ->
-                        File(filePath).inputStream().use { it.copyTo(out) }
+                        openBackupSource()?.use { it.copyTo(out) }
                     }
                 }.isSuccess
                 Toast.makeText(
@@ -43,5 +43,23 @@ class SaveBackupActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         // No UI: jump straight into the SAF picker so the app never flashes.
         createDocument.launch("nexaflow_backup.json")
+    }
+
+    /**
+     * The bytes to write: our cached backup file (pinned share-sheet row) or,
+     * when another app shared a JSON file into us via the intent-filter, the
+     * shared stream itself.
+     */
+    private fun openBackupSource(): java.io.InputStream? {
+        val filePath = intent?.getStringExtra(EXTRA_FILE_PATH)
+        if (filePath != null) {
+            val file = File(filePath)
+            if (file.exists()) return file.inputStream()
+        }
+        val streamUri = intent?.getParcelableExtra<android.net.Uri>(Intent.EXTRA_STREAM)
+        if (streamUri != null) {
+            return runCatching { contentResolver.openInputStream(streamUri) }.getOrNull()
+        }
+        return null
     }
 }

@@ -32,14 +32,14 @@
     <string name="evolution_install_done">Module installed. Reboot to activate NexaFlow as a system app.</string>
     <string name="evolution_install_failed">Install failed</string>
     <string name="evolution_custom_settings">Custom ROM settings</string>
-    <string name="evolution_custom_settings_sub">Browse Evolution X / LineageOS Evolver keys present on this device</string>
+
     <string name="evolution_no_custom_settings">No ROM custom settings found — run with root or Shizuku to list them</string>
     <string name="evolution_setting_value">Value: %1$s</string>
-    <string name="evolution_key_required">Key</string>
+
     <string name="evolution_setting_write">Write</string>
     <string name="evolution_edit_setting">Edit setting</string>
     <string name="cancel">Cancel</string>
-    <string name="save">Save</string>
+
     <string name="ok">OK</string>
     <string name="evolution_already_system_app">Already a system app</string>
     <string name="evolution_not_elevated">Root or Shizuku required</string>

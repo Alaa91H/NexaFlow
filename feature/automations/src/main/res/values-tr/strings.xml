@@ -152,7 +152,7 @@
     <string name="occurrence_last">Son</string>
     <string name="monthly_weekday_summary">%1$s %2$s</string>
     <string name="end_summary">Sonunda: %1$s</string>
-    <string name="end_leave">Olduğu gibi bırak</string>
+
     <string name="end_turn_on">Aç</string>
     <string name="end_turn_off">Kapat</string>
     <string name="end_revert">Orijinali geri yükle</string>

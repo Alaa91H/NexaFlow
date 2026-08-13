@@ -24,7 +24,11 @@ data class NotificationSettings(
     val enabled: Boolean = true,
     val executionEnabled: Boolean = true,
     val remindersEnabled: Boolean = true,
-    val monitoringEnabled: Boolean = true
+    // Hidden by default: the foreground-service monitoring notification is
+    // silent (IMPORTANCE_MIN) but still shows a card in the notification
+    // shade. Most users don't need a permanent card, so it starts hidden
+    // (IMPORTANCE_NONE) and can be re-enabled from Settings > Notifications.
+    val monitoringEnabled: Boolean = false
 )
 
 class NotificationPreferences(private val context: Context) {
@@ -36,7 +40,7 @@ class NotificationPreferences(private val context: Context) {
             enabled = preferences[KEY_ENABLED] ?: true,
             executionEnabled = preferences[KEY_EXECUTION] ?: true,
             remindersEnabled = preferences[KEY_REMINDERS] ?: true,
-            monitoringEnabled = preferences[KEY_MONITORING] ?: true
+            monitoringEnabled = preferences[KEY_MONITORING] ?: false
         )
     }
 

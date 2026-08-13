@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="builder_title">Nova tarefa</string>
-    <string name="task_card_title">Tarefa</string>
+
     <string name="save">Salvar</string>
-    <string name="name">Nome</string>
+
     <string name="name_hint">ex.: Tarefa matinal</string>
-    <string name="icon">Ícone</string>
-    <string name="tap_to_choose_icon">Toque para escolher um ícone</string>
+
+    
     <string name="section_when">Quando (gatilhos)</string>
     <string name="trigger_n">Gatilho %1$d</string>
     <string name="remove_trigger">Remover gatilho</string>
@@ -16,7 +16,7 @@
     <string name="trigger_type_device">Dispositivo</string>
     <string name="trigger_type_connectivity">Conectividade</string>
     <string name="trigger_type_network_mode">Rede celular</string>
-    <string name="trigger_type_network_mode_sub">Dispara quando a rede celular corresponde à geração selecionada (detecção 5G real)</string>
+
     <string name="refresh">Atualizar</string>
     <string name="trigger_type_location">Localização</string>
     <string name="trigger_time">Hora do gatilho</string>
@@ -26,9 +26,9 @@
     <string name="enable">Ativar</string>
     <string name="network">Rede</string>
     <string name="state">Estado</string>
-    <string name="latitude">Latitude</string>
-    <string name="longitude">Longitude</string>
-    <string name="radius_meters">Raio (metros)</string>
+
+    
+
     <string name="event">Evento</string>
     <string name="location_hint">Requer permissão de localização e uma localização atual</string>
     <string name="grant">Conceder</string>
@@ -70,13 +70,16 @@
     <string name="special_bluetooth_title">Bluetooth</string>
     <string name="special_bluetooth_body">O NexaFlow precisa do Bluetooth ativado para detectar dispositivos pareados e executar tarefas quando conectam.</string>
 
-
     <string name="battery_above">Bateria acima do limite</string>
     <string name="battery_above_sub">Executar apenas quando a bateria estiver acima do nível</string>
     <string name="minimum_battery">Bateria mínima: %1$d%%</string>
 
     <string name="section_actions">Então (ações)</string>
-    <string name="save_automation">Salvar tarefa</string>
+
+    <string name="step_triggers">Gatilhos</string>
+    <string name="step_actions">Ações</string>
+    <string name="create_task">Criar tarefa</string>
+
     <string name="ok">OK</string>
     <string name="cancel">Cancelar</string>
     <string name="action_brightness">Brilho</string>
@@ -142,7 +145,7 @@
     <string name="flashlight_hint">Requer acesso à câmera para a lanterna</string>
     <string name="shizuku_hint">Requer o app Shizuku e uma concessão</string>
     <string name="root_hint">Requer root (binário su)</string>
-    <string name="info">Informações</string>
+
     <string name="choose_app">Escolher um app</string>
     <string name="choose_apps">Escolher apps</string>
     <string name="search_apps">Pesquisar apps…</string>
@@ -157,7 +160,7 @@
     <string name="category_apps">Apps</string>
     <string name="category_system">Sistema</string>
     <string name="category_battery">Bateria</string>
-    <string name="category_advanced">Avançado</string>
+
     <string name="action_screen_timeout">Tempo de tela</string>
     <string name="action_screen_timeout_sub">Define por quanto tempo a tela fica ligada</string>
     <string name="action_stay_awake">Tela ativa</string>
@@ -298,7 +301,7 @@
     <string name="action_stream_volume">Volume do canal</string>
     <string name="action_stream_volume_sub">Ajuste qualquer canal de som com precisão</string>
     <string name="section_exit_behavior">Quando a tarefa termina</string>
-    <string name="exit_behavior_hint">O que acontece quando a condição deixa de ser verdadeira?</string>
+
     <string name="exit_auto_reply_label">Resposta automática (SMS)</string>
     <string name="exit_nothing_sub">Nada acontece — a tarefa simplesmente termina</string>
     <string name="add_exit_action">Adicionar ação de saída</string>
@@ -313,7 +316,7 @@
     <string name="search_actions">Pesquisar ações…</string>
     <string name="add_count">Adicionar (%1$d)</string>
     <string name="add_action">Adicionar ação</string>
-    <string name="pick_trigger_type">Adicionar gatilho</string>
+
     <string name="next_needs_action">Adicione pelo menos uma ação primeiro</string>
     <string name="no_matching_actions">Nenhuma ação correspondente</string>
     <string name="repeat_monthly">Mensal</string>
@@ -373,8 +376,8 @@
     <string name="end_turn_off">Desativar</string>
     <string name="end_revert">Restaurar original</string>
     <string name="end_set_value">Definir valor</string>
-    <string name="cooldown_label">Intervalo de execução: %1$d s</string>
-    <string name="cooldown_hint">Intervalo mínimo entre duas execuções desta tarefa</string>
+
+    
     <string name="elevated_status_granted">Concedida</string>
     <string name="elevated_status_available">Toque para conceder</string>
     <string name="elevated_status_unavailable">Indisponível</string>
@@ -477,11 +480,12 @@
     <string name="use_current_location">Usar minha localização atual</string>
     <string name="location_coordinates">Localização: %1$s, %2$s</string>
     <string name="location_not_set">Nenhuma localização definida ainda</string>
+    <string name="map_radius_summary">Raio definido no mapa: %1$d m</string>
     <string name="radius_meters_format">Raio: %1$d m</string>
     <string name="location_inside">Dentro da localização</string>
     <string name="location_outside">Fora da localização</string>
     <string name="location_fix_failed">Não foi possível obter sua localização. Ative a localização e tente novamente.</string>
-    <string name="map_unavailable">Nenhum app de mapas encontrado</string>
+
     <string name="confirm_location">Confirmar localização</string>
 
     <string name="charging_yes">A carregar</string>
@@ -514,4 +518,4 @@
     <string name="map_pick_hint">Toque no mapa para colocar o ponto — arraste o marcador para ajustar</string>
     <string name="map_no_key">O Google Maps ainda não está configurado. Adicione NEXAFLOW_MAPS_API_KEY ao gradle.properties e recompile.</string>
     <string name="map_search_not_found">Lugar não encontrado</string>
-</resources>
+    <string name="trigger_cat_schedule">Agendamento</string>    <string name="trigger_cat_device">Dispositivo</string>    <string name="trigger_cat_connectivity">Conectividade</string>    <string name="trigger_cat_location">Localização</string>    <string name="trigger_cat_apps">Apps</string>    <string name="trigger_cat_communication">Comunicação</string></resources>

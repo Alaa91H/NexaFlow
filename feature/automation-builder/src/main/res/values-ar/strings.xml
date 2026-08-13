@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="builder_title">مهمة جديدة</string>
-    <string name="task_card_title">المهمة</string>
+
     <string name="save">حفظ</string>
-    <string name="name">الاسم</string>
+
     <string name="name_hint">مثال: مهمة الصباح</string>
-    <string name="icon">الأيقونة</string>
-    <string name="tap_to_choose_icon">اضغط لاختيار أيقونة</string>
+
+    
     <string name="section_when">متى (المشغّلات)</string>
     <string name="trigger_n">المشغّل %1$d</string>
     <string name="remove_trigger">إزالة المشغّل</string>
@@ -16,7 +16,7 @@
     <string name="trigger_type_device">الجهاز</string>
     <string name="trigger_type_connectivity">الاتصال</string>
     <string name="trigger_type_network_mode">الشبكة الخلوية</string>
-    <string name="trigger_type_network_mode_sub">يُنفَّذ عندما يطابق الجيل الخلوي للجهاز الجيل المحدد (كشف 5G حقيقي)</string>
+
     <string name="refresh">تحديث</string>
     <string name="trigger_type_location">الموقع</string>
     <string name="trigger_time">وقت التشغيل</string>
@@ -26,9 +26,9 @@
     <string name="enable">تفعيل</string>
     <string name="network">الشبكة</string>
     <string name="state">الحالة</string>
-    <string name="latitude">خط العرض</string>
-    <string name="longitude">خط الطول</string>
-    <string name="radius_meters">نصف القطر (متر)</string>
+
+    
+
     <string name="event">الحدث</string>
     <string name="location_hint">يتطلب إذن الموقع وتثبيت موقع حالي</string>
     <string name="grant">منح</string>
@@ -70,12 +70,15 @@
     <string name="special_bluetooth_title">البلوتوث</string>
     <string name="special_bluetooth_body">يحتاج نيكسافلو إلى تفعيل البلوتوث لاكتشاف الأجهزة المقترنة وتشغيل المهام عند اتصالها.</string>
 
-
     <string name="battery_above">البطارية فوق الحد</string>
     <string name="battery_above_sub">التشغيل فقط عندما تكون البطارية فوق المستوى</string>
     <string name="minimum_battery">الحد الأدنى للبطارية: %1$d%%</string>
     <string name="section_actions">ثم (الإجراءات)</string>
-    <string name="save_automation">حفظ المهمة</string>
+
+    <string name="step_triggers">المشغّلات</string>
+    <string name="step_actions">الإجراءات</string>
+    <string name="create_task">إنشاء المهمة</string>
+
     <string name="ok">حسناً</string>
     <string name="cancel">إلغاء</string>
     <string name="action_brightness">السطوع</string>
@@ -141,7 +144,7 @@
     <string name="flashlight_hint">يتطلب إذن الكاميرا للفلاش</string>
     <string name="shizuku_hint">يتطلب تطبيق Shizuku ومنح إذن</string>
     <string name="root_hint">يتطلب صلاحيات الروت (su)</string>
-    <string name="info">معلومات</string>
+
     <string name="choose_app">اختر تطبيقاً</string>
     <string name="choose_apps">اختر تطبيقات</string>
     <string name="search_apps">ابحث في التطبيقات…</string>
@@ -156,7 +159,7 @@
     <string name="category_apps">التطبيقات</string>
     <string name="category_system">النظام</string>
     <string name="category_battery">البطارية</string>
-    <string name="category_advanced">متقدم</string>
+
     <string name="action_screen_timeout">مهلة الشاشة</string>
     <string name="action_screen_timeout_sub">تحديد مدة بقاء الشاشة مضاءة</string>
     <string name="action_stay_awake">إبقاء الشاشة مضاءة</string>
@@ -297,7 +300,7 @@
     <string name="action_stream_volume">صوت القناة</string>
     <string name="action_stream_volume_sub">ضبط أي قناة صوت بدقة</string>
     <string name="section_exit_behavior">عند انتهاء المهمة</string>
-    <string name="exit_behavior_hint">ماذا يحدث عند انتهاء شرط المهمة؟</string>
+
     <string name="exit_auto_reply_label">رد تلقائي (رسالة)</string>
     <string name="exit_nothing_sub">لا يحدث شيء — تنتهي المهمة فقط</string>
     <string name="add_exit_action">إضافة إجراء خروج</string>
@@ -312,7 +315,7 @@
     <string name="search_actions">ابحث عن الإجراءات…</string>
     <string name="add_count">إضافة (%1$d)</string>
     <string name="add_action">إضافة إجراء</string>
-    <string name="pick_trigger_type">إضافة مشغّل</string>
+
     <string name="next_needs_action">أضف إجراءً واحداً على الأقل أولاً</string>
     <string name="no_matching_actions">لا توجد إجراءات مطابقة</string>
     <string name="repeat_monthly">شهرياً</string>
@@ -372,8 +375,8 @@
     <string name="end_turn_off">إيقاف</string>
     <string name="end_revert">استعادة الحالة الأصلية</string>
     <string name="end_set_value">تعيين قيمة</string>
-    <string name="cooldown_label">فاصل التشغيل: %1$d ث</string>
-    <string name="cooldown_hint">أقل فاصل بين تشغيلين لهذه المهمة</string>
+
+    
     <string name="elevated_status_granted">ممنوح</string>
     <string name="elevated_status_available">اضغط للمنح</string>
     <string name="elevated_status_unavailable">غير متاح</string>
@@ -476,11 +479,12 @@
     <string name="use_current_location">استخدام موقعي الحالي</string>
     <string name="location_coordinates">الموقع: %1$s، %2$s</string>
     <string name="location_not_set">لم يتم تحديد موقع بعد</string>
+    <string name="map_radius_summary">نصف القطر مُحدد على الخريطة: %1$d م</string>
     <string name="radius_meters_format">نصف القطر: %1$d م</string>
     <string name="location_inside">داخل الموقع</string>
     <string name="location_outside">خارج الموقع</string>
     <string name="location_fix_failed">تعذّر تحديد موقعك الحالي. فعّل الموقع ثم أعد المحاولة.</string>
-    <string name="map_unavailable">لا يوجد تطبيق خرائط</string>
+
     <string name="confirm_location">تأكيد الموقع</string>
 
     <string name="charging_yes">يشحن</string>
@@ -513,4 +517,4 @@
     <string name="map_pick_hint">اضغط على الخريطة لتحديد النقطة — واسحب العلامة للضبط الدقيق</string>
     <string name="map_no_key">خرائط جوجل غير مكوّنة بعد. أضف NEXAFLOW_MAPS_API_KEY إلى gradle.properties وأعد البناء.</string>
     <string name="map_search_not_found">لم يُعثر على المكان</string>
-</resources>
+    <string name="trigger_cat_schedule">الجدولة</string>    <string name="trigger_cat_device">الجهاز</string>    <string name="trigger_cat_connectivity">الاتصال</string>    <string name="trigger_cat_location">الموقع</string>    <string name="trigger_cat_apps">التطبيقات</string>    <string name="trigger_cat_communication">التواصل</string></resources>

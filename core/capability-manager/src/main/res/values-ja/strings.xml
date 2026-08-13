@@ -32,14 +32,14 @@
     <string name="evolution_install_done">モジュールがインストールされました。再起動してNexaFlowをシステムアプリとして有効にしてください。</string>
     <string name="evolution_install_failed">インストールに失敗しました</string>
     <string name="evolution_custom_settings">カスタムROM設定</string>
-    <string name="evolution_custom_settings_sub">このデバイスにあるEvolution X / LineageOSのEvolverキーを閲覧</string>
+
     <string name="evolution_no_custom_settings">カスタムROM設定が見つかりません — rootまたはShizukuで実行して一覧表示してください</string>
     <string name="evolution_setting_value">値: %1$s</string>
-    <string name="evolution_key_required">キー</string>
+
     <string name="evolution_setting_write">書き込み</string>
     <string name="evolution_edit_setting">設定を編集</string>
     <string name="cancel">キャンセル</string>
-    <string name="save">保存</string>
+
     <string name="ok">OK</string>
     <string name="evolution_already_system_app">すでにシステムアプリです</string>
     <string name="evolution_not_elevated">rootまたはShizukuが必要です</string>

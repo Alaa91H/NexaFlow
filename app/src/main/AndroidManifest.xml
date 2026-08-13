@@ -265,7 +265,18 @@
             android:excludeFromRecents="true"
             android:label="@string/save_locally_label"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
-            android:noHistory="true" />
+            android:noHistory="true">
+            <!--
+                A real share target: alongside the pinned initial intent, this
+                intent-filter makes «Save locally» appear in the share sheet's
+                regular app grid whenever a JSON backup is shared.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/json" />
+            </intent-filter>
+        </activity>
 
         <!--
             WorkManager is configured through NexaFlowApplication's

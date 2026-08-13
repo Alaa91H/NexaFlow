@@ -46,7 +46,7 @@
 
     <string name="tile_choose_task">Choose task</string>
 
-    <string name="tile_cancel">Cancel</string>
+    
 
     <string name="tile_unbound">No task</string>
 </resources>

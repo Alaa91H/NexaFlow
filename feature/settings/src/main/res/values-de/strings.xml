@@ -3,23 +3,25 @@
     <string name="settings_title">Einstellungen</string>
     <string name="section_automation">Automatisierung</string>
     <string name="accessibility_service">Barrierefreiheitsdienst</string>
-    <string name="accessibility_enabled">Aktiviert — App-Trigger werden erkannt</string>
+
     <string name="accessibility_disabled">Aus — App-Trigger werden nicht ausgelöst</string>
-    <string name="monitoring_service">Überwachungsdienst</string>
-    <string name="monitoring_running">Läuft — beobachtet Gerät, Akku, Netzwerk und Standort</string>
-    <string name="monitoring_stopped">Gestoppt — Trigger feuern nur bei geöffneter App</string>
-    <string name="state_enabled">An</string>
-    <string name="state_disabled">Aus</string>
+
+    
+
+    
+
     <string name="section_appearance">Darstellung</string>
     <string name="themes">Designs</string>
     <string name="themes_sub">Dunkelmodus und Akzentfarbe</string>
     <string name="widgets">Schnelleinstellungen</string>
     <string name="widgets_sub">Schnelleinstellungen-Kacheln für deine Aufgaben</string>
-    <string name="section_integration">Integration</string>
-    <string name="capability_center">Fähigkeitszentrum</string>
-    <string name="capability_center_sub">ROM-Funktionen und Berechtigungen</string>
+
+    
+
     <string name="execution_history">Ausführungsverlauf</string>
     <string name="execution_history_sub">Automatisierungsläufe anzeigen</string>
+    <string name="expert_section_title">Expertenoptionen</string>
+    <string name="expert_section_sub">Ausführungsprotokoll, Plugins und erweiterte Werkzeuge</string>
     <string name="section_about">Über</string>
     <string name="about_nexaflow">Über NexaFlow</string>
     <string name="version">Version %1$s</string>
@@ -70,17 +72,17 @@
     <string name="notification_access_sub">Benachrichtigungen lesen und verwalten</string>
     <string name="calendar_permission">Kalender</string>
     <string name="calendar_permission_sub">Ereignisse für Kalender-Trigger lesen</string>
-    <string name="execution_channel">Ausführungskanal</string>
-    <string name="execution_channel_sub">Bester Anbieter für dieses Gerät, automatisch ausgewählt</string>
-    <string name="channel_root">Root</string>
-    <string name="channel_shizuku">Shizuku</string>
-    <string name="channel_system_app">System-App</string>
-    <string name="channel_adb">ADB</string>
-    <string name="channel_android">Android-API</string>
-    <string name="channel_accessibility">Bedienungshilfe</string>
-    <string name="channel_none">Keine</string>
-    <string name="channel_detecting">Wird erkannt…</string>
-    <string name="refresh">Aktualisieren</string>
+
+    
+
+    
+
+    
+
+    
+
+    
+
     <string name="root_permission">Root-Zugriff</string>
     <string name="root_permission_sub">Superuser-Zugriff für erweiterte Befehle gewähren</string>
     <string name="root_grant_all">Alle Berechtigungen automatisch erteilen</string>
@@ -141,7 +143,7 @@
     <string name="location_check_180">Alle 3 Stunden</string>
     <string name="location_check_360">Alle 6 Stunden</string>
     <string name="backup_save_failed">Backup konnte nicht gespeichert werden</string>
-    <string name="backup_saved">Backup gespeichert</string>
+
     <string name="location_check_custom">Benutzerdefiniert…</string>
     <string name="location_check_custom_minutes">Alle %1$d Minuten</string>
     <string name="location_check_minutes">Minuten</string>
@@ -151,5 +153,5 @@
     <string name="increase">Erhöhen</string>
     <string name="decrease">Verringern</string>
     <string name="location_check_apply">Übernehmen</string>
-    <string name="section_services">Dienste</string>
+
 </resources>

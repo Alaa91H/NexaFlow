@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="builder_title">नया कार्य</string>
-    <string name="task_card_title">कार्य</string>
+
     <string name="save">सहेजें</string>
-    <string name="name">नाम</string>
+
     <string name="name_hint">जैसे: सुबह का कार्य</string>
-    <string name="icon">आइकन</string>
-    <string name="tap_to_choose_icon">आइकन चुनने के लिए टैप करें</string>
+
+    
     <string name="section_when">कब (ट्रिगर)</string>
     <string name="trigger_n">ट्रिगर %1$d</string>
     <string name="remove_trigger">ट्रिगर हटाएँ</string>
@@ -16,7 +16,7 @@
     <string name="trigger_type_device">डिवाइस</string>
     <string name="trigger_type_connectivity">कनेक्टिविटी</string>
     <string name="trigger_type_network_mode">सेलुलर नेटवर्क</string>
-    <string name="trigger_type_network_mode_sub">जब डिवाइस का सेलुलर नेटवर्क चयनित पीढ़ी से मेल खाता है तो ट्रिगर (वास्तविक 5G पहचान)</string>
+
     <string name="refresh">रीफ़्रेश</string>
     <string name="trigger_type_location">स्थान</string>
     <string name="trigger_time">ट्रिगर समय</string>
@@ -26,9 +26,9 @@
     <string name="enable">सक्षम करें</string>
     <string name="network">नेटवर्क</string>
     <string name="state">स्थिति</string>
-    <string name="latitude">अक्षांश</string>
-    <string name="longitude">देशांतर</string>
-    <string name="radius_meters">त्रिज्या (मीटर)</string>
+
+    
+
     <string name="event">घटना</string>
     <string name="location_hint">स्थान अनुमति और वर्तमान स्थान की आवश्यकता है</string>
     <string name="grant">अनुमति दें</string>
@@ -70,13 +70,16 @@
     <string name="special_bluetooth_title">ब्लूटूथ</string>
     <string name="special_bluetooth_body">जोड़े गए डिवाइस का पता लगाने और उनके कनेक्ट होने पर कार्य चलाने के लिए NexaFlow को ब्लूटूथ चालू चाहिए।</string>
 
-
     <string name="battery_above">बैटरी सीमा से ऊपर</string>
     <string name="battery_above_sub">केवल तभी चलाएँ जब बैटरी स्तर से ऊपर हो</string>
     <string name="minimum_battery">न्यूनतम बैटरी: %1$d%%</string>
 
     <string name="section_actions">फिर (क्रियाएँ)</string>
-    <string name="save_automation">कार्य सहेजें</string>
+
+    <string name="step_triggers">ट्रिगर</string>
+    <string name="step_actions">क्रियाएँ</string>
+    <string name="create_task">कार्य बनाएँ</string>
+
     <string name="ok">ठीक है</string>
     <string name="cancel">रद्द करें</string>
     <string name="action_brightness">चमक</string>
@@ -142,7 +145,7 @@
     <string name="flashlight_hint">फ़्लैशलाइट के लिए कैमरा पहुँच आवश्यक है</string>
     <string name="shizuku_hint">Shizuku ऐप और अनुमति आवश्यक है</string>
     <string name="root_hint">रूट (su) आवश्यक है</string>
-    <string name="info">जानकारी</string>
+
     <string name="choose_app">एक ऐप चुनें</string>
     <string name="choose_apps">ऐप्स चुनें</string>
     <string name="search_apps">ऐप्स खोजें…</string>
@@ -157,7 +160,7 @@
     <string name="category_apps">ऐप्स</string>
     <string name="category_system">सिस्टम</string>
     <string name="category_battery">बैटरी</string>
-    <string name="category_advanced">उन्नत</string>
+
     <string name="action_screen_timeout">स्क्रीन टाइमआउट</string>
     <string name="action_screen_timeout_sub">स्क्रीन कितनी देर जलती रहे यह सेट करें</string>
     <string name="action_stay_awake">स्क्रीन जागृत रखें</string>
@@ -298,7 +301,7 @@
     <string name="action_stream_volume">चैनल वॉल्यूम</string>
     <string name="action_stream_volume_sub">किसी भी ध्वनि चैनल को सटीक रूप से सेट करें</string>
     <string name="section_exit_behavior">जब कार्य समाप्त हो</string>
-    <string name="exit_behavior_hint">शर्त पूरी न होने पर क्या होगा?</string>
+
     <string name="exit_auto_reply_label">स्वचालित उत्तर (SMS)</string>
     <string name="exit_nothing_sub">कुछ नहीं होता — कार्य बस समाप्त हो जाता है</string>
     <string name="add_exit_action">निकास क्रिया जोड़ें</string>
@@ -313,7 +316,7 @@
     <string name="search_actions">क्रियाएँ खोजें…</string>
     <string name="add_count">जोड़ें (%1$d)</string>
     <string name="add_action">क्रिया जोड़ें</string>
-    <string name="pick_trigger_type">ट्रिगर जोड़ें</string>
+
     <string name="next_needs_action">पहले कम से कम एक क्रिया जोड़ें</string>
     <string name="no_matching_actions">कोई मिलती-जुलती क्रिया नहीं</string>
     <string name="repeat_monthly">मासिक</string>
@@ -373,8 +376,8 @@
     <string name="end_turn_off">बंद करें</string>
     <string name="end_revert">मूल स्थिति बहाल करें</string>
     <string name="end_set_value">मान सेट करें</string>
-    <string name="cooldown_label">रन अंतराल: %1$d सेकंड</string>
-    <string name="cooldown_hint">इस कार्य के दो रन के बीच न्यूनतम अंतराल</string>
+
+    
     <string name="elevated_status_granted">प्रदत्त</string>
     <string name="elevated_status_available">अनुदान देने के लिए टैप करें</string>
     <string name="elevated_status_unavailable">अनुपलब्ध</string>
@@ -477,11 +480,12 @@
     <string name="use_current_location">मेरा वर्तमान स्थान उपयोग करें</string>
     <string name="location_coordinates">स्थान: %1$s, %2$s</string>
     <string name="location_not_set">अभी तक कोई स्थान निर्धारित नहीं</string>
+    <string name="map_radius_summary">मानचित्र पर निर्धारित त्रिज्या: %1$d मी</string>
     <string name="radius_meters_format">त्रिज्या: %1$d मी</string>
     <string name="location_inside">स्थान के अंदर</string>
     <string name="location_outside">स्थान के बाहर</string>
     <string name="location_fix_failed">आपका स्थान प्राप्त नहीं हो सका। स्थान सक्षम करके पुनः प्रयास करें।</string>
-    <string name="map_unavailable">कोई मानचित्र ऐप नहीं मिला</string>
+
     <string name="confirm_location">स्थान की पुष्टि करें</string>
 
     <string name="charging_yes">चार्ज हो रहा है</string>
@@ -514,4 +518,4 @@
     <string name="map_pick_hint">बिंदु रखने के लिए मानचित्र पर टैप करें — बारीक समायोजन के लिए मार्कर को खींचें</string>
     <string name="map_no_key">Google Maps अभी कॉन्फ़िगर नहीं है। gradle.properties में NEXAFLOW_MAPS_API_KEY जोड़ें और पुनर्निर्माण करें।</string>
     <string name="map_search_not_found">स्थान नहीं मिला</string>
-</resources>
+    <string name="trigger_cat_schedule">शेड्यूल</string>    <string name="trigger_cat_device">डिवाइस</string>    <string name="trigger_cat_connectivity">कनेक्टिविटी</string>    <string name="trigger_cat_location">स्थान</string>    <string name="trigger_cat_apps">ऐप्स</string>    <string name="trigger_cat_communication">संचार</string></resources>

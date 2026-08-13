@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
@@ -78,21 +79,56 @@ private const val LOCATION_RADIUS_MAX_M = 2000
 // (max - min) / step - 1: 50 m granularity between the endpoints.
 private const val LOCATION_RADIUS_STEPS = (LOCATION_RADIUS_MAX_M - LOCATION_RADIUS_MIN_M) / 50 - 1
 
+/**
+ * Google-style grouping of trigger types by what they watch, so the picker
+ * surfaces the everyday options (time, battery, Wi-Fi…) first and the user
+ * reaches the right trigger without scrolling one long flat list.
+ */
+enum class TriggerCategory(val headerRes: Int) {
+    SCHEDULE(R.string.trigger_cat_schedule),
+    DEVICE(R.string.trigger_cat_device),
+    CONNECTIVITY(R.string.trigger_cat_connectivity),
+    LOCATION(R.string.trigger_cat_location),
+    APPS(R.string.trigger_cat_apps),
+    COMMUNICATION(R.string.trigger_cat_communication)
+}
+
+internal val triggerCategories: List<TriggerCategory> = TriggerCategory.entries.toList()
+
+/** Trigger type → category; the grouped picker renders headers from it. */
+internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> = mapOf(
+    TriggerType.TIME to TriggerCategory.SCHEDULE,
+    TriggerType.CALENDAR to TriggerCategory.SCHEDULE,
+    TriggerType.BATTERY to TriggerCategory.DEVICE,
+    TriggerType.DEVICE to TriggerCategory.DEVICE,
+    TriggerType.RINGER_MODE to TriggerCategory.DEVICE,
+    TriggerType.NOTIFICATION to TriggerCategory.DEVICE,
+    TriggerType.CONNECTIVITY to TriggerCategory.CONNECTIVITY,
+    TriggerType.NETWORK_MODE to TriggerCategory.CONNECTIVITY,
+    TriggerType.LOCATION to TriggerCategory.LOCATION,
+    TriggerType.APPLICATION to TriggerCategory.APPS,
+    TriggerType.SMS to TriggerCategory.COMMUNICATION
+)
+
+/** Trigger types ordered by category — the picker walks [triggerCategories] over it. */
 val triggerTypeOptions = listOf(
+    // SCHEDULE
     TriggerType.TIME,
+    TriggerType.CALENDAR,
+    // DEVICE
     TriggerType.BATTERY,
-    TriggerType.APPLICATION,
     TriggerType.DEVICE,
-    TriggerType.CONNECTIVITY,
-    TriggerType.NETWORK_MODE,
-    TriggerType.LOCATION,
-    TriggerType.SMS,
     TriggerType.RINGER_MODE,
     TriggerType.NOTIFICATION,
-    TriggerType.CALENDAR,
-    TriggerType.SENSOR,
-    TriggerType.WEBHOOK,
-    TriggerType.ROM_SETTING
+    // CONNECTIVITY
+    TriggerType.CONNECTIVITY,
+    TriggerType.NETWORK_MODE,
+    // LOCATION
+    TriggerType.LOCATION,
+    // APPS
+    TriggerType.APPLICATION,
+    // COMMUNICATION
+    TriggerType.SMS
 )
 
 private val repeatOptions = listOf(
@@ -171,7 +207,7 @@ internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.SMS -> Icons.AutoMirrored.Filled.Message
     TriggerType.BLUETOOTH_DEVICE -> Icons.Filled.Bluetooth
     TriggerType.RINGER_MODE -> Icons.Filled.NotificationsActive
-    TriggerType.NOTIFICATION -> Icons.Filled.NotificationsActive
+    TriggerType.NOTIFICATION -> Icons.Filled.Notifications
     TriggerType.CALENDAR -> Icons.Filled.DateRange
     TriggerType.SENSOR -> Icons.Filled.Sensors
     TriggerType.WEBHOOK -> Icons.Filled.Web
@@ -1060,26 +1096,42 @@ fun TriggerEditorCard(
                                 color = MaterialTheme.colorScheme.secondary
                             )
                         }
-                        // Radius slider.
+                        // The location point can come from two flows. "Use my
+                        // current location" has no radius control of its own, so
+                        // the radius slider + inside/outside chips below belong
+                        // to it. Picking on the map sets its own radius inside
+                        // the map screen, so here we show a read-only summary
+                        // for the map-sourced point instead of a second slider.
                         val radius = (draft.config["radius"]?.toIntOrNull() ?: 100)
                             .coerceIn(LOCATION_RADIUS_MIN_M, LOCATION_RADIUS_MAX_M)
-                        Text(
-                            text = stringResource(R.string.radius_meters_format, radius),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        Slider(
-                            value = radius.toFloat(),
-                            onValueChange = { value ->
-                                onConfigChange(
-                                    draft.copy(
-                                        config = draft.config + ("radius" to value.toInt().toString())
+                        val locationSource = draft.config["source"] ?: "current"
+                        if (locationSource != "map") {
+                            // Radius slider — tied to "use my current location".
+                            Text(
+                                text = stringResource(R.string.radius_meters_format, radius),
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            Slider(
+                                value = radius.toFloat(),
+                                onValueChange = { value ->
+                                    onConfigChange(
+                                        draft.copy(
+                                            config = draft.config + ("radius" to value.toInt().toString())
+                                        )
                                     )
-                                )
-                            },
-                            valueRange = LOCATION_RADIUS_MIN_M.toFloat()..LOCATION_RADIUS_MAX_M.toFloat(),
-                            steps = LOCATION_RADIUS_STEPS
-                        )
-                        // Inside / outside the defined location.
+                                },
+                                valueRange = LOCATION_RADIUS_MIN_M.toFloat()..LOCATION_RADIUS_MAX_M.toFloat(),
+                                steps = LOCATION_RADIUS_STEPS
+                            )
+                        } else {
+                            // Map flow: the map screen already picked the radius.
+                            Text(
+                                text = stringResource(R.string.map_radius_summary, radius),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                        // Inside / outside the defined location (both flows).
                         val event = draft.config["event"] ?: "ENTER"
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             FilterChip(

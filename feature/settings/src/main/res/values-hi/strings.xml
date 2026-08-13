@@ -3,23 +3,25 @@
     <string name="settings_title">सेटिंग्स</string>
     <string name="section_automation">ऑटोमेशन</string>
     <string name="accessibility_service">एक्सेसिबिलिटी सेवा</string>
-    <string name="accessibility_enabled">सक्षम — ऐप ट्रिगर का पता लगाया जाता है</string>
+
     <string name="accessibility_disabled">बंद — ऐप ट्रिगर नहीं चलेंगे</string>
-    <string name="monitoring_service">निगरानी सेवा</string>
-    <string name="monitoring_running">चालू — डिवाइस, बैटरी, नेटवर्क और स्थान की निगरानी</string>
-    <string name="monitoring_stopped">रुका — ट्रिगर केवल ऐप खुला होने पर चलते हैं</string>
-    <string name="state_enabled">चालू</string>
-    <string name="state_disabled">बंद</string>
+
+    
+
+    
+
     <string name="section_appearance">रूप-रंग</string>
     <string name="themes">थीम</string>
     <string name="themes_sub">डार्क मोड और एक्सेंट रंग</string>
     <string name="widgets">त्वरित सेटिंग्स</string>
     <string name="widgets_sub">आपके कार्यों के लिए त्वरित सेटिंग टाइल</string>
-    <string name="section_integration">एकीकरण</string>
-    <string name="capability_center">क्षमता केंद्र</string>
-    <string name="capability_center_sub">ROM सुविधाएँ और अनुमतियाँ</string>
+
+    
+
     <string name="execution_history">निष्पादन इतिहास</string>
     <string name="execution_history_sub">ऑटोमेशन रन देखें</string>
+    <string name="expert_section_title">विशेषज्ञ विकल्प</string>
+    <string name="expert_section_sub">निष्पादन लॉग, प्लगइन और उन्नत उपकरण</string>
     <string name="section_about">परिचय</string>
     <string name="about_nexaflow">NexaFlow के बारे में</string>
     <string name="version">संस्करण %1$s</string>
@@ -70,17 +72,17 @@
     <string name="notification_access_sub">सूचनाएँ पढ़ें और प्रबंधित करें</string>
     <string name="calendar_permission">कैलेंडर</string>
     <string name="calendar_permission_sub">कैलेंडर ट्रिगर्स के लिए अपने इवेंट पढ़ें</string>
-    <string name="execution_channel">निष्पादन चैनल</string>
-    <string name="execution_channel_sub">इस डिवाइस के लिए सर्वश्रेष्ठ प्रदाता, स्वचालित रूप से चुना गया</string>
-    <string name="channel_root">रूट</string>
-    <string name="channel_shizuku">शिज़ुकु</string>
-    <string name="channel_system_app">सिस्टम ऐप</string>
-    <string name="channel_adb">ADB</string>
-    <string name="channel_android">एंड्रॉइड API</string>
-    <string name="channel_accessibility">एक्सेसिबिलिटी</string>
-    <string name="channel_none">कोई नहीं</string>
-    <string name="channel_detecting">पता लग रहा है…</string>
-    <string name="refresh">रीफ़्रेश</string>
+
+    
+
+    
+
+    
+
+    
+
+    
+
     <string name="root_permission">रूट एक्सेस</string>
     <string name="root_permission_sub">उन्नत कमांड के लिए सुपरयूज़र एक्सेस दें</string>
     <string name="root_grant_all">सभी अनुमतियाँ स्वचालित रूप से दें</string>
@@ -141,7 +143,7 @@
     <string name="location_check_180">हर 3 घंटे</string>
     <string name="location_check_360">हर 6 घंटे</string>
     <string name="backup_save_failed">बैकअप फ़ाइल सहेजी नहीं जा सकी</string>
-    <string name="backup_saved">बैकअप सहेज गया</string>
+
     <string name="location_check_custom">कस्टम…</string>
     <string name="location_check_custom_minutes">हर %1$d मिनट</string>
     <string name="location_check_minutes">मिनट</string>
@@ -151,5 +153,5 @@
     <string name="increase">बढ़ाएँ</string>
     <string name="decrease">घटाएँ</string>
     <string name="location_check_apply">लागू करें</string>
-    <string name="section_services">सेवाएँ</string>
+
 </resources>

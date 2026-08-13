@@ -12,28 +12,49 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AirplanemodeActive
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BatteryAlert
+import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.BrightnessHigh
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ClearAll
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.DataUsage
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.DoNotDisturb
+import androidx.compose.material.icons.filled.EnergySavingsLeaf
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Extension
-import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.FlashlightOn
 import androidx.compose.material.icons.filled.Functions
+import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Link
@@ -42,26 +63,32 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Nfc
-import androidx.compose.material.icons.filled.NotificationImportant
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SignalCellularAlt
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Storefront
-import androidx.compose.material.icons.filled.Terminal
+import androidx.compose.material.icons.filled.Timelapse
+import androidx.compose.material.icons.filled.ViewCarousel
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.WifiTethering
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -87,6 +114,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -101,8 +130,12 @@ import com.nexaflow.core.pluginsdk.LocaleContract
 import com.nexaflow.core.pluginsdk.PluginConfigParser
 import com.nexaflow.core.rom.ElevatedAccessShortcuts
 import com.nexaflow.core.ui.IconBadge
+import com.nexaflow.core.ui.NexaFlowAnimatedVisibility
 import com.nexaflow.core.ui.NexaFlowCard
+import com.nexaflow.core.ui.NexaFlowFloatingActionButton
 import com.nexaflow.core.ui.NexaFlowIcons
+import com.nexaflow.core.ui.nexaFlowEffectsSpec
+import com.nexaflow.core.ui.nexaFlowSpatialSpec
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.iconVector
@@ -120,91 +153,87 @@ import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-enum class ActionCategory(val headerRes: Int) {
-    DISPLAY(R.string.category_display),
-    SOUND(R.string.category_sound),
-    CONNECTIVITY(R.string.category_connectivity),
-    MEDIA(R.string.category_media),
-    NOTIFICATIONS(R.string.category_notifications),
-    APPS(R.string.category_apps),
-    SYSTEM(R.string.category_system),
-    BATTERY(R.string.category_battery),
-    ADVANCED(R.string.category_advanced),
-    PLUGINS(R.string.category_plugins)
+enum class ActionCategory(val headerRes: Int, val color: Color) {
+    DISPLAY(R.string.category_display, Color(0xFF0B57D0)),
+    SOUND(R.string.category_sound, Color(0xFF6750A4)),
+    CONNECTIVITY(R.string.category_connectivity, Color(0xFF006A6C)),
+    MEDIA(R.string.category_media, Color(0xFFC2185B)),
+    NOTIFICATIONS(R.string.category_notifications, Color(0xFF8F4C00)),
+    APPS(R.string.category_apps, Color(0xFF006D3C)),
+    SYSTEM(R.string.category_system, Color(0xFF455A64)),
+    BATTERY(R.string.category_battery, Color(0xFF387908)),
+    PLUGINS(R.string.category_plugins, Color(0xFF625B71))
 }
 
 data class ActionOption(
     val titleRes: Int,
     val subtitleRes: Int,
     val icon: ImageVector,
-    val color: Color,
     val actionType: ActionType,
     val category: ActionCategory
-)
+) {
+    val color: Color get() = category.color
+}
 
 internal val actionOptions = listOf(
     // DISPLAY
-    ActionOption(R.string.action_brightness, R.string.action_brightness_sub, Icons.Filled.FlashOn, Color(0xFF0B57D0), ActionType.SYSTEM_BRIGHTNESS, ActionCategory.DISPLAY),
-    ActionOption(R.string.action_rotation, R.string.action_rotation_sub, Icons.Filled.ScreenRotation, Color(0xFF006A6C), ActionType.SYSTEM_SCREEN_ROTATION, ActionCategory.DISPLAY),
-    ActionOption(R.string.action_screen_timeout, R.string.action_screen_timeout_sub, Icons.Filled.ScreenRotation, Color(0xFF0B57D0), ActionType.SYSTEM_SCREEN_TIMEOUT, ActionCategory.DISPLAY),
-    ActionOption(R.string.action_stay_awake, R.string.action_stay_awake_sub, Icons.Filled.WbSunny, Color(0xFF8F4C00), ActionType.SYSTEM_STAY_AWAKE, ActionCategory.DISPLAY),
-    ActionOption(R.string.action_auto_brightness, R.string.action_auto_brightness_sub, Icons.Filled.FlashOn, Color(0xFF0B57D0), ActionType.SYSTEM_AUTO_BRIGHTNESS, ActionCategory.DISPLAY),
-    ActionOption(R.string.action_dark_mode, R.string.action_dark_mode_sub, Icons.Filled.DarkMode, Color(0xFF6750A4), ActionType.SYSTEM_DARK_MODE, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_brightness, R.string.action_brightness_sub, Icons.Filled.BrightnessHigh, ActionType.SYSTEM_BRIGHTNESS, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_auto_brightness, R.string.action_auto_brightness_sub, Icons.Filled.BrightnessAuto, ActionType.SYSTEM_AUTO_BRIGHTNESS, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_rotation, R.string.action_rotation_sub, Icons.Filled.ScreenRotation, ActionType.SYSTEM_SCREEN_ROTATION, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_screen_timeout, R.string.action_screen_timeout_sub, Icons.Filled.Timelapse, ActionType.SYSTEM_SCREEN_TIMEOUT, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_stay_awake, R.string.action_stay_awake_sub, Icons.Filled.WbSunny, ActionType.SYSTEM_STAY_AWAKE, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_dark_mode, R.string.action_dark_mode_sub, Icons.Filled.DarkMode, ActionType.SYSTEM_DARK_MODE, ActionCategory.DISPLAY),
     // SOUND
-    ActionOption(R.string.action_volume, R.string.action_volume_sub, Icons.AutoMirrored.Filled.VolumeUp, Color(0xFF6750A4), ActionType.SYSTEM_VOLUME, ActionCategory.SOUND),
-    ActionOption(R.string.action_stream_volume, R.string.action_stream_volume_sub, Icons.AutoMirrored.Filled.VolumeUp, Color(0xFF6750A4), ActionType.SYSTEM_STREAM_VOLUME, ActionCategory.SOUND),
-    ActionOption(R.string.action_set_ringtone, R.string.action_set_ringtone_sub, Icons.Filled.MusicNote, Color(0xFF8F4C00), ActionType.SYSTEM_SET_RINGTONE, ActionCategory.SOUND),
-    ActionOption(R.string.action_ringer, R.string.action_ringer_sub, Icons.AutoMirrored.Filled.VolumeUp, Color(0xFF6750A4), ActionType.SYSTEM_RINGER_MODE, ActionCategory.SOUND),
-    ActionOption(R.string.action_dnd, R.string.action_dnd_sub, Icons.Filled.DoNotDisturb, Color(0xFFBA1A1A), ActionType.SYSTEM_DND, ActionCategory.SOUND),
+    ActionOption(R.string.action_volume, R.string.action_volume_sub, Icons.AutoMirrored.Filled.VolumeUp, ActionType.SYSTEM_VOLUME, ActionCategory.SOUND),
+    ActionOption(R.string.action_stream_volume, R.string.action_stream_volume_sub, Icons.Filled.GraphicEq, ActionType.SYSTEM_STREAM_VOLUME, ActionCategory.SOUND),
+    ActionOption(R.string.action_ring_volume, R.string.action_ring_volume_sub, Icons.Filled.PhoneAndroid, ActionType.SYSTEM_RING_VOLUME, ActionCategory.SOUND),
+    ActionOption(R.string.action_set_ringtone, R.string.action_set_ringtone_sub, Icons.Filled.MusicNote, ActionType.SYSTEM_SET_RINGTONE, ActionCategory.SOUND),
+    ActionOption(R.string.action_ringer, R.string.action_ringer_sub, Icons.Filled.NotificationsActive, ActionType.SYSTEM_RINGER_MODE, ActionCategory.SOUND),
+    ActionOption(R.string.action_dnd, R.string.action_dnd_sub, Icons.Filled.DoNotDisturb, ActionType.SYSTEM_DND, ActionCategory.SOUND),
     // CONNECTIVITY
-    ActionOption(R.string.action_wifi, R.string.action_wifi_sub, Icons.Filled.Wifi, Color(0xFF0B57D0), ActionType.SYSTEM_WIFI, ActionCategory.CONNECTIVITY),
-    ActionOption(R.string.action_bluetooth, R.string.action_bluetooth_sub, Icons.Filled.Bluetooth, Color(0xFF006D3C), ActionType.SYSTEM_BLUETOOTH, ActionCategory.CONNECTIVITY),
-    ActionOption(R.string.action_mobile_data, R.string.action_mobile_data_sub, Icons.Filled.SignalCellularAlt, Color(0xFF006A6C), ActionType.SYSTEM_MOBILE_DATA, ActionCategory.CONNECTIVITY),
-    ActionOption(R.string.action_network_mode, R.string.action_network_mode_sub, Icons.Filled.SignalCellularAlt, Color(0xFF006A6C), ActionType.SYSTEM_NETWORK_MODE, ActionCategory.CONNECTIVITY),
-    ActionOption(R.string.action_hotspot, R.string.action_hotspot_sub, Icons.Filled.Wifi, Color(0xFF006D3C), ActionType.SYSTEM_HOTSPOT, ActionCategory.CONNECTIVITY),
-    ActionOption(R.string.action_nfc, R.string.action_nfc_sub, Icons.Filled.Nfc, Color(0xFF0B57D0), ActionType.SYSTEM_NFC, ActionCategory.CONNECTIVITY),
-    ActionOption(R.string.action_airplane, R.string.action_airplane_sub, Icons.Filled.AirplanemodeActive, Color(0xFF006A6C), ActionType.SYSTEM_AIRPLANE_MODE, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_wifi, R.string.action_wifi_sub, Icons.Filled.Wifi, ActionType.SYSTEM_WIFI, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_hotspot, R.string.action_hotspot_sub, Icons.Filled.WifiTethering, ActionType.SYSTEM_HOTSPOT, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_bluetooth, R.string.action_bluetooth_sub, Icons.Filled.Bluetooth, ActionType.SYSTEM_BLUETOOTH, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_mobile_data, R.string.action_mobile_data_sub, Icons.Filled.DataUsage, ActionType.SYSTEM_MOBILE_DATA, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_network_mode, R.string.action_network_mode_sub, Icons.Filled.SignalCellularAlt, ActionType.SYSTEM_NETWORK_MODE, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_nfc, R.string.action_nfc_sub, Icons.Filled.Nfc, ActionType.SYSTEM_NFC, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_airplane, R.string.action_airplane_sub, Icons.Filled.AirplanemodeActive, ActionType.SYSTEM_AIRPLANE_MODE, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_location, R.string.action_location_sub, Icons.Filled.LocationOn, ActionType.SYSTEM_LOCATION, ActionCategory.CONNECTIVITY),
     // MEDIA
-    ActionOption(R.string.action_media_play, R.string.action_media_play_sub, Icons.Filled.MusicNote, Color(0xFF6750A4), ActionType.SYSTEM_MEDIA_PLAY_PAUSE, ActionCategory.MEDIA),
-    ActionOption(R.string.action_media_next, R.string.action_media_next_sub, Icons.Filled.MusicNote, Color(0xFF6750A4), ActionType.SYSTEM_MEDIA_NEXT, ActionCategory.MEDIA),
-    ActionOption(R.string.action_media_prev, R.string.action_media_prev_sub, Icons.Filled.MusicNote, Color(0xFF6750A4), ActionType.SYSTEM_MEDIA_PREVIOUS, ActionCategory.MEDIA),
+    ActionOption(R.string.action_media_play, R.string.action_media_play_sub, Icons.Filled.PlayArrow, ActionType.SYSTEM_MEDIA_PLAY_PAUSE, ActionCategory.MEDIA),
+    ActionOption(R.string.action_media_next, R.string.action_media_next_sub, Icons.Filled.SkipNext, ActionType.SYSTEM_MEDIA_NEXT, ActionCategory.MEDIA),
+    ActionOption(R.string.action_media_prev, R.string.action_media_prev_sub, Icons.Filled.SkipPrevious, ActionType.SYSTEM_MEDIA_PREVIOUS, ActionCategory.MEDIA),
     // NOTIFICATIONS
-    ActionOption(R.string.action_notification, R.string.action_notification_sub, Icons.Filled.NotificationImportant, Color(0xFF8F4C00), ActionType.SYSTEM_SEND_NOTIFICATION, ActionCategory.NOTIFICATIONS),
-    ActionOption(R.string.action_block_notification, R.string.action_block_notification_sub, Icons.Filled.NotificationsOff, Color(0xFFBA1A1A), ActionType.SYSTEM_BLOCK_NOTIFICATION, ActionCategory.NOTIFICATIONS),
-    ActionOption(R.string.action_clear_app_notifications, R.string.action_clear_app_notifications_sub, Icons.Filled.Notifications, Color(0xFF8F4C00), ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
-    ActionOption(R.string.action_clear_notifs, R.string.action_clear_notifs_sub, Icons.Filled.Notifications, Color(0xFF8F4C00), ActionType.SYSTEM_CLEAR_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
-    ActionOption(R.string.action_expand_bar, R.string.action_expand_bar_sub, Icons.Filled.NotificationImportant, Color(0xFF006A6C), ActionType.SYSTEM_EXPAND_STATUS_BAR, ActionCategory.NOTIFICATIONS),
-    ActionOption(R.string.action_collapse_bar, R.string.action_collapse_bar_sub, Icons.Filled.NotificationImportant, Color(0xFF006A6C), ActionType.SYSTEM_COLLAPSE_STATUS_BAR, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_notification, R.string.action_notification_sub, Icons.Filled.Notifications, ActionType.SYSTEM_SEND_NOTIFICATION, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_send_sms, R.string.action_send_sms_sub, Icons.AutoMirrored.Filled.Message, ActionType.SYSTEM_SEND_SMS, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_reminder, R.string.action_reminder_sub, Icons.Filled.NotificationsActive, ActionType.SYSTEM_SEND_REMINDER, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_block_notification, R.string.action_block_notification_sub, Icons.Filled.NotificationsOff, ActionType.SYSTEM_BLOCK_NOTIFICATION, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_clear_app_notifications, R.string.action_clear_app_notifications_sub, Icons.Filled.DeleteSweep, ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_clear_notifs, R.string.action_clear_notifs_sub, Icons.Filled.ClearAll, ActionType.SYSTEM_CLEAR_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_expand_bar, R.string.action_expand_bar_sub, Icons.Filled.ExpandLess, ActionType.SYSTEM_EXPAND_STATUS_BAR, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_collapse_bar, R.string.action_collapse_bar_sub, Icons.Filled.ExpandMore, ActionType.SYSTEM_COLLAPSE_STATUS_BAR, ActionCategory.NOTIFICATIONS),
     // APPS
-    ActionOption(R.string.action_open_apps, R.string.action_open_apps_sub, Icons.Filled.Apps, Color(0xFF006D3C), ActionType.SYSTEM_OPEN_APP, ActionCategory.APPS),
-    ActionOption(R.string.action_close_app, R.string.action_close_app_sub, Icons.Filled.Close, Color(0xFFBA1A1A), ActionType.APPLICATION_CLOSE_APP, ActionCategory.APPS),
-    ActionOption(R.string.action_open_app_settings, R.string.action_open_app_settings_sub, Icons.Filled.Settings, Color(0xFF0B57D0), ActionType.APPLICATION_OPEN_APP_SETTINGS, ActionCategory.APPS),
+    ActionOption(R.string.action_open_apps, R.string.action_open_apps_sub, Icons.Filled.Apps, ActionType.SYSTEM_OPEN_APP, ActionCategory.APPS),
+    ActionOption(R.string.action_open_recents, R.string.action_open_recents_sub, Icons.Filled.ViewCarousel, ActionType.SYSTEM_OPEN_RECENTS, ActionCategory.APPS),
+    ActionOption(R.string.action_close_app, R.string.action_close_app_sub, Icons.Filled.Close, ActionType.APPLICATION_CLOSE_APP, ActionCategory.APPS),
+    ActionOption(R.string.action_open_app_settings, R.string.action_open_app_settings_sub, Icons.Filled.Settings, ActionType.APPLICATION_OPEN_APP_SETTINGS, ActionCategory.APPS),
+    ActionOption(R.string.action_play_updates, R.string.action_play_updates_sub, Icons.Filled.Storefront, ActionType.SYSTEM_OPEN_PLAY_UPDATES, ActionCategory.APPS),
     // SYSTEM
-    ActionOption(R.string.action_flashlight, R.string.action_flashlight_sub, Icons.Filled.FlashOn, Color(0xFF8F4C00), ActionType.SYSTEM_FLASHLIGHT, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_open_url, R.string.action_open_url_sub, Icons.Filled.Link, Color(0xFF0B57D0), ActionType.SYSTEM_OPEN_URL, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_http_request, R.string.action_http_request_sub, Icons.Filled.Public, Color(0xFF006A6C), ActionType.SYSTEM_HTTP_REQUEST, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_power_saver, R.string.action_power_saver_sub, Icons.Filled.BatteryAlert, Color(0xFF006D3C), ActionType.SYSTEM_POWER_SAVER, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_animations, R.string.action_animations_sub, Icons.Filled.Palette, Color(0xFF6750A4), ActionType.SYSTEM_ANIMATIONS, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_lock_screen, R.string.action_lock_screen_sub, Icons.Filled.Lock, Color(0xFFBA1A1A), ActionType.SYSTEM_LOCK_SCREEN, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_set_alarm, R.string.action_set_alarm_sub, Icons.Filled.Schedule, Color(0xFF006A6C), ActionType.SYSTEM_SET_ALARM, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_open_recents, R.string.action_open_recents_sub, Icons.Filled.Apps, Color(0xFF0B57D0), ActionType.SYSTEM_OPEN_RECENTS, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_go_home, R.string.action_go_home_sub, Icons.Filled.Home, Color(0xFF006D3C), ActionType.SYSTEM_GO_HOME, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_ring_volume, R.string.action_ring_volume_sub, Icons.Filled.PhoneAndroid, Color(0xFF6750A4), ActionType.SYSTEM_RING_VOLUME, ActionCategory.SOUND),
-    ActionOption(R.string.action_location, R.string.action_location_sub, Icons.Filled.LocationOn, Color(0xFF006D3C), ActionType.SYSTEM_LOCATION, ActionCategory.CONNECTIVITY),
-    ActionOption(R.string.action_play_updates, R.string.action_play_updates_sub, Icons.Filled.Storefront, Color(0xFF006A6C), ActionType.SYSTEM_OPEN_PLAY_UPDATES, ActionCategory.APPS),
-    ActionOption(R.string.action_galaxy_store, R.string.action_galaxy_store_sub, Icons.Filled.Storefront, Color(0xFF0B57D0), ActionType.SYSTEM_OPEN_GALAXY_STORE, ActionCategory.APPS),
-    ActionOption(R.string.action_send_sms, R.string.action_send_sms_sub, Icons.Filled.NotificationImportant, Color(0xFF006D3C), ActionType.SYSTEM_SEND_SMS, ActionCategory.NOTIFICATIONS),
-    ActionOption(R.string.action_reminder, R.string.action_reminder_sub, Icons.Filled.NotificationsActive, Color(0xFF8F4C00), ActionType.SYSTEM_SEND_REMINDER, ActionCategory.NOTIFICATIONS),
-    ActionOption(R.string.action_open_settings, R.string.action_open_settings_sub, Icons.Filled.Settings, Color(0xFF0B57D0), ActionType.SYSTEM_OPEN_SETTINGS, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_wait, R.string.action_wait_sub, Icons.Filled.Schedule, Color(0xFF6750A4), ActionType.SYSTEM_WAIT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_flashlight, R.string.action_flashlight_sub, Icons.Filled.FlashlightOn, ActionType.SYSTEM_FLASHLIGHT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_url, R.string.action_open_url_sub, Icons.Filled.Link, ActionType.SYSTEM_OPEN_URL, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_http_request, R.string.action_http_request_sub, Icons.Filled.Public, ActionType.SYSTEM_HTTP_REQUEST, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_power_saver, R.string.action_power_saver_sub, Icons.Filled.EnergySavingsLeaf, ActionType.SYSTEM_POWER_SAVER, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_animations, R.string.action_animations_sub, Icons.Filled.Palette, ActionType.SYSTEM_ANIMATIONS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_lock_screen, R.string.action_lock_screen_sub, Icons.Filled.Lock, ActionType.SYSTEM_LOCK_SCREEN, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_set_alarm, R.string.action_set_alarm_sub, Icons.Filled.Schedule, ActionType.SYSTEM_SET_ALARM, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_wait, R.string.action_wait_sub, Icons.Filled.HourglassEmpty, ActionType.SYSTEM_WAIT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_go_home, R.string.action_go_home_sub, Icons.Filled.Home, ActionType.SYSTEM_GO_HOME, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_settings, R.string.action_open_settings_sub, Icons.Filled.Settings, ActionType.SYSTEM_OPEN_SETTINGS, ActionCategory.SYSTEM),
     // BATTERY
-    ActionOption(R.string.action_battery_alert, R.string.action_battery_alert_sub, Icons.Filled.BatteryAlert, Color(0xFFBA1A1A), ActionType.BATTERY_ALERTS, ActionCategory.BATTERY),
-    ActionOption(R.string.action_charging_alert, R.string.action_charging_alert_sub, Icons.Filled.BatteryAlert, Color(0xFF006D3C), ActionType.BATTERY_CHARGING_NOTIFICATIONS, ActionCategory.BATTERY),
-    // ADVANCED
-    ActionOption(R.string.action_shizuku, R.string.action_shizuku_sub, Icons.Filled.Terminal, Color(0xFF0B57D0), ActionType.ADVANCED_SHIZUKU, ActionCategory.ADVANCED),
-    ActionOption(R.string.action_root, R.string.action_root_sub, Icons.Filled.Terminal, Color(0xFFBA1A1A), ActionType.ADVANCED_ROOT, ActionCategory.ADVANCED),
+    ActionOption(R.string.action_battery_alert, R.string.action_battery_alert_sub, Icons.Filled.BatteryAlert, ActionType.BATTERY_ALERTS, ActionCategory.BATTERY),
+    ActionOption(R.string.action_charging_alert, R.string.action_charging_alert_sub, Icons.Filled.BatteryChargingFull, ActionType.BATTERY_CHARGING_NOTIFICATIONS, ActionCategory.BATTERY),
     // PLUGINS
-    ActionOption(R.string.action_plugin, R.string.action_plugin_sub, Icons.Filled.Extension, Color(0xFF6750A4), ActionType.PLUGIN_FIRE, ActionCategory.PLUGINS)
+    ActionOption(R.string.action_plugin, R.string.action_plugin_sub, Icons.Filled.Extension, ActionType.PLUGIN_FIRE, ActionCategory.PLUGINS)
 )
 
 internal val actionCategories: List<ActionCategory> = ActionCategory.entries.toList()
@@ -219,58 +248,42 @@ private fun TriggerSelectList(
     onSelect: (TriggerType) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        triggerTypeOptions.forEach { type ->
-            Surface(
-                shape = MaterialTheme.shapes.small,
-                color = Color.Transparent,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onSelect(type) }
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+        triggerCategories.forEach { category ->
+            val types = triggerTypeOptions.filter { triggerCategoryOf[it] == category }
+            if (types.isEmpty()) return@forEach
+            ItemHeader(text = stringResource(category.headerRes))
+            types.forEach { type ->
+                Surface(
+                    shape = MaterialTheme.shapes.small,
+                    color = Color.Transparent,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelect(type) }
                 ) {
-                    IconBadge(
-                        icon = type.icon(),
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = stringResource(type.labelRes()),
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Normal,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        IconBadge(
+                            icon = type.icon(),
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = stringResource(type.labelRes()),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Normal,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-
-/** Bottom save bar for the single-page task editor. */
-@Composable
-private fun BuilderSaveBar(
-    onSave: () -> Unit
-) {
-    Surface(shadowElevation = 8.dp) {
-        Button(
-            onClick = onSave,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-        ) {
-            Icon(imageVector = Icons.Filled.Check, contentDescription = null)
-            Text(
-                text = stringResource(R.string.save_automation),
-                modifier = Modifier.padding(start = 6.dp)
-            )
-        }
-    }
-}
 
 /** One selected action, in order, with reorder buttons, config editor and permission hint. */
 @Composable
@@ -395,10 +408,15 @@ fun AutomationBuilderScreen(
     // P2-11: the editable draft survives rotation AND process death via
     // rememberSaveable (custom savers serialize the immutable drafts to Bundle).
     var name by rememberSaveable { mutableStateOf("") }
+    // Sequential wizard: 0 = triggers (with constraints inside), 1 = actions (with end behavior inside).
+    var step by rememberSaveable { mutableStateOf(0) }
     val triggers = rememberSaveable(saver = TriggerDraftListSaver) { mutableStateListOf<TriggerDraft>() }
     val constraints = rememberSaveable(saver = ConstraintDraftListSaver) { mutableStateListOf<ConstraintDraft>() }
     var showConstraintPicker by remember { mutableStateOf(false) }
     var selectedIconIndex by rememberSaveable { mutableStateOf(0) }
+    // Accent color chosen in the icon picker (ARGB Long, persisted in the
+    // automation's iconColor column). Defaults to Google blue.
+    var selectedIconColor by rememberSaveable { mutableStateOf(0xFF0B57D0L) }
     var appPickerTarget by remember { mutableStateOf<String?>(null) }
     var bluetoothPickerTarget by remember { mutableStateOf<Int?>(null) }
     var calendarPickerTarget by remember { mutableStateOf<Int?>(null) }
@@ -492,6 +510,7 @@ fun AutomationBuilderScreen(
         if (loaded.id != automationId) return@LaunchedEffect
         name = loaded.name
         selectedIconIndex = NexaFlowIcons.all.indexOfFirst { it.first == loaded.icon }.coerceAtLeast(0)
+        selectedIconColor = loaded.iconColor
         triggers.clear()
         loaded.triggers.forEach { triggers.add(TriggerDraft(it.type, it.config)) }
         constraints.clear()
@@ -611,7 +630,8 @@ fun AutomationBuilderScreen(
                     triggers[index] = triggers[index].copy(
                         config = triggers[index].config +
                             ("lat" to fix.latitude.toString()) +
-                            ("lng" to fix.longitude.toString())
+                            ("lng" to fix.longitude.toString()) +
+                            ("source" to "current")
                     )
                 } else {
                     scope.launch { snackbarHostState.showSnackbar(stringLocationFixFailed) }
@@ -639,6 +659,10 @@ fun AutomationBuilderScreen(
             selectedIconIndex = index
         }
         stableSavedStateHandle?.getLiveData<Int>("selected_icon")?.observeForever(observer)
+        val colorObserver = Observer<Long> { color ->
+            selectedIconColor = color
+        }
+        stableSavedStateHandle?.getLiveData<Long>("selected_color")?.observeForever(colorObserver)
         val locationObserver = Observer<String> { value ->
             val coords = value.split(',')
             val lat = coords.getOrNull(0)?.toDoubleOrNull()
@@ -650,7 +674,8 @@ fun AutomationBuilderScreen(
                     config = triggers[index].config +
                         ("lat" to lat.toString()) +
                         ("lng" to lng.toString()) +
-                        (if (radius != null) mapOf("radius" to radius.toString()) else emptyMap())
+                        (if (radius != null) mapOf("radius" to radius.toString()) else emptyMap()) +
+                        ("source" to "map")
                 )
                 stableSavedStateHandle?.set("map_picker_target", null)
             }
@@ -658,6 +683,7 @@ fun AutomationBuilderScreen(
         stableSavedStateHandle?.getLiveData<String>("picked_location")?.observeForever(locationObserver)
         onDispose {
             stableSavedStateHandle?.getLiveData<Int>("selected_icon")?.removeObserver(observer)
+            stableSavedStateHandle?.getLiveData<Long>("selected_color")?.removeObserver(colorObserver)
             stableSavedStateHandle?.getLiveData<String>("picked_location")?.removeObserver(locationObserver)
         }
     }
@@ -679,6 +705,9 @@ fun AutomationBuilderScreen(
                 stableSavedStateHandle?.get<Int>("selected_icon")?.let {
                     if (it in NexaFlowIcons.all.indices) selectedIconIndex = it
                 }
+                stableSavedStateHandle?.get<Long>("selected_color")?.let {
+                    selectedIconColor = it
+                }
                 // Same for a location picked on the embedded map.
                 stableSavedStateHandle?.get<String>("picked_location")?.let { value ->
                     val coords = value.split(',')
@@ -691,7 +720,8 @@ fun AutomationBuilderScreen(
                             config = triggers[index].config +
                                 ("lat" to lat.toString()) +
                                 ("lng" to lng.toString()) +
-                                (if (radius != null) mapOf("radius" to radius.toString()) else emptyMap())
+                                (if (radius != null) mapOf("radius" to radius.toString()) else emptyMap()) +
+                                ("source" to "map")
                         )
                         stableSavedStateHandle?.set("map_picker_target", null)
                     }
@@ -780,6 +810,9 @@ fun AutomationBuilderScreen(
         stableSavedStateHandle?.get<Int>("selected_icon")?.let {
             if (it in NexaFlowIcons.all.indices) selectedIconIndex = it
         }
+        stableSavedStateHandle?.get<Long>("selected_color")?.let {
+            selectedIconColor = it
+        }
         val builtTriggers = triggers.map { draft ->
             Trigger(draft.type, draft.config)
         }
@@ -795,6 +828,7 @@ fun AutomationBuilderScreen(
         viewModel.saveAutomation(
             name = name,
             icon = NexaFlowIcons.all[selectedIconIndex].first,
+            iconColor = selectedIconColor,
             triggers = builtTriggers,
             actions = actions,
             constraints = builtConstraints,
@@ -839,7 +873,10 @@ fun AutomationBuilderScreen(
         topBar = {
             NexaFlowTopBar(
                 title = if (isEditing) stringResource(R.string.edit_task_title) else stringResource(R.string.builder_title),
-                onBack = { navController.popBackStack() },
+                onBack = {
+                    // Wizard: back on step 2 returns to step 1, then exits.
+                    if (step == 1) step = 0 else navController.popBackStack()
+                },
                 actions = {
                     IconButton(onClick = { navController.navigate("variables") }) {
                         Icon(imageVector = Icons.Filled.Functions, contentDescription = stringResource(R.string.variables_title))
@@ -853,8 +890,21 @@ fun AutomationBuilderScreen(
                 }
             )
         },
-        bottomBar = {
-            BuilderSaveBar(onSave = { save() })
+        floatingActionButton = {
+            // Step 1: continue to actions once a trigger is chosen.
+            // Step 2: create the task once at least one action is selected.
+            when {
+                step == 0 && triggers.isNotEmpty() -> NexaFlowFloatingActionButton(
+                    onClick = { step = 1 },
+                    icon = Icons.AutoMirrored.Filled.ArrowForward,
+                    label = stringResource(R.string.permission_continue)
+                )
+                step == 1 && selectedActions.isNotEmpty() -> NexaFlowFloatingActionButton(
+                    onClick = { save() },
+                    icon = Icons.Filled.Check,
+                    label = stringResource(R.string.create_task)
+                )
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
@@ -866,6 +916,35 @@ fun AutomationBuilderScreen(
                 .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // ── Wizard progress: numbered step bar (1/2) ─────────────
+            // Sits above the name card so the user always knows which step
+            // of the wizard they are on. The bar fills with the M3 spatial
+            // spring as they move between triggers and actions.
+            val stepProgress by animateFloatAsState(
+                targetValue = (step + 1) / 2f,
+                animationSpec = nexaFlowSpatialSpec()
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "${step + 1} / 2",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                LinearProgressIndicator(
+                    progress = { stepProgress },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp)),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                )
+            }
+
             // ── Name + icon (small card: icon beside the name box) ────
             NexaFlowCard {
                 Row(
@@ -875,9 +954,14 @@ fun AutomationBuilderScreen(
                 ) {
                     IconBadge(
                         icon = iconVector(NexaFlowIcons.all[selectedIconIndex].first),
-                        containerColor = MaterialTheme.colorScheme.primary,
+                        containerColor = Color(selectedIconColor),
                         size = 48,
-                        modifier = Modifier.clickable { navController.navigate("icon_picker") }
+                        modifier = Modifier.clickable {
+                            // Preseed the picker with the current color so the
+                            // palette opens on the task's own accent.
+                            stableSavedStateHandle?.set("selected_color", selectedIconColor)
+                            navController.navigate("icon_picker")
+                        }
                     )
                     OutlinedTextField(
                         value = name,
@@ -889,22 +973,54 @@ fun AutomationBuilderScreen(
                 }
             }
 
-            // ── Task card: triggers + constraints + actions + exit ──
-            // One merged card, always expanded — it never collapses.
-            NexaFlowCard {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(
-                        text = stringResource(R.string.task_card_title),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    // ── WHEN (triggers) ──────────────────────────────
-                    SectionHeader(text = stringResource(R.string.section_when))
+            // ── Sequential wizard: step indicator ───────────────────
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                SelectChip(
+                    selected = step == 0,
+                    onClick = { step = 0 },
+                    label = stringResource(R.string.step_triggers)
+                )
+                SelectChip(
+                    selected = step == 1,
+                    onClick = { step = 1 },
+                    label = stringResource(R.string.step_actions)
+                )
+            }
+
+            // The transitionSpec lambda is not composable, so the specs are
+            // read here in the composable body (transitionSpec captures them).
+            val stepSpatial = nexaFlowSpatialSpec<IntOffset>()
+            val stepEffects = nexaFlowEffectsSpec<Float>()
+            AnimatedContent(
+                targetState = step,
+                transitionSpec = {
+                    // Google 2026 directional step transition: content slides
+                    // with the M3 Expressive spatial spring while fading.
+                    val direction = if (targetState > initialState) 1 else -1
+                    (slideInHorizontally(
+                        animationSpec = stepSpatial,
+                        initialOffsetX = { it / 3 * direction }
+                    ) + fadeIn(animationSpec = stepEffects)) togetherWith
+                        (slideOutHorizontally(
+                            animationSpec = stepSpatial,
+                            targetOffsetX = { -it / 3 * direction }
+                        ) + fadeOut(animationSpec = stepEffects))
+                },
+                label = "wizardStep"
+            ) { currentStep ->
+                if (currentStep == 0) {
+                // ── Step 1: trigger + its constraints ───────────────
+                NexaFlowCard {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        SectionHeader(text = stringResource(R.string.section_when))
                     // Single-select list of triggers, visible only while no
                     // trigger is chosen. Picking one folds the list away and
                     // leaves just its expanded editor (which keeps its own
                     // type chips for later changes).
-                    if (triggers.isEmpty()) {
+                    NexaFlowAnimatedVisibility(visible = triggers.isEmpty()) {
                         TriggerSelectList(
                             onSelect = { type ->
                                 triggers.clear()
@@ -960,12 +1076,16 @@ fun AutomationBuilderScreen(
                     )
                 }
             }
-
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    // ── THEN (actions) ──────────────────────────────
-                    SectionHeader(
-                        text = stringResource(R.string.section_actions),
-                trailing = {
+                    }
+                }
+            } else {
+                // ── Step 2: actions + end behavior ───────────────────
+                NexaFlowCard {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        // ── THEN (actions) ──────────────────────────
+                        SectionHeader(
+                            text = stringResource(R.string.section_actions),
+                            trailing = {
                     IconButton(onClick = { showActionPicker = true }) {
                         Icon(
                             imageVector = Icons.Filled.Add,
@@ -1118,7 +1238,9 @@ fun AutomationBuilderScreen(
                             singleLine = true
                         )
                     }
+                    }
                 }
+            }
             }
         }
     }

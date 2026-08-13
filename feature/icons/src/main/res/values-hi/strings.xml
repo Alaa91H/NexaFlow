@@ -13,4 +13,5 @@
     <string name="category_battery">बैटरी</string>
     <string name="category_time">समय</string>
     <string name="category_location">स्थान</string>
+    <string name="icon_color">रंग</string>
 </resources>

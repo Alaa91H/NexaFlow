@@ -13,4 +13,5 @@
     <string name="category_battery">Batería</string>
     <string name="category_time">Hora</string>
     <string name="category_location">Ubicación</string>
+    <string name="icon_color">Color</string>
 </resources>

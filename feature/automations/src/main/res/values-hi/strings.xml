@@ -152,7 +152,7 @@
     <string name="occurrence_last">आख़िरी</string>
     <string name="monthly_weekday_summary">%1$s %2$s</string>
     <string name="end_summary">अंत में: %1$s</string>
-    <string name="end_leave">जैसा है वैसा छोड़ें</string>
+
     <string name="end_turn_on">चालू करें</string>
     <string name="end_turn_off">बंद करें</string>
     <string name="end_revert">मूल स्थिति बहाल करें</string>

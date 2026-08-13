@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -64,6 +65,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -82,6 +84,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavController
 import com.nexaflow.core.datastore.LocationPreferences
 import com.nexaflow.core.compat.ChannelTier
+import com.nexaflow.core.ui.NexaFlowAnimatedVisibility
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.CheckableRow
 import com.nexaflow.core.ui.NexaFlowTopBar
@@ -382,25 +385,6 @@ fun SettingsScreen(navController: NavController) {
                 }
             }
             item {
-                SectionHeader(text = stringResource(R.string.section_integration))
-            }
-            item {
-                NexaFlowCard {
-                    SettingRow(
-                        icon = Icons.Filled.PlayArrow,
-                        title = stringResource(R.string.execution_history),
-                        subtitle = stringResource(R.string.execution_history_sub),
-                        onClick = { navController.navigate("history") }
-                    )
-                    SettingRow(
-                        icon = Icons.Filled.Extension,
-                        title = stringResource(R.string.plugins),
-                        subtitle = stringResource(R.string.plugins_sub),
-                        onClick = { navController.navigate("plugins") }
-                    )
-                }
-            }
-            item {
                 SectionHeader(text = stringResource(R.string.section_about))
             }
             item {
@@ -411,6 +395,53 @@ fun SettingsScreen(navController: NavController) {
                         subtitle = stringResource(R.string.version, appVersion(context)),
                         onClick = { showAbout = true }
                     )
+                }
+            }
+            item {
+                // ── Hidden expert section ───────────────────────────
+                // Advanced tools that don't matter to the average user stay
+                // folded away at the bottom of Settings: execution log,
+                // plugins. Tapping the header row expands them.
+                var expertExpanded by rememberSaveable { mutableStateOf(false) }
+                NexaFlowCard {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        SettingRow(
+                            icon = Icons.Filled.Build,
+                            title = stringResource(R.string.expert_section_title),
+                            subtitle = stringResource(R.string.expert_section_sub),
+                            trailing = {
+                                Icon(
+                                    imageVector = if (expertExpanded) {
+                                        Icons.Filled.KeyboardArrowUp
+                                    } else {
+                                        Icons.Filled.KeyboardArrowDown
+                                    },
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            onClick = { expertExpanded = !expertExpanded }
+                        )
+                        NexaFlowAnimatedVisibility(visible = expertExpanded) {
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                HorizontalDivider(
+                                    color = MaterialTheme.colorScheme.outlineVariant
+                                )
+                                SettingRow(
+                                    icon = Icons.Filled.PlayArrow,
+                                    title = stringResource(R.string.execution_history),
+                                    subtitle = stringResource(R.string.execution_history_sub),
+                                    onClick = { navController.navigate("history") }
+                                )
+                                SettingRow(
+                                    icon = Icons.Filled.Extension,
+                                    title = stringResource(R.string.plugins),
+                                    subtitle = stringResource(R.string.plugins_sub),
+                                    onClick = { navController.navigate("plugins") }
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

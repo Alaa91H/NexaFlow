@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.nexaflow.core.ui.IconBadge
+import com.nexaflow.core.ui.nexaFlowDialogEnter
 
 /** Icon, title and explanation shown right before granting a permission. */
 data class PermissionExplainInfo(
@@ -119,7 +120,9 @@ fun PermissionExplainDialog(
         Surface(
             shape = MaterialTheme.shapes.extraLarge,
             color = MaterialTheme.colorScheme.surface,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .nexaFlowDialogEnter()
         ) {
             Column(
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 28.dp),

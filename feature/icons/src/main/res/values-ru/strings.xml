@@ -13,4 +13,5 @@
     <string name="category_battery">Батарея</string>
     <string name="category_time">Время</string>
     <string name="category_location">Местоположение</string>
+    <string name="icon_color">Цвет</string>
 </resources>

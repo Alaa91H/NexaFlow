@@ -32,14 +32,14 @@
     <string name="evolution_install_done">"Modül kuruldu. NexaFlow'u sistem uygulaması olarak etkinleştirmek için yeniden başlatın."</string>
     <string name="evolution_install_failed">Kurulum başarısız</string>
     <string name="evolution_custom_settings">Özel ROM ayarları</string>
-    <string name="evolution_custom_settings_sub">Bu cihazdaki Evolution X / LineageOS Evolver anahtarlarına göz atın</string>
+
     <string name="evolution_no_custom_settings">Özel ROM ayarı bulunamadı — listelemek için root veya Shizuku ile çalıştırın</string>
     <string name="evolution_setting_value">Değer: %1$s</string>
-    <string name="evolution_key_required">Anahtar</string>
+
     <string name="evolution_setting_write">Yaz</string>
     <string name="evolution_edit_setting">Ayarı düzenle</string>
     <string name="cancel">İptal</string>
-    <string name="save">Kaydet</string>
+
     <string name="ok">Tamam</string>
     <string name="evolution_already_system_app">Zaten bir sistem uygulaması</string>
     <string name="evolution_not_elevated">root veya Shizuku gerekli</string>

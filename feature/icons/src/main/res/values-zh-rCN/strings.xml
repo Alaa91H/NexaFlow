@@ -13,4 +13,5 @@
     <string name="category_battery">电池</string>
     <string name="category_time">时间</string>
     <string name="category_location">位置</string>
+    <string name="icon_color">颜色</string>
 </resources>

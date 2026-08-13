@@ -164,6 +164,182 @@ import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiTethering
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.filled.Work
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.AccountTree
+import androidx.compose.material.icons.filled.AcUnit
+import androidx.compose.material.icons.filled.AddLocation
+import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.Air
+import androidx.compose.material.icons.filled.AirportShuttle
+import androidx.compose.material.icons.filled.Architecture
+import androidx.compose.material.icons.filled.Article
+import androidx.compose.material.icons.filled.AspectRatio
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Battery0Bar
+import androidx.compose.material.icons.filled.Battery1Bar
+import androidx.compose.material.icons.filled.BatteryStd
+import androidx.compose.material.icons.filled.BatteryUnknown
+import androidx.compose.material.icons.filled.BlurOn
+import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Cake
+import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.CallMade
+import androidx.compose.material.icons.filled.CallReceived
+import androidx.compose.material.icons.filled.CameraFront
+import androidx.compose.material.icons.filled.CameraRear
+import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.ChildCare
+import androidx.compose.material.icons.filled.ChildFriendly
+import androidx.compose.material.icons.filled.Collections
+import androidx.compose.material.icons.filled.Commute
+import androidx.compose.material.icons.filled.ConfirmationNumber
+import androidx.compose.material.icons.filled.Construction
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.ContentCut
+import androidx.compose.material.icons.filled.CurrencyExchange
+import androidx.compose.material.icons.filled.DepartureBoard
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.DesktopWindows
+import androidx.compose.material.icons.filled.Directions
+import androidx.compose.material.icons.filled.DirectionsBoat
+import androidx.compose.material.icons.filled.DirectionsBus
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.DirectionsRun
+import androidx.compose.material.icons.filled.DirectionsWalk
+import androidx.compose.material.icons.filled.Dns
+import androidx.compose.material.icons.filled.DonutLarge
+import androidx.compose.material.icons.filled.Eco
+import androidx.compose.material.icons.filled.ElectricBolt
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Engineering
+import androidx.compose.material.icons.filled.EventNote
+import androidx.compose.material.icons.filled.Exposure
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.FamilyRestroom
+import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.FastRewind
+import androidx.compose.material.icons.filled.Fastfood
+import androidx.compose.material.icons.filled.Filter
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.FmdGood
+import androidx.compose.material.icons.filled.Forest
+import androidx.compose.material.icons.filled.Forum
+import androidx.compose.material.icons.filled.Fullscreen
+import androidx.compose.material.icons.filled.FullscreenExit
+import androidx.compose.material.icons.filled.Gradient
+import androidx.compose.material.icons.filled.Grass
+import androidx.compose.material.icons.filled.Headset
+import androidx.compose.material.icons.filled.HeadsetMic
+import androidx.compose.material.icons.filled.Hearing
+import androidx.compose.material.icons.filled.HourglassBottom
+import androidx.compose.material.icons.filled.HourglassTop
+import androidx.compose.material.icons.filled.Icecream
+import androidx.compose.material.icons.filled.Inbox
+import androidx.compose.material.icons.filled.Label
+import androidx.compose.material.icons.filled.Lan
+import androidx.compose.material.icons.filled.Landscape
+import androidx.compose.material.icons.filled.Laptop
+import androidx.compose.material.icons.filled.Launch
+import androidx.compose.material.icons.filled.LibraryBooks
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.LiveTv
+import androidx.compose.material.icons.filled.LocalBar
+import androidx.compose.material.icons.filled.LocalCafe
+import androidx.compose.material.icons.filled.LocalFlorist
+import androidx.compose.material.icons.filled.LocalGasStation
+import androidx.compose.material.icons.filled.LocalGroceryStore
+import androidx.compose.material.icons.filled.LocalHospital
+import androidx.compose.material.icons.filled.LocalHotel
+import androidx.compose.material.icons.filled.LocalLibrary
+import androidx.compose.material.icons.filled.LocalMall
+import androidx.compose.material.icons.filled.LocalOffer
+import androidx.compose.material.icons.filled.LocalParking
+import androidx.compose.material.icons.filled.LocalPizza
+import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.LocalTaxi
+import androidx.compose.material.icons.filled.LocationCity
+import androidx.compose.material.icons.filled.Medication
+import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.MoreTime
+import androidx.compose.material.icons.filled.Motorcycle
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.NearMe
+import androidx.compose.material.icons.filled.NightsStay
+import androidx.compose.material.icons.filled.Notes
+import androidx.compose.material.icons.filled.OfflineBolt
+import androidx.compose.material.icons.filled.OndemandVideo
+import androidx.compose.material.icons.filled.OpenInFull
+import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.filled.Panorama
+import androidx.compose.material.icons.filled.Park
+import androidx.compose.material.icons.filled.Payments
+import androidx.compose.material.icons.filled.Pending
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.PictureInPicture
+import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.PinDrop
+import androidx.compose.material.icons.filled.PlaylistAdd
+import androidx.compose.material.icons.filled.PlaylistPlay
+import androidx.compose.material.icons.filled.Podcasts
+import androidx.compose.material.icons.filled.Print
+import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Redeem
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.Replay
+import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.RestaurantMenu
+import androidx.compose.material.icons.filled.Router
+import androidx.compose.material.icons.filled.Savings
+import androidx.compose.material.icons.filled.Scanner
+import androidx.compose.material.icons.filled.Sell
+import androidx.compose.material.icons.filled.ShoppingBag
+import androidx.compose.material.icons.filled.ShoppingBasket
+import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.Slideshow
+import androidx.compose.material.icons.filled.SolarPower
+import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.filled.SportsBasketball
+import androidx.compose.material.icons.filled.SportsSoccer
+import androidx.compose.material.icons.filled.SportsTennis
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.Subway
+import androidx.compose.material.icons.filled.SurroundSound
+import androidx.compose.material.icons.filled.SwitchVideo
+import androidx.compose.material.icons.filled.TabletMac
+import androidx.compose.material.icons.filled.Tag
+import androidx.compose.material.icons.filled.TaskAlt
+import androidx.compose.material.icons.filled.Terrain
+import androidx.compose.material.icons.filled.Theaters
+import androidx.compose.material.icons.filled.Train
+import androidx.compose.material.icons.filled.Tram
+import androidx.compose.material.icons.filled.TransferWithinAStation
+import androidx.compose.material.icons.filled.TrendingDown
+import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.Umbrella
+import androidx.compose.material.icons.filled.Update
+import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.filled.VideoCall
+import androidx.compose.material.icons.filled.VideoFile
+import androidx.compose.material.icons.filled.VideoLibrary
+import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material.icons.filled.Voicemail
+import androidx.compose.material.icons.filled.Watch
+import androidx.compose.material.icons.filled.WaterDrop
+import androidx.compose.material.icons.filled.Waves
+import androidx.compose.material.icons.filled.WbCloudy
 import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -236,6 +412,35 @@ object NexaFlowIcons {
         NexaFlowIconEntry("folder", Icons.Filled.Folder, CATEGORY_GENERAL, "directory files"),
         NexaFlowIconEntry("bookmark", Icons.Filled.Bookmark, CATEGORY_GENERAL, "save favorite tag"),
         NexaFlowIconEntry("feedback", Icons.Filled.Feedback, CATEGORY_GENERAL, "comment review rate"),
+        NexaFlowIconEntry("eco", Icons.Filled.Eco, CATEGORY_GENERAL, "nature green leaf"),
+        NexaFlowIconEntry("forest", Icons.Filled.Forest, CATEGORY_GENERAL, "nature trees park"),
+        NexaFlowIconEntry("park", Icons.Filled.Park, CATEGORY_GENERAL, "nature garden outdoor"),
+        NexaFlowIconEntry("water_drop", Icons.Filled.WaterDrop, CATEGORY_GENERAL, "liquid drop rain"),
+        NexaFlowIconEntry("air", Icons.Filled.Air, CATEGORY_GENERAL, "wind breeze fresh"),
+        NexaFlowIconEntry("ac_unit", Icons.Filled.AcUnit, CATEGORY_GENERAL, "snowflake cold cooling"),
+        NexaFlowIconEntry("cloudy", Icons.Filled.WbCloudy, CATEGORY_GENERAL, "weather cloud overcast"),
+        NexaFlowIconEntry("nights_stay", Icons.Filled.NightsStay, CATEGORY_GENERAL, "night sleep stars"),
+        NexaFlowIconEntry("umbrella", Icons.Filled.Umbrella, CATEGORY_GENERAL, "rain weather protection"),
+        NexaFlowIconEntry("landscape", Icons.Filled.Landscape, CATEGORY_GENERAL, "mountains nature scenery"),
+        NexaFlowIconEntry("terrain", Icons.Filled.Terrain, CATEGORY_GENERAL, "mountains hills nature"),
+        NexaFlowIconEntry("waves", Icons.Filled.Waves, CATEGORY_GENERAL, "ocean sea water"),
+        NexaFlowIconEntry("grass", Icons.Filled.Grass, CATEGORY_GENERAL, "lawn nature field"),
+        NexaFlowIconEntry("fitness", Icons.Filled.FitnessCenter, CATEGORY_GENERAL, "gym workout exercise"),
+        NexaFlowIconEntry("basketball", Icons.Filled.SportsBasketball, CATEGORY_GENERAL, "sport ball game"),
+        NexaFlowIconEntry("soccer", Icons.Filled.SportsSoccer, CATEGORY_GENERAL, "football sport game"),
+        NexaFlowIconEntry("tennis", Icons.Filled.SportsTennis, CATEGORY_GENERAL, "sport racquet game"),
+        NexaFlowIconEntry("run", Icons.Filled.DirectionsRun, CATEGORY_GENERAL, "running exercise sport"),
+        NexaFlowIconEntry("trophy", Icons.Filled.EmojiEvents, CATEGORY_GENERAL, "award winner cup"),
+        NexaFlowIconEntry("child_care", Icons.Filled.ChildCare, CATEGORY_GENERAL, "baby kid face"),
+        NexaFlowIconEntry("child_friendly", Icons.Filled.ChildFriendly, CATEGORY_GENERAL, "baby stroller kids"),
+        NexaFlowIconEntry("family", Icons.Filled.FamilyRestroom, CATEGORY_GENERAL, "people family restroom"),
+        NexaFlowIconEntry("medication", Icons.Filled.Medication, CATEGORY_GENERAL, "medicine pill health"),
+        NexaFlowIconEntry("chat", Icons.Filled.Chat, CATEGORY_GENERAL, "bubble conversation talk"),
+        NexaFlowIconEntry("forum", Icons.Filled.Forum, CATEGORY_GENERAL, "discussion community talk"),
+        NexaFlowIconEntry("voicemail", Icons.Filled.Voicemail, CATEGORY_GENERAL, "message audio record"),
+        NexaFlowIconEntry("inbox", Icons.Filled.Inbox, CATEGORY_GENERAL, "mail tray receive"),
+        NexaFlowIconEntry("call_made", Icons.Filled.CallMade, CATEGORY_GENERAL, "phone arrow outgoing"),
+        NexaFlowIconEntry("call_received", Icons.Filled.CallReceived, CATEGORY_GENERAL, "phone arrow incoming"),
 
         // ── Connectivity ───────────────────────────────────────────
         NexaFlowIconEntry("wifi", Icons.Filled.Wifi, CATEGORY_CONNECTIVITY, "internet network wireless"),
@@ -259,6 +464,30 @@ object NexaFlowIcons {
         NexaFlowIconEntry("phone_android", Icons.Filled.PhoneAndroid, CATEGORY_CONNECTIVITY, "smartphone device mobile"),
         NexaFlowIconEntry("devices", Icons.Filled.Devices, CATEGORY_CONNECTIVITY, "computer tablet phone"),
         NexaFlowIconEntry("android", Icons.Filled.Android, CATEGORY_CONNECTIVITY, "robot phone device"),
+        NexaFlowIconEntry("router", Icons.Filled.Router, CATEGORY_CONNECTIVITY, "network device wifi"),
+        NexaFlowIconEntry("lan", Icons.Filled.Lan, CATEGORY_CONNECTIVITY, "network ethernet cable"),
+        NexaFlowIconEntry("storage", Icons.Filled.Storage, CATEGORY_CONNECTIVITY, "disk drive data"),
+        NexaFlowIconEntry("print", Icons.Filled.Print, CATEGORY_CONNECTIVITY, "printer document paper"),
+        NexaFlowIconEntry("scanner", Icons.Filled.Scanner, CATEGORY_CONNECTIVITY, "scan document device"),
+        NexaFlowIconEntry("desktop", Icons.Filled.DesktopWindows, CATEGORY_CONNECTIVITY, "computer monitor pc"),
+        NexaFlowIconEntry("laptop", Icons.Filled.Laptop, CATEGORY_CONNECTIVITY, "computer notebook"),
+        NexaFlowIconEntry("tablet", Icons.Filled.TabletMac, CATEGORY_CONNECTIVITY, "ipad device screen"),
+        NexaFlowIconEntry("watch", Icons.Filled.Watch, CATEGORY_CONNECTIVITY, "wearable smartwatch time"),
+        NexaFlowIconEntry("headset_mic", Icons.Filled.HeadsetMic, CATEGORY_CONNECTIVITY, "headset microphone call"),
+        NexaFlowIconEntry("hearing", Icons.Filled.Hearing, CATEGORY_CONNECTIVITY, "listen ear hearing aid"),
+        NexaFlowIconEntry("dns", Icons.Filled.Dns, CATEGORY_CONNECTIVITY, "server network domain"),
+        NexaFlowIconEntry("commute", Icons.Filled.Commute, CATEGORY_CONNECTIVITY, "transport trip travel"),
+        NexaFlowIconEntry("subway", Icons.Filled.Subway, CATEGORY_CONNECTIVITY, "metro train underground"),
+        NexaFlowIconEntry("train", Icons.Filled.Train, CATEGORY_CONNECTIVITY, "railway travel"),
+        NexaFlowIconEntry("tram", Icons.Filled.Tram, CATEGORY_CONNECTIVITY, "streetcar transit"),
+        NexaFlowIconEntry("bus", Icons.Filled.DirectionsBus, CATEGORY_CONNECTIVITY, "transport vehicle route"),
+        NexaFlowIconEntry("car", Icons.Filled.DirectionsCar, CATEGORY_CONNECTIVITY, "vehicle automobile drive"),
+        NexaFlowIconEntry("boat", Icons.Filled.DirectionsBoat, CATEGORY_CONNECTIVITY, "ship ferry water"),
+        NexaFlowIconEntry("walk", Icons.Filled.DirectionsWalk, CATEGORY_CONNECTIVITY, "walking pedestrian route"),
+        NexaFlowIconEntry("departure", Icons.Filled.DepartureBoard, CATEGORY_CONNECTIVITY, "schedule transit depart"),
+        NexaFlowIconEntry("taxi", Icons.Filled.LocalTaxi, CATEGORY_CONNECTIVITY, "cab ride transport"),
+        NexaFlowIconEntry("airport_shuttle", Icons.Filled.AirportShuttle, CATEGORY_CONNECTIVITY, "van airport transfer"),
+        NexaFlowIconEntry("motorcycle", Icons.Filled.Motorcycle, CATEGORY_CONNECTIVITY, "bike motorbike ride"),
 
         // ── Sound ──────────────────────────────────────────────────
         NexaFlowIconEntry("volume", Icons.AutoMirrored.Filled.VolumeUp, CATEGORY_SOUND, "loud speaker audio"),
@@ -277,6 +506,22 @@ object NexaFlowIcons {
         NexaFlowIconEntry("message", Icons.AutoMirrored.Filled.Message, CATEGORY_SOUND, "chat bubble sms"),
         NexaFlowIconEntry("sms", Icons.Filled.Sms, CATEGORY_SOUND, "chat text message"),
         NexaFlowIconEntry("send", Icons.AutoMirrored.Filled.Send, CATEGORY_SOUND, "deliver dispatch message"),
+        NexaFlowIconEntry("headset", Icons.Filled.Headset, CATEGORY_SOUND, "headphones listen audio"),
+        NexaFlowIconEntry("podcasts", Icons.Filled.Podcasts, CATEGORY_SOUND, "radio show listen"),
+        NexaFlowIconEntry("playlist_play", Icons.Filled.PlaylistPlay, CATEGORY_SOUND, "list queue play"),
+        NexaFlowIconEntry("playlist_add", Icons.Filled.PlaylistAdd, CATEGORY_SOUND, "list queue add"),
+        NexaFlowIconEntry("replay", Icons.Filled.Replay, CATEGORY_SOUND, "repeat rewind again"),
+        NexaFlowIconEntry("fast_forward", Icons.Filled.FastForward, CATEGORY_SOUND, "speed skip ahead"),
+        NexaFlowIconEntry("fast_rewind", Icons.Filled.FastRewind, CATEGORY_SOUND, "rewind back skip"),
+        NexaFlowIconEntry("skip_next", Icons.Filled.SkipNext, CATEGORY_SOUND, "next track media"),
+        NexaFlowIconEntry("skip_previous", Icons.Filled.SkipPrevious, CATEGORY_SOUND, "previous track media"),
+        NexaFlowIconEntry("shuffle", Icons.Filled.Shuffle, CATEGORY_SOUND, "random mix order"),
+        NexaFlowIconEntry("repeat", Icons.Filled.Repeat, CATEGORY_SOUND, "loop again cycle"),
+        NexaFlowIconEntry("stop", Icons.Filled.Stop, CATEGORY_SOUND, "square halt media"),
+        NexaFlowIconEntry("videocam", Icons.Filled.Videocam, CATEGORY_SOUND, "video camera record"),
+        NexaFlowIconEntry("video_call", Icons.Filled.VideoCall, CATEGORY_SOUND, "video camera call"),
+        NexaFlowIconEntry("live_tv", Icons.Filled.LiveTv, CATEGORY_SOUND, "television broadcast live"),
+        NexaFlowIconEntry("surround_sound", Icons.Filled.SurroundSound, CATEGORY_SOUND, "audio speaker channels"),
 
         // ── Display ────────────────────────────────────────────────
         NexaFlowIconEntry("sunny", Icons.Filled.WbSunny, CATEGORY_DISPLAY, "light brightness day"),
@@ -287,7 +532,6 @@ object NexaFlowIcons {
         NexaFlowIconEntry("brightness_auto", Icons.Filled.BrightnessAuto, CATEGORY_DISPLAY, "adaptive automatic light"),
         NexaFlowIconEntry("brightness_high", Icons.Filled.BrightnessHigh, CATEGORY_DISPLAY, "screen light bright"),
         NexaFlowIconEntry("brightness_low", Icons.Filled.BrightnessLow, CATEGORY_DISPLAY, "screen light dim"),
-        NexaFlowIconEntry("brightness_medium", Icons.Filled.BrightnessMedium, CATEGORY_DISPLAY, "screen light"),
         NexaFlowIconEntry("contrast", Icons.Filled.Contrast, CATEGORY_DISPLAY, "adjust color invert"),
         NexaFlowIconEntry("screen_rotation", Icons.Filled.ScreenRotation, CATEGORY_DISPLAY, "rotate orientation landscape"),
         NexaFlowIconEntry("palette", Icons.Filled.Palette, CATEGORY_DISPLAY, "color theme art"),
@@ -299,6 +543,13 @@ object NexaFlowIcons {
         NexaFlowIconEntry("toggle_on", Icons.Filled.ToggleOn, CATEGORY_DISPLAY, "switch on enable"),
         NexaFlowIconEntry("arrow_up", Icons.Filled.ArrowUpward, CATEGORY_DISPLAY, "up increase"),
         NexaFlowIconEntry("arrow_down", Icons.Filled.ArrowDownward, CATEGORY_DISPLAY, "down decrease"),
+        NexaFlowIconEntry("fullscreen", Icons.Filled.Fullscreen, CATEGORY_DISPLAY, "expand maximize screen"),
+        NexaFlowIconEntry("fullscreen_exit", Icons.Filled.FullscreenExit, CATEGORY_DISPLAY, "shrink minimize screen"),
+        NexaFlowIconEntry("picture_in_picture", Icons.Filled.PictureInPicture, CATEGORY_DISPLAY, "pip overlay screen"),
+        NexaFlowIconEntry("aspect_ratio", Icons.Filled.AspectRatio, CATEGORY_DISPLAY, "screen ratio proportion"),
+        NexaFlowIconEntry("blur", Icons.Filled.BlurOn, CATEGORY_DISPLAY, "blur effect soften"),
+        NexaFlowIconEntry("exposure", Icons.Filled.Exposure, CATEGORY_DISPLAY, "photo light adjust"),
+        NexaFlowIconEntry("gradient", Icons.Filled.Gradient, CATEGORY_DISPLAY, "color fade blend"),
 
         // ── Media ──────────────────────────────────────────────────
         NexaFlowIconEntry("play", Icons.Filled.PlayArrow, CATEGORY_MEDIA, "start play media"),
@@ -306,10 +557,23 @@ object NexaFlowIcons {
         NexaFlowIconEntry("photo", Icons.Filled.Photo, CATEGORY_MEDIA, "image picture camera"),
         NexaFlowIconEntry("camera", Icons.Filled.CameraAlt, CATEGORY_MEDIA, "photo lens shoot"),
         NexaFlowIconEntry("image", Icons.Filled.Image, CATEGORY_MEDIA, "photo picture gallery"),
-        NexaFlowIconEntry("movie", Icons.Filled.Tv, CATEGORY_MEDIA, "television video screen"),
+        NexaFlowIconEntry("movie", Icons.Filled.Movie, CATEGORY_MEDIA, "film cinema movie"),
         NexaFlowIconEntry("tv", Icons.Filled.Tv, CATEGORY_MEDIA, "television video screen"),
         NexaFlowIconEntry("gamepad", Icons.Filled.Gamepad, CATEGORY_MEDIA, "gaming controller console"),
         NexaFlowIconEntry("memory", Icons.Filled.Memory, CATEGORY_MEDIA, "chip cpu device"),
+        NexaFlowIconEntry("video_library", Icons.Filled.VideoLibrary, CATEGORY_MEDIA, "videos collection library"),
+        NexaFlowIconEntry("collections", Icons.Filled.Collections, CATEGORY_MEDIA, "photos gallery album"),
+        NexaFlowIconEntry("photo_library", Icons.Filled.PhotoLibrary, CATEGORY_MEDIA, "pictures gallery album"),
+        NexaFlowIconEntry("add_photo", Icons.Filled.AddPhotoAlternate, CATEGORY_MEDIA, "camera add picture"),
+        NexaFlowIconEntry("panorama", Icons.Filled.Panorama, CATEGORY_MEDIA, "wide photo landscape"),
+        NexaFlowIconEntry("filter", Icons.Filled.Filter, CATEGORY_MEDIA, "photo effect edit"),
+        NexaFlowIconEntry("camera_rear", Icons.Filled.CameraRear, CATEGORY_MEDIA, "camera back photo"),
+        NexaFlowIconEntry("camera_front", Icons.Filled.CameraFront, CATEGORY_MEDIA, "camera selfie photo"),
+        NexaFlowIconEntry("slideshow", Icons.Filled.Slideshow, CATEGORY_MEDIA, "play presentation slides"),
+        NexaFlowIconEntry("ondemand_video", Icons.Filled.OndemandVideo, CATEGORY_MEDIA, "video streaming play"),
+        NexaFlowIconEntry("video_file", Icons.Filled.VideoFile, CATEGORY_MEDIA, "video clip file"),
+        NexaFlowIconEntry("theaters", Icons.Filled.Theaters, CATEGORY_MEDIA, "cinema movies theater"),
+        NexaFlowIconEntry("switch_video", Icons.Filled.SwitchVideo, CATEGORY_MEDIA, "switch camera video"),
 
         // ── System ─────────────────────────────────────────────────
         NexaFlowIconEntry("home", Icons.Filled.Home, CATEGORY_SYSTEM, "house launcher start"),
@@ -347,9 +611,63 @@ object NexaFlowIcons {
         NexaFlowIconEntry("expand_less", Icons.Filled.ExpandLess, CATEGORY_SYSTEM, "chevron close collapse"),
         NexaFlowIconEntry("keyboard_up", Icons.Filled.KeyboardArrowUp, CATEGORY_SYSTEM, "up arrow navigate"),
         NexaFlowIconEntry("keyboard_down", Icons.Filled.KeyboardArrowDown, CATEGORY_SYSTEM, "down arrow navigate"),
+        NexaFlowIconEntry("engineering", Icons.Filled.Engineering, CATEGORY_SYSTEM, "engineer worker hardhat"),
+        NexaFlowIconEntry("architecture", Icons.Filled.Architecture, CATEGORY_SYSTEM, "building design plan"),
+        NexaFlowIconEntry("construction", Icons.Filled.Construction, CATEGORY_SYSTEM, "building crane work"),
+        NexaFlowIconEntry("calculate", Icons.Filled.Calculate, CATEGORY_SYSTEM, "calculator math numbers"),
+        NexaFlowIconEntry("notes", Icons.Filled.Notes, CATEGORY_SYSTEM, "document writing memo"),
+        NexaFlowIconEntry("description", Icons.Filled.Description, CATEGORY_SYSTEM, "document file text"),
+        NexaFlowIconEntry("article", Icons.Filled.Article, CATEGORY_SYSTEM, "document page write"),
+        NexaFlowIconEntry("menu_book", Icons.Filled.MenuBook, CATEGORY_SYSTEM, "book reading guide"),
+        NexaFlowIconEntry("library_books", Icons.Filled.LibraryBooks, CATEGORY_SYSTEM, "books library reading"),
+        NexaFlowIconEntry("book", Icons.Filled.Book, CATEGORY_SYSTEM, "reading novel textbook"),
+        NexaFlowIconEntry("event_note", Icons.Filled.EventNote, CATEGORY_SYSTEM, "calendar note plan"),
+        NexaFlowIconEntry("checklist", Icons.Filled.Checklist, CATEGORY_SYSTEM, "list tasks done"),
+        NexaFlowIconEntry("task_alt", Icons.Filled.TaskAlt, CATEGORY_SYSTEM, "task done complete"),
+        NexaFlowIconEntry("account_tree", Icons.Filled.AccountTree, CATEGORY_SYSTEM, "tree hierarchy flow"),
+        NexaFlowIconEntry("category", Icons.Filled.Category, CATEGORY_SYSTEM, "folders group classify"),
+        NexaFlowIconEntry("list", Icons.Filled.List, CATEGORY_SYSTEM, "list lines menu"),
+        NexaFlowIconEntry("view_list", Icons.Filled.ViewList, CATEGORY_SYSTEM, "list view rows"),
+        NexaFlowIconEntry("copy", Icons.Filled.ContentCopy, CATEGORY_SYSTEM, "duplicate copy files"),
+        NexaFlowIconEntry("cut", Icons.Filled.ContentCut, CATEGORY_SYSTEM, "scissors clip cut"),
+        NexaFlowIconEntry("launch", Icons.Filled.Launch, CATEGORY_SYSTEM, "open external new tab"),
+        NexaFlowIconEntry("open_in_new", Icons.Filled.OpenInNew, CATEGORY_SYSTEM, "open external window"),
+        NexaFlowIconEntry("open_in_full", Icons.Filled.OpenInFull, CATEGORY_SYSTEM, "expand fullscreen open"),
+        NexaFlowIconEntry("sort", Icons.Filled.Sort, CATEGORY_SYSTEM, "order arrange sort"),
+        NexaFlowIconEntry("filter_list", Icons.Filled.FilterList, CATEGORY_SYSTEM, "filter funnel list"),
+        NexaFlowIconEntry("label", Icons.Filled.Label, CATEGORY_SYSTEM, "tag category label"),
+        NexaFlowIconEntry("sell", Icons.Filled.Sell, CATEGORY_SYSTEM, "price tag sale"),
+        NexaFlowIconEntry("tag", Icons.Filled.Tag, CATEGORY_SYSTEM, "label tag marker"),
+        NexaFlowIconEntry("local_offer", Icons.Filled.LocalOffer, CATEGORY_SYSTEM, "offer discount tag"),
+        NexaFlowIconEntry("redeem", Icons.Filled.Redeem, CATEGORY_SYSTEM, "gift present reward"),
+        NexaFlowIconEntry("gift_card", Icons.Filled.CardGiftcard, CATEGORY_SYSTEM, "gift card present"),
+        NexaFlowIconEntry("ticket", Icons.Filled.ConfirmationNumber, CATEGORY_SYSTEM, "ticket number event"),
+        NexaFlowIconEntry("payments", Icons.Filled.Payments, CATEGORY_SYSTEM, "payment money cash"),
+        NexaFlowIconEntry("receipt", Icons.Filled.Receipt, CATEGORY_SYSTEM, "receipt bill invoice"),
+        NexaFlowIconEntry("receipt_long", Icons.Filled.ReceiptLong, CATEGORY_SYSTEM, "receipt invoice list"),
+        NexaFlowIconEntry("account_balance", Icons.Filled.AccountBalance, CATEGORY_SYSTEM, "bank building money"),
+        NexaFlowIconEntry("wallet", Icons.Filled.AccountBalanceWallet, CATEGORY_SYSTEM, "wallet card money"),
+        NexaFlowIconEntry("money", Icons.Filled.AttachMoney, CATEGORY_SYSTEM, "cash dollar currency"),
+        NexaFlowIconEntry("currency_exchange", Icons.Filled.CurrencyExchange, CATEGORY_SYSTEM, "money convert swap"),
+        NexaFlowIconEntry("trending_up", Icons.Filled.TrendingUp, CATEGORY_SYSTEM, "chart grow increase"),
+        NexaFlowIconEntry("trending_down", Icons.Filled.TrendingDown, CATEGORY_SYSTEM, "chart drop decrease"),
+        NexaFlowIconEntry("bar_chart", Icons.Filled.BarChart, CATEGORY_SYSTEM, "chart bars analytics"),
+        NexaFlowIconEntry("pie_chart", Icons.Filled.PieChart, CATEGORY_SYSTEM, "chart pie analytics"),
+        NexaFlowIconEntry("donut", Icons.Filled.DonutLarge, CATEGORY_SYSTEM, "chart donut analytics"),
+        NexaFlowIconEntry("savings", Icons.Filled.Savings, CATEGORY_SYSTEM, "piggy bank save money"),
+        NexaFlowIconEntry("shopping_bag", Icons.Filled.ShoppingBag, CATEGORY_SYSTEM, "shopping bag store"),
+        NexaFlowIconEntry("shopping_basket", Icons.Filled.ShoppingBasket, CATEGORY_SYSTEM, "basket shopping market"),
+        NexaFlowIconEntry("local_mall", Icons.Filled.LocalMall, CATEGORY_SYSTEM, "mall shopping store"),
 
         // ── Battery ────────────────────────────────────────────────
         NexaFlowIconEntry("battery", Icons.Filled.BatteryChargingFull, CATEGORY_BATTERY, "charge power energy"),
+        NexaFlowIconEntry("battery_std", Icons.Filled.BatteryStd, CATEGORY_BATTERY, "power battery level"),
+        NexaFlowIconEntry("battery_unknown", Icons.Filled.BatteryUnknown, CATEGORY_BATTERY, "power level unknown"),
+        NexaFlowIconEntry("battery_0", Icons.Filled.Battery0Bar, CATEGORY_BATTERY, "power empty level"),
+        NexaFlowIconEntry("battery_1", Icons.Filled.Battery1Bar, CATEGORY_BATTERY, "power low level"),
+        NexaFlowIconEntry("offline_bolt", Icons.Filled.OfflineBolt, CATEGORY_BATTERY, "quick charge fast power"),
+        NexaFlowIconEntry("electric_bolt", Icons.Filled.ElectricBolt, CATEGORY_BATTERY, "electric zap energy"),
+        NexaFlowIconEntry("solar", Icons.Filled.SolarPower, CATEGORY_BATTERY, "solar sun power energy"),
         NexaFlowIconEntry("battery_full", Icons.Filled.BatteryFull, CATEGORY_BATTERY, "power energy 100"),
         NexaFlowIconEntry("battery_alert", Icons.Filled.BatteryAlert, CATEGORY_BATTERY, "low charge warning"),
         NexaFlowIconEntry("battery_saver", Icons.Filled.BatterySaver, CATEGORY_BATTERY, "power saving low"),
@@ -365,13 +683,45 @@ object NexaFlowIcons {
         NexaFlowIconEntry("query_builder", Icons.Filled.QueryBuilder, CATEGORY_TIME, "clock time schedule"),
         NexaFlowIconEntry("watch_later", Icons.Filled.WatchLater, CATEGORY_TIME, "clock remind later"),
         NexaFlowIconEntry("hourglass", Icons.Filled.HourglassEmpty, CATEGORY_TIME, "wait loading timer"),
+        NexaFlowIconEntry("calendar_month", Icons.Filled.CalendarMonth, CATEGORY_TIME, "calendar month date"),
+        NexaFlowIconEntry("calendar_today", Icons.Filled.CalendarToday, CATEGORY_TIME, "calendar today date"),
+        NexaFlowIconEntry("update", Icons.Filled.Update, CATEGORY_TIME, "update refresh sync"),
+        NexaFlowIconEntry("more_time", Icons.Filled.MoreTime, CATEGORY_TIME, "time add more clock"),
+        NexaFlowIconEntry("pending", Icons.Filled.Pending, CATEGORY_TIME, "waiting pending clock"),
+        NexaFlowIconEntry("hourglass_top", Icons.Filled.HourglassTop, CATEGORY_TIME, "timer top loading"),
+        NexaFlowIconEntry("hourglass_bottom", Icons.Filled.HourglassBottom, CATEGORY_TIME, "timer bottom loading"),
 
         // ── Location ───────────────────────────────────────────────
         NexaFlowIconEntry("location", Icons.Filled.LocationOn, CATEGORY_LOCATION, "gps pin place"),
         NexaFlowIconEntry("place", Icons.Filled.Place, CATEGORY_LOCATION, "pin marker location"),
         NexaFlowIconEntry("map", Icons.Filled.Map, CATEGORY_LOCATION, "navigation route directions"),
         NexaFlowIconEntry("gps", Icons.Filled.GpsFixed, CATEGORY_LOCATION, "location tracking position"),
-        NexaFlowIconEntry("my_location", Icons.Filled.MyLocation, CATEGORY_LOCATION, "gps position crosshair")
+        NexaFlowIconEntry("my_location", Icons.Filled.MyLocation, CATEGORY_LOCATION, "gps position crosshair"),
+        NexaFlowIconEntry("directions", Icons.Filled.Directions, CATEGORY_LOCATION, "route navigation sign"),
+        NexaFlowIconEntry("navigation", Icons.Filled.Navigation, CATEGORY_LOCATION, "arrow route direction"),
+        NexaFlowIconEntry("explore", Icons.Filled.Explore, CATEGORY_LOCATION, "compass explore discover"),
+        NexaFlowIconEntry("near_me", Icons.Filled.NearMe, CATEGORY_LOCATION, "arrow nearby direction"),
+        NexaFlowIconEntry("add_location", Icons.Filled.AddLocation, CATEGORY_LOCATION, "pin add new location"),
+        NexaFlowIconEntry("pin_drop", Icons.Filled.PinDrop, CATEGORY_LOCATION, "pin drop marker"),
+        NexaFlowIconEntry("fmd_good", Icons.Filled.FmdGood, CATEGORY_LOCATION, "pin location place"),
+        NexaFlowIconEntry("location_city", Icons.Filled.LocationCity, CATEGORY_LOCATION, "city building location"),
+        NexaFlowIconEntry("parking", Icons.Filled.LocalParking, CATEGORY_LOCATION, "parking p sign"),
+        NexaFlowIconEntry("gas_station", Icons.Filled.LocalGasStation, CATEGORY_LOCATION, "fuel pump station"),
+        NexaFlowIconEntry("hotel", Icons.Filled.LocalHotel, CATEGORY_LOCATION, "hotel bed stay"),
+        NexaFlowIconEntry("library", Icons.Filled.LocalLibrary, CATEGORY_LOCATION, "library books study"),
+        NexaFlowIconEntry("hospital", Icons.Filled.LocalHospital, CATEGORY_LOCATION, "hospital medical cross"),
+        NexaFlowIconEntry("cafe", Icons.Filled.LocalCafe, CATEGORY_LOCATION, "coffee cafe drink"),
+        NexaFlowIconEntry("bar", Icons.Filled.LocalBar, CATEGORY_LOCATION, "bar drink cocktail"),
+        NexaFlowIconEntry("restaurant", Icons.Filled.Restaurant, CATEGORY_LOCATION, "food dining fork"),
+        NexaFlowIconEntry("restaurant_menu", Icons.Filled.RestaurantMenu, CATEGORY_LOCATION, "menu food dining"),
+        NexaFlowIconEntry("fastfood", Icons.Filled.Fastfood, CATEGORY_LOCATION, "burger fast food"),
+        NexaFlowIconEntry("cake", Icons.Filled.Cake, CATEGORY_LOCATION, "cake birthday dessert"),
+        NexaFlowIconEntry("icecream", Icons.Filled.Icecream, CATEGORY_LOCATION, "ice cream dessert"),
+        NexaFlowIconEntry("pizza", Icons.Filled.LocalPizza, CATEGORY_LOCATION, "pizza food"),
+        NexaFlowIconEntry("shipping", Icons.Filled.LocalShipping, CATEGORY_LOCATION, "delivery truck shipping"),
+        NexaFlowIconEntry("grocery", Icons.Filled.LocalGroceryStore, CATEGORY_LOCATION, "grocery store cart"),
+        NexaFlowIconEntry("florist", Icons.Filled.LocalFlorist, CATEGORY_LOCATION, "flowers florist shop"),
+        NexaFlowIconEntry("station", Icons.Filled.TransferWithinAStation, CATEGORY_LOCATION, "station transfer transit")
     )
 
     /** Backward-compatible flat name→icon list (persisted icon names unchanged). */
@@ -406,5 +756,12 @@ object NexaFlowIcons {
 }
 
 fun iconVector(name: String): ImageVector {
-    return NexaFlowIcons.all.find { it.first == name }?.second ?: Icons.Filled.Bolt
+    // Legacy names removed from the catalog in the dedupe pass: keep them
+    // resolving so already-saved tasks never fall back to the default bolt.
+    val legacy = mapOf(
+        "brightness_medium" to Icons.Filled.BrightnessMedium
+    )
+    return NexaFlowIcons.all.find { it.first == name }?.second
+        ?: legacy[name]
+        ?: Icons.Filled.Bolt
 }

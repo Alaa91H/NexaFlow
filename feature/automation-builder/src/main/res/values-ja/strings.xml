@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="builder_title">新しいタスク</string>
-    <string name="task_card_title">タスク</string>
+
     <string name="save">保存</string>
-    <string name="name">名前</string>
+
     <string name="name_hint">例：朝のタスク</string>
-    <string name="icon">アイコン</string>
-    <string name="tap_to_choose_icon">タップしてアイコンを選択</string>
+
+    
     <string name="section_when">いつ（トリガー）</string>
     <string name="trigger_n">トリガー %1$d</string>
     <string name="remove_trigger">トリガーを削除</string>
@@ -16,7 +16,7 @@
     <string name="trigger_type_device">端末</string>
     <string name="trigger_type_connectivity">接続</string>
     <string name="trigger_type_network_mode">携帯ネットワーク</string>
-    <string name="trigger_type_network_mode_sub">デバイスの携帯ネットワークが選択した世代と一致したときに発火（実際の5G検出）</string>
+
     <string name="refresh">更新</string>
     <string name="trigger_type_location">位置情報</string>
     <string name="trigger_time">トリガー時刻</string>
@@ -26,9 +26,9 @@
     <string name="enable">有効にする</string>
     <string name="network">ネットワーク</string>
     <string name="state">状態</string>
-    <string name="latitude">緯度</string>
-    <string name="longitude">経度</string>
-    <string name="radius_meters">半径（メートル）</string>
+
+    
+
     <string name="event">イベント</string>
     <string name="location_hint">位置情報の許可と現在地の特定が必要です</string>
     <string name="grant">許可</string>
@@ -70,13 +70,16 @@
     <string name="special_bluetooth_title">Bluetooth</string>
     <string name="special_bluetooth_body">ペアリング済みデバイスを検出し、接続時にタスクを実行するためにBluetoothの有効化が必要です。</string>
 
-
     <string name="battery_above">バッテリーがしきい値を超えている</string>
     <string name="battery_above_sub">バッテリーがレベルを超えている場合のみ実行</string>
     <string name="minimum_battery">最小バッテリー: %1$d%%</string>
 
     <string name="section_actions">次に（アクション）</string>
-    <string name="save_automation">タスクを保存</string>
+
+    <string name="step_triggers">トリガー</string>
+    <string name="step_actions">アクション</string>
+    <string name="create_task">タスクを作成</string>
+
     <string name="ok">OK</string>
     <string name="cancel">キャンセル</string>
     <string name="action_brightness">明るさ</string>
@@ -142,7 +145,7 @@
     <string name="flashlight_hint">ライトにはカメラアクセスが必要です</string>
     <string name="shizuku_hint">Shizukuアプリと許可が必要です</string>
     <string name="root_hint">Root（suバイナリ）が必要です</string>
-    <string name="info">情報</string>
+
     <string name="choose_app">アプリを選択</string>
     <string name="choose_apps">アプリを選択</string>
     <string name="search_apps">アプリを検索…</string>
@@ -157,7 +160,7 @@
     <string name="category_apps">アプリ</string>
     <string name="category_system">システム</string>
     <string name="category_battery">バッテリー</string>
-    <string name="category_advanced">詳細</string>
+
     <string name="action_screen_timeout">画面タイムアウト</string>
     <string name="action_screen_timeout_sub">画面が点灯する時間を設定</string>
     <string name="action_stay_awake">画面を常時オン</string>
@@ -298,7 +301,7 @@
     <string name="action_stream_volume">チャンネル音量</string>
     <string name="action_stream_volume_sub">任意のサウンドチャンネルを正確に設定</string>
     <string name="section_exit_behavior">タスク終了時</string>
-    <string name="exit_behavior_hint">条件が満たされなくなったらどうしますか?</string>
+
     <string name="exit_auto_reply_label">自動返信（SMS）</string>
     <string name="exit_nothing_sub">何も起こりません — タスクは単に終了します</string>
     <string name="add_exit_action">終了アクションを追加</string>
@@ -313,7 +316,7 @@
     <string name="search_actions">アクションを検索…</string>
     <string name="add_count">追加 (%1$d)</string>
     <string name="add_action">アクションを追加</string>
-    <string name="pick_trigger_type">トリガーを追加</string>
+
     <string name="next_needs_action">先にアクションを1つ以上追加してください</string>
     <string name="no_matching_actions">一致するアクションがありません</string>
     <string name="repeat_monthly">毎月</string>
@@ -373,8 +376,8 @@
     <string name="end_turn_off">オフ</string>
     <string name="end_revert">元に戻す</string>
     <string name="end_set_value">値を設定</string>
-    <string name="cooldown_label">実行間隔: %1$d 秒</string>
-    <string name="cooldown_hint">このタスクの2回の実行間の最小間隔</string>
+
+    
     <string name="elevated_status_granted">許可済み</string>
     <string name="elevated_status_available">タップして許可</string>
     <string name="elevated_status_unavailable">利用不可</string>
@@ -477,11 +480,12 @@
     <string name="use_current_location">現在地を使用</string>
     <string name="location_coordinates">場所: %1$s, %2$s</string>
     <string name="location_not_set">位置がまだ設定されていません</string>
+    <string name="map_radius_summary">地図で設定された半径: %1$d m</string>
     <string name="radius_meters_format">半径: %1$d m</string>
     <string name="location_inside">場所の内側</string>
     <string name="location_outside">場所の外側</string>
     <string name="location_fix_failed">現在地を取得できませんでした。位置情報を有効にして再試行してください。</string>
-    <string name="map_unavailable">地図アプリが見つかりません</string>
+
     <string name="confirm_location">位置を確定</string>
 
     <string name="charging_yes">充電中</string>
@@ -514,4 +518,4 @@
     <string name="map_pick_hint">マップをタップして地点を配置 — マーカーをドラッグして微調整</string>
     <string name="map_no_key">Googleマップがまだ設定されていません。gradle.propertiesにNEXAFLOW_MAPS_API_KEYを追加して再ビルドしてください。</string>
     <string name="map_search_not_found">場所が見つかりません</string>
-</resources>
+    <string name="trigger_cat_schedule">スケジュール</string>    <string name="trigger_cat_device">デバイス</string>    <string name="trigger_cat_connectivity">接続</string>    <string name="trigger_cat_location">場所</string>    <string name="trigger_cat_apps">アプリ</string>    <string name="trigger_cat_communication">通信</string></resources>

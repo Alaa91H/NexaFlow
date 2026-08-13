@@ -152,7 +152,7 @@
     <string name="occurrence_last">最后一周</string>
     <string name="monthly_weekday_summary">%1$s %2$s</string>
     <string name="end_summary">结束时：%1$s</string>
-    <string name="end_leave">保持原样</string>
+
     <string name="end_turn_on">开启</string>
     <string name="end_turn_off">关闭</string>
     <string name="end_revert">恢复原始状态</string>

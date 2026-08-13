@@ -3,23 +3,25 @@
     <string name="settings_title">Paramètres</string>
     <string name="section_automation">Automatisation</string>
     <string name="accessibility_service">Service d\u2019accessibilité</string>
-    <string name="accessibility_enabled">Activé — les déclencheurs d\u2019application sont détectés</string>
+
     <string name="accessibility_disabled">Désactivé — les déclencheurs d\u2019application ne se déclencheront pas</string>
-    <string name="monitoring_service">Service de surveillance</string>
-    <string name="monitoring_running">En cours — surveille appareil, batterie, réseau et position</string>
-    <string name="monitoring_stopped">Arrêté — les déclencheurs ne se déclenchent que lorsque l\u2019application est ouverte</string>
-    <string name="state_enabled">Activé</string>
-    <string name="state_disabled">Désactivé</string>
+
+    
+
+    
+
     <string name="section_appearance">Apparence</string>
     <string name="themes">Thèmes</string>
     <string name="themes_sub">Mode sombre et couleur d\u2019accent</string>
     <string name="widgets">Réglages rapides</string>
     <string name="widgets_sub">Tuiles de réglages rapides pour vos tâches</string>
-    <string name="section_integration">Intégration</string>
-    <string name="capability_center">Centre de capacités</string>
-    <string name="capability_center_sub">Fonctions ROM et autorisations</string>
+
+    
+
     <string name="execution_history">Historique d\u2019exécution</string>
     <string name="execution_history_sub">Voir les exécutions des automatisations</string>
+    <string name="expert_section_title">Options expertes</string>
+    <string name="expert_section_sub">Journal d\'exécution, modules et outils avancés</string>
     <string name="section_about">À propos</string>
     <string name="about_nexaflow">À propos de NexaFlow</string>
     <string name="version">Version %1$s</string>
@@ -70,17 +72,17 @@
     <string name="notification_access_sub">Lire et gérer les notifications</string>
     <string name="calendar_permission">Calendrier</string>
     <string name="calendar_permission_sub">Lire vos événements pour les déclencheurs de calendrier</string>
-    <string name="execution_channel">Canal d\'exécution</string>
-    <string name="execution_channel_sub">Meilleur fournisseur pour cet appareil, sélectionné automatiquement</string>
-    <string name="channel_root">Root</string>
-    <string name="channel_shizuku">Shizuku</string>
-    <string name="channel_system_app">Application système</string>
-    <string name="channel_adb">ADB</string>
-    <string name="channel_android">API Android</string>
-    <string name="channel_accessibility">Accessibilité</string>
-    <string name="channel_none">Aucun</string>
-    <string name="channel_detecting">Détection…</string>
-    <string name="refresh">Actualiser</string>
+
+    
+
+    
+
+    
+
+    
+
+    
+
     <string name="root_permission">Accès root</string>
     <string name="root_permission_sub">Accorder l\'accès superutilisateur pour les commandes avancées</string>
     <string name="root_grant_all">Accorder tous les permissions automatiquement</string>
@@ -140,7 +142,7 @@
     <string name="location_check_180">Toutes les 3 heures</string>
     <string name="location_check_360">Toutes les 6 heures</string>
     <string name="backup_save_failed">Impossible d’enregistrer la sauvegarde</string>
-    <string name="backup_saved">Sauvegarde enregistrée</string>
+
     <string name="location_check_custom">Personnalisé…</string>
     <string name="location_check_custom_minutes">Toutes les %1$d minutes</string>
     <string name="location_check_minutes">Minutes</string>
@@ -150,5 +152,5 @@
     <string name="increase">Augmenter</string>
     <string name="decrease">Diminuer</string>
     <string name="location_check_apply">Appliquer</string>
-    <string name="section_services">Services</string>
+
 </resources>

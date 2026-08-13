@@ -3,23 +3,25 @@
     <string name="settings_title">Settings</string>
     <string name="section_automation">Automation</string>
     <string name="accessibility_service">Accessibility service</string>
-    <string name="accessibility_enabled">Enabled — app triggers are detected</string>
+
     <string name="accessibility_disabled">Off — app triggers won\'t fire</string>
-    <string name="monitoring_service">Monitoring service</string>
-    <string name="monitoring_running">Running — watching device, battery, network, location</string>
-    <string name="monitoring_stopped">Stopped — triggers only fire while the app is open</string>
-    <string name="state_enabled">On</string>
-    <string name="state_disabled">Off</string>
+
+    
+
+    
+
     <string name="section_appearance">Appearance</string>
     <string name="themes">Themes</string>
     <string name="themes_sub">Dark mode and accent color</string>
     <string name="widgets">Quick settings</string>
     <string name="widgets_sub">Quick settings tiles for your tasks</string>
-    <string name="section_integration">Integration</string>
-    <string name="capability_center">Capability Center</string>
-    <string name="capability_center_sub">ROM features and permissions</string>
+
+    
+
     <string name="execution_history">Execution History</string>
     <string name="execution_history_sub">View automation runs</string>
+    <string name="expert_section_title">Expert options</string>
+    <string name="expert_section_sub">Execution log, plugins and advanced tools</string>
     <string name="section_about">About</string>
     <string name="about_nexaflow">About NexaFlow</string>
     <string name="version">Version %1$s</string>
@@ -29,7 +31,7 @@
     <string name="section_backup">Backup</string>
     <string name="backup_export">Export &amp; share</string>
     <string name="backup_export_sub">Save the backup to a file, then share it with any app</string>
-    <string name="backup_saved">Backup saved</string>
+
     <string name="backup_save_failed">Could not save the backup file</string>
     <string name="backup_import">Import from file</string>
     <string name="backup_import_sub">Restore automations from a JSON backup</string>
@@ -82,17 +84,17 @@
     <string name="root_grant_failed">Could not grant via root. Check your root manager.</string>
     <string name="shizuku_permission">Shizuku</string>
     <string name="shizuku_permission_sub">Run elevated commands via the Shizuku service</string>
-    <string name="execution_channel">Execution channel</string>
-    <string name="execution_channel_sub">Best provider for this device, selected automatically</string>
-    <string name="channel_root">Root</string>
-    <string name="channel_shizuku">Shizuku</string>
-    <string name="channel_system_app">System app</string>
-    <string name="channel_adb">ADB</string>
-    <string name="channel_android">Android API</string>
-    <string name="channel_accessibility">Accessibility</string>
-    <string name="channel_none">None</string>
-    <string name="channel_detecting">Detecting…</string>
-    <string name="refresh">Refresh</string>
+
+    
+
+    
+
+    
+
+    
+
+    
+
     <string name="oem_compat_title">Keep NexaFlow running in the background</string>
     <string name="oem_compat_sub">This ROM may stop NexaFlow in the background. Allow autostart so your tasks always run reliably.</string>
     <string name="oem_compat_action">Open settings</string>
@@ -151,5 +153,5 @@
     <string name="increase">Increase</string>
     <string name="decrease">Decrease</string>
     <string name="location_check_apply">Apply</string>
-    <string name="section_services">Services</string>
+
 </resources>

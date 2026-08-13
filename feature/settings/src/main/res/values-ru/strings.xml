@@ -3,23 +3,25 @@
     <string name="settings_title">Настройки</string>
     <string name="section_automation">Автоматизация</string>
     <string name="accessibility_service">Служба специальных возможностей</string>
-    <string name="accessibility_enabled">Включена — триггеры приложений обнаруживаются</string>
+
     <string name="accessibility_disabled">Выключена — триггеры приложений не сработают</string>
-    <string name="monitoring_service">Служба мониторинга</string>
-    <string name="monitoring_running">Работает — наблюдает за устройством, батареей, сетью и местоположением</string>
-    <string name="monitoring_stopped">Остановлена — триггеры срабатывают только при открытом приложении</string>
-    <string name="state_enabled">Вкл</string>
-    <string name="state_disabled">Выкл</string>
+
+    
+
+    
+
     <string name="section_appearance">Внешний вид</string>
     <string name="themes">Темы</string>
     <string name="themes_sub">Тёмный режим и акцентный цвет</string>
     <string name="widgets">Быстрые настройки</string>
     <string name="widgets_sub">Плитки быстрых настроек для ваших задач</string>
-    <string name="section_integration">Интеграция</string>
-    <string name="capability_center">Центр возможностей</string>
-    <string name="capability_center_sub">Функции ROM и разрешения</string>
+
+    
+
     <string name="execution_history">История выполнения</string>
     <string name="execution_history_sub">Просмотр запусков автоматизаций</string>
+    <string name="expert_section_title">Параметры эксперта</string>
+    <string name="expert_section_sub">Журнал выполнения, плагины и расширенные инструменты</string>
     <string name="section_about">О приложении</string>
     <string name="about_nexaflow">О NexaFlow</string>
     <string name="version">Версия %1$s</string>
@@ -70,17 +72,17 @@
     <string name="notification_access_sub">Чтение и управление уведомлениями</string>
     <string name="calendar_permission">Календарь</string>
     <string name="calendar_permission_sub">Чтение событий для календарных триггеров</string>
-    <string name="execution_channel">Канал выполнения</string>
-    <string name="execution_channel_sub">Лучший провайдер для этого устройства, выбран автоматически</string>
-    <string name="channel_root">Root</string>
-    <string name="channel_shizuku">Shizuku</string>
-    <string name="channel_system_app">Системное приложение</string>
-    <string name="channel_adb">ADB</string>
-    <string name="channel_android">Android API</string>
-    <string name="channel_accessibility">Специальные возможности</string>
-    <string name="channel_none">Нет</string>
-    <string name="channel_detecting">Определение…</string>
-    <string name="refresh">Обновить</string>
+
+    
+
+    
+
+    
+
+    
+
+    
+
     <string name="root_permission">Root-доступ</string>
     <string name="root_permission_sub">Предоставьте доступ суперпользователя для расширенных команд</string>
     <string name="root_grant_all">Выдать все разрешения автоматически</string>
@@ -141,7 +143,7 @@
     <string name="location_check_180">Каждые 3 часа</string>
     <string name="location_check_360">Каждые 6 часов</string>
     <string name="backup_save_failed">Не удалось сохранить файл резервной копии</string>
-    <string name="backup_saved">Резервная копия сохранена</string>
+
     <string name="location_check_custom">Свой…</string>
     <string name="location_check_custom_minutes">Каждые %1$d минут</string>
     <string name="location_check_minutes">Минуты</string>
@@ -151,5 +153,5 @@
     <string name="increase">Увеличить</string>
     <string name="decrease">Уменьшить</string>
     <string name="location_check_apply">Применить</string>
-    <string name="section_services">Службы</string>
+
 </resources>

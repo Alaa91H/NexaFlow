@@ -3,23 +3,25 @@
     <string name="settings_title">Configurações</string>
     <string name="section_automation">Automação</string>
     <string name="accessibility_service">Serviço de acessibilidade</string>
-    <string name="accessibility_enabled">Ativado — gatilhos de aplicativos são detectados</string>
+
     <string name="accessibility_disabled">Desativado — gatilhos de aplicativos não serão acionados</string>
-    <string name="monitoring_service">Serviço de monitoramento</string>
-    <string name="monitoring_running">Em execução — monitora dispositivo, bateria, rede e localização</string>
-    <string name="monitoring_stopped">Parado — gatilhos só disparam com o aplicativo aberto</string>
-    <string name="state_enabled">Ligado</string>
-    <string name="state_disabled">Desligado</string>
+
+    
+
+    
+
     <string name="section_appearance">Aparência</string>
     <string name="themes">Temas</string>
     <string name="themes_sub">Modo escuro e cor de destaque</string>
     <string name="widgets">Definições rápidas</string>
     <string name="widgets_sub">Peças de definições rápidas para as suas tarefas</string>
-    <string name="section_integration">Integração</string>
-    <string name="capability_center">Central de recursos</string>
-    <string name="capability_center_sub">Recursos ROM e permissões</string>
+
+    
+
     <string name="execution_history">Histórico de execução</string>
     <string name="execution_history_sub">Ver execuções de automações</string>
+    <string name="expert_section_title">Opções avançadas</string>
+    <string name="expert_section_sub">Registo de execução, plug-ins e ferramentas avançadas</string>
     <string name="section_about">Sobre</string>
     <string name="about_nexaflow">Sobre o NexaFlow</string>
     <string name="version">Versão %1$s</string>
@@ -70,17 +72,17 @@
     <string name="notification_access_sub">Ler e gerenciar notificações</string>
     <string name="calendar_permission">Calendário</string>
     <string name="calendar_permission_sub">Ler seus eventos para gatilhos de calendário</string>
-    <string name="execution_channel">Canal de execução</string>
-    <string name="execution_channel_sub">Melhor provedor para este dispositivo, selecionado automaticamente</string>
-    <string name="channel_root">Root</string>
-    <string name="channel_shizuku">Shizuku</string>
-    <string name="channel_system_app">App do sistema</string>
-    <string name="channel_adb">ADB</string>
-    <string name="channel_android">API Android</string>
-    <string name="channel_accessibility">Acessibilidade</string>
-    <string name="channel_none">Nenhum</string>
-    <string name="channel_detecting">Detectando…</string>
-    <string name="refresh">Atualizar</string>
+
+    
+
+    
+
+    
+
+    
+
+    
+
     <string name="root_permission">Acesso root</string>
     <string name="root_permission_sub">Conceda acesso de superusuário para comandos avançados</string>
     <string name="root_grant_all">Conceder todas as permissões automaticamente</string>
@@ -141,7 +143,7 @@
     <string name="location_check_180">A cada 3 horas</string>
     <string name="location_check_360">A cada 6 horas</string>
     <string name="backup_save_failed">Não foi possível guardar a cópia de segurança</string>
-    <string name="backup_saved">Cópia de segurança guardada</string>
+
     <string name="location_check_custom">Personalizado…</string>
     <string name="location_check_custom_minutes">A cada %1$d minutos</string>
     <string name="location_check_minutes">Minutos</string>
@@ -151,5 +153,5 @@
     <string name="increase">Aumentar</string>
     <string name="decrease">Diminuir</string>
     <string name="location_check_apply">Aplicar</string>
-    <string name="section_services">Serviços</string>
+
 </resources>

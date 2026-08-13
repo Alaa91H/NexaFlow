@@ -13,4 +13,5 @@
     <string name="category_battery">البطارية</string>
     <string name="category_time">الوقت</string>
     <string name="category_location">الموقع</string>
+    <string name="icon_color">اللون</string>
 </resources>

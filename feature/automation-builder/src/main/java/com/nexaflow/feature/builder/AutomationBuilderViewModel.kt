@@ -75,6 +75,7 @@ class AutomationBuilderViewModel @Inject constructor(
     fun saveAutomation(
         name: String,
         icon: String,
+        iconColor: Long = 0xFF0B57D0,
         triggers: List<Trigger>,
         actions: List<Action>,
         constraints: List<Constraint> = emptyList(),
@@ -93,7 +94,7 @@ class AutomationBuilderViewModel @Inject constructor(
                 name = name.ifBlank { "Untitled Task" },
                 description = buildDescription(triggers, actions),
                 icon = icon,
-                iconColor = prev?.iconColor ?: 0xFF0B57D0,
+                iconColor = iconColor,
                 backgroundColor = prev?.backgroundColor ?: 0xFFE3EEFA,
                 category = prev?.category ?: "custom",
                 priority = prev?.priority ?: 1,

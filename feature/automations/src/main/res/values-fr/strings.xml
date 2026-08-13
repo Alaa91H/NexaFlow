@@ -152,7 +152,7 @@
     <string name="occurrence_last">Dernière</string>
     <string name="monthly_weekday_summary">%1$s %2$s</string>
     <string name="end_summary">À la fin : %1$s</string>
-    <string name="end_leave">Laisser tel quel</string>
+
     <string name="end_turn_on">Activer</string>
     <string name="end_turn_off">Désactiver</string>
     <string name="end_revert">Restaurer l\'original</string>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="builder_title">New Task</string>
-    <string name="task_card_title">Task</string>
+
     <string name="save">Save</string>
-    <string name="name">Name</string>
+
     <string name="name_hint">e.g. Morning task</string>
-    <string name="icon">Icon</string>
-    <string name="tap_to_choose_icon">Tap to choose an icon</string>
+
+    
     <string name="section_when">When (triggers)</string>
     <string name="trigger_n">Trigger %1$d</string>
     <string name="remove_trigger">Remove trigger</string>
@@ -16,7 +16,7 @@
     <string name="trigger_type_device">Device</string>
     <string name="trigger_type_connectivity">Connectivity</string>
     <string name="trigger_type_network_mode">Cellular network</string>
-    <string name="trigger_type_network_mode_sub">Fires when the device\'s cellular network matches the selected generation (real 5G detection)</string>
+
     <string name="refresh">Refresh</string>
     <string name="trigger_type_location">Location</string>
     <string name="trigger_type_sms">SMS</string>
@@ -55,9 +55,9 @@
     <string name="enable">Enable</string>
     <string name="network">Network</string>
     <string name="state">State</string>
-    <string name="latitude">Latitude</string>
-    <string name="longitude">Longitude</string>
-    <string name="radius_meters">Radius (meters)</string>
+
+    
+
     <string name="event">Event</string>
     <string name="location_hint">Needs location permission and a current location fix</string>
     <string name="grant">Grant</string>
@@ -99,7 +99,6 @@
     <string name="special_bluetooth_title">Bluetooth</string>
     <string name="special_bluetooth_body">NexaFlow needs Bluetooth turned on to detect paired devices and run tasks when they connect.</string>
 
-
     <string name="battery_above">Battery above threshold</string>
     <string name="battery_above_sub">Only run when battery is above the level</string>
     <string name="minimum_battery">Minimum battery: %1$d%%</string>
@@ -112,8 +111,12 @@
     <string name="category_apps">Apps</string>
     <string name="category_system">System</string>
     <string name="category_battery">Battery</string>
-    <string name="category_advanced">Advanced</string>
-    <string name="save_automation">Save Task</string>
+
+    
+    <string name="step_triggers">Triggers</string>
+    <string name="step_actions">Actions</string>
+    <string name="create_task">Create Task</string>
+
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="action_brightness">Brightness</string>
@@ -258,7 +261,7 @@
     <string name="shizuku_hint">Requires the Shizuku app and a grant</string>
     <string name="root_hint">Requires root (su binary)</string>
     <string name="elevated_hint">Needs root, Shizuku, or system-app privileges</string>
-    <string name="info">Info</string>
+
     <string name="choose_app">Choose an app</string>
     <string name="choose_apps">Choose apps</string>
     <string name="search_apps">Search apps…</string>
@@ -308,7 +311,7 @@
     <string name="action_stream_volume">Channel volume</string>
     <string name="action_stream_volume_sub">Set any sound channel precisely</string>
     <string name="section_exit_behavior">When the task ends</string>
-    <string name="exit_behavior_hint">What happens when the condition stops being true?</string>
+
     <string name="exit_auto_reply_label">Auto-reply (SMS)</string>
     <string name="exit_nothing_sub">Nothing happens - the task simply ends</string>
     <string name="add_exit_action">Add exit action</string>
@@ -323,7 +326,7 @@
     <string name="search_actions">Search actions…</string>
     <string name="add_count">Add (%1$d)</string>
     <string name="add_action">Add action</string>
-    <string name="pick_trigger_type">Add trigger</string>
+
     <string name="next_needs_action">Add at least one action</string>
     <string name="no_matching_actions">No matching actions</string>
     <string name="repeat_monthly">Monthly</string>
@@ -398,8 +401,8 @@
     <string name="end_turn_off">Turn off</string>
     <string name="end_revert">Restore original</string>
     <string name="end_set_value">Set value</string>
-    <string name="cooldown_label">Run cooldown: %1$d s</string>
-    <string name="cooldown_hint">Minimum gap between two runs of this task</string>
+
+    
     <string name="elevated_status_granted">Granted</string>
     <string name="elevated_status_available">Tap to grant</string>
     <string name="elevated_status_unavailable">Not available</string>
@@ -502,14 +505,15 @@
     <string name="use_current_location">Use my current location</string>
     <string name="location_coordinates">Location: %1$s, %2$s</string>
     <string name="location_not_set">No location set yet</string>
+    <string name="map_radius_summary">Radius set on the map: %1$d m</string>
     <string name="radius_meters_format">Radius: %1$d m</string>
     <string name="location_inside">Inside location</string>
     <string name="location_outside">Outside location</string>
     <string name="location_fix_failed">"Couldn't get your location. Enable location and try again."</string>
-    <string name="map_unavailable">No map app found</string>
+
     <string name="confirm_location">Confirm location</string>
     <string name="map_search_hint">Search for a place</string>
     <string name="map_pick_hint">Tap the map to place the point — drag the marker to fine-tune</string>
     <string name="map_no_key">"Google Maps isn't configured yet. Add NEXAFLOW_MAPS_API_KEY to gradle.properties and rebuild."</string>
     <string name="map_search_not_found">Place not found</string>
-</resources>
+    <string name="trigger_cat_schedule">Schedule</string>    <string name="trigger_cat_device">Device</string>    <string name="trigger_cat_connectivity">Connectivity</string>    <string name="trigger_cat_location">Location</string>    <string name="trigger_cat_apps">Apps</string>    <string name="trigger_cat_communication">Communication</string></resources>

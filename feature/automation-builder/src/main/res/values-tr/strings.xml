@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="builder_title">Yeni görev</string>
-    <string name="task_card_title">Görev</string>
+
     <string name="save">Kaydet</string>
-    <string name="name">Ad</string>
+
     <string name="name_hint">örn. Sabah Görevi</string>
-    <string name="icon">Simge</string>
-    <string name="tap_to_choose_icon">Simge seçmek için dokunun</string>
+
+    
     <string name="section_when">Ne zaman (tetikleyiciler)</string>
     <string name="trigger_n">Tetikleyici %1$d</string>
     <string name="remove_trigger">Tetikleyiciyi kaldır</string>
@@ -16,7 +16,7 @@
     <string name="trigger_type_device">Cihaz</string>
     <string name="trigger_type_connectivity">Bağlantı</string>
     <string name="trigger_type_network_mode">Hücresel ağ</string>
-    <string name="trigger_type_network_mode_sub">Cihazın hücresel ağı seçilen nesille eşleştiğinde tetiklenir (gerçek 5G algılama)</string>
+
     <string name="refresh">Yenile</string>
     <string name="trigger_type_location">Konum</string>
     <string name="trigger_time">Tetikleyici zamanı</string>
@@ -26,9 +26,9 @@
     <string name="enable">Etkinleştir</string>
     <string name="network">Ağ</string>
     <string name="state">Durum</string>
-    <string name="latitude">Enlem</string>
-    <string name="longitude">Boylam</string>
-    <string name="radius_meters">Yarıçap (metre)</string>
+
+    
+
     <string name="event">Olay</string>
     <string name="location_hint">Konum izni ve güncel konum gerekir</string>
     <string name="grant">İzin Ver</string>
@@ -70,13 +70,16 @@
     <string name="special_bluetooth_title">Bluetooth</string>
     <string name="special_bluetooth_body">"NexaFlow'un eşleştirilmiş cihazları algılaması ve bağlandıklarında görevleri çalıştırması için Bluetooth'un açık olması gerekir."</string>
 
-
     <string name="battery_above">Pil eşiğin üzerinde</string>
     <string name="battery_above_sub">Yalnızca pil seviyenin üzerindeyken çalıştır</string>
     <string name="minimum_battery">Minimum pil: %1$d%%</string>
 
     <string name="section_actions">Sonra (eylemler)</string>
-    <string name="save_automation">Görevi kaydet</string>
+
+    <string name="step_triggers">Tetikleyiciler</string>
+    <string name="step_actions">Eylemler</string>
+    <string name="create_task">Görev oluştur</string>
+
     <string name="ok">Tamam</string>
     <string name="cancel">İptal</string>
     <string name="action_brightness">Parlaklık</string>
@@ -142,7 +145,7 @@
     <string name="flashlight_hint">El feneri için kamera erişimi gerekir</string>
     <string name="shizuku_hint">Shizuku uygulaması ve izin gerekir</string>
     <string name="root_hint">Root (su) gerekir</string>
-    <string name="info">Bilgi</string>
+
     <string name="choose_app">Bir uygulama seç</string>
     <string name="choose_apps">Uygulamaları seç</string>
     <string name="search_apps">Uygulama ara…</string>
@@ -157,7 +160,7 @@
     <string name="category_apps">Uygulamalar</string>
     <string name="category_system">Sistem</string>
     <string name="category_battery">Pil</string>
-    <string name="category_advanced">Gelişmiş</string>
+
     <string name="action_screen_timeout">Ekran zaman aşımı</string>
     <string name="action_screen_timeout_sub">Ekranın açık kalma süresini ayarla</string>
     <string name="action_stay_awake">Ekranı açık tut</string>
@@ -298,7 +301,7 @@
     <string name="action_stream_volume">Kanal sesi</string>
     <string name="action_stream_volume_sub">Herhangi bir ses kanalını hassas şekilde ayarla</string>
     <string name="section_exit_behavior">Görev bittiğinde</string>
-    <string name="exit_behavior_hint">Koşul sağlanmadığında ne olsun?</string>
+
     <string name="exit_auto_reply_label">Otomatik yanıt (SMS)</string>
     <string name="exit_nothing_sub">Hiçbir şey olmaz — görev sona erer</string>
     <string name="add_exit_action">Çıkış eylemi ekle</string>
@@ -313,7 +316,7 @@
     <string name="search_actions">Eylemleri ara…</string>
     <string name="add_count">Ekle (%1$d)</string>
     <string name="add_action">Eylem ekle</string>
-    <string name="pick_trigger_type">Tetikleyici ekle</string>
+
     <string name="next_needs_action">Önce en az bir eylem ekleyin</string>
     <string name="no_matching_actions">Eşleşen eylem yok</string>
     <string name="repeat_monthly">Aylık</string>
@@ -373,8 +376,8 @@
     <string name="end_turn_off">Kapat</string>
     <string name="end_revert">Orijinali geri yükle</string>
     <string name="end_set_value">Değer ayarla</string>
-    <string name="cooldown_label">Çalışma aralığı: %1$d sn</string>
-    <string name="cooldown_hint">Bu görevin iki çalışması arasındaki minimum aralık</string>
+
+    
     <string name="elevated_status_granted">Verildi</string>
     <string name="elevated_status_available">İzin vermek için dokunun</string>
     <string name="elevated_status_unavailable">Kullanılamıyor</string>
@@ -477,11 +480,12 @@
     <string name="use_current_location">Mevcut konumumu kullan</string>
     <string name="location_coordinates">Konum: %1$s, %2$s</string>
     <string name="location_not_set">Henüz konum ayarlanmadı</string>
+    <string name="map_radius_summary">Haritada belirlenen yarıçap: %1$d m</string>
     <string name="radius_meters_format">Yarıçap: %1$d m</string>
     <string name="location_inside">Konumun içinde</string>
     <string name="location_outside">Konumun dışında</string>
     <string name="location_fix_failed">Konumunuz alınamadı. Konumu açıp tekrar deneyin.</string>
-    <string name="map_unavailable">Harita uygulaması bulunamadı</string>
+
     <string name="confirm_location">Konumu onayla</string>
 
     <string name="charging_yes">Şarj oluyor</string>
@@ -514,4 +518,4 @@
     <string name="map_pick_hint">Noktayı koymak için haritaya dokunun — hassas ayar için işaretçiyi sürükleyin</string>
     <string name="map_no_key">Google Haritalar henüz yapılandırılmadı. gradle.properties dosyasına NEXAFLOW_MAPS_API_KEY ekleyin ve yeniden derleyin.</string>
     <string name="map_search_not_found">Yer bulunamadı</string>
-</resources>
+    <string name="trigger_cat_schedule">Zamanlama</string>    <string name="trigger_cat_device">Cihaz</string>    <string name="trigger_cat_connectivity">Bağlantı</string>    <string name="trigger_cat_location">Konum</string>    <string name="trigger_cat_apps">Uygulamalar</string>    <string name="trigger_cat_communication">İletişim</string></resources>

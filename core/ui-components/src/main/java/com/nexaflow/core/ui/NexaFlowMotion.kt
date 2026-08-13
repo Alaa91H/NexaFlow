@@ -1,9 +1,16 @@
 package com.nexaflow.core.ui
 
 import android.provider.Settings
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,6 +62,103 @@ fun isSystemReduceMotionEnabled(): Boolean {
             Settings.Global.ANIMATOR_DURATION_SCALE,
             1f
         ) == 0f
+    }
+}
+
+/**
+ * The Material3 1.4.0 expressive-motion APIs (`MotionScheme`, its tokens and
+ * the `value()` accessor) are still `internal` in the release the project's
+ * Compose BOM resolves — verified against the artifact's Kotlin metadata.
+ * The documented M3 Expressive spring constants (400/800 stiffness, ~0.8
+ * damping — the 2025–2026 Google "emphasized" language with its slight
+ * overshoot) are therefore exposed here in generic form, so spatial motion
+ * (IntOffset/IntSize specs for expand/slide) and effects (Float fade specs)
+ * share one motion language. Falls back to an instant tween when the user
+ * disabled animations.
+ */
+private fun <T> spatialSpring(slow: Boolean): FiniteAnimationSpec<T> = spring(
+    dampingRatio = if (slow) 0.7f else 0.8f,
+    stiffness = if (slow) Spring.StiffnessLow else Spring.StiffnessMedium
+)
+
+private fun <T> effectsSpring(slow: Boolean): FiniteAnimationSpec<T> = spring(
+    dampingRatio = if (slow) 0.9f else 0.85f,
+    stiffness = if (slow) Spring.StiffnessMedium else Spring.StiffnessHigh
+)
+
+/** Spatial spring (expanding/collapsing, sliding) — M3 Expressive. */
+@Composable
+fun <T> nexaFlowSpatialSpec(slow: Boolean = false): FiniteAnimationSpec<T> {
+    if (isSystemReduceMotionEnabled()) return tween(0)
+    return spatialSpring(slow)
+}
+
+/** Effects spring (fades) — M3 Expressive. */
+@Composable
+fun <T> nexaFlowEffectsSpec(slow: Boolean = false): FiniteAnimationSpec<T> {
+    if (isSystemReduceMotionEnabled()) return tween(0)
+    return effectsSpring(slow)
+}
+
+/**
+ * Google 2026 accordion open/close: content expands/shrinks with the M3
+ * expressive spatial spring while fading with the effects spring. With the
+ * system reduce-motion setting on, the content simply appears/disappears.
+ */
+@Composable
+fun NexaFlowAnimatedVisibility(
+    visible: Boolean,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    if (isSystemReduceMotionEnabled()) {
+        if (visible) content()
+        return
+    }
+    AnimatedVisibility(
+        visible = visible,
+        modifier = modifier,
+        enter = expandVertically(
+            animationSpec = nexaFlowSpatialSpec(),
+            clip = false
+        ) + fadeIn(animationSpec = nexaFlowEffectsSpec()),
+        exit = shrinkVertically(
+            animationSpec = nexaFlowSpatialSpec(),
+            clip = false
+        ) + fadeOut(animationSpec = nexaFlowEffectsSpec())
+    ) {
+        content()
+    }
+}
+
+/**
+ * Spring entrance for custom dialogs: the surface scales in (0.92 → 1) with
+ * the M3 spatial spring while fading with the effects spring — the same
+ * language Material3 uses for its own dialogs. Static under reduce-motion.
+ */
+fun Modifier.nexaFlowDialogEnter(): Modifier = composed {
+    if (isSystemReduceMotionEnabled()) {
+        this
+    } else {
+        var started by remember { mutableStateOf(false) }
+        val scale by animateFloatAsState(
+            targetValue = if (started) 1f else 0.92f,
+            animationSpec = nexaFlowSpatialSpec(),
+            label = "nexaflowDialogScale"
+        )
+        val alpha by animateFloatAsState(
+            targetValue = if (started) 1f else 0f,
+            animationSpec = nexaFlowEffectsSpec(),
+            label = "nexaflowDialogAlpha"
+        )
+        LaunchedEffect(Unit) {
+            started = true
+        }
+        graphicsLayer {
+            this.alpha = alpha
+            this.scaleX = scale
+            this.scaleY = scale
+        }
     }
 }
 

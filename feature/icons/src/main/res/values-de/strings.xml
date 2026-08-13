@@ -13,4 +13,5 @@
     <string name="category_battery">Akku</string>
     <string name="category_time">Zeit</string>
     <string name="category_location">Standort</string>
+    <string name="icon_color">Farbe</string>
 </resources>

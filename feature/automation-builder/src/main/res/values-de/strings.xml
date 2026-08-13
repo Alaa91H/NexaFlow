@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="builder_title">Neue Aufgabe</string>
-    <string name="task_card_title">Aufgabe</string>
+
     <string name="save">Speichern</string>
-    <string name="name">Name</string>
+
     <string name="name_hint">z. B. Morgenaufgabe</string>
-    <string name="icon">Symbol</string>
-    <string name="tap_to_choose_icon">Zum Auswählen tippen</string>
+
+    
     <string name="section_when">Wann (Trigger)</string>
     <string name="trigger_n">Trigger %1$d</string>
     <string name="remove_trigger">Trigger entfernen</string>
@@ -16,7 +16,7 @@
     <string name="trigger_type_device">Gerät</string>
     <string name="trigger_type_connectivity">Konnektivität</string>
     <string name="trigger_type_network_mode">Mobilfunknetz</string>
-    <string name="trigger_type_network_mode_sub">Löst aus, wenn das Mobilfunknetz der gewählten Generation entspricht (echte 5G-Erkennung)</string>
+
     <string name="refresh">Aktualisieren</string>
     <string name="trigger_type_location">Standort</string>
     <string name="trigger_time">Trigger-Zeit</string>
@@ -26,9 +26,9 @@
     <string name="enable">Aktivieren</string>
     <string name="network">Netzwerk</string>
     <string name="state">Status</string>
-    <string name="latitude">Breitengrad</string>
-    <string name="longitude">Längengrad</string>
-    <string name="radius_meters">Radius (Meter)</string>
+
+    
+
     <string name="event">Ereignis</string>
     <string name="location_hint">Erfordert Standortberechtigung und einen aktuellen Standort</string>
     <string name="grant">Erteilen</string>
@@ -70,13 +70,16 @@
     <string name="special_bluetooth_title">Bluetooth</string>
     <string name="special_bluetooth_body">NexaFlow benötigt eingeschaltetes Bluetooth, um gekoppelte Geräte zu erkennen und Aufgaben bei Verbindung auszuführen.</string>
 
-
     <string name="battery_above">Akku über Schwellenwert</string>
     <string name="battery_above_sub">Nur ausführen, wenn der Akku über dem Level liegt</string>
     <string name="minimum_battery">Mindestakku: %1$d%%</string>
 
     <string name="section_actions">Dann (Aktionen)</string>
-    <string name="save_automation">Aufgabe speichern</string>
+
+    <string name="step_triggers">Trigger</string>
+    <string name="step_actions">Aktionen</string>
+    <string name="create_task">Aufgabe erstellen</string>
+
     <string name="ok">OK</string>
     <string name="cancel">Abbrechen</string>
     <string name="action_brightness">Helligkeit</string>
@@ -142,7 +145,7 @@
     <string name="flashlight_hint">Erfordert Kamerazugriff für die Taschenlampe</string>
     <string name="shizuku_hint">Erfordert die Shizuku-App und eine Freigabe</string>
     <string name="root_hint">Erfordert Root (su-Binary)</string>
-    <string name="info">Info</string>
+
     <string name="choose_app">App auswählen</string>
     <string name="choose_apps">Apps auswählen</string>
     <string name="search_apps">Apps suchen…</string>
@@ -157,7 +160,7 @@
     <string name="category_apps">Apps</string>
     <string name="category_system">System</string>
     <string name="category_battery">Akku</string>
-    <string name="category_advanced">Erweitert</string>
+
     <string name="action_screen_timeout">Bildschirm-Timeout</string>
     <string name="action_screen_timeout_sub">Dauer der Bildschirmbeleuchtung festlegen</string>
     <string name="action_stay_awake">Wach halten</string>
@@ -298,7 +301,7 @@
     <string name="action_stream_volume">Kanal-Lautstärke</string>
     <string name="action_stream_volume_sub">Beliebigen Tonkanal präzise einstellen</string>
     <string name="section_exit_behavior">Wenn die Aufgabe endet</string>
-    <string name="exit_behavior_hint">Was passiert, wenn die Bedingung nicht mehr erfüllt ist?</string>
+
     <string name="exit_auto_reply_label">Automatische Antwort (SMS)</string>
     <string name="exit_nothing_sub">Es passiert nichts – die Aufgabe endet einfach</string>
     <string name="add_exit_action">Exit-Aktion hinzufügen</string>
@@ -313,7 +316,7 @@
     <string name="search_actions">Aktionen suchen…</string>
     <string name="add_count">Hinzufügen (%1$d)</string>
     <string name="add_action">Aktion hinzufügen</string>
-    <string name="pick_trigger_type">Auslöser hinzufügen</string>
+
     <string name="next_needs_action">Füge zuerst mindestens eine Aktion hinzu</string>
     <string name="no_matching_actions">Keine passenden Aktionen</string>
     <string name="repeat_monthly">Monatlich</string>
@@ -373,8 +376,8 @@
     <string name="end_turn_off">Ausschalten</string>
     <string name="end_revert">Original wiederherstellen</string>
     <string name="end_set_value">Wert festlegen</string>
-    <string name="cooldown_label">Ausführungsintervall: %1$d s</string>
-    <string name="cooldown_hint">Mindestabstand zwischen zwei Ausführungen dieser Aufgabe</string>
+
+    
     <string name="elevated_status_granted">Gewährt</string>
     <string name="elevated_status_available">Zum Gewähren tippen</string>
     <string name="elevated_status_unavailable">Nicht verfügbar</string>
@@ -477,11 +480,12 @@
     <string name="use_current_location">Meinen aktuellen Standort verwenden</string>
     <string name="location_coordinates">Standort: %1$s, %2$s</string>
     <string name="location_not_set">Noch kein Standort festgelegt</string>
+    <string name="map_radius_summary">Radius auf der Karte festgelegt: %1$d m</string>
     <string name="radius_meters_format">Radius: %1$d m</string>
     <string name="location_inside">Innerhalb des Standorts</string>
     <string name="location_outside">Außerhalb des Standorts</string>
     <string name="location_fix_failed">Standort konnte nicht ermittelt werden. Aktiviere den Standort und versuche es erneut.</string>
-    <string name="map_unavailable">Keine Karten-App gefunden</string>
+
     <string name="confirm_location">Standort bestätigen</string>
 
     <string name="charging_yes">Wird geladen</string>
@@ -514,4 +518,4 @@
     <string name="map_pick_hint">Tippen Sie auf die Karte, um den Punkt zu setzen — ziehen Sie die Markierung zum Anpassen</string>
     <string name="map_no_key">Google Maps ist noch nicht konfiguriert. Fügen Sie NEXAFLOW_MAPS_API_KEY zu gradle.properties hinzu und bauen Sie neu.</string>
     <string name="map_search_not_found">Ort nicht gefunden</string>
-</resources>
+    <string name="trigger_cat_schedule">Zeitplan</string>    <string name="trigger_cat_device">Gerät</string>    <string name="trigger_cat_connectivity">Konnektivität</string>    <string name="trigger_cat_location">Standort</string>    <string name="trigger_cat_apps">Apps</string>    <string name="trigger_cat_communication">Kommunikation</string></resources>

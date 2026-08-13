@@ -1,16 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Launcher background — Google 2026 gradient family. Google's icon redesign
-    moved every app from flat pastels to soft, dynamic, brighter gradients
-    (Gemini/Calendar blue→violet is the signature). Plain <shape> gradient so
-    every launcher/system icon loader renders it reliably.
+    Launcher background — solid white, Google 2026 icon style: white
+    canvas with a single vivid glyph (Google Tasks / Gemini checkmark look).
+    Plain <shape> so every launcher/system icon loader renders it reliably.
 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <gradient
-        android:type="linear"
-        android:angle="135"
-        android:startColor="#FF4E6EF2"
-        android:centerColor="#FF7A5CF7"
-        android:endColor="#FF9D5FF5" />
+    <solid android:color="#FFFFFFFF" />
 </shape>

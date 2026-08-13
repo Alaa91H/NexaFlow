@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="builder_title">Новая задача</string>
-    <string name="task_card_title">Задача</string>
+
     <string name="save">Сохранить</string>
-    <string name="name">Имя</string>
+
     <string name="name_hint">напр.: Утренняя задача</string>
-    <string name="icon">Значок</string>
-    <string name="tap_to_choose_icon">Нажмите, чтобы выбрать значок</string>
+
+    
     <string name="section_when">Когда (триггеры)</string>
     <string name="trigger_n">Триггер %1$d</string>
     <string name="remove_trigger">Удалить триггер</string>
@@ -16,7 +16,7 @@
     <string name="trigger_type_device">Устройство</string>
     <string name="trigger_type_connectivity">Сеть</string>
     <string name="trigger_type_network_mode">Сотовая сеть</string>
-    <string name="trigger_type_network_mode_sub">Срабатывает, когда сотовая сеть соответствует выбранному поколению (настоящее определение 5G)</string>
+
     <string name="refresh">Обновить</string>
     <string name="trigger_type_location">Местоположение</string>
     <string name="trigger_time">Время триггера</string>
@@ -26,9 +26,9 @@
     <string name="enable">Включить</string>
     <string name="network">Сеть</string>
     <string name="state">Состояние</string>
-    <string name="latitude">Широта</string>
-    <string name="longitude">Долгота</string>
-    <string name="radius_meters">Радиус (метры)</string>
+
+    
+
     <string name="event">Событие</string>
     <string name="location_hint">Требуется разрешение на местоположение и текущие координаты</string>
     <string name="grant">Предоставить</string>
@@ -70,13 +70,16 @@
     <string name="special_bluetooth_title">Bluetooth</string>
     <string name="special_bluetooth_body">NexaFlow нужен включённый Bluetooth для обнаружения сопряжённых устройств и запуска задач при подключении.</string>
 
-
     <string name="battery_above">Батарея выше порога</string>
     <string name="battery_above_sub">Запускать только когда батарея выше уровня</string>
     <string name="minimum_battery">Минимальная батарея: %1$d%%</string>
 
     <string name="section_actions">Затем (действия)</string>
-    <string name="save_automation">Сохранить задачу</string>
+
+    <string name="step_triggers">Триггеры</string>
+    <string name="step_actions">Действия</string>
+    <string name="create_task">Создать задачу</string>
+
     <string name="ok">ОК</string>
     <string name="cancel">Отмена</string>
     <string name="action_brightness">Яркость</string>
@@ -142,7 +145,7 @@
     <string name="flashlight_hint">Требуется доступ к камере для фонарика</string>
     <string name="shizuku_hint">Требуется приложение Shizuku и разрешение</string>
     <string name="root_hint">Требуется root (бинарный файл su)</string>
-    <string name="info">Информация</string>
+
     <string name="choose_app">Выберите приложение</string>
     <string name="choose_apps">Выберите приложения</string>
     <string name="search_apps">Поиск приложений…</string>
@@ -157,7 +160,7 @@
     <string name="category_apps">Приложения</string>
     <string name="category_system">Система</string>
     <string name="category_battery">Батарея</string>
-    <string name="category_advanced">Дополнительно</string>
+
     <string name="action_screen_timeout">Тайм-аут экрана</string>
     <string name="action_screen_timeout_sub">Установить время работы экрана</string>
     <string name="action_stay_awake">Не выключать экран</string>
@@ -298,7 +301,7 @@
     <string name="action_stream_volume">Гроمкость канала</string>
     <string name="action_stream_volume_sub">Точная настройка любого звукового канала</string>
     <string name="section_exit_behavior">Когда задача завершается</string>
-    <string name="exit_behavior_hint">Что делать, когда условие перестаёт выполняться?</string>
+
     <string name="exit_auto_reply_label">Автоответ (SMS)</string>
     <string name="exit_nothing_sub">Ничего не происходит — задача пرосто завершается</string>
     <string name="add_exit_action">Добавить действие выхода</string>
@@ -313,7 +316,7 @@
     <string name="search_actions">Поиск действий…</string>
     <string name="add_count">Добавить (%1$d)</string>
     <string name="add_action">Добавить действие</string>
-    <string name="pick_trigger_type">Добавить триггер</string>
+
     <string name="next_needs_action">Сначала добавьте хотя бы одно действие</string>
     <string name="no_matching_actions">Нет подходящих действий</string>
     <string name="repeat_monthly">Ежемесячно</string>
@@ -373,8 +376,8 @@
     <string name="end_turn_off">Выключить</string>
     <string name="end_revert">Восстановить исходное</string>
     <string name="end_set_value">Задать значение</string>
-    <string name="cooldown_label">Интервал запуска: %1$d с</string>
-    <string name="cooldown_hint">Минимальный интервал между двумя запусками этой задачи</string>
+
+    
     <string name="elevated_status_granted">Предоставлено</string>
     <string name="elevated_status_available">Нажмите, чтобы предоставить</string>
     <string name="elevated_status_unavailable">Недоступно</string>
@@ -477,11 +480,12 @@
     <string name="use_current_location">Использовать моё текущее местоположение</string>
     <string name="location_coordinates">Местоположение: %1$s, %2$s</string>
     <string name="location_not_set">Местоположение ещё не задано</string>
+    <string name="map_radius_summary">Радиус задан на карте: %1$d м</string>
     <string name="radius_meters_format">Радиус: %1$d м</string>
     <string name="location_inside">Внутри зоны</string>
     <string name="location_outside">Вне зоны</string>
     <string name="location_fix_failed">Не удалось получить местоположение. Включите его и попробуйте снова.</string>
-    <string name="map_unavailable">Приложение карт не найдено</string>
+
     <string name="confirm_location">Подтвердить местоположение</string>
 
     <string name="charging_yes">Заряжается</string>
@@ -514,4 +518,4 @@
     <string name="map_pick_hint">Коснитесь карты, чтобы поставить точку — перетащите маркер для точной настройки</string>
     <string name="map_no_key">Google Карты ещё не настроены. Добавьте NEXAFLOW_MAPS_API_KEY в gradle.properties и пересоберите.</string>
     <string name="map_search_not_found">Место не найдено</string>
-</resources>
+    <string name="trigger_cat_schedule">Расписание</string>    <string name="trigger_cat_device">Устройство</string>    <string name="trigger_cat_connectivity">Подключение</string>    <string name="trigger_cat_location">Местоположение</string>    <string name="trigger_cat_apps">Приложения</string>    <string name="trigger_cat_communication">Связь</string></resources>
