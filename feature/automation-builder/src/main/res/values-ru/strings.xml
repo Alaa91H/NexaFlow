@@ -7,9 +7,9 @@
     <string name="name_hint">напр.: Утренняя задача</string>
 
     
-    <string name="section_when">Когда (триггеры)</string>
-    <string name="trigger_n">Триггер %1$d</string>
-    <string name="remove_trigger">Удалить триггер</string>
+    <string name="section_when">Условия</string>
+    <string name="trigger_n">Условие %1$d</string>
+    <string name="remove_trigger">Удалить условие</string>
     <string name="trigger_type_time">Время</string>
     <string name="trigger_type_battery">Батарея</string>
     <string name="trigger_type_app">Приложение</string>
@@ -74,10 +74,10 @@
     <string name="battery_above_sub">Запускать только когда батарея выше уровня</string>
     <string name="minimum_battery">Минимальная батарея: %1$d%%</string>
 
-    <string name="section_actions">Затем (действия)</string>
+    <string name="section_actions">Выполнение</string>
 
-    <string name="step_triggers">Триггеры</string>
-    <string name="step_actions">Действия</string>
+    <string name="step_triggers">Условия</string>
+    <string name="step_actions">Выполнение</string>
     <string name="create_task">Создать задачу</string>
 
     <string name="ok">ОК</string>
@@ -264,10 +264,10 @@
     <string name="sound_silent">Без звука</string>
     <string name="move_up">Вверх</string>
     <string name="move_down">Вниз</string>
-    <string name="remove_action">Удалить действие</string>
+    <string name="remove_action">Удалить шаг выполнения</string>
     <string name="quick_save">Быстрое сохранение</string>
     <string name="saved_successfully">Задача сохранена</string>
-    <string name="next_needs_trigger">Сначала добавьте хотя бы один триггер</string>
+    <string name="next_needs_trigger">Сначала добавьте хотя бы одно условие</string>
     <string name="edit_task_title">Изменить задачу</string>
     <string name="battery_trigger_title">Уровень заряда</string>
     <string name="battery_below">Ниже</string>
@@ -303,22 +303,14 @@
     <string name="section_exit_behavior">Когда задача завершается</string>
 
     <string name="exit_auto_reply_label">Автоответ (SMS)</string>
-    <string name="exit_nothing_sub">Ничего не происходит — задача пرосто завершается</string>
-    <string name="add_exit_action">Добавить действие выхода</string>
-    <string name="pick_exit_action">Выбрать действие выхода</string>
-    <string name="trigger_type_ringer">Режим звука</string>
+    <string name="exit_nothing_sub">Ничего не происходит — задача пرосто завершается</string>    <string name="trigger_type_ringer">Режим звука</string>
     <string name="trigger_ringer">Режим звука</string>
     <string name="trigger_ringer_sub">Когда меняется режим звука</string>
     <string name="ringer_mode_label">Режим звука</string>
     <string name="ringer_mode_hint">Задача выполняется, когда телефон переключается в выбранный режим звука</string>
     <string name="change_now">Изменить сейчас</string>
-    <string name="pick_actions">Выбрать действия</string>
-    <string name="search_actions">Поиск действий…</string>
-    <string name="add_count">Добавить (%1$d)</string>
-    <string name="add_action">Добавить действие</string>
 
-    <string name="next_needs_action">Сначала добавьте хотя бы одно действие</string>
-    <string name="no_matching_actions">Нет подходящих действий</string>
+    <string name="next_needs_action">Сначала добавьте хотя бы один шаг выполнения</string>
     <string name="repeat_monthly">Ежемесячно</string>
     <string name="repeat_monthly_weekday">Тот же день недели месяца</string>
     <string name="week_of_month_label">Какая неделя месяца</string>
@@ -399,7 +391,7 @@
     <string name="plugin_reconfigure">Настроить</string>
     <string name="plugin_refresh">Обновить</string>
     <string name="plugin_no_edit">У этого плагина нет экрана настройки</string>
-    <string name="section_constraints">Если (условия)</string>
+    <string name="section_constraints">Ограничения</string>
     <string name="add_constraint">Добавить условие</string>
     <string name="constraints_empty_hint">Без условий - задача запускается по любому триггеру. Добавьте условия для управления.</string>
     <string name="constraint_n">Условие %1$d</string>
@@ -422,8 +414,7 @@
     <string name="notification_buttons_picker_title">Выберите задачу для запуска</string>
     <string name="notification_buttons_picker_empty">Других сохранённых задач пока нет</string>
     <string name="trigger_app_while_open">Выполняется при открытии приложения и остаётся активным, пока оно открыто; затем применяются параметры завершения задачи.</string>
-    <string name="exit_per_action_title">Параметры завершения для каждого действия</string>
-    <string name="exit_extra_actions_label">Дополнительные действия при завершении задачи</string>
+    <string name="exit_extra_actions_label">Дополнительные шаги при завершении задачи</string>
     <string name="notification_button_reply">Ответить текстом</string>
     <string name="notification_button_reply_title">Переменная ответа</string>
     <string name="notification_button_reply_hint">Ввод в уведомлении сохраняется в эту переменную, чтобы задача могла его использовать (например, %MyReply).</string>

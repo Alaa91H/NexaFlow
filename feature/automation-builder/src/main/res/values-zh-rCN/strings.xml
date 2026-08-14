@@ -7,9 +7,9 @@
     <string name="name_hint">例如：晨间任务</string>
 
     
-    <string name="section_when">何时（触发器）</string>
-    <string name="trigger_n">触发器 %1$d</string>
-    <string name="remove_trigger">移除触发器</string>
+    <string name="section_when">条件</string>
+    <string name="trigger_n">条件 %1$d</string>
+    <string name="remove_trigger">移除条件</string>
     <string name="trigger_type_time">时间</string>
     <string name="trigger_type_battery">电池</string>
     <string name="trigger_type_app">应用</string>
@@ -74,10 +74,10 @@
     <string name="battery_above_sub">仅当电量高于该水平时运行</string>
     <string name="minimum_battery">最低电量：%1$d%%</string>
 
-    <string name="section_actions">然后（操作）</string>
+    <string name="section_actions">执行</string>
 
-    <string name="step_triggers">触发器</string>
-    <string name="step_actions">操作</string>
+    <string name="step_triggers">条件</string>
+    <string name="step_actions">执行</string>
     <string name="create_task">创建任务</string>
 
     <string name="ok">确定</string>
@@ -264,10 +264,10 @@
     <string name="sound_silent">静音</string>
     <string name="move_up">上移</string>
     <string name="move_down">下移</string>
-    <string name="remove_action">移除操作</string>
+    <string name="remove_action">移除执行步骤</string>
     <string name="quick_save">快速保存</string>
     <string name="saved_successfully">任务已保存</string>
-    <string name="next_needs_trigger">请先添加至少一个触发器</string>
+    <string name="next_needs_trigger">请先添加至少一个条件</string>
     <string name="edit_task_title">编辑任务</string>
     <string name="battery_trigger_title">电池电量</string>
     <string name="battery_below">低于</string>
@@ -303,22 +303,14 @@
     <string name="section_exit_behavior">任务结束时</string>
 
     <string name="exit_auto_reply_label">自动回复（短信）</string>
-    <string name="exit_nothing_sub">什么都不会发生 — 任务直接结束</string>
-    <string name="add_exit_action">添加退出动作</string>
-    <string name="pick_exit_action">选择退出动作</string>
-    <string name="trigger_type_ringer">声音模式</string>
+    <string name="exit_nothing_sub">什么都不会发生 — 任务直接结束</string>    <string name="trigger_type_ringer">声音模式</string>
     <string name="trigger_ringer">声音模式</string>
     <string name="trigger_ringer_sub">当声音模式改变时</string>
     <string name="ringer_mode_label">声音模式</string>
     <string name="ringer_mode_hint">当手机切换到所选声音模式时执行任务</string>
     <string name="change_now">立即更改</string>
-    <string name="pick_actions">选择操作</string>
-    <string name="search_actions">搜索操作…</string>
-    <string name="add_count">添加 (%1$d)</string>
-    <string name="add_action">添加操作</string>
 
-    <string name="next_needs_action">请先添加至少一个操作</string>
-    <string name="no_matching_actions">没有匹配的操作</string>
+    <string name="next_needs_action">请先添加至少一个执行步骤</string>
     <string name="repeat_monthly">每月</string>
     <string name="repeat_monthly_weekday">每月同一天</string>
     <string name="week_of_month_label">每月的第几周</string>
@@ -399,7 +391,7 @@
     <string name="plugin_reconfigure">配置</string>
     <string name="plugin_refresh">刷新</string>
     <string name="plugin_no_edit">此插件没有配置界面</string>
-    <string name="section_constraints">如果（约束）</string>
+    <string name="section_constraints">约束</string>
     <string name="add_constraint">添加约束</string>
     <string name="constraints_empty_hint">无约束 - 每次触发时运行。添加条件以控制执行。</string>
     <string name="constraint_n">约束 %1$d</string>
@@ -422,8 +414,7 @@
     <string name="notification_buttons_picker_title">选择要运行的任务</string>
     <string name="notification_buttons_picker_empty">暂未保存其他任务</string>
     <string name="trigger_app_while_open">打开应用时执行，并保持生效直至关闭，然后应用任务的结束选项。</string>
-    <string name="exit_per_action_title">每个操作的结束选项</string>
-    <string name="exit_extra_actions_label">结束时执行额外操作</string>
+    <string name="exit_extra_actions_label">任务结束时执行额外步骤</string>
     <string name="notification_button_reply">文字回复</string>
     <string name="notification_button_reply_title">回复变量</string>
     <string name="notification_button_reply_hint">在通知中输入的文本会存入此变量，供任务使用（例如 %MyReply）。</string>

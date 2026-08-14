@@ -4,10 +4,10 @@
     <string name="delete">Удалить</string>
     <string name="not_found_title">Автоматизация не найдена</string>
     <string name="not_found_subtitle">Возможно, она была удалена.</string>
-    <string name="section_triggers">Триггеры</string>
-    <string name="no_triggers">Триггеры не настроены.</string>
-    <string name="section_actions">Действия</string>
-    <string name="no_actions">Действия не настроены.</string>
+    <string name="section_triggers">Условия</string>
+    <string name="no_triggers">Условия не настроены.</string>
+    <string name="section_actions">Выполнение</string>
+    <string name="no_actions">Выполнение не настроено.</string>
     <string name="run_now">Выполнить сейчас</string>
     <string name="running">Выполняется…</string>
     <string name="trigger_time">Время</string>

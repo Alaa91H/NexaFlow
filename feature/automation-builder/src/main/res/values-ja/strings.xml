@@ -7,9 +7,9 @@
     <string name="name_hint">例：朝のタスク</string>
 
     
-    <string name="section_when">いつ（トリガー）</string>
-    <string name="trigger_n">トリガー %1$d</string>
-    <string name="remove_trigger">トリガーを削除</string>
+    <string name="section_when">条件</string>
+    <string name="trigger_n">条件 %1$d</string>
+    <string name="remove_trigger">条件を削除</string>
     <string name="trigger_type_time">時刻</string>
     <string name="trigger_type_battery">バッテリー</string>
     <string name="trigger_type_app">アプリ</string>
@@ -74,10 +74,10 @@
     <string name="battery_above_sub">バッテリーがレベルを超えている場合のみ実行</string>
     <string name="minimum_battery">最小バッテリー: %1$d%%</string>
 
-    <string name="section_actions">次に（アクション）</string>
+    <string name="section_actions">実行</string>
 
-    <string name="step_triggers">トリガー</string>
-    <string name="step_actions">アクション</string>
+    <string name="step_triggers">条件</string>
+    <string name="step_actions">実行</string>
     <string name="create_task">タスクを作成</string>
 
     <string name="ok">OK</string>
@@ -264,10 +264,10 @@
     <string name="sound_silent">無音</string>
     <string name="move_up">上へ移動</string>
     <string name="move_down">下へ移動</string>
-    <string name="remove_action">アクションを削除</string>
+    <string name="remove_action">実行ステップを削除</string>
     <string name="quick_save">クイック保存</string>
     <string name="saved_successfully">タスクを保存しました</string>
-    <string name="next_needs_trigger">先にトリガーを1つ以上追加してください</string>
+    <string name="next_needs_trigger">先に条件を1つ以上追加してください</string>
     <string name="edit_task_title">タスクを編集</string>
     <string name="battery_trigger_title">バッテリーレベル</string>
     <string name="battery_below">以下</string>
@@ -303,22 +303,14 @@
     <string name="section_exit_behavior">タスク終了時</string>
 
     <string name="exit_auto_reply_label">自動返信（SMS）</string>
-    <string name="exit_nothing_sub">何も起こりません — タスクは単に終了します</string>
-    <string name="add_exit_action">終了アクションを追加</string>
-    <string name="pick_exit_action">終了アクションを選択</string>
-    <string name="trigger_type_ringer">サウンドモード</string>
+    <string name="exit_nothing_sub">何も起こりません — タスクは単に終了します</string>    <string name="trigger_type_ringer">サウンドモード</string>
     <string name="trigger_ringer">サウンドモード</string>
     <string name="trigger_ringer_sub">サウンドモードが変わったとき</string>
     <string name="ringer_mode_label">サウンドモード</string>
     <string name="ringer_mode_hint">スマホが選択したサウンドモードに切り替わるとタスクが実行されます</string>
     <string name="change_now">今すぐ変更</string>
-    <string name="pick_actions">アクションを選択</string>
-    <string name="search_actions">アクションを検索…</string>
-    <string name="add_count">追加 (%1$d)</string>
-    <string name="add_action">アクションを追加</string>
 
-    <string name="next_needs_action">先にアクションを1つ以上追加してください</string>
-    <string name="no_matching_actions">一致するアクションがありません</string>
+    <string name="next_needs_action">先に実行ステップを1つ以上追加してください</string>
     <string name="repeat_monthly">毎月</string>
     <string name="repeat_monthly_weekday">月の同じ曜日</string>
     <string name="week_of_month_label">月の何週目</string>
@@ -399,7 +391,7 @@
     <string name="plugin_reconfigure">設定</string>
     <string name="plugin_refresh">更新</string>
     <string name="plugin_no_edit">このプラグインには設定画面がありません</string>
-    <string name="section_constraints">もし（制約）</string>
+    <string name="section_constraints">制約</string>
     <string name="add_constraint">制約を追加</string>
     <string name="constraints_empty_hint">制約なし - トリガーごとに実行されます。条件を追加して制御できます。</string>
     <string name="constraint_n">制約 %1$d</string>
@@ -422,8 +414,7 @@
     <string name="notification_buttons_picker_title">実行するタスクを選択</string>
     <string name="notification_buttons_picker_empty">他のタスクはまだ保存されていません</string>
     <string name="trigger_app_while_open">アプリを開くと実行され、閉じるまでアクティブな状態が続き、その後タスクの終了オプションが適用されます。</string>
-    <string name="exit_per_action_title">アクションごとの終了オプション</string>
-    <string name="exit_extra_actions_label">終了時の追加アクション</string>
+    <string name="exit_extra_actions_label">タスク終了時の追加ステップ</string>
     <string name="notification_button_reply">テキストで返信</string>
     <string name="notification_button_reply_title">返信変数</string>
     <string name="notification_button_reply_hint">通知に入力したテキストはこの変数に保存され、タスクから利用できます（例: %MyReply）。</string>

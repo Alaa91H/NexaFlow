@@ -7,9 +7,9 @@
     <string name="name_hint">ex.: Tarefa matinal</string>
 
     
-    <string name="section_when">Quando (gatilhos)</string>
-    <string name="trigger_n">Gatilho %1$d</string>
-    <string name="remove_trigger">Remover gatilho</string>
+    <string name="section_when">Condições</string>
+    <string name="trigger_n">Condição %1$d</string>
+    <string name="remove_trigger">Remover condição</string>
     <string name="trigger_type_time">Hora</string>
     <string name="trigger_type_battery">Bateria</string>
     <string name="trigger_type_app">Aplicativo</string>
@@ -74,10 +74,10 @@
     <string name="battery_above_sub">Executar apenas quando a bateria estiver acima do nível</string>
     <string name="minimum_battery">Bateria mínima: %1$d%%</string>
 
-    <string name="section_actions">Então (ações)</string>
+    <string name="section_actions">Execução</string>
 
-    <string name="step_triggers">Gatilhos</string>
-    <string name="step_actions">Ações</string>
+    <string name="step_triggers">Condições</string>
+    <string name="step_actions">Execução</string>
     <string name="create_task">Criar tarefa</string>
 
     <string name="ok">OK</string>
@@ -264,10 +264,10 @@
     <string name="sound_silent">Silencioso</string>
     <string name="move_up">Mover para cima</string>
     <string name="move_down">Mover para baixo</string>
-    <string name="remove_action">Remover ação</string>
+    <string name="remove_action">Remover etapa de execução</string>
     <string name="quick_save">Salvar rapidamente</string>
     <string name="saved_successfully">Tarefa salva</string>
-    <string name="next_needs_trigger">Adicione pelo menos um gatilho primeiro</string>
+    <string name="next_needs_trigger">Adicione pelo menos uma condição primeiro</string>
     <string name="edit_task_title">Editar tarefa</string>
     <string name="battery_trigger_title">Nível da bateria</string>
     <string name="battery_below">Abaixo</string>
@@ -303,22 +303,14 @@
     <string name="section_exit_behavior">Quando a tarefa termina</string>
 
     <string name="exit_auto_reply_label">Resposta automática (SMS)</string>
-    <string name="exit_nothing_sub">Nada acontece — a tarefa simplesmente termina</string>
-    <string name="add_exit_action">Adicionar ação de saída</string>
-    <string name="pick_exit_action">Escolher ação de saída</string>
-    <string name="trigger_type_ringer">Modo de som</string>
+    <string name="exit_nothing_sub">Nada acontece — a tarefa simplesmente termina</string>    <string name="trigger_type_ringer">Modo de som</string>
     <string name="trigger_ringer">Modo de som</string>
     <string name="trigger_ringer_sub">Quando o modo de som muda</string>
     <string name="ringer_mode_label">Modo de som</string>
     <string name="ringer_mode_hint">A tarefa é executada quando o telefone muda para o modo de som escolhido</string>
     <string name="change_now">Alterar agora</string>
-    <string name="pick_actions">Escolher ações</string>
-    <string name="search_actions">Pesquisar ações…</string>
-    <string name="add_count">Adicionar (%1$d)</string>
-    <string name="add_action">Adicionar ação</string>
 
-    <string name="next_needs_action">Adicione pelo menos uma ação primeiro</string>
-    <string name="no_matching_actions">Nenhuma ação correspondente</string>
+    <string name="next_needs_action">Adicione pelo menos uma etapa de execução primeiro</string>
     <string name="repeat_monthly">Mensal</string>
     <string name="repeat_monthly_weekday">Mesmo dia da semana do mês</string>
     <string name="week_of_month_label">Qual semana do mês</string>
@@ -399,7 +391,7 @@
     <string name="plugin_reconfigure">Configurar</string>
     <string name="plugin_refresh">Atualizar</string>
     <string name="plugin_no_edit">Este plugin não tem tela de configuração</string>
-    <string name="section_constraints">Se (condições)</string>
+    <string name="section_constraints">Restrições</string>
     <string name="add_constraint">Adicionar condição</string>
     <string name="constraints_empty_hint">Sem condições - a tarefa roda a cada gatilho. Adicione condições para controlá-la.</string>
     <string name="constraint_n">Condição %1$d</string>
@@ -422,8 +414,7 @@
     <string name="notification_buttons_picker_title">Escolha uma tarefa para executar</string>
     <string name="notification_buttons_picker_empty">Nenhuma outra tarefa salva ainda</string>
     <string name="trigger_app_while_open">Executa ao abrir o app e permanece ativo até fechá-lo; em seguida, aplica as opções de término da tarefa.</string>
-    <string name="exit_per_action_title">Opções de término por ação</string>
-    <string name="exit_extra_actions_label">Ações adicionais ao término da tarefa</string>
+    <string name="exit_extra_actions_label">Etapas adicionais ao término da tarefa</string>
     <string name="notification_button_reply">Responder com texto</string>
     <string name="notification_button_reply_title">Variável de resposta</string>
     <string name="notification_button_reply_hint">Digitar na notificação guarda o texto nesta variável para a tarefa usar (ex.: %MyReply).</string>

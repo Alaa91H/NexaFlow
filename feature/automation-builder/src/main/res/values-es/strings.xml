@@ -7,9 +7,9 @@
     <string name="name_hint">p. ej. Tarea matutina</string>
 
     
-    <string name="section_when">Cuándo (disparadores)</string>
-    <string name="trigger_n">Disparador %1$d</string>
-    <string name="remove_trigger">Quitar disparador</string>
+    <string name="section_when">Condiciones</string>
+    <string name="trigger_n">Condición %1$d</string>
+    <string name="remove_trigger">Quitar condición</string>
     <string name="trigger_type_time">Hora</string>
     <string name="trigger_type_battery">Batería</string>
     <string name="trigger_type_app">App</string>
@@ -74,10 +74,10 @@
     <string name="battery_above_sub">Solo ejecutar cuando la batería supere el nivel</string>
     <string name="minimum_battery">Batería mínima: %1$d%%</string>
 
-    <string name="section_actions">Entonces (acciones)</string>
+    <string name="section_actions">Ejecución</string>
 
-    <string name="step_triggers">Disparadores</string>
-    <string name="step_actions">Acciones</string>
+    <string name="step_triggers">Condiciones</string>
+    <string name="step_actions">Ejecución</string>
     <string name="create_task">Crear tarea</string>
 
     <string name="ok">Aceptar</string>
@@ -264,10 +264,10 @@
     <string name="sound_silent">Silencio</string>
     <string name="move_up">Mover arriba</string>
     <string name="move_down">Mover abajo</string>
-    <string name="remove_action">Quitar acción</string>
+    <string name="remove_action">Quitar paso de ejecución</string>
     <string name="quick_save">Guardado rápido</string>
     <string name="saved_successfully">Tarea guardada</string>
-    <string name="next_needs_trigger">Añade al menos un disparador primero</string>
+    <string name="next_needs_trigger">Añade al menos una condición primero</string>
     <string name="edit_task_title">Editar tarea</string>
     <string name="battery_trigger_title">Nivel de batería</string>
     <string name="battery_below">Por debajo</string>
@@ -303,22 +303,14 @@
     <string name="section_exit_behavior">Cuando finaliza la tarea</string>
 
     <string name="exit_auto_reply_label">Respuesta automática (SMS)</string>
-    <string name="exit_nothing_sub">No ocurre nada: la tarea simplemente termina</string>
-    <string name="add_exit_action">Añadir acción de salida</string>
-    <string name="pick_exit_action">Elegir acción de salida</string>
-    <string name="trigger_type_ringer">Modo de sonido</string>
+    <string name="exit_nothing_sub">No ocurre nada: la tarea simplemente termina</string>    <string name="trigger_type_ringer">Modo de sonido</string>
     <string name="trigger_ringer">Modo de sonido</string>
     <string name="trigger_ringer_sub">Cuando cambia el modo de sonido</string>
     <string name="ringer_mode_label">Modo de sonido</string>
     <string name="ringer_mode_hint">La tarea se ejecuta cuando el teléfono cambia al modo de sonido elegido</string>
     <string name="change_now">Cambiar ahora</string>
-    <string name="pick_actions">Elegir acciones</string>
-    <string name="search_actions">Buscar acciones…</string>
-    <string name="add_count">Añadir (%1$d)</string>
-    <string name="add_action">Añadir acción</string>
 
-    <string name="next_needs_action">Añade al menos una acción primero</string>
-    <string name="no_matching_actions">No hay acciones que coincidan</string>
+    <string name="next_needs_action">Añade al menos un paso de ejecución primero</string>
     <string name="repeat_monthly">Mensual</string>
     <string name="repeat_monthly_weekday">Mismo día de la semana del mes</string>
     <string name="week_of_month_label">Qué semana del mes</string>
@@ -399,7 +391,7 @@
     <string name="plugin_reconfigure">Configurar</string>
     <string name="plugin_refresh">Actualizar</string>
     <string name="plugin_no_edit">Este complemento no tiene pantalla de configuración</string>
-    <string name="section_constraints">Si (condiciones)</string>
+    <string name="section_constraints">Restricciones</string>
     <string name="add_constraint">Añadir condición</string>
     <string name="constraints_empty_hint">Sin condiciones - la tarea se ejecuta con cada disparador. Añade condiciones para controlarla.</string>
     <string name="constraint_n">Condición %1$d</string>
@@ -422,8 +414,7 @@
     <string name="notification_buttons_picker_title">Elige una tarea para ejecutar</string>
     <string name="notification_buttons_picker_empty">Aún no hay otras tareas guardadas</string>
     <string name="trigger_app_while_open">Se ejecuta al abrir la app y permanece activo hasta que se cierra; después aplica las opciones de finalización de la tarea.</string>
-    <string name="exit_per_action_title">Opciones de finalización por acción</string>
-    <string name="exit_extra_actions_label">Acciones adicionales al finalizar la tarea</string>
+    <string name="exit_extra_actions_label">Pasos adicionales al finalizar la tarea</string>
     <string name="notification_button_reply">Responder con texto</string>
     <string name="notification_button_reply_title">Variable de respuesta</string>
     <string name="notification_button_reply_hint">Escribir en la notificación guarda el texto en esta variable para que la tarea pueda usarlo (p. ej. %MyReply).</string>

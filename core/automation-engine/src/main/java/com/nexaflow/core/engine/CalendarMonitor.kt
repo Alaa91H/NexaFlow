@@ -10,6 +10,7 @@ import android.os.Looper
 import android.provider.CalendarContract
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.Automation
@@ -47,6 +48,7 @@ class CalendarMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
+    private val activeStore: ActiveTriggerStore,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -87,7 +89,41 @@ class CalendarMonitor @Inject constructor(
             )
         }
         handler.postDelayed(periodicScan, RESCAN_INTERVAL_MS)
-        rescan()
+        scope.launch {
+            // Re-arm the durable active occurrences BEFORE the first rescan:
+            // rescan re-checks the occurrence window, so a task whose activated
+            // occurrence already ended while the process was down fires its
+            // missed exit on that first pass.
+            rearmFromLedger()
+            rescan()
+        }
+    }
+
+    /**
+     * Restores the durable active occurrences into the in-memory map. Keys
+     * carry the occurrence (`id|eventId:start`) so the exit check can find
+     * the exact occurrence that activated the task. Stale keys for
+     * deleted/disabled automations are pruned.
+     */
+    private suspend fun rearmFromLedger() {
+        val enabledIds = repository.getAutomations().first()
+            .filter { it.enabled }
+            .map { it.id }
+            .toSet()
+        activeStore.activeKeys(SOURCE).forEach { key ->
+            val id = key.substringBefore('|')
+            val occurrenceKey = key.substringAfter('|', "")
+            val eventId = occurrenceKey.substringBefore(':')
+            val start = occurrenceKey.substringAfter(':', "")
+            if (id in enabledIds && eventId.isNotEmpty() && start.isNotEmpty()) {
+                activeStates[id] = Occurrence(
+                    eventId.toLongOrNull() ?: return@forEach,
+                    start.toLongOrNull() ?: return@forEach
+                )
+            } else {
+                activeStore.clearAutomation(SOURCE, id)
+            }
+        }
     }
 
     fun stop() {
@@ -146,6 +182,8 @@ class CalendarMonitor @Inject constructor(
                             processed.add(occurrence)
                             changed = true
                             activeStates[automation.id] = occurrence
+                            val occurrenceKey = "${automation.id}|${occurrence.eventId}:${occurrence.start}"
+                            scope.launch { activeStore.markActive(SOURCE, occurrenceKey) }
                             fire(automation)
                         }
                     }
@@ -183,8 +221,11 @@ class CalendarMonitor @Inject constructor(
             }
             if (!stillActive) {
                 activeStates.remove(automation.id)
+                scope.launch {
+                    activeStore.clearAutomation(SOURCE, automation.id)
+                    executionEngine.runExit(automation)
+                }
                 changed = true
-                scope.launch { executionEngine.runExit(automation) }
             }
         }
 
@@ -319,5 +360,6 @@ class CalendarMonitor @Inject constructor(
         private const val LOOK_BEHIND_MS = 2 * 60 * 60 * 1000L
         private const val LOOK_AHEAD_MS = 3 * 24 * 60 * 60 * 1000L
         private const val MAX_PROCESSED = 256
+        private const val SOURCE = "calendar"
     }
 }

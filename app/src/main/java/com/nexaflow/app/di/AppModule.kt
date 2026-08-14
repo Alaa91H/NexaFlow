@@ -8,6 +8,7 @@ import com.nexaflow.core.database.AutomationDao
 import com.nexaflow.core.database.ExecutionDao
 import com.nexaflow.core.database.Migrations
 import com.nexaflow.core.database.VariableDao
+import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.datastore.LocationPreferences
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.PrivacyPreferences
@@ -117,6 +118,12 @@ object AppModule {
     @Singleton
     fun provideLocationPreferences(@ApplicationContext context: Context): LocationPreferences {
         return LocationPreferences(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideActiveTriggerStore(@ApplicationContext context: Context): ActiveTriggerStore {
+        return ActiveTriggerStore(context)
     }
 
     @Provides

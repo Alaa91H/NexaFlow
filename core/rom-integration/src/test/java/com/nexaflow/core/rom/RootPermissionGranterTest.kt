@@ -41,6 +41,7 @@ class RootPermissionGranterTest {
         RootPermissionGranter.appOpsProvider = null
         RootPermissionGranter.batteryExemptChecker = null
         RootPermissionGranter.accessibilityChecker = null
+        RootPermissionGranter.notificationListenerChecker = null
         SystemAppStatusDetector.pathResolution = null
         SystemAppStatusDetector.rootProbe = null
         SystemAppStatusDetector.refreshRootAvailability()
@@ -200,10 +201,119 @@ class RootPermissionGranterTest {
         assertTrue(grantRoot())
         RootPermissionGranter.permissionsProvider = { emptyList() }
         RootPermissionGranter.accessibilityChecker = { true }
+        RootPermissionGranter.notificationListenerChecker = { true }
 
         val result = grantAll()
 
         assertTrue(result.secureSettingsWritten.isEmpty())
         assertFalse(commands.any { it.contains("enabled_accessibility_services") })
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // Notification listener access
+    // ──────────────────────────────────────────────────────────────
+
+    @Test
+    fun `grantAllInternal enables notification listener via secure settings`() {
+        assertTrue(grantRoot())
+        RootPermissionGranter.permissionsProvider = { emptyList() }
+        RootPermissionGranter.notificationListenerChecker = { false }
+        RootPermissionGranter.shellRunner = { cmd ->
+            commands += cmd
+            if (cmd.startsWith("settings get secure enabled_notification_listeners")) {
+                SystemControlResult.ok("com.other.app/com.other.Service")
+            } else {
+                SystemControlResult.ok("ok")
+            }
+        }
+
+        val result = grantAll()
+
+        assertTrue(result.notificationListenerGranted)
+        assertTrue(result.secureSettingsWritten.contains("enabled_notification_listeners"))
+        assertTrue(
+            commands.any {
+                it.contains("settings put secure enabled_notification_listeners") &&
+                    it.contains("com.other.app/com.other.Service") &&
+                    it.contains("com.nexaflow.app/com.nexaflow.core.engine.NotificationListener")
+            }
+        )
+    }
+
+    @Test
+    fun `grantAllInternal skips notification listener when already granted`() {
+        assertTrue(grantRoot())
+        RootPermissionGranter.permissionsProvider = { emptyList() }
+        RootPermissionGranter.notificationListenerChecker = { true }
+
+        val result = grantAll()
+
+        assertFalse(result.notificationListenerGranted)
+        assertFalse(commands.any { it.contains("enabled_notification_listeners") })
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // Verification pass — remaining
+    // ──────────────────────────────────────────────────────────────
+
+    @Test
+    fun `grantAllInternal reports still-missing capabilities after failed grants`() {
+        assertTrue(grantRoot())
+        RootPermissionGranter.permissionsProvider = { listOf("android.permission.CAMERA") }
+        // The checker never flips to granted → the verification pass must
+        // report the permission as still missing even though the shell command
+        // itself reported success (real devices re-read platform state).
+        RootPermissionGranter.grantedChecker = { false }
+        RootPermissionGranter.batteryExemptChecker = { false }
+        RootPermissionGranter.accessibilityChecker = { false }
+        RootPermissionGranter.notificationListenerChecker = { false }
+        RootPermissionGranter.shellRunner = { cmd ->
+            commands += cmd
+            SystemControlResult.ok("ok")
+        }
+
+        val result = grantAll()
+
+        assertFalse(result.allGranted)
+        assertTrue(result.remaining.contains("permission:android.permission.CAMERA"))
+        assertTrue(result.remaining.contains("battery_optimization"))
+        assertTrue(result.remaining.contains("accessibility_service"))
+        assertTrue(result.remaining.contains("notification_listener"))
+    }
+
+    @Test
+    fun `grantAllInternal reports empty remaining when everything is granted`() {
+        assertTrue(grantRoot())
+        RootPermissionGranter.permissionsProvider = { listOf("android.permission.CAMERA") }
+        RootPermissionGranter.grantedChecker = { true }
+        RootPermissionGranter.batteryExemptChecker = { true }
+        RootPermissionGranter.accessibilityChecker = { true }
+        RootPermissionGranter.notificationListenerChecker = { true }
+        RootPermissionGranter.appOpsProvider = { emptyList() }
+
+        val result = grantAll()
+
+        assertTrue(result.remaining.isEmpty())
+        assertTrue(result.allGranted)
+        assertFalse(result.anyGranted) // nothing had to be granted
+        assertTrue(commands.isEmpty())
+    }
+
+    @Test
+    fun `requestAndGrantAll grants directly when root already available`() {
+        assertTrue(grantRoot())
+        RootPermissionGranter.permissionsProvider = { emptyList() }
+        RootPermissionGranter.appOpsProvider = { emptyList() }
+        RootPermissionGranter.batteryExemptChecker = { true }
+        RootPermissionGranter.accessibilityChecker = { true }
+        RootPermissionGranter.notificationListenerChecker = { true }
+
+        val result = RootPermissionGranter.requestAndGrantAllInternal {
+            "com.nexaflow.app"
+        }
+
+        assertTrue(result.remaining.isEmpty())
+        // No su prompt should be triggered — root is already granted.
+        assertFalse(commands.any { it.contains("id") })
     }
 }

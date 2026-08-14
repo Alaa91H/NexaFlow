@@ -12,9 +12,9 @@
     <string name="new_routine">नया कार्य</string>
     <string name="empty_automations_title">अभी कोई कार्य नहीं</string>
     <string name="empty_automations_sub">अपना पहला कार्य बनाने के लिए + पर टैप करें।</string>
-    <string name="summary_any_trigger">कोई भी ट्रिगर</string>
-    <string name="summary_no_actions">कोई क्रियाएँ नहीं</string>
-    <string name="summary_actions_count">%1$d क्रियाएँ</string>
+    <string name="summary_any_trigger">कोई भी शर्त</string>
+    <string name="summary_no_actions">कोई निष्पादन नहीं</string>
+    <string name="summary_actions_count">%1$d निष्पादन चरण</string>
     <string name="summary_template">जब %1$s → फिर %2$s</string>
     <string name="next_run_prefix">अगला · %1$s</string>
     <string name="last_run_prefix">पिछला रन · %1$s</string>

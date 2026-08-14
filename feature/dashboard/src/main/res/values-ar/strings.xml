@@ -12,9 +12,9 @@
     <string name="new_routine">مهمة جديدة</string>
     <string name="empty_automations_title">لا توجد مهام بعد</string>
     <string name="empty_automations_sub">اضغط + لإنشاء مهمتك الأولى.</string>
-    <string name="summary_any_trigger">أي مشغّل</string>
-    <string name="summary_no_actions">بدون مهام</string>
-    <string name="summary_actions_count">%1$d مهام</string>
+    <string name="summary_any_trigger">أي شرط</string>
+    <string name="summary_no_actions">بدون تنفيذ</string>
+    <string name="summary_actions_count">%1$d خطوة تنفيذ</string>
     <string name="summary_template">عند %1$s، ثم %2$s</string>
     <string name="next_run_prefix">التالي · %1$s</string>
     <string name="last_run_prefix">آخر تشغيل · %1$s</string>

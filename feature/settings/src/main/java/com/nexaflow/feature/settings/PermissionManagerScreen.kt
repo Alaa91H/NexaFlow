@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material.icons.filled.Tune
@@ -200,71 +199,6 @@ fun PermissionManagerScreen(navController: NavController) {
             item {
                 SectionHeader(text = stringResource(R.string.section_automation))
             }
-            // Root / Shizuku users: one button grants every permission silently
-            // instead of tapping through each system screen.
-            item {
-                val canAutoGrant = remember {
-                    PrivilegedRunner.isRootAvailable() || PrivilegedRunner.isShizukuGranted()
-                }
-                if (canAutoGrant) {
-                    var autoGranting by remember { mutableStateOf(false) }
-                    var grantFailed by remember { mutableStateOf(false) }
-                    var grantResult by remember {
-                        mutableStateOf<RootPermissionGranter.Result?>(null)
-                    }
-                    val grantMessage: String? = when {
-                        grantFailed -> stringResource(R.string.root_grant_failed)
-                        grantResult != null -> stringResource(
-                            R.string.root_grant_done,
-                            grantResult!!.runtimeGranted.size,
-                            grantResult!!.appOpsGranted.size,
-                            if (grantResult!!.batteryExempted) 1 else 0
-                        )
-                        else -> null
-                    }
-                    NexaFlowCard {
-                        SettingRow(
-                            icon = Icons.Filled.Security,
-                            title = stringResource(R.string.root_grant_all),
-                            subtitle = stringResource(R.string.root_grant_all_sub),
-                            trailing = {
-                                TextButton(onClick = {
-                                    autoGranting = true
-                                    grantFailed = false
-                                    grantResult = null
-                                    Thread {
-                                        val result = runCatching {
-                                            RootPermissionGranter.grantAll(context.applicationContext)
-                                        }.getOrNull()
-                                        autoGranting = false
-                                        refreshTick++
-                                        if (result == null) {
-                                            grantFailed = true
-                                        } else {
-                                            grantResult = result
-                                        }
-                                    }.start()
-                                }) {
-                                    Text(
-                                        text = stringResource(
-                                            if (autoGranting) R.string.root_granting else R.string.root_grant_all_action
-                                        ),
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-                        )
-                        if (grantMessage != null) {
-                            Text(
-                                text = grantMessage,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.secondary,
-                                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
-                            )
-                        }
-                    }
-                }
-            }
             item {
                 NexaFlowCard {
                     entries.forEach { entry ->
@@ -372,11 +306,18 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
             icon = Icons.Filled.Terminal,
             isGranted = { PrivilegedRunner.isRootAvailable() },
             // Request root through the root manager's grant dialog (one tap),
-            // never through app info. If the prompt is denied/times out, fall
-            // back to opening the root manager app so the user can grant there.
+            // never through app info. Once granted, every permission the app
+            // needs is granted automatically through the elevated shell — the
+            // dedicated "grant all" card is gone because this is now the flow.
             openAction = { context ->
                 ElevatedAccessShortcuts.requestRootAccess(context) { granted ->
-                    if (!granted) ElevatedAccessShortcuts.openRootManager(context)
+                    if (granted) {
+                        Thread {
+                            RootPermissionGranter.requestAndGrantAll(context.applicationContext)
+                        }.start()
+                    } else {
+                        ElevatedAccessShortcuts.openRootManager(context)
+                    }
                 }
             }
         ),

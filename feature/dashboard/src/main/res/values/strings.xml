@@ -12,9 +12,9 @@
     <string name="new_routine">New task</string>
     <string name="empty_automations_title">No tasks yet</string>
     <string name="empty_automations_sub">Tap + to create your first task.</string>
-    <string name="summary_any_trigger">any trigger</string>
-    <string name="summary_no_actions">no actions</string>
-    <string name="summary_actions_count">%1$d action(s)</string>
+    <string name="summary_any_trigger">any condition</string>
+    <string name="summary_no_actions">no execution</string>
+    <string name="summary_actions_count">%1$d execution step(s)</string>
     <string name="summary_template">When %1$s → Then %2$s</string>
     <string name="next_run_prefix">Next · %1$s</string>
     <string name="last_run_prefix">Last run · %1$s</string>

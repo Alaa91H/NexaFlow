@@ -12,9 +12,9 @@
     <string name="new_routine">Neue Aufgabe</string>
     <string name="empty_automations_title">Noch keine Aufgaben</string>
     <string name="empty_automations_sub">Tippe auf +, um deine erste Aufgabe zu erstellen.</string>
-    <string name="summary_any_trigger">beliebiger Auslöser</string>
-    <string name="summary_no_actions">keine Aktionen</string>
-    <string name="summary_actions_count">%1$d Aktion(en)</string>
+    <string name="summary_any_trigger">beliebige Bedingung</string>
+    <string name="summary_no_actions">keine Ausführung</string>
+    <string name="summary_actions_count">%1$d Ausführungsschritt(e)</string>
     <string name="summary_template">Wenn %1$s → Dann %2$s</string>
     <string name="next_run_prefix">Nächste · %1$s</string>
     <string name="last_run_prefix">Letzter Lauf · %1$s</string>

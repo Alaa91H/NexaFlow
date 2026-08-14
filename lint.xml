@@ -9,8 +9,45 @@
     so a string that is referenced anywhere (including across modules via a
     dependency's R class) is never flagged, while a genuinely dead resource
     blocks the build and is reported by the CI script
-    scripts/check_lint_unused_resources.py.
+    scripts/check_resources.py.
+
+    The translation-integrity checks (MissingTranslation, ExtraTranslation) are
+    errors too: every locale must be a strict superset/subset of the default
+    `values/strings.xml` (the parity script enforces identical key sets, so a
+    missing or orphaned translation is a genuine defect, never a locale that
+    intentionally falls back). UnusedIds flags view IDs declared with @+id that
+    are never referenced — dead markup. All three fail the build and surface in
+    the CI lint report.
+
+    Code-quality and string-hygiene checks are errors as well:
+    CheckResult (ignoring the return value of a @CheckResult method),
+    HardcodedText (user-visible text hardcoded in layouts or Compose instead of
+    a string resource) and TypographyDashes (literal dash characters in string
+    resources that must use \u2013/\u2014 escapes). Like the resource checks,
+    each is guarded in scripts/check_resources.py so a future relaxation fails
+    the gate before a lint run.
+
+    Deliberate non-zero-tolerance relaxations, kept here (not in per-module
+    lint.xml files) so every module inherits the exact same config and no
+    module file can ever carry a hidden ignore-list:
+    - ProtectedPermissions: the manifest declares signature/privileged
+      permissions intentionally (custom-ROM system-app integration, see
+      core/rom-integration/privapp-permissions-nexaflow.xml); they are granted
+      only in priv-app and the app degrades gracefully without them.
+    - GradleDependency / NewerVersionAvailable: dependency versions are pinned
+      in gradle/libs.versions.toml deliberately for reproducible builds;
+      "newer version available" hints are noise.
 -->
 <lint>
     <issue id="UnusedResources" severity="error" />
+    <issue id="MissingTranslation" severity="error" />
+    <issue id="ExtraTranslation" severity="error" />
+    <issue id="UnusedIds" severity="error" />
+    <issue id="CheckResult" severity="error" />
+    <issue id="HardcodedText" severity="error" />
+    <issue id="TypographyDashes" severity="error" />
+
+    <issue id="ProtectedPermissions" severity="ignore" />
+    <issue id="GradleDependency" severity="ignore" />
+    <issue id="NewerVersionAvailable" severity="ignore" />
 </lint>

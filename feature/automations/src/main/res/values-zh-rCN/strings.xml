@@ -4,10 +4,10 @@
     <string name="delete">删除</string>
     <string name="not_found_title">未找到自动化</string>
     <string name="not_found_subtitle">可能已被删除。</string>
-    <string name="section_triggers">触发器</string>
-    <string name="no_triggers">未配置触发器。</string>
-    <string name="section_actions">操作</string>
-    <string name="no_actions">未配置操作。</string>
+    <string name="section_triggers">条件</string>
+    <string name="no_triggers">未配置条件。</string>
+    <string name="section_actions">执行</string>
+    <string name="no_actions">未配置执行。</string>
     <string name="run_now">立即运行</string>
     <string name="running">运行中…</string>
     <string name="trigger_time">时间</string>

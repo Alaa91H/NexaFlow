@@ -44,8 +44,10 @@ import androidx.compose.ui.unit.dp
 import com.nexaflow.core.rom.ElevatedAccessShortcuts
 import com.nexaflow.core.rom.PermissionStatus
 import com.nexaflow.core.rom.PrivilegedRunner
+import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.core.rom.SystemAppStatusDetector
 import com.nexaflow.core.ui.IconBadge
+import com.nexaflow.core.ui.NexaFlowAnimatedVisibility
 import com.nexaflow.core.ui.StatusPill
 import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.domain.models.ActionType
@@ -366,6 +368,49 @@ fun ItemHeader(text: String) {
     )
 }
 
+/**
+ * Google-2026 single-open category accordion: a row of category chips where
+ * tapping one expands its options and closes any other open chip — only ONE
+ * category is open at a time. Tapping the open chip again collapses it.
+ *
+ * @param tabs label + leading icon per category chip (in order)
+ * @param expandedIndex which category is currently open, or null
+ * @param onExpandedChange called with the tapped index, or null to collapse
+ * @param content renders the options of the category at the given index
+ */
+@Composable
+fun CategoryAccordion(
+    tabs: List<Pair<String, ImageVector?>>,
+    expandedIndex: Int?,
+    onExpandedChange: (Int?) -> Unit,
+    content: @Composable (Int) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            tabs.forEachIndexed { index, (label, icon) ->
+                SelectChip(
+                    selected = expandedIndex == index,
+                    onClick = { onExpandedChange(if (expandedIndex == index) null else index) },
+                    label = label,
+                    leadingIcon = icon
+                )
+            }
+        }
+        // Each category's options stay composed; only the expanded one is
+        // visible, so switching chips animates the old section closed while
+        // the new one opens (single-open invariant).
+        tabs.indices.forEach { index ->
+            NexaFlowAnimatedVisibility(visible = expandedIndex == index) {
+                content(index)
+            }
+        }
+    }
+}
+
 @Composable
 fun ActionOptionRow(
     option: ActionOption,
@@ -543,11 +588,18 @@ object PermissionShortcuts {
             SpecialPermission.SHIZUKU -> ElevatedAccessShortcuts.openShizuku(context)
             // Root: trigger the root manager's allow/deny grant dialog directly
             // (Magisk/KernelSU/APatch) instead of opening app info — one tap to
-            // grant, exactly how Tasker/Termux request root. If the prompt is
-            // denied or times out, fall back to the root manager app so the
-            // user is never left with a dead tap.
+            // grant, exactly how Tasker/Termux request root. Once granted, every
+            // permission the app needs is granted automatically through the
+            // elevated shell. If the prompt is denied or times out, fall back to
+            // the root manager app so the user is never left with a dead tap.
             SpecialPermission.ROOT -> ElevatedAccessShortcuts.requestRootAccess(context) { granted ->
-                if (!granted) ElevatedAccessShortcuts.openRootManager(context)
+                if (granted) {
+                    Thread {
+                        RootPermissionGranter.requestAndGrantAll(context.applicationContext)
+                    }.start()
+                } else {
+                    ElevatedAccessShortcuts.openRootManager(context)
+                }
             }
             // Elevated actions run through root, Shizuku, or a system app; prefer
             // an in-app Shizuku grant when available, otherwise the root dialog.
@@ -556,7 +608,13 @@ object PermissionShortcuts {
                     ElevatedAccessShortcuts.openShizuku(context)
                 } else {
                     ElevatedAccessShortcuts.requestRootAccess(context) { granted ->
-                        if (!granted) ElevatedAccessShortcuts.openRootManager(context)
+                        if (granted) {
+                            Thread {
+                                RootPermissionGranter.requestAndGrantAll(context.applicationContext)
+                            }.start()
+                        } else {
+                            ElevatedAccessShortcuts.openRootManager(context)
+                        }
                     }
                 }
             }

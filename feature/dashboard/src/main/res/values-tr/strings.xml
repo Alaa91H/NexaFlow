@@ -12,9 +12,9 @@
     <string name="new_routine">Yeni görev</string>
     <string name="empty_automations_title">Henüz görev yok</string>
     <string name="empty_automations_sub">İlk görevi oluşturmak için + simgesine dokunun.</string>
-    <string name="summary_any_trigger">herhangi bir tetikleyici</string>
-    <string name="summary_no_actions">eylem yok</string>
-    <string name="summary_actions_count">%1$d eylem</string>
+    <string name="summary_any_trigger">herhangi bir koşul</string>
+    <string name="summary_no_actions">yürütme yok</string>
+    <string name="summary_actions_count">%1$d yürütme adımı</string>
     <string name="summary_template">%1$s olduğunda → %2$s</string>
     <string name="next_run_prefix">Sıradaki · %1$s</string>
     <string name="last_run_prefix">Son çalıştırma · %1$s</string>

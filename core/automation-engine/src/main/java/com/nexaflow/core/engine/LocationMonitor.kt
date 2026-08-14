@@ -5,6 +5,7 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
+import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.Automation
@@ -23,6 +24,7 @@ class LocationMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
+    private val activeStore: ActiveTriggerStore,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -48,11 +50,35 @@ class LocationMonitor @Inject constructor(
         if (initialized) return
         initialized = true
         scope.launch {
+            // Re-arm the durable active set BEFORE listening starts: the next
+            // location fix reconciles against the restored state, so a task
+            // whose ENTER/EXIT condition already ended while the process was
+            // down fires its missed exit on the first fix.
+            rearmFromLedger()
             repository.getAutomations().collect { automations ->
                 val hasLocationTrigger = automations.any { automation ->
                     automation.enabled && automation.triggers.any { it.type == TriggerType.LOCATION }
                 }
                 updateListening(hasLocationTrigger, automations)
+            }
+        }
+    }
+
+    /**
+     * Restores the durable active ids into the in-memory map. Stale keys for
+     * deleted/disabled automations are pruned.
+     */
+    private suspend fun rearmFromLedger() {
+        val enabledIds = repository.getAutomations().first()
+            .filter { it.enabled }
+            .map { it.id }
+            .toSet()
+        activeStore.activeKeys(SOURCE).forEach { key ->
+            val id = key.substringBefore('|')
+            if (id in enabledIds) {
+                activeStates[id] = true
+            } else {
+                activeStore.clearAutomation(SOURCE, id)
             }
         }
     }
@@ -183,6 +209,7 @@ class LocationMonitor @Inject constructor(
                     if (shouldRun && now - (lastRunAt[automation.id] ?: 0L) > automation.cooldownMillis) {
                         lastRunAt[automation.id] = now
                         activeStates[automation.id] = true
+                        activeStore.markActive(SOURCE, automation.id)
                         executionEngine.runAutomation(automation)
                     }
                     // Exit behavior: fire when the configured state (ENTER=inside, EXIT=outside) ends.
@@ -194,11 +221,16 @@ class LocationMonitor @Inject constructor(
                     if (activeShouldEnd && now - (lastRunAt[automation.id] ?: 0L) > automation.cooldownMillis) {
                         lastRunAt[automation.id] = now
                         activeStates.remove(automation.id)
+                        activeStore.clearAutomation(SOURCE, automation.id)
                         executionEngine.runExit(automation)
                     }
                     insideByAutomation[automation.id] = inside
                 }
         }
+    }
+
+    private companion object {
+        const val SOURCE = "location"
     }
 
 }

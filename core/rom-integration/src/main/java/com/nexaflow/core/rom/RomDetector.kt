@@ -14,10 +14,12 @@ object RomDetector {
         val brand: String,
         val device: String,
         val model: String,
+        val manufacturer: String,
         val release: String,
         val securityPatch: String,
         val id: String,
-        val display: String
+        val display: String,
+        val sdkInt: Int
     )
 
     private fun defaultBuildValues(): RomBuildInfo {
@@ -25,10 +27,12 @@ object RomDetector {
             brand = Build.BRAND,
             device = Build.DEVICE,
             model = Build.MODEL,
+            manufacturer = Build.MANUFACTURER,
             release = Build.VERSION.RELEASE,
             securityPatch = Build.VERSION.SECURITY_PATCH,
             id = Build.ID,
-            display = Build.DISPLAY
+            display = Build.DISPLAY,
+            sdkInt = Build.VERSION.SDK_INT
         )
         return RomBuildInfo(
             family = RomFamily.OTHER,
@@ -38,50 +42,38 @@ object RomDetector {
             androidVersion = v.release ?: "",
             securityPatch = v.securityPatch ?: "",
             buildId = v.id ?: "",
-            buildDisplay = v.display ?: ""
+            buildDisplay = v.display ?: "",
+            androidSdk = v.sdkInt
         )
     }
 
+    /**
+     * Detects the ROM family through [RomDetectionMatrix]: reads every
+     * `ro.*` property the matrix understands in one snapshot, then classifies
+     * with the brand/manufacturer tiebreaks (custom ROMs before OEM skins,
+     * forks before bases, ColorOS-family brand disambiguation).
+     */
     fun detect(): RomBuildInfo {
-        val lineageVersion = SystemPropertyProvider.get("ro.lineage.version")
-        val crDroidVersion = SystemPropertyProvider.get("ro.crdroid.version")
-        val evolutionVersion = SystemPropertyProvider.get("ro.evolution.version")
-        val pixelExperienceVersion = SystemPropertyProvider.get("ro.pixelexperience.version")
-        val paranoidAndroidVersion = SystemPropertyProvider.get("ro.pa.version")
-        val miUiVersion = SystemPropertyProvider.get("ro.miui.ui.version.name")
-        val hyperOsVersion = SystemPropertyProvider.get("ro.mi.os.version.name")
-        val colorOsVersion = SystemPropertyProvider.get("ro.oplus.version")
-        val oxygenVersion = SystemPropertyProvider.get("ro.oxygen.version")
-        val oneUiVersion = SystemPropertyProvider.get("ro.build.version.oneui")
-        val evolutionBuildType = SystemPropertyProvider.get("ro.evolution.buildtype")
-        val isGoogle = Build.MANUFACTURER.equals("Google", ignoreCase = true)
-
-        // Evolution X is a fork of LineageOS: it sets both ro.evolution.version
-        // (its own) and ro.lineage.version (inherited), so an Evolution X build
-        // must be classified as EVOLUTION_X first — even though the LineageOS
-        // property is present. Other LineageOS-based ROMs (crDroid) are also
-        // checked after Evolution X to avoid misclassification.
-        val family = when {
-            evolutionVersion.isNotBlank() -> RomFamily.EVOLUTION_X
-            hyperOsVersion.isNotBlank() -> RomFamily.HYPER_OS
-            miUiVersion.isNotBlank() -> RomFamily.MIUI
-            crDroidVersion.isNotBlank() -> RomFamily.CR_DROID
-            lineageVersion.isNotBlank() -> RomFamily.LINEAGE_OS
-            pixelExperienceVersion.isNotBlank() -> RomFamily.PIXEL_EXPERIENCE
-            paranoidAndroidVersion.isNotBlank() -> RomFamily.PARANOID_ANDROID
-            oneUiVersion.isNotBlank() -> RomFamily.ONE_UI
-            oxygenVersion.isNotBlank() -> RomFamily.OXYGEN_OS
-            colorOsVersion.isNotBlank() -> RomFamily.COLOR_OS
-            isGoogle -> RomFamily.PIXEL
-            else -> RomFamily.OTHER
-        }
-
+        // Metadata keys the matrix reads into the build info beyond classification.
+        val metadataProps = setOf("ro.evolution.buildtype")
+        val props = (RomDetectionMatrix.ALL_PROPERTIES + metadataProps)
+            .associateWith { SystemPropertyProvider.get(it) }
+            .filterValues { it.isNotBlank() }
         val base = buildValues()
-        return base.copy(
-            family = family,
-            evolutionVersion = evolutionVersion,
-            lineageVersion = lineageVersion,
-            evolutionBuildType = evolutionBuildType
+        val info = RomDetectionMatrix.detect(
+            props = props,
+            brand = base.brand,
+            manufacturer = base.manufacturer,
+            device = base.device,
+            model = base.model,
+            androidVersion = base.androidVersion,
+            securityPatch = base.securityPatch,
+            buildId = base.buildId,
+            buildDisplay = base.buildDisplay,
+            sdkInt = base.androidSdk
         )
+        // The injected seam may carry over the legacy evolution/lineage fields
+        // from defaultBuildValues; the matrix result is authoritative.
+        return info
     }
 }

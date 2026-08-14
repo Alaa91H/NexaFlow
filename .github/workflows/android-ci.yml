@@ -20,17 +20,28 @@ jobs:
         cache: gradle
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+    - name: Auto-fix resource hygiene (orphans, duplicates, balance)
+      # --check: the tree must already be auto-fix-clean. If this fails, run
+      # `python3 scripts/auto_fix.py` locally and commit the result.
+      run: python3 scripts/auto_fix.py --check
     - name: Verify string parity across all locales
       run: python3 scripts/check_strings_parity.py
-    - name: Verify no orphaned or removed advanced-user strings
-      run: python3 scripts/check_orphan_strings.py
+    - name: Unit-test the resource gate (orphan drawable/layout/dimen)
+      run: python3 scripts/tests/test_check_resources.py
+    - name: pytest the resource gate (orphans, lint report, pins guard, auto-fix)
+      run: >-
+        python3 -m pytest
+        scripts/tests/test_check_resources_pytest.py
+        scripts/tests/test_check_lint_config.py
+        scripts/tests/test_auto_fix.py
+        -q
     - name: Run Detekt static analysis
       run: ./gradlew detekt
     - name: Run Android Lint
       run: ./gradlew lintDebug
-    - name: Report unused resources (zero-tolerance gate)
+    - name: Unified resource gate (banned + orphans + lint UnusedResources)
       if: always()
-      run: python3 scripts/check_lint_unused_resources.py
+      run: python3 scripts/check_resources.py
     - name: Upload Lint Report
       if: failure()
       uses: actions/upload-artifact@v7

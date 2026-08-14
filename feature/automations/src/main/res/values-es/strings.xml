@@ -4,10 +4,10 @@
     <string name="delete">Eliminar</string>
     <string name="not_found_title">No se encontró la automatización</string>
     <string name="not_found_subtitle">Puede que se haya eliminado.</string>
-    <string name="section_triggers">Disparadores</string>
-    <string name="no_triggers">No hay disparadores configurados.</string>
-    <string name="section_actions">Acciones</string>
-    <string name="no_actions">No hay acciones configuradas.</string>
+    <string name="section_triggers">Condiciones</string>
+    <string name="no_triggers">No hay condiciones configuradas.</string>
+    <string name="section_actions">Ejecución</string>
+    <string name="no_actions">No hay ejecución configurada.</string>
     <string name="run_now">Ejecutar ahora</string>
     <string name="running">Ejecutando…</string>
     <string name="trigger_time">Hora</string>

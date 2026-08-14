@@ -4,10 +4,10 @@
     <string name="delete">Delete</string>
     <string name="not_found_title">Automation not found</string>
     <string name="not_found_subtitle">It may have been deleted.</string>
-    <string name="section_triggers">Triggers</string>
-    <string name="no_triggers">No triggers configured.</string>
-    <string name="section_actions">Actions</string>
-    <string name="no_actions">No actions configured.</string>
+    <string name="section_triggers">Conditions</string>
+    <string name="no_triggers">No conditions configured.</string>
+    <string name="section_actions">Execution</string>
+    <string name="no_actions">No execution configured.</string>
     <string name="run_now">Run Now</string>
     <string name="running">Running…</string>
     <string name="trigger_time">Time</string>

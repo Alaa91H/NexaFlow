@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
+import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.compat.EventSource
@@ -30,6 +31,7 @@ class BatteryMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
+    private val activeStore: ActiveTriggerStore,
     @ApplicationScope private val scope: CoroutineScope
 ) : EventSource {
 
@@ -92,11 +94,21 @@ class BatteryMonitor @Inject constructor(
     fun initialize() {
         if (registered) return
         registered = true
-        context.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-        // ACTION_BATTERY_CHANGED is sticky: registering delivers the current
-        // level immediately, so an already-crossed threshold fires right away
-        // (e.g. the app starts while the battery is below the target).
-        startSafetyNet()
+        scope.launch {
+            // Re-arm the in-memory active set from the durable ledger BEFORE
+            // the sticky battery broadcast is delivered. A task that was
+            // triggered before a process/service restart must still fire its
+            // exit behavior when the condition ends; if the condition already
+            // ended while the process was down, the immediate sticky delivery
+            // below catches it (handleBatteryChange sees `hadActive`).
+            rearmFromLedger()
+            if (!registered) return@launch
+            context.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+            // ACTION_BATTERY_CHANGED is sticky: registering delivers the current
+            // level immediately, so an already-crossed threshold fires right away
+            // (e.g. the app starts while the battery is below the target).
+            startSafetyNet()
+        }
     }
 
     /**
@@ -188,6 +200,28 @@ class BatteryMonitor @Inject constructor(
         }
     }
 
+    /**
+     * Restores the durable active keys into the in-memory set before the sticky
+     * broadcast is delivered. Keys for automations that were deleted or disabled
+     * while the process was down are pruned so a stale mark can never fire a
+     * stale exit. Composite keys (`id|plugType`) collapse to the plain id — the
+     * exit check matches either form.
+     */
+    private suspend fun rearmFromLedger() {
+        val enabledIds = repository.getAutomations().first()
+            .filter { it.enabled }
+            .map { it.id }
+            .toSet()
+        activeStore.activeKeys(sourceId).forEach { key ->
+            val id = key.substringBefore('|')
+            if (id in enabledIds) {
+                activeBatteryTriggers.add(id)
+            } else {
+                activeStore.clearAutomation(sourceId, id)
+            }
+        }
+    }
+
     private fun handleBatteryChange(level: Int, status: Int, plugged: Int) {
         if (level <= 0) return
         // Record the state we evaluated so the safety-net loop can skip no-op
@@ -229,6 +263,7 @@ class BatteryMonitor @Inject constructor(
                         val now = System.currentTimeMillis()
                         if (activeBatteryTriggers.add(key) && now - last > automation.cooldownMillis) {
                             lastRunAt[automation.id] = now
+                            activeStore.markActive(sourceId, key)
                             executionEngine.runAutomation(automation)
                         }
                     } else {
@@ -240,6 +275,7 @@ class BatteryMonitor @Inject constructor(
                             activeBatteryTriggers.removeAll {
                                 it == automation.id || it.startsWith(prefix)
                             }
+                            activeStore.clearAutomation(sourceId, automation.id)
                             executionEngine.runExit(automation)
                         }
                     }

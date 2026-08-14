@@ -14,6 +14,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.SmsPreferences
 import dagger.hilt.android.AndroidEntryPoint
@@ -66,6 +67,9 @@ class MonitoringService : Service() {
     @Inject
     lateinit var triggerIndex: TriggerIndex
 
+    @Inject
+    lateinit var activeTriggerStore: ActiveTriggerStore
+
     /**
      * Mirror of the Notification Manager's «monitoring notification» toggle.
      * Starts hidden (matching the [NotificationSettings.monitoringEnabled]
@@ -91,20 +95,29 @@ class MonitoringService : Service() {
                 applyMonitoringChannel(settings.enabled && settings.monitoringEnabled)
             }
         }
-        batteryMonitor.initialize()
-        deviceEventMonitor.initialize()
-        connectivityMonitor.initialize()
-        locationMonitor.initialize()
-        bluetoothMonitor.initialize()
-        ringerModeMonitor.initialize()
-        calendarMonitor.initialize()
-        sensorMonitor.initialize()
-        romSettingMonitor.initialize()
-        webhookServer.initialize()
-        armSmsConsentIfEnabled()
-        // Build the O(1) trigger index and keep it in sync with the database
-        // (rebuilt on every save/enable-toggle via the Room-backed flow).
-        scope.launch { triggerIndex.start() }
+        // Boot hygiene runs BEFORE any monitor re-arms from the ledger, so a
+        // key armed days ago (device crashed while a trigger was active, exit
+        // never ran) is dropped here and can never fire a late exit on boot.
+        // The whole init sequence lives in one coroutine so the purge commits
+        // before the first re-arm read — no race between the two.
+        scope.launch {
+            activeTriggerStore.purgeExpired()
+            batteryMonitor.initialize()
+            deviceEventMonitor.initialize()
+            connectivityMonitor.initialize()
+            locationMonitor.initialize()
+            bluetoothMonitor.initialize()
+            ringerModeMonitor.initialize()
+            calendarMonitor.initialize()
+            sensorMonitor.initialize()
+            romSettingMonitor.initialize()
+            webhookServer.initialize()
+            armSmsConsentIfEnabled()
+            // Build the O(1) trigger index and keep it in sync with the
+            // database (rebuilt on every save/enable-toggle via the Room-
+            // backed flow).
+            triggerIndex.start()
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -115,7 +128,11 @@ class MonitoringService : Service() {
         // The notification shares a single flag with the Permission Manager
         // OemCompat card (OemCompat.isHintDelivered), so the user is never
         // alerted by both channels.
-        OemAutostartNotifier.maybeShow(this)
+        //
+        // Run off the main thread: maybeShow triggers ROM-family detection
+        // (OemCompat -> RomDetector), and the first call lazily parses
+        // /system/build.prop — a StrictMode DiskReadViolation on main.
+        scope.launch { OemAutostartNotifier.maybeShow(this@MonitoringService) }
         return START_STICKY
     }
 
@@ -216,23 +233,63 @@ class MonitoringService : Service() {
 
     /**
      * Applies the user's «monitoring notification» choice to the live FGS
-     * notification: hidden channels use IMPORTANCE_NONE (the notification is
-     * never posted to the shade) and visible ones use IMPORTANCE_MIN (silent,
-     * no status-bar icon — the quietest form Android permits while the
-     * foreground service runs). Re-issuing startForeground with the same
-     * service and id simply replaces the notification in place.
+     * notification. The channel is DELETED and recreated at the target
+     * importance — never just re-created in place: once Android has created a
+     * channel, calling [NotificationManager.createNotificationChannel] again
+     * with a *lower* importance is silently ignored (the first importance is
+     * cached for the app's lifetime). That is exactly why the «مراقبة NexaFlow»
+     * card kept appearing after the user turned it off. Deleting first forces
+     * the system to accept the new importance, and removing the card explicitly
+     * ([NotificationManager.cancel]) guarantees nothing stays in the shade.
+     *
+     * - hidden: IMPORTANCE_NONE — no card in the shade, no badge, no sound.
+     * - visible: IMPORTANCE_MIN — silent card (no status-bar icon), the
+     *   quietest form Android permits while a foreground service runs.
+     *
+     * Re-issuing startForeground with the same service and id simply replaces
+     * the notification in place, so the FGS keeps running either way.
      */
     private fun applyMonitoringChannel(visible: Boolean) {
         notificationVisible = visible
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(
-            NotificationChannel(
-                CHANNEL_ID,
-                getString(R.string.monitoring_channel_name),
-                channelImportance(visible)
-            ).apply { setShowBadge(visible) }
-        )
-        startAsForeground()
+        if (visible) {
+            recreateChannel(notificationManager, visible)
+            startAsForeground()
+        } else {
+            // Delete-then-recreate so IMPORTANCE_NONE actually takes effect,
+            // then remove any card already posted so nothing lingers in the
+            // shade while the FGS continues running.
+            recreateChannel(notificationManager, visible)
+            notificationManager.cancel(NOTIFICATION_ID)
+        }
+    }
+
+    /**
+     * Deletes and recreates the monitoring channel at the given importance.
+     * Deleting a channel also removes any notification currently posted on it,
+     * so the hidden state is guaranteed to leave the shade empty even if a
+     * card was shown at a higher importance by an earlier app version.
+     */
+    private fun recreateChannel(
+        notificationManager: NotificationManager,
+        visible: Boolean
+    ) {
+        // The delete-then-recreate dance guarantees the importance change is
+        // never swallowed by the system's channel cache. The binder calls can
+        // transiently throw (DeadObjectException while the system server is
+        // under load, e.g. right after boot); swallowing keeps the service up
+        // — createNotificationChannel is idempotent, so a failed delete still
+        // leaves the channel in its desired state whenever the next call lands.
+        runCatching { notificationManager.deleteNotificationChannel(CHANNEL_ID) }
+        runCatching {
+            notificationManager.createNotificationChannel(
+                NotificationChannel(
+                    CHANNEL_ID,
+                    getString(R.string.monitoring_channel_name),
+                    channelImportance(visible)
+                ).apply { setShowBadge(visible) }
+            )
+        }
     }
 
     private fun startAsForeground() {
@@ -243,14 +300,9 @@ class MonitoringService : Service() {
         // user hides it (Settings > Notifications) the channel drops to
         // IMPORTANCE_NONE and the notification never appears at all. Android
         // still requires the FGS notification to exist while the service runs,
-        // but this is the quietest form it can take.
-        notificationManager.createNotificationChannel(
-            NotificationChannel(
-                CHANNEL_ID,
-                getString(R.string.monitoring_channel_name),
-                channelImportance(visible)
-            ).apply { setShowBadge(visible) }
-        )
+        // but this is the quietest form it can take. Delete-then-recreate so
+        // the importance change is never swallowed by the channel cache.
+        recreateChannel(notificationManager, visible)
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(com.nexaflow.core.rom.R.drawable.ic_stat_nexaflow)
             // M3: brand-tinted small icon; service category for FGS semantics.

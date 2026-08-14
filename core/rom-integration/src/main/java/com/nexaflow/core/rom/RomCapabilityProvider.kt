@@ -51,9 +51,13 @@ class RomCapabilityProvider(
             RomCapability.MIUI_HIDDEN_API ->
                 (romFamily == RomFamily.MIUI || romFamily == RomFamily.HYPER_OS) && isElevated()
             RomCapability.COLOROS_HIDDEN_API ->
-                romFamily == RomFamily.COLOR_OS && isElevated()
+                (romFamily == RomFamily.COLOR_OS ||
+                    romFamily == RomFamily.OXYGEN_OS ||
+                    romFamily == RomFamily.REALME_UI) && isElevated()
             RomCapability.ONE_UI_HIDDEN_API ->
                 romFamily == RomFamily.ONE_UI && isElevated()
+            RomCapability.OEM_HIDDEN_API ->
+                isGenericOemFamily(romFamily) && isElevated()
             RomCapability.ROOT_SHELL -> integrationLevel == IntegrationLevel.ROOT
             RomCapability.SHIZUKU -> integrationLevel == IntegrationLevel.SHIZUKU
         }
@@ -73,8 +77,17 @@ class RomCapabilityProvider(
 
     /** LineageOS and its forks (Evolution X, crDroid, ...) share the same SDK/HALs. */
     private fun isLineageDerived(): Boolean {
-        return romFamily == RomFamily.LINEAGE_OS ||
-            romFamily == RomFamily.EVOLUTION_X ||
-            romFamily == RomFamily.CR_DROID
+        return RomSettingSchema.isLineageDerived(romFamily)
+    }
+
+    /** OEM skins without a dedicated capability enum entry (OriginOS, EMUI, ZenUI, ...). */
+    private fun isGenericOemFamily(romFamily: RomFamily): Boolean {
+        return romFamily == RomFamily.VIVO_ORIGIN_OS ||
+            romFamily == RomFamily.EMUI ||
+            romFamily == RomFamily.HARMONY_OS ||
+            romFamily == RomFamily.ASUS_ZEN_UI ||
+            romFamily == RomFamily.NOTHING_OS ||
+            romFamily == RomFamily.MOTOROLA ||
+            romFamily == RomFamily.SONY_XPERIA
     }
 }

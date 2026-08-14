@@ -12,9 +12,9 @@
     <string name="new_routine">Nova tarefa</string>
     <string name="empty_automations_title">Ainda não há tarefas</string>
     <string name="empty_automations_sub">Toque em + para criar a primeira tarefa.</string>
-    <string name="summary_any_trigger">qualquer gatilho</string>
-    <string name="summary_no_actions">sem ações</string>
-    <string name="summary_actions_count">%1$d ação(ões)</string>
+    <string name="summary_any_trigger">qualquer condição</string>
+    <string name="summary_no_actions">sem execução</string>
+    <string name="summary_actions_count">%1$d etapa(s) de execução</string>
     <string name="summary_template">Quando %1$s → Então %2$s</string>
     <string name="next_run_prefix">Próxima · %1$s</string>
     <string name="last_run_prefix">Última execução · %1$s</string>

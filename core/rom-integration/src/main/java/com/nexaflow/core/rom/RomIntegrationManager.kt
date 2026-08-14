@@ -1,11 +1,14 @@
 package com.nexaflow.core.rom
 
 import android.content.Context
+import android.util.Log
 import com.nexaflow.core.rom.model.IntegrationLevel
 import com.nexaflow.core.rom.model.RomBuildInfo
 import com.nexaflow.core.rom.model.RomCapability
 
 object RomIntegrationManager {
+    private const val TAG = "NexaFlowRom"
+
     private val lock = Any()
 
     @Volatile
@@ -24,6 +27,21 @@ object RomIntegrationManager {
             val provider = RomCapabilityProvider(appContext, integrationLevel, buildInfo.family)
             capabilities = provider.availableCapabilities()
             initialized = true
+            // Single observable logcat trace of the ROM-family detection, so the
+            // live device can be verified against the detection matrix without UI.
+            Log.i(
+                TAG,
+                "RomDetector: family=${buildInfo.family.name} " +
+                    "(${buildInfo.family.displayName}) " +
+                    "android=${buildInfo.androidVersion} (sdk ${buildInfo.androidSdk}) " +
+                    "brand=${buildInfo.brand} manufacturer=${buildInfo.manufacturer} " +
+                    "device=${buildInfo.device} model=${buildInfo.model} " +
+                    "build=${buildInfo.buildId} display=${buildInfo.buildDisplay} " +
+                    "evolution=${buildInfo.evolutionVersion.orEmpty()} " +
+                    "lineage=${buildInfo.lineageVersion.orEmpty()} " +
+                    "buildtype=${buildInfo.evolutionBuildType.orEmpty()} " +
+                    "level=${integrationLevel.name}"
+            )
         }
     }
 

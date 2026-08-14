@@ -68,6 +68,10 @@ enum class RomCapability(
         "One UI APIs",
         "Samsung system APIs exposed when running as a system component."
     ),
+    OEM_HIDDEN_API(
+        "OEM vendor APIs",
+        "Vendor system APIs (OriginOS, EMUI/HarmonyOS, ZenUI, Nothing OS, Motorola, Sony) exposed when running as a system component."
+    ),
     ROOT_SHELL(
         "Root shell",
         "Execute shell commands through su."

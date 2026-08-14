@@ -95,6 +95,16 @@ enum class TriggerCategory(val headerRes: Int) {
 
 internal val triggerCategories: List<TriggerCategory> = TriggerCategory.entries.toList()
 
+/** Representative icon per trigger category for the accordion chips. */
+internal fun TriggerCategory.icon(): ImageVector = when (this) {
+    TriggerCategory.SCHEDULE -> Icons.Filled.Schedule
+    TriggerCategory.DEVICE -> Icons.Filled.Bolt
+    TriggerCategory.CONNECTIVITY -> Icons.Filled.Wifi
+    TriggerCategory.LOCATION -> Icons.Filled.Place
+    TriggerCategory.APPS -> Icons.Filled.Apps
+    TriggerCategory.COMMUNICATION -> Icons.AutoMirrored.Filled.Message
+}
+
 /** Trigger type → category; the grouped picker renders headers from it. */
 internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> = mapOf(
     TriggerType.TIME to TriggerCategory.SCHEDULE,
@@ -1633,7 +1643,7 @@ fun TriggerEditorCard(
                                 keysLoading = true
                                 scope.launch {
                                     liveKeys = withContext(Dispatchers.IO) {
-                                        EvolutionXSettingsBridge.listCustomKeys()
+                                        EvolutionXSettingsBridge.listCustomKeys(context)
                                     }
                                     keysLoading = false
                                     showKeyPicker = true

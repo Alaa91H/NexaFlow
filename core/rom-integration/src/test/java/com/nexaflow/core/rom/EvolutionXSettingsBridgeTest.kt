@@ -70,4 +70,25 @@ class EvolutionXSettingsBridgeTest {
         )
         assertEquals(2, entries.size)
     }
+
+    @Test
+    fun `family-specific prefixes only admit that families keys`() {
+        val miuiPrefixes = RomSettingSchema.prefixes(com.nexaflow.core.rom.model.RomFamily.MIUI)
+        val entries = parseSettingsList(
+            Namespace.SYSTEM,
+            "miui_dark_mode=1\nsec_night_mode=0\nplain_key=x\n",
+            miuiPrefixes
+        )
+        assertEquals(1, entries.size)
+        assertEquals("miui_dark_mode", entries.single().key)
+    }
+
+    @Test
+    fun `default parser still admits evolution and lineage keys`() {
+        val entries = parseSettingsList(
+            Namespace.SECURE,
+            "evo_status_bar_show_battery_percent=1\nlineage_quick_settings_tiles=wifi\n"
+        )
+        assertEquals(2, entries.size)
+    }
 }

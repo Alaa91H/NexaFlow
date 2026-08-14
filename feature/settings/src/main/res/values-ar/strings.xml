@@ -85,12 +85,6 @@
 
     <string name="root_permission">صلاحيات الروت</string>
     <string name="root_permission_sub">منح صلاحيات المستخدم المتميز للأوامر المتقدمة</string>
-    <string name="root_grant_all">منح جميع الصلاحيات تلقائياً</string>
-    <string name="root_grant_all_sub">روت/Shizuku: منح كل صلاحية بصمت دون أي مطالبات</string>
-    <string name="root_grant_all_action">منح الكل</string>
-    <string name="root_granting">جارٍ المنح…</string>
-    <string name="root_grant_done">تم — %1$d صلاحية وقت تشغيل، %2$d app-ops، %3$d إعفاء بطارية</string>
-    <string name="root_grant_failed">تعذّر المنح عبر الروت. تحقق من مدير الروت.</string>
     <string name="shizuku_permission">شيزوكو</string>
     <string name="shizuku_permission_sub">تشغيل أوامر متقدمة عبر خدمة شيزوكو</string>
     <string name="oem_compat_title">أبقِ NexaFlow يعمل في الخلفية</string>

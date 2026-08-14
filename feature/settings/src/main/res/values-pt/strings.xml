@@ -85,12 +85,6 @@
 
     <string name="root_permission">Acesso root</string>
     <string name="root_permission_sub">Conceda acesso de superusuário para comandos avançados</string>
-    <string name="root_grant_all">Conceder todas as permissões automaticamente</string>
-    <string name="root_grant_all_sub">Root/Shizuku: conceder cada permissão sem avisos</string>
-    <string name="root_grant_all_action">Conceder tudo</string>
-    <string name="root_granting">Concedendo…</string>
-    <string name="root_grant_done">Pronto — %1$d runtime, %2$d app-ops, %3$d isenção de bateria</string>
-    <string name="root_grant_failed">Não foi possível conceder via root. Verifique seu gerenciador root.</string>
     <string name="shizuku_permission">Shizuku</string>
     <string name="shizuku_permission_sub">Execute comandos avançados via serviço Shizuku</string>
     <string name="oem_compat_title">Mantenha o NexaFlow ativo em segundo plano</string>

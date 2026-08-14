@@ -12,9 +12,9 @@
     <string name="new_routine">新建任务</string>
     <string name="empty_automations_title">暂无任务</string>
     <string name="empty_automations_sub">点按 + 创建第一个任务。</string>
-    <string name="summary_any_trigger">任意触发器</string>
-    <string name="summary_no_actions">无操作</string>
-    <string name="summary_actions_count">%1$d 个操作</string>
+    <string name="summary_any_trigger">任意条件</string>
+    <string name="summary_no_actions">无执行</string>
+    <string name="summary_actions_count">%1$d 个执行步骤</string>
     <string name="summary_template">当 %1$s → 然后 %2$s</string>
     <string name="next_run_prefix">下次 · %1$s</string>
     <string name="last_run_prefix">上次运行 · %1$s</string>

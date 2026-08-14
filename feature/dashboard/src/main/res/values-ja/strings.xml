@@ -12,9 +12,9 @@
     <string name="new_routine">新しいタスク</string>
     <string name="empty_automations_title">タスクはまだありません</string>
     <string name="empty_automations_sub">+ をタップして最初のタスクを作成します。</string>
-    <string name="summary_any_trigger">任意のトリガー</string>
-    <string name="summary_no_actions">アクションなし</string>
-    <string name="summary_actions_count">%1$d アクション</string>
+    <string name="summary_any_trigger">任意の条件</string>
+    <string name="summary_no_actions">実行なし</string>
+    <string name="summary_actions_count">%1$d 実行ステップ</string>
     <string name="summary_template">%1$s のとき → %2$s</string>
     <string name="next_run_prefix">次回 · %1$s</string>
     <string name="last_run_prefix">前回実行 · %1$s</string>

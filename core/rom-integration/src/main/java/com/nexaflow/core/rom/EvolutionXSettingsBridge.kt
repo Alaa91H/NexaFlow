@@ -42,42 +42,43 @@ object EvolutionXSettingsBridge {
         }
     }
 
-    /** Prefixes used by Evolution X / LineageOS custom settings. */
-    private val romKeyPrefixes = listOf(
-        "evo_",
-        "evolution_",
-        "lineage_",
-        "dex_",
-        "sysui_",
-        "qs_",
-        "lockscreen_",
-        "status_bar_",
-        "notification_"
-    )
+    /**
+     * Prefixes for the device's detected ROM family ([RomSettingSchema]); falls
+     * back to the Evolution X / LineageOS-derived set when no context is
+     * available, which still covers every LineageOS-family custom ROM.
+     */
+    private fun prefixesFor(context: Context?): List<String> {
+        val family = context?.let { runCatching {
+            RomIntegrationManager.buildInfo(it).family
+        }.getOrNull() } ?: RomFamily.EVOLUTION_X
+        return RomSettingSchema.prefixes(family)
+            .ifEmpty { defaultPrefixes() }
+    }
+
+    /** Backward-compatible default: Evolution X / LineageOS-derived prefixes. */
+    private fun defaultPrefixes(): List<String> = RomSettingSchema.prefixes(RomFamily.EVOLUTION_X)
 
     /**
-     * True when the device runs Evolution X (or a LineageOS-derived ROM whose
-     * Evolver keys we can still read/write).
+     * True when the device runs a ROM whose custom settings this bridge can
+     * read/write — any LineageOS-derived family (Evolution X, LineageOS,
+     * crDroid, ArrowOS, PixelOS, ...) or OEM skin (One UI, HyperOS, ...).
      */
-    fun isEvolutionX(context: Context): Boolean {
-        val family = RomIntegrationManager.buildInfo(context).family
-        return family == RomFamily.EVOLUTION_X ||
-            family == RomFamily.LINEAGE_OS ||
-            family == RomFamily.CR_DROID
-    }
+    fun isEvolutionX(context: Context): Boolean =
+        RomSettingSchema.isSupported(RomIntegrationManager.buildInfo(context).family)
 
     /**
      * Lists all ROM-custom setting keys currently present on the device by
      * running `settings list` through the elevated shell and filtering the
-     * known ROM prefixes. Returns an empty list when no elevated runtime is
-     * available (nothing crashes).
+     * prefixes of the detected ROM family (see [RomSettingSchema]). Returns
+     * an empty list when no elevated runtime is available (nothing crashes).
      */
-    fun listCustomKeys(): List<SettingEntry> {
+    fun listCustomKeys(context: Context? = null): List<SettingEntry> {
+        val prefixes = prefixesFor(context)
         val result = mutableListOf<SettingEntry>()
         Namespace.entries.forEach { namespace ->
             val raw = PrivilegedRunner.runShell("settings list ${namespace.shellName}")
             if (!raw.success) return@forEach
-            result.addAll(parseSettingsList(namespace, raw.message))
+            result.addAll(parseSettingsList(namespace, raw.message, prefixes))
         }
         return result.sortedBy { it.displayKey }
     }
@@ -86,9 +87,20 @@ object EvolutionXSettingsBridge {
      * Parses the `settings list` shell output into [SettingEntry]s, keeping
      * only keys with a known ROM prefix. Pure function — unit-tested.
      */
+    /**
+     * Parses the `settings list` shell output into [SettingEntry]s, keeping
+     * only keys with a known ROM prefix. Pure function — unit-tested.
+     */
     internal fun parseSettingsList(
         namespace: Namespace,
         output: String
+    ): List<SettingEntry> = parseSettingsList(namespace, output, defaultPrefixes())
+
+    /** Prefix-aware variant used by [listCustomKeys] for the detected family. */
+    internal fun parseSettingsList(
+        namespace: Namespace,
+        output: String,
+        prefixes: List<String>
     ): List<SettingEntry> {
         val result = mutableListOf<SettingEntry>()
         output.split('\n').forEach { line ->
@@ -96,7 +108,7 @@ object EvolutionXSettingsBridge {
             if (eq <= 0) return@forEach
             val key = line.substring(0, eq).trim()
             val value = line.substring(eq + 1).trim()
-            if (key.isNotBlank() && romKeyPrefixes.any { key.startsWith(it, ignoreCase = true) }) {
+            if (key.isNotBlank() && prefixes.any { key.startsWith(it, ignoreCase = true) }) {
                 result.add(SettingEntry(namespace, key, value))
             }
         }

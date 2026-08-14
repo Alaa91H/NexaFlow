@@ -448,7 +448,7 @@ private fun EvolutionSettingsDialog(onDismiss: () -> Unit) {
 
     LaunchedEffect(Unit) {
         val loaded = withContext(Dispatchers.IO) {
-            EvolutionXSettingsBridge.listCustomKeys()
+            EvolutionXSettingsBridge.listCustomKeys(context)
         }
         entries = loaded
         loading = false

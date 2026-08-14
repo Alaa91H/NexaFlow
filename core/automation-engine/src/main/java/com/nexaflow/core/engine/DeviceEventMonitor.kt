@@ -4,6 +4,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.media.AudioManager
+import android.os.BatteryManager
+import android.os.PowerManager
+import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
@@ -21,6 +25,7 @@ class DeviceEventMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
+    private val activeStore: ActiveTriggerStore,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -69,6 +74,71 @@ class DeviceEventMonitor @Inject constructor(
             addAction(Intent.ACTION_HEADSET_PLUG)
         }
         context.registerReceiver(receiver, filter)
+        scope.launch {
+            // Re-arm the in-memory active set from the durable ledger BEFORE
+            // the next broadcast is evaluated: a task that was triggered before
+            // a process/service restart must still fire its exit behavior when
+            // the opposite event arrives.
+            rearmFromLedger()
+            // Fire the missed exit NOW for any task whose triggered condition
+            // already ended while the process was down (no broadcast will come
+            // until the state changes again, which may be long after the end).
+            reconcileWithDeviceState()
+        }
+    }
+
+    /**
+     * Restores the durable active keys into the in-memory map. Keys carry the
+     * triggered event (`id|SCREEN_ON`), so the restored entry matches the exit
+     * check exactly. Stale keys for deleted/disabled automations are pruned.
+     */
+    private suspend fun rearmFromLedger() {
+        val enabledIds = repository.getAutomations().first()
+            .filter { it.enabled }
+            .map { it.id }
+            .toSet()
+        activeStore.activeKeys(SOURCE).forEach { key ->
+            val id = key.substringBefore('|')
+            if (id in enabledIds) {
+                activeStates[id] = key.substringAfter('|', "SCREEN_ON")
+            } else {
+                activeStore.clearAutomation(SOURCE, id)
+            }
+        }
+    }
+
+    /**
+     * Re-reads the CURRENT device state (screen, power, headset) and fires the
+     * exit behavior for any task whose triggered condition has already ended
+     * while the process was down. Broadcasts only fire on state *changes*, so
+     * without this pass a task whose condition ended during downtime would
+     * never run its exit until the state flipped again.
+     */
+    private suspend fun reconcileWithDeviceState() {
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val automations = repository.getAutomations().first()
+        automations
+            .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.DEVICE } }
+            .forEach { automation ->
+                val activeEvent = activeStates[automation.id] ?: return@forEach
+                // The opposite event has already happened while we were down.
+                val ended = when (activeEvent) {
+                    "SCREEN_ON" -> !powerManager.isInteractive
+                    "SCREEN_OFF" -> powerManager.isInteractive
+                    "POWER_CONNECTED" -> !batteryManager.isCharging
+                    "POWER_DISCONNECTED" -> batteryManager.isCharging
+                    "HEADSET_CONNECTED" -> !audioManager.isWiredHeadsetOn
+                    "HEADSET_DISCONNECTED" -> audioManager.isWiredHeadsetOn
+                    else -> false
+                }
+                if (ended) {
+                    activeStates.remove(automation.id)
+                    activeStore.clearAutomation(SOURCE, automation.id)
+                    executionEngine.runExit(automation)
+                }
+            }
     }
 
     fun stop() {
@@ -97,16 +167,22 @@ class DeviceEventMonitor @Inject constructor(
                         if (now - last > automation.cooldownMillis) {
                             lastRunAt[automation.id] = now
                             activeStates[automation.id] = event
+                            activeStore.markActive(SOURCE, "${automation.id}|$event")
                             executionEngine.runAutomation(automation)
                         }
                     } else if (oppositeEvent[triggerEvent] == event) {
                         // The condition ended: fire the exit behavior once.
                         if (activeStates.remove(automation.id) != null) {
+                            activeStore.clearAutomation(SOURCE, automation.id)
                             executionEngine.runExit(automation)
                         }
                     }
                 }
         }
+    }
+
+    private companion object {
+        const val SOURCE = "device"
     }
 
 }

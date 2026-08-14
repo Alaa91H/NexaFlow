@@ -4,10 +4,10 @@
     <string name="delete">حذف</string>
     <string name="not_found_title">لم يتم العثور على الأتمتة</string>
     <string name="not_found_subtitle">ربما تم حذفها.</string>
-    <string name="section_triggers">المشغّلات</string>
-    <string name="no_triggers">لا توجد مشغّلات مكوّنة.</string>
-    <string name="section_actions">الإجراءات</string>
-    <string name="no_actions">لا توجد إجراءات مكوّنة.</string>
+    <string name="section_triggers">الشروط</string>
+    <string name="no_triggers">لا توجد شروط مكوّنة.</string>
+    <string name="section_actions">التنفيذ</string>
+    <string name="no_actions">لا يوجد تنفيذ مكوّن.</string>
     <string name="run_now">تشغيل الآن</string>
     <string name="running">جارٍ التشغيل…</string>
     <string name="trigger_time">الوقت</string>

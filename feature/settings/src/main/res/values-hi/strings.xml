@@ -85,12 +85,6 @@
 
     <string name="root_permission">रूट एक्सेस</string>
     <string name="root_permission_sub">उन्नत कमांड के लिए सुपरयूज़र एक्सेस दें</string>
-    <string name="root_grant_all">सभी अनुमतियाँ स्वचालित रूप से दें</string>
-    <string name="root_grant_all_sub">रूट/Shizuku: बिना प्रॉम्प्ट सभी अनुमतियाँ चुपचाप दें</string>
-    <string name="root_grant_all_action">सभी दें</string>
-    <string name="root_granting">दिया जा रहा है…</string>
-    <string name="root_grant_done">हो गया — %1$d रनटाइम, %2$d ऐप-ऑप्स, %3$d बैटरी छूट</string>
-    <string name="root_grant_failed">रूट के माध्यम से नहीं दे सके। अपना रूट मैनेजर जाँचें।</string>
     <string name="shizuku_permission">शिज़ुकु</string>
     <string name="shizuku_permission_sub">शिज़ुकु सेवा के माध्यम से उन्नत कमांड चलाएँ</string>
     <string name="oem_compat_title">NexaFlow को बैकग्राउंड में चालू रखें</string>

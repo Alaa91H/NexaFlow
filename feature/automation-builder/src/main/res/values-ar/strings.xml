@@ -7,9 +7,9 @@
     <string name="name_hint">مثال: مهمة الصباح</string>
 
     
-    <string name="section_when">متى (المشغّلات)</string>
-    <string name="trigger_n">المشغّل %1$d</string>
-    <string name="remove_trigger">إزالة المشغّل</string>
+    <string name="section_when">الشروط</string>
+    <string name="trigger_n">الشرط %1$d</string>
+    <string name="remove_trigger">إزالة الشرط</string>
     <string name="trigger_type_time">الوقت</string>
     <string name="trigger_type_battery">البطارية</string>
     <string name="trigger_type_app">التطبيق</string>
@@ -73,10 +73,10 @@
     <string name="battery_above">البطارية فوق الحد</string>
     <string name="battery_above_sub">التشغيل فقط عندما تكون البطارية فوق المستوى</string>
     <string name="minimum_battery">الحد الأدنى للبطارية: %1$d%%</string>
-    <string name="section_actions">ثم (الإجراءات)</string>
+    <string name="section_actions">التنفيذ</string>
 
-    <string name="step_triggers">المشغّلات</string>
-    <string name="step_actions">الإجراءات</string>
+    <string name="step_triggers">الشروط</string>
+    <string name="step_actions">التنفيذ</string>
     <string name="create_task">إنشاء المهمة</string>
 
     <string name="ok">حسناً</string>
@@ -263,10 +263,10 @@
     <string name="sound_silent">صامت</string>
     <string name="move_up">تحريك للأعلى</string>
     <string name="move_down">تحريك للأسفل</string>
-    <string name="remove_action">إزالة المهمة</string>
+    <string name="remove_action">إزالة خطوة التنفيذ</string>
     <string name="quick_save">حفظ سريع</string>
     <string name="saved_successfully">تم حفظ المهمة</string>
-    <string name="next_needs_trigger">أضف مشغّلاً واحداً على الأقل أولاً</string>
+    <string name="next_needs_trigger">أضف شرطاً واحداً على الأقل أولاً</string>
     <string name="edit_task_title">تعديل المهمة</string>
     <string name="battery_trigger_title">مستوى البطارية</string>
     <string name="battery_below">أقل من</string>
@@ -302,22 +302,14 @@
     <string name="section_exit_behavior">عند انتهاء المهمة</string>
 
     <string name="exit_auto_reply_label">رد تلقائي (رسالة)</string>
-    <string name="exit_nothing_sub">لا يحدث شيء — تنتهي المهمة فقط</string>
-    <string name="add_exit_action">إضافة إجراء خروج</string>
-    <string name="pick_exit_action">اختر إجراء الخروج</string>
-    <string name="trigger_type_ringer">وضع الصوت</string>
+    <string name="exit_nothing_sub">لا يحدث شيء — تنتهي المهمة فقط</string>    <string name="trigger_type_ringer">وضع الصوت</string>
     <string name="trigger_ringer">وضع الصوت</string>
     <string name="trigger_ringer_sub">عند تغيّر وضع الصوت</string>
     <string name="ringer_mode_label">وضع الصوت</string>
     <string name="ringer_mode_hint">تُنفَّذ المهمة عندما يتحول الهاتف إلى وضع الصوت المختار</string>
     <string name="change_now">غيّر الآن</string>
-    <string name="pick_actions">اختر الإجراءات</string>
-    <string name="search_actions">ابحث عن الإجراءات…</string>
-    <string name="add_count">إضافة (%1$d)</string>
-    <string name="add_action">إضافة إجراء</string>
 
-    <string name="next_needs_action">أضف إجراءً واحداً على الأقل أولاً</string>
-    <string name="no_matching_actions">لا توجد إجراءات مطابقة</string>
+    <string name="next_needs_action">أضف خطوة تنفيذ واحدة على الأقل أولاً</string>
     <string name="repeat_monthly">شهرياً</string>
     <string name="repeat_monthly_weekday">نفس اليوم من الشهر</string>
     <string name="week_of_month_label">أي أسبوع من الشهر</string>
@@ -398,7 +390,7 @@
     <string name="plugin_reconfigure">إعداد</string>
     <string name="plugin_refresh">تحديث</string>
     <string name="plugin_no_edit">لا توجد شاشة تهيئة لهذه الإضافة</string>
-    <string name="section_constraints">إذا (القيود)</string>
+    <string name="section_constraints">القيود</string>
     <string name="add_constraint">أضف قيداً</string>
     <string name="constraints_empty_hint">لا قيود - تعمل المهمة عند أي مشغل. أضف شروطاً للتحكم بالتنفيذ.</string>
     <string name="constraint_n">قيد %1$d</string>
@@ -421,8 +413,7 @@
     <string name="notification_buttons_picker_title">اختر مهمة لتشغيلها</string>
     <string name="notification_buttons_picker_empty">لا توجد مهام أخرى محفوظة بعد</string>
     <string name="trigger_app_while_open">يُنفَّذ عند فتح التطبيق ويبقى مفعّلاً حتى إغلاقه، ثم تُطبَّق خيارات انتهاء المهمة.</string>
-    <string name="exit_per_action_title">خيارات نهاية كل إجراء</string>
-    <string name="exit_extra_actions_label">إجراءات إضافية عند الانتهاء</string>
+    <string name="exit_extra_actions_label">خطوات إضافية عند انتهاء المهمة</string>
     <string name="notification_button_reply">رد بنص</string>
     <string name="notification_button_reply_title">متغير الرد</string>
     <string name="notification_button_reply_hint">تخزَّن الكتابة في الإشعار داخل هذا المتغير ليستخدمها المهمة (مثال %MyReply).</string>

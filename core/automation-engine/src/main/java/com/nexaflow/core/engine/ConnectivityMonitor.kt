@@ -8,6 +8,7 @@ import android.os.Build
 import android.provider.Settings
 import android.telephony.NetworkRegistrationInfo
 import android.telephony.TelephonyManager
+import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
@@ -25,6 +26,7 @@ class ConnectivityMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
+    private val activeStore: ActiveTriggerStore,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -39,18 +41,53 @@ class ConnectivityMonitor @Inject constructor(
     fun initialize() {
         if (initialized) return
         initialized = true
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val networkCallback = object : ConnectivityManager.NetworkCallback() {
-            override fun onAvailable(network: Network) {
-                handleChange()
-            }
+        scope.launch {
+            // Re-arm the in-memory active set from the durable ledger BEFORE
+            // the network callback is registered: registering delivers the
+            // current network immediately, and that first handleChange must
+            // see the restored active states so a condition that already ended
+            // while the process was down fires its exit behavior right away.
+            rearmFromLedger()
+            if (!initialized) return@launch
+            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val networkCallback = object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    handleChange()
+                }
 
-            override fun onLost(network: Network) {
-                handleChange()
+                override fun onLost(network: Network) {
+                    handleChange()
+                }
+            }
+            callback = networkCallback
+            connectivityManager.registerDefaultNetworkCallback(networkCallback)
+        }
+    }
+
+    /**
+     * Restores the durable active keys into the in-memory map before the first
+     * network callback. Keys carry the desired state (`id|CONNECTED`), so the
+     * restored entry matches the monitor's exit check exactly. Stale keys for
+     * deleted/disabled automations are pruned so they can never fire a stale
+     * exit.
+     */
+    private suspend fun rearmFromLedger() {
+        val enabledIds = repository.getAutomations().first()
+            .filter { it.enabled }
+            .map { it.id }
+            .toSet()
+        activeStore.activeKeys(SOURCE).forEach { key ->
+            val id = key.substringBefore('|')
+            if (id in enabledIds) {
+                activeStates[id] = key.substringAfter('|', "CONNECTED")
+            } else {
+                activeStore.clearAutomation(SOURCE, id)
             }
         }
-        callback = networkCallback
-        connectivityManager.registerDefaultNetworkCallback(networkCallback)
+    }
+
+    private companion object {
+        const val SOURCE = "connectivity"
     }
 
     fun stop() {
@@ -104,11 +141,13 @@ class ConnectivityMonitor @Inject constructor(
                         if (now - last > automation.cooldownMillis) {
                             lastRunAt[automation.id] = now
                             activeStates[automation.id] = desiredState
+                            activeStore.markActive(SOURCE, "$automation.id|$desiredState")
                             executionEngine.runAutomation(automation)
                         }
                     } else if (activeStates[automation.id] == desiredState) {
                         // The condition ended (state flipped or network lost): fire exit.
                         activeStates.remove(automation.id)
+                        activeStore.clearAutomation(SOURCE, automation.id)
                         executionEngine.runExit(automation)
                     }
                 }

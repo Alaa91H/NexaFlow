@@ -7,9 +7,9 @@
     <string name="name_hint">जैसे: सुबह का कार्य</string>
 
     
-    <string name="section_when">कब (ट्रिगर)</string>
-    <string name="trigger_n">ट्रिगर %1$d</string>
-    <string name="remove_trigger">ट्रिगर हटाएँ</string>
+    <string name="section_when">शर्तें</string>
+    <string name="trigger_n">शर्त %1$d</string>
+    <string name="remove_trigger">शर्त हटाएँ</string>
     <string name="trigger_type_time">समय</string>
     <string name="trigger_type_battery">बैटरी</string>
     <string name="trigger_type_app">ऐप</string>
@@ -74,10 +74,10 @@
     <string name="battery_above_sub">केवल तभी चलाएँ जब बैटरी स्तर से ऊपर हो</string>
     <string name="minimum_battery">न्यूनतम बैटरी: %1$d%%</string>
 
-    <string name="section_actions">फिर (क्रियाएँ)</string>
+    <string name="section_actions">निष्पादन</string>
 
-    <string name="step_triggers">ट्रिगर</string>
-    <string name="step_actions">क्रियाएँ</string>
+    <string name="step_triggers">शर्तें</string>
+    <string name="step_actions">निष्पादन</string>
     <string name="create_task">कार्य बनाएँ</string>
 
     <string name="ok">ठीक है</string>
@@ -264,10 +264,10 @@
     <string name="sound_silent">साइलेंट</string>
     <string name="move_up">ऊपर ले जाएं</string>
     <string name="move_down">नीचे ले जाएं</string>
-    <string name="remove_action">कार्रवाई हटाएं</string>
+    <string name="remove_action">निष्पादन चरण हटाएँ</string>
     <string name="quick_save">त्वरित सहेजें</string>
     <string name="saved_successfully">कार्य सहेजा गया</string>
-    <string name="next_needs_trigger">पहले कम से कम एक ट्रिगर जोड़ें</string>
+    <string name="next_needs_trigger">पहले कम से कम एक शर्त जोड़ें</string>
     <string name="edit_task_title">कार्य संपादित करें</string>
     <string name="battery_trigger_title">बैटरी स्तर</string>
     <string name="battery_below">से कम</string>
@@ -303,22 +303,14 @@
     <string name="section_exit_behavior">जब कार्य समाप्त हो</string>
 
     <string name="exit_auto_reply_label">स्वचालित उत्तर (SMS)</string>
-    <string name="exit_nothing_sub">कुछ नहीं होता — कार्य बस समाप्त हो जाता है</string>
-    <string name="add_exit_action">निकास क्रिया जोड़ें</string>
-    <string name="pick_exit_action">निकास क्रिया चुनें</string>
-    <string name="trigger_type_ringer">ध्वनि मोड</string>
+    <string name="exit_nothing_sub">कुछ नहीं होता — कार्य बस समाप्त हो जाता है</string>    <string name="trigger_type_ringer">ध्वनि मोड</string>
     <string name="trigger_ringer">ध्वनि मोड</string>
     <string name="trigger_ringer_sub">जब ध्वनि मोड बदलता है</string>
     <string name="ringer_mode_label">ध्वनि मोड</string>
     <string name="ringer_mode_hint">जब फ़ोन चुने हुए ध्वनि मोड में जाता है तो कार्य चलता है</string>
     <string name="change_now">अभी बदलें</string>
-    <string name="pick_actions">क्रियाएँ चुनें</string>
-    <string name="search_actions">क्रियाएँ खोजें…</string>
-    <string name="add_count">जोड़ें (%1$d)</string>
-    <string name="add_action">क्रिया जोड़ें</string>
 
-    <string name="next_needs_action">पहले कम से कम एक क्रिया जोड़ें</string>
-    <string name="no_matching_actions">कोई मिलती-जुलती क्रिया नहीं</string>
+    <string name="next_needs_action">पहले कम से कम एक निष्पादन चरण जोड़ें</string>
     <string name="repeat_monthly">मासिक</string>
     <string name="repeat_monthly_weekday">महीने का वही दिन</string>
     <string name="week_of_month_label">महीने का कौन सा सप्ताह</string>
@@ -399,7 +391,7 @@
     <string name="plugin_reconfigure">कॉन्फ़िगर करें</string>
     <string name="plugin_refresh">रीफ़्रेश</string>
     <string name="plugin_no_edit">इस प्लगइन में कोई कॉन्फ़िगरेशन स्क्रीन नहीं है</string>
-    <string name="section_constraints">यदि (बाधाएँ)</string>
+    <string name="section_constraints">बाधाएँ</string>
     <string name="add_constraint">बाधा जोड़ें</string>
     <string name="constraints_empty_hint">कोई बाधा नहीं - टास्क हर ट्रिगर पर चलता है। नियंत्रण के लिए शर्तें जोड़ें।</string>
     <string name="constraint_n">बाधा %1$d</string>
@@ -422,8 +414,7 @@
     <string name="notification_buttons_picker_title">चलाने के लिए कार्य चुनें</string>
     <string name="notification_buttons_picker_empty">अभी कोई अन्य कार्य सहेजा नहीं गया</string>
     <string name="trigger_app_while_open">ऐप खोलने पर चलता है और बंद होने तक सक्रिय रहता है, फिर कार्य के समाप्ति विकल्प लागू होते हैं।</string>
-    <string name="exit_per_action_title">प्रति क्रिया समाप्ति विकल्प</string>
-    <string name="exit_extra_actions_label">समाप्ति पर अतिरिक्त क्रियाएँ</string>
+    <string name="exit_extra_actions_label">कार्य समाप्त होने पर अतिरिक्त चरण</string>
     <string name="notification_button_reply">टेक्स्ट से जवाब दें</string>
     <string name="notification_button_reply_title">जवाब वेरिएबल</string>
     <string name="notification_button_reply_hint">नोटिफ़िकेशन में टाइप किया गया टेक्स्ट इस वेरिएबल में सहेजा जाता है ताकि कार्य उसे इस्तेमाल कर सके (जैसे %MyReply)।</string>

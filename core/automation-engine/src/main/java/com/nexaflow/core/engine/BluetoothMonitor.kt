@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
+import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
@@ -36,6 +37,7 @@ class BluetoothMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
+    private val activeStore: ActiveTriggerStore,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -81,6 +83,33 @@ class BluetoothMonitor @Inject constructor(
             addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
         }
         context.registerReceiver(receiver, filter)
+        scope.launch {
+            // Re-arm the durable active set BEFORE the next ACL broadcast:
+            // a task whose connect/disconnect condition already ended while
+            // the process was down fires its missed exit on the next broadcast
+            // for that device.
+            rearmFromLedger()
+        }
+    }
+
+    /**
+     * Restores the durable active keys into the in-memory map. Keys carry the
+     * device address (`id|AA:BB:..`), so the restored entry matches the exit
+     * check exactly. Stale keys for deleted/disabled automations are pruned.
+     */
+    private suspend fun rearmFromLedger() {
+        val enabledIds = repository.getAutomations().first()
+            .filter { it.enabled }
+            .map { it.id }
+            .toSet()
+        activeStore.activeKeys(SOURCE).forEach { key ->
+            val id = key.substringBefore('|')
+            if (id in enabledIds) {
+                activeConnections[id] = key.substringAfter('|', "")
+            } else {
+                activeStore.clearAutomation(SOURCE, id)
+            }
+        }
     }
 
     fun stop() {
@@ -116,11 +145,13 @@ class BluetoothMonitor @Inject constructor(
                             if (now - last > automation.cooldownMillis) {
                                 lastRunAt[automation.id] = now
                                 activeConnections[automation.id] = address
+                                activeStore.markActive(SOURCE, "${automation.id}|$address")
                                 executionEngine.runAutomation(automation)
                             }
                         } else if (firesOnDisconnect && activeConnections[automation.id] == address) {
                             // The device reconnected: the disconnect condition ended.
                             activeConnections.remove(automation.id)
+                            activeStore.clearAutomation(SOURCE, automation.id)
                             executionEngine.runExit(automation)
                         }
                     } else {
@@ -129,11 +160,13 @@ class BluetoothMonitor @Inject constructor(
                             if (now - last > automation.cooldownMillis) {
                                 lastRunAt[automation.id] = now
                                 activeConnections[automation.id] = address
+                                activeStore.markActive(SOURCE, "${automation.id}|$address")
                                 executionEngine.runAutomation(automation)
                             }
                         } else if (firesOnConnect && activeConnections[automation.id] == address) {
                             // The device disconnected: the connect condition ended.
                             activeConnections.remove(automation.id)
+                            activeStore.clearAutomation(SOURCE, automation.id)
                             executionEngine.runExit(automation)
                         }
                     }
@@ -161,5 +194,9 @@ class BluetoothMonitor @Inject constructor(
         val storedAddress = config["deviceAddress"].orEmpty()
         return deviceName.equals(configuredName, ignoreCase = true) ||
             (storedAddress.isNotEmpty() && storedAddress.equals(address, ignoreCase = true))
+    }
+
+    private companion object {
+        const val SOURCE = "bluetooth"
     }
 }

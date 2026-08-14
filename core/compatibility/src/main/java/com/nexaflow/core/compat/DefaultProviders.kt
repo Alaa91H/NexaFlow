@@ -58,7 +58,8 @@ object ShizukuProvider : ExecutionProvider {
         RomCapability.LINEAGEOS_HARDWARE,
         RomCapability.MIUI_HIDDEN_API,
         RomCapability.COLOROS_HIDDEN_API,
-        RomCapability.ONE_UI_HIDDEN_API
+        RomCapability.ONE_UI_HIDDEN_API,
+        RomCapability.OEM_HIDDEN_API
     )
 
     override fun isAvailable(profile: DeviceProfile): Boolean = profile.shizukuGranted
@@ -105,7 +106,8 @@ object RootProvider : ExecutionProvider {
         RomCapability.LINEAGEOS_HARDWARE,
         RomCapability.MIUI_HIDDEN_API,
         RomCapability.COLOROS_HIDDEN_API,
-        RomCapability.ONE_UI_HIDDEN_API
+        RomCapability.ONE_UI_HIDDEN_API,
+        RomCapability.OEM_HIDDEN_API
     )
 
     override fun isAvailable(profile: DeviceProfile): Boolean = profile.rootAvailable
@@ -129,7 +131,8 @@ object SystemAppProvider : ExecutionProvider {
         RomCapability.LINEAGEOS_HARDWARE,
         RomCapability.MIUI_HIDDEN_API,
         RomCapability.COLOROS_HIDDEN_API,
-        RomCapability.ONE_UI_HIDDEN_API
+        RomCapability.ONE_UI_HIDDEN_API,
+        RomCapability.OEM_HIDDEN_API
     )
 
     override fun isAvailable(profile: DeviceProfile): Boolean {

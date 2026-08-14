@@ -76,12 +76,6 @@
     <string name="calendar_permission_sub">Read your events for calendar triggers</string>
     <string name="root_permission">Root access</string>
     <string name="root_permission_sub">Grant superuser access for elevated commands</string>
-    <string name="root_grant_all">Grant all permissions automatically</string>
-    <string name="root_grant_all_sub">Root/Shizuku: grant every permission silently, no prompts</string>
-    <string name="root_grant_all_action">Grant all</string>
-    <string name="root_granting">Granting…</string>
-    <string name="root_grant_done">Done — %1$d runtime, %2$d app-ops, %3$d battery exempt</string>
-    <string name="root_grant_failed">Could not grant via root. Check your root manager.</string>
     <string name="shizuku_permission">Shizuku</string>
     <string name="shizuku_permission_sub">Run elevated commands via the Shizuku service</string>
 

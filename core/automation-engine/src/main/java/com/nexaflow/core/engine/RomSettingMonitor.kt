@@ -1,6 +1,7 @@
 package com.nexaflow.core.engine
 
 import android.content.Context
+import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.rom.EvolutionXSettingsBridge
@@ -42,6 +43,7 @@ class RomSettingMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
+    private val activeStore: ActiveTriggerStore,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -50,15 +52,38 @@ class RomSettingMonitor @Inject constructor(
     /** Automations currently in their triggered state (to fire exit when it ends). */
     private val activeAutomations = mutableSetOf<String>()
 
-
-
     fun initialize() {
         if (polling) return
         polling = true
         scope.launch {
+            // Re-arm the durable active set BEFORE the first poll: the poll
+            // re-reads the real ROM value, so a task whose setting already
+            // moved away while the process was down fires its missed exit on
+            // the first iteration instead of waiting for a future change.
+            rearmFromLedger()
             while (coroutineContext.isActive) {
                 poll()
                 delay(POLL_INTERVAL_MS)
+            }
+        }
+    }
+
+    /**
+     * Restores the durable active ids into the in-memory set. Stale keys for
+     * deleted/disabled automations are pruned so a stale mark can never fire
+     * a stale exit.
+     */
+    private suspend fun rearmFromLedger() {
+        val enabledIds = repository.getAutomations().first()
+            .filter { it.enabled }
+            .map { it.id }
+            .toSet()
+        activeStore.activeKeys(SOURCE).forEach { key ->
+            val id = key.substringBefore('|')
+            if (id in enabledIds) {
+                activeAutomations.add(id)
+            } else {
+                activeStore.clearAutomation(SOURCE, id)
             }
         }
     }
@@ -91,10 +116,12 @@ class RomSettingMonitor @Inject constructor(
                     if (now - last > automation.cooldownMillis) {
                         lastRunAt[automation.id] = now
                         activeAutomations.add(automation.id)
+                        activeStore.markActive(SOURCE, automation.id)
                         executionEngine.runAutomation(automation)
                     }
                 } else if (activeAutomations.remove(automation.id)) {
                     // The ROM setting left the target state: fire the exit.
+                    activeStore.clearAutomation(SOURCE, automation.id)
                     executionEngine.runExit(automation)
                 }
             }
@@ -103,6 +130,7 @@ class RomSettingMonitor @Inject constructor(
 
     private companion object {
         const val POLL_INTERVAL_MS = 30_000L
+        const val SOURCE = "rom_setting"
     }
 }
 

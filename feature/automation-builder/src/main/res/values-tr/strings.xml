@@ -7,9 +7,9 @@
     <string name="name_hint">örn. Sabah Görevi</string>
 
     
-    <string name="section_when">Ne zaman (tetikleyiciler)</string>
-    <string name="trigger_n">Tetikleyici %1$d</string>
-    <string name="remove_trigger">Tetikleyiciyi kaldır</string>
+    <string name="section_when">Koşullar</string>
+    <string name="trigger_n">Koşul %1$d</string>
+    <string name="remove_trigger">Koşulu kaldır</string>
     <string name="trigger_type_time">Zaman</string>
     <string name="trigger_type_battery">Pil</string>
     <string name="trigger_type_app">Uygulama</string>
@@ -74,10 +74,10 @@
     <string name="battery_above_sub">Yalnızca pil seviyenin üzerindeyken çalıştır</string>
     <string name="minimum_battery">Minimum pil: %1$d%%</string>
 
-    <string name="section_actions">Sonra (eylemler)</string>
+    <string name="section_actions">Yürütme</string>
 
-    <string name="step_triggers">Tetikleyiciler</string>
-    <string name="step_actions">Eylemler</string>
+    <string name="step_triggers">Koşullar</string>
+    <string name="step_actions">Yürütme</string>
     <string name="create_task">Görev oluştur</string>
 
     <string name="ok">Tamam</string>
@@ -264,10 +264,10 @@
     <string name="sound_silent">Sessiz</string>
     <string name="move_up">Yukarı taşı</string>
     <string name="move_down">Aşağı taşı</string>
-    <string name="remove_action">Eylemi kaldır</string>
+    <string name="remove_action">Yürütme adımını kaldır</string>
     <string name="quick_save">Hızlı kaydet</string>
     <string name="saved_successfully">Görev kaydedildi</string>
-    <string name="next_needs_trigger">Önce en az bir tetikleyici ekleyin</string>
+    <string name="next_needs_trigger">Önce en az bir koşul ekleyin</string>
     <string name="edit_task_title">Görevi düzenle</string>
     <string name="battery_trigger_title">Pil seviyesi</string>
     <string name="battery_below">Altında</string>
@@ -303,22 +303,14 @@
     <string name="section_exit_behavior">Görev bittiğinde</string>
 
     <string name="exit_auto_reply_label">Otomatik yanıt (SMS)</string>
-    <string name="exit_nothing_sub">Hiçbir şey olmaz — görev sona erer</string>
-    <string name="add_exit_action">Çıkış eylemi ekle</string>
-    <string name="pick_exit_action">Çıkış eylemi seç</string>
-    <string name="trigger_type_ringer">Ses modu</string>
+    <string name="exit_nothing_sub">Hiçbir şey olmaz — görev sona erer</string>    <string name="trigger_type_ringer">Ses modu</string>
     <string name="trigger_ringer">Ses modu</string>
     <string name="trigger_ringer_sub">Ses modu değiştiğinde</string>
     <string name="ringer_mode_label">Ses modu</string>
     <string name="ringer_mode_hint">Telefon seçilen ses moduna geçtiğinde görev çalışır</string>
     <string name="change_now">Şimdi değiştir</string>
-    <string name="pick_actions">Eylemleri seç</string>
-    <string name="search_actions">Eylemleri ara…</string>
-    <string name="add_count">Ekle (%1$d)</string>
-    <string name="add_action">Eylem ekle</string>
 
-    <string name="next_needs_action">Önce en az bir eylem ekleyin</string>
-    <string name="no_matching_actions">Eşleşen eylem yok</string>
+    <string name="next_needs_action">Önce en az bir yürütme adımı ekleyin</string>
     <string name="repeat_monthly">Aylık</string>
     <string name="repeat_monthly_weekday">Ayın aynı günü</string>
     <string name="week_of_month_label">Ayın kaçıncı haftası</string>
@@ -399,7 +391,7 @@
     <string name="plugin_reconfigure">Yapılandır</string>
     <string name="plugin_refresh">Yenile</string>
     <string name="plugin_no_edit">Bu eklentinin yapılandırma ekranı yok</string>
-    <string name="section_constraints">Eğer (kısıtlar)</string>
+    <string name="section_constraints">Kısıtlar</string>
     <string name="add_constraint">Kısıt ekle</string>
     <string name="constraints_empty_hint">Kısıt yok - görev her tetikleyicide çalışır. Kontrol için koşullar ekleyin.</string>
     <string name="constraint_n">Kısıt %1$d</string>
@@ -422,8 +414,7 @@
     <string name="notification_buttons_picker_title">Çalıştırılacak bir görev seçin</string>
     <string name="notification_buttons_picker_empty">Henüz başka görev kaydedilmemiş</string>
     <string name="trigger_app_while_open">Uygulama açıldığında çalışır ve kapanana kadar aktif kalır; ardından görevin bitiş seçenekleri uygulanır.</string>
-    <string name="exit_per_action_title">Eylem başına bitiş seçenekleri</string>
-    <string name="exit_extra_actions_label">Bitişte ek eylemler</string>
+    <string name="exit_extra_actions_label">Görev sonunda ek adımlar</string>
     <string name="notification_button_reply">Metinle yanıtla</string>
     <string name="notification_button_reply_title">Yanıt değişkeni</string>
     <string name="notification_button_reply_hint">Bildirimde yazılan metin bu değişkende saklanır ve görev onu kullanabilir (örn. %MyReply).</string>

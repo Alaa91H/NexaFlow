@@ -85,12 +85,6 @@
 
     <string name="root_permission">Root-Zugriff</string>
     <string name="root_permission_sub">Superuser-Zugriff für erweiterte Befehle gewähren</string>
-    <string name="root_grant_all">Alle Berechtigungen automatisch erteilen</string>
-    <string name="root_grant_all_sub">Root/Shizuku: alle Berechtigungen ohne Abfragen erteilen</string>
-    <string name="root_grant_all_action">Alle erteilen</string>
-    <string name="root_granting">Wird erteilt…</string>
-    <string name="root_grant_done">Fertig — %1$d Laufzeit, %2$d App-ops, %3$d Akku-Ausnahme</string>
-    <string name="root_grant_failed">Erteilen über Root fehlgeschlagen. Root-Manager prüfen.</string>
     <string name="shizuku_permission">Shizuku</string>
     <string name="shizuku_permission_sub">Erweiterte Befehle über den Shizuku-Dienst ausführen</string>
     <string name="oem_compat_title">NexaFlow im Hintergrund aktiv halten</string>

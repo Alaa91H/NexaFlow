@@ -237,52 +237,18 @@ internal val actionOptions = listOf(
 
 internal val actionCategories: List<ActionCategory> = ActionCategory.entries.toList()
 
-/**
- * Single-select list of trigger types. Shown only while no trigger is
- * chosen; tapping a row picks it as THE trigger of the task and the list
- * folds away, leaving the expanded editor.
- */
-@Composable
-private fun TriggerSelectList(
-    onSelect: (TriggerType) -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        triggerCategories.forEach { category ->
-            val types = triggerTypeOptions.filter { triggerCategoryOf[it] == category }
-            if (types.isEmpty()) return@forEach
-            ItemHeader(text = stringResource(category.headerRes))
-            types.forEach { type ->
-                Surface(
-                    shape = MaterialTheme.shapes.small,
-                    color = Color.Transparent,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onSelect(type) }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        IconBadge(
-                            icon = type.icon(),
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = stringResource(type.labelRes()),
-                            modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Normal,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            }
-        }
-    }
+/** Representative icon per action category for the accordion chips. */
+internal fun ActionCategory.icon(): ImageVector = when (this) {
+    ActionCategory.DISPLAY -> Icons.Filled.BrightnessHigh
+    ActionCategory.SOUND -> Icons.AutoMirrored.Filled.VolumeUp
+    ActionCategory.CONNECTIVITY -> Icons.Filled.Wifi
+    ActionCategory.MEDIA -> Icons.Filled.PlayArrow
+    ActionCategory.NOTIFICATIONS -> Icons.Filled.Notifications
+    ActionCategory.APPS -> Icons.Filled.Apps
+    ActionCategory.SYSTEM -> Icons.Filled.Settings
+    ActionCategory.BATTERY -> Icons.Filled.BatteryAlert
+    ActionCategory.PLUGINS -> Icons.Filled.Extension
 }
-
 
 /** One selected action, in order, with reorder buttons, config editor and permission hint. */
 @Composable
@@ -306,7 +272,10 @@ private fun SelectedActionCard(
     // Saved tasks the notification action can attach as interactive buttons.
     automations: List<Automation> = emptyList(),
     // Re-launches the plugin's EDIT_SETTING activity (plugin actions only).
-    onPluginConfigure: () -> Unit = {}
+    onPluginConfigure: () -> Unit = {},
+    // Per-action end behavior: what happens when the task's condition ends.
+    endBehavior: EndBehavior? = null,
+    onEndBehaviorChange: (EndBehavior?) -> Unit = {}
 ) {
     NexaFlowCard {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -367,6 +336,18 @@ private fun SelectedActionCard(
                 onPluginConfigure = onPluginConfigure,
                 automations = automations
             )
+            // When the task ends: per-action end behavior lives inside THIS
+            // card (leave / restore / set value), not in a separate section
+            // that re-lists every action — no duplicated action rows.
+            if (EndBehaviorCatalog.supportsEndBehavior(option.actionType)) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                EndBehaviorEditor(
+                    actionType = option.actionType,
+                    behavior = endBehavior,
+                    onBehaviorChange = onEndBehaviorChange,
+                    showLabel = true
+                )
+            }
             PermissionHintForAction(
                 actionType = option.actionType,
                 context = context,
@@ -419,14 +400,16 @@ fun AutomationBuilderScreen(
     var appPickerTarget by remember { mutableStateOf<String?>(null) }
     var bluetoothPickerTarget by remember { mutableStateOf<Int?>(null) }
     var calendarPickerTarget by remember { mutableStateOf<Int?>(null) }
-    var showActionPicker by remember { mutableStateOf(false) }
+    // Single-open accordions: only ONE category chip is expanded at a time.
+    var expandedTriggerCategory by rememberSaveable { mutableStateOf<Int?>(null) }
+    var expandedActionCategory by rememberSaveable { mutableStateOf<Int?>(null) }
+    var expandedExitCategory by rememberSaveable { mutableStateOf<Int?>(null) }
     val actionConfigs = rememberSaveable(saver = ActionConfigMapSaver) { mutableStateMapOf<ActionType, Map<String, String>>() }
     val selectedActions = rememberSaveable(saver = ActionOptionListSaver) { mutableStateListOf<ActionOption>() }
     // Per-action end behavior (leave / restore / set value) applied when the task ends.
     val actionEndBehaviors = rememberSaveable(saver = ActionEndBehaviorMapSaver) { mutableStateMapOf<ActionType, EndBehavior?>() }
     val exitActionConfigs = rememberSaveable(saver = ActionConfigMapSaver) { mutableStateMapOf<ActionType, Map<String, String>>() }
     val selectedExitActions = rememberSaveable(saver = ActionOptionListSaver) { mutableStateListOf<ActionOption>() }
-    var showExitPicker by remember { mutableStateOf(false) }
 
     // ── External plugins (Locale protocol) ─────────────────────────
     val plugins by viewModel.plugins.collectAsStateWithLifecycle()
@@ -1012,17 +995,57 @@ fun AutomationBuilderScreen(
                 NexaFlowCard {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         SectionHeader(text = stringResource(R.string.section_when))
-                    // Single-select list of triggers, visible only while no
-                    // trigger is chosen. Picking one folds the list away and
-                    // leaves just its expanded editor (which keeps its own
-                    // type chips for later changes).
+                    // Single-select trigger picker, visible only while no
+                    // trigger is chosen: a category accordion where only ONE
+                    // chip is open at a time. Picking a type folds the picker
+                    // away and leaves just its expanded editor (which keeps
+                    // its own type chips for later changes).
                     NexaFlowAnimatedVisibility(visible = triggers.isEmpty()) {
-                        TriggerSelectList(
-                            onSelect = { type ->
-                                triggers.clear()
-                                triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
+                        CategoryAccordion(
+                            tabs = triggerCategories.map { category ->
+                                stringResource(category.headerRes) to category.icon()
+                            },
+                            expandedIndex = expandedTriggerCategory,
+                            onExpandedChange = { expandedTriggerCategory = it }
+                        ) { index ->
+                            val category = triggerCategories[index]
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                triggerTypeOptions
+                                    .filter { triggerCategoryOf[it] == category }
+                                    .forEach { type ->
+                                        Surface(
+                                            shape = MaterialTheme.shapes.small,
+                                            color = Color.Transparent,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clickable {
+                                                    triggers.clear()
+                                                    triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
+                                                    expandedTriggerCategory = null
+                                                }
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                            ) {
+                                                IconBadge(
+                                                    icon = type.icon(),
+                                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                                Text(
+                                                    text = stringResource(type.labelRes()),
+                                                    modifier = Modifier.weight(1f),
+                                                    style = MaterialTheme.typography.titleSmall,
+                                                    fontWeight = FontWeight.Normal,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                            }
+                                        }
+                                    }
                             }
-                        )
+                        }
                     }
                     triggers.forEachIndexed { index, draft ->
                 TriggerEditorCard(
@@ -1077,21 +1100,43 @@ fun AutomationBuilderScreen(
             } else {
                 // ── Step 2: actions + end behavior ───────────────────
                 NexaFlowCard {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        // ── THEN (actions) ──────────────────────────
-                        SectionHeader(
-                            text = stringResource(R.string.section_actions),
-                            trailing = {
-                    IconButton(onClick = { showActionPicker = true }) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = stringResource(R.string.add_action)
-                        )
-                    }
-                }
-            )
-            selectedActions.forEachIndexed { index, option ->
-                SelectedActionCard(
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {                        // ── THEN (actions) ──────────────────────────
+                        // Category accordion: only ONE chip is open at a time.
+                        // Tapping an option adds it immediately and folds the
+                        // accordion away so the new card's configuration is
+                        // right there — never stuck inside the picker list.
+                        CategoryAccordion(
+                            tabs = actionCategories.map { category ->
+                                stringResource(category.headerRes) to category.icon()
+                            },
+                            expandedIndex = expandedActionCategory,
+                            onExpandedChange = { expandedActionCategory = it }
+                        ) { index ->
+                            val category = actionCategories[index]
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                actionOptions
+                                    .filter { it.category == category }
+                                    .forEach { option ->
+                                        ActionOptionRow(
+                                            option = option,
+                                            checked = option in selectedActions,
+                                            onToggle = {
+                                                if (option !in selectedActions) {
+                                                    selectedActions.add(option)
+                                                    // A picked plugin action immediately asks which plugin.
+                                                    if (option.actionType == ActionType.PLUGIN_FIRE) {
+                                                        pluginPickerTarget = true
+                                                    }
+                                                }
+                                                // Collapse so the user sees the new card's config.
+                                                expandedActionCategory = null
+                                            }
+                                        )
+                                    }
+                            }
+                        }
+                        selectedActions.forEachIndexed { index, option ->
+                            SelectedActionCard(
                     option = option,
                     index = index,
                     total = selectedActions.size,
@@ -1117,67 +1162,55 @@ fun AutomationBuilderScreen(
                             actionConfigs[ActionType.PLUGIN_FIRE]?.get("receiver"),
                             actionConfigs[ActionType.PLUGIN_FIRE] ?: emptyMap()
                         )
-                    }
+                    },
+                    endBehavior = actionEndBehaviors[option.actionType],
+                    onEndBehaviorChange = { actionEndBehaviors[option.actionType] = it }
                 )
             }
 
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    // ── When the task ends ───────────────────────────
-                    SectionHeader(
-                        text = stringResource(R.string.section_exit_behavior),
-                        trailing = {
-                            IconButton(onClick = { showExitPicker = true }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Add,
-                                    contentDescription = stringResource(R.string.add_exit_action)
-                                )
-                            }
+                    // ── When the task ends (extra exit actions) ───────
+                    SectionHeader(text = stringResource(R.string.section_exit_behavior))
+                    // Per-action end behavior now lives inside each action card
+                    // above; this section only holds EXTRA actions to run when
+                    // the task ends (plus the SMS auto-reply below). The picker
+                    // is the same single-open category accordion as the main
+                    // execution step — picking an option adds it and folds the
+                    // accordion away so the new config is right there.
+                    CategoryAccordion(
+                        tabs = actionCategories.map { category ->
+                            stringResource(category.headerRes) to category.icon()
+                        },
+                        expandedIndex = expandedExitCategory,
+                        onExpandedChange = { expandedExitCategory = it }
+                    ) { index ->
+                        val category = actionCategories[index]
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            actionOptions
+                                .filter { it.category == category && it !in selectedExitActions }
+                                .forEach { option ->
+                                    ActionOptionRow(
+                                        option = option,
+                                        checked = false,
+                                        onToggle = {
+                                            if (option !in selectedExitActions) {
+                                                selectedExitActions.add(option)
+                                            }
+                                            // Collapse so the user sees the new exit action's config.
+                                            expandedExitCategory = null
+                                        }
+                                    )
+                                }
                         }
-                    )
-                    // Per-action end options: every selected action decides what
-                    // happens to it when the task's condition stops being true.
-                    val endCapableActions = selectedActions.filter {
-                        EndBehaviorCatalog.supportsEndBehavior(it.actionType)
                     }
-                    if (endCapableActions.isEmpty()) {
+                    if (selectedExitActions.isEmpty()) {
                         Text(
                             text = stringResource(R.string.exit_nothing_sub),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.secondary
                         )
-                    } else {
-                        Text(
-                            text = stringResource(R.string.exit_per_action_title),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        endCapableActions.forEach { option ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                IconBadge(
-                                    icon = option.icon,
-                                    containerColor = option.color.copy(alpha = 0.15f),
-                                    contentColor = option.color
-                                )
-                                Text(
-                                    text = stringResource(option.titleRes),
-                                    modifier = Modifier.weight(1f),
-                                    style = MaterialTheme.typography.titleSmall
-                                )
-                            }
-                            EndBehaviorEditor(
-                                actionType = option.actionType,
-                                behavior = actionEndBehaviors[option.actionType],
-                                onBehaviorChange = { actionEndBehaviors[option.actionType] = it },
-                                showLabel = false
-                            )
-                        }
                     }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     if (selectedExitActions.isNotEmpty()) {
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         Text(
                             text = stringResource(R.string.exit_extra_actions_label),
                             style = MaterialTheme.typography.titleSmall
@@ -1251,23 +1284,6 @@ fun AutomationBuilderScreen(
         )
     }
 
-    if (showActionPicker) {
-        ActionPickerDialog(
-            alreadySelected = selectedActions.toList(),
-            onConfirm = { picked ->
-                picked.forEach { option ->
-                    if (option !in selectedActions) selectedActions.add(option)
-                }
-                showActionPicker = false
-                // A picked plugin action immediately asks which plugin to use.
-                if (picked.any { it.actionType == ActionType.PLUGIN_FIRE }) {
-                    pluginPickerTarget = true
-                }
-            },
-            onDismiss = { showActionPicker = false }
-        )
-    }
-
     if (pluginPickerTarget) {
         PluginPickerDialog(
             plugins = plugins,
@@ -1283,19 +1299,6 @@ fun AutomationBuilderScreen(
                     selectedActions.removeAll { it.actionType == ActionType.PLUGIN_FIRE }
                 }
             }
-        )
-    }
-
-    if (showExitPicker) {
-        ExitActionPickerDialog(
-            alreadySelected = selectedExitActions.toList(),
-            onPick = { option ->
-                if (option !in selectedExitActions) {
-                    selectedExitActions.add(option)
-                }
-                showExitPicker = false
-            },
-            onDismiss = { showExitPicker = false }
         )
     }
 

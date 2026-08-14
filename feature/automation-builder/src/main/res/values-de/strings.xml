@@ -7,9 +7,9 @@
     <string name="name_hint">z. B. Morgenaufgabe</string>
 
     
-    <string name="section_when">Wann (Trigger)</string>
-    <string name="trigger_n">Trigger %1$d</string>
-    <string name="remove_trigger">Trigger entfernen</string>
+    <string name="section_when">Bedingungen</string>
+    <string name="trigger_n">Bedingung %1$d</string>
+    <string name="remove_trigger">Bedingung entfernen</string>
     <string name="trigger_type_time">Zeit</string>
     <string name="trigger_type_battery">Akku</string>
     <string name="trigger_type_app">App</string>
@@ -74,10 +74,10 @@
     <string name="battery_above_sub">Nur ausführen, wenn der Akku über dem Level liegt</string>
     <string name="minimum_battery">Mindestakku: %1$d%%</string>
 
-    <string name="section_actions">Dann (Aktionen)</string>
+    <string name="section_actions">Ausführung</string>
 
-    <string name="step_triggers">Trigger</string>
-    <string name="step_actions">Aktionen</string>
+    <string name="step_triggers">Bedingungen</string>
+    <string name="step_actions">Ausführung</string>
     <string name="create_task">Aufgabe erstellen</string>
 
     <string name="ok">OK</string>
@@ -264,10 +264,10 @@
     <string name="sound_silent">Lautlos</string>
     <string name="move_up">Nach oben</string>
     <string name="move_down">Nach unten</string>
-    <string name="remove_action">Aktion entfernen</string>
+    <string name="remove_action">Ausführungsschritt entfernen</string>
     <string name="quick_save">Schnellspeichern</string>
     <string name="saved_successfully">Aufgabe gespeichert</string>
-    <string name="next_needs_trigger">Füge zuerst mindestens einen Auslöser hinzu</string>
+    <string name="next_needs_trigger">Füge zuerst mindestens eine Bedingung hinzu</string>
     <string name="edit_task_title">Aufgabe bearbeiten</string>
     <string name="battery_trigger_title">Akku-Ladestand</string>
     <string name="battery_below">Unter</string>
@@ -303,22 +303,14 @@
     <string name="section_exit_behavior">Wenn die Aufgabe endet</string>
 
     <string name="exit_auto_reply_label">Automatische Antwort (SMS)</string>
-    <string name="exit_nothing_sub">Es passiert nichts – die Aufgabe endet einfach</string>
-    <string name="add_exit_action">Exit-Aktion hinzufügen</string>
-    <string name="pick_exit_action">Exit-Aktion auswählen</string>
-    <string name="trigger_type_ringer">Tonmodus</string>
+    <string name="exit_nothing_sub">Es passiert nichts – die Aufgabe endet einfach</string>    <string name="trigger_type_ringer">Tonmodus</string>
     <string name="trigger_ringer">Tonmodus</string>
     <string name="trigger_ringer_sub">Wenn sich der Tonmodus ändert</string>
     <string name="ringer_mode_label">Tonmodus</string>
     <string name="ringer_mode_hint">Die Aufgabe läuft, wenn das Telefon in den gewählten Tonmodus wechselt</string>
     <string name="change_now">Jetzt ändern</string>
-    <string name="pick_actions">Aktionen auswählen</string>
-    <string name="search_actions">Aktionen suchen…</string>
-    <string name="add_count">Hinzufügen (%1$d)</string>
-    <string name="add_action">Aktion hinzufügen</string>
 
-    <string name="next_needs_action">Füge zuerst mindestens eine Aktion hinzu</string>
-    <string name="no_matching_actions">Keine passenden Aktionen</string>
+    <string name="next_needs_action">Füge zuerst mindestens einen Ausführungsschritt hinzu</string>
     <string name="repeat_monthly">Monatlich</string>
     <string name="repeat_monthly_weekday">Gleicher Wochentag im Monat</string>
     <string name="week_of_month_label">Welche Woche des Monats</string>
@@ -399,7 +391,7 @@
     <string name="plugin_reconfigure">Konfigurieren</string>
     <string name="plugin_refresh">Aktualisieren</string>
     <string name="plugin_no_edit">Dieses Plugin hat keinen Konfigurationsbildschirm</string>
-    <string name="section_constraints">Wenn (Bedingungen)</string>
+    <string name="section_constraints">Einschränkungen</string>
     <string name="add_constraint">Bedingung hinzufügen</string>
     <string name="constraints_empty_hint">Keine Bedingungen - die Aufgabe läuft bei jedem Auslöser. Füge Bedingungen hinzu, um sie zu steuern.</string>
     <string name="constraint_n">Bedingung %1$d</string>
@@ -422,8 +414,7 @@
     <string name="notification_buttons_picker_title">Aufgabe zum Ausführen wählen</string>
     <string name="notification_buttons_picker_empty">Noch keine anderen Aufgaben gespeichert</string>
     <string name="trigger_app_while_open">Wird beim Öffnen der App ausgeführt und bleibt aktiv, bis sie geschlossen wird; danach werden die Abschlussoptionen der Aufgabe angewendet.</string>
-    <string name="exit_per_action_title">Endoptionen pro Aktion</string>
-    <string name="exit_extra_actions_label">Zusätzliche Aktionen beim Ende der Aufgabe</string>
+    <string name="exit_extra_actions_label">Zusätzliche Schritte am Ende der Aufgabe</string>
     <string name="notification_button_reply">Mit Text antworten</string>
     <string name="notification_button_reply_title">Antwortvariable</string>
     <string name="notification_button_reply_hint">Die Eingabe in der Benachrichtigung wird in dieser Variable gespeichert, damit die Aufgabe sie nutzen kann (z. B. %MyReply).</string>

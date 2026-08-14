@@ -85,12 +85,6 @@
 
     <string name="root_permission">Root erişimi</string>
     <string name="root_permission_sub">Gelişmiş komutlar için süper kullanıcı erişimi verin</string>
-    <string name="root_grant_all">Tüm izinleri otomatik olarak ver</string>
-    <string name="root_grant_all_sub">Root/Shizuku: her izni istemsiz, sessizce ver</string>
-    <string name="root_grant_all_action">Tümünü ver</string>
-    <string name="root_granting">Veriliyor…</string>
-    <string name="root_grant_done">Bitti — %1$d runtime, %2$d app-ops, %3$d pil muafiyeti</string>
-    <string name="root_grant_failed">Root ile verilemedi. Root yöneticinizi kontrol edin.</string>
     <string name="shizuku_permission">Shizuku</string>
     <string name="shizuku_permission_sub">Shizuku hizmeti üzerinden gelişmiş komutlar çalıştırın</string>
     <string name="oem_compat_title">NexaFlow\'un arka planda çalışmasını sağlayın</string>

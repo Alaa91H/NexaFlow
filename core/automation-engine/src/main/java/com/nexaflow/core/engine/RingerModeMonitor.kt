@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
+import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
@@ -30,6 +31,7 @@ class RingerModeMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
+    private val activeStore: ActiveTriggerStore,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -68,6 +70,66 @@ class RingerModeMonitor @Inject constructor(
         registered = true
         val filter = IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION)
         context.registerReceiver(receiver, filter)
+        scope.launch {
+            // Re-arm the in-memory active set from the durable ledger BEFORE
+            // the next mode-change broadcast is evaluated: a task that was
+            // triggered before a process/service restart must still fire its
+            // exit behavior when the mode changes away.
+            rearmFromLedger()
+            // Fire the missed exit NOW for any task whose triggered mode has
+            // already been left while the process was down (broadcasts only
+            // fire on changes, so the exit would otherwise wait until the
+            // mode flips again — possibly long after the task ended).
+            reconcileWithCurrentMode()
+        }
+    }
+
+    /**
+     * Restores the durable active keys into the in-memory map. Keys carry the
+     * triggered mode (`id|VIBRATE`), so the restored entry matches the exit
+     * check exactly. Stale keys for deleted/disabled automations are pruned.
+     */
+    private suspend fun rearmFromLedger() {
+        val enabledIds = repository.getAutomations().first()
+            .filter { it.enabled }
+            .map { it.id }
+            .toSet()
+        activeStore.activeKeys(SOURCE).forEach { key ->
+            val id = key.substringBefore('|')
+            if (id in enabledIds) {
+                activeModes[id] = key.substringAfter('|', "NORMAL")
+            } else {
+                activeStore.clearAutomation(SOURCE, id)
+            }
+        }
+    }
+
+    /**
+     * Reads the CURRENT sound mode and fires the exit behavior for any task
+     * whose triggered mode no longer matches — the condition already ended
+     * while the process was down.
+     */
+    private suspend fun reconcileWithCurrentMode() {
+        val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val currentMode = when (audio.ringerMode) {
+            AudioManager.RINGER_MODE_SILENT -> "SILENT"
+            AudioManager.RINGER_MODE_VIBRATE -> "VIBRATE"
+            else -> "NORMAL"
+        }
+        val automations = repository.getAutomations().first()
+        automations
+            .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.RINGER_MODE } }
+            .forEach { automation ->
+                // Only fire the exit when the triggered mode has already been
+                // left (mirrors handleModeChange): a task whose mode still
+                // matches after the restart stays active.
+                val ringerTriggers = automation.triggers.filter { it.type == TriggerType.RINGER_MODE }
+                val stillMatches = ringerTriggers.any { (it.config["mode"] ?: "NORMAL") == currentMode }
+                if (!stillMatches && activeModes.remove(automation.id) != null) {
+                    activeStore.clearAutomation(SOURCE, automation.id)
+                    executionEngine.runExit(automation)
+                }
+            }
     }
 
     fun stop() {
@@ -96,14 +158,20 @@ class RingerModeMonitor @Inject constructor(
                         if (now - last > automation.cooldownMillis) {
                             lastRunAt[automation.id] = now
                             activeModes[automation.id] = mode
+                            activeStore.markActive(SOURCE, "${automation.id}|$mode")
                             executionEngine.runAutomation(automation)
                         }
                     } else if (activeModes.remove(automation.id) != null) {
                         // The sound mode changed away: the condition ended, fire exit.
+                        activeStore.clearAutomation(SOURCE, automation.id)
                         executionEngine.runExit(automation)
                     }
                 }
         }
+    }
+
+    private companion object {
+        const val SOURCE = "ringer"
     }
 
 }

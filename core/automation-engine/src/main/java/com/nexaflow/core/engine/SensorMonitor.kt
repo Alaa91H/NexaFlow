@@ -11,6 +11,7 @@ import android.hardware.SensorManager
 import android.os.Handler
 import android.os.Looper
 import androidx.core.content.ContextCompat
+import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ACTION_AUTOMATIONS_CHANGED
 import com.nexaflow.core.execution.ExecutionEngine
@@ -42,6 +43,7 @@ class SensorMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
+    private val activeStore: ActiveTriggerStore,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -135,7 +137,28 @@ class SensorMonitor @Inject constructor(
     private suspend fun refresh() {
         val fresh = runCatching { repository.getAutomations().first() }.getOrDefault(emptyList())
         automations = fresh
+        // Re-arm the durable active set before the first reading reconciles:
+        // stateful sensors (proximity/light) deliver readings continuously, so
+        // a task whose condition already ended while the process was down
+        // fires its missed exit on the next reading.
+        rearmFromLedger(fresh)
         updateRegistrations(fresh)
+    }
+
+    /**
+     * Restores the durable active ids into the in-memory map. Stale keys for
+     * deleted/disabled automations are pruned.
+     */
+    private suspend fun rearmFromLedger(fresh: List<Automation>) {
+        val enabledIds = fresh.filter { it.enabled }.map { it.id }.toSet()
+        activeStore.activeKeys(SOURCE).forEach { key ->
+            val id = key.substringBefore('|')
+            if (id in enabledIds) {
+                activeStates[id] = true
+            } else {
+                activeStore.clearAutomation(SOURCE, id)
+            }
+        }
     }
 
     private fun updateRegistrations(automations: List<Automation>) {
@@ -203,6 +226,7 @@ class SensorMonitor @Inject constructor(
                     if (now - last > automation.cooldownMillis) {
                         lastRunAt[automation.id] = now
                         activeStates[automation.id] = true
+                        activeStore.markActive(SOURCE, automation.id)
                         executionEngine.runAutomation(automation)
                     }
                 } else if (SensorTriggerMatcher.isStateful(sensor) &&
@@ -210,6 +234,7 @@ class SensorMonitor @Inject constructor(
                 ) {
                     // The condition ended (e.g. light dropped below threshold):
                     // fire the task's exit behavior.
+                    activeStore.clearAutomation(SOURCE, automation.id)
                     executionEngine.runExit(automation)
                 }
             }
@@ -230,5 +255,6 @@ class SensorMonitor @Inject constructor(
         // Normal rate keeps battery impact low; shake/step only need coarse
         // samples and proximity/light are stateful, not time-critical.
         const val SENSOR_DELAY = SensorManager.SENSOR_DELAY_NORMAL
+        const val SOURCE = "sensor"
     }
 }

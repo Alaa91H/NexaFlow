@@ -85,12 +85,6 @@
 
     <string name="root_permission">Root-доступ</string>
     <string name="root_permission_sub">Предоставьте доступ суперпользователя для расширенных команд</string>
-    <string name="root_grant_all">Выдать все разрешения автоматически</string>
-    <string name="root_grant_all_sub">Root/Shizuku: выдать все разрешения без запросов</string>
-    <string name="root_grant_all_action">Выдать все</string>
-    <string name="root_granting">Выдача…</string>
-    <string name="root_grant_done">Готово — %1$d runtime, %2$d app-ops, %3$d исключений батареи</string>
-    <string name="root_grant_failed">Не удалось выдать через root. Проверьте менеджер root.</string>
     <string name="shizuku_permission">Shizuku</string>
     <string name="shizuku_permission_sub">Выполнять расширенные команды через службу Shizuku</string>
     <string name="oem_compat_title">Оставляйте NexaFlow работать в фоне</string>
