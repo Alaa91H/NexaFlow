@@ -28,6 +28,8 @@ jobs:
       run: python3 scripts/check_strings_parity.py
     - name: Unit-test the resource gate (orphan drawable/layout/dimen)
       run: python3 scripts/tests/test_check_resources.py
+    - name: Install pytest for the resource-gate suite
+      run: python3 -m pip install --quiet pytest
     - name: pytest the resource gate (orphans, lint report, pins guard, auto-fix)
       run: >-
         python3 -m pytest
