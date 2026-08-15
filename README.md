@@ -8,8 +8,8 @@ designed to provide a more powerful, customizable, and extensible automation exp
 ## Features
 
 - **Context-Aware Automations:** Create intelligent device automations using WHEN → THEN logic
-  with 9 trigger types (time, battery, app, device event, connectivity, location, SMS,
-  Bluetooth device, ringer mode) and ~50 system actions (sound, display, connectivity, media,
+  with 15 trigger types (time, battery, app, device event, connectivity, location, SMS,
+  Bluetooth device, ringer mode) and 53 system actions (sound, display, connectivity, media,
   notifications, apps, battery, advanced).
 - **Time triggers with full scheduling:** single time, time range (incl. overnight 22:00→06:00),
   repeat options (once / daily / weekdays / weekends / specific days / monthly / specific date /
@@ -43,7 +43,7 @@ designed to provide a more powerful, customizable, and extensible automation exp
 - **Asynchronous:** Kotlin Coroutines + Flow
 - **Background:** Foreground Services, AlarmManager (`setExactAndAllowWhileIdle`)
 - **Navigation:** Navigation Compose
-- **Minimum SDK:** Android 10 (API 29)
+- **Minimum SDK:** Android 8.0 (API 26)
 
 ## Project Structure
 

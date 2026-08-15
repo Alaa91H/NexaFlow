@@ -8,6 +8,7 @@
 
     
     <string name="section_when">الشروط</string>
+    <string name="action_n">التنفيذ %1$d</string>
     <string name="trigger_n">الشرط %1$d</string>
     <string name="remove_trigger">إزالة الشرط</string>
     <string name="expand_options">عرض الخيارات</string>
@@ -274,6 +275,7 @@
     <string name="battery_below_sub">يعمل عندما تنخفض البطارية عن هذا المستوى</string>
     <string name="maximum_battery">الحد الأقصى: %1$d٪</string>
     <string name="no_apps_selected">لم يتم تحديد تطبيقات</string>
+    <string name="action_buttons_count">%1$d زر</string>
     <string name="selected_apps_count">تم تحديد %1$d تطبيق</string>
     <string name="trigger_app">عند فتح تطبيق</string>
     <string name="time_single">وقت واحد</string>

@@ -8,6 +8,7 @@
 
     
     <string name="section_when">Условия</string>
+    <string name="action_n">Выполнение %1$d</string>
     <string name="trigger_n">Условие %1$d</string>
     <string name="remove_trigger">Удалить условие</string>
     <string name="expand_options">Показать параметры</string>
@@ -275,6 +276,7 @@
     <string name="battery_below_sub">Срабатывает, когда заряд падает ниже этого уровня</string>
     <string name="maximum_battery">Максимум: %1$d%%</string>
     <string name="no_apps_selected">Приложения не выбраны</string>
+    <string name="action_buttons_count">кнопок: %1$d</string>
     <string name="selected_apps_count">Выбрано приложений: %1$d</string>
     <string name="trigger_app">Когда открывается приложение</string>
     <string name="time_single">Одно время</string>

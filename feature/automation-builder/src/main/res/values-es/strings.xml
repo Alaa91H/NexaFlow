@@ -8,6 +8,7 @@
 
     
     <string name="section_when">Condiciones</string>
+    <string name="action_n">Ejecución %1$d</string>
     <string name="trigger_n">Condición %1$d</string>
     <string name="remove_trigger">Quitar condición</string>
     <string name="expand_options">Mostrar opciones</string>
@@ -275,6 +276,7 @@
     <string name="battery_below_sub">Se activa cuando la batería baja de este nivel</string>
     <string name="maximum_battery">Máximo: %1$d%%</string>
     <string name="no_apps_selected">Ninguna app seleccionada</string>
+    <string name="action_buttons_count">%1$d botón(es)</string>
     <string name="selected_apps_count">%1$d app(s) seleccionada(s)</string>
     <string name="trigger_app">Cuando se abre una app</string>
     <string name="time_single">Hora única</string>

@@ -126,6 +126,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.nexaflow.core.engine.LocationAccess
+import com.nexaflow.core.execution.NotificationActionButton
 import com.nexaflow.core.pluginsdk.LocaleContract
 import com.nexaflow.core.pluginsdk.PluginConfigParser
 import com.nexaflow.core.rom.ElevatedAccessShortcuts
@@ -251,6 +252,129 @@ internal fun ActionCategory.icon(): ImageVector = when (this) {
     ActionCategory.PLUGINS -> Icons.Filled.Extension
 }
 
+/**
+ * One-line summary of the chosen action values for the collapsed header,
+ * mirroring triggerSummary/constraintSummary so every builder row reads
+ * "Execution N · <name · chosen values>". Falls back to the action name
+ * alone when nothing is configured yet (immediate one-shot actions).
+ */
+@Composable
+private fun actionSummary(option: ActionOption, config: Map<String, String>): String {
+    val name = stringResource(option.titleRes)
+    val value: String? = when (option.actionType) {
+        ActionType.SYSTEM_BRIGHTNESS ->
+            stringResource(R.string.brightness_label, config["value"]?.toIntOrNull() ?: 128)
+        ActionType.SYSTEM_VOLUME ->
+            stringResource(R.string.volume_label, config["value"]?.toIntOrNull() ?: 50)
+        ActionType.SYSTEM_RING_VOLUME ->
+            stringResource(R.string.ring_volume_label, config["value"]?.toIntOrNull() ?: 50)
+        ActionType.SYSTEM_STREAM_VOLUME -> {
+            val stream = when (config["stream"] ?: "MUSIC") {
+                "RING" -> stringResource(R.string.stream_ring)
+                "NOTIFICATION" -> stringResource(R.string.stream_notification)
+                "ALARM" -> stringResource(R.string.stream_alarm)
+                "VOICE_CALL" -> stringResource(R.string.stream_voice_call)
+                "SYSTEM" -> stringResource(R.string.stream_system)
+                "DTMF" -> stringResource(R.string.stream_dtmf)
+                "ACCESSIBILITY" -> stringResource(R.string.stream_accessibility)
+                else -> stringResource(R.string.stream_music)
+            }
+            "$stream · ${config["value"] ?: "50"}"
+        }
+        ActionType.SYSTEM_NETWORK_MODE -> when (config["mode"] ?: "AUTO") {
+            "2G" -> stringResource(R.string.network_mode_2g)
+            "3G" -> stringResource(R.string.network_mode_3g)
+            "4G" -> stringResource(R.string.network_mode_4g)
+            "5G" -> stringResource(R.string.network_mode_5g)
+            else -> stringResource(R.string.network_mode_auto)
+        }
+        ActionType.SYSTEM_LOCATION,
+        ActionType.SYSTEM_DND,
+        ActionType.SYSTEM_WIFI,
+        ActionType.SYSTEM_BLUETOOTH,
+        ActionType.SYSTEM_FLASHLIGHT,
+        ActionType.SYSTEM_AIRPLANE_MODE,
+        ActionType.SYSTEM_STAY_AWAKE,
+        ActionType.SYSTEM_AUTO_BRIGHTNESS,
+        ActionType.SYSTEM_MOBILE_DATA,
+        ActionType.SYSTEM_HOTSPOT,
+        ActionType.SYSTEM_NFC,
+        ActionType.SYSTEM_POWER_SAVER,
+        ActionType.SYSTEM_ANIMATIONS,
+        ActionType.SYSTEM_DARK_MODE ->
+            if (config["enabled"]?.toBoolean() ?: true) stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        ActionType.SYSTEM_SEND_SMS -> {
+            val number = config["number"].orEmpty().trim()
+            val text = config["text"].orEmpty().trim()
+            listOf(number, text).filter { it.isNotEmpty() }.joinToString(" · ").ifEmpty { null }
+        }
+        ActionType.SYSTEM_SEND_REMINDER -> {
+            val title = config["title"].orEmpty().trim()
+            val time = "${config["hour"] ?: "9"}:${(config["minute"] ?: "0").padStart(2, '0')}"
+            listOf(title, time).filter { it.isNotEmpty() }.joinToString(" · ").ifEmpty { null }
+        }
+        ActionType.SYSTEM_OPEN_SETTINGS -> when (config["page"] ?: "WIFI") {
+            "BLUETOOTH" -> stringResource(R.string.settings_bluetooth)
+            "LOCATION" -> stringResource(R.string.settings_location)
+            "SOUND" -> stringResource(R.string.settings_sound)
+            "DISPLAY" -> stringResource(R.string.settings_display)
+            "BATTERY" -> stringResource(R.string.settings_battery)
+            "NOTIFICATION" -> stringResource(R.string.settings_notification)
+            else -> stringResource(R.string.settings_wifi)
+        }
+        ActionType.SYSTEM_SCREEN_TIMEOUT ->
+            stringResource(R.string.timeout_label, config["seconds"]?.toIntOrNull() ?: 60)
+        ActionType.SYSTEM_RINGER_MODE -> when (config["mode"] ?: "NORMAL") {
+            "VIBRATE" -> stringResource(R.string.ringer_vibrate)
+            "SILENT" -> stringResource(R.string.ringer_silent)
+            else -> stringResource(R.string.ringer_normal)
+        }
+        ActionType.SYSTEM_SET_ALARM -> {
+            val hour = config["hour"] ?: "7"
+            val minute = (config["minute"] ?: "0").padStart(2, '0')
+            "$hour:$minute"
+        }
+        ActionType.APPLICATION_OPEN_APP_SETTINGS,
+        ActionType.SYSTEM_BLOCK_NOTIFICATION,
+        ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS,
+        ActionType.APPLICATION_CLOSE_APP -> config["package"].orEmpty().trim().ifEmpty { null }
+        ActionType.SYSTEM_OPEN_APP ->
+            (config["packages"] ?: config["package"] ?: "").trim().ifEmpty { null }
+        ActionType.SYSTEM_SEND_NOTIFICATION -> {
+            val title = config["title"].orEmpty().trim()
+            val text = config["text"].orEmpty().trim()
+            val content = listOf(title, text).firstOrNull { it.isNotEmpty() }
+            val buttons = NotificationActionButton.fromConfig(config["action_buttons"])
+            when {
+                content != null && buttons.isNotEmpty() ->
+                    "$content · ${stringResource(R.string.action_buttons_count, buttons.size)}"
+                content != null -> content
+                else -> null
+            }
+        }
+        ActionType.SYSTEM_WAIT ->
+            stringResource(R.string.wait_counter_label, config["seconds"]?.toIntOrNull() ?: 5)
+        ActionType.SYSTEM_SCREEN_ROTATION ->
+            if (config["autoRotate"]?.toBoolean() ?: true) stringResource(R.string.auto_rotate)
+            else stringResource(R.string.state_off)
+        ActionType.SYSTEM_OPEN_URL -> config["url"].orEmpty().trim().ifEmpty { null }
+        ActionType.SYSTEM_HTTP_REQUEST -> {
+            val method = config["method"] ?: "GET"
+            val url = config["url"].orEmpty().trim()
+            if (url.isEmpty()) null else "$method · $url"
+        }
+        ActionType.BATTERY_ALERTS,
+        ActionType.BATTERY_CHARGING_NOTIFICATIONS ->
+            stringResource(R.string.alert_below, config["below"]?.toIntOrNull() ?: 20)
+        ActionType.ADVANCED_ROOT,
+        ActionType.ADVANCED_SHIZUKU -> config["command"].orEmpty().trim().ifEmpty { null }
+        ActionType.PLUGIN_FIRE -> config["blurb"].orEmpty().trim().ifEmpty { null }
+        else -> null
+    }
+    return if (value.isNullOrBlank()) name else "$name · $value"
+}
+
 /** One selected action, in order, with reorder buttons, config editor and permission hint. */
 @Composable
 private fun SelectedActionCard(
@@ -316,14 +440,25 @@ private fun SelectedActionCard(
                     onDragDelta = onDragDelta,
                     onDragEnd = onDragEnd
                 )
-                // The task name.
-                Text(
-                    text = stringResource(option.titleRes),
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
+                // Single horizontal line: "Execution N · <name · chosen values>".
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.action_n, index + 1),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Text(
+                        text = actionSummary(option, config),
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
                 if (!expanded) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowDown,
@@ -1133,6 +1268,7 @@ fun AutomationBuilderScreen(
                 // ── Step 2: actions + end behavior ───────────────────
                 NexaFlowCard {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {                        // ── THEN (actions) ──────────────────────────
+                            SectionHeader(text = stringResource(R.string.section_actions))
                         // Category accordion: only ONE chip is open at a time.
                         // Tapping an option adds it immediately and folds the
                         // accordion away so the new card's configuration is

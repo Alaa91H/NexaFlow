@@ -8,6 +8,7 @@
 
     
     <string name="section_when">Conditions</string>
+    <string name="action_n">Execution %1$d</string>
     <string name="trigger_n">Condition %1$d</string>
     <string name="remove_trigger">Remove condition</string>
     <string name="expand_options">Show options</string>
@@ -283,6 +284,7 @@
     <string name="charging_yes">Charging</string>
     <string name="charging_no">Not charging</string>
     <string name="no_apps_selected">No apps selected</string>
+    <string name="action_buttons_count">%1$d button(s)</string>
     <string name="selected_apps_count">%1$d app(s) selected</string>
     <string name="trigger_app">When an app is opened</string>
     <string name="time_single">Single time</string>

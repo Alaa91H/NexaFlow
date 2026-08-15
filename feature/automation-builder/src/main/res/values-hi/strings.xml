@@ -8,6 +8,7 @@
 
     
     <string name="section_when">शर्तें</string>
+    <string name="action_n">निष्पादन %1$d</string>
     <string name="trigger_n">शर्त %1$d</string>
     <string name="remove_trigger">शर्त हटाएँ</string>
     <string name="expand_options">विकल्प दिखाएँ</string>
@@ -275,6 +276,7 @@
     <string name="battery_below_sub">जब बैटरी इस स्तर से नीचे गिरती है तो चालू होता है</string>
     <string name="maximum_battery">अधिकतम: %1$d%%</string>
     <string name="no_apps_selected">कोई ऐप चयनित नहीं</string>
+    <string name="action_buttons_count">%1$d बटन</string>
     <string name="selected_apps_count">%1$d ऐप चयनित</string>
     <string name="trigger_app">जब कोई ऐप खोला जाता है</string>
     <string name="time_single">एकल समय</string>
