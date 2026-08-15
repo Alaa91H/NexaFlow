@@ -68,7 +68,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.rememberCoroutineScope
 import com.nexaflow.core.engine.currentCellularGeneration
 import com.nexaflow.core.rom.EvolutionXSettingsBridge
-import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.Dispatchers
@@ -671,10 +670,20 @@ private fun triggerSummary(draft: TriggerDraft): String {
 fun TriggerEditorCard(
     draft: TriggerDraft,
     index: Int,
+    total: Int,
     onConfigChange: (TriggerDraft) -> Unit,
     onRemove: () -> Unit,
     // Freshly added triggers open right away; loaded ones stay collapsed.
     initiallyExpanded: Boolean = false,
+    // Shared builder-row structure: ✕ remove, ↕️ reorder handle (long-press
+    // drag + tap arrows), then the name. Wired by the reorderable list.
+    modifier: Modifier = Modifier,
+    isDragging: Boolean = false,
+    onMoveUp: () -> Unit = {},
+    onMoveDown: () -> Unit = {},
+    onDragStart: () -> Unit = {},
+    onDragDelta: (Float) -> Unit = {},
+    onDragEnd: () -> Unit = {},
     onPickApp: () -> Unit,
     onPickFromMap: () -> Unit = {},
     onUseCurrentLocation: () -> Unit = {},
@@ -692,7 +701,7 @@ fun TriggerEditorCard(
     var datePickerTarget by remember { mutableStateOf<String?>(null) } // "date" | "startDate" | "endDate"
     // Fixed header row; tapping it expands the type picker and options below.
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
-    NexaFlowCard {
+    NexaFlowCard(modifier = modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(
                 modifier = Modifier
@@ -703,10 +712,22 @@ fun TriggerEditorCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                IconBadge(
-                    icon = draft.type.icon(),
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                    contentColor = MaterialTheme.colorScheme.primary
+                IconButton(onClick = onRemove) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = stringResource(R.string.remove_trigger),
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+                }
+                TaskRowHandle(
+                    index = index,
+                    total = total,
+                    isDragging = isDragging,
+                    onMoveUp = onMoveUp,
+                    onMoveDown = onMoveDown,
+                    onDragStart = onDragStart,
+                    onDragDelta = onDragDelta,
+                    onDragEnd = onDragEnd
                 )
                 // Single horizontal line: "Condition 1 · <chosen values summary>".
                 Row(
@@ -725,13 +746,6 @@ fun TriggerEditorCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
-                    )
-                }
-                IconButton(onClick = onRemove) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.remove_trigger),
-                        tint = MaterialTheme.colorScheme.secondary
                     )
                 }
                 if (!expanded) {

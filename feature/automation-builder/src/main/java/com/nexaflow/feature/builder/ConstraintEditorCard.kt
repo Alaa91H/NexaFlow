@@ -183,15 +183,25 @@ private fun constraintSummary(draft: ConstraintDraft): String = when (draft.type
 fun ConstraintEditorCard(
     draft: ConstraintDraft,
     index: Int,
+    total: Int,
     // Freshly added constraints open right away; loaded ones start collapsed.
     initiallyExpanded: Boolean = false,
     onConfigChange: (ConstraintDraft) -> Unit,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
+    // Shared builder-row structure: ✕ remove, ↕️ reorder handle (long-press
+    // drag + tap arrows), then the name. Wired by the reorderable list.
+    modifier: Modifier = Modifier,
+    isDragging: Boolean = false,
+    onMoveUp: () -> Unit = {},
+    onMoveDown: () -> Unit = {},
+    onDragStart: () -> Unit = {},
+    onDragDelta: (Float) -> Unit = {},
+    onDragEnd: () -> Unit = {}
 ) {
     // Fixed header row; tapping it expands the options below. Expand-only:
     // once opened the card never collapses, so the list only grows downward.
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
-    NexaFlowCard {
+    NexaFlowCard(modifier = modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(
                 modifier = Modifier
@@ -200,10 +210,22 @@ fun ConstraintEditorCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                IconBadge(
-                    icon = draft.type.icon(),
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                    contentColor = MaterialTheme.colorScheme.primary
+                IconButton(onClick = onRemove) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = stringResource(R.string.constraint_remove),
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+                }
+                TaskRowHandle(
+                    index = index,
+                    total = total,
+                    isDragging = isDragging,
+                    onMoveUp = onMoveUp,
+                    onMoveDown = onMoveDown,
+                    onDragStart = onDragStart,
+                    onDragDelta = onDragDelta,
+                    onDragEnd = onDragEnd
                 )
                 // Single horizontal line: "Constraint 1 · <chosen values>".
                 Row(
@@ -222,13 +244,6 @@ fun ConstraintEditorCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
-                    )
-                }
-                IconButton(onClick = onRemove) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.constraint_remove),
-                        tint = MaterialTheme.colorScheme.secondary
                     )
                 }
                 if (!expanded) {
