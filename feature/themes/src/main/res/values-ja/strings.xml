@@ -26,4 +26,6 @@
     <string name="primary_accent">メインアクセント</string>
     <string name="dynamic_color">ダイナミックカラー</string>
     <string name="dynamic_color_sub">壁紙の色を使用（Material You）</string>
+    <string name="accent_disabled_hint">ダイナミックカラーがオフのときに利用できます</string>
+    <string name="preview_dynamic">壁紙の色 (Material You)</string>
 </resources>

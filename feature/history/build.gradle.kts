@@ -28,6 +28,13 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests {
+            // Robolectric compose tests need the merged unit-test manifest
+            // (ui-test-manifest's ComponentActivity) — project pattern.
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 kotlin {
@@ -58,4 +65,9 @@ dependencies {
     implementation(project(":core:ui-components"))
     implementation(project(":feature:automations"))
     testImplementation(libs.junit.junit)
+    // Compose UI tests via Robolectric (project pattern: see
+    // SpecialPermissionStatusRowTest in :feature:automation-builder).
+    testImplementation(libs.androidx.compose.ui.ui.test.junit4)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.org.robolectric.robolectric)
 }

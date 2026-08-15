@@ -85,6 +85,7 @@
         android:icon="@mipmap/ic_launcher"
         android:intentMatchingFlags="enforceIntentFilter"
         tools:targetApi="36"
+        android:localeConfig="@xml/locales_config"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
@@ -243,6 +244,22 @@
             android:exported="true"
             android:multiprocess="false"
             android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
+
+        <!--
+            WorkManager initializes on demand through NexaFlowApplication's
+            Configuration.Provider (HiltWorkerFactory). The default
+            androidx.startup initializer must be removed, or WorkManager would
+            be created twice with incompatible configurations.
+        -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                tools:node="remove" />
+        </provider>
 
         <provider
             android:name="androidx.core.content.FileProvider"

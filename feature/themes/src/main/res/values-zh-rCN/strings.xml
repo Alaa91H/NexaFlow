@@ -26,4 +26,6 @@
     <string name="primary_accent">主要强调色</string>
     <string name="dynamic_color">动态颜色</string>
     <string name="dynamic_color_sub">使用壁纸颜色（Material You）</string>
+    <string name="accent_disabled_hint">关闭动态颜色时可用</string>
+    <string name="preview_dynamic">壁纸颜色（Material You）</string>
 </resources>

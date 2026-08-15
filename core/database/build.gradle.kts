@@ -89,7 +89,8 @@ dependencies {
     testImplementation(libs.junit.junit)
     testImplementation(libs.com.google.code.gson.gson)
     testImplementation(libs.androidx.room.room.testing)
-    testImplementation(libs.androidx.sqlite.sqlite.framework)
+    // FrameworkSQLiteOpenHelperFactory for the corruption-recovery factory.
+    implementation(libs.androidx.sqlite.sqlite.framework)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.org.robolectric.robolectric)
 }

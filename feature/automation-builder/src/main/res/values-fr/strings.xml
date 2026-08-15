@@ -495,4 +495,44 @@
     <string name="map_pick_hint">Touchez la carte pour placer le point — glissez le repère pour ajuster</string>
     <string name="map_no_key">"Google Maps n'est pas configuré. Ajoutez NEXAFLOW_MAPS_API_KEY à gradle.properties et reconstruisez."</string>
     <string name="map_search_not_found">Lieu introuvable</string>
-    <string name="trigger_cat_schedule">Planification</string>    <string name="trigger_cat_device">Appareil</string>    <string name="trigger_cat_connectivity">Connectivité</string>    <string name="trigger_cat_location">Localisation</string>    <string name="trigger_cat_apps">Applications</string>    <string name="trigger_cat_communication">Communication</string></resources>
+    <string name="trigger_cat_schedule">Planification</string>    <string name="trigger_cat_device">Appareil</string>    <string name="trigger_cat_connectivity">Connectivité</string>    <string name="trigger_cat_location">Localisation</string>    <string name="trigger_cat_apps">Applications</string>    <string name="trigger_cat_communication">Communication</string>
+<string name="add_action">Ajouter une action</string>
+<string name="add_another_trigger">Ajouter un autre déclencheur</string>
+<string name="add_count">Ajouter (%1$d)</string>
+<string name="add_exit_action">Ajouter une action de sortie</string>
+<string name="add_variable">Ajouter une variable</string>
+<string name="category_advanced">Avancé</string>
+<string name="cooldown_hint">Intervalle minimum entre deux exécutions de cette tâche</string>
+<string name="cooldown_label">Intervalle d\'exécution : %1$d s</string>
+<string name="delete_variable">Supprimer</string>
+<string name="exit_auto_reply_label">Réponse automatique (SMS)</string>
+<string name="exit_behavior_hint">"Que se passe-t-il quand la condition n'est plus vraie ?"</string>
+<string name="exit_extra_actions_label">Actions supplémentaires à la fin de la tâche</string>
+<string name="exit_per_action_title">Options de fin par action</string>
+<string name="icon">Icône</string>
+<string name="info">Infos</string>
+<string name="latitude">Latitude</string>
+<string name="longitude">Longitude</string>
+<string name="name">Nom</string>
+<string name="no_matching_actions">Aucune action correspondante</string>
+<string name="pick_actions">Choisir des actions</string>
+<string name="pick_exit_action">Choisir une action de sortie</string>
+<string name="pick_trigger_type">Ajouter un déclencheur</string>
+<string name="radius_meters">Rayon (mètres)</string>
+<string name="save_automation">Enregistrer la tâche</string>
+<string name="search_actions">Rechercher des actions…</string>
+<string name="tap_to_choose_icon">Touchez pour choisir une icône</string>
+<string name="variable_name">Nom</string>
+<string name="variable_name_error">Lettres, chiffres et trait de soulignement uniquement</string>
+<string name="variable_sensitive">Sensible (chiffré)</string>
+<string name="variable_sensitive_sub">"Stocke cette valeur chiffrée sur cet appareil (jetons, mots de passe). Déchiffrée uniquement à l'exécution d'une tâche."</string>
+<string name="variable_value">Valeur</string>
+<string name="variables_empty">"Aucune variable pour l'instant"</string>
+<string name="variables_empty_value">Vide</string>
+<string name="variables_help">"Insérez %%NAME dans n'importe quel texte d'action. Variables intégrées de l'appareil : %%DATE, %%TIME, %%DATETIME, %%BATTERY, %%CHARGING, %%WIFI, %%BLUETOOTH, %%RINGER, %%SCREEN, %%AIRPLANE, %%NETWORK, %%BRIGHTNESS, %%BRAND, %%MODEL, %%SDK. Les noms inconnus sont laissés tels quels."</string>
+<string name="variables_help_title">Variables globales</string>
+<string name="variables_load_error">"Impossible de charger les variables"</string>
+<string name="variables_retry">Réessayer</string>
+<string name="variables_title">Variables</string>
+<string name="variables_value_hint">p. ex. Adresse du domicile</string>
+</resources>

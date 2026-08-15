@@ -26,4 +26,6 @@
     <string name="primary_accent">Основной акцент</string>
     <string name="dynamic_color">Динамический цвет</string>
     <string name="dynamic_color_sub">Использовать цвета обоев (Material You)</string>
+    <string name="accent_disabled_hint">Доступно, когда динамический цвет отключён</string>
+    <string name="preview_dynamic">Цвета обоев (Material You)</string>
 </resources>

@@ -54,6 +54,7 @@ class ExecutionEngineVariableResolutionTest {
         private val variables: List<GlobalVariable>
     ) : VariableRepository {
         override fun getVariables(): Flow<List<GlobalVariable>> = flowOf(variables)
+        override fun getVariablesPaging(): PagingSource<Int, GlobalVariable> = emptyPagingSource()
         override suspend fun getVariablesOnce(): List<GlobalVariable> = variables
         override suspend fun saveVariable(variable: GlobalVariable) = Unit
         override suspend fun deleteVariable(id: String) = Unit

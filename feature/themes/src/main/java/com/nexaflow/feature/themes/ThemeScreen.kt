@@ -1,5 +1,6 @@
 package com.nexaflow.feature.themes
 
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,21 +26,27 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import android.os.Build
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.nexaflow.core.datastore.ThemeMode
+import com.nexaflow.core.datastore.ThemeSettings
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
@@ -77,7 +84,30 @@ fun ThemeScreen(navController: NavController) {
     val viewModel: ThemeViewModel = hiltViewModel()
     val theme by viewModel.theme.collectAsStateWithLifecycle()
 
-    Scaffold(topBar = { NexaFlowTopBar(title = stringResource(R.string.themes_title), onBack = { navController.popBackStack() }) }) { padding ->
+    ThemeScreenContent(
+        theme = theme,
+        onModeChange = viewModel::setThemeMode,
+        onAccentChange = viewModel::setAccent,
+        onDynamicColorChange = viewModel::setDynamicColor,
+        onBack = { navController.popBackStack() }
+    )
+}
+
+/**
+ * Stateless theme editor. The accent section is dimmed while Dynamic color is
+ * on because the wallpaper scheme overrides it — picking an accent that does
+ * nothing would look like a bug.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ThemeScreenContent(
+    theme: ThemeSettings,
+    onModeChange: (ThemeMode) -> Unit,
+    onAccentChange: (String) -> Unit,
+    onDynamicColorChange: (Boolean) -> Unit,
+    onBack: () -> Unit
+) {
+    Scaffold(topBar = { NexaFlowTopBar(title = stringResource(R.string.themes_title), onBack = onBack) }) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -96,7 +126,7 @@ fun ThemeScreen(navController: NavController) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { viewModel.setThemeMode(option.mode) }
+                                    .clickable { onModeChange(option.mode) }
                                     .padding(vertical = 6.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -167,7 +197,7 @@ fun ThemeScreen(navController: NavController) {
                                 }
                                 Switch(
                                     checked = theme.dynamicColor,
-                                    onCheckedChange = { viewModel.setDynamicColor(it) }
+                                    onCheckedChange = onDynamicColorChange
                                 )
                             }
                         }
@@ -179,8 +209,15 @@ fun ThemeScreen(navController: NavController) {
             }
             item {
                 NexaFlowCard {
+                    // With Dynamic color on, the wallpaper scheme overrides the
+                    // accent — dim the choices and drop the click so the UI
+                    // never claims a selection that has no effect.
+                    val accentsEnabled = !theme.dynamicColor
+                    val accentAlpha = if (accentsEnabled) 1f else 0.38f
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .alpha(accentAlpha),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         accentOptions.forEach { option ->
@@ -194,7 +231,13 @@ fun ThemeScreen(navController: NavController) {
                                         color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                                         shape = CircleShape
                                     )
-                                    .clickable { viewModel.setAccent(option.key) },
+                                    .then(
+                                        if (accentsEnabled) {
+                                            Modifier.clickable { onAccentChange(option.key) }
+                                        } else {
+                                            Modifier
+                                        }
+                                    ),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (selected) {
@@ -208,10 +251,14 @@ fun ThemeScreen(navController: NavController) {
                         }
                     }
                     Text(
-                        text = stringResource(
-                            R.string.accent_selected,
-                            stringResource(accentOptions.firstOrNull { it.key == theme.accent }?.labelRes ?: R.string.accent_blue)
-                        ),
+                        text = if (accentsEnabled) {
+                            stringResource(
+                                R.string.accent_selected,
+                                stringResource(accentOptions.firstOrNull { it.key == theme.accent }?.labelRes ?: R.string.accent_blue)
+                            )
+                        } else {
+                            stringResource(R.string.accent_disabled_hint)
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.padding(top = 12.dp)
@@ -230,7 +277,11 @@ fun ThemeScreen(navController: NavController) {
                         ) {
                             IconBadge(
                                 icon = Icons.Filled.Palette,
-                                containerColor = accentOptions.firstOrNull { it.key == theme.accent }?.color ?: Color(0xFF0B57D0)
+                                containerColor = if (theme.dynamicColor) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    accentOptions.firstOrNull { it.key == theme.accent }?.color ?: Color(0xFF1B62B7)
+                                }
                             )
                             Column {
                                 Text(text = stringResource(R.string.theme_name), style = MaterialTheme.typography.titleSmall)
@@ -245,24 +296,67 @@ fun ThemeScreen(navController: NavController) {
                                 )
                             }
                         }
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(
-                                    color = accentOptions.firstOrNull { it.key == theme.accent }?.color ?: Color(0xFF0B57D0),
-                                    shape = MaterialTheme.shapes.medium
+                        if (theme.dynamicColor) {
+                            // Wallpaper colors are device-dependent; show the
+                            // state instead of a fake accent swatch.
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        color = MaterialTheme.colorScheme.primaryContainer,
+                                        shape = MaterialTheme.shapes.medium
+                                    )
+                                    .padding(12.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.preview_dynamic),
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    style = MaterialTheme.typography.labelLarge
                                 )
-                                .padding(12.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.primary_accent),
-                                color = Color.White,
-                                style = MaterialTheme.typography.labelLarge
-                            )
+                            }
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        color = accentOptions.firstOrNull { it.key == theme.accent }?.color ?: Color(0xFF1B62B7),
+                                        shape = MaterialTheme.shapes.medium
+                                    )
+                                    .padding(12.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.primary_accent),
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Preview(name = "Themes — Light", showBackground = true, widthDp = 400, heightDp = 900)
+@Composable
+private fun ThemeScreenPreviewLight() {
+    MaterialTheme(colorScheme = lightColorScheme()) {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            ThemeScreenContent(ThemeSettings(), {}, {}, {}, {})
+        }
+    }
+}
+
+@Preview(name = "Themes — Dark", showBackground = true, backgroundColor = 0xFF121212, widthDp = 400, heightDp = 900)
+@Composable
+private fun ThemeScreenPreviewDark() {
+    MaterialTheme(colorScheme = darkColorScheme()) {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            ThemeScreenContent(
+                ThemeSettings(mode = ThemeMode.DARK, accent = "purple", dynamicColor = true),
+                {}, {}, {}, {}
+            )
         }
     }
 }

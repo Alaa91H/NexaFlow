@@ -18,7 +18,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
@@ -96,6 +98,13 @@ class MainActivity : ComponentActivity() {
                 ) {
                     NexaFlowApp()
                 }
+            }
+            // Report time-to-full-display once the first frame is actually
+            // drawn, so the system (and Play/Perfetto) measure real TTFD
+            // instead of assuming the first frame. Must run after the frame.
+            LaunchedEffect(Unit) {
+                withFrameNanos { }
+                reportFullyDrawn()
             }
         }
     }

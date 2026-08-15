@@ -1,0 +1,72 @@
+{
+  "": {
+    "themes_title": "Themes",
+    "section_appearance": "APPEARANCE",
+    "mode_system": "System default",
+    "mode_system_sub": "Follows the device theme",
+    "mode_light": "Light",
+    "mode_light_sub": "Always use the light theme",
+    "mode_dark": "Dark",
+    "mode_dark_sub": "Always use the dark theme",
+    "theme_follows_system": "Follows your system appearance automatically",
+    "theme_manual": "Manual theme override selected",
+    "section_accent": "ACCENT COLOR",
+    "accent_selected": "Selected: %1$s",
+    "accent_blue": "Blue",
+    "accent_green": "Green",
+    "accent_red": "Red",
+    "accent_purple": "Purple",
+    "accent_amber": "Amber",
+    "accent_teal": "Teal",
+    "section_preview": "PREVIEW",
+    "theme_name": "NexaFlow theme",
+    "preview_system": "System appearance",
+    "preview_dark": "Dark preview",
+    "preview_light": "Light preview",
+    "primary_accent": "Primary accent",
+    "dynamic_color": "Dynamic color",
+    "dynamic_color_sub": "Use wallpaper colors (Material You)",
+    "accent_disabled_hint": "Available when Dynamic color is off",
+    "preview_dynamic": "Wallpaper colors (Material You)"
+  },
+  "-ar": {
+    "accent_disabled_hint": "متاح عند إيقاف اللون الديناميكي",
+    "preview_dynamic": "ألوان الخلفية (Material You)"
+  },
+  "-de": {
+    "accent_disabled_hint": "Verfügbar, wenn die dynamische Farbe deaktiviert ist",
+    "preview_dynamic": "Hintergrundfarben (Material You)"
+  },
+  "-es": {
+    "accent_disabled_hint": "Disponible cuando el color dinámico está desactivado",
+    "preview_dynamic": "Colores del fondo de pantalla (Material You)"
+  },
+  "-fr": {
+    "accent_disabled_hint": "Disponible lorsque la couleur dynamique est désactivée",
+    "preview_dynamic": "\"Couleurs du fond d'écran (Material You)\""
+  },
+  "-hi": {
+    "accent_disabled_hint": "डायनामिक रंग बंद होने पर उपलब्ध",
+    "preview_dynamic": "वॉलपेपर रंग (Material You)"
+  },
+  "-ja": {
+    "accent_disabled_hint": "ダイナミックカラーがオフのときに利用できます",
+    "preview_dynamic": "壁紙の色 (Material You)"
+  },
+  "-pt": {
+    "accent_disabled_hint": "Disponível quando a cor dinâmica está desativada",
+    "preview_dynamic": "Cores do papel de parede (Material You)"
+  },
+  "-ru": {
+    "accent_disabled_hint": "Доступно, когда динамический цвет отключён",
+    "preview_dynamic": "Цвета обоев (Material You)"
+  },
+  "-tr": {
+    "accent_disabled_hint": "Dinamik renk kapalıyken kullanılabilir",
+    "preview_dynamic": "Duvar kâğıdı renkleri (Material You)"
+  },
+  "-zh-rCN": {
+    "accent_disabled_hint": "关闭动态颜色时可用",
+    "preview_dynamic": "壁纸颜色（Material You）"
+  }
+}

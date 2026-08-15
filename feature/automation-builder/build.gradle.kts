@@ -57,6 +57,9 @@ dependencies {
     implementation(libs.androidx.hilt.hilt.navigation.compose)
     implementation(libs.androidx.lifecycle.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.lifecycle.runtime.compose)
+    // Paging for the variables screen (unbounded list streams page by page).
+    implementation(libs.androidx.paging.paging.runtime)
+    implementation(libs.androidx.paging.paging.compose)
     implementation(libs.androidx.lifecycle.lifecycle.viewmodel.ktx)
     debugImplementation(libs.androidx.compose.ui.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.ui.test.manifest)

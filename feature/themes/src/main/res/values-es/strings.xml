@@ -26,4 +26,6 @@
     <string name="primary_accent">Acento principal</string>
     <string name="dynamic_color">Color dinámico</string>
     <string name="dynamic_color_sub">Usar colores del fondo de pantalla (Material You)</string>
+    <string name="accent_disabled_hint">Disponible cuando el color dinámico está desactivado</string>
+    <string name="preview_dynamic">Colores del fondo de pantalla (Material You)</string>
 </resources>

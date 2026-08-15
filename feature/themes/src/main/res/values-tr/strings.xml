@@ -26,4 +26,6 @@
     <string name="primary_accent">Ana vurgu</string>
     <string name="dynamic_color">Dinamik renk</string>
     <string name="dynamic_color_sub">Duvar kâğıdı renklerini kullan (Material You)</string>
+    <string name="accent_disabled_hint">Dinamik renk kapalıyken kullanılabilir</string>
+    <string name="preview_dynamic">Duvar kâğıdı renkleri (Material You)</string>
 </resources>

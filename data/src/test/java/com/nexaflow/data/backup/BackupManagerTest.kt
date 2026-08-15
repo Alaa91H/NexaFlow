@@ -3,6 +3,8 @@ package com.nexaflow.data.backup
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.Constraint
+import com.nexaflow.domain.models.ConstraintType
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
@@ -201,6 +203,51 @@ class BackupManagerTest {
         """.trimIndent()
         assertEquals(ImportResult.InvalidFile, manager.import(json))
         assertTrue(repository.saved.isEmpty())
+    }
+
+    @Test
+    fun `rich automation round-trips through export and import identically`() = runBlocking {
+        // Full-fidelity bidirectional check: every field kind (nested triggers
+        // with config maps, actions, constraints, exit actions, flags) must
+        // survive export -> JSON -> import byte-for-byte. This is the same
+        // schema the R8 release build serializes (field names and enum names
+        // are compile-time constants, unaffected by obfuscation).
+        val original = Automation(
+            id = "a-1",
+            name = "Home Mode",
+            description = "A rich task",
+            icon = "home",
+            iconColor = 0xFF1B62B7,
+            backgroundColor = 0xFFE8A33D,
+            category = "location",
+            priority = 5,
+            enabled = true,
+            triggers = listOf(
+                Trigger(TriggerType.TIME, mapOf("time" to "08:00", "timeMode" to "RANGE", "repeat" to "DAILY")),
+                Trigger(TriggerType.APPLICATION, mapOf("packages" to "com.whatsapp,com.telegram"))
+            ),
+            actions = listOf(
+                Action(ActionType.SYSTEM_BRIGHTNESS, mapOf("level" to "60")),
+                Action(ActionType.SYSTEM_BRIGHTNESS, mapOf("level" to "25", "ramp" to "true"))
+            ),
+            constraints = listOf(
+                Constraint(ConstraintType.BATTERY, mapOf("direction" to "ABOVE", "level" to "30")),
+                Constraint(ConstraintType.WIFI)
+            ),
+            exitActions = listOf(
+                Action(ActionType.SYSTEM_BRIGHTNESS, mapOf("level" to "100"))
+            ),
+            revertOnExit = false,
+            cooldownSeconds = 15,
+            createdAt = 111L,
+            updatedAt = 222L
+        )
+        repository.saveAutomation(original)
+        val exported = manager.export()
+        assertEquals(1, exported.automations.size)
+        val result = manager.import(manager.toJson(exported))
+        assertEquals(ImportResult.Success(1), result)
+        assertEquals(original, repository.saved.single())
     }
 
     @Test

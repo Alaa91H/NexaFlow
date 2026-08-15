@@ -26,4 +26,6 @@
     <string name="primary_accent">Primäre Akzentfarbe</string>
     <string name="dynamic_color">Dynamische Farbe</string>
     <string name="dynamic_color_sub">Wallpaper-Farben verwenden (Material You)</string>
+    <string name="accent_disabled_hint">Verfügbar, wenn die dynamische Farbe deaktiviert ist</string>
+    <string name="preview_dynamic">Hintergrundfarben (Material You)</string>
 </resources>

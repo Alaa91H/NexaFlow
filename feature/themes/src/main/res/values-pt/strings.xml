@@ -26,4 +26,6 @@
     <string name="primary_accent">Destaque principal</string>
     <string name="dynamic_color">Cor dinâmica</string>
     <string name="dynamic_color_sub">Usar cores do papel de parede (Material You)</string>
+    <string name="accent_disabled_hint">Disponível quando a cor dinâmica está desativada</string>
+    <string name="preview_dynamic">Cores do papel de parede (Material You)</string>
 </resources>

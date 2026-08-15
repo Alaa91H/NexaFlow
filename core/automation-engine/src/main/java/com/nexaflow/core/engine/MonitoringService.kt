@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
@@ -83,7 +84,8 @@ class MonitoringService : Service() {
     override fun onCreate() {
         super.onCreate()
         isRunning = true
-        startAsForeground()
+        runCatching { startAsForeground() }
+            .onFailure { Log.w(TAG, "startAsForeground failed", it) }
         // Live binding: when the user toggles «Monitoring service» in
         // Settings > Notifications, the FGS notification is hidden (channel
         // drops to IMPORTANCE_NONE — no card anywhere, not even the shade)
@@ -102,21 +104,32 @@ class MonitoringService : Service() {
         // before the first re-arm read — no race between the two.
         scope.launch {
             activeTriggerStore.purgeExpired()
-            batteryMonitor.initialize()
-            deviceEventMonitor.initialize()
-            connectivityMonitor.initialize()
-            locationMonitor.initialize()
-            bluetoothMonitor.initialize()
-            ringerModeMonitor.initialize()
-            calendarMonitor.initialize()
-            sensorMonitor.initialize()
-            romSettingMonitor.initialize()
-            webhookServer.initialize()
+            startMonitors()
+            runCatching { romSettingMonitor.initialize() }
+                .onFailure { Log.w(TAG, "monitor 'rom-setting' failed to initialize", it) }
             armSmsConsentIfEnabled()
             // Build the O(1) trigger index and keep it in sync with the
             // database (rebuilt on every save/enable-toggle via the Room-
             // backed flow).
             triggerIndex.start()
+        }
+    }
+
+    private fun startMonitors() {
+        val monitors = listOf(
+            "battery" to { batteryMonitor.initialize() },
+            "device-event" to { deviceEventMonitor.initialize() },
+            "connectivity" to { connectivityMonitor.initialize() },
+            "location" to { locationMonitor.initialize() },
+            "bluetooth" to { bluetoothMonitor.initialize() },
+            "ringer-mode" to { ringerModeMonitor.initialize() },
+            "calendar" to { calendarMonitor.initialize() },
+            "sensor" to { sensorMonitor.initialize() },
+            "webhook" to { webhookServer.initialize() }
+        )
+        monitors.forEach { (name, init) ->
+            runCatching { init() }
+                .onFailure { Log.w(TAG, "monitor '$name' failed to initialize", it) }
         }
     }
 
@@ -128,11 +141,13 @@ class MonitoringService : Service() {
         // The notification shares a single flag with the Permission Manager
         // OemCompat card (OemCompat.isHintDelivered), so the user is never
         // alerted by both channels.
-        //
         // Run off the main thread: maybeShow triggers ROM-family detection
         // (OemCompat -> RomDetector), and the first call lazily parses
         // /system/build.prop — a StrictMode DiskReadViolation on main.
-        scope.launch { OemAutostartNotifier.maybeShow(this@MonitoringService) }
+        scope.launch {
+            runCatching { OemAutostartNotifier.maybeShow(this@MonitoringService) }
+                .onFailure { Log.w(TAG, "autostart notifier failed", it) }
+        }
         return START_STICKY
     }
 
@@ -347,6 +362,7 @@ class MonitoringService : Service() {
         internal fun channelImportance(visible: Boolean): Int =
             if (visible) NotificationManager.IMPORTANCE_MIN else NotificationManager.IMPORTANCE_NONE
 
+        private const val TAG = "MonitoringService"
         private const val CHANNEL_ID = "nexaflow_monitoring"
         private const val NOTIFICATION_ID = 2001
         private const val RESTART_REQUEST_CODE = 42001

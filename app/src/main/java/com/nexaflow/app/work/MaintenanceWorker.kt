@@ -36,6 +36,12 @@ class MaintenanceWorker @AssistedInject constructor(
             val dao = database.executionDao()
             dao.pruneOlderThan(System.currentTimeMillis() - ExecutionDao.RETENTION_MS)
             dao.pruneExcess(ExecutionDao.RETAIN_LIMIT)
+            // SQLite docs: run PRAGMA optimize periodically so the query
+            // planner re-analyzes table statistics after schema/volume
+            // changes (keeps history/automation queries on good plans).
+            database.openHelper.writableDatabase
+                .query("PRAGMA optimize")
+                .close()
             Result.success()
         } catch (_: Throwable) {
             // Transient DB lock / corruption — retry with backoff next period.

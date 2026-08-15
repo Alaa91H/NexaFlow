@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.nexaflow.core.database.AppDatabase
 import com.nexaflow.core.database.AutomationDao
+import com.nexaflow.core.database.CorruptionRecoveryFactory
 import com.nexaflow.core.database.ExecutionDao
 import com.nexaflow.core.database.Migrations
 import com.nexaflow.core.database.VariableDao
@@ -51,6 +52,10 @@ object AppModule {
             // WAL allows concurrent readers while writing, eliminating
             // read/write lock contention under the engine's write-heavy load.
             .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
+            // SQLite corruption handler: copies the corrupt database for
+            // analysis, then recreates it on the next open instead of
+            // crashing on a permanently broken file.
+            .openHelperFactory(CorruptionRecoveryFactory())
             .addMigrations(*Migrations.ALL.toTypedArray())
             .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
             .build()

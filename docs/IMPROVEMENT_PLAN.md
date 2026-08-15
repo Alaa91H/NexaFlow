@@ -12,6 +12,8 @@
 | 🔴 P0-1 | WorkManager للصيانة الدورية (تنظيف سجل التنفيذ/النسخ الاحتياطي) | موثوقية | ✅ |
 | 🔴 P0-2 | Sentry لرصد الأعطال والـ ANR (تفعيل اختياري) | جودة | ✅ |
 | 🔴 P0-3 | Baseline Profiles + Macrobenchmark | أداء | ✅ |
+
+> **P0-3 مكتمل بالكامل**: النصف الثاني (`:macrobenchmark` — قياس الإقلاع البارد على جهاز/محاكاة) أُضيف في الدفعة السابعة؛ شاهد «سجل التنفيذ — الدفعة السابعة» بالأسفل.
 | 🔴 P0-4 | تشفير الأسرار (Keystore) للمتغيرات الحساسة | أمان | ✅ |
 | 🔴 P0-5 | قواعد R8 لنماذج Gson + اختبار استيراد في release | موثوقية | ✅ (تحقق) |
 | 🟠 P1-1 | ACCESS_LOCAL_NETWORK لـ targetSdk 37 + شاشة شرح | توافق | ✅ |
@@ -228,3 +230,42 @@
 | StrictMode | **StrictMode للبناء التجريبي فقط**: كشف قراءة/كتابة قرص وشبكة على الخيط الرئيسي + تسريبات Activity/Closable/Registration مع `penaltyDeath` — كان سيكشف الخطأ أعلاه فوراً، ويعمل كشبكة أمان لكل التطوير القادم | `app/.../NexaFlowApplication.kt` |
 
 > تحقّق أيضاً من: لا GlobalScope/runBlocking/Thread.sleep في الإنتاج، كل المستقبلات تستخدم `goAsync`+scope خلفي (`ApplicationScope` = Dispatchers.Default)، WebhookServer على IO، منح URI الصريح للتثبيت موجود، الـ composables كلها skippable.
+
+## سجل التنفيذ — الدفعة السادسة (لغات التطبيق + تقليص موارد اللغات + فحوصات أمان)
+
+| البند | ما نُفّذ | الملفات الرئيسية |
+|---|---|---|
+| localeConfig | **لغات التطبيق المستقلة (Android 13+)**: `android:localeConfig="@xml/locales_config"` + ملف يصرّح بالـ 11 لغة المدعومة — المستخدم يستطيع الآن اختيار لغة التطبيق من إعدادات النظام بمعزل عن لغة النظام (كانت الميزة غائبة رغم دعم 10 ترجمات) | `app/src/main/res/xml/locales_config.xml` · `app/src/main/AndroidManifest.xml` |
+| resourceConfigurations | **قص موارد اللغات غير المدعومة من المكتبات**: `resourceConfigurations` بالـ 11 لغة فقط — الـ release انخفض من 3.65MB إلى **2.92MB (-20%)**، و`aapt2 dump badging` يؤكد أن الـ APK يضم `ar de es fr hi ja pt ru tr zh-CN` فقط | `app/build.gradle.kts` |
+| تحققات أمان | النسخ الاحتياطي معطّل بالكامل مع استبعاد صريح (allowBackup=false + data_extraction_rules + backup_rules)؛ SmsReceiver/SmsConsentReceiver محميّان بـ `BROADCAST_SMS` ضد انتحال الرسائل؛ كل المستقبلات الداخلية `exported=false`؛ خادم الـ Webhook loopback + token + cooldown؛ مؤقتات `setExactAndAllowWhileIdle` الثلاثة كلها تحترم `canScheduleExactAlarms()` مع fallback غير دقيق؛ Sentry اختياري + بدون NDK | (تأكيد — لا تغيير مطلوب) |
+
+> البوابة الكاملة خضراء: 437 اختباراً، lint 0 مشكلة، detekt نظيف، تطابق السلاسل 0 مشكلة، 16KB سليم.
+
+## سجل التنفيذ — الدفعة السابعة (إكمال P0-3: موديول Macrobenchmark)
+
+| البند | ما نُفّذ | الملفات الرئيسية |
+|---|---|---|
+| P0-3 (النصف الثاني) | **موديول `:macrobenchmark`** (النصف الناقص من «Baseline Profiles + Macrobenchmark»): وحدة `com.android.test` ذاتية الأدوات تقيس **الإقلاع البارد** عبر `MacrobenchmarkRule` بمقارنتين — `startup()` (الحالة المثبّتة مع baseline profile) و`startupWithBaselineProfile()` (`CompilationMode.Partial` لعزل أثر AOT) — مع التوثيق لتشغيلها على جهاز. كتالوج الاعتمادات كان يضم `benchmark-macro-junit4` بلا استخدام؛ الآن موصول | `macrobenchmark/build.gradle.kts` · `macrobenchmark/src/main/java/.../StartupBenchmarks.kt` · `macrobenchmark/src/main/AndroidManifest.xml` · `settings.gradle.kts` |
+| ملاحظة إصدارات | في benchmark **1.4.x** انتقل `MacrobenchmarkRule` إلى حزمة `androidx.benchmark.macro.junit4` (وليس `androidx.benchmark.macro` كالنسخ القديمة) — رُوعي في الاستيرادات | `StartupBenchmarks.kt` |
+
+> التشغيل على جهاز/محاكاة: `./gradlew :macrobenchmark:connectedDebugAndroidTest`
+> الوحدة **معزولة عن CI** (لا جهاز) — لا شيء في البوابة يستدعي مهامها، لكنها تُبنى مع بقية المشروع (`assembleDebug`).
+
+## سجل التنفيذ — الدفعة الثامنة (TTFD + PRAGMA optimize)
+
+| البند | ما نُفّذ | الملفات الرئيسية |
+|---|---|---|
+| TTFD | **`reportFullyDrawn()`** بعد رسم أول إطار (`withFrameNanos`) — النظام وPlay يقيسان الآن زمن العرض الكامل الحقيقي بدل افتراض الإطار الأول | `app/.../MainActivity.kt` |
+| PRAGMA optimize | **`PRAGMA optimize`** دوري داخل `MaintenanceWorker` (توصية sqlite.org للاتصالات الطويلة) — إعادة تحليل إحصاءات مخطط الاستعلام بعد تغيير المخطط/الحجم + اختبار Robolectric يثبت أنه يعمل دون كسر DAO | `app/.../work/MaintenanceWorker.kt` · `core/database/.../DatabaseMaintenanceTest.kt` |
+| تأكيد المحاور السابقة | Baseline Profiles (موديول `:baseline-profile` + `baseline-prof.txt` + `:macrobenchmark`) ✓ · R8 full + shrinkResources + resourceConfigurations ✓ · Paging 3.4.1 للسجل ✓ — لا حاجة لتغيير | — |
+
+> البوابة الكاملة خضراء: 438 اختباراً (جديد: PRAGMA optimize)، lint 0، detekt نظيف، تطابق السلاسل 0، release 2.92MB.
+
+## سجل التنفيذ — الدفعة التاسعة (Paging لشاشة المتغيرات)
+
+| البند | ما نُفّذ | الملفات الرئيسية |
+|---|---|---|
+| Variables Paging | **شاشة المتغيرات** كانت تحمّل كل المتغيرات (غير محدودة) دفعة واحدة — الآن `Pager(30, initialLoadSize=60)` عبر `VariableDao.getAllVariablesPaged()` (room-paging) + `VariableRepository.getVariablesPaging()` مع **فك تشفير المتغيرات الحساسة صفحة-بصفحة** + حالات تحميل/خطأ/إعادة محاولة/فارغ في الشاشة بـ 11 لغة (سلسلتان جديدتان) | `VariableDao.kt` · `VariableRepository.kt` · `VariableRepositoryImpl.kt` · `VariablesViewModel.kt` · `VariablesScreen.kt` · `feature/automation-builder/build.gradle.kts` |
+| MappedPagingSource | ترقية المحوّل ليقبل **تحويلاً suspend** (ضروري لفك تشفير Keystore لكل عنصر) مع حلقة صريحة بدل `map` — متوافق مع استدعاء السجل الحالي (لامدا غير suspend تتكيف تلقائياً) | `data/.../paging/MappedPagingSource.kt` |
+
+> البوابة الكاملة خضراء: 438 اختباراً، lint 0، detekt نظيف، تطابق السلاسل 0، release 2.92MB.

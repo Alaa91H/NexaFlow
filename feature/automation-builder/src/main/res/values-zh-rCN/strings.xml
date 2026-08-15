@@ -495,4 +495,44 @@
     <string name="map_pick_hint">点击地图放置点 — 拖动标记进行微调</string>
     <string name="map_no_key">Google 地图尚未配置。请在 gradle.properties 中添加 NEXAFLOW_MAPS_API_KEY 并重新构建。</string>
     <string name="map_search_not_found">未找到地点</string>
-    <string name="trigger_cat_schedule">计划</string>    <string name="trigger_cat_device">设备</string>    <string name="trigger_cat_connectivity">连接</string>    <string name="trigger_cat_location">位置</string>    <string name="trigger_cat_apps">应用</string>    <string name="trigger_cat_communication">通信</string></resources>
+    <string name="trigger_cat_schedule">计划</string>    <string name="trigger_cat_device">设备</string>    <string name="trigger_cat_connectivity">连接</string>    <string name="trigger_cat_location">位置</string>    <string name="trigger_cat_apps">应用</string>    <string name="trigger_cat_communication">通信</string>
+<string name="add_action">添加操作</string>
+<string name="add_another_trigger">添加另一个触发器</string>
+<string name="add_count">添加 (%1$d)</string>
+<string name="add_exit_action">添加退出动作</string>
+<string name="add_variable">添加变量</string>
+<string name="category_advanced">高级</string>
+<string name="cooldown_hint">此任务两次运行之间的最小间隔</string>
+<string name="cooldown_label">运行间隔：%1$d 秒</string>
+<string name="delete_variable">删除</string>
+<string name="exit_auto_reply_label">自动回复（短信）</string>
+<string name="exit_behavior_hint">当条件不再满足时会发生什么？</string>
+<string name="exit_extra_actions_label">结束时执行额外操作</string>
+<string name="exit_per_action_title">每个操作的结束选项</string>
+<string name="icon">图标</string>
+<string name="info">信息</string>
+<string name="latitude">纬度</string>
+<string name="longitude">经度</string>
+<string name="name">名称</string>
+<string name="no_matching_actions">没有匹配的操作</string>
+<string name="pick_actions">选择操作</string>
+<string name="pick_exit_action">选择退出动作</string>
+<string name="pick_trigger_type">添加触发器</string>
+<string name="radius_meters">半径（米）</string>
+<string name="save_automation">保存任务</string>
+<string name="search_actions">搜索操作…</string>
+<string name="tap_to_choose_icon">点击选择图标</string>
+<string name="variable_name">名称</string>
+<string name="variable_name_error">仅限字母、数字和下划线</string>
+<string name="variable_sensitive">敏感（加密）</string>
+<string name="variable_sensitive_sub">将此值加密存储在本设备上（令牌、密码）。仅在任务运行时解密。</string>
+<string name="variable_value">值</string>
+<string name="variables_empty">暂无变量</string>
+<string name="variables_empty_value">空</string>
+<string name="variables_help">在任意操作文本中插入 %%NAME。内置设备变量：%%DATE、%%TIME、%%DATETIME、%%BATTERY、%%CHARGING、%%WIFI、%%BLUETOOTH、%%RINGER、%%SCREEN、%%AIRPLANE、%%NETWORK、%%BRIGHTNESS、%%BRAND、%%MODEL、%%SDK。未知名称保持原样。</string>
+<string name="variables_help_title">全局变量</string>
+<string name="variables_load_error">无法加载变量</string>
+<string name="variables_retry">重试</string>
+<string name="variables_title">变量</string>
+<string name="variables_value_hint">例如：家庭地址</string>
+</resources>

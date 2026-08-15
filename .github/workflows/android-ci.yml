@@ -92,8 +92,51 @@ jobs:
         # distributed APK so the map works for all users, not just local builds.
         NEXAFLOW_MAPS_API_KEY: ${{ secrets.NEXAFLOW_MAPS_API_KEY }}
       run: ./gradlew assembleDebug assembleRelease
+    - name: Verify dependency verification metadata is up to date
+      run: |
+        cp gradle/verification-metadata.xml /tmp/verification-metadata.expected.xml
+        ./gradlew --write-verification-metadata sha256 :app:assembleDebug --console=plain
+        python3 scripts/check_verification_metadata.py \
+          /tmp/verification-metadata.expected.xml gradle/verification-metadata.xml
     - name: Verify 16 KB page-size alignment of native libraries
       run: python3 scripts/check_16kb.py app/build/outputs/apk/release/app-release.apk
+    - name: Verify APK signature (v1/v2/v3)
+      run: |
+        APKSIGNER="$(ls "$ANDROID_SDK_ROOT"/build-tools/*/apksigner | sort -V | tail -1)"
+        echo "== APK signature verification (verbose) =="
+        "$APKSIGNER" verify --verbose --print-certs app/build/outputs/apk/release/app-release.apk
+        # Gate: at least one modern signature scheme (v2 or v3) must verify.
+        "$APKSIGNER" verify --verbose app/build/outputs/apk/release/app-release.apk \
+          | grep -E "Verified using v(2|3) scheme.*: true"
+    - name: Verify zipalign (4 KB + 16 KB native page alignment)
+      run: |
+        ZIPALIGN="$(ls "$ANDROID_SDK_ROOT"/build-tools/*/zipalign | sort -V | tail -1)"
+        "$ZIPALIGN" -c -P 16 -v 4 app/build/outputs/apk/release/app-release.apk
+    - name: Build release AAB
+      run: ./gradlew bundleRelease
+    - name: Download bundletool
+      run: curl -fsSL -o bundletool.jar https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar
+    - name: bundletool - validate bundle and measure per-ABI size
+      run: |
+        BUNDLE=app/build/outputs/bundle/release/app-release.aab
+        keytool -genkeypair -keystore ci-debug.keystore -storepass android -keypass android \
+          -alias androiddebugkey -dname "CN=Android Debug,O=Android,C=US" \
+          -keyalg RSA -keysize 2048 -validity 10000 >/dev/null 2>&1
+        KS=(--ks=ci-debug.keystore --ks-pass=pass:android --ks-key-alias=androiddebugkey --key-pass=pass:android)
+        echo "== Bundle manifest (validates the AAB) =="
+        java -jar bundletool.jar dump manifest --bundle="$BUNDLE" \
+          | grep -E "package=|versionCode|versionName|minSdkVersion|targetSdkVersion"
+        java -jar bundletool.jar build-apks --bundle="$BUNDLE" --output=apks-splits.apks "${KS[@]}"
+        java -jar bundletool.jar build-apks --bundle="$BUNDLE" --output=apks-universal.apks --mode=universal "${KS[@]}"
+        echo "== Estimated download size - per-device splits (bytes, min..max) =="
+        java -jar bundletool.jar get-size total --apks=apks-splits.apks | tail -1
+        echo "== Estimated download size - universal (all ABIs) APK (bytes) =="
+        java -jar bundletool.jar get-size total --apks=apks-universal.apks | tail -1
+        echo "== Native-library splits per ABI (bytes) =="
+        unzip -l apks-splits.apks | grep -E "base-(arm64_v8a|armeabi_v7a|x86_64|x86)\.apk" \
+          | awk '{printf "  %-24s %s bytes\n", $4, $1}'
+    - name: Audit native libraries (ABI + size)
+      run: python3 scripts/check_apk_libs.py app/build/outputs/apk/release/app-release.apk
     - name: Upload Debug APK
       uses: actions/upload-artifact@v7
       with:
@@ -104,6 +147,11 @@ jobs:
       with:
         name: nexaflow-release-apk
         path: app/build/outputs/apk/release/app-release.apk
+    - name: Upload Release AAB
+      uses: actions/upload-artifact@v7
+      with:
+        name: nexaflow-release-aab
+        path: app/build/outputs/bundle/release/app-release.aab
     - name: Create or Update GitHub Release
       if: startsWith(github.ref, 'refs/tags/')
       env:

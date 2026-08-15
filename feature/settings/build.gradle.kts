@@ -21,6 +21,13 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
+    testOptions {
+        unitTests {
+            // Robolectric tests need the merged unit-test manifest
+            // (ApplicationProvider/package manager) — project pattern.
+            isIncludeAndroidResources = true
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -65,4 +72,8 @@ dependencies {
     testImplementation(libs.junit.junit)
     // org.json is not part of the JVM classpath; provide it for tests only.
     testImplementation(libs.org.json.json)
+    // Robolectric test proving UpdateChecker never touches the main thread
+    // (see UpdateViewModelOffMainThreadTest) — project pattern.
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.org.robolectric.robolectric)
 }

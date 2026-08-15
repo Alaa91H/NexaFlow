@@ -22,6 +22,7 @@ dependencyResolutionManagement {
 rootProject.name = "NexaFlow"
 include(":app")
 include(":baseline-profile")
+include(":macrobenchmark")
 include(":core:common")
 include(":core:security")
 include(":core:logging")

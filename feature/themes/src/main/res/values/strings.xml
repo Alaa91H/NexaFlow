@@ -26,4 +26,6 @@
     <string name="primary_accent">Primary accent</string>
     <string name="dynamic_color">Dynamic color</string>
     <string name="dynamic_color_sub">Use wallpaper colors (Material You)</string>
+    <string name="accent_disabled_hint">Available when Dynamic color is off</string>
+    <string name="preview_dynamic">Wallpaper colors (Material You)</string>
 </resources>

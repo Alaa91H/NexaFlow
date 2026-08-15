@@ -26,4 +26,6 @@
     <string name="primary_accent">اللون الأساسي</string>
     <string name="dynamic_color">اللون الديناميكي</string>
     <string name="dynamic_color_sub">استخدام ألوان الخلفية (Material You)</string>
+    <string name="accent_disabled_hint">متاح عند إيقاف اللون الديناميكي</string>
+    <string name="preview_dynamic">ألوان الخلفية (Material You)</string>
 </resources>

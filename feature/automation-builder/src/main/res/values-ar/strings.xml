@@ -494,4 +494,44 @@
     <string name="map_pick_hint">اضغط على الخريطة لتحديد النقطة — واسحب العلامة للضبط الدقيق</string>
     <string name="map_no_key">خرائط جوجل غير مكوّنة بعد. أضف NEXAFLOW_MAPS_API_KEY إلى gradle.properties وأعد البناء.</string>
     <string name="map_search_not_found">لم يُعثر على المكان</string>
-    <string name="trigger_cat_schedule">الجدولة</string>    <string name="trigger_cat_device">الجهاز</string>    <string name="trigger_cat_connectivity">الاتصال</string>    <string name="trigger_cat_location">الموقع</string>    <string name="trigger_cat_apps">التطبيقات</string>    <string name="trigger_cat_communication">التواصل</string></resources>
+    <string name="trigger_cat_schedule">الجدولة</string>    <string name="trigger_cat_device">الجهاز</string>    <string name="trigger_cat_connectivity">الاتصال</string>    <string name="trigger_cat_location">الموقع</string>    <string name="trigger_cat_apps">التطبيقات</string>    <string name="trigger_cat_communication">التواصل</string>
+<string name="add_action">إضافة إجراء</string>
+<string name="add_another_trigger">إضافة مشغّل آخر</string>
+<string name="add_count">إضافة (%1$d)</string>
+<string name="add_exit_action">إضافة إجراء خروج</string>
+<string name="add_variable">إضافة متغير</string>
+<string name="category_advanced">متقدم</string>
+<string name="cooldown_hint">أقل فاصل بين تشغيلين لهذه المهمة</string>
+<string name="cooldown_label">فاصل التشغيل: %1$d ث</string>
+<string name="delete_variable">حذف</string>
+<string name="exit_auto_reply_label">رد تلقائي (رسالة)</string>
+<string name="exit_behavior_hint">ماذا يحدث عند انتهاء شرط المهمة؟</string>
+<string name="exit_extra_actions_label">إجراءات إضافية عند الانتهاء</string>
+<string name="exit_per_action_title">خيارات نهاية كل إجراء</string>
+<string name="icon">الأيقونة</string>
+<string name="info">معلومات</string>
+<string name="latitude">خط العرض</string>
+<string name="longitude">خط الطول</string>
+<string name="name">الاسم</string>
+<string name="no_matching_actions">لا توجد إجراءات مطابقة</string>
+<string name="pick_actions">اختر الإجراءات</string>
+<string name="pick_exit_action">اختر إجراء الخروج</string>
+<string name="pick_trigger_type">إضافة مشغّل</string>
+<string name="radius_meters">نصف القطر (متر)</string>
+<string name="save_automation">حفظ المهمة</string>
+<string name="search_actions">ابحث عن الإجراءات…</string>
+<string name="tap_to_choose_icon">اضغط لاختيار أيقونة</string>
+<string name="variable_name">الاسم</string>
+<string name="variable_name_error">أحرف وأرقام وشرطة سفلية فقط</string>
+<string name="variable_sensitive">حساس (مشفّر)</string>
+<string name="variable_sensitive_sub">خزّن هذه القيمة مشفّرة على هذا الجهاز (رموز، كلمات مرور). تُفكّ فقط عند تشغيل مهمة.</string>
+<string name="variable_value">القيمة</string>
+<string name="variables_empty">لا توجد متغيرات بعد</string>
+<string name="variables_empty_value">فارغ</string>
+<string name="variables_help">أدرج %%NAME في أي نص إجراء. متغيرات الجهاز المدمجة: %%DATE و%%TIME و%%DATETIME و%%BATTERY و%%CHARGING و%%WIFI و%%BLUETOOTH و%%RINGER و%%SCREEN و%%AIRPLANE و%%NETWORK و%%BRIGHTNESS و%%BRAND و%%MODEL و%%SDK. الأسماء غير المعروفة تبقى كما هي.</string>
+<string name="variables_help_title">المتغيرات العامة</string>
+<string name="variables_load_error">تعذّر تحميل المتغيرات</string>
+<string name="variables_retry">إعادة المحاولة</string>
+<string name="variables_title">المتغيرات</string>
+<string name="variables_value_hint">مثال: عنوان المنزل</string>
+</resources>

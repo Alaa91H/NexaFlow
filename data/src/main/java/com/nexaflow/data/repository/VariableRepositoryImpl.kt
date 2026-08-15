@@ -1,8 +1,10 @@
 package com.nexaflow.data.repository
 
+import androidx.paging.PagingSource
 import com.nexaflow.core.database.GlobalVariableEntity
 import com.nexaflow.core.database.VariableDao
 import com.nexaflow.core.security.SecureStorage
+import com.nexaflow.data.paging.MappedPagingSource
 import com.nexaflow.domain.models.GlobalVariable
 import com.nexaflow.domain.repositories.VariableRepository
 import kotlinx.coroutines.flow.Flow
@@ -27,6 +29,14 @@ class VariableRepositoryImpl @Inject constructor(
                 result.add(entity.toDomain(secureStorage))
             }
             result
+        }
+    }
+
+    override fun getVariablesPaging(): PagingSource<Int, GlobalVariable> {
+        // Sensitive values decrypt lazily per page inside the mapping; the
+        // page never materializes the whole table.
+        return MappedPagingSource(variableDao.getAllVariablesPaged()) { entity ->
+            entity.toDomain(secureStorage)
         }
     }
 

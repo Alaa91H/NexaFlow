@@ -27,11 +27,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.nexaflow.core.ui.EmptyState
@@ -45,20 +47,39 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/** Stateful wrapper: owns the ViewModel and hands a stateless [HistoryContent] the paged flow. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(navController: NavController) {
     val viewModel: HistoryViewModel = hiltViewModel()
-    // Streams pages from Room instead of materializing the whole table.
-    val history = viewModel.pagingData.collectAsLazyPagingItems()
+    HistoryContent(
+        // Streams pages from Room instead of materializing the whole table.
+        history = viewModel.pagingData.collectAsLazyPagingItems(),
+        onBack = { navController.popBackStack() },
+        onOpen = { id -> navController.navigate("execution_details/$id") }
+    )
+}
 
-    Scaffold(topBar = { NexaFlowTopBar(title = stringResource(R.string.history_title), onBack = { navController.popBackStack() }) }) { padding ->
+/**
+ * Stateless history body — takes an already-collected [LazyPagingItems] so the
+ * four paging states (loading / error+retry / empty / list) are unit-testable
+ * with plain [androidx.paging.PagingSource] fakes, without Hilt or Room.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun HistoryContent(
+    history: LazyPagingItems<ExecutionRecord>,
+    onBack: () -> Unit,
+    onOpen: (String) -> Unit
+) {
+    Scaffold(topBar = { NexaFlowTopBar(title = stringResource(R.string.history_title), onBack = onBack) }) { padding ->
         when (val refresh = history.loadState.refresh) {
             is LoadState.Loading -> {
                 if (history.itemCount == 0) {
-                    LoadingState(
-                        modifier = Modifier.fillMaxSize().padding(padding)
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(padding).testTag("history_loading"),
+                        contentAlignment = Alignment.Center
+                    ) { CircularProgressIndicator() }
                 }
             }
             is LoadState.Error -> {
@@ -73,7 +94,10 @@ fun HistoryScreen(navController: NavController) {
                             title = stringResource(R.string.history_load_error_title),
                             subtitle = stringResource(R.string.history_load_error_subtitle)
                         )
-                        TextButton(onClick = { history.retry() }) {
+                        TextButton(
+                            onClick = { history.retry() },
+                            modifier = Modifier.testTag("history_retry")
+                        ) {
                             Text(stringResource(R.string.history_retry))
                         }
                     }
@@ -106,7 +130,7 @@ fun HistoryScreen(navController: NavController) {
                     if (entry != null) {
                         HistoryCard(
                             entry = entry,
-                            onClick = { navController.navigate("execution_details/${entry.id}") }
+                            onClick = { onOpen(entry.id) }
                         )
                     }
                 }
@@ -122,7 +146,10 @@ fun HistoryScreen(navController: NavController) {
                             modifier = Modifier.fillMaxWidth().padding(8.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            TextButton(onClick = { history.retry() }) {
+                            TextButton(
+                                onClick = { history.retry() },
+                                modifier = Modifier.testTag("history_retry_append")
+                            ) {
                                 Text(stringResource(R.string.history_retry))
                             }
                         }

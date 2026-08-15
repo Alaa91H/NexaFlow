@@ -495,4 +495,44 @@
     <string name="map_pick_hint">Коснитесь карты, чтобы поставить точку — перетащите маркер для точной настройки</string>
     <string name="map_no_key">Google Карты ещё не настроены. Добавьте NEXAFLOW_MAPS_API_KEY в gradle.properties и пересоберите.</string>
     <string name="map_search_not_found">Место не найдено</string>
-    <string name="trigger_cat_schedule">Расписание</string>    <string name="trigger_cat_device">Устройство</string>    <string name="trigger_cat_connectivity">Подключение</string>    <string name="trigger_cat_location">Местоположение</string>    <string name="trigger_cat_apps">Приложения</string>    <string name="trigger_cat_communication">Связь</string></resources>
+    <string name="trigger_cat_schedule">Расписание</string>    <string name="trigger_cat_device">Устройство</string>    <string name="trigger_cat_connectivity">Подключение</string>    <string name="trigger_cat_location">Местоположение</string>    <string name="trigger_cat_apps">Приложения</string>    <string name="trigger_cat_communication">Связь</string>
+<string name="add_action">Добавить действие</string>
+<string name="add_another_trigger">Добавить ещё триггер</string>
+<string name="add_count">Добавить (%1$d)</string>
+<string name="add_exit_action">Добавить действие выхода</string>
+<string name="add_variable">Добавить переменную</string>
+<string name="category_advanced">Дополнительно</string>
+<string name="cooldown_hint">Минимальный интервал между двумя запусками этой задачи</string>
+<string name="cooldown_label">Интервал запуска: %1$d с</string>
+<string name="delete_variable">Удалить</string>
+<string name="exit_auto_reply_label">Автоответ (SMS)</string>
+<string name="exit_behavior_hint">Что делать, когда условие перестаёт выполняться?</string>
+<string name="exit_extra_actions_label">Дополнительные действия при завершении задачи</string>
+<string name="exit_per_action_title">Параметры завершения для каждого действия</string>
+<string name="icon">Значок</string>
+<string name="info">Информация</string>
+<string name="latitude">Широта</string>
+<string name="longitude">Долгота</string>
+<string name="name">Имя</string>
+<string name="no_matching_actions">Нет подходящих действий</string>
+<string name="pick_actions">Выбрать действия</string>
+<string name="pick_exit_action">Выбрать действие выхода</string>
+<string name="pick_trigger_type">Добавить триггер</string>
+<string name="radius_meters">Радиус (метры)</string>
+<string name="save_automation">Сохранить задачу</string>
+<string name="search_actions">Поиск действий…</string>
+<string name="tap_to_choose_icon">Нажмите, чтобы выбрать значок</string>
+<string name="variable_name">Имя</string>
+<string name="variable_name_error">Только буквы, цифры и подчёркивание</string>
+<string name="variable_sensitive">Конфиденциально (шифруется)</string>
+<string name="variable_sensitive_sub">Хранит это значение в зашифрованном виде на устройстве (токены, пароли). Расшифровывается только при выполнении задачи.</string>
+<string name="variable_value">Значение</string>
+<string name="variables_empty">Переменных пока нет</string>
+<string name="variables_empty_value">Пусто</string>
+<string name="variables_help">Вставьте %%NAME в любой текст действия. Встроенные переменные устройства: %%DATE, %%TIME, %%DATETIME, %%BATTERY, %%CHARGING, %%WIFI, %%BLUETOOTH, %%RINGER, %%SCREEN, %%AIRPLANE, %%NETWORK, %%BRIGHTNESS, %%BRAND, %%MODEL, %%SDK. Неизвестные имена остаются как есть.</string>
+<string name="variables_help_title">Глобальные переменные</string>
+<string name="variables_load_error">Не удалось загрузить переменные</string>
+<string name="variables_retry">Повторить</string>
+<string name="variables_title">Переменные</string>
+<string name="variables_value_hint">например, домашний адрес</string>
+</resources>

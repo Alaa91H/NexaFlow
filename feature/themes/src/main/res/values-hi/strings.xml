@@ -26,4 +26,6 @@
     <string name="primary_accent">मुख्य एक्सेंट</string>
     <string name="dynamic_color">डायनामिक रंग</string>
     <string name="dynamic_color_sub">वॉलपेपर रंगों का उपयोग करें (Material You)</string>
+    <string name="accent_disabled_hint">डायनामिक रंग बंद होने पर उपलब्ध</string>
+    <string name="preview_dynamic">वॉलपेपर रंग (Material You)</string>
 </resources>

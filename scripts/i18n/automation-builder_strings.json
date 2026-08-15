@@ -53,7 +53,11 @@
     "notification_button_remove": "Remove button",
     "notification_buttons_picker_title": "Choose a task to run",
     "notification_buttons_picker_empty": "No other tasks saved yet",
-    "trigger_app_while_open": "Runs when the app opens and stays active until it closes, then applies the end options of the task."
+    "trigger_app_while_open": "Runs when the app opens and stays active until it closes, then applies the end options of the task.",
+    "exit_per_action_title": "Per-action end options",
+    "exit_extra_actions_label": "Extra actions when the task ends",
+    "variables_retry": "Retry",
+    "variables_load_error": "\"Couldn't load variables\""
   },
   "-ar": {
     "elevated_status_granted": "ممنوح",
@@ -109,7 +113,11 @@
     "notification_button_remove": "إزالة الزر",
     "notification_buttons_picker_title": "اختر مهمة لتشغيلها",
     "notification_buttons_picker_empty": "لا توجد مهام أخرى محفوظة بعد",
-    "trigger_app_while_open": "يُنفَّذ عند فتح التطبيق ويبقى مفعّلاً حتى إغلاقه، ثم تُطبَّق خيارات انتهاء المهمة."
+    "trigger_app_while_open": "يُنفَّذ عند فتح التطبيق ويبقى مفعّلاً حتى إغلاقه، ثم تُطبَّق خيارات انتهاء المهمة.",
+    "exit_per_action_title": "خيارات نهاية كل إجراء",
+    "exit_extra_actions_label": "إجراءات إضافية عند الانتهاء",
+    "variables_retry": "إعادة المحاولة",
+    "variables_load_error": "تعذّر تحميل المتغيرات"
   },
   "-de": {
     "elevated_status_granted": "Gewährt",
@@ -165,7 +173,11 @@
     "notification_button_remove": "Schaltfläche entfernen",
     "notification_buttons_picker_title": "Aufgabe zum Ausführen wählen",
     "notification_buttons_picker_empty": "Noch keine anderen Aufgaben gespeichert",
-    "trigger_app_while_open": "Wird beim Öffnen der App ausgeführt und bleibt aktiv, bis sie geschlossen wird; danach werden die Abschlussoptionen der Aufgabe angewendet."
+    "trigger_app_while_open": "Wird beim Öffnen der App ausgeführt und bleibt aktiv, bis sie geschlossen wird; danach werden die Abschlussoptionen der Aufgabe angewendet.",
+    "exit_per_action_title": "Endoptionen pro Aktion",
+    "exit_extra_actions_label": "Zusätzliche Aktionen beim Ende der Aufgabe",
+    "variables_retry": "Erneut versuchen",
+    "variables_load_error": "Variablen konnten nicht geladen werden"
   },
   "-es": {
     "elevated_status_granted": "Concedido",
@@ -221,7 +233,11 @@
     "notification_button_remove": "Quitar botón",
     "notification_buttons_picker_title": "Elige una tarea para ejecutar",
     "notification_buttons_picker_empty": "Aún no hay otras tareas guardadas",
-    "trigger_app_while_open": "Se ejecuta al abrir la app y permanece activo hasta que se cierra; después aplica las opciones de finalización de la tarea."
+    "trigger_app_while_open": "Se ejecuta al abrir la app y permanece activo hasta que se cierra; después aplica las opciones de finalización de la tarea.",
+    "exit_per_action_title": "Opciones de finalización por acción",
+    "exit_extra_actions_label": "Acciones adicionales al finalizar la tarea",
+    "variables_retry": "Reintentar",
+    "variables_load_error": "No se pudieron cargar las variables"
   },
   "-fr": {
     "elevated_status_granted": "Accordé",
@@ -277,7 +293,11 @@
     "notification_button_remove": "Supprimer le bouton",
     "notification_buttons_picker_title": "Choisissez une tâche à exécuter",
     "notification_buttons_picker_empty": "\"Aucune autre tâche enregistrée pour l'instant\"",
-    "trigger_app_while_open": "\"S'exécute à l'ouverture de l'application et reste actif jusqu'à sa fermeture, puis applique les options de fin de la tâche.\""
+    "trigger_app_while_open": "\"S'exécute à l'ouverture de l'application et reste actif jusqu'à sa fermeture, puis applique les options de fin de la tâche.\"",
+    "exit_per_action_title": "Options de fin par action",
+    "exit_extra_actions_label": "Actions supplémentaires à la fin de la tâche",
+    "variables_retry": "Réessayer",
+    "variables_load_error": "\"Impossible de charger les variables\""
   },
   "-hi": {
     "elevated_status_granted": "प्रदत्त",
@@ -333,7 +353,11 @@
     "notification_button_remove": "बटन हटाएँ",
     "notification_buttons_picker_title": "चलाने के लिए कार्य चुनें",
     "notification_buttons_picker_empty": "अभी कोई अन्य कार्य सहेजा नहीं गया",
-    "trigger_app_while_open": "ऐप खोलने पर चलता है और बंद होने तक सक्रिय रहता है, फिर कार्य के समाप्ति विकल्प लागू होते हैं।"
+    "trigger_app_while_open": "ऐप खोलने पर चलता है और बंद होने तक सक्रिय रहता है, फिर कार्य के समाप्ति विकल्प लागू होते हैं।",
+    "exit_per_action_title": "प्रति क्रिया समाप्ति विकल्प",
+    "exit_extra_actions_label": "समाप्ति पर अतिरिक्त क्रियाएँ",
+    "variables_retry": "पुनः प्रयास करें",
+    "variables_load_error": "वेरिएबल लोड नहीं हो सके"
   },
   "-ja": {
     "elevated_status_granted": "許可済み",
@@ -389,7 +413,11 @@
     "notification_button_remove": "ボタンを削除",
     "notification_buttons_picker_title": "実行するタスクを選択",
     "notification_buttons_picker_empty": "他のタスクはまだ保存されていません",
-    "trigger_app_while_open": "アプリを開くと実行され、閉じるまでアクティブな状態が続き、その後タスクの終了オプションが適用されます。"
+    "trigger_app_while_open": "アプリを開くと実行され、閉じるまでアクティブな状態が続き、その後タスクの終了オプションが適用されます。",
+    "exit_per_action_title": "アクションごとの終了オプション",
+    "exit_extra_actions_label": "終了時の追加アクション",
+    "variables_retry": "再試行",
+    "variables_load_error": "変数を読み込めませんでした"
   },
   "-pt": {
     "elevated_status_granted": "Concedida",
@@ -445,7 +473,11 @@
     "notification_button_remove": "Remover botão",
     "notification_buttons_picker_title": "Escolha uma tarefa para executar",
     "notification_buttons_picker_empty": "Nenhuma outra tarefa salva ainda",
-    "trigger_app_while_open": "Executa ao abrir o app e permanece ativo até fechá-lo; em seguida, aplica as opções de término da tarefa."
+    "trigger_app_while_open": "Executa ao abrir o app e permanece ativo até fechá-lo; em seguida, aplica as opções de término da tarefa.",
+    "exit_per_action_title": "Opções de término por ação",
+    "exit_extra_actions_label": "Ações adicionais ao término da tarefa",
+    "variables_retry": "Tentar novamente",
+    "variables_load_error": "Não foi possível carregar as variáveis"
   },
   "-ru": {
     "elevated_status_granted": "Предоставлено",
@@ -501,7 +533,11 @@
     "notification_button_remove": "Удалить кнопку",
     "notification_buttons_picker_title": "Выберите задачу для запуска",
     "notification_buttons_picker_empty": "Других сохранённых задач пока нет",
-    "trigger_app_while_open": "Выполняется при открытии приложения и остаётся активным, пока оно открыто; затем применяются параметры завершения задачи."
+    "trigger_app_while_open": "Выполняется при открытии приложения и остаётся активным, пока оно открыто; затем применяются параметры завершения задачи.",
+    "exit_per_action_title": "Параметры завершения для каждого действия",
+    "exit_extra_actions_label": "Дополнительные действия при завершении задачи",
+    "variables_retry": "Повторить",
+    "variables_load_error": "Не удалось загрузить переменные"
   },
   "-tr": {
     "elevated_status_granted": "Verildi",
@@ -557,7 +593,11 @@
     "notification_button_remove": "Düğmeyi kaldır",
     "notification_buttons_picker_title": "Çalıştırılacak bir görev seçin",
     "notification_buttons_picker_empty": "Henüz başka görev kaydedilmemiş",
-    "trigger_app_while_open": "Uygulama açıldığında çalışır ve kapanana kadar aktif kalır; ardından görevin bitiş seçenekleri uygulanır."
+    "trigger_app_while_open": "Uygulama açıldığında çalışır ve kapanana kadar aktif kalır; ardından görevin bitiş seçenekleri uygulanır.",
+    "exit_per_action_title": "Eylem başına bitiş seçenekleri",
+    "exit_extra_actions_label": "Bitişte ek eylemler",
+    "variables_retry": "Tekrar dene",
+    "variables_load_error": "Değişkenler yüklenemedi"
   },
   "-zh-rCN": {
     "elevated_status_granted": "已授予",
@@ -613,6 +653,10 @@
     "notification_button_remove": "移除按钮",
     "notification_buttons_picker_title": "选择要运行的任务",
     "notification_buttons_picker_empty": "暂未保存其他任务",
-    "trigger_app_while_open": "打开应用时执行，并保持生效直至关闭，然后应用任务的结束选项。"
+    "trigger_app_while_open": "打开应用时执行，并保持生效直至关闭，然后应用任务的结束选项。",
+    "exit_per_action_title": "每个操作的结束选项",
+    "exit_extra_actions_label": "结束时执行额外操作",
+    "variables_retry": "重试",
+    "variables_load_error": "无法加载变量"
   }
 }

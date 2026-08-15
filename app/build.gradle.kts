@@ -45,6 +45,14 @@ android {
             useSupportLibrary = true
         }
 
+        // Ship only the locales the app actually translates: prunes the
+        // bundled resources of every library for the ~40 unsupported locales
+        // (smaller APK, consistent fallback). Keep in sync with
+        // res/xml/locales_config.xml and the values-* string directories.
+        resourceConfigurations += listOf(
+            "en", "ar", "de", "es", "fr", "hi", "ja", "pt", "ru", "tr", "zh-rCN"
+        )
+
         // Sentry DSN for crash reporting (P0-2). Populated from CI env; empty in
         // local builds so Sentry stays inert until the user opts in AND a DSN
         // is configured. Never commit a real DSN to source control.
