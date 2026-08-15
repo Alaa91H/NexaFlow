@@ -8,8 +8,6 @@
 
     
     <string name="section_when">शर्तें</string>
-    <string name="action_n">निष्पादन %1$d</string>
-    <string name="trigger_n">शर्त %1$d</string>
     <string name="remove_trigger">शर्त हटाएँ</string>
     <string name="expand_options">विकल्प दिखाएँ</string>
     <string name="trigger_type_time">समय</string>
@@ -399,7 +397,6 @@
     <string name="section_constraints">बाधाएँ</string>
     <string name="add_constraint">बाधा जोड़ें</string>
     <string name="constraints_empty_hint">कोई बाधा नहीं - टास्क हर ट्रिगर पर चलता है। नियंत्रण के लिए शर्तें जोड़ें।</string>
-    <string name="constraint_n">बाधा %1$d</string>
     <string name="constraint_remove">बाधा हटाएँ</string>
     <string name="constraint_above">ऊपर</string>
     <string name="constraint_below">नीचे</string>

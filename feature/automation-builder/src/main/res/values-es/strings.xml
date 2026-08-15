@@ -8,8 +8,6 @@
 
     
     <string name="section_when">Condiciones</string>
-    <string name="action_n">Ejecución %1$d</string>
-    <string name="trigger_n">Condición %1$d</string>
     <string name="remove_trigger">Quitar condición</string>
     <string name="expand_options">Mostrar opciones</string>
     <string name="trigger_type_time">Hora</string>
@@ -399,7 +397,6 @@
     <string name="section_constraints">Restricciones</string>
     <string name="add_constraint">Añadir condición</string>
     <string name="constraints_empty_hint">Sin condiciones - la tarea se ejecuta con cada disparador. Añade condiciones para controlarla.</string>
-    <string name="constraint_n">Condición %1$d</string>
     <string name="constraint_remove">Eliminar condición</string>
     <string name="constraint_above">Superior a</string>
     <string name="constraint_below">Inferior a</string>

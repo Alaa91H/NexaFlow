@@ -8,8 +8,6 @@
 
     
     <string name="section_when">Koşullar</string>
-    <string name="action_n">Yürütme %1$d</string>
-    <string name="trigger_n">Koşul %1$d</string>
     <string name="remove_trigger">Koşulu kaldır</string>
     <string name="expand_options">Seçenekleri göster</string>
     <string name="trigger_type_time">Zaman</string>
@@ -399,7 +397,6 @@
     <string name="section_constraints">Kısıtlar</string>
     <string name="add_constraint">Kısıt ekle</string>
     <string name="constraints_empty_hint">Kısıt yok - görev her tetikleyicide çalışır. Kontrol için koşullar ekleyin.</string>
-    <string name="constraint_n">Kısıt %1$d</string>
     <string name="constraint_remove">Kısıtı kaldır</string>
     <string name="constraint_above">Üstünde</string>
     <string name="constraint_below">Altında</string>

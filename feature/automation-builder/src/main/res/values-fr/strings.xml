@@ -8,8 +8,6 @@
 
     
     <string name="section_when">Conditions</string>
-    <string name="action_n">Exécution %1$d</string>
-    <string name="trigger_n">Condition %1$d</string>
     <string name="remove_trigger">Retirer la condition</string>
     <string name="expand_options">Afficher les options</string>
     <string name="trigger_type_time">Heure</string>
@@ -399,7 +397,6 @@
     <string name="section_constraints">Contraintes</string>
     <string name="add_constraint">Ajouter une condition</string>
     <string name="constraints_empty_hint">"Aucune condition - la tâche s'exécute à chaque déclencheur. Ajoutez des conditions pour la contrôler."</string>
-    <string name="constraint_n">Condition %1$d</string>
     <string name="constraint_remove">Supprimer la condition</string>
     <string name="constraint_above">Au-dessus</string>
     <string name="constraint_below">En dessous</string>

@@ -8,8 +8,6 @@
 
     
     <string name="section_when">الشروط</string>
-    <string name="action_n">التنفيذ %1$d</string>
-    <string name="trigger_n">الشرط %1$d</string>
     <string name="remove_trigger">إزالة الشرط</string>
     <string name="expand_options">عرض الخيارات</string>
     <string name="trigger_type_time">الوقت</string>
@@ -398,7 +396,6 @@
     <string name="section_constraints">القيود</string>
     <string name="add_constraint">أضف قيداً</string>
     <string name="constraints_empty_hint">لا قيود - تعمل المهمة عند أي مشغل. أضف شروطاً للتحكم بالتنفيذ.</string>
-    <string name="constraint_n">قيد %1$d</string>
     <string name="constraint_remove">إزالة القيد</string>
     <string name="constraint_above">أعلى من</string>
     <string name="constraint_below">أقل من</string>

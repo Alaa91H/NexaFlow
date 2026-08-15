@@ -8,8 +8,6 @@
 
     
     <string name="section_when">Bedingungen</string>
-    <string name="action_n">Ausführung %1$d</string>
-    <string name="trigger_n">Bedingung %1$d</string>
     <string name="remove_trigger">Bedingung entfernen</string>
     <string name="expand_options">Optionen anzeigen</string>
     <string name="trigger_type_time">Zeit</string>
@@ -399,7 +397,6 @@
     <string name="section_constraints">Einschränkungen</string>
     <string name="add_constraint">Bedingung hinzufügen</string>
     <string name="constraints_empty_hint">Keine Bedingungen - die Aufgabe läuft bei jedem Auslöser. Füge Bedingungen hinzu, um sie zu steuern.</string>
-    <string name="constraint_n">Bedingung %1$d</string>
     <string name="constraint_remove">Bedingung entfernen</string>
     <string name="constraint_above">Über</string>
     <string name="constraint_below">Unter</string>

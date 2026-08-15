@@ -8,8 +8,6 @@
 
     
     <string name="section_when">Condições</string>
-    <string name="action_n">Execução %1$d</string>
-    <string name="trigger_n">Condição %1$d</string>
     <string name="remove_trigger">Remover condição</string>
     <string name="expand_options">Mostrar opções</string>
     <string name="trigger_type_time">Hora</string>
@@ -399,7 +397,6 @@
     <string name="section_constraints">Restrições</string>
     <string name="add_constraint">Adicionar condição</string>
     <string name="constraints_empty_hint">Sem condições - a tarefa roda a cada gatilho. Adicione condições para controlá-la.</string>
-    <string name="constraint_n">Condição %1$d</string>
     <string name="constraint_remove">Remover condição</string>
     <string name="constraint_above">Acima</string>
     <string name="constraint_below">Abaixo</string>

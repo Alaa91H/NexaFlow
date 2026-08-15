@@ -8,8 +8,6 @@
 
     
     <string name="section_when">条件</string>
-    <string name="action_n">执行 %1$d</string>
-    <string name="trigger_n">条件 %1$d</string>
     <string name="remove_trigger">移除条件</string>
     <string name="expand_options">显示选项</string>
     <string name="trigger_type_time">时间</string>
@@ -399,7 +397,6 @@
     <string name="section_constraints">约束</string>
     <string name="add_constraint">添加约束</string>
     <string name="constraints_empty_hint">无约束 - 每次触发时运行。添加条件以控制执行。</string>
-    <string name="constraint_n">约束 %1$d</string>
     <string name="constraint_remove">移除约束</string>
     <string name="constraint_above">高于</string>
     <string name="constraint_below">低于</string>

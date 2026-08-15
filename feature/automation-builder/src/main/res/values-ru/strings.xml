@@ -8,8 +8,6 @@
 
     
     <string name="section_when">Условия</string>
-    <string name="action_n">Выполнение %1$d</string>
-    <string name="trigger_n">Условие %1$d</string>
     <string name="remove_trigger">Удалить условие</string>
     <string name="expand_options">Показать параметры</string>
     <string name="trigger_type_time">Время</string>
@@ -399,7 +397,6 @@
     <string name="section_constraints">Ограничения</string>
     <string name="add_constraint">Добавить условие</string>
     <string name="constraints_empty_hint">Без условий - задача запускается по любому триггеру. Добавьте условия для управления.</string>
-    <string name="constraint_n">Условие %1$d</string>
     <string name="constraint_remove">Удалить условие</string>
     <string name="constraint_above">Выше</string>
     <string name="constraint_below">Ниже</string>

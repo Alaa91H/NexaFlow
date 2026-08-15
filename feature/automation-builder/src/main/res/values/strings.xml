@@ -8,8 +8,6 @@
 
     
     <string name="section_when">Conditions</string>
-    <string name="action_n">Execution %1$d</string>
-    <string name="trigger_n">Condition %1$d</string>
     <string name="remove_trigger">Remove condition</string>
     <string name="expand_options">Show options</string>
     <string name="trigger_type_time">Time</string>
@@ -424,7 +422,6 @@
     <string name="section_constraints">Constraints</string>
     <string name="add_constraint">Add constraint</string>
     <string name="constraints_empty_hint">No constraints - the task runs whenever the trigger fires. Add conditions to gate it.</string>
-    <string name="constraint_n">Constraint %1$d</string>
     <string name="constraint_remove">Remove constraint</string>
     <string name="constraint_above">Above</string>
     <string name="constraint_below">Below</string>

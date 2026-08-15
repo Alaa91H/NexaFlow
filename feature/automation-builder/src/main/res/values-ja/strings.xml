@@ -8,8 +8,6 @@
 
     
     <string name="section_when">条件</string>
-    <string name="action_n">実行 %1$d</string>
-    <string name="trigger_n">条件 %1$d</string>
     <string name="remove_trigger">条件を削除</string>
     <string name="expand_options">オプションを表示</string>
     <string name="trigger_type_time">時刻</string>
@@ -399,7 +397,6 @@
     <string name="section_constraints">制約</string>
     <string name="add_constraint">制約を追加</string>
     <string name="constraints_empty_hint">制約なし - トリガーごとに実行されます。条件を追加して制御できます。</string>
-    <string name="constraint_n">制約 %1$d</string>
     <string name="constraint_remove">制約を削除</string>
     <string name="constraint_above">以上</string>
     <string name="constraint_below">以下</string>
