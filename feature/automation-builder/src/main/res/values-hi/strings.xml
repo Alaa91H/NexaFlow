@@ -235,6 +235,8 @@
     <string name="action_location_sub">लोकेशन चालू या बंद करें</string>
     <string name="action_play_updates">Play Store अपडेट</string>
     <string name="action_play_updates_sub">Play Store अपडेट पेज खोलें</string>
+    <string name="action_launch_app">ऐप लॉन्च करें</string>
+    <string name="action_launch_app_sub">कोई विशेष इंस्टॉल किया गया ऐप खोलें</string>
     <string name="action_galaxy_store">Galaxy Store</string>
     <string name="action_galaxy_store_sub">Samsung Galaxy Store खोलें</string>
     <string name="action_send_sms">SMS भेजें</string>
@@ -365,6 +367,7 @@
     <string name="state_disconnected">डिस्कनेक्टेड</string>
     <string name="repeat_selected">चयनित: %1$s</string>
     <string name="end_behavior_label">जब कार्य समाप्त हो</string>
+    <string name="end_rerun">अंत में फिर से चलाएँ</string>
     <string name="end_leave">जैसा है वैसा छोड़ें</string>
     <string name="end_turn_on">चालू करें</string>
     <string name="end_turn_off">बंद करें</string>

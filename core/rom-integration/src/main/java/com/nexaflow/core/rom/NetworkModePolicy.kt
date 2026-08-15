@@ -65,4 +65,21 @@ object NetworkModePolicy {
      * one band still counts the mode as applied.
      */
     fun covers(requested: Long, actual: Long): Boolean = (actual and requested) == requested
+
+    /**
+     * Read-back check for `cmd phone get-allowed-network-types-for-users`,
+     * which prints the allowed set as band names (e.g. "LTE" or "LTE|NR").
+     * True when the printed set matches the requested generation's defining
+     * band family.
+     */
+    fun coversByName(actual: String, label: String): Boolean {
+        val a = actual.uppercase()
+        return when (label) {
+            "2G" -> a.contains("GSM") || a.contains("GPRS") || a.contains("EDGE")
+            "3G" -> a.contains("UMTS") || a.contains("HSDPA") || a.contains("HSPA")
+            "4G" -> a.contains("LTE") && !a.contains("NR")
+            "5G" -> a.contains("NR")
+            else -> a.isNotBlank() && !a.contains("UNKNOWN")
+        }
+    }
 }

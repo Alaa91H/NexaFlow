@@ -150,6 +150,17 @@ class ExecutionEngine(
     }
 
     /**
+     * Manual "run now" gate: executes the task's actions when its trigger
+     * condition is currently satisfied, and its exit behavior (the "when the
+     * task ends" actions) otherwise — so a manual run is always correct even
+     * when the condition that should fire the task is not met right now.
+     */
+    suspend fun runWithConditionGate(automation: Automation): ExecutionRecord {
+        val satisfied = TriggerStateEvaluator.isSatisfied(context, automation.triggers)
+        return if (satisfied) runAutomation(automation) else runExit(automation)
+    }
+
+    /**
      * Runs the exit behavior of a task when its condition stops being true:
      * either restores the device to its pre-run state (revertOnExit) or runs
      * the configured exit actions. Records the run in history as well.
@@ -222,6 +233,7 @@ class ExecutionEngine(
                         EndMode.LEAVE -> null
                         EndMode.REVERT -> snapshot?.restoreSetting(context, action)
                             ?: SystemControlResult.fail("No captured state to restore for ${action.type.name}")
+                        EndMode.RERUN -> executeAction(resolveAction(action, variables), controller, notif, channel)
                         EndMode.SET_VALUE -> executeAction(resolveAction(action.withConfig(behavior.config), variables), controller, notif, channel)
                     } ?: return@forEach
                     add(

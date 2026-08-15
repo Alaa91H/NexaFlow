@@ -155,6 +155,7 @@
 
     <string name="end_turn_on">Activar</string>
     <string name="end_turn_off">Desactivar</string>
+    <string name="end_rerun">Volver a ejecutar al final</string>
     <string name="end_revert">Restaurar original</string>
     <string name="end_set_value">Establecer valor</string>
     <string name="action_http_request">Solicitud HTTP</string>

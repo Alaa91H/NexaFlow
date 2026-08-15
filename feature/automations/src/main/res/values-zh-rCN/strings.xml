@@ -155,6 +155,7 @@
 
     <string name="end_turn_on">开启</string>
     <string name="end_turn_off">关闭</string>
+    <string name="end_rerun">结束时再次执行</string>
     <string name="end_revert">恢复原始状态</string>
     <string name="end_set_value">设置数值</string>
     <string name="action_http_request">HTTP 请求</string>

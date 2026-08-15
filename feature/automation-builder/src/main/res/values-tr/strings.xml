@@ -235,6 +235,8 @@
     <string name="action_location_sub">Konumu aç veya kapat</string>
     <string name="action_play_updates">Play Store güncellemeleri</string>
     <string name="action_play_updates_sub">Play Store güncelleme sayfasını aç</string>
+    <string name="action_launch_app">Uygulamayı aç</string>
+    <string name="action_launch_app_sub">Belirli bir kurulu uygulamayı aç</string>
     <string name="action_galaxy_store">Galaxy Store</string>
     <string name="action_galaxy_store_sub">"Samsung Galaxy Store'u aç"</string>
     <string name="action_send_sms">SMS gönder</string>
@@ -365,6 +367,7 @@
     <string name="state_disconnected">Bağlı değil</string>
     <string name="repeat_selected">Seçilen: %1$s</string>
     <string name="end_behavior_label">Görev bittiğinde</string>
+    <string name="end_rerun">Sonunda yeniden çalıştır</string>
     <string name="end_leave">Olduğu gibi bırak</string>
     <string name="end_turn_on">Aç</string>
     <string name="end_turn_off">Kapat</string>

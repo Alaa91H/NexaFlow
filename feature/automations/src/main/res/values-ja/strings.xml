@@ -155,6 +155,7 @@
 
     <string name="end_turn_on">オン</string>
     <string name="end_turn_off">オフ</string>
+    <string name="end_rerun">終了時に再実行</string>
     <string name="end_revert">元に戻す</string>
     <string name="end_set_value">値を設定</string>
     <string name="action_http_request">HTTPリクエスト</string>

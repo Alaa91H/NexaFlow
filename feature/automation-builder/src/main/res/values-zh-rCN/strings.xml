@@ -235,6 +235,8 @@
     <string name="action_location_sub">打开或关闭定位</string>
     <string name="action_play_updates">Play 商店更新</string>
     <string name="action_play_updates_sub">打开 Play 商店更新页面</string>
+    <string name="action_launch_app">启动应用</string>
+    <string name="action_launch_app_sub">打开特定的已安装应用</string>
     <string name="action_galaxy_store">Galaxy 商店</string>
     <string name="action_galaxy_store_sub">打开三星 Galaxy 商店</string>
     <string name="action_send_sms">发送短信</string>
@@ -365,6 +367,7 @@
     <string name="state_disconnected">未连接</string>
     <string name="repeat_selected">已选择: %1$s</string>
     <string name="end_behavior_label">任务结束时</string>
+    <string name="end_rerun">结束时再次执行</string>
     <string name="end_leave">保持原样</string>
     <string name="end_turn_on">开启</string>
     <string name="end_turn_off">关闭</string>

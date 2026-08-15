@@ -59,7 +59,7 @@ class DashboardViewModel @Inject constructor(
         if (automation.id in _runningIds.value) return
         viewModelScope.launch {
             _runningIds.value = _runningIds.value + automation.id
-            val record = executionEngine.runAutomation(automation)
+            val record = executionEngine.runWithConditionGate(automation)
             _executionMessage.value =
                 if (record.success) "Ran: ${record.message}" else "Failed: ${record.message}"
             _runningIds.value = _runningIds.value - automation.id

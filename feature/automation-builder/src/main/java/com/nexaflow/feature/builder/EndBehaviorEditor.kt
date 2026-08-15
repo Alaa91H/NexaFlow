@@ -20,15 +20,15 @@ import com.nexaflow.domain.models.EndBehaviorCatalog
 import com.nexaflow.domain.models.EndMode
 
 /**
- * Samsung-style "when the task ends" editor shown inside each action card.
+ * Samsung-style "when the task ends" editor shown for each action in the
+ * unified end-behavior section at the bottom of the builder.
  *
- * Adapts to the action type:
- *  - toggle actions (Wi-Fi, Bluetooth, NFC, ...) offer Leave / Turn on / Turn off / Restore original
- *  - value actions (volume, brightness, ringer, ...) offer Leave / Restore original / Set value
+ * Every action offers two base options — leave the change as-is, or run the
+ * action again when the task's condition ends — plus type-specific ones:
+ *  - toggle actions (Wi-Fi, Bluetooth, NFC, ...) add Turn on / Turn off / Restore original
+ *  - value actions (volume, brightness, ringer, ...) add Restore original / Set value
  *    (with a compact value editor for the chosen value)
- *
- * This is the per-action replacement for the old global revert toggle: each
- * action decides on its own what should happen when the task's condition ends.
+ *  - ringtone adds Restore original only
  *
  * [showLabel] hides the "When the task ends" header so the editor can be
  * embedded inside the unified end-behavior card, once per action, without
@@ -42,7 +42,6 @@ fun EndBehaviorEditor(
     onBehaviorChange: (EndBehavior?) -> Unit,
     showLabel: Boolean = true
 ) {
-    if (!EndBehaviorCatalog.supportsEndBehavior(actionType)) return
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         if (showLabel) {
             Text(
@@ -50,95 +49,102 @@ fun EndBehaviorEditor(
                 style = MaterialTheme.typography.titleSmall
             )
         }
-        if (actionType in EndBehaviorCatalog.toggleActions) {
-            val on = behavior?.mode == EndMode.SET_VALUE && behavior.config["enabled"] == "true"
-            val off = behavior?.mode == EndMode.SET_VALUE && behavior.config["enabled"] == "false"
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                SelectChip(
-                    selected = behavior == null || behavior.mode == EndMode.LEAVE,
-                    onClick = { onBehaviorChange(null) },
-                    label = stringResource(R.string.end_leave)
-                )
-                SelectChip(
-                    selected = on,
-                    onClick = { onBehaviorChange(EndBehavior(EndMode.SET_VALUE, mapOf("enabled" to "true"))) },
-                    label = stringResource(R.string.end_turn_on)
-                )
-                SelectChip(
-                    selected = off,
-                    onClick = { onBehaviorChange(EndBehavior(EndMode.SET_VALUE, mapOf("enabled" to "false"))) },
-                    label = stringResource(R.string.end_turn_off)
-                )
-                if (EndBehaviorCatalog.supportsRevert(actionType)) {
+        // Base options shared by every action: leave as-is, or re-run the
+        // action when the task's condition ends (e.g. re-send the
+        // notification or re-apply the volume).
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            SelectChip(
+                selected = behavior == null || behavior.mode == EndMode.LEAVE,
+                onClick = { onBehaviorChange(null) },
+                label = stringResource(R.string.end_leave)
+            )
+            SelectChip(
+                selected = behavior?.mode == EndMode.RERUN,
+                onClick = { onBehaviorChange(EndBehavior(EndMode.RERUN)) },
+                label = stringResource(R.string.end_rerun)
+            )
+        }
+        when {
+            actionType in EndBehaviorCatalog.toggleActions -> {
+                val on = behavior?.mode == EndMode.SET_VALUE && behavior.config["enabled"] == "true"
+                val off = behavior?.mode == EndMode.SET_VALUE && behavior.config["enabled"] == "false"
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     SelectChip(
-                        selected = behavior?.mode == EndMode.REVERT,
-                        onClick = { onBehaviorChange(EndBehavior(EndMode.REVERT)) },
-                        label = stringResource(R.string.end_revert)
+                        selected = on,
+                        onClick = { onBehaviorChange(EndBehavior(EndMode.SET_VALUE, mapOf("enabled" to "true"))) },
+                        label = stringResource(R.string.end_turn_on)
                     )
-                }
-            }
-        } else if (actionType in EndBehaviorCatalog.revertOnlyActions) {
-            // Non-numeric changes (a picked ringtone): the only end options are
-            // "leave as is" or "restore the previous one" — a fixed value
-            // makes no sense for a URI.
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                SelectChip(
-                    selected = behavior == null || behavior.mode == EndMode.LEAVE,
-                    onClick = { onBehaviorChange(null) },
-                    label = stringResource(R.string.end_leave)
-                )
-                SelectChip(
-                    selected = behavior?.mode == EndMode.REVERT,
-                    onClick = { onBehaviorChange(EndBehavior(EndMode.REVERT)) },
-                    label = stringResource(R.string.end_revert)
-                )
-            }
-        } else {
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                SelectChip(
-                    selected = behavior == null || behavior.mode == EndMode.LEAVE,
-                    onClick = { onBehaviorChange(null) },
-                    label = stringResource(R.string.end_leave)
-                )
-                if (EndBehaviorCatalog.supportsRevert(actionType)) {
                     SelectChip(
-                        selected = behavior?.mode == EndMode.REVERT,
-                        onClick = { onBehaviorChange(EndBehavior(EndMode.REVERT)) },
-                        label = stringResource(R.string.end_revert)
+                        selected = off,
+                        onClick = { onBehaviorChange(EndBehavior(EndMode.SET_VALUE, mapOf("enabled" to "false"))) },
+                        label = stringResource(R.string.end_turn_off)
                     )
-                }
-                SelectChip(
-                    selected = behavior?.mode == EndMode.SET_VALUE,
-                    onClick = { onBehaviorChange(EndBehavior(EndMode.SET_VALUE, defaultEndValue(actionType))) },
-                    label = stringResource(R.string.end_set_value)
-                )
-            }
-            if (behavior?.mode == EndMode.SET_VALUE) {
-                EndValueEditor(
-                    actionType = actionType,
-                    config = behavior.config,
-                    onConfigChange = { updated ->
-                        onBehaviorChange(behavior.copy(config = updated))
+                    if (EndBehaviorCatalog.supportsRevert(actionType)) {
+                        SelectChip(
+                            selected = behavior?.mode == EndMode.REVERT,
+                            onClick = { onBehaviorChange(EndBehavior(EndMode.REVERT)) },
+                            label = stringResource(R.string.end_revert)
+                        )
                     }
-                )
+                }
+            }
+            actionType in EndBehaviorCatalog.revertOnlyActions -> {
+                // Non-numeric changes (a picked ringtone): the only extra end
+                // option is "restore the previous one" — a fixed value makes
+                // no sense for a URI.
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    SelectChip(
+                        selected = behavior?.mode == EndMode.REVERT,
+                        onClick = { onBehaviorChange(EndBehavior(EndMode.REVERT)) },
+                        label = stringResource(R.string.end_revert)
+                    )
+                }
+            }
+            actionType in EndBehaviorCatalog.valueActions -> {
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    if (EndBehaviorCatalog.supportsRevert(actionType)) {
+                        SelectChip(
+                            selected = behavior?.mode == EndMode.REVERT,
+                            onClick = { onBehaviorChange(EndBehavior(EndMode.REVERT)) },
+                            label = stringResource(R.string.end_revert)
+                        )
+                    }
+                    SelectChip(
+                        selected = behavior?.mode == EndMode.SET_VALUE,
+                        onClick = { onBehaviorChange(EndBehavior(EndMode.SET_VALUE, defaultEndValue(actionType))) },
+                        label = stringResource(R.string.end_set_value)
+                    )
+                }
+                if (behavior?.mode == EndMode.SET_VALUE) {
+                    EndValueEditor(
+                        actionType = actionType,
+                        config = behavior.config,
+                        onConfigChange = { updated ->
+                            onBehaviorChange(behavior.copy(config = updated))
+                        }
+                    )
+                }
             }
         }
     }
 }
 
-/** Sensible default end value per action type when "Set value" is first chosen. */
 private fun defaultEndValue(type: ActionType): Map<String, String> = when (type) {
     ActionType.SYSTEM_BRIGHTNESS -> mapOf("value" to "128")
     ActionType.SYSTEM_VOLUME,

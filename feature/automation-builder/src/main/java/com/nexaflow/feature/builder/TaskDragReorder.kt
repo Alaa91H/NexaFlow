@@ -1,16 +1,20 @@
 package com.nexaflow.feature.builder
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -19,6 +23,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -123,6 +128,28 @@ internal fun <T> dragBy(
         onMove(state.draggedIndex, target)
         state.draggedIndex = target
         state.dragOffset += correction
+    }
+}
+
+/**
+ * Number badge pinned to the end of a builder row ("1", "2", ...) so the
+ * task's position is visible at a glance and rows are easy to tell apart.
+ * Used by the execution, trigger and constraint lists alike.
+ */
+@Composable
+internal fun TaskNumberBadge(number: Int) {
+    Box(
+        modifier = Modifier
+            .size(26.dp)
+            .clip(RoundedCornerShape(50))
+            .background(MaterialTheme.colorScheme.primaryContainer),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = number.toString(),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
     }
 }
 

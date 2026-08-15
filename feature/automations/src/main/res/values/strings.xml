@@ -159,6 +159,7 @@
 
     <string name="end_turn_on">Turn on</string>
     <string name="end_turn_off">Turn off</string>
+    <string name="end_rerun">Run again at end</string>
     <string name="end_revert">Restore original</string>
     <string name="end_set_value">Set value</string>
     <string name="action_http_request">HTTP request</string>

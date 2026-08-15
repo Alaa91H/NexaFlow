@@ -197,6 +197,8 @@
     <string name="action_location_sub">Turn location on or off</string>
     <string name="action_play_updates">Play Store updates</string>
     <string name="action_play_updates_sub">Open the Play Store updates page</string>
+    <string name="action_launch_app">Launch app</string>
+    <string name="action_launch_app_sub">Open a specific installed app</string>
     <string name="action_galaxy_store">Galaxy Store</string>
     <string name="action_galaxy_store_sub">Open the Samsung Galaxy Store</string>
     <string name="action_send_sms">Send SMS</string>
@@ -390,6 +392,7 @@
     <string name="state_off">Off</string>
     <string name="repeat_selected">Selected: %1$s</string>
     <string name="end_behavior_label">When the task ends</string>
+    <string name="end_rerun">Run again at end</string>
     <string name="end_leave">Leave as is</string>
     <string name="end_turn_on">Turn on</string>
     <string name="end_turn_off">Turn off</string>

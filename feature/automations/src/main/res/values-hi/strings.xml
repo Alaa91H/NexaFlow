@@ -155,6 +155,7 @@
 
     <string name="end_turn_on">चालू करें</string>
     <string name="end_turn_off">बंद करें</string>
+    <string name="end_rerun">अंत में फिर से चलाएँ</string>
     <string name="end_revert">मूल स्थिति बहाल करें</string>
     <string name="end_set_value">मान सेट करें</string>
     <string name="action_http_request">HTTP अनुरोध</string>

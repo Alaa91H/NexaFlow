@@ -235,6 +235,8 @@
     <string name="action_location_sub">位置情報をオンまたはオフ</string>
     <string name="action_play_updates">Play ストアの更新</string>
     <string name="action_play_updates_sub">Play ストアの更新ページを開く</string>
+    <string name="action_launch_app">アプリを起動</string>
+    <string name="action_launch_app_sub">特定のインストール済みアプリを開く</string>
     <string name="action_galaxy_store">Galaxy Store</string>
     <string name="action_galaxy_store_sub">Samsung Galaxy Store を開く</string>
     <string name="action_send_sms">SMS を送信</string>
@@ -365,6 +367,7 @@
     <string name="state_disconnected">切断済み</string>
     <string name="repeat_selected">選択: %1$s</string>
     <string name="end_behavior_label">タスク終了時</string>
+    <string name="end_rerun">終了時に再実行</string>
     <string name="end_leave">そのままにする</string>
     <string name="end_turn_on">オン</string>
     <string name="end_turn_off">オフ</string>

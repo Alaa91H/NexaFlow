@@ -10,12 +10,15 @@ import kotlinx.serialization.Serializable
  * - [EndMode.LEAVE] — the change stays as the task left it.
  * - [EndMode.REVERT] — restore the device setting to its pre-run state.
  * - [EndMode.SET_VALUE] — apply a specific value at the end (e.g. volume 0).
+ * - [EndMode.RERUN] — run the action again when the task ends (e.g. re-send
+ *   a notification, re-apply a volume) — available for every action.
  */
 @Serializable
 enum class EndMode {
     LEAVE,
     REVERT,
-    SET_VALUE
+    SET_VALUE,
+    RERUN
 }
 
 @Immutable

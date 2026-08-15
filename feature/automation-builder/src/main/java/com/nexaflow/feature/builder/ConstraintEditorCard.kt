@@ -36,6 +36,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
@@ -203,9 +206,12 @@ fun ConstraintEditorCard(
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     NexaFlowCard(modifier = modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    // X + reorder handle pinned to the LEFT, row number to the
+                    // RIGHT, regardless of the locale direction.
                     .clickable(enabled = !expanded) { expanded = true },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -227,25 +233,16 @@ fun ConstraintEditorCard(
                     onDragDelta = onDragDelta,
                     onDragEnd = onDragEnd
                 )
-                // Single horizontal line: "Constraint 1 · <chosen values>".
-                Row(
-                    modifier = Modifier.weight(1f),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.constraint_n, index + 1),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Text(
-                        text = constraintSummary(draft),
-                        style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+                // Single horizontal line: the chosen values; the row number
+                // lives in a badge pinned to the right end.
+                Text(
+                    text = constraintSummary(draft),
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                TaskNumberBadge(number = index + 1)
                 if (!expanded) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowDown,
@@ -253,6 +250,7 @@ fun ConstraintEditorCard(
                         tint = MaterialTheme.colorScheme.outline
                     )
                 }
+            }
             }
             if (expanded) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

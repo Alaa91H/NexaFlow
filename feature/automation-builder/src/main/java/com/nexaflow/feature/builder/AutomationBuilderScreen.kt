@@ -115,6 +115,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -219,6 +222,8 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_close_app, R.string.action_close_app_sub, Icons.Filled.Close, ActionType.APPLICATION_CLOSE_APP, ActionCategory.APPS),
     ActionOption(R.string.action_open_app_settings, R.string.action_open_app_settings_sub, Icons.Filled.Settings, ActionType.APPLICATION_OPEN_APP_SETTINGS, ActionCategory.APPS),
     ActionOption(R.string.action_play_updates, R.string.action_play_updates_sub, Icons.Filled.Storefront, ActionType.SYSTEM_OPEN_PLAY_UPDATES, ActionCategory.APPS),
+    ActionOption(R.string.action_launch_app, R.string.action_launch_app_sub, Icons.Filled.Apps, ActionType.APPLICATION_LAUNCH_APP, ActionCategory.APPS),
+    ActionOption(R.string.action_galaxy_store, R.string.action_galaxy_store_sub, Icons.Filled.Storefront, ActionType.SYSTEM_OPEN_GALAXY_STORE, ActionCategory.APPS),
     // SYSTEM
     ActionOption(R.string.action_flashlight, R.string.action_flashlight_sub, Icons.Filled.FlashlightOn, ActionType.SYSTEM_FLASHLIGHT, ActionCategory.SYSTEM),
     ActionOption(R.string.action_open_url, R.string.action_open_url_sub, Icons.Filled.Link, ActionType.SYSTEM_OPEN_URL, ActionCategory.SYSTEM),
@@ -411,9 +416,12 @@ private fun SelectedActionCard(
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     NexaFlowCard(modifier = modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    // X + reorder handle pinned to the LEFT and the row number
+                    // pinned to the RIGHT regardless of the locale direction.
                     // Expand-only: once opened, the card never collapses again,
                     // so the details only ever grow downward.
                     .clickable(enabled = !expanded) { expanded = true },
@@ -440,25 +448,16 @@ private fun SelectedActionCard(
                     onDragDelta = onDragDelta,
                     onDragEnd = onDragEnd
                 )
-                // Single horizontal line: "Execution N · <name · chosen values>".
-                Row(
-                    modifier = Modifier.weight(1f),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.action_n, index + 1),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Text(
-                        text = actionSummary(option, config),
-                        style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+                // Single horizontal line: name · chosen values. The row
+                // number lives in a badge pinned to the right end.
+                Text(
+                    text = actionSummary(option, config),
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                TaskNumberBadge(number = index + 1)
                 if (!expanded) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowDown,
@@ -466,6 +465,7 @@ private fun SelectedActionCard(
                         tint = MaterialTheme.colorScheme.outline
                     )
                 }
+            }
             }
             if (expanded) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -1038,7 +1038,7 @@ fun AutomationBuilderScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(scrollState)
-                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 112.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // ── Wizard progress: numbered step bar (1/2) ─────────────
@@ -1349,7 +1349,9 @@ fun AutomationBuilderScreen(
                     //    never hides or changes expanded content.
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     SectionHeader(text = stringResource(R.string.section_exit_behavior))
-                    val endActions = selectedActions.filter { EndBehaviorCatalog.supportsEndBehavior(it.actionType) }
+                    // Every executed action appears here with its own end options, so the
+                    // section truly gathers all the tasks the user just configured.
+                    val endActions = selectedActions
                     if (endActions.isEmpty()) {
                         Text(
                             text = stringResource(R.string.exit_nothing_sub),

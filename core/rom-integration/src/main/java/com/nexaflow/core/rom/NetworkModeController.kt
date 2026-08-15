@@ -91,7 +91,30 @@ class NetworkModeController(
                 return confirmed to "$label via allowed-network-types"
             }
         }
-        // 2) Legacy ITelephony call (void return — only dispatch is observable).
+        // 2) Elevated shell: the stable `cmd phone` API (Android 14+)
+        //    exposed by TelephonyShellCommand, which gates on shell uid — so
+        //    it only works through Shizuku/root, the two runtimes this app
+        //    already uses for privileged work. `settings put global` is
+        //    ignored at runtime on Android 10+ (the framework reads it once
+        //    at boot only), which is why a bare settings write never changed
+        //    the mode. Verified by reading the allowed set back through the
+        //    same tool.
+        if (PrivilegedRunner.isShizukuGranted() || PrivilegedRunner.isRootAvailable()) {
+            val slot = slotIndexFor(subId)
+            val slotArg = if (slot >= 0) "-s $slot " else ""
+            val binary = java.lang.Long.toString(request.bitmask, 2)
+            val set = PrivilegedRunner.runShell(
+                "cmd phone set-allowed-network-types-for-users $slotArg$binary"
+            )
+            if (set.success) {
+                val readBack = PrivilegedRunner.runShell(
+                    "cmd phone get-allowed-network-types-for-users ${if (slot >= 0) "-s $slot" else ""}"
+                ).message
+                val confirmed = NetworkModePolicy.coversByName(readBack, request.label)
+                return confirmed to "$label via cmd phone"
+            }
+        }
+        // 3) Legacy ITelephony call (void return — only dispatch is observable).
         val legacy = reflectTelephony(
             telephony,
             "setPreferredNetworkType",
@@ -122,6 +145,13 @@ class NetworkModeController(
             }
         }
         return false to "$label rejected by the radio (requires MODIFY_PHONE_STATE or a system install)"
+    }
+
+    /** Maps a subscription id back to its physical SIM slot (-1 when unknown). */
+    private fun slotIndexFor(subId: Int): Int {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return -1
+        return runCatching { SubscriptionManager.getSlotIndex(subId) }
+            .getOrDefault(-1)
     }
 
     /** Active subscription ids, falling back to the primary slot id (or 0). */

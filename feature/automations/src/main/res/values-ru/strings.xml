@@ -155,6 +155,7 @@
 
     <string name="end_turn_on">Включить</string>
     <string name="end_turn_off">Выключить</string>
+    <string name="end_rerun">Выполнить снова в конце</string>
     <string name="end_revert">Восстановить исходное</string>
     <string name="end_set_value">Задать значение</string>
     <string name="action_http_request">HTTP-запрос</string>

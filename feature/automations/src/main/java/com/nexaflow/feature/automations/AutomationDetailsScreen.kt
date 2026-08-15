@@ -430,6 +430,7 @@ private fun endBehaviorText(action: Action): String? {
     val label = when (behavior.mode) {
         com.nexaflow.domain.models.EndMode.LEAVE -> return null
         com.nexaflow.domain.models.EndMode.REVERT -> stringResource(R.string.end_revert)
+        com.nexaflow.domain.models.EndMode.RERUN -> stringResource(R.string.end_rerun)
         com.nexaflow.domain.models.EndMode.SET_VALUE -> {
             if (action.type in com.nexaflow.domain.models.EndBehaviorCatalog.toggleActions) {
                 if (behavior.config["enabled"] == "true") stringResource(R.string.end_turn_on)

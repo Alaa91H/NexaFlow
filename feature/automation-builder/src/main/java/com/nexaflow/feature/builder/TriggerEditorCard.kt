@@ -62,6 +62,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -118,9 +121,13 @@ internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> = mapOf(
     TriggerType.NOTIFICATION to TriggerCategory.DEVICE,
     TriggerType.CONNECTIVITY to TriggerCategory.CONNECTIVITY,
     TriggerType.NETWORK_MODE to TriggerCategory.CONNECTIVITY,
+    TriggerType.BLUETOOTH_DEVICE to TriggerCategory.CONNECTIVITY,
+    TriggerType.WEBHOOK to TriggerCategory.CONNECTIVITY,
     TriggerType.LOCATION to TriggerCategory.LOCATION,
     TriggerType.APPLICATION to TriggerCategory.APPS,
-    TriggerType.SMS to TriggerCategory.COMMUNICATION
+    TriggerType.SMS to TriggerCategory.COMMUNICATION,
+    TriggerType.SENSOR to TriggerCategory.DEVICE,
+    TriggerType.ROM_SETTING to TriggerCategory.DEVICE
 )
 
 /** Trigger types ordered by category — the picker walks [triggerCategories] over it. */
@@ -133,9 +140,13 @@ val triggerTypeOptions = listOf(
     TriggerType.DEVICE,
     TriggerType.RINGER_MODE,
     TriggerType.NOTIFICATION,
+    TriggerType.SENSOR,
+    TriggerType.ROM_SETTING,
     // CONNECTIVITY
     TriggerType.CONNECTIVITY,
     TriggerType.NETWORK_MODE,
+    TriggerType.BLUETOOTH_DEVICE,
+    TriggerType.WEBHOOK,
     // LOCATION
     TriggerType.LOCATION,
     // APPS
@@ -703,9 +714,12 @@ fun TriggerEditorCard(
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     NexaFlowCard(modifier = modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    // X + reorder handle pinned to the LEFT, row number to the
+                    // RIGHT, regardless of the locale direction.
                     // Expand-only: a tapped card opens and never collapses again,
                     // so the options only ever grow downward.
                     .clickable(enabled = !expanded) { expanded = true },
@@ -729,25 +743,16 @@ fun TriggerEditorCard(
                     onDragDelta = onDragDelta,
                     onDragEnd = onDragEnd
                 )
-                // Single horizontal line: "Condition 1 · <chosen values summary>".
-                Row(
-                    modifier = Modifier.weight(1f),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.trigger_n, index + 1),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Text(
-                        text = triggerSummary(draft),
-                        style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+                // Single horizontal line: the chosen values; the row number
+                // lives in a badge pinned to the right end.
+                Text(
+                    text = triggerSummary(draft),
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                TaskNumberBadge(number = index + 1)
                 if (!expanded) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowDown,
@@ -755,6 +760,7 @@ fun TriggerEditorCard(
                         tint = MaterialTheme.colorScheme.outline
                     )
                 }
+            }
             }
             if (expanded) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

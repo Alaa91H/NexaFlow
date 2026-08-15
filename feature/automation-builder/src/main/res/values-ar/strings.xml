@@ -234,6 +234,8 @@
     <string name="action_location_sub">تشغيل أو إيقاف الموقع</string>
     <string name="action_play_updates">تحديثات متجر بلاي</string>
     <string name="action_play_updates_sub">فتح صفحة التحديثات في متجر بلاي</string>
+    <string name="action_launch_app">فتح تطبيق</string>
+    <string name="action_launch_app_sub">فتح تطبيق مثبّت محدد</string>
     <string name="action_galaxy_store">متجر جالاكسي</string>
     <string name="action_galaxy_store_sub">فتح متجر سامسونج جالاكسي</string>
     <string name="action_send_sms">إرسال رسالة</string>
@@ -364,6 +366,7 @@
     <string name="state_disconnected">غير متصل</string>
     <string name="repeat_selected">المحدد: %1$s</string>
     <string name="end_behavior_label">عند انتهاء المهمة</string>
+    <string name="end_rerun">تنفيذ مجدداً عند الانتهاء</string>
     <string name="end_leave">اتركه كما هو</string>
     <string name="end_turn_on">تشغيل</string>
     <string name="end_turn_off">إيقاف</string>

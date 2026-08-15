@@ -155,6 +155,7 @@
 
     <string name="end_turn_on">Aç</string>
     <string name="end_turn_off">Kapat</string>
+    <string name="end_rerun">Sonunda yeniden çalıştır</string>
     <string name="end_revert">Orijinali geri yükle</string>
     <string name="end_set_value">Değer ayarla</string>
     <string name="action_http_request">HTTP isteği</string>

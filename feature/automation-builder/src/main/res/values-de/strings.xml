@@ -235,6 +235,8 @@
     <string name="action_location_sub">Standort ein- oder ausschalten</string>
     <string name="action_play_updates">Play-Store-Updates</string>
     <string name="action_play_updates_sub">Update-Seite im Play Store öffnen</string>
+    <string name="action_launch_app">App starten</string>
+    <string name="action_launch_app_sub">Eine bestimmte installierte App öffnen</string>
     <string name="action_galaxy_store">Galaxy Store</string>
     <string name="action_galaxy_store_sub">Samsung Galaxy Store öffnen</string>
     <string name="action_send_sms">SMS senden</string>
@@ -365,6 +367,7 @@
     <string name="state_disconnected">Getrennt</string>
     <string name="repeat_selected">Ausgewählt: %1$s</string>
     <string name="end_behavior_label">Wenn die Aufgabe endet</string>
+    <string name="end_rerun">Am Ende erneut ausführen</string>
     <string name="end_leave">Unverändert lassen</string>
     <string name="end_turn_on">Einschalten</string>
     <string name="end_turn_off">Ausschalten</string>
