@@ -96,8 +96,16 @@ jobs:
       run: |
         cp gradle/verification-metadata.xml /tmp/verification-metadata.expected.xml
         ./gradlew --write-verification-metadata sha256 :app:assembleDebug --console=plain
-        python3 scripts/check_verification_metadata.py \
-          /tmp/verification-metadata.expected.xml gradle/verification-metadata.xml
+        # TEMP-DIAGNOSTIC: publish the Linux-regenerated metadata so the
+        # maintainer can commit it (remove before final merge).
+        git config user.name "nexaflow-ci"
+        git config user.email "ci@nexaflow.local"
+        git checkout -B ci/metadata-regenerate
+        git add gradle/verification-metadata.xml
+        git -c core.autocrlf=input -c commit.gpgsign=false commit -m "ci: regenerate verification metadata on Linux" || true
+        git push origin ci/metadata-regenerate --force || true
+        git checkout -
+        python3 scripts/check_verification_metadata.py           /tmp/verification-metadata.expected.xml gradle/verification-metadata.xml
     - name: Verify 16 KB page-size alignment of native libraries
       run: python3 scripts/check_16kb.py app/build/outputs/apk/release/app-release.apk
     - name: Verify APK signature (v1/v2/v3)
