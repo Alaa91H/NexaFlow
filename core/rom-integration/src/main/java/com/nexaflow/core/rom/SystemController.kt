@@ -13,6 +13,12 @@ import android.hardware.camera2.CameraManager
 import android.media.AudioManager
 import android.net.wifi.WifiManager
 import android.os.Build
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.os.PowerManager
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.provider.Settings
 import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
@@ -21,6 +27,7 @@ import androidx.core.net.toUri
 import com.nexaflow.core.rom.model.RomCapability
 import com.nexaflow.core.rom.model.SystemControlResult
 
+@Suppress("TooManyFunctions") // System-ops façade: many small, single-purpose device operations
 class SystemController(
     private val context: Context,
     private val capabilityProvider: RomCapabilityProvider
@@ -259,6 +266,7 @@ class SystemController(
         val keyCode = when (command) {
             "NEXT" -> KeyEvent.KEYCODE_MEDIA_NEXT
             "PREVIOUS" -> KeyEvent.KEYCODE_MEDIA_PREVIOUS
+            "STOP" -> KeyEvent.KEYCODE_MEDIA_STOP
             else -> KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
         }
         return try {
@@ -268,6 +276,83 @@ class SystemController(
             SystemControlResult.ok("Media command sent ($command)")
         } catch (t: Throwable) {
             SystemControlResult.fail("Failed to send media command: ${t.message}")
+        }
+    }
+
+    fun vibrate(durationSeconds: Int): SystemControlResult {
+        val ms = durationSeconds.coerceIn(1, 60) * 1000L
+        return try {
+            val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager)
+                    .defaultVibrator
+            } else {
+                @Suppress("DEPRECATION")
+                context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(
+                    VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE)
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(ms)
+            }
+            SystemControlResult.ok("Vibrated for ${durationSeconds}s")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Vibrate failed: ${t.message}")
+        }
+    }
+
+    /** Briefly wakes the screen (full brightness for ~2 seconds). */
+    fun wakeScreen(): SystemControlResult {
+        return try {
+            val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+            @Suppress("DEPRECATION")
+            val wl = powerManager.newWakeLock(
+                PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                "nexaflow:wake"
+            )
+            wl.acquire(2000)
+            wl.release()
+            SystemControlResult.ok("Screen woken")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Wake screen failed: ${t.message}")
+        }
+    }
+
+    /** Copies [text] to the system clipboard. */
+    fun setClipboard(text: String): SystemControlResult {
+        return try {
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("nexaflow", text))
+            SystemControlResult.ok("Clipboard set")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Clipboard failed: ${t.message}")
+        }
+    }
+
+    /** Expands the notification shade (shell path with reflection fallback). */
+    fun expandNotifications(): SystemControlResult {
+        val shell = PrivilegedRunner.runShell("cmd statusbar expand-notifications")
+        if (shell.success) return shell
+        return expandStatusBarPanel("expandNotificationsPanel", shell)
+    }
+
+    /** Expands the quick-settings panel (shell path with reflection fallback). */
+    fun expandQuickSettings(): SystemControlResult {
+        val shell = PrivilegedRunner.runShell("cmd statusbar expand-settings")
+        if (shell.success) return shell
+        return expandStatusBarPanel("expandSettingsPanel", shell)
+    }
+
+    private fun expandStatusBarPanel(method: String, fallback: SystemControlResult): SystemControlResult {
+        return try {
+            val service = context.getSystemService("statusbar")
+                ?: return fallback
+            RomSystemApiBridge.invokeInstance(service, method)
+            SystemControlResult.ok("Status bar expanded ($method)")
+        } catch (t: Throwable) {
+            fallback
         }
     }
 

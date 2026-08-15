@@ -21,7 +21,12 @@ class SystemActionsHandler : ActionHandler {
         ActionType.SYSTEM_OPEN_SETTINGS,
         ActionType.SYSTEM_SEND_SMS,
         ActionType.SYSTEM_WAIT,
-        ActionType.SYSTEM_POWER_SAVER
+        ActionType.SYSTEM_POWER_SAVER,
+        ActionType.SYSTEM_VIBRATE,
+        ActionType.SYSTEM_WAKE_SCREEN,
+        ActionType.SYSTEM_CLIPBOARD_SET,
+        ActionType.SYSTEM_OPEN_NOTIFICATIONS,
+        ActionType.SYSTEM_OPEN_QUICK_SETTINGS
     )
 
     override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult {
@@ -60,6 +65,16 @@ class SystemActionsHandler : ActionHandler {
             }
             ActionType.SYSTEM_POWER_SAVER ->
                 ctx.controller.setPowerSaver(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_VIBRATE ->
+                ctx.controller.vibrate(action.config["seconds"]?.toIntOrNull() ?: 1)
+            ActionType.SYSTEM_WAKE_SCREEN ->
+                ctx.controller.wakeScreen()
+            ActionType.SYSTEM_CLIPBOARD_SET ->
+                ctx.controller.setClipboard(action.config["text"] ?: "")
+            ActionType.SYSTEM_OPEN_NOTIFICATIONS ->
+                ctx.controller.expandNotifications()
+            ActionType.SYSTEM_OPEN_QUICK_SETTINGS ->
+                ctx.controller.expandQuickSettings()
             else -> SystemControlResult.fail("Unsupported action ${action.type}")
         }
     }

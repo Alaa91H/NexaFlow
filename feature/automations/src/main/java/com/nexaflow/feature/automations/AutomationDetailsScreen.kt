@@ -15,6 +15,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddToHomeScreen
+import androidx.compose.material.icons.filled.AirplanemodeActive
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Bolt
@@ -351,6 +353,10 @@ private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector
     TriggerType.NETWORK_MODE -> Triple(R.string.trigger_type_network_mode, R.string.trigger_type_network_mode_sub, Icons.Filled.SignalCellularAlt)
     TriggerType.WEBHOOK -> Triple(R.string.trigger_webhook, R.string.trigger_webhook_sub, Icons.Filled.Web)
     TriggerType.ROM_SETTING -> Triple(R.string.trigger_rom_setting, R.string.trigger_rom_setting_sub, Icons.Filled.Bolt)
+    TriggerType.HEADPHONE -> Triple(R.string.trigger_headphone, R.string.trigger_headphone, Icons.Filled.Headphones)
+    TriggerType.CHARGER -> Triple(R.string.trigger_charger, R.string.trigger_charger, Icons.Filled.BatteryChargingFull)
+    TriggerType.AIRPLANE_MODE -> Triple(R.string.trigger_airplane, R.string.trigger_airplane, Icons.Filled.AirplanemodeActive)
+    TriggerType.DARK_MODE -> Triple(R.string.trigger_dark_mode, R.string.trigger_dark_mode, Icons.Filled.DarkMode)
 }
 
 /** Human-readable trigger detail (e.g. battery direction, time range, repeat mode). */

@@ -51,6 +51,12 @@ class MonitoringService : Service() {
     lateinit var sensorMonitor: SensorMonitor
 
     @Inject
+    lateinit var airplaneModeMonitor: AirplaneModeMonitor
+
+    @Inject
+    lateinit var darkModeMonitor: DarkModeMonitor
+
+    @Inject
     lateinit var romSettingMonitor: RomSettingMonitor
 
     @Inject
@@ -125,7 +131,9 @@ class MonitoringService : Service() {
             "ringer-mode" to { ringerModeMonitor.initialize() },
             "calendar" to { calendarMonitor.initialize() },
             "sensor" to { sensorMonitor.initialize() },
-            "webhook" to { webhookServer.initialize() }
+            "webhook" to { webhookServer.initialize() },
+            "airplane" to { airplaneModeMonitor.initialize() },
+            "dark-mode" to { darkModeMonitor.initialize() }
         )
         monitors.forEach { (name, init) ->
             runCatching { init() }

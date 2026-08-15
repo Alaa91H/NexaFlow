@@ -86,7 +86,25 @@ enum class TriggerType {
      * (SYSTEM/SECURE/GLOBAL), `key` (e.g. `evo_disable_animation`),
      * `operator` (EQUALS/NOT_EQUALS), `value`.
      */
-    ROM_SETTING
+    ROM_SETTING,
+    /**
+     * Headphones / earphones plugged in or unplugged. Config key: `event`
+     * (CONNECTED/DISCONNECTED). Shares the device-event monitor.
+     */
+    HEADPHONE,
+    /**
+     * Charger plugged in or unplugged (any plug type). Config key: `event`
+     * (CONNECTED/DISCONNECTED). Shares the battery monitor.
+     */
+    CHARGER,
+    /**
+     * Airplane mode turned on or off. Config key: `state` (ON/OFF).
+     */
+    AIRPLANE_MODE,
+    /**
+     * System dark theme turned on or off. Config key: `state` (ON/OFF).
+     */
+    DARK_MODE
 }
 
 @Immutable
@@ -174,5 +192,11 @@ enum class ActionType {
      * package), `receiver` (receiver class), `bundleJson` (serialized config,
      * opaque to %variable resolution), `blurb` (display summary).
      */
-    PLUGIN_FIRE
+    PLUGIN_FIRE,
+    SYSTEM_VIBRATE,
+    SYSTEM_WAKE_SCREEN,
+    SYSTEM_CLIPBOARD_SET,
+    SYSTEM_MEDIA_STOP,
+    SYSTEM_OPEN_NOTIFICATIONS,
+    SYSTEM_OPEN_QUICK_SETTINGS
 }

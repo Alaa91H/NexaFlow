@@ -27,7 +27,11 @@ import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Store
+import androidx.compose.material.icons.filled.Vibration
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.nexaflow.domain.models.ActionType
@@ -79,6 +83,12 @@ fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (
     ActionType.SYSTEM_LOCATION -> Triple(R.string.action_location, R.string.action_location_sub, Icons.Filled.Place)
     ActionType.SYSTEM_OPEN_PLAY_UPDATES -> Triple(R.string.action_play_updates, R.string.action_play_updates_sub, Icons.Filled.Store)
     ActionType.SYSTEM_OPEN_GALAXY_STORE -> Triple(R.string.action_galaxy_store, R.string.action_galaxy_store_sub, Icons.Filled.Store)
+    ActionType.SYSTEM_VIBRATE -> Triple(R.string.action_vibrate, R.string.action_vibrate_sub, Icons.Filled.Vibration)
+    ActionType.SYSTEM_WAKE_SCREEN -> Triple(R.string.action_wake_screen, R.string.action_wake_screen_sub, Icons.Filled.WbSunny)
+    ActionType.SYSTEM_CLIPBOARD_SET -> Triple(R.string.action_clipboard, R.string.action_clipboard_sub, Icons.Filled.ContentPaste)
+    ActionType.SYSTEM_MEDIA_STOP -> Triple(R.string.action_media_stop, R.string.action_media_stop_sub, Icons.Filled.Stop)
+    ActionType.SYSTEM_OPEN_NOTIFICATIONS -> Triple(R.string.action_open_notifications, R.string.action_open_notifications_sub, Icons.Filled.Notifications)
+    ActionType.SYSTEM_OPEN_QUICK_SETTINGS -> Triple(R.string.action_open_quick_settings, R.string.action_open_quick_settings_sub, Icons.Filled.Settings)
     ActionType.SYSTEM_SEND_SMS -> Triple(R.string.action_send_sms, R.string.action_send_sms_sub, Icons.AutoMirrored.Filled.Message)
     ActionType.SYSTEM_SEND_REMINDER -> Triple(R.string.action_reminder, R.string.action_reminder_sub, Icons.Filled.Schedule)
     ActionType.SYSTEM_OPEN_SETTINGS -> Triple(R.string.action_open_settings, R.string.action_open_settings_sub, Icons.Filled.Settings)

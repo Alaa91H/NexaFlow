@@ -338,6 +338,44 @@ fun ActionConfigEditor(
                 onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
             )
         }
+        ActionType.SYSTEM_VIBRATE -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = stringResource(R.string.vibrate_duration),
+                    style = MaterialTheme.typography.titleSmall
+                )
+                val durations = listOf(1, 3, 5, 10, 30)
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    durations.forEach { seconds ->
+                        FilterChip(
+                            selected = (config["seconds"]?.toIntOrNull() ?: 1) == seconds,
+                            onClick = { onConfigChange(mapOf("seconds" to seconds.toString())) },
+                            label = { Text(text = "${seconds}s", style = MaterialTheme.typography.labelMedium) }
+                        )
+                    }
+                }
+            }
+        }
+        ActionType.SYSTEM_CLIPBOARD_SET -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = config["text"] ?: "",
+                    onValueChange = { onConfigChange(mapOf("text" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.clipboard_text)) },
+                    singleLine = true
+                )
+                VariableInsertChips(
+                    availableVariables = availableVariables,
+                    currentValue = config["text"] ?: "",
+                    onValueChange = { onConfigChange(mapOf("text" to it)) }
+                )
+            }
+        }
         ActionType.SYSTEM_SCREEN_TIMEOUT -> {
             val seconds = config["seconds"]?.toIntOrNull() ?: 60
             SliderRow(
@@ -678,7 +716,11 @@ fun ActionConfigEditor(
         ActionType.SYSTEM_OPEN_RECENTS,
         ActionType.SYSTEM_GO_HOME,
         ActionType.SYSTEM_OPEN_PLAY_UPDATES,
-        ActionType.SYSTEM_OPEN_GALAXY_STORE -> {
+        ActionType.SYSTEM_OPEN_GALAXY_STORE,
+        ActionType.SYSTEM_MEDIA_STOP,
+        ActionType.SYSTEM_OPEN_NOTIFICATIONS,
+        ActionType.SYSTEM_OPEN_QUICK_SETTINGS,
+        ActionType.SYSTEM_WAKE_SCREEN -> {
             Text(
                 text = stringResource(R.string.runs_immediately),
                 style = MaterialTheme.typography.bodySmall,

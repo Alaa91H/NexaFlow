@@ -9,7 +9,8 @@ class MediaActionsHandler : ActionHandler {
     override val supportedTypes: Set<ActionType> = setOf(
         ActionType.SYSTEM_MEDIA_PLAY_PAUSE,
         ActionType.SYSTEM_MEDIA_NEXT,
-        ActionType.SYSTEM_MEDIA_PREVIOUS
+        ActionType.SYSTEM_MEDIA_PREVIOUS,
+        ActionType.SYSTEM_MEDIA_STOP
     )
 
     override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult {
@@ -17,6 +18,7 @@ class MediaActionsHandler : ActionHandler {
             ActionType.SYSTEM_MEDIA_PLAY_PAUSE -> ctx.controller.mediaControl("PLAY_PAUSE")
             ActionType.SYSTEM_MEDIA_NEXT -> ctx.controller.mediaControl("NEXT")
             ActionType.SYSTEM_MEDIA_PREVIOUS -> ctx.controller.mediaControl("PREVIOUS")
+            ActionType.SYSTEM_MEDIA_STOP -> ctx.controller.mediaControl("STOP")
             else -> SystemControlResult.fail("Unsupported action ${action.type}")
         }
     }

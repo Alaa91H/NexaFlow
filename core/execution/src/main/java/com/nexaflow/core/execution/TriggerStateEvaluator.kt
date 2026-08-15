@@ -1,8 +1,10 @@
 package com.nexaflow.core.execution
 
 import android.content.Context
+import android.content.res.Configuration
 import android.media.AudioManager
 import android.os.BatteryManager
+import android.provider.Settings
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.schedule.TimeTriggerCalculator
@@ -33,6 +35,27 @@ object TriggerStateEvaluator {
             TriggerType.TIME -> timeTriggerSatisfied(c)
             TriggerType.RINGER_MODE -> ringerModeSatisfied(context, c)
             TriggerType.BATTERY -> batterySatisfied(context, c)
+            TriggerType.HEADPHONE -> {
+                val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return true
+                val wantConnected = (c["event"] ?: "CONNECTED") == "CONNECTED"
+                audio.isWiredHeadsetOn == wantConnected
+            }
+            TriggerType.CHARGER -> {
+                val battery = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager ?: return true
+                val wantConnected = (c["event"] ?: "CONNECTED") == "CONNECTED"
+                battery.isCharging == wantConnected
+            }
+            TriggerType.AIRPLANE_MODE -> {
+                val on = Settings.Global.getInt(
+                    context.contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0
+                ) == 1
+                ((c["state"] ?: "ON") == "ON") == on
+            }
+            TriggerType.DARK_MODE -> {
+                val dark = (context.resources.configuration.uiMode and
+                    Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+                ((c["state"] ?: "ON") == "ON") == dark
+            }
             else -> true
         }
     }

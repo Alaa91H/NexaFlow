@@ -120,7 +120,9 @@ class DeviceEventMonitor @Inject constructor(
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val automations = repository.getAutomations().first()
         automations
-            .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.DEVICE } }
+            .filter {
+                it.enabled && it.triggers.any { t -> t.type == TriggerType.DEVICE || t.type == TriggerType.HEADPHONE }
+            }
             .forEach { automation ->
                 val activeEvent = activeStates[automation.id] ?: return@forEach
                 // The opposite event has already happened while we were down.
@@ -157,11 +159,22 @@ class DeviceEventMonitor @Inject constructor(
             val now = System.currentTimeMillis()
             automations
                 .filter { automation ->
-                    automation.enabled && automation.triggers.any { it.type == TriggerType.DEVICE }
+                    automation.enabled && automation.triggers.any {
+                        it.type == TriggerType.DEVICE || it.type == TriggerType.HEADPHONE
+                    }
                 }
                 .forEach { automation ->
-                    val triggerEvent = automation.triggers.first { it.type == TriggerType.DEVICE }
-                        .config["event"] ?: "SCREEN_ON"
+                    val trigger = automation.triggers.first {
+                        it.type == TriggerType.DEVICE || it.type == TriggerType.HEADPHONE
+                    }
+                    val triggerEvent = if (trigger.type == TriggerType.HEADPHONE) {
+                        when (trigger.config["event"] ?: "CONNECTED") {
+                            "DISCONNECTED" -> "HEADSET_DISCONNECTED"
+                            else -> "HEADSET_CONNECTED"
+                        }
+                    } else {
+                        trigger.config["event"] ?: "SCREEN_ON"
+                    }
                     if (triggerEvent == event) {
                         val last = lastRunAt[automation.id] ?: 0L
                         if (now - last > automation.cooldownMillis) {

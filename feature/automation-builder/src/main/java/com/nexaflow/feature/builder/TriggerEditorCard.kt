@@ -24,6 +24,9 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.AirplanemodeActive
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Refresh
@@ -127,7 +130,11 @@ internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> = mapOf(
     TriggerType.APPLICATION to TriggerCategory.APPS,
     TriggerType.SMS to TriggerCategory.COMMUNICATION,
     TriggerType.SENSOR to TriggerCategory.DEVICE,
-    TriggerType.ROM_SETTING to TriggerCategory.DEVICE
+    TriggerType.ROM_SETTING to TriggerCategory.DEVICE,
+    TriggerType.HEADPHONE to TriggerCategory.DEVICE,
+    TriggerType.CHARGER to TriggerCategory.DEVICE,
+    TriggerType.AIRPLANE_MODE to TriggerCategory.DEVICE,
+    TriggerType.DARK_MODE to TriggerCategory.DEVICE
 )
 
 /** Trigger types ordered by category — the picker walks [triggerCategories] over it. */
@@ -142,6 +149,10 @@ val triggerTypeOptions = listOf(
     TriggerType.NOTIFICATION,
     TriggerType.SENSOR,
     TriggerType.ROM_SETTING,
+    TriggerType.HEADPHONE,
+    TriggerType.CHARGER,
+    TriggerType.AIRPLANE_MODE,
+    TriggerType.DARK_MODE,
     // CONNECTIVITY
     TriggerType.CONNECTIVITY,
     TriggerType.NETWORK_MODE,
@@ -200,6 +211,10 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.SENSOR -> mapOf("sensor" to "PROXIMITY", "event" to "COVERED", "threshold" to "200", "sensitivity" to "14")
     TriggerType.WEBHOOK -> mapOf("path" to "/nexaflow", "method" to "POST", "token" to "")
     TriggerType.ROM_SETTING -> mapOf("namespace" to "SYSTEM", "key" to "", "operator" to "EQUALS", "value" to "")
+    TriggerType.HEADPHONE -> mapOf("event" to "CONNECTED")
+    TriggerType.CHARGER -> mapOf("event" to "CONNECTED")
+    TriggerType.AIRPLANE_MODE -> mapOf("state" to "ON")
+    TriggerType.DARK_MODE -> mapOf("state" to "ON")
 }
 
 internal fun TriggerType.labelRes(): Int = when (this) {
@@ -218,6 +233,10 @@ internal fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.SENSOR -> R.string.trigger_type_sensor
     TriggerType.WEBHOOK -> R.string.trigger_type_webhook
     TriggerType.ROM_SETTING -> R.string.trigger_type_rom_setting
+    TriggerType.HEADPHONE -> R.string.trigger_type_headphone
+    TriggerType.CHARGER -> R.string.trigger_type_charger
+    TriggerType.AIRPLANE_MODE -> R.string.trigger_type_airplane
+    TriggerType.DARK_MODE -> R.string.trigger_type_dark_mode
 }
 
 internal fun TriggerType.icon(): ImageVector = when (this) {
@@ -236,6 +255,10 @@ internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.SENSOR -> Icons.Filled.Sensors
     TriggerType.WEBHOOK -> Icons.Filled.Web
     TriggerType.ROM_SETTING -> Icons.Filled.Bolt
+    TriggerType.HEADPHONE -> Icons.Filled.Headphones
+    TriggerType.CHARGER -> Icons.Filled.BatteryChargingFull
+    TriggerType.AIRPLANE_MODE -> Icons.Filled.AirplanemodeActive
+    TriggerType.DARK_MODE -> Icons.Filled.DarkMode
 }
 
 private fun parseDateMillis(value: String): Long? {
@@ -673,6 +696,20 @@ private fun triggerSummary(draft: TriggerDraft): String {
             val value = c["value"] ?: ""
             if (value.isEmpty()) key else "$key = $value"
         }
+        TriggerType.HEADPHONE -> when (c["event"] ?: "CONNECTED") {
+            "DISCONNECTED" -> stringResource(R.string.state_disconnected)
+            else -> stringResource(R.string.state_connected)
+        }
+        TriggerType.CHARGER -> when (c["event"] ?: "CONNECTED") {
+            "DISCONNECTED" -> stringResource(R.string.state_disconnected)
+            else -> stringResource(R.string.state_connected)
+        }
+        TriggerType.AIRPLANE_MODE ->
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        TriggerType.DARK_MODE ->
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
     }
 }
 
@@ -2053,6 +2090,54 @@ fun TriggerEditorCard(
                             onRequest = { onExplainSpecial(SpecialPermission.NOTIFICATION_ACCESS) }
                         )
                     }
+                }
+                TriggerType.HEADPHONE -> {
+                    Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("CONNECTED", "DISCONNECTED"),
+                        labels = mapOf(
+                            "CONNECTED" to stringResource(R.string.state_connected),
+                            "DISCONNECTED" to stringResource(R.string.state_disconnected)
+                        ),
+                        selected = draft.config["event"] ?: "CONNECTED",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
+                    )
+                }
+                TriggerType.CHARGER -> {
+                    Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("CONNECTED", "DISCONNECTED"),
+                        labels = mapOf(
+                            "CONNECTED" to stringResource(R.string.state_connected),
+                            "DISCONNECTED" to stringResource(R.string.state_disconnected)
+                        ),
+                        selected = draft.config["event"] ?: "CONNECTED",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
+                    )
+                }
+                TriggerType.AIRPLANE_MODE -> {
+                    Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ON", "OFF"),
+                        labels = mapOf(
+                            "ON" to stringResource(R.string.state_on),
+                            "OFF" to stringResource(R.string.state_off)
+                        ),
+                        selected = draft.config["state"] ?: "ON",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
+                }
+                TriggerType.DARK_MODE -> {
+                    Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ON", "OFF"),
+                        labels = mapOf(
+                            "ON" to stringResource(R.string.state_on),
+                            "OFF" to stringResource(R.string.state_off)
+                        ),
+                        selected = draft.config["state"] ?: "ON",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
                 }
             }
             }

@@ -281,6 +281,33 @@ class BatteryMonitor @Inject constructor(
                     }
                 }
 
+                // Standalone charger trigger: fires when charging starts or
+                // ends (any plug type), once per transition, and runs the exit
+                // behavior when the configured side ends.
+                val chargerTrigger = automation.triggers.firstOrNull {
+                    it.type == TriggerType.CHARGER
+                }
+                if (chargerTrigger != null) {
+                    val charging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                        status == BatteryManager.BATTERY_STATUS_FULL
+                    val wantConnected = (chargerTrigger.config["event"] ?: "CONNECTED") == "CONNECTED"
+                    val chargerKey = "${automation.id}|charger"
+                    val now = System.currentTimeMillis()
+                    if (charging == wantConnected) {
+                        if (activeBatteryTriggers.add(chargerKey)) {
+                            val last = lastRunAt[automation.id] ?: 0L
+                            if (now - last > automation.cooldownMillis) {
+                                lastRunAt[automation.id] = now
+                                activeStore.markActive(sourceId, chargerKey)
+                                executionEngine.runAutomation(automation)
+                            }
+                        }
+                    } else if (activeBatteryTriggers.remove(chargerKey)) {
+                        activeStore.clearAutomation(sourceId, automation.id)
+                        executionEngine.runExit(automation)
+                    }
+                }
+
                 val alertAction = automation.actions.firstOrNull {
                     it.type == ActionType.BATTERY_ALERTS
                 }
