@@ -468,7 +468,7 @@
     <string name="confirm_location">स्थान की पुष्टि करें</string>
 
     <string name="charging_yes">चार्ज हो रहा है</string>
-    <string name="ringtone_label">डिफ़ॉल्ट रिंगटोن</string>
+    <string name="ringtone_label">डिफ़ॉल्ट रिंगटोन</string>
     <string name="network_mode_sub">रूट, शिजुकु या सिस्टम विशेषाधिकार चाहिए; बिना संगत रेडियो वाले उपकरण वर्तमान मोड बनाए रखते हैं</string>
     <string name="network_mode_2g">2G</string>
     <string name="network_mode_auto">ऑटो</string>

@@ -122,7 +122,7 @@
     <string name="action_stream_volume_sub">किसी भी ध्वनि चैनल को सटीक रूप से सेट करें</string>
     <string name="section_exit_behavior">जब कार्य समाप्त हो</string>
     <string name="exit_revert_label">मूल स्थिति बहाल करें</string>
-    <string name="exit_revert_sub">डिवाइस कार्य से पहلे की स्थिति में लौट जाता है</string>
+    <string name="exit_revert_sub">डिवाइस कार्य से पहले की स्थिति में लौट जाता है</string>
     <string name="exit_nothing_sub">कुछ नहीं होता — कार्य बस समाप्त हो जाता है</string>
     <string name="trigger_ringer">ध्वनि मोड</string>
     <string name="trigger_ringer_sub">जब ध्वनि मोड बदलता है</string>

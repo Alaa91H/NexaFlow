@@ -300,7 +300,7 @@
     <string name="stream_system">Система</string>
     <string name="stream_dtmf">Клавиатура</string>
     <string name="stream_accessibility">Спец. возможности</string>
-    <string name="action_stream_volume">Гроمкость канала</string>
+    <string name="action_stream_volume">Громкость канала</string>
     <string name="action_stream_volume_sub">Точная настройка любого звукового канала</string>
     
 

@@ -118,12 +118,12 @@
     <string name="edit">Изменить</string>
     <string name="trigger_bluetooth">Устройство Bluetooth</string>
     <string name="trigger_bluetooth_sub">Когда устройство подключается или отключается</string>
-    <string name="action_stream_volume">Гроمкость канала</string>
+    <string name="action_stream_volume">Громкость канала</string>
     <string name="action_stream_volume_sub">Точная настройка любого звукового канала</string>
     <string name="section_exit_behavior">Когда задача завершается</string>
     <string name="exit_revert_label">Вернуть исходное состояние</string>
-    <string name="exit_revert_sub">Устرойство возвращается к состоянию до запуска задачи</string>
-    <string name="exit_nothing_sub">Ничего не происходит — задача пرосто завершается</string>
+    <string name="exit_revert_sub">Устройство возвращается к состоянию до запуска задачи</string>
+    <string name="exit_nothing_sub">Ничего не происходит — задача просто завершается</string>
     <string name="trigger_ringer">Режим звука</string>
     <string name="trigger_ringer_sub">Когда меняется режим звука</string>
     <string name="trigger_notification">Уведомление приложения</string>
