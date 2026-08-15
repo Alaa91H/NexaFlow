@@ -18,7 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.animation.AnimatedContent
@@ -289,37 +289,9 @@ private fun SelectedActionCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = (index + 1).toString(),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.width(20.dp)
-                )
-                IconBadge(
-                    icon = option.icon,
-                    containerColor = option.color.copy(alpha = 0.15f),
-                    contentColor = option.color
-                )
-                // Single horizontal line: the action name.
-                Text(
-                    text = stringResource(option.titleRes),
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
-                IconButton(onClick = onMoveUp, enabled = index > 0) {
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowUp,
-                        contentDescription = stringResource(R.string.move_up)
-                    )
-                }
-                IconButton(onClick = onMoveDown, enabled = index < total - 1) {
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowDown,
-                        contentDescription = stringResource(R.string.move_down)
-                    )
-                }
+                // Execution-task row, strictly left-to-right: remove (X) at the
+                // far start, then the reorder handle (up arrow stacked above the
+                // down arrow), then the task name.
                 IconButton(onClick = onRemove) {
                     Icon(
                         imageVector = Icons.Filled.Close,
@@ -327,6 +299,43 @@ private fun SelectedActionCard(
                         tint = MaterialTheme.colorScheme.secondary
                     )
                 }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.KeyboardArrowUp,
+                        contentDescription = stringResource(R.string.move_up),
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clickable(enabled = index > 0, onClick = onMoveUp),
+                        tint = if (index > 0) {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        } else {
+                            MaterialTheme.colorScheme.outlineVariant
+                        }
+                    )
+                    Icon(
+                        imageVector = Icons.Filled.KeyboardArrowDown,
+                        contentDescription = stringResource(R.string.move_down),
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clickable(enabled = index < total - 1, onClick = onMoveDown),
+                        tint = if (index < total - 1) {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        } else {
+                            MaterialTheme.colorScheme.outlineVariant
+                        }
+                    )
+                }
+                // The task name.
+                Text(
+                    text = stringResource(option.titleRes),
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
                 if (!expanded) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowDown,
