@@ -11,7 +11,6 @@
     <string name="trigger_n">शर्त %1$d</string>
     <string name="remove_trigger">शर्त हटाएँ</string>
     <string name="expand_options">विकल्प दिखाएँ</string>
-    <string name="collapse_options">विकल्प छिपाएँ</string>
     <string name="trigger_type_time">समय</string>
     <string name="trigger_type_battery">बैटरी</string>
     <string name="trigger_type_app">ऐप</string>
@@ -302,10 +301,9 @@
     <string name="stream_accessibility">एक्सेसिबिलिटी</string>
     <string name="action_stream_volume">चैनल वॉल्यूम</string>
     <string name="action_stream_volume_sub">किसी भी ध्वनि चैनल को सटीक रूप से सेट करें</string>
-    
-
-    
-        <string name="trigger_type_ringer">ध्वनि मोड</string>
+    <string name="section_exit_behavior">जब कार्य समाप्त हो</string>
+    <string name="exit_nothing_sub">कुछ नहीं होता — कार्य बस समाप्त हो जाता है</string>
+    <string name="trigger_type_ringer">ध्वनि मोड</string>
     <string name="trigger_ringer">ध्वनि मोड</string>
     <string name="trigger_ringer_sub">जब ध्वनि मोड बदलता है</string>
     <string name="ringer_mode_label">ध्वनि मोड</string>

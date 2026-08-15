@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Wifi
@@ -26,10 +27,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
@@ -158,6 +164,16 @@ fun ConstraintTypePickerDialog(
     }
 }
 
+/** One-line summary of the chosen constraint values for the collapsed header. */
+@Composable
+private fun constraintSummary(draft: ConstraintDraft): String = when (draft.type) {
+    ConstraintType.BATTERY -> {
+        val level = (draft.config["level"] ?: "20").toIntOrNull() ?: 20
+        if ((draft.config["direction"] ?: "BELOW") == "ABOVE") "≥ $level%" else "≤ $level%"
+    }
+    else -> stringResource(draft.type.labelRes())
+}
+
 /**
  * One constraint card: type chips (switching type), a type-specific config
  * editor (battery direction + level), and a remove button.
@@ -167,20 +183,47 @@ fun ConstraintTypePickerDialog(
 fun ConstraintEditorCard(
     draft: ConstraintDraft,
     index: Int,
+    // Freshly added constraints open right away; loaded ones start collapsed.
+    initiallyExpanded: Boolean = false,
     onConfigChange: (ConstraintDraft) -> Unit,
     onRemove: () -> Unit
 ) {
+    // Fixed header row; tapping it expands the options below. Expand-only:
+    // once opened the card never collapses, so the list only grows downward.
+    var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     NexaFlowCard {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(enabled = !expanded) { expanded = true },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(
-                    text = stringResource(R.string.constraint_n, index + 1),
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleSmall
+                IconBadge(
+                    icon = draft.type.icon(),
+                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                    contentColor = MaterialTheme.colorScheme.primary
                 )
+                // Single horizontal line: "Constraint 1 · <chosen values>".
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.constraint_n, index + 1),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Text(
+                        text = constraintSummary(draft),
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
                 IconButton(onClick = onRemove) {
                     Icon(
                         imageVector = Icons.Filled.Close,
@@ -188,7 +231,16 @@ fun ConstraintEditorCard(
                         tint = MaterialTheme.colorScheme.secondary
                     )
                 }
+                if (!expanded) {
+                    Icon(
+                        imageVector = Icons.Filled.KeyboardArrowDown,
+                        contentDescription = stringResource(R.string.expand_options),
+                        tint = MaterialTheme.colorScheme.outline
+                    )
+                }
             }
+            if (expanded) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -252,6 +304,7 @@ fun ConstraintEditorCard(
                         color = MaterialTheme.colorScheme.secondary
                     )
                 }
+            }
             }
         }
     }

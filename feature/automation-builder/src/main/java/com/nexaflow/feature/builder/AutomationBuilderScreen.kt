@@ -112,6 +112,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.draw.clip
@@ -273,14 +274,18 @@ private fun SelectedActionCard(
     automations: List<Automation> = emptyList(),
     // Re-launches the plugin's EDIT_SETTING activity (plugin actions only).
     onPluginConfigure: () -> Unit = {},
-    // Per-action end behavior: what happens when the task's condition ends.
-    endBehavior: EndBehavior? = null,
-    onEndBehaviorChange: (EndBehavior?) -> Unit = {}
+    // Freshly added actions open right away; loaded ones start collapsed.
+    initiallyExpanded: Boolean = false
 ) {
+    var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     NexaFlowCard {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    // Expand-only: once opened, the card never collapses again,
+                    // so the details only ever grow downward.
+                    .clickable(enabled = !expanded) { expanded = true },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -295,17 +300,14 @@ private fun SelectedActionCard(
                     containerColor = option.color.copy(alpha = 0.15f),
                     contentColor = option.color
                 )
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = stringResource(option.titleRes),
-                        style = MaterialTheme.typography.titleSmall
-                    )
-                    Text(
-                        text = stringResource(option.subtitleRes),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                }
+                // Single horizontal line: the action name.
+                Text(
+                    text = stringResource(option.titleRes),
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
                 IconButton(onClick = onMoveUp, enabled = index > 0) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowUp,
@@ -325,8 +327,22 @@ private fun SelectedActionCard(
                         tint = MaterialTheme.colorScheme.secondary
                     )
                 }
+                if (!expanded) {
+                    Icon(
+                        imageVector = Icons.Filled.KeyboardArrowDown,
+                        contentDescription = stringResource(R.string.expand_options),
+                        tint = MaterialTheme.colorScheme.outline
+                    )
+                }
             }
+            if (expanded) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            // The action subtitle doubles as its one-line instruction.
+            Text(
+                text = stringResource(option.subtitleRes),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
             ActionConfigEditor(
                 option = option,
                 config = config,
@@ -336,18 +352,6 @@ private fun SelectedActionCard(
                 onPluginConfigure = onPluginConfigure,
                 automations = automations
             )
-            // When the task ends: per-action end behavior lives inside THIS
-            // card (leave / restore / set value), not in a separate section
-            // that re-lists every action — no duplicated action rows.
-            if (EndBehaviorCatalog.supportsEndBehavior(option.actionType)) {
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                EndBehaviorEditor(
-                    actionType = option.actionType,
-                    behavior = endBehavior,
-                    onBehaviorChange = onEndBehaviorChange,
-                    showLabel = true
-                )
-            }
             PermissionHintForAction(
                 actionType = option.actionType,
                 context = context,
@@ -355,6 +359,7 @@ private fun SelectedActionCard(
                 onRequestPermission = onRequestPermission,
                 onExplainSpecial = onExplainSpecial
             )
+            }
         }
     }
 }
@@ -393,6 +398,8 @@ fun AutomationBuilderScreen(
     val triggers = rememberSaveable(saver = TriggerDraftListSaver) { mutableStateListOf<TriggerDraft>() }
     val constraints = rememberSaveable(saver = ConstraintDraftListSaver) { mutableStateListOf<ConstraintDraft>() }
     var showConstraintPicker by remember { mutableStateOf(false) }
+    // A freshly picked constraint opens its editor; loaded ones stay collapsed.
+    var lastAddedConstraint by remember { mutableStateOf(-1) }
     var selectedIconIndex by rememberSaveable { mutableStateOf(0) }
     // Accent color chosen in the icon picker (ARGB Long, persisted in the
     // automation's iconColor column). Defaults to Google blue.
@@ -405,6 +412,8 @@ fun AutomationBuilderScreen(
     var expandedActionCategory by rememberSaveable { mutableStateOf<Int?>(null) }
     // A freshly picked trigger opens its editor; loaded ones stay collapsed.
     var lastAddedTrigger by remember { mutableStateOf(-1) }
+    // Same for a freshly picked execution action.
+    var lastAddedAction by remember { mutableStateOf(-1) }
     val actionConfigs = rememberSaveable(saver = ActionConfigMapSaver) { mutableStateMapOf<ActionType, Map<String, String>>() }
     val selectedActions = rememberSaveable(saver = ActionOptionListSaver) { mutableStateListOf<ActionOption>() }
     // Per-action end behavior (leave / restore / set value) applied when the task ends.
@@ -1080,6 +1089,7 @@ fun AutomationBuilderScreen(
                     ConstraintEditorCard(
                         draft = draft,
                         index = index,
+                        initiallyExpanded = index == lastAddedConstraint,
                         onConfigChange = { constraints[index] = it },
                         onRemove = { constraints.removeAt(index) }
                     )
@@ -1113,6 +1123,7 @@ fun AutomationBuilderScreen(
                                             onToggle = {
                                                 if (option !in selectedActions) {
                                                     selectedActions.add(option)
+                                                    lastAddedAction = selectedActions.lastIndex
                                                     // A picked plugin action immediately asks which plugin.
                                                     if (option.actionType == ActionType.PLUGIN_FIRE) {
                                                         pluginPickerTarget = true
@@ -1153,11 +1164,40 @@ fun AutomationBuilderScreen(
                             actionConfigs[ActionType.PLUGIN_FIRE] ?: emptyMap()
                         )
                     },
-                    endBehavior = actionEndBehaviors[option.actionType],
-                    onEndBehaviorChange = { actionEndBehaviors[option.actionType] = it }
+                    initiallyExpanded = index == lastAddedAction
                 )
             }
 
+                    // ── When the task ends: anchored at the absolute bottom of
+                    //    the builder and structurally linked to every execution
+                    //    action above — the final step of the work path. Once
+                    //    any card above is opened it stays open, so this section
+                    //    never hides or changes expanded content.
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    SectionHeader(text = stringResource(R.string.section_exit_behavior))
+                    val endActions = selectedActions.filter { EndBehaviorCatalog.supportsEndBehavior(it.actionType) }
+                    if (endActions.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.exit_nothing_sub),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    } else {
+                        endActions.forEach { option ->
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(
+                                    text = stringResource(option.titleRes),
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                                EndBehaviorEditor(
+                                    actionType = option.actionType,
+                                    behavior = actionEndBehaviors[option.actionType],
+                                    onBehaviorChange = { actionEndBehaviors[option.actionType] = it },
+                                    showLabel = false
+                                )
+                            }
+                        }
+                    }
                     }
                 }
             }
@@ -1169,6 +1209,7 @@ fun AutomationBuilderScreen(
         ConstraintTypePickerDialog(
             onPick = { type ->
                 constraints.add(ConstraintDraft(type, defaultConstraintConfig(type)))
+                lastAddedConstraint = constraints.lastIndex
                 showConstraintPicker = false
             },
             onDismiss = { showConstraintPicker = false }

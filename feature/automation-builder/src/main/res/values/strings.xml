@@ -11,7 +11,6 @@
     <string name="trigger_n">Condition %1$d</string>
     <string name="remove_trigger">Remove condition</string>
     <string name="expand_options">Show options</string>
-    <string name="collapse_options">Hide options</string>
     <string name="trigger_type_time">Time</string>
     <string name="trigger_type_battery">Battery</string>
     <string name="trigger_type_app">App</string>
@@ -312,10 +311,9 @@
     <string name="stream_accessibility">Accessibility</string>
     <string name="action_stream_volume">Channel volume</string>
     <string name="action_stream_volume_sub">Set any sound channel precisely</string>
-    
-
-    
-        <string name="trigger_type_ringer">Sound mode</string>
+    <string name="section_exit_behavior">When the task ends</string>
+    <string name="exit_nothing_sub">Nothing happens - the task simply ends</string>
+    <string name="trigger_type_ringer">Sound mode</string>
     <string name="trigger_ringer">Sound mode</string>
     <string name="trigger_ringer_sub">When the sound mode changes</string>
     <string name="ringer_mode_label">Sound mode</string>

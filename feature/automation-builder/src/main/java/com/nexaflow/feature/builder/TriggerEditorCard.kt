@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Place
@@ -698,7 +697,9 @@ fun TriggerEditorCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { expanded = !expanded },
+                    // Expand-only: a tapped card opens and never collapses again,
+                    // so the options only ever grow downward.
+                    .clickable(enabled = !expanded) { expanded = true },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -707,7 +708,12 @@ fun TriggerEditorCard(
                     containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                     contentColor = MaterialTheme.colorScheme.primary
                 )
-                Column(modifier = Modifier.weight(1f)) {
+                // Single horizontal line: "Condition 1 · <chosen values summary>".
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
                     Text(
                         text = stringResource(R.string.trigger_n, index + 1),
                         style = MaterialTheme.typography.labelMedium,
@@ -717,7 +723,8 @@ fun TriggerEditorCard(
                         text = triggerSummary(draft),
                         style = MaterialTheme.typography.titleSmall,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
                     )
                 }
                 IconButton(onClick = onRemove) {
@@ -727,13 +734,13 @@ fun TriggerEditorCard(
                         tint = MaterialTheme.colorScheme.secondary
                     )
                 }
-                Icon(
-                    imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                    contentDescription = stringResource(
-                        if (expanded) R.string.collapse_options else R.string.expand_options
-                    ),
-                    tint = MaterialTheme.colorScheme.outline
-                )
+                if (!expanded) {
+                    Icon(
+                        imageVector = Icons.Filled.KeyboardArrowDown,
+                        contentDescription = stringResource(R.string.expand_options),
+                        tint = MaterialTheme.colorScheme.outline
+                    )
+                }
             }
             if (expanded) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

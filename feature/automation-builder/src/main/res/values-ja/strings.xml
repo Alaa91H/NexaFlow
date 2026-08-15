@@ -11,7 +11,6 @@
     <string name="trigger_n">条件 %1$d</string>
     <string name="remove_trigger">条件を削除</string>
     <string name="expand_options">オプションを表示</string>
-    <string name="collapse_options">オプションを非表示</string>
     <string name="trigger_type_time">時刻</string>
     <string name="trigger_type_battery">バッテリー</string>
     <string name="trigger_type_app">アプリ</string>
@@ -302,10 +301,9 @@
     <string name="stream_accessibility">アクセシビリティ</string>
     <string name="action_stream_volume">チャンネル音量</string>
     <string name="action_stream_volume_sub">任意のサウンドチャンネルを正確に設定</string>
-    
-
-    
-        <string name="trigger_type_ringer">サウンドモード</string>
+    <string name="section_exit_behavior">タスク終了時</string>
+    <string name="exit_nothing_sub">何も起こりません — タスクは単に終了します</string>
+    <string name="trigger_type_ringer">サウンドモード</string>
     <string name="trigger_ringer">サウンドモード</string>
     <string name="trigger_ringer_sub">サウンドモードが変わったとき</string>
     <string name="ringer_mode_label">サウンドモード</string>

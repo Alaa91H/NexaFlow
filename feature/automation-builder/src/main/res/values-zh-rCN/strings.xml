@@ -11,7 +11,6 @@
     <string name="trigger_n">条件 %1$d</string>
     <string name="remove_trigger">移除条件</string>
     <string name="expand_options">显示选项</string>
-    <string name="collapse_options">隐藏选项</string>
     <string name="trigger_type_time">时间</string>
     <string name="trigger_type_battery">电池</string>
     <string name="trigger_type_app">应用</string>
@@ -302,10 +301,9 @@
     <string name="stream_accessibility">无障碍</string>
     <string name="action_stream_volume">通道音量</string>
     <string name="action_stream_volume_sub">精确调节任意声音通道</string>
-    
-
-    
-        <string name="trigger_type_ringer">声音模式</string>
+    <string name="section_exit_behavior">任务结束时</string>
+    <string name="exit_nothing_sub">什么都不会发生 — 任务直接结束</string>
+    <string name="trigger_type_ringer">声音模式</string>
     <string name="trigger_ringer">声音模式</string>
     <string name="trigger_ringer_sub">当声音模式改变时</string>
     <string name="ringer_mode_label">声音模式</string>

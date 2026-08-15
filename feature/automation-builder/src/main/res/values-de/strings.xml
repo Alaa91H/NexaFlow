@@ -11,7 +11,6 @@
     <string name="trigger_n">Bedingung %1$d</string>
     <string name="remove_trigger">Bedingung entfernen</string>
     <string name="expand_options">Optionen anzeigen</string>
-    <string name="collapse_options">Optionen ausblenden</string>
     <string name="trigger_type_time">Zeit</string>
     <string name="trigger_type_battery">Akku</string>
     <string name="trigger_type_app">App</string>
@@ -302,10 +301,9 @@
     <string name="stream_accessibility">Bedienungshilfen</string>
     <string name="action_stream_volume">Kanal-Lautstärke</string>
     <string name="action_stream_volume_sub">Beliebigen Tonkanal präzise einstellen</string>
-    
-
-    
-        <string name="trigger_type_ringer">Tonmodus</string>
+    <string name="section_exit_behavior">Wenn die Aufgabe endet</string>
+    <string name="exit_nothing_sub">Es passiert nichts – die Aufgabe endet einfach</string>
+    <string name="trigger_type_ringer">Tonmodus</string>
     <string name="trigger_ringer">Tonmodus</string>
     <string name="trigger_ringer_sub">Wenn sich der Tonmodus ändert</string>
     <string name="ringer_mode_label">Tonmodus</string>

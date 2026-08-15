@@ -11,7 +11,6 @@
     <string name="trigger_n">Условие %1$d</string>
     <string name="remove_trigger">Удалить условие</string>
     <string name="expand_options">Показать параметры</string>
-    <string name="collapse_options">Скрыть параметры</string>
     <string name="trigger_type_time">Время</string>
     <string name="trigger_type_battery">Батарея</string>
     <string name="trigger_type_app">Приложение</string>
@@ -302,10 +301,9 @@
     <string name="stream_accessibility">Спец. возможности</string>
     <string name="action_stream_volume">Громкость канала</string>
     <string name="action_stream_volume_sub">Точная настройка любого звукового канала</string>
-    
-
-    
-        <string name="trigger_type_ringer">Режим звука</string>
+    <string name="section_exit_behavior">Когда задача завершается</string>
+    <string name="exit_nothing_sub">Ничего не происходит — задача просто завершается</string>
+    <string name="trigger_type_ringer">Режим звука</string>
     <string name="trigger_ringer">Режим звука</string>
     <string name="trigger_ringer_sub">Когда меняется режим звука</string>
     <string name="ringer_mode_label">Режим звука</string>

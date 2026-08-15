@@ -11,7 +11,6 @@
     <string name="trigger_n">Condição %1$d</string>
     <string name="remove_trigger">Remover condição</string>
     <string name="expand_options">Mostrar opções</string>
-    <string name="collapse_options">Ocultar opções</string>
     <string name="trigger_type_time">Hora</string>
     <string name="trigger_type_battery">Bateria</string>
     <string name="trigger_type_app">Aplicativo</string>
@@ -302,10 +301,9 @@
     <string name="stream_accessibility">Acessibilidade</string>
     <string name="action_stream_volume">Volume do canal</string>
     <string name="action_stream_volume_sub">Ajuste qualquer canal de som com precisão</string>
-    
-
-    
-        <string name="trigger_type_ringer">Modo de som</string>
+    <string name="section_exit_behavior">Quando a tarefa termina</string>
+    <string name="exit_nothing_sub">Nada acontece — a tarefa simplesmente termina</string>
+    <string name="trigger_type_ringer">Modo de som</string>
     <string name="trigger_ringer">Modo de som</string>
     <string name="trigger_ringer_sub">Quando o modo de som muda</string>
     <string name="ringer_mode_label">Modo de som</string>

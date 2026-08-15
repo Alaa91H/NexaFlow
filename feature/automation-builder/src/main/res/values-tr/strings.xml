@@ -11,7 +11,6 @@
     <string name="trigger_n">Koşul %1$d</string>
     <string name="remove_trigger">Koşulu kaldır</string>
     <string name="expand_options">Seçenekleri göster</string>
-    <string name="collapse_options">Seçenekleri gizle</string>
     <string name="trigger_type_time">Zaman</string>
     <string name="trigger_type_battery">Pil</string>
     <string name="trigger_type_app">Uygulama</string>
@@ -302,10 +301,9 @@
     <string name="stream_accessibility">Erişilebilirlik</string>
     <string name="action_stream_volume">Kanal sesi</string>
     <string name="action_stream_volume_sub">Herhangi bir ses kanalını hassas şekilde ayarla</string>
-    
-
-    
-        <string name="trigger_type_ringer">Ses modu</string>
+    <string name="section_exit_behavior">Görev bittiğinde</string>
+    <string name="exit_nothing_sub">Hiçbir şey olmaz — görev sona erer</string>
+    <string name="trigger_type_ringer">Ses modu</string>
     <string name="trigger_ringer">Ses modu</string>
     <string name="trigger_ringer_sub">Ses modu değiştiğinde</string>
     <string name="ringer_mode_label">Ses modu</string>
