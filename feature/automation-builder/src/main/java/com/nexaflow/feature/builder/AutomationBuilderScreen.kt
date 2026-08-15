@@ -114,7 +114,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.layout.offset
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.zIndex
+import kotlin.math.roundToInt
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -251,6 +262,61 @@ internal fun ActionCategory.icon(): ImageVector = when (this) {
     ActionCategory.PLUGINS -> Icons.Filled.Extension
 }
 
+/** Fallback height (pixels) for an action card that has not been measured yet. */
+private const val DRAG_FALLBACK_HEIGHT_PX = 96
+
+/**
+ * Index the dragged action currently hovers over, computed from the measured
+ * card heights and the accumulated vertical drag offset. The dragged item's
+ * center decides the target: the first item whose span [top, top + height)
+ * contains that center. Variable card heights (collapsed vs expanded) are
+ * handled by measuring every card in [heights].
+ */
+private fun computeDragTarget(
+    items: List<ActionOption>,
+    heights: Map<ActionOption, Int>,
+    draggedIndex: Int,
+    draggedOffset: Float
+): Int {
+    if (items.size < 2) return draggedIndex
+    fun h(i: Int) = heights[items[i]] ?: DRAG_FALLBACK_HEIGHT_PX
+    val tops = IntArray(items.size)
+    var acc = 0
+    for (i in items.indices) {
+        tops[i] = acc
+        acc += h(i)
+    }
+    val draggedTop = tops[draggedIndex] + draggedOffset
+    val draggedCenter = draggedTop + h(draggedIndex) / 2f
+    for (i in items.indices) {
+        if (draggedCenter >= tops[i] && draggedCenter < tops[i] + h(i)) return i
+    }
+    // Center dragged past the ends: clamp to the nearest edge.
+    return if (draggedCenter < tops[0]) 0 else items.lastIndex
+}
+
+/**
+ * Offset correction so the dragged card stays under the finger after the list
+ * reorders. Moving down shrinks the stack above the card (negative), moving
+ * up grows it (positive).
+ */
+private fun dragOffsetCorrection(
+    items: List<ActionOption>,
+    heights: Map<ActionOption, Int>,
+    from: Int,
+    to: Int
+): Float {
+    if (from == to) return 0f
+    fun h(i: Int) = heights[items[i]] ?: DRAG_FALLBACK_HEIGHT_PX
+    var sum = 0
+    if (from < to) {
+        for (i in from + 1..to) sum += h(i)
+        return -sum.toFloat()
+    }
+    for (i in to until from) sum += h(i)
+    return sum.toFloat()
+}
+
 /** One selected action, in order, with reorder buttons, config editor and permission hint. */
 @Composable
 private fun SelectedActionCard(
@@ -275,10 +341,17 @@ private fun SelectedActionCard(
     // Re-launches the plugin's EDIT_SETTING activity (plugin actions only).
     onPluginConfigure: () -> Unit = {},
     // Freshly added actions open right away; loaded ones start collapsed.
-    initiallyExpanded: Boolean = false
+    initiallyExpanded: Boolean = false,
+    // Real drag-and-drop: the reorder handle (arrow column) drives these
+    // callbacks; the arrow buttons stay as a secondary tap-to-move option.
+    modifier: Modifier = Modifier,
+    isDragging: Boolean = false,
+    onDragStart: () -> Unit = {},
+    onDragDelta: (Float) -> Unit = {},
+    onDragEnd: () -> Unit = {}
 ) {
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
-    NexaFlowCard {
+    NexaFlowCard(modifier = modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(
                 modifier = Modifier
@@ -300,6 +373,22 @@ private fun SelectedActionCard(
                     )
                 }
                 Column(
+                    modifier = Modifier
+                        // Drag-to-reorder handle: long-press the arrows, then
+                        // drag vertically. Taps on the arrows still reorder
+                        // one step at a time (kept as a secondary option).
+                        .pointerInput(Unit) {
+                            detectDragGesturesAfterLongPress(
+                                onDragStart = { onDragStart() },
+                                onDrag = { change, amount ->
+                                    change.consume()
+                                    onDragDelta(amount.y)
+                                },
+                                onDragEnd = { onDragEnd() },
+                                onDragCancel = { onDragEnd() }
+                            )
+                        }
+                        .graphicsLayer { alpha = if (isDragging) 0.6f else 1f },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
@@ -425,6 +514,10 @@ fun AutomationBuilderScreen(
     var lastAddedAction by remember { mutableStateOf(-1) }
     val actionConfigs = rememberSaveable(saver = ActionConfigMapSaver) { mutableStateMapOf<ActionType, Map<String, String>>() }
     val selectedActions = rememberSaveable(saver = ActionOptionListSaver) { mutableStateListOf<ActionOption>() }
+    // Real drag-and-drop reorder state for the execution tasks (↕️ handle).
+    var actionDragIndex by remember { mutableIntStateOf(-1) }
+    var actionDragOffset by remember { mutableFloatStateOf(0f) }
+    val actionItemHeights = remember { mutableStateMapOf<ActionOption, Int>() }
     // Per-action end behavior (leave / restore / set value) applied when the task ends.
     val actionEndBehaviors = rememberSaveable(saver = ActionEndBehaviorMapSaver) { mutableStateMapOf<ActionType, EndBehavior?>() }
     val exitActionConfigs = rememberSaveable(saver = ActionConfigMapSaver) { mutableStateMapOf<ActionType, Map<String, String>>() }
@@ -774,6 +867,38 @@ fun AutomationBuilderScreen(
         if (from == to) return
         val item = selectedActions.removeAt(from)
         selectedActions.add(to, item)
+    }
+
+    fun startActionDrag(index: Int) {
+        actionDragIndex = index
+        actionDragOffset = 0f
+    }
+
+    fun moveDraggedAction(deltaY: Float) {
+        if (actionDragIndex < 0 || selectedActions.isEmpty()) return
+        actionDragOffset += deltaY
+        val target = computeDragTarget(
+            items = selectedActions,
+            heights = actionItemHeights,
+            draggedIndex = actionDragIndex,
+            draggedOffset = actionDragOffset
+        )
+        if (target != actionDragIndex) {
+            val correction = dragOffsetCorrection(
+                items = selectedActions,
+                heights = actionItemHeights,
+                from = actionDragIndex,
+                to = target
+            )
+            moveAction(actionDragIndex, target)
+            actionDragIndex = target
+            actionDragOffset += correction
+        }
+    }
+
+    fun endActionDrag() {
+        actionDragIndex = -1
+        actionDragOffset = 0f
     }
 
     fun showSnackbar(message: String) {
@@ -1146,7 +1271,27 @@ fun AutomationBuilderScreen(
                             }
                         }
                         selectedActions.forEachIndexed { index, option ->
+                            val actionDragging = actionDragIndex == index
                             SelectedActionCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onSizeChanged { actionItemHeights[option] = it.height }
+                        .zIndex(if (actionDragging) 1f else 0f)
+                        .offset {
+                            IntOffset(
+                                0,
+                                if (actionDragging) actionDragOffset.roundToInt() else 0
+                            )
+                        }
+                        .shadow(
+                            elevation = if (actionDragging) 8.dp else 0.dp,
+                            shape = MaterialTheme.shapes.large,
+                            clip = false
+                        ),
+                    isDragging = actionDragging,
+                    onDragStart = { startActionDrag(index) },
+                    onDragDelta = { moveDraggedAction(it) },
+                    onDragEnd = { endActionDrag() },
                     option = option,
                     index = index,
                     total = selectedActions.size,
