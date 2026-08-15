@@ -10,6 +10,8 @@
     <string name="section_when">शर्तें</string>
     <string name="trigger_n">शर्त %1$d</string>
     <string name="remove_trigger">शर्त हटाएँ</string>
+    <string name="expand_options">विकल्प दिखाएँ</string>
+    <string name="collapse_options">विकल्प छिपाएँ</string>
     <string name="trigger_type_time">समय</string>
     <string name="trigger_type_battery">बैटरी</string>
     <string name="trigger_type_app">ऐप</string>
@@ -300,10 +302,10 @@
     <string name="stream_accessibility">एक्सेसिबिलिटी</string>
     <string name="action_stream_volume">चैनल वॉल्यूम</string>
     <string name="action_stream_volume_sub">किसी भी ध्वनि चैनल को सटीक रूप से सेट करें</string>
-    <string name="section_exit_behavior">जब कार्य समाप्त हो</string>
+    
 
-    <string name="exit_auto_reply_label">स्वचालित उत्तर (SMS)</string>
-    <string name="exit_nothing_sub">कुछ नहीं होता — कार्य बस समाप्त हो जाता है</string>    <string name="trigger_type_ringer">ध्वनि मोड</string>
+    
+        <string name="trigger_type_ringer">ध्वनि मोड</string>
     <string name="trigger_ringer">ध्वनि मोड</string>
     <string name="trigger_ringer_sub">जब ध्वनि मोड बदलता है</string>
     <string name="ringer_mode_label">ध्वनि मोड</string>
@@ -414,7 +416,7 @@
     <string name="notification_buttons_picker_title">चलाने के लिए कार्य चुनें</string>
     <string name="notification_buttons_picker_empty">अभी कोई अन्य कार्य सहेजा नहीं गया</string>
     <string name="trigger_app_while_open">ऐप खोलने पर चलता है और बंद होने तक सक्रिय रहता है, फिर कार्य के समाप्ति विकल्प लागू होते हैं।</string>
-    <string name="exit_extra_actions_label">कार्य समाप्त होने पर अतिरिक्त चरण</string>
+    
     <string name="notification_button_reply">टेक्स्ट से जवाब दें</string>
     <string name="notification_button_reply_title">जवाब वेरिएबल</string>
     <string name="notification_button_reply_hint">नोटिफ़िकेशन में टाइप किया गया टेक्स्ट इस वेरिएबल में सहेजा जाता है ताकि कार्य उसे इस्तेमाल कर सके (जैसे %MyReply)।</string>

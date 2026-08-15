@@ -10,6 +10,8 @@
     <string name="section_when">Koşullar</string>
     <string name="trigger_n">Koşul %1$d</string>
     <string name="remove_trigger">Koşulu kaldır</string>
+    <string name="expand_options">Seçenekleri göster</string>
+    <string name="collapse_options">Seçenekleri gizle</string>
     <string name="trigger_type_time">Zaman</string>
     <string name="trigger_type_battery">Pil</string>
     <string name="trigger_type_app">Uygulama</string>
@@ -300,10 +302,10 @@
     <string name="stream_accessibility">Erişilebilirlik</string>
     <string name="action_stream_volume">Kanal sesi</string>
     <string name="action_stream_volume_sub">Herhangi bir ses kanalını hassas şekilde ayarla</string>
-    <string name="section_exit_behavior">Görev bittiğinde</string>
+    
 
-    <string name="exit_auto_reply_label">Otomatik yanıt (SMS)</string>
-    <string name="exit_nothing_sub">Hiçbir şey olmaz — görev sona erer</string>    <string name="trigger_type_ringer">Ses modu</string>
+    
+        <string name="trigger_type_ringer">Ses modu</string>
     <string name="trigger_ringer">Ses modu</string>
     <string name="trigger_ringer_sub">Ses modu değiştiğinde</string>
     <string name="ringer_mode_label">Ses modu</string>
@@ -414,7 +416,7 @@
     <string name="notification_buttons_picker_title">Çalıştırılacak bir görev seçin</string>
     <string name="notification_buttons_picker_empty">Henüz başka görev kaydedilmemiş</string>
     <string name="trigger_app_while_open">Uygulama açıldığında çalışır ve kapanana kadar aktif kalır; ardından görevin bitiş seçenekleri uygulanır.</string>
-    <string name="exit_extra_actions_label">Görev sonunda ek adımlar</string>
+    
     <string name="notification_button_reply">Metinle yanıtla</string>
     <string name="notification_button_reply_title">Yanıt değişkeni</string>
     <string name="notification_button_reply_hint">Bildirimde yazılan metin bu değişkende saklanır ve görev onu kullanabilir (örn. %MyReply).</string>

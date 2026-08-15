@@ -22,3 +22,4 @@ preview/
 /keystore/*.jks
 /keystore/*.keystore
 /keystore/keystore.properties
+__pycache__

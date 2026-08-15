@@ -10,6 +10,8 @@
     <string name="section_when">الشروط</string>
     <string name="trigger_n">الشرط %1$d</string>
     <string name="remove_trigger">إزالة الشرط</string>
+    <string name="expand_options">عرض الخيارات</string>
+    <string name="collapse_options">إخفاء الخيارات</string>
     <string name="trigger_type_time">الوقت</string>
     <string name="trigger_type_battery">البطارية</string>
     <string name="trigger_type_app">التطبيق</string>
@@ -299,10 +301,10 @@
     <string name="stream_accessibility">إمكانية الوصول</string>
     <string name="action_stream_volume">صوت القناة</string>
     <string name="action_stream_volume_sub">ضبط أي قناة صوت بدقة</string>
-    <string name="section_exit_behavior">عند انتهاء المهمة</string>
+    
 
-    <string name="exit_auto_reply_label">رد تلقائي (رسالة)</string>
-    <string name="exit_nothing_sub">لا يحدث شيء — تنتهي المهمة فقط</string>    <string name="trigger_type_ringer">وضع الصوت</string>
+    
+        <string name="trigger_type_ringer">وضع الصوت</string>
     <string name="trigger_ringer">وضع الصوت</string>
     <string name="trigger_ringer_sub">عند تغيّر وضع الصوت</string>
     <string name="ringer_mode_label">وضع الصوت</string>
@@ -413,7 +415,7 @@
     <string name="notification_buttons_picker_title">اختر مهمة لتشغيلها</string>
     <string name="notification_buttons_picker_empty">لا توجد مهام أخرى محفوظة بعد</string>
     <string name="trigger_app_while_open">يُنفَّذ عند فتح التطبيق ويبقى مفعّلاً حتى إغلاقه، ثم تُطبَّق خيارات انتهاء المهمة.</string>
-    <string name="exit_extra_actions_label">خطوات إضافية عند انتهاء المهمة</string>
+    
     <string name="notification_button_reply">رد بنص</string>
     <string name="notification_button_reply_title">متغير الرد</string>
     <string name="notification_button_reply_hint">تخزَّن الكتابة في الإشعار داخل هذا المتغير ليستخدمها المهمة (مثال %MyReply).</string>

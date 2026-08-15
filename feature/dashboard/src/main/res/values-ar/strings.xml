@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="dashboard_title">NexaFlow</string>
-    <string name="dashboard_subtitle">أتمتة جهازك على طريقتك</string>
     <string name="dashboard_settings">الإعدادات</string>
     <string name="search_hint">ابحث في المهام</string>
     <string name="clear_search">مسح البحث</string>

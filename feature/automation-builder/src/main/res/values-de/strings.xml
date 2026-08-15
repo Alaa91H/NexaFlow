@@ -10,6 +10,8 @@
     <string name="section_when">Bedingungen</string>
     <string name="trigger_n">Bedingung %1$d</string>
     <string name="remove_trigger">Bedingung entfernen</string>
+    <string name="expand_options">Optionen anzeigen</string>
+    <string name="collapse_options">Optionen ausblenden</string>
     <string name="trigger_type_time">Zeit</string>
     <string name="trigger_type_battery">Akku</string>
     <string name="trigger_type_app">App</string>
@@ -300,10 +302,10 @@
     <string name="stream_accessibility">Bedienungshilfen</string>
     <string name="action_stream_volume">Kanal-Lautstärke</string>
     <string name="action_stream_volume_sub">Beliebigen Tonkanal präzise einstellen</string>
-    <string name="section_exit_behavior">Wenn die Aufgabe endet</string>
+    
 
-    <string name="exit_auto_reply_label">Automatische Antwort (SMS)</string>
-    <string name="exit_nothing_sub">Es passiert nichts – die Aufgabe endet einfach</string>    <string name="trigger_type_ringer">Tonmodus</string>
+    
+        <string name="trigger_type_ringer">Tonmodus</string>
     <string name="trigger_ringer">Tonmodus</string>
     <string name="trigger_ringer_sub">Wenn sich der Tonmodus ändert</string>
     <string name="ringer_mode_label">Tonmodus</string>
@@ -414,7 +416,7 @@
     <string name="notification_buttons_picker_title">Aufgabe zum Ausführen wählen</string>
     <string name="notification_buttons_picker_empty">Noch keine anderen Aufgaben gespeichert</string>
     <string name="trigger_app_while_open">Wird beim Öffnen der App ausgeführt und bleibt aktiv, bis sie geschlossen wird; danach werden die Abschlussoptionen der Aufgabe angewendet.</string>
-    <string name="exit_extra_actions_label">Zusätzliche Schritte am Ende der Aufgabe</string>
+    
     <string name="notification_button_reply">Mit Text antworten</string>
     <string name="notification_button_reply_title">Antwortvariable</string>
     <string name="notification_button_reply_hint">Die Eingabe in der Benachrichtigung wird in dieser Variable gespeichert, damit die Aufgabe sie nutzen kann (z. B. %MyReply).</string>

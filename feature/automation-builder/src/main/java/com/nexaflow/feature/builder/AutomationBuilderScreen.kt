@@ -403,7 +403,8 @@ fun AutomationBuilderScreen(
     // Single-open accordions: only ONE category chip is expanded at a time.
     var expandedTriggerCategory by rememberSaveable { mutableStateOf<Int?>(null) }
     var expandedActionCategory by rememberSaveable { mutableStateOf<Int?>(null) }
-    var expandedExitCategory by rememberSaveable { mutableStateOf<Int?>(null) }
+    // A freshly picked trigger opens its editor; loaded ones stay collapsed.
+    var lastAddedTrigger by remember { mutableStateOf(-1) }
     val actionConfigs = rememberSaveable(saver = ActionConfigMapSaver) { mutableStateMapOf<ActionType, Map<String, String>>() }
     val selectedActions = rememberSaveable(saver = ActionOptionListSaver) { mutableStateListOf<ActionOption>() }
     // Per-action end behavior (leave / restore / set value) applied when the task ends.
@@ -750,19 +751,6 @@ fun AutomationBuilderScreen(
     }
 
 
-    /** First SMS trigger, if any — its "reply" config is edited in the exit section. */
-    val smsTriggerIndex = triggers.indexOfFirst { it.type == TriggerType.SMS }
-    // Looked up defensively inside the handler so removing/retargeting the SMS
-    // trigger mid-session can never hit a stale index.
-    fun updateSmsReply(reply: String) {
-        val idx = triggers.indexOfFirst { it.type == TriggerType.SMS }
-        if (idx in triggers.indices) {
-            triggers[idx] = triggers[idx].copy(
-                config = triggers[idx].config + ("reply" to reply)
-            )
-        }
-    }
-
     fun moveAction(from: Int, to: Int) {
         if (from !in selectedActions.indices || to !in selectedActions.indices) return
         if (from == to) return
@@ -1021,6 +1009,7 @@ fun AutomationBuilderScreen(
                                                 .clickable {
                                                     triggers.clear()
                                                     triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
+                                                    lastAddedTrigger = triggers.lastIndex
                                                     expandedTriggerCategory = null
                                                 }
                                         ) {
@@ -1055,6 +1044,7 @@ fun AutomationBuilderScreen(
                         triggers[index] = updated
                     },
                     onRemove = { triggers.removeAt(index) },
+                    initiallyExpanded = index == lastAddedTrigger,
                     onPickApp = { appPickerTarget = "trigger:$index" },
                     onPickBluetooth = { bluetoothPickerTarget = index },
                     onPickCalendar = { calendarPickerTarget = index },
@@ -1168,105 +1158,6 @@ fun AutomationBuilderScreen(
                 )
             }
 
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    // ── When the task ends (extra exit actions) ───────
-                    SectionHeader(text = stringResource(R.string.section_exit_behavior))
-                    // Per-action end behavior now lives inside each action card
-                    // above; this section only holds EXTRA actions to run when
-                    // the task ends (plus the SMS auto-reply below). The picker
-                    // is the same single-open category accordion as the main
-                    // execution step — picking an option adds it and folds the
-                    // accordion away so the new config is right there.
-                    CategoryAccordion(
-                        tabs = actionCategories.map { category ->
-                            stringResource(category.headerRes) to category.icon()
-                        },
-                        expandedIndex = expandedExitCategory,
-                        onExpandedChange = { expandedExitCategory = it }
-                    ) { index ->
-                        val category = actionCategories[index]
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            actionOptions
-                                .filter { it.category == category && it !in selectedExitActions }
-                                .forEach { option ->
-                                    ActionOptionRow(
-                                        option = option,
-                                        checked = false,
-                                        onToggle = {
-                                            if (option !in selectedExitActions) {
-                                                selectedExitActions.add(option)
-                                            }
-                                            // Collapse so the user sees the new exit action's config.
-                                            expandedExitCategory = null
-                                        }
-                                    )
-                                }
-                        }
-                    }
-                    if (selectedExitActions.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.exit_nothing_sub),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    }
-                    if (selectedExitActions.isNotEmpty()) {
-                        Text(
-                            text = stringResource(R.string.exit_extra_actions_label),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        selectedExitActions.forEach { option ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Text(
-                                    text = stringResource(option.titleRes),
-                                    modifier = Modifier.weight(1f),
-                                    style = MaterialTheme.typography.titleSmall
-                                )
-                                IconButton(onClick = {
-                                    selectedExitActions.remove(option)
-                                    exitActionConfigs.remove(option.actionType)
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Close,
-                                        contentDescription = stringResource(R.string.remove_action),
-                                        tint = MaterialTheme.colorScheme.secondary
-                                    )
-                                }
-                            }
-                            val config = exitActionConfigs[option.actionType] ?: emptyMap()
-                            ActionConfigEditor(
-                                option = option,
-                                config = config,
-                                onConfigChange = { exitActionConfigs[option.actionType] = it },
-                                onPickApp = { appPickerTarget = "exit:${option.actionType.name}" },
-                                availableVariables = availableVariables,
-                                automations = automations
-                            )
-                        }
-                    }
-                    // Auto-reply belongs with the exit behaviour: it is not an action,
-                    // so it lives here instead of inside the SMS trigger editor.
-                    // Note: the reply is still sent by SmsReceiver when the message
-                    // arrives (not when the task ends) — this field only configures it.
-                    if (smsTriggerIndex in triggers.indices && triggers[smsTriggerIndex].type == TriggerType.SMS) {
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        Text(
-                            text = stringResource(R.string.exit_auto_reply_label),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        OutlinedTextField(
-                            value = triggers[smsTriggerIndex].config["reply"] ?: "",
-                            onValueChange = { updateSmsReply(it) },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(text = stringResource(R.string.sms_reply)) },
-                            placeholder = { Text(text = stringResource(R.string.sms_reply_hint)) },
-                            singleLine = true
-                        )
-                    }
                     }
                 }
             }
@@ -1344,41 +1235,6 @@ fun AutomationBuilderScreen(
     }
 
     appPickerTarget?.let { target ->
-        val exitActionName = target.removePrefix("exit:")
-        if (exitActionName != target) {
-            val exitType = ActionType.entries.firstOrNull { it.name == exitActionName }
-            if (exitType == ActionType.SYSTEM_OPEN_APP) {
-                val existing = exitActionConfigs[ActionType.SYSTEM_OPEN_APP]
-                val pre = (existing?.get("packages") ?: existing?.get("package") ?: "")
-                    .split(',').map { it.trim() }.filter { it.isNotEmpty() }
-                AppPickerDialog(
-                    onPickSingle = { app ->
-                        val current = pre + app.packageName
-                        val merged = current.distinct()
-                        exitActionConfigs[ActionType.SYSTEM_OPEN_APP] = mapOf("packages" to merged.joinToString(","))
-                        appPickerTarget = null
-                    },
-                    onPickMultiple = { packages ->
-                        exitActionConfigs[ActionType.SYSTEM_OPEN_APP] = mapOf("packages" to packages.joinToString(",") { it.packageName })
-                        appPickerTarget = null
-                    },
-                    multiSelect = true,
-                    preSelectedPackages = pre,
-                    onDismiss = { appPickerTarget = null }
-                )
-            } else if (exitType != null) {
-                AppPickerDialog(
-                    onPickSingle = { app ->
-                        exitActionConfigs[exitType] = mapOf("package" to app.packageName)
-                        appPickerTarget = null
-                    },
-                    onDismiss = { appPickerTarget = null }
-                )
-            } else {
-                appPickerTarget = null
-            }
-            return@let
-        }
         val triggerIndex = target.removePrefix("trigger:").toIntOrNull()
         if (triggerIndex != null) {
             val triggerPackages = (triggers[triggerIndex].config["packages"] ?: triggers[triggerIndex].config["package"] ?: "")

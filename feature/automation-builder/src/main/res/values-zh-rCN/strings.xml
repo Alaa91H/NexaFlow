@@ -10,6 +10,8 @@
     <string name="section_when">条件</string>
     <string name="trigger_n">条件 %1$d</string>
     <string name="remove_trigger">移除条件</string>
+    <string name="expand_options">显示选项</string>
+    <string name="collapse_options">隐藏选项</string>
     <string name="trigger_type_time">时间</string>
     <string name="trigger_type_battery">电池</string>
     <string name="trigger_type_app">应用</string>
@@ -300,10 +302,10 @@
     <string name="stream_accessibility">无障碍</string>
     <string name="action_stream_volume">通道音量</string>
     <string name="action_stream_volume_sub">精确调节任意声音通道</string>
-    <string name="section_exit_behavior">任务结束时</string>
+    
 
-    <string name="exit_auto_reply_label">自动回复（短信）</string>
-    <string name="exit_nothing_sub">什么都不会发生 — 任务直接结束</string>    <string name="trigger_type_ringer">声音模式</string>
+    
+        <string name="trigger_type_ringer">声音模式</string>
     <string name="trigger_ringer">声音模式</string>
     <string name="trigger_ringer_sub">当声音模式改变时</string>
     <string name="ringer_mode_label">声音模式</string>
@@ -414,7 +416,7 @@
     <string name="notification_buttons_picker_title">选择要运行的任务</string>
     <string name="notification_buttons_picker_empty">暂未保存其他任务</string>
     <string name="trigger_app_while_open">打开应用时执行，并保持生效直至关闭，然后应用任务的结束选项。</string>
-    <string name="exit_extra_actions_label">任务结束时执行额外步骤</string>
+    
     <string name="notification_button_reply">文字回复</string>
     <string name="notification_button_reply_title">回复变量</string>
     <string name="notification_button_reply_hint">在通知中输入的文本会存入此变量，供任务使用（例如 %MyReply）。</string>

@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="dashboard_title">NexaFlow</string>
-    <string name="dashboard_subtitle">按您的方式自动执行设备操作</string>
     <string name="dashboard_settings">设置</string>
     <string name="search_hint">搜索任务</string>
     <string name="clear_search">清除搜索</string>

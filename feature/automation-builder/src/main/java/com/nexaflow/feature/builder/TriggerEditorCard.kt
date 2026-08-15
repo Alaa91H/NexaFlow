@@ -22,6 +22,8 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Place
@@ -51,6 +53,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,6 +68,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.rememberCoroutineScope
 import com.nexaflow.core.engine.currentCellularGeneration
 import com.nexaflow.core.rom.EvolutionXSettingsBridge
+import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.Dispatchers
@@ -511,6 +515,8 @@ fun TriggerEditorCard(
     index: Int,
     onConfigChange: (TriggerDraft) -> Unit,
     onRemove: () -> Unit,
+    // Freshly added triggers open right away; loaded ones stay collapsed.
+    initiallyExpanded: Boolean = false,
     onPickApp: () -> Unit,
     onPickFromMap: () -> Unit = {},
     onUseCurrentLocation: () -> Unit = {},
@@ -526,18 +532,21 @@ fun TriggerEditorCard(
     var showTimePicker by remember { mutableStateOf(false) }
     var timePickerTarget by remember { mutableStateOf("time") } // "time" | "rangeStart" | "rangeEnd"
     var datePickerTarget by remember { mutableStateOf<String?>(null) } // "date" | "startDate" | "endDate"
-    // Always expanded: the card shows the trigger type plus the type picker
-    // and the ordered options for that type. The task card never collapses.
+    // Fixed header row; tapping it expands the type picker and options below.
+    var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     NexaFlowCard {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(
-                    imageVector = draft.type.icon(),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+                IconBadge(
+                    icon = draft.type.icon(),
+                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                    contentColor = MaterialTheme.colorScheme.primary
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -557,7 +566,16 @@ fun TriggerEditorCard(
                         tint = MaterialTheme.colorScheme.secondary
                     )
                 }
+                Icon(
+                    imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                    contentDescription = stringResource(
+                        if (expanded) R.string.collapse_options else R.string.expand_options
+                    ),
+                    tint = MaterialTheme.colorScheme.outline
+                )
             }
+            if (expanded) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -1066,11 +1084,12 @@ fun TriggerEditorCard(
                 }
                 TriggerType.LOCATION -> {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        // Two ways to set the location: current position or map.
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        // Two ways to set the location: current position or map,
+                        // stacked vertically (full width each) for easier tapping.
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             OutlinedButton(
                                 onClick = onUseCurrentLocation,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.fillMaxWidth()
                             ) {
                                 Icon(imageVector = Icons.Filled.MyLocation, contentDescription = null)
                                 Text(
@@ -1080,7 +1099,7 @@ fun TriggerEditorCard(
                             }
                             OutlinedButton(
                                 onClick = onPickFromMap,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.fillMaxWidth()
                             ) {
                                 Icon(imageVector = Icons.Filled.Map, contentDescription = null)
                                 Text(
@@ -1196,6 +1215,17 @@ fun TriggerEditorCard(
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text(text = stringResource(R.string.sms_contains)) },
                             placeholder = { Text(text = stringResource(R.string.sms_contains_hint)) },
+                            singleLine = true
+                        )
+                        // Auto-reply: sent back by SmsReceiver when the message
+                        // arrives. It is trigger config, not an exit action, so it
+                        // lives here with the rest of the SMS trigger settings.
+                        OutlinedTextField(
+                            value = draft.config["reply"] ?: "",
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("reply" to it))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(text = stringResource(R.string.sms_reply)) },
+                            placeholder = { Text(text = stringResource(R.string.sms_reply_hint)) },
                             singleLine = true
                         )
                         RuntimePermissionHint(
@@ -1836,6 +1866,7 @@ fun TriggerEditorCard(
                         )
                     }
                 }
+            }
             }
         }
     }

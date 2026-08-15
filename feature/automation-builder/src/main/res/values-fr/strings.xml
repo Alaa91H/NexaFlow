@@ -10,6 +10,8 @@
     <string name="section_when">Conditions</string>
     <string name="trigger_n">Condition %1$d</string>
     <string name="remove_trigger">Retirer la condition</string>
+    <string name="expand_options">Afficher les options</string>
+    <string name="collapse_options">Masquer les options</string>
     <string name="trigger_type_time">Heure</string>
     <string name="trigger_type_battery">Batterie</string>
     <string name="trigger_type_app">Application</string>
@@ -300,10 +302,10 @@
     <string name="stream_accessibility">Accessibilité</string>
     <string name="action_stream_volume">Volume du canal</string>
     <string name="action_stream_volume_sub">"Réglez n'importe quel canal audio avec précision"</string>
-    <string name="section_exit_behavior">Lorsque la tâche se termine</string>
+    
 
-    <string name="exit_auto_reply_label">Réponse automatique (SMS)</string>
-    <string name="exit_nothing_sub">Rien ne se passe : la tâche se termine simplement</string>    <string name="trigger_type_ringer">Mode sonore</string>
+    
+        <string name="trigger_type_ringer">Mode sonore</string>
     <string name="trigger_ringer">Mode sonore</string>
     <string name="trigger_ringer_sub">Lorsque le mode sonore change</string>
     <string name="ringer_mode_label">Mode sonore</string>
@@ -414,7 +416,7 @@
     <string name="notification_buttons_picker_title">Choisissez une tâche à exécuter</string>
     <string name="notification_buttons_picker_empty">"Aucune autre tâche enregistrée pour l'instant"</string>
     <string name="trigger_app_while_open">"S'exécute à l'ouverture de l'application et reste actif jusqu'à sa fermeture, puis applique les options de fin de la tâche."</string>
-    <string name="exit_extra_actions_label">Étapes supplémentaires à la fin de la tâche</string>
+    
     <string name="notification_button_reply">Répondre par un texte</string>
     <string name="notification_button_reply_title">Variable de réponse</string>
     <string name="notification_button_reply_hint">La saisie dans la notification est stockée dans cette variable pour que la tâche puisse l\'utiliser (p. ex. %MyReply).</string>

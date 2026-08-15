@@ -10,6 +10,8 @@
     <string name="section_when">Condiciones</string>
     <string name="trigger_n">Condición %1$d</string>
     <string name="remove_trigger">Quitar condición</string>
+    <string name="expand_options">Mostrar opciones</string>
+    <string name="collapse_options">Ocultar opciones</string>
     <string name="trigger_type_time">Hora</string>
     <string name="trigger_type_battery">Batería</string>
     <string name="trigger_type_app">App</string>
@@ -300,10 +302,10 @@
     <string name="stream_accessibility">Accesibilidad</string>
     <string name="action_stream_volume">Volumen del canal</string>
     <string name="action_stream_volume_sub">Ajusta cualquier canal de sonido con precisión</string>
-    <string name="section_exit_behavior">Cuando finaliza la tarea</string>
+    
 
-    <string name="exit_auto_reply_label">Respuesta automática (SMS)</string>
-    <string name="exit_nothing_sub">No ocurre nada: la tarea simplemente termina</string>    <string name="trigger_type_ringer">Modo de sonido</string>
+    
+        <string name="trigger_type_ringer">Modo de sonido</string>
     <string name="trigger_ringer">Modo de sonido</string>
     <string name="trigger_ringer_sub">Cuando cambia el modo de sonido</string>
     <string name="ringer_mode_label">Modo de sonido</string>
@@ -414,7 +416,7 @@
     <string name="notification_buttons_picker_title">Elige una tarea para ejecutar</string>
     <string name="notification_buttons_picker_empty">Aún no hay otras tareas guardadas</string>
     <string name="trigger_app_while_open">Se ejecuta al abrir la app y permanece activo hasta que se cierra; después aplica las opciones de finalización de la tarea.</string>
-    <string name="exit_extra_actions_label">Pasos adicionales al finalizar la tarea</string>
+    
     <string name="notification_button_reply">Responder con texto</string>
     <string name="notification_button_reply_title">Variable de respuesta</string>
     <string name="notification_button_reply_hint">Escribir en la notificación guarda el texto en esta variable para que la tarea pueda usarlo (p. ej. %MyReply).</string>
