@@ -69,7 +69,9 @@ object EndBehaviorCatalog {
         ActionType.SYSTEM_AUTO_TIME,
         ActionType.SYSTEM_AUTO_TIMEZONE,
         ActionType.SYSTEM_CAMERA_SHUTTER_SOUND,
-        ActionType.SYSTEM_WIFI_SCANNING
+        ActionType.SYSTEM_WIFI_SCANNING,
+        ActionType.SYSTEM_DATA_ROAMING,
+        ActionType.SYSTEM_CALL_VIBRATION
     )
 
     /** Actions whose end options are a specific value / revert to previous. */
@@ -81,7 +83,9 @@ object EndBehaviorCatalog {
         ActionType.SYSTEM_RINGER_MODE,
         ActionType.SYSTEM_SCREEN_TIMEOUT,
         ActionType.SYSTEM_SCREEN_ROTATION,
-        ActionType.SYSTEM_NETWORK_MODE
+        ActionType.SYSTEM_NETWORK_MODE,
+        ActionType.SYSTEM_POINTER_SPEED,
+        ActionType.SYSTEM_SCREENSAVER_TIMEOUT
     )
 
     /**

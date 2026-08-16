@@ -172,7 +172,78 @@ enum class TriggerType {
      * Screen rotation (portrait/landscape) changed. Config key: `state`
      * (PORTRAIT/LANDSCAPE).
      */
-    SCREEN_ROTATION_STATE
+    SCREEN_ROTATION_STATE,
+    /**
+     * Wi-Fi signal strength crossed a threshold. Config keys: `threshold`
+     * (RSSI -100..0), `direction` (ABOVE/BELOW).
+     */
+    WIFI_SIGNAL_STRENGTH,
+    /**
+     * Cellular signal strength crossed a threshold. Config keys: `threshold`
+     * (0-31 ASU), `direction` (ABOVE/BELOW).
+     */
+    CELL_SIGNAL_STRENGTH,
+    /**
+     * Battery temperature crossed a threshold. Config keys: `threshold` (C),
+     * `direction` (ABOVE/BELOW).
+     */
+    BATTERY_TEMPERATURE,
+    /**
+     * USB device plugged or unplugged. Config key: `event` (CONNECTED/DISCONNECTED).
+     */
+    USB_CONNECTED,
+    /**
+     * HDMI display connected or disconnected. Config key: `event` (CONNECTED/DISCONNECTED).
+     */
+    HDMI_CONNECTED,
+    /**
+     * Ethernet link up or down. Config key: `event` (CONNECTED/DISCONNECTED).
+     */
+    ETHERNET_CONNECTED,
+    /**
+     * VPN tunnel established or torn down. Config key: `event` (CONNECTED/DISCONNECTED).
+     */
+    VPN_CONNECTED,
+    /**
+     * Clipboard content changed. Config key: `contains` (optional substring filter).
+     */
+    CLIPBOARD_CHANGED,
+    /**
+     * Do-not-disturb turned on or off. Config key: `state` (ON/OFF).
+     */
+    DND_STATE,
+    /**
+     * Stay-awake-while-charging turned on or off. Config key: `state` (ON/OFF).
+     */
+    STAY_AWAKE_STATE,
+    /**
+     * Auto-brightness turned on or off. Config key: `state` (ON/OFF).
+     */
+    AUTO_BRIGHTNESS_STATE,
+    /**
+     * Screen timeout setting changed to a value. Config key: `seconds` (exact match).
+     */
+    SCREEN_TIMEOUT_CHANGED,
+    /**
+     * Data roaming turned on or off. Config key: `state` (ON/OFF).
+     */
+    DATA_ROAMING_STATE,
+    /**
+     * System timezone changed. Config key: `zone` (optional IANA match).
+     */
+    TIMEZONE_CHANGED,
+    /**
+     * Device finished booting. Fires once after boot.
+     */
+    BOOT_COMPLETED,
+    /**
+     * An NFC tag was scanned. Config key: `contains` (optional id substring).
+     */
+    NFC_TAG_SCANNED,
+    /**
+     * An alarm clock was set or cleared. Config key: `event` (SET/CLEARED).
+     */
+    ALARM_SET_CHANGED
 }
 
 @Immutable
@@ -369,5 +440,86 @@ enum class ActionType {
     /** Powers the device off. */
     SYSTEM_SHUTDOWN,
     /** Restarts the System UI process. */
-    SYSTEM_RESTART_SYSTEM_UI
+    SYSTEM_RESTART_SYSTEM_UI,
+    /** Shows a toast message. Config key: `text`. */
+    SYSTEM_TOAST,
+    /** Shows a full-screen alert dialog. Config keys: `title`, `text`. */
+    SYSTEM_ALERT,
+    /** Vibrates a Morse-like dot/dash pattern. Config key: `pattern`. */
+    SYSTEM_VIBRATE_PATTERN,
+    /** Pastes the clipboard into the focused field. */
+    SYSTEM_PASTE,
+    /** Opens the recents / all-apps drawer. */
+    SYSTEM_OPEN_APP_DRAWER,
+    /** Toggles picture-in-picture for the foreground activity. */
+    SYSTEM_TOGGLE_PIP,
+    /** Connects to a Wi-Fi network. Config keys: `ssid`, `password` (optional). */
+    SYSTEM_WIFI_CONNECT,
+    /** Forgets a saved Wi-Fi network. Config key: `ssid`. */
+    SYSTEM_WIFI_FORGET,
+    /** Enables/disables data roaming. Config key: `enabled`. */
+    SYSTEM_DATA_ROAMING,
+    /** Sets the screensaver timeout. Config key: `minutes`. */
+    SYSTEM_SCREENSAVER_TIMEOUT,
+    /** Sets the pointer speed (-7..7). Config key: `speed`. */
+    SYSTEM_POINTER_SPEED,
+    /** Installs an APK from a path. Config key: `path`. */
+    SYSTEM_INSTALL_APK,
+    /** Uninstalls a package. Config key: `package`. */
+    SYSTEM_UNINSTALL_APP,
+    /** Disables a package. Config key: `package`. */
+    SYSTEM_DISABLE_APP,
+    /** Enables a disabled package. Config key: `package`. */
+    SYSTEM_ENABLE_APP,
+    /** Sets the notification sound. Config key: `tone`. */
+    SYSTEM_SET_NOTIFICATION_TONE,
+    /** Toggles vibration while ringing. Config key: `enabled`. */
+    SYSTEM_CALL_VIBRATION,
+    /** Opens the wireless/network settings page. */
+    SYSTEM_OPEN_NETWORK_SETTINGS,
+    /** Opens the NFC settings page. */
+    SYSTEM_OPEN_NFC_SETTINGS,
+    /** Opens the data saver settings page. */
+    SYSTEM_OPEN_DATA_SAVER_SETTINGS,
+    /** Opens the developer options page. */
+    SYSTEM_OPEN_DEVELOPER_SETTINGS,
+    /** Opens a location in the maps app. Config keys: `lat`, `lng`. */
+    SYSTEM_OPEN_MAPS,
+    /** Performs a soft framework restart (requires root). */
+    SYSTEM_SOFT_RESTART,
+    /** Toggles the status bar visibility. Config key: `show`. */
+    SYSTEM_STATUS_BAR_TOGGLE,
+    /** Opens the contacts app. */
+    SYSTEM_OPEN_CONTACTS,
+    /** Sends an email via the mail client. Config keys: `to`, `subject`, `body`. */
+    SYSTEM_SEND_EMAIL,
+    /** Opens the notification settings page. */
+    SYSTEM_OPEN_NOTIFICATION_SETTINGS,
+    /** Opens the privacy settings page. */
+    SYSTEM_OPEN_PRIVACY_SETTINGS,
+    /** Opens the cast settings page. */
+    SYSTEM_OPEN_CAST_SETTINGS,
+    /** Opens the input method (keyboard) settings page. */
+    SYSTEM_OPEN_INPUT_METHOD_SETTINGS,
+    /** Opens the default-apps settings page. */
+    SYSTEM_OPEN_DEFAULT_APPS_SETTINGS,
+    /** Opens the VPN settings page. */
+    SYSTEM_OPEN_VPN_SETTINGS,
+    /** Opens the date & time settings page. */
+    SYSTEM_OPEN_DATE_SETTINGS,
+    /** Opens the print settings page. */
+    SYSTEM_OPEN_PRINT_SETTINGS,
+    /** Opens the device-administrator settings page. */
+    SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS,
+    /** Opens the usage-access settings page. */
+    SYSTEM_OPEN_USAGE_ACCESS_SETTINGS,
+    /** Opens the airplane-mode settings page. */
+    SYSTEM_OPEN_AIRPLANE_MODE_SETTINGS,
+    /** Starts a Bluetooth discovery scan. */
+    SYSTEM_BLUETOOTH_SCAN,
+    /** Triggers an immediate Wi-Fi scan. */
+    SYSTEM_WIFI_SCAN_NOW,
+    /** Sets the system timezone. Config key: `zone` (IANA, e.g. Asia/Riyadh). */
+    SYSTEM_SET_TIMEZONE
 }
+

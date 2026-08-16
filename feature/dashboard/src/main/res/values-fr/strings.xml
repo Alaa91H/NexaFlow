@@ -10,9 +10,9 @@
     <string name="new_routine">Nouvelle tâche</string>
     <string name="empty_automations_title">Aucune tâche pour l\\u2019instant</string>
     <string name="empty_automations_sub">Touchez + pour créer votre première tâche.</string>
-    <string name="summary_any_trigger">n\'importe quelle condition</string>
+    <string name="summary_any_trigger">"n\'importe quelle condition"</string>
     <string name="summary_no_actions">aucune exécution</string>
-    <string name="summary_actions_count">%1$d étape(s) d\'exécution</string>
+    <string name="summary_actions_count">"%1$d étape(s) d\'exécution"</string>
     <string name="summary_template">Quand %1$s → Alors %2$s</string>
     <string name="next_run_prefix">Prochaine · %1$s</string>
     <string name="last_run_prefix">Dernière exécution · %1$s</string>
@@ -31,7 +31,7 @@
     <string name="trigger_battery">Batterie</string>
     <string name="trigger_bluetooth">Appareil Bluetooth</string>
     <string name="trigger_ringer">Mode sonore</string>
-    <string name="trigger_notification">Notification d\'app</string>
+    <string name="trigger_notification">"Notification d\'app"</string>
     <string name="trigger_calendar">Événement du calendrier</string>
     <string name="trigger_sensor">Capteur</string>
     <string name="trigger_webhook">Webhook</string>
@@ -56,4 +56,21 @@
     <string name="trigger_nfc_state">NFC</string>
     <string name="trigger_location_state">Mode de localisation</string>
     <string name="trigger_screen_rotation_state">Rotation d’écran</string>
+    <string name="trigger_wifi_signal_strength">Intensité du signal Wi-Fi</string>
+    <string name="trigger_cell_signal_strength">Intensité du signal cellulaire</string>
+    <string name="trigger_battery_temperature">Température de la batterie</string>
+    <string name="trigger_usb_connected">USB connecté</string>
+    <string name="trigger_hdmi_connected">HDMI connecté</string>
+    <string name="trigger_ethernet_connected">Ethernet connecté</string>
+    <string name="trigger_vpn_connected">VPN connecté</string>
+    <string name="trigger_clipboard_changed">Presse-papiers modifié</string>
+    <string name="trigger_dnd_state">Ne pas déranger</string>
+    <string name="trigger_stay_awake_state">Rester éveillé</string>
+    <string name="trigger_auto_brightness_state">Luminosité automatique</string>
+    <string name="trigger_screen_timeout_changed">"Délai d'extinction de l'écran"</string>
+    <string name="trigger_data_roaming_state">Itinérance des données</string>
+    <string name="trigger_timezone_changed">Fuseau horaire modifié</string>
+    <string name="trigger_boot_completed">Appareil démarré</string>
+    <string name="trigger_nfc_tag_scanned">Étiquette NFC détectée</string>
+    <string name="trigger_alarm_set_changed">Alarme définie</string>
 </resources>

@@ -161,6 +161,88 @@ object TriggerStateEvaluator {
                     Configuration.ORIENTATION_PORTRAIT)
                 portrait == wantPortrait
             }
+            // ---- v3.28 state triggers ----
+            TriggerType.DND_STATE -> {
+                val zen = Settings.Global.getInt(context.contentResolver, "zen_mode", 0)
+                ((c["state"] ?: "ON") == "ON") == (zen != 0)
+            }
+            TriggerType.STAY_AWAKE_STATE -> {
+                val stay = Settings.Global.getInt(
+                    context.contentResolver, "stay_on_while_plugged_in", 0
+                )
+                ((c["state"] ?: "ON") == "ON") == (stay != 0)
+            }
+            TriggerType.AUTO_BRIGHTNESS_STATE -> {
+                val mode = Settings.System.getInt(
+                    context.contentResolver, Settings.System.SCREEN_BRIGHTNESS_MODE, 0
+                )
+                ((c["state"] ?: "ON") == "ON") ==
+                    (mode == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC)
+            }
+            TriggerType.DATA_ROAMING_STATE -> {
+                val roaming = Settings.Global.getInt(
+                    context.contentResolver, "data_roaming", 0
+                ) != 0
+                ((c["state"] ?: "ON") == "ON") == roaming
+            }
+            TriggerType.WIFI_SIGNAL_STRENGTH -> {
+                val wifi = context.getSystemService(Context.WIFI_SERVICE) as? android.net.wifi.WifiManager
+                val info = wifi?.connectionInfo ?: return false
+                val level = android.net.wifi.WifiManager.calculateSignalLevel(info.rssi, 5)
+                val threshold = (c["threshold"] ?: "3").toIntOrNull() ?: 3
+                if ((c["direction"] ?: "ABOVE") == "BELOW") level <= threshold else level >= threshold
+            }
+            TriggerType.CELL_SIGNAL_STRENGTH -> {
+                val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? android.telephony.TelephonyManager
+                val level = runCatching { telephony?.signalStrength?.level ?: 0 }.getOrDefault(0)
+                val threshold = (c["threshold"] ?: "3").toIntOrNull() ?: 3
+                if ((c["direction"] ?: "ABOVE") == "BELOW") level <= threshold else level >= threshold
+            }
+            TriggerType.BATTERY_TEMPERATURE -> {
+                val intent = context.registerReceiver(
+                    null, android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED)
+                ) ?: return false
+                val celsius = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1) / 10f
+                if (celsius < 0) return false
+                val threshold = (c["threshold"] ?: "40").toFloatOrNull() ?: 40f
+                if ((c["direction"] ?: "ABOVE") == "BELOW") celsius <= threshold else celsius >= threshold
+            }
+            TriggerType.USB_CONNECTED -> {
+                val intent = context.registerReceiver(null, android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED))
+                val plugged = intent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0
+                ((c["state"] ?: "ON") == "ON") == (plugged == BatteryManager.BATTERY_PLUGGED_USB)
+            }
+            TriggerType.HDMI_CONNECTED -> {
+                // No public read API for HDMI state; the live monitor tracks
+                // the ACTION_HDMI_PLUGGED broadcast. Unknown = satisfied so a
+                // manual run is never blocked by an unreadable state.
+                true
+            }
+            TriggerType.ETHERNET_CONNECTED -> {
+                val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager
+                val has = runCatching {
+                    cm?.allNetworks?.any { n ->
+                        cm.getNetworkCapabilities(n)?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET) == true
+                    } == true
+                }.getOrDefault(false)
+                ((c["state"] ?: "ON") == "ON") == has
+            }
+            TriggerType.VPN_CONNECTED -> {
+                val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager
+                val has = runCatching {
+                    cm?.allNetworks?.any { n ->
+                        cm.getNetworkCapabilities(n)?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_VPN) == true
+                    } == true
+                }.getOrDefault(false)
+                ((c["state"] ?: "ON") == "ON") == has
+            }
+            // ---- v3.28 one-shot event triggers: live monitors fire these ----
+            TriggerType.TIMEZONE_CHANGED,
+            TriggerType.BOOT_COMPLETED,
+            TriggerType.NFC_TAG_SCANNED,
+            TriggerType.CLIPBOARD_CHANGED,
+            TriggerType.SCREEN_TIMEOUT_CHANGED,
+            TriggerType.ALARM_SET_CHANGED -> true
             else -> true
         }
     }

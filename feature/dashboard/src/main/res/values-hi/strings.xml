@@ -56,4 +56,21 @@
     <string name="trigger_nfc_state">NFC</string>
     <string name="trigger_location_state">लोकेशन मोड</string>
     <string name="trigger_screen_rotation_state">स्क्रीन रोटेशन</string>
+    <string name="trigger_wifi_signal_strength">वाई-फ़ाई सिग्नल शक्ति</string>
+    <string name="trigger_cell_signal_strength">सेलुलर सिग्नल शक्ति</string>
+    <string name="trigger_battery_temperature">बैटरी का तापमान</string>
+    <string name="trigger_usb_connected">USB कनेक्टेड</string>
+    <string name="trigger_hdmi_connected">HDMI कनेक्टेड</string>
+    <string name="trigger_ethernet_connected">ईथरनेट कनेक्टेड</string>
+    <string name="trigger_vpn_connected">VPN कनेक्टेड</string>
+    <string name="trigger_clipboard_changed">क्लिपबोर्ड बदला</string>
+    <string name="trigger_dnd_state">डू नॉट डिस्टर्ब</string>
+    <string name="trigger_stay_awake_state">जागते रहें</string>
+    <string name="trigger_auto_brightness_state">ऑटो ब्राइटनेस</string>
+    <string name="trigger_screen_timeout_changed">स्क्रीन टाइमआउट</string>
+    <string name="trigger_data_roaming_state">डेटा रोमिंग</string>
+    <string name="trigger_timezone_changed">टाइमज़ोन बदली</string>
+    <string name="trigger_boot_completed">डिवाइस बूट हुआ</string>
+    <string name="trigger_nfc_tag_scanned">NFC टैग स्कैन हुआ</string>
+    <string name="trigger_alarm_set_changed">अलार्म सेट</string>
 </resources>

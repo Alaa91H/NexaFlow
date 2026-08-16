@@ -75,6 +75,23 @@ enum class TriggerSource(val sourceId: String) {
             TriggerType.NFC_STATE -> DEVICE
             TriggerType.LOCATION_STATE -> DEVICE
             TriggerType.SCREEN_ROTATION_STATE -> DEVICE
+            TriggerType.WIFI_SIGNAL_STRENGTH -> CONNECTIVITY
+            TriggerType.CELL_SIGNAL_STRENGTH -> CONNECTIVITY
+            TriggerType.BATTERY_TEMPERATURE -> BATTERY
+            TriggerType.USB_CONNECTED -> DEVICE
+            TriggerType.HDMI_CONNECTED -> DEVICE
+            TriggerType.ETHERNET_CONNECTED -> CONNECTIVITY
+            TriggerType.VPN_CONNECTED -> CONNECTIVITY
+            TriggerType.CLIPBOARD_CHANGED -> DEVICE
+            TriggerType.DND_STATE -> DEVICE
+            TriggerType.STAY_AWAKE_STATE -> DEVICE
+            TriggerType.AUTO_BRIGHTNESS_STATE -> DEVICE
+            TriggerType.SCREEN_TIMEOUT_CHANGED -> DEVICE
+            TriggerType.DATA_ROAMING_STATE -> CONNECTIVITY
+            TriggerType.TIMEZONE_CHANGED -> DEVICE
+            TriggerType.BOOT_COMPLETED -> DEVICE
+            TriggerType.NFC_TAG_SCANNED -> CONNECTIVITY
+            TriggerType.ALARM_SET_CHANGED -> DEVICE
         }
     }
 }

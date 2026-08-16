@@ -56,4 +56,21 @@
     <string name="trigger_nfc_state">NFC</string>
     <string name="trigger_location_state">Konum modu</string>
     <string name="trigger_screen_rotation_state">Ekran döndürme</string>
+    <string name="trigger_wifi_signal_strength">Wi-Fi sinyal gücü</string>
+    <string name="trigger_cell_signal_strength">Hücresel sinyal gücü</string>
+    <string name="trigger_battery_temperature">Pil sıcaklığı</string>
+    <string name="trigger_usb_connected">USB bağlı</string>
+    <string name="trigger_hdmi_connected">HDMI bağlı</string>
+    <string name="trigger_ethernet_connected">Ethernet bağlı</string>
+    <string name="trigger_vpn_connected">VPN bağlı</string>
+    <string name="trigger_clipboard_changed">Pano değişti</string>
+    <string name="trigger_dnd_state">Rahatsız etmeyin</string>
+    <string name="trigger_stay_awake_state">Uyanık kal</string>
+    <string name="trigger_auto_brightness_state">Otomatik parlaklık</string>
+    <string name="trigger_screen_timeout_changed">Ekran zaman aşımı</string>
+    <string name="trigger_data_roaming_state">Veri dolaşımı</string>
+    <string name="trigger_timezone_changed">Saat dilimi değişti</string>
+    <string name="trigger_boot_completed">Cihaz açıldı</string>
+    <string name="trigger_nfc_tag_scanned">NFC etiketi okundu</string>
+    <string name="trigger_alarm_set_changed">Alarm kuruldu</string>
 </resources>

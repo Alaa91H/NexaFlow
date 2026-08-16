@@ -56,4 +56,21 @@
     <string name="trigger_nfc_state">NFC</string>
     <string name="trigger_location_state">Standortmodus</string>
     <string name="trigger_screen_rotation_state">Bildschirmdrehung</string>
+    <string name="trigger_wifi_signal_strength">Wi-Fi-Signalstärke</string>
+    <string name="trigger_cell_signal_strength">Mobilfunksignalstärke</string>
+    <string name="trigger_battery_temperature">Akku-Temperatur</string>
+    <string name="trigger_usb_connected">USB verbunden</string>
+    <string name="trigger_hdmi_connected">HDMI verbunden</string>
+    <string name="trigger_ethernet_connected">Ethernet verbunden</string>
+    <string name="trigger_vpn_connected">VPN verbunden</string>
+    <string name="trigger_clipboard_changed">Zwischenablage geändert</string>
+    <string name="trigger_dnd_state">Nicht stören</string>
+    <string name="trigger_stay_awake_state">Wach bleiben</string>
+    <string name="trigger_auto_brightness_state">Automatische Helligkeit</string>
+    <string name="trigger_screen_timeout_changed">Bildschirm-Timeout</string>
+    <string name="trigger_data_roaming_state">Datenroaming</string>
+    <string name="trigger_timezone_changed">Zeitzone geändert</string>
+    <string name="trigger_boot_completed">Gerät gestartet</string>
+    <string name="trigger_nfc_tag_scanned">NFC-Tag erkannt</string>
+    <string name="trigger_alarm_set_changed">Wecker gestellt</string>
 </resources>

@@ -71,6 +71,9 @@ class MonitoringService : Service() {
     lateinit var volumeMonitor: VolumeMonitor
 
     @Inject
+    lateinit var deviceStateMonitor28: DeviceStateMonitor28
+
+    @Inject
     lateinit var romSettingMonitor: RomSettingMonitor
 
     @Inject
@@ -152,7 +155,8 @@ class MonitoringService : Service() {
             "package" to { packageMonitor.initialize() },
             "settings-state" to { settingsStateMonitor.initialize() },
             "media" to { mediaMonitor.initialize() },
-            "volume" to { volumeMonitor.initialize() }
+            "volume" to { volumeMonitor.initialize() },
+            "device-state-28" to { deviceStateMonitor28.initialize() }
         )
         monitors.forEach { (name, init) ->
             runCatching { init() }
@@ -227,6 +231,7 @@ class MonitoringService : Service() {
         packageMonitor.stop()
         mediaMonitor.stop()
         volumeMonitor.stop()
+        deviceStateMonitor28.stop()
     }
 
     /**

@@ -46,6 +46,18 @@ import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.Web
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material.icons.filled.Bedtime
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.DeviceThermostat
+import androidx.compose.material.icons.filled.DoNotDisturbOn
+import androidx.compose.material.icons.filled.Monitor
+import androidx.compose.material.icons.filled.PowerSettingsNew
+import androidx.compose.material.icons.filled.Router
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Usb
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -383,6 +395,23 @@ private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector
     TriggerType.NFC_STATE -> Triple(R.string.trigger_nfc_state, R.string.trigger_nfc_state, Icons.Filled.Nfc)
     TriggerType.LOCATION_STATE -> Triple(R.string.trigger_location_state, R.string.trigger_location_state, Icons.Filled.LocationOn)
     TriggerType.SCREEN_ROTATION_STATE -> Triple(R.string.trigger_screen_rotation_state, R.string.trigger_screen_rotation_state, Icons.Filled.ScreenRotation)
+    TriggerType.WIFI_SIGNAL_STRENGTH -> Triple(R.string.trigger_wifi_signal_strength, R.string.trigger_wifi_signal_strength, Icons.Filled.Wifi)
+    TriggerType.CELL_SIGNAL_STRENGTH -> Triple(R.string.trigger_cell_signal_strength, R.string.trigger_cell_signal_strength, Icons.Filled.SignalCellularAlt)
+    TriggerType.BATTERY_TEMPERATURE -> Triple(R.string.trigger_battery_temperature, R.string.trigger_battery_temperature, Icons.Filled.DeviceThermostat)
+    TriggerType.USB_CONNECTED -> Triple(R.string.trigger_usb_connected, R.string.trigger_usb_connected, Icons.Filled.Usb)
+    TriggerType.HDMI_CONNECTED -> Triple(R.string.trigger_hdmi_connected, R.string.trigger_hdmi_connected, Icons.Filled.Monitor)
+    TriggerType.ETHERNET_CONNECTED -> Triple(R.string.trigger_ethernet_connected, R.string.trigger_ethernet_connected, Icons.Filled.Router)
+    TriggerType.VPN_CONNECTED -> Triple(R.string.trigger_vpn_connected, R.string.trigger_vpn_connected, Icons.Filled.Lock)
+    TriggerType.CLIPBOARD_CHANGED -> Triple(R.string.trigger_clipboard_changed, R.string.trigger_clipboard_changed, Icons.Filled.ContentPaste)
+    TriggerType.DND_STATE -> Triple(R.string.trigger_dnd_state, R.string.trigger_dnd_state, Icons.Filled.DoNotDisturbOn)
+    TriggerType.STAY_AWAKE_STATE -> Triple(R.string.trigger_stay_awake_state, R.string.trigger_stay_awake_state, Icons.Filled.Bedtime)
+    TriggerType.AUTO_BRIGHTNESS_STATE -> Triple(R.string.trigger_auto_brightness_state, R.string.trigger_auto_brightness_state, Icons.Filled.BrightnessAuto)
+    TriggerType.SCREEN_TIMEOUT_CHANGED -> Triple(R.string.trigger_screen_timeout_changed, R.string.trigger_screen_timeout_changed, Icons.Filled.Timer)
+    TriggerType.DATA_ROAMING_STATE -> Triple(R.string.trigger_data_roaming_state, R.string.trigger_data_roaming_state, Icons.Filled.DataUsage)
+    TriggerType.TIMEZONE_CHANGED -> Triple(R.string.trigger_timezone_changed, R.string.trigger_timezone_changed, Icons.Filled.AccessTime)
+    TriggerType.BOOT_COMPLETED -> Triple(R.string.trigger_boot_completed, R.string.trigger_boot_completed, Icons.Filled.PowerSettingsNew)
+    TriggerType.NFC_TAG_SCANNED -> Triple(R.string.trigger_nfc_tag_scanned, R.string.trigger_nfc_tag_scanned, Icons.Filled.Nfc)
+    TriggerType.ALARM_SET_CHANGED -> Triple(R.string.trigger_alarm_set_changed, R.string.trigger_alarm_set_changed, Icons.Filled.Alarm)
 }
 
 /** Human-readable trigger detail (e.g. battery direction, time range, repeat mode). */

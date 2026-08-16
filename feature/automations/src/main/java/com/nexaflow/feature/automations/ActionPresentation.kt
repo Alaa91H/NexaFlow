@@ -4,6 +4,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Cast
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Contacts
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Keyboard
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.PictureInPicture
+import androidx.compose.material.icons.filled.Print
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.filled.AirplanemodeActive
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BatteryChargingFull
@@ -44,6 +58,10 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.DataUsage
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Nfc
+import androidx.compose.material.icons.filled.Timelapse
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.Storage
@@ -175,4 +193,44 @@ fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (
     ActionType.SYSTEM_REBOOT -> Triple(R.string.action_reboot, R.string.action_reboot_sub, Icons.Filled.Refresh)
     ActionType.SYSTEM_SHUTDOWN -> Triple(R.string.action_shutdown, R.string.action_shutdown_sub, Icons.Filled.PowerSettingsNew)
     ActionType.SYSTEM_RESTART_SYSTEM_UI -> Triple(R.string.action_restart_system_ui, R.string.action_restart_system_ui_sub, Icons.Filled.Refresh)
+    ActionType.SYSTEM_TOAST -> Triple(R.string.action_toast, R.string.action_toast_sub, Icons.Filled.Info)
+    ActionType.SYSTEM_ALERT -> Triple(R.string.action_alert, R.string.action_alert_sub, Icons.Filled.Warning)
+    ActionType.SYSTEM_VIBRATE_PATTERN -> Triple(R.string.action_vibrate_pattern, R.string.action_vibrate_pattern_sub, Icons.Filled.Vibration)
+    ActionType.SYSTEM_PASTE -> Triple(R.string.action_paste, R.string.action_paste_sub, Icons.Filled.ContentPaste)
+    ActionType.SYSTEM_OPEN_APP_DRAWER -> Triple(R.string.action_open_app_drawer, R.string.action_open_app_drawer_sub, Icons.Filled.Apps)
+    ActionType.SYSTEM_TOGGLE_PIP -> Triple(R.string.action_toggle_pip, R.string.action_toggle_pip_sub, Icons.Filled.PictureInPicture)
+    ActionType.SYSTEM_WIFI_CONNECT -> Triple(R.string.action_wifi_connect, R.string.action_wifi_connect_sub, Icons.Filled.Wifi)
+    ActionType.SYSTEM_WIFI_FORGET -> Triple(R.string.action_wifi_forget, R.string.action_wifi_forget_sub, Icons.Filled.WifiOff)
+    ActionType.SYSTEM_DATA_ROAMING -> Triple(R.string.action_data_roaming, R.string.action_data_roaming_sub, Icons.Filled.DataUsage)
+    ActionType.SYSTEM_SCREENSAVER_TIMEOUT -> Triple(R.string.action_screensaver_timeout, R.string.action_screensaver_timeout_sub, Icons.Filled.Timelapse)
+    ActionType.SYSTEM_POINTER_SPEED -> Triple(R.string.action_pointer_speed, R.string.action_pointer_speed_sub, Icons.Filled.GpsFixed)
+    ActionType.SYSTEM_INSTALL_APK -> Triple(R.string.action_install_apk, R.string.action_install_apk_sub, Icons.Filled.Download)
+    ActionType.SYSTEM_UNINSTALL_APP -> Triple(R.string.action_uninstall_app, R.string.action_uninstall_app_sub, Icons.Filled.Delete)
+    ActionType.SYSTEM_DISABLE_APP -> Triple(R.string.action_disable_app, R.string.action_disable_app_sub, Icons.Filled.Block)
+    ActionType.SYSTEM_ENABLE_APP -> Triple(R.string.action_enable_app, R.string.action_enable_app_sub, Icons.Filled.CheckCircle)
+    ActionType.SYSTEM_SET_NOTIFICATION_TONE -> Triple(R.string.action_set_notification_tone, R.string.action_set_notification_tone_sub, Icons.Filled.MusicNote)
+    ActionType.SYSTEM_CALL_VIBRATION -> Triple(R.string.action_call_vibration, R.string.action_call_vibration_sub, Icons.Filled.Vibration)
+    ActionType.SYSTEM_OPEN_NETWORK_SETTINGS -> Triple(R.string.action_open_network_settings, R.string.action_open_network_settings_sub, Icons.Filled.Wifi)
+    ActionType.SYSTEM_OPEN_NFC_SETTINGS -> Triple(R.string.action_open_nfc_settings, R.string.action_open_nfc_settings_sub, Icons.Filled.Nfc)
+    ActionType.SYSTEM_OPEN_DATA_SAVER_SETTINGS -> Triple(R.string.action_open_data_saver_settings, R.string.action_open_data_saver_settings_sub, Icons.Filled.DataUsage)
+    ActionType.SYSTEM_OPEN_DEVELOPER_SETTINGS -> Triple(R.string.action_open_developer_settings, R.string.action_open_developer_settings_sub, Icons.Filled.Build)
+    ActionType.SYSTEM_OPEN_MAPS -> Triple(R.string.action_open_maps, R.string.action_open_maps_sub, Icons.Filled.Map)
+    ActionType.SYSTEM_SOFT_RESTART -> Triple(R.string.action_soft_restart, R.string.action_soft_restart_sub, Icons.Filled.Refresh)
+    ActionType.SYSTEM_STATUS_BAR_TOGGLE -> Triple(R.string.action_status_bar_toggle, R.string.action_status_bar_toggle_sub, Icons.Filled.Visibility)
+    ActionType.SYSTEM_OPEN_CONTACTS -> Triple(R.string.action_open_contacts, R.string.action_open_contacts_sub, Icons.Filled.Contacts)
+    ActionType.SYSTEM_SEND_EMAIL -> Triple(R.string.action_send_email, R.string.action_send_email_sub, Icons.Filled.Email)
+    ActionType.SYSTEM_OPEN_NOTIFICATION_SETTINGS -> Triple(R.string.action_open_notification_settings, R.string.action_open_notification_settings_sub, Icons.Filled.Notifications)
+    ActionType.SYSTEM_OPEN_PRIVACY_SETTINGS -> Triple(R.string.action_open_privacy_settings, R.string.action_open_privacy_settings_sub, Icons.Filled.Lock)
+    ActionType.SYSTEM_OPEN_CAST_SETTINGS -> Triple(R.string.action_open_cast_settings, R.string.action_open_cast_settings_sub, Icons.Filled.Cast)
+    ActionType.SYSTEM_OPEN_INPUT_METHOD_SETTINGS -> Triple(R.string.action_open_input_method_settings, R.string.action_open_input_method_settings_sub, Icons.Filled.Keyboard)
+    ActionType.SYSTEM_OPEN_DEFAULT_APPS_SETTINGS -> Triple(R.string.action_open_default_apps_settings, R.string.action_open_default_apps_settings_sub, Icons.Filled.Apps)
+    ActionType.SYSTEM_OPEN_VPN_SETTINGS -> Triple(R.string.action_open_vpn_settings, R.string.action_open_vpn_settings_sub, Icons.Filled.Lock)
+    ActionType.SYSTEM_OPEN_DATE_SETTINGS -> Triple(R.string.action_open_date_settings, R.string.action_open_date_settings_sub, Icons.Filled.DateRange)
+    ActionType.SYSTEM_OPEN_PRINT_SETTINGS -> Triple(R.string.action_open_print_settings, R.string.action_open_print_settings_sub, Icons.Filled.Print)
+    ActionType.SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS -> Triple(R.string.action_open_device_admin_settings, R.string.action_open_device_admin_settings_sub, Icons.Filled.Security)
+    ActionType.SYSTEM_OPEN_USAGE_ACCESS_SETTINGS -> Triple(R.string.action_open_usage_access_settings, R.string.action_open_usage_access_settings_sub, Icons.Filled.BarChart)
+    ActionType.SYSTEM_OPEN_AIRPLANE_MODE_SETTINGS -> Triple(R.string.action_open_airplane_settings, R.string.action_open_airplane_settings_sub, Icons.Filled.AirplanemodeActive)
+    ActionType.SYSTEM_BLUETOOTH_SCAN -> Triple(R.string.action_bluetooth_scan, R.string.action_bluetooth_scan_sub, Icons.Filled.Bluetooth)
+    ActionType.SYSTEM_WIFI_SCAN_NOW -> Triple(R.string.action_wifi_scan_now, R.string.action_wifi_scan_now_sub, Icons.Filled.Wifi)
+    ActionType.SYSTEM_SET_TIMEZONE -> Triple(R.string.action_set_timezone, R.string.action_set_timezone_sub, Icons.Filled.Schedule)
 }

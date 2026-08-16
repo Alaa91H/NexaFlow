@@ -384,6 +384,23 @@ private fun triggerLabel(type: TriggerType): Int = when (type) {
     TriggerType.NFC_STATE -> R.string.trigger_nfc_state
     TriggerType.LOCATION_STATE -> R.string.trigger_location_state
     TriggerType.SCREEN_ROTATION_STATE -> R.string.trigger_screen_rotation_state
+    TriggerType.WIFI_SIGNAL_STRENGTH -> R.string.trigger_wifi_signal_strength
+    TriggerType.CELL_SIGNAL_STRENGTH -> R.string.trigger_cell_signal_strength
+    TriggerType.BATTERY_TEMPERATURE -> R.string.trigger_battery_temperature
+    TriggerType.USB_CONNECTED -> R.string.trigger_usb_connected
+    TriggerType.HDMI_CONNECTED -> R.string.trigger_hdmi_connected
+    TriggerType.ETHERNET_CONNECTED -> R.string.trigger_ethernet_connected
+    TriggerType.VPN_CONNECTED -> R.string.trigger_vpn_connected
+    TriggerType.CLIPBOARD_CHANGED -> R.string.trigger_clipboard_changed
+    TriggerType.DND_STATE -> R.string.trigger_dnd_state
+    TriggerType.STAY_AWAKE_STATE -> R.string.trigger_stay_awake_state
+    TriggerType.AUTO_BRIGHTNESS_STATE -> R.string.trigger_auto_brightness_state
+    TriggerType.SCREEN_TIMEOUT_CHANGED -> R.string.trigger_screen_timeout_changed
+    TriggerType.DATA_ROAMING_STATE -> R.string.trigger_data_roaming_state
+    TriggerType.TIMEZONE_CHANGED -> R.string.trigger_timezone_changed
+    TriggerType.BOOT_COMPLETED -> R.string.trigger_boot_completed
+    TriggerType.NFC_TAG_SCANNED -> R.string.trigger_nfc_tag_scanned
+    TriggerType.ALARM_SET_CHANGED -> R.string.trigger_alarm_set_changed
 }
 
 /** Design-time preview of a Samsung-style routine card. */

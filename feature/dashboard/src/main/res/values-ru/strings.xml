@@ -56,4 +56,21 @@
     <string name="trigger_nfc_state">NFC</string>
     <string name="trigger_location_state">Режим местоположения</string>
     <string name="trigger_screen_rotation_state">Поворот экрана</string>
+    <string name="trigger_wifi_signal_strength">Уровень сигнала Wi-Fi</string>
+    <string name="trigger_cell_signal_strength">Уровень сигнала сети</string>
+    <string name="trigger_battery_temperature">Температура аккумулятора</string>
+    <string name="trigger_usb_connected">USB подключён</string>
+    <string name="trigger_hdmi_connected">HDMI подключён</string>
+    <string name="trigger_ethernet_connected">Ethernet подключён</string>
+    <string name="trigger_vpn_connected">VPN подключён</string>
+    <string name="trigger_clipboard_changed">Буфер обмена изменён</string>
+    <string name="trigger_dnd_state">Не беспокоить</string>
+    <string name="trigger_stay_awake_state">Не выключать экран</string>
+    <string name="trigger_auto_brightness_state">Автояркость</string>
+    <string name="trigger_screen_timeout_changed">Тайм-аут экрана</string>
+    <string name="trigger_data_roaming_state">Роуминг данных</string>
+    <string name="trigger_timezone_changed">Часовой пояс изменён</string>
+    <string name="trigger_boot_completed">Устройство загружено</string>
+    <string name="trigger_nfc_tag_scanned">NFC-метка считана</string>
+    <string name="trigger_alarm_set_changed">Будильник установлен</string>
 </resources>

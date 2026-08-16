@@ -55,6 +55,17 @@ import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.Alarm
+import androidx.compose.material.icons.filled.Bedtime
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.DeviceThermostat
+import androidx.compose.material.icons.filled.DoNotDisturbOn
+import androidx.compose.material.icons.filled.Monitor
+import androidx.compose.material.icons.filled.Router
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Usb
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -169,7 +180,24 @@ internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> = mapOf(
     TriggerType.WIFI_STATE to TriggerCategory.CONNECTIVITY,
     TriggerType.NFC_STATE to TriggerCategory.CONNECTIVITY,
     TriggerType.LOCATION_STATE to TriggerCategory.LOCATION,
-    TriggerType.SCREEN_ROTATION_STATE to TriggerCategory.DEVICE
+    TriggerType.SCREEN_ROTATION_STATE to TriggerCategory.DEVICE,
+    TriggerType.WIFI_SIGNAL_STRENGTH to TriggerCategory.CONNECTIVITY,
+    TriggerType.CELL_SIGNAL_STRENGTH to TriggerCategory.CONNECTIVITY,
+    TriggerType.BATTERY_TEMPERATURE to TriggerCategory.DEVICE,
+    TriggerType.USB_CONNECTED to TriggerCategory.DEVICE,
+    TriggerType.HDMI_CONNECTED to TriggerCategory.DEVICE,
+    TriggerType.ETHERNET_CONNECTED to TriggerCategory.CONNECTIVITY,
+    TriggerType.VPN_CONNECTED to TriggerCategory.CONNECTIVITY,
+    TriggerType.CLIPBOARD_CHANGED to TriggerCategory.DEVICE,
+    TriggerType.DND_STATE to TriggerCategory.DEVICE,
+    TriggerType.STAY_AWAKE_STATE to TriggerCategory.DEVICE,
+    TriggerType.AUTO_BRIGHTNESS_STATE to TriggerCategory.DEVICE,
+    TriggerType.SCREEN_TIMEOUT_CHANGED to TriggerCategory.DEVICE,
+    TriggerType.DATA_ROAMING_STATE to TriggerCategory.CONNECTIVITY,
+    TriggerType.TIMEZONE_CHANGED to TriggerCategory.DEVICE,
+    TriggerType.BOOT_COMPLETED to TriggerCategory.DEVICE,
+    TriggerType.NFC_TAG_SCANNED to TriggerCategory.CONNECTIVITY,
+    TriggerType.ALARM_SET_CHANGED to TriggerCategory.SCHEDULE
 )
 
 /** Trigger types ordered by category — the picker walks [triggerCategories] over it. */
@@ -213,7 +241,26 @@ val triggerTypeOptions = listOf(
     TriggerType.APPLICATION,
     TriggerType.APP_INSTALLED,
     // COMMUNICATION
-    TriggerType.SMS
+    TriggerType.SMS,
+    // DEVICE (v3.28)
+    TriggerType.BATTERY_TEMPERATURE,
+    TriggerType.USB_CONNECTED,
+    TriggerType.HDMI_CONNECTED,
+    TriggerType.CLIPBOARD_CHANGED,
+    TriggerType.DND_STATE,
+    TriggerType.STAY_AWAKE_STATE,
+    TriggerType.AUTO_BRIGHTNESS_STATE,
+    TriggerType.SCREEN_TIMEOUT_CHANGED,
+    TriggerType.TIMEZONE_CHANGED,
+    TriggerType.BOOT_COMPLETED,
+    TriggerType.ALARM_SET_CHANGED,
+    // CONNECTIVITY (v3.28)
+    TriggerType.WIFI_SIGNAL_STRENGTH,
+    TriggerType.CELL_SIGNAL_STRENGTH,
+    TriggerType.ETHERNET_CONNECTED,
+    TriggerType.VPN_CONNECTED,
+    TriggerType.DATA_ROAMING_STATE,
+    TriggerType.NFC_TAG_SCANNED
 )
 
 private val repeatOptions = listOf(
@@ -280,6 +327,23 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.NFC_STATE -> mapOf("state" to "ON")
     TriggerType.LOCATION_STATE -> mapOf("mode" to "HIGH")
     TriggerType.SCREEN_ROTATION_STATE -> mapOf("state" to "PORTRAIT")
+    TriggerType.WIFI_SIGNAL_STRENGTH -> mapOf("threshold" to "3", "direction" to "ABOVE")
+    TriggerType.CELL_SIGNAL_STRENGTH -> mapOf("threshold" to "3", "direction" to "ABOVE")
+    TriggerType.BATTERY_TEMPERATURE -> mapOf("threshold" to "40", "direction" to "ABOVE")
+    TriggerType.USB_CONNECTED -> mapOf("state" to "ON")
+    TriggerType.HDMI_CONNECTED -> mapOf("state" to "ON")
+    TriggerType.ETHERNET_CONNECTED -> mapOf("state" to "ON")
+    TriggerType.VPN_CONNECTED -> mapOf("state" to "ON")
+    TriggerType.CLIPBOARD_CHANGED -> mapOf()
+    TriggerType.DND_STATE -> mapOf("state" to "ON")
+    TriggerType.STAY_AWAKE_STATE -> mapOf("state" to "ON")
+    TriggerType.AUTO_BRIGHTNESS_STATE -> mapOf("state" to "ON")
+    TriggerType.SCREEN_TIMEOUT_CHANGED -> mapOf()
+    TriggerType.DATA_ROAMING_STATE -> mapOf("state" to "ON")
+    TriggerType.TIMEZONE_CHANGED -> mapOf()
+    TriggerType.BOOT_COMPLETED -> mapOf()
+    TriggerType.NFC_TAG_SCANNED -> mapOf()
+    TriggerType.ALARM_SET_CHANGED -> mapOf()
 }
 
 internal fun TriggerType.labelRes(): Int = when (this) {
@@ -317,6 +381,23 @@ internal fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.NFC_STATE -> R.string.trigger_type_nfc_state
     TriggerType.LOCATION_STATE -> R.string.trigger_type_location_state
     TriggerType.SCREEN_ROTATION_STATE -> R.string.trigger_type_screen_rotation_state
+    TriggerType.WIFI_SIGNAL_STRENGTH -> R.string.trigger_type_wifi_signal_strength
+    TriggerType.CELL_SIGNAL_STRENGTH -> R.string.trigger_type_cell_signal_strength
+    TriggerType.BATTERY_TEMPERATURE -> R.string.trigger_type_battery_temperature
+    TriggerType.USB_CONNECTED -> R.string.trigger_type_usb_connected
+    TriggerType.HDMI_CONNECTED -> R.string.trigger_type_hdmi_connected
+    TriggerType.ETHERNET_CONNECTED -> R.string.trigger_type_ethernet_connected
+    TriggerType.VPN_CONNECTED -> R.string.trigger_type_vpn_connected
+    TriggerType.CLIPBOARD_CHANGED -> R.string.trigger_type_clipboard_changed
+    TriggerType.DND_STATE -> R.string.trigger_type_dnd_state
+    TriggerType.STAY_AWAKE_STATE -> R.string.trigger_type_stay_awake_state
+    TriggerType.AUTO_BRIGHTNESS_STATE -> R.string.trigger_type_auto_brightness_state
+    TriggerType.SCREEN_TIMEOUT_CHANGED -> R.string.trigger_type_screen_timeout_changed
+    TriggerType.DATA_ROAMING_STATE -> R.string.trigger_type_data_roaming_state
+    TriggerType.TIMEZONE_CHANGED -> R.string.trigger_type_timezone_changed
+    TriggerType.BOOT_COMPLETED -> R.string.trigger_type_boot_completed
+    TriggerType.NFC_TAG_SCANNED -> R.string.trigger_type_nfc_tag_scanned
+    TriggerType.ALARM_SET_CHANGED -> R.string.trigger_type_alarm_set_changed
 }
 
 internal fun TriggerType.icon(): ImageVector = when (this) {
@@ -354,6 +435,23 @@ internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.NFC_STATE -> Icons.Filled.Nfc
     TriggerType.LOCATION_STATE -> Icons.Filled.LocationOn
     TriggerType.SCREEN_ROTATION_STATE -> Icons.Filled.ScreenRotation
+    TriggerType.WIFI_SIGNAL_STRENGTH -> Icons.Filled.Wifi
+    TriggerType.CELL_SIGNAL_STRENGTH -> Icons.Filled.SignalCellularAlt
+    TriggerType.BATTERY_TEMPERATURE -> Icons.Filled.DeviceThermostat
+    TriggerType.USB_CONNECTED -> Icons.Filled.Usb
+    TriggerType.HDMI_CONNECTED -> Icons.Filled.Monitor
+    TriggerType.ETHERNET_CONNECTED -> Icons.Filled.Router
+    TriggerType.VPN_CONNECTED -> Icons.Filled.Lock
+    TriggerType.CLIPBOARD_CHANGED -> Icons.Filled.ContentPaste
+    TriggerType.DND_STATE -> Icons.Filled.DoNotDisturbOn
+    TriggerType.STAY_AWAKE_STATE -> Icons.Filled.Bedtime
+    TriggerType.AUTO_BRIGHTNESS_STATE -> Icons.Filled.BrightnessAuto
+    TriggerType.SCREEN_TIMEOUT_CHANGED -> Icons.Filled.Timer
+    TriggerType.DATA_ROAMING_STATE -> Icons.Filled.DataUsage
+    TriggerType.TIMEZONE_CHANGED -> Icons.Filled.AccessTime
+    TriggerType.BOOT_COMPLETED -> Icons.Filled.PowerSettingsNew
+    TriggerType.NFC_TAG_SCANNED -> Icons.Filled.Nfc
+    TriggerType.ALARM_SET_CHANGED -> Icons.Filled.Alarm
 }
 
 private fun parseDateMillis(value: String): Long? {
@@ -882,6 +980,60 @@ private fun triggerSummary(draft: TriggerDraft): String {
         TriggerType.SCREEN_ROTATION_STATE ->
             if ((c["state"] ?: "PORTRAIT") == "PORTRAIT") stringResource(R.string.rotation_portrait)
             else stringResource(R.string.rotation_landscape)
+        TriggerType.WIFI_SIGNAL_STRENGTH -> {
+            val direction = if ((c["direction"] ?: "ABOVE") == "ABOVE") {
+                stringResource(R.string.volume_above)
+            } else {
+                stringResource(R.string.volume_below)
+            }
+            "$direction ${c["threshold"] ?: "3"}"
+        }
+        TriggerType.CELL_SIGNAL_STRENGTH -> {
+            val direction = if ((c["direction"] ?: "ABOVE") == "ABOVE") {
+                stringResource(R.string.volume_above)
+            } else {
+                stringResource(R.string.volume_below)
+            }
+            "$direction ${c["threshold"] ?: "3"}"
+        }
+        TriggerType.BATTERY_TEMPERATURE -> {
+            val direction = if ((c["direction"] ?: "ABOVE") == "ABOVE") {
+                stringResource(R.string.volume_above)
+            } else {
+                stringResource(R.string.volume_below)
+            }
+            "$direction ${c["threshold"] ?: "40"}°C"
+        }
+        TriggerType.USB_CONNECTED ->
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        TriggerType.HDMI_CONNECTED ->
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        TriggerType.ETHERNET_CONNECTED ->
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        TriggerType.VPN_CONNECTED ->
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        TriggerType.DND_STATE ->
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        TriggerType.STAY_AWAKE_STATE ->
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        TriggerType.AUTO_BRIGHTNESS_STATE ->
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        TriggerType.DATA_ROAMING_STATE ->
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        TriggerType.CLIPBOARD_CHANGED -> stringResource(R.string.trigger_events_on_change)
+        TriggerType.SCREEN_TIMEOUT_CHANGED -> stringResource(R.string.trigger_events_on_change)
+        TriggerType.TIMEZONE_CHANGED -> stringResource(R.string.trigger_events_on_change)
+        TriggerType.BOOT_COMPLETED -> stringResource(R.string.trigger_events_on_change)
+        TriggerType.NFC_TAG_SCANNED -> stringResource(R.string.trigger_events_on_change)
+        TriggerType.ALARM_SET_CHANGED -> stringResource(R.string.trigger_events_on_change)
     }
 }
 
@@ -2543,6 +2695,167 @@ fun TriggerEditorCard(
                         onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
                     )
                 }
+                TriggerType.WIFI_SIGNAL_STRENGTH -> {
+                    Text(text = stringResource(R.string.trigger_signal_threshold), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("1", "2", "3", "4"),
+                        selected = draft.config["threshold"] ?: "3",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("threshold" to it))) }
+                    )
+                    OptionChips(
+                        options = listOf("ABOVE", "BELOW"),
+                        labels = mapOf(
+                            "ABOVE" to stringResource(R.string.volume_above),
+                            "BELOW" to stringResource(R.string.volume_below)
+                        ),
+                        selected = draft.config["direction"] ?: "ABOVE",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("direction" to it))) }
+                    )
+                }
+                TriggerType.CELL_SIGNAL_STRENGTH -> {
+                    Text(text = stringResource(R.string.trigger_signal_threshold), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("1", "2", "3", "4"),
+                        selected = draft.config["threshold"] ?: "3",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("threshold" to it))) }
+                    )
+                    OptionChips(
+                        options = listOf("ABOVE", "BELOW"),
+                        labels = mapOf(
+                            "ABOVE" to stringResource(R.string.volume_above),
+                            "BELOW" to stringResource(R.string.volume_below)
+                        ),
+                        selected = draft.config["direction"] ?: "ABOVE",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("direction" to it))) }
+                    )
+                }
+                TriggerType.BATTERY_TEMPERATURE -> {
+                    Text(text = stringResource(R.string.trigger_temperature_threshold), style = MaterialTheme.typography.titleSmall)
+                    OutlinedTextField(
+                        value = draft.config["threshold"] ?: "40",
+                        onValueChange = { onConfigChange(draft.copy(config = draft.config + ("threshold" to it))) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        label = { Text(stringResource(R.string.trigger_temperature_threshold)) }
+                    )
+                    OptionChips(
+                        options = listOf("ABOVE", "BELOW"),
+                        labels = mapOf(
+                            "ABOVE" to stringResource(R.string.volume_above),
+                            "BELOW" to stringResource(R.string.volume_below)
+                        ),
+                        selected = draft.config["direction"] ?: "ABOVE",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("direction" to it))) }
+                    )
+                }
+                TriggerType.USB_CONNECTED -> {
+                    Text(text = stringResource(R.string.trigger_state_label), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ON", "OFF"),
+                        labels = mapOf(
+                            "ON" to stringResource(R.string.state_on),
+                            "OFF" to stringResource(R.string.state_off)
+                        ),
+                        selected = draft.config["state"] ?: "ON",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
+                }
+                TriggerType.HDMI_CONNECTED -> {
+                    Text(text = stringResource(R.string.trigger_state_label), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ON", "OFF"),
+                        labels = mapOf(
+                            "ON" to stringResource(R.string.state_on),
+                            "OFF" to stringResource(R.string.state_off)
+                        ),
+                        selected = draft.config["state"] ?: "ON",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
+                }
+                TriggerType.ETHERNET_CONNECTED -> {
+                    Text(text = stringResource(R.string.trigger_state_label), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ON", "OFF"),
+                        labels = mapOf(
+                            "ON" to stringResource(R.string.state_on),
+                            "OFF" to stringResource(R.string.state_off)
+                        ),
+                        selected = draft.config["state"] ?: "ON",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
+                }
+                TriggerType.VPN_CONNECTED -> {
+                    Text(text = stringResource(R.string.trigger_state_label), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ON", "OFF"),
+                        labels = mapOf(
+                            "ON" to stringResource(R.string.state_on),
+                            "OFF" to stringResource(R.string.state_off)
+                        ),
+                        selected = draft.config["state"] ?: "ON",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
+                }
+                TriggerType.DND_STATE -> {
+                    Text(text = stringResource(R.string.trigger_state_label), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ON", "OFF"),
+                        labels = mapOf(
+                            "ON" to stringResource(R.string.state_on),
+                            "OFF" to stringResource(R.string.state_off)
+                        ),
+                        selected = draft.config["state"] ?: "ON",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
+                }
+                TriggerType.STAY_AWAKE_STATE -> {
+                    Text(text = stringResource(R.string.trigger_state_label), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ON", "OFF"),
+                        labels = mapOf(
+                            "ON" to stringResource(R.string.state_on),
+                            "OFF" to stringResource(R.string.state_off)
+                        ),
+                        selected = draft.config["state"] ?: "ON",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
+                }
+                TriggerType.AUTO_BRIGHTNESS_STATE -> {
+                    Text(text = stringResource(R.string.trigger_state_label), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ON", "OFF"),
+                        labels = mapOf(
+                            "ON" to stringResource(R.string.state_on),
+                            "OFF" to stringResource(R.string.state_off)
+                        ),
+                        selected = draft.config["state"] ?: "ON",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
+                }
+                TriggerType.DATA_ROAMING_STATE -> {
+                    Text(text = stringResource(R.string.trigger_state_label), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ON", "OFF"),
+                        labels = mapOf(
+                            "ON" to stringResource(R.string.state_on),
+                            "OFF" to stringResource(R.string.state_off)
+                        ),
+                        selected = draft.config["state"] ?: "ON",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
+                }
+                TriggerType.CLIPBOARD_CHANGED ->
+                    Text(text = stringResource(R.string.trigger_desc_clipboard), style = MaterialTheme.typography.bodyMedium)
+                TriggerType.SCREEN_TIMEOUT_CHANGED ->
+                    Text(text = stringResource(R.string.trigger_desc_screen_timeout), style = MaterialTheme.typography.bodyMedium)
+                TriggerType.TIMEZONE_CHANGED ->
+                    Text(text = stringResource(R.string.trigger_desc_timezone), style = MaterialTheme.typography.bodyMedium)
+                TriggerType.BOOT_COMPLETED ->
+                    Text(text = stringResource(R.string.trigger_desc_boot), style = MaterialTheme.typography.bodyMedium)
+                TriggerType.NFC_TAG_SCANNED ->
+                    Text(text = stringResource(R.string.trigger_desc_nfc_tag), style = MaterialTheme.typography.bodyMedium)
+                TriggerType.ALARM_SET_CHANGED ->
+                    Text(text = stringResource(R.string.trigger_desc_alarm_set), style = MaterialTheme.typography.bodyMedium)
             }
             }
         }

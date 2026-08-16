@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
+import android.media.AudioAttributes
 import android.media.AudioManager
 import android.net.wifi.WifiManager
 import android.os.Build
@@ -807,6 +808,21 @@ class SystemController(
             "ACCESSIBILITY" -> Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
             "APPS" -> Intent(Settings.ACTION_APPLICATION_SETTINGS)
             "ABOUT" -> Intent(Settings.ACTION_DEVICE_INFO_SETTINGS)
+            "NETWORK" -> Intent(Settings.ACTION_WIRELESS_SETTINGS)
+            "NFC" -> Intent(Settings.ACTION_NFC_SETTINGS)
+            "DATA_SAVER" -> Intent(Settings.ACTION_DATA_USAGE_SETTINGS)
+            "DEVELOPER" -> Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+            "NOTIFICATION_LIST" -> Intent("android.settings.NOTIFICATION_SETTINGS")
+            "PRIVACY" -> Intent(Settings.ACTION_PRIVACY_SETTINGS)
+            "CAST" -> Intent(Settings.ACTION_CAST_SETTINGS)
+            "INPUT_METHOD" -> Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)
+            "DEFAULT_APPS" -> Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS)
+            "VPN" -> Intent(Settings.ACTION_VPN_SETTINGS)
+            "DATE" -> Intent(Settings.ACTION_DATE_SETTINGS)
+            "PRINT" -> Intent(Settings.ACTION_PRINT_SETTINGS)
+            "DEVICE_ADMIN" -> Intent("android.settings.DEVICE_ADMIN_SETTINGS")
+            "USAGE_ACCESS" -> Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+            "AIRPLANE_MODE" -> Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS)
             else -> Intent(Settings.ACTION_SETTINGS)
         }
         return try {
@@ -1401,6 +1417,301 @@ class SystemController(
             SystemControlResult.ok("System UI refresh requested")
         } else {
             SystemControlResult.fail("System UI restart requires root: ${shell.message}")
+        }
+    }
+
+
+    /** Shows a short toast message. */
+    fun showToast(text: String): SystemControlResult {
+        if (text.isBlank()) return SystemControlResult.fail("No toast text")
+        return try {
+            android.widget.Toast.makeText(context, text, android.widget.Toast.LENGTH_LONG).show()
+            SystemControlResult.ok("Toast shown")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Toast failed: ${t.message}")
+        }
+    }
+
+    /** Shows a full-screen alert dialog. */
+    fun showAlert(title: String, text: String): SystemControlResult {
+        return try {
+            val builder = android.app.AlertDialog.Builder(context)
+                .setTitle(title)
+                .setMessage(text)
+                .setPositiveButton(android.R.string.ok, null)
+            builder.create().apply {
+                window?.setType(android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY)
+                show()
+            }
+            SystemControlResult.ok("Alert shown")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Alert failed: ${t.message}")
+        }
+    }
+
+    /** Vibrates a dot/dash pattern (Morse style). */
+    fun vibratePattern(pattern: String): SystemControlResult {
+        if (pattern.isBlank()) return SystemControlResult.fail("No pattern")
+        return try {
+            val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as android.os.VibratorManager).defaultVibrator
+            } else {
+                @Suppress("DEPRECATION")
+                context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            }
+            val timings = mutableListOf<Long>()
+            for (c in pattern.lowercase()) {
+                when (c) {
+                    '.' -> { timings.add(120); timings.add(80) }
+                    '-' -> { timings.add(400); timings.add(80) }
+                    ' ' -> { timings.add(400); timings.add(80) }
+                }
+            }
+            if (timings.isEmpty()) return SystemControlResult.fail("Empty pattern")
+            val v = timings.toLongArray()
+            val amplitudes = IntArray(v.size) { if (it % 2 == 0) 255 else 0 }
+            vibrator.vibrate(VibrationEffect.createWaveform(v, amplitudes, -1))
+            SystemControlResult.ok("Pattern played")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Pattern failed: ${t.message}")
+        }
+    }
+
+    /** Pastes the clipboard into the focused field via `input keyevent`. */
+    fun pasteClipboard(): SystemControlResult {
+        return try {
+            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("input", "keyevent", "279"))
+            if (shell.success) SystemControlResult.ok("Pasted") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Paste failed: ${t.message}")
+        }
+    }
+
+    /** Opens the recents / all-apps drawer. */
+    fun openAppDrawer(): SystemControlResult {
+        return try {
+            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("input", "keyevent", "187"))
+            if (shell.success) SystemControlResult.ok("App drawer opened") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("App drawer failed: ${t.message}")
+        }
+    }
+
+    /** Toggles picture-in-picture for the foreground activity. */
+    fun togglePip(): SystemControlResult {
+        return try {
+            val activity = context as? android.app.Activity ?: return SystemControlResult.fail("Not an activity context")
+            activity.enterPictureInPictureMode()
+            SystemControlResult.ok("PiP toggled")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("PiP failed: ${t.message}")
+        }
+    }
+
+    /** Connects to a Wi-Fi network via `cmd wifi connect-network`. */
+    fun wifiConnect(ssid: String, password: String): SystemControlResult {
+        if (ssid.isBlank()) return SystemControlResult.fail("No SSID")
+        return try {
+            val args = if (password.isBlank()) {
+                arrayOf("wifi", "connect-network", ssid, "open")
+            } else {
+                arrayOf("wifi", "connect-network", ssid, "wpa2", password)
+            }
+            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("cmd", *args))
+            if (shell.success) SystemControlResult.ok("Connecting to $ssid") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Wi-Fi connect failed: ${t.message}")
+        }
+    }
+
+    /** Forgets a saved Wi-Fi network via `cmd wifi forget-network`. */
+    fun wifiForget(ssid: String): SystemControlResult {
+        if (ssid.isBlank()) return SystemControlResult.fail("No SSID")
+        return try {
+            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("cmd", "wifi", "forget-network", ssid))
+            if (shell.success) SystemControlResult.ok("Forgot $ssid") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Wi-Fi forget failed: ${t.message}")
+        }
+    }
+
+    /** Enables/disables data roaming. */
+    fun setDataRoaming(enabled: Boolean): SystemControlResult {
+        return writeSetting("GLOBAL", "data_roaming", if (enabled) "1" else "0")
+    }
+
+    /** Sets the screensaver timeout in minutes. */
+    fun setScreensaverTimeout(minutes: Int): SystemControlResult {
+        val ms = minutes.coerceIn(1, 1440) * 60_000L
+        return writeSetting("SECURE", "screensaver_timeout", ms.toString())
+    }
+
+    /** Sets pointer/touch speed (-7..7). */
+    fun setPointerSpeed(speed: Int): SystemControlResult {
+        val v = speed.coerceIn(-7, 7)
+        return writeSetting("SYSTEM", "pointer_speed", v.toString())
+    }
+
+    /** Installs an APK via `pm install`. */
+    fun installApk(path: String): SystemControlResult {
+        if (path.isBlank()) return SystemControlResult.fail("No APK path")
+        return try {
+            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("pm", "install", "-r", path))
+            if (shell.success) SystemControlResult.ok("APK installed") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("APK install failed: ${t.message}")
+        }
+    }
+
+    /** Uninstalls a package via `pm uninstall`. */
+    fun uninstallApp(pkg: String): SystemControlResult {
+        if (pkg.isBlank()) return SystemControlResult.fail("No package")
+        return try {
+            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("pm", "uninstall", pkg))
+            if (shell.success) SystemControlResult.ok("$pkg uninstalled") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Uninstall failed: ${t.message}")
+        }
+    }
+
+    /** Disables a package via `pm disable-user`. */
+    fun disableApp(pkg: String): SystemControlResult {
+        if (pkg.isBlank()) return SystemControlResult.fail("No package")
+        return try {
+            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("pm", "disable-user", "--user", "0", pkg))
+            if (shell.success) SystemControlResult.ok("$pkg disabled") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Disable failed: ${t.message}")
+        }
+    }
+
+    /** Enables a disabled package via `pm enable`. */
+    fun enableApp(pkg: String): SystemControlResult {
+        if (pkg.isBlank()) return SystemControlResult.fail("No package")
+        return try {
+            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("pm", "enable", pkg))
+            if (shell.success) SystemControlResult.ok("$pkg enabled") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Enable failed: ${t.message}")
+        }
+    }
+
+    /** Sets the notification sound via ringtone manager. */
+    fun setNotificationTone(tone: String): SystemControlResult {
+        if (tone.isBlank()) return SystemControlResult.fail("No tone")
+        return try {
+            val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val channel = NotificationChannel("nexaflow_actions", "Actions", NotificationManager.IMPORTANCE_HIGH)
+            channel.setSound(Uri.parse(tone), AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                .build())
+            nm.createNotificationChannel(channel)
+            SystemControlResult.ok("Notification tone set")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Tone failed: ${t.message}")
+        }
+    }
+
+    /** Toggles vibration while ringing. */
+    fun setCallVibration(enabled: Boolean): SystemControlResult {
+        return writeSetting("SYSTEM", "vibrate_when_ringing", if (enabled) "1" else "0")
+    }
+
+    /** Opens a location in the maps app. */
+    fun openMaps(lat: String, lng: String): SystemControlResult {
+        return try {
+            val uri = Uri.parse("geo:$lat,$lng?q=$lat,$lng")
+            val intent = Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            SystemControlResult.ok("Maps opened")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Maps failed: ${t.message}")
+        }
+    }
+
+    /** Soft-restarts the framework (requires root). */
+    fun softRestart(): SystemControlResult =
+        tryPrivileged(SafeCommandBuilder.build("stop") + " && " + SafeCommandBuilder.build("start"),
+            "Soft restart requested")
+
+    /** Toggles the status bar visibility via immersive mode (best-effort). */
+    fun toggleStatusBar(show: Boolean): SystemControlResult {
+        return try {
+            val activity = context as? android.app.Activity ?: return SystemControlResult.fail("Not an activity context")
+            activity.window.decorView.systemUiVisibility =
+                if (show) android.view.View.SYSTEM_UI_FLAG_VISIBLE
+                else android.view.View.SYSTEM_UI_FLAG_FULLSCREEN or
+                    android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            SystemControlResult.ok("Status bar ${if (show) "shown" else "hidden"}")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Status bar failed: ${t.message}")
+        }
+    }
+
+    /** Opens the contacts app. */
+    fun openContacts(): SystemControlResult {
+        return try {
+            val intent = Intent(Intent.ACTION_VIEW, android.provider.ContactsContract.Contacts.CONTENT_URI)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            SystemControlResult.ok("Contacts opened")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Contacts failed: ${t.message}")
+        }
+    }
+
+    /** Sends an email via the default mail client. */
+    fun sendEmail(to: String, subject: String, body: String): SystemControlResult {
+        return try {
+            val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:" + to))
+                .putExtra(Intent.EXTRA_SUBJECT, subject)
+                .putExtra(Intent.EXTRA_TEXT, body)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            SystemControlResult.ok("Email draft opened")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Email failed: ${t.message}")
+        }
+    }
+
+    /** Starts a Bluetooth discovery scan. */
+    fun bluetoothScan(): SystemControlResult {
+        return try {
+            val adapter = BluetoothAdapter.getDefaultAdapter()
+                ?: return SystemControlResult.fail("No Bluetooth")
+            if (!adapter.startDiscovery()) return SystemControlResult.fail("Discovery already running")
+            SystemControlResult.ok("Bluetooth discovery started")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Bluetooth scan failed: ${t.message}")
+        }
+    }
+
+    /** Triggers an immediate Wi-Fi scan. */
+    fun wifiScanNow(): SystemControlResult {
+        return try {
+            val wifi = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            if (!wifi.startScan()) return SystemControlResult.fail("Scan unavailable")
+            SystemControlResult.ok("Wi-Fi scan started")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Wi-Fi scan failed: ${t.message}")
+        }
+    }
+
+    /** Sets the system timezone via `setprop` + broadcast. */
+    fun setTimezone(zone: String): SystemControlResult {
+        if (zone.isBlank()) return SystemControlResult.fail("No timezone")
+        return try {
+            val prop = PrivilegedRunner.runShell(SafeCommandBuilder.build("setprop", "persist.sys.timezone", zone))
+            val bcast = PrivilegedRunner.runShell(
+                SafeCommandBuilder.build("am", "broadcast", "-a", "android.intent.action.TIMEZONE_CHANGED")
+            )
+            if (prop.success && bcast.success) {
+                SystemControlResult.ok("Timezone set to $zone")
+            } else {
+                if (prop.success) bcast else prop
+            }
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Timezone failed: ${t.message}")
         }
     }
 

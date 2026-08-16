@@ -61,7 +61,11 @@ class DeviceStateSnapshot private constructor(
     private val autoTime: Boolean?,
     private val autoTimezone: Boolean?,
     private val cameraShutterSound: Boolean?,
-    private val wifiScanning: Boolean?
+    private val wifiScanning: Boolean?,
+    private val dataRoaming: Boolean?,
+    private val callVibration: Boolean?,
+    private val pointerSpeed: String?,
+    private val screensaverTimeout: String?
 ) {
 
     fun restore(context: Context) {
@@ -98,6 +102,10 @@ class DeviceStateSnapshot private constructor(
         restoreSettingsToggle(controller, "GLOBAL", "auto_time_zone", autoTimezone)
         restoreSettingsToggle(controller, "SYSTEM", "camera_sound", cameraShutterSound)
         restoreSettingsToggle(controller, "GLOBAL", "wifi_scan_always_enabled", wifiScanning)
+        restoreSettingsToggle(controller, "GLOBAL", "data_roaming", dataRoaming)
+        restoreSettingsToggle(controller, "SYSTEM", "vibrate_when_ringing", callVibration)
+        restoreRawSetting(controller, "SYSTEM", "pointer_speed", pointerSpeed)
+        restoreRawSetting(controller, "SECURE", "screensaver_timeout", screensaverTimeout)
     }
 
     /**
@@ -162,6 +170,14 @@ class DeviceStateSnapshot private constructor(
                 restoreSettingsToggle(controller, "SYSTEM", "camera_sound", cameraShutterSound)
             ActionType.SYSTEM_WIFI_SCANNING ->
                 restoreSettingsToggle(controller, "GLOBAL", "wifi_scan_always_enabled", wifiScanning)
+            ActionType.SYSTEM_DATA_ROAMING ->
+                restoreSettingsToggle(controller, "GLOBAL", "data_roaming", dataRoaming)
+            ActionType.SYSTEM_CALL_VIBRATION ->
+                restoreSettingsToggle(controller, "SYSTEM", "vibrate_when_ringing", callVibration)
+            ActionType.SYSTEM_POINTER_SPEED ->
+                restoreRawSetting(controller, "SYSTEM", "pointer_speed", pointerSpeed)
+            ActionType.SYSTEM_SCREENSAVER_TIMEOUT ->
+                restoreRawSetting(controller, "SECURE", "screensaver_timeout", screensaverTimeout)
             ActionType.SYSTEM_SCREEN_ROTATION -> restoreToggle(controller::setScreenRotation, autoRotate)
             ActionType.SYSTEM_BRIGHTNESS ->
                 runCatching { controller.setBrightness(brightness) }.getOrElse { SystemControlResult.fail(it.message ?: "restore failed") }
@@ -256,6 +272,21 @@ class DeviceStateSnapshot private constructor(
         }
     }
 
+    /** Restores a raw (string-valued) setting captured at snapshot time. */
+    private fun restoreRawSetting(
+        controller: com.nexaflow.core.rom.SystemController,
+        namespace: String,
+        key: String,
+        captured: String?
+    ): SystemControlResult {
+        val value = captured ?: return SystemControlResult.ok("Nothing to restore")
+        return runCatching {
+            controller.writeSetting(namespace, key, value)
+        }.getOrElse {
+            SystemControlResult.fail("Restore failed: ${it.message}")
+        }
+    }
+
     companion object {
         fun capture(context: Context): DeviceStateSnapshot {
             val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -322,6 +353,14 @@ class DeviceStateSnapshot private constructor(
                 autoTimezone = globalBool(context, "auto_time_zone"),
                 cameraShutterSound = systemBool(context, "camera_sound"),
                 wifiScanning = globalBool(context, "wifi_scan_always_enabled"),
+                dataRoaming = globalBool(context, "data_roaming"),
+                callVibration = systemBool(context, "vibrate_when_ringing"),
+                pointerSpeed = runCatching {
+                    Settings.System.getFloat(context.contentResolver, "pointer_speed", 1f).toString()
+                }.getOrNull(),
+                screensaverTimeout = runCatching {
+                    Settings.Secure.getInt(context.contentResolver, "screensaver_timeout", 600000).toString()
+                }.getOrNull(),
                 hotspotEnabled = globalBool(context, "tether_on"),
                 airplaneModeEnabled = globalBool(context, Settings.Global.AIRPLANE_MODE_ON),
                 dndEnabled = runCatching {

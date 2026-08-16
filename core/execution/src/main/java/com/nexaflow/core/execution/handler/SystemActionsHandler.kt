@@ -79,7 +79,47 @@ class SystemActionsHandler : ActionHandler {
         ActionType.SYSTEM_OPEN_PLAY_STORE_APP,
         ActionType.SYSTEM_REBOOT,
         ActionType.SYSTEM_SHUTDOWN,
-        ActionType.SYSTEM_RESTART_SYSTEM_UI
+        ActionType.SYSTEM_RESTART_SYSTEM_UI,
+        ActionType.SYSTEM_TOAST,
+        ActionType.SYSTEM_ALERT,
+        ActionType.SYSTEM_VIBRATE_PATTERN,
+        ActionType.SYSTEM_PASTE,
+        ActionType.SYSTEM_OPEN_APP_DRAWER,
+        ActionType.SYSTEM_TOGGLE_PIP,
+        ActionType.SYSTEM_WIFI_CONNECT,
+        ActionType.SYSTEM_WIFI_FORGET,
+        ActionType.SYSTEM_DATA_ROAMING,
+        ActionType.SYSTEM_SCREENSAVER_TIMEOUT,
+        ActionType.SYSTEM_POINTER_SPEED,
+        ActionType.SYSTEM_INSTALL_APK,
+        ActionType.SYSTEM_UNINSTALL_APP,
+        ActionType.SYSTEM_DISABLE_APP,
+        ActionType.SYSTEM_ENABLE_APP,
+        ActionType.SYSTEM_SET_NOTIFICATION_TONE,
+        ActionType.SYSTEM_CALL_VIBRATION,
+        ActionType.SYSTEM_OPEN_NETWORK_SETTINGS,
+        ActionType.SYSTEM_OPEN_NFC_SETTINGS,
+        ActionType.SYSTEM_OPEN_DATA_SAVER_SETTINGS,
+        ActionType.SYSTEM_OPEN_DEVELOPER_SETTINGS,
+        ActionType.SYSTEM_OPEN_MAPS,
+        ActionType.SYSTEM_SOFT_RESTART,
+        ActionType.SYSTEM_STATUS_BAR_TOGGLE,
+        ActionType.SYSTEM_OPEN_CONTACTS,
+        ActionType.SYSTEM_SEND_EMAIL,
+        ActionType.SYSTEM_OPEN_NOTIFICATION_SETTINGS,
+        ActionType.SYSTEM_OPEN_PRIVACY_SETTINGS,
+        ActionType.SYSTEM_OPEN_CAST_SETTINGS,
+        ActionType.SYSTEM_OPEN_INPUT_METHOD_SETTINGS,
+        ActionType.SYSTEM_OPEN_DEFAULT_APPS_SETTINGS,
+        ActionType.SYSTEM_OPEN_VPN_SETTINGS,
+        ActionType.SYSTEM_OPEN_DATE_SETTINGS,
+        ActionType.SYSTEM_OPEN_PRINT_SETTINGS,
+        ActionType.SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS,
+        ActionType.SYSTEM_OPEN_USAGE_ACCESS_SETTINGS,
+        ActionType.SYSTEM_OPEN_AIRPLANE_MODE_SETTINGS,
+        ActionType.SYSTEM_BLUETOOTH_SCAN,
+        ActionType.SYSTEM_WIFI_SCAN_NOW,
+        ActionType.SYSTEM_SET_TIMEZONE
     )
 
     override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult {
@@ -267,6 +307,90 @@ class SystemActionsHandler : ActionHandler {
                 ctx.controller.shutdownDevice()
             ActionType.SYSTEM_RESTART_SYSTEM_UI ->
                 ctx.controller.restartSystemUi()
+            ActionType.SYSTEM_TOAST ->
+                ctx.controller.showToast(action.config["text"] ?: "")
+            ActionType.SYSTEM_ALERT ->
+                ctx.controller.showAlert(action.config["title"] ?: "", action.config["text"] ?: "")
+            ActionType.SYSTEM_VIBRATE_PATTERN ->
+                ctx.controller.vibratePattern(action.config["pattern"] ?: "...")
+            ActionType.SYSTEM_PASTE ->
+                ctx.controller.pasteClipboard()
+            ActionType.SYSTEM_OPEN_APP_DRAWER ->
+                ctx.controller.openAppDrawer()
+            ActionType.SYSTEM_TOGGLE_PIP ->
+                ctx.controller.togglePip()
+            ActionType.SYSTEM_WIFI_CONNECT ->
+                ctx.controller.wifiConnect(action.config["ssid"] ?: "", action.config["password"] ?: "")
+            ActionType.SYSTEM_WIFI_FORGET ->
+                ctx.controller.wifiForget(action.config["ssid"] ?: "")
+            ActionType.SYSTEM_DATA_ROAMING ->
+                ctx.controller.setDataRoaming(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_SCREENSAVER_TIMEOUT ->
+                ctx.controller.setScreensaverTimeout(action.config["minutes"]?.toIntOrNull() ?: 10)
+            ActionType.SYSTEM_POINTER_SPEED ->
+                ctx.controller.setPointerSpeed(action.config["speed"]?.toIntOrNull() ?: 0)
+            ActionType.SYSTEM_INSTALL_APK ->
+                ctx.controller.installApk(action.config["path"] ?: "")
+            ActionType.SYSTEM_UNINSTALL_APP ->
+                ctx.controller.uninstallApp(action.config["package"] ?: "")
+            ActionType.SYSTEM_DISABLE_APP ->
+                ctx.controller.disableApp(action.config["package"] ?: "")
+            ActionType.SYSTEM_ENABLE_APP ->
+                ctx.controller.enableApp(action.config["package"] ?: "")
+            ActionType.SYSTEM_SET_NOTIFICATION_TONE ->
+                ctx.controller.setNotificationTone(action.config["tone"] ?: "")
+            ActionType.SYSTEM_CALL_VIBRATION ->
+                ctx.controller.setCallVibration(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_OPEN_NETWORK_SETTINGS ->
+                ctx.controller.openSystemSettings("NETWORK")
+            ActionType.SYSTEM_OPEN_NFC_SETTINGS ->
+                ctx.controller.openSystemSettings("NFC")
+            ActionType.SYSTEM_OPEN_DATA_SAVER_SETTINGS ->
+                ctx.controller.openSystemSettings("DATA_SAVER")
+            ActionType.SYSTEM_OPEN_DEVELOPER_SETTINGS ->
+                ctx.controller.openSystemSettings("DEVELOPER")
+            ActionType.SYSTEM_OPEN_MAPS ->
+                ctx.controller.openMaps(action.config["lat"] ?: "", action.config["lng"] ?: "")
+            ActionType.SYSTEM_SOFT_RESTART ->
+                ctx.controller.softRestart()
+            ActionType.SYSTEM_STATUS_BAR_TOGGLE ->
+                ctx.controller.toggleStatusBar(action.config["show"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_OPEN_CONTACTS ->
+                ctx.controller.openContacts()
+            ActionType.SYSTEM_SEND_EMAIL ->
+                ctx.controller.sendEmail(
+                    action.config["to"] ?: "",
+                    action.config["subject"] ?: "",
+                    action.config["body"] ?: ""
+                )
+            ActionType.SYSTEM_OPEN_NOTIFICATION_SETTINGS ->
+                ctx.controller.openSystemSettings("NOTIFICATION_LIST")
+            ActionType.SYSTEM_OPEN_PRIVACY_SETTINGS ->
+                ctx.controller.openSystemSettings("PRIVACY")
+            ActionType.SYSTEM_OPEN_CAST_SETTINGS ->
+                ctx.controller.openSystemSettings("CAST")
+            ActionType.SYSTEM_OPEN_INPUT_METHOD_SETTINGS ->
+                ctx.controller.openSystemSettings("INPUT_METHOD")
+            ActionType.SYSTEM_OPEN_DEFAULT_APPS_SETTINGS ->
+                ctx.controller.openSystemSettings("DEFAULT_APPS")
+            ActionType.SYSTEM_OPEN_VPN_SETTINGS ->
+                ctx.controller.openSystemSettings("VPN")
+            ActionType.SYSTEM_OPEN_DATE_SETTINGS ->
+                ctx.controller.openSystemSettings("DATE")
+            ActionType.SYSTEM_OPEN_PRINT_SETTINGS ->
+                ctx.controller.openSystemSettings("PRINT")
+            ActionType.SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS ->
+                ctx.controller.openSystemSettings("DEVICE_ADMIN")
+            ActionType.SYSTEM_OPEN_USAGE_ACCESS_SETTINGS ->
+                ctx.controller.openSystemSettings("USAGE_ACCESS")
+            ActionType.SYSTEM_OPEN_AIRPLANE_MODE_SETTINGS ->
+                ctx.controller.openSystemSettings("AIRPLANE_MODE")
+            ActionType.SYSTEM_BLUETOOTH_SCAN ->
+                ctx.controller.bluetoothScan()
+            ActionType.SYSTEM_WIFI_SCAN_NOW ->
+                ctx.controller.wifiScanNow()
+            ActionType.SYSTEM_SET_TIMEZONE ->
+                ctx.controller.setTimezone(action.config["zone"] ?: "")
             else -> SystemControlResult.fail("Unsupported action ${action.type}")
         }
     }

@@ -1097,6 +1097,222 @@ fun ActionConfigEditor(
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone)
             )
         }
+        ActionType.SYSTEM_TOAST -> {
+            OutlinedTextField(
+                value = config["text"] ?: "",
+                onValueChange = { onConfigChange(config + ("text" to it)) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = stringResource(R.string.toast_text)) },
+                singleLine = true
+            )
+            VariableInsertChips(
+                availableVariables = availableVariables,
+                currentValue = config["text"] ?: "",
+                onValueChange = { onConfigChange(config + ("text" to it)) }
+            )
+        }
+        ActionType.SYSTEM_ALERT -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = config["title"] ?: "",
+                    onValueChange = { onConfigChange(config + ("title" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.title)) },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = config["text"] ?: "",
+                    onValueChange = { onConfigChange(config + ("text" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.text)) },
+                    singleLine = true
+                )
+                VariableInsertChips(
+                    availableVariables = availableVariables,
+                    currentValue = config["text"] ?: "",
+                    onValueChange = { onConfigChange(config + ("text" to it)) }
+                )
+            }
+        }
+        ActionType.SYSTEM_VIBRATE_PATTERN -> {
+            OutlinedTextField(
+                value = config["pattern"] ?: "0,200,100,200",
+                onValueChange = { onConfigChange(config + ("pattern" to it)) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = stringResource(R.string.vibrate_pattern_label)) },
+                singleLine = true
+            )
+        }
+        ActionType.SYSTEM_PASTE,
+        ActionType.SYSTEM_OPEN_APP_DRAWER,
+        ActionType.SYSTEM_TOGGLE_PIP,
+        ActionType.SYSTEM_SOFT_RESTART,
+        ActionType.SYSTEM_OPEN_CONTACTS,
+        ActionType.SYSTEM_BLUETOOTH_SCAN,
+        ActionType.SYSTEM_WIFI_SCAN_NOW -> {
+            Text(
+                text = stringResource(R.string.runs_immediately),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+        ActionType.SYSTEM_WIFI_CONNECT -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = config["ssid"] ?: "",
+                    onValueChange = { onConfigChange(config + ("ssid" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.wifi_ssid)) },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = config["password"] ?: "",
+                    onValueChange = { onConfigChange(config + ("password" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.wifi_password)) },
+                    singleLine = true
+                )
+            }
+        }
+        ActionType.SYSTEM_WIFI_FORGET -> {
+            OutlinedTextField(
+                value = config["ssid"] ?: "",
+                onValueChange = { onConfigChange(config + ("ssid" to it)) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = stringResource(R.string.wifi_ssid)) },
+                singleLine = true
+            )
+        }
+        ActionType.SYSTEM_DATA_ROAMING,
+        ActionType.SYSTEM_CALL_VIBRATION,
+        ActionType.SYSTEM_STATUS_BAR_TOGGLE -> {
+            ToggleConfigRow(
+                label = stringResource(R.string.turn_on),
+                checked = config["enabled"]?.toBoolean() ?: true,
+                onCheckedChange = { onConfigChange(config + ("enabled" to it.toString())) }
+            )
+        }
+        ActionType.SYSTEM_SCREENSAVER_TIMEOUT -> {
+            OutlinedTextField(
+                value = config["minutes"] ?: "30",
+                onValueChange = { onConfigChange(config + ("minutes" to it)) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = stringResource(R.string.screensaver_timeout_label)) },
+                singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
+            )
+        }
+        ActionType.SYSTEM_POINTER_SPEED -> {
+            OutlinedTextField(
+                value = config["speed"] ?: "1.0",
+                onValueChange = { onConfigChange(config + ("speed" to it)) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = stringResource(R.string.pointer_speed_label)) },
+                singleLine = true
+            )
+        }
+        ActionType.SYSTEM_INSTALL_APK -> {
+            OutlinedTextField(
+                value = config["path"] ?: "",
+                onValueChange = { onConfigChange(config + ("path" to it)) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = stringResource(R.string.install_apk_path)) },
+                singleLine = true
+            )
+        }
+        ActionType.SYSTEM_UNINSTALL_APP,
+        ActionType.SYSTEM_DISABLE_APP,
+        ActionType.SYSTEM_ENABLE_APP -> {
+            OutlinedTextField(
+                value = config["package"] ?: "",
+                onValueChange = { onConfigChange(config + ("package" to it)) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = stringResource(R.string.package_name)) },
+                singleLine = true
+            )
+        }
+        ActionType.SYSTEM_SET_NOTIFICATION_TONE -> {
+            OutlinedTextField(
+                value = config["tone"] ?: "",
+                onValueChange = { onConfigChange(config + ("tone" to it)) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = stringResource(R.string.notification_tone_label)) },
+                singleLine = true
+            )
+        }
+        ActionType.SYSTEM_OPEN_NETWORK_SETTINGS,
+        ActionType.SYSTEM_OPEN_NFC_SETTINGS,
+        ActionType.SYSTEM_OPEN_DATA_SAVER_SETTINGS,
+        ActionType.SYSTEM_OPEN_DEVELOPER_SETTINGS,
+        ActionType.SYSTEM_OPEN_NOTIFICATION_SETTINGS,
+        ActionType.SYSTEM_OPEN_PRIVACY_SETTINGS,
+        ActionType.SYSTEM_OPEN_CAST_SETTINGS,
+        ActionType.SYSTEM_OPEN_INPUT_METHOD_SETTINGS,
+        ActionType.SYSTEM_OPEN_DEFAULT_APPS_SETTINGS,
+        ActionType.SYSTEM_OPEN_VPN_SETTINGS,
+        ActionType.SYSTEM_OPEN_DATE_SETTINGS,
+        ActionType.SYSTEM_OPEN_PRINT_SETTINGS,
+        ActionType.SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS,
+        ActionType.SYSTEM_OPEN_USAGE_ACCESS_SETTINGS,
+        ActionType.SYSTEM_OPEN_AIRPLANE_MODE_SETTINGS -> {
+            Text(
+                text = stringResource(R.string.runs_immediately),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+        ActionType.SYSTEM_OPEN_MAPS -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = config["lat"] ?: "",
+                    onValueChange = { onConfigChange(config + ("lat" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.latitude)) },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = config["lng"] ?: "",
+                    onValueChange = { onConfigChange(config + ("lng" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.longitude)) },
+                    singleLine = true
+                )
+            }
+        }
+        ActionType.SYSTEM_SEND_EMAIL -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = config["to"] ?: "",
+                    onValueChange = { onConfigChange(config + ("to" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.email_to)) },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = config["subject"] ?: "",
+                    onValueChange = { onConfigChange(config + ("subject" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.email_subject)) },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = config["body"] ?: "",
+                    onValueChange = { onConfigChange(config + ("body" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.email_body)) },
+                    singleLine = true
+                )
+            }
+        }
+        ActionType.SYSTEM_SET_TIMEZONE -> {
+            OutlinedTextField(
+                value = config["zone"] ?: "GMT",
+                onValueChange = { onConfigChange(config + ("zone" to it)) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = stringResource(R.string.timezone_label)) },
+                singleLine = true
+            )
+        }
     }
 }
 
