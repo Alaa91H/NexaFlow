@@ -3,6 +3,11 @@ package com.nexaflow.feature.builder
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.webkit.JavascriptInterface
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,12 +16,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -62,30 +64,29 @@ private const val MAP_MAX_RADIUS_M = 2000
 private const val MAP_RADIUS_STEPS = (MAP_MAX_RADIUS_M - MAP_MIN_RADIUS_M) / 50 - 1
 
 /**
- * Embedded Google Maps picker. The map is only a VIEWING/selection surface:
+ * Embedded map picker. The map is only a VIEWING/selection surface:
  *
- *  - shows the map with a tap-to-place / draggable marker,
- *  - search box (Geocoder) to jump to a place,
- *  - a radius circle drawn around the point (the activation range),
+ *  - tap-to-place / draggable marker + activation-radius circle,
+ *  - search box (Geocoder) and a "use my location" button,
  *  - Confirm writes "lat,lng" + radius back via savedStateHandle.
  *
- * The actual "did the user arrive" detection stays entirely in the real
- * Location/Geofencing system (core:automation-engine) — Google Maps plays no
- * part in task execution.
+ * Rendering prefers Google Maps when a key is configured AND authentication
+ * succeeds. Otherwise it falls back to a keyless OpenStreetMap/Leaflet map in
+ * a WebView, so the picker never shows a blank map on any ROM — no API key,
+ * no Play Services dependency, no Google Cloud configuration required.
  *
- * Requires a Google Maps API key (NEXAFLOW_MAPS_API_KEY gradle property ->
- * com.google.android.geo.API_KEY manifest meta-data). Without a key the
- * screen shows a setup hint instead of a blank map.
+ * The actual "did the user arrive" detection stays entirely in the real
+ * Location/Geofencing system (core:automation-engine); the map plays no part
+ * in task execution.
  */
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("MissingPermission")
+@SuppressLint("MissingPermission", "SetJavaScriptEnabled", "JavascriptInterface")
 @Composable
 fun MapPickerScreen(navController: NavController) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
 
-    // Initial point + radius passed by the builder ("map_picker_init" = "lat,lng,radius").
     val previous = navController.previousBackStackEntry
     val initValues = remember {
         previous?.savedStateHandle?.get<String>("map_picker_init")
@@ -111,13 +112,13 @@ fun MapPickerScreen(navController: NavController) {
     var locating by remember { mutableStateOf(false) }
     var marker by remember { mutableStateOf<Marker?>(null) }
     var circle by remember { mutableStateOf<Circle?>(null) }
-    // Hoisted at composition so coroutines below never read resources lazily.
+    var googleFailed by remember { mutableStateOf(false) }
+    var osmReady by remember { mutableStateOf(false) }
+
     val mapSearchNotFoundText = stringResource(R.string.map_search_not_found)
     val locationFixFailedText = stringResource(R.string.location_fix_failed)
     val mapNoKeyText = stringResource(R.string.map_no_key)
 
-    // Google Maps SDK reads the key from the manifest meta-data. Empty key =>
-    // show a setup hint instead of initializing a blank map.
     val apiKey = remember {
         runCatching {
             val ai = context.packageManager.getApplicationInfo(
@@ -127,18 +128,27 @@ fun MapPickerScreen(navController: NavController) {
             ai.metaData?.getString("com.google.android.geo.API_KEY").orEmpty()
         }.getOrDefault("")
     }
+    val useOsm = apiKey.isBlank() || googleFailed
 
-    // The MapView lives for the whole composition; lifecycle events drive it.
-    // Google Maps requires the FULL sequence onCreate -> onStart -> onResume
-    // (and onPause -> onStop -> onDestroy) — skipping onStart is the classic
-    // cause of a permanently blank map box. The observer also replays the
-    // current state on attach, because a Compose screen can be composed while
-    // the lifecycle is already RESUMED, in which case no further START/RESUME
-    // event ever fires and the map would stay blank.
-    val mapView = remember {
-        MapView(context).apply {
-            onCreate(Bundle())
+    val mainHandler = remember { Handler(Looper.getMainLooper()) }
+
+    val osmBridge = remember {
+        object {
+            @JavascriptInterface
+            fun onPointSelected(lat: Double, lng: Double) {
+                mainHandler.post { markerPos = LatLng(lat, lng) }
+            }
         }
+    }
+
+    // Google MapView lives for the whole composition; lifecycle events drive
+    // it. Google Maps requires the FULL sequence onCreate -> onStart ->
+    // onResume (and onPause -> onStop -> onDestroy) — skipping onStart is the
+    // classic cause of a permanently blank map box. The observer also replays
+    // the current state on attach, because a Compose screen can be composed
+    // while the lifecycle is already RESUMED.
+    val mapView = remember {
+        MapView(context).apply { onCreate(Bundle()) }
     }
     DisposableEffect(lifecycleOwner, mapView) {
         val observer = LifecycleEventObserver { _, event ->
@@ -153,8 +163,6 @@ fun MapPickerScreen(navController: NavController) {
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
-        // Replay the current state in case we attached after lifecycle events
-        // already fired (composition while RESUMED).
         if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
             mapView.onStart()
         }
@@ -167,27 +175,91 @@ fun MapPickerScreen(navController: NavController) {
         }
     }
 
+    // Keyless OSM WebView, created only when we actually fall back. The
+    // initial point/radius are applied once the page finishes loading.
+    val osmWebView = remember(useOsm) {
+        if (!useOsm) {
+            null
+        } else {
+            WebView(context).apply {
+                settings.javaScriptEnabled = true
+                settings.domStorageEnabled = true
+                addJavascriptInterface(osmBridge, "Android")
+                webViewClient = object : WebViewClient() {
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        osmReady = true
+                        val p = markerPos
+                        view?.evaluateJavascript(
+                            "if (window.setPoint) setPoint(" +
+                                "${p?.latitude ?: 0.0}, ${p?.longitude ?: 0.0}, $radius);",
+                            null
+                        )
+                    }
+
+                    override fun onReceivedError(
+                        view: WebView?,
+                        errorCode: Int,
+                        description: String?,
+                        failingUrl: String?
+                    ) {
+                        searchError = mapNoKeyText
+                    }
+                }
+                loadUrl("file:///android_asset/map_picker.html")
+            }
+        }
+    }
+    DisposableEffect(lifecycleOwner, osmWebView) {
+        val wv = osmWebView
+        if (wv == null) {
+            onDispose {}
+        } else {
+            val observer = LifecycleEventObserver { _, event ->
+                when (event) {
+                    Lifecycle.Event.ON_RESUME -> wv.onResume()
+                    Lifecycle.Event.ON_PAUSE -> wv.onPause()
+                    else -> {}
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+            if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                wv.onResume()
+            }
+            onDispose {
+                lifecycleOwner.lifecycle.removeObserver(observer)
+                wv.destroy()
+            }
+        }
+    }
+
     fun placePoint(pos: LatLng, moveCamera: Boolean = true) {
         markerPos = pos
-        val g = currentMap ?: return
-        marker?.remove()
-        marker = g.addMarker(
-            MarkerOptions()
-                .position(pos)
-                .title(String.format(Locale.US, "%.6f, %.6f", pos.latitude, pos.longitude))
-                .draggable(true)
-        )
-        circle?.remove()
-        circle = g.addCircle(
-            CircleOptions()
-                .center(pos)
-                .radius(radius.toDouble())
-                .strokeWidth(2f)
-                .strokeColor(0xCC1A73E8.toInt())
-                .fillColor(0x331A73E8.toInt())
-        )
-        if (moveCamera) {
-            g.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 16f))
+        val g = currentMap
+        if (g != null) {
+            marker?.remove()
+            marker = g.addMarker(
+                MarkerOptions()
+                    .position(pos)
+                    .title(String.format(Locale.US, "%.6f, %.6f", pos.latitude, pos.longitude))
+                    .draggable(true)
+            )
+            circle?.remove()
+            circle = g.addCircle(
+                CircleOptions()
+                    .center(pos)
+                    .radius(radius.toDouble())
+                    .strokeWidth(2f)
+                    .strokeColor(0xCC1A73E8.toInt())
+                    .fillColor(0x331A73E8.toInt())
+            )
+            if (moveCamera) {
+                g.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 16f))
+            }
+        } else if (useOsm && osmReady) {
+            osmWebView?.evaluateJavascript(
+                "if (window.setPoint) setPoint(${pos.latitude}, ${pos.longitude}, $radius);",
+                null
+            )
         }
     }
 
@@ -268,55 +340,41 @@ fun MapPickerScreen(navController: NavController) {
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (apiKey.isBlank()) {
-                // No Google Maps key configured — explain instead of a blank map.
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text(stringResource(R.string.map_search_hint)) },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(onClick = { searchPlace(searchQuery) }) {
+                    Icon(imageVector = Icons.Filled.Search, contentDescription = null)
+                }
+                IconButton(
+                    onClick = { useCurrentLocation() },
+                    enabled = !locating
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Info,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = stringResource(R.string.map_no_key),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
-                    }
+                    Icon(imageVector = Icons.Filled.MyLocation, contentDescription = null)
+                }
+            }
+
+            if (useOsm) {
+                val wv = osmWebView
+                if (wv != null) {
+                    AndroidView(
+                        factory = { wv },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .padding(top = 4.dp)
+                    )
                 }
             } else {
-                // Search row: find a place or jump to the current location.
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        label = { Text(stringResource(R.string.map_search_hint)) },
-                        singleLine = true,
-                        modifier = Modifier.weight(1f)
-                    )
-                    IconButton(onClick = { searchPlace(searchQuery) }) {
-                        Icon(imageVector = Icons.Filled.Search, contentDescription = null)
-                    }
-                    IconButton(
-                        onClick = { useCurrentLocation() },
-                        enabled = !locating
-                    ) {
-                        Icon(imageVector = Icons.Filled.MyLocation, contentDescription = null)
-                    }
-                }
-                // The embedded map.
                 AndroidView(
                     factory = { mapView },
                     modifier = Modifier
@@ -326,69 +384,75 @@ fun MapPickerScreen(navController: NavController) {
                     update = { view ->
                         if (!mapRequested) {
                             mapRequested = true
-                            // Guard against a null GoogleMap (auth failure or
-                            // missing key) so the screen degrades gracefully
-                            // instead of crashing or freezing blank.
                             view.getMapAsync { g ->
                                 if (g != null) {
                                     setupMap(g)
                                 } else {
-                                    searchError = mapNoKeyText
+                                    googleFailed = true
                                 }
                             }
                         }
                     }
                 )
-                if (searchError != null) {
-                    Text(
-                        text = searchError!!,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-                // Activation radius — mirrors the geofence radius of the task.
+            }
+
+            if (searchError != null) {
                 Text(
-                    text = stringResource(R.string.radius_meters_format, radius),
-                    style = MaterialTheme.typography.titleSmall
-                )
-                Slider(
-                    value = radius.toFloat(),
-                    onValueChange = { r ->
-                        radius = r.toInt()
-                        circle?.radius = radius.toDouble()
-                    },
-                    valueRange = MAP_MIN_RADIUS_M.toFloat()..MAP_MAX_RADIUS_M.toFloat(),
-                    steps = MAP_RADIUS_STEPS
-                )
-                Text(
-                    text = stringResource(R.string.map_pick_hint),
+                    text = searchError!!,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary
+                    color = MaterialTheme.colorScheme.error
                 )
             }
-            // Confirm — enabled only once a point exists on the map.
-            Button(
-                onClick = {
-                    val pos = markerPos
-                    if (pos != null) {
-                        val handle = previous?.savedStateHandle
-                        handle?.set(
-                            "picked_location",
-                            String.format(Locale.US, "%.6f,%.6f", pos.latitude, pos.longitude)
+
+            Text(
+                text = stringResource(R.string.radius_meters_format, radius),
+                style = MaterialTheme.typography.titleSmall
+            )
+            Slider(
+                value = radius.toFloat(),
+                onValueChange = { r ->
+                    radius = r.toInt()
+                    circle?.radius = radius.toDouble()
+                    if (useOsm && osmReady) {
+                        osmWebView?.evaluateJavascript(
+                            "if (window.setRadius) setRadius($radius);",
+                            null
                         )
-                        handle?.set("picked_radius", radius.toString())
-                        navController.popBackStack()
                     }
                 },
-                enabled = markerPos != null && apiKey.isNotBlank(),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(imageVector = Icons.Filled.Check, contentDescription = null)
-                Text(
-                    text = stringResource(R.string.confirm_location),
-                    modifier = Modifier.padding(start = 4.dp)
-                )
-            }
+                valueRange = MAP_MIN_RADIUS_M.toFloat()..MAP_MAX_RADIUS_M.toFloat(),
+                steps = MAP_RADIUS_STEPS
+            )
+            Text(
+                text = stringResource(R.string.map_pick_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+
+        Button(
+            onClick = {
+                val pos = markerPos
+                if (pos != null) {
+                    val handle = previous?.savedStateHandle
+                    handle?.set(
+                        "picked_location",
+                        String.format(Locale.US, "%.6f,%.6f", pos.latitude, pos.longitude)
+                    )
+                    handle?.set("picked_radius", radius.toString())
+                    navController.popBackStack()
+                }
+            },
+            enabled = markerPos != null,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Icon(imageVector = Icons.Filled.Check, contentDescription = null)
+            Text(
+                text = stringResource(R.string.confirm_location),
+                modifier = Modifier.padding(start = 4.dp)
+            )
         }
     }
 }
