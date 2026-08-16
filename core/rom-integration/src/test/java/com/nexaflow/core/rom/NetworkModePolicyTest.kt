@@ -139,7 +139,7 @@ class NetworkModePolicyTest {
         assertTrue(NetworkModePolicy.coversReadBack("532480", req4g))
         // Decimal with the NR bit still set (532480 | 1<<20) is tolerated
         // as a superset — the radio kept NR, but LTE is allowed.
-        assertTrue(NetworkModePolicy.coversReadBack("1576960", req4g))
+        assertTrue(NetworkModePolicy.coversReadBack("1581056", req4g))
         // Binary form of BITMASK_4G.
         assertTrue(NetworkModePolicy.coversReadBack(java.lang.Long.toString(NetworkModePolicy.BITMASK_4G, 2), req4g))
         // A read-back that lost the LTE bits must not confirm 4G.
