@@ -361,6 +361,10 @@ private fun triggerLabel(type: TriggerType): Int = when (type) {
     TriggerType.NETWORK_MODE -> R.string.trigger_type_network_mode
     TriggerType.WEBHOOK -> R.string.trigger_webhook
     TriggerType.ROM_SETTING -> R.string.trigger_rom_setting
+    TriggerType.HEADPHONE -> R.string.trigger_headphone
+    TriggerType.CHARGER -> R.string.trigger_charger
+    TriggerType.AIRPLANE_MODE -> R.string.trigger_airplane
+    TriggerType.DARK_MODE -> R.string.trigger_dark_mode
 }
 
 /** Design-time preview of a Samsung-style routine card. */

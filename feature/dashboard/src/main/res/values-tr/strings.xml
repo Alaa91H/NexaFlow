@@ -36,5 +36,9 @@
     <string name="trigger_sensor">Sensör</string>
     <string name="trigger_webhook">Webhook</string>
     <string name="trigger_rom_setting">ROM ayarı</string>
+    <string name="trigger_headphone">Kulaklık</string>
+    <string name="trigger_charger">Şarj</string>
+    <string name="trigger_airplane">Uçak modu</string>
+    <string name="trigger_dark_mode">Karanlık mod</string>
     <string name="trigger_type_network_mode">Hücresel ağ</string>
 </resources>

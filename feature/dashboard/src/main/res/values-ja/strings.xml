@@ -36,5 +36,9 @@
     <string name="trigger_sensor">センサー</string>
     <string name="trigger_webhook">ウェブフック</string>
     <string name="trigger_rom_setting">ROM設定</string>
+    <string name="trigger_headphone">ヘッドホン</string>
+    <string name="trigger_charger">充電器</string>
+    <string name="trigger_airplane">機内モード</string>
+    <string name="trigger_dark_mode">ダークモード</string>
     <string name="trigger_type_network_mode">携帯ネットワーク</string>
 </resources>

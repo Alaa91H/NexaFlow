@@ -36,5 +36,9 @@
     <string name="trigger_sensor">Датчик</string>
     <string name="trigger_webhook">Вебхук</string>
     <string name="trigger_rom_setting">Настройка ROM</string>
+    <string name="trigger_headphone">Наушники</string>
+    <string name="trigger_charger">Зарядка</string>
+    <string name="trigger_airplane">Режим полёта</string>
+    <string name="trigger_dark_mode">Тёмный режим</string>
     <string name="trigger_type_network_mode">Сотовая сеть</string>
 </resources>

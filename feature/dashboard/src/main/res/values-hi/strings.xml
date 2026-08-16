@@ -36,5 +36,9 @@
     <string name="trigger_sensor">सेंसर</string>
     <string name="trigger_webhook">वेबहुक</string>
     <string name="trigger_rom_setting">ROM सेटिंग</string>
+    <string name="trigger_headphone">हेडफ़ोन</string>
+    <string name="trigger_charger">चार्जर</string>
+    <string name="trigger_airplane">हवाई जहाज़ मोड</string>
+    <string name="trigger_dark_mode">डार्क मोड</string>
     <string name="trigger_type_network_mode">सेलुलर नेटवर्क</string>
 </resources>

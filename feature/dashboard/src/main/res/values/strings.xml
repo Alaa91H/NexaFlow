@@ -36,5 +36,9 @@
     <string name="trigger_sensor">Sensor</string>
     <string name="trigger_webhook">Webhook</string>
     <string name="trigger_rom_setting">ROM setting</string>
+    <string name="trigger_headphone">Headphones</string>
+    <string name="trigger_charger">Charger</string>
+    <string name="trigger_airplane">Airplane mode</string>
+    <string name="trigger_dark_mode">Dark mode</string>
     <string name="trigger_type_network_mode">Cellular network</string>
 </resources>
