@@ -373,6 +373,17 @@ private fun triggerLabel(type: TriggerType): Int = when (type) {
     TriggerType.APP_INSTALLED -> R.string.trigger_app_installed
     TriggerType.MEDIA_PLAYING -> R.string.trigger_media_playing
     TriggerType.VOLUME_CHANGED -> R.string.trigger_volume_changed
+    TriggerType.POWER_SAVER -> R.string.trigger_power_saver
+    TriggerType.BLUETOOTH_STATE -> R.string.trigger_bluetooth_state
+    TriggerType.BRIGHTNESS_LEVEL -> R.string.trigger_brightness_level
+    TriggerType.STORAGE_LOW -> R.string.trigger_storage_low
+    TriggerType.AUTO_ROTATE -> R.string.trigger_auto_rotate
+    TriggerType.DATA_SAVER_STATE -> R.string.trigger_data_saver_state
+    TriggerType.DEVICE_LOCKED -> R.string.trigger_device_locked
+    TriggerType.WIFI_STATE -> R.string.trigger_wifi_state
+    TriggerType.NFC_STATE -> R.string.trigger_nfc_state
+    TriggerType.LOCATION_STATE -> R.string.trigger_location_state
+    TriggerType.SCREEN_ROTATION_STATE -> R.string.trigger_screen_rotation_state
 }
 
 /** Design-time preview of a Samsung-style routine card. */

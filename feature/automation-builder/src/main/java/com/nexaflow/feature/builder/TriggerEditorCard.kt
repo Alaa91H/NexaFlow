@@ -39,6 +39,22 @@ import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.Web
+import androidx.compose.material.icons.filled.Accessibility
+import androidx.compose.material.icons.filled.BrightnessHigh
+import androidx.compose.material.icons.filled.DataUsage
+import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.FastRewind
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Nfc
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.PowerSettingsNew
+import androidx.compose.material.icons.filled.ScreenRotation
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -142,7 +158,18 @@ internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> = mapOf(
     TriggerType.CALL_STATE to TriggerCategory.DEVICE,
     TriggerType.MEDIA_PLAYING to TriggerCategory.DEVICE,
     TriggerType.VOLUME_CHANGED to TriggerCategory.DEVICE,
-    TriggerType.APP_INSTALLED to TriggerCategory.APPS
+    TriggerType.APP_INSTALLED to TriggerCategory.APPS,
+    TriggerType.POWER_SAVER to TriggerCategory.DEVICE,
+    TriggerType.BLUETOOTH_STATE to TriggerCategory.CONNECTIVITY,
+    TriggerType.BRIGHTNESS_LEVEL to TriggerCategory.DEVICE,
+    TriggerType.STORAGE_LOW to TriggerCategory.DEVICE,
+    TriggerType.AUTO_ROTATE to TriggerCategory.DEVICE,
+    TriggerType.DATA_SAVER_STATE to TriggerCategory.CONNECTIVITY,
+    TriggerType.DEVICE_LOCKED to TriggerCategory.DEVICE,
+    TriggerType.WIFI_STATE to TriggerCategory.CONNECTIVITY,
+    TriggerType.NFC_STATE to TriggerCategory.CONNECTIVITY,
+    TriggerType.LOCATION_STATE to TriggerCategory.LOCATION,
+    TriggerType.SCREEN_ROTATION_STATE to TriggerCategory.DEVICE
 )
 
 /** Trigger types ordered by category — the picker walks [triggerCategories] over it. */
@@ -164,13 +191,24 @@ val triggerTypeOptions = listOf(
     TriggerType.CALL_STATE,
     TriggerType.MEDIA_PLAYING,
     TriggerType.VOLUME_CHANGED,
+    TriggerType.POWER_SAVER,
+    TriggerType.BRIGHTNESS_LEVEL,
+    TriggerType.STORAGE_LOW,
+    TriggerType.AUTO_ROTATE,
+    TriggerType.DEVICE_LOCKED,
+    TriggerType.SCREEN_ROTATION_STATE,
     // CONNECTIVITY
     TriggerType.CONNECTIVITY,
     TriggerType.NETWORK_MODE,
     TriggerType.BLUETOOTH_DEVICE,
+    TriggerType.BLUETOOTH_STATE,
+    TriggerType.WIFI_STATE,
+    TriggerType.NFC_STATE,
+    TriggerType.DATA_SAVER_STATE,
     TriggerType.WEBHOOK,
     // LOCATION
     TriggerType.LOCATION,
+    TriggerType.LOCATION_STATE,
     // APPS
     TriggerType.APPLICATION,
     TriggerType.APP_INSTALLED,
@@ -231,6 +269,17 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.APP_INSTALLED -> mapOf("event" to "INSTALLED", "package" to "")
     TriggerType.MEDIA_PLAYING -> mapOf("event" to "STARTED")
     TriggerType.VOLUME_CHANGED -> mapOf("stream" to "MUSIC", "threshold" to "50", "direction" to "ABOVE")
+    TriggerType.POWER_SAVER -> mapOf("state" to "ON")
+    TriggerType.BLUETOOTH_STATE -> mapOf("state" to "ON")
+    TriggerType.BRIGHTNESS_LEVEL -> mapOf("threshold" to "128", "direction" to "ABOVE")
+    TriggerType.STORAGE_LOW -> mapOf("threshold" to "1024", "direction" to "BELOW")
+    TriggerType.AUTO_ROTATE -> mapOf("state" to "ON")
+    TriggerType.DATA_SAVER_STATE -> mapOf("state" to "ON")
+    TriggerType.DEVICE_LOCKED -> mapOf("state" to "LOCKED")
+    TriggerType.WIFI_STATE -> mapOf("state" to "ON")
+    TriggerType.NFC_STATE -> mapOf("state" to "ON")
+    TriggerType.LOCATION_STATE -> mapOf("mode" to "HIGH")
+    TriggerType.SCREEN_ROTATION_STATE -> mapOf("state" to "PORTRAIT")
 }
 
 internal fun TriggerType.labelRes(): Int = when (this) {
@@ -257,6 +306,17 @@ internal fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.APP_INSTALLED -> R.string.trigger_type_app_installed
     TriggerType.MEDIA_PLAYING -> R.string.trigger_type_media_playing
     TriggerType.VOLUME_CHANGED -> R.string.trigger_type_volume_changed
+    TriggerType.POWER_SAVER -> R.string.trigger_type_power_saver
+    TriggerType.BLUETOOTH_STATE -> R.string.trigger_type_bluetooth_state
+    TriggerType.BRIGHTNESS_LEVEL -> R.string.trigger_type_brightness_level
+    TriggerType.STORAGE_LOW -> R.string.trigger_type_storage_low
+    TriggerType.AUTO_ROTATE -> R.string.trigger_type_auto_rotate
+    TriggerType.DATA_SAVER_STATE -> R.string.trigger_type_data_saver_state
+    TriggerType.DEVICE_LOCKED -> R.string.trigger_type_device_locked
+    TriggerType.WIFI_STATE -> R.string.trigger_type_wifi_state
+    TriggerType.NFC_STATE -> R.string.trigger_type_nfc_state
+    TriggerType.LOCATION_STATE -> R.string.trigger_type_location_state
+    TriggerType.SCREEN_ROTATION_STATE -> R.string.trigger_type_screen_rotation_state
 }
 
 internal fun TriggerType.icon(): ImageVector = when (this) {
@@ -283,6 +343,17 @@ internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.APP_INSTALLED -> Icons.Filled.Download
     TriggerType.MEDIA_PLAYING -> Icons.Filled.MusicNote
     TriggerType.VOLUME_CHANGED -> Icons.AutoMirrored.Filled.VolumeUp
+    TriggerType.POWER_SAVER -> Icons.Filled.BatteryChargingFull
+    TriggerType.BLUETOOTH_STATE -> Icons.Filled.Bluetooth
+    TriggerType.BRIGHTNESS_LEVEL -> Icons.Filled.BrightnessHigh
+    TriggerType.STORAGE_LOW -> Icons.Filled.Storage
+    TriggerType.AUTO_ROTATE -> Icons.Filled.ScreenRotation
+    TriggerType.DATA_SAVER_STATE -> Icons.Filled.DataUsage
+    TriggerType.DEVICE_LOCKED -> Icons.Filled.Lock
+    TriggerType.WIFI_STATE -> Icons.Filled.Wifi
+    TriggerType.NFC_STATE -> Icons.Filled.Nfc
+    TriggerType.LOCATION_STATE -> Icons.Filled.LocationOn
+    TriggerType.SCREEN_ROTATION_STATE -> Icons.Filled.ScreenRotation
 }
 
 private fun parseDateMillis(value: String): Long? {
@@ -765,6 +836,52 @@ private fun triggerSummary(draft: TriggerDraft): String {
             }
             "$stream · $direction ${c["threshold"] ?: "50"}"
         }
+        TriggerType.POWER_SAVER ->
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        TriggerType.BLUETOOTH_STATE ->
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        TriggerType.BRIGHTNESS_LEVEL -> {
+            val direction = if ((c["direction"] ?: "ABOVE") == "ABOVE") {
+                stringResource(R.string.volume_above)
+            } else {
+                stringResource(R.string.volume_below)
+            }
+            "$direction ${c["threshold"] ?: "128"}"
+        }
+        TriggerType.STORAGE_LOW -> {
+            val direction = if ((c["direction"] ?: "BELOW") == "BELOW") {
+                stringResource(R.string.storage_below)
+            } else {
+                stringResource(R.string.storage_above)
+            }
+            "$direction ${c["threshold"] ?: "1024"} MB"
+        }
+        TriggerType.AUTO_ROTATE ->
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        TriggerType.DATA_SAVER_STATE ->
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        TriggerType.DEVICE_LOCKED ->
+            if ((c["state"] ?: "LOCKED") == "LOCKED") stringResource(R.string.device_locked)
+            else stringResource(R.string.device_unlocked)
+        TriggerType.WIFI_STATE ->
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        TriggerType.NFC_STATE ->
+            if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        TriggerType.LOCATION_STATE -> when (c["mode"] ?: "HIGH") {
+            "OFF" -> stringResource(R.string.location_mode_off)
+            "SENSORS" -> stringResource(R.string.location_mode_sensors)
+            "BATTERY" -> stringResource(R.string.location_mode_battery)
+            else -> stringResource(R.string.location_mode_high)
+        }
+        TriggerType.SCREEN_ROTATION_STATE ->
+            if ((c["state"] ?: "PORTRAIT") == "PORTRAIT") stringResource(R.string.rotation_portrait)
+            else stringResource(R.string.rotation_landscape)
     }
 }
 
@@ -2272,6 +2389,158 @@ fun TriggerEditorCard(
                         label = { Text(text = stringResource(R.string.volume_threshold)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                TriggerType.POWER_SAVER -> {
+                    Text(text = stringResource(R.string.trigger_power_saver_state), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ON", "OFF"),
+                        labels = mapOf(
+                            "ON" to stringResource(R.string.state_on),
+                            "OFF" to stringResource(R.string.state_off)
+                        ),
+                        selected = draft.config["state"] ?: "ON",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
+                }
+                TriggerType.BLUETOOTH_STATE -> {
+                    Text(text = stringResource(R.string.trigger_bluetooth_state_hint), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ON", "OFF"),
+                        labels = mapOf(
+                            "ON" to stringResource(R.string.state_on),
+                            "OFF" to stringResource(R.string.state_off)
+                        ),
+                        selected = draft.config["state"] ?: "ON",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
+                }
+                TriggerType.BRIGHTNESS_LEVEL -> {
+                    Text(text = stringResource(R.string.trigger_brightness_direction), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ABOVE", "BELOW"),
+                        labels = mapOf(
+                            "ABOVE" to stringResource(R.string.volume_above),
+                            "BELOW" to stringResource(R.string.volume_below)
+                        ),
+                        selected = draft.config["direction"] ?: "ABOVE",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("direction" to it))) }
+                    )
+                    OutlinedTextField(
+                        value = draft.config["threshold"] ?: "128",
+                        onValueChange = { v ->
+                            onConfigChange(draft.copy(config = draft.config + ("threshold" to v.filter { it.isDigit() })))
+                        },
+                        label = { Text(text = stringResource(R.string.trigger_brightness_threshold)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                TriggerType.STORAGE_LOW -> {
+                    Text(text = stringResource(R.string.trigger_storage_direction), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("BELOW", "ABOVE"),
+                        labels = mapOf(
+                            "BELOW" to stringResource(R.string.storage_below),
+                            "ABOVE" to stringResource(R.string.storage_above)
+                        ),
+                        selected = draft.config["direction"] ?: "BELOW",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("direction" to it))) }
+                    )
+                    OutlinedTextField(
+                        value = draft.config["threshold"] ?: "1024",
+                        onValueChange = { v ->
+                            onConfigChange(draft.copy(config = draft.config + ("threshold" to v.filter { it.isDigit() })))
+                        },
+                        label = { Text(text = stringResource(R.string.trigger_storage_threshold)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                TriggerType.AUTO_ROTATE -> {
+                    Text(text = stringResource(R.string.trigger_auto_rotate_state), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ON", "OFF"),
+                        labels = mapOf(
+                            "ON" to stringResource(R.string.state_on),
+                            "OFF" to stringResource(R.string.state_off)
+                        ),
+                        selected = draft.config["state"] ?: "ON",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
+                }
+                TriggerType.DATA_SAVER_STATE -> {
+                    Text(text = stringResource(R.string.trigger_data_saver_state), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ON", "OFF"),
+                        labels = mapOf(
+                            "ON" to stringResource(R.string.state_on),
+                            "OFF" to stringResource(R.string.state_off)
+                        ),
+                        selected = draft.config["state"] ?: "ON",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
+                }
+                TriggerType.DEVICE_LOCKED -> {
+                    Text(text = stringResource(R.string.trigger_device_locked_state), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("LOCKED", "UNLOCKED"),
+                        labels = mapOf(
+                            "LOCKED" to stringResource(R.string.device_locked),
+                            "UNLOCKED" to stringResource(R.string.device_unlocked)
+                        ),
+                        selected = draft.config["state"] ?: "LOCKED",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
+                }
+                TriggerType.WIFI_STATE -> {
+                    Text(text = stringResource(R.string.trigger_wifi_state_hint), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ON", "OFF"),
+                        labels = mapOf(
+                            "ON" to stringResource(R.string.state_on),
+                            "OFF" to stringResource(R.string.state_off)
+                        ),
+                        selected = draft.config["state"] ?: "ON",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
+                }
+                TriggerType.NFC_STATE -> {
+                    Text(text = stringResource(R.string.trigger_nfc_state_hint), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ON", "OFF"),
+                        labels = mapOf(
+                            "ON" to stringResource(R.string.state_on),
+                            "OFF" to stringResource(R.string.state_off)
+                        ),
+                        selected = draft.config["state"] ?: "ON",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
+                }
+                TriggerType.LOCATION_STATE -> {
+                    Text(text = stringResource(R.string.trigger_location_mode), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("OFF", "SENSORS", "BATTERY", "HIGH"),
+                        labels = mapOf(
+                            "OFF" to stringResource(R.string.location_mode_off),
+                            "SENSORS" to stringResource(R.string.location_mode_sensors),
+                            "BATTERY" to stringResource(R.string.location_mode_battery),
+                            "HIGH" to stringResource(R.string.location_mode_high)
+                        ),
+                        selected = draft.config["mode"] ?: "HIGH",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("mode" to it))) }
+                    )
+                }
+                TriggerType.SCREEN_ROTATION_STATE -> {
+                    Text(text = stringResource(R.string.trigger_rotation_state), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("PORTRAIT", "LANDSCAPE"),
+                        labels = mapOf(
+                            "PORTRAIT" to stringResource(R.string.rotation_portrait),
+                            "LANDSCAPE" to stringResource(R.string.rotation_landscape)
+                        ),
+                        selected = draft.config["state"] ?: "PORTRAIT",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
                     )
                 }
             }

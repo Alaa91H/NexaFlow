@@ -64,6 +64,17 @@ enum class TriggerSource(val sourceId: String) {
             TriggerType.APP_INSTALLED -> APPLICATION
             TriggerType.MEDIA_PLAYING -> DEVICE
             TriggerType.VOLUME_CHANGED -> DEVICE
+            TriggerType.POWER_SAVER -> DEVICE
+            TriggerType.BLUETOOTH_STATE -> DEVICE
+            TriggerType.BRIGHTNESS_LEVEL -> DEVICE
+            TriggerType.STORAGE_LOW -> DEVICE
+            TriggerType.AUTO_ROTATE -> DEVICE
+            TriggerType.DATA_SAVER_STATE -> DEVICE
+            TriggerType.DEVICE_LOCKED -> DEVICE
+            TriggerType.WIFI_STATE -> DEVICE
+            TriggerType.NFC_STATE -> DEVICE
+            TriggerType.LOCATION_STATE -> DEVICE
+            TriggerType.SCREEN_ROTATION_STATE -> DEVICE
         }
     }
 }

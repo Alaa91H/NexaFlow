@@ -59,7 +59,17 @@ object EndBehaviorCatalog {
         ActionType.SYSTEM_EXTRA_DIM,
         ActionType.SYSTEM_NIGHT_LIGHT,
         ActionType.SYSTEM_HAPTIC_FEEDBACK,
-        ActionType.SYSTEM_SOUND_EFFECTS
+        ActionType.SYSTEM_SOUND_EFFECTS,
+        ActionType.SYSTEM_DATA_SAVER,
+        ActionType.SYSTEM_SCREENSAVER,
+        ActionType.SYSTEM_ALWAYS_ON_DISPLAY,
+        ActionType.SYSTEM_SHOW_TAPS,
+        ActionType.SYSTEM_POINTER_LOCATION,
+        ActionType.SYSTEM_ADAPTIVE_BATTERY,
+        ActionType.SYSTEM_AUTO_TIME,
+        ActionType.SYSTEM_AUTO_TIMEZONE,
+        ActionType.SYSTEM_CAMERA_SHUTTER_SOUND,
+        ActionType.SYSTEM_WIFI_SCANNING
     )
 
     /** Actions whose end options are a specific value / revert to previous. */

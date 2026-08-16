@@ -93,6 +93,17 @@ import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.WifiTethering
+import androidx.compose.material.icons.filled.Accessibility
+import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.FastRewind
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.PowerSettingsNew
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -267,6 +278,43 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_sound_effects, R.string.action_sound_effects_sub, Icons.Filled.GraphicEq, ActionType.SYSTEM_SOUND_EFFECTS, ActionCategory.SOUND),
     ActionOption(R.string.action_force_stop_app, R.string.action_force_stop_app_sub, Icons.Filled.Stop, ActionType.SYSTEM_FORCE_STOP_APP, ActionCategory.APPS),
     ActionOption(R.string.action_clear_app_data, R.string.action_clear_app_data_sub, Icons.Filled.DeleteSweep, ActionType.SYSTEM_CLEAR_APP_DATA, ActionCategory.APPS),
+    ActionOption(R.string.action_media_fast_forward, R.string.action_media_fast_forward_sub, Icons.Filled.FastForward, ActionType.SYSTEM_MEDIA_FAST_FORWARD, ActionCategory.MEDIA),
+    ActionOption(R.string.action_media_rewind, R.string.action_media_rewind_sub, Icons.Filled.FastRewind, ActionType.SYSTEM_MEDIA_REWIND, ActionCategory.MEDIA),
+    ActionOption(R.string.action_dial_number, R.string.action_dial_number_sub, Icons.Filled.Phone, ActionType.SYSTEM_DIAL_NUMBER, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_camera, R.string.action_open_camera_sub, Icons.Filled.CameraAlt, ActionType.SYSTEM_OPEN_CAMERA, ActionCategory.APPS),
+    ActionOption(R.string.action_open_play_store_app, R.string.action_open_play_store_app_sub, Icons.Filled.Storefront, ActionType.SYSTEM_OPEN_PLAY_STORE_APP, ActionCategory.APPS),
+    ActionOption(R.string.action_location_mode, R.string.action_location_mode_sub, Icons.Filled.LocationOn, ActionType.SYSTEM_LOCATION_MODE, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_data_saver, R.string.action_data_saver_sub, Icons.Filled.DataUsage, ActionType.SYSTEM_DATA_SAVER, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_wifi_sleep_policy, R.string.action_wifi_sleep_policy_sub, Icons.Filled.Wifi, ActionType.SYSTEM_WIFI_SLEEP_POLICY, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_bluetooth_discoverability, R.string.action_bluetooth_discoverability_sub, Icons.Filled.Bluetooth, ActionType.SYSTEM_BLUETOOTH_DISCOVERABILITY, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_auto_time, R.string.action_auto_time_sub, Icons.Filled.Schedule, ActionType.SYSTEM_AUTO_TIME, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_auto_timezone, R.string.action_auto_timezone_sub, Icons.Filled.Public, ActionType.SYSTEM_AUTO_TIMEZONE, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_wifi_scanning, R.string.action_wifi_scanning_sub, Icons.Filled.Wifi, ActionType.SYSTEM_WIFI_SCANNING, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_font_scale, R.string.action_font_scale_sub, Icons.Filled.TextFields, ActionType.SYSTEM_FONT_SCALE, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_display_density, R.string.action_display_density_sub, Icons.Filled.ScreenRotation, ActionType.SYSTEM_DISPLAY_DENSITY, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_screensaver, R.string.action_screensaver_sub, Icons.Filled.BrightnessLow, ActionType.SYSTEM_SCREENSAVER, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_always_on_display, R.string.action_always_on_display_sub, Icons.Filled.WbSunny, ActionType.SYSTEM_ALWAYS_ON_DISPLAY, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_show_taps, R.string.action_show_taps_sub, Icons.Filled.TouchApp, ActionType.SYSTEM_SHOW_TAPS, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_pointer_location, R.string.action_pointer_location_sub, Icons.Filled.GpsFixed, ActionType.SYSTEM_POINTER_LOCATION, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_battery_saver_threshold, R.string.action_battery_saver_threshold_sub, Icons.Filled.BatteryChargingFull, ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD, ActionCategory.BATTERY),
+    ActionOption(R.string.action_adaptive_battery, R.string.action_adaptive_battery_sub, Icons.Filled.BatteryChargingFull, ActionType.SYSTEM_ADAPTIVE_BATTERY, ActionCategory.BATTERY),
+    ActionOption(R.string.action_haptic_intensity, R.string.action_haptic_intensity_sub, Icons.Filled.GraphicEq, ActionType.SYSTEM_HAPTIC_INTENSITY, ActionCategory.SOUND),
+    ActionOption(R.string.action_camera_shutter_sound, R.string.action_camera_shutter_sound_sub, Icons.Filled.CameraAlt, ActionType.SYSTEM_CAMERA_SHUTTER_SOUND, ActionCategory.SOUND),
+    ActionOption(R.string.action_open_wifi_settings, R.string.action_open_wifi_settings_sub, Icons.Filled.Wifi, ActionType.SYSTEM_OPEN_WIFI_SETTINGS, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_open_bluetooth_settings, R.string.action_open_bluetooth_settings_sub, Icons.Filled.Bluetooth, ActionType.SYSTEM_OPEN_BLUETOOTH_SETTINGS, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_open_location_settings, R.string.action_open_location_settings_sub, Icons.Filled.LocationOn, ActionType.SYSTEM_OPEN_LOCATION_SETTINGS, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_open_data_usage_settings, R.string.action_open_data_usage_settings_sub, Icons.Filled.DataUsage, ActionType.SYSTEM_OPEN_DATA_USAGE_SETTINGS, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_open_battery_settings, R.string.action_open_battery_settings_sub, Icons.Filled.BatteryChargingFull, ActionType.SYSTEM_OPEN_BATTERY_SETTINGS, ActionCategory.BATTERY),
+    ActionOption(R.string.action_open_display_settings, R.string.action_open_display_settings_sub, Icons.Filled.ScreenRotation, ActionType.SYSTEM_OPEN_DISPLAY_SETTINGS, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_open_sound_settings, R.string.action_open_sound_settings_sub, Icons.AutoMirrored.Filled.VolumeUp, ActionType.SYSTEM_OPEN_SOUND_SETTINGS, ActionCategory.SOUND),
+    ActionOption(R.string.action_open_storage_settings, R.string.action_open_storage_settings_sub, Icons.Filled.Storage, ActionType.SYSTEM_OPEN_STORAGE_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_security_settings, R.string.action_open_security_settings_sub, Icons.Filled.Security, ActionType.SYSTEM_OPEN_SECURITY_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_accessibility_settings, R.string.action_open_accessibility_settings_sub, Icons.Filled.Accessibility, ActionType.SYSTEM_OPEN_ACCESSIBILITY_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_app_settings_list, R.string.action_open_app_settings_list_sub, Icons.Filled.Apps, ActionType.SYSTEM_OPEN_APP_SETTINGS_LIST, ActionCategory.APPS),
+    ActionOption(R.string.action_open_about_phone, R.string.action_open_about_phone_sub, Icons.Filled.Info, ActionType.SYSTEM_OPEN_ABOUT_PHONE, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_reboot, R.string.action_reboot_sub, Icons.Filled.Refresh, ActionType.SYSTEM_REBOOT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_shutdown, R.string.action_shutdown_sub, Icons.Filled.PowerSettingsNew, ActionType.SYSTEM_SHUTDOWN, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_restart_system_ui, R.string.action_restart_system_ui_sub, Icons.Filled.Refresh, ActionType.SYSTEM_RESTART_SYSTEM_UI, ActionCategory.SYSTEM),
     // BATTERY
     ActionOption(R.string.action_battery_alert, R.string.action_battery_alert_sub, Icons.Filled.BatteryAlert, ActionType.BATTERY_ALERTS, ActionCategory.BATTERY),
     ActionOption(R.string.action_charging_alert, R.string.action_charging_alert_sub, Icons.Filled.BatteryChargingFull, ActionType.BATTERY_CHARGING_NOTIFICATIONS, ActionCategory.BATTERY),
@@ -431,6 +479,50 @@ private fun actionSummary(option: ActionOption, config: Map<String, String>): St
             else stringResource(R.string.state_off)
         ActionType.SYSTEM_FORCE_STOP_APP,
         ActionType.SYSTEM_CLEAR_APP_DATA -> config["package"].orEmpty().trim().ifEmpty { null }
+        ActionType.SYSTEM_DATA_SAVER,
+        ActionType.SYSTEM_SCREENSAVER,
+        ActionType.SYSTEM_ALWAYS_ON_DISPLAY,
+        ActionType.SYSTEM_SHOW_TAPS,
+        ActionType.SYSTEM_POINTER_LOCATION,
+        ActionType.SYSTEM_ADAPTIVE_BATTERY,
+        ActionType.SYSTEM_AUTO_TIME,
+        ActionType.SYSTEM_AUTO_TIMEZONE,
+        ActionType.SYSTEM_CAMERA_SHUTTER_SOUND,
+        ActionType.SYSTEM_WIFI_SCANNING ->
+            if (config["enabled"]?.toBoolean() ?: true) stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        ActionType.SYSTEM_LOCATION_MODE -> when (config["mode"] ?: "HIGH") {
+            "OFF" -> stringResource(R.string.location_mode_off)
+            "SENSORS" -> stringResource(R.string.location_mode_sensors)
+            "BATTERY" -> stringResource(R.string.location_mode_battery)
+            else -> stringResource(R.string.location_mode_high)
+        }
+        ActionType.SYSTEM_FONT_SCALE -> config["scale"] ?: "1.0"
+        ActionType.SYSTEM_DISPLAY_DENSITY -> "${config["dpi"] ?: "440"} dpi"
+        ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD -> "${config["percent"] ?: "20"}%"
+        ActionType.SYSTEM_WIFI_SLEEP_POLICY -> when (config["policy"] ?: "ALWAYS") {
+            "PLUGGED" -> stringResource(R.string.wifi_sleep_plugged)
+            "NEVER" -> stringResource(R.string.wifi_sleep_never)
+            else -> stringResource(R.string.wifi_sleep_always)
+        }
+        ActionType.SYSTEM_BLUETOOTH_DISCOVERABILITY -> {
+            val t = config["timeoutSeconds"]?.toIntOrNull() ?: 300
+            if (t == 0) stringResource(R.string.state_off) else "${t}s"
+        }
+        ActionType.SYSTEM_HAPTIC_INTENSITY -> config["level"] ?: "255"
+        ActionType.SYSTEM_OPEN_WIFI_SETTINGS -> stringResource(R.string.settings_wifi)
+        ActionType.SYSTEM_OPEN_BLUETOOTH_SETTINGS -> stringResource(R.string.settings_bluetooth)
+        ActionType.SYSTEM_OPEN_LOCATION_SETTINGS -> stringResource(R.string.settings_location)
+        ActionType.SYSTEM_OPEN_DATA_USAGE_SETTINGS -> stringResource(R.string.settings_data_usage)
+        ActionType.SYSTEM_OPEN_BATTERY_SETTINGS -> stringResource(R.string.settings_battery)
+        ActionType.SYSTEM_OPEN_DISPLAY_SETTINGS -> stringResource(R.string.settings_display)
+        ActionType.SYSTEM_OPEN_SOUND_SETTINGS -> stringResource(R.string.settings_sound)
+        ActionType.SYSTEM_OPEN_STORAGE_SETTINGS -> stringResource(R.string.settings_storage)
+        ActionType.SYSTEM_OPEN_SECURITY_SETTINGS -> stringResource(R.string.settings_security)
+        ActionType.SYSTEM_OPEN_ACCESSIBILITY_SETTINGS -> stringResource(R.string.settings_accessibility)
+        ActionType.SYSTEM_OPEN_APP_SETTINGS_LIST -> stringResource(R.string.settings_apps)
+        ActionType.SYSTEM_OPEN_ABOUT_PHONE -> stringResource(R.string.settings_about)
+        ActionType.SYSTEM_DIAL_NUMBER -> config["number"].orEmpty().trim().ifEmpty { null }
         else -> null
     }
     return if (value.isNullOrBlank()) name else "$name · $value"

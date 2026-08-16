@@ -51,7 +51,17 @@ class DeviceStateSnapshot private constructor(
     private val extraDim: Boolean?,
     private val nightLight: Boolean?,
     private val hapticFeedback: Boolean?,
-    private val soundEffects: Boolean?
+    private val soundEffects: Boolean?,
+    private val dataSaver: Boolean?,
+    private val screensaver: Boolean?,
+    private val alwaysOnDisplay: Boolean?,
+    private val showTaps: Boolean?,
+    private val pointerLocation: Boolean?,
+    private val adaptiveBattery: Boolean?,
+    private val autoTime: Boolean?,
+    private val autoTimezone: Boolean?,
+    private val cameraShutterSound: Boolean?,
+    private val wifiScanning: Boolean?
 ) {
 
     fun restore(context: Context) {
@@ -78,6 +88,16 @@ class DeviceStateSnapshot private constructor(
         restoreSettingsToggle(controller, "SECURE", "night_display_activated", nightLight)
         restoreSettingsToggle(controller, "SYSTEM", "haptic_feedback_enabled", hapticFeedback)
         restoreSettingsToggle(controller, "SYSTEM", "sound_effects_enabled", soundEffects)
+        restoreSettingsToggle(controller, "GLOBAL", "data_saver", dataSaver)
+        restoreSettingsToggle(controller, "SECURE", "screensaver_enabled", screensaver)
+        restoreSettingsToggle(controller, "SECURE", "always_on_display_enabled", alwaysOnDisplay)
+        restoreSettingsToggle(controller, "SYSTEM", "show_touches", showTaps)
+        restoreSettingsToggle(controller, "SYSTEM", "pointer_location", pointerLocation)
+        restoreSettingsToggle(controller, "GLOBAL", "adaptive_battery_management_enabled", adaptiveBattery)
+        restoreSettingsToggle(controller, "GLOBAL", "auto_time", autoTime)
+        restoreSettingsToggle(controller, "GLOBAL", "auto_time_zone", autoTimezone)
+        restoreSettingsToggle(controller, "SYSTEM", "camera_sound", cameraShutterSound)
+        restoreSettingsToggle(controller, "GLOBAL", "wifi_scan_always_enabled", wifiScanning)
     }
 
     /**
@@ -122,6 +142,26 @@ class DeviceStateSnapshot private constructor(
                 restoreSettingsToggle(controller, "SYSTEM", "haptic_feedback_enabled", hapticFeedback)
             ActionType.SYSTEM_SOUND_EFFECTS ->
                 restoreSettingsToggle(controller, "SYSTEM", "sound_effects_enabled", soundEffects)
+            ActionType.SYSTEM_DATA_SAVER ->
+                restoreSettingsToggle(controller, "GLOBAL", "data_saver", dataSaver)
+            ActionType.SYSTEM_SCREENSAVER ->
+                restoreSettingsToggle(controller, "SECURE", "screensaver_enabled", screensaver)
+            ActionType.SYSTEM_ALWAYS_ON_DISPLAY ->
+                restoreSettingsToggle(controller, "SECURE", "always_on_display_enabled", alwaysOnDisplay)
+            ActionType.SYSTEM_SHOW_TAPS ->
+                restoreSettingsToggle(controller, "SYSTEM", "show_touches", showTaps)
+            ActionType.SYSTEM_POINTER_LOCATION ->
+                restoreSettingsToggle(controller, "SYSTEM", "pointer_location", pointerLocation)
+            ActionType.SYSTEM_ADAPTIVE_BATTERY ->
+                restoreSettingsToggle(controller, "GLOBAL", "adaptive_battery_management_enabled", adaptiveBattery)
+            ActionType.SYSTEM_AUTO_TIME ->
+                restoreSettingsToggle(controller, "GLOBAL", "auto_time", autoTime)
+            ActionType.SYSTEM_AUTO_TIMEZONE ->
+                restoreSettingsToggle(controller, "GLOBAL", "auto_time_zone", autoTimezone)
+            ActionType.SYSTEM_CAMERA_SHUTTER_SOUND ->
+                restoreSettingsToggle(controller, "SYSTEM", "camera_sound", cameraShutterSound)
+            ActionType.SYSTEM_WIFI_SCANNING ->
+                restoreSettingsToggle(controller, "GLOBAL", "wifi_scan_always_enabled", wifiScanning)
             ActionType.SYSTEM_SCREEN_ROTATION -> restoreToggle(controller::setScreenRotation, autoRotate)
             ActionType.SYSTEM_BRIGHTNESS ->
                 runCatching { controller.setBrightness(brightness) }.getOrElse { SystemControlResult.fail(it.message ?: "restore failed") }
@@ -272,6 +312,16 @@ class DeviceStateSnapshot private constructor(
                 nightLight = secureBool(context, "night_display_activated"),
                 hapticFeedback = systemBool(context, "haptic_feedback_enabled"),
                 soundEffects = systemBool(context, "sound_effects_enabled"),
+                dataSaver = globalBool(context, "data_saver"),
+                screensaver = secureBool(context, "screensaver_enabled"),
+                alwaysOnDisplay = secureBool(context, "always_on_display_enabled"),
+                showTaps = systemBool(context, "show_touches"),
+                pointerLocation = systemBool(context, "pointer_location"),
+                adaptiveBattery = globalBool(context, "adaptive_battery_management_enabled"),
+                autoTime = globalBool(context, "auto_time"),
+                autoTimezone = globalBool(context, "auto_time_zone"),
+                cameraShutterSound = systemBool(context, "camera_sound"),
+                wifiScanning = globalBool(context, "wifi_scan_always_enabled"),
                 hotspotEnabled = globalBool(context, "tether_on"),
                 airplaneModeEnabled = globalBool(context, Settings.Global.AIRPLANE_MODE_ON),
                 dndEnabled = runCatching {

@@ -86,6 +86,81 @@ object TriggerStateEvaluator {
             // Install/remove events cannot be re-derived statically; an
             // unknown state never blocks a manual run.
             TriggerType.APP_INSTALLED -> true
+            TriggerType.POWER_SAVER -> {
+                val on = Settings.Global.getInt(
+                    context.contentResolver, "low_power", 0
+                ) == 1
+                ((c["state"] ?: "ON") == "ON") == on
+            }
+            TriggerType.BLUETOOTH_STATE -> {
+                val adapter = android.bluetooth.BluetoothAdapter.getDefaultAdapter()
+                    ?: return true
+                val on = adapter.state == android.bluetooth.BluetoothAdapter.STATE_ON
+                ((c["state"] ?: "ON") == "ON") == on
+            }
+            TriggerType.BRIGHTNESS_LEVEL -> {
+                val brightness = Settings.System.getInt(
+                    context.contentResolver, Settings.System.SCREEN_BRIGHTNESS, 128
+                )
+                val threshold = (c["threshold"] ?: "128").toIntOrNull() ?: 128
+                if ((c["direction"] ?: "ABOVE") == "BELOW") brightness <= threshold
+                else brightness >= threshold
+            }
+            TriggerType.STORAGE_LOW -> {
+                val thresholdMb = (c["threshold"] ?: "1024").toLongOrNull() ?: 1024L
+                val freeMb = runCatching {
+                    android.os.StatFs(context.filesDir.path).availableBytes / (1024L * 1024L)
+                }.getOrDefault(-1L)
+                if (freeMb < 0) return true
+                if ((c["direction"] ?: "BELOW") == "ABOVE") freeMb >= thresholdMb
+                else freeMb <= thresholdMb
+            }
+            TriggerType.AUTO_ROTATE -> {
+                val on = Settings.System.getInt(
+                    context.contentResolver, Settings.System.ACCELEROMETER_ROTATION, 0
+                ) == 1
+                ((c["state"] ?: "ON") == "ON") == on
+            }
+            TriggerType.DATA_SAVER_STATE -> {
+                val on = Settings.Global.getInt(
+                    context.contentResolver, "data_saver", 0
+                ) == 1
+                ((c["state"] ?: "ON") == "ON") == on
+            }
+            TriggerType.DEVICE_LOCKED -> {
+                val wantLocked = (c["state"] ?: "LOCKED") == "LOCKED"
+                val power = context.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
+                val locked = power?.isInteractive != true
+                locked == wantLocked
+            }
+            TriggerType.WIFI_STATE -> {
+                val wifi = context.getSystemService(Context.WIFI_SERVICE) as? android.net.wifi.WifiManager
+                val on = wifi?.isWifiEnabled == true
+                ((c["state"] ?: "ON") == "ON") == on
+            }
+            TriggerType.NFC_STATE -> {
+                val nfc = context.getSystemService(Context.NFC_SERVICE) as? android.nfc.NfcAdapter
+                val on = nfc?.isEnabled == true
+                ((c["state"] ?: "ON") == "ON") == on
+            }
+            TriggerType.LOCATION_STATE -> {
+                val mode = Settings.Secure.getInt(
+                    context.contentResolver, Settings.Secure.LOCATION_MODE, 0
+                )
+                val wantMode = when ((c["mode"] ?: "HIGH").uppercase()) {
+                    "OFF" -> 0
+                    "SENSORS" -> 1
+                    "BATTERY" -> 2
+                    else -> 3
+                }
+                mode == wantMode
+            }
+            TriggerType.SCREEN_ROTATION_STATE -> {
+                val wantPortrait = (c["state"] ?: "PORTRAIT") == "PORTRAIT"
+                val portrait = (context.resources.configuration.orientation ==
+                    Configuration.ORIENTATION_PORTRAIT)
+                portrait == wantPortrait
+            }
             else -> true
         }
     }

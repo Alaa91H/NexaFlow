@@ -45,4 +45,15 @@
     <string name="trigger_app_installed">App installed</string>
     <string name="trigger_media_playing">Media playing</string>
     <string name="trigger_volume_changed">Volume changed</string>
+    <string name="trigger_power_saver">Power saver</string>
+    <string name="trigger_bluetooth_state">Bluetooth</string>
+    <string name="trigger_brightness_level">Brightness</string>
+    <string name="trigger_storage_low">Storage</string>
+    <string name="trigger_auto_rotate">Auto-rotate</string>
+    <string name="trigger_data_saver_state">Data saver</string>
+    <string name="trigger_device_locked">Device locked</string>
+    <string name="trigger_wifi_state">Wi-Fi</string>
+    <string name="trigger_nfc_state">NFC</string>
+    <string name="trigger_location_state">Location mode</string>
+    <string name="trigger_screen_rotation_state">Screen rotation</string>
 </resources>

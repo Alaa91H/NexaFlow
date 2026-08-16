@@ -20,6 +20,8 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.provider.Settings
+import android.net.Uri
+import android.provider.MediaStore
 import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -268,6 +270,8 @@ class SystemController(
             "NEXT" -> KeyEvent.KEYCODE_MEDIA_NEXT
             "PREVIOUS" -> KeyEvent.KEYCODE_MEDIA_PREVIOUS
             "STOP" -> KeyEvent.KEYCODE_MEDIA_STOP
+            "FAST_FORWARD" -> KeyEvent.KEYCODE_MEDIA_FAST_FORWARD
+            "REWIND" -> KeyEvent.KEYCODE_MEDIA_REWIND
             else -> KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
         }
         return try {
@@ -797,7 +801,12 @@ class SystemController(
             "DISPLAY" -> Intent(Settings.ACTION_DISPLAY_SETTINGS)
             "BATTERY" -> Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS)
             "NOTIFICATION" -> Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
-            "DATA" -> Intent(Settings.ACTION_DATA_ROAMING_SETTINGS)
+            "DATA_USAGE" -> Intent(Settings.ACTION_DATA_USAGE_SETTINGS)
+            "STORAGE" -> Intent(Settings.ACTION_INTERNAL_STORAGE_SETTINGS)
+            "SECURITY" -> Intent(Settings.ACTION_SECURITY_SETTINGS)
+            "ACCESSIBILITY" -> Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            "APPS" -> Intent(Settings.ACTION_APPLICATION_SETTINGS)
+            "ABOUT" -> Intent(Settings.ACTION_DEVICE_INFO_SETTINGS)
             else -> Intent(Settings.ACTION_SETTINGS)
         }
         return try {
@@ -1094,6 +1103,304 @@ class SystemController(
             if (shell.success) SystemControlResult.ok("$pkg data cleared") else shell
         } catch (t: Throwable) {
             SystemControlResult.fail("Clear data failed: ${t.message}")
+        }
+    }
+
+
+    /** Sets the location mode: OFF=0, SENSORS_ONLY=1, BATTERY_SAVING=2, HIGH_ACCURACY=3. */
+    fun setLocationMode(mode: String): SystemControlResult {
+        val code = when (mode.uppercase()) {
+            "OFF" -> "0"
+            "SENSORS_ONLY" -> "1"
+            "BATTERY_SAVING" -> "2"
+            "HIGH_ACCURACY" -> "3"
+            else -> mode
+        }
+        if (code !in setOf("0", "1", "2", "3")) return SystemControlResult.fail("Invalid location mode: $mode")
+        return try {
+            val secure = PrivilegedRunner.runShell(
+                SafeCommandBuilder.build("settings", "put", "secure", "location_mode", code)
+            )
+            if (secure.success) {
+                // consent flag required on Android 10+ for high accuracy
+                if (code != "0") {
+                    PrivilegedRunner.runShell(
+                        SafeCommandBuilder.build("settings", "put", "secure", "location_global_consent", "1")
+                    )
+                }
+                SystemControlResult.ok("Location mode set to $mode")
+            } else secure
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Location mode failed: ${t.message}")
+        }
+    }
+
+    /** Enables/disables the global data saver. */
+    fun setDataSaver(enabled: Boolean): SystemControlResult {
+        return try {
+            val shell = PrivilegedRunner.runShell(
+                SafeCommandBuilder.build("settings", "put", "global", "data_saver", if (enabled) "1" else "0")
+            )
+            if (shell.success) SystemControlResult.ok("Data saver ${if (enabled) "on" else "off"}") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Data saver failed: ${t.message}")
+        }
+    }
+
+    /** Sets the system font scale (e.g. 0.85, 1.0, 1.15, 1.3). */
+    fun setFontScale(scale: Float): SystemControlResult {
+        if (scale <= 0f || scale > 2f) return SystemControlResult.fail("Invalid font scale: $scale")
+        val value = scale.toString()
+        return try {
+            val shell = PrivilegedRunner.runShell(
+                SafeCommandBuilder.build("settings", "put", "system", "font_scale", value)
+            )
+            if (shell.success) SystemControlResult.ok("Font scale $scale") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Font scale failed: ${t.message}")
+        }
+    }
+
+    /** Sets the display density in dpi (wm density). */
+    fun setDisplayDensity(dpi: Int): SystemControlResult {
+        if (dpi < 120 || dpi > 1000) return SystemControlResult.fail("Invalid density: $dpi")
+        return try {
+            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("wm", "density", dpi.toString()))
+            if (shell.success) SystemControlResult.ok("Density set to $dpi dpi") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Density failed: ${t.message}")
+        }
+    }
+
+    /** Enables/disables the screensaver (daydream). */
+    fun setScreensaver(enabled: Boolean): SystemControlResult {
+        val on = if (enabled) "1" else "0"
+        return try {
+            val secure = PrivilegedRunner.runShell(
+                SafeCommandBuilder.build("settings", "put", "secure", "screensaver_enabled", on)
+            )
+            if (secure.success) SystemControlResult.ok("Screensaver ${if (enabled) "on" else "off"}") else secure
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Screensaver failed: ${t.message}")
+        }
+    }
+
+    /** Sets the battery saver trigger level as a percentage (0-100). */
+    fun setBatterySaverThreshold(percent: Int): SystemControlResult {
+        val p = percent.coerceIn(0, 100)
+        return try {
+            val shell = PrivilegedRunner.runShell(
+                SafeCommandBuilder.build("settings", "put", "global", "low_power_trigger_level", p.toString())
+            )
+            if (shell.success) SystemControlResult.ok("Battery saver at $p%") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Battery threshold failed: ${t.message}")
+        }
+    }
+
+    /** Enables/disables the always-on display. */
+    fun setAlwaysOnDisplay(enabled: Boolean): SystemControlResult {
+        val on = if (enabled) "1" else "0"
+        return try {
+            val secure = PrivilegedRunner.runShell(
+                SafeCommandBuilder.build("settings", "put", "secure", "always_on_display_enabled", on)
+            )
+            if (secure.success) SystemControlResult.ok("Always-on display ${if (enabled) "on" else "off"}") else secure
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Always-on display failed: ${t.message}")
+        }
+    }
+
+    /** Shows/hides touch taps. */
+    fun setShowTaps(enabled: Boolean): SystemControlResult {
+        return try {
+            val shell = PrivilegedRunner.runShell(
+                SafeCommandBuilder.build("settings", "put", "system", "show_touches", if (enabled) "1" else "0")
+            )
+            if (shell.success) SystemControlResult.ok("Show taps ${if (enabled) "on" else "off"}") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Show taps failed: ${t.message}")
+        }
+    }
+
+    /** Shows/hides the pointer location overlay. */
+    fun setPointerLocation(enabled: Boolean): SystemControlResult {
+        return try {
+            val shell = PrivilegedRunner.runShell(
+                SafeCommandBuilder.build("settings", "put", "system", "pointer_location", if (enabled) "1" else "0")
+            )
+            if (shell.success) SystemControlResult.ok("Pointer location ${if (enabled) "on" else "off"}") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Pointer location failed: ${t.message}")
+        }
+    }
+
+    /** Enables/disables adaptive battery. */
+    fun setAdaptiveBattery(enabled: Boolean): SystemControlResult {
+        return try {
+            val shell = PrivilegedRunner.runShell(
+                SafeCommandBuilder.build(
+                    "settings", "put", "global", "adaptive_battery_management_enabled",
+                    if (enabled) "1" else "0"
+                )
+            )
+            if (shell.success) SystemControlResult.ok("Adaptive battery ${if (enabled) "on" else "off"}") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Adaptive battery failed: ${t.message}")
+        }
+    }
+
+    /** Sets the Wi-Fi sleep policy: 0=always on, 1=only when plugged in, 2=never. */
+    fun setWifiSleepPolicy(policy: String): SystemControlResult {
+        val code = when (policy.uppercase()) {
+            "ALWAYS" -> "0"
+            "PLUGGED" -> "1"
+            "NEVER" -> "2"
+            else -> policy
+        }
+        if (code !in setOf("0", "1", "2")) return SystemControlResult.fail("Invalid Wi-Fi sleep policy: $policy")
+        return try {
+            val shell = PrivilegedRunner.runShell(
+                SafeCommandBuilder.build("settings", "put", "global", "wifi_sleep_policy", code)
+            )
+            if (shell.success) SystemControlResult.ok("Wi-Fi sleep policy $policy") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Wi-Fi sleep policy failed: ${t.message}")
+        }
+    }
+
+    /** Sets Bluetooth discoverability timeout: 0=never, 150=30s, 300=60s (seconds). */
+    fun setBluetoothDiscoverability(timeoutSeconds: Int): SystemControlResult {
+        val t = timeoutSeconds.coerceIn(0, 3600)
+        return try {
+            val shell = PrivilegedRunner.runShell(
+                SafeCommandBuilder.build("settings", "put", "global", "bluetooth_discoverable_timeout", t.toString())
+            )
+            if (shell.success) SystemControlResult.ok("Bluetooth discoverable ${t}s") else shell
+        } catch (e: Throwable) {
+            SystemControlResult.fail("Bluetooth discoverability failed: ${e.message}")
+        }
+    }
+
+    /** Enables/disables automatic date & time. */
+    fun setAutoTime(enabled: Boolean): SystemControlResult {
+        return try {
+            val shell = PrivilegedRunner.runShell(
+                SafeCommandBuilder.build("settings", "put", "global", "auto_time", if (enabled) "1" else "0")
+            )
+            if (shell.success) SystemControlResult.ok("Auto time ${if (enabled) "on" else "off"}") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Auto time failed: ${t.message}")
+        }
+    }
+
+    /** Enables/disables automatic timezone. */
+    fun setAutoTimezone(enabled: Boolean): SystemControlResult {
+        return try {
+            val shell = PrivilegedRunner.runShell(
+                SafeCommandBuilder.build("settings", "put", "global", "auto_time_zone", if (enabled) "1" else "0")
+            )
+            if (shell.success) SystemControlResult.ok("Auto timezone ${if (enabled) "on" else "off"}") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Auto timezone failed: ${t.message}")
+        }
+    }
+
+    /** Sets haptic feedback intensity (0-255). */
+    fun setHapticIntensity(level: Int): SystemControlResult {
+        val l = level.coerceIn(0, 255)
+        return try {
+            val shell = PrivilegedRunner.runShell(
+                SafeCommandBuilder.build("settings", "put", "system", "haptic_feedback_intensity", l.toString())
+            )
+            if (shell.success) SystemControlResult.ok("Haptic intensity $l") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Haptic intensity failed: ${t.message}")
+        }
+    }
+
+    /** Enables/disables the camera shutter sound. */
+    fun setCameraShutterSound(enabled: Boolean): SystemControlResult {
+        return try {
+            val shell = PrivilegedRunner.runShell(
+                SafeCommandBuilder.build("settings", "put", "system", "camera_sound", if (enabled) "1" else "0")
+            )
+            if (shell.success) SystemControlResult.ok("Camera sound ${if (enabled) "on" else "off"}") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Camera sound failed: ${t.message}")
+        }
+    }
+
+    /** Enables/disables always-on Wi-Fi scanning. */
+    fun setWifiScanning(enabled: Boolean): SystemControlResult {
+        return try {
+            val shell = PrivilegedRunner.runShell(
+                SafeCommandBuilder.build("settings", "put", "global", "wifi_scan_always_enabled", if (enabled) "1" else "0")
+            )
+            if (shell.success) SystemControlResult.ok("Wi-Fi scanning ${if (enabled) "on" else "off"}") else shell
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Wi-Fi scanning failed: ${t.message}")
+        }
+    }
+
+    /** Dials a phone number via the dialer (no call placed). */
+    fun dialNumber(number: String): SystemControlResult {
+        if (number.isBlank()) return SystemControlResult.fail("No number configured")
+        return try {
+            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${Uri.encode(number)}"))
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            SystemControlResult.ok("Dialer opened for $number")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Dial failed: ${t.message}")
+        }
+    }
+
+    /** Opens the camera app. */
+    fun openCamera(): SystemControlResult {
+        return try {
+            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            SystemControlResult.ok("Camera opened")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Camera failed: ${t.message}")
+        }
+    }
+
+    /** Opens the Play Store app itself. */
+    fun openPlayStoreApp(): SystemControlResult {
+        return try {
+            val intent = context.packageManager.getLaunchIntentForPackage("com.android.vending")
+                ?: return SystemControlResult.fail("Play Store not installed")
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            SystemControlResult.ok("Play Store opened")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Play Store failed: ${t.message}")
+        }
+    }
+
+    /** Reboots the device (requires root). */
+    fun rebootDevice(): SystemControlResult =
+        tryPrivileged(SafeCommandBuilder.build("reboot"), "Reboot requested")
+
+    /** Shuts the device down (requires root). */
+    fun shutdownDevice(): SystemControlResult =
+        tryPrivileged(SafeCommandBuilder.build("reboot", "-p"), "Shutdown requested")
+
+    /** Restarts the System UI process (requires root; falls back to a soft refresh). */
+    fun restartSystemUi(): SystemControlResult {
+        val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("pkill", "-f", "com.android.systemui"))
+        if (shell.success) return SystemControlResult.ok("System UI restarted")
+        // Some Roms expose the stopservice path through cmd; otherwise report the failure.
+        val fallback = PrivilegedRunner.runShell(
+            SafeCommandBuilder.build("am", "broadcast", "-a", "android.intent.action.CLOSE_SYSTEM_DIALOGS")
+        )
+        return if (fallback.success) {
+            SystemControlResult.ok("System UI refresh requested")
+        } else {
+            SystemControlResult.fail("System UI restart requires root: ${shell.message}")
         }
     }
 

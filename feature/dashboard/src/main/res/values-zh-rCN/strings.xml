@@ -45,4 +45,15 @@
     <string name="trigger_app_installed">应用已安装</string>
     <string name="trigger_media_playing">媒体播放</string>
     <string name="trigger_volume_changed">音量已更改</string>
+    <string name="trigger_power_saver">省电模式</string>
+    <string name="trigger_bluetooth_state">蓝牙</string>
+    <string name="trigger_brightness_level">亮度</string>
+    <string name="trigger_storage_low">存储</string>
+    <string name="trigger_auto_rotate">自动旋转</string>
+    <string name="trigger_data_saver_state">数据节省程序</string>
+    <string name="trigger_device_locked">设备已锁定</string>
+    <string name="trigger_wifi_state">Wi-Fi</string>
+    <string name="trigger_nfc_state">NFC</string>
+    <string name="trigger_location_state">定位模式</string>
+    <string name="trigger_screen_rotation_state">屏幕旋转</string>
 </resources>

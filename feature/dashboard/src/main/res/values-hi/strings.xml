@@ -45,4 +45,15 @@
     <string name="trigger_app_installed">ऐप इंस्टॉल हुआ</string>
     <string name="trigger_media_playing">मीडिया चल रहा है</string>
     <string name="trigger_volume_changed">वॉल्यूम बदला</string>
+    <string name="trigger_power_saver">पावर सेवर</string>
+    <string name="trigger_bluetooth_state">ब्लूटूथ</string>
+    <string name="trigger_brightness_level">चमक</string>
+    <string name="trigger_storage_low">स्टोरेज</string>
+    <string name="trigger_auto_rotate">ऑटो-रोटेट</string>
+    <string name="trigger_data_saver_state">डेटा सेवर</string>
+    <string name="trigger_device_locked">डिवाइस लॉक</string>
+    <string name="trigger_wifi_state">वाई-फ़ाई</string>
+    <string name="trigger_nfc_state">NFC</string>
+    <string name="trigger_location_state">लोकेशन मोड</string>
+    <string name="trigger_screen_rotation_state">स्क्रीन रोटेशन</string>
 </resources>

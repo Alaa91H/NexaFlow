@@ -909,6 +909,194 @@ fun ActionConfigEditor(
                 }
             }
         }
+        ActionType.SYSTEM_LOCATION_MODE -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = stringResource(R.string.location_mode), style = MaterialTheme.typography.titleSmall)
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    listOf("OFF", "SENSORS", "BATTERY", "HIGH").forEach { mode ->
+                        val label = when (mode) {
+                            "OFF" -> stringResource(R.string.location_mode_off)
+                            "SENSORS" -> stringResource(R.string.location_mode_sensors)
+                            "BATTERY" -> stringResource(R.string.location_mode_battery)
+                            else -> stringResource(R.string.location_mode_high)
+                        }
+                        FilterChip(
+                            selected = (config["mode"] ?: "HIGH") == mode,
+                            onClick = { onConfigChange(config + ("mode" to mode)) },
+                            label = { Text(text = label, style = MaterialTheme.typography.labelMedium) }
+                        )
+                    }
+                }
+            }
+        }
+        ActionType.SYSTEM_DATA_SAVER -> ToggleConfigRow(
+            label = stringResource(R.string.data_saver),
+            checked = config["enabled"]?.toBoolean() ?: true,
+            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
+        )
+        ActionType.SYSTEM_FONT_SCALE -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = stringResource(R.string.font_scale), style = MaterialTheme.typography.titleSmall)
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    listOf("0.85", "1.0", "1.15", "1.3").forEach { scale ->
+                        FilterChip(
+                            selected = (config["scale"] ?: "1.0") == scale,
+                            onClick = { onConfigChange(config + ("scale" to scale)) },
+                            label = { Text(text = scale, style = MaterialTheme.typography.labelMedium) }
+                        )
+                    }
+                }
+            }
+        }
+        ActionType.SYSTEM_DISPLAY_DENSITY -> {
+            OutlinedTextField(
+                value = config["dpi"] ?: "440",
+                onValueChange = { v -> onConfigChange(mapOf("dpi" to v.filter { it.isDigit() })) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = stringResource(R.string.display_density)) },
+                singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
+            )
+        }
+        ActionType.SYSTEM_SCREENSAVER -> ToggleConfigRow(
+            label = stringResource(R.string.screensaver),
+            checked = config["enabled"]?.toBoolean() ?: true,
+            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
+        )
+        ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD -> {
+            val value = config["percent"]?.toIntOrNull() ?: 20
+            SliderRow(
+                label = stringResource(R.string.battery_saver_threshold_label, value),
+                value = value.toFloat(),
+                onValueChange = { onConfigChange(mapOf("percent" to it.toInt().toString())) },
+                valueRange = 0f..100f
+            )
+        }
+        ActionType.SYSTEM_ALWAYS_ON_DISPLAY -> ToggleConfigRow(
+            label = stringResource(R.string.always_on_display),
+            checked = config["enabled"]?.toBoolean() ?: true,
+            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
+        )
+        ActionType.SYSTEM_SHOW_TAPS -> ToggleConfigRow(
+            label = stringResource(R.string.show_taps),
+            checked = config["enabled"]?.toBoolean() ?: true,
+            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
+        )
+        ActionType.SYSTEM_POINTER_LOCATION -> ToggleConfigRow(
+            label = stringResource(R.string.pointer_location),
+            checked = config["enabled"]?.toBoolean() ?: true,
+            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
+        )
+        ActionType.SYSTEM_ADAPTIVE_BATTERY -> ToggleConfigRow(
+            label = stringResource(R.string.adaptive_battery),
+            checked = config["enabled"]?.toBoolean() ?: true,
+            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
+        )
+        ActionType.SYSTEM_WIFI_SLEEP_POLICY -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = stringResource(R.string.wifi_sleep_policy), style = MaterialTheme.typography.titleSmall)
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    listOf("ALWAYS", "PLUGGED", "NEVER").forEach { policy ->
+                        val label = when (policy) {
+                            "PLUGGED" -> stringResource(R.string.wifi_sleep_plugged)
+                            "NEVER" -> stringResource(R.string.wifi_sleep_never)
+                            else -> stringResource(R.string.wifi_sleep_always)
+                        }
+                        FilterChip(
+                            selected = (config["policy"] ?: "ALWAYS") == policy,
+                            onClick = { onConfigChange(config + ("policy" to policy)) },
+                            label = { Text(text = label, style = MaterialTheme.typography.labelMedium) }
+                        )
+                    }
+                }
+            }
+        }
+        ActionType.SYSTEM_BLUETOOTH_DISCOVERABILITY -> {
+            OutlinedTextField(
+                value = config["timeoutSeconds"] ?: "300",
+                onValueChange = { v -> onConfigChange(mapOf("timeoutSeconds" to v.filter { it.isDigit() })) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = stringResource(R.string.bluetooth_discoverable_timeout)) },
+                singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
+            )
+        }
+        ActionType.SYSTEM_AUTO_TIME -> ToggleConfigRow(
+            label = stringResource(R.string.auto_time),
+            checked = config["enabled"]?.toBoolean() ?: true,
+            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
+        )
+        ActionType.SYSTEM_AUTO_TIMEZONE -> ToggleConfigRow(
+            label = stringResource(R.string.auto_timezone),
+            checked = config["enabled"]?.toBoolean() ?: true,
+            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
+        )
+        ActionType.SYSTEM_HAPTIC_INTENSITY -> {
+            val value = config["level"]?.toIntOrNull() ?: 255
+            SliderRow(
+                label = stringResource(R.string.haptic_intensity_label, value),
+                value = value.toFloat(),
+                onValueChange = { onConfigChange(mapOf("level" to it.toInt().toString())) },
+                valueRange = 0f..255f
+            )
+        }
+        ActionType.SYSTEM_CAMERA_SHUTTER_SOUND -> ToggleConfigRow(
+            label = stringResource(R.string.camera_shutter_sound),
+            checked = config["enabled"]?.toBoolean() ?: true,
+            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
+        )
+        ActionType.SYSTEM_WIFI_SCANNING -> ToggleConfigRow(
+            label = stringResource(R.string.wifi_scanning),
+            checked = config["enabled"]?.toBoolean() ?: true,
+            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
+        )
+        ActionType.SYSTEM_MEDIA_FAST_FORWARD,
+        ActionType.SYSTEM_MEDIA_REWIND,
+        ActionType.SYSTEM_OPEN_CAMERA,
+        ActionType.SYSTEM_OPEN_PLAY_STORE_APP,
+        ActionType.SYSTEM_OPEN_WIFI_SETTINGS,
+        ActionType.SYSTEM_OPEN_BLUETOOTH_SETTINGS,
+        ActionType.SYSTEM_OPEN_LOCATION_SETTINGS,
+        ActionType.SYSTEM_OPEN_DATA_USAGE_SETTINGS,
+        ActionType.SYSTEM_OPEN_BATTERY_SETTINGS,
+        ActionType.SYSTEM_OPEN_DISPLAY_SETTINGS,
+        ActionType.SYSTEM_OPEN_SOUND_SETTINGS,
+        ActionType.SYSTEM_OPEN_STORAGE_SETTINGS,
+        ActionType.SYSTEM_OPEN_SECURITY_SETTINGS,
+        ActionType.SYSTEM_OPEN_ACCESSIBILITY_SETTINGS,
+        ActionType.SYSTEM_OPEN_APP_SETTINGS_LIST,
+        ActionType.SYSTEM_OPEN_ABOUT_PHONE,
+        ActionType.SYSTEM_REBOOT,
+        ActionType.SYSTEM_SHUTDOWN,
+        ActionType.SYSTEM_RESTART_SYSTEM_UI -> {
+            Text(
+                text = stringResource(R.string.runs_immediately),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+        ActionType.SYSTEM_DIAL_NUMBER -> {
+            OutlinedTextField(
+                value = config["number"] ?: "",
+                onValueChange = { onConfigChange(mapOf("number" to it)) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = stringResource(R.string.phone_number)) },
+                singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone)
+            )
+        }
     }
 }
 

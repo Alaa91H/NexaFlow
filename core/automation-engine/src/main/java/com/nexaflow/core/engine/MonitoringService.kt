@@ -58,6 +58,8 @@ class MonitoringService : Service() {
 
     @Inject
     lateinit var callStateMonitor: CallStateMonitor
+    @Inject
+    lateinit var settingsStateMonitor: SettingsStateMonitor
 
     @Inject
     lateinit var packageMonitor: PackageMonitor
@@ -148,6 +150,7 @@ class MonitoringService : Service() {
             "dark-mode" to { darkModeMonitor.initialize() },
             "call" to { callStateMonitor.initialize() },
             "package" to { packageMonitor.initialize() },
+            "settings-state" to { settingsStateMonitor.initialize() },
             "media" to { mediaMonitor.initialize() },
             "volume" to { volumeMonitor.initialize() }
         )
@@ -219,6 +222,8 @@ class MonitoringService : Service() {
         airplaneModeMonitor.stop()
         darkModeMonitor.stop()
         callStateMonitor.stop()
+
+        settingsStateMonitor.stop()
         packageMonitor.stop()
         mediaMonitor.stop()
         volumeMonitor.stop()

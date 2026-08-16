@@ -45,4 +45,15 @@
     <string name="trigger_app_installed">アプリインストール</string>
     <string name="trigger_media_playing">メディア再生</string>
     <string name="trigger_volume_changed">音量変化</string>
+    <string name="trigger_power_saver">バッテリーセーバー</string>
+    <string name="trigger_bluetooth_state">Bluetooth</string>
+    <string name="trigger_brightness_level">明るさ</string>
+    <string name="trigger_storage_low">ストレージ</string>
+    <string name="trigger_auto_rotate">自動回転</string>
+    <string name="trigger_data_saver_state">データセーバー</string>
+    <string name="trigger_device_locked">端末ロック</string>
+    <string name="trigger_wifi_state">Wi-Fi</string>
+    <string name="trigger_nfc_state">NFC</string>
+    <string name="trigger_location_state">位置情報モード</string>
+    <string name="trigger_screen_rotation_state">画面回転</string>
 </resources>

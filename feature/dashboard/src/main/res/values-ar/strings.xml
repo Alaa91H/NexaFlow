@@ -45,4 +45,15 @@
     <string name="trigger_app_installed">تثبيت تطبيق</string>
     <string name="trigger_media_playing">تشغيل الوسائط</string>
     <string name="trigger_volume_changed">تغير مستوى الصوت</string>
+    <string name="trigger_power_saver">توفير البطارية</string>
+    <string name="trigger_bluetooth_state">البلوتوث</string>
+    <string name="trigger_brightness_level">السطوع</string>
+    <string name="trigger_storage_low">التخزين</string>
+    <string name="trigger_auto_rotate">التدوير التلقائي</string>
+    <string name="trigger_data_saver_state">توفير البيانات</string>
+    <string name="trigger_device_locked">قفل الجهاز</string>
+    <string name="trigger_wifi_state">واي فاي</string>
+    <string name="trigger_nfc_state">NFC</string>
+    <string name="trigger_location_state">وضع الموقع</string>
+    <string name="trigger_screen_rotation_state">تدوير الشاشة</string>
 </resources>

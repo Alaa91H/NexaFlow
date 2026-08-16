@@ -42,7 +42,44 @@ class SystemActionsHandler : ActionHandler {
         ActionType.SYSTEM_HAPTIC_FEEDBACK,
         ActionType.SYSTEM_SOUND_EFFECTS,
         ActionType.SYSTEM_FORCE_STOP_APP,
-        ActionType.SYSTEM_CLEAR_APP_DATA
+        ActionType.SYSTEM_CLEAR_APP_DATA,
+        ActionType.SYSTEM_LOCATION_MODE,
+        ActionType.SYSTEM_DATA_SAVER,
+        ActionType.SYSTEM_FONT_SCALE,
+        ActionType.SYSTEM_DISPLAY_DENSITY,
+        ActionType.SYSTEM_SCREENSAVER,
+        ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD,
+        ActionType.SYSTEM_ALWAYS_ON_DISPLAY,
+        ActionType.SYSTEM_SHOW_TAPS,
+        ActionType.SYSTEM_POINTER_LOCATION,
+        ActionType.SYSTEM_ADAPTIVE_BATTERY,
+        ActionType.SYSTEM_WIFI_SLEEP_POLICY,
+        ActionType.SYSTEM_BLUETOOTH_DISCOVERABILITY,
+        ActionType.SYSTEM_AUTO_TIME,
+        ActionType.SYSTEM_AUTO_TIMEZONE,
+        ActionType.SYSTEM_HAPTIC_INTENSITY,
+        ActionType.SYSTEM_CAMERA_SHUTTER_SOUND,
+        ActionType.SYSTEM_WIFI_SCANNING,
+        ActionType.SYSTEM_OPEN_WIFI_SETTINGS,
+        ActionType.SYSTEM_OPEN_BLUETOOTH_SETTINGS,
+        ActionType.SYSTEM_OPEN_LOCATION_SETTINGS,
+        ActionType.SYSTEM_OPEN_DATA_USAGE_SETTINGS,
+        ActionType.SYSTEM_OPEN_BATTERY_SETTINGS,
+        ActionType.SYSTEM_OPEN_DISPLAY_SETTINGS,
+        ActionType.SYSTEM_OPEN_SOUND_SETTINGS,
+        ActionType.SYSTEM_OPEN_STORAGE_SETTINGS,
+        ActionType.SYSTEM_OPEN_SECURITY_SETTINGS,
+        ActionType.SYSTEM_OPEN_ACCESSIBILITY_SETTINGS,
+        ActionType.SYSTEM_OPEN_APP_SETTINGS_LIST,
+        ActionType.SYSTEM_OPEN_ABOUT_PHONE,
+        ActionType.SYSTEM_MEDIA_FAST_FORWARD,
+        ActionType.SYSTEM_MEDIA_REWIND,
+        ActionType.SYSTEM_DIAL_NUMBER,
+        ActionType.SYSTEM_OPEN_CAMERA,
+        ActionType.SYSTEM_OPEN_PLAY_STORE_APP,
+        ActionType.SYSTEM_REBOOT,
+        ActionType.SYSTEM_SHUTDOWN,
+        ActionType.SYSTEM_RESTART_SYSTEM_UI
     )
 
     override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult {
@@ -156,6 +193,80 @@ class SystemActionsHandler : ActionHandler {
                 ctx.controller.forceStopApp(action.config["package"] ?: "")
             ActionType.SYSTEM_CLEAR_APP_DATA ->
                 ctx.controller.clearAppData(action.config["package"] ?: "")
+            ActionType.SYSTEM_LOCATION_MODE ->
+                ctx.controller.setLocationMode(action.config["mode"] ?: "HIGH_ACCURACY")
+            ActionType.SYSTEM_DATA_SAVER ->
+                ctx.controller.setDataSaver(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_FONT_SCALE ->
+                ctx.controller.setFontScale(action.config["scale"]?.toFloatOrNull() ?: 1.0f)
+            ActionType.SYSTEM_DISPLAY_DENSITY ->
+                ctx.controller.setDisplayDensity(action.config["dpi"]?.toIntOrNull() ?: 440)
+            ActionType.SYSTEM_SCREENSAVER ->
+                ctx.controller.setScreensaver(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD ->
+                ctx.controller.setBatterySaverThreshold(action.config["percent"]?.toIntOrNull() ?: 20)
+            ActionType.SYSTEM_ALWAYS_ON_DISPLAY ->
+                ctx.controller.setAlwaysOnDisplay(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_SHOW_TAPS ->
+                ctx.controller.setShowTaps(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_POINTER_LOCATION ->
+                ctx.controller.setPointerLocation(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_ADAPTIVE_BATTERY ->
+                ctx.controller.setAdaptiveBattery(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_WIFI_SLEEP_POLICY ->
+                ctx.controller.setWifiSleepPolicy(action.config["policy"] ?: "ALWAYS")
+            ActionType.SYSTEM_BLUETOOTH_DISCOVERABILITY ->
+                ctx.controller.setBluetoothDiscoverability(action.config["timeoutSeconds"]?.toIntOrNull() ?: 300)
+            ActionType.SYSTEM_AUTO_TIME ->
+                ctx.controller.setAutoTime(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_AUTO_TIMEZONE ->
+                ctx.controller.setAutoTimezone(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_HAPTIC_INTENSITY ->
+                ctx.controller.setHapticIntensity(action.config["level"]?.toIntOrNull() ?: 255)
+            ActionType.SYSTEM_CAMERA_SHUTTER_SOUND ->
+                ctx.controller.setCameraShutterSound(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_WIFI_SCANNING ->
+                ctx.controller.setWifiScanning(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_OPEN_WIFI_SETTINGS ->
+                ctx.controller.openSystemSettings("WIFI")
+            ActionType.SYSTEM_OPEN_BLUETOOTH_SETTINGS ->
+                ctx.controller.openSystemSettings("BLUETOOTH")
+            ActionType.SYSTEM_OPEN_LOCATION_SETTINGS ->
+                ctx.controller.openSystemSettings("LOCATION")
+            ActionType.SYSTEM_OPEN_DATA_USAGE_SETTINGS ->
+                ctx.controller.openSystemSettings("DATA_USAGE")
+            ActionType.SYSTEM_OPEN_BATTERY_SETTINGS ->
+                ctx.controller.openSystemSettings("BATTERY")
+            ActionType.SYSTEM_OPEN_DISPLAY_SETTINGS ->
+                ctx.controller.openSystemSettings("DISPLAY")
+            ActionType.SYSTEM_OPEN_SOUND_SETTINGS ->
+                ctx.controller.openSystemSettings("SOUND")
+            ActionType.SYSTEM_OPEN_STORAGE_SETTINGS ->
+                ctx.controller.openSystemSettings("STORAGE")
+            ActionType.SYSTEM_OPEN_SECURITY_SETTINGS ->
+                ctx.controller.openSystemSettings("SECURITY")
+            ActionType.SYSTEM_OPEN_ACCESSIBILITY_SETTINGS ->
+                ctx.controller.openSystemSettings("ACCESSIBILITY")
+            ActionType.SYSTEM_OPEN_APP_SETTINGS_LIST ->
+                ctx.controller.openSystemSettings("APPS")
+            ActionType.SYSTEM_OPEN_ABOUT_PHONE ->
+                ctx.controller.openSystemSettings("ABOUT")
+            ActionType.SYSTEM_MEDIA_FAST_FORWARD ->
+                ctx.controller.mediaControl("FAST_FORWARD")
+            ActionType.SYSTEM_MEDIA_REWIND ->
+                ctx.controller.mediaControl("REWIND")
+            ActionType.SYSTEM_DIAL_NUMBER ->
+                ctx.controller.dialNumber(action.config["number"] ?: "")
+            ActionType.SYSTEM_OPEN_CAMERA ->
+                ctx.controller.openCamera()
+            ActionType.SYSTEM_OPEN_PLAY_STORE_APP ->
+                ctx.controller.openPlayStoreApp()
+            ActionType.SYSTEM_REBOOT ->
+                ctx.controller.rebootDevice()
+            ActionType.SYSTEM_SHUTDOWN ->
+                ctx.controller.shutdownDevice()
+            ActionType.SYSTEM_RESTART_SYSTEM_UI ->
+                ctx.controller.restartSystemUi()
             else -> SystemControlResult.fail("Unsupported action ${action.type}")
         }
     }

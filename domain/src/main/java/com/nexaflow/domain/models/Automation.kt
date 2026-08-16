@@ -124,7 +124,55 @@ enum class TriggerType {
      * A stream volume crossed a threshold. Config keys: `stream`
      * (MUSIC/RING/ALARM/NOTIFICATION), `threshold`, `direction` (ABOVE/BELOW).
      */
-    VOLUME_CHANGED
+    VOLUME_CHANGED,
+    /**
+     * Battery saver turned on or off. Config key: `state` (ON/OFF).
+     */
+    POWER_SAVER,
+    /**
+     * Bluetooth radio turned on or off. Config key: `state` (ON/OFF).
+     */
+    BLUETOOTH_STATE,
+    /**
+     * Screen brightness crossed a threshold. Config keys: `threshold`
+     * (0-255), `direction` (ABOVE/BELOW).
+     */
+    BRIGHTNESS_LEVEL,
+    /**
+     * Free storage fell below a threshold. Config keys: `threshold` (MB),
+     * `direction` (BELOW/ABOVE).
+     */
+    STORAGE_LOW,
+    /**
+     * Auto-rotate setting turned on or off. Config key: `state` (ON/OFF).
+     */
+    AUTO_ROTATE,
+    /**
+     * Data saver turned on or off. Config key: `state` (ON/OFF).
+     */
+    DATA_SAVER_STATE,
+    /**
+     * Device lock state changed. Config key: `state` (LOCKED/UNLOCKED).
+     */
+    DEVICE_LOCKED,
+    /**
+     * Wi-Fi radio turned on or off. Config key: `state` (ON/OFF).
+     */
+    WIFI_STATE,
+    /**
+     * NFC radio turned on or off. Config key: `state` (ON/OFF).
+     */
+    NFC_STATE,
+    /**
+     * Location mode changed (off/sensors/battery/high). Config key:
+     * `mode` (OFF/SENSORS/BATTERY/HIGH).
+     */
+    LOCATION_STATE,
+    /**
+     * Screen rotation (portrait/landscape) changed. Config key: `state`
+     * (PORTRAIT/LANDSCAPE).
+     */
+    SCREEN_ROTATION_STATE
 }
 
 @Immutable
@@ -247,5 +295,79 @@ enum class ActionType {
     /** Force-stops an app. Config key: `package`. */
     SYSTEM_FORCE_STOP_APP,
     /** Clears an app's data. Config key: `package`. */
-    SYSTEM_CLEAR_APP_DATA
+    SYSTEM_CLEAR_APP_DATA,
+    /** Sets the location mode. Config key: `mode` (OFF/SENSORS/BATTERY/HIGH). */
+    SYSTEM_LOCATION_MODE,
+    /** Toggles data saver. Config key: `enabled`. */
+    SYSTEM_DATA_SAVER,
+    /** Sets the display font scale. Config key: `scale` (0.85-1.30). */
+    SYSTEM_FONT_SCALE,
+    /** Sets the display density via `wm density`. Config key: `density` (e.g. 420). */
+    SYSTEM_DISPLAY_DENSITY,
+    /** Toggles the screensaver (daydream). Config key: `enabled`. */
+    SYSTEM_SCREENSAVER,
+    /** Sets the battery-saver auto-trigger level. Config key: `level` (0-100). */
+    SYSTEM_BATTERY_SAVER_THRESHOLD,
+    /** Toggles always-on display (AOD). Config key: `enabled`. */
+    SYSTEM_ALWAYS_ON_DISPLAY,
+    /** Toggles developer "show taps". Config key: `enabled`. */
+    SYSTEM_SHOW_TAPS,
+    /** Toggles developer "pointer location". Config key: `enabled`. */
+    SYSTEM_POINTER_LOCATION,
+    /** Toggles adaptive battery. Config key: `enabled`. */
+    SYSTEM_ADAPTIVE_BATTERY,
+    /** Sets the Wi-Fi sleep policy. Config key: `policy` (0/1/2). */
+    SYSTEM_WIFI_SLEEP_POLICY,
+    /** Sets Bluetooth discoverability. Config key: `mode` (0/1/2). */
+    SYSTEM_BLUETOOTH_DISCOVERABILITY,
+    /** Toggles automatic date & time. Config key: `enabled`. */
+    SYSTEM_AUTO_TIME,
+    /** Toggles automatic time zone. Config key: `enabled`. */
+    SYSTEM_AUTO_TIMEZONE,
+    /** Sets haptic intensity. Config key: `level` (0-255). */
+    SYSTEM_HAPTIC_INTENSITY,
+    /** Toggles the camera shutter sound. Config key: `enabled`. */
+    SYSTEM_CAMERA_SHUTTER_SOUND,
+    /** Toggles Wi-Fi scanning. Config key: `enabled`. */
+    SYSTEM_WIFI_SCANNING,
+    /** Opens the Wi-Fi settings page. */
+    SYSTEM_OPEN_WIFI_SETTINGS,
+    /** Opens the Bluetooth settings page. */
+    SYSTEM_OPEN_BLUETOOTH_SETTINGS,
+    /** Opens the location settings page. */
+    SYSTEM_OPEN_LOCATION_SETTINGS,
+    /** Opens the data-usage settings page. */
+    SYSTEM_OPEN_DATA_USAGE_SETTINGS,
+    /** Opens the battery settings page. */
+    SYSTEM_OPEN_BATTERY_SETTINGS,
+    /** Opens the display settings page. */
+    SYSTEM_OPEN_DISPLAY_SETTINGS,
+    /** Opens the sound settings page. */
+    SYSTEM_OPEN_SOUND_SETTINGS,
+    /** Opens the storage settings page. */
+    SYSTEM_OPEN_STORAGE_SETTINGS,
+    /** Opens the security settings page. */
+    SYSTEM_OPEN_SECURITY_SETTINGS,
+    /** Opens the accessibility settings page. */
+    SYSTEM_OPEN_ACCESSIBILITY_SETTINGS,
+    /** Opens the app list in settings. */
+    SYSTEM_OPEN_APP_SETTINGS_LIST,
+    /** Opens the About phone page. */
+    SYSTEM_OPEN_ABOUT_PHONE,
+    /** Skips media forward. */
+    SYSTEM_MEDIA_FAST_FORWARD,
+    /** Rewinds media. */
+    SYSTEM_MEDIA_REWIND,
+    /** Dials a phone number. Config key: `number`. */
+    SYSTEM_DIAL_NUMBER,
+    /** Opens the camera app. */
+    SYSTEM_OPEN_CAMERA,
+    /** Opens the app's Play Store page. Config key: `package`. */
+    SYSTEM_OPEN_PLAY_STORE_APP,
+    /** Reboots the device. Config key: `mode` (NORMAL/RECOVERY/BOOTLOADER). */
+    SYSTEM_REBOOT,
+    /** Powers the device off. */
+    SYSTEM_SHUTDOWN,
+    /** Restarts the System UI process. */
+    SYSTEM_RESTART_SYSTEM_UI
 }

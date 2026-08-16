@@ -45,4 +45,15 @@
     <string name="trigger_app_installed">Приложение установлено</string>
     <string name="trigger_media_playing">Воспроизведение медиа</string>
     <string name="trigger_volume_changed">Громкость изменена</string>
+    <string name="trigger_power_saver">Энергосбережение</string>
+    <string name="trigger_bluetooth_state">Bluetooth</string>
+    <string name="trigger_brightness_level">Яркость</string>
+    <string name="trigger_storage_low">Хранилище</string>
+    <string name="trigger_auto_rotate">Автоповорот</string>
+    <string name="trigger_data_saver_state">Экономия трафика</string>
+    <string name="trigger_device_locked">Устройство заблокировано</string>
+    <string name="trigger_wifi_state">Wi-Fi</string>
+    <string name="trigger_nfc_state">NFC</string>
+    <string name="trigger_location_state">Режим местоположения</string>
+    <string name="trigger_screen_rotation_state">Поворот экрана</string>
 </resources>

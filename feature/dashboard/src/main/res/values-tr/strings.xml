@@ -45,4 +45,15 @@
     <string name="trigger_app_installed">Uygulama yüklendi</string>
     <string name="trigger_media_playing">Medya çalıyor</string>
     <string name="trigger_volume_changed">Ses düzeyi değişti</string>
+    <string name="trigger_power_saver">Pil tasarrufu</string>
+    <string name="trigger_bluetooth_state">Bluetooth</string>
+    <string name="trigger_brightness_level">Parlaklık</string>
+    <string name="trigger_storage_low">Depolama</string>
+    <string name="trigger_auto_rotate">Otomatik döndürme</string>
+    <string name="trigger_data_saver_state">Veri tasarrufu</string>
+    <string name="trigger_device_locked">Cihaz kilitli</string>
+    <string name="trigger_wifi_state">Wi-Fi</string>
+    <string name="trigger_nfc_state">NFC</string>
+    <string name="trigger_location_state">Konum modu</string>
+    <string name="trigger_screen_rotation_state">Ekran döndürme</string>
 </resources>

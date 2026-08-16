@@ -1,5 +1,12 @@
 ﻿package com.nexaflow.feature.automations
 
+import androidx.compose.material.icons.filled.BrightnessHigh
+import androidx.compose.material.icons.filled.DataUsage
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Nfc
+import androidx.compose.material.icons.filled.ScreenRotation
+import androidx.compose.material.icons.filled.Storage
+
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -365,6 +372,17 @@ private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector
     TriggerType.APP_INSTALLED -> Triple(R.string.trigger_app_installed, R.string.trigger_app_installed, Icons.Filled.Download)
     TriggerType.MEDIA_PLAYING -> Triple(R.string.trigger_media_playing, R.string.trigger_media_playing, Icons.Filled.MusicNote)
     TriggerType.VOLUME_CHANGED -> Triple(R.string.trigger_volume_changed, R.string.trigger_volume_changed, Icons.AutoMirrored.Filled.VolumeUp)
+    TriggerType.POWER_SAVER -> Triple(R.string.trigger_power_saver, R.string.trigger_power_saver, Icons.Filled.BatteryChargingFull)
+    TriggerType.BLUETOOTH_STATE -> Triple(R.string.trigger_bluetooth_state, R.string.trigger_bluetooth_state, Icons.Filled.Bluetooth)
+    TriggerType.BRIGHTNESS_LEVEL -> Triple(R.string.trigger_brightness_level, R.string.trigger_brightness_level, Icons.Filled.BrightnessHigh)
+    TriggerType.STORAGE_LOW -> Triple(R.string.trigger_storage_low, R.string.trigger_storage_low, Icons.Filled.Storage)
+    TriggerType.AUTO_ROTATE -> Triple(R.string.trigger_auto_rotate, R.string.trigger_auto_rotate, Icons.Filled.ScreenRotation)
+    TriggerType.DATA_SAVER_STATE -> Triple(R.string.trigger_data_saver_state, R.string.trigger_data_saver_state, Icons.Filled.DataUsage)
+    TriggerType.DEVICE_LOCKED -> Triple(R.string.trigger_device_locked, R.string.trigger_device_locked, Icons.Filled.Lock)
+    TriggerType.WIFI_STATE -> Triple(R.string.trigger_wifi_state, R.string.trigger_wifi_state, Icons.Filled.Wifi)
+    TriggerType.NFC_STATE -> Triple(R.string.trigger_nfc_state, R.string.trigger_nfc_state, Icons.Filled.Nfc)
+    TriggerType.LOCATION_STATE -> Triple(R.string.trigger_location_state, R.string.trigger_location_state, Icons.Filled.LocationOn)
+    TriggerType.SCREEN_ROTATION_STATE -> Triple(R.string.trigger_screen_rotation_state, R.string.trigger_screen_rotation_state, Icons.Filled.ScreenRotation)
 }
 
 /** Human-readable trigger detail (e.g. battery direction, time range, repeat mode). */
