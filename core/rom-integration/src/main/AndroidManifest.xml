@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!--
+        Required by SystemController.vibrate (new vibrate action); library
+        lint validates this module against its own manifest, not the app's.
+    -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+
     <!-- Reading the active subscription list is required to address the
          correct SIM when switching the preferred network mode on multi-SIM
          devices. READ_PHONE_STATE is a runtime permission the app requests
