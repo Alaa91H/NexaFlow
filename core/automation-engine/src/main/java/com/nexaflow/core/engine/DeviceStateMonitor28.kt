@@ -288,7 +288,9 @@ class DeviceStateMonitor28 @Inject constructor(
                 val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
                     ?: return false
                 val level = runCatching {
-                    telephony.signalStrength?.level ?: 0
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        telephony.signalStrength?.level ?: 0
+                    } else 0
                 }.getOrDefault(0)
                 val threshold = (config["threshold"] ?: "3").toIntOrNull() ?: 3
                 if ((config["direction"] ?: "ABOVE") == "BELOW") level <= threshold else level >= threshold
