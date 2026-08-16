@@ -727,6 +727,188 @@ fun ActionConfigEditor(
                 color = MaterialTheme.colorScheme.secondary
             )
         }
+        ActionType.SYSTEM_SET_SETTING -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = stringResource(R.string.setting_namespace), style = MaterialTheme.typography.titleSmall)
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    listOf("SYSTEM", "SECURE", "GLOBAL").forEach { ns ->
+                        FilterChip(
+                            selected = (config["namespace"] ?: "GLOBAL") == ns,
+                            onClick = { onConfigChange(config + ("namespace" to ns)) },
+                            label = { Text(text = ns) }
+                        )
+                    }
+                }
+                OutlinedTextField(
+                    value = config["key"] ?: "",
+                    onValueChange = { onConfigChange(config + ("key" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.setting_key)) },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = config["value"] ?: "",
+                    onValueChange = { onConfigChange(config + ("value" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.setting_value)) },
+                    singleLine = true
+                )
+            }
+        }
+        ActionType.SYSTEM_SCREENSHOT -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = config["filename"] ?: "",
+                    onValueChange = { onConfigChange(mapOf("filename" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.screenshot_filename)) },
+                    singleLine = true
+                )
+                Text(
+                    text = stringResource(R.string.screenshot_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
+        ActionType.SYSTEM_INPUT_TEXT -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = config["text"] ?: "",
+                    onValueChange = { onConfigChange(mapOf("text" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.input_text_label)) },
+                    singleLine = true
+                )
+                VariableInsertChips(
+                    availableVariables = availableVariables,
+                    currentValue = config["text"] ?: "",
+                    onValueChange = { onConfigChange(mapOf("text" to it)) }
+                )
+            }
+        }
+        ActionType.SYSTEM_KEY_EVENT -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = config["key"] ?: "",
+                    onValueChange = { onConfigChange(mapOf("key" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.key_event_label)) },
+                    singleLine = true
+                )
+                Text(
+                    text = stringResource(R.string.key_event_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
+        ActionType.SYSTEM_INPUT_TAP -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = config["x"] ?: "",
+                    onValueChange = { onConfigChange(mapOf("x" to it.filter { ch -> ch.isDigit() })) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.tap_x)) },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = config["y"] ?: "",
+                    onValueChange = { onConfigChange(mapOf("y" to it.filter { ch -> ch.isDigit() })) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.tap_y)) },
+                    singleLine = true
+                )
+            }
+        }
+        ActionType.SYSTEM_INPUT_SWIPE -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = config["x1"] ?: "",
+                    onValueChange = { onConfigChange(config + ("x1" to it.filter { ch -> ch.isDigit() })) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.swipe_from_x)) },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = config["y1"] ?: "",
+                    onValueChange = { onConfigChange(config + ("y1" to it.filter { ch -> ch.isDigit() })) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.swipe_from_y)) },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = config["x2"] ?: "",
+                    onValueChange = { onConfigChange(config + ("x2" to it.filter { ch -> ch.isDigit() })) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.swipe_to_x)) },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = config["y2"] ?: "",
+                    onValueChange = { onConfigChange(config + ("y2" to it.filter { ch -> ch.isDigit() })) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.swipe_to_y)) },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = config["durationMs"] ?: "300",
+                    onValueChange = { onConfigChange(config + ("durationMs" to it.filter { ch -> ch.isDigit() })) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.swipe_duration)) },
+                    singleLine = true
+                )
+            }
+        }
+        ActionType.SYSTEM_COLOR_INVERSION -> ToggleConfigRow(
+            label = stringResource(R.string.color_inversion),
+            checked = config["enabled"]?.toBoolean() ?: true,
+            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
+        )
+        ActionType.SYSTEM_GRAYSCALE -> ToggleConfigRow(
+            label = stringResource(R.string.grayscale),
+            checked = config["enabled"]?.toBoolean() ?: true,
+            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
+        )
+        ActionType.SYSTEM_EXTRA_DIM -> ToggleConfigRow(
+            label = stringResource(R.string.extra_dim),
+            checked = config["enabled"]?.toBoolean() ?: true,
+            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
+        )
+        ActionType.SYSTEM_NIGHT_LIGHT -> ToggleConfigRow(
+            label = stringResource(R.string.night_light),
+            checked = config["enabled"]?.toBoolean() ?: true,
+            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
+        )
+        ActionType.SYSTEM_HAPTIC_FEEDBACK -> ToggleConfigRow(
+            label = stringResource(R.string.haptic_feedback),
+            checked = config["enabled"]?.toBoolean() ?: true,
+            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
+        )
+        ActionType.SYSTEM_SOUND_EFFECTS -> ToggleConfigRow(
+            label = stringResource(R.string.sound_effects),
+            checked = config["enabled"]?.toBoolean() ?: true,
+            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
+        )
+        ActionType.SYSTEM_FORCE_STOP_APP,
+        ActionType.SYSTEM_CLEAR_APP_DATA -> {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                OutlinedTextField(
+                    value = config["package"] ?: "",
+                    onValueChange = { onConfigChange(mapOf("package" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.package_name)) },
+                    singleLine = true
+                )
+                TextButton(onClick = onPickApp) {
+                    Text(text = stringResource(R.string.choose_from_installed))
+                }
+            }
+        }
     }
 }
 

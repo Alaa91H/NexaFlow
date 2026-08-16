@@ -53,7 +53,13 @@ object EndBehaviorCatalog {
         ActionType.SYSTEM_STAY_AWAKE,
         ActionType.SYSTEM_AUTO_BRIGHTNESS,
         ActionType.SYSTEM_DARK_MODE,
-        ActionType.SYSTEM_FLASHLIGHT
+        ActionType.SYSTEM_FLASHLIGHT,
+        ActionType.SYSTEM_COLOR_INVERSION,
+        ActionType.SYSTEM_GRAYSCALE,
+        ActionType.SYSTEM_EXTRA_DIM,
+        ActionType.SYSTEM_NIGHT_LIGHT,
+        ActionType.SYSTEM_HAPTIC_FEEDBACK,
+        ActionType.SYSTEM_SOUND_EFFECTS
     )
 
     /** Actions whose end options are a specific value / revert to previous. */

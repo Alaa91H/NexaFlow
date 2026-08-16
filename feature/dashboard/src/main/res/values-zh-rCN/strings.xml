@@ -41,4 +41,8 @@
     <string name="trigger_airplane">飞行模式</string>
     <string name="trigger_dark_mode">深色模式</string>
     <string name="trigger_type_network_mode">蜂窝网络</string>
+    <string name="trigger_call_state">通话状态</string>
+    <string name="trigger_app_installed">应用已安装</string>
+    <string name="trigger_media_playing">媒体播放</string>
+    <string name="trigger_volume_changed">音量已更改</string>
 </resources>

@@ -57,6 +57,18 @@ class MonitoringService : Service() {
     lateinit var darkModeMonitor: DarkModeMonitor
 
     @Inject
+    lateinit var callStateMonitor: CallStateMonitor
+
+    @Inject
+    lateinit var packageMonitor: PackageMonitor
+
+    @Inject
+    lateinit var mediaMonitor: MediaMonitor
+
+    @Inject
+    lateinit var volumeMonitor: VolumeMonitor
+
+    @Inject
     lateinit var romSettingMonitor: RomSettingMonitor
 
     @Inject
@@ -133,7 +145,11 @@ class MonitoringService : Service() {
             "sensor" to { sensorMonitor.initialize() },
             "webhook" to { webhookServer.initialize() },
             "airplane" to { airplaneModeMonitor.initialize() },
-            "dark-mode" to { darkModeMonitor.initialize() }
+            "dark-mode" to { darkModeMonitor.initialize() },
+            "call" to { callStateMonitor.initialize() },
+            "package" to { packageMonitor.initialize() },
+            "media" to { mediaMonitor.initialize() },
+            "volume" to { volumeMonitor.initialize() }
         )
         monitors.forEach { (name, init) ->
             runCatching { init() }
@@ -200,6 +216,12 @@ class MonitoringService : Service() {
         calendarMonitor.stop()
         sensorMonitor.stop()
         webhookServer.stop()
+        airplaneModeMonitor.stop()
+        darkModeMonitor.stop()
+        callStateMonitor.stop()
+        packageMonitor.stop()
+        mediaMonitor.stop()
+        volumeMonitor.stop()
     }
 
     /**

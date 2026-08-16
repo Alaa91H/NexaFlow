@@ -104,7 +104,27 @@ enum class TriggerType {
     /**
      * System dark theme turned on or off. Config key: `state` (ON/OFF).
      */
-    DARK_MODE
+    DARK_MODE,
+    /**
+     * Telephony call state changed. Config key: `event`
+     * (INCOMING/OUTGOING/ENDED). Driven by a PhoneStateListener.
+     */
+    CALL_STATE,
+    /**
+     * A package was installed, removed or updated. Config keys: `event`
+     * (INSTALLED/REMOVED/UPDATED), optional `package` filter.
+     */
+    APP_INSTALLED,
+    /**
+     * Media playback started or stopped. Config key: `event`
+     * (STARTED/STOPPED).
+     */
+    MEDIA_PLAYING,
+    /**
+     * A stream volume crossed a threshold. Config keys: `stream`
+     * (MUSIC/RING/ALARM/NOTIFICATION), `threshold`, `direction` (ABOVE/BELOW).
+     */
+    VOLUME_CHANGED
 }
 
 @Immutable
@@ -198,5 +218,34 @@ enum class ActionType {
     SYSTEM_CLIPBOARD_SET,
     SYSTEM_MEDIA_STOP,
     SYSTEM_OPEN_NOTIFICATIONS,
-    SYSTEM_OPEN_QUICK_SETTINGS
+    SYSTEM_OPEN_QUICK_SETTINGS,
+    /** Writes any device setting. Config keys: `namespace` (SYSTEM/SECURE/
+     * GLOBAL), `key`, `value`. */
+    SYSTEM_SET_SETTING,
+    /** Captures a screenshot. Config key: `filename` (optional). */
+    SYSTEM_SCREENSHOT,
+    /** Injects text via `input text`. Config key: `text`. */
+    SYSTEM_INPUT_TEXT,
+    /** Injects a key event. Config key: `key` (e.g. POWER, CAMERA, HOME...). */
+    SYSTEM_KEY_EVENT,
+    /** Taps at absolute screen coordinates. Config keys: `x`, `y`. */
+    SYSTEM_INPUT_TAP,
+    /** Swipes between two points. Config keys: `x1`,`y1`,`x2`,`y2`,`durationMs`. */
+    SYSTEM_INPUT_SWIPE,
+    /** Toggles accessibility color inversion. Config key: `enabled`. */
+    SYSTEM_COLOR_INVERSION,
+    /** Toggles grayscale (daltonizer). Config key: `enabled`. */
+    SYSTEM_GRAYSCALE,
+    /** Toggles extra-dim. Config key: `enabled`. */
+    SYSTEM_EXTRA_DIM,
+    /** Toggles night light. Config key: `enabled`. */
+    SYSTEM_NIGHT_LIGHT,
+    /** Toggles haptic feedback. Config key: `enabled`. */
+    SYSTEM_HAPTIC_FEEDBACK,
+    /** Toggles touch sounds. Config key: `enabled`. */
+    SYSTEM_SOUND_EFFECTS,
+    /** Force-stops an app. Config key: `package`. */
+    SYSTEM_FORCE_STOP_APP,
+    /** Clears an app's data. Config key: `package`. */
+    SYSTEM_CLEAR_APP_DATA
 }

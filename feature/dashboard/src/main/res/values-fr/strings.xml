@@ -41,4 +41,8 @@
     <string name="trigger_airplane">Mode avion</string>
     <string name="trigger_dark_mode">Mode sombre</string>
     <string name="trigger_type_network_mode">Réseau cellulaire</string>
+    <string name="trigger_call_state">État de l’appel</string>
+    <string name="trigger_app_installed">Application installée</string>
+    <string name="trigger_media_playing">Lecture média</string>
+    <string name="trigger_volume_changed">Volume modifié</string>
 </resources>

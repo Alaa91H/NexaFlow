@@ -16,9 +16,13 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
@@ -365,6 +369,10 @@ private fun triggerLabel(type: TriggerType): Int = when (type) {
     TriggerType.CHARGER -> R.string.trigger_charger
     TriggerType.AIRPLANE_MODE -> R.string.trigger_airplane
     TriggerType.DARK_MODE -> R.string.trigger_dark_mode
+    TriggerType.CALL_STATE -> R.string.trigger_call_state
+    TriggerType.APP_INSTALLED -> R.string.trigger_app_installed
+    TriggerType.MEDIA_PLAYING -> R.string.trigger_media_playing
+    TriggerType.VOLUME_CHANGED -> R.string.trigger_volume_changed
 }
 
 /** Design-time preview of a Samsung-style routine card. */

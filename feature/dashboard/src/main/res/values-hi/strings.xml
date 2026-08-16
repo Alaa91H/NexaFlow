@@ -41,4 +41,8 @@
     <string name="trigger_airplane">हवाई जहाज़ मोड</string>
     <string name="trigger_dark_mode">डार्क मोड</string>
     <string name="trigger_type_network_mode">सेलुलर नेटवर्क</string>
+    <string name="trigger_call_state">कॉल स्थिति</string>
+    <string name="trigger_app_installed">ऐप इंस्टॉल हुआ</string>
+    <string name="trigger_media_playing">मीडिया चल रहा है</string>
+    <string name="trigger_volume_changed">वॉल्यूम बदला</string>
 </resources>

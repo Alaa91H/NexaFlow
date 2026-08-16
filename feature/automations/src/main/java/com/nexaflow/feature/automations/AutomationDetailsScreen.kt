@@ -21,10 +21,14 @@ import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.NotificationImportant
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Place
@@ -357,6 +361,10 @@ private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector
     TriggerType.CHARGER -> Triple(R.string.trigger_charger, R.string.trigger_charger, Icons.Filled.BatteryChargingFull)
     TriggerType.AIRPLANE_MODE -> Triple(R.string.trigger_airplane, R.string.trigger_airplane, Icons.Filled.AirplanemodeActive)
     TriggerType.DARK_MODE -> Triple(R.string.trigger_dark_mode, R.string.trigger_dark_mode, Icons.Filled.DarkMode)
+    TriggerType.CALL_STATE -> Triple(R.string.trigger_call_state, R.string.trigger_call_state, Icons.Filled.PhoneAndroid)
+    TriggerType.APP_INSTALLED -> Triple(R.string.trigger_app_installed, R.string.trigger_app_installed, Icons.Filled.Download)
+    TriggerType.MEDIA_PLAYING -> Triple(R.string.trigger_media_playing, R.string.trigger_media_playing, Icons.Filled.MusicNote)
+    TriggerType.VOLUME_CHANGED -> Triple(R.string.trigger_volume_changed, R.string.trigger_volume_changed, Icons.AutoMirrored.Filled.VolumeUp)
 }
 
 /** Human-readable trigger detail (e.g. battery direction, time range, repeat mode). */

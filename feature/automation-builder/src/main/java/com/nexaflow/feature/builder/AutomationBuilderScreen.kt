@@ -244,6 +244,20 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_open_quick_settings, R.string.action_open_quick_settings_sub, Icons.Filled.Settings, ActionType.SYSTEM_OPEN_QUICK_SETTINGS, ActionCategory.SYSTEM),
     ActionOption(R.string.action_wake_screen, R.string.action_wake_screen_sub, Icons.Filled.WbSunny, ActionType.SYSTEM_WAKE_SCREEN, ActionCategory.DISPLAY),
     ActionOption(R.string.action_clipboard, R.string.action_clipboard_sub, Icons.Filled.ContentPaste, ActionType.SYSTEM_CLIPBOARD_SET, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_set_setting, R.string.action_set_setting_sub, Icons.Filled.Tune, ActionType.SYSTEM_SET_SETTING, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_screenshot, R.string.action_screenshot_sub, Icons.Filled.CameraAlt, ActionType.SYSTEM_SCREENSHOT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_input_text, R.string.action_input_text_sub, Icons.Filled.Chat, ActionType.SYSTEM_INPUT_TEXT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_key_event, R.string.action_key_event_sub, Icons.Filled.Build, ActionType.SYSTEM_KEY_EVENT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_input_tap, R.string.action_input_tap_sub, Icons.Filled.GpsFixed, ActionType.SYSTEM_INPUT_TAP, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_input_swipe, R.string.action_input_swipe_sub, Icons.AutoMirrored.Filled.ArrowForward, ActionType.SYSTEM_INPUT_SWIPE, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_color_inversion, R.string.action_color_inversion_sub, Icons.Filled.Contrast, ActionType.SYSTEM_COLOR_INVERSION, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_grayscale, R.string.action_grayscale_sub, Icons.Filled.Gradient, ActionType.SYSTEM_GRAYSCALE, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_extra_dim, R.string.action_extra_dim_sub, Icons.Filled.BrightnessLow, ActionType.SYSTEM_EXTRA_DIM, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_night_light, R.string.action_night_light_sub, Icons.Filled.NightsStay, ActionType.SYSTEM_NIGHT_LIGHT, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_haptic_feedback, R.string.action_haptic_feedback_sub, Icons.Filled.Vibration, ActionType.SYSTEM_HAPTIC_FEEDBACK, ActionCategory.SOUND),
+    ActionOption(R.string.action_sound_effects, R.string.action_sound_effects_sub, Icons.Filled.GraphicEq, ActionType.SYSTEM_SOUND_EFFECTS, ActionCategory.SOUND),
+    ActionOption(R.string.action_force_stop_app, R.string.action_force_stop_app_sub, Icons.Filled.Stop, ActionType.SYSTEM_FORCE_STOP_APP, ActionCategory.APPS),
+    ActionOption(R.string.action_clear_app_data, R.string.action_clear_app_data_sub, Icons.Filled.DeleteSweep, ActionType.SYSTEM_CLEAR_APP_DATA, ActionCategory.APPS),
     // BATTERY
     ActionOption(R.string.action_battery_alert, R.string.action_battery_alert_sub, Icons.Filled.BatteryAlert, ActionType.BATTERY_ALERTS, ActionCategory.BATTERY),
     ActionOption(R.string.action_charging_alert, R.string.action_charging_alert_sub, Icons.Filled.BatteryChargingFull, ActionType.BATTERY_CHARGING_NOTIFICATIONS, ActionCategory.BATTERY),
@@ -387,6 +401,27 @@ private fun actionSummary(option: ActionOption, config: Map<String, String>): St
         ActionType.SYSTEM_VIBRATE ->
             "${config["seconds"] ?: "1"}s"
         ActionType.SYSTEM_CLIPBOARD_SET -> config["text"].orEmpty().trim().ifEmpty { null }
+        ActionType.SYSTEM_SET_SETTING -> {
+            val key = config["key"].orEmpty().trim()
+            if (key.isEmpty()) null else "$key = ${config["value"] ?: ""}"
+        }
+        ActionType.SYSTEM_SCREENSHOT -> config["filename"].orEmpty().trim().ifEmpty { null }
+        ActionType.SYSTEM_INPUT_TEXT -> config["text"].orEmpty().trim().ifEmpty { null }
+        ActionType.SYSTEM_KEY_EVENT -> config["key"].orEmpty().trim().ifEmpty { null }
+        ActionType.SYSTEM_INPUT_TAP ->
+            "${config["x"] ?: "0"}, ${config["y"] ?: "0"}"
+        ActionType.SYSTEM_INPUT_SWIPE ->
+            "(${config["x1"] ?: "0"},${config["y1"] ?: "0"}) → (${config["x2"] ?: "0"},${config["y2"] ?: "0"})"
+        ActionType.SYSTEM_COLOR_INVERSION,
+        ActionType.SYSTEM_GRAYSCALE,
+        ActionType.SYSTEM_EXTRA_DIM,
+        ActionType.SYSTEM_NIGHT_LIGHT,
+        ActionType.SYSTEM_HAPTIC_FEEDBACK,
+        ActionType.SYSTEM_SOUND_EFFECTS ->
+            if (config["enabled"]?.toBoolean() ?: true) stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+        ActionType.SYSTEM_FORCE_STOP_APP,
+        ActionType.SYSTEM_CLEAR_APP_DATA -> config["package"].orEmpty().trim().ifEmpty { null }
         else -> null
     }
     return if (value.isNullOrBlank()) name else "$name · $value"

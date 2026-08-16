@@ -134,7 +134,11 @@ internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> = mapOf(
     TriggerType.HEADPHONE to TriggerCategory.DEVICE,
     TriggerType.CHARGER to TriggerCategory.DEVICE,
     TriggerType.AIRPLANE_MODE to TriggerCategory.DEVICE,
-    TriggerType.DARK_MODE to TriggerCategory.DEVICE
+    TriggerType.DARK_MODE to TriggerCategory.DEVICE,
+    TriggerType.CALL_STATE to TriggerCategory.DEVICE,
+    TriggerType.MEDIA_PLAYING to TriggerCategory.DEVICE,
+    TriggerType.VOLUME_CHANGED to TriggerCategory.DEVICE,
+    TriggerType.APP_INSTALLED to TriggerCategory.APPS
 )
 
 /** Trigger types ordered by category — the picker walks [triggerCategories] over it. */
@@ -153,6 +157,9 @@ val triggerTypeOptions = listOf(
     TriggerType.CHARGER,
     TriggerType.AIRPLANE_MODE,
     TriggerType.DARK_MODE,
+    TriggerType.CALL_STATE,
+    TriggerType.MEDIA_PLAYING,
+    TriggerType.VOLUME_CHANGED,
     // CONNECTIVITY
     TriggerType.CONNECTIVITY,
     TriggerType.NETWORK_MODE,
@@ -162,6 +169,7 @@ val triggerTypeOptions = listOf(
     TriggerType.LOCATION,
     // APPS
     TriggerType.APPLICATION,
+    TriggerType.APP_INSTALLED,
     // COMMUNICATION
     TriggerType.SMS
 )
@@ -215,6 +223,10 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.CHARGER -> mapOf("event" to "CONNECTED")
     TriggerType.AIRPLANE_MODE -> mapOf("state" to "ON")
     TriggerType.DARK_MODE -> mapOf("state" to "ON")
+    TriggerType.CALL_STATE -> mapOf("event" to "INCOMING")
+    TriggerType.APP_INSTALLED -> mapOf("event" to "INSTALLED", "package" to "")
+    TriggerType.MEDIA_PLAYING -> mapOf("event" to "STARTED")
+    TriggerType.VOLUME_CHANGED -> mapOf("stream" to "MUSIC", "threshold" to "50", "direction" to "ABOVE")
 }
 
 internal fun TriggerType.labelRes(): Int = when (this) {
@@ -237,6 +249,10 @@ internal fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.CHARGER -> R.string.trigger_type_charger
     TriggerType.AIRPLANE_MODE -> R.string.trigger_type_airplane
     TriggerType.DARK_MODE -> R.string.trigger_type_dark_mode
+    TriggerType.CALL_STATE -> R.string.trigger_type_call_state
+    TriggerType.APP_INSTALLED -> R.string.trigger_type_app_installed
+    TriggerType.MEDIA_PLAYING -> R.string.trigger_type_media_playing
+    TriggerType.VOLUME_CHANGED -> R.string.trigger_type_volume_changed
 }
 
 internal fun TriggerType.icon(): ImageVector = when (this) {
@@ -259,6 +275,10 @@ internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.CHARGER -> Icons.Filled.BatteryChargingFull
     TriggerType.AIRPLANE_MODE -> Icons.Filled.AirplanemodeActive
     TriggerType.DARK_MODE -> Icons.Filled.DarkMode
+    TriggerType.CALL_STATE -> Icons.Filled.PhoneAndroid
+    TriggerType.APP_INSTALLED -> Icons.Filled.Download
+    TriggerType.MEDIA_PLAYING -> Icons.Filled.MusicNote
+    TriggerType.VOLUME_CHANGED -> Icons.AutoMirrored.Filled.VolumeUp
 }
 
 private fun parseDateMillis(value: String): Long? {
@@ -710,6 +730,37 @@ private fun triggerSummary(draft: TriggerDraft): String {
         TriggerType.DARK_MODE ->
             if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
             else stringResource(R.string.state_off)
+        TriggerType.CALL_STATE -> when (c["event"] ?: "INCOMING") {
+            "OUTGOING" -> stringResource(R.string.call_outgoing)
+            "ENDED" -> stringResource(R.string.call_ended)
+            else -> stringResource(R.string.call_incoming)
+        }
+        TriggerType.APP_INSTALLED -> {
+            val event = when (c["event"] ?: "INSTALLED") {
+                "REMOVED" -> stringResource(R.string.app_removed)
+                "UPDATED" -> stringResource(R.string.app_updated)
+                else -> stringResource(R.string.app_installed)
+            }
+            val pkg = (c["package"] ?: "").trim()
+            if (pkg.isEmpty()) event else "$event · $pkg"
+        }
+        TriggerType.MEDIA_PLAYING ->
+            if ((c["event"] ?: "STARTED") == "STARTED") stringResource(R.string.media_started)
+            else stringResource(R.string.media_stopped)
+        TriggerType.VOLUME_CHANGED -> {
+            val stream = when (c["stream"] ?: "MUSIC") {
+                "RING" -> stringResource(R.string.volume_stream_ring)
+                "ALARM" -> stringResource(R.string.volume_stream_alarm)
+                "NOTIFICATION" -> stringResource(R.string.volume_stream_notification)
+                else -> stringResource(R.string.volume_stream_music)
+            }
+            val direction = if ((c["direction"] ?: "ABOVE") == "ABOVE") {
+                stringResource(R.string.volume_above)
+            } else {
+                stringResource(R.string.volume_below)
+            }
+            "$stream · $direction ${c["threshold"] ?: "50"}"
+        }
     }
 }
 
@@ -2137,6 +2188,86 @@ fun TriggerEditorCard(
                         ),
                         selected = draft.config["state"] ?: "ON",
                         onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                    )
+                }
+                TriggerType.CALL_STATE -> {
+                    Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("INCOMING", "OUTGOING", "ENDED"),
+                        labels = mapOf(
+                            "INCOMING" to stringResource(R.string.call_incoming),
+                            "OUTGOING" to stringResource(R.string.call_outgoing),
+                            "ENDED" to stringResource(R.string.call_ended)
+                        ),
+                        selected = draft.config["event"] ?: "INCOMING",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
+                    )
+                }
+                TriggerType.APP_INSTALLED -> {
+                    Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("INSTALLED", "REMOVED", "UPDATED"),
+                        labels = mapOf(
+                            "INSTALLED" to stringResource(R.string.app_installed),
+                            "REMOVED" to stringResource(R.string.app_removed),
+                            "UPDATED" to stringResource(R.string.app_updated)
+                        ),
+                        selected = draft.config["event"] ?: "INSTALLED",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
+                    )
+                    OutlinedTextField(
+                        value = draft.config["package"] ?: "",
+                        onValueChange = { v ->
+                            onConfigChange(draft.copy(config = draft.config + ("package" to v)))
+                        },
+                        label = stringResource(R.string.optional_package),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                TriggerType.MEDIA_PLAYING -> {
+                    Text(text = stringResource(R.string.event), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("STARTED", "STOPPED"),
+                        labels = mapOf(
+                            "STARTED" to stringResource(R.string.media_started),
+                            "STOPPED" to stringResource(R.string.media_stopped)
+                        ),
+                        selected = draft.config["event"] ?: "STARTED",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
+                    )
+                }
+                TriggerType.VOLUME_CHANGED -> {
+                    Text(text = stringResource(R.string.volume_stream), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("MUSIC", "RING", "ALARM", "NOTIFICATION"),
+                        labels = mapOf(
+                            "MUSIC" to stringResource(R.string.volume_stream_music),
+                            "RING" to stringResource(R.string.volume_stream_ring),
+                            "ALARM" to stringResource(R.string.volume_stream_alarm),
+                            "NOTIFICATION" to stringResource(R.string.volume_stream_notification)
+                        ),
+                        selected = draft.config["stream"] ?: "MUSIC",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("stream" to it))) }
+                    )
+                    Text(text = stringResource(R.string.volume_direction), style = MaterialTheme.typography.titleSmall)
+                    OptionChips(
+                        options = listOf("ABOVE", "BELOW"),
+                        labels = mapOf(
+                            "ABOVE" to stringResource(R.string.volume_above),
+                            "BELOW" to stringResource(R.string.volume_below)
+                        ),
+                        selected = draft.config["direction"] ?: "ABOVE",
+                        onSelect = { onConfigChange(draft.copy(config = draft.config + ("direction" to it))) }
+                    )
+                    OutlinedTextField(
+                        value = draft.config["threshold"] ?: "50",
+                        onValueChange = { v ->
+                            onConfigChange(draft.copy(config = draft.config + ("threshold" to v.filter { it.isDigit() })))
+                        },
+                        label = stringResource(R.string.volume_threshold),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }

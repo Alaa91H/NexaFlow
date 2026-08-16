@@ -41,4 +41,8 @@
     <string name="trigger_airplane">Режим полёта</string>
     <string name="trigger_dark_mode">Тёмный режим</string>
     <string name="trigger_type_network_mode">Сотовая сеть</string>
+    <string name="trigger_call_state">Состояние звонка</string>
+    <string name="trigger_app_installed">Приложение установлено</string>
+    <string name="trigger_media_playing">Воспроизведение медиа</string>
+    <string name="trigger_volume_changed">Громкость изменена</string>
 </resources>

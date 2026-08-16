@@ -27,8 +27,20 @@ import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.BrightnessLow
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Contrast
 import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.GpsFixed
+import androidx.compose.material.icons.filled.Gradient
+import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.NightsStay
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.WbSunny
@@ -101,4 +113,18 @@ fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (
     ActionType.ADVANCED_ROOT -> Triple(R.string.action_root, R.string.action_root_sub, Icons.Filled.Lock)
     ActionType.SYSTEM_HTTP_REQUEST -> Triple(R.string.action_http_request, R.string.action_http_request_sub, Icons.Filled.Public)
     ActionType.PLUGIN_FIRE -> Triple(R.string.action_plugin, R.string.action_plugin_sub, Icons.Filled.Extension)
+    ActionType.SYSTEM_SET_SETTING -> Triple(R.string.action_set_setting, R.string.action_set_setting_sub, Icons.Filled.Tune)
+    ActionType.SYSTEM_SCREENSHOT -> Triple(R.string.action_screenshot, R.string.action_screenshot_sub, Icons.Filled.CameraAlt)
+    ActionType.SYSTEM_INPUT_TEXT -> Triple(R.string.action_input_text, R.string.action_input_text_sub, Icons.Filled.Chat)
+    ActionType.SYSTEM_KEY_EVENT -> Triple(R.string.action_key_event, R.string.action_key_event_sub, Icons.Filled.Build)
+    ActionType.SYSTEM_INPUT_TAP -> Triple(R.string.action_input_tap, R.string.action_input_tap_sub, Icons.Filled.GpsFixed)
+    ActionType.SYSTEM_INPUT_SWIPE -> Triple(R.string.action_input_swipe, R.string.action_input_swipe_sub, Icons.AutoMirrored.Filled.ArrowForward)
+    ActionType.SYSTEM_COLOR_INVERSION -> Triple(R.string.action_color_inversion, R.string.action_color_inversion_sub, Icons.Filled.Contrast)
+    ActionType.SYSTEM_GRAYSCALE -> Triple(R.string.action_grayscale, R.string.action_grayscale_sub, Icons.Filled.Gradient)
+    ActionType.SYSTEM_EXTRA_DIM -> Triple(R.string.action_extra_dim, R.string.action_extra_dim_sub, Icons.Filled.BrightnessLow)
+    ActionType.SYSTEM_NIGHT_LIGHT -> Triple(R.string.action_night_light, R.string.action_night_light_sub, Icons.Filled.NightsStay)
+    ActionType.SYSTEM_HAPTIC_FEEDBACK -> Triple(R.string.action_haptic_feedback, R.string.action_haptic_feedback_sub, Icons.Filled.GraphicEq)
+    ActionType.SYSTEM_SOUND_EFFECTS -> Triple(R.string.action_sound_effects, R.string.action_sound_effects_sub, Icons.Filled.GraphicEq)
+    ActionType.SYSTEM_FORCE_STOP_APP -> Triple(R.string.action_force_stop_app, R.string.action_force_stop_app_sub, Icons.Filled.Stop)
+    ActionType.SYSTEM_CLEAR_APP_DATA -> Triple(R.string.action_clear_app_data, R.string.action_clear_app_data_sub, Icons.Filled.DeleteSweep)
 }

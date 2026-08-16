@@ -41,4 +41,8 @@
     <string name="trigger_airplane">機内モード</string>
     <string name="trigger_dark_mode">ダークモード</string>
     <string name="trigger_type_network_mode">携帯ネットワーク</string>
+    <string name="trigger_call_state">通話状態</string>
+    <string name="trigger_app_installed">アプリインストール</string>
+    <string name="trigger_media_playing">メディア再生</string>
+    <string name="trigger_volume_changed">音量変化</string>
 </resources>

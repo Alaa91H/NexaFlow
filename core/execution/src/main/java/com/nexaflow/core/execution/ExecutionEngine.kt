@@ -156,8 +156,24 @@ class ExecutionEngine(
      * when the condition that should fire the task is not met right now.
      */
     suspend fun runWithConditionGate(automation: Automation): ExecutionRecord {
-        val satisfied = TriggerStateEvaluator.isSatisfied(context, automation.triggers)
-        return if (satisfied) runAutomation(automation) else runExit(automation)
+        // The manual "run now" gate is tied to the task's full condition set:
+        // triggers (the event) AND constraints (the state the device must be
+        // in while it fires). Only when BOTH are currently satisfied do the
+        // task's actions run; otherwise the exit behavior ("when the task
+        // ends") runs instead, so a manual run is always correct.
+        val triggersOk = TriggerStateEvaluator.isSatisfied(context, automation.triggers)
+        val constraintsOk = if (automation.constraints.isEmpty()) {
+            true
+        } else {
+            val state = constraintStateProvider?.invoke()
+                ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
+            state != null && ConstraintEvaluator.allSatisfied(automation.constraints, state)
+        }
+        return if (triggersOk && constraintsOk) {
+            runAutomation(automation)
+        } else {
+            runExit(automation)
+        }
     }
 
     /**

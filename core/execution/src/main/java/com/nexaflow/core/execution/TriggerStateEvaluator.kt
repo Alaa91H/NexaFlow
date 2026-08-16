@@ -56,6 +56,36 @@ object TriggerStateEvaluator {
                     Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
                 ((c["state"] ?: "ON") == "ON") == dark
             }
+            TriggerType.CALL_STATE -> {
+                // Incoming/outgoing calls are satisfied while a call is live;
+                // ENDED is satisfied once the line is free again.
+                val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? android.telephony.TelephonyManager ?: return true
+                val busy = telephony.callState != android.telephony.TelephonyManager.CALL_STATE_IDLE
+                when (c["event"] ?: "INCOMING") {
+                    "ENDED" -> !busy
+                    else -> busy
+                }
+            }
+            TriggerType.MEDIA_PLAYING -> {
+                val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return true
+                val playing = audio.isMusicActive
+                (c["event"] ?: "STARTED") == "STARTED" == playing
+            }
+            TriggerType.VOLUME_CHANGED -> {
+                val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return true
+                val stream = when (c["stream"] ?: "MUSIC") {
+                    "RING" -> AudioManager.STREAM_RING
+                    "ALARM" -> AudioManager.STREAM_ALARM
+                    "NOTIFICATION" -> AudioManager.STREAM_NOTIFICATION
+                    else -> AudioManager.STREAM_MUSIC
+                }
+                val level = audio.getStreamVolume(stream)
+                val threshold = (c["threshold"] ?: "50").toIntOrNull() ?: 50
+                if ((c["direction"] ?: "ABOVE") == "BELOW") level <= threshold else level >= threshold
+            }
+            // Install/remove events cannot be re-derived statically; an
+            // unknown state never blocks a manual run.
+            TriggerType.APP_INSTALLED -> true
             else -> true
         }
     }

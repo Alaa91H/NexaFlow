@@ -60,6 +60,10 @@ enum class TriggerSource(val sourceId: String) {
             TriggerType.CHARGER -> BATTERY
             TriggerType.AIRPLANE_MODE -> DEVICE
             TriggerType.DARK_MODE -> DEVICE
+            TriggerType.CALL_STATE -> DEVICE
+            TriggerType.APP_INSTALLED -> APPLICATION
+            TriggerType.MEDIA_PLAYING -> DEVICE
+            TriggerType.VOLUME_CHANGED -> DEVICE
         }
     }
 }

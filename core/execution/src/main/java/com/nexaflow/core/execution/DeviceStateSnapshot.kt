@@ -45,7 +45,13 @@ class DeviceStateSnapshot private constructor(
     private val powerSaverEnabled: Boolean?,
     private val animationsEnabled: Boolean?,
     private val locationEnabled: Boolean?,
-    private val ringtoneUri: String?
+    private val ringtoneUri: String?,
+    private val colorInversion: Boolean?,
+    private val grayscale: Boolean?,
+    private val extraDim: Boolean?,
+    private val nightLight: Boolean?,
+    private val hapticFeedback: Boolean?,
+    private val soundEffects: Boolean?
 ) {
 
     fun restore(context: Context) {
@@ -66,6 +72,12 @@ class DeviceStateSnapshot private constructor(
         restoreToggle(controller::setPowerSaver, powerSaverEnabled)
         restoreToggle(controller::setAnimations, animationsEnabled)
         restoreToggle(controller::setLocationEnabled, locationEnabled)
+        restoreSettingsToggle(controller, "SECURE", "accessibility_display_inversion_enabled", colorInversion)
+        restoreSettingsToggle(controller, "SECURE", "accessibility_display_daltonizer_enabled", grayscale)
+        restoreSettingsToggle(controller, "SECURE", "reduce_bright_colors_activated", extraDim)
+        restoreSettingsToggle(controller, "SECURE", "night_display_activated", nightLight)
+        restoreSettingsToggle(controller, "SYSTEM", "haptic_feedback_enabled", hapticFeedback)
+        restoreSettingsToggle(controller, "SYSTEM", "sound_effects_enabled", soundEffects)
     }
 
     /**
@@ -98,6 +110,18 @@ class DeviceStateSnapshot private constructor(
             ActionType.SYSTEM_STAY_AWAKE -> restoreToggle(controller::setStayAwake, stayAwake)
             ActionType.SYSTEM_AUTO_BRIGHTNESS -> restoreToggle(controller::setAutoBrightness, autoBrightness)
             ActionType.SYSTEM_DARK_MODE -> restoreToggle(controller::setDarkMode, darkMode)
+            ActionType.SYSTEM_COLOR_INVERSION ->
+                restoreSettingsToggle(controller, "SECURE", "accessibility_display_inversion_enabled", colorInversion)
+            ActionType.SYSTEM_GRAYSCALE ->
+                restoreSettingsToggle(controller, "SECURE", "accessibility_display_daltonizer_enabled", grayscale)
+            ActionType.SYSTEM_EXTRA_DIM ->
+                restoreSettingsToggle(controller, "SECURE", "reduce_bright_colors_activated", extraDim)
+            ActionType.SYSTEM_NIGHT_LIGHT ->
+                restoreSettingsToggle(controller, "SECURE", "night_display_activated", nightLight)
+            ActionType.SYSTEM_HAPTIC_FEEDBACK ->
+                restoreSettingsToggle(controller, "SYSTEM", "haptic_feedback_enabled", hapticFeedback)
+            ActionType.SYSTEM_SOUND_EFFECTS ->
+                restoreSettingsToggle(controller, "SYSTEM", "sound_effects_enabled", soundEffects)
             ActionType.SYSTEM_SCREEN_ROTATION -> restoreToggle(controller::setScreenRotation, autoRotate)
             ActionType.SYSTEM_BRIGHTNESS ->
                 runCatching { controller.setBrightness(brightness) }.getOrElse { SystemControlResult.fail(it.message ?: "restore failed") }
@@ -178,6 +202,20 @@ class DeviceStateSnapshot private constructor(
         }
     }
 
+    private fun restoreSettingsToggle(
+        controller: com.nexaflow.core.rom.SystemController,
+        namespace: String,
+        key: String,
+        captured: Boolean?
+    ): SystemControlResult {
+        val value = captured ?: return SystemControlResult.ok("Nothing to restore")
+        return runCatching {
+            controller.writeSetting(namespace, key, if (value) "1" else "0")
+        }.getOrElse {
+            SystemControlResult.fail("Restore failed: ${it.message}")
+        }
+    }
+
     companion object {
         fun capture(context: Context): DeviceStateSnapshot {
             val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -228,6 +266,12 @@ class DeviceStateSnapshot private constructor(
                 networkMode = runCatching {
                     Settings.Global.getInt(context.contentResolver, "preferred_network_mode", -1)
                 }.getOrNull()?.takeIf { it >= 0 }?.toString(),
+                colorInversion = secureBool(context, "accessibility_display_inversion_enabled"),
+                grayscale = secureBool(context, "accessibility_display_daltonizer_enabled"),
+                extraDim = secureBool(context, "reduce_bright_colors_activated"),
+                nightLight = secureBool(context, "night_display_activated"),
+                hapticFeedback = systemBool(context, "haptic_feedback_enabled"),
+                soundEffects = systemBool(context, "sound_effects_enabled"),
                 hotspotEnabled = globalBool(context, "tether_on"),
                 airplaneModeEnabled = globalBool(context, Settings.Global.AIRPLANE_MODE_ON),
                 dndEnabled = runCatching {
@@ -256,6 +300,21 @@ class DeviceStateSnapshot private constructor(
 
         private fun globalBool(context: Context, name: String): Boolean? = runCatching {
             Settings.Global.getInt(context.contentResolver, name) == 1
+        }.getOrNull()
+
+        private fun secureBool(context: Context, name: String): Boolean? = runCatching {
+            Settings.Secure.getInt(context.contentResolver, name, 0) == 1
+        }.getOrNull()
+
+        private fun systemBool(context: Context, name: String): Boolean? = runCatching {
+            Settings.System.getInt(context.contentResolver, name, 0) == 1
+        }.getOrNull()
+        private fun secureBool(context: Context, name: String): Boolean? = runCatching {
+            Settings.Secure.getInt(context.contentResolver, name, 0) == 1
+        }.getOrNull()
+
+        private fun systemBool(context: Context, name: String): Boolean? = runCatching {
+            Settings.System.getInt(context.contentResolver, name, 0) == 1
         }.getOrNull()
 
         private fun globalFloat(context: Context, name: String): Float? = runCatching {

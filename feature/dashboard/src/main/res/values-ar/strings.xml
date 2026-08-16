@@ -41,4 +41,8 @@
     <string name="trigger_airplane">وضع الطيران</string>
     <string name="trigger_dark_mode">الوضع الداكن</string>
     <string name="trigger_type_network_mode">الشبكة الخلوية</string>
+    <string name="trigger_call_state">حالة المكالمة</string>
+    <string name="trigger_app_installed">تثبيت تطبيق</string>
+    <string name="trigger_media_playing">تشغيل الوسائط</string>
+    <string name="trigger_volume_changed">تغير مستوى الصوت</string>
 </resources>
