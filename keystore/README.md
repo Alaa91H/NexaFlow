@@ -19,7 +19,15 @@ force every existing install to be wiped.
 - `keystore/keystore.properties` — local credentials, read by the Gradle build:
   `storeFile`, `storePassword`, `keyAlias`, `keyPassword`.
 
-To (re)create the properties file from a fresh checkout, copy the example:
+Generate the key and credentials automatically (recommended — idempotent,
+never regenerates an existing key):
+
+```bash
+./scripts/setup-signing.sh             # create the keystore + keystore.properties
+./scripts/setup-signing.sh --upload    # also push the 4 secrets to GitHub Actions
+```
+
+To (re)create the properties file manually from a fresh checkout, copy the example:
 
 ```bash
 cp keystore/keystore.properties.example keystore/keystore.properties
