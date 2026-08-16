@@ -14,6 +14,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -27,20 +29,20 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /**
- * Compose UI tests (Robolectric) for [CategoryAccordion] — the Google-2026
- * single-open category picker used by the execution step, the trigger step
- * and the "when the task ends" step.
+ * Compose UI tests (Robolectric) for [CategoryAccordion] — the fixed category
+ * menu used by the trigger step, the execution step and the "when the task
+ * ends" step.
  *
- * The harness below reproduces the builder's exact wiring: each category
- * renders its options, tapping an option adds it to the selected list (the
- * "card") and collapses the accordion. Assertions cover the two contracts the
- * builder depends on:
- *  1. Only ONE category is open at a time (tapping a chip closes the other).
- *  2. Picking an option adds the card AND folds the accordion away.
+ * The menu follows the strict no-collapse contract: the chips stay pinned at
+ * the top and the options of EVERY category are always rendered below,
+ * stacked downwards — nothing is hidden behind a tap and nothing ever folds
+ * away, even after an option is picked. (The builder hides the whole trigger
+ * picker via its own outer gate once a trigger is chosen; the accordion
+ * itself never collapses, and the execution picker stays fully visible while
+ * actions are added.)
  *
- * Animations are disabled via the system animator scale so expand/collapse is
- * instant and deterministic (the reduced-motion path of
- * [NexaFlowAnimatedVisibility]).
+ * Animations are disabled via the system animator scale so the assertions are
+ * deterministic.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -58,7 +60,7 @@ class CategoryAccordionTest {
     @Before
     fun disableAnimations() {
         // Reduced-motion path: content appears/disappears instantly, so the
-        // single-open and collapse assertions are deterministic.
+        // no-collapse assertions are deterministic.
         Settings.Global.putFloat(
             context.contentResolver,
             Settings.Global.ANIMATOR_DURATION_SCALE,
@@ -68,13 +70,13 @@ class CategoryAccordionTest {
 
     /**
      * Renders the accordion with three categories (each with options) plus the
-     * "selected card" list below, wired exactly like the builder: picking an
-     * option adds it and folds the accordion.
+     * "selected card" list below, wired exactly like the execution step:
+     * picking an option adds it as a card while the picker stays fully open.
      */
     private fun setHarness() {
         composeRule.setContent {
             MaterialTheme {
-                var expanded by remember { mutableStateOf<Int?>(null) }
+                var expanded by remember { mutableStateOf<Int?>(0) }
                 val selected = remember { mutableStateListOf<String>() }
                 CategoryAccordion(
                     tabs = listOf("Cat A" to null, "Cat B" to null, "Cat C" to null),
@@ -94,14 +96,12 @@ class CategoryAccordionTest {
                                     .fillMaxWidth()
                                     .clickable {
                                         if (option !in selected) selected.add(option)
-                                        // Collapse so the user lands on the new card's config.
-                                        expanded = null
                                     }
                             )
                         }
                     }
                 }
-                // The "selected card" list, rendered below the accordion.
+                // The "selected card" list, rendered below the picker.
                 selected.forEach { s ->
                     Text(text = "Card: $s")
                 }
@@ -109,90 +109,74 @@ class CategoryAccordionTest {
         }
     }
 
-    // --- Single-open invariant ---------------------------------------------
+    // --- Strict no-collapse: everything is visible immediately -------------
 
     @Test
-    fun initially_noCategoryIsOpen_noOptionsShown() {
+    fun enteringThePicker_showsAllCategoriesOptions_immediately() {
         setHarness()
 
-        composeRule.onNodeWithText("A1").assertDoesNotExist()
-        composeRule.onNodeWithText("B1").assertDoesNotExist()
-        composeRule.onNodeWithText("C1").assertDoesNotExist()
-        // The category chips themselves are always visible.
-        composeRule.onNodeWithText("Cat A").assertIsDisplayed()
-        composeRule.onNodeWithText("Cat B").assertIsDisplayed()
-    }
-
-    @Test
-    fun tappingAChip_opensOnlyItsOptions() {
-        setHarness()
-
-        composeRule.onNodeWithText("Cat B").performClick()
-
+        // No tap needed: every category's options are on screen from the start.
+        composeRule.onNodeWithText("A1").assertIsDisplayed()
+        composeRule.onNodeWithText("A2").assertIsDisplayed()
         composeRule.onNodeWithText("B1").assertIsDisplayed()
         composeRule.onNodeWithText("B2").assertIsDisplayed()
-        composeRule.onNodeWithText("A1").assertDoesNotExist()
-        composeRule.onNodeWithText("C1").assertDoesNotExist()
-    }
-
-    @Test
-    fun switchingChip_closesThePreviousCategory_keepsOnlyOneOpen() {
-        setHarness()
-
-        composeRule.onNodeWithText("Cat A").performClick()
-        composeRule.onNodeWithText("A1").assertIsDisplayed()
-
-        // Open a second category: the first must close — only ONE open chip.
-        composeRule.onNodeWithText("Cat B").performClick()
-
-        composeRule.onNodeWithText("B1").assertIsDisplayed()
-        composeRule.onNodeWithText("A1").assertDoesNotExist()
-        composeRule.onNodeWithText("A2").assertDoesNotExist()
-    }
-
-    @Test
-    fun tappingTheOpenChipAgain_collapsesIt() {
-        setHarness()
-
-        composeRule.onNodeWithText("Cat C").performClick()
         composeRule.onNodeWithText("C1").assertIsDisplayed()
-
-        composeRule.onNodeWithText("Cat C").performClick()
-
-        composeRule.onNodeWithText("C1").assertDoesNotExist()
+        // The category chips are always visible too.
+        composeRule.onNode(hasText("Cat A") and hasClickAction()).assertIsDisplayed()
+        composeRule.onNode(hasText("Cat B") and hasClickAction()).assertIsDisplayed()
+        composeRule.onNode(hasText("Cat C") and hasClickAction()).assertIsDisplayed()
     }
 
-    // --- Pick → add card + collapse -----------------------------------------
-
     @Test
-    fun pickingAnOption_addsTheCard_andCollapsesTheAccordion() {
+    fun tappingAChip_neverHidesAnyCategorysOptions() {
         setHarness()
 
-        composeRule.onNodeWithText("Cat A").performClick()
+        composeRule.onNode(hasText("Cat B") and hasClickAction()).performClick()
+
+        // Selecting another chip must not fold anything away.
         composeRule.onNodeWithText("A1").assertIsDisplayed()
+        composeRule.onNodeWithText("B1").assertIsDisplayed()
+        composeRule.onNodeWithText("C1").assertIsDisplayed()
+    }
+
+    @Test
+    fun selectingOneCategory_keepsTheOtherCategoriesOpen() {
+        setHarness()
+
+        composeRule.onNode(hasText("Cat A") and hasClickAction()).performClick()
+
+        composeRule.onNodeWithText("A1").assertIsDisplayed()
+        composeRule.onNodeWithText("B1").assertIsDisplayed()
+        composeRule.onNodeWithText("C1").assertIsDisplayed()
+    }
+
+    // --- Pick → add card, picker stays open ---------------------------------
+
+    @Test
+    fun pickingAnOption_addsTheCard_andKeepsTheOptionsVisible() {
+        setHarness()
 
         composeRule.onNodeWithText("A1").performClick()
 
-        // The card for the picked option is added below the accordion.
+        // The card for the picked option is added below the picker.
         composeRule.onNodeWithText("Card: A1").assertIsDisplayed()
-        // The accordion folds away: no options are visible anymore.
-        composeRule.onNodeWithText("A1").assertDoesNotExist()
-        composeRule.onNodeWithText("A2").assertDoesNotExist()
         // Only one card — the option was added, not duplicated.
         composeRule.onNodeWithText("Card: A2").assertDoesNotExist()
+        // Strict no-collapse: the picker never folds away after a pick.
+        composeRule.onNodeWithText("A1").assertIsDisplayed()
+        composeRule.onNodeWithText("B1").assertIsDisplayed()
     }
 
     @Test
     fun pickingOptionsFromTwoCategories_addsTwoCards() {
         setHarness()
 
-        composeRule.onNodeWithText("Cat A").performClick()
         composeRule.onNodeWithText("A1").performClick()
-
-        composeRule.onNodeWithText("Cat B").performClick()
         composeRule.onNodeWithText("B2").performClick()
 
         composeRule.onNodeWithText("Card: A1").assertIsDisplayed()
         composeRule.onNodeWithText("Card: B2").assertIsDisplayed()
+        // The picker stayed fully open the whole time.
+        composeRule.onNodeWithText("C1").assertIsDisplayed()
     }
 }

@@ -1,5 +1,6 @@
 package com.nexaflow.core.execution
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.media.AudioManager
@@ -26,9 +27,18 @@ import kotlin.math.abs
 object TriggerStateEvaluator {
 
     /** True when at least one trigger is currently satisfied (unknown = satisfied). */
+    // ConnectivityManager reads (ethernet/VPN/connectivity) need
+    // ACCESS_NETWORK_STATE, which is a normal permission the app declares in
+    // the manifest — lint cannot see the manifest here, so suppress it; every
+    // read is also wrapped in runCatching and degrades to "unknown".
     fun isSatisfied(context: Context, triggers: List<Trigger>): Boolean =
         triggers.isEmpty() || triggers.any { triggerSatisfied(context, it) }
 
+    // ConnectivityManager reads (ethernet/VPN/connectivity) need
+    // ACCESS_NETWORK_STATE, which is a normal permission the app declares in
+    // the manifest — lint cannot see the manifest here, so suppress it; every
+    // read is also wrapped in runCatching and degrades to "unknown".
+    @SuppressLint("MissingPermission")
     fun triggerSatisfied(context: Context, trigger: Trigger): Boolean {
         val c = trigger.config
         return when (trigger.type) {
@@ -139,7 +149,7 @@ object TriggerStateEvaluator {
                 ((c["state"] ?: "ON") == "ON") == on
             }
             TriggerType.NFC_STATE -> {
-                val nfc = context.getSystemService(Context.NFC_SERVICE) as? android.nfc.NfcAdapter
+                val nfc = android.nfc.NfcAdapter.getDefaultAdapter(context)
                 val on = nfc?.isEnabled == true
                 ((c["state"] ?: "ON") == "ON") == on
             }
@@ -194,7 +204,11 @@ object TriggerStateEvaluator {
             }
             TriggerType.CELL_SIGNAL_STRENGTH -> {
                 val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? android.telephony.TelephonyManager
-                val level = runCatching { telephony?.signalStrength?.level ?: 0 }.getOrDefault(0)
+                val level = runCatching {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                        telephony?.signalStrength?.level ?: 0
+                    } else 0
+                }.getOrDefault(0)
                 val threshold = (c["threshold"] ?: "3").toIntOrNull() ?: 3
                 if ((c["direction"] ?: "ABOVE") == "BELOW") level <= threshold else level >= threshold
             }

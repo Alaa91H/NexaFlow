@@ -794,9 +794,11 @@ fun AutomationBuilderScreen(
     var appPickerTarget by remember { mutableStateOf<String?>(null) }
     var bluetoothPickerTarget by remember { mutableStateOf<Int?>(null) }
     var calendarPickerTarget by remember { mutableStateOf<Int?>(null) }
-    // Single-open accordions: only ONE category chip is expanded at a time.
-    var expandedTriggerCategory by rememberSaveable { mutableStateOf<Int?>(null) }
-    var expandedActionCategory by rememberSaveable { mutableStateOf<Int?>(null) }
+    // Category chips highlight the FIRST category on entry so the fixed menu
+    // shows at a glance; every category's options are always rendered below
+    // (strict no-collapse), so these only track the highlighted chip.
+    var expandedTriggerCategory by rememberSaveable { mutableStateOf<Int?>(0) }
+    var expandedActionCategory by rememberSaveable { mutableStateOf<Int?>(0) }
     // A freshly picked trigger opens its editor; loaded ones stay collapsed.
     var lastAddedTrigger by remember { mutableStateOf(-1) }
     // Same for a freshly picked execution action.

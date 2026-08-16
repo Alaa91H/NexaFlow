@@ -449,7 +449,20 @@ class SystemController(
         )
     }
 
-    /** Ringer mode: NORMAL / VIBRATE / SILENT. Needs DND access or elevated runtime. */
+    /** Ringer mode: NORMAL / VIBRATE / SILENT.
+ *
+ * Android only lets apps LOWER the ringer mode through
+ * [AudioManager.setRingerMode] (NORMAL -> VIBRATE/SILENT); raising it
+ * (VIBRATE/SILENT -> NORMAL) requires DND (notification-policy) access.
+ * The old privileged fallback used `cmd audio set_mode`, which sets the AUDIO
+ * MODE (IN_CALL/RINGTONE/...) — not the ringer mode — so the change silently
+ * never applied. To be reliable on every ROM (stock AOSP, OneUI, MIUI, custom
+ * ROMs, with or without DND/root/Shizuku) we drive the framework's own
+ * derivation instead: the ringer mode follows the RING stream volume (>0 =
+ * NORMAL) plus the "vibrate when ringing" setting (ring muted + vibrate =
+ * VIBRATE, ring muted + no vibrate = SILENT). The direct API is still tried
+ * first (covers lowering and DND holders), then the stream-based path.
+ */
     fun setRingerMode(mode: String): SystemControlResult {
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val ringerMode = when (mode.uppercase()) {
@@ -457,21 +470,60 @@ class SystemController(
             "SILENT" -> AudioManager.RINGER_MODE_SILENT
             else -> AudioManager.RINGER_MODE_NORMAL
         }
-        val label = mode.uppercase().lowercase().replaceFirstChar { it.uppercase() }
+        val name = when (ringerMode) {
+            AudioManager.RINGER_MODE_VIBRATE -> "VIBRATE"
+            AudioManager.RINGER_MODE_SILENT -> "SILENT"
+            else -> "NORMAL"
+        }
+        val label = name.lowercase().replaceFirstChar { it.uppercase() }
+
+        // 1) Direct API — works when lowering, and when DND access is granted.
+        val direct = runCatching {
+            audioManager.ringerMode = ringerMode
+            audioManager.ringerMode == ringerMode
+        }.getOrDefault(false)
+        if (direct) {
+            return SystemControlResult.ok("Ringer mode set to $label")
+        }
+
+        // 2) Stream-based derivation: RING volume + vibrate-when-ringing.
+        //    Raising the ring volume is allowed for any app and flips the
+        //    mode back to NORMAL on every ROM; muting it (plus the vibrate
+        //    setting) selects VIBRATE vs SILENT.
         return try {
-            if (!capabilityProvider.isAvailable(RomCapability.DND_ACCESS)) {
-                return tryPrivileged(
-                    command = "cmd audio set_mode $ringerMode",
-                    successMessage = "Ringer mode set to $label"
+            val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_RING)
+            audioManager.setStreamVolume(
+                AudioManager.STREAM_RING,
+                if (ringerMode == AudioManager.RINGER_MODE_NORMAL) max else 0,
+                0
+            )
+            if (ringerMode != AudioManager.RINGER_MODE_NORMAL) {
+                val vibrateOn = ringerMode == AudioManager.RINGER_MODE_VIBRATE
+                val written = runCatching {
+                    Settings.System.putInt(
+                        context.contentResolver,
+                        Settings.System.VIBRATE_WHEN_RINGING,
+                        if (vibrateOn) 1 else 0
+                    )
+                }.getOrDefault(false)
+                if (!written) {
+                    tryPrivileged(
+                        command = "settings put system vibrate_when_ringing ${if (vibrateOn) 1 else 0}",
+                        successMessage = "Ringer mode set to $label"
+                    )
+                }
+                // Lowering is always permitted — nudge the framework to re-derive.
+                audioManager.ringerMode = ringerMode
+            }
+            if (audioManager.ringerMode == ringerMode) {
+                SystemControlResult.ok("Ringer mode set to $label")
+            } else {
+                SystemControlResult.fail(
+                    "The ROM rejected the change to $label (current mode: ${audioManager.ringerMode})"
                 )
             }
-            audioManager.ringerMode = ringerMode
-            SystemControlResult.ok("Ringer mode set to $label")
         } catch (t: Throwable) {
-            tryPrivileged(
-                command = "cmd audio set_mode $ringerMode",
-                successMessage = "Ringer mode set to $label"
-            ).takeIf { it.success } ?: SystemControlResult.fail("Failed to set ringer mode: ${t.message}")
+            SystemControlResult.fail("Failed to set ringer mode: ${t.message}")
         }
     }
 
@@ -1674,7 +1726,9 @@ class SystemController(
         }
     }
 
-    /** Starts a Bluetooth discovery scan. */
+    /** Starts a Bluetooth discovery scan. BLUETOOTH_SCAN is declared in the
+     * manifest and the call is guarded by the try/catch below. */
+    @SuppressLint("MissingPermission")
     fun bluetoothScan(): SystemControlResult {
         return try {
             val adapter = BluetoothAdapter.getDefaultAdapter()

@@ -47,7 +47,6 @@ import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.core.rom.SystemAppStatusDetector
 import com.nexaflow.core.ui.IconBadge
-import com.nexaflow.core.ui.NexaFlowAnimatedVisibility
 import com.nexaflow.core.ui.StatusPill
 import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.domain.models.ActionType
@@ -386,6 +385,8 @@ fun CategoryAccordion(
     content: @Composable (Int) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Fixed category menu: every chip stays pinned at the top. The chips
+        // are quick-jump markers — tapping one only changes its highlight.
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -400,13 +401,30 @@ fun CategoryAccordion(
                 )
             }
         }
-        // Each category's options stay composed; only the expanded one is
-        // visible, so switching chips animates the old section closed while
-        // the new one opens (single-open invariant).
-        tabs.indices.forEach { index ->
-            NexaFlowAnimatedVisibility(visible = expandedIndex == index) {
-                content(index)
+        // Strict no-collapse: the options of ALL categories are always
+        // rendered below, stacked downwards, each under its own header —
+        // nothing ever folds away and nothing is hidden behind a tap.
+        tabs.forEachIndexed { index, (label, icon) ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.padding(top = 2.dp)
+            ) {
+                icon?.let {
+                    Icon(
+                        imageVector = it,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
+            content(index)
         }
     }
 }
