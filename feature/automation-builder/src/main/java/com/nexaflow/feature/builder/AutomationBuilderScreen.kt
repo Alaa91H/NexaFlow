@@ -81,6 +81,7 @@ import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SignalCellularAlt
@@ -376,7 +377,11 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_wifi_scan_now, R.string.action_wifi_scan_now_sub, Icons.Filled.Wifi, ActionType.SYSTEM_WIFI_SCAN_NOW, ActionCategory.CONNECTIVITY),
     ActionOption(R.string.action_set_timezone, R.string.action_set_timezone_sub, Icons.Filled.Schedule, ActionType.SYSTEM_SET_TIMEZONE, ActionCategory.SYSTEM),
     // PLUGINS
-    ActionOption(R.string.action_plugin, R.string.action_plugin_sub, Icons.Filled.Extension, ActionType.PLUGIN_FIRE, ActionCategory.PLUGINS)
+    ActionOption(R.string.action_plugin, R.string.action_plugin_sub, Icons.Filled.Extension, ActionType.PLUGIN_FIRE, ActionCategory.PLUGINS),
+    // ADVANCED — shown only when the matching elevated channel exists
+    // (the compatibility engine hides them otherwise).
+    ActionOption(R.string.action_shizuku, R.string.action_shizuku_sub, Icons.Filled.Terminal, ActionType.ADVANCED_SHIZUKU, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_root, R.string.action_root_sub, Icons.Filled.Terminal, ActionType.ADVANCED_ROOT, ActionCategory.SYSTEM)
 )
 
 internal val actionCategories: List<ActionCategory> = ActionCategory.entries.toList()
@@ -760,6 +765,11 @@ fun AutomationBuilderScreen(
 ) {
     val viewModel: AutomationBuilderViewModel = hiltViewModel()
     val context = LocalContext.current
+    // Hidden compatibility gate: only commands that can run on this device are
+    // offered. The profile is captured once per composition (cheap) and keeps
+    // the pickers identical to the execution reality.
+    val supportedActions = remember(context) { CompatibilityGate.supportedActionOptions(context) }
+    val supportedTriggers = remember(context) { CompatibilityGate.supportedTriggerOptions(context) }
     val variables by viewModel.variables.collectAsStateWithLifecycle()
     // Saved tasks available for notification action buttons (run from a notification).
     val automations by viewModel.automations.collectAsStateWithLifecycle()
@@ -1413,7 +1423,7 @@ fun AutomationBuilderScreen(
                         ) { index ->
                             val category = triggerCategories[index]
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                triggerTypeOptions
+                                supportedTriggers
                                     .filter { triggerCategoryOf[it] == category }
                                     .forEach { type ->
                                         Surface(
@@ -1539,7 +1549,7 @@ fun AutomationBuilderScreen(
                         ) { index ->
                             val category = actionCategories[index]
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                actionOptions
+                                supportedActions
                                     .filter { it.category == category }
                                     .forEach { option ->
                                         ActionOptionRow(
