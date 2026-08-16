@@ -16,10 +16,12 @@ import com.nexaflow.core.rom.model.SystemControlResult
  * is per-subscription on multi-SIM devices — so this uses the modern
  * `setAllowedNetworkTypesForReason` bitmask API (stable since Android 11, the
  * exact path the system network-mode UI uses) via reflection when the app
- * holds MODIFY_PHONE_STATE / runs as a system app, falls back to the legacy
- * per-sub `setPreferredNetworkType` ITelephony call, then to the
- * per-subscription global setting through the elevated shell. Each step is
- * verified by reading the resulting state back.
+ * holds MODIFY_PHONE_STATE / runs as a system app, falls back to the elevated
+ * `cmd phone` shell API (Shizuku/root), then to the legacy per-sub
+ * `setPreferredNetworkType` ITelephony call, and finally to the
+ * per-subscription global setting. Every step is verified by reading the
+ * resulting state back, and a step that cannot be confirmed falls through to
+ * the next one instead of aborting, so the ladder stays adaptive across ROMs.
  */
 class NetworkModeController(
     private val context: Context
@@ -55,9 +57,11 @@ class NetworkModeController(
     }
 
     /**
-     * Applies [request] to one subscription through a three-step ladder, each
-     * verified by a read-back where the platform exposes one. Returns
-     * (applied, diagnostic note).
+     * Applies [request] to one subscription through a multi-step ladder, each
+     * step verified by a read-back where the platform exposes one. A step that
+     * dispatches but cannot be confirmed NEVER aborts the ladder — it records
+     * a diagnostic note and falls through, because ROMs disagree on both the
+     * write message and the read-back format. Returns (applied, note).
      */
     private fun setModeForSubscription(
         telephony: TelephonyManager,
@@ -65,6 +69,8 @@ class NetworkModeController(
         request: NetworkModePolicy.Request
     ): Pair<Boolean, String> {
         val label = "sub$subId"
+        val notes = mutableListOf<String>()
+
         // 1) Modern per-subscription bitmask API (Android 11+). Reflection is
         //    exempt for system/privileged installs; a blocked hidden API
         //    simply reports not-dispatched and falls through.
@@ -88,32 +94,41 @@ class NetworkModeController(
                 )
                 val confirmed = readBack.dispatched && readBack.value is Long &&
                     NetworkModePolicy.covers(request.bitmask, readBack.value)
-                return confirmed to "$label via allowed-network-types"
+                if (confirmed) {
+                    return true to "$label via allowed-network-types"
+                }
+                notes += "$label via allowed-network-types (unconfirmed read-back)"
             }
         }
-        // 2) Elevated shell: the stable `cmd phone` API (Android 14+)
-        //    exposed by TelephonyShellCommand, which gates on shell uid — so
-        //    it only works through Shizuku/root, the two runtimes this app
-        //    already uses for privileged work. `settings put global` is
-        //    ignored at runtime on Android 10+ (the framework reads it once
-        //    at boot only), which is why a bare settings write never changed
-        //    the mode. Verified by reading the allowed set back through the
-        //    same tool.
+        // 2) Elevated shell: the `cmd phone` API (Android 14+ TelephonyShell-
+        //    Command). NOTE: on AOSP the SET command prints
+        //    "set-allowed-network-types-for-users completed" OR "... failed"
+        //    and returns exit code 0 in BOTH cases, so the exit code alone
+        //    cannot prove the write took effect — the message is checked too,
+        //    and the write is always confirmed with a read-back. The `-s`
+        //    slot flag is optional across ROMs, so each variant is attempted
+        //    and the first one that both reports success and confirms wins.
         if (PrivilegedRunner.isShizukuGranted() || PrivilegedRunner.isRootAvailable()) {
-            val slot = slotIndexFor(subId)
-            val slotArg = if (slot >= 0) "-s $slot " else ""
-            val binary = java.lang.Long.toString(request.bitmask, 2)
-            val set = PrivilegedRunner.runShell(
-                "cmd phone set-allowed-network-types-for-users $slotArg$binary"
-            )
-            if (set.success) {
-                val readBack = PrivilegedRunner.runShell(
-                    "cmd phone get-allowed-network-types-for-users ${if (slot >= 0) "-s $slot" else ""}"
-                ).message
-                val confirmed = NetworkModePolicy.coversByName(readBack, request.label)
-                return confirmed to "$label via cmd phone"
+            val variants = setCommandVariants(slotIndexFor(subId))
+            for (variant in variants) {
+                val binary = java.lang.Long.toString(request.bitmask, 2)
+                val set = PrivilegedRunner.runShell(
+                    "cmd phone set-allowed-network-types-for-users $variant$binary"
+                )
+                if (set.success && !shellReportedFailure(set.message)) {
+                    val readBack = PrivilegedRunner.runShell(
+                        "cmd phone get-allowed-network-types-for-users $variant"
+                    ).message
+                    if (NetworkModePolicy.coversReadBack(readBack, request)) {
+                        return true to "$label via cmd phone"
+                    }
+                    notes += "$label via cmd phone (write ok, read-back unconfirmed)"
+                } else {
+                    notes += "$label via cmd phone (${set.message.trim().take(80)})"
+                }
             }
         }
+
         // 3) Legacy ITelephony call (void return — only dispatch is observable).
         val legacy = reflectTelephony(
             telephony,
@@ -127,24 +142,53 @@ class NetworkModeController(
             )
             val confirmed = readBack.dispatched && readBack.value is Int &&
                 readBack.value == request.legacyInt
-            return confirmed to "$label via preferred-network-type"
+            if (confirmed) {
+                return true to "$label via preferred-network-type"
+            }
+            notes += "$label via preferred-network-type (unconfirmed read-back)"
         }
-        // 3) Elevated shell: per-subscription key (multi-SIM) plus the plain
-        //    default key, verified through Settings.Global.
-        val subKey = "preferred_network_mode$subId"
-        val shell = PrivilegedRunner.runShell(
-            "settings put global $subKey ${request.legacyInt} && " +
-                "settings put global preferred_network_mode ${request.legacyInt}"
-        )
-        if (shell.success) {
-            val stored = runCatching {
-                Settings.Global.getInt(context.contentResolver, subKey, -1)
-            }.getOrDefault(-1)
-            if (stored == request.legacyInt) {
-                return true to "$label via settings"
+
+        // 4) Elevated shell: per-subscription key (multi-SIM) plus the plain
+        //    default key, verified through Settings.Global. Last resort — the
+        //    framework ignores this at runtime on Android 10+, but some OEM
+        //    builds still honor it, and it costs nothing to try.
+        if (PrivilegedRunner.isShizukuGranted() || PrivilegedRunner.isRootAvailable()) {
+            val subKey = "preferred_network_mode$subId"
+            val shell = PrivilegedRunner.runShell(
+                "settings put global $subKey ${request.legacyInt} && " +
+                    "settings put global preferred_network_mode ${request.legacyInt}"
+            )
+            if (shell.success) {
+                val stored = runCatching {
+                    Settings.Global.getInt(context.contentResolver, subKey, -1)
+                }.getOrDefault(-1)
+                if (stored == request.legacyInt) {
+                    return true to "$label via settings"
+                }
+                notes += "$label via settings (value not persisted)"
+            } else {
+                notes += "$label via settings (${shell.message.trim().take(80)})"
             }
         }
-        return false to "$label rejected by the radio (requires MODIFY_PHONE_STATE or a system install)"
+
+        return false to (notes.firstOrNull() ?: "$label rejected by the radio")
+    }
+    /**
+     * The `-s` slot flag variants to try for the `cmd phone` commands. The
+     * flag is understood on AOSP 14+ and most OEM builds; older or customized
+     * builds may reject it or require it, so both forms are attempted and the
+     * first confirming write wins.
+     */
+    private fun setCommandVariants(slot: Int): List<String> = when {
+        slot >= 0 -> listOf("-s $slot ", "")
+        else -> listOf("")
+    }
+
+    /** AOSP prints "... completed"/"... failed" and exits 0 in both cases. */
+    private fun shellReportedFailure(message: String): Boolean {
+        val m = message.uppercase()
+        return m.contains("FAILED") || m.contains("ERROR") || m.contains("EXCEPTION") ||
+            m.contains("NO VALID") || m.contains("UNKNOWN OPTION") || m.contains("NO SUCH")
     }
 
     /** Maps a subscription id back to its physical SIM slot (-1 when unknown). */

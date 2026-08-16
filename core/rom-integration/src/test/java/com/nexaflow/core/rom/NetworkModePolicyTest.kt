@@ -119,4 +119,38 @@ class NetworkModePolicyTest {
             }
         }
     }
+
+    @Test
+    fun `coversReadBack accepts AOSP band-name output`() {
+        val req4g = NetworkModePolicy.request("4G")
+        assertTrue(NetworkModePolicy.coversReadBack("LTE", req4g))
+        assertTrue(NetworkModePolicy.coversReadBack("LTE|LTE_CA", req4g))
+        // NR still present means 4G-only was NOT applied.
+        assertFalse(NetworkModePolicy.coversReadBack("LTE|NR", req4g))
+        val req5g = NetworkModePolicy.request("5G")
+        assertTrue(NetworkModePolicy.coversReadBack("NR", req5g))
+        assertFalse(NetworkModePolicy.coversReadBack("LTE", req5g))
+    }
+
+    @Test
+    fun `coversReadBack accepts numeric read-backs from OEM ROMs`() {
+        val req4g = NetworkModePolicy.request("4G")
+        // Decimal: 532480 == BITMASK_4G.
+        assertTrue(NetworkModePolicy.coversReadBack("532480", req4g))
+        // Decimal with the NR bit still set (532480 | 1<<20) is tolerated
+        // as a superset — the radio kept NR, but LTE is allowed.
+        assertTrue(NetworkModePolicy.coversReadBack("1576960", req4g))
+        // Binary form of BITMASK_4G.
+        assertTrue(NetworkModePolicy.coversReadBack(java.lang.Long.toString(NetworkModePolicy.BITMASK_4G, 2), req4g))
+        // A read-back that lost the LTE bits must not confirm 4G.
+        assertFalse(NetworkModePolicy.coversReadBack("1", req4g))
+    }
+
+    @Test
+    fun `coversReadBack rejects failure outputs`() {
+        val req = NetworkModePolicy.request("4G")
+        assertFalse(NetworkModePolicy.coversReadBack("", req))
+        assertFalse(NetworkModePolicy.coversReadBack("-1", req))
+        assertFalse(NetworkModePolicy.coversReadBack("UNKNOWN", req))
+    }
 }

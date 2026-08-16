@@ -82,4 +82,25 @@ object NetworkModePolicy {
             else -> a.isNotBlank() && !a.contains("UNKNOWN")
         }
     }
+
+    /**
+     * Read-back check for the `cmd phone get-allowed-network-types-for-users`
+     * output, which varies across ROMs: AOSP prints band names
+     * (`TelephonyManager.convertNetworkTypeBitmaskToString`, e.g. "LTE" or
+     * "LTE|NR"), while several OEM builds print the raw bitmask as a decimal
+     * (or binary) number. This handles both so the write can be confirmed on
+     * any ROM.
+     */
+    fun coversReadBack(actual: String, request: Request): Boolean {
+        val trimmed = actual.trim()
+        if (trimmed.isEmpty() || trimmed.equals("-1", ignoreCase = true)) return false
+        // Numeric output: decimal, or binary when it only contains 0/1 and is
+        // too long to be a plausible decimal bitmask.
+        trimmed.toLongOrNull()?.let { return covers(request.bitmask, it) }
+        if (trimmed.length > 10 && trimmed.all { it == '0' || it == '1' }) {
+            trimmed.toLongOrNull(2)?.let { return covers(request.bitmask, it) }
+        }
+        // Name output (AOSP convertNetworkTypeBitmaskToString).
+        return coversByName(trimmed, request.label)
+    }
 }
