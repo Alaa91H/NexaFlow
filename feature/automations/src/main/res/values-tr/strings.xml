@@ -201,7 +201,6 @@
     <string name="action_network_mode">Ağ modu</string>
     <string name="action_set_ringtone_sub">Varsayılan arama zil sesini seç</string>
     <string name="action_set_ringtone">Zil sesini ayarla</string>
-    <string name="end_leave">Olduğu gibi bırak</string>
     <string name="action_set_setting">Ayar belirle</string>
     <string name="action_set_setting_sub">Herhangi bir sistem ayarını yaz</string>
     <string name="action_screenshot">Ekran görüntüsü</string>

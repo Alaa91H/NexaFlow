@@ -201,7 +201,6 @@
     <string name="action_network_mode">Netzwerkmodus</string>
     <string name="action_set_ringtone_sub">Standard-Klingelton auswählen</string>
     <string name="action_set_ringtone">Klingelton festlegen</string>
-    <string name="end_leave">Unverändert lassen</string>
     <string name="action_set_setting">Einstellung setzen</string>
     <string name="action_set_setting_sub">Beliebige Systemeinstellung schreiben</string>
     <string name="action_screenshot">Screenshot</string>

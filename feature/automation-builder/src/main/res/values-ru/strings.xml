@@ -531,9 +531,6 @@
 <string name="variables_retry">Повторить</string>
 <string name="variables_title">Переменные</string>
 <string name="variables_value_hint">например, домашний адрес</string>
-    <string name="constraint_n">Условие %1$d</string>
-    <string name="exit_per_action_title">Параметры завершения для каждого действия</string>
-    <string name="exit_extra_actions_label">Дополнительные действия при завершении задачи</string>
     <string name="trigger_type_call_state">Состояние звонка</string>
     <string name="trigger_type_app_installed">Приложение установлено</string>
     <string name="trigger_type_media_playing">Воспроизведение медиа</string>

@@ -530,9 +530,6 @@
 <string name="variables_retry">إعادة المحاولة</string>
 <string name="variables_title">المتغيرات</string>
 <string name="variables_value_hint">مثال: عنوان المنزل</string>
-    <string name="constraint_n">قيد %1$d</string>
-    <string name="exit_per_action_title">خيارات نهاية كل إجراء</string>
-    <string name="exit_extra_actions_label">إجراءات إضافية عند الانتهاء</string>
     <string name="trigger_type_call_state">حالة المكالمة</string>
     <string name="trigger_type_app_installed">تثبيت تطبيق</string>
     <string name="trigger_type_media_playing">تشغيل الوسائط</string>

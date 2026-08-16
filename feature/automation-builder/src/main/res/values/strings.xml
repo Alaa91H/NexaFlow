@@ -529,9 +529,6 @@
 <string name="variables_retry">Retry</string>
 <string name="variables_title">Variables</string>
 <string name="variables_value_hint">e.g. Home Address</string>
-    <string name="constraint_n">Constraint %1$d</string>
-    <string name="exit_per_action_title">Per-action end options</string>
-    <string name="exit_extra_actions_label">Extra actions when the task ends</string>
     <string name="trigger_type_call_state">Call state</string>
     <string name="trigger_type_app_installed">App installed</string>
     <string name="trigger_type_media_playing">Media playing</string>
@@ -581,7 +578,7 @@
     <string name="action_force_stop_app">Force stop app</string>
     <string name="action_force_stop_app_sub">Force stop an app</string>
     <string name="action_clear_app_data">Clear app data</string>
-    <string name="action_clear_app_data_sub">Erase an app's data</string>
+    <string name="action_clear_app_data_sub">"Erase an app's data"</string>
     <string name="setting_namespace">Namespace</string>
     <string name="setting_key">Setting key</string>
     <string name="setting_value">Value</string>

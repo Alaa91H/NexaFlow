@@ -124,12 +124,13 @@ class SystemActionsHandler : ActionHandler {
             ActionType.SYSTEM_GRAYSCALE -> {
                 val on = action.config["enabled"]?.toBoolean() ?: true
                 // Grayscale = daltonizer monochromacy (mode 12) + enable flag.
-                ctx.controller.writeSetting(
+                val primary = ctx.controller.writeSetting(
                     "SECURE", "accessibility_display_daltonizer_enabled", on.bool()
                 )
                 if (on) {
                     ctx.controller.writeSetting("SECURE", "accessibility_display_daltonizer", "12")
                 }
+                primary
             }
             ActionType.SYSTEM_EXTRA_DIM ->
                 ctx.controller.writeSetting(

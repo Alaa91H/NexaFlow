@@ -201,7 +201,6 @@
     <string name="action_network_mode">网络模式</string>
     <string name="action_set_ringtone_sub">选择默认来电铃声</string>
     <string name="action_set_ringtone">设置铃声</string>
-    <string name="end_leave">保持原样</string>
     <string name="action_set_setting">设置项</string>
     <string name="action_set_setting_sub">写入任意系统设置</string>
     <string name="action_screenshot">截屏</string>

@@ -201,7 +201,6 @@
     <string name="action_network_mode">Modo de rede</string>
     <string name="action_set_ringtone_sub">Escolher o toque de chamada padrão</string>
     <string name="action_set_ringtone">Definir toque</string>
-    <string name="end_leave">Deixar como está</string>
     <string name="action_set_setting">Definir configuração</string>
     <string name="action_set_setting_sub">Escrever qualquer configuração do sistema</string>
     <string name="action_screenshot">Captura de tela</string>

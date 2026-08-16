@@ -309,13 +309,6 @@ class DeviceStateSnapshot private constructor(
         private fun systemBool(context: Context, name: String): Boolean? = runCatching {
             Settings.System.getInt(context.contentResolver, name, 0) == 1
         }.getOrNull()
-        private fun secureBool(context: Context, name: String): Boolean? = runCatching {
-            Settings.Secure.getInt(context.contentResolver, name, 0) == 1
-        }.getOrNull()
-
-        private fun systemBool(context: Context, name: String): Boolean? = runCatching {
-            Settings.System.getInt(context.contentResolver, name, 0) == 1
-        }.getOrNull()
 
         private fun globalFloat(context: Context, name: String): Float? = runCatching {
             Settings.Global.getFloat(context.contentResolver, name)

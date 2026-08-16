@@ -201,7 +201,6 @@
     <string name="action_network_mode">Режим сети</string>
     <string name="action_set_ringtone_sub">Выбрать рингтон звонков по умолчанию</string>
     <string name="action_set_ringtone">Установить рингтон</string>
-    <string name="end_leave">Оставить как есть</string>
     <string name="action_set_setting">Установить параметр</string>
     <string name="action_set_setting_sub">Записать любой параметр системы</string>
     <string name="action_screenshot">Скриншот</string>

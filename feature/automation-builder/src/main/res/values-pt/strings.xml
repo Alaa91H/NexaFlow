@@ -531,9 +531,6 @@
 <string name="variables_retry">Tentar novamente</string>
 <string name="variables_title">Variáveis</string>
 <string name="variables_value_hint">ex.: Endereço residencial</string>
-    <string name="constraint_n">Condição %1$d</string>
-    <string name="exit_per_action_title">Opções de término por ação</string>
-    <string name="exit_extra_actions_label">Ações adicionais ao término da tarefa</string>
     <string name="trigger_type_call_state">Estado da chamada</string>
     <string name="trigger_type_app_installed">Aplicativo instalado</string>
     <string name="trigger_type_media_playing">Mídia em reprodução</string>

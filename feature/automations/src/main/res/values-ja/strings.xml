@@ -201,7 +201,6 @@
     <string name="action_network_mode">ネットワークモード</string>
     <string name="action_set_ringtone_sub">デフォルトの着信音を選択</string>
     <string name="action_set_ringtone">着信音を設定</string>
-    <string name="end_leave">そのままにする</string>
     <string name="action_set_setting">設定を設定</string>
     <string name="action_set_setting_sub">任意のシステム設定を書き込む</string>
     <string name="action_screenshot">スクリーンショット</string>

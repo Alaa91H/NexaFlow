@@ -13,6 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Bluetooth
@@ -2220,7 +2224,7 @@ fun TriggerEditorCard(
                         onValueChange = { v ->
                             onConfigChange(draft.copy(config = draft.config + ("package" to v)))
                         },
-                        label = stringResource(R.string.optional_package),
+                        label = { Text(text = stringResource(R.string.optional_package)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -2265,7 +2269,7 @@ fun TriggerEditorCard(
                         onValueChange = { v ->
                             onConfigChange(draft.copy(config = draft.config + ("threshold" to v.filter { it.isDigit() })))
                         },
-                        label = stringResource(R.string.volume_threshold),
+                        label = { Text(text = stringResource(R.string.volume_threshold)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )

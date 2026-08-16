@@ -531,9 +531,6 @@
 <string name="variables_retry">पुनः प्रयास करें</string>
 <string name="variables_title">चर</string>
 <string name="variables_value_hint">जैसे घर का पता</string>
-    <string name="constraint_n">बाधा %1$d</string>
-    <string name="exit_per_action_title">प्रति क्रिया समाप्ति विकल्प</string>
-    <string name="exit_extra_actions_label">समाप्ति पर अतिरिक्त क्रियाएँ</string>
     <string name="trigger_type_call_state">कॉल स्थिति</string>
     <string name="trigger_type_app_installed">ऐप इंस्टॉल हुआ</string>
     <string name="trigger_type_media_playing">मीडिया चल रहा है</string>

@@ -37,7 +37,7 @@ class MediaMonitor @Inject constructor(
     private var lastPlaying: Boolean? = null
 
     private val playbackCallback = object : AudioManager.AudioPlaybackCallback() {
-        override fun onPlaybackConfigChanged(configs: MutableList<AudioManager.AudioPlaybackConfig>) {
+        override fun onPlaybackConfigChanged(configs: MutableList<android.media.AudioPlaybackConfiguration>) {
             // A config change does not necessarily mean start/stop, so re-read
             // the coarse "is anything playing" flag and react to transitions.
             val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return

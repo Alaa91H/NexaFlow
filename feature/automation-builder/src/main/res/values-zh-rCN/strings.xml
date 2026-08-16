@@ -531,9 +531,6 @@
 <string name="variables_retry">重试</string>
 <string name="variables_title">变量</string>
 <string name="variables_value_hint">例如：家庭地址</string>
-    <string name="constraint_n">约束 %1$d</string>
-    <string name="exit_per_action_title">每个操作的结束选项</string>
-    <string name="exit_extra_actions_label">结束时执行额外操作</string>
     <string name="trigger_type_call_state">通话状态</string>
     <string name="trigger_type_app_installed">应用已安装</string>
     <string name="trigger_type_media_playing">媒体播放</string>

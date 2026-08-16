@@ -201,7 +201,6 @@
     <string name="action_network_mode">وضع الشبكة</string>
     <string name="action_set_ringtone_sub">اختر نغمة الرنين الافتراضية للمكالمات</string>
     <string name="action_set_ringtone">تعيين النغمة</string>
-    <string name="end_leave">اتركه كما هو</string>
     <string name="action_set_setting">تعيين إعداد</string>
     <string name="action_set_setting_sub">كتابة أي إعداد في النظام</string>
     <string name="action_screenshot">لقطة شاشة</string>

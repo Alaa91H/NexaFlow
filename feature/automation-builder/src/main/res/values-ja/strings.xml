@@ -531,9 +531,6 @@
 <string name="variables_retry">再試行</string>
 <string name="variables_title">変数</string>
 <string name="variables_value_hint">例: 自宅の住所</string>
-    <string name="constraint_n">制約 %1$d</string>
-    <string name="exit_per_action_title">アクションごとの終了オプション</string>
-    <string name="exit_extra_actions_label">終了時の追加アクション</string>
     <string name="trigger_type_call_state">通話状態</string>
     <string name="trigger_type_app_installed">アプリインストール</string>
     <string name="trigger_type_media_playing">メディア再生</string>

@@ -531,9 +531,6 @@
 <string name="variables_retry">Tekrar dene</string>
 <string name="variables_title">Değişkenler</string>
 <string name="variables_value_hint">örn. Ev adresi</string>
-    <string name="constraint_n">Kısıt %1$d</string>
-    <string name="exit_per_action_title">Eylem başına bitiş seçenekleri</string>
-    <string name="exit_extra_actions_label">Bitişte ek eylemler</string>
     <string name="trigger_type_call_state">Arama durumu</string>
     <string name="trigger_type_app_installed">Uygulama yüklendi</string>
     <string name="trigger_type_media_playing">Medya çalıyor</string>

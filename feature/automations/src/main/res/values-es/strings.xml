@@ -201,7 +201,6 @@
     <string name="action_network_mode">Modo de red</string>
     <string name="action_set_ringtone_sub">Elegir el tono de llamada predeterminado</string>
     <string name="action_set_ringtone">Establecer tono</string>
-    <string name="end_leave">Dejar como está</string>
     <string name="action_set_setting">Establecer ajuste</string>
     <string name="action_set_setting_sub">Escribir cualquier ajuste del sistema</string>
     <string name="action_screenshot">Captura de pantalla</string>

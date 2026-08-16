@@ -201,7 +201,6 @@
     <string name="action_network_mode">नेटवर्क मोड</string>
     <string name="action_set_ringtone_sub">डिफ़ॉल्ट कॉल रिंगटोन चुनें</string>
     <string name="action_set_ringtone">रिंगटोन सेट करें</string>
-    <string name="end_leave">जैसा है वैसा छोड़ें</string>
     <string name="action_set_setting">सेटिंग सेट करें</string>
     <string name="action_set_setting_sub">कोई भी सिस्टम सेटिंग लिखें</string>
     <string name="action_screenshot">स्क्रीनशॉट</string>

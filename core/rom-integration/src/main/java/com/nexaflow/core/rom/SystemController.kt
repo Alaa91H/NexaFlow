@@ -28,7 +28,7 @@ import com.nexaflow.core.security.SafeCommandBuilder
 import com.nexaflow.core.rom.model.RomCapability
 import com.nexaflow.core.rom.model.SystemControlResult
 
-@Suppress("TooManyFunctions") // System-ops façade: many small, single-purpose device operations
+@Suppress("TooManyFunctions", "LargeClass") // System-ops façade: many small, single-purpose device operations
 class SystemController(
     private val context: Context,
     private val capabilityProvider: RomCapabilityProvider

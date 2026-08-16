@@ -200,7 +200,6 @@
     <string name="add_shortcut">Add shortcut</string>
     <string name="shortcut_added">Shortcut added to home screen</string>
     <string name="shortcut_in_app_shortcuts">Added to app shortcuts</string>
-    <string name="end_leave">Leave as is</string>
     <string name="action_set_setting">Set setting</string>
     <string name="action_set_setting_sub">Write any system setting</string>
     <string name="action_screenshot">Screenshot</string>
@@ -228,7 +227,7 @@
     <string name="action_force_stop_app">Force stop app</string>
     <string name="action_force_stop_app_sub">Force stop an app</string>
     <string name="action_clear_app_data">Clear app data</string>
-    <string name="action_clear_app_data_sub">Erase an app's data</string>
+    <string name="action_clear_app_data_sub">"Erase an app's data"</string>
     <string name="trigger_call_state">Call state</string>
     <string name="trigger_app_installed">App installed</string>
     <string name="trigger_media_playing">Media playing</string>

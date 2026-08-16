@@ -531,9 +531,6 @@
 <string name="variables_retry">Réessayer</string>
 <string name="variables_title">Variables</string>
 <string name="variables_value_hint">p. ex. Adresse du domicile</string>
-    <string name="constraint_n">Condition %1$d</string>
-    <string name="exit_per_action_title">Options de fin par action</string>
-    <string name="exit_extra_actions_label">Actions supplémentaires à la fin de la tâche</string>
     <string name="trigger_type_call_state">État de l’appel</string>
     <string name="trigger_type_app_installed">Application installée</string>
     <string name="trigger_type_media_playing">Lecture média</string>

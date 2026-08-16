@@ -201,7 +201,6 @@
     <string name="action_network_mode">Mode réseau</string>
     <string name="action_set_ringtone_sub">Choisir la sonnerie d’appel par défaut</string>
     <string name="action_set_ringtone">Définir la sonnerie</string>
-    <string name="end_leave">Laisser tel quel</string>
     <string name="action_set_setting">Définir un réglage</string>
     <string name="action_set_setting_sub">Écrire n’importe quel réglage système</string>
     <string name="action_screenshot">Capture d’écran</string>
