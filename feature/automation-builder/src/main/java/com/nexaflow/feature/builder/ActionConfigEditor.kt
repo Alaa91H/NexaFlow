@@ -630,8 +630,7 @@ fun ActionConfigEditor(
                 )
             }
         }
-        ActionType.BATTERY_ALERTS,
-        ActionType.BATTERY_CHARGING_NOTIFICATIONS -> {
+        ActionType.BATTERY_ALERTS -> {
             val below = config["below"]?.toIntOrNull() ?: 20
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SliderRow(
@@ -652,6 +651,64 @@ fun ActionConfigEditor(
                     currentValue = config["message"] ?: "",
                     onValueChange = { onConfigChange(config + ("message" to it)) }
                 )
+                Text(text = stringResource(R.string.sound_label), style = MaterialTheme.typography.titleSmall)
+                val alertSounds = listOf(
+                    "DEFAULT" to stringResource(R.string.sound_default),
+                    "RINGTONE" to stringResource(R.string.sound_ringtone),
+                    "NOTIFICATION" to stringResource(R.string.sound_notification),
+                    "BEEP" to stringResource(R.string.sound_beep),
+                    "SILENT" to stringResource(R.string.sound_silent)
+                )
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    alertSounds.forEach { (value, label) ->
+                        FilterChip(
+                            selected = (config["sound"] ?: "DEFAULT") == value,
+                            onClick = { onConfigChange(config + ("sound" to value)) },
+                            label = { Text(text = label, style = MaterialTheme.typography.labelMedium) }
+                        )
+                    }
+                }
+            }
+        }
+        ActionType.BATTERY_CHARGING_NOTIFICATIONS -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = config["message"] ?: "",
+                    onValueChange = { onConfigChange(config + ("message" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.message_optional)) },
+                    singleLine = true
+                )
+                VariableInsertChips(
+                    availableVariables = availableVariables,
+                    currentValue = config["message"] ?: "",
+                    onValueChange = { onConfigChange(config + ("message" to it)) }
+                )
+                Text(text = stringResource(R.string.sound_label), style = MaterialTheme.typography.titleSmall)
+                val chargingSounds = listOf(
+                    "DEFAULT" to stringResource(R.string.sound_default),
+                    "RINGTONE" to stringResource(R.string.sound_ringtone),
+                    "NOTIFICATION" to stringResource(R.string.sound_notification),
+                    "BEEP" to stringResource(R.string.sound_beep),
+                    "SILENT" to stringResource(R.string.sound_silent)
+                )
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    chargingSounds.forEach { (value, label) ->
+                        FilterChip(
+                            selected = (config["sound"] ?: "DEFAULT") == value,
+                            onClick = { onConfigChange(config + ("sound" to value)) },
+                            label = { Text(text = label, style = MaterialTheme.typography.labelMedium) }
+                        )
+                    }
+                }
             }
         }
         ActionType.ADVANCED_SHIZUKU,
@@ -705,13 +762,26 @@ fun ActionConfigEditor(
                 }
             }
         }
+        ActionType.APPLICATION_LAUNCH_APP -> {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                OutlinedTextField(
+                    value = config["package"] ?: "",
+                    onValueChange = { onConfigChange(mapOf("package" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.package_name)) },
+                    singleLine = true
+                )
+                TextButton(onClick = onPickApp) {
+                    Text(text = stringResource(R.string.choose_from_installed))
+                }
+            }
+        }
         ActionType.SYSTEM_MEDIA_PLAY_PAUSE,
         ActionType.SYSTEM_MEDIA_NEXT,
         ActionType.SYSTEM_MEDIA_PREVIOUS,
         ActionType.SYSTEM_CLEAR_NOTIFICATIONS,
         ActionType.SYSTEM_EXPAND_STATUS_BAR,
         ActionType.SYSTEM_COLLAPSE_STATUS_BAR,
-        ActionType.APPLICATION_LAUNCH_APP,
         ActionType.SYSTEM_LOCK_SCREEN,
         ActionType.SYSTEM_OPEN_RECENTS,
         ActionType.SYSTEM_GO_HOME,

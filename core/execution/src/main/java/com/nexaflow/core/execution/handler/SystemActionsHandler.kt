@@ -354,7 +354,7 @@ class SystemActionsHandler : ActionHandler {
             ActionType.SYSTEM_SOFT_RESTART ->
                 ctx.controller.softRestart()
             ActionType.SYSTEM_STATUS_BAR_TOGGLE ->
-                ctx.controller.toggleStatusBar(action.config["show"]?.toBoolean() ?: true)
+                ctx.controller.toggleStatusBar(action.config["enabled"]?.toBoolean() ?: true)
             ActionType.SYSTEM_OPEN_CONTACTS ->
                 ctx.controller.openContacts()
             ActionType.SYSTEM_SEND_EMAIL ->

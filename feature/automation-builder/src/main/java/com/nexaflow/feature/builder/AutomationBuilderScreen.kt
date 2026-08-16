@@ -506,9 +506,9 @@ private fun actionSummary(option: ActionOption, config: Map<String, String>): St
             val url = config["url"].orEmpty().trim()
             if (url.isEmpty()) null else "$method · $url"
         }
-        ActionType.BATTERY_ALERTS,
-        ActionType.BATTERY_CHARGING_NOTIFICATIONS ->
+        ActionType.BATTERY_ALERTS ->
             stringResource(R.string.alert_below, config["below"]?.toIntOrNull() ?: 20)
+        ActionType.BATTERY_CHARGING_NOTIFICATIONS -> config["sound"] ?: "DEFAULT"
         ActionType.ADVANCED_ROOT,
         ActionType.ADVANCED_SHIZUKU -> config["command"].orEmpty().trim().ifEmpty { null }
         ActionType.PLUGIN_FIRE -> config["blurb"].orEmpty().trim().ifEmpty { null }
