@@ -225,7 +225,7 @@ class SettingsStateMonitor @Inject constructor(
                 on == wantOn
             }
             TriggerType.NFC_STATE -> {
-                val nfc = context.getSystemService(Context.NFC_SERVICE) as? NfcAdapter
+                val nfc = NfcAdapter.getDefaultAdapter(context)
                 val on = nfc?.isEnabled == true
                 on == wantOn
             }
