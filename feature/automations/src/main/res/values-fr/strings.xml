@@ -65,7 +65,7 @@
     <string name="action_root">Root</string>
     <string name="action_root_sub">Exécuter via root</string>
     <string name="action_screen_timeout">"Délai d'écran"</string>
-    <string name="action_screen_timeout_sub">"Durée d'allumage de l'écran"</string>
+    <string name="action_screen_timeout_sub">"Durée d'allumage de l’écran"</string>
     <string name="action_stay_awake">Écran actif</string>
     <string name="action_stay_awake_sub">Écran allumé en charge</string>
     <string name="action_auto_brightness">Luminosité automatique</string>
@@ -82,16 +82,16 @@
     <string name="action_power_saver_sub">"Basculer l'économie d'énergie"</string>
     <string name="action_animations">Animations</string>
     <string name="action_animations_sub">Basculer les animations système</string>
-    <string name="action_lock_screen">"Verrouiller l'écran"</string>
-    <string name="action_lock_screen_sub">"Verrouiller l'écran maintenant"</string>
+    <string name="action_lock_screen">"Verrouiller l’écran"</string>
+    <string name="action_lock_screen_sub">"Verrouiller l’écran maintenant"</string>
     <string name="action_set_alarm">Définir une alarme</string>
     <string name="action_set_alarm_sub">"Ouvrir l'horloge avec une alarme"</string>
     <string name="action_dark_mode">Mode sombre</string>
     <string name="action_dark_mode_sub">Forcer le thème sombre ou clair</string>
     <string name="action_open_recents">Applications récentes</string>
-    <string name="action_open_recents_sub">"Ouvrir l'écran des applications récentes"</string>
+    <string name="action_open_recents_sub">"Ouvrir l’écran des applications récentes"</string>
     <string name="action_go_home">"Aller à l'accueil"</string>
-    <string name="action_go_home_sub">"Revenir à l'écran d'accueil"</string>
+    <string name="action_go_home_sub">"Revenir à l’écran d'accueil"</string>
     <string name="action_open_app_settings">"Paramètres de l'app"</string>
     <string name="action_open_app_settings_sub">"Ouvrir la page de paramètres d'une app"</string>
     <string name="trigger_sms">SMS</string>
@@ -114,8 +114,8 @@
     <string name="action_open_settings_sub">Ouvrir une page de paramètres système</string>
     <string name="action_vibrate">Vibrer</string>
     <string name="action_vibrate_sub">Faire vibrer le téléphone pendant une durée</string>
-    <string name="action_wake_screen">Réveiller l'écran</string>
-    <string name="action_wake_screen_sub">Allume l'écran</string>
+    <string name="action_wake_screen">Réveiller l’écran</string>
+    <string name="action_wake_screen_sub">Allume l’écran</string>
     <string name="action_clipboard">Définir le presse-papiers</string>
     <string name="action_clipboard_sub">Copier du texte dans le presse-papiers</string>
     <string name="action_media_stop">Arrêter les médias</string>
@@ -194,7 +194,7 @@
     <string name="trigger_type_network_mode">Réseau cellulaire</string>
     <string name="trigger_type_network_mode_sub">Se déclenche quand le réseau cellulaire correspond à la génération sélectionnée (détection 5G réelle)</string>
     <string name="add_shortcut">Ajouter un raccourci</string>
-    <string name="shortcut_added">"Raccourci ajouté à l'écran d'accueil"</string>
+    <string name="shortcut_added">"Raccourci ajouté à l’écran d'accueil"</string>
     <string name="shortcut_in_app_shortcuts">"Ajouté aux raccourcis de l'application"</string>
 
     <string name="action_network_mode_sub">Forcer 2G, 3G, 4G, 5G ou automatique</string>

@@ -162,9 +162,9 @@
     <string name="category_battery">Batterie</string>
 
     <string name="action_screen_timeout">"Délai d\'écran"</string>
-    <string name="action_screen_timeout_sub">"Définir la durée d\'allumage de l\'écran"</string>
+    <string name="action_screen_timeout_sub">"Définir la durée d\'allumage de l’écran"</string>
     <string name="action_stay_awake">Écran actif</string>
-    <string name="action_stay_awake_sub">"Garder l\'écran allumé en charge"</string>
+    <string name="action_stay_awake_sub">"Garder l’écran allumé en charge"</string>
     <string name="action_auto_brightness">Luminosité automatique</string>
     <string name="action_auto_brightness_sub">Basculer la luminosité adaptative</string>
     <string name="action_dark_mode">Mode sombre</string>
@@ -181,14 +181,14 @@
     <string name="action_power_saver_sub">"Activer ou désactiver l\'économie d\'énergie"</string>
     <string name="action_animations">Animations</string>
     <string name="action_animations_sub">Activer ou désactiver les animations système</string>
-    <string name="action_lock_screen">"Verrouiller l\'écran"</string>
-    <string name="action_lock_screen_sub">"Verrouiller l\'écran maintenant"</string>
+    <string name="action_lock_screen">"Verrouiller l’écran"</string>
+    <string name="action_lock_screen_sub">"Verrouiller l’écran maintenant"</string>
     <string name="action_set_alarm">Définir une alarme</string>
     <string name="action_set_alarm_sub">"Ouvrir l\'horloge avec une alarme"</string>
     <string name="action_open_recents">Applications récentes</string>
-    <string name="action_open_recents_sub">"Ouvrir l\'écran des applications récentes"</string>
+    <string name="action_open_recents_sub">"Ouvrir l’écran des applications récentes"</string>
     <string name="action_go_home">"Aller à l\'accueil"</string>
-    <string name="action_go_home_sub">"Revenir à l\'écran d\'accueil"</string>
+    <string name="action_go_home_sub">"Revenir à l’écran d\'accueil"</string>
     <string name="action_open_app_settings">"Paramètres de l\'app"</string>
     <string name="action_open_app_settings_sub">"Ouvrir la page de paramètres d\'une app"</string>
     <string name="timeout_label">"Délai d\'écran : %1$d s"</string>
@@ -405,7 +405,7 @@
     <string name="constraint_type_battery">Niveau de batterie</string>
     <string name="constraint_type_battery_sub">"Exécuter uniquement si la batterie est au-dessus ou en dessous d\'un niveau"</string>
     <string name="constraint_type_screen_locked">Écran verrouillé</string>
-    <string name="constraint_type_screen_locked_sub">"Exécuter uniquement lorsque l\'écran est verrouillé"</string>
+    <string name="constraint_type_screen_locked_sub">"Exécuter uniquement lorsque l’écran est verrouillé"</string>
     <string name="constraint_type_headset">Casque connecté</string>
     <string name="constraint_type_headset_sub">"Exécuter uniquement lorsqu\'un casque est branché"</string>
     <string name="notification_buttons_title">"Boutons d\'action"</string>
@@ -461,8 +461,8 @@
     <string name="trigger_type_dark_mode">Mode sombre</string>
     <string name="action_vibrate">Vibrer</string>
     <string name="action_vibrate_sub">Faire vibrer le téléphone pendant une durée</string>
-    <string name="action_wake_screen">Réveiller l\'écran</string>
-    <string name="action_wake_screen_sub">Allume l\'écran</string>
+    <string name="action_wake_screen">Réveiller l’écran</string>
+    <string name="action_wake_screen_sub">Allume l’écran</string>
     <string name="action_clipboard">Définir le presse-papiers</string>
     <string name="action_clipboard_sub">Copier du texte dans le presse-papiers</string>
     <string name="action_media_stop">Arrêter les médias</string>
