@@ -117,7 +117,7 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
             // receiver, instead of launching the FGS directly from here.
             MonitoringService.scheduleStart(context.applicationContext)
         } catch (t: Throwable) {
-            Log.e("AutomationAlarmReceiver", "Failed to restore after boot", t)
+            Log.e(TAG, "Failed to restore after boot", t)
         }
     }
 
@@ -132,11 +132,12 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                 scheduler.rescheduleAll(repository.getAutomations().first())
             }
         } catch (t: Throwable) {
-            Log.e("AutomationAlarmReceiver", "Failed to reschedule after time change", t)
+            Log.e(TAG, "Failed to reschedule after time change", t)
         }
     }
 
     companion object {
+        private const val TAG = "AutomationAlarmReceiver"
         const val ALARM_PERMISSION_CHANGED_ACTION =
             "android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED"
         /** Android 17: sent when a fixed UTC offset changes without a zone switch. */

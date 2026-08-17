@@ -11,11 +11,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.DoNotDisturbOn
+import androidx.compose.material.icons.filled.AirplanemodeActive
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalBottomSheet
@@ -71,12 +75,22 @@ internal val constraintTypeOptions = listOf(
     ConstraintType.WIFI,
     ConstraintType.BATTERY,
     ConstraintType.SCREEN_LOCKED,
-    ConstraintType.HEADSET
+    ConstraintType.HEADSET,
+    ConstraintType.BLUETOOTH,
+    ConstraintType.DND,
+    ConstraintType.AIRPLANE,
+    ConstraintType.CHARGING,
+    ConstraintType.LOCATION
 )
 
 /** Sensible default config for a freshly added constraint. */
 internal fun defaultConstraintConfig(type: ConstraintType): Map<String, String> = when (type) {
     ConstraintType.BATTERY -> mapOf("direction" to "BELOW", "level" to "20")
+    ConstraintType.BLUETOOTH -> mapOf("state" to "ON")
+    ConstraintType.DND -> mapOf("state" to "ON")
+    ConstraintType.AIRPLANE -> mapOf("state" to "ON")
+    ConstraintType.CHARGING -> mapOf("state" to "CHARGING")
+    ConstraintType.LOCATION -> mapOf("state" to "ON")
     else -> emptyMap()
 }
 
@@ -85,6 +99,11 @@ internal fun ConstraintType.labelRes(): Int = when (this) {
     ConstraintType.BATTERY -> R.string.constraint_type_battery
     ConstraintType.SCREEN_LOCKED -> R.string.constraint_type_screen_locked
     ConstraintType.HEADSET -> R.string.constraint_type_headset
+    ConstraintType.BLUETOOTH -> R.string.constraint_type_bluetooth
+    ConstraintType.DND -> R.string.constraint_type_dnd
+    ConstraintType.AIRPLANE -> R.string.constraint_type_airplane
+    ConstraintType.CHARGING -> R.string.constraint_type_charging
+    ConstraintType.LOCATION -> R.string.constraint_type_location
 }
 
 internal fun ConstraintType.subtitleRes(): Int = when (this) {
@@ -92,6 +111,11 @@ internal fun ConstraintType.subtitleRes(): Int = when (this) {
     ConstraintType.BATTERY -> R.string.constraint_type_battery_sub
     ConstraintType.SCREEN_LOCKED -> R.string.constraint_type_screen_locked_sub
     ConstraintType.HEADSET -> R.string.constraint_type_headset_sub
+    ConstraintType.BLUETOOTH -> R.string.constraint_type_bluetooth_sub
+    ConstraintType.DND -> R.string.constraint_type_dnd_sub
+    ConstraintType.AIRPLANE -> R.string.constraint_type_airplane_sub
+    ConstraintType.CHARGING -> R.string.constraint_type_charging_sub
+    ConstraintType.LOCATION -> R.string.constraint_type_location_sub
 }
 
 internal fun ConstraintType.icon(): ImageVector = when (this) {
@@ -99,6 +123,11 @@ internal fun ConstraintType.icon(): ImageVector = when (this) {
     ConstraintType.BATTERY -> Icons.Filled.BatteryChargingFull
     ConstraintType.SCREEN_LOCKED -> Icons.Filled.Lock
     ConstraintType.HEADSET -> Icons.Filled.Headphones
+    ConstraintType.BLUETOOTH -> Icons.Filled.Bluetooth
+    ConstraintType.DND -> Icons.Filled.DoNotDisturbOn
+    ConstraintType.AIRPLANE -> Icons.Filled.AirplanemodeActive
+    ConstraintType.CHARGING -> Icons.Filled.BatteryChargingFull
+    ConstraintType.LOCATION -> Icons.Filled.MyLocation
 }
 
 /** Lets the user choose which constraint to add. */
@@ -306,6 +335,62 @@ fun ConstraintEditorCard(
                         },
                         valueRange = 5f..100f
                     )
+                }
+                ConstraintType.BLUETOOTH,
+                ConstraintType.DND,
+                ConstraintType.AIRPLANE,
+                ConstraintType.LOCATION -> {
+                    val stateKey = "state"
+                    val currentState = draft.config[stateKey] ?: "ON"
+                    val onLabel = when (draft.type) {
+                        ConstraintType.BLUETOOTH -> stringResource(R.string.state_on)
+                        ConstraintType.DND -> stringResource(R.string.state_on)
+                        ConstraintType.AIRPLANE -> stringResource(R.string.state_on)
+                        ConstraintType.LOCATION -> stringResource(R.string.state_on)
+                        else -> stringResource(R.string.state_on)
+                    }
+                    val offLabel = when (draft.type) {
+                        ConstraintType.BLUETOOTH -> stringResource(R.string.state_off)
+                        ConstraintType.DND -> stringResource(R.string.state_off)
+                        ConstraintType.AIRPLANE -> stringResource(R.string.state_off)
+                        ConstraintType.LOCATION -> stringResource(R.string.state_off)
+                        else -> stringResource(R.string.state_off)
+                    }
+                    Text(
+                        text = stringResource(R.string.constraint_state_label),
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SelectChip(
+                            selected = currentState == "ON",
+                            onClick = { onConfigChange(draft.copy(config = draft.config + (stateKey to "ON"))) },
+                            label = onLabel
+                        )
+                        SelectChip(
+                            selected = currentState == "OFF",
+                            onClick = { onConfigChange(draft.copy(config = draft.config + (stateKey to "OFF"))) },
+                            label = offLabel
+                        )
+                    }
+                }
+                ConstraintType.CHARGING -> {
+                    val currentState = draft.config["state"] ?: "CHARGING"
+                    Text(
+                        text = stringResource(R.string.constraint_state_label),
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SelectChip(
+                            selected = currentState == "CHARGING",
+                            onClick = { onConfigChange(draft.copy(config = draft.config + ("state" to "CHARGING"))) },
+                            label = stringResource(R.string.charging_yes)
+                        )
+                        SelectChip(
+                            selected = currentState == "NOT_CHARGING",
+                            onClick = { onConfigChange(draft.copy(config = draft.config + ("state" to "NOT_CHARGING"))) },
+                            label = stringResource(R.string.charging_no)
+                        )
+                    }
                 }
                 ConstraintType.WIFI,
                 ConstraintType.SCREEN_LOCKED,

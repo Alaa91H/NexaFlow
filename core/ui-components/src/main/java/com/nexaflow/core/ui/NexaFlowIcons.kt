@@ -736,6 +736,8 @@ object NexaFlowIcons {
         CATEGORY_MEDIA,
         CATEGORY_SYSTEM,
         CATEGORY_BATTERY,
+        CATEGORY_APPS,
+        CATEGORY_SECURITY,
         CATEGORY_TIME,
         CATEGORY_LOCATION
     )

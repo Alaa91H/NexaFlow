@@ -42,6 +42,8 @@ import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.BrightnessHigh
 import androidx.compose.material.icons.filled.BrightnessLow
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CameraAlt
@@ -73,6 +75,13 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.Animation
+import androidx.compose.material.icons.filled.DataSaver
+import androidx.compose.material.icons.filled.PortableWifiOff
+import androidx.compose.material.icons.filled.SettingsOverscan
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.nexaflow.domain.models.ActionType
@@ -83,7 +92,7 @@ import com.nexaflow.domain.models.ActionType
  * details screen render action names identically.
  */
 fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (type) {
-    ActionType.SYSTEM_BRIGHTNESS -> Triple(R.string.action_brightness, R.string.action_brightness_sub, Icons.Filled.FlashOn)
+    ActionType.SYSTEM_BRIGHTNESS -> Triple(R.string.action_brightness, R.string.action_brightness_sub, Icons.Filled.BrightnessHigh)
     ActionType.SYSTEM_VOLUME -> Triple(R.string.action_volume, R.string.action_volume_sub, Icons.AutoMirrored.Filled.VolumeUp)
     ActionType.SYSTEM_STREAM_VOLUME -> Triple(R.string.action_stream_volume, R.string.action_stream_volume_sub, Icons.AutoMirrored.Filled.VolumeUp)
     ActionType.SYSTEM_DND -> Triple(R.string.action_dnd, R.string.action_dnd_sub, Icons.Filled.DoNotDisturb)
@@ -95,25 +104,25 @@ fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (
     ActionType.SYSTEM_FLASHLIGHT -> Triple(R.string.action_flashlight, R.string.action_flashlight_sub, Icons.Filled.FlashOn)
     ActionType.SYSTEM_AIRPLANE_MODE -> Triple(R.string.action_airplane, R.string.action_airplane_sub, Icons.Filled.AirplanemodeActive)
     ActionType.SYSTEM_MEDIA_PLAY_PAUSE -> Triple(R.string.action_media_play, R.string.action_media_play_sub, Icons.Filled.MusicNote)
-    ActionType.SYSTEM_MEDIA_NEXT -> Triple(R.string.action_media_next, R.string.action_media_next_sub, Icons.Filled.MusicNote)
-    ActionType.SYSTEM_MEDIA_PREVIOUS -> Triple(R.string.action_media_prev, R.string.action_media_prev_sub, Icons.Filled.MusicNote)
+    ActionType.SYSTEM_MEDIA_NEXT -> Triple(R.string.action_media_next, R.string.action_media_next_sub, Icons.Filled.SkipNext)
+    ActionType.SYSTEM_MEDIA_PREVIOUS -> Triple(R.string.action_media_prev, R.string.action_media_prev_sub, Icons.Filled.SkipPrevious)
     ActionType.SYSTEM_OPEN_URL -> Triple(R.string.action_open_url, R.string.action_open_url_sub, Icons.Filled.Link)
     ActionType.SYSTEM_BLOCK_NOTIFICATION -> Triple(R.string.action_block_notification, R.string.action_block_notification_sub, Icons.Filled.NotificationsActive)
     ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS -> Triple(R.string.action_clear_app_notifications, R.string.action_clear_app_notifications_sub, Icons.Filled.Notifications)
     ActionType.SYSTEM_CLEAR_NOTIFICATIONS -> Triple(R.string.action_clear_notifs, R.string.action_clear_notifs_sub, Icons.Filled.Notifications)
     ActionType.SYSTEM_EXPAND_STATUS_BAR -> Triple(R.string.action_expand_bar, R.string.action_expand_bar_sub, Icons.Filled.NotificationImportant)
     ActionType.SYSTEM_COLLAPSE_STATUS_BAR -> Triple(R.string.action_collapse_bar, R.string.action_collapse_bar_sub, Icons.Filled.NotificationImportant)
-    ActionType.SYSTEM_SCREEN_TIMEOUT -> Triple(R.string.action_screen_timeout, R.string.action_screen_timeout_sub, Icons.Filled.ScreenRotation)
-    ActionType.SYSTEM_STAY_AWAKE -> Triple(R.string.action_stay_awake, R.string.action_stay_awake_sub, Icons.Filled.FlashOn)
-    ActionType.SYSTEM_AUTO_BRIGHTNESS -> Triple(R.string.action_auto_brightness, R.string.action_auto_brightness_sub, Icons.Filled.FlashOn)
+    ActionType.SYSTEM_SCREEN_TIMEOUT -> Triple(R.string.action_screen_timeout, R.string.action_screen_timeout_sub, Icons.Filled.Timer)
+    ActionType.SYSTEM_STAY_AWAKE -> Triple(R.string.action_stay_awake, R.string.action_stay_awake_sub, Icons.Filled.WbSunny)
+    ActionType.SYSTEM_AUTO_BRIGHTNESS -> Triple(R.string.action_auto_brightness, R.string.action_auto_brightness_sub, Icons.Filled.BrightnessAuto)
     ActionType.SYSTEM_RINGER_MODE -> Triple(R.string.action_ringer, R.string.action_ringer_sub, Icons.AutoMirrored.Filled.VolumeUp)
-    ActionType.SYSTEM_MOBILE_DATA -> Triple(R.string.action_mobile_data, R.string.action_mobile_data_sub, Icons.Filled.Wifi)
+    ActionType.SYSTEM_MOBILE_DATA -> Triple(R.string.action_mobile_data, R.string.action_mobile_data_sub, Icons.Filled.SignalCellularAlt)
     ActionType.SYSTEM_NETWORK_MODE -> Triple(R.string.action_network_mode, R.string.action_network_mode_sub, Icons.Filled.SignalCellularAlt)
-    ActionType.SYSTEM_HOTSPOT -> Triple(R.string.action_hotspot, R.string.action_hotspot_sub, Icons.Filled.Wifi)
+    ActionType.SYSTEM_HOTSPOT -> Triple(R.string.action_hotspot, R.string.action_hotspot_sub, Icons.Filled.PortableWifiOff)
     ActionType.SYSTEM_SET_RINGTONE -> Triple(R.string.action_set_ringtone, R.string.action_set_ringtone_sub, Icons.Filled.MusicNote)
-    ActionType.SYSTEM_NFC -> Triple(R.string.action_nfc, R.string.action_nfc_sub, Icons.Filled.Wifi)
+    ActionType.SYSTEM_NFC -> Triple(R.string.action_nfc, R.string.action_nfc_sub, Icons.Filled.Nfc)
     ActionType.SYSTEM_POWER_SAVER -> Triple(R.string.action_power_saver, R.string.action_power_saver_sub, Icons.Filled.BatteryChargingFull)
-    ActionType.SYSTEM_ANIMATIONS -> Triple(R.string.action_animations, R.string.action_animations_sub, Icons.Filled.ScreenRotation)
+    ActionType.SYSTEM_ANIMATIONS -> Triple(R.string.action_animations, R.string.action_animations_sub, Icons.Filled.Animation)
     ActionType.SYSTEM_LOCK_SCREEN -> Triple(R.string.action_lock_screen, R.string.action_lock_screen_sub, Icons.Filled.Lock)
     ActionType.SYSTEM_SET_ALARM -> Triple(R.string.action_set_alarm, R.string.action_set_alarm_sub, Icons.Filled.Schedule)
     ActionType.SYSTEM_DARK_MODE -> Triple(R.string.action_dark_mode, R.string.action_dark_mode_sub, Icons.Filled.DarkMode)
@@ -159,7 +168,7 @@ fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (
     ActionType.SYSTEM_LOCATION_MODE -> Triple(R.string.action_location_mode, R.string.action_location_mode_sub, Icons.Filled.Place)
     ActionType.SYSTEM_DATA_SAVER -> Triple(R.string.action_data_saver, R.string.action_data_saver_sub, Icons.Filled.DataUsage)
     ActionType.SYSTEM_FONT_SCALE -> Triple(R.string.action_font_scale, R.string.action_font_scale_sub, Icons.Filled.TextFields)
-    ActionType.SYSTEM_DISPLAY_DENSITY -> Triple(R.string.action_display_density, R.string.action_display_density_sub, Icons.Filled.ScreenRotation)
+    ActionType.SYSTEM_DISPLAY_DENSITY -> Triple(R.string.action_display_density, R.string.action_display_density_sub, Icons.Filled.SettingsOverscan)
     ActionType.SYSTEM_SCREENSAVER -> Triple(R.string.action_screensaver, R.string.action_screensaver_sub, Icons.Filled.BrightnessLow)
     ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD -> Triple(R.string.action_battery_saver_threshold, R.string.action_battery_saver_threshold_sub, Icons.Filled.BatteryChargingFull)
     ActionType.SYSTEM_ALWAYS_ON_DISPLAY -> Triple(R.string.action_always_on_display, R.string.action_always_on_display_sub, Icons.Filled.WbSunny)
@@ -212,7 +221,7 @@ fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (
     ActionType.SYSTEM_CALL_VIBRATION -> Triple(R.string.action_call_vibration, R.string.action_call_vibration_sub, Icons.Filled.Vibration)
     ActionType.SYSTEM_OPEN_NETWORK_SETTINGS -> Triple(R.string.action_open_network_settings, R.string.action_open_network_settings_sub, Icons.Filled.Wifi)
     ActionType.SYSTEM_OPEN_NFC_SETTINGS -> Triple(R.string.action_open_nfc_settings, R.string.action_open_nfc_settings_sub, Icons.Filled.Nfc)
-    ActionType.SYSTEM_OPEN_DATA_SAVER_SETTINGS -> Triple(R.string.action_open_data_saver_settings, R.string.action_open_data_saver_settings_sub, Icons.Filled.DataUsage)
+    ActionType.SYSTEM_OPEN_DATA_SAVER_SETTINGS -> Triple(R.string.action_open_data_saver_settings, R.string.action_open_data_saver_settings_sub, Icons.Filled.DataSaver)
     ActionType.SYSTEM_OPEN_DEVELOPER_SETTINGS -> Triple(R.string.action_open_developer_settings, R.string.action_open_developer_settings_sub, Icons.Filled.Build)
     ActionType.SYSTEM_OPEN_MAPS -> Triple(R.string.action_open_maps, R.string.action_open_maps_sub, Icons.Filled.Map)
     ActionType.SYSTEM_SOFT_RESTART -> Triple(R.string.action_soft_restart, R.string.action_soft_restart_sub, Icons.Filled.Refresh)

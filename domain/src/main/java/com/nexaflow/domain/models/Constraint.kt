@@ -28,5 +28,15 @@ enum class ConstraintType {
     /** The screen must be locked (keyguard showing). */
     SCREEN_LOCKED,
     /** A wired headset must be plugged in. */
-    HEADSET
+    HEADSET,
+    /** Bluetooth must be enabled or disabled (`state` = ON|OFF). */
+    BLUETOOTH,
+    /** Do Not Disturb mode must be active or inactive (`state` = ON|OFF). */
+    DND,
+    /** Airplane mode must be on or off (`state` = ON|OFF). */
+    AIRPLANE,
+    /** Device must be charging or not (`state` = CHARGING|NOT_CHARGING). */
+    CHARGING,
+    /** Location services must be enabled or disabled (`state` = ON|OFF). */
+    LOCATION
 }

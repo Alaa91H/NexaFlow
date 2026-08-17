@@ -24,10 +24,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import com.nexaflow.feature.builder.SelectChip
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -193,53 +192,17 @@ fun IconPickerScreen(navController: NavController) {
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    FilterChip(
+                    SelectChip(
                         selected = category == null,
                         onClick = { category = null },
-                        leadingIcon = {
-                            if (category == null) {
-                                Icon(
-                                    imageVector = Icons.Filled.Check,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        },
-                        label = {
-                            Text(
-                                text = stringResource(R.string.category_all),
-                                fontWeight = if (category == null) FontWeight.SemiBold else FontWeight.Normal
-                            )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
-                            selectedLabelColor = MaterialTheme.colorScheme.primary
-                        )
+                        label = stringResource(R.string.category_all)
                     )
                     NexaFlowIcons.categories.forEach { cat ->
                         val isSelected = category == cat
-                        FilterChip(
+                        SelectChip(
                             selected = isSelected,
                             onClick = { category = cat },
-                            leadingIcon = {
-                                if (isSelected) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Check,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                            },
-                            label = {
-                                Text(
-                                    text = stringResource(categoryLabelRes(cat)),
-                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                                )
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
-                                selectedLabelColor = MaterialTheme.colorScheme.primary
-                            )
+                            label = stringResource(categoryLabelRes(cat))
                         )
                     }
                 }

@@ -6,7 +6,6 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -279,7 +278,7 @@ fun SettingsScreen(navController: NavController) {
                             trailing = {
                                 Text(
                                     text = stringResource(R.string.state_ok),
-                                    color = Color(0xFF006D3C),
+                                    color = MaterialTheme.colorScheme.primary,
                                     style = androidx.compose.material3.MaterialTheme.typography.labelLarge
                                 )
                             },
@@ -437,7 +436,7 @@ fun SettingsScreen(navController: NavController) {
     if (showAbout) {
         AlertDialog(
             onDismissRequest = { showAbout = false },
-            title = { Text("NexaFlow") },
+            title = { Text(stringResource(R.string.app_name)) },
             text = {
                 Column {
                     Text(stringResource(R.string.version, appVersion(context)))

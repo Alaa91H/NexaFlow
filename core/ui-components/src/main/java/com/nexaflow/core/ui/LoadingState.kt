@@ -1,5 +1,6 @@
 package com.nexaflow.core.ui
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +21,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import com.nexaflow.core.ui.Dimens.Space4
 import com.nexaflow.core.ui.Dimens.Space6
 import com.nexaflow.core.ui.Dimens.Space8
@@ -60,7 +62,7 @@ fun LoadingState(
 fun ErrorState(
     message: String,
     modifier: Modifier = Modifier,
-    retryLabel: String = "Retry",
+    retryLabel: String,
     onRetry: (() -> Unit)? = null
 ) {
     Column(
@@ -90,5 +92,41 @@ fun ErrorState(
                 Text(text = retryLabel)
             }
         }
+    }
+}
+
+@Preview(name = "LoadingState", showBackground = true)
+@Composable
+private fun LoadingStatePreview() {
+    NexaFlowTheme { LoadingState() }
+}
+
+@Preview(name = "LoadingState – Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun LoadingStateDarkPreview() {
+    NexaFlowTheme { LoadingState() }
+}
+
+@Preview(name = "ErrorState", showBackground = true)
+@Composable
+private fun ErrorStatePreview() {
+    NexaFlowTheme {
+        ErrorState(
+            message = "Something went wrong",
+            retryLabel = "Retry",
+            onRetry = {}
+        )
+    }
+}
+
+@Preview(name = "ErrorState – Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun ErrorStateDarkPreview() {
+    NexaFlowTheme {
+        ErrorState(
+            message = "Something went wrong",
+            retryLabel = "Retry",
+            onRetry = {}
+        )
     }
 }

@@ -1,5 +1,6 @@
 package com.nexaflow.feature.builder
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -13,7 +14,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.EndBehavior
 import com.nexaflow.domain.models.EndBehaviorCatalog
@@ -191,16 +194,7 @@ private fun EndValueEditor(
             // Same channel list as the action editor: the user picks exactly
             // which stream (media, ringtone, notifications, alarm, ...) gets
             // the end-of-task value, so the end behavior matches the action.
-            val streams = listOf(
-                "MUSIC" to stringResource(R.string.stream_music),
-                "RING" to stringResource(R.string.stream_ring),
-                "NOTIFICATION" to stringResource(R.string.stream_notification),
-                "ALARM" to stringResource(R.string.stream_alarm),
-                "VOICE_CALL" to stringResource(R.string.stream_voice_call),
-                "SYSTEM" to stringResource(R.string.stream_system),
-                "DTMF" to stringResource(R.string.stream_dtmf),
-                "ACCESSIBILITY" to stringResource(R.string.stream_accessibility)
-            )
+            val streams = STREAM_OPTIONS.map { (key, res) -> key to stringResource(res) }
             val selectedStream = config["stream"] ?: "MUSIC"
             val value = config["value"]?.toIntOrNull() ?: 50
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -271,13 +265,7 @@ private fun EndValueEditor(
             }
         }
         ActionType.SYSTEM_NETWORK_MODE -> {
-            val modes = listOf(
-                "AUTO" to stringResource(R.string.network_mode_auto),
-                "2G" to stringResource(R.string.network_mode_2g),
-                "3G" to stringResource(R.string.network_mode_3g),
-                "4G" to stringResource(R.string.network_mode_4g),
-                "5G" to stringResource(R.string.network_mode_5g)
-            )
+            val modes = NETWORK_MODE_OPTIONS.map { (key, res) -> key to stringResource(res) }
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -295,3 +283,19 @@ private fun EndValueEditor(
         else -> Unit
     }
 }
+
+// region Preview
+
+@Preview(name = "EndBehaviorEditor", showBackground = true)
+@Composable
+private fun EndBehaviorEditorPreview() {
+    NexaFlowTheme {
+        EndBehaviorEditor(
+            actionType = ActionType.TOGGLE_NOTIFICATION_LISTENER,
+            behavior = EndBehavior(),
+            onBehaviorChange = {}
+        )
+    }
+}
+
+// endregion

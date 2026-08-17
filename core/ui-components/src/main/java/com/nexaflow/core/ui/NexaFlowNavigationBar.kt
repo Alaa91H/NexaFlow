@@ -1,5 +1,9 @@
 package com.nexaflow.core.ui
 
+import android.content.res.Configuration
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -9,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 
 /** A top-level destination of the app's bottom navigation bar. */
 data class NavigationDestination(
@@ -51,5 +56,35 @@ fun NexaFlowNavigationBar(
                 )
             )
         }
+    }
+}
+
+@Preview(name = "NavigationBar", showBackground = true)
+@Composable
+private fun NavigationBarPreview() {
+    NexaFlowTheme {
+        NexaFlowNavigationBar(
+            currentRoute = "home",
+            destinations = listOf(
+                NavigationDestination(route = "home", label = "Home", icon = Icons.Filled.Home),
+                NavigationDestination(route = "settings", label = "Settings", icon = Icons.Filled.Settings)
+            ),
+            onNavigate = {}
+        )
+    }
+}
+
+@Preview(name = "NavigationBar – Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun NavigationBarDarkPreview() {
+    NexaFlowTheme {
+        NexaFlowNavigationBar(
+            currentRoute = "home",
+            destinations = listOf(
+                NavigationDestination(route = "home", label = "Home", icon = Icons.Filled.Home),
+                NavigationDestination(route = "settings", label = "Settings", icon = Icons.Filled.Settings)
+            ),
+            onNavigate = {}
+        )
     }
 }

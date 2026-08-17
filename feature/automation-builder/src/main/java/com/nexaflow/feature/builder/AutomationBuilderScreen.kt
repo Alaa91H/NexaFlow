@@ -1,7 +1,5 @@
 package com.nexaflow.feature.builder
 
-import androidx.compose.ui.text.font.FontWeight
-
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -121,6 +119,10 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material.icons.filled.Equalizer
+import androidx.compose.material.icons.filled.Store
+import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -152,6 +154,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
@@ -196,6 +199,8 @@ import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.launch
 import java.util.Locale
+
+private const val TAG = "AutomationBuilder"
 
 enum class ActionCategory(val headerRes: Int, val color: Color) {
     DISPLAY(R.string.category_display, Color(0xFF0B57D0)),
@@ -266,7 +271,7 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_open_app_settings, R.string.action_open_app_settings_sub, Icons.Filled.Settings, ActionType.APPLICATION_OPEN_APP_SETTINGS, ActionCategory.APPS),
     ActionOption(R.string.action_play_updates, R.string.action_play_updates_sub, Icons.Filled.Storefront, ActionType.SYSTEM_OPEN_PLAY_UPDATES, ActionCategory.APPS),
     ActionOption(R.string.action_launch_app, R.string.action_launch_app_sub, Icons.Filled.Apps, ActionType.APPLICATION_LAUNCH_APP, ActionCategory.APPS),
-    ActionOption(R.string.action_galaxy_store, R.string.action_galaxy_store_sub, Icons.Filled.Storefront, ActionType.SYSTEM_OPEN_GALAXY_STORE, ActionCategory.APPS),
+    ActionOption(R.string.action_galaxy_store, R.string.action_galaxy_store_sub, Icons.Filled.Store, ActionType.SYSTEM_OPEN_GALAXY_STORE, ActionCategory.APPS),
     // SYSTEM
     ActionOption(R.string.action_flashlight, R.string.action_flashlight_sub, Icons.Filled.FlashlightOn, ActionType.SYSTEM_FLASHLIGHT, ActionCategory.SYSTEM),
     ActionOption(R.string.action_open_url, R.string.action_open_url_sub, Icons.Filled.Link, ActionType.SYSTEM_OPEN_URL, ActionCategory.SYSTEM),
@@ -278,7 +283,7 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_wait, R.string.action_wait_sub, Icons.Filled.HourglassEmpty, ActionType.SYSTEM_WAIT, ActionCategory.SYSTEM),
     ActionOption(R.string.action_go_home, R.string.action_go_home_sub, Icons.Filled.Home, ActionType.SYSTEM_GO_HOME, ActionCategory.SYSTEM),
     ActionOption(R.string.action_open_settings, R.string.action_open_settings_sub, Icons.Filled.Settings, ActionType.SYSTEM_OPEN_SETTINGS, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_open_quick_settings, R.string.action_open_quick_settings_sub, Icons.Filled.Settings, ActionType.SYSTEM_OPEN_QUICK_SETTINGS, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_open_quick_settings, R.string.action_open_quick_settings_sub, Icons.Filled.Tune, ActionType.SYSTEM_OPEN_QUICK_SETTINGS, ActionCategory.SYSTEM),
     ActionOption(R.string.action_wake_screen, R.string.action_wake_screen_sub, Icons.Filled.WbSunny, ActionType.SYSTEM_WAKE_SCREEN, ActionCategory.DISPLAY),
     ActionOption(R.string.action_clipboard, R.string.action_clipboard_sub, Icons.Filled.ContentPaste, ActionType.SYSTEM_CLIPBOARD_SET, ActionCategory.SYSTEM),
     ActionOption(R.string.action_set_setting, R.string.action_set_setting_sub, Icons.Filled.Tune, ActionType.SYSTEM_SET_SETTING, ActionCategory.SYSTEM),
@@ -291,7 +296,7 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_grayscale, R.string.action_grayscale_sub, Icons.Filled.Gradient, ActionType.SYSTEM_GRAYSCALE, ActionCategory.DISPLAY),
     ActionOption(R.string.action_extra_dim, R.string.action_extra_dim_sub, Icons.Filled.BrightnessLow, ActionType.SYSTEM_EXTRA_DIM, ActionCategory.DISPLAY),
     ActionOption(R.string.action_night_light, R.string.action_night_light_sub, Icons.Filled.NightsStay, ActionType.SYSTEM_NIGHT_LIGHT, ActionCategory.DISPLAY),
-    ActionOption(R.string.action_haptic_feedback, R.string.action_haptic_feedback_sub, Icons.Filled.Vibration, ActionType.SYSTEM_HAPTIC_FEEDBACK, ActionCategory.SOUND),
+    ActionOption(R.string.action_haptic_feedback, R.string.action_haptic_feedback_sub, Icons.Filled.TouchApp, ActionType.SYSTEM_HAPTIC_FEEDBACK, ActionCategory.SOUND),
     ActionOption(R.string.action_sound_effects, R.string.action_sound_effects_sub, Icons.Filled.GraphicEq, ActionType.SYSTEM_SOUND_EFFECTS, ActionCategory.SOUND),
     ActionOption(R.string.action_force_stop_app, R.string.action_force_stop_app_sub, Icons.Filled.Stop, ActionType.SYSTEM_FORCE_STOP_APP, ActionCategory.APPS),
     ActionOption(R.string.action_clear_app_data, R.string.action_clear_app_data_sub, Icons.Filled.DeleteSweep, ActionType.SYSTEM_CLEAR_APP_DATA, ActionCategory.APPS),
@@ -315,7 +320,7 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_pointer_location, R.string.action_pointer_location_sub, Icons.Filled.GpsFixed, ActionType.SYSTEM_POINTER_LOCATION, ActionCategory.DISPLAY),
     ActionOption(R.string.action_battery_saver_threshold, R.string.action_battery_saver_threshold_sub, Icons.Filled.BatteryChargingFull, ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD, ActionCategory.BATTERY),
     ActionOption(R.string.action_adaptive_battery, R.string.action_adaptive_battery_sub, Icons.Filled.BatteryChargingFull, ActionType.SYSTEM_ADAPTIVE_BATTERY, ActionCategory.BATTERY),
-    ActionOption(R.string.action_haptic_intensity, R.string.action_haptic_intensity_sub, Icons.Filled.GraphicEq, ActionType.SYSTEM_HAPTIC_INTENSITY, ActionCategory.SOUND),
+    ActionOption(R.string.action_haptic_intensity, R.string.action_haptic_intensity_sub, Icons.Filled.Equalizer, ActionType.SYSTEM_HAPTIC_INTENSITY, ActionCategory.SOUND),
     ActionOption(R.string.action_camera_shutter_sound, R.string.action_camera_shutter_sound_sub, Icons.Filled.CameraAlt, ActionType.SYSTEM_CAMERA_SHUTTER_SOUND, ActionCategory.SOUND),
     ActionOption(R.string.action_open_wifi_settings, R.string.action_open_wifi_settings_sub, Icons.Filled.Wifi, ActionType.SYSTEM_OPEN_WIFI_SETTINGS, ActionCategory.CONNECTIVITY),
     ActionOption(R.string.action_open_bluetooth_settings, R.string.action_open_bluetooth_settings_sub, Icons.Filled.Bluetooth, ActionType.SYSTEM_OPEN_BLUETOOTH_SETTINGS, ActionCategory.CONNECTIVITY),
@@ -331,7 +336,7 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_open_about_phone, R.string.action_open_about_phone_sub, Icons.Filled.Info, ActionType.SYSTEM_OPEN_ABOUT_PHONE, ActionCategory.SYSTEM),
     ActionOption(R.string.action_reboot, R.string.action_reboot_sub, Icons.Filled.Refresh, ActionType.SYSTEM_REBOOT, ActionCategory.SYSTEM),
     ActionOption(R.string.action_shutdown, R.string.action_shutdown_sub, Icons.Filled.PowerSettingsNew, ActionType.SYSTEM_SHUTDOWN, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_restart_system_ui, R.string.action_restart_system_ui_sub, Icons.Filled.Refresh, ActionType.SYSTEM_RESTART_SYSTEM_UI, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_restart_system_ui, R.string.action_restart_system_ui_sub, Icons.Filled.Restore, ActionType.SYSTEM_RESTART_SYSTEM_UI, ActionCategory.SYSTEM),
     // BATTERY
     ActionOption(R.string.action_battery_alert, R.string.action_battery_alert_sub, Icons.Filled.BatteryAlert, ActionType.BATTERY_ALERTS, ActionCategory.BATTERY),
     ActionOption(R.string.action_charging_alert, R.string.action_charging_alert_sub, Icons.Filled.BatteryChargingFull, ActionType.BATTERY_CHARGING_NOTIFICATIONS, ActionCategory.BATTERY),
@@ -358,7 +363,7 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_open_data_saver_settings, R.string.action_open_data_saver_settings_sub, Icons.Filled.DataUsage, ActionType.SYSTEM_OPEN_DATA_SAVER_SETTINGS, ActionCategory.CONNECTIVITY),
     ActionOption(R.string.action_open_developer_settings, R.string.action_open_developer_settings_sub, Icons.Filled.Build, ActionType.SYSTEM_OPEN_DEVELOPER_SETTINGS, ActionCategory.SYSTEM),
     ActionOption(R.string.action_open_maps, R.string.action_open_maps_sub, Icons.Filled.Map, ActionType.SYSTEM_OPEN_MAPS, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_soft_restart, R.string.action_soft_restart_sub, Icons.Filled.Refresh, ActionType.SYSTEM_SOFT_RESTART, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_soft_restart, R.string.action_soft_restart_sub, Icons.Filled.RestartAlt, ActionType.SYSTEM_SOFT_RESTART, ActionCategory.SYSTEM),
     ActionOption(R.string.action_status_bar_toggle, R.string.action_status_bar_toggle_sub, Icons.Filled.Visibility, ActionType.SYSTEM_STATUS_BAR_TOGGLE, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_open_contacts, R.string.action_open_contacts_sub, Icons.Filled.Contacts, ActionType.SYSTEM_OPEN_CONTACTS, ActionCategory.APPS),
     ActionOption(R.string.action_send_email, R.string.action_send_email_sub, Icons.Filled.Email, ActionType.SYSTEM_SEND_EMAIL, ActionCategory.NOTIFICATIONS),
@@ -399,6 +404,98 @@ internal fun ActionCategory.icon(): ImageVector = when (this) {
     ActionCategory.PLUGINS -> Icons.Filled.Extension
 }
 
+/** Action types whose summary is simply On/Off based on `config["enabled"]`. */
+private val TOGGLE_SUMMARY_ACTIONS = setOf(
+    ActionType.SYSTEM_LOCATION,
+    ActionType.SYSTEM_DND,
+    ActionType.SYSTEM_WIFI,
+    ActionType.SYSTEM_BLUETOOTH,
+    ActionType.SYSTEM_FLASHLIGHT,
+    ActionType.SYSTEM_AIRPLANE_MODE,
+    ActionType.SYSTEM_STAY_AWAKE,
+    ActionType.SYSTEM_AUTO_BRIGHTNESS,
+    ActionType.SYSTEM_MOBILE_DATA,
+    ActionType.SYSTEM_HOTSPOT,
+    ActionType.SYSTEM_NFC,
+    ActionType.SYSTEM_POWER_SAVER,
+    ActionType.SYSTEM_ANIMATIONS,
+    ActionType.SYSTEM_DARK_MODE,
+    ActionType.SYSTEM_COLOR_INVERSION,
+    ActionType.SYSTEM_GRAYSCALE,
+    ActionType.SYSTEM_EXTRA_DIM,
+    ActionType.SYSTEM_NIGHT_LIGHT,
+    ActionType.SYSTEM_HAPTIC_FEEDBACK,
+    ActionType.SYSTEM_SOUND_EFFECTS,
+    ActionType.SYSTEM_DATA_SAVER,
+    ActionType.SYSTEM_SCREENSAVER,
+    ActionType.SYSTEM_ALWAYS_ON_DISPLAY,
+    ActionType.SYSTEM_SHOW_TAPS,
+    ActionType.SYSTEM_POINTER_LOCATION,
+    ActionType.SYSTEM_ADAPTIVE_BATTERY,
+    ActionType.SYSTEM_AUTO_TIME,
+    ActionType.SYSTEM_AUTO_TIMEZONE,
+    ActionType.SYSTEM_CAMERA_SHUTTER_SOUND,
+    ActionType.SYSTEM_WIFI_SCANNING,
+    ActionType.SYSTEM_DATA_ROAMING,
+    ActionType.SYSTEM_CALL_VIBRATION,
+    ActionType.SYSTEM_STATUS_BAR_TOGGLE
+)
+
+/** Settings-open actions whose summary is a static localized label. */
+private val SETTINGS_OPEN_SUMMARY = mapOf(
+    ActionType.SYSTEM_OPEN_WIFI_SETTINGS to R.string.settings_wifi,
+    ActionType.SYSTEM_OPEN_BLUETOOTH_SETTINGS to R.string.settings_bluetooth,
+    ActionType.SYSTEM_OPEN_LOCATION_SETTINGS to R.string.settings_location,
+    ActionType.SYSTEM_OPEN_DATA_USAGE_SETTINGS to R.string.settings_data_usage,
+    ActionType.SYSTEM_OPEN_BATTERY_SETTINGS to R.string.settings_battery,
+    ActionType.SYSTEM_OPEN_DISPLAY_SETTINGS to R.string.settings_display,
+    ActionType.SYSTEM_OPEN_SOUND_SETTINGS to R.string.settings_sound,
+    ActionType.SYSTEM_OPEN_STORAGE_SETTINGS to R.string.settings_storage,
+    ActionType.SYSTEM_OPEN_SECURITY_SETTINGS to R.string.settings_security,
+    ActionType.SYSTEM_OPEN_ACCESSIBILITY_SETTINGS to R.string.settings_accessibility,
+    ActionType.SYSTEM_OPEN_APP_SETTINGS_LIST to R.string.settings_apps,
+    ActionType.SYSTEM_OPEN_ABOUT_PHONE to R.string.settings_about,
+    ActionType.SYSTEM_OPEN_NETWORK_SETTINGS to R.string.settings_network,
+    ActionType.SYSTEM_OPEN_NFC_SETTINGS to R.string.settings_nfc,
+    ActionType.SYSTEM_OPEN_DATA_SAVER_SETTINGS to R.string.settings_data_saver,
+    ActionType.SYSTEM_OPEN_DEVELOPER_SETTINGS to R.string.settings_developer,
+    ActionType.SYSTEM_OPEN_NOTIFICATION_SETTINGS to R.string.settings_notifications,
+    ActionType.SYSTEM_OPEN_PRIVACY_SETTINGS to R.string.settings_privacy,
+    ActionType.SYSTEM_OPEN_CAST_SETTINGS to R.string.settings_cast,
+    ActionType.SYSTEM_OPEN_INPUT_METHOD_SETTINGS to R.string.settings_input_method,
+    ActionType.SYSTEM_OPEN_DEFAULT_APPS_SETTINGS to R.string.settings_default_apps,
+    ActionType.SYSTEM_OPEN_VPN_SETTINGS to R.string.settings_vpn,
+    ActionType.SYSTEM_OPEN_DATE_SETTINGS to R.string.settings_date,
+    ActionType.SYSTEM_OPEN_PRINT_SETTINGS to R.string.settings_print,
+    ActionType.SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS to R.string.settings_device_admin,
+    ActionType.SYSTEM_OPEN_USAGE_ACCESS_SETTINGS to R.string.settings_usage_access,
+    ActionType.SYSTEM_OPEN_AIRPLANE_MODE_SETTINGS to R.string.settings_airplane
+)
+
+/** Action types whose summary is the `config["package"]` value. */
+private val PACKAGE_SUMMARY_ACTIONS = setOf(
+    ActionType.APPLICATION_OPEN_APP_SETTINGS,
+    ActionType.SYSTEM_BLOCK_NOTIFICATION,
+    ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS,
+    ActionType.APPLICATION_CLOSE_APP,
+    ActionType.SYSTEM_FORCE_STOP_APP,
+    ActionType.SYSTEM_CLEAR_APP_DATA,
+    ActionType.SYSTEM_UNINSTALL_APP,
+    ActionType.SYSTEM_DISABLE_APP,
+    ActionType.SYSTEM_ENABLE_APP
+)
+
+/** Actions with no config summary (show only the name). */
+private val NO_SUMMARY_ACTIONS = setOf(
+    ActionType.SYSTEM_PASTE,
+    ActionType.SYSTEM_OPEN_APP_DRAWER,
+    ActionType.SYSTEM_TOGGLE_PIP,
+    ActionType.SYSTEM_SOFT_RESTART,
+    ActionType.SYSTEM_OPEN_CONTACTS,
+    ActionType.SYSTEM_BLUETOOTH_SCAN,
+    ActionType.SYSTEM_WIFI_SCAN_NOW
+)
+
 /**
  * One-line summary of the chosen action values for the collapsed header,
  * mirroring triggerSummary/constraintSummary so every builder row reads
@@ -408,7 +505,28 @@ internal fun ActionCategory.icon(): ImageVector = when (this) {
 @Composable
 private fun actionSummary(option: ActionOption, config: Map<String, String>): String {
     val name = stringResource(option.titleRes)
-    val value: String? = when (option.actionType) {
+    val value: String? = when {
+        option.actionType in TOGGLE_SUMMARY_ACTIONS ->
+            if (config["enabled"]?.toBoolean() ?: true) stringResource(R.string.state_on)
+            else stringResource(R.string.state_off)
+
+        option.actionType in SETTINGS_OPEN_SUMMARY ->
+            stringResource(SETTINGS_OPEN_SUMMARY[option.actionType]!!)
+
+        option.actionType in PACKAGE_SUMMARY_ACTIONS ->
+            config["package"].orEmpty().trim().ifEmpty { null }
+
+        option.actionType in NO_SUMMARY_ACTIONS -> null
+
+        else -> actionSummaryDetail(option, config)
+    }
+    return if (value.isNullOrBlank()) name else "$name · $value"
+}
+
+/** Type-specific detail for actions that need custom summary logic. */
+@Composable
+private fun actionSummaryDetail(option: ActionOption, config: Map<String, String>): String? =
+    when (option.actionType) {
         ActionType.SYSTEM_BRIGHTNESS ->
             stringResource(R.string.brightness_label, config["value"]?.toIntOrNull() ?: 128)
         ActionType.SYSTEM_VOLUME ->
@@ -435,22 +553,6 @@ private fun actionSummary(option: ActionOption, config: Map<String, String>): St
             "5G" -> stringResource(R.string.network_mode_5g)
             else -> stringResource(R.string.network_mode_auto)
         }
-        ActionType.SYSTEM_LOCATION,
-        ActionType.SYSTEM_DND,
-        ActionType.SYSTEM_WIFI,
-        ActionType.SYSTEM_BLUETOOTH,
-        ActionType.SYSTEM_FLASHLIGHT,
-        ActionType.SYSTEM_AIRPLANE_MODE,
-        ActionType.SYSTEM_STAY_AWAKE,
-        ActionType.SYSTEM_AUTO_BRIGHTNESS,
-        ActionType.SYSTEM_MOBILE_DATA,
-        ActionType.SYSTEM_HOTSPOT,
-        ActionType.SYSTEM_NFC,
-        ActionType.SYSTEM_POWER_SAVER,
-        ActionType.SYSTEM_ANIMATIONS,
-        ActionType.SYSTEM_DARK_MODE ->
-            if (config["enabled"]?.toBoolean() ?: true) stringResource(R.string.state_on)
-            else stringResource(R.string.state_off)
         ActionType.SYSTEM_SEND_SMS -> {
             val number = config["number"].orEmpty().trim()
             val text = config["text"].orEmpty().trim()
@@ -482,10 +584,6 @@ private fun actionSummary(option: ActionOption, config: Map<String, String>): St
             val minute = (config["minute"] ?: "0").padStart(2, '0')
             "$hour:$minute"
         }
-        ActionType.APPLICATION_OPEN_APP_SETTINGS,
-        ActionType.SYSTEM_BLOCK_NOTIFICATION,
-        ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS,
-        ActionType.APPLICATION_CLOSE_APP -> config["package"].orEmpty().trim().ifEmpty { null }
         ActionType.SYSTEM_OPEN_APP ->
             (config["packages"] ?: config["package"] ?: "").trim().ifEmpty { null }
         ActionType.SYSTEM_SEND_NOTIFICATION -> {
@@ -517,8 +615,7 @@ private fun actionSummary(option: ActionOption, config: Map<String, String>): St
         ActionType.ADVANCED_ROOT,
         ActionType.ADVANCED_SHIZUKU -> config["command"].orEmpty().trim().ifEmpty { null }
         ActionType.PLUGIN_FIRE -> config["blurb"].orEmpty().trim().ifEmpty { null }
-        ActionType.SYSTEM_VIBRATE ->
-            "${config["seconds"] ?: "1"}s"
+        ActionType.SYSTEM_VIBRATE -> "${config["seconds"] ?: "1"}s"
         ActionType.SYSTEM_CLIPBOARD_SET -> config["text"].orEmpty().trim().ifEmpty { null }
         ActionType.SYSTEM_SET_SETTING -> {
             val key = config["key"].orEmpty().trim()
@@ -527,32 +624,9 @@ private fun actionSummary(option: ActionOption, config: Map<String, String>): St
         ActionType.SYSTEM_SCREENSHOT -> config["filename"].orEmpty().trim().ifEmpty { null }
         ActionType.SYSTEM_INPUT_TEXT -> config["text"].orEmpty().trim().ifEmpty { null }
         ActionType.SYSTEM_KEY_EVENT -> config["key"].orEmpty().trim().ifEmpty { null }
-        ActionType.SYSTEM_INPUT_TAP ->
-            "${config["x"] ?: "0"}, ${config["y"] ?: "0"}"
+        ActionType.SYSTEM_INPUT_TAP -> "${config["x"] ?: "0"}, ${config["y"] ?: "0"}"
         ActionType.SYSTEM_INPUT_SWIPE ->
             "(${config["x1"] ?: "0"},${config["y1"] ?: "0"}) → (${config["x2"] ?: "0"},${config["y2"] ?: "0"})"
-        ActionType.SYSTEM_COLOR_INVERSION,
-        ActionType.SYSTEM_GRAYSCALE,
-        ActionType.SYSTEM_EXTRA_DIM,
-        ActionType.SYSTEM_NIGHT_LIGHT,
-        ActionType.SYSTEM_HAPTIC_FEEDBACK,
-        ActionType.SYSTEM_SOUND_EFFECTS ->
-            if (config["enabled"]?.toBoolean() ?: true) stringResource(R.string.state_on)
-            else stringResource(R.string.state_off)
-        ActionType.SYSTEM_FORCE_STOP_APP,
-        ActionType.SYSTEM_CLEAR_APP_DATA -> config["package"].orEmpty().trim().ifEmpty { null }
-        ActionType.SYSTEM_DATA_SAVER,
-        ActionType.SYSTEM_SCREENSAVER,
-        ActionType.SYSTEM_ALWAYS_ON_DISPLAY,
-        ActionType.SYSTEM_SHOW_TAPS,
-        ActionType.SYSTEM_POINTER_LOCATION,
-        ActionType.SYSTEM_ADAPTIVE_BATTERY,
-        ActionType.SYSTEM_AUTO_TIME,
-        ActionType.SYSTEM_AUTO_TIMEZONE,
-        ActionType.SYSTEM_CAMERA_SHUTTER_SOUND,
-        ActionType.SYSTEM_WIFI_SCANNING ->
-            if (config["enabled"]?.toBoolean() ?: true) stringResource(R.string.state_on)
-            else stringResource(R.string.state_off)
         ActionType.SYSTEM_LOCATION_MODE -> when (config["mode"] ?: "HIGH") {
             "OFF" -> stringResource(R.string.location_mode_off)
             "SENSORS" -> stringResource(R.string.location_mode_sensors)
@@ -572,18 +646,6 @@ private fun actionSummary(option: ActionOption, config: Map<String, String>): St
             if (t == 0) stringResource(R.string.state_off) else "${t}s"
         }
         ActionType.SYSTEM_HAPTIC_INTENSITY -> config["level"] ?: "255"
-        ActionType.SYSTEM_OPEN_WIFI_SETTINGS -> stringResource(R.string.settings_wifi)
-        ActionType.SYSTEM_OPEN_BLUETOOTH_SETTINGS -> stringResource(R.string.settings_bluetooth)
-        ActionType.SYSTEM_OPEN_LOCATION_SETTINGS -> stringResource(R.string.settings_location)
-        ActionType.SYSTEM_OPEN_DATA_USAGE_SETTINGS -> stringResource(R.string.settings_data_usage)
-        ActionType.SYSTEM_OPEN_BATTERY_SETTINGS -> stringResource(R.string.settings_battery)
-        ActionType.SYSTEM_OPEN_DISPLAY_SETTINGS -> stringResource(R.string.settings_display)
-        ActionType.SYSTEM_OPEN_SOUND_SETTINGS -> stringResource(R.string.settings_sound)
-        ActionType.SYSTEM_OPEN_STORAGE_SETTINGS -> stringResource(R.string.settings_storage)
-        ActionType.SYSTEM_OPEN_SECURITY_SETTINGS -> stringResource(R.string.settings_security)
-        ActionType.SYSTEM_OPEN_ACCESSIBILITY_SETTINGS -> stringResource(R.string.settings_accessibility)
-        ActionType.SYSTEM_OPEN_APP_SETTINGS_LIST -> stringResource(R.string.settings_apps)
-        ActionType.SYSTEM_OPEN_ABOUT_PHONE -> stringResource(R.string.settings_about)
         ActionType.SYSTEM_DIAL_NUMBER -> config["number"].orEmpty().trim().ifEmpty { null }
         ActionType.SYSTEM_TOAST -> config["text"].orEmpty().trim().ifEmpty { null }
         ActionType.SYSTEM_ALERT -> {
@@ -592,53 +654,21 @@ private fun actionSummary(option: ActionOption, config: Map<String, String>): St
             listOf(title, text).firstOrNull { it.isNotEmpty() }
         }
         ActionType.SYSTEM_VIBRATE_PATTERN -> config["pattern"].orEmpty().trim().ifEmpty { null }
-        ActionType.SYSTEM_PASTE -> null
-        ActionType.SYSTEM_OPEN_APP_DRAWER -> null
-        ActionType.SYSTEM_TOGGLE_PIP -> null
         ActionType.SYSTEM_WIFI_CONNECT -> config["ssid"].orEmpty().trim().ifEmpty { null }
         ActionType.SYSTEM_WIFI_FORGET -> config["ssid"].orEmpty().trim().ifEmpty { null }
-        ActionType.SYSTEM_DATA_ROAMING,
-        ActionType.SYSTEM_CALL_VIBRATION,
-        ActionType.SYSTEM_STATUS_BAR_TOGGLE ->
-            if (config["enabled"]?.toBoolean() ?: true) stringResource(R.string.state_on)
-            else stringResource(R.string.state_off)
         ActionType.SYSTEM_SCREENSAVER_TIMEOUT -> "${config["minutes"] ?: "30"} min"
         ActionType.SYSTEM_POINTER_SPEED -> config["speed"] ?: "1.0"
         ActionType.SYSTEM_INSTALL_APK -> config["path"].orEmpty().trim().ifEmpty { null }
-        ActionType.SYSTEM_UNINSTALL_APP,
-        ActionType.SYSTEM_DISABLE_APP,
-        ActionType.SYSTEM_ENABLE_APP -> config["package"].orEmpty().trim().ifEmpty { null }
         ActionType.SYSTEM_SET_NOTIFICATION_TONE -> config["tone"].orEmpty().trim().ifEmpty { null }
-        ActionType.SYSTEM_OPEN_NETWORK_SETTINGS -> stringResource(R.string.settings_network)
-        ActionType.SYSTEM_OPEN_NFC_SETTINGS -> stringResource(R.string.settings_nfc)
-        ActionType.SYSTEM_OPEN_DATA_SAVER_SETTINGS -> stringResource(R.string.settings_data_saver)
-        ActionType.SYSTEM_OPEN_DEVELOPER_SETTINGS -> stringResource(R.string.settings_developer)
         ActionType.SYSTEM_OPEN_MAPS -> {
             val lat = config["lat"].orEmpty().trim()
             val lng = config["lng"].orEmpty().trim()
             if (lat.isEmpty() || lng.isEmpty()) null else "$lat, $lng"
         }
-        ActionType.SYSTEM_SOFT_RESTART -> null
-        ActionType.SYSTEM_OPEN_CONTACTS -> null
         ActionType.SYSTEM_SEND_EMAIL -> config["to"].orEmpty().trim().ifEmpty { null }
-        ActionType.SYSTEM_OPEN_NOTIFICATION_SETTINGS -> stringResource(R.string.settings_notifications)
-        ActionType.SYSTEM_OPEN_PRIVACY_SETTINGS -> stringResource(R.string.settings_privacy)
-        ActionType.SYSTEM_OPEN_CAST_SETTINGS -> stringResource(R.string.settings_cast)
-        ActionType.SYSTEM_OPEN_INPUT_METHOD_SETTINGS -> stringResource(R.string.settings_input_method)
-        ActionType.SYSTEM_OPEN_DEFAULT_APPS_SETTINGS -> stringResource(R.string.settings_default_apps)
-        ActionType.SYSTEM_OPEN_VPN_SETTINGS -> stringResource(R.string.settings_vpn)
-        ActionType.SYSTEM_OPEN_DATE_SETTINGS -> stringResource(R.string.settings_date)
-        ActionType.SYSTEM_OPEN_PRINT_SETTINGS -> stringResource(R.string.settings_print)
-        ActionType.SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS -> stringResource(R.string.settings_device_admin)
-        ActionType.SYSTEM_OPEN_USAGE_ACCESS_SETTINGS -> stringResource(R.string.settings_usage_access)
-        ActionType.SYSTEM_OPEN_AIRPLANE_MODE_SETTINGS -> stringResource(R.string.settings_airplane)
-        ActionType.SYSTEM_BLUETOOTH_SCAN -> null
-        ActionType.SYSTEM_WIFI_SCAN_NOW -> null
         ActionType.SYSTEM_SET_TIMEZONE -> config["zone"].orEmpty().trim().ifEmpty { null }
         else -> null
     }
-    return if (value.isNullOrBlank()) name else "$name · $value"
-}
 
 /** One selected action, in order, with reorder buttons, config editor and permission hint. */
 @Composable
@@ -684,7 +714,7 @@ private fun SelectedActionCard(
                     // pinned to the RIGHT regardless of the locale direction.
                     // Expand-only: once opened, the card never collapses again,
                     // so the details only ever grow downward.
-                    .clickable(enabled = !expanded) { expanded = true },
+                    .clickable { expanded = !expanded },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -718,13 +748,11 @@ private fun SelectedActionCard(
                     modifier = Modifier.weight(1f)
                 )
                 TaskNumberBadge(number = index + 1)
-                if (!expanded) {
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowDown,
-                        contentDescription = stringResource(R.string.expand_options),
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                }
+                Icon(
+                    imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                    contentDescription = stringResource(if (expanded) R.string.collapse_options else R.string.expand_options),
+                    tint = MaterialTheme.colorScheme.outline
+                )
             }
             }
             if (expanded) {
@@ -1034,7 +1062,7 @@ fun AutomationBuilderScreen(
                 }
                 if (!wasEnabled) LocationAccess.restoreLocationModeIfWeChanged(context, previousMode)
             } catch (t: Throwable) {
-                Log.w("LocateFill", "Current-location fill failed", t)
+                Log.w(TAG, "Current-location fill failed", t)
                 scope.launch { snackbarHostState.showSnackbar(stringLocationFixFailed) }
             }
         }

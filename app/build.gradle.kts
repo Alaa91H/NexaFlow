@@ -1,3 +1,4 @@
+import com.nexaflow.build.gitVersion
 import java.util.Properties
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 
@@ -7,6 +8,8 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
+
+val gitVer = gitVersion()
 
 // Release signing: prefer the project keystore (keystore/keystore.properties,
 // gitignored — carries the SAME key that signed the currently installed app,
@@ -37,8 +40,8 @@ android {
         applicationId = "com.nexaflow.app"
         minSdk = 26
         targetSdk = 37
-        versionCode = 30
-        versionName = "3.27.0-alpha"
+        versionCode = gitVer.versionCode
+        versionName = gitVer.versionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

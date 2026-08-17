@@ -77,7 +77,7 @@ class AutomationScheduler @Inject constructor(
         } catch (t: Throwable) {
             // Never let a single task's schedule computation crash the startup
             // collect or take down the app (see CoroutinesModule handler).
-            Log.e("AutomationScheduler", "Failed to schedule ${automation.id}", t)
+            Log.e(TAG, "Failed to schedule ${automation.id}", t)
         }
     }
 
@@ -137,6 +137,7 @@ class AutomationScheduler @Inject constructor(
     }
 
     companion object {
+        private const val TAG = "AutomationScheduler"
         const val ACTION_RUN_AUTOMATION = "com.nexaflow.core.engine.action.RUN_AUTOMATION"
         const val ACTION_END_AUTOMATION = "com.nexaflow.core.engine.action.END_AUTOMATION"
         const val EXTRA_AUTOMATION_ID = "com.nexaflow.core.engine.extra.AUTOMATION_ID"

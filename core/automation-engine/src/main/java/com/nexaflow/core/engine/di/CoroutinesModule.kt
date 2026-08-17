@@ -15,6 +15,8 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object CoroutinesModule {
 
+    private const val TAG = "CoroutinesModule"
+
     @Provides
     @Singleton
     fun provideAppDispatchers(): AppDispatchers = AppDispatchers.Default
@@ -29,7 +31,7 @@ object CoroutinesModule {
         // crash the whole process via the default uncaught handler. Log and
         // continue instead — a stuck monitor beats a force-closed app.
         val handler = CoroutineExceptionHandler { _, throwable ->
-            Log.e("NexaFlowScope", "Background coroutine failed", throwable)
+            Log.e(TAG, "Background coroutine failed", throwable)
         }
         return CoroutineScope(SupervisorJob() + dispatchers.default + handler)
     }

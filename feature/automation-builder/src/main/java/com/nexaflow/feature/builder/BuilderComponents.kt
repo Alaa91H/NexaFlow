@@ -1,6 +1,7 @@
 package com.nexaflow.feature.builder
 
 import android.content.Context
+import android.content.res.Configuration
 import android.content.Intent
 import android.provider.Settings
 import androidx.compose.foundation.clickable
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DisplaySettings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,6 +42,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.rom.ElevatedAccessShortcuts
 import com.nexaflow.core.rom.PermissionStatus
@@ -310,11 +313,6 @@ fun SpecialPermissionStatusRow(
     if (status == SpecialStatus.GRANTED) return
 
     val (pillText, pillBg, pillFg) = when (status) {
-        SpecialStatus.GRANTED -> Triple(
-            stringResource(R.string.elevated_status_granted),
-            NexaFlowTheme.colors.successContainer,
-            NexaFlowTheme.colors.success
-        )
         SpecialStatus.AVAILABLE -> Triple(
             stringResource(R.string.elevated_status_available),
             NexaFlowTheme.colors.warningContainer,
@@ -367,16 +365,6 @@ fun ItemHeader(text: String) {
     )
 }
 
-/**
- * Google-2026 single-open category accordion: a row of category chips where
- * tapping one expands its options and closes any other open chip — only ONE
- * category is open at a time. Tapping the open chip again collapses it.
- *
- * @param tabs label + leading icon per category chip (in order)
- * @param expandedIndex which category is currently open, or null
- * @param onExpandedChange called with the tapped index, or null to collapse
- * @param content renders the options of the category at the given index
- */
 @Composable
 fun CategoryAccordion(
     tabs: List<Pair<String, ImageVector?>>,
@@ -385,8 +373,6 @@ fun CategoryAccordion(
     content: @Composable (Int) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        // Fixed category menu: every chip stays pinned at the top. The chips
-        // are quick-jump markers — tapping one only changes its highlight.
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -401,30 +387,29 @@ fun CategoryAccordion(
                 )
             }
         }
-        // Strict no-collapse: the options of ALL categories are always
-        // rendered below, stacked downwards, each under its own header —
-        // nothing ever folds away and nothing is hidden behind a tap.
         tabs.forEachIndexed { index, (label, icon) ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.padding(top = 2.dp)
-            ) {
-                icon?.let {
-                    Icon(
-                        imageVector = it,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp)
+            if (expandedIndex == index) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.padding(top = 2.dp)
+                ) {
+                    icon?.let {
+                        Icon(
+                            imageVector = it,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                content(index)
             }
-            content(index)
         }
     }
 }
@@ -476,22 +461,7 @@ fun PermissionHintForAction(
     // site that forgets to wire the explain screen never gets a dead button.
     onExplainSpecial: (SpecialPermission) -> Unit = { PermissionShortcuts.openSpecial(context, it) }
 ) {
-    // Runtime-requestable permissions are requested through the system dialog
-    // directly; special settings (write settings, DND, notification access,
-    // accessibility, Shizuku/root) still open their dedicated settings screen.
-    val runtimePermissions: List<String> = when (actionType) {
-        ActionType.SYSTEM_SEND_SMS -> listOf(android.Manifest.permission.SEND_SMS)
-        ActionType.SYSTEM_FLASHLIGHT -> listOf(android.Manifest.permission.CAMERA)
-        ActionType.SYSTEM_SEND_NOTIFICATION,
-        ActionType.SYSTEM_SEND_REMINDER,
-        ActionType.BATTERY_ALERTS,
-        ActionType.BATTERY_CHARGING_NOTIFICATIONS -> listOf(android.Manifest.permission.POST_NOTIFICATIONS)
-        ActionType.SYSTEM_LOCATION -> listOf(
-            android.Manifest.permission.ACCESS_FINE_LOCATION,
-            android.Manifest.permission.ACCESS_COARSE_LOCATION
-        )
-        else -> emptyList()
-    }
+    val runtimePermissions = PermissionCatalog.runtimePermissionsFor(actionType)
     if (runtimePermissions.isNotEmpty()) {
         // The hint exists only to collect a missing permission: once every
         // permission of this action is granted, the row disappears entirely.
@@ -508,6 +478,7 @@ fun PermissionHintForAction(
                         ActionType.SYSTEM_SEND_REMINDER,
                         ActionType.BATTERY_ALERTS,
                         ActionType.BATTERY_CHARGING_NOTIFICATIONS -> R.string.notification_permission_hint
+                        ActionType.SYSTEM_HTTP_REQUEST -> R.string.http_request_hint
                         else -> R.string.location_hint
                     }
                 ),
@@ -518,37 +489,17 @@ fun PermissionHintForAction(
         return
     }
 
-    val hint: Pair<Int, SpecialPermission>? = when (actionType) {
-        ActionType.SYSTEM_BRIGHTNESS,
-        ActionType.SYSTEM_SCREEN_ROTATION,
-        ActionType.SYSTEM_SCREEN_TIMEOUT,
-        ActionType.SYSTEM_STAY_AWAKE,
-        ActionType.SYSTEM_AUTO_BRIGHTNESS,
-        ActionType.SYSTEM_DARK_MODE,
-        ActionType.SYSTEM_ANIMATIONS,
-        ActionType.SYSTEM_SET_RINGTONE -> R.string.write_settings_hint to SpecialPermission.WRITE_SETTINGS
-        ActionType.SYSTEM_DND,
-        ActionType.SYSTEM_RINGER_MODE -> R.string.dnd_hint to SpecialPermission.DND_ACCESS
-        ActionType.ADVANCED_SHIZUKU -> R.string.shizuku_hint to SpecialPermission.SHIZUKU
-        ActionType.ADVANCED_ROOT -> R.string.root_hint to SpecialPermission.ROOT
-        ActionType.APPLICATION_CLOSE_APP,
-        ActionType.SYSTEM_MOBILE_DATA,
-        ActionType.SYSTEM_NETWORK_MODE,
-        ActionType.SYSTEM_HOTSPOT,
-        ActionType.SYSTEM_NFC,
-        ActionType.SYSTEM_POWER_SAVER,
-        ActionType.SYSTEM_LOCK_SCREEN,
-        ActionType.SYSTEM_OPEN_RECENTS,
-        ActionType.SYSTEM_GO_HOME -> R.string.elevated_hint to SpecialPermission.ELEVATED
-        ActionType.SYSTEM_BLOCK_NOTIFICATION,
-        ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS -> R.string.notification_access_hint to SpecialPermission.NOTIFICATION_ACCESS
-        else -> null
-    }
-    hint?.let { (textRes, special) ->
-        // Every special permission shows a live colour-coded status pill
-        // (granted / grantable / not granted) inside the card itself, refreshed
-        // on resume, instead of a plain button. Tapping the row explains why
-        // the permission is needed BEFORE opening its settings screen.
+    val special = PermissionCatalog.specialPermissionFor(actionType)
+    if (special != null) {
+        val textRes = when (special) {
+            SpecialPermission.WRITE_SETTINGS -> R.string.write_settings_hint
+            SpecialPermission.DND_ACCESS -> R.string.dnd_hint
+            SpecialPermission.SHIZUKU -> R.string.shizuku_hint
+            SpecialPermission.ROOT -> R.string.root_hint
+            SpecialPermission.ELEVATED -> R.string.elevated_hint
+            SpecialPermission.NOTIFICATION_ACCESS -> R.string.notification_access_hint
+            else -> return
+        }
         SpecialPermissionStatusRow(
             hintText = stringResource(textRes),
             special = special,
@@ -658,3 +609,90 @@ object PermissionShortcuts {
     fun openNotificationAccessSettings(context: Context) =
         PermissionStatus.openNotificationAccessSettings(context)
 }
+
+/** Shared stream type options used in ActionConfigEditor and EndBehaviorEditor. */
+internal val STREAM_OPTIONS = listOf(
+    "MUSIC" to R.string.stream_music,
+    "RING" to R.string.stream_ring,
+    "NOTIFICATION" to R.string.stream_notification,
+    "ALARM" to R.string.stream_alarm,
+    "VOICE_CALL" to R.string.stream_voice_call,
+    "SYSTEM" to R.string.stream_system,
+    "DTMF" to R.string.stream_dtmf,
+    "ACCESSIBILITY" to R.string.stream_accessibility
+)
+
+/** Shared network mode options. */
+internal val NETWORK_MODE_OPTIONS = listOf(
+    "AUTO" to R.string.network_mode_auto,
+    "2G" to R.string.network_mode_2g,
+    "3G" to R.string.network_mode_3g,
+    "4G" to R.string.network_mode_4g,
+    "5G" to R.string.network_mode_5g
+)
+
+// region Previews
+
+@Preview(name = "SelectChip", showBackground = true)
+@Composable
+private fun SelectChipPreview() {
+    NexaFlowTheme {
+        Column {
+            SelectChip(selected = true, onClick = {}, label = "Selected")
+            SelectChip(selected = false, onClick = {}, label = "Unselected")
+        }
+    }
+}
+
+@Preview(name = "SelectChip – Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SelectChipDarkPreview() {
+    NexaFlowTheme {
+        Column {
+            SelectChip(selected = true, onClick = {}, label = "Selected")
+            SelectChip(selected = false, onClick = {}, label = "Unselected")
+        }
+    }
+}
+
+@Preview(name = "OptionChips", showBackground = true)
+@Composable
+private fun OptionChipsPreview() {
+    NexaFlowTheme {
+        OptionChips(
+            options = listOf("ON", "OFF", "AUTO"),
+            labels = mapOf("ON" to "On", "OFF" to "Off", "AUTO" to "Auto"),
+            selected = "ON",
+            onSelect = {}
+        )
+    }
+}
+
+@Preview(name = "SliderRow", showBackground = true)
+@Composable
+private fun SliderRowPreview() {
+    NexaFlowTheme {
+        SliderRow(label = "Volume", value = 0.5f, valueRange = 0f..1f, onValueChange = {})
+    }
+}
+
+@Preview(name = "ItemHeader", showBackground = true)
+@Composable
+private fun ItemHeaderPreview() {
+    NexaFlowTheme { ItemHeader(text = "Section Title") }
+}
+
+@Preview(name = "CategoryAccordion", showBackground = true)
+@Composable
+private fun CategoryAccordionPreview() {
+    NexaFlowTheme {
+        CategoryAccordion(
+            tabs = listOf("Display" to Icons.Filled.DisplaySettings),
+            expandedIndex = 0,
+            onExpandedChange = {},
+            content = { Text("Content here", modifier = Modifier.padding(16.dp)) }
+        )
+    }
+}
+
+// endregion

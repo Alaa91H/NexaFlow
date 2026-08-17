@@ -25,7 +25,12 @@ object ConstraintStateReader {
             wifiConnected = isWifiConnected(app),
             batteryLevel = batteryLevel(app),
             screenLocked = isScreenLocked(app),
-            headsetConnected = isHeadsetConnected(app)
+            headsetConnected = isHeadsetConnected(app),
+            bluetoothEnabled = isBluetoothEnabled(app),
+            dndActive = isDndActive(app),
+            airplaneModeOn = isAirplaneModeOn(app),
+            isCharging = isCharging(app),
+            locationEnabled = isLocationEnabled(app)
         )
     }
 
@@ -66,5 +71,37 @@ object ConstraintStateReader {
     private fun isHeadsetConnected(context: Context): Boolean = runCatching {
         val audio = context.getSystemService(Context.AUDIO_SERVICE) as? android.media.AudioManager
         audio?.isWiredHeadsetOn ?: false
+    }.getOrDefault(false)
+
+    /** True when Bluetooth is enabled. */
+    private fun isBluetoothEnabled(context: Context): Boolean = runCatching {
+        val bm = android.bluetooth.BluetoothAdapter.getDefaultAdapter()
+        bm?.isEnabled ?: false
+    }.getOrDefault(false)
+
+    /** True when Do Not Disturb is active. */
+    private fun isDndActive(context: Context): Boolean = runCatching {
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? android.app.NotificationManager
+        nm?.currentInterruptionFilter != android.app.NotificationManager.INTERRUPTION_FILTER_ALL
+    }.getOrDefault(false)
+
+    /** True when airplane mode is on. */
+    private fun isAirplaneModeOn(context: Context): Boolean = runCatching {
+        android.provider.Settings.Global.getInt(context.contentResolver, android.provider.Settings.Global.AIRPLANE_MODE_ON, 0) != 0
+    }.getOrDefault(false)
+
+    /** True when the device is charging. */
+    private fun isCharging(context: Context): Boolean = runCatching {
+        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        val sticky = context.registerReceiver(null, filter)
+        val status = sticky?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
+        status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL
+    }.getOrDefault(false)
+
+    /** True when location services are enabled. */
+    private fun isLocationEnabled(context: Context): Boolean = runCatching {
+        val lm = context.getSystemService(Context.LOCATION_SERVICE) as? android.location.LocationManager
+        lm?.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER) == true ||
+            lm?.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER) == true
     }.getOrDefault(false)
 }

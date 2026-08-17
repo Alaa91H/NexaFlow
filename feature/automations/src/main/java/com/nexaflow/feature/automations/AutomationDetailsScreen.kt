@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Storage
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.filled.AddToHomeScreen
 import androidx.compose.material.icons.filled.AirplanemodeActive
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.DateRange
@@ -55,9 +57,12 @@ import androidx.compose.material.icons.filled.DeviceThermostat
 import androidx.compose.material.icons.filled.DoNotDisturbOn
 import androidx.compose.material.icons.filled.Monitor
 import androidx.compose.material.icons.filled.PowerSettingsNew
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Router
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Usb
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -66,9 +71,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -84,6 +95,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.nexaflow.core.ui.EmptyState
+import kotlinx.coroutines.launch
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
@@ -106,15 +118,22 @@ fun AutomationDetailsScreen(navController: NavController) {
     val running by viewModel.running.collectAsStateWithLifecycle()
     val executionMessage by viewModel.executionMessage.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+    var triggersExpanded by remember { mutableStateOf(false) }
+    var constraintsExpanded by remember { mutableStateOf(false) }
+    var actionsExpanded by remember { mutableStateOf(false) }
+    var exitBehaviorExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(executionMessage) {
         executionMessage?.let { message ->
-            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            coroutineScope.launch { snackbarHostState.showSnackbar(message) }
             viewModel.consumeExecutionMessage()
         }
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             NexaFlowTopBar(
                 title = stringResource(R.string.automation_title),
@@ -202,96 +221,163 @@ fun AutomationDetailsScreen(navController: NavController) {
                         }
                     }
                 }
-                SectionHeader(text = stringResource(R.string.section_triggers))
-                NexaFlowCard {
-                    if (current.triggers.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.no_triggers),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.secondary
+                SectionHeader(
+                    text = stringResource(R.string.section_triggers),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { triggersExpanded = !triggersExpanded },
+                    trailing = {
+                        Icon(
+                            imageVector = if (triggersExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    } else {
-                        current.triggers.forEach { trigger ->
-                            val (titleRes, subtitleRes, icon) = triggerPresentation(trigger.type)
-                            SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes), trailing = {
-                                Text(
-                                    text = triggerDetail(trigger.config),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            })
-                        }
                     }
-                }
-                SectionHeader(text = stringResource(R.string.section_constraints))
-                NexaFlowCard {
-                    if (current.constraints.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.no_constraints),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    } else {
-                        current.constraints.forEach { constraint ->
-                            val (titleRes, icon) = constraintPresentation(constraint.type)
-                            SettingRow(
-                                icon = icon,
-                                title = stringResource(titleRes),
-                                subtitle = stringResource(R.string.constraint_subtitle),
-                                trailing = {
+                )
+                if (triggersExpanded) {
+                    NexaFlowCard {
+                        if (current.triggers.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.no_triggers),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        } else {
+                            current.triggers.forEach { trigger ->
+                                val (titleRes, subtitleRes, icon) = triggerPresentation(trigger.type)
+                                SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes), trailing = {
                                     Text(
-                                        text = constraintDetail(constraint.config),
+                                        text = triggerDetail(trigger.config),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.secondary
                                     )
-                                }
+                                })
+                            }
+                        }
+                    }
+                }
+                SectionHeader(
+                    text = stringResource(R.string.section_constraints),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { constraintsExpanded = !constraintsExpanded },
+                    trailing = {
+                        Icon(
+                            imageVector = if (constraintsExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                )
+                if (constraintsExpanded) {
+                    NexaFlowCard {
+                        if (current.constraints.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.no_constraints),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary
                             )
+                        } else {
+                            current.constraints.forEach { constraint ->
+                                val (titleRes, icon) = constraintPresentation(constraint.type)
+                                SettingRow(
+                                    icon = icon,
+                                    title = stringResource(titleRes),
+                                    subtitle = stringResource(R.string.constraint_subtitle),
+                                    trailing = {
+                                        Text(
+                                            text = constraintDetail(constraint.config),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.secondary
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 }
-                SectionHeader(text = stringResource(R.string.section_actions))
-                NexaFlowCard {
-                    if (current.actions.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.no_actions),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.secondary
+                SectionHeader(
+                    text = stringResource(R.string.section_actions),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { actionsExpanded = !actionsExpanded },
+                    trailing = {
+                        Icon(
+                            imageVector = if (actionsExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    } else {
-                        current.actions.forEach { action ->
-                            val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
-                            SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes), trailing = {
-                                // Per-action adaptive end behavior, e.g. "On end: Restore original".
-                                val endText = endBehaviorText(action)
-                                if (endText != null) {
-                                    Text(
-                                        text = endText,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            })
+                    }
+                )
+                if (actionsExpanded) {
+                    NexaFlowCard {
+                        if (current.actions.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.no_actions),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        } else {
+                            current.actions.forEach { action ->
+                                val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
+                                SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes), trailing = {
+                                    val detailText = actionDetail(action.config)
+                                    val endText = endBehaviorText(action)
+                                    if (detailText.isNotEmpty() || endText != null) {
+                                        Column(horizontalAlignment = Alignment.End) {
+                                            if (detailText.isNotEmpty()) {
+                                                Text(
+                                                    text = detailText,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.tertiary
+                                                )
+                                            }
+                                            if (endText != null) {
+                                                Text(
+                                                    text = endText,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                        }
+                                    }
+                                })
+                            }
                         }
                     }
                 }
-                SectionHeader(text = stringResource(R.string.section_exit_behavior))
-                NexaFlowCard {
-                    if (current.revertOnExit) {
-                        SettingRow(
-                            icon = Icons.Filled.Security,
-                            title = stringResource(R.string.exit_revert_label),
-                            subtitle = stringResource(R.string.exit_revert_sub)
+                SectionHeader(
+                    text = stringResource(R.string.section_exit_behavior),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { exitBehaviorExpanded = !exitBehaviorExpanded },
+                    trailing = {
+                        Icon(
+                            imageVector = if (exitBehaviorExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    } else if (current.exitActions.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.exit_nothing_sub),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    } else {
-                        current.exitActions.forEach { action ->
-                            val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
-                            SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes))
+                    }
+                )
+                if (exitBehaviorExpanded) {
+                    NexaFlowCard {
+                        if (current.revertOnExit) {
+                            SettingRow(
+                                icon = Icons.Filled.Security,
+                                title = stringResource(R.string.exit_revert_label),
+                                subtitle = stringResource(R.string.exit_revert_sub)
+                            )
+                        } else if (current.exitActions.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.exit_nothing_sub),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        } else {
+                            current.exitActions.forEach { action ->
+                                val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
+                                SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes))
+                            }
                         }
                     }
                 }
@@ -313,20 +399,49 @@ fun AutomationDetailsScreen(navController: NavController) {
 
 private fun constraintPresentation(type: ConstraintType): Pair<Int, ImageVector> = when (type) {
     ConstraintType.WIFI -> R.string.constraint_type_wifi to Icons.Filled.Wifi
-    ConstraintType.BATTERY -> R.string.constraint_type_battery to Icons.Filled.BatteryChargingFull
+    ConstraintType.BATTERY -> R.string.constraint_type_battery to Icons.Filled.BatteryFull
     ConstraintType.SCREEN_LOCKED -> R.string.constraint_type_screen_locked to Icons.Filled.Lock
     ConstraintType.HEADSET -> R.string.constraint_type_headset to Icons.Filled.Headphones
+    ConstraintType.BLUETOOTH -> R.string.constraint_type_bluetooth to Icons.Filled.Bluetooth
+    ConstraintType.DND -> R.string.constraint_type_dnd to Icons.Filled.DoNotDisturbOn
+    ConstraintType.AIRPLANE -> R.string.constraint_type_airplane to Icons.Filled.AirplanemodeActive
+    ConstraintType.CHARGING -> R.string.constraint_type_charging to Icons.Filled.BatteryChargingFull
+    ConstraintType.LOCATION -> R.string.constraint_type_location to Icons.Filled.MyLocation
 }
 
 /** Human-readable constraint detail (e.g. battery "< 20%"). */
 private fun constraintDetail(config: Map<String, String>): String {
     val direction = config["direction"]
     val level = config["level"]
+    val state = config["state"]
     return when {
         direction != null && level != null ->
             if (direction == "ABOVE") "> $level%" else "< $level%"
+        state != null -> state
         else -> "✓"
     }
+}
+
+/** Human-readable action detail (e.g. brightness value, package name). */
+private fun actionDetail(config: Map<String, String>): String = when {
+    config["value"] != null -> config["value"]!!
+    config["title"]?.isNotBlank() == true -> config["title"]!!
+    config["url"]?.isNotBlank() == true -> config["url"]!!
+    config["package"]?.isNotBlank() == true -> config["package"]!!
+    config["number"]?.isNotBlank() == true -> config["number"]!!
+    config["text"]?.isNotBlank() == true -> config["text"]!!.take(40)
+    config["command"]?.isNotBlank() == true -> config["command"]!!.take(40)
+    config["key"]?.isNotBlank() == true -> "${config["key"]} = ${config["value"] ?: ""}"
+    config["mode"]?.isNotBlank() == true -> config["mode"]!!
+    config["scale"]?.isNotBlank() == true -> "×${config["scale"]}"
+    config["dpi"]?.isNotBlank() == true -> "${config["dpi"]} dpi"
+    config["percent"]?.isNotBlank() == true -> "${config["percent"]}%"
+    config["seconds"]?.isNotBlank() == true -> "${config["seconds"]}s"
+    config["minutes"]?.isNotBlank() == true -> "${config["minutes"]} min"
+    config["blurb"]?.isNotBlank() == true -> config["blurb"]!!.take(40)
+    config["lat"]?.isNotBlank() == true -> "${config["lat"]}, ${config["lng"]}"
+    config["method"]?.isNotBlank() == true -> "${config["method"]} · ${config["url"] ?: ""}"
+    else -> ""
 }
 
 /**

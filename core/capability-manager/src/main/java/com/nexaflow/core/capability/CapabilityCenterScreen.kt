@@ -54,6 +54,7 @@ import com.nexaflow.core.rom.model.IntegrationLevel
 import com.nexaflow.core.rom.model.RomCapability
 import com.nexaflow.core.rom.model.RomFamily
 import com.nexaflow.core.ui.IconBadge
+import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.StatusPill
@@ -242,8 +243,8 @@ private fun SmsAwarenessCard(viewModel: SmsCapabilityViewModel = hiltViewModel()
         ) {
             IconBadge(
                 icon = Icons.AutoMirrored.Filled.Message,
-                containerColor = Color(0xFFF59E0B).copy(alpha = 0.15f),
-                contentColor = Color(0xFFB45309)
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
             )
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
@@ -284,8 +285,8 @@ private fun SmsAwarenessCard(viewModel: SmsCapabilityViewModel = hiltViewModel()
                         if (armed) {
                             StatusPill(
                                 text = stringResource(R.string.sms_consent_listening),
-                                background = Color(0xFFE4F4E9),
-                                contentColor = Color(0xFF006D3C)
+                                background = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     }
@@ -364,8 +365,8 @@ private fun EvolutionXCard(
             if (isSystemApp) {
                 StatusPill(
                     text = stringResource(R.string.evolution_already_system_app),
-                    background = Color(0xFF006D3C),
-                    contentColor = Color.White
+                    background = NexaFlowTheme.colors.success,
+                    contentColor = NexaFlowTheme.colors.onSuccess
                 )
             }
         }
@@ -607,11 +608,11 @@ private fun CapabilityCard(
             IconBadge(
                 icon = Icons.Filled.Security,
                 containerColor = if (available) {
-                    Color(0xFF006D3C)
+                    NexaFlowTheme.colors.success
                 } else {
                     MaterialTheme.colorScheme.surfaceContainerHighest
                 },
-                contentColor = if (available) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                contentColor = if (available) NexaFlowTheme.colors.onSuccess else MaterialTheme.colorScheme.onSurfaceVariant
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -627,8 +628,8 @@ private fun CapabilityCard(
             if (available) {
                 StatusPill(
                     text = stringResource(R.string.available),
-                    background = Color(0xFF006D3C),
-                    contentColor = Color.White
+                    background = NexaFlowTheme.colors.success,
+                    contentColor = NexaFlowTheme.colors.onSuccess
                 )
             } else {
                 StatusPill(

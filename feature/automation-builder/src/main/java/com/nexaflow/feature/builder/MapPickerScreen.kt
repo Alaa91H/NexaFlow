@@ -80,7 +80,7 @@ private const val MAP_RADIUS_STEPS = (MAP_MAX_RADIUS_M - MAP_MIN_RADIUS_M) / 50 
  * in task execution.
  */
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("MissingPermission", "SetJavaScriptEnabled", "JavascriptInterface")
+@SuppressLint("MissingPermission", "SetJavaScriptEnabled")
 @Composable
 fun MapPickerScreen(navController: NavController) {
     val context = LocalContext.current
@@ -133,9 +133,11 @@ fun MapPickerScreen(navController: NavController) {
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
 
     val osmBridge = remember {
+        @SuppressLint("JavascriptInterface")
         object {
             @JavascriptInterface
             fun onPointSelected(lat: Double, lng: Double) {
+                if (lat !in -90.0..90.0 || lng !in -180.0..180.0) return
                 mainHandler.post { markerPos = LatLng(lat, lng) }
             }
         }
@@ -353,13 +355,13 @@ fun MapPickerScreen(navController: NavController) {
                     modifier = Modifier.weight(1f)
                 )
                 IconButton(onClick = { searchPlace(searchQuery) }) {
-                    Icon(imageVector = Icons.Filled.Search, contentDescription = null)
+                    Icon(imageVector = Icons.Filled.Search, contentDescription = stringResource(R.string.search))
                 }
                 IconButton(
                     onClick = { useCurrentLocation() },
                     enabled = !locating
                 ) {
-                    Icon(imageVector = Icons.Filled.MyLocation, contentDescription = null)
+                    Icon(imageVector = Icons.Filled.MyLocation, contentDescription = stringResource(R.string.use_current_location))
                 }
             }
 

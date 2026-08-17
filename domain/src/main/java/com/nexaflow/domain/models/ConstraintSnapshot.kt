@@ -16,5 +16,10 @@ data class ConstraintSnapshot(
     val wifiConnected: Boolean = false,
     val batteryLevel: Int = -1,
     val screenLocked: Boolean = false,
-    val headsetConnected: Boolean = false
+    val headsetConnected: Boolean = false,
+    val bluetoothEnabled: Boolean = false,
+    val dndActive: Boolean = false,
+    val airplaneModeOn: Boolean = false,
+    val isCharging: Boolean = false,
+    val locationEnabled: Boolean = false
 )

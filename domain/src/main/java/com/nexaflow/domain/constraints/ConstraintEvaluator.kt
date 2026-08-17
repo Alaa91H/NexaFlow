@@ -27,6 +27,26 @@ object ConstraintEvaluator {
             // stacking two battery constraints at the same level isn't surprised.
             if (direction == "ABOVE") state.batteryLevel >= level else state.batteryLevel <= level
         }
+        ConstraintType.BLUETOOTH -> {
+            val wantOn = (constraint.config["state"] ?: "ON") == "ON"
+            if (wantOn) state.bluetoothEnabled else !state.bluetoothEnabled
+        }
+        ConstraintType.DND -> {
+            val wantOn = (constraint.config["state"] ?: "ON") == "ON"
+            if (wantOn) state.dndActive else !state.dndActive
+        }
+        ConstraintType.AIRPLANE -> {
+            val wantOn = (constraint.config["state"] ?: "ON") == "ON"
+            if (wantOn) state.airplaneModeOn else !state.airplaneModeOn
+        }
+        ConstraintType.CHARGING -> {
+            val wantCharging = (constraint.config["state"] ?: "CHARGING") == "CHARGING"
+            if (wantCharging) state.isCharging else !state.isCharging
+        }
+        ConstraintType.LOCATION -> {
+            val wantOn = (constraint.config["state"] ?: "ON") == "ON"
+            if (wantOn) state.locationEnabled else !state.locationEnabled
+        }
     }
 
     /** True when every constraint passes (empty constraint list → true). */

@@ -44,6 +44,10 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    private companion object {
+        private const val TAG = "MainActivity"
+    }
+
     @Inject
     lateinit var themePreferences: ThemePreferences
 
@@ -124,7 +128,7 @@ class MainActivity : ComponentActivity() {
             } catch (t: Throwable) {
                 // Widget refresh is best-effort — a transient DB or widget
                 // error must never force-close the app on every open.
-                Log.e("MainActivity", "Widget refresh failed", t)
+                Log.e(TAG, "Widget refresh failed", t)
             }
         }
     }
@@ -178,7 +182,7 @@ class MainActivity : ComponentActivity() {
                 }.onSuccess { result ->
                     if (result.anyGranted) {
                         Log.i(
-                            "MainActivity",
+                            TAG,
                             "Auto-granted via root: " +
                                 "runtime=${result.runtimeGranted.size}, " +
                                 "appOps=${result.appOpsGranted.size}, " +
@@ -189,12 +193,12 @@ class MainActivity : ComponentActivity() {
                     }
                     if (result.remaining.isNotEmpty()) {
                         Log.w(
-                            "MainActivity",
+                            TAG,
                             "Still missing after auto-grant: ${result.remaining}"
                         )
                     }
                 }.onFailure { t ->
-                    Log.w("MainActivity", "Auto-grant skipped", t)
+                    Log.w(TAG, "Auto-grant skipped", t)
                 }
             }
             // Only prompt for notifications when root was NOT able to grant

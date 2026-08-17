@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,6 +44,215 @@ import com.nexaflow.core.execution.NotificationActionButton
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.variables.VariableResolver
+
+/**
+ * All action types that only need a simple on/off toggle via [ToggleConfigRow].
+ * Adding a new toggle-only action type here automatically renders the correct
+ * switch UI without any new `when` branch.
+ */
+private val SIMPLE_TOGGLE_ACTIONS = setOf(
+    ActionType.SYSTEM_LOCATION,
+    ActionType.SYSTEM_DND,
+    ActionType.SYSTEM_WIFI,
+    ActionType.SYSTEM_BLUETOOTH,
+    ActionType.SYSTEM_FLASHLIGHT,
+    ActionType.SYSTEM_AIRPLANE_MODE,
+    ActionType.SYSTEM_STAY_AWAKE,
+    ActionType.SYSTEM_AUTO_BRIGHTNESS,
+    ActionType.SYSTEM_MOBILE_DATA,
+    ActionType.SYSTEM_HOTSPOT,
+    ActionType.SYSTEM_NFC,
+    ActionType.SYSTEM_POWER_SAVER,
+    ActionType.SYSTEM_ANIMATIONS,
+    ActionType.SYSTEM_DARK_MODE,
+    ActionType.SYSTEM_COLOR_INVERSION,
+    ActionType.SYSTEM_GRAYSCALE,
+    ActionType.SYSTEM_EXTRA_DIM,
+    ActionType.SYSTEM_NIGHT_LIGHT,
+    ActionType.SYSTEM_HAPTIC_FEEDBACK,
+    ActionType.SYSTEM_SOUND_EFFECTS,
+    ActionType.SYSTEM_DATA_SAVER,
+    ActionType.SYSTEM_SCREENSAVER,
+    ActionType.SYSTEM_ALWAYS_ON_DISPLAY,
+    ActionType.SYSTEM_SHOW_TAPS,
+    ActionType.SYSTEM_POINTER_LOCATION,
+    ActionType.SYSTEM_ADAPTIVE_BATTERY,
+    ActionType.SYSTEM_AUTO_TIME,
+    ActionType.SYSTEM_AUTO_TIMEZONE,
+    ActionType.SYSTEM_CAMERA_SHUTTER_SOUND,
+    ActionType.SYSTEM_WIFI_SCANNING,
+    ActionType.SYSTEM_DATA_ROAMING,
+    ActionType.SYSTEM_CALL_VIBRATION,
+    ActionType.SYSTEM_STATUS_BAR_TOGGLE
+)
+
+/** Simple toggle actions that use "turn_on" as their label. */
+private val TURN_ON_TOGGLE_ACTIONS = setOf(
+    ActionType.SYSTEM_LOCATION,
+    ActionType.SYSTEM_DND,
+    ActionType.SYSTEM_WIFI,
+    ActionType.SYSTEM_BLUETOOTH,
+    ActionType.SYSTEM_FLASHLIGHT,
+    ActionType.SYSTEM_AIRPLANE_MODE,
+    ActionType.SYSTEM_STAY_AWAKE,
+    ActionType.SYSTEM_AUTO_BRIGHTNESS,
+    ActionType.SYSTEM_MOBILE_DATA,
+    ActionType.SYSTEM_HOTSPOT,
+    ActionType.SYSTEM_NFC,
+    ActionType.SYSTEM_POWER_SAVER,
+    ActionType.SYSTEM_ANIMATIONS,
+    ActionType.SYSTEM_DARK_MODE,
+    ActionType.SYSTEM_DATA_ROAMING,
+    ActionType.SYSTEM_CALL_VIBRATION,
+    ActionType.SYSTEM_STATUS_BAR_TOGGLE
+)
+
+/**
+ * All action types whose only config is a package name + app picker.
+ */
+private val PACKAGE_PICKER_ACTIONS = setOf(
+    ActionType.APPLICATION_OPEN_APP_SETTINGS,
+    ActionType.SYSTEM_FORCE_STOP_APP,
+    ActionType.SYSTEM_CLEAR_APP_DATA,
+    ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS
+)
+
+/**
+ * Multi-package variant: uses `packages` key instead of `package`.
+ */
+private val MULTI_PACKAGE_ACTIONS = setOf(
+    ActionType.SYSTEM_OPEN_APP
+)
+
+/**
+ * All action types that require no configuration at all.
+ */
+private val RUNS_IMMEDIATELY_ACTIONS = setOf(
+    ActionType.SYSTEM_MEDIA_PLAY_PAUSE,
+    ActionType.SYSTEM_MEDIA_NEXT,
+    ActionType.SYSTEM_MEDIA_PREVIOUS,
+    ActionType.SYSTEM_CLEAR_NOTIFICATIONS,
+    ActionType.SYSTEM_EXPAND_STATUS_BAR,
+    ActionType.SYSTEM_COLLAPSE_STATUS_BAR,
+    ActionType.APPLICATION_LAUNCH_APP,
+    ActionType.SYSTEM_LOCK_SCREEN,
+    ActionType.SYSTEM_OPEN_RECENTS,
+    ActionType.SYSTEM_GO_HOME,
+    ActionType.SYSTEM_OPEN_PLAY_UPDATES,
+    ActionType.SYSTEM_OPEN_GALAXY_STORE,
+    ActionType.SYSTEM_MEDIA_STOP,
+    ActionType.SYSTEM_OPEN_NOTIFICATIONS,
+    ActionType.SYSTEM_OPEN_QUICK_SETTINGS,
+    ActionType.SYSTEM_WAKE_SCREEN,
+    ActionType.SYSTEM_MEDIA_FAST_FORWARD,
+    ActionType.SYSTEM_MEDIA_REWIND,
+    ActionType.SYSTEM_OPEN_CAMERA,
+    ActionType.SYSTEM_OPEN_PLAY_STORE_APP,
+    ActionType.SYSTEM_OPEN_WIFI_SETTINGS,
+    ActionType.SYSTEM_OPEN_BLUETOOTH_SETTINGS,
+    ActionType.SYSTEM_OPEN_LOCATION_SETTINGS,
+    ActionType.SYSTEM_OPEN_DATA_USAGE_SETTINGS,
+    ActionType.SYSTEM_OPEN_BATTERY_SETTINGS,
+    ActionType.SYSTEM_OPEN_DISPLAY_SETTINGS,
+    ActionType.SYSTEM_OPEN_SOUND_SETTINGS,
+    ActionType.SYSTEM_OPEN_STORAGE_SETTINGS,
+    ActionType.SYSTEM_OPEN_SECURITY_SETTINGS,
+    ActionType.SYSTEM_OPEN_ACCESSIBILITY_SETTINGS,
+    ActionType.SYSTEM_OPEN_APP_SETTINGS_LIST,
+    ActionType.SYSTEM_OPEN_ABOUT_PHONE,
+    ActionType.SYSTEM_REBOOT,
+    ActionType.SYSTEM_SHUTDOWN,
+    ActionType.SYSTEM_RESTART_SYSTEM_UI,
+    ActionType.SYSTEM_PASTE,
+    ActionType.SYSTEM_OPEN_APP_DRAWER,
+    ActionType.SYSTEM_TOGGLE_PIP,
+    ActionType.SYSTEM_SOFT_RESTART,
+    ActionType.SYSTEM_OPEN_CONTACTS,
+    ActionType.SYSTEM_BLUETOOTH_SCAN,
+    ActionType.SYSTEM_WIFI_SCAN_NOW,
+    ActionType.SYSTEM_OPEN_NETWORK_SETTINGS,
+    ActionType.SYSTEM_OPEN_NFC_SETTINGS,
+    ActionType.SYSTEM_OPEN_DATA_SAVER_SETTINGS,
+    ActionType.SYSTEM_OPEN_DEVELOPER_SETTINGS,
+    ActionType.SYSTEM_OPEN_NOTIFICATION_SETTINGS,
+    ActionType.SYSTEM_OPEN_PRIVACY_SETTINGS,
+    ActionType.SYSTEM_OPEN_CAST_SETTINGS,
+    ActionType.SYSTEM_OPEN_INPUT_METHOD_SETTINGS,
+    ActionType.SYSTEM_OPEN_DEFAULT_APPS_SETTINGS,
+    ActionType.SYSTEM_OPEN_VPN_SETTINGS,
+    ActionType.SYSTEM_OPEN_DATE_SETTINGS,
+    ActionType.SYSTEM_OPEN_PRINT_SETTINGS,
+    ActionType.SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS,
+    ActionType.SYSTEM_OPEN_USAGE_ACCESS_SETTINGS,
+    ActionType.SYSTEM_OPEN_AIRPLANE_MODE_SETTINGS
+)
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PackagePickerField(
+    config: Map<String, String>,
+    onConfigChange: (Map<String, String>) -> Unit,
+    onPickApp: () -> Unit,
+    multiPackage: Boolean = false,
+    label: Int = R.string.package_name
+) {
+    val key = if (multiPackage) "packages" else "package"
+    val value = if (multiPackage) {
+        (config["packages"] ?: config["package"] ?: "")
+    } else {
+        config["package"] ?: ""
+    }
+    val fieldLabel = if (multiPackage) R.string.apps_comma else label
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = { onConfigChange(mapOf(key to it)) },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text(text = stringResource(fieldLabel)) },
+            singleLine = true
+        )
+        TextButton(onClick = onPickApp) {
+            Text(text = stringResource(R.string.choose_from_installed))
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun VariableTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: Int,
+    availableVariables: List<String>,
+    placeholder: String? = null,
+    singleLine: Boolean = true
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text(text = stringResource(label)) },
+            placeholder = placeholder?.let { { Text(text = it) } },
+            singleLine = singleLine
+        )
+        VariableInsertChips(
+            availableVariables = availableVariables,
+            currentValue = value,
+            onValueChange = onValueChange
+        )
+    }
+}
+
+@Composable
+internal fun RunsImmediatelyHint() {
+    Text(
+        text = stringResource(R.string.runs_immediately),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.secondary
+    )
+}
+
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -88,16 +296,7 @@ fun ActionConfigEditor(
             )
         }
         ActionType.SYSTEM_STREAM_VOLUME -> {
-            val streams = listOf(
-                "MUSIC" to stringResource(R.string.stream_music),
-                "RING" to stringResource(R.string.stream_ring),
-                "NOTIFICATION" to stringResource(R.string.stream_notification),
-                "ALARM" to stringResource(R.string.stream_alarm),
-                "VOICE_CALL" to stringResource(R.string.stream_voice_call),
-                "SYSTEM" to stringResource(R.string.stream_system),
-                "DTMF" to stringResource(R.string.stream_dtmf),
-                "ACCESSIBILITY" to stringResource(R.string.stream_accessibility)
-            )
+            val streams = STREAM_OPTIONS.map { (key, res) -> key to stringResource(res) }
             val selectedStream = config["stream"] ?: "MUSIC"
             val value = config["value"]?.toIntOrNull() ?: 50
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -108,10 +307,10 @@ fun ActionConfigEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     streams.forEach { (stream, label) ->
-                        FilterChip(
+                        SelectChip(
                             selected = selectedStream == stream,
                             onClick = { onConfigChange(config + ("stream" to stream)) },
-                            label = { Text(text = label, style = MaterialTheme.typography.labelMedium) }
+                            label = label
                         )
                     }
                 }
@@ -124,13 +323,7 @@ fun ActionConfigEditor(
             }
         }
         ActionType.SYSTEM_NETWORK_MODE -> {
-            val modes = listOf(
-                "AUTO" to stringResource(R.string.network_mode_auto),
-                "2G" to stringResource(R.string.network_mode_2g),
-                "3G" to stringResource(R.string.network_mode_3g),
-                "4G" to stringResource(R.string.network_mode_4g),
-                "5G" to stringResource(R.string.network_mode_5g)
-            )
+            val modes = NETWORK_MODE_OPTIONS.map { (key, res) -> key to stringResource(res) }
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = stringResource(R.string.network_mode_label),
@@ -142,10 +335,10 @@ fun ActionConfigEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     modes.forEach { (value, label) ->
-                        FilterChip(
+                        SelectChip(
                             selected = (config["mode"] ?: "AUTO") == value,
                             onClick = { onConfigChange(mapOf("mode" to value)) },
-                            label = { Text(text = label, style = MaterialTheme.typography.labelMedium) }
+                            label = label
                         )
                     }
                 }
@@ -221,9 +414,27 @@ fun ActionConfigEditor(
                 }
             }
         }
-        ActionType.SYSTEM_LOCATION -> {
+        ActionType.SYSTEM_LOCATION,
+        ActionType.SYSTEM_DND,
+        ActionType.SYSTEM_WIFI,
+        ActionType.SYSTEM_BLUETOOTH,
+        ActionType.SYSTEM_FLASHLIGHT,
+        ActionType.SYSTEM_AIRPLANE_MODE,
+        ActionType.SYSTEM_STAY_AWAKE,
+        ActionType.SYSTEM_AUTO_BRIGHTNESS,
+        ActionType.SYSTEM_MOBILE_DATA,
+        ActionType.SYSTEM_HOTSPOT,
+        ActionType.SYSTEM_NFC,
+        ActionType.SYSTEM_POWER_SAVER,
+        ActionType.SYSTEM_ANIMATIONS,
+        ActionType.SYSTEM_DARK_MODE -> {
+            val label = if (option.actionType in TURN_ON_TOGGLE_ACTIONS) {
+                R.string.turn_on
+            } else {
+                option.titleRes
+            }
             ToggleConfigRow(
-                label = stringResource(R.string.turn_on),
+                label = stringResource(label),
                 checked = config["enabled"]?.toBoolean() ?: true,
                 onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
             )
@@ -303,40 +514,19 @@ fun ActionConfigEditor(
                 "BATTERY" to stringResource(R.string.settings_battery),
                 "NOTIFICATION" to stringResource(R.string.settings_notification)
             )
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 pages.forEach { (value, label) ->
-                    FilterChip(
+                    SelectChip(
                         selected = (config["page"] ?: "WIFI") == value,
                         onClick = { onConfigChange(mapOf("page" to value)) },
-                        label = { Text(text = label) }
+                        label = label
                     )
                 }
             }
-        }
-        ActionType.SYSTEM_DND -> {
-            ToggleConfigRow(
-                label = stringResource(R.string.turn_on),
-                checked = config["enabled"]?.toBoolean() ?: true,
-                onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-            )
-        }
-        ActionType.SYSTEM_WIFI,
-        ActionType.SYSTEM_BLUETOOTH,
-        ActionType.SYSTEM_FLASHLIGHT,
-        ActionType.SYSTEM_AIRPLANE_MODE,
-        ActionType.SYSTEM_STAY_AWAKE,
-        ActionType.SYSTEM_AUTO_BRIGHTNESS,
-        ActionType.SYSTEM_MOBILE_DATA,
-        ActionType.SYSTEM_HOTSPOT,
-        ActionType.SYSTEM_NFC,
-        ActionType.SYSTEM_POWER_SAVER,
-        ActionType.SYSTEM_ANIMATIONS,
-        ActionType.SYSTEM_DARK_MODE -> {
-            ToggleConfigRow(
-                label = stringResource(R.string.turn_on),
-                checked = config["enabled"]?.toBoolean() ?: true,
-                onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-            )
         }
         ActionType.SYSTEM_VIBRATE -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -351,10 +541,10 @@ fun ActionConfigEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     durations.forEach { seconds ->
-                        FilterChip(
+                        SelectChip(
                             selected = (config["seconds"]?.toIntOrNull() ?: 1) == seconds,
                             onClick = { onConfigChange(mapOf("seconds" to seconds.toString())) },
-                            label = { Text(text = "${seconds}s", style = MaterialTheme.typography.labelMedium) }
+                            label = "${seconds}s"
                         )
                     }
                 }
@@ -391,12 +581,16 @@ fun ActionConfigEditor(
                 "VIBRATE" to stringResource(R.string.ringer_vibrate),
                 "SILENT" to stringResource(R.string.ringer_silent)
             )
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 modes.forEach { (value, label) ->
-                    FilterChip(
+                    SelectChip(
                         selected = (config["mode"] ?: "NORMAL") == value,
                         onClick = { onConfigChange(mapOf("mode" to value)) },
-                        label = { Text(text = label) }
+                        label = label
                     )
                 }
             }
@@ -420,46 +614,14 @@ fun ActionConfigEditor(
             }
         }
         ActionType.APPLICATION_OPEN_APP_SETTINGS -> {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                OutlinedTextField(
-                    value = config["package"] ?: "",
-                    onValueChange = { onConfigChange(mapOf("package" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.package_name)) },
-                    singleLine = true
-                )
-                TextButton(onClick = onPickApp) {
-                    Text(text = stringResource(R.string.choose_from_installed))
-                }
-            }
+            PackagePickerField(config = config, onConfigChange = onConfigChange, onPickApp = onPickApp)
         }
         ActionType.SYSTEM_OPEN_APP -> {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                val packages = (config["packages"] ?: config["package"] ?: "")
-                OutlinedTextField(
-                    value = packages,
-                    onValueChange = { onConfigChange(mapOf("packages" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.apps_comma)) },
-                    singleLine = true
-                )
-                TextButton(onClick = onPickApp) {
-                    Text(text = stringResource(R.string.choose_from_installed))
-                }
-            }
+            PackagePickerField(config = config, onConfigChange = onConfigChange, onPickApp = onPickApp, multiPackage = true)
         }
         ActionType.SYSTEM_BLOCK_NOTIFICATION -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = config["package"] ?: "",
-                    onValueChange = { onConfigChange(mapOf("package" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.package_name)) },
-                    singleLine = true
-                )
-                TextButton(onClick = onPickApp) {
-                    Text(text = stringResource(R.string.choose_from_installed))
-                }
+                PackagePickerField(config = config, onConfigChange = onConfigChange, onPickApp = onPickApp)
                 ToggleConfigRow(
                     label = stringResource(R.string.block_label),
                     checked = config["enabled"]?.toBoolean() ?: true,
@@ -468,18 +630,7 @@ fun ActionConfigEditor(
             }
         }
         ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS -> {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                OutlinedTextField(
-                    value = config["package"] ?: "",
-                    onValueChange = { onConfigChange(mapOf("package" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.package_name)) },
-                    singleLine = true
-                )
-                TextButton(onClick = onPickApp) {
-                    Text(text = stringResource(R.string.choose_from_installed))
-                }
-            }
+            PackagePickerField(config = config, onConfigChange = onConfigChange, onPickApp = onPickApp)
         }
         ActionType.SYSTEM_SEND_NOTIFICATION -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -516,10 +667,10 @@ fun ActionConfigEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     sounds.forEach { (value, label) ->
-                        FilterChip(
+                        SelectChip(
                             selected = (config["sound"] ?: "DEFAULT") == value,
                             onClick = { onConfigChange(config + ("sound" to value)) },
-                            label = { Text(text = label, style = MaterialTheme.typography.labelMedium) }
+                            label = label
                         )
                     }
                 }
@@ -597,37 +748,41 @@ fun ActionConfigEditor(
                 )
                 Text(text = stringResource(R.string.http_method), style = MaterialTheme.typography.titleSmall)
                 val methods = listOf("GET", "POST", "PUT", "PATCH", "DELETE")
+                val selectedMethod = config["method"] ?: "GET"
+                val showBody = selectedMethod !in listOf("GET", "DELETE")
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     methods.forEach { method ->
-                        FilterChip(
-                            selected = (config["method"] ?: "GET") == method,
+                        SelectChip(
+                            selected = selectedMethod == method,
                             onClick = { onConfigChange(config + ("method" to method)) },
-                            label = { Text(text = method, style = MaterialTheme.typography.labelMedium) }
+                            label = method
                         )
                     }
                 }
-                OutlinedTextField(
-                    value = config["body"] ?: "",
-                    onValueChange = { onConfigChange(config + ("body" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.http_body)) },
-                    placeholder = { Text(text = stringResource(R.string.http_body_hint)) },
-                    minLines = 2,
-                    maxLines = 4
-                )
-                VariableInsertChips(
-                    availableVariables = availableVariables,
-                    currentValue = config["body"] ?: "",
-                    onValueChange = { onConfigChange(config + ("body" to it)) }
-                )
-                ContextPathInsertChips(
-                    currentValue = config["body"] ?: "",
-                    onValueChange = { onConfigChange(config + ("body" to it)) }
-                )
+                if (showBody) {
+                    OutlinedTextField(
+                        value = config["body"] ?: "",
+                        onValueChange = { onConfigChange(config + ("body" to it)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(text = stringResource(R.string.http_body)) },
+                        placeholder = { Text(text = stringResource(R.string.http_body_hint)) },
+                        minLines = 2,
+                        maxLines = 4
+                    )
+                    VariableInsertChips(
+                        availableVariables = availableVariables,
+                        currentValue = config["body"] ?: "",
+                        onValueChange = { onConfigChange(config + ("body" to it)) }
+                    )
+                    ContextPathInsertChips(
+                        currentValue = config["body"] ?: "",
+                        onValueChange = { onConfigChange(config + ("body" to it)) }
+                    )
+                }
             }
         }
         ActionType.BATTERY_ALERTS -> {
@@ -790,12 +945,49 @@ fun ActionConfigEditor(
         ActionType.SYSTEM_MEDIA_STOP,
         ActionType.SYSTEM_OPEN_NOTIFICATIONS,
         ActionType.SYSTEM_OPEN_QUICK_SETTINGS,
-        ActionType.SYSTEM_WAKE_SCREEN -> {
-            Text(
-                text = stringResource(R.string.runs_immediately),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary
-            )
+        ActionType.SYSTEM_WAKE_SCREEN,
+        ActionType.SYSTEM_MEDIA_FAST_FORWARD,
+        ActionType.SYSTEM_MEDIA_REWIND,
+        ActionType.SYSTEM_OPEN_CAMERA,
+        ActionType.SYSTEM_OPEN_PLAY_STORE_APP,
+        ActionType.SYSTEM_OPEN_WIFI_SETTINGS,
+        ActionType.SYSTEM_OPEN_BLUETOOTH_SETTINGS,
+        ActionType.SYSTEM_OPEN_LOCATION_SETTINGS,
+        ActionType.SYSTEM_OPEN_DATA_USAGE_SETTINGS,
+        ActionType.SYSTEM_OPEN_BATTERY_SETTINGS,
+        ActionType.SYSTEM_OPEN_DISPLAY_SETTINGS,
+        ActionType.SYSTEM_OPEN_SOUND_SETTINGS,
+        ActionType.SYSTEM_OPEN_STORAGE_SETTINGS,
+        ActionType.SYSTEM_OPEN_SECURITY_SETTINGS,
+        ActionType.SYSTEM_OPEN_ACCESSIBILITY_SETTINGS,
+        ActionType.SYSTEM_OPEN_APP_SETTINGS_LIST,
+        ActionType.SYSTEM_OPEN_ABOUT_PHONE,
+        ActionType.SYSTEM_REBOOT,
+        ActionType.SYSTEM_SHUTDOWN,
+        ActionType.SYSTEM_RESTART_SYSTEM_UI,
+        ActionType.SYSTEM_PASTE,
+        ActionType.SYSTEM_OPEN_APP_DRAWER,
+        ActionType.SYSTEM_TOGGLE_PIP,
+        ActionType.SYSTEM_SOFT_RESTART,
+        ActionType.SYSTEM_OPEN_CONTACTS,
+        ActionType.SYSTEM_BLUETOOTH_SCAN,
+        ActionType.SYSTEM_WIFI_SCAN_NOW,
+        ActionType.SYSTEM_OPEN_NETWORK_SETTINGS,
+        ActionType.SYSTEM_OPEN_NFC_SETTINGS,
+        ActionType.SYSTEM_OPEN_DATA_SAVER_SETTINGS,
+        ActionType.SYSTEM_OPEN_DEVELOPER_SETTINGS,
+        ActionType.SYSTEM_OPEN_NOTIFICATION_SETTINGS,
+        ActionType.SYSTEM_OPEN_PRIVACY_SETTINGS,
+        ActionType.SYSTEM_OPEN_CAST_SETTINGS,
+        ActionType.SYSTEM_OPEN_INPUT_METHOD_SETTINGS,
+        ActionType.SYSTEM_OPEN_DEFAULT_APPS_SETTINGS,
+        ActionType.SYSTEM_OPEN_VPN_SETTINGS,
+        ActionType.SYSTEM_OPEN_DATE_SETTINGS,
+        ActionType.SYSTEM_OPEN_PRINT_SETTINGS,
+        ActionType.SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS,
+        ActionType.SYSTEM_OPEN_USAGE_ACCESS_SETTINGS,
+        ActionType.SYSTEM_OPEN_AIRPLANE_MODE_SETTINGS -> {
+            RunsImmediatelyHint()
         }
         ActionType.SYSTEM_SET_SETTING -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -806,10 +998,10 @@ fun ActionConfigEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     listOf("SYSTEM", "SECURE", "GLOBAL").forEach { ns ->
-                        FilterChip(
+                        SelectChip(
                             selected = (config["namespace"] ?: "GLOBAL") == ns,
                             onClick = { onConfigChange(config + ("namespace" to ns)) },
-                            label = { Text(text = ns) }
+                            label = ns
                         )
                     }
                 }
@@ -934,50 +1126,53 @@ fun ActionConfigEditor(
                 )
             }
         }
-        ActionType.SYSTEM_COLOR_INVERSION -> ToggleConfigRow(
-            label = stringResource(R.string.color_inversion),
-            checked = config["enabled"]?.toBoolean() ?: true,
-            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-        )
-        ActionType.SYSTEM_GRAYSCALE -> ToggleConfigRow(
-            label = stringResource(R.string.grayscale),
-            checked = config["enabled"]?.toBoolean() ?: true,
-            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-        )
-        ActionType.SYSTEM_EXTRA_DIM -> ToggleConfigRow(
-            label = stringResource(R.string.extra_dim),
-            checked = config["enabled"]?.toBoolean() ?: true,
-            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-        )
-        ActionType.SYSTEM_NIGHT_LIGHT -> ToggleConfigRow(
-            label = stringResource(R.string.night_light),
-            checked = config["enabled"]?.toBoolean() ?: true,
-            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-        )
-        ActionType.SYSTEM_HAPTIC_FEEDBACK -> ToggleConfigRow(
-            label = stringResource(R.string.haptic_feedback),
-            checked = config["enabled"]?.toBoolean() ?: true,
-            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-        )
-        ActionType.SYSTEM_SOUND_EFFECTS -> ToggleConfigRow(
-            label = stringResource(R.string.sound_effects),
-            checked = config["enabled"]?.toBoolean() ?: true,
-            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-        )
+        ActionType.SYSTEM_COLOR_INVERSION,
+        ActionType.SYSTEM_GRAYSCALE,
+        ActionType.SYSTEM_EXTRA_DIM,
+        ActionType.SYSTEM_NIGHT_LIGHT,
+        ActionType.SYSTEM_HAPTIC_FEEDBACK,
+        ActionType.SYSTEM_SOUND_EFFECTS,
+        ActionType.SYSTEM_DATA_SAVER,
+        ActionType.SYSTEM_SCREENSAVER,
+        ActionType.SYSTEM_ALWAYS_ON_DISPLAY,
+        ActionType.SYSTEM_SHOW_TAPS,
+        ActionType.SYSTEM_POINTER_LOCATION,
+        ActionType.SYSTEM_ADAPTIVE_BATTERY,
+        ActionType.SYSTEM_AUTO_TIME,
+        ActionType.SYSTEM_AUTO_TIMEZONE,
+        ActionType.SYSTEM_CAMERA_SHUTTER_SOUND,
+        ActionType.SYSTEM_WIFI_SCANNING,
+        ActionType.SYSTEM_DATA_ROAMING,
+        ActionType.SYSTEM_CALL_VIBRATION,
+        ActionType.SYSTEM_STATUS_BAR_TOGGLE -> {
+            val label = when (option.actionType) {
+                ActionType.SYSTEM_COLOR_INVERSION -> R.string.color_inversion
+                ActionType.SYSTEM_GRAYSCALE -> R.string.grayscale
+                ActionType.SYSTEM_EXTRA_DIM -> R.string.extra_dim
+                ActionType.SYSTEM_NIGHT_LIGHT -> R.string.night_light
+                ActionType.SYSTEM_HAPTIC_FEEDBACK -> R.string.haptic_feedback
+                ActionType.SYSTEM_SOUND_EFFECTS -> R.string.sound_effects
+                ActionType.SYSTEM_DATA_SAVER -> R.string.data_saver
+                ActionType.SYSTEM_SCREENSAVER -> R.string.screensaver
+                ActionType.SYSTEM_ALWAYS_ON_DISPLAY -> R.string.always_on_display
+                ActionType.SYSTEM_SHOW_TAPS -> R.string.show_taps
+                ActionType.SYSTEM_POINTER_LOCATION -> R.string.pointer_location
+                ActionType.SYSTEM_ADAPTIVE_BATTERY -> R.string.adaptive_battery
+                ActionType.SYSTEM_AUTO_TIME -> R.string.auto_time
+                ActionType.SYSTEM_AUTO_TIMEZONE -> R.string.auto_timezone
+                ActionType.SYSTEM_CAMERA_SHUTTER_SOUND -> R.string.camera_shutter_sound
+                ActionType.SYSTEM_WIFI_SCANNING -> R.string.wifi_scanning
+                else -> option.titleRes
+            }
+            ToggleConfigRow(
+                label = stringResource(label),
+                checked = config["enabled"]?.toBoolean() ?: true,
+                onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
+            )
+        }
         ActionType.SYSTEM_FORCE_STOP_APP,
         ActionType.SYSTEM_CLEAR_APP_DATA -> {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                OutlinedTextField(
-                    value = config["package"] ?: "",
-                    onValueChange = { onConfigChange(mapOf("package" to it)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.package_name)) },
-                    singleLine = true
-                )
-                TextButton(onClick = onPickApp) {
-                    Text(text = stringResource(R.string.choose_from_installed))
-                }
-            }
+            PackagePickerField(config = config, onConfigChange = onConfigChange, onPickApp = onPickApp)
         }
         ActionType.SYSTEM_LOCATION_MODE -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -994,20 +1189,15 @@ fun ActionConfigEditor(
                             "BATTERY" -> stringResource(R.string.location_mode_battery)
                             else -> stringResource(R.string.location_mode_high)
                         }
-                        FilterChip(
+                        SelectChip(
                             selected = (config["mode"] ?: "HIGH") == mode,
                             onClick = { onConfigChange(config + ("mode" to mode)) },
-                            label = { Text(text = label, style = MaterialTheme.typography.labelMedium) }
+                            label = label
                         )
                     }
                 }
             }
         }
-        ActionType.SYSTEM_DATA_SAVER -> ToggleConfigRow(
-            label = stringResource(R.string.data_saver),
-            checked = config["enabled"]?.toBoolean() ?: true,
-            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-        )
         ActionType.SYSTEM_FONT_SCALE -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(text = stringResource(R.string.font_scale), style = MaterialTheme.typography.titleSmall)
@@ -1017,10 +1207,10 @@ fun ActionConfigEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     listOf("0.85", "1.0", "1.15", "1.3").forEach { scale ->
-                        FilterChip(
+                        SelectChip(
                             selected = (config["scale"] ?: "1.0") == scale,
                             onClick = { onConfigChange(config + ("scale" to scale)) },
-                            label = { Text(text = scale, style = MaterialTheme.typography.labelMedium) }
+                            label = scale
                         )
                     }
                 }
@@ -1036,11 +1226,6 @@ fun ActionConfigEditor(
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
             )
         }
-        ActionType.SYSTEM_SCREENSAVER -> ToggleConfigRow(
-            label = stringResource(R.string.screensaver),
-            checked = config["enabled"]?.toBoolean() ?: true,
-            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-        )
         ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD -> {
             val value = config["percent"]?.toIntOrNull() ?: 20
             SliderRow(
@@ -1050,26 +1235,6 @@ fun ActionConfigEditor(
                 valueRange = 0f..100f
             )
         }
-        ActionType.SYSTEM_ALWAYS_ON_DISPLAY -> ToggleConfigRow(
-            label = stringResource(R.string.always_on_display),
-            checked = config["enabled"]?.toBoolean() ?: true,
-            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-        )
-        ActionType.SYSTEM_SHOW_TAPS -> ToggleConfigRow(
-            label = stringResource(R.string.show_taps),
-            checked = config["enabled"]?.toBoolean() ?: true,
-            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-        )
-        ActionType.SYSTEM_POINTER_LOCATION -> ToggleConfigRow(
-            label = stringResource(R.string.pointer_location),
-            checked = config["enabled"]?.toBoolean() ?: true,
-            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-        )
-        ActionType.SYSTEM_ADAPTIVE_BATTERY -> ToggleConfigRow(
-            label = stringResource(R.string.adaptive_battery),
-            checked = config["enabled"]?.toBoolean() ?: true,
-            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-        )
         ActionType.SYSTEM_WIFI_SLEEP_POLICY -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(text = stringResource(R.string.wifi_sleep_policy), style = MaterialTheme.typography.titleSmall)
@@ -1084,10 +1249,10 @@ fun ActionConfigEditor(
                             "NEVER" -> stringResource(R.string.wifi_sleep_never)
                             else -> stringResource(R.string.wifi_sleep_always)
                         }
-                        FilterChip(
+                        SelectChip(
                             selected = (config["policy"] ?: "ALWAYS") == policy,
                             onClick = { onConfigChange(config + ("policy" to policy)) },
-                            label = { Text(text = label, style = MaterialTheme.typography.labelMedium) }
+                            label = label
                         )
                     }
                 }
@@ -1103,16 +1268,6 @@ fun ActionConfigEditor(
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
             )
         }
-        ActionType.SYSTEM_AUTO_TIME -> ToggleConfigRow(
-            label = stringResource(R.string.auto_time),
-            checked = config["enabled"]?.toBoolean() ?: true,
-            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-        )
-        ActionType.SYSTEM_AUTO_TIMEZONE -> ToggleConfigRow(
-            label = stringResource(R.string.auto_timezone),
-            checked = config["enabled"]?.toBoolean() ?: true,
-            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-        )
         ActionType.SYSTEM_HAPTIC_INTENSITY -> {
             val value = config["level"]?.toIntOrNull() ?: 255
             SliderRow(
@@ -1120,41 +1275,6 @@ fun ActionConfigEditor(
                 value = value.toFloat(),
                 onValueChange = { onConfigChange(mapOf("level" to it.toInt().toString())) },
                 valueRange = 0f..255f
-            )
-        }
-        ActionType.SYSTEM_CAMERA_SHUTTER_SOUND -> ToggleConfigRow(
-            label = stringResource(R.string.camera_shutter_sound),
-            checked = config["enabled"]?.toBoolean() ?: true,
-            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-        )
-        ActionType.SYSTEM_WIFI_SCANNING -> ToggleConfigRow(
-            label = stringResource(R.string.wifi_scanning),
-            checked = config["enabled"]?.toBoolean() ?: true,
-            onCheckedChange = { onConfigChange(mapOf("enabled" to it.toString())) }
-        )
-        ActionType.SYSTEM_MEDIA_FAST_FORWARD,
-        ActionType.SYSTEM_MEDIA_REWIND,
-        ActionType.SYSTEM_OPEN_CAMERA,
-        ActionType.SYSTEM_OPEN_PLAY_STORE_APP,
-        ActionType.SYSTEM_OPEN_WIFI_SETTINGS,
-        ActionType.SYSTEM_OPEN_BLUETOOTH_SETTINGS,
-        ActionType.SYSTEM_OPEN_LOCATION_SETTINGS,
-        ActionType.SYSTEM_OPEN_DATA_USAGE_SETTINGS,
-        ActionType.SYSTEM_OPEN_BATTERY_SETTINGS,
-        ActionType.SYSTEM_OPEN_DISPLAY_SETTINGS,
-        ActionType.SYSTEM_OPEN_SOUND_SETTINGS,
-        ActionType.SYSTEM_OPEN_STORAGE_SETTINGS,
-        ActionType.SYSTEM_OPEN_SECURITY_SETTINGS,
-        ActionType.SYSTEM_OPEN_ACCESSIBILITY_SETTINGS,
-        ActionType.SYSTEM_OPEN_APP_SETTINGS_LIST,
-        ActionType.SYSTEM_OPEN_ABOUT_PHONE,
-        ActionType.SYSTEM_REBOOT,
-        ActionType.SYSTEM_SHUTDOWN,
-        ActionType.SYSTEM_RESTART_SYSTEM_UI -> {
-            Text(
-                text = stringResource(R.string.runs_immediately),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary
             )
         }
         ActionType.SYSTEM_DIAL_NUMBER -> {
@@ -1213,19 +1333,6 @@ fun ActionConfigEditor(
                 singleLine = true
             )
         }
-        ActionType.SYSTEM_PASTE,
-        ActionType.SYSTEM_OPEN_APP_DRAWER,
-        ActionType.SYSTEM_TOGGLE_PIP,
-        ActionType.SYSTEM_SOFT_RESTART,
-        ActionType.SYSTEM_OPEN_CONTACTS,
-        ActionType.SYSTEM_BLUETOOTH_SCAN,
-        ActionType.SYSTEM_WIFI_SCAN_NOW -> {
-            Text(
-                text = stringResource(R.string.runs_immediately),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary
-            )
-        }
         ActionType.SYSTEM_WIFI_CONNECT -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
@@ -1251,15 +1358,6 @@ fun ActionConfigEditor(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = stringResource(R.string.wifi_ssid)) },
                 singleLine = true
-            )
-        }
-        ActionType.SYSTEM_DATA_ROAMING,
-        ActionType.SYSTEM_CALL_VIBRATION,
-        ActionType.SYSTEM_STATUS_BAR_TOGGLE -> {
-            ToggleConfigRow(
-                label = stringResource(R.string.turn_on),
-                checked = config["enabled"]?.toBoolean() ?: true,
-                onCheckedChange = { onConfigChange(config + ("enabled" to it.toString())) }
             )
         }
         ActionType.SYSTEM_SCREENSAVER_TIMEOUT -> {
@@ -1308,27 +1406,6 @@ fun ActionConfigEditor(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = stringResource(R.string.notification_tone_label)) },
                 singleLine = true
-            )
-        }
-        ActionType.SYSTEM_OPEN_NETWORK_SETTINGS,
-        ActionType.SYSTEM_OPEN_NFC_SETTINGS,
-        ActionType.SYSTEM_OPEN_DATA_SAVER_SETTINGS,
-        ActionType.SYSTEM_OPEN_DEVELOPER_SETTINGS,
-        ActionType.SYSTEM_OPEN_NOTIFICATION_SETTINGS,
-        ActionType.SYSTEM_OPEN_PRIVACY_SETTINGS,
-        ActionType.SYSTEM_OPEN_CAST_SETTINGS,
-        ActionType.SYSTEM_OPEN_INPUT_METHOD_SETTINGS,
-        ActionType.SYSTEM_OPEN_DEFAULT_APPS_SETTINGS,
-        ActionType.SYSTEM_OPEN_VPN_SETTINGS,
-        ActionType.SYSTEM_OPEN_DATE_SETTINGS,
-        ActionType.SYSTEM_OPEN_PRINT_SETTINGS,
-        ActionType.SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS,
-        ActionType.SYSTEM_OPEN_USAGE_ACCESS_SETTINGS,
-        ActionType.SYSTEM_OPEN_AIRPLANE_MODE_SETTINGS -> {
-            Text(
-                text = stringResource(R.string.runs_immediately),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary
             )
         }
         ActionType.SYSTEM_OPEN_MAPS -> {
@@ -1416,7 +1493,7 @@ private fun VariableInsertChips(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             availableVariables.forEach { name ->
-                FilterChip(
+                SelectChip(
                     selected = name.lowercase() in used,
                     onClick = {
                         val placeholder = "%$name"
@@ -1425,12 +1502,7 @@ private fun VariableInsertChips(
                             else "$currentValue $placeholder"
                         )
                     },
-                    label = {
-                        Text(
-                            text = "%$name",
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
+                    label = "%$name"
                 )
             }
         }
@@ -1458,7 +1530,7 @@ private fun ContextPathInsertChips(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            FilterChip(
+            SelectChip(
                 selected = currentValue.contains("%CTX.", ignoreCase = true),
                 onClick = {
                     val placeholder = "%CTX.$"
@@ -1467,7 +1539,7 @@ private fun ContextPathInsertChips(
                         else "$currentValue $placeholder"
                     )
                 },
-                label = { Text(text = "%CTX.$", style = MaterialTheme.typography.labelSmall) }
+                label = "%CTX.$"
             )
         }
     }

@@ -1730,6 +1730,14 @@ class SystemController(
      * manifest and the call is guarded by the try/catch below. */
     @SuppressLint("MissingPermission")
     fun bluetoothScan(): SystemControlResult {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val hasPermission = ContextCompat.checkSelfPermission(
+                context, Manifest.permission.BLUETOOTH_SCAN
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!hasPermission) {
+                return SystemControlResult.fail("Bluetooth scan permission not granted")
+            }
+        }
         return try {
             val adapter = BluetoothAdapter.getDefaultAdapter()
                 ?: return SystemControlResult.fail("No Bluetooth")

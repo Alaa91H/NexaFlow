@@ -185,6 +185,11 @@
     <string name="constraint_type_battery">Battery level</string>
     <string name="constraint_type_screen_locked">Screen locked</string>
     <string name="constraint_type_headset">Headset connected</string>
+    <string name="constraint_type_bluetooth">Bluetooth</string>
+    <string name="constraint_type_dnd">Do Not Disturb</string>
+    <string name="constraint_type_airplane">Airplane mode</string>
+    <string name="constraint_type_charging">Charging</string>
+    <string name="constraint_type_location">Location</string>
     <string name="trigger_sensor">Sensor</string>
     <string name="trigger_sensor_sub">Trigger on device sensor events</string>
     <string name="trigger_webhook">Webhook</string>

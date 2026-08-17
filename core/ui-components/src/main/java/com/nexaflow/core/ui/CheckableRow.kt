@@ -1,5 +1,6 @@
 package com.nexaflow.core.ui
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -11,10 +12,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.tooling.preview.Preview
 import com.nexaflow.core.ui.Dimens.Space1
 import com.nexaflow.core.ui.Dimens.Space3
 
@@ -55,6 +58,26 @@ fun CheckableRow(
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary
             )
+        }
+    }
+}
+
+@Preview(name = "CheckableRow", showBackground = true)
+@Composable
+private fun CheckableRowPreview() {
+    NexaFlowTheme {
+        CheckableRow(selected = true, onClick = {}) {
+            Text("Sample option")
+        }
+    }
+}
+
+@Preview(name = "CheckableRow – Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun CheckableRowDarkPreview() {
+    NexaFlowTheme {
+        CheckableRow(selected = false, onClick = {}) {
+            Text("Sample option")
         }
     }
 }

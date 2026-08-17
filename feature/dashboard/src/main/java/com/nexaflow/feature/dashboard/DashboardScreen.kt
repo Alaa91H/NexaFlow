@@ -63,7 +63,6 @@ import com.nexaflow.core.ui.iconVector
 import com.nexaflow.core.ui.nexaFlowEntrance
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.TriggerType
-import kotlin.comparisons.minOf
 import com.nexaflow.domain.schedule.TimeTriggerCalculator
 import java.time.Instant
 import java.time.ZoneId
