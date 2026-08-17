@@ -41,50 +41,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.execution.NotificationActionButton
+import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.variables.VariableResolver
-
-/**
- * All action types that only need a simple on/off toggle via [ToggleConfigRow].
- * Adding a new toggle-only action type here automatically renders the correct
- * switch UI without any new `when` branch.
- */
-private val SIMPLE_TOGGLE_ACTIONS = setOf(
-    ActionType.SYSTEM_LOCATION,
-    ActionType.SYSTEM_DND,
-    ActionType.SYSTEM_WIFI,
-    ActionType.SYSTEM_BLUETOOTH,
-    ActionType.SYSTEM_FLASHLIGHT,
-    ActionType.SYSTEM_AIRPLANE_MODE,
-    ActionType.SYSTEM_STAY_AWAKE,
-    ActionType.SYSTEM_AUTO_BRIGHTNESS,
-    ActionType.SYSTEM_MOBILE_DATA,
-    ActionType.SYSTEM_HOTSPOT,
-    ActionType.SYSTEM_NFC,
-    ActionType.SYSTEM_POWER_SAVER,
-    ActionType.SYSTEM_ANIMATIONS,
-    ActionType.SYSTEM_DARK_MODE,
-    ActionType.SYSTEM_COLOR_INVERSION,
-    ActionType.SYSTEM_GRAYSCALE,
-    ActionType.SYSTEM_EXTRA_DIM,
-    ActionType.SYSTEM_NIGHT_LIGHT,
-    ActionType.SYSTEM_HAPTIC_FEEDBACK,
-    ActionType.SYSTEM_SOUND_EFFECTS,
-    ActionType.SYSTEM_DATA_SAVER,
-    ActionType.SYSTEM_SCREENSAVER,
-    ActionType.SYSTEM_ALWAYS_ON_DISPLAY,
-    ActionType.SYSTEM_SHOW_TAPS,
-    ActionType.SYSTEM_POINTER_LOCATION,
-    ActionType.SYSTEM_ADAPTIVE_BATTERY,
-    ActionType.SYSTEM_AUTO_TIME,
-    ActionType.SYSTEM_AUTO_TIMEZONE,
-    ActionType.SYSTEM_CAMERA_SHUTTER_SOUND,
-    ActionType.SYSTEM_WIFI_SCANNING,
-    ActionType.SYSTEM_DATA_ROAMING,
-    ActionType.SYSTEM_CALL_VIBRATION,
-    ActionType.SYSTEM_STATUS_BAR_TOGGLE
-)
 
 /** Simple toggle actions that use "turn_on" as their label. */
 private val TURN_ON_TOGGLE_ACTIONS = setOf(
@@ -105,86 +65,6 @@ private val TURN_ON_TOGGLE_ACTIONS = setOf(
     ActionType.SYSTEM_DATA_ROAMING,
     ActionType.SYSTEM_CALL_VIBRATION,
     ActionType.SYSTEM_STATUS_BAR_TOGGLE
-)
-
-/**
- * All action types whose only config is a package name + app picker.
- */
-private val PACKAGE_PICKER_ACTIONS = setOf(
-    ActionType.APPLICATION_OPEN_APP_SETTINGS,
-    ActionType.SYSTEM_FORCE_STOP_APP,
-    ActionType.SYSTEM_CLEAR_APP_DATA,
-    ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS
-)
-
-/**
- * Multi-package variant: uses `packages` key instead of `package`.
- */
-private val MULTI_PACKAGE_ACTIONS = setOf(
-    ActionType.SYSTEM_OPEN_APP
-)
-
-/**
- * All action types that require no configuration at all.
- */
-private val RUNS_IMMEDIATELY_ACTIONS = setOf(
-    ActionType.SYSTEM_MEDIA_PLAY_PAUSE,
-    ActionType.SYSTEM_MEDIA_NEXT,
-    ActionType.SYSTEM_MEDIA_PREVIOUS,
-    ActionType.SYSTEM_CLEAR_NOTIFICATIONS,
-    ActionType.SYSTEM_EXPAND_STATUS_BAR,
-    ActionType.SYSTEM_COLLAPSE_STATUS_BAR,
-    ActionType.APPLICATION_LAUNCH_APP,
-    ActionType.SYSTEM_LOCK_SCREEN,
-    ActionType.SYSTEM_OPEN_RECENTS,
-    ActionType.SYSTEM_GO_HOME,
-    ActionType.SYSTEM_OPEN_PLAY_UPDATES,
-    ActionType.SYSTEM_OPEN_GALAXY_STORE,
-    ActionType.SYSTEM_MEDIA_STOP,
-    ActionType.SYSTEM_OPEN_NOTIFICATIONS,
-    ActionType.SYSTEM_OPEN_QUICK_SETTINGS,
-    ActionType.SYSTEM_WAKE_SCREEN,
-    ActionType.SYSTEM_MEDIA_FAST_FORWARD,
-    ActionType.SYSTEM_MEDIA_REWIND,
-    ActionType.SYSTEM_OPEN_CAMERA,
-    ActionType.SYSTEM_OPEN_PLAY_STORE_APP,
-    ActionType.SYSTEM_OPEN_WIFI_SETTINGS,
-    ActionType.SYSTEM_OPEN_BLUETOOTH_SETTINGS,
-    ActionType.SYSTEM_OPEN_LOCATION_SETTINGS,
-    ActionType.SYSTEM_OPEN_DATA_USAGE_SETTINGS,
-    ActionType.SYSTEM_OPEN_BATTERY_SETTINGS,
-    ActionType.SYSTEM_OPEN_DISPLAY_SETTINGS,
-    ActionType.SYSTEM_OPEN_SOUND_SETTINGS,
-    ActionType.SYSTEM_OPEN_STORAGE_SETTINGS,
-    ActionType.SYSTEM_OPEN_SECURITY_SETTINGS,
-    ActionType.SYSTEM_OPEN_ACCESSIBILITY_SETTINGS,
-    ActionType.SYSTEM_OPEN_APP_SETTINGS_LIST,
-    ActionType.SYSTEM_OPEN_ABOUT_PHONE,
-    ActionType.SYSTEM_REBOOT,
-    ActionType.SYSTEM_SHUTDOWN,
-    ActionType.SYSTEM_RESTART_SYSTEM_UI,
-    ActionType.SYSTEM_PASTE,
-    ActionType.SYSTEM_OPEN_APP_DRAWER,
-    ActionType.SYSTEM_TOGGLE_PIP,
-    ActionType.SYSTEM_SOFT_RESTART,
-    ActionType.SYSTEM_OPEN_CONTACTS,
-    ActionType.SYSTEM_BLUETOOTH_SCAN,
-    ActionType.SYSTEM_WIFI_SCAN_NOW,
-    ActionType.SYSTEM_OPEN_NETWORK_SETTINGS,
-    ActionType.SYSTEM_OPEN_NFC_SETTINGS,
-    ActionType.SYSTEM_OPEN_DATA_SAVER_SETTINGS,
-    ActionType.SYSTEM_OPEN_DEVELOPER_SETTINGS,
-    ActionType.SYSTEM_OPEN_NOTIFICATION_SETTINGS,
-    ActionType.SYSTEM_OPEN_PRIVACY_SETTINGS,
-    ActionType.SYSTEM_OPEN_CAST_SETTINGS,
-    ActionType.SYSTEM_OPEN_INPUT_METHOD_SETTINGS,
-    ActionType.SYSTEM_OPEN_DEFAULT_APPS_SETTINGS,
-    ActionType.SYSTEM_OPEN_VPN_SETTINGS,
-    ActionType.SYSTEM_OPEN_DATE_SETTINGS,
-    ActionType.SYSTEM_OPEN_PRINT_SETTINGS,
-    ActionType.SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS,
-    ActionType.SYSTEM_OPEN_USAGE_ACCESS_SETTINGS,
-    ActionType.SYSTEM_OPEN_AIRPLANE_MODE_SETTINGS
 )
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -820,10 +700,10 @@ fun ActionConfigEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     alertSounds.forEach { (value, label) ->
-                        FilterChip(
+                        SelectChip(
                             selected = (config["sound"] ?: "DEFAULT") == value,
                             onClick = { onConfigChange(config + ("sound" to value)) },
-                            label = { Text(text = label, style = MaterialTheme.typography.labelMedium) }
+                            label = label
                         )
                     }
                 }
@@ -857,10 +737,10 @@ fun ActionConfigEditor(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     chargingSounds.forEach { (value, label) ->
-                        FilterChip(
+                        SelectChip(
                             selected = (config["sound"] ?: "DEFAULT") == value,
                             onClick = { onConfigChange(config + ("sound" to value)) },
-                            label = { Text(text = label, style = MaterialTheme.typography.labelMedium) }
+                            label = label
                         )
                     }
                 }

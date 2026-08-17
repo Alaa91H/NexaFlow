@@ -133,7 +133,6 @@ fun MapPickerScreen(navController: NavController) {
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
 
     val osmBridge = remember {
-        @SuppressLint("JavascriptInterface")
         object {
             @JavascriptInterface
             fun onPointSelected(lat: Double, lng: Double) {
@@ -186,6 +185,9 @@ fun MapPickerScreen(navController: NavController) {
             WebView(context).apply {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
+                // Lint cannot see @JavascriptInterface on anonymous objects, so
+                // the suppression lives at the call site (method is annotated).
+                @SuppressLint("JavascriptInterface")
                 addJavascriptInterface(osmBridge, "Android")
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, url: String?) {

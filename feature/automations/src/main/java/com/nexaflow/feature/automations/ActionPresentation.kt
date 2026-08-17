@@ -76,7 +76,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.Animation
-import androidx.compose.material.icons.filled.DataSaver
+import androidx.compose.material.icons.filled.DataSaverOff
 import androidx.compose.material.icons.filled.PortableWifiOff
 import androidx.compose.material.icons.filled.SettingsOverscan
 import androidx.compose.material.icons.filled.SkipNext
@@ -221,7 +221,7 @@ fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (
     ActionType.SYSTEM_CALL_VIBRATION -> Triple(R.string.action_call_vibration, R.string.action_call_vibration_sub, Icons.Filled.Vibration)
     ActionType.SYSTEM_OPEN_NETWORK_SETTINGS -> Triple(R.string.action_open_network_settings, R.string.action_open_network_settings_sub, Icons.Filled.Wifi)
     ActionType.SYSTEM_OPEN_NFC_SETTINGS -> Triple(R.string.action_open_nfc_settings, R.string.action_open_nfc_settings_sub, Icons.Filled.Nfc)
-    ActionType.SYSTEM_OPEN_DATA_SAVER_SETTINGS -> Triple(R.string.action_open_data_saver_settings, R.string.action_open_data_saver_settings_sub, Icons.Filled.DataSaver)
+    ActionType.SYSTEM_OPEN_DATA_SAVER_SETTINGS -> Triple(R.string.action_open_data_saver_settings, R.string.action_open_data_saver_settings_sub, Icons.Filled.DataSaverOff)
     ActionType.SYSTEM_OPEN_DEVELOPER_SETTINGS -> Triple(R.string.action_open_developer_settings, R.string.action_open_developer_settings_sub, Icons.Filled.Build)
     ActionType.SYSTEM_OPEN_MAPS -> Triple(R.string.action_open_maps, R.string.action_open_maps_sub, Icons.Filled.Map)
     ActionType.SYSTEM_SOFT_RESTART -> Triple(R.string.action_soft_restart, R.string.action_soft_restart_sub, Icons.Filled.Refresh)

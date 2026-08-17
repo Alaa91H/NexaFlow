@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.EndBehavior
@@ -289,9 +290,9 @@ private fun EndValueEditor(
 @Preview(name = "EndBehaviorEditor", showBackground = true)
 @Composable
 private fun EndBehaviorEditorPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         EndBehaviorEditor(
-            actionType = ActionType.TOGGLE_NOTIFICATION_LISTENER,
+            actionType = ActionType.SYSTEM_DND,
             behavior = EndBehavior(),
             onBehaviorChange = {}
         )

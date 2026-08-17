@@ -4,6 +4,10 @@
 /.idea
 .DS_Store
 **/build
+# The `**/build` rule above accidentally swallows buildSrc's source tree —
+# its package directory is literally `com/nexaflow/build/`. Un-ignore it so
+# the GitVersion plugin source stays tracked (a fresh checkout/CI depends on it).
+!buildSrc/src/main/java/com/nexaflow/build/
 /captures
 .externalNativeBuild
 .cxx

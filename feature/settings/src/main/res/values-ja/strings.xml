@@ -148,4 +148,13 @@
     <string name="decrease">減らす</string>
     <string name="location_check_apply">適用</string>
 
+    <string name="about_developer">開発者</string>
+    <string name="about_github">GitHub</string>
+    <string name="about_github_sub">@Alaa91H</string>
+    <string name="about_email">メール</string>
+    <string name="about_email_sub">alahus2591@gmail.com</string>
+    <string name="about_telegram">Telegram</string>
+    <string name="about_telegram_sub">@Alaa91h</string>
+    <string name="about_support">開発者をサポート</string>
+    <string name="about_support_sub">Ko-fiでコーヒーをごちそうしてください</string>
 </resources>

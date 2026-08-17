@@ -181,6 +181,7 @@ import com.nexaflow.core.ui.NexaFlowAnimatedVisibility
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowFloatingActionButton
 import com.nexaflow.core.ui.NexaFlowIcons
+import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.core.ui.nexaFlowEffectsSpec
 import com.nexaflow.core.ui.nexaFlowSpatialSpec
 import com.nexaflow.core.ui.NexaFlowTopBar
@@ -1437,10 +1438,10 @@ fun AutomationBuilderScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         SectionHeader(text = stringResource(R.string.section_when))
                     // Single-select trigger picker, visible only while no
-                    // trigger is chosen: a category accordion where only ONE
-                    // chip is open at a time. Picking a type folds the picker
-                    // away and leaves just its expanded editor (which keeps
-                    // its own type chips for later changes).
+                    // trigger is chosen: a category accordion where every
+                    // category's options stay visible (no-collapse). Picking a
+                    // type folds the picker away and leaves just its expanded
+                    // editor (which keeps its own type chips for later changes).
                     NexaFlowAnimatedVisibility(visible = triggers.isEmpty()) {
                         CategoryAccordion(
                             tabs = triggerCategories.map { category ->
@@ -1564,10 +1565,10 @@ fun AutomationBuilderScreen(
                 NexaFlowCard {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {                        // ── THEN (actions) ──────────────────────────
                             SectionHeader(text = stringResource(R.string.section_actions))
-                        // Category accordion: only ONE chip is open at a time.
-                        // Tapping an option adds it immediately and folds the
-                        // accordion away so the new card's configuration is
-                        // right there — never stuck inside the picker list.
+                        // Category accordion: every category's options stay
+                        // visible (no-collapse). Tapping an option adds its
+                        // card right below the picker — never stuck inside it;
+                        // the chip highlight drops to signal the pick.
                         CategoryAccordion(
                             tabs = actionCategories.map { category ->
                                 stringResource(category.headerRes) to category.icon()

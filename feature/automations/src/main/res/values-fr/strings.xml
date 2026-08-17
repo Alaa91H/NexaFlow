@@ -415,4 +415,9 @@
     <string name="trigger_usb_connected">USB connecté</string>
     <string name="trigger_vpn_connected">VPN connecté</string>
     <string name="trigger_wifi_signal_strength">Intensité du signal Wi-Fi</string>
+    <string name="constraint_type_airplane">Mode avion</string>
+    <string name="constraint_type_bluetooth">Bluetooth activé</string>
+    <string name="constraint_type_charging">État de charge</string>
+    <string name="constraint_type_dnd">Ne pas déranger</string>
+    <string name="constraint_type_location">Services de localisation</string>
 </resources>

@@ -52,7 +52,7 @@ android {
         // bundled resources of every library for the ~40 unsupported locales
         // (smaller APK, consistent fallback). Keep in sync with
         // res/xml/locales_config.xml and the values-* string directories.
-        resourceConfigurations += listOf(
+        androidResources.localeFilters += listOf(
             "en", "ar", "de", "es", "fr", "hi", "ja", "pt", "ru", "tr", "zh-rCN"
         )
 

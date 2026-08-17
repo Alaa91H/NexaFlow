@@ -229,7 +229,12 @@
     "trigger_volume_changed": "Volume changed",
     "trigger_vpn_connected": "VPN connected",
     "trigger_wifi_signal_strength": "Wi-Fi signal strength",
-    "trigger_wifi_state": "Wi-Fi"
+    "trigger_wifi_state": "Wi-Fi",
+    "constraint_type_airplane": "Airplane mode",
+    "constraint_type_bluetooth": "Bluetooth enabled",
+    "constraint_type_charging": "Charging state",
+    "constraint_type_dnd": "Do Not Disturb",
+    "constraint_type_location": "Location services"
   },
   "-ar": {
     "action_adaptive_battery": "البطارية التكيفية",
@@ -461,7 +466,12 @@
     "trigger_volume_changed": "تغير مستوى الصوت",
     "trigger_vpn_connected": "اتصال VPN",
     "trigger_wifi_signal_strength": "قوة إشارة الواي فاي",
-    "trigger_wifi_state": "واي فاي"
+    "trigger_wifi_state": "واي فاي",
+    "constraint_type_airplane": "وضع الطيران",
+    "constraint_type_bluetooth": "البلوتوث مفعّل",
+    "constraint_type_charging": "حالة الشحن",
+    "constraint_type_dnd": "عدم الإزعاج",
+    "constraint_type_location": "خدمات الموقع"
   },
   "-de": {
     "action_adaptive_battery": "Adaptiver Akku",
@@ -693,7 +703,12 @@
     "trigger_volume_changed": "Lautstärke geändert",
     "trigger_vpn_connected": "VPN verbunden",
     "trigger_wifi_signal_strength": "Wi-Fi-Signalstärke",
-    "trigger_wifi_state": "Wi-Fi"
+    "trigger_wifi_state": "Wi-Fi",
+    "constraint_type_airplane": "Flugmodus",
+    "constraint_type_bluetooth": "Bluetooth aktiviert",
+    "constraint_type_charging": "Ladestatus",
+    "constraint_type_dnd": "Nicht stören",
+    "constraint_type_location": "Standortdienste"
   },
   "-es": {
     "action_adaptive_battery": "Batería adaptativa",
@@ -925,7 +940,12 @@
     "trigger_volume_changed": "Volumen cambiado",
     "trigger_vpn_connected": "VPN conectado",
     "trigger_wifi_signal_strength": "Intensidad de señal Wi-Fi",
-    "trigger_wifi_state": "Wi-Fi"
+    "trigger_wifi_state": "Wi-Fi",
+    "constraint_type_airplane": "Modo avión",
+    "constraint_type_bluetooth": "Bluetooth activado",
+    "constraint_type_charging": "Estado de carga",
+    "constraint_type_dnd": "No molestar",
+    "constraint_type_location": "Servicios de ubicación"
   },
   "-fr": {
     "action_adaptive_battery": "Batterie adaptative",
@@ -1157,7 +1177,12 @@
     "trigger_volume_changed": "Volume modifié",
     "trigger_vpn_connected": "VPN connecté",
     "trigger_wifi_signal_strength": "Intensité du signal Wi-Fi",
-    "trigger_wifi_state": "Wi-Fi"
+    "trigger_wifi_state": "Wi-Fi",
+    "constraint_type_airplane": "Mode avion",
+    "constraint_type_bluetooth": "Bluetooth activé",
+    "constraint_type_charging": "État de charge",
+    "constraint_type_dnd": "Ne pas déranger",
+    "constraint_type_location": "Services de localisation"
   },
   "-hi": {
     "action_adaptive_battery": "एडेप्टिव बैटरी",
@@ -1389,7 +1414,12 @@
     "trigger_volume_changed": "वॉल्यूम बदला",
     "trigger_vpn_connected": "VPN कनेक्टेड",
     "trigger_wifi_signal_strength": "वाई-फ़ाई सिग्नल शक्ति",
-    "trigger_wifi_state": "वाई-फ़ाई"
+    "trigger_wifi_state": "वाई-फ़ाई",
+    "constraint_type_airplane": "हवाई जहाज़ मोड",
+    "constraint_type_bluetooth": "ब्लूटूथ चालू",
+    "constraint_type_charging": "चार्जिंग स्थिति",
+    "constraint_type_dnd": "डू नॉट डिस्टर्ब",
+    "constraint_type_location": "लोकेशन सेवाएँ"
   },
   "-ja": {
     "action_adaptive_battery": "アダプティブバッテリー",
@@ -1621,7 +1651,12 @@
     "trigger_volume_changed": "音量変化",
     "trigger_vpn_connected": "VPN接続",
     "trigger_wifi_signal_strength": "Wi-Fiの電波強度",
-    "trigger_wifi_state": "Wi-Fi"
+    "trigger_wifi_state": "Wi-Fi",
+    "constraint_type_airplane": "機内モード",
+    "constraint_type_bluetooth": "Bluetooth オン",
+    "constraint_type_charging": "充電状態",
+    "constraint_type_dnd": "おやすみモード",
+    "constraint_type_location": "位置情報サービス"
   },
   "-pt": {
     "action_adaptive_battery": "Bateria adaptativa",
@@ -1853,7 +1888,12 @@
     "trigger_volume_changed": "Volume alterado",
     "trigger_vpn_connected": "VPN conectado",
     "trigger_wifi_signal_strength": "Intensidade do sinal Wi-Fi",
-    "trigger_wifi_state": "Wi-Fi"
+    "trigger_wifi_state": "Wi-Fi",
+    "constraint_type_airplane": "Modo avião",
+    "constraint_type_bluetooth": "Bluetooth ativado",
+    "constraint_type_charging": "Estado de carregamento",
+    "constraint_type_dnd": "Não perturbar",
+    "constraint_type_location": "Serviços de localização"
   },
   "-ru": {
     "action_adaptive_battery": "Адаптивная батарея",
@@ -2085,7 +2125,12 @@
     "trigger_volume_changed": "Громкость изменена",
     "trigger_vpn_connected": "VPN подключён",
     "trigger_wifi_signal_strength": "Уровень сигнала Wi-Fi",
-    "trigger_wifi_state": "Wi-Fi"
+    "trigger_wifi_state": "Wi-Fi",
+    "constraint_type_airplane": "Режим полёта",
+    "constraint_type_bluetooth": "Bluetooth включён",
+    "constraint_type_charging": "Состояние зарядки",
+    "constraint_type_dnd": "Не беспокоить",
+    "constraint_type_location": "Службы геолокации"
   },
   "-tr": {
     "action_adaptive_battery": "Uyarlanabilir pil",
@@ -2317,7 +2362,12 @@
     "trigger_volume_changed": "Ses düzeyi değişti",
     "trigger_vpn_connected": "VPN bağlı",
     "trigger_wifi_signal_strength": "Wi-Fi sinyal gücü",
-    "trigger_wifi_state": "Wi-Fi"
+    "trigger_wifi_state": "Wi-Fi",
+    "constraint_type_airplane": "Uçak modu",
+    "constraint_type_bluetooth": "Bluetooth etkin",
+    "constraint_type_charging": "Şarj durumu",
+    "constraint_type_dnd": "Rahatsız Etmeyin",
+    "constraint_type_location": "Konum hizmetleri"
   },
   "-zh-rCN": {
     "action_adaptive_battery": "自适应电池",
@@ -2549,6 +2599,11 @@
     "trigger_volume_changed": "音量已更改",
     "trigger_vpn_connected": "VPN 已连接",
     "trigger_wifi_signal_strength": "Wi-Fi 信号强度",
-    "trigger_wifi_state": "Wi-Fi"
+    "trigger_wifi_state": "Wi-Fi",
+    "constraint_type_airplane": "飞行模式",
+    "constraint_type_bluetooth": "蓝牙已开启",
+    "constraint_type_charging": "充电状态",
+    "constraint_type_dnd": "勿扰模式",
+    "constraint_type_location": "位置服务"
   }
 }

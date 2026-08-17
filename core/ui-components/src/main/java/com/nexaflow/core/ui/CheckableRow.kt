@@ -65,7 +65,7 @@ fun CheckableRow(
 @Preview(name = "CheckableRow", showBackground = true)
 @Composable
 private fun CheckableRowPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         CheckableRow(selected = true, onClick = {}) {
             Text("Sample option")
         }
@@ -75,7 +75,7 @@ private fun CheckableRowPreview() {
 @Preview(name = "CheckableRow – Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun CheckableRowDarkPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         CheckableRow(selected = false, onClick = {}) {
             Text("Sample option")
         }

@@ -26,7 +26,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import com.nexaflow.feature.builder.SelectChip
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -46,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.nexaflow.core.ui.NexaFlowIcons
 import com.nexaflow.core.ui.NexaFlowTopBar
+import com.nexaflow.core.ui.SelectChip
 
 /**
  * Ready-made accent palette (Google 2026 tones) shown as a fixed strip at the

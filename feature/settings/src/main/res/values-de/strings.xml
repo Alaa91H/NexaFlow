@@ -148,4 +148,13 @@
     <string name="decrease">Verringern</string>
     <string name="location_check_apply">Übernehmen</string>
 
+    <string name="about_developer">Entwickler</string>
+    <string name="about_github">GitHub</string>
+    <string name="about_github_sub">@Alaa91H</string>
+    <string name="about_email">E-Mail</string>
+    <string name="about_email_sub">alahus2591@gmail.com</string>
+    <string name="about_telegram">Telegram</string>
+    <string name="about_telegram_sub">@Alaa91h</string>
+    <string name="about_support">Entwickler unterstützen</string>
+    <string name="about_support_sub">Lade mir einen Kaffee auf Ko-fi</string>
 </resources>

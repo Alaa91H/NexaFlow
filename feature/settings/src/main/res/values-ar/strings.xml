@@ -148,4 +148,13 @@
     <string name="decrease">تقليل</string>
     <string name="location_check_apply">تطبيق</string>
 
+    <string name="about_developer">المطوّر</string>
+    <string name="about_github">GitHub</string>
+    <string name="about_github_sub">@Alaa91H</string>
+    <string name="about_email">البريد الإلكتروني</string>
+    <string name="about_email_sub">alahus2591@gmail.com</string>
+    <string name="about_telegram">تيليجرام</string>
+    <string name="about_telegram_sub">@Alaa91h</string>
+    <string name="about_support">ادعم المطوّر</string>
+    <string name="about_support_sub">قدّم لي قهوة على Ko-fi</string>
 </resources>

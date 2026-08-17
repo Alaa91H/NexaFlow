@@ -15,14 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DisplaySettings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -41,7 +38,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.rom.ElevatedAccessShortcuts
@@ -50,6 +46,7 @@ import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.core.rom.SystemAppStatusDetector
 import com.nexaflow.core.ui.IconBadge
+import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.core.ui.StatusPill
 import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.domain.models.ActionType
@@ -94,64 +91,6 @@ fun SliderRow(
         Text(text = label, style = MaterialTheme.typography.bodySmall)
         Slider(value = value, onValueChange = onValueChange, valueRange = valueRange)
     }
-}
-
-/**
- * Samsung-style selection chip with a clearly highlighted selected state
- * (filled primary tint + check icon + bolder label).
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SelectChip(
-    selected: Boolean,
-    onClick: () -> Unit,
-    label: String,
-    modifier: Modifier = Modifier,
-    leadingIcon: ImageVector? = null,
-    // Weekday chips show selection purely by colour (no check mark), keeping
-    // the row compact now that the day names are spelled out in full.
-    showCheck: Boolean = true
-) {
-    FilterChip(
-        selected = selected,
-        onClick = onClick,
-        modifier = modifier,
-        leadingIcon = {
-            when {
-                selected && showCheck -> Icon(
-                    imageVector = Icons.Filled.Check,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp)
-                )
-                leadingIcon != null -> Icon(
-                    imageVector = leadingIcon,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-        },
-        label = {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-            )
-        },
-        colors = FilterChipDefaults.filterChipColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.4f),
-            labelColor = MaterialTheme.colorScheme.onSurface,
-            iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
-            selectedLabelColor = MaterialTheme.colorScheme.primary,
-            selectedLeadingIconColor = MaterialTheme.colorScheme.primary
-        ),
-        border = FilterChipDefaults.filterChipBorder(
-            enabled = true,
-            selected = selected,
-            borderColor = MaterialTheme.colorScheme.outlineVariant,
-            selectedBorderColor = MaterialTheme.colorScheme.primary
-        )
-    )
 }
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -313,6 +252,8 @@ fun SpecialPermissionStatusRow(
     if (status == SpecialStatus.GRANTED) return
 
     val (pillText, pillBg, pillFg) = when (status) {
+        // Unreachable: the GRANTED early-return above already exited.
+        SpecialStatus.GRANTED -> return
         SpecialStatus.AVAILABLE -> Triple(
             stringResource(R.string.elevated_status_available),
             NexaFlowTheme.colors.warningContainer,
@@ -373,6 +314,8 @@ fun CategoryAccordion(
     content: @Composable (Int) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Fixed category menu: every chip stays pinned at the top. The chips
+        // are quick-jump markers — tapping one only changes its highlight.
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -387,29 +330,30 @@ fun CategoryAccordion(
                 )
             }
         }
+        // Strict no-collapse: the options of ALL categories are always
+        // rendered below, stacked downwards, each under its own header —
+        // nothing ever folds away and nothing is hidden behind a tap.
         tabs.forEachIndexed { index, (label, icon) ->
-            if (expandedIndex == index) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.padding(top = 2.dp)
-                ) {
-                    icon?.let {
-                        Icon(
-                            imageVector = it,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.padding(top = 2.dp)
+            ) {
+                icon?.let {
+                    Icon(
+                        imageVector = it,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
                     )
                 }
-                content(index)
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
+            content(index)
         }
     }
 }
@@ -636,7 +580,7 @@ internal val NETWORK_MODE_OPTIONS = listOf(
 @Preview(name = "SelectChip", showBackground = true)
 @Composable
 private fun SelectChipPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         Column {
             SelectChip(selected = true, onClick = {}, label = "Selected")
             SelectChip(selected = false, onClick = {}, label = "Unselected")
@@ -647,7 +591,7 @@ private fun SelectChipPreview() {
 @Preview(name = "SelectChip – Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun SelectChipDarkPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         Column {
             SelectChip(selected = true, onClick = {}, label = "Selected")
             SelectChip(selected = false, onClick = {}, label = "Unselected")
@@ -658,7 +602,7 @@ private fun SelectChipDarkPreview() {
 @Preview(name = "OptionChips", showBackground = true)
 @Composable
 private fun OptionChipsPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         OptionChips(
             options = listOf("ON", "OFF", "AUTO"),
             labels = mapOf("ON" to "On", "OFF" to "Off", "AUTO" to "Auto"),
@@ -671,7 +615,7 @@ private fun OptionChipsPreview() {
 @Preview(name = "SliderRow", showBackground = true)
 @Composable
 private fun SliderRowPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         SliderRow(label = "Volume", value = 0.5f, valueRange = 0f..1f, onValueChange = {})
     }
 }
@@ -679,13 +623,13 @@ private fun SliderRowPreview() {
 @Preview(name = "ItemHeader", showBackground = true)
 @Composable
 private fun ItemHeaderPreview() {
-    NexaFlowTheme { ItemHeader(text = "Section Title") }
+    MaterialTheme { ItemHeader(text = "Section Title") }
 }
 
 @Preview(name = "CategoryAccordion", showBackground = true)
 @Composable
 private fun CategoryAccordionPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         CategoryAccordion(
             tabs = listOf("Display" to Icons.Filled.DisplaySettings),
             expandedIndex = 0,

@@ -148,4 +148,13 @@
     <string name="decrease">Decrease</string>
     <string name="location_check_apply">Apply</string>
 
+    <string name="about_developer">Developer</string>
+    <string name="about_github">GitHub</string>
+    <string name="about_github_sub">@Alaa91H</string>
+    <string name="about_email">Email</string>
+    <string name="about_email_sub">alahus2591@gmail.com</string>
+    <string name="about_telegram">Telegram</string>
+    <string name="about_telegram_sub">@Alaa91h</string>
+    <string name="about_support">Support the developer</string>
+    <string name="about_support_sub">Buy me a coffee on Ko-fi</string>
 </resources>
