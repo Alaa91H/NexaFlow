@@ -3,6 +3,7 @@ package com.nexaflow.core.execution
 import android.content.Context
 import androidx.paging.PagingSource
 import androidx.test.core.app.ApplicationProvider
+import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.handler.ActionExecutionContext
 import com.nexaflow.core.execution.handler.ActionHandler
@@ -60,7 +61,10 @@ class ExecutionEngineConstraintsTest {
         }
     }
 
-    private fun automation(constraints: List<Constraint>): Automation = Automation(
+    private fun automation(
+        constraints: List<Constraint>,
+        exitActions: List<Action> = emptyList()
+    ): Automation = Automation(
         id = "auto-constraint",
         name = "Gated task",
         description = "",
@@ -73,6 +77,7 @@ class ExecutionEngineConstraintsTest {
         triggers = emptyList(),
         actions = listOf(Action(ActionType.SYSTEM_SEND_NOTIFICATION, mapOf("title" to "hi"))),
         constraints = constraints,
+        exitActions = exitActions,
         createdAt = 0L,
         updatedAt = 0L
     )
@@ -92,6 +97,7 @@ class ExecutionEngineConstraintsTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
+        runBlocking { ActiveExecutionStore(context).clear("auto-constraint") }
     }
 
     @Test
@@ -116,6 +122,28 @@ class ExecutionEngineConstraintsTest {
         assertEquals(0, handler.calls)
         assertTrue(record.message.contains("Skipped"))
         assertTrue("blocked run must be recorded", history.messages.any { it.contains("Skipped") })
+    }
+
+    @Test
+    fun `blocked run does not execute configured exit behavior`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(
+            handler,
+            history,
+            ConstraintSnapshot(wifiConnected = false)
+        )
+        val automation = automation(
+            constraints = listOf(Constraint(ConstraintType.WIFI)),
+            exitActions = listOf(Action(ActionType.SYSTEM_SEND_NOTIFICATION, mapOf("title" to "ended")))
+        )
+
+        engine.runAutomation(automation)
+        val exitRecord = engine.runExit(automation)
+
+        assertEquals("blocked main actions must not arm an exit", 0, handler.calls)
+        assertTrue(exitRecord.message.contains("not active"))
+        assertTrue("blocked execution remains visible in history", history.messages.any { it.contains("Skipped") })
     }
 
     @Test

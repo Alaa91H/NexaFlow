@@ -2,16 +2,13 @@
 # Built on top of the default rule set; noisy/stylistic rules that would
 # produce hundreds of findings without catching real bugs are disabled.
 
-build:
-  maxIssues: 0
-
 style:
   active: true
   MagicNumber:
     active: false
   # Compose @Preview functions look "unused" to detekt; the valuable check is
   # UnusedPrivateProperty (dead fields), which stays active.
-  UnusedPrivateMember:
+  UnusedPrivateFunction:
     active: false
   UnusedPrivateProperty:
     active: true
@@ -45,13 +42,13 @@ complexity:
   ComplexCondition:
     active: false
   TooManyFunctions:
-    thresholdInClasses: 50
-    thresholdInObjects: 25
-    thresholdInInterfaces: 20
-    thresholdInFiles: 40
+    allowedFunctionsPerClass: 50
+    allowedFunctionsPerObject: 25
+    allowedFunctionsPerInterface: 20
+    allowedFunctionsPerFile: 40
   LargeClass:
     active: true
-    threshold: 900
+    allowedLines: 900
 
 coroutines:
   active: true

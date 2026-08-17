@@ -3,6 +3,7 @@ package com.nexaflow.core.engine
 import android.content.Context
 import android.media.AudioManager
 import androidx.test.core.app.ApplicationProvider
+import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
@@ -40,7 +41,10 @@ class RingerModeMonitorExitReconcileTest {
         context = ApplicationProvider.getApplicationContext()
         // Robolectric shares one Application (and its DataStore cache) across
         // test methods, so reset the ringer source for isolation.
-        runBlocking { ActiveTriggerStore(context).clearSource("ringer") }
+        runBlocking {
+            ActiveTriggerStore(context).clearSource("ringer")
+            ActiveExecutionStore(context).clear("ring-task")
+        }
     }
 
     private fun ringerAutomation(id: String, mode: String = "VIBRATE"): com.nexaflow.domain.models.Automation =
@@ -81,6 +85,7 @@ class RingerModeMonitorExitReconcileTest {
         val store = ActiveTriggerStore(context)
         // The task fired on Vibrate, then the process died while still on Vibrate.
         store.markActive("ringer", "ring-task|VIBRATE")
+        ActiveExecutionStore(context).markStarted("ring-task")
         // The sound mode is now Normal — the VIBRATE condition ended during downtime.
         setRingerMode(AudioManager.RINGER_MODE_NORMAL)
 

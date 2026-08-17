@@ -5,6 +5,7 @@ import android.content.Intent
 import com.nexaflow.core.common.EpochMillis
 import com.nexaflow.core.compat.ExecutionChannelSelector
 import com.nexaflow.core.compat.ExecutionProvider
+import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.NotificationSettings
 import com.nexaflow.core.execution.handler.ActionExecutionContext
@@ -48,7 +49,11 @@ class ExecutionEngine(
     private val variableRepository: VariableRepository? = null,
     // Test seam: pins the device state used by the constraint gate so tests
     // can exercise pass/block deterministically without real system probes.
-    private val constraintStateProvider: (() -> ConstraintSnapshot?)? = null
+    private val constraintStateProvider: (() -> ConstraintSnapshot?)? = null,
+    // Durable counterpart to [activeExecutions]. It survives a service or
+    // process restart so a genuinely running task can still execute its end
+    // behavior when the monitor reconciles the current device state.
+    private val activeExecutionStore: ActiveExecutionStore = ActiveExecutionStore(context)
 ) {
 
     /**
@@ -57,6 +62,14 @@ class ExecutionEngine(
      * null snapshot simply means "nothing to restore" on exit.
      */
     private val snapshots = java.util.concurrent.ConcurrentHashMap<String, DeviceStateSnapshot?>()
+
+    /**
+     * Runtime ledger for tasks whose main actions actually started. Monitors may
+     * observe a trigger state before the constraint gate accepts it; an end
+     * behavior must only run after a successful entry into the task lifecycle,
+     * never merely because a trigger later flips back.
+     */
+    private val activeExecutions = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
     suspend fun runAutomation(
         automation: Automation,
@@ -96,6 +109,10 @@ class ExecutionEngine(
                 return record
             }
         }
+        // The constraint gate accepted this run, so it owns a lifecycle exit if
+        // a monitor later reports that the trigger condition ended.
+        activeExecutions.add(automation.id)
+        activeExecutionStore.markStarted(automation.id)
         // Capture the device state when the run needs to restore anything on
         // exit: either the global revert-on-exit toggle or any action configured
         // with a per-action "restore original" end behavior. A failed snapshot
@@ -172,7 +189,7 @@ class ExecutionEngine(
         return if (triggersOk && constraintsOk) {
             runAutomation(automation)
         } else {
-            runExit(automation)
+            runExit(automation, forceConfiguredEnd = true)
         }
     }
 
@@ -181,8 +198,31 @@ class ExecutionEngine(
      * either restores the device to its pre-run state (revertOnExit) or runs
      * the configured exit actions. Records the run in history as well.
      */
-    suspend fun runExit(automation: Automation): ExecutionRecord {
+    suspend fun runExit(
+        automation: Automation,
+        // A manual Run now is explicit: it may intentionally preview a configured
+        // end action even when this process did not observe the task start.
+        forceConfiguredEnd: Boolean = false
+    ): ExecutionRecord {
         val startedAt = epochMillis.now()
+        // Consume both ledgers. The in-memory marker handles ordinary callbacks;
+        // the durable marker preserves the same contract after service restart.
+        val hadActiveInMemory = activeExecutions.remove(automation.id)
+        val hadActiveInStore = activeExecutionStore.consumeStarted(automation.id)
+        val hadActiveExecution = hadActiveInMemory || hadActiveInStore
+        if (!hadActiveExecution && !forceConfiguredEnd) {
+            val record = ExecutionRecord(
+                id = UUID.randomUUID().toString(),
+                automationId = automation.id,
+                automationName = automation.name,
+                success = true,
+                message = "Skipped: task was not active",
+                executedAt = startedAt
+            )
+            historyRepository.recordExecution(record)
+            recordTimeline(automation, "EXIT_SKIPPED", record, startedAt)
+            return record
+        }
         // Nothing to do when there are no exit actions, no per-action end
         // behaviors and no state to restore. The per-action check is what makes
         // the unified builder model work: without it, a task that only configures
@@ -293,8 +333,10 @@ class ExecutionEngine(
     }
 
     /** Discards any stored snapshot (e.g. when the automation is deleted). */
-    fun clearSnapshot(automationId: String) {
+    suspend fun clearSnapshot(automationId: String) {
         snapshots.remove(automationId)
+        activeExecutions.remove(automationId)
+        activeExecutionStore.clear(automationId)
     }
 
     /**

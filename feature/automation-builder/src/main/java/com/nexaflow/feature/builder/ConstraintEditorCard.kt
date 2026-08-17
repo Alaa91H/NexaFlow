@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Wifi
@@ -23,7 +24,8 @@ import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,7 +57,7 @@ import com.nexaflow.domain.models.ConstraintType
  * so `ConstraintEditorCard` can skip recomposition when the draft is unchanged.
  */
 @Immutable
-data class ConstraintDraft private constructor(
+class ConstraintDraft private constructor(
     val type: ConstraintType,
     val config: Map<String, String>
 ) {
@@ -70,6 +72,18 @@ data class ConstraintDraft private constructor(
             config: Map<String, String> = emptyMap()
         ): ConstraintDraft = ConstraintDraft(type, config.toMap())
     }
+
+    fun copy(
+        type: ConstraintType = this.type,
+        config: Map<String, String> = this.config
+    ): ConstraintDraft = ConstraintDraft(type, config.toMap())
+
+    override fun equals(other: Any?): Boolean =
+        other is ConstraintDraft && type == other.type && config == other.config
+
+    override fun hashCode(): Int = 31 * type.hashCode() + config.hashCode()
+
+    override fun toString(): String = "ConstraintDraft(type=$type, config=$config)"
 }
 
 internal val constraintTypeOptions = listOf(
@@ -141,7 +155,10 @@ fun ConstraintTypePickerDialog(
     // Google 2026: selection tasks open as a full-height modal bottom sheet.
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        sheetState = rememberBottomSheetState(
+            initialValue = SheetValue.Hidden,
+            enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+        )
     ) {
         Text(
             text = stringResource(R.string.add_constraint),
@@ -231,8 +248,8 @@ fun ConstraintEditorCard(
     onDragDelta: (Float) -> Unit = {},
     onDragEnd: () -> Unit = {}
 ) {
-    // Fixed header row; tapping it expands the options below. Expand-only:
-    // once opened the card never collapses, so the list only grows downward.
+    // صف ملخص ثابت: يفتح المستخدم الإعداد عند الحاجة ويطويه بعد الانتهاء
+    // حتى تبقى قائمة الشروط قابلة للمسح البصري.
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     NexaFlowCard(modifier = modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -242,7 +259,7 @@ fun ConstraintEditorCard(
                     .fillMaxWidth()
                     // X + reorder handle pinned to the LEFT, row number to the
                     // RIGHT, regardless of the locale direction.
-                    .clickable(enabled = !expanded) { expanded = true },
+                    .clickable { expanded = !expanded },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -273,13 +290,11 @@ fun ConstraintEditorCard(
                     modifier = Modifier.weight(1f)
                 )
                 TaskNumberBadge(number = index + 1)
-                if (!expanded) {
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowDown,
-                        contentDescription = stringResource(R.string.expand_options),
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                }
+                Icon(
+                    imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                    contentDescription = stringResource(if (expanded) R.string.collapse_options else R.string.expand_options),
+                    tint = MaterialTheme.colorScheme.outline
+                )
             }
             }
             if (expanded) {
@@ -348,14 +363,12 @@ fun ConstraintEditorCard(
                         ConstraintType.DND -> stringResource(R.string.state_on)
                         ConstraintType.AIRPLANE -> stringResource(R.string.state_on)
                         ConstraintType.LOCATION -> stringResource(R.string.state_on)
-                        else -> stringResource(R.string.state_on)
                     }
                     val offLabel = when (draft.type) {
                         ConstraintType.BLUETOOTH -> stringResource(R.string.state_off)
                         ConstraintType.DND -> stringResource(R.string.state_off)
                         ConstraintType.AIRPLANE -> stringResource(R.string.state_off)
                         ConstraintType.LOCATION -> stringResource(R.string.state_off)
-                        else -> stringResource(R.string.state_off)
                     }
                     Text(
                         text = stringResource(R.string.constraint_state_label),

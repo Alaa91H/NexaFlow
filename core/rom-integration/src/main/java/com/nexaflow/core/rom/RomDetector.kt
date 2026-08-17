@@ -36,13 +36,13 @@ object RomDetector {
         )
         return RomBuildInfo(
             family = RomFamily.OTHER,
-            brand = v.brand ?: "",
-            device = v.device ?: "",
-            model = v.model ?: "",
-            androidVersion = v.release ?: "",
-            securityPatch = v.securityPatch ?: "",
-            buildId = v.id ?: "",
-            buildDisplay = v.display ?: "",
+            brand = v.brand,
+            device = v.device,
+            model = v.model,
+            androidVersion = v.release,
+            securityPatch = v.securityPatch,
+            buildId = v.id,
+            buildDisplay = v.display,
             androidSdk = v.sdkInt
         )
     }

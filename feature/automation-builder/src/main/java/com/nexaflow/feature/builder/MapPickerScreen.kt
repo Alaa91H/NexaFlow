@@ -2,10 +2,13 @@ package com.nexaflow.feature.builder
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.webkit.JavascriptInterface
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.Arrangement
@@ -37,7 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -56,8 +59,10 @@ import com.nexaflow.core.engine.LocationAccess
 import com.nexaflow.core.ui.NexaFlowTopBar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.util.Locale
+import kotlin.coroutines.resume
 
 private const val MAP_MIN_RADIUS_M = 50
 private const val MAP_MAX_RADIUS_M = 2000
@@ -92,15 +97,12 @@ fun MapPickerScreen(navController: NavController) {
         previous?.savedStateHandle?.get<String>("map_picker_init")
             ?.split(',')?.mapNotNull { it.trim().toDoubleOrNull() }
     }
-    val hasInitPoint = initValues != null && initValues.size >= 2
-
+    val initialPoint = initValues
+        ?.takeIf { it.size >= 2 }
+        ?.let { LatLng(it[0], it[1]) }
     var currentMap by remember { mutableStateOf<GoogleMap?>(null) }
     var mapRequested by remember { mutableStateOf(false) }
-    var markerPos by remember {
-        mutableStateOf(
-            if (hasInitPoint) LatLng(initValues!![0], initValues!![1]) else null
-        )
-    }
+    var markerPos by remember { mutableStateOf(initialPoint) }
     var radius by remember {
         mutableStateOf(
             (initValues?.getOrNull(2)?.toInt() ?: 100)
@@ -202,11 +204,12 @@ fun MapPickerScreen(navController: NavController) {
 
                     override fun onReceivedError(
                         view: WebView?,
-                        errorCode: Int,
-                        description: String?,
-                        failingUrl: String?
+                        request: WebResourceRequest?,
+                        error: WebResourceError?
                     ) {
-                        searchError = mapNoKeyText
+                        if (request?.isForMainFrame != false) {
+                            searchError = mapNoKeyText
+                        }
                     }
                 }
                 loadUrl("file:///android_asset/map_picker.html")
@@ -283,8 +286,8 @@ fun MapPickerScreen(navController: NavController) {
                 circle?.center = m.position
             }
         })
-        if (hasInitPoint) {
-            placePoint(LatLng(initValues!![0], initValues!![1]))
+        if (initialPoint != null) {
+            placePoint(initialPoint)
         } else {
             // Default view: try the device location, else a broad world view.
             scope.launch {
@@ -303,13 +306,10 @@ fun MapPickerScreen(navController: NavController) {
         scope.launch {
             searchError = null
             val result = withContext(Dispatchers.IO) {
-                runCatching {
-                    android.location.Geocoder(context).getFromLocationName(query.trim(), 1)
-                        ?.firstOrNull()?.let { it.latitude to it.longitude }
-                }.getOrNull()
+                runCatching { geocodeLocation(context, query.trim()) }.getOrNull()
             }
             if (result != null) {
-                placePoint(LatLng(result.first, result.second))
+                placePoint(result)
             } else {
                 searchError = mapSearchNotFoundText
             }
@@ -389,11 +389,7 @@ fun MapPickerScreen(navController: NavController) {
                         if (!mapRequested) {
                             mapRequested = true
                             view.getMapAsync { g ->
-                                if (g != null) {
-                                    setupMap(g)
-                                } else {
-                                    googleFailed = true
-                                }
+                                setupMap(g)
                             }
                         }
                     }
@@ -458,5 +454,25 @@ fun MapPickerScreen(navController: NavController) {
                 modifier = Modifier.padding(start = 4.dp)
             )
         }
+    }
+}
+
+private suspend fun geocodeLocation(context: Context, query: String): LatLng? {
+    val geocoder = android.location.Geocoder(context)
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        suspendCancellableCoroutine { continuation ->
+            geocoder.getFromLocationName(query, 1) { addresses ->
+                if (continuation.isActive) {
+                    continuation.resume(
+                        addresses.firstOrNull()?.let { LatLng(it.latitude, it.longitude) }
+                    )
+                }
+            }
+        }
+    } else {
+        @Suppress("DEPRECATION")
+        geocoder.getFromLocationName(query, 1)
+            ?.firstOrNull()
+            ?.let { LatLng(it.latitude, it.longitude) }
     }
 }

@@ -27,13 +27,13 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BrightnessLow
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Contrast
 import androidx.compose.material.icons.filled.GpsFixed
 import androidx.compose.material.icons.filled.Gradient
@@ -289,7 +289,7 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_clipboard, R.string.action_clipboard_sub, Icons.Filled.ContentPaste, ActionType.SYSTEM_CLIPBOARD_SET, ActionCategory.SYSTEM),
     ActionOption(R.string.action_set_setting, R.string.action_set_setting_sub, Icons.Filled.Tune, ActionType.SYSTEM_SET_SETTING, ActionCategory.SYSTEM),
     ActionOption(R.string.action_screenshot, R.string.action_screenshot_sub, Icons.Filled.CameraAlt, ActionType.SYSTEM_SCREENSHOT, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_input_text, R.string.action_input_text_sub, Icons.Filled.Chat, ActionType.SYSTEM_INPUT_TEXT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_input_text, R.string.action_input_text_sub, Icons.AutoMirrored.Filled.Chat, ActionType.SYSTEM_INPUT_TEXT, ActionCategory.SYSTEM),
     ActionOption(R.string.action_key_event, R.string.action_key_event_sub, Icons.Filled.Build, ActionType.SYSTEM_KEY_EVENT, ActionCategory.SYSTEM),
     ActionOption(R.string.action_input_tap, R.string.action_input_tap_sub, Icons.Filled.GpsFixed, ActionType.SYSTEM_INPUT_TAP, ActionCategory.SYSTEM),
     ActionOption(R.string.action_input_swipe, R.string.action_input_swipe_sub, Icons.AutoMirrored.Filled.ArrowForward, ActionType.SYSTEM_INPUT_SWIPE, ActionCategory.SYSTEM),
@@ -679,6 +679,8 @@ private fun SelectedActionCard(
     total: Int,
     config: Map<String, String>,
     onConfigChange: (Map<String, String>) -> Unit,
+    endBehavior: EndBehavior?,
+    onEndBehaviorChange: (EndBehavior?) -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
     onRemove: () -> Unit,
@@ -772,6 +774,14 @@ private fun SelectedActionCard(
                 availableVariables = availableVariables,
                 onPluginConfigure = onPluginConfigure,
                 automations = automations
+            )
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            // يبقى سلوك الانتهاء بجوار الإجراء الذي سيتأثر به، بدلاً من
+            // تكرار قائمة ثانية في آخر الصفحة تُفقد المستخدم السياق.
+            EndBehaviorEditor(
+                actionType = option.actionType,
+                behavior = endBehavior,
+                onBehaviorChange = onEndBehaviorChange
             )
             PermissionHintForAction(
                 actionType = option.actionType,
@@ -1080,36 +1090,41 @@ fun AutomationBuilderScreen(
     // Receive the icon picked in IconPickerScreen. The handle must stay bound
     // to THIS builder entry (see stableSavedStateHandle above).
     DisposableEffect(stableSavedStateHandle) {
-        val observer = Observer<Int> { index ->
-            selectedIconIndex = index
-        }
-        stableSavedStateHandle?.getLiveData<Int>("selected_icon")?.observeForever(observer)
-        val colorObserver = Observer<Long> { color ->
-            selectedIconColor = color
-        }
-        stableSavedStateHandle?.getLiveData<Long>("selected_color")?.observeForever(colorObserver)
-        val locationObserver = Observer<String> { value ->
-            val coords = value.split(',')
-            val lat = coords.getOrNull(0)?.toDoubleOrNull()
-            val lng = coords.getOrNull(1)?.toDoubleOrNull()
-            val index = stableSavedStateHandle?.get<Int>("map_picker_target") ?: return@Observer
-            if (lat != null && lng != null && index in triggers.indices) {
-                val radius = stableSavedStateHandle?.get<String>("picked_radius")?.toIntOrNull()
-                triggers[index] = triggers[index].copy(
-                    config = triggers[index].config +
-                        ("lat" to lat.toString()) +
-                        ("lng" to lng.toString()) +
-                        (if (radius != null) mapOf("radius" to radius.toString()) else emptyMap()) +
-                        ("source" to "map")
-                )
-                stableSavedStateHandle?.set("map_picker_target", null)
+        val handle = stableSavedStateHandle
+        if (handle == null) {
+            onDispose { }
+        } else {
+            val observer = Observer<Int> { index ->
+                selectedIconIndex = index
             }
-        }
-        stableSavedStateHandle?.getLiveData<String>("picked_location")?.observeForever(locationObserver)
-        onDispose {
-            stableSavedStateHandle?.getLiveData<Int>("selected_icon")?.removeObserver(observer)
-            stableSavedStateHandle?.getLiveData<Long>("selected_color")?.removeObserver(colorObserver)
-            stableSavedStateHandle?.getLiveData<String>("picked_location")?.removeObserver(locationObserver)
+            handle.getLiveData<Int>("selected_icon").observeForever(observer)
+            val colorObserver = Observer<Long> { color ->
+                selectedIconColor = color
+            }
+            handle.getLiveData<Long>("selected_color").observeForever(colorObserver)
+            val locationObserver = Observer<String> { value ->
+                val coords = value.split(',')
+                val lat = coords.getOrNull(0)?.toDoubleOrNull()
+                val lng = coords.getOrNull(1)?.toDoubleOrNull()
+                val index = handle.get<Int>("map_picker_target") ?: return@Observer
+                if (lat != null && lng != null && index in triggers.indices) {
+                    val radius = handle.get<String>("picked_radius")?.toIntOrNull()
+                    triggers[index] = triggers[index].copy(
+                        config = triggers[index].config +
+                            ("lat" to lat.toString()) +
+                            ("lng" to lng.toString()) +
+                            (if (radius != null) mapOf("radius" to radius.toString()) else emptyMap()) +
+                            ("source" to "map")
+                    )
+                    handle.set("map_picker_target", null)
+                }
+            }
+            handle.getLiveData<String>("picked_location").observeForever(locationObserver)
+            onDispose {
+                handle.getLiveData<Int>("selected_icon").removeObserver(observer)
+                handle.getLiveData<Long>("selected_color").removeObserver(colorObserver)
+                handle.getLiveData<String>("picked_location").removeObserver(locationObserver)
+            }
         }
     }
 
@@ -1120,27 +1135,26 @@ fun AutomationBuilderScreen(
     // and re-opening the task.
     val lifecycleOwner = LocalLifecycleOwner.current
     var permissionRefreshTick by remember { mutableStateOf(0) }
-    DisposableEffect(lifecycleOwner) {
+    DisposableEffect(lifecycleOwner, stableSavedStateHandle) {
+        val handle = stableSavedStateHandle
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 permissionRefreshTick++
-                // Coming back from the picker: the handle always holds the
-                // latest pick even if the LiveData observer missed the event,
-                // so re-apply it to keep the badge in sync.
-                stableSavedStateHandle?.get<Int>("selected_icon")?.let {
+                // Coming back from the picker: re-read the latest value from
+                // the builder entry whenever a stable handle is available.
+                handle?.get<Int>("selected_icon")?.let {
                     if (it in NexaFlowIcons.all.indices) selectedIconIndex = it
                 }
-                stableSavedStateHandle?.get<Long>("selected_color")?.let {
+                handle?.get<Long>("selected_color")?.let {
                     selectedIconColor = it
                 }
-                // Same for a location picked on the embedded map.
-                stableSavedStateHandle?.get<String>("picked_location")?.let { value ->
+                handle?.get<String>("picked_location")?.let { value ->
                     val coords = value.split(',')
                     val lat = coords.getOrNull(0)?.toDoubleOrNull()
                     val lng = coords.getOrNull(1)?.toDoubleOrNull()
-                    val index = stableSavedStateHandle?.get<Int>("map_picker_target")
+                    val index = handle.get<Int>("map_picker_target")
                     if (lat != null && lng != null && index != null && index in triggers.indices) {
-                        val radius = stableSavedStateHandle?.get<String>("picked_radius")?.toIntOrNull()
+                        val radius = handle.get<String>("picked_radius")?.toIntOrNull()
                         triggers[index] = triggers[index].copy(
                             config = triggers[index].config +
                                 ("lat" to lat.toString()) +
@@ -1148,7 +1162,7 @@ fun AutomationBuilderScreen(
                                 (if (radius != null) mapOf("radius" to radius.toString()) else emptyMap()) +
                                 ("source" to "map")
                         )
-                        stableSavedStateHandle?.set("map_picker_target", null)
+                        handle.set("map_picker_target", null)
                     }
                 }
             }
@@ -1613,6 +1627,8 @@ fun AutomationBuilderScreen(
                     total = selectedActions.size,
                     config = actionConfigs[option.actionType] ?: emptyMap(),
                     onConfigChange = { actionConfigs[option.actionType] = it },
+                    endBehavior = actionEndBehaviors[option.actionType],
+                    onEndBehaviorChange = { actionEndBehaviors[option.actionType] = it },
                     onMoveUp = { moveAction(index, index - 1) },
                     onMoveDown = { moveAction(index, index + 1) },
                     onRemove = {
@@ -1638,38 +1654,6 @@ fun AutomationBuilderScreen(
                 )
             }
 
-                    // ── When the task ends: anchored at the absolute bottom of
-                    //    the builder and structurally linked to every execution
-                    //    action above — the final step of the work path. Once
-                    //    any card above is opened it stays open, so this section
-                    //    never hides or changes expanded content.
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SectionHeader(text = stringResource(R.string.section_exit_behavior))
-                    // Every executed action appears here with its own end options, so the
-                    // section truly gathers all the tasks the user just configured.
-                    val endActions = selectedActions
-                    if (endActions.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.exit_nothing_sub),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    } else {
-                        endActions.forEach { option ->
-                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text(
-                                    text = stringResource(option.titleRes),
-                                    style = MaterialTheme.typography.titleSmall
-                                )
-                                EndBehaviorEditor(
-                                    actionType = option.actionType,
-                                    behavior = actionEndBehaviors[option.actionType],
-                                    onBehaviorChange = { actionEndBehaviors[option.actionType] = it },
-                                    showLabel = false
-                                )
-                            }
-                        }
-                    }
                     }
                 }
             }

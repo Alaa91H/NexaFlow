@@ -45,7 +45,7 @@ import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.core.content.FileProvider
 import java.io.File
 import androidx.compose.material.icons.filled.Upload
@@ -484,7 +484,7 @@ fun SettingsScreen(navController: NavController) {
                         onClick = { openEmail(context, DEV_EMAIL) }
                     )
                     SettingRow(
-                        icon = Icons.Filled.Send,
+                        icon = Icons.AutoMirrored.Filled.Send,
                         title = stringResource(R.string.about_telegram),
                         subtitle = stringResource(R.string.about_telegram_sub),
                         onClick = { openUrl(context, DEV_TELEGRAM_URL) }

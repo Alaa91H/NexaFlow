@@ -8,7 +8,20 @@ import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 
 /** Raw shell actions executed through Shizuku or root. */
-class AdvancedActionsHandler : ActionHandler {
+class AdvancedActionsHandler(
+    /**
+     * Executes the runtime explicitly selected by the action when no compatible
+     * provider was selected for the current run. Keeping this dependency at the
+     * routing boundary makes routing tests independent of the host's root state.
+     */
+    private val explicitRuntimeRunner: (ActionType, String) -> SystemControlResult = { type, command ->
+        when (type) {
+            ActionType.ADVANCED_SHIZUKU -> PrivilegedRunner.runShizuku(command)
+            ActionType.ADVANCED_ROOT -> PrivilegedRunner.runRoot(command)
+            else -> SystemControlResult.fail("Unsupported action $type")
+        }
+    }
+) : ActionHandler {
     override val supportedTypes: Set<ActionType> = setOf(
         ActionType.ADVANCED_SHIZUKU,
         ActionType.ADVANCED_ROOT
@@ -41,10 +54,6 @@ class AdvancedActionsHandler : ActionHandler {
         if (channel != null && channel.hasShellAccess && channel.type == expected) {
             return channel.execute(command)
         }
-        return when (type) {
-            ActionType.ADVANCED_SHIZUKU -> PrivilegedRunner.runShizuku(command)
-            ActionType.ADVANCED_ROOT -> PrivilegedRunner.runRoot(command)
-            else -> SystemControlResult.fail("Unsupported action $type")
-        }
+        return explicitRuntimeRunner(type, command)
     }
 }

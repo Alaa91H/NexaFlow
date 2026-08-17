@@ -22,7 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddToHomeScreen
+import androidx.compose.material.icons.automirrored.filled.AddToHomeScreen
 import androidx.compose.material.icons.filled.AirplanemodeActive
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.BatteryChargingFull
@@ -147,7 +147,7 @@ fun AutomationDetailsScreen(navController: NavController) {
                         }
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.AddToHomeScreen,
+                            imageVector = Icons.AutoMirrored.Filled.AddToHomeScreen,
                             contentDescription = stringResource(R.string.add_shortcut)
                         )
                     }

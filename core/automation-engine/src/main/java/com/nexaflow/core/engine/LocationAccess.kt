@@ -8,7 +8,6 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
-import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
 import androidx.core.content.ContextCompat
@@ -42,11 +41,7 @@ object LocationAccess {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 manager.isLocationEnabled
             } else {
-                Settings.Secure.getInt(
-                    context.contentResolver,
-                    Settings.Secure.LOCATION_MODE,
-                    MODE_OFF
-                ) != MODE_OFF
+                legacyLocationMode(context) != MODE_OFF
             }
         } catch (_: Throwable) {
             false
@@ -60,13 +55,12 @@ object LocationAccess {
             PackageManager.PERMISSION_GRANTED
     }
 
-    fun currentLocationMode(context: Context): Int {
-        return try {
-            Settings.Secure.getInt(context.contentResolver, Settings.Secure.LOCATION_MODE, MODE_OFF)
-        } catch (_: Throwable) {
-            MODE_OFF
+    fun currentLocationMode(context: Context): Int =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if (isLocationEnabled(context)) MODE_HIGH_ACCURACY else MODE_OFF
+        } else {
+            legacyLocationMode(context)
         }
-    }
 
     /**
      * Turns location on without any user interaction, if an elevated runtime is
@@ -92,20 +86,30 @@ object LocationAccess {
 
     private fun setLocationModeSilently(context: Context, mode: Int): Boolean {
         // Fastest path: WRITE_SECURE_SETTINGS (adb-grantable) writes directly.
-        if (ContextCompat.checkSelfPermission(
+        if (
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.P &&
+            ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.WRITE_SECURE_SETTINGS
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            return try {
-                Settings.Secure.putInt(context.contentResolver, Settings.Secure.LOCATION_MODE, mode)
-            } catch (_: Throwable) {
-                false
-            }
+            return setLegacyLocationMode(context, mode)
         }
         // Elevated runtime path (Shizuku or root): `settings put secure ...`.
         return PrivilegedRunner.runShell("settings put secure location_mode $mode").success
     }
+
+    @Suppress("DEPRECATION")
+    private fun legacyLocationMode(context: Context): Int =
+        runCatching {
+            Settings.Secure.getInt(context.contentResolver, Settings.Secure.LOCATION_MODE, MODE_OFF)
+        }.getOrDefault(MODE_OFF)
+
+    @Suppress("DEPRECATION")
+    private fun setLegacyLocationMode(context: Context, mode: Int): Boolean =
+        runCatching {
+            Settings.Secure.putInt(context.contentResolver, Settings.Secure.LOCATION_MODE, mode)
+        }.getOrDefault(false)
 
     /** Opens the system location settings screen (user taps the switch once). */
     fun openLocationSettings(context: Context) {
@@ -140,24 +144,12 @@ object LocationAccess {
 
                 val listener = object : LocationListener {
                     override fun onLocationChanged(location: Location) {
-                        if (continuation.isActive) {
-                            continuation.resume(location)
-                        }
-                    }
-
-                    override fun onProviderEnabled(provider: String) = Unit
-
-                    override fun onProviderDisabled(provider: String) = Unit
-
-                    @Deprecated("Deprecated in Java")
-                    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) = Unit
-                }
-
-                fun cleanUp() {
-                    enabledProviders.forEach { provider ->
-                        runCatching { manager.removeUpdates(listener) }
+                        runCatching { manager.removeUpdates(this) }
+                        if (continuation.isActive) continuation.resume(location)
                     }
                 }
+
+                fun cleanUp() = runCatching { manager.removeUpdates(listener) }
 
                 if (enabledProviders.isEmpty()) {
                     // No live provider: return the most recent cached fix, if any.
@@ -171,7 +163,7 @@ object LocationAccess {
 
                 enabledProviders.forEach { provider ->
                     runCatching {
-                        manager.requestSingleUpdate(provider, listener, Looper.getMainLooper())
+                        manager.requestLocationUpdates(provider, 0L, 0f, listener, Looper.getMainLooper())
                     }
                 }
                 continuation.invokeOnCancellation { cleanUp() }

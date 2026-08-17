@@ -201,8 +201,8 @@ class SystemController(
     // cannot prove the SDK-conditional guard, so the suppression is scoped here.
     @SuppressLint("MissingPermission")
     fun setBluetooth(enabled: Boolean): SystemControlResult {
-        val adapter = BluetoothAdapter.getDefaultAdapter()
-            ?: return SystemControlResult.fail("Bluetooth is not available")
+        val adapter = context.getSystemService(android.bluetooth.BluetoothManager::class.java)
+            ?.adapter ?: return SystemControlResult.fail("Bluetooth is not available")
         val hasPermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
             ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) ==
             PackageManager.PERMISSION_GRANTED
@@ -502,7 +502,7 @@ class SystemController(
                 val written = runCatching {
                     Settings.System.putInt(
                         context.contentResolver,
-                        Settings.System.VIBRATE_WHEN_RINGING,
+                        "vibrate_when_ringing",
                         if (vibrateOn) 1 else 0
                     )
                 }.getOrDefault(false)
@@ -1553,7 +1553,10 @@ class SystemController(
     fun togglePip(): SystemControlResult {
         return try {
             val activity = context as? android.app.Activity ?: return SystemControlResult.fail("Not an activity context")
-            activity.enterPictureInPictureMode()
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                return SystemControlResult.fail("Picture-in-picture requires Android 8 or newer")
+            }
+            activity.enterPictureInPictureMode(android.app.PictureInPictureParams.Builder().build())
             SystemControlResult.ok("PiP toggled")
         } catch (t: Throwable) {
             SystemControlResult.fail("PiP failed: ${t.message}")
@@ -1690,10 +1693,22 @@ class SystemController(
     fun toggleStatusBar(show: Boolean): SystemControlResult {
         return try {
             val activity = context as? android.app.Activity ?: return SystemControlResult.fail("Not an activity context")
-            activity.window.decorView.systemUiVisibility =
-                if (show) android.view.View.SYSTEM_UI_FLAG_VISIBLE
-                else android.view.View.SYSTEM_UI_FLAG_FULLSCREEN or
-                    android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                val controller = activity.window.insetsController
+                if (show) {
+                    controller?.show(android.view.WindowInsets.Type.statusBars())
+                } else {
+                    controller?.hide(android.view.WindowInsets.Type.statusBars())
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                run {
+                    activity.window.decorView.systemUiVisibility =
+                        if (show) android.view.View.SYSTEM_UI_FLAG_VISIBLE
+                        else android.view.View.SYSTEM_UI_FLAG_FULLSCREEN or
+                            android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                }
+            }
             SystemControlResult.ok("Status bar ${if (show) "shown" else "hidden"}")
         } catch (t: Throwable) {
             SystemControlResult.fail("Status bar failed: ${t.message}")
@@ -1739,8 +1754,8 @@ class SystemController(
             }
         }
         return try {
-            val adapter = BluetoothAdapter.getDefaultAdapter()
-                ?: return SystemControlResult.fail("No Bluetooth")
+            val adapter = context.getSystemService(android.bluetooth.BluetoothManager::class.java)
+                ?.adapter ?: return SystemControlResult.fail("No Bluetooth")
             if (!adapter.startDiscovery()) return SystemControlResult.fail("Discovery already running")
             SystemControlResult.ok("Bluetooth discovery started")
         } catch (t: Throwable) {
@@ -1748,11 +1763,19 @@ class SystemController(
         }
     }
 
-    /** Triggers an immediate Wi-Fi scan. */
+    /** Triggers an immediate Wi-Fi scan. Android 9+ requires an elevated runtime. */
     fun wifiScanNow(): SystemControlResult {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            return tryPrivileged(
+                command = SafeCommandBuilder.build("cmd", "wifi", "start-scan"),
+                successMessage = "Wi-Fi scan started"
+            )
+        }
         return try {
             val wifi = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
-            if (!wifi.startScan()) return SystemControlResult.fail("Scan unavailable")
+            @Suppress("DEPRECATION")
+            val started = wifi.startScan()
+            if (!started) return SystemControlResult.fail("Scan unavailable")
             SystemControlResult.ok("Wi-Fi scan started")
         } catch (t: Throwable) {
             SystemControlResult.fail("Wi-Fi scan failed: ${t.message}")

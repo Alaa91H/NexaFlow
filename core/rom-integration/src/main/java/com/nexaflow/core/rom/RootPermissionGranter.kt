@@ -8,6 +8,7 @@ import android.content.pm.PermissionInfo
 import android.os.Build
 import android.os.Process
 import android.provider.Settings
+import androidx.annotation.RequiresApi
 import com.nexaflow.core.rom.model.SystemControlResult
 
 /**
@@ -285,12 +286,21 @@ object RootPermissionGranter {
             )
             info.requestedPermissions
                 ?.filter { p ->
-                    val pi = context.packageManager.getPermissionInfo(p, 0)
-                    (pi.protectionLevel and PermissionInfo.PROTECTION_MASK_BASE) ==
-                        PermissionInfo.PROTECTION_DANGEROUS
+                    context.packageManager.getPermissionInfo(p, 0)
+                        .isDangerousRuntimePermission()
                 }
                 .orEmpty()
         }.getOrDefault(emptyList())
+    }
+
+    private fun PermissionInfo.isDangerousRuntimePermission(): Boolean {
+        val protection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            protection
+        } else {
+            @Suppress("DEPRECATION")
+            protectionLevel and PermissionInfo.PROTECTION_MASK_BASE
+        }
+        return protection == PermissionInfo.PROTECTION_DANGEROUS
     }
 
     private fun isRuntimeGranted(context: Context, permission: String): Boolean =
@@ -326,15 +336,29 @@ object RootPermissionGranter {
     private fun isUsageStatsOpAllowed(context: Context, op: String): Boolean {
         return runCatching {
             val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as android.app.AppOpsManager
-            val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                appOps.unsafeCheckOpNoThrow(op, Process.myUid(), context.packageName)
+            val mode = if (Build.VERSION.SDK_INT >= 36) {
+                checkOpNoThrowWithAttribution(appOps, context, op)
             } else {
+                // The three-argument overload remains the compatible API through
+                // Android 15. It is retained solely for pre-36 devices.
                 @Suppress("DEPRECATION")
                 appOps.checkOpNoThrow(op, Process.myUid(), context.packageName)
             }
             mode == android.app.AppOpsManager.MODE_ALLOWED
         }.getOrDefault(false)
     }
+
+    @RequiresApi(36)
+    private fun checkOpNoThrowWithAttribution(
+        appOps: android.app.AppOpsManager,
+        context: Context,
+        op: String
+    ): Int = appOps.checkOpNoThrow(
+        op,
+        Process.myUid(),
+        context.packageName,
+        context.attributionTag
+    )
 
     /** Special permissions granted through `appops set ... allow`. */
     internal fun specialAppOps(): List<Pair<String, String>> {

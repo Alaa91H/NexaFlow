@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.hilt.android) apply false
     alias(libs.plugins.ksp) apply false
     // P2-8: static analysis gate (Detekt).
-    id("io.gitlab.arturbosch.detekt") version "1.23.8" apply false
+    id("dev.detekt") version "2.0.0-alpha.6" apply false
 }
 
 // Centralized Detekt configuration: every module applies the plugin and picks
@@ -16,12 +16,12 @@ plugins {
 // of them so one `./gradlew detekt` gates the whole codebase.
 val detektConfigDir = rootProject.file("config/detekt")
 subprojects {
-    apply(plugin = "io.gitlab.arturbosch.detekt")
-    extensions.configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
+    apply(plugin = "dev.detekt")
+    extensions.configure<dev.detekt.gradle.extensions.DetektExtension> {
         config.setFrom(files("$detektConfigDir/detekt.yml"))
-        buildUponDefaultConfig = true
-        ignoreFailures = false
-        parallel = true
+        buildUponDefaultConfig.set(true)
+        ignoreFailures.set(false)
+        parallel.set(true)
     }
 }
 

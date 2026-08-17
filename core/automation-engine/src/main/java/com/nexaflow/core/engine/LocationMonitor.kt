@@ -218,8 +218,10 @@ class LocationMonitor @Inject constructor(
                         "EXIT" -> inside && activeStates[automation.id] == true
                         else -> false
                     }
-                    if (activeShouldEnd && now - (lastRunAt[automation.id] ?: 0L) > automation.cooldownMillis) {
-                        lastRunAt[automation.id] = now
+                    // Cooldown guards repeated entries only. Once a task is
+                    // active, its configured end behavior must run immediately
+                    // when the location condition ends, even during cooldown.
+                    if (activeShouldEnd) {
                         activeStates.remove(automation.id)
                         activeStore.clearAutomation(SOURCE, automation.id)
                         executionEngine.runExit(automation)

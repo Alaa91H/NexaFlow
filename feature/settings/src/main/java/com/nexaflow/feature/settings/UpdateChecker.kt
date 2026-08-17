@@ -33,6 +33,8 @@ data class UpdateInfo(
  * the network calls run on [kotlinx.coroutines.Dispatchers.IO].
  */
 object UpdateChecker {
+    private const val APK_MIME_TYPE = "application/vnd.android.package-archive"
+
 
     /** GitHub repo in `owner/name` form. */
     const val REPO = "Alaa91H/NexaFlow"
@@ -178,8 +180,8 @@ object UpdateChecker {
     }
 
     /**
-     * Hands [apk] to the system installer (ACTION_INSTALL_PACKAGE through the
-     * FileProvider). The user confirms the install in the system dialog.
+     * Hands [apk] to the system installer through a FileProvider URI. The user
+     * confirms the installation in the system dialog.
      */
     fun install(context: Context, apk: File): Boolean = runCatching {
         val uri: Uri = FileProvider.getUriForFile(
@@ -187,9 +189,9 @@ object UpdateChecker {
             "${context.packageName}.fileprovider",
             apk
         )
-        val intent = Intent(Intent.ACTION_INSTALL_PACKAGE).apply {
-            data = uri
-            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, APK_MIME_TYPE)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
         }
         context.startActivity(intent)

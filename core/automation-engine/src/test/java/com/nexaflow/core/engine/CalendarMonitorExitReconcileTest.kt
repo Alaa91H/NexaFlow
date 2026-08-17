@@ -10,6 +10,7 @@ import android.database.MatrixCursor
 import android.net.Uri
 import android.provider.CalendarContract
 import androidx.test.core.app.ApplicationProvider
+import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
@@ -123,7 +124,10 @@ class CalendarMonitorExitReconcileTest {
         context = ApplicationProvider.getApplicationContext()
         // Robolectric shares one Application (and its DataStore cache) across
         // test methods, so reset the calendar source for isolation.
-        runBlocking { ActiveTriggerStore(context).clearSource("calendar") }
+        runBlocking {
+            ActiveTriggerStore(context).clearSource("calendar")
+            ActiveExecutionStore(context).clear("cal-task")
+        }
         // The monitor's rescan gates on READ_CALENDAR; grant it explicitly so
         // the reconcile path is exercised regardless of manifest merging.
         shadowOf(context as Application).grantPermissions(Manifest.permission.READ_CALENDAR)
@@ -166,6 +170,7 @@ class CalendarMonitorExitReconcileTest {
         // the process died. The calendar now returns nothing — the occurrence
         // ended during downtime.
         store.markActive("calendar", "cal-task|7:1234567890000")
+        ActiveExecutionStore(context).markStarted("cal-task")
         registerProvider(emptyList())
 
         val monitor = monitorFor(repository, engine, store)
