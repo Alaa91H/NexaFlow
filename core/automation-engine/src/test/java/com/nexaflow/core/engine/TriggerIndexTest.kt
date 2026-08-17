@@ -96,6 +96,11 @@ class TriggerIndexTest {
     }
 
     @Test
+    fun `NFC tag scans map to the device source that owns NFC broadcasts`() {
+        assertEquals("device", sourceOf(TriggerType.NFC_TAG_SCANNED))
+    }
+
+    @Test
     fun `network mode and rom setting map to their canonical sources`() = runTest {
         val net = automation("net", triggerTypes = listOf(TriggerType.NETWORK_MODE))
         val rom = automation("rom", triggerTypes = listOf(TriggerType.ROM_SETTING))

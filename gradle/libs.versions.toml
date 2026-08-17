@@ -21,10 +21,10 @@ v2_6_2 = "2.6.2"
 v2_60_1 = "2.60.1"
 v2_8_4 = "2.8.4"
 v2_9_8 = "2.9.8"
-v20240303 = "20240303"
+v20260814 = "20260814"
 v2026_08_00 = "2026.08.00"
 vM3_1_5_0_alpha26 = "1.5.0-alpha26"
-v3_4_1 = "3.4.1"
+v3_5_1 = "3.5.1"
 v3_7_0 = "3.7.0"
 v4_13_2 = "4.13.2"
 v4_17_beta2 = "4.17-beta-2"
@@ -62,9 +62,9 @@ androidx-navigation-navigation-compose = { module = "androidx.navigation:navigat
 androidx-profileinstaller-profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "v1_4_1" }
 androidx-room-room-compiler = { module = "androidx.room:room-compiler", version.ref = "v2_8_4" }
 androidx-room-room-ktx = { module = "androidx.room:room-ktx", version.ref = "v2_8_4" }
-androidx-paging-paging-common = { module = "androidx.paging:paging-common", version.ref = "v3_4_1" }
-androidx-paging-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "v3_4_1" }
-androidx-paging-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "v3_4_1" }
+androidx-paging-paging-common = { module = "androidx.paging:paging-common", version.ref = "v3_5_1" }
+androidx-paging-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "v3_5_1" }
+androidx-paging-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "v3_5_1" }
 androidx-room-room-paging = { module = "androidx.room:room-paging", version.ref = "v2_8_4" }
 androidx-room-room-runtime = { module = "androidx.room:room-runtime", version.ref = "v2_8_4" }
 androidx-room-room-testing = { module = "androidx.room:room-testing", version.ref = "v2_8_4" }
@@ -90,7 +90,7 @@ org-jetbrains-kotlinx-kotlinx-coroutines-core = { module = "org.jetbrains.kotlin
 org-jetbrains-kotlinx-kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "v1_11_0" }
 org-jetbrains-kotlinx-kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "v1_9_0" }
 org-jetbrains-kotlinx-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "v1_9_0" }
-org-json-json = { module = "org.json:json", version.ref = "v20240303" }
+org-json-json = { module = "org.json:json", version.ref = "v20260814" }
 org-robolectric-robolectric = { module = "org.robolectric:robolectric", version.ref = "v4_17_beta2" }
 
 [plugins]

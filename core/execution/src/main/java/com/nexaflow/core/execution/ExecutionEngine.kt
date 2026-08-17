@@ -28,6 +28,7 @@ import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.repositories.HistoryRepository
 import com.nexaflow.domain.repositories.VariableRepository
 import com.nexaflow.domain.variables.VariableResolver
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import java.util.UUID
 
@@ -393,18 +394,29 @@ class ExecutionEngine(
     ): SystemControlResult {
         val handler = actionRegistry.handlerFor(action.type)
             ?: return SystemControlResult.fail("No handler registered for ${action.type}")
-        return handler.execute(
-            action,
-            ActionExecutionContext(
-                appContext = context,
-                controller = controller,
-                notificationSettings = notif,
-                channel = channel,
-                automationId = automationId,
-                revertOnExit = revertOnExit,
-                runContext = runContext
+        return try {
+            handler.execute(
+                action,
+                ActionExecutionContext(
+                    appContext = context,
+                    controller = controller,
+                    notificationSettings = notif,
+                    channel = channel,
+                    automationId = automationId,
+                    revertOnExit = revertOnExit,
+                    runContext = runContext
+                )
             )
-        )
+        } catch (cancellation: CancellationException) {
+            // Cancellation is control flow, not an action failure. Preserve the
+            // caller's structured-concurrency contract.
+            throw cancellation
+        } catch (failure: Throwable) {
+            // Extension and OEM handlers run outside the engine's trust boundary.
+            // Convert an unexpected failure into a normal action result so the
+            // automation is recorded and its one-shot exit lifecycle remains valid.
+            SystemControlResult.fail(failure.message ?: "Action execution failed")
+        }
     }
 
     private suspend fun recordTimeline(

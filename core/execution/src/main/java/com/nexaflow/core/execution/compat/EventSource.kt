@@ -90,7 +90,7 @@ enum class TriggerSource(val sourceId: String) {
             TriggerType.DATA_ROAMING_STATE -> CONNECTIVITY
             TriggerType.TIMEZONE_CHANGED -> DEVICE
             TriggerType.BOOT_COMPLETED -> DEVICE
-            TriggerType.NFC_TAG_SCANNED -> CONNECTIVITY
+            TriggerType.NFC_TAG_SCANNED -> DEVICE
             TriggerType.ALARM_SET_CHANGED -> DEVICE
         }
     }

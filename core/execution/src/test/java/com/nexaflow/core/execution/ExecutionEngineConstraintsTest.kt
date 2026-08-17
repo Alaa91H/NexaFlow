@@ -50,6 +50,12 @@ class ExecutionEngineConstraintsTest {
         }
     }
 
+    private class ThrowingHandler : ActionHandler {
+        override val supportedTypes: Set<ActionType> = setOf(ActionType.SYSTEM_SEND_NOTIFICATION)
+        override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult =
+            throw IllegalStateException("handler exploded")
+    }
+
     private class RecordingHistory : HistoryRepository {
         val messages = mutableListOf<String>()
         override fun getExecutionHistory(): Flow<List<ExecutionRecord>> = flowOf(emptyList())
@@ -83,7 +89,7 @@ class ExecutionEngineConstraintsTest {
     )
 
     private fun engine(
-        handler: RecordingHandler,
+        handler: ActionHandler,
         history: RecordingHistory,
         state: ConstraintSnapshot
     ): ExecutionEngine = ExecutionEngine(
@@ -167,6 +173,21 @@ class ExecutionEngineConstraintsTest {
 
         assertEquals(1, handler.calls)
         assertTrue(record.message.contains("ok"))
+    }
+
+    @Test
+    fun `handler exception is recorded and leaves lifecycle armed for exit`() = runBlocking {
+        val history = RecordingHistory()
+        val automation = automation(emptyList())
+        val engine = engine(ThrowingHandler(), history, ConstraintSnapshot())
+
+        val failedRun = engine.runAutomation(automation)
+        val exitRecord = engine.runExit(automation)
+
+        assertTrue("handler failure must be represented in the execution record", !failedRun.success)
+        assertTrue(failedRun.message.contains("handler exploded"))
+        assertTrue("a started task still owns one exit lifecycle", exitRecord.message.contains("No exit behavior"))
+        assertTrue("failed run must remain visible in history", history.messages.any { it.contains("handler exploded") })
     }
 
     @Test

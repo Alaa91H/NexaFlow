@@ -12,13 +12,13 @@ import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.coroutineContext
 
 /**
  * Fires automations with a ROM_SETTING trigger when a real Evolution X /
@@ -47,21 +47,22 @@ class RomSettingMonitor @Inject constructor(
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
-    private var polling = false
+    @Volatile
+    private var pollingJob: Job? = null
     private val lastRunAt = mutableMapOf<String, Long>()
     /** Automations currently in their triggered state (to fire exit when it ends). */
     private val activeAutomations = mutableSetOf<String>()
 
+    @Synchronized
     fun initialize() {
-        if (polling) return
-        polling = true
-        scope.launch {
+        if (pollingJob?.isActive == true) return
+        pollingJob = scope.launch {
             // Re-arm the durable active set BEFORE the first poll: the poll
             // re-reads the real ROM value, so a task whose setting already
             // moved away while the process was down fires its missed exit on
             // the first iteration instead of waiting for a future change.
             rearmFromLedger()
-            while (coroutineContext.isActive) {
+            while (isActive) {
                 poll()
                 delay(POLL_INTERVAL_MS)
             }
@@ -88,9 +89,14 @@ class RomSettingMonitor @Inject constructor(
         }
     }
 
+    @Synchronized
     fun stop() {
-        polling = false
+        pollingJob?.cancel()
+        pollingJob = null
     }
+
+    /** Test seam for verifying that service shutdown cancels the polling loop. */
+    internal fun isPollingForTest(): Boolean = pollingJob?.isActive == true
 
     private suspend fun poll() {
         // Fast-path: nothing to watch when the ROM isn't Evolution X / LineageOS.

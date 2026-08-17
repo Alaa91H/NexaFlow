@@ -19,6 +19,7 @@ import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.SmsPreferences
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -104,6 +105,11 @@ class MonitoringService : Service() {
     @Volatile
     private var notificationVisible = false
 
+    /** Service-owned collectors must not outlive one service instance. */
+    private var notificationSettingsJob: Job? = null
+    private var monitorStartupJob: Job? = null
+    private var smsConsentJob: Job? = null
+
     override fun onCreate() {
         super.onCreate()
         isRunning = true
@@ -115,7 +121,7 @@ class MonitoringService : Service() {
         // or re-shown (IMPORTANCE_MIN — silent, no status-bar icon). The
         // flow emits the current value immediately on start, so the channel
         // is corrected milliseconds after the first startForeground.
-        scope.launch {
+        notificationSettingsJob = scope.launch {
             notificationPreferences.settings.collect { settings ->
                 applyMonitoringChannel(settings.enabled && settings.monitoringEnabled)
             }
@@ -125,7 +131,7 @@ class MonitoringService : Service() {
         // never ran) is dropped here and can never fire a late exit on boot.
         // The whole init sequence lives in one coroutine so the purge commits
         // before the first re-arm read — no race between the two.
-        scope.launch {
+        monitorStartupJob = scope.launch {
             activeTriggerStore.purgeExpired()
             startMonitors()
             runCatching { romSettingMonitor.initialize() }
@@ -133,7 +139,7 @@ class MonitoringService : Service() {
             armSmsConsentIfEnabled()
             // Build the O(1) trigger index and keep it in sync with the
             // database (rebuilt on every save/enable-toggle via the Room-
-            // backed flow).
+            // backed flow). This collector is cancelled with the service.
             triggerIndex.start()
         }
     }
@@ -191,6 +197,7 @@ class MonitoringService : Service() {
 
     override fun onDestroy() {
         isRunning = false
+        cancelServiceJobs()
         stopMonitors()
         super.onDestroy()
     }
@@ -206,6 +213,7 @@ class MonitoringService : Service() {
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun onTimeout(startId: Int, fgsType: Int) {
         isRunning = false
+        cancelServiceJobs()
         stopMonitors()
         if (MonitoringTimeoutPolicy.isTimeLimitedType(fgsType)) {
             scheduleResumeAfterTimeout()
@@ -226,6 +234,7 @@ class MonitoringService : Service() {
         airplaneModeMonitor.stop()
         darkModeMonitor.stop()
         callStateMonitor.stop()
+        romSettingMonitor.stop()
 
         settingsStateMonitor.stop()
         packageMonitor.stop()
@@ -249,11 +258,21 @@ class MonitoringService : Service() {
      * despite the 3-hour block on SMS_RECEIVED for targetSdk 37 apps.
      */
     private fun armSmsConsentIfEnabled() {
-        scope.launch {
+        smsConsentJob?.cancel()
+        smsConsentJob = scope.launch {
             val enabled = runCatching { smsPreferences.settings.first().userConsentEnabled }
                 .getOrDefault(false)
             if (enabled) smsConsentManager.startListening()
         }
+    }
+
+    private fun cancelServiceJobs() {
+        notificationSettingsJob?.cancel()
+        monitorStartupJob?.cancel()
+        smsConsentJob?.cancel()
+        notificationSettingsJob = null
+        monitorStartupJob = null
+        smsConsentJob = null
     }
 
     @Inject
