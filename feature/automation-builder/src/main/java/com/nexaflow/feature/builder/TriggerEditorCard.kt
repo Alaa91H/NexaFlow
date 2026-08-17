@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.AirplanemodeActive
 import androidx.compose.material.icons.filled.DarkMode
@@ -1116,9 +1117,9 @@ fun TriggerEditorCard(
                     .fillMaxWidth()
                     // X + reorder handle pinned to the LEFT, row number to the
                     // RIGHT, regardless of the locale direction.
-                    // Expand-only: a tapped card opens and never collapses again,
-                    // so the options only ever grow downward.
-                    .clickable(enabled = !expanded) { expanded = true },
+                    // يفتح الصف الإعداد عند الحاجة ويطويه بعد الضبط، فيبقى
+                    // محرر المهمة منظماً حتى عند تعدد المحفزات والشروط.
+                    .clickable { expanded = !expanded },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -1149,13 +1150,11 @@ fun TriggerEditorCard(
                     modifier = Modifier.weight(1f)
                 )
                 TaskNumberBadge(number = index + 1)
-                if (!expanded) {
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowDown,
-                        contentDescription = stringResource(R.string.expand_options),
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                }
+                Icon(
+                    imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                    contentDescription = stringResource(if (expanded) R.string.collapse_options else R.string.expand_options),
+                    tint = MaterialTheme.colorScheme.outline
+                )
             }
             }
             if (expanded) {

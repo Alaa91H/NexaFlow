@@ -314,8 +314,8 @@ fun CategoryAccordion(
     content: @Composable (Int) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        // Fixed category menu: every chip stays pinned at the top. The chips
-        // are quick-jump markers — tapping one only changes its highlight.
+        // فئات واضحة وثابتة؛ يفتح المستخدم فئة واحدة فقط في كل مرة كي تبقى
+        // شاشة الاختيار قابلة للمسح البصري ولا تتحول إلى قائمة طويلة مزدحمة.
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -330,10 +330,11 @@ fun CategoryAccordion(
                 )
             }
         }
-        // Strict no-collapse: the options of ALL categories are always
-        // rendered below, stacked downwards, each under its own header —
-        // nothing ever folds away and nothing is hidden behind a tap.
-        tabs.forEachIndexed { index, (label, icon) ->
+        // لا نعرض إلا محتوى الفئة المحددة. النقر على الفئة نفسها يطوي
+        // الخيارات، وهو مناسب بعد اختيار عنصر أو عندما يريد المستخدم التركيز
+        // على الملخصات التي أضافها بالفعل.
+        expandedIndex?.let { index ->
+            val (label, icon) = tabs[index]
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),

@@ -29,7 +29,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     sourceSets {
-        getByName("test").assets.srcDirs(files("$projectDir/schemas"))
+        getByName("test").assets.directories.add("$projectDir/schemas")
     }
     testOptions {
         unitTests {

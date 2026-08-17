@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Wifi
@@ -231,8 +232,8 @@ fun ConstraintEditorCard(
     onDragDelta: (Float) -> Unit = {},
     onDragEnd: () -> Unit = {}
 ) {
-    // Fixed header row; tapping it expands the options below. Expand-only:
-    // once opened the card never collapses, so the list only grows downward.
+    // صف ملخص ثابت: يفتح المستخدم الإعداد عند الحاجة ويطويه بعد الانتهاء
+    // حتى تبقى قائمة الشروط قابلة للمسح البصري.
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     NexaFlowCard(modifier = modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -242,7 +243,7 @@ fun ConstraintEditorCard(
                     .fillMaxWidth()
                     // X + reorder handle pinned to the LEFT, row number to the
                     // RIGHT, regardless of the locale direction.
-                    .clickable(enabled = !expanded) { expanded = true },
+                    .clickable { expanded = !expanded },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -273,13 +274,11 @@ fun ConstraintEditorCard(
                     modifier = Modifier.weight(1f)
                 )
                 TaskNumberBadge(number = index + 1)
-                if (!expanded) {
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowDown,
-                        contentDescription = stringResource(R.string.expand_options),
-                        tint = MaterialTheme.colorScheme.outline
-                    )
-                }
+                Icon(
+                    imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                    contentDescription = stringResource(if (expanded) R.string.collapse_options else R.string.expand_options),
+                    tint = MaterialTheme.colorScheme.outline
+                )
             }
             }
             if (expanded) {

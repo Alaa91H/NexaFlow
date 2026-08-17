@@ -679,6 +679,8 @@ private fun SelectedActionCard(
     total: Int,
     config: Map<String, String>,
     onConfigChange: (Map<String, String>) -> Unit,
+    endBehavior: EndBehavior?,
+    onEndBehaviorChange: (EndBehavior?) -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
     onRemove: () -> Unit,
@@ -772,6 +774,14 @@ private fun SelectedActionCard(
                 availableVariables = availableVariables,
                 onPluginConfigure = onPluginConfigure,
                 automations = automations
+            )
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            // يبقى سلوك الانتهاء بجوار الإجراء الذي سيتأثر به، بدلاً من
+            // تكرار قائمة ثانية في آخر الصفحة تُفقد المستخدم السياق.
+            EndBehaviorEditor(
+                actionType = option.actionType,
+                behavior = endBehavior,
+                onBehaviorChange = onEndBehaviorChange
             )
             PermissionHintForAction(
                 actionType = option.actionType,
@@ -1613,6 +1623,8 @@ fun AutomationBuilderScreen(
                     total = selectedActions.size,
                     config = actionConfigs[option.actionType] ?: emptyMap(),
                     onConfigChange = { actionConfigs[option.actionType] = it },
+                    endBehavior = actionEndBehaviors[option.actionType],
+                    onEndBehaviorChange = { actionEndBehaviors[option.actionType] = it },
                     onMoveUp = { moveAction(index, index - 1) },
                     onMoveDown = { moveAction(index, index + 1) },
                     onRemove = {
@@ -1638,38 +1650,6 @@ fun AutomationBuilderScreen(
                 )
             }
 
-                    // ── When the task ends: anchored at the absolute bottom of
-                    //    the builder and structurally linked to every execution
-                    //    action above — the final step of the work path. Once
-                    //    any card above is opened it stays open, so this section
-                    //    never hides or changes expanded content.
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    SectionHeader(text = stringResource(R.string.section_exit_behavior))
-                    // Every executed action appears here with its own end options, so the
-                    // section truly gathers all the tasks the user just configured.
-                    val endActions = selectedActions
-                    if (endActions.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.exit_nothing_sub),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    } else {
-                        endActions.forEach { option ->
-                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text(
-                                    text = stringResource(option.titleRes),
-                                    style = MaterialTheme.typography.titleSmall
-                                )
-                                EndBehaviorEditor(
-                                    actionType = option.actionType,
-                                    behavior = actionEndBehaviors[option.actionType],
-                                    onBehaviorChange = { actionEndBehaviors[option.actionType] = it },
-                                    showLabel = false
-                                )
-                            }
-                        }
-                    }
                     }
                 }
             }

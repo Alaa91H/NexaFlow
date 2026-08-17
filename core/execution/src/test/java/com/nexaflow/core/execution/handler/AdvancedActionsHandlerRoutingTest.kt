@@ -19,7 +19,11 @@ import org.junit.Test
  */
 class AdvancedActionsHandlerRoutingTest {
 
-    private val handler = AdvancedActionsHandler()
+    private val fallbackCalls = mutableListOf<Pair<ActionType, String>>()
+    private val handler = AdvancedActionsHandler { type, command ->
+        fallbackCalls += type to command
+        SystemControlResult.fail("Explicit runtime unavailable in routing test")
+    }
 
     private class FakeProvider(
         override val type: ExecutionProviderType,
@@ -40,6 +44,7 @@ class AdvancedActionsHandlerRoutingTest {
         val result = handler.route(channel, ActionType.ADVANCED_ROOT, "echo hi")
         assertTrue(result.success)
         assertEquals("root ran it", result.message)
+        assertTrue("matching channel must avoid the fallback", fallbackCalls.isEmpty())
     }
 
     @Test
@@ -51,16 +56,18 @@ class AdvancedActionsHandlerRoutingTest {
         val result = handler.route(channel, ActionType.ADVANCED_SHIZUKU, "echo hi")
         assertTrue(result.success)
         assertEquals("shizuku ran it", result.message)
+        assertTrue("matching channel must avoid the fallback", fallbackCalls.isEmpty())
     }
 
     @Test
     fun route_fallsBackToLegacyRuntimeWithoutChannel() {
-        // No channel selected (legacy engine path): the explicit runtime runs,
-        // which fails on a JVM without root/shizuku — proving the fallback
-        // executed rather than crashing or silently succeeding.
+        // No channel selected (legacy engine path): the explicit runtime runs
+        // and fails through the injected explicit-runtime runner. This proves
+        // fallback execution without depending on host privileges.
         val result = handler.route(null, ActionType.ADVANCED_ROOT, "echo hi")
         assertFalse(result.success)
         assertTrue(result.message.isNotBlank())
+        assertEquals(listOf(ActionType.ADVANCED_ROOT to "echo hi"), fallbackCalls)
     }
 
     @Test
@@ -73,6 +80,7 @@ class AdvancedActionsHandlerRoutingTest {
         val result = handler.route(channel, ActionType.ADVANCED_ROOT, "echo hi")
         assertFalse(result.success)
         assertTrue(result.message.isNotBlank())
+        assertEquals(listOf(ActionType.ADVANCED_ROOT to "echo hi"), fallbackCalls)
     }
 
 
@@ -85,10 +93,11 @@ class AdvancedActionsHandlerRoutingTest {
             SystemControlResult.ok("shizuku would run this")
         )
         val result = handler.route(channel, ActionType.ADVANCED_ROOT, "echo hi")
-        // Falls back to the legacy root runtime, which fails on a JVM without
-        // root — proving the mismatched channel was not used.
+        // Falls back to the injected explicit-runtime runner, proving the
+        // mismatched channel was not used.
         assertFalse(result.success)
         assertTrue(result.message.isNotBlank())
+        assertEquals(listOf(ActionType.ADVANCED_ROOT to "echo hi"), fallbackCalls)
     }
 
     @Test
@@ -100,5 +109,6 @@ class AdvancedActionsHandlerRoutingTest {
         val result = handler.route(channel, ActionType.ADVANCED_SHIZUKU, "echo hi")
         assertFalse(result.success)
         assertTrue(result.message.isNotBlank())
+        assertEquals(listOf(ActionType.ADVANCED_SHIZUKU to "echo hi"), fallbackCalls)
     }
 }
