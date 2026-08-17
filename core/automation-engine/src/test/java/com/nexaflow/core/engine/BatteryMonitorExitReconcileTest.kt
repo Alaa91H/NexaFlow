@@ -70,6 +70,12 @@ class BatteryMonitorExitReconcileTest {
             .putExtra(BatteryManager.EXTRA_STATUS, status)
             .putExtra(BatteryManager.EXTRA_PLUGGED, plugged)
 
+    /** Seeds Robolectric's sticky battery source; this is test-only state setup. */
+    @Suppress("DEPRECATION")
+    private fun setStickyBatteryState(level: Int, status: Int, plugged: Int) {
+        context.sendStickyBroadcast(batteryIntent(level, status, plugged))
+    }
+
     private fun monitorFor(
         repository: FakeRepository,
         engine: com.nexaflow.core.execution.ExecutionEngine,
@@ -92,9 +98,7 @@ class BatteryMonitorExitReconcileTest {
         store.markActive("battery", "batt-task")
         ActiveExecutionStore(context).markStarted("batt-task")
         // The battery is now at 90% — the BELOW-20 condition ended during downtime.
-        context.sendStickyBroadcast(
-            batteryIntent(90, BatteryManager.BATTERY_STATUS_DISCHARGING, 0)
-        )
+        setStickyBatteryState(90, BatteryManager.BATTERY_STATUS_DISCHARGING, 0)
 
         val monitor = monitorFor(repository, engine, store)
         monitor.initialize()
@@ -115,9 +119,7 @@ class BatteryMonitorExitReconcileTest {
         val store = ActiveTriggerStore(context)
         store.markActive("battery", "batt-task")
         // The battery is still at 10% — the condition still holds after restart.
-        context.sendStickyBroadcast(
-            batteryIntent(10, BatteryManager.BATTERY_STATUS_DISCHARGING, 0)
-        )
+        setStickyBatteryState(10, BatteryManager.BATTERY_STATUS_DISCHARGING, 0)
 
         val monitor = monitorFor(repository, engine, store)
         monitor.initialize()
@@ -144,9 +146,7 @@ class BatteryMonitorExitReconcileTest {
         )
         val store = ActiveTriggerStore(context)
         store.markActive("battery", "batt-task")
-        context.sendStickyBroadcast(
-            batteryIntent(90, BatteryManager.BATTERY_STATUS_DISCHARGING, 0)
-        )
+        setStickyBatteryState(90, BatteryManager.BATTERY_STATUS_DISCHARGING, 0)
 
         val monitor = monitorFor(repository, engine, store)
         monitor.initialize()

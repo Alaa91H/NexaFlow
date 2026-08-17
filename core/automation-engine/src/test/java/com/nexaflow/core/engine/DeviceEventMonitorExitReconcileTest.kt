@@ -84,6 +84,13 @@ class DeviceEventMonitorExitReconcileTest {
         throw AssertionError("condition not met within ${timeoutMs}ms")
     }
 
+    /** Robolectric-only screen-state setup for the monitor reconciliation scenarios. */
+    @Suppress("DEPRECATION")
+    private fun setScreenInteractive(interactive: Boolean) {
+        shadowOf(context.getSystemService(Context.POWER_SERVICE) as PowerManager)
+            .setIsInteractive(interactive)
+    }
+
     private fun monitorFor(
         repository: AutomationRepository,
         engine: ExecutionEngine,
@@ -110,7 +117,7 @@ class DeviceEventMonitorExitReconcileTest {
         // The task fired, then the process died while the screen was still on.
         store.markActive("device", "screen-task|SCREEN_ON")
         // The screen is now OFF (condition ended during downtime).
-        shadowOf(context.getSystemService(Context.POWER_SERVICE) as PowerManager).setIsInteractive(false)
+        setScreenInteractive(false)
 
         // Fresh monitor instance = the restart.
         monitorFor(repository, engine, store).initialize()
@@ -137,7 +144,7 @@ class DeviceEventMonitorExitReconcileTest {
         val store = ActiveTriggerStore(context)
         store.markActive("device", "screen-task|SCREEN_ON")
         // The screen is still ON — the condition still holds after the restart.
-        shadowOf(context.getSystemService(Context.POWER_SERVICE) as PowerManager).setIsInteractive(true)
+        setScreenInteractive(true)
 
         monitorFor(repository, engine, store).initialize()
 
@@ -161,7 +168,7 @@ class DeviceEventMonitorExitReconcileTest {
         )
         val store = ActiveTriggerStore(context)
         store.markActive("device", "screen-task|SCREEN_ON")
-        shadowOf(context.getSystemService(Context.POWER_SERVICE) as PowerManager).setIsInteractive(false)
+        setScreenInteractive(false)
 
         monitorFor(repository, engine, store).initialize()
 

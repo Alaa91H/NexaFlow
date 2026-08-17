@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.BatteryManager
 import android.os.PowerManager
@@ -131,8 +132,8 @@ class DeviceEventMonitor @Inject constructor(
                     "SCREEN_OFF" -> powerManager.isInteractive
                     "POWER_CONNECTED" -> !batteryManager.isCharging
                     "POWER_DISCONNECTED" -> batteryManager.isCharging
-                    "HEADSET_CONNECTED" -> !audioManager.isWiredHeadsetOn
-                    "HEADSET_DISCONNECTED" -> audioManager.isWiredHeadsetOn
+                    "HEADSET_CONNECTED" -> !audioManager.hasWiredOutputDevice()
+                    "HEADSET_DISCONNECTED" -> audioManager.hasWiredOutputDevice()
                     else -> false
                 }
                 if (ended) {
@@ -142,6 +143,12 @@ class DeviceEventMonitor @Inject constructor(
                 }
             }
     }
+
+    /** Equivalent modern check for the deprecated wired-headset state flag. */
+    private fun AudioManager.hasWiredOutputDevice(): Boolean =
+        getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { device ->
+            device.type in WIRED_OUTPUT_DEVICE_TYPES
+        }
 
     fun stop() {
         if (!registered) return
@@ -196,6 +203,11 @@ class DeviceEventMonitor @Inject constructor(
 
     private companion object {
         const val SOURCE = "device"
+        val WIRED_OUTPUT_DEVICE_TYPES = setOf(
+            AudioDeviceInfo.TYPE_WIRED_HEADSET,
+            AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
+            AudioDeviceInfo.TYPE_USB_HEADSET
+        )
     }
 
 }

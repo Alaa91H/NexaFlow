@@ -74,18 +74,16 @@ class MergedManifestNoSentryTest {
         // directory (app/), so the merged manifest of the debug variant is
         // reachable relative to it. A couple of AGP layouts are tried so a
         // minor AGP upgrade does not silently weaken the test.
-        val cwd = File(System.getProperty("user.dir")).absoluteFile
+        val cwd = File(System.getProperty("user.dir") ?: ".").absoluteFile
         val candidates = listOf(
             File(cwd, "build/intermediates/merged_manifest/debug/processDebugMainManifest/AndroidManifest.xml"),
             File(cwd, "build/intermediates/merged_manifest/debug/AndroidManifest.xml"),
             File(cwd, "build/intermediates/merged_manifests/debug/processDebugMainManifest/AndroidManifest.xml")
         )
-        val file = candidates.firstOrNull { it.isFile }
-        assertNotNull(
+        val file = candidates.firstOrNull { it.isFile } ?: throw AssertionError(
             "Merged manifest not found for the debug variant; tried: " +
                 candidates.joinToString() + ". Run testDebugUnitTest (it " +
-                "depends on manifest processing) before asserting boot safety.",
-            file
+                "depends on manifest processing) before asserting boot safety."
         )
         val builder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
         return builder.parse(file)

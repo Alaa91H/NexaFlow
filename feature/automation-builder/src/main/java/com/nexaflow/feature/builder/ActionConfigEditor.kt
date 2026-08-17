@@ -3,6 +3,7 @@ package com.nexaflow.feature.builder
 import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -25,9 +26,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -239,7 +241,17 @@ fun ActionConfigEditor(
                 val uri = result.data?.getStringExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
                     ?: result.data?.let { data ->
                         runCatching {
-                            data.getParcelableExtra<Uri>(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                data.getParcelableExtra(
+                                    RingtoneManager.EXTRA_RINGTONE_PICKED_URI,
+                                    Uri::class.java
+                                )
+                            } else {
+                                @Suppress("DEPRECATION")
+                                data.getParcelableExtra<Uri>(
+                                    RingtoneManager.EXTRA_RINGTONE_PICKED_URI
+                                )
+                            }
                         }.getOrNull()?.toString()
                     }
                 if (!uri.isNullOrBlank()) {
@@ -1550,7 +1562,10 @@ private fun NotificationButtonsEditor(
         // Google 2026: selection tasks open as a full-height modal bottom sheet.
         ModalBottomSheet(
             onDismissRequest = { showPicker = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            sheetState = rememberBottomSheetState(
+                initialValue = SheetValue.Hidden,
+                enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+            )
         ) {
             Text(
                 text = stringResource(R.string.notification_buttons_picker_title),

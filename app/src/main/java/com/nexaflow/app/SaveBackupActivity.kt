@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.IntentCompat
 import java.io.File
 
 /**
@@ -56,7 +57,9 @@ class SaveBackupActivity : ComponentActivity() {
             val file = File(filePath)
             if (file.exists()) return file.inputStream()
         }
-        val streamUri = intent?.getParcelableExtra<android.net.Uri>(Intent.EXTRA_STREAM)
+        val streamUri = intent?.let {
+            IntentCompat.getParcelableExtra(it, Intent.EXTRA_STREAM, android.net.Uri::class.java)
+        }
         if (streamUri != null) {
             return runCatching { contentResolver.openInputStream(streamUri) }.getOrNull()
         }

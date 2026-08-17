@@ -32,7 +32,7 @@ class PluginRepositoryImpl @Inject constructor(
                         packageName = info.packageName,
                         receiverClass = info.name,
                         label = runCatching {
-                            resolveInfo.loadLabel(pm)?.toString() ?: info.packageName
+                            resolveInfo.loadLabel(pm).toString()
                         }.getOrDefault(info.packageName)
                     )
                 }

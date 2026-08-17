@@ -1,7 +1,9 @@
 package com.nexaflow.core.execution
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.media.AudioManager
 import android.os.BatteryManager
@@ -48,7 +50,7 @@ object TriggerStateEvaluator {
             TriggerType.HEADPHONE -> {
                 val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return true
                 val wantConnected = (c["event"] ?: "CONNECTED") == "CONNECTED"
-                audio.isWiredHeadsetOn == wantConnected
+                audio.isWiredHeadsetConnected() == wantConnected
             }
             TriggerType.CHARGER -> {
                 val battery = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager ?: return true
@@ -70,7 +72,7 @@ object TriggerStateEvaluator {
                 // Incoming/outgoing calls are satisfied while a call is live;
                 // ENDED is satisfied once the line is free again.
                 val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? android.telephony.TelephonyManager ?: return true
-                val busy = telephony.callState != android.telephony.TelephonyManager.CALL_STATE_IDLE
+                val busy = telephony.isCallActive(context)
                 when (c["event"] ?: "INCOMING") {
                     "ENDED" -> !busy
                     else -> busy
@@ -103,8 +105,8 @@ object TriggerStateEvaluator {
                 ((c["state"] ?: "ON") == "ON") == on
             }
             TriggerType.BLUETOOTH_STATE -> {
-                val adapter = android.bluetooth.BluetoothAdapter.getDefaultAdapter()
-                    ?: return true
+                val adapter = context.getSystemService(android.bluetooth.BluetoothManager::class.java)
+                    ?.adapter ?: return true
                 val on = adapter.state == android.bluetooth.BluetoothAdapter.STATE_ON
                 ((c["state"] ?: "ON") == "ON") == on
             }
@@ -154,16 +156,7 @@ object TriggerStateEvaluator {
                 ((c["state"] ?: "ON") == "ON") == on
             }
             TriggerType.LOCATION_STATE -> {
-                val mode = Settings.Secure.getInt(
-                    context.contentResolver, Settings.Secure.LOCATION_MODE, 0
-                )
-                val wantMode = when ((c["mode"] ?: "HIGH").uppercase()) {
-                    "OFF" -> 0
-                    "SENSORS" -> 1
-                    "BATTERY" -> 2
-                    else -> 3
-                }
-                mode == wantMode
+                locationStateSatisfied(context, (c["mode"] ?: "HIGH").uppercase())
             }
             TriggerType.SCREEN_ROTATION_STATE -> {
                 val wantPortrait = (c["state"] ?: "PORTRAIT") == "PORTRAIT"
@@ -196,9 +189,8 @@ object TriggerStateEvaluator {
                 ((c["state"] ?: "ON") == "ON") == roaming
             }
             TriggerType.WIFI_SIGNAL_STRENGTH -> {
-                val wifi = context.getSystemService(Context.WIFI_SERVICE) as? android.net.wifi.WifiManager
-                val info = wifi?.connectionInfo ?: return false
-                val level = android.net.wifi.WifiManager.calculateSignalLevel(info.rssi, 5)
+                val rssi = connectedWifiRssi(context) ?: return false
+                val level = signalLevel(rssi, 5)
                 val threshold = (c["threshold"] ?: "3").toIntOrNull() ?: 3
                 if ((c["direction"] ?: "ABOVE") == "BELOW") level <= threshold else level >= threshold
             }
@@ -233,20 +225,14 @@ object TriggerStateEvaluator {
                 true
             }
             TriggerType.ETHERNET_CONNECTED -> {
-                val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager
                 val has = runCatching {
-                    cm?.allNetworks?.any { n ->
-                        cm.getNetworkCapabilities(n)?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET) == true
-                    } == true
+                    hasActiveTransport(context, android.net.NetworkCapabilities.TRANSPORT_ETHERNET)
                 }.getOrDefault(false)
                 ((c["state"] ?: "ON") == "ON") == has
             }
             TriggerType.VPN_CONNECTED -> {
-                val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager
                 val has = runCatching {
-                    cm?.allNetworks?.any { n ->
-                        cm.getNetworkCapabilities(n)?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_VPN) == true
-                    } == true
+                    hasActiveTransport(context, android.net.NetworkCapabilities.TRANSPORT_VPN)
                 }.getOrDefault(false)
                 ((c["state"] ?: "ON") == "ON") == has
             }
@@ -311,4 +297,92 @@ object TriggerStateEvaluator {
         val direction = config["direction"] ?: "ABOVE"
         return if (direction == "BELOW") level <= threshold else level >= threshold
     }
+}
+
+private fun AudioManager.isWiredHeadsetConnected(): Boolean =
+    getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { device ->
+        device.type == android.media.AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
+            device.type == android.media.AudioDeviceInfo.TYPE_WIRED_HEADSET ||
+            device.type == android.media.AudioDeviceInfo.TYPE_USB_HEADSET
+    }
+
+@SuppressLint("MissingPermission") // Direct READ_PHONE_STATE guard below; declared by the merged app manifest.
+private fun android.telephony.TelephonyManager.isCallActive(context: Context): Boolean {
+    if (context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+        return false
+    }
+    val state = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+        callStateForSubscription
+    } else {
+        @Suppress("DEPRECATION")
+        callState
+    }
+    return state != android.telephony.TelephonyManager.CALL_STATE_IDLE
+}
+
+private fun locationStateSatisfied(context: Context, wantedMode: String): Boolean {
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+        val location = context.getSystemService(Context.LOCATION_SERVICE) as? android.location.LocationManager
+            ?: return true
+        return if (wantedMode == "OFF") !location.isLocationEnabled else location.isLocationEnabled
+    }
+    @Suppress("DEPRECATION")
+    val mode = Settings.Secure.getInt(
+        context.contentResolver,
+        Settings.Secure.LOCATION_MODE,
+        0
+    )
+    val desired = when (wantedMode) {
+        "OFF" -> 0
+        "SENSORS" -> 1
+        "BATTERY" -> 2
+        else -> 3
+    }
+    return mode == desired
+}
+
+private fun connectedWifiRssi(context: Context): Int? {
+    if (context.checkSelfPermission(Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED) {
+        return null
+    }
+    val connectivity = context.getSystemService(Context.CONNECTIVITY_SERVICE)
+        as? android.net.ConnectivityManager ?: return null
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+        return connectedWifiRssiApi29(context, connectivity)
+    }
+    @Suppress("DEPRECATION")
+    return (context.getSystemService(Context.WIFI_SERVICE) as? android.net.wifi.WifiManager)
+        ?.connectionInfo
+        ?.rssi
+}
+
+@androidx.annotation.RequiresApi(android.os.Build.VERSION_CODES.Q)
+@SuppressLint("MissingPermission") // Guarded directly by the caller before this API-specific path.
+private fun connectedWifiRssiApi29(
+    context: Context,
+    connectivity: android.net.ConnectivityManager
+): Int? {
+    if (context.checkSelfPermission(Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED) {
+        return null
+    }
+    val capabilities = connectivity.getNetworkCapabilities(connectivity.activeNetwork) ?: return null
+    val info = capabilities.transportInfo as? android.net.wifi.WifiInfo ?: return null
+    return info.rssi
+}
+
+private fun signalLevel(rssi: Int, maxLevel: Int): Int = when {
+    rssi <= -100 -> 0
+    rssi >= -55 -> maxLevel - 1
+    else -> ((rssi + 100) * (maxLevel - 1) / 45).coerceIn(0, maxLevel - 1)
+}
+
+@SuppressLint("MissingPermission") // Direct ACCESS_NETWORK_STATE guard below; declared by the merged app manifest.
+private fun hasActiveTransport(context: Context, transport: Int): Boolean {
+    if (context.checkSelfPermission(Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED) {
+        return false
+    }
+    val connectivity = context.getSystemService(Context.CONNECTIVITY_SERVICE)
+        as? android.net.ConnectivityManager ?: return false
+    return connectivity.getNetworkCapabilities(connectivity.activeNetwork)
+        ?.hasTransport(transport) == true
 }

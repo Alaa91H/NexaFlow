@@ -1,6 +1,7 @@
 package com.nexaflow.core.engine
 
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
 import android.content.BroadcastReceiver
 import android.content.ContentResolver
 import android.content.Context
@@ -10,6 +11,7 @@ import android.database.ContentObserver
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.nfc.NfcAdapter
+import android.location.LocationManager
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
@@ -87,7 +89,6 @@ class SettingsStateMonitor @Inject constructor(
             Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS),
             Settings.System.getUriFor(Settings.System.ACCELEROMETER_ROTATION),
             Settings.Global.getUriFor("data_saver"),
-            Settings.Secure.getUriFor(Settings.Secure.LOCATION_MODE),
             Settings.System.getUriFor(Settings.System.USER_ROTATION),
             Settings.System.getUriFor(Settings.System.ACCELEROMETER_ROTATION)
         ).forEach { resolver.registerContentObserver(it, false, observer) }
@@ -99,8 +100,11 @@ class SettingsStateMonitor @Inject constructor(
             addAction(Intent.ACTION_SCREEN_ON)
             addAction(Intent.ACTION_SCREEN_OFF)
             addAction(Intent.ACTION_USER_PRESENT)
-            addAction(Intent.ACTION_DEVICE_STORAGE_LOW)
-            addAction(Intent.ACTION_DEVICE_STORAGE_OK)
+            // Android no longer exposes public constants for these dynamic
+            // system broadcasts, but compatible OEM builds still deliver them.
+            addAction(ACTION_DEVICE_STORAGE_LOW)
+            addAction(ACTION_DEVICE_STORAGE_OK)
+            addAction(LocationManager.MODE_CHANGED_ACTION)
             addAction(Intent.ACTION_CONFIGURATION_CHANGED)
         }
         context.registerReceiver(receiver, filter)
@@ -174,8 +178,9 @@ class SettingsStateMonitor @Inject constructor(
                 on == wantOn
             }
             TriggerType.BLUETOOTH_STATE -> {
-                val adapter = BluetoothAdapter.getDefaultAdapter()
-                if (adapter == null) return false
+                val adapter = (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)
+                    ?.adapter
+                    ?: return false
                 val on = adapter.state == BluetoothAdapter.STATE_ON
                 on == wantOn
             }
@@ -230,16 +235,13 @@ class SettingsStateMonitor @Inject constructor(
                 on == wantOn
             }
             TriggerType.LOCATION_STATE -> {
-                val mode = Settings.Secure.getInt(
-                    context.contentResolver, Settings.Secure.LOCATION_MODE, 0
-                )
                 val wantMode = when ((config["mode"] ?: "HIGH").uppercase()) {
-                    "OFF" -> 0
-                    "SENSORS" -> 1
-                    "BATTERY" -> 2
-                    else -> 3
+                    "OFF" -> LocationAccess.MODE_OFF
+                    "SENSORS" -> LocationAccess.MODE_SENSORS_ONLY
+                    "BATTERY" -> LocationAccess.MODE_BATTERY_SAVING
+                    else -> LocationAccess.MODE_HIGH_ACCURACY
                 }
-                mode == wantMode
+                LocationAccess.currentLocationMode(context) == wantMode
             }
             TriggerType.SCREEN_ROTATION_STATE -> {
                 val wantPortrait = (config["state"] ?: "PORTRAIT") == "PORTRAIT"
@@ -263,6 +265,8 @@ class SettingsStateMonitor @Inject constructor(
 
     private companion object {
         const val SOURCE = "settings-state"
+        const val ACTION_DEVICE_STORAGE_LOW = "android.intent.action.DEVICE_STORAGE_LOW"
+        const val ACTION_DEVICE_STORAGE_OK = "android.intent.action.DEVICE_STORAGE_OK"
         val WATCHED_TRIGGERS = setOf(
             TriggerType.POWER_SAVER,
             TriggerType.BLUETOOTH_STATE,

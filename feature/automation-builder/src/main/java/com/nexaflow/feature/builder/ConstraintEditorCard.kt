@@ -24,7 +24,8 @@ import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -56,7 +57,7 @@ import com.nexaflow.domain.models.ConstraintType
  * so `ConstraintEditorCard` can skip recomposition when the draft is unchanged.
  */
 @Immutable
-data class ConstraintDraft private constructor(
+class ConstraintDraft private constructor(
     val type: ConstraintType,
     val config: Map<String, String>
 ) {
@@ -71,6 +72,18 @@ data class ConstraintDraft private constructor(
             config: Map<String, String> = emptyMap()
         ): ConstraintDraft = ConstraintDraft(type, config.toMap())
     }
+
+    fun copy(
+        type: ConstraintType = this.type,
+        config: Map<String, String> = this.config
+    ): ConstraintDraft = ConstraintDraft(type, config.toMap())
+
+    override fun equals(other: Any?): Boolean =
+        other is ConstraintDraft && type == other.type && config == other.config
+
+    override fun hashCode(): Int = 31 * type.hashCode() + config.hashCode()
+
+    override fun toString(): String = "ConstraintDraft(type=$type, config=$config)"
 }
 
 internal val constraintTypeOptions = listOf(
@@ -142,7 +155,10 @@ fun ConstraintTypePickerDialog(
     // Google 2026: selection tasks open as a full-height modal bottom sheet.
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        sheetState = rememberBottomSheetState(
+            initialValue = SheetValue.Hidden,
+            enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+        )
     ) {
         Text(
             text = stringResource(R.string.add_constraint),
@@ -347,14 +363,12 @@ fun ConstraintEditorCard(
                         ConstraintType.DND -> stringResource(R.string.state_on)
                         ConstraintType.AIRPLANE -> stringResource(R.string.state_on)
                         ConstraintType.LOCATION -> stringResource(R.string.state_on)
-                        else -> stringResource(R.string.state_on)
                     }
                     val offLabel = when (draft.type) {
                         ConstraintType.BLUETOOTH -> stringResource(R.string.state_off)
                         ConstraintType.DND -> stringResource(R.string.state_off)
                         ConstraintType.AIRPLANE -> stringResource(R.string.state_off)
                         ConstraintType.LOCATION -> stringResource(R.string.state_off)
-                        else -> stringResource(R.string.state_off)
                     }
                     Text(
                         text = stringResource(R.string.constraint_state_label),

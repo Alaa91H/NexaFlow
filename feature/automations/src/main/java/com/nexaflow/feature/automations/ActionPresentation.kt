@@ -42,12 +42,12 @@ import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.BrightnessHigh
 import androidx.compose.material.icons.filled.BrightnessLow
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Contrast
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.DeleteSweep
@@ -153,7 +153,7 @@ fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (
     ActionType.PLUGIN_FIRE -> Triple(R.string.action_plugin, R.string.action_plugin_sub, Icons.Filled.Extension)
     ActionType.SYSTEM_SET_SETTING -> Triple(R.string.action_set_setting, R.string.action_set_setting_sub, Icons.Filled.Tune)
     ActionType.SYSTEM_SCREENSHOT -> Triple(R.string.action_screenshot, R.string.action_screenshot_sub, Icons.Filled.CameraAlt)
-    ActionType.SYSTEM_INPUT_TEXT -> Triple(R.string.action_input_text, R.string.action_input_text_sub, Icons.Filled.Chat)
+    ActionType.SYSTEM_INPUT_TEXT -> Triple(R.string.action_input_text, R.string.action_input_text_sub, Icons.AutoMirrored.Filled.Chat)
     ActionType.SYSTEM_KEY_EVENT -> Triple(R.string.action_key_event, R.string.action_key_event_sub, Icons.Filled.Build)
     ActionType.SYSTEM_INPUT_TAP -> Triple(R.string.action_input_tap, R.string.action_input_tap_sub, Icons.Filled.GpsFixed)
     ActionType.SYSTEM_INPUT_SWIPE -> Triple(R.string.action_input_swipe, R.string.action_input_swipe_sub, Icons.AutoMirrored.Filled.ArrowForward)

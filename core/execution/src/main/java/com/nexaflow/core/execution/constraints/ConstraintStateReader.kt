@@ -26,7 +26,7 @@ object ConstraintStateReader {
             batteryLevel = batteryLevel(app),
             screenLocked = isScreenLocked(app),
             headsetConnected = isHeadsetConnected(app),
-            bluetoothEnabled = isBluetoothEnabled(),
+            bluetoothEnabled = isBluetoothEnabled(app),
             dndActive = isDndActive(app),
             airplaneModeOn = isAirplaneModeOn(app),
             isCharging = isCharging(app),
@@ -70,13 +70,18 @@ object ConstraintStateReader {
     /** True when a wired headset is plugged in. */
     private fun isHeadsetConnected(context: Context): Boolean = runCatching {
         val audio = context.getSystemService(Context.AUDIO_SERVICE) as? android.media.AudioManager
-        audio?.isWiredHeadsetOn ?: false
+            ?: return false
+        audio.getDevices(android.media.AudioManager.GET_DEVICES_OUTPUTS).any { device ->
+            device.type == android.media.AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
+                device.type == android.media.AudioDeviceInfo.TYPE_WIRED_HEADSET ||
+                device.type == android.media.AudioDeviceInfo.TYPE_USB_HEADSET
+        }
     }.getOrDefault(false)
 
     /** True when Bluetooth is enabled. */
-    private fun isBluetoothEnabled(): Boolean = runCatching {
-        val bm = android.bluetooth.BluetoothAdapter.getDefaultAdapter()
-        bm?.isEnabled ?: false
+    private fun isBluetoothEnabled(context: Context): Boolean = runCatching {
+        context.getSystemService(android.bluetooth.BluetoothManager::class.java)
+            ?.adapter?.isEnabled ?: false
     }.getOrDefault(false)
 
     /** True when Do Not Disturb is active. */

@@ -21,6 +21,8 @@ class ConnectivityGenerationTest {
         assertEquals("4G", cellularGenerationOf(TelephonyManager.NETWORK_TYPE_LTE))
     }
 
+    /** Legacy radio constants have no replacement and are the contract under test. */
+    @Suppress("DEPRECATION")
     @Test
     fun `2G generations map to 2G`() {
         assertEquals("2G", cellularGenerationOf(TelephonyManager.NETWORK_TYPE_GPRS))

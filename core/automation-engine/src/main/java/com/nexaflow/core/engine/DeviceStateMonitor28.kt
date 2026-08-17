@@ -11,6 +11,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.Uri
+import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
 import android.nfc.NfcAdapter
 import android.os.BatteryManager
@@ -20,7 +21,10 @@ import android.os.Looper
 import android.provider.Settings
 import android.telephony.PhoneStateListener
 import android.telephony.SignalStrength
+import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
+import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
@@ -95,7 +99,7 @@ class DeviceStateMonitor28 @Inject constructor(
                 Intent.ACTION_TIMEZONE_CHANGED -> fireOneShot(TriggerType.TIMEZONE_CHANGED)
                 Intent.ACTION_BOOT_COMPLETED -> fireOneShot(TriggerType.BOOT_COMPLETED)
                 NfcAdapter.ACTION_NDEF_DISCOVERED,
-                NfcAdapter.ACTION_TAG_DISCOVERED,
+                ACTION_TAG_DISCOVERED,
                 NfcAdapter.ACTION_TECH_DISCOVERED -> fireOneShot(TriggerType.NFC_TAG_SCANNED)
                 "android.intent.action.HDMI_PLUGGED" -> {
                     lastHdmiPlugged = intent.getBooleanExtra("state", false)
@@ -112,10 +116,11 @@ class DeviceStateMonitor28 @Inject constructor(
         override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) = evaluateAll()
     }
 
-    private val phoneStateListener = object : PhoneStateListener() {
-        override fun onSignalStrengthsChanged(signalStrength: SignalStrength) {
-            evaluateAll()
-        }
+    private var signalStrengthCallback: Any? = null
+
+    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+    private val legacyPhoneStateListener = object : PhoneStateListener() {
+        override fun onSignalStrengthsChanged(signalStrength: SignalStrength) = evaluateAll()
     }
 
     private val clipListener = ClipboardManager.OnPrimaryClipChangedListener {
@@ -145,14 +150,20 @@ class DeviceStateMonitor28 @Inject constructor(
             addAction(Intent.ACTION_BATTERY_CHANGED)
             addAction(WifiManager.RSSI_CHANGED_ACTION)
             addAction(WifiManager.WIFI_STATE_CHANGED_ACTION)
-            addAction(ConnectivityManager.CONNECTIVITY_ACTION)
             runCatching {
                 addAction(NfcAdapter.ACTION_NDEF_DISCOVERED)
-                addAction(NfcAdapter.ACTION_TAG_DISCOVERED)
+                addAction(ACTION_TAG_DISCOVERED)
                 addAction(NfcAdapter.ACTION_TECH_DISCOVERED)
             }
         }
-        runCatching { context.registerReceiver(receiver, filter) }
+        runCatching {
+            ContextCompat.registerReceiver(
+                context,
+                receiver,
+                filter,
+                ContextCompat.RECEIVER_NOT_EXPORTED
+            )
+        }
 
         runCatching {
             val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
@@ -161,7 +172,12 @@ class DeviceStateMonitor28 @Inject constructor(
 
         runCatching {
             val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
-            telephony?.listen(phoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                telephony?.let(::registerModernSignalStrengthCallback)
+            } else {
+                @Suppress("DEPRECATION")
+                telephony?.listen(legacyPhoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS)
+            }
         }
 
         runCatching {
@@ -187,7 +203,12 @@ class DeviceStateMonitor28 @Inject constructor(
         }
         runCatching {
             val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
-            telephony?.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                telephony?.let(::unregisterModernSignalStrengthCallback)
+            } else {
+                @Suppress("DEPRECATION")
+                telephony?.listen(legacyPhoneStateListener, PhoneStateListener.LISTEN_NONE)
+            }
         }
         runCatching {
             mainHandler.post {
@@ -198,6 +219,20 @@ class DeviceStateMonitor28 @Inject constructor(
     }
 
     /** Re-reads every state trigger and fires run/exit on transitions. */
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun registerModernSignalStrengthCallback(telephony: TelephonyManager) {
+        val callback = ModernSignalStrengthCallback(::evaluateAll)
+        signalStrengthCallback = callback
+        telephony.registerTelephonyCallback(context.mainExecutor, callback)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun unregisterModernSignalStrengthCallback(telephony: TelephonyManager) {
+        val callback = signalStrengthCallback as? ModernSignalStrengthCallback ?: return
+        telephony.unregisterTelephonyCallback(callback)
+        signalStrengthCallback = null
+    }
+
     private fun evaluateAll() {
         scope.launch {
             val automations = repository.getAutomations().first()
@@ -278,9 +313,8 @@ class DeviceStateMonitor28 @Inject constructor(
                 roaming == wantOn
             }
             TriggerType.WIFI_SIGNAL_STRENGTH -> {
-                val wifi = context.getSystemService(Context.WIFI_SERVICE) as? WifiManager ?: return false
-                val info = wifi.connectionInfo ?: return false
-                val level = WifiManager.calculateSignalLevel(info.rssi, 5)
+                val rssi = currentWifiRssi() ?: return false
+                val level = wifiSignalLevel(rssi)
                 val threshold = (config["threshold"] ?: "3").toIntOrNull() ?: 3
                 if ((config["direction"] ?: "ABOVE") == "BELOW") level <= threshold else level >= threshold
             }
@@ -328,6 +362,28 @@ class DeviceStateMonitor28 @Inject constructor(
         }
     }
 
+    private fun currentWifiRssi(): Int? {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val connectivity = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            val wifiInfo = connectivity
+                ?.getNetworkCapabilities(connectivity.activeNetwork)
+                ?.transportInfo as? WifiInfo
+            if (wifiInfo != null) return wifiInfo.rssi
+        }
+        @Suppress("DEPRECATION")
+        return (context.getSystemService(Context.WIFI_SERVICE) as? WifiManager)
+            ?.connectionInfo
+            ?.rssi
+    }
+
+    /** Mirrors the five-level legacy scale without relying on a deprecated platform helper. */
+    private fun wifiSignalLevel(rssi: Int): Int = when {
+        rssi <= MIN_WIFI_RSSI -> 0
+        rssi >= MAX_WIFI_RSSI -> WIFI_SIGNAL_LEVELS - 1
+        else -> ((rssi - MIN_WIFI_RSSI) * (WIFI_SIGNAL_LEVELS - 1)) /
+            (MAX_WIFI_RSSI - MIN_WIFI_RSSI)
+    }
+
     private fun pluggedType(): Int {
         val intent = context.registerReceiver(
             null, IntentFilter(Intent.ACTION_BATTERY_CHANGED)
@@ -339,15 +395,23 @@ class DeviceStateMonitor28 @Inject constructor(
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
             ?: return false
         return runCatching {
-            cm.allNetworks.any { network ->
-                val caps = cm.getNetworkCapabilities(network) ?: return@any false
-                caps.hasTransport(transport)
-            }
+            cm.getNetworkCapabilities(cm.activeNetwork)?.hasTransport(transport) == true
         }.getOrDefault(false)
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
+    private class ModernSignalStrengthCallback(
+        private val onSignalStrengthChanged: () -> Unit
+    ) : TelephonyCallback(), TelephonyCallback.SignalStrengthsListener {
+        override fun onSignalStrengthsChanged(signalStrength: SignalStrength) = onSignalStrengthChanged()
+    }
+
     private companion object {
-        const val SOURCE = "device-state-28"
+        const val SOURCE = "device_state-28"
+        const val ACTION_TAG_DISCOVERED = "android.nfc.action.TAG_DISCOVERED"
+        const val MIN_WIFI_RSSI = -100
+        const val MAX_WIFI_RSSI = -55
+        const val WIFI_SIGNAL_LEVELS = 5
         val STATE_TRIGGERS = setOf(
             TriggerType.DND_STATE,
             TriggerType.STAY_AWAKE_STATE,

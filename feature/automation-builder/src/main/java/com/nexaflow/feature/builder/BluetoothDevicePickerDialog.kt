@@ -4,8 +4,8 @@ import androidx.compose.ui.text.font.FontWeight
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.compose.foundation.clickable
@@ -24,9 +24,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -58,7 +59,10 @@ fun BluetoothDevicePickerDialog(
     // Google 2026: selection tasks open as a full-height modal bottom sheet.
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        sheetState = rememberBottomSheetState(
+            initialValue = SheetValue.Hidden,
+            enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+        )
     ) {
         Text(
             text = stringResource(R.string.choose_bluetooth_device),
@@ -136,7 +140,7 @@ private fun loadPairedDevices(context: Context): List<PairedDevice> {
     if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
         return emptyList()
     }
-    val adapter = BluetoothAdapter.getDefaultAdapter() ?: return emptyList()
+    val adapter = context.getSystemService(BluetoothManager::class.java)?.adapter ?: return emptyList()
     if (!adapter.isEnabled) return emptyList()
     return runCatching {
         adapter.bondedDevices

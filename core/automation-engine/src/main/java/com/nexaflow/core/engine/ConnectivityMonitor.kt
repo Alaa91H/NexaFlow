@@ -219,7 +219,13 @@ fun currentCellularGeneration(context: Context): String? {
 /** NetworkRegistrationInfo.ACCESS_NETWORK_TECHNOLOGY_NR (AOSP-stable value). */
 internal const val ACCESS_NETWORK_TECHNOLOGY_NR = 20
 
-/** Maps a TelephonyManager network type to its generation (2G/3G/4G/5G). */
+/**
+ * Maps a TelephonyManager network type to its generation (2G/3G/4G/5G).
+ *
+ * The deprecated constants below are the only public identifiers for legacy
+ * radio technologies and are retained solely to classify old devices.
+ */
+@Suppress("DEPRECATION")
 internal fun cellularGenerationOf(networkType: Int): String? = when (networkType) {
     TelephonyManager.NETWORK_TYPE_GPRS,
     TelephonyManager.NETWORK_TYPE_EDGE,

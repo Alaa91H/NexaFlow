@@ -69,7 +69,11 @@ class ConnectivityMonitorExitReconcileTest {
 
     private fun shadowCm(): ShadowConnectivityManager = shadowOf(connectivityManager())
 
-    /** Simulates the device being on WiFi with internet. */
+    /**
+     * Simulates the device being on WiFi with internet.
+     * Robolectric's active-network fixture still accepts NetworkInfo only.
+     */
+    @Suppress("DEPRECATION")
     private fun setWifiConnected() {
         shadowCm().setDefaultNetworkActive(true)
         shadowCm().setActiveNetworkInfo(

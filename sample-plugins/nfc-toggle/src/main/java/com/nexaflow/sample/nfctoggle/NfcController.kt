@@ -55,9 +55,9 @@ object NfcController {
             // Some ROMs expose the boxed Boolean signature, others the primitive
             // boolean — mirror RomSystemApiBridge and try both before giving up.
             val method = runCatching {
-                manager.javaClass.getMethod(methodName, java.lang.Boolean::class.java)
+                manager.javaClass.getMethod(methodName, Boolean::class.javaObjectType)
             }.getOrElse {
-                manager.javaClass.getMethod(methodName, java.lang.Boolean.TYPE)
+                manager.javaClass.getMethod(methodName, Boolean::class.javaPrimitiveType)
             }
             method.invoke(manager, enabled)
             null

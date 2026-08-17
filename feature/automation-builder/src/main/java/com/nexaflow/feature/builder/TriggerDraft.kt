@@ -4,30 +4,36 @@ import androidx.compose.runtime.Immutable
 import com.nexaflow.domain.models.TriggerType
 
 /**
- * Editable draft of a trigger inside the builder. Immutable by contract: every
- * edit produces a new instance via `copy()`, and the config map is frozen on
- * construction (defending against mutable Gson maps from a loaded automation)
- * so it can never be mutated in place. This lets the Compose compiler treat
- * the draft as stable and skip `TriggerEditorCard` when it is unchanged.
+ * Editable draft of a trigger inside the builder. Every mutation produces a
+ * fresh draft and freezes its configuration map, so a mutable map deserialized
+ * from storage cannot invalidate the Compose stability contract in place.
  *
- * Note: `copy()` bypasses the factory's freeze, so call sites must keep
- * passing freshly built maps (the editor always does via `config + pair`),
- * never an aliased mutable map.
+ * This deliberately uses an explicit [copy] rather than a `data class` copy:
+ * Kotlin 2.5 rejects generated `copy()` functions that expose a non-public
+ * primary constructor. The explicit copy retains the private construction
+ * boundary and freezes its input on every edit.
  */
 @Immutable
-data class TriggerDraft private constructor(
+class TriggerDraft private constructor(
     val type: TriggerType,
     val config: Map<String, String>
 ) {
     companion object {
-        /**
-         * Freezes the config on construction so the @Immutable contract is
-         * enforceable, not just documented: a mutable Gson LinkedTreeMap from
-         * a loaded automation can never be mutated in place afterwards.
-         */
         operator fun invoke(
             type: TriggerType,
             config: Map<String, String> = emptyMap()
         ): TriggerDraft = TriggerDraft(type, config.toMap())
     }
+
+    fun copy(
+        type: TriggerType = this.type,
+        config: Map<String, String> = this.config
+    ): TriggerDraft = TriggerDraft(type, config.toMap())
+
+    override fun equals(other: Any?): Boolean =
+        other is TriggerDraft && type == other.type && config == other.config
+
+    override fun hashCode(): Int = 31 * type.hashCode() + config.hashCode()
+
+    override fun toString(): String = "TriggerDraft(type=$type, config=$config)"
 }

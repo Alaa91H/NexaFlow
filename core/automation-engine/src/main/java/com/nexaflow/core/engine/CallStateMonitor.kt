@@ -1,8 +1,11 @@
 package com.nexaflow.core.engine
 
 import android.content.Context
+import android.os.Build
 import android.telephony.PhoneStateListener
+import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
+import androidx.annotation.RequiresApi
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
@@ -37,12 +40,32 @@ class CallStateMonitor @Inject constructor(
 
     private var lastState = TelephonyManager.CALL_STATE_IDLE
 
-    private val listener = object : PhoneStateListener() {
-        override fun onCallStateChanged(state: Int, phoneNumber: String?) {
-            if (state == lastState) return
-            lastState = state
-            handleState(state)
-        }
+    private var modernCallback: Any? = null
+
+    @Suppress("DEPRECATION")
+    private val legacyListener = object : PhoneStateListener() {
+        @Suppress("OVERRIDE_DEPRECATION")
+        override fun onCallStateChanged(state: Int, phoneNumber: String?) = this@CallStateMonitor.onCallStateChanged(state)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun registerModernCallback(telephony: TelephonyManager) {
+        val callback = ModernCallStateCallback(::onCallStateChanged)
+        modernCallback = callback
+        telephony.registerTelephonyCallback(context.mainExecutor, callback)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun unregisterModernCallback(telephony: TelephonyManager) {
+        val callback = modernCallback as? ModernCallStateCallback ?: return
+        telephony.unregisterTelephonyCallback(callback)
+        modernCallback = null
+    }
+
+    private fun onCallStateChanged(state: Int) {
+        if (state == lastState) return
+        lastState = state
+        handleState(state)
     }
 
     fun initialize() {
@@ -50,7 +73,12 @@ class CallStateMonitor @Inject constructor(
         registered = true
         val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager ?: return
         runCatching {
-            telephony.listen(listener, PhoneStateListener.LISTEN_CALL_STATE)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                registerModernCallback(telephony)
+            } else {
+                @Suppress("DEPRECATION")
+                telephony.listen(legacyListener, PhoneStateListener.LISTEN_CALL_STATE)
+            }
         }
     }
 
@@ -59,7 +87,12 @@ class CallStateMonitor @Inject constructor(
         registered = false
         val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager ?: return
         runCatching {
-            telephony.listen(listener, PhoneStateListener.LISTEN_NONE)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                unregisterModernCallback(telephony)
+            } else {
+                @Suppress("DEPRECATION")
+                telephony.listen(legacyListener, PhoneStateListener.LISTEN_NONE)
+            }
         }
     }
 
@@ -88,6 +121,13 @@ class CallStateMonitor @Inject constructor(
                     }
                 }
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private class ModernCallStateCallback(
+        private val onStateChanged: (Int) -> Unit
+    ) : TelephonyCallback(), TelephonyCallback.CallStateListener {
+        override fun onCallStateChanged(state: Int) = onStateChanged(state)
     }
 
     private companion object {

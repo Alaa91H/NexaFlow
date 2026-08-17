@@ -93,7 +93,7 @@ object PluginConfigParser {
         return buildMap {
             bundle.keySet().forEach { key ->
                 if (key == KEY_CONFIG || key == KEY_SDK_VERSION) return@forEach
-                when (val value = bundle.get(key)) {
+                when (val value = bundle.getLegacyValue(key)) {
                     is String -> put(key, value)
                     is Int -> put(key, value)
                     is Long -> put(key, value)
@@ -106,6 +106,14 @@ object PluginConfigParser {
             }
         }
     }
+
+    /**
+     * Legacy loose extras may contain any supported primitive type. Bundle has
+     * no public typed equivalent for inspecting an unknown value, so confine
+     * the platform deprecation to this compatibility boundary.
+     */
+    @Suppress("DEPRECATION")
+    private fun Bundle.getLegacyValue(key: String): Any? = get(key)
 
     private fun jsonObjectToMap(obj: JSONObject): Map<String, Any?> = buildMap {
         obj.keys().forEach { key ->
