@@ -101,10 +101,11 @@ fun NexaFlowApp() {
             composable("dashboard") {
                 DashboardScreen(navController = navController)
             }
-            composable("automation_builder?automationId={automationId}") { entry ->
+            composable("automation_builder?automationId={automationId}&templateId={templateId}") { entry ->
                 AutomationBuilderScreen(
                     navController = navController,
                     automationId = entry.arguments?.getString("automationId"),
+                    templateId = entry.arguments?.getString("templateId"),
                     // The entry's handle is stable for this destination; the
                     // icon picker writes its result here. Reading it from the
                     // navController instead would re-point at the top entry

@@ -152,6 +152,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -194,6 +195,7 @@ import com.nexaflow.domain.models.Constraint
 import com.nexaflow.domain.models.ConstraintType
 import com.nexaflow.domain.models.EndBehavior
 import com.nexaflow.domain.models.PluginInfo
+import com.nexaflow.domain.models.RoutineTemplateCatalog
 import com.nexaflow.domain.models.EndBehaviorCatalog
 import com.nexaflow.domain.models.EndMode
 import com.nexaflow.domain.models.Trigger
@@ -679,8 +681,6 @@ private fun SelectedActionCard(
     total: Int,
     config: Map<String, String>,
     onConfigChange: (Map<String, String>) -> Unit,
-    endBehavior: EndBehavior?,
-    onEndBehaviorChange: (EndBehavior?) -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
     onRemove: () -> Unit,
@@ -775,14 +775,6 @@ private fun SelectedActionCard(
                 onPluginConfigure = onPluginConfigure,
                 automations = automations
             )
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            // يبقى سلوك الانتهاء بجوار الإجراء الذي سيتأثر به، بدلاً من
-            // تكرار قائمة ثانية في آخر الصفحة تُفقد المستخدم السياق.
-            EndBehaviorEditor(
-                actionType = option.actionType,
-                behavior = endBehavior,
-                onBehaviorChange = onEndBehaviorChange
-            )
             PermissionHintForAction(
                 actionType = option.actionType,
                 context = context,
@@ -800,10 +792,16 @@ private fun SelectedActionCard(
 fun AutomationBuilderScreen(
     navController: NavController,
     automationId: String? = null,
+    templateId: String? = null,
     savedStateHandle: SavedStateHandle? = null
 ) {
     val viewModel: AutomationBuilderViewModel = hiltViewModel()
     val context = LocalContext.current
+    // Search labels must observe configuration changes as they are localized.
+    val configuration = LocalConfiguration.current
+    val configurationContext = remember(context, configuration) {
+        context.createConfigurationContext(configuration)
+    }
     // Hidden compatibility gate: only commands that can run on this device are
     // offered. The profile is captured once per composition (cheap) and keeps
     // the pickers identical to the execution reality.
@@ -825,11 +823,13 @@ fun AutomationBuilderScreen(
     val stringNextNeedsTrigger = stringResource(R.string.next_needs_trigger)
     val stringNextNeedsAction = stringResource(R.string.next_needs_action)
     val stringSavedSuccessfully = stringResource(R.string.saved_successfully)
+    val stringDefaultTaskName = stringResource(R.string.builder_title)
     val stringLocationFixFailed = stringResource(R.string.location_fix_failed)
     // P2-11: the editable draft survives rotation AND process death via
     // rememberSaveable (custom savers serialize the immutable drafts to Bundle).
     var name by rememberSaveable { mutableStateOf("") }
-    // Sequential wizard: 0 = triggers (with constraints inside), 1 = actions (with end behavior inside).
+    // Guided creation: 0 = when, 1 = do, 2 = review and save.
+    // The data model is unchanged; only the order in which decisions are shown changes.
     var step by rememberSaveable { mutableStateOf(0) }
     val triggers = rememberSaveable(saver = TriggerDraftListSaver) { mutableStateListOf<TriggerDraft>() }
     val constraints = rememberSaveable(saver = ConstraintDraftListSaver) { mutableStateListOf<ConstraintDraft>() }
@@ -848,6 +848,8 @@ fun AutomationBuilderScreen(
     // (strict no-collapse), so these only track the highlighted chip.
     var expandedTriggerCategory by rememberSaveable { mutableStateOf<Int?>(0) }
     var expandedActionCategory by rememberSaveable { mutableStateOf<Int?>(0) }
+    var triggerSearchQuery by rememberSaveable { mutableStateOf("") }
+    var actionSearchQuery by rememberSaveable { mutableStateOf("") }
     // A freshly picked trigger opens its editor; loaded ones stay collapsed.
     var lastAddedTrigger by remember { mutableStateOf(-1) }
     // Same for a freshly picked execution action.
@@ -863,6 +865,7 @@ fun AutomationBuilderScreen(
     val actionEndBehaviors = rememberSaveable(saver = ActionEndBehaviorMapSaver) { mutableStateMapOf<ActionType, EndBehavior?>() }
     val exitActionConfigs = rememberSaveable(saver = ActionConfigMapSaver) { mutableStateMapOf<ActionType, Map<String, String>>() }
     val selectedExitActions = rememberSaveable(saver = ActionOptionListSaver) { mutableStateListOf<ActionOption>() }
+    var appliedTemplateId by rememberSaveable { mutableStateOf<String?>(null) }
 
     // ── External plugins (Locale protocol) ─────────────────────────
     val plugins by viewModel.plugins.collectAsStateWithLifecycle()
@@ -931,6 +934,30 @@ fun AutomationBuilderScreen(
             // action behind (the user can still add other plugins).
             if ((actionConfigs[ActionType.PLUGIN_FIRE] ?: emptyMap()).isEmpty()) {
                 selectedActions.removeAll { it.actionType == ActionType.PLUGIN_FIRE }
+            }
+        }
+    }
+
+    // A template fills a new editable draft once. It never overwrites an edit.
+    LaunchedEffect(templateId, automationId) {
+        if (automationId == null && templateId != null && appliedTemplateId != templateId) {
+            RoutineTemplateCatalog.find(templateId)?.let { template ->
+                triggers.clear()
+                template.triggers.forEach { triggers.add(TriggerDraft(it.type, it.config)) }
+                selectedActions.clear()
+                actionConfigs.clear()
+                actionEndBehaviors.clear()
+                template.actions.forEach { action ->
+                    actionOptions.find { it.actionType == action.type }?.let { option ->
+                        selectedActions.add(option)
+                        actionConfigs[option.actionType] = action.config
+                        actionEndBehaviors[option.actionType] = action.endBehavior
+                    }
+                }
+                lastAddedTrigger = triggers.lastIndex
+                lastAddedAction = selectedActions.lastIndex
+                appliedTemplateId = templateId
+                step = if (triggers.isNotEmpty() && selectedActions.isNotEmpty()) 2 else 0
             }
         }
     }
@@ -1264,7 +1291,9 @@ fun AutomationBuilderScreen(
         val builtConstraints = constraints.map { Constraint(it.type, it.config) }
         val exitActions = selectedExitActions.map { Action(it.actionType, exitActionConfigs[it.actionType] ?: emptyMap()) }
         viewModel.saveAutomation(
-            name = name,
+            // A task can be created without making naming the first decision.
+            // The default stays localized and users can still refine it in review.
+            name = name.trim().ifBlank { stringDefaultTaskName },
             icon = NexaFlowIcons.all[selectedIconIndex].first,
             iconColor = selectedIconColor,
             triggers = builtTriggers,
@@ -1312,22 +1341,16 @@ fun AutomationBuilderScreen(
             NexaFlowTopBar(
                 title = if (isEditing) stringResource(R.string.edit_task_title) else stringResource(R.string.builder_title),
                 onBack = {
-                    // Wizard: back on step 2 returns to step 1, then exits.
-                    if (step == 1) step = 0 else navController.popBackStack()
+                    // Walk through the guided creation flow before leaving it.
+                    if (step > 0) step -= 1 else navController.popBackStack()
                 },
-                actions = {
-                    IconButton(onClick = { save(closeAfterSave = false) }) {
-                        Icon(imageVector = Icons.Filled.Save, contentDescription = stringResource(R.string.quick_save))
-                    }
-                    IconButton(onClick = { save() }) {
-                        Icon(imageVector = Icons.Filled.Check, contentDescription = stringResource(R.string.save))
-                    }
-                }
+                // A single primary action is kept at the bottom of each station.
+                // This avoids competing save actions while the routine is incomplete.
+                actions = { }
             )
         },
         floatingActionButton = {
-            // Step 1: continue to actions once a trigger is chosen.
-            // Step 2: create the task once at least one action is selected.
+            // One clear continuation action per station: When → Do → Review → Save.
             when {
                 step == 0 && triggers.isNotEmpty() -> NexaFlowFloatingActionButton(
                     onClick = { step = 1 },
@@ -1335,6 +1358,11 @@ fun AutomationBuilderScreen(
                     label = stringResource(R.string.permission_continue)
                 )
                 step == 1 && selectedActions.isNotEmpty() -> NexaFlowFloatingActionButton(
+                    onClick = { step = 2 },
+                    icon = Icons.AutoMirrored.Filled.ArrowForward,
+                    label = stringResource(R.string.quick_save)
+                )
+                step == 2 && triggers.isNotEmpty() && selectedActions.isNotEmpty() -> NexaFlowFloatingActionButton(
                     onClick = { save() },
                     icon = Icons.Filled.Check,
                     label = stringResource(R.string.create_task)
@@ -1356,7 +1384,7 @@ fun AutomationBuilderScreen(
             // of the wizard they are on. The bar fills with the M3 spatial
             // spring as they move between triggers and actions.
             val stepProgress by animateFloatAsState(
-                targetValue = (step + 1) / 2f,
+                targetValue = (step + 1) / 3f,
                 animationSpec = nexaFlowSpatialSpec()
             )
             Row(
@@ -1365,7 +1393,7 @@ fun AutomationBuilderScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = "${step + 1} / 2",
+                    text = "${step + 1} / 3",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -1380,8 +1408,8 @@ fun AutomationBuilderScreen(
                 )
             }
 
-            // ── Name + icon (small card: icon beside the name box) ────
-            NexaFlowCard {
+            // ── Name + icon belong to review, after the routine has meaning ─
+            if (step == 2) NexaFlowCard {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -1423,6 +1451,11 @@ fun AutomationBuilderScreen(
                     onClick = { step = 1 },
                     label = stringResource(R.string.step_actions)
                 )
+                SelectChip(
+                    selected = step == 2,
+                    onClick = { if (triggers.isNotEmpty() && selectedActions.isNotEmpty()) step = 2 },
+                    label = stringResource(R.string.save)
+                )
             }
 
             // The transitionSpec lambda is not composable, so the specs are
@@ -1457,7 +1490,96 @@ fun AutomationBuilderScreen(
                     // type folds the picker away and leaves just its expanded
                     // editor (which keeps its own type chips for later changes).
                     NexaFlowAnimatedVisibility(visible = triggers.isEmpty()) {
-                        CategoryAccordion(
+                        val commonTriggers = remember(supportedTriggers) {
+                            AutomationOptionCatalog.commonTriggers(supportedTriggers)
+                        }
+                        if (commonTriggers.isNotEmpty()) {
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                commonTriggers.forEach { type ->
+                                    Surface(
+                                        shape = MaterialTheme.shapes.small,
+                                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                triggers.clear()
+                                                triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
+                                                lastAddedTrigger = triggers.lastIndex
+                                                expandedTriggerCategory = null
+                                            }
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            IconBadge(
+                                                icon = type.icon(),
+                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                            )
+                                            Text(
+                                                text = stringResource(type.labelRes()),
+                                                modifier = Modifier.weight(1f),
+                                                style = MaterialTheme.typography.titleSmall
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        OutlinedTextField(
+                            value = triggerSearchQuery,
+                            onValueChange = { triggerSearchQuery = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            label = { Text(stringResource(R.string.search)) }
+                        )
+                        val visibleTriggers = remember(supportedTriggers, triggerSearchQuery, configurationContext) {
+                            if (triggerSearchQuery.isBlank()) {
+                                supportedTriggers
+                            } else {
+                                supportedTriggers.filter { type ->
+                                    configurationContext.getString(type.labelRes())
+                                        .contains(triggerSearchQuery, ignoreCase = true)
+                                }
+                            }
+                        }
+                        if (triggerSearchQuery.isNotBlank()) {
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                visibleTriggers.forEach { type ->
+                                    Surface(
+                                        shape = MaterialTheme.shapes.small,
+                                        color = Color.Transparent,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                triggers.clear()
+                                                triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
+                                                lastAddedTrigger = triggers.lastIndex
+                                                triggerSearchQuery = ""
+                                            }
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            IconBadge(
+                                                icon = type.icon(),
+                                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                text = stringResource(type.labelRes()),
+                                                modifier = Modifier.weight(1f),
+                                                style = MaterialTheme.typography.titleSmall
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        } else CategoryAccordion(
                             tabs = triggerCategories.map { category ->
                                 stringResource(category.headerRes) to category.icon()
                             },
@@ -1466,7 +1588,7 @@ fun AutomationBuilderScreen(
                         ) { index ->
                             val category = triggerCategories[index]
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                supportedTriggers
+                                visibleTriggers
                                     .filter { triggerCategoryOf[it] == category }
                                     .forEach { type ->
                                         Surface(
@@ -1533,57 +1655,73 @@ fun AutomationBuilderScreen(
                 )
             }
 
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    // ── IF (constraints) ────────────────────────────
-                    SectionHeader(
-                        text = stringResource(R.string.section_constraints),
-                trailing = {
-                    IconButton(onClick = { showConstraintPicker = true }) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = stringResource(R.string.add_constraint)
-                        )
                     }
                 }
-            )
-            if (constraints.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.constraints_empty_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-            } else {
-                constraints.forEachIndexed { index, draft ->
-                    val constraintDragging = constraintDrag.draggedIndex == index
-                    ConstraintEditorCard(
-                        draft = draft,
-                        index = index,
-                        total = constraints.size,
-                        modifier = Modifier.taskDragOffset(constraintDrag, draft, constraintDragging),
-                        isDragging = constraintDragging,
-                        onMoveUp = { moveConstraint(index, index - 1) },
-                        onMoveDown = { moveConstraint(index, index + 1) },
-                        onDragStart = { startDrag(constraintDrag, index) },
-                        onDragDelta = { dragBy(constraintDrag, constraints, it) { f, t -> moveConstraint(f, t) } },
-                        onDragEnd = { endDrag(constraintDrag) },
-                        initiallyExpanded = index == lastAddedConstraint,
-                        onConfigChange = { constraints[index] = it },
-                        onRemove = { constraints.removeAt(index) }
-                    )
-                }
-            }
-                    }
-                }
-            } else {
+            } else if (currentStep == 1) {
                 // ── Step 2: actions + end behavior ───────────────────
                 NexaFlowCard {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {                        // ── THEN (actions) ──────────────────────────
                             SectionHeader(text = stringResource(R.string.section_actions))
-                        // Category accordion: every category's options stay
-                        // visible (no-collapse). Tapping an option adds its
-                        // card right below the picker — never stuck inside it;
-                        // the chip highlight drops to signal the pick.
-                        CategoryAccordion(
+                        // Progressive disclosure: compatible everyday actions first,
+                        // then local search, then the complete category catalog.
+                        val commonActions = remember(supportedActions) {
+                            AutomationOptionCatalog.commonActions(supportedActions)
+                        }
+                        if (commonActions.isNotEmpty()) {
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                commonActions.forEach { option ->
+                                    ActionOptionRow(
+                                        option = option,
+                                        checked = option in selectedActions,
+                                        onToggle = {
+                                            if (option !in selectedActions) {
+                                                selectedActions.add(option)
+                                                lastAddedAction = selectedActions.lastIndex
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                        OutlinedTextField(
+                            value = actionSearchQuery,
+                            onValueChange = { actionSearchQuery = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            label = { Text(stringResource(R.string.search)) }
+                        )
+                        val visibleActions = remember(supportedActions, actionSearchQuery, configurationContext) {
+                            if (actionSearchQuery.isBlank()) {
+                                supportedActions
+                            } else {
+                                supportedActions.filter { option ->
+                                    configurationContext.getString(option.titleRes)
+                                        .contains(actionSearchQuery, ignoreCase = true) ||
+                                        configurationContext.getString(option.subtitleRes)
+                                            .contains(actionSearchQuery, ignoreCase = true)
+                                }
+                            }
+                        }
+                        if (actionSearchQuery.isNotBlank()) {
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                visibleActions.forEach { option ->
+                                    ActionOptionRow(
+                                        option = option,
+                                        checked = option in selectedActions,
+                                        onToggle = {
+                                            if (option !in selectedActions) {
+                                                selectedActions.add(option)
+                                                lastAddedAction = selectedActions.lastIndex
+                                                if (option.actionType == ActionType.PLUGIN_FIRE) {
+                                                    pluginPickerTarget = true
+                                                }
+                                            }
+                                            actionSearchQuery = ""
+                                        }
+                                    )
+                                }
+                            }
+                        } else CategoryAccordion(
                             tabs = actionCategories.map { category ->
                                 stringResource(category.headerRes) to category.icon()
                             },
@@ -1592,7 +1730,7 @@ fun AutomationBuilderScreen(
                         ) { index ->
                             val category = actionCategories[index]
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                supportedActions
+                                visibleActions
                                     .filter { it.category == category }
                                     .forEach { option ->
                                         ActionOptionRow(
@@ -1627,8 +1765,6 @@ fun AutomationBuilderScreen(
                     total = selectedActions.size,
                     config = actionConfigs[option.actionType] ?: emptyMap(),
                     onConfigChange = { actionConfigs[option.actionType] = it },
-                    endBehavior = actionEndBehaviors[option.actionType],
-                    onEndBehaviorChange = { actionEndBehaviors[option.actionType] = it },
                     onMoveUp = { moveAction(index, index - 1) },
                     onMoveDown = { moveAction(index, index + 1) },
                     onRemove = {
@@ -1654,6 +1790,101 @@ fun AutomationBuilderScreen(
                 )
             }
 
+                    }
+                }
+            } else {
+                // ── Step 3: review before saving ─────────────────────
+                NexaFlowCard {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        SectionHeader(text = stringResource(R.string.save))
+                        Text(
+                            text = stringResource(R.string.section_when),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        triggers.forEach { draft ->
+                            Text(
+                                text = stringResource(draft.type.labelRes()),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        Text(
+                            text = stringResource(R.string.section_actions),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        selectedActions.forEach { option ->
+                            Text(
+                                text = actionSummary(option, actionConfigs[option.actionType] ?: emptyMap()),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                        val actionsWithEndOptions = selectedActions.filter { option ->
+                            option.actionType in EndBehaviorCatalog.toggleActions ||
+                                option.actionType in EndBehaviorCatalog.valueActions ||
+                                option.actionType in EndBehaviorCatalog.revertOnlyActions
+                        }
+                        if (actionsWithEndOptions.isNotEmpty()) {
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                            SectionHeader(text = stringResource(R.string.end_behavior_label))
+                            actionsWithEndOptions.forEach { option ->
+                                Text(
+                                    text = stringResource(option.titleRes),
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                                EndBehaviorEditor(
+                                    actionType = option.actionType,
+                                    behavior = actionEndBehaviors[option.actionType],
+                                    onBehaviorChange = { actionEndBehaviors[option.actionType] = it },
+                                    showLabel = false
+                                )
+                            }
+                        }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        Text(
+                            text = stringResource(R.string.section_constraints),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = if (constraints.isEmpty()) {
+                                stringResource(R.string.constraints_empty_hint)
+                            } else {
+                                stringResource(R.string.section_constraints)
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        SectionHeader(
+                            text = stringResource(R.string.section_constraints),
+                            trailing = {
+                                IconButton(onClick = { showConstraintPicker = true }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Add,
+                                        contentDescription = stringResource(R.string.add_constraint)
+                                    )
+                                }
+                            }
+                        )
+                        constraints.forEachIndexed { index, draft ->
+                            val constraintDragging = constraintDrag.draggedIndex == index
+                            ConstraintEditorCard(
+                                draft = draft,
+                                index = index,
+                                total = constraints.size,
+                                modifier = Modifier.taskDragOffset(constraintDrag, draft, constraintDragging),
+                                isDragging = constraintDragging,
+                                onMoveUp = { moveConstraint(index, index - 1) },
+                                onMoveDown = { moveConstraint(index, index + 1) },
+                                onDragStart = { startDrag(constraintDrag, index) },
+                                onDragDelta = { dragBy(constraintDrag, constraints, it) { f, t -> moveConstraint(f, t) } },
+                                onDragEnd = { endDrag(constraintDrag) },
+                                initiallyExpanded = index == lastAddedConstraint,
+                                onConfigChange = { constraints[index] = it },
+                                onRemove = { constraints.removeAt(index) }
+                            )
+                        }
                     }
                 }
             }
