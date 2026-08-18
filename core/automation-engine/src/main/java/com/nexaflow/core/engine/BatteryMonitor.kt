@@ -75,7 +75,8 @@ class BatteryMonitor @Inject constructor(
      * handled concurrently on the application scope.
      */
     private val activeBatteryTriggers: MutableSet<String> = ConcurrentHashMap.newKeySet()
-    private val lastRunAt = mutableMapOf<String, Long>()
+    /** Cooldown ledger is reached from broadcasts, refreshes and safety-net ticks concurrently. */
+    private val lastRunAt = ConcurrentHashMap<String, Long>()
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(receiverContext: Context, intent: Intent) {

@@ -30,6 +30,8 @@ import com.nexaflow.domain.repositories.VariableRepository
 import com.nexaflow.domain.variables.VariableResolver
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.UUID
 
 /**
@@ -71,6 +73,9 @@ class ExecutionEngine(
      * never merely because a trigger later flips back.
      */
     private val activeExecutions = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
+    /** Serializes the paired in-memory and durable exit-ledger consumption per task. */
+    private val exitConsumptionLocks = java.util.concurrent.ConcurrentHashMap<String, Mutex>()
 
     suspend fun runAutomation(
         automation: Automation,
@@ -206,11 +211,15 @@ class ExecutionEngine(
         forceConfiguredEnd: Boolean = false
     ): ExecutionRecord {
         val startedAt = epochMillis.now()
-        // Consume both ledgers. The in-memory marker handles ordinary callbacks;
-        // the durable marker preserves the same contract after service restart.
-        val hadActiveInMemory = activeExecutions.remove(automation.id)
-        val hadActiveInStore = activeExecutionStore.consumeStarted(automation.id)
-        val hadActiveExecution = hadActiveInMemory || hadActiveInStore
+        // Consume both ledgers as one critical section. Without this per-task
+        // lock, two concurrent monitor callbacks can each consume a different
+        // ledger and both execute the same end behavior.
+        val exitLock = exitConsumptionLocks.computeIfAbsent(automation.id) { Mutex() }
+        val hadActiveExecution = exitLock.withLock {
+            val hadActiveInMemory = activeExecutions.remove(automation.id)
+            val hadActiveInStore = activeExecutionStore.consumeStarted(automation.id)
+            hadActiveInMemory || hadActiveInStore
+        }
         if (!hadActiveExecution && !forceConfiguredEnd) {
             val record = ExecutionRecord(
                 id = UUID.randomUUID().toString(),

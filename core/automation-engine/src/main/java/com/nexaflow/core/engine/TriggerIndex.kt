@@ -2,7 +2,6 @@ package com.nexaflow.core.engine
 
 import com.nexaflow.core.execution.compat.TriggerSource
 import com.nexaflow.domain.models.Automation
-import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -18,17 +17,21 @@ import kotlinx.coroutines.flow.Flow
  * [snapshot].
  *
  * Thread-safety: writes happen only inside the single collector coroutine;
- * reads may happen concurrently from monitor coroutines, so both maps are
- * concurrent and each rebuild swaps them atomically via [volatileRebuild].
+ * reads may happen concurrently from monitor coroutines. A rebuild publishes a
+ * complete immutable [IndexSnapshot] through one volatile write, so readers see
+ * either the previous complete index or the next complete index—never a map
+ * while it is being cleared and refilled.
  */
 class TriggerIndex(
     private val automationsFlow: Flow<List<Automation>>,
 ) {
-    /** sourceId → automation ids (subscribers). */
-    private val index = ConcurrentHashMap<String, MutableSet<String>>()
+    private data class IndexSnapshot(
+        val idsBySource: Map<String, List<String>>,
+        val automationsById: Map<String, Automation>,
+    )
 
-    /** automation id → snapshot (latest enabled row seen). */
-    private val all = ConcurrentHashMap<String, Automation>()
+    @Volatile
+    private var snapshot = IndexSnapshot(emptyMap(), emptyMap())
 
     /** Number of index rebuilds; exposed for tests and diagnostics. */
     @Volatile
@@ -59,10 +62,11 @@ class TriggerIndex(
                 nextIndex.computeIfAbsent(sourceId) { LinkedHashSet() }.add(automation.id)
             }
         }
-        index.clear()
-        index.putAll(nextIndex)
-        all.clear()
-        all.putAll(nextAll)
+        val nextSnapshot = IndexSnapshot(
+            idsBySource = nextIndex.mapValues { (_, ids) -> ids.toList() },
+            automationsById = nextAll.toMap(),
+        )
+        snapshot = nextSnapshot
         version++
     }
 
@@ -70,12 +74,16 @@ class TriggerIndex(
      * O(1): returns the automations subscribed to the given source id, in
      * database emission order. Empty for an unknown source.
      */
-    fun bySource(sourceId: String): List<Automation> =
-        index[sourceId]?.mapNotNull { all[it] } ?: emptyList()
+    fun bySource(sourceId: String): List<Automation> {
+        val current = snapshot
+        return current.idsBySource[sourceId]
+            ?.mapNotNull { current.automationsById[it] }
+            ?: emptyList()
+    }
 
     /** Returns the latest snapshot of the automation with [id], or null. */
-    fun snapshot(id: String): Automation? = all[id]
+    fun snapshot(id: String): Automation? = snapshot.automationsById[id]
 
     /** True when no automation is currently indexed. */
-    fun isEmpty(): Boolean = all.isEmpty()
+    fun isEmpty(): Boolean = snapshot.automationsById.isEmpty()
 }

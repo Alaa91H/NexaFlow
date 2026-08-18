@@ -4,7 +4,14 @@ import com.nexaflow.core.execution.compat.TriggerSource
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
+import java.util.concurrent.ConcurrentLinkedQueue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -176,6 +183,45 @@ class TriggerIndexTest {
         flow.value = listOf(automation("y"))
         advanceUntilIdle()
         assertTrue(index.version > afterFirst)
+    }
+
+    @Test
+    fun `high cardinality snapshot churn never exposes incomplete source reads`() = runTest {
+        val source = sourceOf(TriggerType.BATTERY)
+        val first = List(512) { automation("first-$it") }
+        val second = List(512) { automation("second-$it") }
+        val flow = MutableStateFlow(first)
+        val index = TriggerIndex(flow)
+        val pressureScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        val collector = pressureScope.launch { index.start() }
+        val incompleteReads = ConcurrentLinkedQueue<Int>()
+
+        try {
+            waitUntil { index.version > 0L }
+            val readers = List(8) {
+                pressureScope.async {
+                    repeat(2_000) {
+                        val count = index.bySource(source).size
+                        if (count != first.size) incompleteReads.add(count)
+                    }
+                }
+            }
+            repeat(40) { round ->
+                val previousVersion = index.version
+                flow.value = if (round % 2 == 0) second else first
+                waitUntil { index.version > previousVersion }
+            }
+            readers.awaitAll()
+
+            assertTrue(
+                "readers must observe complete old or new snapshots, never partial rebuilds: $incompleteReads",
+                incompleteReads.isEmpty(),
+            )
+            assertEquals(first.size, index.bySource(source).size)
+        } finally {
+            collector.cancel()
+            pressureScope.cancel()
+        }
     }
 
     @Test

@@ -17,6 +17,13 @@ import com.nexaflow.domain.models.ConstraintSnapshot
 import com.nexaflow.domain.models.ConstraintType
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.repositories.HistoryRepository
+import java.util.concurrent.atomic.AtomicInteger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -39,13 +46,14 @@ class ExecutionEngineConstraintsTest {
     private lateinit var context: Context
 
     private class RecordingHandler : ActionHandler {
-        var calls = 0
+        private val invocationCount = AtomicInteger()
+        val calls: Int get() = invocationCount.get()
         override val supportedTypes: Set<ActionType> = setOf(ActionType.SYSTEM_SEND_NOTIFICATION)
         override suspend fun execute(
             action: Action,
             ctx: ActionExecutionContext
         ): SystemControlResult {
-            calls++
+            invocationCount.incrementAndGet()
             return SystemControlResult.ok("ok")
         }
     }
@@ -173,6 +181,37 @@ class ExecutionEngineConstraintsTest {
 
         assertEquals(1, handler.calls)
         assertTrue(record.message.contains("ok"))
+    }
+
+    @Test
+    fun `concurrent exits execute configured end action exactly once`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val automation = automation(
+            constraints = emptyList(),
+            exitActions = listOf(Action(ActionType.SYSTEM_SEND_NOTIFICATION, mapOf("title" to "ended"))),
+        )
+        val engine = engine(handler, history, ConstraintSnapshot())
+        val pressureScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+        try {
+            engine.runAutomation(automation)
+            val exits = List(128) { pressureScope.async { engine.runExit(automation) } }.awaitAll()
+
+            assertEquals("one main action plus one end action must execute", 2, handler.calls)
+            assertEquals(
+                "only one concurrent callback may consume the active lifecycle",
+                1,
+                exits.count { it.actionResults.size == 1 },
+            )
+            assertEquals(
+                "all remaining callbacks must be recorded as inactive exits",
+                127,
+                exits.count { it.message.contains("not active") },
+            )
+        } finally {
+            pressureScope.cancel()
+        }
     }
 
     @Test
