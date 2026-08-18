@@ -6,6 +6,11 @@
 
     <string name="accessibility_disabled">Désactivé — les déclencheurs d\u2019application ne se déclencheront pas</string>
 
+
+    <string name="accessibility_disclosure_title">Activer la détection des applications</string>
+    <string name="accessibility_disclosure_message">NexaFlow utilise le service d’accessibilité Android uniquement pour détecter l’application au premier plan des automatisations que vous créez. Il ne lit ni ne partage le contenu de votre écran. Continuez seulement si vous voulez activer les déclencheurs d’applications.</string>
+    <string name="accessibility_disclosure_continue">Vérifier le réglage système</string>
+
     
 
     
@@ -34,6 +39,7 @@
     <string name="backup_import">Importer depuis un fichier</string>
     <string name="backup_import_sub">Restaurer les automatisations depuis une sauvegarde JSON</string>
     <string name="backup_imported">"%1$d automatisation(s) importée(s)"</string>
+    <string name="backup_imported_disabled">%1$d automatisation(s) importée(s). Vérifiez-les et activez-les lorsque vous êtes prêt.</string>
     <string name="backup_import_failed">Fichier de sauvegarde non valide ou non pris en charge</string>
     <string name="share_backup_title">Partager la sauvegarde des automatisations</string>
     <string name="permission_manager">Gestionnaire d\u2019autorisations</string>

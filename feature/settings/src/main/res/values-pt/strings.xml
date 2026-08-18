@@ -6,6 +6,11 @@
 
     <string name="accessibility_disabled">Desativado — gatilhos de aplicativos não serão acionados</string>
 
+
+    <string name="accessibility_disclosure_title">Ativar deteção de aplicações</string>
+    <string name="accessibility_disclosure_message">O NexaFlow utiliza o serviço de acessibilidade do Android apenas para detetar a aplicação em primeiro plano nas automações que cria. Não lê nem partilha o conteúdo do ecrã. Continue apenas se quiser ativar gatilhos de aplicações.</string>
+    <string name="accessibility_disclosure_continue">Rever definição do sistema</string>
+
     
 
     
@@ -34,6 +39,7 @@
     <string name="backup_import">Importar do arquivo</string>
     <string name="backup_import_sub">Restaurar automações de uma cópia JSON</string>
     <string name="backup_imported">%1$d automação(ões) importada(s)</string>
+    <string name="backup_imported_disabled">%1$d automação(ões) importada(s). Revise-as e ative-as quando estiver pronto.</string>
     <string name="backup_import_failed">Arquivo de backup inválido ou não compatível</string>
     <string name="share_backup_title">Compartilhar backup de automações</string>
     <string name="permission_manager">Gerenciador de permissões</string>

@@ -6,6 +6,11 @@
 
     <string name="accessibility_disabled">बंद — ऐप ट्रिगर नहीं चलेंगे</string>
 
+
+    <string name="accessibility_disclosure_title">ऐप पहचान सक्षम करें</string>
+    <string name="accessibility_disclosure_message">NexaFlow Android एक्सेसिबिलिटी सेवा का उपयोग केवल आपके बनाए ऑटोमेशन के लिए अग्रभूमि ऐप का पता लगाने हेतु करता है। यह आपकी स्क्रीन की सामग्री को न पढ़ता है और न साझा करता है। केवल ऐप ट्रिगर सक्षम करने के लिए आगे बढ़ें।</string>
+    <string name="accessibility_disclosure_continue">सिस्टम सेटिंग देखें</string>
+
     
 
     
@@ -34,6 +39,7 @@
     <string name="backup_import">फ़ाइल से आयात करें</string>
     <string name="backup_import_sub">JSON बैकअप से ऑटोमेशन पुनर्स्थापित करें</string>
     <string name="backup_imported">%1$d ऑटोमेशन आयात किए गए</string>
+    <string name="backup_imported_disabled">%1$d ऑटोमेशन आयात किए गए। तैयार होने पर उनकी समीक्षा करें और उन्हें सक्षम करें।</string>
     <string name="backup_import_failed">अमान्य या असमर्थित बैकअप फ़ाइल</string>
     <string name="share_backup_title">ऑटोमेशन बैकअप साझा करें</string>
     <string name="permission_manager">अनुमति प्रबंधक</string>

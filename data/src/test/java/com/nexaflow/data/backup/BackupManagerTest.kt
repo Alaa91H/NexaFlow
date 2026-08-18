@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -53,14 +54,26 @@ class BackupManagerTest {
     @Test
     fun `well formed export imports successfully`() = runBlocking {
         val result = manager.import(backupJson(validAutomation()))
-        assertEquals(ImportResult.Success(1), result)
+        assertEquals(ImportResult.Success(1, 1), result)
         assertEquals(1, repository.saved.size)
+        assertFalse(repository.saved.single().enabled)
+    }
+
+    @Test
+    fun `imported advanced command remains disabled until explicitly reviewed`() = runBlocking {
+        val advanced = validAutomation().copy(
+            actions = listOf(Action(ActionType.ADVANCED_ROOT, mapOf("command" to "id")))
+        )
+
+        assertEquals(ImportResult.Success(1, 1), manager.import(backupJson(advanced)))
+        assertFalse(repository.saved.single().enabled)
+        assertEquals(ActionType.ADVANCED_ROOT, repository.saved.single().actions.single().type)
     }
 
     @Test
     fun `multiple automations import all`() = runBlocking {
         val result = manager.import(backupJson(validAutomation("a"), validAutomation("b")))
-        assertEquals(ImportResult.Success(2), result)
+        assertEquals(ImportResult.Success(2, 2), result)
         assertEquals(2, repository.saved.size)
     }
 
@@ -95,7 +108,7 @@ class BackupManagerTest {
     @Test
     fun `empty automations list imports zero`() = runBlocking {
         val result = manager.import(backupJson())
-        assertEquals(ImportResult.Success(0), result)
+        assertEquals(ImportResult.Success(0, 0), result)
         assertTrue(repository.saved.isEmpty())
     }
 
@@ -246,14 +259,14 @@ class BackupManagerTest {
         val exported = manager.export()
         assertEquals(1, exported.automations.size)
         val result = manager.import(manager.toJson(exported))
-        assertEquals(ImportResult.Success(1), result)
-        assertEquals(original, repository.saved.single())
+        assertEquals(ImportResult.Success(1, 1), result)
+        assertEquals(original.copy(enabled = false), repository.saved.single())
     }
 
     @Test
     fun `valid export round-trips through toJson and import`() = runBlocking {
         val exported = manager.export()
-        assertEquals(ImportResult.Success(0), manager.import(manager.toJson(exported)))
+        assertEquals(ImportResult.Success(0, 0), manager.import(manager.toJson(exported)))
         assertTrue(repository.saved.isEmpty())
     }
 

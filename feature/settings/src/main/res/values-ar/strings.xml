@@ -5,6 +5,9 @@
     <string name="accessibility_service">خدمة إمكانية الوصول</string>
 
     <string name="accessibility_disabled">متوقفة — لن تعمل مشغّلات التطبيق</string>
+    <string name="accessibility_disclosure_title">تفعيل اكتشاف التطبيق</string>
+    <string name="accessibility_disclosure_message">يستخدم NexaFlow خدمة إمكانية الوصول في Android لاكتشاف التطبيق الظاهر في الواجهة لأتمتة تنشئها أنت فقط. لا يقرأ محتوى الشاشة ولا يشاركه. تابع فقط إذا أردت تفعيل مشغلات التطبيقات.</string>
+    <string name="accessibility_disclosure_continue">مراجعة إعداد النظام</string>
 
     
 
@@ -34,6 +37,7 @@
     <string name="backup_import">استيراد من ملف</string>
     <string name="backup_import_sub">استعادة الأتمتة من نسخة احتياطية JSON</string>
     <string name="backup_imported">تم استيراد %1$d أتمتة</string>
+    <string name="backup_imported_disabled">تم استيراد %1$d أتمتة. راجعها وفعّلها عندما تكون جاهزاً.</string>
     <string name="backup_import_failed">ملف نسخ احتياطي غير صالح أو غير مدعوم</string>
     <string name="share_backup_title">مشاركة النسخة الاحتياطية للأتمتة</string>
     <string name="permission_manager">مدير الأذونات</string>

@@ -5,6 +5,9 @@
     <string name="accessibility_service">Barrierefreiheitsdienst</string>
 
     <string name="accessibility_disabled">Aus — App-Trigger werden nicht ausgelöst</string>
+    <string name="accessibility_disclosure_title">App-Erkennung aktivieren</string>
+    <string name="accessibility_disclosure_message">NexaFlow nutzt den Android-Barrierefreiheitsdienst nur, um für von Ihnen erstellte Automatisierungen die Vordergrund-App zu erkennen. Bildschirm-Inhalte werden nicht gelesen oder geteilt. Fahren Sie nur fort, wenn Sie App-Trigger aktivieren möchten.</string>
+    <string name="accessibility_disclosure_continue">Systemeinstellung prüfen</string>
 
     
 
@@ -34,6 +37,7 @@
     <string name="backup_import">Aus Datei importieren</string>
     <string name="backup_import_sub">Automatisierungen aus JSON-Sicherung wiederherstellen</string>
     <string name="backup_imported">%1$d Automatisierung(en) importiert</string>
+    <string name="backup_imported_disabled">%1$d Automatisierung(en) importiert. Prüfen und aktivieren Sie sie, wenn Sie bereit sind.</string>
     <string name="backup_import_failed">Ungültige oder nicht unterstützte Sicherungsdatei</string>
     <string name="share_backup_title">Automatisierungs-Sicherung teilen</string>
     <string name="permission_manager">Berechtigungsmanager</string>

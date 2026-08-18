@@ -6,6 +6,11 @@
 
     <string name="accessibility_disabled">Kapalı — uygulama tetikleyicileri çalışmaz</string>
 
+
+    <string name="accessibility_disclosure_title">Uygulama algılamayı etkinleştir</string>
+    <string name="accessibility_disclosure_message">NexaFlow, yalnızca oluşturduğunuz otomasyonlarda ön plandaki uygulamayı algılamak için Android erişilebilirlik hizmetini kullanır. Ekran içeriğinizi okumaz veya paylaşmaz. Yalnızca uygulama tetikleyicilerini etkinleştirmek istiyorsanız devam edin.</string>
+    <string name="accessibility_disclosure_continue">Sistem ayarını incele</string>
+
     
 
     
@@ -34,6 +39,7 @@
     <string name="backup_import">Dosyadan içe aktar</string>
     <string name="backup_import_sub">Otomasyonları JSON yedeğinden geri yükle</string>
     <string name="backup_imported">%1$d otomasyon içe aktarıldı</string>
+    <string name="backup_imported_disabled">%1$d otomasyon içe aktarıldı. Hazır olduğunuzda gözden geçirip etkinleştirin.</string>
     <string name="backup_import_failed">Geçersiz veya desteklenmeyen yedek dosyası</string>
     <string name="share_backup_title">Otomasyon yedeğini paylaş</string>
     <string name="permission_manager">İzin yöneticisi</string>

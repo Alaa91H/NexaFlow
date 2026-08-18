@@ -6,6 +6,11 @@
 
     <string name="accessibility_disabled">已关闭 — 应用触发器不会触发</string>
 
+
+    <string name="accessibility_disclosure_title">启用应用检测</string>
+    <string name="accessibility_disclosure_message">NexaFlow 仅使用 Android 无障碍服务来检测您创建的自动化所需的前台应用。它不会读取或分享您的屏幕内容。仅当您要启用应用触发器时继续。</string>
+    <string name="accessibility_disclosure_continue">查看系统设置</string>
+
     
 
     
@@ -34,6 +39,7 @@
     <string name="backup_import">从文件导入</string>
     <string name="backup_import_sub">从 JSON 备份恢复自动化</string>
     <string name="backup_imported">已导入 %1$d 个自动化</string>
+    <string name="backup_imported_disabled">已导入 %1$d 个自动化。请先检查，准备好后再启用。</string>
     <string name="backup_import_failed">无效或不支持的备份文件</string>
     <string name="share_backup_title">分享自动化备份</string>
     <string name="permission_manager">权限管理器</string>

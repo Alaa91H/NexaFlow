@@ -4,6 +4,7 @@ import com.nexaflow.core.rom.model.SystemControlResult
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -205,6 +206,25 @@ class TaskManagerTest {
             manager.results.value.any { it is TaskResult.Cancelled && it.taskId == taskId }
         )
         manager.shutdown()
+    }
+
+    @Test
+    fun idleWorker_wakesAndExecutesNewTask() = runBlocking {
+        val manager = TaskManager()
+        val executed = CompletableDeferred<Unit>()
+        try {
+            // Give the worker a chance to reach its event-driven idle wait.
+            delay(50)
+            manager.enqueue(PendingTask(name = "wake-idle-worker") {
+                executed.complete(Unit)
+                SystemControlResult.ok("woken")
+            })
+
+            withTimeout(1_000) { executed.await() }
+            assertTrue(manager.awaitIdle(timeoutMs = 1_000))
+        } finally {
+            manager.shutdown()
+        }
     }
 
     @Test

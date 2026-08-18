@@ -6,6 +6,11 @@
 
     <string name="accessibility_disabled">オフ — アプリトリガーは作動しません</string>
 
+
+    <string name="accessibility_disclosure_title">アプリ検出を有効にする</string>
+    <string name="accessibility_disclosure_message">NexaFlow は、作成した自動化のために前面のアプリを検出する目的だけで Android のアクセシビリティ サービスを使用します。画面の内容を読み取ったり共有したりすることはありません。アプリトリガーを有効にする場合のみ続行してください。</string>
+    <string name="accessibility_disclosure_continue">システム設定を確認</string>
+
     
 
     
@@ -34,6 +39,7 @@
     <string name="backup_import">ファイルからインポート</string>
     <string name="backup_import_sub">JSONバックアップから自動化を復元</string>
     <string name="backup_imported">%1$d 件の自動化をインポートしました</string>
+    <string name="backup_imported_disabled">%1$d 件の自動化をインポートしました。確認して、準備ができたら有効にしてください。</string>
     <string name="backup_import_failed">無効またはサポートされていないバックアップファイル</string>
     <string name="share_backup_title">自動化バックアップを共有</string>
     <string name="permission_manager">権限マネージャー</string>

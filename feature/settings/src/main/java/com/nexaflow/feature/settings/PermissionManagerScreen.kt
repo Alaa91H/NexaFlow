@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -84,6 +85,7 @@ fun PermissionManagerScreen(navController: NavController) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var refreshTick by remember { mutableStateOf(0) }
+    var showAccessibilityDisclosure by rememberSaveable { mutableStateOf(false) }
 
     // Re-check permissions whenever the screen resumes (after returning from settings).
     DisposableEffect(lifecycleOwner) {
@@ -129,6 +131,35 @@ fun PermissionManagerScreen(navController: NavController) {
     fun claimOemHint() {
         oemDismissed = true
         OemCompat.markHintDelivered(context)
+    }
+
+    if (showAccessibilityDisclosure) {
+        AlertDialog(
+            onDismissRequest = { showAccessibilityDisclosure = false },
+            title = { Text(text = stringResource(R.string.accessibility_disclosure_title)) },
+            text = { Text(text = stringResource(R.string.accessibility_disclosure_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showAccessibilityDisclosure = false
+                    PermissionStatus.openAccessibilitySettings(context)
+                }) {
+                    Text(text = stringResource(R.string.accessibility_disclosure_continue))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAccessibilityDisclosure = false }) {
+                    Text(text = stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    fun openPermission(entry: PermissionEntry) {
+        if (entry.key == "accessibility" && !isAccessibilityEnabled(context)) {
+            showAccessibilityDisclosure = true
+        } else {
+            entry.openAction(context)
+        }
     }
 
     Scaffold(
@@ -208,14 +239,14 @@ fun PermissionManagerScreen(navController: NavController) {
                             title = stringResource(entry.titleRes),
                             subtitle = stringResource(entry.subtitleRes),
                             trailing = {
-                                TextButton(onClick = { entry.openAction(context) }) {
+                                TextButton(onClick = { openPermission(entry) }) {
                                     Text(
                                         text = stringResource(if (granted) R.string.granted else R.string.grant),
                                         color = if (granted) Color(0xFF006D3C) else MaterialTheme.colorScheme.primary
                                     )
                                 }
                             },
-                            onClick = { entry.openAction(context) }
+                            onClick = { openPermission(entry) }
                         )
                     }
                 }

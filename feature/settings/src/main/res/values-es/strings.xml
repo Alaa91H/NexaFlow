@@ -5,6 +5,9 @@
     <string name="accessibility_service">Servicio de accesibilidad</string>
 
     <string name="accessibility_disabled">Apagado — los disparadores de apps no se activarán</string>
+    <string name="accessibility_disclosure_title">Activar detección de apps</string>
+    <string name="accessibility_disclosure_message">NexaFlow usa el servicio de accesibilidad de Android solo para detectar la app en primer plano de las automatizaciones que creas. No lee ni comparte el contenido de tu pantalla. Continúa solo si quieres activar disparadores de apps.</string>
+    <string name="accessibility_disclosure_continue">Revisar ajuste del sistema</string>
 
     
 
@@ -34,6 +37,7 @@
     <string name="backup_import">Importar desde archivo</string>
     <string name="backup_import_sub">Restaurar automatizaciones desde una copia JSON</string>
     <string name="backup_imported">%1$d automatización(es) importada(s)</string>
+    <string name="backup_imported_disabled">Se importaron %1$d automatización(es). Revísalas y actívalas cuando estés listo.</string>
     <string name="backup_import_failed">Archivo de copia no válido o no compatible</string>
     <string name="share_backup_title">Compartir copia de automatizaciones</string>
     <string name="permission_manager">Administrador de permisos</string>

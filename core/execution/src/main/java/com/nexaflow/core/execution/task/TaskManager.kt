@@ -15,6 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
@@ -93,6 +94,9 @@ class TaskManager(
     private val lock = Any()
     private val seqCounter = AtomicLong(0)
     private val cancelledIds = ConcurrentHashMap.newKeySet<String>()
+    // A conflated wake-up replaces continuous empty-queue polling. One pending
+    // signal is sufficient because the consumer drains the priority queue fully.
+    private val queueWakeups = Channel<Unit>(Channel.CONFLATED)
     private val runningJobs = ConcurrentHashMap<String, Job>()
     private val resultsFlow = MutableStateFlow<List<TaskResult>>(emptyList())
 
@@ -115,6 +119,9 @@ class TaskManager(
         synchronized(lock) {
             queue.add(Envelope(task, seqCounter.incrementAndGet()))
         }
+        // Non-blocking and conflated: a closed worker is shutting down, while
+        // one signal wakes the idle consumer for any number of queued tasks.
+        queueWakeups.trySend(Unit)
         return task.id
     }
 
@@ -141,6 +148,7 @@ class TaskManager(
 
     /** Stops the worker; queued work is abandoned (shutdown path). */
     fun shutdown() {
+        queueWakeups.close()
         scope.cancel()
     }
 
@@ -152,9 +160,9 @@ class TaskManager(
     }
 
     /**
-     * Pops the next task, or waits briefly when the queue is empty. Marks the
-     * task active atomically with the poll so awaitIdle() never sees an empty
-     * queue + idle worker while a task is about to start.
+     * Pops the next task, or waits for an enqueue signal when the queue is
+     * empty. Marks the task active atomically with the poll so awaitIdle()
+     * never sees an empty queue + idle worker while a task is about to start.
      */
     private suspend fun pollOrWait(): Envelope? {
         val polled = synchronized(lock) {
@@ -162,7 +170,7 @@ class TaskManager(
             if (head != null) activeTaskId.set(head.task.id)
             head
         }
-        if (polled == null) delay(25)
+        if (polled == null) queueWakeups.receive()
         return polled
     }
 

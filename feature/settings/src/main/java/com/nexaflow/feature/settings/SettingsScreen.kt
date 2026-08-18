@@ -111,6 +111,7 @@ fun SettingsScreen(navController: NavController) {
     val stringBackupImportFailed = stringResource(R.string.backup_import_failed)
     val stringShareBackupTitle = stringResource(R.string.share_backup_title)
     val stringBackupImportedTemplate = stringResource(R.string.backup_imported)
+    val stringBackupImportedDisabledTemplate = stringResource(R.string.backup_imported_disabled)
     // Section titles hoisted because settingsGroup is a LazyListScope
     // extension (non-composable) and cannot call stringResource itself.
     val sectionAutomationTitle = stringResource(R.string.section_automation)
@@ -192,7 +193,11 @@ fun SettingsScreen(navController: NavController) {
         viewModel.importResult.collect { result ->
             val message = when (result) {
                 is ImportResult.Success ->
-                    stringBackupImportedTemplate.format(result.count)
+                    if (result.disabledCount > 0) {
+                        stringBackupImportedDisabledTemplate.format(result.count)
+                    } else {
+                        stringBackupImportedTemplate.format(result.count)
+                    }
                 ImportResult.InvalidFile ->
                     stringBackupImportFailed
             }

@@ -5,6 +5,9 @@
     <string name="accessibility_service">Accessibility service</string>
 
     <string name="accessibility_disabled">Off — app triggers won\'t fire</string>
+    <string name="accessibility_disclosure_title">Enable app detection</string>
+    <string name="accessibility_disclosure_message">NexaFlow uses the Android AccessibilityService only to detect which app is in the foreground for automations you create. It does not read or share your screen content. Continue only if you want to enable app-based triggers.</string>
+    <string name="accessibility_disclosure_continue">Review system setting</string>
 
     
 
@@ -36,6 +39,7 @@
     <string name="backup_import">Import from file</string>
     <string name="backup_import_sub">Restore automations from a JSON backup</string>
     <string name="backup_imported">Imported %1$d automation(s)</string>
+    <string name="backup_imported_disabled">Imported %1$d automation(s). Review and enable them when ready.</string>
     <string name="backup_import_failed">Invalid or unsupported backup file</string>
     <string name="share_backup_title">Share automation backup</string>
     <string name="permission_manager">Permission manager</string>

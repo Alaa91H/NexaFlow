@@ -7,6 +7,12 @@ on:
   pull_request:
     branches: [ "main" ]
 
+# A newer run for the same branch or tag supersedes an older one. This prevents
+# duplicate tag deliveries from racing to publish the same release asset.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -79,9 +85,21 @@ jobs:
           echo "$KEYSTORE_B64" | base64 -d > keystore/nexaflow-release.jks
           echo "Release keystore restored."
         else
-          echo "No keystore secret configured - the build will fall back to the debug signing config."
+          echo "No keystore secret configured - local/ad-hoc release builds use debug signing only."
         fi
         # The build reads NEXAFLOW_* env vars over keystore.properties.
+    - name: Require production signing for version tags
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        NEXAFLOW_KEYSTORE_FILE: keystore/nexaflow-release.jks
+        NEXAFLOW_KEYSTORE_PASSWORD: ${{ secrets.NEXAFLOW_KEYSTORE_PASSWORD }}
+        NEXAFLOW_KEY_ALIAS: ${{ secrets.NEXAFLOW_KEY_ALIAS }}
+        NEXAFLOW_KEY_PASSWORD: ${{ secrets.NEXAFLOW_KEY_PASSWORD }}
+      run: |
+        test -s "$NEXAFLOW_KEYSTORE_FILE" || { echo "Version tags require NEXAFLOW_KEYSTORE_BASE64." >&2; exit 1; }
+        test -n "$NEXAFLOW_KEYSTORE_PASSWORD" || { echo "Version tags require NEXAFLOW_KEYSTORE_PASSWORD." >&2; exit 1; }
+        test -n "$NEXAFLOW_KEY_ALIAS" || { echo "Version tags require NEXAFLOW_KEY_ALIAS." >&2; exit 1; }
+        test -n "$NEXAFLOW_KEY_PASSWORD" || { echo "Version tags require NEXAFLOW_KEY_PASSWORD." >&2; exit 1; }
     - name: Build with Gradle
       env:
         NEXAFLOW_KEYSTORE_FILE: keystore/nexaflow-release.jks

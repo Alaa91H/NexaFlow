@@ -20,7 +20,8 @@ data class BackupFile(
 )
 
 sealed interface ImportResult {
-    data class Success(val count: Int) : ImportResult
+    /** Imported definitions never become active until the user reviews them. */
+    data class Success(val count: Int, val disabledCount: Int) : ImportResult
     data object InvalidFile : ImportResult
 }
 
@@ -73,8 +74,14 @@ class BackupManager(
         if (backup.automations.any { !it.isWellFormed() }) {
             return ImportResult.InvalidFile
         }
-        backup.automations.forEach { automationRepository.saveAutomation(it) }
-        return ImportResult.Success(backup.automations.size)
+        // Imported rules are data from outside this installation. Saving them
+        // disabled prevents a trigger — especially an advanced Root/Shizuku
+        // action — from running before the user has reviewed its capabilities.
+        val disabledCount = backup.automations.count { it.enabled }
+        backup.automations.forEach { automation ->
+            automationRepository.saveAutomation(automation.copy(enabled = false))
+        }
+        return ImportResult.Success(backup.automations.size, disabledCount)
     }
 
     /**

@@ -6,6 +6,11 @@
 
     <string name="accessibility_disabled">Выключена — триггеры приложений не сработают</string>
 
+
+    <string name="accessibility_disclosure_title">Включить обнаружение приложений</string>
+    <string name="accessibility_disclosure_message">NexaFlow использует службу специальных возможностей Android только для определения активного приложения в созданных вами автоматизациях. Содержимое экрана не читается и не передаётся. Продолжайте, только если хотите включить триггеры приложений.</string>
+    <string name="accessibility_disclosure_continue">Проверить системные настройки</string>
+
     
 
     
@@ -34,6 +39,7 @@
     <string name="backup_import">Импорт из файла</string>
     <string name="backup_import_sub">Восстановить автоматизации из JSON-копии</string>
     <string name="backup_imported">Импортировано: %1$d</string>
+    <string name="backup_imported_disabled">Импортировано: %1$d. Проверьте и включите автоматизации, когда будете готовы.</string>
     <string name="backup_import_failed">Недействительный или неподдерживаемый файл резервной копии</string>
     <string name="share_backup_title">Отправить резервную копию автоматизаций</string>
     <string name="permission_manager">Диспетчер разрешений</string>
