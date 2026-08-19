@@ -165,8 +165,8 @@
     <string name="about_support_sub">Offrez-moi un café sur Ko-fi</string>
 
     <!-- Per-app language picker -->
-    <string name="app_language">Langue de l'application</string>
+    <string name="app_language">Langue de l\'application</string>
     <string name="app_language_sub">Choisissez la langue utilisée par NexaFlow</string>
     <string name="app_language_system_default">Langue du système</string>
-    <string name="app_language_picker_title">Choisir la langue de l'application</string>
+    <string name="app_language_picker_title">Choisir la langue de l\'application</string>
 </resources>
