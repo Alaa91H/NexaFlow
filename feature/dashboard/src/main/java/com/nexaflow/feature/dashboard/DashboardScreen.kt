@@ -63,8 +63,6 @@ import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.iconVector
 import com.nexaflow.core.ui.nexaFlowEntrance
 import com.nexaflow.domain.models.Automation
-import com.nexaflow.domain.models.RoutineTemplate
-import com.nexaflow.domain.models.RoutineTemplateCatalog
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.schedule.TimeTriggerCalculator
 import java.time.Instant
@@ -184,15 +182,6 @@ fun DashboardScreen(navController: NavController) {
                         subtitle = stringResource(R.string.empty_automations_sub)
                     )
                 }
-                item { SectionHeader(text = stringResource(R.string.new_routine)) }
-                items(RoutineTemplateCatalog.all, key = RoutineTemplate::id) { template ->
-                    RoutineTemplateCard(
-                        template = template,
-                        onClick = {
-                            navController.navigate("automation_builder?templateId=${template.id}")
-                        }
-                    )
-                }
             } else if (filteredRows.isEmpty()) {
                 item {
                     EmptyState(
@@ -219,44 +208,6 @@ fun DashboardScreen(navController: NavController) {
                     onClick = { navController.navigate("automation_details/${row.automation.id}") }
                 )
             }
-        }
-    }
-}
-
-/** A local starter template; it always opens the editable builder first. */
-@Composable
-private fun RoutineTemplateCard(
-    template: RoutineTemplate,
-    onClick: () -> Unit
-) {
-    val trigger = template.triggers.first()
-    NexaFlowCard(modifier = Modifier.clickable(onClick = onClick)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            IconBadge(
-                icon = Icons.Filled.Bolt,
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(triggerLabel(trigger.type)),
-                    style = MaterialTheme.typography.titleSmall
-                )
-                Text(
-                    text = stringResource(R.string.summary_actions_count, template.actions.size),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-            }
-            Icon(
-                imageVector = Icons.Filled.Add,
-                contentDescription = stringResource(R.string.new_routine),
-                tint = MaterialTheme.colorScheme.primary
-            )
         }
     }
 }
