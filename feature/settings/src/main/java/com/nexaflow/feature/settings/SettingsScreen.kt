@@ -408,18 +408,6 @@ fun SettingsScreen(navController: NavController) {
                     onClick = { navController.navigate("widgets") }
                 )
             }
-            if (showLanguagePicker) {
-                AppLanguagePickerDialog(
-                    selectedTag = AppLanguageManager.selectedLanguageTag(context),
-                    onSelect = { tag ->
-                        showLanguagePicker = false
-                        // AndroidX applies the shared per-app locale and
-                        // recreates the host when its configuration changes.
-                        AppLanguageManager.setLanguage(context, tag)
-                    },
-                    onDismiss = { showLanguagePicker = false }
-                )
-            }
             settingsGroup(title = sectionAboutTitle) {
                 SettingRow(
                     icon = Icons.Filled.Info,
@@ -476,6 +464,19 @@ fun SettingsScreen(navController: NavController) {
                 }
             }
         }
+    }
+
+    if (showLanguagePicker) {
+        AppLanguagePickerDialog(
+            selectedTag = AppLanguageManager.selectedLanguageTag(context),
+            onSelect = { tag ->
+                showLanguagePicker = false
+                // AndroidX applies the shared per-app locale and recreates the
+                // host when its configuration changes.
+                AppLanguageManager.setLanguage(context, tag)
+            },
+            onDismiss = { showLanguagePicker = false }
+        )
     }
 
     if (showAbout) {
