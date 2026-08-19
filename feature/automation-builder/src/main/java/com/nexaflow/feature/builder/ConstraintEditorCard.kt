@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -41,10 +42,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
@@ -195,7 +194,9 @@ fun ConstraintTypePickerDialog(
                         Text(
                             text = stringResource(type.subtitleRes()),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.secondary
+                            color = MaterialTheme.colorScheme.secondary,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -253,49 +254,52 @@ fun ConstraintEditorCard(
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     NexaFlowCard(modifier = modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-            Row(
+            // Keep controls and text in separate lines. At narrow widths or
+            // with large fonts, a single Row made the summary compete with the
+            // remove/reorder/number/expand icons and caused visual overlap.
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    // X + reorder handle pinned to the LEFT, row number to the
-                    // RIGHT, regardless of the locale direction.
                     .clickable { expanded = !expanded },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                IconButton(onClick = onRemove) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    IconButton(onClick = onRemove) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = stringResource(R.string.constraint_remove),
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    TaskRowHandle(
+                        index = index,
+                        total = total,
+                        isDragging = isDragging,
+                        onMoveUp = onMoveUp,
+                        onMoveDown = onMoveDown,
+                        onDragStart = onDragStart,
+                        onDragDelta = onDragDelta,
+                        onDragEnd = onDragEnd
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    TaskNumberBadge(number = index + 1)
                     Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.constraint_remove),
-                        tint = MaterialTheme.colorScheme.secondary
+                        imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                        contentDescription = stringResource(if (expanded) R.string.collapse_options else R.string.expand_options),
+                        tint = MaterialTheme.colorScheme.outline
                     )
                 }
-                TaskRowHandle(
-                    index = index,
-                    total = total,
-                    isDragging = isDragging,
-                    onMoveUp = onMoveUp,
-                    onMoveDown = onMoveDown,
-                    onDragStart = onDragStart,
-                    onDragDelta = onDragDelta,
-                    onDragEnd = onDragEnd
-                )
-                // Single horizontal line: the chosen values; the row number
-                // lives in a badge pinned to the right end.
                 Text(
                     text = constraintSummary(draft),
                     style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.fillMaxWidth()
                 )
-                TaskNumberBadge(number = index + 1)
-                Icon(
-                    imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                    contentDescription = stringResource(if (expanded) R.string.collapse_options else R.string.expand_options),
-                    tint = MaterialTheme.colorScheme.outline
-                )
-            }
             }
             if (expanded) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -325,7 +329,10 @@ fun ConstraintEditorCard(
                 ConstraintType.BATTERY -> {
                     val direction = draft.config["direction"] ?: "BELOW"
                     val level = (draft.config["level"] ?: "20").toIntOrNull() ?: 20
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         SelectChip(
                             selected = direction == "ABOVE",
                             onClick = { onConfigChange(draft.copy(config = draft.config + ("direction" to "ABOVE"))) },
@@ -374,7 +381,10 @@ fun ConstraintEditorCard(
                         text = stringResource(R.string.constraint_state_label),
                         style = MaterialTheme.typography.titleSmall
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         SelectChip(
                             selected = currentState == "ON",
                             onClick = { onConfigChange(draft.copy(config = draft.config + (stateKey to "ON"))) },
@@ -393,16 +403,21 @@ fun ConstraintEditorCard(
                         text = stringResource(R.string.constraint_state_label),
                         style = MaterialTheme.typography.titleSmall
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         SelectChip(
                             selected = currentState == "CHARGING",
                             onClick = { onConfigChange(draft.copy(config = draft.config + ("state" to "CHARGING"))) },
-                            label = stringResource(R.string.charging_yes)
+                            label = stringResource(R.string.charging_yes),
+                            modifier = Modifier.testTag("constraint_charging_yes")
                         )
                         SelectChip(
                             selected = currentState == "NOT_CHARGING",
                             onClick = { onConfigChange(draft.copy(config = draft.config + ("state" to "NOT_CHARGING"))) },
-                            label = stringResource(R.string.charging_no)
+                            label = stringResource(R.string.charging_no),
+                            modifier = Modifier.testTag("constraint_charging_no")
                         )
                     }
                 }
