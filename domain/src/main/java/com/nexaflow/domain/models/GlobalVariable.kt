@@ -15,6 +15,10 @@ data class GlobalVariable(
     val name: String,
     val value: String,
     val updatedAt: Long,
+    /** Monotonic persisted revision used by typed snapshots and conflict-aware restore. */
+    val version: Long = 1L,
+    /** Typed JSON representation when the value was created by Data Runtime; null means legacy text. */
+    val serializedValue: String? = null,
     /**
      * When true the value is encrypted at rest (tokens, passwords, secrets
      * injected into action texts). Stored as ciphertext in the database;

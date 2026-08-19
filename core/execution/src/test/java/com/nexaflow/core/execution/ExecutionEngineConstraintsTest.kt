@@ -1,6 +1,7 @@
 package com.nexaflow.core.execution
 
 import android.content.Context
+import android.content.res.Configuration
 import androidx.paging.PagingSource
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
@@ -16,6 +17,8 @@ import com.nexaflow.domain.models.Constraint
 import com.nexaflow.domain.models.ConstraintSnapshot
 import com.nexaflow.domain.models.ConstraintType
 import com.nexaflow.domain.models.ExecutionRecord
+import com.nexaflow.domain.models.Trigger
+import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.HistoryRepository
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CoroutineScope
@@ -48,12 +51,17 @@ class ExecutionEngineConstraintsTest {
     private class RecordingHandler : ActionHandler {
         private val invocationCount = AtomicInteger()
         val calls: Int get() = invocationCount.get()
-        override val supportedTypes: Set<ActionType> = setOf(ActionType.SYSTEM_SEND_NOTIFICATION)
+        val actionTypes = mutableListOf<ActionType>()
+        override val supportedTypes: Set<ActionType> = setOf(
+            ActionType.SYSTEM_SEND_NOTIFICATION,
+            ActionType.SYSTEM_CLEAR_NOTIFICATIONS
+        )
         override suspend fun execute(
             action: Action,
             ctx: ActionExecutionContext
         ): SystemControlResult {
             invocationCount.incrementAndGet()
+            actionTypes += action.type
             return SystemControlResult.ok("ok")
         }
     }
@@ -77,6 +85,7 @@ class ExecutionEngineConstraintsTest {
 
     private fun automation(
         constraints: List<Constraint>,
+        triggers: List<Trigger> = emptyList(),
         exitActions: List<Action> = emptyList()
     ): Automation = Automation(
         id = "auto-constraint",
@@ -88,7 +97,7 @@ class ExecutionEngineConstraintsTest {
         category = "general",
         priority = 1,
         enabled = true,
-        triggers = emptyList(),
+        triggers = triggers,
         actions = listOf(Action(ActionType.SYSTEM_SEND_NOTIFICATION, mapOf("title" to "hi"))),
         constraints = constraints,
         exitActions = exitActions,
@@ -181,6 +190,47 @@ class ExecutionEngineConstraintsTest {
 
         assertEquals(1, handler.calls)
         assertTrue(record.message.contains("ok"))
+    }
+
+    @Test
+    fun `manual run requires every verifiable trigger and executes only end behavior when an event is absent`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(handler, history, ConstraintSnapshot())
+        val darkModeState = if (
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        ) "ON" else "OFF"
+        val automation = automation(
+            constraints = emptyList(),
+            triggers = listOf(
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to darkModeState)),
+                Trigger(TriggerType.NFC_TAG_SCANNED, emptyMap())
+            ),
+            exitActions = listOf(Action(ActionType.SYSTEM_CLEAR_NOTIFICATIONS, emptyMap()))
+        )
+
+        val record = engine.runWithConditionGate(automation)
+
+        assertEquals(
+            "an event trigger without a live event must never authorize the main action",
+            listOf(ActionType.SYSTEM_CLEAR_NOTIFICATIONS),
+            handler.actionTypes
+        )
+        assertTrue(record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX))
+        assertTrue(history.messages.any { it.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX) })
+    }
+
+    @Test
+    fun `manual run with no triggers still executes the main action`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(handler, history, ConstraintSnapshot())
+
+        val record = engine.runWithConditionGate(automation(constraints = emptyList()))
+
+        assertEquals(listOf(ActionType.SYSTEM_SEND_NOTIFICATION), handler.actionTypes)
+        assertTrue(!record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX))
     }
 
     @Test

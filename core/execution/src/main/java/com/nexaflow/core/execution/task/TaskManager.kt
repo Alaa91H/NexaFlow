@@ -25,6 +25,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 
 enum class TaskPriority { LOW, NORMAL, HIGH, CRITICAL }
 
@@ -58,16 +60,29 @@ data class PendingTask(
     val name: String,
     val priority: TaskPriority = TaskPriority.NORMAL,
     val retryPolicy: RetryPolicy = RetryPolicy(),
+    /** Maximum duration for one attempt; null keeps the policy default. */
     val timeoutMs: Long? = null,
+    /** Absolute wall-clock deadline for the whole task lifecycle, including retries. */
+    val deadlineAtMs: Long? = null,
+    /** Logical execution locks required while this task attempts its work. */
+    val resources: Set<TaskResource> = emptySet(),
     val run: suspend () -> SystemControlResult
-)
+) {
+    init {
+        require(id.isNotBlank()) { "Task id must not be blank" }
+        require(name.isNotBlank()) { "Task name must not be blank" }
+        require(timeoutMs == null || timeoutMs > 0L) { "timeoutMs must be positive when supplied" }
+    }
+}
 
 /** Final outcome of a task, published to [TaskManager.results]. */
 sealed interface TaskResult {
     data class Success(val taskId: String, val message: String, val attempts: Int) : TaskResult
     data class Failure(val taskId: String, val message: String, val attempts: Int) : TaskResult
     data class TimedOut(val taskId: String, val attempts: Int) : TaskResult
+    data class DeadlineExceeded(val taskId: String, val attempts: Int) : TaskResult
     data class Cancelled(val taskId: String) : TaskResult
+    data class Rejected(val taskId: String, val reason: TaskRejectionReason) : TaskResult
 }
 
 /**
@@ -82,7 +97,8 @@ sealed interface TaskResult {
 class TaskManager(
     private val dispatchers: AppDispatchers = AppDispatchers.Default,
     private val logStore: LogStore? = null,
-    private val epochMillis: EpochMillis = EpochMillis.System
+    private val epochMillis: EpochMillis = EpochMillis.System,
+    private val limits: TaskManagerLimits = TaskManagerLimits()
 ) {
 
     private data class Envelope(val task: PendingTask, val seq: Long)
@@ -98,9 +114,17 @@ class TaskManager(
     // signal is sufficient because the consumer drains the priority queue fully.
     private val queueWakeups = Channel<Unit>(Channel.CONFLATED)
     private val runningJobs = ConcurrentHashMap<String, Job>()
+    private val knownTaskIds = ConcurrentHashMap.newKeySet<String>()
+    private val resourcePermits = limits.resourceCapacities
+        .filterValues { it > 0 }
+        .mapValues { (_, capacity) -> Semaphore(capacity) }
     private val resultsFlow = MutableStateFlow<List<TaskResult>>(emptyList())
+    private val statusesFlow = MutableStateFlow<Map<String, TaskStatus>>(emptyMap())
+    @Volatile private var shutDown = false
 
     val results: StateFlow<List<TaskResult>> = resultsFlow.asStateFlow()
+    /** Latest lifecycle status keyed by task id; terminal history is bounded with results. */
+    val statuses: StateFlow<Map<String, TaskStatus>> = statusesFlow.asStateFlow()
 
     val pendingCount: Int
         get() = synchronized(lock) { queue.size }
@@ -114,14 +138,57 @@ class TaskManager(
         scope.launch { processQueue() }
     }
 
-    /** Enqueues [task] and returns its id. */
-    fun enqueue(task: PendingTask): String {
+    /**
+     * Attempts to admit a task into the existing priority queue. Rejections are
+     * explicit and terminal; no task is silently dropped because a limit or
+     * deadline was invalid at submission time.
+     */
+    fun submit(task: PendingTask): TaskAdmission {
+        val now = epochMillis.now()
+        val rejection = synchronized(lock) {
+            when {
+                shutDown -> TaskRejectionReason.ManagerShutDown
+                task.id in knownTaskIds -> TaskRejectionReason.DuplicateTaskId
+                queue.size >= limits.maxPendingTasks -> TaskRejectionReason.QueueCapacityExceeded
+                task.timeoutMs != null && task.timeoutMs > limits.maxTaskTimeoutMs ->
+                    TaskRejectionReason.TimeoutExceedsPolicy(task.timeoutMs, limits.maxTaskTimeoutMs)
+                task.deadlineAtMs != null && task.deadlineAtMs <= now -> TaskRejectionReason.DeadlineAlreadyElapsed
+                else -> task.resources.firstOrNull { limits.capacity(it) <= 0 }
+                    ?.let(TaskRejectionReason::ResourceUnavailable)
+            }
+        }
+        if (rejection != null) {
+            publish(TaskResult.Rejected(task.id, rejection))
+            publishStatus(task, TaskLifecycleState.REJECTED, message = rejection.message())
+            return TaskAdmission.Rejected(task.id, rejection)
+        }
         synchronized(lock) {
+            // The checks are repeated under the same lock that mutates the
+            // queue, so concurrent submitters cannot bypass capacity/duplicate
+            // admission after the optimistic evaluation above.
+            if (shutDown || task.id in knownTaskIds || queue.size >= limits.maxPendingTasks) {
+                val racedReason = when {
+                    shutDown -> TaskRejectionReason.ManagerShutDown
+                    task.id in knownTaskIds -> TaskRejectionReason.DuplicateTaskId
+                    else -> TaskRejectionReason.QueueCapacityExceeded
+                }
+                publish(TaskResult.Rejected(task.id, racedReason))
+                publishStatus(task, TaskLifecycleState.REJECTED, message = racedReason.message())
+                return TaskAdmission.Rejected(task.id, racedReason)
+            }
+            knownTaskIds.add(task.id)
             queue.add(Envelope(task, seqCounter.incrementAndGet()))
         }
+        publishStatus(task, TaskLifecycleState.QUEUED)
         // Non-blocking and conflated: a closed worker is shutting down, while
         // one signal wakes the idle consumer for any number of queued tasks.
         queueWakeups.trySend(Unit)
+        return TaskAdmission.Accepted(task.id)
+    }
+
+    /** Backward-compatible enqueue facade. Inspect [results] for a rejection. */
+    fun enqueue(task: PendingTask): String {
+        submit(task)
         return task.id
     }
 
@@ -131,7 +198,11 @@ class TaskManager(
      * either way. Returns true when the id was known (queued or running).
      */
     fun cancel(taskId: String): Boolean {
+        if (taskId !in knownTaskIds) return false
         cancelledIds.add(taskId)
+        statusFor(taskId)?.let { status ->
+            updateStatus(status.copy(state = TaskLifecycleState.CANCEL_REQUESTED, updatedAt = epochMillis.now()))
+        }
         runningJobs[taskId]?.cancel()
         return true
     }
@@ -146,8 +217,22 @@ class TaskManager(
         return synchronized(lock) { queue.isEmpty() } && !isRunning
     }
 
-    /** Stops the worker; queued work is abandoned (shutdown path). */
+    /** Stops the worker and records queued/running tasks as cancelled. */
     fun shutdown() {
+        if (shutDown) return
+        shutDown = true
+        val abandoned = synchronized(lock) {
+            queue.toList().also { queue.clear() }
+        }
+        abandoned.forEach { envelope ->
+            knownTaskIds.remove(envelope.task.id)
+            publish(TaskResult.Cancelled(envelope.task.id))
+            publishStatus(envelope.task, TaskLifecycleState.CANCELLED)
+        }
+        runningJobs.keys.forEach { taskId ->
+            cancelledIds.add(taskId)
+            runningJobs[taskId]?.cancel()
+        }
         queueWakeups.close()
         scope.cancel()
     }
@@ -181,6 +266,8 @@ class TaskManager(
             // observe an empty queue + idle worker while the Cancelled result
             // is not yet visible, and return before the cancellation lands.
             publish(TaskResult.Cancelled(envelope.task.id))
+            publishStatus(envelope.task, TaskLifecycleState.CANCELLED)
+            knownTaskIds.remove(envelope.task.id)
             activeTaskId.set(null)
             return
         }
@@ -190,8 +277,10 @@ class TaskManager(
         job.join()
         runningJobs.remove(envelope.task.id)
         // A task that completed (or failed) normally is no longer cancellable;
-        // drop any stale cancellation marker to avoid an unbounded set.
+        // drop any stale cancellation marker to avoid an unbounded set and allow
+        // a later explicit re-submit with the same id.
         cancelledIds.remove(envelope.task.id)
+        knownTaskIds.remove(envelope.task.id)
     }
 
     private suspend fun runWithRetry(envelope: Envelope) {
@@ -204,9 +293,16 @@ class TaskManager(
                 if (task.id in cancelledIds) {
                     cancelledIds.remove(task.id)
                     publish(TaskResult.Cancelled(task.id))
+                    publishStatus(task, TaskLifecycleState.CANCELLED, attempts)
+                    return
+                }
+                if (deadlineElapsed(task)) {
+                    publish(TaskResult.DeadlineExceeded(task.id, attempts))
+                    publishStatus(task, TaskLifecycleState.DEADLINE_EXCEEDED, attempts)
                     return
                 }
                 attempts++
+                publishStatus(task, TaskLifecycleState.RUNNING, attempts)
                 val outcome = runAttempt(task)
                 // A cancellation that lands while the task is running (e.g. before
                 // the child job is registered in runningJobs) must still surface as
@@ -214,11 +310,13 @@ class TaskManager(
                 if (task.id in cancelledIds) {
                     cancelledIds.remove(task.id)
                     publish(TaskResult.Cancelled(task.id))
+                    publishStatus(task, TaskLifecycleState.CANCELLED, attempts)
                     return
                 }
                 when (outcome) {
                     is Attempt.Result -> {
                         publish(TaskResult.Success(task.id, outcome.message, attempts))
+                        publishStatus(task, TaskLifecycleState.SUCCEEDED, attempts, outcome.message)
                         logStore?.recordMetric(
                             PerformanceMetric("task.${task.name}", outcome.durationMs, epochMillis.now())
                         )
@@ -227,12 +325,14 @@ class TaskManager(
                     is Attempt.Timeout -> {
                         if (attempts > task.retryPolicy.maxRetries) {
                             publish(TaskResult.TimedOut(task.id, attempts))
+                            publishStatus(task, TaskLifecycleState.TIMED_OUT, attempts)
                             return
                         }
                     }
                     is Attempt.Error -> {
                         if (attempts > task.retryPolicy.maxRetries) {
                             publish(TaskResult.Failure(task.id, outcome.message, attempts))
+                            publishStatus(task, TaskLifecycleState.FAILED, attempts, outcome.message)
                             logStore?.recordError(
                                 ErrorLogEntry(
                                     id = UUID.randomUUID().toString(),
@@ -246,12 +346,14 @@ class TaskManager(
                         }
                     }
                 }
+                publishStatus(task, TaskLifecycleState.RETRY_WAIT, attempts)
                 delay(task.retryPolicy.backoffFor(attempts))
             }
         } catch (e: CancellationException) {
             if (task.id in cancelledIds) {
                 cancelledIds.remove(task.id)
                 publish(TaskResult.Cancelled(task.id))
+                publishStatus(task, TaskLifecycleState.CANCELLED, attempts)
             }
             throw e
         } finally {
@@ -268,10 +370,13 @@ class TaskManager(
     private suspend fun runAttempt(task: PendingTask): Attempt {
         val startedAt = epochMillis.now()
         return try {
+            val executeWithResources: suspend () -> SystemControlResult = {
+                withResources(task.resources) { task.run() }
+            }
             val result = task.timeoutMs?.let { timeout ->
-                withTimeoutOrNull(timeout) { task.run() }
+                withTimeoutOrNull(timeout) { executeWithResources() }
                     ?: return Attempt.Timeout(epochMillis.now() - startedAt)
-            } ?: task.run()
+            } ?: executeWithResources()
             if (result.success) {
                 Attempt.Result(result.message, epochMillis.now() - startedAt)
             } else {
@@ -284,6 +389,47 @@ class TaskManager(
         }
     }
 
+    private fun deadlineElapsed(task: PendingTask): Boolean =
+        task.deadlineAtMs?.let { epochMillis.now() >= it } ?: false
+
+    private suspend fun <T> withResources(
+        resources: Set<TaskResource>,
+        block: suspend () -> T
+    ): T {
+        val permits = resources.sortedBy { it.ordinal }.map { resource ->
+            resourcePermits[resource] ?: error("No semaphore configured for $resource")
+        }
+        suspend fun acquire(index: Int): T = if (index == permits.size) {
+            block()
+        } else {
+            permits[index].withPermit { acquire(index + 1) }
+        }
+        return acquire(0)
+    }
+
+    private fun publishStatus(
+        task: PendingTask,
+        state: TaskLifecycleState,
+        attempt: Int = 0,
+        message: String? = null
+    ) = updateStatus(
+        TaskStatus(task.id, task.name, state, attempt, epochMillis.now(), message)
+    )
+
+    private fun statusFor(taskId: String): TaskStatus? = statusesFlow.value[taskId]
+
+    private fun updateStatus(status: TaskStatus) {
+        synchronized(lock) {
+            val next = LinkedHashMap(statusesFlow.value)
+            next.remove(status.taskId)
+            next[status.taskId] = status
+            while (next.size > MAX_STATUS_HISTORY) {
+                next.entries.iterator().next().also { next.remove(it.key) }
+            }
+            statusesFlow.value = next
+        }
+    }
+
     private fun publish(result: TaskResult) {
         synchronized(lock) {
             resultsFlow.value = (resultsFlow.value + result).takeLast(MAX_HISTORY)
@@ -292,5 +438,6 @@ class TaskManager(
 
     private companion object {
         const val MAX_HISTORY = 200
+        const val MAX_STATUS_HISTORY = 500
     }
 }

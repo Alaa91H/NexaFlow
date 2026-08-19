@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.events.InMemoryNexaFlowEventBus
 import com.nexaflow.core.execution.handler.ActionRegistry
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
@@ -95,13 +96,18 @@ class DeviceEventMonitorExitReconcileTest {
         repository: AutomationRepository,
         engine: ExecutionEngine,
         store: ActiveTriggerStore
-    ): DeviceEventMonitor = DeviceEventMonitor(
-        context = context,
-        repository = repository,
-        executionEngine = engine,
-        activeStore = store,
-        scope = CoroutineScope(Dispatchers.Default)
-    )
+    ): DeviceEventMonitor {
+        val scope = CoroutineScope(Dispatchers.Default)
+        return DeviceEventMonitor(
+            context = context,
+            repository = repository,
+            executionEngine = engine,
+            activeStore = store,
+            triggerIndex = TriggerIndex(repository.getAutomations()),
+            eventBus = InMemoryNexaFlowEventBus(scope),
+            scope = scope
+        )
+    }
 
     @Test
     fun `restart with condition already ended fires the missed exit on init`() = runBlocking {

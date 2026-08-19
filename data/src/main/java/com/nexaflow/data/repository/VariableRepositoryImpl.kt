@@ -7,6 +7,7 @@ import com.nexaflow.core.security.SecureStorage
 import com.nexaflow.data.paging.MappedPagingSource
 import com.nexaflow.domain.models.GlobalVariable
 import com.nexaflow.domain.repositories.VariableRepository
+import com.nexaflow.domain.variables.RuntimeValueCodec
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -63,36 +64,57 @@ class VariableRepositoryImpl @Inject constructor(
     }
 }
 
-private suspend fun GlobalVariableEntity.toDomain(secureStorage: SecureStorage): GlobalVariable =
-    GlobalVariable(
+private suspend fun GlobalVariableEntity.toDomain(secureStorage: SecureStorage): GlobalVariable {
+    // A sensitive typed value stores its typed JSON only in SecureStorage; the
+    // Room row retains a marker in both display/serialized columns. A legacy
+    // sensitive value has no serialized marker and remains plain text after
+    // decryption, preserving older `%NAME` behavior.
+    val secret = if (sensitive) {
+        runCatching { secureStorage.get(SECRET_PREFIX + id) }.getOrNull()
+    } else {
+        null
+    }
+    val typedSerialized = when {
+        sensitive && serializedValue != null -> secret
+        else -> serializedValue
+    }
+    val displayValue = when {
+        typedSerialized != null -> RuntimeValueCodec.display(
+            RuntimeValueCodec.decodeOrLegacyText(typedSerialized)
+        )
+        sensitive -> secret.orEmpty()
+        else -> value
+    }
+    return GlobalVariable(
         id = id,
         name = name,
-        // Sensitive values are decrypted on read; a missing key (reinstall
-        // restored the DB but Keystore keys are gone) degrades to blank rather
-        // than crashing the engine.
-        value = if (sensitive) {
-            runCatching { secureStorage.get(SECRET_PREFIX + id) }.getOrNull() ?: ""
-        } else {
-            value
-        },
+        value = displayValue,
         updatedAt = updatedAt,
+        version = version,
+        serializedValue = typedSerialized,
         sensitive = sensitive
     )
+}
 
-private suspend fun GlobalVariable.toEntity(secureStorage: SecureStorage): GlobalVariableEntity =
-    GlobalVariableEntity(
+private suspend fun GlobalVariable.toEntity(secureStorage: SecureStorage): GlobalVariableEntity {
+    val rawForStorage = serializedValue ?: value
+    val isTyped = serializedValue != null
+    return GlobalVariableEntity(
         id = id,
         name = name,
         value = if (sensitive) {
-            secureStorage.put(SECRET_PREFIX + id, value)
-            // Ciphertext marker; the real secret lives only in SecureStorage.
+            secureStorage.put(SECRET_PREFIX + id, rawForStorage)
+            // Ciphertext marker; the real value remains only in SecureStorage.
             SECRET_MARKER
         } else {
             value
         },
         updatedAt = updatedAt,
+        version = version,
+        serializedValue = if (sensitive && isTyped) SECRET_MARKER else serializedValue,
         sensitive = sensitive
     )
+}
 
 private const val SECRET_MARKER = "*encrypted*"
 private const val SECRET_PREFIX = "variable_"

@@ -202,6 +202,8 @@ fun SettingsScreen(navController: NavController) {
                     } else {
                         stringBackupImportedTemplate.format(result.count)
                     }
+                is ImportResult.InvalidWorkflow ->
+                    stringBackupImportFailed
                 ImportResult.InvalidFile ->
                     stringBackupImportFailed
             }

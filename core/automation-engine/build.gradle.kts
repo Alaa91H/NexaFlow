@@ -74,6 +74,7 @@ dependencies {
     implementation(libs.com.google.android.gms.play.services.auth.api.phone)
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.android)
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
     implementation(libs.com.google.dagger.hilt.android)
     ksp(libs.com.google.dagger.hilt.compiler)
     implementation(project(":domain"))

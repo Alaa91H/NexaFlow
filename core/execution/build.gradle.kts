@@ -68,6 +68,7 @@ kotlin {
 dependencies {
     implementation(libs.androidx.core.core.ktx)
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
     implementation(project(":domain"))
     // Shared validation policy for privileged command payloads; avoids duplicating
     // shell-safety rules between direct Root/Shizuku and runtime-selected paths.
@@ -79,6 +80,7 @@ dependencies {
     implementation(project(":core:logging"))
     implementation(project(":core:plugin-sdk"))
     testImplementation(libs.junit.junit)
+    testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test)
     testImplementation(libs.androidx.paging.paging.common)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.org.robolectric.robolectric)

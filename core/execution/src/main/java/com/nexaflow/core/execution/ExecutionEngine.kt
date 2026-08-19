@@ -6,11 +6,16 @@ import com.nexaflow.core.common.EpochMillis
 import com.nexaflow.core.compat.ExecutionChannelSelector
 import com.nexaflow.core.compat.ExecutionProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
+import com.nexaflow.core.datastore.DurableExecutionCheckpoint
+import com.nexaflow.core.datastore.DurableExecutionStatus
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.NotificationSettings
+import com.nexaflow.core.execution.capability.CapabilityActionMapper
+import com.nexaflow.core.execution.capability.CapabilityExecutionService
 import com.nexaflow.core.execution.handler.ActionExecutionContext
 import com.nexaflow.core.execution.handler.ActionRegistry
 import com.nexaflow.core.execution.variables.BuiltinVariables
+import com.nexaflow.core.execution.variables.ScopedDataRuntime
 import com.nexaflow.core.logging.ExecutionTimelineEntry
 import com.nexaflow.core.logging.InMemoryLogStore
 import com.nexaflow.core.logging.LogStore
@@ -18,6 +23,7 @@ import com.nexaflow.core.execution.constraints.ConstraintStateReader
 import com.nexaflow.core.rom.RomIntegrationManager
 import com.nexaflow.core.rom.SystemController
 import com.nexaflow.core.rom.model.SystemControlResult
+import com.nexaflow.domain.capability.CapabilityStatus
 import com.nexaflow.domain.constraints.ConstraintEvaluator
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionExecutionResult
@@ -27,6 +33,7 @@ import com.nexaflow.domain.models.EndMode
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.repositories.HistoryRepository
 import com.nexaflow.domain.repositories.VariableRepository
+import com.nexaflow.domain.variables.RuntimeValueCodec
 import com.nexaflow.domain.variables.VariableResolver
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
@@ -56,8 +63,15 @@ class ExecutionEngine(
     // Durable counterpart to [activeExecutions]. It survives a service or
     // process restart so a genuinely running task can still execute its end
     // behavior when the monitor reconciles the current device state.
-    private val activeExecutionStore: ActiveExecutionStore = ActiveExecutionStore(context)
+    private val activeExecutionStore: ActiveExecutionStore = ActiveExecutionStore(context),
+    /** Optional safe-capability seam; null preserves legacy handler-only construction. */
+    private val capabilityExecutionService: CapabilityExecutionService? = null
 ) {
+
+    companion object {
+        /** Prefix used by UI callers to present a manual condition rejection accurately. */
+        const val MANUAL_CONDITION_NOT_MET_PREFIX = "Conditions not satisfied; "
+    }
 
     /**
      * Snapshots captured for automations with revertOnExit, keyed by automation id.
@@ -87,6 +101,9 @@ class ExecutionEngine(
         val startedAt = epochMillis.now()
         // Local name avoids shadowing the [Context] property used below.
         val payloadContext = runContext ?: WorkflowRunContext.create(automation.id, startedAt)
+        // One typed, scoped facade per run. It layers over the existing payload
+        // context and repository; no action accesses a raw variable store.
+        val dataRuntime = variableRepository?.let { ScopedDataRuntime(payloadContext, it) }
         val controller = RomIntegrationManager.controller(context)
         val notif = notificationPreferences.settings.first()
         val channel = channelSelector.select(context)
@@ -115,6 +132,34 @@ class ExecutionEngine(
                 return record
             }
         }
+        // Checkpoint must exist before any side effect. A rejected durable
+        // admission is recorded as a failed run instead of pretending actions
+        // were safely started without an idempotency/recovery record.
+        val checkpointAccepted = activeExecutionStore.beginCheckpoint(
+            DurableExecutionCheckpoint(
+                runId = payloadContext.runId,
+                automationId = automation.id,
+                totalActions = automation.actions.size,
+                nextActionIndex = 0,
+                status = DurableExecutionStatus.STARTED,
+                startedAt = startedAt,
+                updatedAt = startedAt
+            )
+        )
+        if (!checkpointAccepted) {
+            val record = ExecutionRecord(
+                id = UUID.randomUUID().toString(),
+                automationId = automation.id,
+                automationName = automation.name,
+                success = false,
+                message = "Unable to create durable execution checkpoint",
+                executedAt = startedAt,
+                channel = channel?.type?.name
+            )
+            historyRepository.recordExecution(record)
+            recordTimeline(automation, "CHECKPOINT_REJECTED", record, startedAt)
+            return record
+        }
         // The constraint gate accepted this run, so it owns a lifecycle exit if
         // a monitor later reports that the trigger condition ended.
         activeExecutions.add(automation.id)
@@ -132,27 +177,58 @@ class ExecutionEngine(
         // Resolve %variables once per run (single repo read + device probe),
         // then apply pure string substitution per action.
         val variables = runCatching { resolveVariables() }.getOrDefault(emptyMap())
-        val results = automation.actions.map { action ->
-            val actionStartedAt = epochMillis.now()
-            // Actions run sequentially and each handler may publish to the
-            // shared context (Step 4), so %CTX selectors are resolved here —
-            // after the previous node ran, before this node dispatches.
-            val resolved = resolveContextRefs(resolveAction(action, variables), payloadContext)
-            val result = executeAction(
-                resolved,
-                controller,
-                notif,
-                channel,
-                automation.id,
-                automation.revertOnExit,
-                payloadContext
-            )
-            ActionExecutionResult(
-                actionType = action.type.name,
-                success = result.success,
-                message = result.message,
-                durationMs = epochMillis.now() - actionStartedAt
-            )
+        var inProgressActionIndex: Int? = null
+        val results = try {
+            automation.actions.mapIndexed { actionIndex, action ->
+                inProgressActionIndex = actionIndex
+                val actionStartedAt = epochMillis.now()
+                val idempotencyKey = "${payloadContext.runId}:$actionIndex:${action.type.name}"
+                activeExecutionStore.markActionStarted(
+                    runId = payloadContext.runId,
+                    actionIndex = actionIndex,
+                    idempotencyKey = idempotencyKey,
+                    updatedAt = actionStartedAt
+                ) ?: error("Missing durable checkpoint for run ${payloadContext.runId}")
+                // Actions run sequentially and each handler may publish to the
+                // shared context (Step 4), so %CTX selectors are resolved here —
+                // after the previous node ran, before this node dispatches.
+                val resolved = resolveContextRefs(resolveAction(action, variables), payloadContext)
+                val result = executeAction(
+                    resolved,
+                    controller,
+                    notif,
+                    channel,
+                    automation.id,
+                    automation.revertOnExit,
+                    payloadContext,
+                    dataRuntime
+                )
+                activeExecutionStore.markActionCompleted(
+                    runId = payloadContext.runId,
+                    actionIndex = actionIndex,
+                    updatedAt = epochMillis.now()
+                ) ?: error("Unable to commit durable checkpoint for run ${payloadContext.runId}")
+                inProgressActionIndex = null
+                ActionExecutionResult(
+                    actionType = action.type.name,
+                    success = result.success,
+                    message = result.message,
+                    durationMs = epochMillis.now() - actionStartedAt
+                )
+            }
+        } catch (cancellation: CancellationException) {
+            // The process may have interrupted a side effect after it began;
+            // recovery must verify/compensate instead of replaying it blindly.
+            inProgressActionIndex?.let { index ->
+                runCatching {
+                    activeExecutionStore.markActionUnknown(
+                        runId = payloadContext.runId,
+                        message = "Action $index interrupted before durable completion",
+                        updatedAt = epochMillis.now()
+                    )
+                }
+            }
+            throw cancellation
         }
         // Actions are executed sequentially, so a SYSTEM_WAIT action placed anywhere
         // pauses the chain for the configured duration (counter mode).
@@ -167,6 +243,9 @@ class ExecutionEngine(
             actionResults = results
         )
         historyRepository.recordExecution(record)
+        // History is now durable; the active checkpoint may be removed. Exit
+        // lifecycle remains separately armed in ActiveExecutionStore.
+        activeExecutionStore.completeCheckpoint(payloadContext.runId)
         recordTimeline(automation, "RUN", record, startedAt)
         context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
         return record
@@ -180,10 +259,10 @@ class ExecutionEngine(
      */
     suspend fun runWithConditionGate(automation: Automation): ExecutionRecord {
         // The manual "run now" gate is tied to the task's full condition set:
-        // triggers (the event) AND constraints (the state the device must be
-        // in while it fires). Only when BOTH are currently satisfied do the
-        // task's actions run; otherwise the exit behavior ("when the task
-        // ends") runs instead, so a manual run is always correct.
+        // triggers AND constraints. Only when EVERY configured trigger and
+        // EVERY constraint is currently and verifiably satisfied do the task's
+        // main actions run. Any false or unreadable condition follows the
+        // configured "when the task ends" behavior instead.
         val triggersOk = TriggerStateEvaluator.isSatisfied(context, automation.triggers)
         val constraintsOk = if (automation.constraints.isEmpty()) {
             true
@@ -195,7 +274,11 @@ class ExecutionEngine(
         return if (triggersOk && constraintsOk) {
             runAutomation(automation)
         } else {
-            runExit(automation, forceConfiguredEnd = true)
+            runExit(
+                automation = automation,
+                forceConfiguredEnd = true,
+                manualConditionRejected = true
+            )
         }
     }
 
@@ -208,7 +291,10 @@ class ExecutionEngine(
         automation: Automation,
         // A manual Run now is explicit: it may intentionally preview a configured
         // end action even when this process did not observe the task start.
-        forceConfiguredEnd: Boolean = false
+        forceConfiguredEnd: Boolean = false,
+        // Distinguishes a condition-gated manual tap from a monitor-driven exit
+        // so the timeline and UI never report the outcome as a successful main run.
+        manualConditionRejected: Boolean = false
     ): ExecutionRecord {
         val startedAt = epochMillis.now()
         // Consume both ledgers as one critical section. Without this per-task
@@ -248,11 +334,20 @@ class ExecutionEngine(
                 automationId = automation.id,
                 automationName = automation.name,
                 success = true,
-                message = "No exit behavior configured",
+                message = if (manualConditionRejected) {
+                    MANUAL_CONDITION_NOT_MET_PREFIX + "no end behavior configured"
+                } else {
+                    "No exit behavior configured"
+                },
                 executedAt = startedAt
             )
             historyRepository.recordExecution(record)
-            recordTimeline(automation, "EXIT", record, startedAt)
+            recordTimeline(
+                automation,
+                if (manualConditionRejected) "MANUAL_CONDITION_NOT_MET" else "EXIT",
+                record,
+                startedAt
+            )
             return record
         }
         val controller = RomIntegrationManager.controller(context)
@@ -331,13 +426,22 @@ class ExecutionEngine(
             automationId = automation.id,
             automationName = automation.name,
             success = actionResults.all { it.success },
-            message = buildMessage(actionResults),
+            message = if (manualConditionRejected) {
+                MANUAL_CONDITION_NOT_MET_PREFIX + "end behavior: ${buildMessage(actionResults)}"
+            } else {
+                buildMessage(actionResults)
+            },
             executedAt = startedAt,
             channel = channel?.type?.name,
             actionResults = actionResults
         )
         historyRepository.recordExecution(record)
-        recordTimeline(automation, "EXIT", record, startedAt)
+        recordTimeline(
+            automation,
+            if (manualConditionRejected) "MANUAL_CONDITION_NOT_MET" else "EXIT",
+            record,
+            startedAt
+        )
         context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
         return record
     }
@@ -387,9 +491,11 @@ class ExecutionEngine(
 
     private suspend fun resolveVariables(): Map<String, String> {
         val builtins = runCatching { BuiltinVariables.provide(context) }.getOrDefault(emptyMap())
-        val globals = runCatching { variableRepository?.getVariablesOnce().orEmpty() }.getOrDefault(emptyList())
+        val globals = runCatching {
+            variableRepository?.snapshot(epochMillis.now())?.variables.orEmpty()
+        }.getOrDefault(emptyList())
         if (globals.isEmpty()) return builtins
-        return builtins + globals.associate { it.name to it.value }
+        return builtins + globals.associate { it.name to RuntimeValueCodec.display(it.value) }
     }
 
     private suspend fun executeAction(
@@ -399,8 +505,26 @@ class ExecutionEngine(
         channel: ExecutionProvider?,
         automationId: String? = null,
         revertOnExit: Boolean = false,
-        runContext: WorkflowRunContext? = null
+        runContext: WorkflowRunContext? = null,
+        dataRuntime: ScopedDataRuntime? = null
     ): SystemControlResult {
+        val capabilityRequest = CapabilityActionMapper.requestFor(
+            action = action,
+            workflowId = automationId,
+            executionId = runContext?.runId
+        )
+        if (capabilityRequest != null && capabilityExecutionService != null) {
+            val capabilityResult = capabilityExecutionService.execute(capabilityRequest)
+            return if (
+                capabilityResult.status == CapabilityStatus.SUCCESS ||
+                capabilityResult.status == CapabilityStatus.PENDING_USER_ACTION
+            ) {
+                SystemControlResult.ok(capabilityResult.message)
+            } else {
+                SystemControlResult.fail(capabilityResult.message)
+            }
+        }
+
         val handler = actionRegistry.handlerFor(action.type)
             ?: return SystemControlResult.fail("No handler registered for ${action.type}")
         return try {
@@ -413,7 +537,8 @@ class ExecutionEngine(
                     channel = channel,
                     automationId = automationId,
                     revertOnExit = revertOnExit,
-                    runContext = runContext
+                    runContext = runContext,
+                    dataRuntime = dataRuntime
                 )
             )
         } catch (cancellation: CancellationException) {

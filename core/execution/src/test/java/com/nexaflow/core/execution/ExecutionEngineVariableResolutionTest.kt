@@ -15,6 +15,8 @@ import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.models.GlobalVariable
 import com.nexaflow.domain.repositories.HistoryRepository
 import com.nexaflow.domain.repositories.VariableRepository
+import com.nexaflow.domain.variables.RuntimeValue
+import com.nexaflow.domain.variables.RuntimeValueCodec
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -40,12 +42,14 @@ class ExecutionEngineVariableResolutionTest {
 
     private class RecordingHandler : ActionHandler {
         val receivedConfigs = mutableListOf<Map<String, String>>()
+        val receivedTypedThresholds = mutableListOf<RuntimeValue?>()
         override val supportedTypes: Set<ActionType> = setOf(ActionType.SYSTEM_SEND_NOTIFICATION)
         override suspend fun execute(
             action: Action,
             ctx: ActionExecutionContext
         ): SystemControlResult {
             receivedConfigs += action.config
+            receivedTypedThresholds += ctx.dataRuntime?.resolve("threshold")?.value
             return SystemControlResult.ok("ok")
         }
     }
@@ -124,6 +128,33 @@ class ExecutionEngineVariableResolutionTest {
         val config = handler.receivedConfigs.first()
         assertEquals("Hello Alaa", config["title"])
         assertEquals("123 Main St is home", config["text"])
+    }
+
+    @Test
+    fun runAutomation_exposesTypedGlobalsThroughDataRuntime() = runBlocking {
+        val handler = RecordingHandler()
+        val engine = engine(
+            handler,
+            variables = listOf(
+                GlobalVariable(
+                    id = "g1",
+                    name = "threshold",
+                    value = "85",
+                    updatedAt = 1L,
+                    version = 2L,
+                    serializedValue = RuntimeValueCodec.encode(RuntimeValue.IntValue(85))
+                )
+            )
+        )
+
+        engine.runAutomation(
+            automationWith(
+                Action(ActionType.SYSTEM_SEND_NOTIFICATION, mapOf("title" to "Threshold %THRESHOLD"))
+            )
+        )
+
+        assertEquals("Threshold 85", handler.receivedConfigs.single()["title"])
+        assertEquals(RuntimeValue.IntValue(85), handler.receivedTypedThresholds.single())
     }
 
     @Test

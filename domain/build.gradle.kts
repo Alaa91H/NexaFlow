@@ -38,6 +38,7 @@ dependencies {
     // Runtime for the @Serializable annotations on the domain models (used by
     // BackupManager and the execution-record mapper in :data).
     implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.core)
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
     // Only the @Immutable/@Stable annotations are used, so Compose consumers
     // (feature modules) can treat these cross-module models as stable and skip
     // needless recomposition. runtime-annotation is the annotation-only

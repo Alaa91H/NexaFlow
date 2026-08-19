@@ -246,3 +246,125 @@ class TaskManagerTest {
         manager.shutdown()
     }
 }
+
+
+// Production-hardening coverage is kept in a separate class so the original
+// queue-regression tests remain easy to read and reuse.
+class TaskManagerHardeningTest {
+
+    @Test
+    fun submit_rejectsInvalidDeadlineTimeoutAndDisabledResource() {
+        val manager = TaskManager(
+            limits = TaskManagerLimits(
+                maxTaskTimeoutMs = 100L,
+                resourceCapacities = TaskResource.entries.associateWith {
+                    if (it == TaskResource.NETWORK) 0 else 1
+                }
+            )
+        )
+        try {
+            val expired = manager.submit(
+                PendingTask(name = "expired", deadlineAtMs = System.currentTimeMillis() - 1) {
+                    SystemControlResult.ok("never")
+                }
+            )
+            val tooLong = manager.submit(
+                PendingTask(name = "too-long", timeoutMs = 101L) { SystemControlResult.ok("never") }
+            )
+            val disabled = manager.submit(
+                PendingTask(name = "network", resources = setOf(TaskResource.NETWORK)) {
+                    SystemControlResult.ok("never")
+                }
+            )
+
+            assertTrue(expired is TaskAdmission.Rejected && expired.reason is TaskRejectionReason.DeadlineAlreadyElapsed)
+            assertTrue(tooLong is TaskAdmission.Rejected && tooLong.reason is TaskRejectionReason.TimeoutExceedsPolicy)
+            assertTrue(disabled is TaskAdmission.Rejected && disabled.reason is TaskRejectionReason.ResourceUnavailable)
+            assertEquals(TaskLifecycleState.REJECTED, manager.statuses.value.getValue(expired.taskId).state)
+            assertEquals(3, manager.results.value.count { it is TaskResult.Rejected })
+        } finally {
+            manager.shutdown()
+        }
+    }
+
+    @Test
+    fun deadlineThatExpiresWhileQueuedNeverExecutes() = runBlocking {
+        val manager = TaskManager()
+        val started = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        try {
+            manager.enqueue(PendingTask(name = "gate") {
+                started.complete(Unit)
+                release.await()
+                SystemControlResult.ok("gate")
+            })
+            started.await()
+            var executed = false
+            val deadlineTask = manager.enqueue(
+                PendingTask(
+                    name = "deadline",
+                    deadlineAtMs = System.currentTimeMillis() + 30L
+                ) {
+                    executed = true
+                    SystemControlResult.ok("should-not-run")
+                }
+            )
+            delay(60)
+            release.complete(Unit)
+            assertTrue(manager.awaitIdle(5_000L))
+
+            assertFalse(executed)
+            assertEquals(TaskLifecycleState.DEADLINE_EXCEEDED, manager.statuses.value.getValue(deadlineTask).state)
+            assertTrue(manager.results.value.any { it is TaskResult.DeadlineExceeded && it.taskId == deadlineTask })
+        } finally {
+            manager.shutdown()
+        }
+    }
+
+    @Test
+    fun duplicateIdIsRejectedUntilOriginalTaskReachesTerminalState() = runBlocking {
+        val manager = TaskManager()
+        val started = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val taskId = "stable-id"
+        try {
+            assertTrue(
+                manager.submit(PendingTask(id = taskId, name = "first") {
+                    started.complete(Unit)
+                    release.await()
+                    SystemControlResult.ok("first")
+                }) is TaskAdmission.Accepted
+            )
+            started.await()
+            val duplicate = manager.submit(PendingTask(id = taskId, name = "duplicate") { SystemControlResult.ok("duplicate") })
+            assertTrue(duplicate is TaskAdmission.Rejected && duplicate.reason is TaskRejectionReason.DuplicateTaskId)
+
+            release.complete(Unit)
+            assertTrue(manager.awaitIdle(5_000L))
+            assertEquals(TaskLifecycleState.SUCCEEDED, manager.statuses.value.getValue(taskId).state)
+            assertFalse(manager.cancel(taskId))
+        } finally {
+            manager.shutdown()
+        }
+    }
+
+    @Test
+    fun cancellationTransitionsThroughRequestToTerminalState() = runBlocking {
+        val manager = TaskManager()
+        val started = CompletableDeferred<Unit>()
+        try {
+            val taskId = manager.enqueue(PendingTask(name = "cancel-state") {
+                started.complete(Unit)
+                delay(5_000L)
+                SystemControlResult.ok("late")
+            })
+            started.await()
+            assertTrue(manager.cancel(taskId))
+            assertTrue(manager.awaitIdle(5_000L))
+            assertEquals(TaskLifecycleState.CANCELLED, manager.statuses.value.getValue(taskId).state)
+            assertTrue(manager.results.value.any { it is TaskResult.Cancelled && it.taskId == taskId })
+        } finally {
+            manager.shutdown()
+        }
+    }
+}

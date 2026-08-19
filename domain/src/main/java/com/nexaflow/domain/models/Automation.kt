@@ -34,8 +34,18 @@ data class Automation(
     /** Minimum gap (seconds) between two runs of this task from the same event. */
     val cooldownSeconds: Int = 10,
     val createdAt: Long,
-    val updatedAt: Long
-)
+    val updatedAt: Long,
+    /** Persisted workflow schema version; older definitions are migrated at the boundary. */
+    val workflowVersion: Int = CURRENT_WORKFLOW_VERSION
+) {
+    init {
+        require(workflowVersion in 1..CURRENT_WORKFLOW_VERSION) { "Unsupported workflow version" }
+    }
+
+    companion object {
+        const val CURRENT_WORKFLOW_VERSION = 1
+    }
+}
 
 /** Cooldown as milliseconds for the monitors' event de-duplication. */
 val Automation.cooldownMillis: Long get() = (cooldownSeconds.coerceAtLeast(0)) * 1000L

@@ -4,6 +4,7 @@ import android.content.Context
 import com.nexaflow.core.compat.ExecutionProvider
 import com.nexaflow.core.datastore.NotificationSettings
 import com.nexaflow.core.execution.WorkflowRunContext
+import com.nexaflow.core.execution.variables.ScopedDataRuntime
 import com.nexaflow.core.rom.SystemController
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
@@ -38,7 +39,9 @@ data class ActionExecutionContext(
      * and publish their own via [WorkflowRunContext.put]. Null when the engine
      * does not thread a context (e.g. exit-behavior runs).
      */
-    val runContext: WorkflowRunContext? = null
+    val runContext: WorkflowRunContext? = null,
+    /** Typed, scope-aware variables for this run; null in legacy/exit paths. */
+    val dataRuntime: ScopedDataRuntime? = null
 )
 
 /**

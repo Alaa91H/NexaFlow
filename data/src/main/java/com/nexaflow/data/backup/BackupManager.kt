@@ -4,6 +4,8 @@ import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.repositories.AutomationRepository
+import com.nexaflow.domain.workflow.WorkflowValidationIssue
+import com.nexaflow.domain.workflow.WorkflowValidator
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -22,7 +24,15 @@ data class BackupFile(
 sealed interface ImportResult {
     /** Imported definitions never become active until the user reviews them. */
     data class Success(val count: Int, val disabledCount: Int) : ImportResult
+    data class InvalidWorkflow(val automationId: String, val issues: List<WorkflowValidationIssue>) : ImportResult
     data object InvalidFile : ImportResult
+}
+
+/** Non-mutating import preflight used by UI review before calling [BackupManager.import]. */
+sealed interface BackupPreflight {
+    data class Ready(val backup: BackupFile) : BackupPreflight
+    data class InvalidWorkflow(val automationId: String, val issues: List<WorkflowValidationIssue>) : BackupPreflight
+    data object InvalidFile : BackupPreflight
 }
 
 /**
@@ -57,22 +67,10 @@ class BackupManager(
     fun toJson(backup: BackupFile): String = json.encodeToString(backup)
 
     suspend fun import(jsonText: String): ImportResult {
-        val backup = try {
-            json.decodeFromString<BackupFile>(jsonText)
-        } catch (_: Exception) {
-            // Malformed JSON, unknown enum names, wrong types, `[null, …]`
-            // entries — all land here and reject the file wholesale.
-            return ImportResult.InvalidFile
-        }
-        // Reject foreign files: a version out of the supported range (negative,
-        // zero, or from a newer format we cannot migrate yet).
-        if (backup.version !in 1..BACKUP_VERSION) {
-            return ImportResult.InvalidFile
-        }
-        // Semantic validation: kotlinx guarantees types/enums are correct, but
-        // blank ids/names would still produce broken tasks.
-        if (backup.automations.any { !it.isWellFormed() }) {
-            return ImportResult.InvalidFile
+        val backup = when (val preflight = preflight(jsonText)) {
+            is BackupPreflight.Ready -> preflight.backup
+            is BackupPreflight.InvalidWorkflow -> return ImportResult.InvalidWorkflow(preflight.automationId, preflight.issues)
+            BackupPreflight.InvalidFile -> return ImportResult.InvalidFile
         }
         // Imported rules are data from outside this installation. Saving them
         // disabled prevents a trigger — especially an advanced Root/Shizuku
@@ -82,6 +80,22 @@ class BackupManager(
             automationRepository.saveAutomation(automation.copy(enabled = false))
         }
         return ImportResult.Success(backup.automations.size, disabledCount)
+    }
+
+    fun preflight(jsonText: String): BackupPreflight {
+        val backup = try {
+            json.decodeFromString<BackupFile>(jsonText)
+        } catch (_: Exception) {
+            return BackupPreflight.InvalidFile
+        }
+        if (backup.version !in 1..BACKUP_VERSION || backup.automations.any { !it.isWellFormed() }) {
+            return BackupPreflight.InvalidFile
+        }
+        backup.automations.forEach { automation ->
+            val validation = WorkflowValidator.validate(automation)
+            if (!validation.isValid) return BackupPreflight.InvalidWorkflow(automation.id, validation.issues)
+        }
+        return BackupPreflight.Ready(backup)
     }
 
     /**

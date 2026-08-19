@@ -2,11 +2,13 @@ package com.nexaflow.core.datastore
 
 import android.content.Context
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.first
+import kotlinx.serialization.json.Json
 
 private val Context.activeExecutionDataStore by preferencesDataStore(
     name = "nexaflow_active_executions",
@@ -14,14 +16,14 @@ private val Context.activeExecutionDataStore by preferencesDataStore(
 )
 
 /**
- * Durable lifecycle ledger for automations whose main actions actually passed
- * the constraint gate and started. It is intentionally separate from
- * [ActiveTriggerStore]: a trigger can be active while a task is blocked by a
- * constraint, and that must never arm an end behavior.
+ * Durable lifecycle ledger and bounded checkpoint store for active automation
+ * runs. It remains intentionally separate from [ActiveTriggerStore]: a trigger
+ * may be active while constraints block a task, which must never arm its exit.
  */
 class ActiveExecutionStore(private val context: Context) {
 
     private val dataStore = context.activeExecutionDataStore
+    private val json = Json { ignoreUnknownKeys = false; encodeDefaults = true }
 
     /** Records that [automationId] entered the executable task lifecycle. */
     suspend fun markStarted(automationId: String) {
@@ -54,10 +56,179 @@ class ActiveExecutionStore(private val context: Context) {
         }
     }
 
+    /**
+     * Starts a durable execution checkpoint. False means the bounded ledger is
+     * full or this run id was already registered; callers must not claim success
+     * for a non-durable run when this returns false.
+     */
+    suspend fun beginCheckpoint(checkpoint: DurableExecutionCheckpoint): Boolean {
+        var accepted = false
+        dataStore.edit { preferences ->
+            val checkpoints = checkpoints(preferences)
+            if (checkpoint.runId !in checkpoints && checkpoints.size < MAX_CHECKPOINTS) {
+                checkpoints[checkpoint.runId] = checkpoint
+                writeCheckpoints(preferences, checkpoints)
+                accepted = true
+            }
+        }
+        return accepted
+    }
+
+    suspend fun checkpoint(runId: String): DurableExecutionCheckpoint? =
+        checkpoints(dataStore.data.first())[runId]
+
+    /** Marks an action started and reserves its idempotency key before side effects. */
+    suspend fun markActionStarted(
+        runId: String,
+        actionIndex: Int,
+        idempotencyKey: String,
+        updatedAt: Long
+    ): DurableExecutionCheckpoint? = updateCheckpoint(runId) { checkpoint ->
+        require(actionIndex == checkpoint.nextActionIndex) {
+            "Action checkpoint ordering mismatch for run $runId"
+        }
+        checkpoint.copy(
+            status = DurableExecutionStatus.ACTION_STARTED,
+            idempotencyKeys = checkpoint.idempotencyKeys + idempotencyKey,
+            updatedAt = updatedAt,
+            message = null
+        )
+    }
+
+    /** Commits one successful action and advances the cursor exactly once. */
+    suspend fun markActionCompleted(
+        runId: String,
+        actionIndex: Int,
+        updatedAt: Long
+    ): DurableExecutionCheckpoint? = updateCheckpoint(runId) { checkpoint ->
+        require(actionIndex == checkpoint.nextActionIndex) {
+            "Action completion ordering mismatch for run $runId"
+        }
+        checkpoint.copy(
+            status = DurableExecutionStatus.ACTION_COMPLETED,
+            nextActionIndex = actionIndex + 1,
+            completedActionIndexes = checkpoint.completedActionIndexes + actionIndex,
+            updatedAt = updatedAt,
+            message = null
+        )
+    }
+
+    /**
+     * Records uncertainty after an interrupted side effect. Recovery must verify
+     * the external effect or compensate; it must not blindly re-run this action.
+     */
+    suspend fun markActionUnknown(
+        runId: String,
+        message: String,
+        updatedAt: Long
+    ): DurableExecutionCheckpoint? = updateCheckpoint(runId) { checkpoint ->
+        checkpoint.copy(
+            status = DurableExecutionStatus.ACTION_UNKNOWN,
+            updatedAt = updatedAt,
+            message = message.take(MAX_MESSAGE_LENGTH)
+        )
+    }
+
+    suspend fun markExitPending(runId: String, updatedAt: Long): DurableExecutionCheckpoint? =
+        updateCheckpoint(runId) { it.copy(status = DurableExecutionStatus.EXIT_PENDING, updatedAt = updatedAt) }
+
+    /** Removes a terminal checkpoint only after history/exit state is committed by the caller. */
+    suspend fun completeCheckpoint(runId: String): Boolean {
+        var removed = false
+        dataStore.edit { preferences ->
+            val checkpoints = checkpoints(preferences)
+            removed = checkpoints.remove(runId) != null
+            if (removed) writeCheckpoints(preferences, checkpoints)
+        }
+        return removed
+    }
+
+    /** Removes an unrecoverable checkpoint after an explicit user/system reset. */
+    suspend fun clearCheckpoint(runId: String): Boolean = completeCheckpoint(runId)
+
+    /**
+     * Atomically claims every non-terminal checkpoint after a process restart.
+     * A second recovery worker sees no claimable record, preventing duplicate
+     * replay. Claimed ACTION_STARTED/ACTION_UNKNOWN work must be verified first.
+     */
+    suspend fun claimRecoveryCandidates(updatedAt: Long): List<DurableExecutionCheckpoint> {
+        val claimed = mutableListOf<DurableExecutionCheckpoint>()
+        dataStore.edit { preferences ->
+            val checkpoints = checkpoints(preferences)
+            checkpoints.values.toList().forEach { checkpoint ->
+                if (!checkpoint.isTerminal && checkpoint.status != DurableExecutionStatus.RECOVERY_CLAIMED) {
+                    val next = checkpoint.copy(
+                        status = DurableExecutionStatus.RECOVERY_CLAIMED,
+                        recoverySourceStatus = checkpoint.status,
+                        updatedAt = updatedAt,
+                        message = checkpoint.message?.take(MAX_MESSAGE_LENGTH)
+                    )
+                    checkpoints[checkpoint.runId] = next
+                    claimed += next
+                }
+            }
+            if (claimed.isNotEmpty()) writeCheckpoints(preferences, checkpoints)
+        }
+        return claimed.sortedBy { it.startedAt }
+    }
+
+    /** Releases a claimed run into an explicit recovery-required state for diagnostics/UI. */
+    suspend fun markRecoveryRequired(
+        runId: String,
+        message: String,
+        updatedAt: Long
+    ): DurableExecutionCheckpoint? = updateCheckpoint(runId) { checkpoint ->
+        checkpoint.copy(
+            status = DurableExecutionStatus.RECOVERY_REQUIRED,
+            updatedAt = updatedAt,
+            message = message.take(MAX_MESSAGE_LENGTH)
+        )
+    }
+
     internal suspend fun activeIdsForTest(): Set<String> =
         dataStore.data.first()[KEY_ACTIVE_EXECUTIONS].orEmpty()
 
+    internal suspend fun checkpointsForTest(): List<DurableExecutionCheckpoint> =
+        checkpoints(dataStore.data.first()).values.sortedBy { it.startedAt }
+
+    private suspend fun updateCheckpoint(
+        runId: String,
+        transform: (DurableExecutionCheckpoint) -> DurableExecutionCheckpoint
+    ): DurableExecutionCheckpoint? {
+        var updated: DurableExecutionCheckpoint? = null
+        dataStore.edit { preferences ->
+            val checkpoints = checkpoints(preferences)
+            val current = checkpoints[runId] ?: return@edit
+            updated = transform(current)
+            checkpoints[runId] = checkNotNull(updated)
+            writeCheckpoints(preferences, checkpoints)
+        }
+        return updated
+    }
+
+    private fun checkpoints(preferences: Preferences): LinkedHashMap<String, DurableExecutionCheckpoint> {
+        val decoded = LinkedHashMap<String, DurableExecutionCheckpoint>()
+        preferences[KEY_CHECKPOINTS].orEmpty().forEach { serialized ->
+            runCatching { json.decodeFromString(DurableExecutionCheckpoint.serializer(), serialized) }
+                .getOrNull()
+                ?.let { checkpoint -> decoded.putIfAbsent(checkpoint.runId, checkpoint) }
+        }
+        return decoded
+    }
+
+    private fun writeCheckpoints(
+        preferences: androidx.datastore.preferences.core.MutablePreferences,
+        checkpoints: Map<String, DurableExecutionCheckpoint>
+    ) {
+        preferences[KEY_CHECKPOINTS] = checkpoints.values.mapTo(LinkedHashSet()) { checkpoint ->
+            json.encodeToString(DurableExecutionCheckpoint.serializer(), checkpoint)
+        }
+    }
+
     private companion object {
         val KEY_ACTIVE_EXECUTIONS = stringSetPreferencesKey("active_executions")
+        val KEY_CHECKPOINTS = stringSetPreferencesKey("execution_checkpoints")
+        const val MAX_CHECKPOINTS = 128
+        const val MAX_MESSAGE_LENGTH = 512
     }
 }

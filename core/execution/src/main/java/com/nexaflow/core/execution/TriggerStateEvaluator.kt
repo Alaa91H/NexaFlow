@@ -23,18 +23,22 @@ import kotlin.math.abs
  * not met.
  *
  * Trigger types that cannot be evaluated deterministically without their
- * live monitors (apps, SMS, location, sensors, webhook, calendar, ...)
- * report "satisfied" so a manual run is never blocked by an unknown state.
+ * live monitors (apps, SMS, NFC scans, clipboard, sensors, webhook, calendar,
+ * ...) report "not satisfied". A manual tap must never execute main actions
+ * without proof that every configured condition is currently true.
  */
 object TriggerStateEvaluator {
 
-    /** True when at least one trigger is currently satisfied (unknown = satisfied). */
+    /**
+     * True only when every configured trigger is currently and verifiably
+     * satisfied. An empty trigger list remains manually runnable.
+     */
     // ConnectivityManager reads (ethernet/VPN/connectivity) need
     // ACCESS_NETWORK_STATE, which is a normal permission the app declares in
     // the manifest — lint cannot see the manifest here, so suppress it; every
-    // read is also wrapped in runCatching and degrades to "unknown".
+    // read is also wrapped in runCatching and degrades to "not satisfied".
     fun isSatisfied(context: Context, triggers: List<Trigger>): Boolean =
-        triggers.isEmpty() || triggers.any { triggerSatisfied(context, it) }
+        triggers.isEmpty() || triggers.all { triggerSatisfied(context, it) }
 
     // ConnectivityManager reads (ethernet/VPN/connectivity) need
     // ACCESS_NETWORK_STATE, which is a normal permission the app declares in
@@ -48,12 +52,12 @@ object TriggerStateEvaluator {
             TriggerType.RINGER_MODE -> ringerModeSatisfied(context, c)
             TriggerType.BATTERY -> batterySatisfied(context, c)
             TriggerType.HEADPHONE -> {
-                val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return true
+                val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return false
                 val wantConnected = (c["event"] ?: "CONNECTED") == "CONNECTED"
                 audio.isWiredHeadsetConnected() == wantConnected
             }
             TriggerType.CHARGER -> {
-                val battery = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager ?: return true
+                val battery = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager ?: return false
                 val wantConnected = (c["event"] ?: "CONNECTED") == "CONNECTED"
                 battery.isCharging == wantConnected
             }
@@ -71,7 +75,7 @@ object TriggerStateEvaluator {
             TriggerType.CALL_STATE -> {
                 // Incoming/outgoing calls are satisfied while a call is live;
                 // ENDED is satisfied once the line is free again.
-                val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? android.telephony.TelephonyManager ?: return true
+                val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? android.telephony.TelephonyManager ?: return false
                 val busy = telephony.isCallActive(context)
                 when (c["event"] ?: "INCOMING") {
                     "ENDED" -> !busy
@@ -79,12 +83,12 @@ object TriggerStateEvaluator {
                 }
             }
             TriggerType.MEDIA_PLAYING -> {
-                val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return true
+                val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return false
                 val playing = audio.isMusicActive
                 (c["event"] ?: "STARTED") == "STARTED" == playing
             }
             TriggerType.VOLUME_CHANGED -> {
-                val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return true
+                val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return false
                 val stream = when (c["stream"] ?: "MUSIC") {
                     "RING" -> AudioManager.STREAM_RING
                     "ALARM" -> AudioManager.STREAM_ALARM
@@ -95,9 +99,9 @@ object TriggerStateEvaluator {
                 val threshold = (c["threshold"] ?: "50").toIntOrNull() ?: 50
                 if ((c["direction"] ?: "ABOVE") == "BELOW") level <= threshold else level >= threshold
             }
-            // Install/remove events cannot be re-derived statically; an
-            // unknown state never blocks a manual run.
-            TriggerType.APP_INSTALLED -> true
+            // Install/remove events cannot be re-derived statically. They
+            // need a live event and therefore cannot authorize a manual run.
+            TriggerType.APP_INSTALLED -> false
             TriggerType.POWER_SAVER -> {
                 val on = Settings.Global.getInt(
                     context.contentResolver, "low_power", 0
@@ -106,7 +110,7 @@ object TriggerStateEvaluator {
             }
             TriggerType.BLUETOOTH_STATE -> {
                 val adapter = context.getSystemService(android.bluetooth.BluetoothManager::class.java)
-                    ?.adapter ?: return true
+                    ?.adapter ?: return false
                 val on = adapter.state == android.bluetooth.BluetoothAdapter.STATE_ON
                 ((c["state"] ?: "ON") == "ON") == on
             }
@@ -123,7 +127,7 @@ object TriggerStateEvaluator {
                 val freeMb = runCatching {
                     android.os.StatFs(context.filesDir.path).availableBytes / (1024L * 1024L)
                 }.getOrDefault(-1L)
-                if (freeMb < 0) return true
+                if (freeMb < 0) return false
                 if ((c["direction"] ?: "BELOW") == "ABOVE") freeMb >= thresholdMb
                 else freeMb <= thresholdMb
             }
@@ -219,10 +223,10 @@ object TriggerStateEvaluator {
                 ((c["state"] ?: "ON") == "ON") == (plugged == BatteryManager.BATTERY_PLUGGED_USB)
             }
             TriggerType.HDMI_CONNECTED -> {
-                // No public read API for HDMI state; the live monitor tracks
-                // the ACTION_HDMI_PLUGGED broadcast. Unknown = satisfied so a
-                // manual run is never blocked by an unreadable state.
-                true
+                // No public read API exposes the current HDMI state. It can
+                // only be authorized by the live broadcast monitor, never by
+                // a manual run that cannot verify the condition.
+                false
             }
             TriggerType.ETHERNET_CONNECTED -> {
                 val has = runCatching {
@@ -236,14 +240,18 @@ object TriggerStateEvaluator {
                 }.getOrDefault(false)
                 ((c["state"] ?: "ON") == "ON") == has
             }
-            // ---- v3.28 one-shot event triggers: live monitors fire these ----
+            // One-shot event triggers are only true at the moment their live
+            // monitor receives the event. A manual tap cannot synthesize that
+            // proof, so it follows the configured end behavior instead.
             TriggerType.TIMEZONE_CHANGED,
             TriggerType.BOOT_COMPLETED,
             TriggerType.NFC_TAG_SCANNED,
             TriggerType.CLIPBOARD_CHANGED,
             TriggerType.SCREEN_TIMEOUT_CHANGED,
-            TriggerType.ALARM_SET_CHANGED -> true
-            else -> true
+            TriggerType.ALARM_SET_CHANGED -> false
+            // New trigger types are deliberately fail-closed until a current
+            // state evaluator is added; this prevents accidental direct runs.
+            else -> false
         }
     }
 
@@ -280,7 +288,7 @@ object TriggerStateEvaluator {
         value?.let { runCatching { LocalTime.parse(it) }.getOrNull() }
 
     private fun ringerModeSatisfied(context: Context, config: Map<String, String>): Boolean {
-        val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return true
+        val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return false
         val wanted = config["mode"] ?: "NORMAL"
         val actual = when (audio.ringerMode) {
             AudioManager.RINGER_MODE_VIBRATE -> "VIBRATE"
@@ -291,7 +299,7 @@ object TriggerStateEvaluator {
     }
 
     private fun batterySatisfied(context: Context, config: Map<String, String>): Boolean {
-        val battery = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager ?: return true
+        val battery = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager ?: return false
         val level = battery.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
         val threshold = (config["above"] ?: config["below"] ?: "80").toIntOrNull() ?: 80
         val direction = config["direction"] ?: "ABOVE"
@@ -323,7 +331,7 @@ private fun android.telephony.TelephonyManager.isCallActive(context: Context): B
 private fun locationStateSatisfied(context: Context, wantedMode: String): Boolean {
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
         val location = context.getSystemService(Context.LOCATION_SERVICE) as? android.location.LocationManager
-            ?: return true
+            ?: return false
         return if (wantedMode == "OFF") !location.isLocationEnabled else location.isLocationEnabled
     }
     @Suppress("DEPRECATION")

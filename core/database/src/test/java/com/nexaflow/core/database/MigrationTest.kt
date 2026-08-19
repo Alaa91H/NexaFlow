@@ -10,6 +10,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.io.File
@@ -24,19 +25,27 @@ import java.io.File
 @RunWith(RobolectricTestRunner::class)
 class MigrationTest {
 
-    private val dbFile = File(System.getProperty("java.io.tmpdir"), "nexaflow-migration-test.db")
-
     @get:Rule
-    val helper = MigrationTestHelper(
-        instrumentation = InstrumentationRegistry.getInstrumentation(),
-        file = dbFile,
-        driver = AndroidSQLiteDriver(),
-        databaseClass = AppDatabase::class,
-    )
+    val temporaryFolder = TemporaryFolder()
+
+    private lateinit var dbFile: File
+    private lateinit var helper: MigrationTestHelper
 
     @Before
     fun setUp() {
+        // MigrationTestHelper uses the supplied file directly. A unique file
+        // per JUnit invocation prevents WAL/SHM leftovers or parallel forks
+        // from corrupting another migration scenario.
+        dbFile = temporaryFolder.newFile("nexaflow-migration-test.db")
         dbFile.delete()
+        File(dbFile.path + "-wal").delete()
+        File(dbFile.path + "-shm").delete()
+        helper = MigrationTestHelper(
+            instrumentation = InstrumentationRegistry.getInstrumentation(),
+            file = dbFile,
+            driver = AndroidSQLiteDriver(),
+            databaseClass = AppDatabase::class,
+        )
     }
 
     @Test
@@ -354,6 +363,67 @@ class MigrationTest {
             assertTrue(stmt.step())
             assertEquals("Morning", stmt.getText(0))
             assertEquals(1700000000000L, stmt.getLong(1))
+        }
+        migrated.close()
+    }
+
+    @Test
+    fun migrate12To14_preservesLegacyVariablesAndAddsTypedMetadata() {
+        helper.createDatabase(12).apply {
+            execSQL(
+                "INSERT INTO `global_variables` " +
+                    "(`id`, `name`, `value`, `updatedAt`, `sensitive`) " +
+                    "VALUES ('g1', 'HomeAddress', '123 Main St', 1700000000000, 0)"
+            )
+            close()
+        }
+
+        val migrated = helper.runMigrationsAndValidate(
+            14,
+            listOf(Migrations.MIGRATION_12_13, Migrations.MIGRATION_13_14)
+        )
+        migrated.prepare(
+            "SELECT name, value, version, serializedValue FROM `global_variables` WHERE id = 'g1'"
+        ).use { stmt ->
+            assertTrue(stmt.step())
+            assertEquals("HomeAddress", stmt.getText(0))
+            assertEquals("123 Main St", stmt.getText(1))
+            assertEquals(1L, stmt.getLong(2))
+            assertTrue(stmt.isNull(3))
+        }
+        // A typed value can now coexist with the legacy display string.
+        migrated.execSQL(
+            "INSERT INTO `global_variables` " +
+                "(`id`, `name`, `value`, `updatedAt`, `version`, `serializedValue`, `sensitive`) " +
+                "VALUES ('g2', 'Threshold', '85', 1700000000001, 2, " +
+                "'{\"type\":\"int\",\"value\":85}', 0)"
+        )
+        migrated.prepare("SELECT version, serializedValue FROM `global_variables` WHERE id = 'g2'").use { stmt ->
+            assertTrue(stmt.step())
+            assertEquals(2L, stmt.getLong(0))
+            assertEquals("{\"type\":\"int\",\"value\":85}", stmt.getText(1))
+        }
+        migrated.close()
+    }
+
+    @Test
+    fun migrate14To15_addsWorkflowVersionWithoutChangingAutomation() {
+        helper.createDatabase(14).apply {
+            execSQL(
+                "INSERT INTO `automations` " +
+                    "(`id`, `name`, `description`, `icon`, `iconColor`, `backgroundColor`, `category`, " +
+                    "`priority`, `enabled`, `triggersJson`, `actionsJson`, `constraintsJson`, `exitActionsJson`, " +
+                    "`revertOnExit`, `cooldownSeconds`, `createdAt`, `updatedAt`) " +
+                    "VALUES ('a1', 'Legacy', '', 'bolt', 1, 2, 'general', 1, 1, '[]', '[]', '[]', '[]', 0, 10, 1, 2)"
+            )
+            close()
+        }
+
+        val migrated = helper.runMigrationsAndValidate(15, listOf(Migrations.MIGRATION_14_15))
+        migrated.prepare("SELECT name, workflowVersion FROM `automations` WHERE id = 'a1'").use { stmt ->
+            assertTrue(stmt.step())
+            assertEquals("Legacy", stmt.getText(0))
+            assertEquals(1L, stmt.getLong(1))
         }
         migrated.close()
     }

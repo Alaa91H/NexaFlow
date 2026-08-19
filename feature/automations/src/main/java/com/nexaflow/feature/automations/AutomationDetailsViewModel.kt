@@ -55,8 +55,11 @@ class AutomationDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             _running.value = true
             val record = executionEngine.runWithConditionGate(current)
-            _executionMessage.value =
-                if (record.success) "Ran: ${record.message}" else "Failed: ${record.message}"
+            _executionMessage.value = when {
+                record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX) -> record.message
+                record.success -> "Ran: ${record.message}"
+                else -> "Failed: ${record.message}"
+            }
             _running.value = false
         }
     }

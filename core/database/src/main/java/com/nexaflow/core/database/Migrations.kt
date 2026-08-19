@@ -178,6 +178,40 @@ object Migrations {
         }
     }
 
+    /**
+     * v12 -> v13: adds a monotonic revision to global variables. Existing
+     * values become revision one; typed serialization stays inside the existing
+     * value field so this migration never rewrites plaintext or Keystore data.
+     */
+    val MIGRATION_12_13 = object : Migration(12, 13) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE `global_variables` ADD COLUMN `version` INTEGER NOT NULL DEFAULT 1"
+            )
+        }
+    }
+
+    /**
+     * v13 -> v14: adds the optional JSON representation used by typed global
+     * values. Existing values remain legacy text (`NULL`) until explicitly
+     * rewritten through VariableRepository.
+     */
+    val MIGRATION_13_14 = object : Migration(13, 14) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `global_variables` ADD COLUMN `serializedValue` TEXT")
+        }
+    }
+
+    /**
+     * v14 -> v15: persists the workflow schema revision. Existing definitions
+     * are valid version one workflows, so this is a metadata-only migration.
+     */
+    val MIGRATION_14_15 = object : Migration(14, 15) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `automations` ADD COLUMN `workflowVersion` INTEGER NOT NULL DEFAULT 1")
+        }
+    }
+
     val ALL = listOf(
         MIGRATION_1_2,
         MIGRATION_2_3,
@@ -189,6 +223,9 @@ object Migrations {
         MIGRATION_8_9,
         MIGRATION_9_10,
         MIGRATION_10_11,
-        MIGRATION_11_12
+        MIGRATION_11_12,
+        MIGRATION_12_13,
+        MIGRATION_13_14,
+        MIGRATION_14_15
     )
 }

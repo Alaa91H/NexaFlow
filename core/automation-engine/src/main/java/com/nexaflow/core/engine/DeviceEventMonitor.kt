@@ -11,6 +11,12 @@ import android.os.PowerManager
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.compat.EventSource
+import com.nexaflow.core.execution.events.MonitorEventAdapter
+import com.nexaflow.domain.events.EventFilter
+import com.nexaflow.domain.events.EventSubscription
+import com.nexaflow.domain.events.NexaFlowEventBus
+import com.nexaflow.domain.events.NexaFlowEventType
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
@@ -18,6 +24,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,8 +36,15 @@ class DeviceEventMonitor @Inject constructor(
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
     private val activeStore: ActiveTriggerStore,
+    private val triggerIndex: TriggerIndex,
+    private val eventBus: NexaFlowEventBus,
     @ApplicationScope private val scope: CoroutineScope
-) {
+) : EventSource {
+
+    override val sourceId: String = SOURCE
+    override val description: String = "Screen, power and wired-headset events"
+    private val eventAdapter by lazy { MonitorEventAdapter(this, eventBus) }
+    private var eventSubscription: EventSubscription? = null
 
     @Volatile
     private var registered = false
@@ -60,22 +76,42 @@ class DeviceEventMonitor @Inject constructor(
                 }
                 else -> return
             }
-            handleEvent(event)
+            publishEvent(event)
         }
     }
+
+    override fun start() = initialize()
 
     fun initialize() {
         if (registered) return
         registered = true
-        val filter = IntentFilter().apply {
+        val receiverFilter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_ON)
             addAction(Intent.ACTION_SCREEN_OFF)
             addAction(Intent.ACTION_POWER_CONNECTED)
             addAction(Intent.ACTION_POWER_DISCONNECTED)
             addAction(Intent.ACTION_HEADSET_PLUG)
         }
-        context.registerReceiver(receiver, filter)
         scope.launch {
+            // Subscribe before receiver registration: a broadcast accepted by
+            // Android is therefore never lost between the platform boundary and
+            // the canonical event bus.
+            eventSubscription = eventBus.subscribe(
+                filter = EventFilter(
+                    types = setOf(NexaFlowEventType.SYSTEM_EVENT),
+                    sources = setOf(sourceId)
+                )
+            ) { canonicalEvent ->
+                val event = (canonicalEvent.payload["event"] as? JsonPrimitive)?.contentOrNull
+                    ?: return@subscribe
+                handleCanonicalEvent(event)
+            }
+            if (!registered) {
+                eventSubscription?.let { eventBus.unsubscribe(it.id) }
+                eventSubscription = null
+                return@launch
+            }
+            context.registerReceiver(receiver, receiverFilter)
             // Re-arm the in-memory active set from the durable ledger BEFORE
             // the next broadcast is evaluated: a task that was triggered before
             // a process/service restart must still fire its exit behavior when
@@ -150,9 +186,13 @@ class DeviceEventMonitor @Inject constructor(
             device.type in WIRED_OUTPUT_DEVICE_TYPES
         }
 
-    fun stop() {
+    override fun stop() {
         if (!registered) return
         registered = false
+        eventSubscription?.let { subscription ->
+            scope.launch { eventBus.unsubscribe(subscription.id) }
+        }
+        eventSubscription = null
         try {
             context.unregisterReceiver(receiver)
         } catch (_: Throwable) {
@@ -160,9 +200,24 @@ class DeviceEventMonitor @Inject constructor(
         }
     }
 
-    private fun handleEvent(event: String) {
+    private fun publishEvent(event: String) {
         scope.launch {
-            val automations = repository.getAutomations().first()
+            eventAdapter.publish(
+                type = NexaFlowEventType.SYSTEM_EVENT,
+                payload = JsonObject(mapOf("event" to JsonPrimitive(event)))
+            )
+        }
+    }
+
+    private suspend fun handleCanonicalEvent(event: String) {
+            // Prefer the existing O(1) index once its source flow has emitted.
+            // During service bootstrap, retain the repository fallback so a
+            // first broadcast cannot disappear before TriggerIndex is ready.
+            val automations = if (triggerIndex.version > 0L) {
+                triggerIndex.bySource(sourceId)
+            } else {
+                repository.getAutomations().first()
+            }
             val now = System.currentTimeMillis()
             automations
                 .filter { automation ->
@@ -198,7 +253,6 @@ class DeviceEventMonitor @Inject constructor(
                         }
                     }
                 }
-        }
     }
 
     private companion object {

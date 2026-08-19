@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -35,5 +36,8 @@ dependencies {
     implementation(libs.androidx.appcompat.appcompat)
     implementation(libs.androidx.datastore.datastore.preferences)
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
     testImplementation(libs.junit.junit)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.org.robolectric.robolectric)
 }

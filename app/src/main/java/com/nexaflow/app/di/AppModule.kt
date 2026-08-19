@@ -9,6 +9,7 @@ import com.nexaflow.core.database.CorruptionRecoveryFactory
 import com.nexaflow.core.database.ExecutionDao
 import com.nexaflow.core.database.Migrations
 import com.nexaflow.core.database.VariableDao
+import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.datastore.LocationPreferences
 import com.nexaflow.core.datastore.NotificationPreferences
@@ -16,9 +17,19 @@ import com.nexaflow.core.datastore.PrivacyPreferences
 import com.nexaflow.core.datastore.SmsPreferences
 import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.capability.AndroidCapabilityDeviceStateReader
+import com.nexaflow.core.execution.capability.AndroidIntentCapabilityBackend
+import com.nexaflow.core.execution.capability.AndroidPublicCapabilityBackend
+import com.nexaflow.core.execution.capability.AndroidPublicCapabilityCatalog
+import com.nexaflow.core.execution.capability.CapabilityExecutionService
+import com.nexaflow.core.execution.capability.CapabilityRegistry
+import com.nexaflow.core.execution.capability.CapabilityResolver
 import com.nexaflow.core.execution.compat.AutomationWorkflowRunner
+import com.nexaflow.core.execution.dryrun.WorkflowDryRunService
+import com.nexaflow.core.execution.recovery.ExecutionRecoveryCoordinator
 import com.nexaflow.core.logging.InMemoryLogStore
 import com.nexaflow.core.logging.LogStore
+import com.nexaflow.core.logging.RedactingLogStore
 import com.nexaflow.core.security.KeystoreSecureStorage
 import com.nexaflow.core.security.SecureStorage
 import com.nexaflow.data.backup.BackupManager
@@ -133,6 +144,18 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideActiveExecutionStore(@ApplicationContext context: Context): ActiveExecutionStore {
+        return ActiveExecutionStore(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideExecutionRecoveryCoordinator(
+        activeExecutionStore: ActiveExecutionStore
+    ): ExecutionRecoveryCoordinator = ExecutionRecoveryCoordinator(activeExecutionStore)
+
+    @Provides
+    @Singleton
     fun provideAutomationRepository(dao: AutomationDao): AutomationRepository {
         return AutomationRepositoryImpl(dao)
     }
@@ -154,8 +177,50 @@ object AppModule {
     fun provideLogStore(): LogStore {
         // In-memory for now; Phase 3 (task-manager/debug UI) will swap in a
         // persistent Room-backed implementation behind the same interface.
-        return InMemoryLogStore()
+        // Redaction is intentionally outside the store so every future backend
+        // gets the same secret boundary by default.
+        return RedactingLogStore(InMemoryLogStore())
     }
+
+    @Provides
+    @Singleton
+    fun provideCapabilityRegistry(@ApplicationContext context: Context): CapabilityRegistry =
+        CapabilityRegistry.of(
+            descriptors = AndroidPublicCapabilityCatalog.descriptors(),
+            backends = listOf(
+                AndroidPublicCapabilityBackend(context),
+                AndroidIntentCapabilityBackend(context)
+            )
+        )
+
+    @Provides
+    @Singleton
+    fun provideCapabilityResolver(registry: CapabilityRegistry): CapabilityResolver =
+        CapabilityResolver(registry)
+
+    @Provides
+    @Singleton
+    fun provideCapabilityExecutionService(
+        resolver: CapabilityResolver,
+        @ApplicationContext context: Context
+    ): CapabilityExecutionService = CapabilityExecutionService(
+        resolver = resolver,
+        deviceStateProvider = {
+            AndroidCapabilityDeviceStateReader(context).capture(System.currentTimeMillis())
+        }
+    )
+
+    @Provides
+    @Singleton
+    fun provideWorkflowDryRunService(
+        resolver: CapabilityResolver,
+        @ApplicationContext context: Context
+    ): WorkflowDryRunService = WorkflowDryRunService(
+        capabilityResolver = resolver,
+        deviceStateProvider = {
+            AndroidCapabilityDeviceStateReader(context).capture(System.currentTimeMillis())
+        }
+    )
 
     @Provides
     @Singleton
@@ -164,14 +229,16 @@ object AppModule {
         historyRepository: HistoryRepository,
         notificationPreferences: NotificationPreferences,
         logStore: LogStore,
-        variableRepository: VariableRepository
+        variableRepository: VariableRepository,
+        capabilityExecutionService: CapabilityExecutionService
     ): ExecutionEngine {
         return ExecutionEngine(
             context,
             historyRepository,
             notificationPreferences,
             logStore = logStore,
-            variableRepository = variableRepository
+            variableRepository = variableRepository,
+            capabilityExecutionService = capabilityExecutionService
         )
     }
 
