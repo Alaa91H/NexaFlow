@@ -16,9 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
@@ -146,7 +147,7 @@ class CategoryAccordionLayoutTest {
             .fetchSemanticsNode()
             .boundsInRoot
 
-        composeRule.onNodeWithTag("stale_category_content").assertDoesNotExist()
+        composeRule.onAllNodesWithTag("stale_category_content").assertCountEquals(0)
         assertTrue(
             "A long localised category label must remain within the capped chip width: $firstTabBounds",
             firstTabBounds.width <= 180f
