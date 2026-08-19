@@ -1,6 +1,7 @@
 package com.nexaflow.feature.builder
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
@@ -24,6 +25,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import com.nexaflow.domain.models.TriggerType
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -101,6 +103,55 @@ class CategoryAccordionLayoutTest {
         assertTrue(
             "Catalog content must start below the category tabs: tabs=$tabsBounds, content=$contentBounds",
             contentBounds.top >= tabsBounds.bottom
+        )
+    }
+
+    @Test
+    fun conditionCatalogRows_shareExecutionCatalogGeometry_inNarrowRtlLayout() {
+        composeRule.setContent {
+            CompositionLocalProvider(
+                LocalLayoutDirection provides LayoutDirection.Rtl,
+                LocalDensity provides Density(density = 1f, fontScale = 1.4f)
+            ) {
+                MaterialTheme {
+                    Box(modifier = Modifier.width(280.dp)) {
+                        Column {
+                            TriggerOptionRow(
+                                type = TriggerType.TIME,
+                                checked = false,
+                                onSelect = {},
+                                modifier = Modifier.testTag("condition_catalog_row")
+                            )
+                            ActionOptionRow(
+                                option = actionOptions.first(),
+                                checked = false,
+                                onToggle = {},
+                                modifier = Modifier.testTag("execution_catalog_row")
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        val conditionBounds = composeRule
+            .onNodeWithTag("condition_catalog_row")
+            .assertIsDisplayed()
+            .fetchSemanticsNode()
+            .boundsInRoot
+        val executionBounds = composeRule
+            .onNodeWithTag("execution_catalog_row")
+            .assertIsDisplayed()
+            .fetchSemanticsNode()
+            .boundsInRoot
+
+        assertTrue(
+            "Conditions and execution must use the same full-width catalog row in RTL",
+            conditionBounds.width == executionBounds.width
+        )
+        assertTrue(
+            "Condition catalog rows must retain a visible bounded height",
+            conditionBounds.height > 0f
         )
     }
 

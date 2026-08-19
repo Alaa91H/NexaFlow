@@ -94,6 +94,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -139,13 +140,13 @@ private const val LOCATION_RADIUS_STEPS = (LOCATION_RADIUS_MAX_M - LOCATION_RADI
  * surfaces the everyday options (time, battery, Wi-Fi…) first and the user
  * reaches the right trigger without scrolling one long flat list.
  */
-enum class TriggerCategory(val headerRes: Int) {
-    SCHEDULE(R.string.trigger_cat_schedule),
-    DEVICE(R.string.trigger_cat_device),
-    CONNECTIVITY(R.string.trigger_cat_connectivity),
-    LOCATION(R.string.trigger_cat_location),
-    APPS(R.string.trigger_cat_apps),
-    COMMUNICATION(R.string.trigger_cat_communication)
+enum class TriggerCategory(val headerRes: Int, val color: Color) {
+    SCHEDULE(R.string.trigger_cat_schedule, Color(0xFF6750A4)),
+    DEVICE(R.string.trigger_cat_device, Color(0xFF455A64)),
+    CONNECTIVITY(R.string.trigger_cat_connectivity, Color(0xFF006A6C)),
+    LOCATION(R.string.trigger_cat_location, Color(0xFF0B57D0)),
+    APPS(R.string.trigger_cat_apps, Color(0xFF006D3C)),
+    COMMUNICATION(R.string.trigger_cat_communication, Color(0xFF8F4C00))
 }
 
 internal val triggerCategories: List<TriggerCategory> = TriggerCategory.entries.toList()

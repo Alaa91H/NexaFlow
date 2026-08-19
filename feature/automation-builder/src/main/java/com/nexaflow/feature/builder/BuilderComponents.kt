@@ -38,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -53,6 +54,7 @@ import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.core.ui.StatusPill
 import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.domain.models.ActionType
+import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -382,10 +384,57 @@ fun CategoryAccordion(
 fun ActionOptionRow(
     option: ActionOption,
     checked: Boolean,
-    onToggle: () -> Unit
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    CatalogOptionRow(
+        title = stringResource(option.titleRes),
+        subtitle = stringResource(option.subtitleRes),
+        icon = option.icon,
+        color = option.color,
+        checked = checked,
+        onToggle = onToggle,
+        modifier = modifier
+    )
+}
+
+/**
+ * A condition choice deliberately uses the exact catalogue row as an action:
+ * icon badge, localised title and description, and trailing selection control.
+ * Conditions are single-select, so the picker closes immediately after a tap;
+ * using the shared row keeps its compact RTL geometry identical to execution.
+ */
+@Composable
+fun TriggerOptionRow(
+    type: TriggerType,
+    checked: Boolean,
+    onSelect: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val categoryColor = triggerCategoryOf[type]?.color ?: MaterialTheme.colorScheme.primary
+    CatalogOptionRow(
+        title = stringResource(type.labelRes()),
+        subtitle = stringResource(type.descRes()),
+        icon = type.icon(),
+        color = categoryColor,
+        checked = checked,
+        onToggle = onSelect,
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun CatalogOptionRow(
+    title: String,
+    subtitle: String,
+    icon: ImageVector,
+    color: Color,
+    checked: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onToggle)
             .padding(vertical = 6.dp),
@@ -393,17 +442,17 @@ fun ActionOptionRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         IconBadge(
-            icon = option.icon,
-            containerColor = option.color.copy(alpha = 0.15f),
-            contentColor = option.color
+            icon = icon,
+            containerColor = color.copy(alpha = 0.15f),
+            contentColor = color
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = stringResource(option.titleRes),
+                text = title,
                 style = MaterialTheme.typography.titleSmall
             )
             Text(
-                text = stringResource(option.subtitleRes),
+                text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary
             )

@@ -1498,35 +1498,16 @@ fun AutomationBuilderScreen(
                         if (commonTriggers.isNotEmpty()) {
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 commonTriggers.forEach { type ->
-                                    Surface(
-                                        shape = MaterialTheme.shapes.small,
-                                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                triggers.clear()
-                                                triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
-                                                lastAddedTrigger = triggers.lastIndex
-                                                expandedTriggerCategory = null
-                                            }
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                        ) {
-                                            IconBadge(
-                                                icon = type.icon(),
-                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                            )
-                                            Text(
-                                                text = stringResource(type.labelRes()),
-                                                modifier = Modifier.weight(1f),
-                                                style = MaterialTheme.typography.titleSmall
-                                            )
+                                    TriggerOptionRow(
+                                        type = type,
+                                        checked = false,
+                                        onSelect = {
+                                            triggers.clear()
+                                            triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
+                                            lastAddedTrigger = triggers.lastIndex
+                                            expandedTriggerCategory = null
                                         }
-                                    }
+                                    )
                                 }
                             }
                         }
@@ -1550,35 +1531,16 @@ fun AutomationBuilderScreen(
                         if (triggerSearchQuery.isNotBlank()) {
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 visibleTriggers.forEach { type ->
-                                    Surface(
-                                        shape = MaterialTheme.shapes.small,
-                                        color = Color.Transparent,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                triggers.clear()
-                                                triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
-                                                lastAddedTrigger = triggers.lastIndex
-                                                triggerSearchQuery = ""
-                                            }
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                        ) {
-                                            IconBadge(
-                                                icon = type.icon(),
-                                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                            Text(
-                                                text = stringResource(type.labelRes()),
-                                                modifier = Modifier.weight(1f),
-                                                style = MaterialTheme.typography.titleSmall
-                                            )
+                                    TriggerOptionRow(
+                                        type = type,
+                                        checked = false,
+                                        onSelect = {
+                                            triggers.clear()
+                                            triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
+                                            lastAddedTrigger = triggers.lastIndex
+                                            triggerSearchQuery = ""
                                         }
-                                    }
+                                    )
                                 }
                             }
                         } else CategoryAccordion(
@@ -1593,37 +1555,16 @@ fun AutomationBuilderScreen(
                                 visibleTriggers
                                     .filter { triggerCategoryOf[it] == category }
                                     .forEach { type ->
-                                        Surface(
-                                            shape = MaterialTheme.shapes.small,
-                                            color = Color.Transparent,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable {
-                                                    triggers.clear()
-                                                    triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
-                                                    lastAddedTrigger = triggers.lastIndex
-                                                    expandedTriggerCategory = null
-                                                }
-                                        ) {
-                                            Row(
-                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                            ) {
-                                                IconBadge(
-                                                    icon = type.icon(),
-                                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                                                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                                Text(
-                                                    text = stringResource(type.labelRes()),
-                                                    modifier = Modifier.weight(1f),
-                                                    style = MaterialTheme.typography.titleSmall,
-                                                    fontWeight = FontWeight.Normal,
-                                                    color = MaterialTheme.colorScheme.onSurface
-                                                )
+                                        TriggerOptionRow(
+                                            type = type,
+                                            checked = false,
+                                            onSelect = {
+                                                triggers.clear()
+                                                triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
+                                                lastAddedTrigger = triggers.lastIndex
+                                                expandedTriggerCategory = null
                                             }
-                                        }
+                                        )
                                     }
                             }
                         }
