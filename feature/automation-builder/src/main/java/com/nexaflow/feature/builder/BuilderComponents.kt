@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -314,19 +316,22 @@ fun CategoryAccordion(
     content: @Composable (Int) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        // فئات واضحة وثابتة؛ يفتح المستخدم فئة واحدة فقط في كل مرة كي تبقى
-        // شاشة الاختيار قابلة للمسح البصري ولا تتحول إلى قائمة طويلة مزدحمة.
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+        // لا نلف شرائح الفئات إلى صف ثانٍ: على الهاتف الضيق قد يبلغ FlowRow
+        // ارتفاعاً غير متوقع بينما تظهر قائمة الخيارات أسفله، فتتراكب العناصر
+        // بصرياً. الصف القابل للسحب يحافظ على ارتفاع ثابت وفئة واحدة في كل صف.
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("category_tabs"),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            tabs.forEachIndexed { index, (label, icon) ->
+            itemsIndexed(tabs) { index, (label, icon) ->
                 SelectChip(
                     selected = expandedIndex == index,
                     onClick = { onExpandedChange(if (expandedIndex == index) null else index) },
                     label = label,
-                    leadingIcon = icon
+                    leadingIcon = icon,
+                    modifier = Modifier.testTag("category_tab_$index")
                 )
             }
         }
