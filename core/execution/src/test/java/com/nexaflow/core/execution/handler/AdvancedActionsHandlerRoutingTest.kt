@@ -5,9 +5,11 @@ import com.nexaflow.core.compat.ExecutionProviderType
 import com.nexaflow.core.compat.DeviceProfile
 import com.nexaflow.core.rom.model.RomCapability
 import com.nexaflow.core.rom.model.SystemControlResult
+import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -33,6 +35,36 @@ class AdvancedActionsHandlerRoutingTest {
         override val supportedCapabilities: Set<RomCapability> = emptySet()
         override fun isAvailable(profile: DeviceProfile): Boolean = true
         override fun execute(command: String): SystemControlResult = result
+    }
+
+    @Test
+    fun validatedCommand_rejectsMissingOrUnsafePrivilegedPayloads() {
+        assertNull(
+            handler.validatedCommand(
+                Action(type = ActionType.ADVANCED_ROOT, config = emptyMap())
+            )
+        )
+        assertNull(
+            handler.validatedCommand(
+                Action(
+                    type = ActionType.ADVANCED_SHIZUKU,
+                    config = mapOf("command" to "printf unsafe\u0000payload")
+                )
+            )
+        )
+        assertTrue("Invalid commands must never reach either runtime", fallbackCalls.isEmpty())
+    }
+
+    @Test
+    fun validatedCommand_trimsTheExplicitPayloadBeforeRouting() {
+        val command = handler.validatedCommand(
+            Action(
+                type = ActionType.ADVANCED_ROOT,
+                config = mapOf("command" to "  settings get secure android_id  ")
+            )
+        )
+
+        assertEquals("settings get secure android_id", command)
     }
 
     @Test

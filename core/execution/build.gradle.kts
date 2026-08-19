@@ -69,6 +69,9 @@ dependencies {
     implementation(libs.androidx.core.core.ktx)
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
     implementation(project(":domain"))
+    // Shared validation policy for privileged command payloads; avoids duplicating
+    // shell-safety rules between direct Root/Shizuku and runtime-selected paths.
+    implementation(project(":core:security"))
     implementation(project(":core:rom-integration"))
     implementation(project(":core:compatibility"))
     implementation(project(":core:datastore"))

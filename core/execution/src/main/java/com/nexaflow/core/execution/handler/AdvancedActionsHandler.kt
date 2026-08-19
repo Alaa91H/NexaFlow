@@ -4,6 +4,7 @@ import com.nexaflow.core.compat.ExecutionProvider
 import com.nexaflow.core.compat.ExecutionProviderType
 import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.rom.model.SystemControlResult
+import com.nexaflow.core.security.SafeCommandBuilder
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 
@@ -28,8 +29,23 @@ class AdvancedActionsHandler(
     )
 
     override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult {
-        val command = action.config["command"] ?: "echo nexaflow"
+        // Validate before choosing a channel. The selected provider may execute
+        // directly, while the legacy provider validates internally; keeping the
+        // check here ensures both paths reject an absent or malformed payload.
+        val command = validatedCommand(action)
+            ?: return SystemControlResult.fail("Advanced shell command is required and contains unsafe characters")
         return route(ctx.channel, action.type, command)
+    }
+
+    /**
+     * Extracts one explicit advanced command and applies the same structural
+     * validation regardless of whether execution eventually uses Root, Shizuku,
+     * or a runtime-selected channel. A missing configuration must fail safely;
+     * it must never silently run a placeholder command with elevated privileges.
+     */
+    internal fun validatedCommand(action: Action): String? {
+        val configured = action.config["command"]?.trim().orEmpty()
+        return SafeCommandBuilder.validateUserCommand(configured)
     }
 
     /**
