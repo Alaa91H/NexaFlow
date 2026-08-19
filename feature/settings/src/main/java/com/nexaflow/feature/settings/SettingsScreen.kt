@@ -388,10 +388,17 @@ fun SettingsScreen(navController: NavController) {
                 SettingRow(
                     icon = Icons.Filled.Language,
                     title = stringResource(R.string.app_language),
-                    subtitle = appLanguageDisplayName(
-                        tag = selectedLanguage,
-                        systemDefaultLabel = stringResource(R.string.app_language_system_default)
-                    ),
+                    subtitle = stringResource(R.string.app_language_sub),
+                    trailing = {
+                        Text(
+                            text = appLanguageDisplayName(
+                                tag = selectedLanguage,
+                                systemDefaultLabel = stringResource(R.string.app_language_system_default)
+                            ),
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    },
                     onClick = { showLanguagePicker = true }
                 )
                 SettingRow(
