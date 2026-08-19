@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -148,18 +149,25 @@ class MergedManifestNoSentryTest {
     }
 
     @Test
-    fun `startup initializers all route through androidx startup and none auto-initialize WorkManager`() {
+    fun `startup initializers all route through one androidx startup provider and none auto-initialize WorkManager`() {
         val doc = mergedManifestDocument()
-        val startup = providerElements(doc).firstOrNull {
+        val startupProviders = providerElements(doc).filter {
             it.getAttribute("android:name") == "androidx.startup.InitializationProvider"
         }
+        assertEquals(
+            "The merged manifest must contain exactly one androidx.startup.InitializationProvider; " +
+                "duplicate dispatchers can initialize startup components more than once.",
+            1,
+            startupProviders.size
+        )
+        val startup = startupProviders.single()
         assertNotNull(
             "androidx.startup.InitializationProvider must exist to host the " +
                 "app's initializers",
             startup
         )
 
-        val metadata = metaDataChildren(startup!!)
+        val metadata = metaDataChildren(startup)
         val entries = metadata.associate { it.getAttribute("android:name") to it.getAttribute("android:value") }
 
         // 1) Every initializer must be declared with the "androidx.startup"

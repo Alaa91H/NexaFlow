@@ -62,6 +62,16 @@
 
 > المفتاح وملف الخصائص مستثنيان من Git ومقيدان بصلاحية محلية `600`. لا تصبح هذه الهوية متاحة لبناء الوسم البعيد إلا بعد إضافة أسرار Actions الأربعة المقابلة، ولا يمكنها تحديث تثبيت وقّع بالمفتاح القديم المفقود.
 
+## 4.3 متابعة سلامة تهيئة التطبيق — 19 أغسطس 2026
+
+أثبت فحص `app/build/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml` وجود تعريفين لـ `androidx.startup.InitializationProvider` بالاسم والسلطة نفسيهما. كان التعريف الأول يحمل مهيئات AndroidX الفعلية، بينما كان الثاني فارغاً بعد إزالة `WorkManagerInitializer`. لا يبرر نجاح البناء بقاء مزودي `ContentProvider` متماثلين؛ فذلك يفتح احتمال تنفيذ مسار التهيئة مرتين ويجعل سلامة الإقلاع معتمدة على تفاصيل داخلية للمكتبات.
+
+تم حذف التعريف المصدرّي المكرر والاحتفاظ بمزود واحد يزيل `WorkManagerInitializer` كي يظل `NexaFlowApplication` المالك الوحيد لتهيئة WorkManager مع `HiltWorkerFactory`. كما تم تقوية `MergedManifestNoSentryTest` ليطلب وجود مزود `androidx.startup.InitializationProvider` واحداً بالضبط، إضافة إلى استمرار التحقق من غياب مهيئات WorkManager وSentry التلقائية.
+
+أثبتت مهمة `:app:processReleaseMainManifest` بعد الإصلاح أن Manifest الإصدار يحتوي `startup_providers=1` و`sentry_providers=0` و`workmanager_initializer=0`. ثم نجحت `:app:testDebugUnitTest :app:lintDebug`. هذا يعالج تكراراً إنتاجياً مثبتاً على مستوى الحزمة، ولا يغير قائمة الصلاحيات أو سلوك الأتمتة.
+
+> تبقى تحذيرات Manifest Merger الخاصة بعناصر `tools:node="remove"` خلال دمج **وحدة الاختبار** سلوكاً تشخيصياً للـ AGP عندما لا يمر تعريف أقل أولوية في ذلك المتغير؛ لا تظهر تلك العناصر في Manifest الإصدار، والتحقق أعلاه يثبت أن قواعد الإزالة تعمل في الحزمة الفعلية. لا ينبغي استبدال قواعد الإزالة أو تقييدها لمجرد إخفاء هذا التشخيص، لأن ذلك أعاد فعلياً مهيئات WorkManager وSentry التلقائية أثناء اختبار المراجعة.
+
 ## 5. عناصر لا تزال غير متحققة
 
 لا يمكن من هذه البيئة وحدها إثبات تنفيذ كل سيناريو على Pixel وSamsung وXiaomi أو Android 13–16، أو سلوك الإقلاع/force-stop/Doze، أو نجاح سياسة Play/Data Safety، أو إتاحة Shizuku/Root على جهاز حقيقي. هذه العناصر ستبقى موسومة **NOT VERIFIED** إلى أن يُوفر جهاز/مختبر فعلي أو دليل اختبار موثق.
