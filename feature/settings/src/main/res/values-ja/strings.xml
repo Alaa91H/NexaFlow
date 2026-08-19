@@ -163,4 +163,10 @@
     <string name="about_telegram_sub">@Alaa91h</string>
     <string name="about_support">開発者をサポート</string>
     <string name="about_support_sub">Ko-fiでコーヒーをごちそうしてください</string>
+
+    <!-- Per-app language picker -->
+    <string name="app_language">アプリの言語</string>
+    <string name="app_language_sub">NexaFlow で使用する言語を選択します</string>
+    <string name="app_language_system_default">システムのデフォルト</string>
+    <string name="app_language_picker_title">アプリの言語を選択</string>
 </resources>

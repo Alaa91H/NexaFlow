@@ -3,7 +3,7 @@
     Per-app language preferences (Android 13+): lets the user pick the app
     language from System Settings > Languages, independent of the system
     language. Kept in sync with the values-* string directories the project
-    ships (ar, de, es, fr, hi, ja, pt, ru, tr, zh-rCN + default en).
+    ships (ar, de, es, fr, hi, ja, pt, ru, tr, zh-CN + default en).
 -->
 <locale-config xmlns:android="http://schemas.android.com/apk/res/android">
     <locale android:name="en" />
@@ -16,5 +16,5 @@
     <locale android:name="pt" />
     <locale android:name="ru" />
     <locale android:name="tr" />
-    <locale android:name="zh-rCN" />
+    <locale android:name="zh-CN" />
 </locale-config>

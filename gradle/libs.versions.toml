@@ -9,6 +9,7 @@ v1_3_0 = "1.3.0"
 v1_4_0 = "1.4.0"
 v1_4_1 = "1.4.1"
 v1_7_0 = "1.7.0"
+v1_8_0 = "1.8.0"
 v1_9_0 = "1.9.0"
 v13_1_5 = "13.1.5"
 v18_1_0 = "18.1.0"
@@ -36,6 +37,7 @@ pv9_3_1 = "9.3.1"
 
 [libraries]
 androidx-activity-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "v1_13_0" }
+androidx-appcompat-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "v1_8_0" }
 androidx-benchmark-benchmark-macro-junit4 = { module = "androidx.benchmark:benchmark-macro-junit4", version.ref = "v1_4_1" }
 androidx-compose-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "v2026_08_00" }
 androidx-compose-material-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }

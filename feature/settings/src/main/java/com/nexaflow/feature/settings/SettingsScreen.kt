@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -38,6 +39,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.SystemUpdate
@@ -88,6 +90,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavController
+import com.nexaflow.core.datastore.AppLanguageManager
 import com.nexaflow.core.datastore.LocationPreferences
 import com.nexaflow.core.compat.ChannelTier
 import com.nexaflow.core.ui.NexaFlowAnimatedVisibility
@@ -108,6 +111,7 @@ fun SettingsScreen(navController: NavController) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var showAbout by remember { mutableStateOf(false) }
+    var showLanguagePicker by rememberSaveable { mutableStateOf(false) }
     val stringBackupImportFailed = stringResource(R.string.backup_import_failed)
     val stringShareBackupTitle = stringResource(R.string.share_backup_title)
     val stringBackupImportedTemplate = stringResource(R.string.backup_imported)
@@ -380,11 +384,33 @@ fun SettingsScreen(navController: NavController) {
                     subtitle = stringResource(R.string.themes_sub),
                     onClick = { navController.navigate("themes") }
                 )
+                val selectedLanguage = AppLanguageManager.selectedLanguageTag(context)
+                SettingRow(
+                    icon = Icons.Filled.Language,
+                    title = stringResource(R.string.app_language),
+                    subtitle = appLanguageDisplayName(
+                        tag = selectedLanguage,
+                        systemDefaultLabel = stringResource(R.string.app_language_system_default)
+                    ),
+                    onClick = { showLanguagePicker = true }
+                )
                 SettingRow(
                     icon = Icons.Filled.Widgets,
                     title = stringResource(R.string.widgets),
                     subtitle = stringResource(R.string.widgets_sub),
                     onClick = { navController.navigate("widgets") }
+                )
+            }
+            if (showLanguagePicker) {
+                AppLanguagePickerDialog(
+                    selectedTag = AppLanguageManager.selectedLanguageTag(context),
+                    onSelect = { tag ->
+                        showLanguagePicker = false
+                        // AndroidX applies the shared per-app locale and
+                        // recreates the host when its configuration changes.
+                        AppLanguageManager.setLanguage(context, tag)
+                    },
+                    onDismiss = { showLanguagePicker = false }
                 )
             }
             settingsGroup(title = sectionAboutTitle) {
@@ -509,7 +535,73 @@ fun SettingsScreen(navController: NavController) {
     }
 }
 
+private data class AppLanguageOption(
+    val tag: String?,
+    val nativeName: String
+)
+
+private val APP_LANGUAGE_OPTIONS = listOf(
+    AppLanguageOption(null, ""),
+    AppLanguageOption("en", "English"),
+    AppLanguageOption("ar", "العربية"),
+    AppLanguageOption("de", "Deutsch"),
+    AppLanguageOption("es", "Español"),
+    AppLanguageOption("fr", "Français"),
+    AppLanguageOption("hi", "हिन्दी"),
+    AppLanguageOption("ja", "日本語"),
+    AppLanguageOption("pt", "Português"),
+    AppLanguageOption("ru", "Русский"),
+    AppLanguageOption("tr", "Türkçe"),
+    AppLanguageOption("zh-CN", "简体中文")
+)
+
+private fun appLanguageDisplayName(tag: String?, systemDefaultLabel: String): String =
+    if (tag == null) systemDefaultLabel
+    else APP_LANGUAGE_OPTIONS.firstOrNull { it.tag == tag }?.nativeName ?: systemDefaultLabel
+
+@Composable
+private fun AppLanguagePickerDialog(
+    selectedTag: String?,
+    onSelect: (String?) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val systemDefaultLabel = stringResource(R.string.app_language_system_default)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.app_language_picker_title)) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 420.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                APP_LANGUAGE_OPTIONS.forEachIndexed { index, option ->
+                    if (index > 0) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    }
+                    val label = if (option.tag == null) systemDefaultLabel else option.nativeName
+                    CheckableRow(
+                        selected = selectedTag == option.tag,
+                        onClick = { onSelect(option.tag) }
+                    ) {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+        },
+        confirmButton = {}
+    )
+}
+
 // ── Developer info (About dialog) ────────────────────────────────
+
 private const val DEVELOPER_HANDLE = "Alaa91H"
 private const val DEV_GITHUB_URL = "https://github.com/Alaa91H"
 private const val DEV_EMAIL = "alahus2591@gmail.com"

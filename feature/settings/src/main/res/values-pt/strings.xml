@@ -163,4 +163,10 @@
     <string name="about_telegram_sub">@Alaa91h</string>
     <string name="about_support">Apoie o desenvolvedor</string>
     <string name="about_support_sub">Pague-me um café no Ko-fi</string>
+
+    <!-- Per-app language picker -->
+    <string name="app_language">Idioma do aplicativo</string>
+    <string name="app_language_sub">Escolha o idioma usado pelo NexaFlow</string>
+    <string name="app_language_system_default">Padrão do sistema</string>
+    <string name="app_language_picker_title">Escolher idioma do aplicativo</string>
 </resources>

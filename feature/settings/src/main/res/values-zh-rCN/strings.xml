@@ -163,4 +163,10 @@
     <string name="about_telegram_sub">@Alaa91h</string>
     <string name="about_support">支持开发者</string>
     <string name="about_support_sub">在 Ko-fi 上请我喝咖啡</string>
+
+    <!-- Per-app language picker -->
+    <string name="app_language">应用语言</string>
+    <string name="app_language_sub">选择 NexaFlow 使用的语言</string>
+    <string name="app_language_system_default">系统默认</string>
+    <string name="app_language_picker_title">选择应用语言</string>
 </resources>

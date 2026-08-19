@@ -93,8 +93,10 @@ fun <T> nexaFlowEffectsSpec(slow: Boolean = false): FiniteAnimationSpec<T> {
 
 /**
  * Google 2026 accordion open/close: content expands/shrinks with the M3
- * expressive spatial spring while fading with the effects spring. With the
- * system reduce-motion setting on, the content simply appears/disappears.
+ * expressive spatial spring while fading with the effects spring. During the
+ * size animation, the content is clipped to the animated layout footprint so
+ * it can never paint over the following section. With the system reduce-motion
+ * setting on, the content simply appears/disappears.
  */
 @Composable
 fun NexaFlowAnimatedVisibility(
@@ -109,13 +111,16 @@ fun NexaFlowAnimatedVisibility(
     AnimatedVisibility(
         visible = visible,
         modifier = modifier,
+        // Rendering must stay inside the current animated height. Allowing a
+        // full child to draw outside its partial footprint makes dense RTL
+        // catalogues look as though one category is painted over another.
         enter = expandVertically(
             animationSpec = nexaFlowSpatialSpec(),
-            clip = false
+            clip = true
         ) + fadeIn(animationSpec = nexaFlowEffectsSpec()),
         exit = shrinkVertically(
             animationSpec = nexaFlowSpatialSpec(),
-            clip = false
+            clip = true
         ) + fadeOut(animationSpec = nexaFlowEffectsSpec())
     ) {
         content()

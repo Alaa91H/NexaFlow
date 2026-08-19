@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
@@ -315,6 +316,11 @@ fun CategoryAccordion(
     onExpandedChange: (Int?) -> Unit,
     content: @Composable (Int) -> Unit
 ) {
+    // Compatibility filtering can change the category list while this screen
+    // remains composed. Ignore a stale saved index instead of indexing a new,
+    // shorter list and destabilising the whole task editor.
+    val selectedIndex = expandedIndex?.takeIf { it in tabs.indices }
+
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         // لا نلف شرائح الفئات إلى صف ثانٍ: على الهاتف الضيق قد يبلغ FlowRow
         // ارتفاعاً غير متوقع بينما تظهر قائمة الخيارات أسفله، فتتراكب العناصر
@@ -325,20 +331,28 @@ fun CategoryAccordion(
                 .testTag("category_tabs"),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            itemsIndexed(tabs) { index, (label, icon) ->
+            itemsIndexed(
+                items = tabs,
+                key = { index, tab -> "$index:${tab.first}" }
+            ) { index, (label, icon) ->
                 SelectChip(
-                    selected = expandedIndex == index,
-                    onClick = { onExpandedChange(if (expandedIndex == index) null else index) },
+                    selected = selectedIndex == index,
+                    onClick = { onExpandedChange(if (selectedIndex == index) null else index) },
                     label = label,
                     leadingIcon = icon,
-                    modifier = Modifier.testTag("category_tab_$index")
+                    // Bound each chip so a long localised label is ellipsized
+                    // inside its own cell and never widens the strip into an
+                    // unstable layout on compact RTL displays.
+                    modifier = Modifier
+                        .widthIn(max = 180.dp)
+                        .testTag("category_tab_$index")
                 )
             }
         }
         // لا نعرض إلا محتوى الفئة المحددة. النقر على الفئة نفسها يطوي
         // الخيارات، وهو مناسب بعد اختيار عنصر أو عندما يريد المستخدم التركيز
         // على الملخصات التي أضافها بالفعل.
-        expandedIndex?.let { index ->
+        selectedIndex?.let { index ->
             val (label, icon) = tabs[index]
             Row(
                 verticalAlignment = Alignment.CenterVertically,

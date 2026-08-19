@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -99,6 +100,60 @@ class CategoryAccordionLayoutTest {
         assertTrue(
             "Catalog content must start below the category tabs: tabs=$tabsBounds, content=$contentBounds",
             contentBounds.top >= tabsBounds.bottom
+        )
+    }
+
+    @Test
+    fun categoryTabs_boundLongArabicLabels_andIgnoreStaleSelection() {
+        composeRule.setContent {
+            CompositionLocalProvider(
+                LocalLayoutDirection provides LayoutDirection.Rtl,
+                LocalDensity provides Density(density = 1f, fontScale = 2f)
+            ) {
+                MaterialTheme {
+                    Box(
+                        modifier = Modifier
+                            .width(160.dp)
+                            .height(260.dp)
+                    ) {
+                        CategoryAccordion(
+                            tabs = listOf(
+                                "الجدولة والتقويم التفصيلية" to Icons.Filled.CalendarMonth,
+                                "إعدادات الجهاز المتقدمة" to Icons.Filled.PhoneAndroid,
+                                "الاتصال والشبكات اللاسلكية" to Icons.Filled.Wifi
+                            ),
+                            // A device capability refresh can remove categories
+                            // while the builder survives configuration changes.
+                            // The picker must ignore this stale saved index.
+                            expandedIndex = 99,
+                            onExpandedChange = {}
+                        ) {
+                            Box(modifier = Modifier.testTag("stale_category_content"))
+                        }
+                    }
+                }
+            }
+        }
+
+        val tabsBounds = composeRule
+            .onNodeWithTag("category_tabs")
+            .assertIsDisplayed()
+            .fetchSemanticsNode()
+            .boundsInRoot
+        val firstTabBounds = composeRule
+            .onNodeWithTag("category_tab_0")
+            .assertIsDisplayed()
+            .fetchSemanticsNode()
+            .boundsInRoot
+
+        composeRule.onNodeWithTag("stale_category_content").assertDoesNotExist()
+        assertTrue(
+            "A long localised category label must remain within the capped chip width: $firstTabBounds",
+            firstTabBounds.width <= 180f
+        )
+        assertTrue(
+            "The tab strip must retain a single-row height under a 2x RTL font scale: $tabsBounds",
+            tabsBounds.height <= 72f
         )
     }
 }

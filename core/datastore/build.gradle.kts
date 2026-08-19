@@ -32,6 +32,7 @@ kotlin {
 
 dependencies {
     implementation(libs.androidx.core.core.ktx)
+    implementation(libs.androidx.appcompat.appcompat)
     implementation(libs.androidx.datastore.datastore.preferences)
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
     testImplementation(libs.junit.junit)
