@@ -166,7 +166,7 @@
 
     <!-- Per-app language picker -->
     <string name="app_language">Uygulama dili</string>
-    <string name="app_language_sub">NexaFlow'un kullanacağı dili seçin</string>
+    <string name="app_language_sub">NexaFlow\'un kullanacağı dili seçin</string>
     <string name="app_language_system_default">Sistem varsayılanı</string>
     <string name="app_language_picker_title">Uygulama dilini seçin</string>
 </resources>
