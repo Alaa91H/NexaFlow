@@ -7,6 +7,7 @@ import android.provider.Settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -18,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DisplaySettings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
@@ -38,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -316,7 +317,7 @@ fun CategoryAccordion(
     tabs: List<Pair<String, ImageVector?>>,
     expandedIndex: Int?,
     onExpandedChange: (Int?) -> Unit,
-    content: @Composable (Int) -> Unit
+    content: @Composable ColumnScope.(Int) -> Unit
 ) {
     // Compatibility filtering can change the category list while this screen
     // remains composed. Ignore a stale saved index instead of indexing a new,
@@ -375,7 +376,17 @@ fun CategoryAccordion(
                     color = MaterialTheme.colorScheme.primary
                 )
             }
-            content(index)
+            // Keep the option catalogue in a dedicated layout boundary. This
+            // prevents future callers from layering sibling options at the same
+            // origin and isolates option drawing from the tab strip above.
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clipToBounds(),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                content(index)
+            }
         }
     }
 }

@@ -9,6 +9,10 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.runtime.Composable
@@ -19,8 +23,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
 /**
@@ -92,28 +98,42 @@ fun <T> nexaFlowEffectsSpec(slow: Boolean = false): FiniteAnimationSpec<T> {
 }
 
 /**
- * Google 2026 accordion open/close: content expands/shrinks with the M3
- * expressive spatial spring while fading with the effects spring. During the
- * size animation, the content is clipped to the animated layout footprint so
- * it can never paint over the following section. With the system reduce-motion
- * setting on, the content simply appears/disappears.
+ * Animated expandable content with a structural layout guarantee.
+ *
+ * [AnimatedVisibility] is an animation container, not a vertical layout. When
+ * callers add several direct children to its content lambda, Compose measures
+ * them at the same origin and they paint over one another. The condition
+ * catalogue used to hit exactly that failure mode, independently of text
+ * direction. This wrapper owns a full-width [Column], so every direct child is
+ * always measured below the previous one; callers cannot accidentally create a
+ * layered catalogue. The column is clipped while its animated footprint grows
+ * or shrinks, preserving the same guarantee during motion as well.
  */
 @Composable
 fun NexaFlowAnimatedVisibility(
     visible: Boolean,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
+    content: @Composable ColumnScope.() -> Unit
 ) {
+    val contentLayout: @Composable () -> Unit = {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clipToBounds(),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            content = content
+        )
+    }
+
     if (isSystemReduceMotionEnabled()) {
-        if (visible) content()
+        if (visible) contentLayout()
         return
     }
     AnimatedVisibility(
         visible = visible,
-        modifier = modifier,
-        // Rendering must stay inside the current animated height. Allowing a
-        // full child to draw outside its partial footprint makes dense RTL
-        // catalogues look as though one category is painted over another.
+        modifier = modifier.fillMaxWidth(),
+        // Rendering must stay inside the current animated height. The explicit
+        // Column above ensures the child layout itself is non-overlapping.
         enter = expandVertically(
             animationSpec = nexaFlowSpatialSpec(),
             clip = true
@@ -123,7 +143,7 @@ fun NexaFlowAnimatedVisibility(
             clip = true
         ) + fadeOut(animationSpec = nexaFlowEffectsSpec())
     ) {
-        content()
+        contentLayout()
     }
 }
 

@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
@@ -41,21 +40,13 @@ import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.Web
-import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.BrightnessHigh
 import androidx.compose.material.icons.filled.DataUsage
-import androidx.compose.material.icons.filled.FastForward
-import androidx.compose.material.icons.filled.FastRewind
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Nfc
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.ScreenRotation
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material.icons.filled.TextFields
-import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Alarm
@@ -75,7 +66,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.OutlinedButton
@@ -110,7 +100,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import com.nexaflow.core.engine.currentCellularGeneration
 import com.nexaflow.core.rom.EvolutionXSettingsBridge
 import com.nexaflow.core.ui.NexaFlowCard
-import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.Dispatchers
@@ -1176,71 +1165,20 @@ fun TriggerEditorCard(
                     triggerTypeOptions
                         .filter { triggerCategoryOf[it] == category }
                         .forEach { option ->
-                            Surface(
-                                shape = MaterialTheme.shapes.small,
-                                color = if (draft.type == option) {
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                                } else {
-                                    androidx.compose.ui.graphics.Color.Transparent
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        val defaults = defaultTriggerConfig(option)
-                                        onConfigChange(
-                                            TriggerDraft(
-                                                type = option,
-                                                config = defaults + draft.config.filterKeys { it in defaults.keys }
-                                            )
+                            TriggerOptionRow(
+                                type = option,
+                                checked = draft.type == option,
+                                onSelect = {
+                                    val defaults = defaultTriggerConfig(option)
+                                    onConfigChange(
+                                        TriggerDraft(
+                                            type = option,
+                                            config = defaults + draft.config.filterKeys { it in defaults.keys }
                                         )
-                                        expandedTriggerCategory = null
-                                    }
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    IconBadge(
-                                        icon = option.icon(),
-                                        containerColor = if (draft.type == option) {
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
-                                        } else {
-                                            MaterialTheme.colorScheme.surfaceContainerHighest
-                                        },
-                                        contentColor = if (draft.type == option) {
-                                            MaterialTheme.colorScheme.primary
-                                        } else {
-                                            MaterialTheme.colorScheme.onSurfaceVariant
-                                        }
                                     )
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = stringResource(option.labelRes()),
-                                            style = MaterialTheme.typography.titleSmall,
-                                            fontWeight = if (draft.type == option) FontWeight.SemiBold else FontWeight.Normal,
-                                            color = if (draft.type == option) {
-                                                MaterialTheme.colorScheme.primary
-                                            } else {
-                                                MaterialTheme.colorScheme.onSurface
-                                            }
-                                        )
-                                        Text(
-                                            text = stringResource(option.descRes()),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.secondary
-                                        )
-                                    }
-                                    if (draft.type == option) {
-                                        Icon(
-                                            imageVector = Icons.Filled.Check,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                    }
+                                    expandedTriggerCategory = null
                                 }
-                            }
+                            )
                         }
                 }
             }

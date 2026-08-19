@@ -25,6 +25,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import com.nexaflow.core.ui.NexaFlowAnimatedVisibility
 import com.nexaflow.domain.models.TriggerType
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -156,6 +157,22 @@ class CategoryAccordionLayoutTest {
     }
 
     @Test
+    fun animatedConditionCatalog_stacksDirectChildren_inNarrowLtrLargeFontLayout() {
+        assertDirectConditionCatalogIsOrdered(
+            direction = LayoutDirection.Ltr,
+            fontScale = 1.8f
+        )
+    }
+
+    @Test
+    fun animatedConditionCatalog_stacksDirectChildren_inNarrowRtlLargeFontLayout() {
+        assertDirectConditionCatalogIsOrdered(
+            direction = LayoutDirection.Rtl,
+            fontScale = 1.8f
+        )
+    }
+
+    @Test
     fun categoryTabs_boundLongArabicLabels_andIgnoreStaleSelection() {
         composeRule.setContent {
             CompositionLocalProvider(
@@ -206,6 +223,110 @@ class CategoryAccordionLayoutTest {
         assertTrue(
             "The tab strip must retain a single-row height under a 2x RTL font scale: $tabsBounds",
             tabsBounds.height <= 72f
+        )
+    }
+
+    /**
+     * Mirrors the production condition-picker structure: common options,
+     * search, and the category catalogue are siblings inside the animated
+     * container. Their bounds must remain strictly ordered in every direction.
+     */
+    private fun assertDirectConditionCatalogIsOrdered(
+        direction: LayoutDirection,
+        fontScale: Float
+    ) {
+        composeRule.setContent {
+            CompositionLocalProvider(
+                LocalLayoutDirection provides direction,
+                LocalDensity provides Density(density = 1f, fontScale = fontScale)
+            ) {
+                MaterialTheme {
+                    Box(
+                        modifier = Modifier
+                            .width(220.dp)
+                            .height(440.dp)
+                    ) {
+                        NexaFlowAnimatedVisibility(visible = true) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp)
+                                    .testTag("condition_common_options")
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp)
+                                    .testTag("condition_search")
+                            )
+                            CategoryAccordion(
+                                tabs = listOf(
+                                    "Schedule" to Icons.Filled.CalendarMonth,
+                                    "Device" to Icons.Filled.PhoneAndroid
+                                ),
+                                expandedIndex = 0,
+                                onExpandedChange = {}
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(72.dp)
+                                        .testTag("condition_category_content")
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(72.dp)
+                                        .testTag("condition_category_second_content")
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        val common = composeRule
+            .onNodeWithTag("condition_common_options")
+            .assertIsDisplayed()
+            .fetchSemanticsNode()
+            .boundsInRoot
+        val search = composeRule
+            .onNodeWithTag("condition_search")
+            .assertIsDisplayed()
+            .fetchSemanticsNode()
+            .boundsInRoot
+        val tabs = composeRule
+            .onNodeWithTag("category_tabs")
+            .assertIsDisplayed()
+            .fetchSemanticsNode()
+            .boundsInRoot
+        val categoryContent = composeRule
+            .onNodeWithTag("condition_category_content")
+            .assertIsDisplayed()
+            .fetchSemanticsNode()
+            .boundsInRoot
+        val secondCategoryContent = composeRule
+            .onNodeWithTag("condition_category_second_content")
+            .assertIsDisplayed()
+            .fetchSemanticsNode()
+            .boundsInRoot
+
+        assertTrue(
+            "Direct animated children must not overlap: common=$common, search=$search",
+            common.bottom <= search.top
+        )
+        assertTrue(
+            "The category strip must begin after the search row: search=$search, tabs=$tabs",
+            search.bottom <= tabs.top
+        )
+        assertTrue(
+            "Category options must begin below the strip: tabs=$tabs, content=$categoryContent",
+            tabs.bottom <= categoryContent.top
+        )
+        assertTrue(
+            "Direct category options must not overlap: first=$categoryContent, second=$secondCategoryContent",
+            categoryContent.bottom <= secondCategoryContent.top
         )
     }
 }
