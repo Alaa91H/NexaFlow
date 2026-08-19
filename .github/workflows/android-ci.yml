@@ -79,11 +79,27 @@ jobs:
     - name: Restore release signing keystore (when configured)
       env:
         KEYSTORE_B64: ${{ secrets.NEXAFLOW_KEYSTORE_BASE64 }}
+        KEYSTORE_PASSWORD: ${{ secrets.NEXAFLOW_KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.NEXAFLOW_KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.NEXAFLOW_KEY_PASSWORD }}
       run: |
         if [ -n "$KEYSTORE_B64" ]; then
           mkdir -p keystore
           echo "$KEYSTORE_B64" | base64 -d > keystore/nexaflow-release.jks
           echo "Release keystore restored."
+          # Export an all-or-nothing signing configuration for later steps. A
+          # partial configuration must never turn an ordinary main build into
+          # an invalid release build; tags are rejected explicitly below.
+          if [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
+            {
+              echo "NEXAFLOW_KEYSTORE_FILE=keystore/nexaflow-release.jks"
+              echo "NEXAFLOW_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD"
+              echo "NEXAFLOW_KEY_ALIAS=$KEY_ALIAS"
+              echo "NEXAFLOW_KEY_PASSWORD=$KEY_PASSWORD"
+            } >> "$GITHUB_ENV"
+          else
+            echo "Release keystore credentials are incomplete; signing variables were not exported."
+          fi
         else
           echo "No keystore secret configured - local/ad-hoc release builds use debug signing only."
         fi
@@ -102,10 +118,6 @@ jobs:
         test -n "$NEXAFLOW_KEY_PASSWORD" || { echo "Version tags require NEXAFLOW_KEY_PASSWORD." >&2; exit 1; }
     - name: Build with Gradle
       env:
-        NEXAFLOW_KEYSTORE_FILE: keystore/nexaflow-release.jks
-        NEXAFLOW_KEYSTORE_PASSWORD: ${{ secrets.NEXAFLOW_KEYSTORE_PASSWORD }}
-        NEXAFLOW_KEY_ALIAS: ${{ secrets.NEXAFLOW_KEY_ALIAS }}
-        NEXAFLOW_KEY_PASSWORD: ${{ secrets.NEXAFLOW_KEY_PASSWORD }}
         # Google Maps API key for the embedded map picker; baked into every
         # distributed APK so the map works for all users, not just local builds.
         NEXAFLOW_MAPS_API_KEY: ${{ secrets.NEXAFLOW_MAPS_API_KEY }}
