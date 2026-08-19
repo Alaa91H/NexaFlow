@@ -1,5 +1,6 @@
 import com.nexaflow.build.gitVersion
 import java.util.Properties
+import org.gradle.api.GradleException
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 
 plugins {
@@ -19,9 +20,13 @@ val keystoreProps = Properties().apply {
     val f = rootProject.file("keystore/keystore.properties")
     if (f.exists()) f.inputStream().use { load(it) }
 }
-val releaseStoreFile = providers.environmentVariable("NEXAFLOW_KEYSTORE_FILE")
+val releaseStorePath = providers.environmentVariable("NEXAFLOW_KEYSTORE_FILE")
     .orNull?.takeIf { it.isNotBlank() }
     ?: keystoreProps.getProperty("storeFile")?.takeIf { it.isNotBlank() }
+// The signing file belongs to the repository-level keystore directory, not
+// the :app module. Project.file(...) would resolve a relative path against
+// :app and silently select debug signing when the file is not found.
+val releaseStoreFile = releaseStorePath?.let { rootProject.file(it) }
 val releaseStorePassword = providers.environmentVariable("NEXAFLOW_KEYSTORE_PASSWORD")
     .orNull?.takeIf { it.isNotBlank() }
     ?: keystoreProps.getProperty("storePassword")
@@ -31,6 +36,23 @@ val releaseKeyAlias = providers.environmentVariable("NEXAFLOW_KEY_ALIAS")
 val releaseKeyPassword = providers.environmentVariable("NEXAFLOW_KEY_PASSWORD")
     .orNull?.takeIf { it.isNotBlank() }
     ?: keystoreProps.getProperty("keyPassword")
+val hasAnyReleaseSigningInput = listOf(
+    releaseStorePath,
+    releaseStorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword
+).any { !it.isNullOrBlank() }
+val releaseSigningConfigured = releaseStoreFile?.isFile == true &&
+    !releaseStorePassword.isNullOrBlank() &&
+    !releaseKeyAlias.isNullOrBlank() &&
+    !releaseKeyPassword.isNullOrBlank()
+
+if (hasAnyReleaseSigningInput && !releaseSigningConfigured) {
+    throw GradleException(
+        "Incomplete NexaFlow release signing configuration. Verify the root-relative " +
+            "keystore path and all NEXAFLOW_KEYSTORE_*/NEXAFLOW_KEY_* values."
+    )
+}
 
 android {
     namespace = "com.nexaflow.app"
@@ -120,11 +142,8 @@ android {
         create("release") {
             // Only configure when a real keystore is available; the release
             // build type falls back to the debug config otherwise.
-            val storeFileValue = releaseStoreFile?.let { file(it) }
-            if (storeFileValue?.exists() == true && !releaseStorePassword.isNullOrBlank()
-                && !releaseKeyAlias.isNullOrBlank() && !releaseKeyPassword.isNullOrBlank()
-            ) {
-                storeFile = storeFileValue
+            if (releaseSigningConfigured) {
+                storeFile = releaseStoreFile
                 storePassword = releaseStorePassword
                 keyAlias = releaseKeyAlias
                 keyPassword = releaseKeyPassword
