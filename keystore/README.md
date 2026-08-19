@@ -1,50 +1,67 @@
-# Release signing
+# توقيع إصدار NexaFlow
 
-`app/build.gradle.kts` signs release builds with the **project keystore**
-(`keystore/nexaflow-release.jks`) whenever it is configured, and falls back to
-the debug keystore otherwise (CI / ad-hoc builds stay installable).
+يعتمد Android في تحديث تطبيق مثبت على تطابق **شهادة التوقيع** بين الحزمة الحالية والحزمة الجديدة. لذلك، فإن إصدار NexaFlow الذي يراد تثبيته فوق نسخة موجودة يجب أن يوقّع بالمفتاح نفسه الذي وقّع النسخة المثبتة. لا تضع المفتاح أو كلمات المرور في Git؛ كلاهما مستثنى صراحةً من المستودع.
 
-## Why the key is what it is
+> إنشاء مفتاح جديد لا يصلح فشل التحديث فوق نسخة قديمة. هوية جديدة تصلح فقط للإصدارات المقبلة، وستستلزم حذف التثبيتات الموقّعة بالمفتاح السابق ما لم تكن عملية النشر تستخدم Google Play App Signing ومسار تبديل مفتاح الرفع المناسب.
 
-The keystore carries the **same key** that signed the app already installed on
-the developer's device. Android only lets a new APK update an existing install
-when both share the same signing certificate — so keeping the key means future
-releases install **over** the current version without uninstalling or losing
-data. Do **not** regenerate a fresh key just to "make it proper": that would
-force every existing install to be wiped.
+## المواد المحلية المطلوبة
 
-## Files (both gitignored — never commit them)
+| المسار | الغرض | الحالة في Git |
+|---|---|---|
+| `keystore/nexaflow-release.jks` | المفتاح الذي وقّع النسخة المنشورة أو المثبتة | مستثنى؛ احتفظ بنسخة احتياطية آمنة |
+| `keystore/keystore.properties` | مسار المفتاح واسم المفتاح وكلمات المرور المحلية | مستثنى؛ صلاحيات الملف `600` |
 
-- `keystore/nexaflow-release.jks` — the keystore itself.
-- `keystore/keystore.properties` — local credentials, read by the Gradle build:
-  `storeFile`, `storePassword`, `keyAlias`, `keyPassword`.
+يقرأ `app/build.gradle.kts` هذه القيم محلياً، بينما يفضّل في CI متغيرات البيئة ذات البادئة `NEXAFLOW_`.
 
-Generate the key and credentials automatically (recommended — idempotent,
-never regenerates an existing key):
+## المسار الآمن للنسخ الحالية
+
+ضع **المفتاح الأصلي** الذي وقّع NexaFlow سابقاً في المسار `keystore/nexaflow-release.jks`، ثم شغّل:
 
 ```bash
-./scripts/setup-signing.sh             # create the keystore + keystore.properties
-./scripts/setup-signing.sh --upload    # also push the 4 secrets to GitHub Actions
+./scripts/setup-signing.sh --configure-existing
+./scripts/setup-signing.sh --verify
 ```
 
-To (re)create the properties file manually from a fresh checkout, copy the example:
+سيقرأ أمر `--configure-existing` كلمات المرور من الطرفية من دون إظهارها، ثم ينشئ ملف الإعداد المحلي. يعرض `--verify` بصمة شهادة SHA-256. قارنها مع بصمة الـ APK المثبت أو شهادة توقيع التطبيق في Play Console قبل النشر.
+
+للمقارنة مع APK معروف من دون استخراج أسراره، استخدم `apksigner` من Android SDK:
 
 ```bash
-cp keystore/keystore.properties.example keystore/keystore.properties
-# then fill in the real values
+apksigner verify --print-certs path/to/installed-or-published.apk
 ```
 
-## CI (GitHub Actions)
+يجب أن تتطابق قيمة `Signer #1 certificate SHA-256 digest` مع البصمة التي يطبعها `--verify`.
 
-The workflow signs with the debug fallback unless the repository has these
-secrets configured:
+## إعداد توقيع CI
 
-| Secret                     | Value                                                        |
-| -------------------------- | ------------------------------------------------------------ |
-| `NEXAFLOW_KEYSTORE_BASE64` | `base64 -w0 keystore/nexaflow-release.jks`                  |
-| `NEXAFLOW_KEYSTORE_PASSWORD` | store password                                              |
-| `NEXAFLOW_KEY_ALIAS`       | `nexaflow`                                                   |
-| `NEXAFLOW_KEY_PASSWORD`    | key password                                                 |
+بعد اجتياز `--verify` للمفتاح **الأصلي**، ارفع المواد إلى أسرار GitHub Actions:
 
-The CI step decodes `NEXAFLOW_KEYSTORE_BASE64` into the workspace and the build
-reads the `NEXAFLOW_*` env vars (which take precedence over the local file).
+```bash
+./scripts/setup-signing.sh --upload --repo Alaa91H/NexaFlow
+```
+
+ينشئ ذلك أو يحدّث الأسرار الآتية؛ لا تظهر قيمها في سجل البناء.
+
+| السر | القيمة |
+|---|---|
+| `NEXAFLOW_KEYSTORE_BASE64` | Base64 لمحتوى `keystore/nexaflow-release.jks` |
+| `NEXAFLOW_KEYSTORE_PASSWORD` | كلمة مرور مخزن المفتاح |
+| `NEXAFLOW_KEY_ALIAS` | اسم المفتاح داخل المخزن |
+| `NEXAFLOW_KEY_PASSWORD` | كلمة مرور المفتاح |
+
+يتطلب حساب GitHub المستخدَم صلاحية إدارة Actions secrets. إذا لم تكن متاحة، اضبط الأسماء والقيم نفسها يدوياً من **Settings → Secrets and variables → Actions** في المستودع، ثم أعد تشغيل الإصدار الموسوم.
+
+## عند فقدان المفتاح الأصلي
+
+إذا لم يكن NexaFlow منشوراً عبر Play App Signing ولا يمكن استعادة مفتاح التوقيع الأصلي، فلا توجد طريقة تقنية لتحديث النسخ المثبتة فوقه. بعد تأكيد ذلك، أنشئ هوية مستقبلية مرة واحدة فقط عبر:
+
+```bash
+./scripts/setup-signing.sh --create-new-key --acknowledge-no-old-updates
+./scripts/setup-signing.sh --upload --repo Alaa91H/NexaFlow
+```
+
+يتطلب الأمر إقراراً صريحاً عمداً، ولا يستبدل مفتاحاً موجوداً أبداً. احتفظ بنسخة احتياطية مشفرة من ملف `.jks` وملف الخصائص في مدير أسرار موثوق؛ فقدانهما لاحقاً سيعيد المشكلة نفسها.
+
+## ما الذي يمنعه البرنامج؟
+
+لا ينشئ التشغيل العادي `./scripts/setup-signing.sh` مفتاحاً جديداً. بدلاً من ذلك يفشل برسالة استعادة واضحة عند غياب المفتاح، ويتحقق من اسم المفتاح وكلمات المرور قبل رفع أي سر إلى CI. هذه الحواجز تمنع إصدار حزمة تحمل شهادة مختلفة عن شهادة NexaFlow القائمة بالخطأ.
