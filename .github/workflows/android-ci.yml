@@ -145,13 +145,8 @@ jobs:
         NEXAFLOW_KEY_ALIAS: ${{ secrets.NEXAFLOW_KEY_ALIAS }}
       run: |
         APKSIGNER="$(ls "$ANDROID_SDK_ROOT"/build-tools/*/apksigner | sort -V | tail -1)"
-        EXPECTED="$(keytool -list -v \\
-          -keystore keystore/nexaflow-release.jks \\
-          -storepass "$NEXAFLOW_KEYSTORE_PASSWORD" \\
-          -alias "$NEXAFLOW_KEY_ALIAS" 2>/dev/null \\
-          | awk -F': ' '/SHA256:/{print $2; exit}' | tr -d ':' | tr '[:upper:]' '[:lower:]')"
-        ACTUAL="$("$APKSIGNER" verify --print-certs app/build/outputs/apk/release/app-release.apk \\
-          | awk -F'digest: ' '/certificate SHA-256 digest:/{print $2; exit}' | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+        EXPECTED="$(keytool -list -v -keystore keystore/nexaflow-release.jks -storepass "$NEXAFLOW_KEYSTORE_PASSWORD" -alias "$NEXAFLOW_KEY_ALIAS" 2>/dev/null | awk -F': ' '/SHA256:/{print $2; exit}' | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+        ACTUAL="$("$APKSIGNER" verify --print-certs app/build/outputs/apk/release/app-release.apk | awk -F'digest: ' '/certificate SHA-256 digest:/{print $2; exit}' | tr -d ':' | tr '[:upper:]' '[:lower:]')"
         test -n "$EXPECTED" || { echo "Could not read the release-keystore certificate fingerprint." >&2; exit 1; }
         test -n "$ACTUAL" || { echo "Could not read the APK certificate fingerprint." >&2; exit 1; }
         test "$EXPECTED" = "$ACTUAL" || { echo "APK certificate does not match the production keystore." >&2; exit 1; }
