@@ -114,8 +114,6 @@
     <string name="category_battery">Battery</string>
 
     
-    <string name="step_triggers">Conditions</string>
-    <string name="step_actions">Execution</string>
     <string name="create_task">Create Task</string>
 
     <string name="ok">OK</string>

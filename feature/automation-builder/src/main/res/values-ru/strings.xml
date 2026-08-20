@@ -76,8 +76,6 @@
 
     <string name="section_actions">Выполнение</string>
 
-    <string name="step_triggers">Условия</string>
-    <string name="step_actions">Выполнение</string>
     <string name="create_task">Создать задачу</string>
 
     <string name="ok">ОК</string>

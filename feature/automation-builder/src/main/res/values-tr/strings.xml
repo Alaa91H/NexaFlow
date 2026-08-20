@@ -76,8 +76,6 @@
 
     <string name="section_actions">Yürütme</string>
 
-    <string name="step_triggers">Koşullar</string>
-    <string name="step_actions">Yürütme</string>
     <string name="create_task">Görev oluştur</string>
 
     <string name="ok">Tamam</string>

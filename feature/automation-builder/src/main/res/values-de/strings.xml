@@ -76,8 +76,6 @@
 
     <string name="section_actions">Ausführung</string>
 
-    <string name="step_triggers">Bedingungen</string>
-    <string name="step_actions">Ausführung</string>
     <string name="create_task">Aufgabe erstellen</string>
 
     <string name="ok">OK</string>

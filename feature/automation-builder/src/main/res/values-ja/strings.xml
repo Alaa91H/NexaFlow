@@ -76,8 +76,6 @@
 
     <string name="section_actions">実行</string>
 
-    <string name="step_triggers">条件</string>
-    <string name="step_actions">実行</string>
     <string name="create_task">タスクを作成</string>
 
     <string name="ok">OK</string>

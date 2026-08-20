@@ -11,7 +11,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
@@ -185,7 +184,6 @@ import com.nexaflow.core.ui.NexaFlowAnimatedVisibility
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowFloatingActionButton
 import com.nexaflow.core.ui.NexaFlowIcons
-import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.core.ui.nexaFlowEffectsSpec
 import com.nexaflow.core.ui.nexaFlowSpatialSpec
 import com.nexaflow.core.ui.NexaFlowTopBar
@@ -698,7 +696,35 @@ private fun actionSummaryDetail(option: ActionOption, config: Map<String, String
         else -> null
     }
 
-/** One selected action, in order, with reorder buttons, config editor and permission hint. */
+/** The sole lower navigation action for the current builder station. */
+@Composable
+internal fun BuilderBottomPrimaryAction(
+    step: Int,
+    triggerCount: Int,
+    actionCount: Int,
+    onAdvance: (Int) -> Unit,
+    onSave: () -> Unit
+) {
+    // One clear lower action per station: When → Do → Review → Save.
+    when {
+        step == 0 && triggerCount > 0 -> NexaFlowFloatingActionButton(
+            onClick = { onAdvance(1) },
+            icon = Icons.AutoMirrored.Filled.ArrowForward,
+            label = stringResource(R.string.permission_continue)
+        )
+        step == 1 && actionCount > 0 -> NexaFlowFloatingActionButton(
+            onClick = { onAdvance(2) },
+            icon = Icons.AutoMirrored.Filled.ArrowForward,
+            label = stringResource(R.string.quick_save)
+        )
+        step == 2 && triggerCount > 0 && actionCount > 0 -> NexaFlowFloatingActionButton(
+            onClick = onSave,
+            icon = Icons.Filled.Check,
+            label = stringResource(R.string.create_task)
+        )
+    }
+}
+
 @Composable
 private fun SelectedActionCard(
     option: ActionOption,
@@ -1426,24 +1452,13 @@ fun AutomationBuilderScreen(
             )
         },
         floatingActionButton = {
-            // One clear continuation action per station: When → Do → Review → Save.
-            when {
-                step == 0 && triggers.isNotEmpty() -> NexaFlowFloatingActionButton(
-                    onClick = { step = 1 },
-                    icon = Icons.AutoMirrored.Filled.ArrowForward,
-                    label = stringResource(R.string.permission_continue)
-                )
-                step == 1 && actionDrafts.isNotEmpty() -> NexaFlowFloatingActionButton(
-                    onClick = { step = 2 },
-                    icon = Icons.AutoMirrored.Filled.ArrowForward,
-                    label = stringResource(R.string.quick_save)
-                )
-                step == 2 && triggers.isNotEmpty() && actionDrafts.isNotEmpty() -> NexaFlowFloatingActionButton(
-                    onClick = { save() },
-                    icon = Icons.Filled.Check,
-                    label = stringResource(R.string.create_task)
-                )
-            }
+            BuilderBottomPrimaryAction(
+                step = step,
+                triggerCount = triggers.size,
+                actionCount = actionDrafts.size,
+                onAdvance = { nextStep -> step = nextStep },
+                onSave = { save() }
+            )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
@@ -1512,28 +1527,6 @@ fun AutomationBuilderScreen(
                 }
             }
 
-            // ── Sequential wizard: step indicator ───────────────────
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                SelectChip(
-                    selected = step == 0,
-                    onClick = { step = 0 },
-                    label = stringResource(R.string.step_triggers)
-                )
-                SelectChip(
-                    selected = step == 1,
-                    onClick = { step = 1 },
-                    label = stringResource(R.string.step_actions)
-                )
-                SelectChip(
-                    selected = step == 2,
-                    onClick = { if (triggers.isNotEmpty() && actionDrafts.isNotEmpty()) step = 2 },
-                    label = stringResource(R.string.save)
-                )
-            }
 
             // The transitionSpec lambda is not composable, so the specs are
             // read here in the composable body (transitionSpec captures them).

@@ -76,8 +76,6 @@
 
     <string name="section_actions">Exécution</string>
 
-    <string name="step_triggers">Conditions</string>
-    <string name="step_actions">Exécution</string>
     <string name="create_task">Créer la tâche</string>
 
     <string name="ok">OK</string>

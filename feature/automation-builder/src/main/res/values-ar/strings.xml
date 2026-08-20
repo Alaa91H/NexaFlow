@@ -75,8 +75,6 @@
     <string name="minimum_battery">الحد الأدنى للبطارية: %1$d%%</string>
     <string name="section_actions">التنفيذ</string>
 
-    <string name="step_triggers">الشروط</string>
-    <string name="step_actions">التنفيذ</string>
     <string name="create_task">إنشاء المهمة</string>
 
     <string name="ok">حسناً</string>

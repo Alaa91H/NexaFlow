@@ -76,8 +76,6 @@
 
     <string name="section_actions">निष्पादन</string>
 
-    <string name="step_triggers">शर्तें</string>
-    <string name="step_actions">निष्पादन</string>
     <string name="create_task">कार्य बनाएँ</string>
 
     <string name="ok">ठीक है</string>
