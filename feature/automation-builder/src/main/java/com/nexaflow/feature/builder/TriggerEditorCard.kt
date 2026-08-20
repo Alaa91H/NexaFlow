@@ -1111,7 +1111,8 @@ fun TriggerEditorCard(
     val accent = builderCardAccent(index)
     NexaFlowCard(
         modifier = modifier,
-        containerColor = builderCardContainerColor(index)
+        containerColor = builderCardContainerColor(index),
+        contentColor = builderCardContentColor
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {

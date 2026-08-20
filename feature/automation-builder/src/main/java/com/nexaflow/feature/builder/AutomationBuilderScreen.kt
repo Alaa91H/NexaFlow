@@ -735,7 +735,8 @@ private fun SelectedActionCard(
     val accent = builderCardAccent(index)
     NexaFlowCard(
         modifier = modifier,
-        containerColor = builderCardContainerColor(index)
+        containerColor = builderCardContainerColor(index),
+        contentColor = builderCardContentColor
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {

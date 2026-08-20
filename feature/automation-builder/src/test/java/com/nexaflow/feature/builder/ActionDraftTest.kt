@@ -1,5 +1,6 @@
 package com.nexaflow.feature.builder
 
+import androidx.compose.ui.graphics.Color
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.EndBehavior
 import com.nexaflow.domain.models.EndMode
@@ -43,5 +44,14 @@ class ActionDraftTest {
             builderCardAccent(0),
             builderCardAccent(builderCardAccentPalette.size)
         )
+    }
+
+    @Test
+    fun cardContainer_cycleUsesGreyAndDarkGrey_withLightReadableContent() {
+        assertEquals(Color(0xFF2F3336), builderCardContainerColor(0))
+        assertEquals(Color(0xFF1E2022), builderCardContainerColor(1))
+        assertNotEquals(builderCardContainerColor(0), builderCardContainerColor(1))
+        assertEquals(builderCardContainerColor(0), builderCardContainerColor(2))
+        assertEquals(Color(0xFFF5F7F8), builderCardContentColor)
     }
 }

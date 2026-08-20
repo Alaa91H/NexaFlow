@@ -16,9 +16,12 @@ internal val builderCardAccentPalette: List<Color> = listOf(
 )
 
 private val builderCardContainerPalette: List<Color> = listOf(
-    Color(0xFFF1F3F4),
-    Color(0xFFD7DADF)
+    Color(0xFF2F3336), // Grey.
+    Color(0xFF1E2022)  // Dark grey.
 )
+
+/** Light content remains legible on both ordered neutral container shades. */
+internal val builderCardContentColor: Color = Color(0xFFF5F7F8)
 
 internal fun builderCardAccent(index: Int): Color =
     builderCardAccentPalette[index % builderCardAccentPalette.size]
