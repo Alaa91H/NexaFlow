@@ -61,6 +61,20 @@ class ActiveExecutionStoreCheckpointTest {
     }
 
     @Test
+    fun completedMaintenanceOccurrenceIsDurableAndDoesNotDuplicate() = runBlocking {
+        val key = "maintenance:receipt-contract-${System.nanoTime()}"
+
+        assertFalse(store.hasCompletedMaintenanceOccurrence(key))
+        store.recordCompletedMaintenanceOccurrence(key, "automation-a", 1_000L)
+        assertTrue(store.hasCompletedMaintenanceOccurrence(key))
+
+        store.recordCompletedMaintenanceOccurrence(key, "automation-a", 2_000L)
+        val receipts = store.maintenanceReceiptsForTest().filter { it.occurrenceKey == key }
+        assertEquals(1, receipts.size)
+        assertEquals(2_000L, receipts.single().completedAt)
+    }
+
+    @Test
     fun interruptedActionIsExplicitlyUnknownRatherThanReplayable() = runBlocking {
         assertTrue(store.beginCheckpoint(checkpoint("run-unknown")))
         store.markActionStarted("run-unknown", 0, "run-unknown:0:ACTION", 110L)

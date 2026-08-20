@@ -429,6 +429,28 @@ class MigrationTest {
     }
 
     @Test
+    fun migrate15To16_addsNullableMaintenanceProfileWithoutChangingAutomation() {
+        helper.createDatabase(15).apply {
+            execSQL(
+                "INSERT INTO `automations` " +
+                    "(`id`, `name`, `description`, `icon`, `iconColor`, `backgroundColor`, `category`, " +
+                    "`priority`, `enabled`, `triggersJson`, `actionsJson`, `constraintsJson`, `exitActionsJson`, " +
+                    "`revertOnExit`, `cooldownSeconds`, `workflowVersion`, `createdAt`, `updatedAt`) " +
+                    "VALUES ('a1', 'Legacy', '', 'bolt', 1, 2, 'general', 1, 1, '[]', '[]', '[]', '[]', 0, 10, 1, 1, 2)"
+            )
+            close()
+        }
+
+        val migrated = helper.runMigrationsAndValidate(16, listOf(Migrations.MIGRATION_15_16))
+        migrated.prepare("SELECT name, maintenanceJson FROM `automations` WHERE id = 'a1'").use { stmt ->
+            assertTrue(stmt.step())
+            assertEquals("Legacy", stmt.getText(0))
+            assertTrue(stmt.isNull(1))
+        }
+        migrated.close()
+    }
+
+    @Test
     fun migrate1To8_keepsExecutionHistoryEmptyButValid() {
         // A v1 database has no execution_history; after the full chain the
         // table must exist and accept rows (schema validated by Room).

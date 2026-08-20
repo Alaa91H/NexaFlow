@@ -9,6 +9,10 @@ import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.BatteryManager
+import android.os.Build
+import android.os.Environment
+import android.os.PowerManager
+import android.os.StatFs
 import com.nexaflow.domain.models.ConstraintSnapshot
 
 /**
@@ -30,7 +34,12 @@ object ConstraintStateReader {
             dndActive = isDndActive(app),
             airplaneModeOn = isAirplaneModeOn(app),
             isCharging = isCharging(app),
-            locationEnabled = isLocationEnabled(app)
+            locationEnabled = isLocationEnabled(app),
+            unmeteredNetwork = isUnmeteredNetwork(app),
+            screenOff = isScreenOff(app),
+            deviceIdle = isDeviceIdle(app),
+            thermalStatus = thermalStatus(app),
+            availableStorageBytes = availableStorageBytes()
         )
     }
 
@@ -46,6 +55,18 @@ object ConstraintStateReader {
         val capabilities = cm.getNetworkCapabilities(cm.activeNetwork) ?: return false
         capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) &&
             capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+    }.getOrDefault(false)
+
+    /** True when the active validated network has no metered-cost restriction. */
+    @SuppressLint("MissingPermission") // guarded by the same normal permission as Wi-Fi capture
+    private fun isUnmeteredNetwork(context: Context): Boolean = runCatching {
+        if (context.checkSelfPermission(android.Manifest.permission.ACCESS_NETWORK_STATE) !=
+            PackageManager.PERMISSION_GRANTED
+        ) return false
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
+        val capabilities = cm.getNetworkCapabilities(cm.activeNetwork) ?: return false
+        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) &&
+            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
     }.getOrDefault(false)
 
     /** Battery percentage 0..100, or -1 when unreadable. */
@@ -102,6 +123,30 @@ object ConstraintStateReader {
         val status = sticky?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
         status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL
     }.getOrDefault(false)
+
+    /** False only when the device is reported non-interactive. */
+    private fun isScreenOff(context: Context): Boolean = runCatching {
+        val power = context.getSystemService(Context.POWER_SERVICE) as? PowerManager ?: return false
+        !power.isInteractive
+    }.getOrDefault(false)
+
+    /** True when Android reports device idle/Doze state. */
+    private fun isDeviceIdle(context: Context): Boolean = runCatching {
+        val power = context.getSystemService(Context.POWER_SERVICE) as? PowerManager ?: return false
+        power.isDeviceIdleMode
+    }.getOrDefault(false)
+
+    /** Android 10+ thermal status, null where the platform cannot expose it. */
+    private fun thermalStatus(context: Context): Int? = runCatching {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
+        val power = context.getSystemService(Context.POWER_SERVICE) as? PowerManager ?: return null
+        power.currentThermalStatus
+    }.getOrNull()
+
+    /** Available bytes on the primary data volume without broad storage access. */
+    private fun availableStorageBytes(): Long? = runCatching {
+        StatFs(Environment.getDataDirectory().absolutePath).availableBytes
+    }.getOrNull()
 
     /** True when location services are enabled. */
     private fun isLocationEnabled(context: Context): Boolean = runCatching {

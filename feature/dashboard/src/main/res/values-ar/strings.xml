@@ -74,4 +74,9 @@
     <string name="trigger_boot_completed">إقلاع الجهاز</string>
     <string name="trigger_nfc_tag_scanned">مسح بطاقة NFC</string>
     <string name="trigger_alarm_set_changed">ضبط منبّه</string>
+    <string name="execution_google_play_updates_unavailable">لم يتم تحديث التطبيقات: لا يتيح Google Play لـNexaFlow التحقق من تحديثات التطبيقات أو تنزيلها على هذا الجهاز.</string>
+    <string name="execution_google_play_managed_policy_required">لم يتم تحديث التطبيقات: يلزم إعداد سياسة Google Play مُدارة على جهاز مؤسسي مُدار.</string>
+    <string name="execution_skipped">تم التجاوز: %1$s</string>
+    <string name="execution_ran">اكتمل: %1$s</string>
+    <string name="execution_failed">فشل: %1$s</string>
 </resources>

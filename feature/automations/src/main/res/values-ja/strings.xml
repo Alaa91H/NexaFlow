@@ -429,4 +429,9 @@
     <string name="action_system_update_sub">システムアップデートの設定画面を開きます</string>
     <string name="action_media_search">音楽検索を再生</string>
     <string name="action_media_search_sub">対応するメディアアプリに検索と再生を依頼します</string>
+    <string name="execution_google_play_updates_unavailable">アプリは更新されませんでした。この端末では、Google Play は NexaFlow に更新の検索やダウンロードを提供していません。</string>
+    <string name="execution_google_play_managed_policy_required">アプリは更新されませんでした。企業管理端末では Managed Google Play ポリシーが必要です。</string>
+    <string name="execution_skipped">スキップ: %1$s</string>
+    <string name="execution_ran">完了: %1$s</string>
+    <string name="execution_failed">失敗: %1$s</string>
 </resources>

@@ -74,4 +74,9 @@
     <string name="trigger_boot_completed">Device booted</string>
     <string name="trigger_nfc_tag_scanned">NFC tag scanned</string>
     <string name="trigger_alarm_set_changed">Alarm set</string>
+    <string name="execution_google_play_updates_unavailable">Apps were not updated: Google Play does not expose app-update discovery or downloads to NexaFlow on this device.</string>
+    <string name="execution_google_play_managed_policy_required">Apps were not updated: a managed Google Play policy is required on an enterprise-managed device.</string>
+    <string name="execution_skipped">Skipped: %1$s</string>
+    <string name="execution_ran">Completed: %1$s</string>
+    <string name="execution_failed">Failed: %1$s</string>
 </resources>

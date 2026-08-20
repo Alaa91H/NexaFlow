@@ -74,4 +74,9 @@
     <string name="trigger_boot_completed">端末起動</string>
     <string name="trigger_nfc_tag_scanned">NFCタグ検出</string>
     <string name="trigger_alarm_set_changed">アラーム設定</string>
+    <string name="execution_google_play_updates_unavailable">アプリは更新されませんでした。この端末では、Google Play は NexaFlow に更新の検索やダウンロードを提供していません。</string>
+    <string name="execution_google_play_managed_policy_required">アプリは更新されませんでした。企業管理端末では Managed Google Play ポリシーが必要です。</string>
+    <string name="execution_skipped">スキップ: %1$s</string>
+    <string name="execution_ran">完了: %1$s</string>
+    <string name="execution_failed">失敗: %1$s</string>
 </resources>

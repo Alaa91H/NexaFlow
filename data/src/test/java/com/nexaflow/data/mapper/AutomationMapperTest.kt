@@ -5,6 +5,9 @@ import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Constraint
 import com.nexaflow.domain.models.ConstraintType
+import com.nexaflow.domain.models.MaintenanceKind
+import com.nexaflow.domain.models.MaintenanceProfile
+import com.nexaflow.domain.models.MaintenanceWindow
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import org.junit.Assert.assertEquals
@@ -71,6 +74,27 @@ class AutomationMapperTest {
             "constraintsJson must be persisted",
             entity.constraintsJson.contains("WIFI") && entity.constraintsJson.contains("BATTERY")
         )
+    }
+
+    @Test
+    fun maintenanceProfileRoundTripsWithAutomation() {
+        val maintenance = automation.copy(
+            maintenanceProfile = MaintenanceProfile(
+                kind = MaintenanceKind.NIGHT,
+                window = MaintenanceWindow(
+                    startTime = "02:00",
+                    endTime = "05:00",
+                    allowedDays = setOf(1, 2, 3, 4, 5),
+                    minimumBatteryPercent = 50,
+                    chargingRequired = true,
+                    unmeteredWifiRequired = true
+                )
+            )
+        )
+
+        val entity = maintenance.toEntity()
+        assertTrue(entity.maintenanceJson.orEmpty().contains("NIGHT"))
+        assertEquals(maintenance, entity.toDomain())
     }
 
     @Test

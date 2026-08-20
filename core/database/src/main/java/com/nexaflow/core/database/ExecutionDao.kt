@@ -34,9 +34,13 @@ interface ExecutionDao {
      * history table never grows without bound. Runs atomically with the insert.
      */
     @Transaction
-    suspend fun insertWithRetention(record: ExecutionRecordEntity) {
+    suspend fun insertWithRetention(
+        record: ExecutionRecordEntity,
+        retentionDays: Int = DEFAULT_RETENTION_DAYS
+    ) {
+        require(retentionDays > 0) { "retentionDays must be greater than zero" }
         insertExecution(record)
-        pruneOlderThan(System.currentTimeMillis() - RETENTION_MS)
+        pruneOlderThan(System.currentTimeMillis() - retentionDays.toLong() * MILLIS_PER_DAY)
         pruneExcess(RETAIN_LIMIT)
     }
 
@@ -55,8 +59,11 @@ interface ExecutionDao {
     suspend fun clearHistory()
 
     companion object {
-        /** Execution history older than this is pruned (60 days). */
-        const val RETENTION_MS = 60L * 24 * 60 * 60 * 1000
+        /** Default retention period; callers may explicitly select another positive value. */
+        const val DEFAULT_RETENTION_DAYS = 90
+        private const val MILLIS_PER_DAY = 24L * 60 * 60 * 1000
+        /** Backwards-compatible default cutoff used by periodic pruning. */
+        const val RETENTION_MS = DEFAULT_RETENTION_DAYS * MILLIS_PER_DAY
         /** Hard ceiling on stored execution records. */
         const val RETAIN_LIMIT = 1_000
         /** Rows fetched per page by the history pager. */

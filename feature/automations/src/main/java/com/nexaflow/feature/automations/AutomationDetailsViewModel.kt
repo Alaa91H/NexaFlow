@@ -1,12 +1,17 @@
 package com.nexaflow.feature.automations
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.ExecutionRecord
+import com.nexaflow.domain.models.ExecutionResultClassification
+import com.nexaflow.domain.models.ExecutionResultClassifier
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +24,8 @@ import javax.inject.Inject
 class AutomationDetailsViewModel @Inject constructor(
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
     private val automationId: String = savedStateHandle["automationId"] ?: ""
@@ -55,12 +61,24 @@ class AutomationDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             _running.value = true
             val record = executionEngine.runWithConditionGate(current)
-            _executionMessage.value = when {
-                record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX) -> record.message
-                record.success -> "Ran: ${record.message}"
-                else -> "Failed: ${record.message}"
-            }
+            _executionMessage.value = formatExecutionMessage(record)
             _running.value = false
+        }
+    }
+
+    private fun formatExecutionMessage(record: ExecutionRecord): String = when (
+        ExecutionResultClassifier.classify(record)
+    ) {
+        ExecutionResultClassification.GOOGLE_PLAY_UPDATES_NOT_EXPOSED ->
+            appContext.getString(R.string.execution_google_play_updates_unavailable)
+        ExecutionResultClassification.MANAGED_GOOGLE_PLAY_POLICY_REQUIRED ->
+            appContext.getString(R.string.execution_google_play_managed_policy_required)
+        null -> when {
+            record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX) -> record.message
+            record.success && record.message.startsWith("Skipped:") ->
+                appContext.getString(R.string.execution_skipped, record.message.removePrefix("Skipped: "))
+            record.success -> appContext.getString(R.string.execution_ran, record.message)
+            else -> appContext.getString(R.string.execution_failed, record.message)
         }
     }
 

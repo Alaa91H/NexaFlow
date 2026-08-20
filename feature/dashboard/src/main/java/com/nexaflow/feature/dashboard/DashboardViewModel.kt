@@ -1,12 +1,17 @@
 package com.nexaflow.feature.dashboard
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.ExecutionRecord
+import com.nexaflow.domain.models.ExecutionResultClassification
+import com.nexaflow.domain.models.ExecutionResultClassifier
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.repositories.HistoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +25,8 @@ import javax.inject.Inject
 class DashboardViewModel @Inject constructor(
     private val automationRepository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
-    historyRepository: HistoryRepository
+    historyRepository: HistoryRepository,
+    @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
     /** automationId -> timestamp of the most recent execution, if any. */
@@ -60,12 +66,24 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch {
             _runningIds.value = _runningIds.value + automation.id
             val record = executionEngine.runWithConditionGate(automation)
-            _executionMessage.value = when {
-                record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX) -> record.message
-                record.success -> "Ran: ${record.message}"
-                else -> "Failed: ${record.message}"
-            }
+            _executionMessage.value = formatExecutionMessage(record)
             _runningIds.value = _runningIds.value - automation.id
+        }
+    }
+
+    private fun formatExecutionMessage(record: ExecutionRecord): String = when (
+        ExecutionResultClassifier.classify(record)
+    ) {
+        ExecutionResultClassification.GOOGLE_PLAY_UPDATES_NOT_EXPOSED ->
+            appContext.getString(R.string.execution_google_play_updates_unavailable)
+        ExecutionResultClassification.MANAGED_GOOGLE_PLAY_POLICY_REQUIRED ->
+            appContext.getString(R.string.execution_google_play_managed_policy_required)
+        null -> when {
+            record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX) -> record.message
+            record.success && record.message.startsWith("Skipped:") ->
+                appContext.getString(R.string.execution_skipped, record.message.removePrefix("Skipped: "))
+            record.success -> appContext.getString(R.string.execution_ran, record.message)
+            else -> appContext.getString(R.string.execution_failed, record.message)
         }
     }
 

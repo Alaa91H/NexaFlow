@@ -32,6 +32,9 @@ import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.ConstraintSnapshot
 import com.nexaflow.domain.models.EndMode
 import com.nexaflow.domain.models.ExecutionRecord
+import com.nexaflow.domain.models.MaintenanceReadiness
+import com.nexaflow.domain.models.MaintenanceReadinessEvaluator
+import com.nexaflow.domain.models.MaintenanceExecutionIdentity
 import com.nexaflow.domain.repositories.HistoryRepository
 import com.nexaflow.domain.repositories.VariableRepository
 import com.nexaflow.domain.variables.RuntimeValueCodec
@@ -40,6 +43,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.time.ZonedDateTime
 import java.util.UUID
 
 /**
@@ -100,6 +104,8 @@ class ExecutionEngine(
         runContext: WorkflowRunContext? = null,
     ): ExecutionRecord {
         val startedAt = epochMillis.now()
+        val maintenanceNow = ZonedDateTime.now()
+        val maintenanceOccurrenceKey = MaintenanceExecutionIdentity.occurrenceKey(automation, maintenanceNow)
         // Local name avoids shadowing the [Context] property used below.
         val payloadContext = runContext ?: WorkflowRunContext.create(automation.id, startedAt)
         // One typed, scoped facade per run. It layers over the existing payload
@@ -108,13 +114,34 @@ class ExecutionEngine(
         val controller = RomIntegrationManager.controller(context)
         val notif = notificationPreferences.settings.first()
         val channel = channelSelector.select(context)
-        // Constraint gate: every configured constraint must pass before the
-        // task runs. A blocked run is recorded (not silently dropped) so the
-        // user can see why nothing happened. Captured before any state snapshot
-        // so a blocked run never leaks a snapshot that would never be restored.
-        if (automation.constraints.isNotEmpty()) {
-            val state = constraintStateProvider?.invoke()
+        if (maintenanceOccurrenceKey != null &&
+            activeExecutionStore.hasCompletedMaintenanceOccurrence(maintenanceOccurrenceKey)
+        ) {
+            val record = ExecutionRecord(
+                id = UUID.randomUUID().toString(),
+                automationId = automation.id,
+                automationName = automation.name,
+                success = true,
+                message = "Skipped: maintenance occurrence already completed",
+                executedAt = startedAt,
+                channel = channel?.type?.name
+            )
+            historyRepository.recordExecution(record)
+            recordTimeline(automation, "MAINTENANCE_DUPLICATE_SKIPPED", record, startedAt)
+            return record
+        }
+        // Constraint and maintenance-window gates run before any snapshot,
+        // checkpoint or side effect. One capture is reused by both paths so a
+        // maintenance run cannot observe inconsistent resource values.
+        val requiresDeviceState = automation.constraints.isNotEmpty() ||
+            automation.maintenanceProfile?.window != null
+        val state = if (requiresDeviceState) {
+            constraintStateProvider?.invoke()
                 ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
+        } else {
+            null
+        }
+        if (automation.constraints.isNotEmpty()) {
             val constraintResult = AutomationConstraintGate(capabilityExecutionService).evaluate(automation, state)
             if (constraintResult != ConditionResult.Satisfied) {
                 // A deliberately-blocked run is not a failure: success=true keeps
@@ -133,6 +160,25 @@ class ExecutionEngine(
                 recordTimeline(automation, "BLOCKED", record, startedAt)
                 return record
             }
+        }
+        val maintenanceReadiness = MaintenanceReadinessEvaluator.evaluate(
+            profile = automation.maintenanceProfile,
+            snapshot = state ?: ConstraintSnapshot(),
+            now = maintenanceNow
+        )
+        if (maintenanceReadiness is MaintenanceReadiness.WaitingForWindow) {
+            val record = ExecutionRecord(
+                id = UUID.randomUUID().toString(),
+                automationId = automation.id,
+                automationName = automation.name,
+                success = true,
+                message = "Skipped: maintenance waiting for ${maintenanceReadiness.reason.name}",
+                executedAt = startedAt,
+                channel = channel?.type?.name
+            )
+            historyRepository.recordExecution(record)
+            recordTimeline(automation, "MAINTENANCE_WAITING", record, startedAt)
+            return record
         }
         // Checkpoint must exist before any side effect. A rejected durable
         // admission is recorded as a failed run instead of pretending actions
@@ -248,6 +294,13 @@ class ExecutionEngine(
         // History is now durable; the active checkpoint may be removed. Exit
         // lifecycle remains separately armed in ActiveExecutionStore.
         activeExecutionStore.completeCheckpoint(payloadContext.runId)
+        if (record.success && maintenanceOccurrenceKey != null) {
+            activeExecutionStore.recordCompletedMaintenanceOccurrence(
+                occurrenceKey = maintenanceOccurrenceKey,
+                automationId = automation.id,
+                completedAt = epochMillis.now()
+            )
+        }
         recordTimeline(automation, "RUN", record, startedAt)
         context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
         return record

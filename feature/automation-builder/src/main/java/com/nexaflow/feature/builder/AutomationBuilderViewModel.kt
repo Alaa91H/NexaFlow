@@ -6,6 +6,7 @@ import com.nexaflow.core.engine.BatteryMonitor
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Constraint
+import com.nexaflow.domain.models.MaintenanceProfile
 import com.nexaflow.domain.models.GlobalVariable
 import com.nexaflow.domain.models.PluginInfo
 import com.nexaflow.domain.models.Trigger
@@ -83,7 +84,8 @@ class AutomationBuilderViewModel @Inject constructor(
         revertOnExit: Boolean = false,
         // Always immediate: the cooldown UI was removed and every trigger now
         // fires at once; the engine gate stays pinned to zero.
-        cooldownSeconds: Int = 0
+        cooldownSeconds: Int = 0,
+        maintenanceProfile: MaintenanceProfile? = null
     ) {
         viewModelScope.launch {
             val now = System.currentTimeMillis()
@@ -105,6 +107,7 @@ class AutomationBuilderViewModel @Inject constructor(
                 exitActions = exitActions,
                 revertOnExit = revertOnExit,
                 cooldownSeconds = cooldownSeconds,
+                maintenanceProfile = maintenanceProfile ?: prev?.maintenanceProfile,
                 createdAt = prev?.createdAt ?: now,
                 updatedAt = now
             )

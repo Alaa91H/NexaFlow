@@ -74,4 +74,9 @@
     <string name="trigger_boot_completed">Dispositivo iniciado</string>
     <string name="trigger_nfc_tag_scanned">Etiqueta NFC escaneada</string>
     <string name="trigger_alarm_set_changed">Alarma configurada</string>
+    <string name="execution_google_play_updates_unavailable">Las aplicaciones no se actualizaron: Google Play no permite a NexaFlow consultar ni descargar actualizaciones en este dispositivo.</string>
+    <string name="execution_google_play_managed_policy_required">Las aplicaciones no se actualizaron: se requiere una política de Google Play administrado en un dispositivo empresarial gestionado.</string>
+    <string name="execution_skipped">Omitido: %1$s</string>
+    <string name="execution_ran">Completado: %1$s</string>
+    <string name="execution_failed">Error: %1$s</string>
 </resources>

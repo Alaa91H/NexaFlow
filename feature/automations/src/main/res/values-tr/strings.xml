@@ -429,4 +429,9 @@
     <string name="action_system_update_sub">Sistem güncelleme ayarları sayfasını açar</string>
     <string name="action_media_search">Müzik aramasını oynat</string>
     <string name="action_media_search_sub">Uyumlu bir medya uygulamasından arayıp oynatmasını ister</string>
+    <string name="execution_google_play_updates_unavailable">Uygulamalar güncellenmedi: Google Play, bu cihazda NexaFlow’un güncellemeleri bulmasına veya indirmesine izin vermiyor.</string>
+    <string name="execution_google_play_managed_policy_required">Uygulamalar güncellenmedi: yönetilen kurumsal cihazda Managed Google Play politikası gerekir.</string>
+    <string name="execution_skipped">Atlandı: %1$s</string>
+    <string name="execution_ran">Tamamlandı: %1$s</string>
+    <string name="execution_failed">Başarısız: %1$s</string>
 </resources>

@@ -44,10 +44,12 @@ import com.nexaflow.core.security.KeystoreSecureStorage
 import com.nexaflow.core.security.SecureStorage
 import com.nexaflow.data.backup.BackupManager
 import com.nexaflow.data.repository.AutomationRepositoryImpl
+import com.nexaflow.data.repository.HealthRepositoryImpl
 import com.nexaflow.data.repository.HistoryRepositoryImpl
 import com.nexaflow.data.repository.PluginRepositoryImpl
 import com.nexaflow.data.repository.VariableRepositoryImpl
 import com.nexaflow.domain.repositories.AutomationRepository
+import com.nexaflow.domain.repositories.HealthRepository
 import com.nexaflow.domain.repositories.HistoryRepository
 import com.nexaflow.domain.repositories.PluginRepository
 import com.nexaflow.domain.repositories.VariableRepository
@@ -187,6 +189,15 @@ object AppModule {
     @Singleton
     fun provideHistoryRepository(executionDao: ExecutionDao): HistoryRepository {
         return HistoryRepositoryImpl(executionDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideHealthRepository(
+        automationRepository: AutomationRepository,
+        historyRepository: HistoryRepository
+    ): HealthRepository {
+        return HealthRepositoryImpl(automationRepository, historyRepository)
     }
 
     @Provides

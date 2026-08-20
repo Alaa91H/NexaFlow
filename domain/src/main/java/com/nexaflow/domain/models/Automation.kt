@@ -36,7 +36,9 @@ data class Automation(
     val createdAt: Long,
     val updatedAt: Long,
     /** Persisted workflow schema version; older definitions are migrated at the boundary. */
-    val workflowVersion: Int = CURRENT_WORKFLOW_VERSION
+    val workflowVersion: Int = CURRENT_WORKFLOW_VERSION,
+    /** Optional recurring-maintenance metadata; null preserves ordinary automations unchanged. */
+    val maintenanceProfile: MaintenanceProfile? = null
 ) {
     init {
         require(workflowVersion in 1..CURRENT_WORKFLOW_VERSION) { "Unsupported workflow version" }

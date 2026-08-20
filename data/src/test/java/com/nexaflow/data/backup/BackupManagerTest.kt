@@ -5,6 +5,9 @@ import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Constraint
 import com.nexaflow.domain.models.ConstraintType
+import com.nexaflow.domain.models.MaintenanceKind
+import com.nexaflow.domain.models.MaintenanceProfile
+import com.nexaflow.domain.models.MaintenanceWindow
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
@@ -260,6 +263,29 @@ class BackupManagerTest {
         assertEquals(1, exported.automations.size)
         val result = manager.import(manager.toJson(exported))
         assertEquals(ImportResult.Success(1, 1), result)
+        assertEquals(original.copy(enabled = false), repository.saved.single())
+    }
+
+    @Test
+    fun `maintenance profile round-trips in version one backup`() = runBlocking {
+        val original = validAutomation().copy(
+            maintenanceProfile = MaintenanceProfile(
+                kind = MaintenanceKind.APP,
+                window = MaintenanceWindow(
+                    startTime = "02:00",
+                    endTime = "05:00",
+                    chargingRequired = true,
+                    unmeteredWifiRequired = true
+                )
+            )
+        )
+        repository.saveAutomation(original)
+
+        val exported = manager.export()
+
+        assertEquals(BackupManager.BACKUP_VERSION, exported.version)
+        assertEquals(original.maintenanceProfile, exported.automations.single().maintenanceProfile)
+        assertEquals(ImportResult.Success(1, 1), manager.import(manager.toJson(exported)))
         assertEquals(original.copy(enabled = false), repository.saved.single())
     }
 

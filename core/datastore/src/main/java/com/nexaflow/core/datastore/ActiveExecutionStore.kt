@@ -146,6 +146,32 @@ class ActiveExecutionStore(private val context: Context) {
     /** Removes an unrecoverable checkpoint after an explicit user/system reset. */
     suspend fun clearCheckpoint(runId: String): Boolean = completeCheckpoint(runId)
 
+    /** True when a recurring-maintenance occurrence already completed successfully. */
+    suspend fun hasCompletedMaintenanceOccurrence(occurrenceKey: String): Boolean =
+        maintenanceReceipts(dataStore.data.first()).any { it.occurrenceKey == occurrenceKey }
+
+    /**
+     * Persists a bounded completion receipt only after history and action
+     * checkpoints are committed. The same key replaces itself atomically;
+     * stale receipts are pruned on write rather than by a background service.
+     */
+    suspend fun recordCompletedMaintenanceOccurrence(
+        occurrenceKey: String,
+        automationId: String,
+        completedAt: Long
+    ) {
+        val receipt = MaintenanceOccurrenceReceipt(occurrenceKey, automationId, completedAt)
+        dataStore.edit { preferences ->
+            val retainedAfter = completedAt - MAINTENANCE_RECEIPT_RETENTION_MS
+            val receipts = maintenanceReceipts(preferences)
+                .filter { it.completedAt >= retainedAfter && it.occurrenceKey != occurrenceKey }
+                .plus(receipt)
+                .sortedByDescending { it.completedAt }
+                .take(MAX_MAINTENANCE_RECEIPTS)
+            writeMaintenanceReceipts(preferences, receipts)
+        }
+    }
+
     /**
      * Atomically claims every non-terminal checkpoint after a process restart.
      * A second recovery worker sees no claimable record, preventing duplicate
@@ -191,6 +217,9 @@ class ActiveExecutionStore(private val context: Context) {
     internal suspend fun checkpointsForTest(): List<DurableExecutionCheckpoint> =
         checkpoints(dataStore.data.first()).values.sortedBy { it.startedAt }
 
+    internal suspend fun maintenanceReceiptsForTest(): List<MaintenanceOccurrenceReceipt> =
+        maintenanceReceipts(dataStore.data.first())
+
     private suspend fun updateCheckpoint(
         runId: String,
         transform: (DurableExecutionCheckpoint) -> DurableExecutionCheckpoint
@@ -216,6 +245,21 @@ class ActiveExecutionStore(private val context: Context) {
         return decoded
     }
 
+    private fun maintenanceReceipts(preferences: Preferences): List<MaintenanceOccurrenceReceipt> =
+        preferences[KEY_MAINTENANCE_RECEIPTS].orEmpty().mapNotNull { serialized ->
+            runCatching { json.decodeFromString(MaintenanceOccurrenceReceipt.serializer(), serialized) }
+                .getOrNull()
+        }
+
+    private fun writeMaintenanceReceipts(
+        preferences: androidx.datastore.preferences.core.MutablePreferences,
+        receipts: List<MaintenanceOccurrenceReceipt>
+    ) {
+        preferences[KEY_MAINTENANCE_RECEIPTS] = receipts.mapTo(LinkedHashSet()) { receipt ->
+            json.encodeToString(MaintenanceOccurrenceReceipt.serializer(), receipt)
+        }
+    }
+
     private fun writeCheckpoints(
         preferences: androidx.datastore.preferences.core.MutablePreferences,
         checkpoints: Map<String, DurableExecutionCheckpoint>
@@ -228,7 +272,10 @@ class ActiveExecutionStore(private val context: Context) {
     private companion object {
         val KEY_ACTIVE_EXECUTIONS = stringSetPreferencesKey("active_executions")
         val KEY_CHECKPOINTS = stringSetPreferencesKey("execution_checkpoints")
+        val KEY_MAINTENANCE_RECEIPTS = stringSetPreferencesKey("maintenance_occurrence_receipts")
         const val MAX_CHECKPOINTS = 128
+        const val MAX_MAINTENANCE_RECEIPTS = 256
+        const val MAINTENANCE_RECEIPT_RETENTION_MS = 45L * 24 * 60 * 60 * 1000
         const val MAX_MESSAGE_LENGTH = 512
     }
 }

@@ -10,7 +10,7 @@ import androidx.room.TypeConverters
         ExecutionRecordEntity::class,
         GlobalVariableEntity::class
     ],
-    version = 15,
+    version = 16,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

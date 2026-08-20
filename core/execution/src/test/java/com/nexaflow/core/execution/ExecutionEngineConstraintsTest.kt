@@ -17,6 +17,8 @@ import com.nexaflow.domain.models.Constraint
 import com.nexaflow.domain.models.ConstraintSnapshot
 import com.nexaflow.domain.models.ConstraintType
 import com.nexaflow.domain.models.ExecutionRecord
+import com.nexaflow.domain.models.MaintenanceKind
+import com.nexaflow.domain.models.MaintenanceProfile
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.HistoryRepository
@@ -190,6 +192,22 @@ class ExecutionEngineConstraintsTest {
 
         assertEquals(1, handler.calls)
         assertTrue(record.message.contains("ok"))
+    }
+
+    @Test
+    fun `completed maintenance occurrence executes side effect only once per day`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(handler, history, ConstraintSnapshot())
+        val maintenance = automation(emptyList()).copy(
+            maintenanceProfile = MaintenanceProfile(kind = MaintenanceKind.DAILY)
+        )
+
+        engine.runAutomation(maintenance)
+        val duplicate = engine.runAutomation(maintenance)
+
+        assertEquals(1, handler.calls)
+        assertTrue(duplicate.message.startsWith("Skipped"))
     }
 
     @Test

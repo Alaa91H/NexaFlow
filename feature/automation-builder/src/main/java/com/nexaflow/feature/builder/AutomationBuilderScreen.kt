@@ -1409,7 +1409,9 @@ fun AutomationBuilderScreen(
             // and the engine gate is pinned to zero so every trigger fires at
             // once, no matter how often the event repeats.
             revertOnExit = false,
-            cooldownSeconds = 0
+            cooldownSeconds = 0,
+            maintenanceProfile = RoutineTemplateCatalog.find(appliedTemplateId)?.maintenanceProfile
+                ?: loadedAutomation?.maintenanceProfile
         )
         // Aggressive permission flow: right after saving, request any missing
         // runtime permission through the system dialog immediately, and explain

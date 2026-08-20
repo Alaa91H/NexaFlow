@@ -212,6 +212,16 @@ object Migrations {
         }
     }
 
+    /**
+     * v15 -> v16: stores optional maintenance-profile metadata beside the
+     * existing automation definition. Null means an ordinary legacy automation.
+     */
+    val MIGRATION_15_16 = object : Migration(15, 16) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `automations` ADD COLUMN `maintenanceJson` TEXT")
+        }
+    }
+
     val ALL = listOf(
         MIGRATION_1_2,
         MIGRATION_2_3,
@@ -226,6 +236,7 @@ object Migrations {
         MIGRATION_11_12,
         MIGRATION_12_13,
         MIGRATION_13_14,
-        MIGRATION_14_15
+        MIGRATION_14_15,
+        MIGRATION_15_16
     )
 }

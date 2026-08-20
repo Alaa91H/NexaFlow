@@ -56,3 +56,21 @@ data class DurableExecutionCheckpoint(
         const val MAX_IDEMPOTENCY_KEY_LENGTH = 256
     }
 }
+
+/**
+ * Bounded proof that one recurring-maintenance occurrence completed. It stores
+ * no task payload or action output and is retained only to suppress duplicate
+ * delivery of the same local maintenance window.
+ */
+@Serializable
+data class MaintenanceOccurrenceReceipt(
+    val occurrenceKey: String,
+    val automationId: String,
+    val completedAt: Long
+) {
+    init {
+        require(occurrenceKey.startsWith("maintenance:")) { "Invalid maintenance occurrence key" }
+        require(automationId.isNotBlank()) { "automationId must not be blank" }
+        require(completedAt >= 0L) { "completedAt must not be negative" }
+    }
+}

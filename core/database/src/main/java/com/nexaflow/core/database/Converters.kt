@@ -3,6 +3,7 @@ package com.nexaflow.core.database
 import androidx.room.TypeConverter
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Constraint
+import com.nexaflow.domain.models.MaintenanceProfile
 import com.nexaflow.domain.models.Trigger
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
@@ -32,6 +33,14 @@ class Converters {
     @TypeConverter
     fun toTriggerList(value: String): List<Trigger> =
         json.decodeFromString(ListSerializer(Trigger.serializer()), value)
+
+    @TypeConverter
+    fun fromMaintenanceProfile(value: MaintenanceProfile?): String? =
+        value?.let { json.encodeToString(MaintenanceProfile.serializer(), it) }
+
+    @TypeConverter
+    fun toMaintenanceProfile(value: String?): MaintenanceProfile? =
+        value?.let { json.decodeFromString(MaintenanceProfile.serializer(), it) }
 
     @TypeConverter
     fun fromActionList(value: List<Action>): String =

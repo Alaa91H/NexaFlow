@@ -21,5 +21,15 @@ data class ConstraintSnapshot(
     val dndActive: Boolean = false,
     val airplaneModeOn: Boolean = false,
     val isCharging: Boolean = false,
-    val locationEnabled: Boolean = false
+    val locationEnabled: Boolean = false,
+    /** True only when the active validated network is explicitly unmetered. */
+    val unmeteredNetwork: Boolean = false,
+    /** False when the screen is interactive; unknown callers must fail closed. */
+    val screenOff: Boolean = false,
+    /** PowerManager idle state; false when unavailable. */
+    val deviceIdle: Boolean = false,
+    /** PowerManager thermal status, or null when unsupported/unavailable. */
+    val thermalStatus: Int? = null,
+    /** Allocatable bytes in the app-visible storage volume, or null when unreadable. */
+    val availableStorageBytes: Long? = null
 )

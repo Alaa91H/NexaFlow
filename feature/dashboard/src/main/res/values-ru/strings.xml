@@ -74,4 +74,9 @@
     <string name="trigger_boot_completed">Устройство загружено</string>
     <string name="trigger_nfc_tag_scanned">NFC-метка считана</string>
     <string name="trigger_alarm_set_changed">Будильник установлен</string>
+    <string name="execution_google_play_updates_unavailable">Приложения не обновлены: Google Play не предоставляет NexaFlow поиск или загрузку обновлений на этом устройстве.</string>
+    <string name="execution_google_play_managed_policy_required">Приложения не обновлены: на корпоративном управляемом устройстве нужна политика Managed Google Play.</string>
+    <string name="execution_skipped">Пропущено: %1$s</string>
+    <string name="execution_ran">Завершено: %1$s</string>
+    <string name="execution_failed">Ошибка: %1$s</string>
 </resources>

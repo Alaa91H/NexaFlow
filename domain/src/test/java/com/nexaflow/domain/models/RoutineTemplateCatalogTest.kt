@@ -34,6 +34,25 @@ class RoutineTemplateCatalogTest {
     }
 
     @Test
+    fun maintenanceTemplates_haveTypedProfilesAndSupportedActions() {
+        val app = RoutineTemplateCatalog.find(RoutineTemplateCatalog.DAILY_APP_MAINTENANCE)
+        assertEquals(MaintenanceKind.APP, app?.maintenanceProfile?.kind)
+        assertEquals("02:00", app?.maintenanceProfile?.window?.startTime)
+        assertEquals(ActionType.SYSTEM_UPDATE_GOOGLE_PLAY_APPS, app?.actions?.single()?.type)
+
+        val storage = RoutineTemplateCatalog.find(RoutineTemplateCatalog.WEEKLY_STORAGE_CLEANUP)
+        assertEquals(MaintenanceKind.STORAGE, storage?.maintenanceProfile?.kind)
+        assertEquals(setOf(6, 7), storage?.maintenanceProfile?.window?.allowedDays)
+        assertEquals(ActionType.SYSTEM_OPEN_SETTINGS, storage?.actions?.single()?.type)
+        assertEquals("STORAGE", storage?.actions?.single()?.config?.get("page"))
+
+        val automation = RoutineTemplateCatalog.find(RoutineTemplateCatalog.NIGHTLY_AUTOMATION_SYNC)
+        assertEquals(MaintenanceKind.AUTOMATION, automation?.maintenanceProfile?.kind)
+        assertEquals("05:00", automation?.maintenanceProfile?.window?.endTime)
+        assertEquals(ActionType.SYSTEM_SEND_NOTIFICATION, automation?.actions?.single()?.type)
+    }
+
+    @Test
     fun unknownOrMissingTemplateIds_doNotCreateAPresetDraft() {
         assertNull(RoutineTemplateCatalog.find(null))
         assertNull(RoutineTemplateCatalog.find("not-a-template"))

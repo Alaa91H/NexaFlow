@@ -32,10 +32,10 @@ import androidx.core.net.toUri
 import com.nexaflow.core.security.SafeCommandBuilder
 import com.nexaflow.core.rom.model.RomCapability
 import com.nexaflow.core.rom.model.SystemControlResult
+import com.nexaflow.domain.models.ExecutionResultClassifier
 import com.nexaflow.domain.updates.GooglePlayUpdateDecision
 import com.nexaflow.domain.updates.GooglePlayUpdateEnvironment
 import com.nexaflow.domain.updates.GooglePlayUpdatePlanner
-import com.nexaflow.domain.updates.GooglePlayUpdateRequest
 
 @Suppress("TooManyFunctions", "LargeClass") // System-ops façade: many small, single-purpose device operations
 class SystemController(
@@ -859,8 +859,7 @@ class SystemController(
      * execute local package operations, but neither is treated as evidence that
      * this app can discover or download the official Google Play update bytes.
      */
-    fun updateGooglePlayApps(config: Map<String, String>): SystemControlResult {
-        val request = GooglePlayUpdateRequest.fromConfig(config)
+    fun updateGooglePlayApps(@Suppress("UNUSED_PARAMETER") config: Map<String, String>): SystemControlResult {
         val policyManager = context.getSystemService(DevicePolicyManager::class.java)
         val isDeviceOwner = runCatching {
             policyManager?.isDeviceOwnerApp(context.packageName) == true
@@ -880,20 +879,12 @@ class SystemController(
             // NexaFlow has no such policy channel in the current installation.
             managedGooglePlayPolicyAvailable = false
         )
-        val requestedScope = request.packageFilter ?: when {
-            request.includeGoogleApps && request.includeUserApps -> "Google and user apps"
-            request.includeGoogleApps -> "Google apps"
-            request.includeUserApps -> "user apps"
-            else -> "no apps"
-        }
         return when (GooglePlayUpdatePlanner.decide(environment)) {
             GooglePlayUpdateDecision.MANAGED_POLICY_REQUIRED -> SystemControlResult.ok(
-                "SKIPPED: Managed Google Play policy must deliver updates; NexaFlow does not download or install Play packages directly"
+                "SKIPPED:${ExecutionResultClassifier.MANAGED_POLICY_MARKER}"
             )
             GooglePlayUpdateDecision.PLAY_DISCOVERY_NOT_EXPOSED -> SystemControlResult.ok(
-                "SKIPPED: Google Play update discovery is not exposed to this app for $requestedScope " +
-                    "(deviceOwner=${environment.deviceOwner}, root=${environment.rootAvailable}, " +
-                    "shizuku=${environment.shizukuGranted}, dryRun=${request.dryRun})"
+                "SKIPPED:${ExecutionResultClassifier.DISCOVERY_NOT_EXPOSED_MARKER}"
             )
         }
     }

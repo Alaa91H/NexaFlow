@@ -429,4 +429,9 @@
     <string name="action_system_update_sub">Ouvre la page des paramètres de mise à jour du système</string>
     <string name="action_media_search">Lire une recherche musicale</string>
     <string name="action_media_search_sub">Demande à une application multimédia compatible de rechercher et lire</string>
+    <string name="execution_google_play_updates_unavailable">Les applications n’ont pas été mises à jour : Google Play ne permet pas à NexaFlow de rechercher ni de télécharger des mises à jour sur cet appareil.</string>
+    <string name="execution_google_play_managed_policy_required">Les applications n’ont pas été mises à jour : une règle Google Play géré est requise sur un appareil professionnel géré.</string>
+    <string name="execution_skipped">Ignoré : %1$s</string>
+    <string name="execution_ran">Terminé : %1$s</string>
+    <string name="execution_failed">Échec : %1$s</string>
 </resources>
