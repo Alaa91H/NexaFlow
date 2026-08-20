@@ -60,6 +60,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
+@Suppress("TooManyFunctions") // Hilt binding boundary; splitting homogeneous providers adds no runtime value.
 object AppModule {
 
     @Provides
