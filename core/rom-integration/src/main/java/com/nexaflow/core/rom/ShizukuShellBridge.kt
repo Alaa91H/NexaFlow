@@ -6,6 +6,7 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import com.nexaflow.core.rom.model.SystemControlResult
 import rikka.shizuku.Shizuku
+import java.util.concurrent.CopyOnWriteArraySet
 
 /**
  * Elevated Shizuku transport backed exclusively by the public UserService AIDL
@@ -21,6 +22,7 @@ object ShizukuShellBridge {
     @Volatile private var bindAttempted = false
     @Volatile private var listenerRegistered = false
     private val lock = Any()
+    private val stateListeners = CopyOnWriteArraySet<() -> Unit>()
 
     /** Test seam for responses from the typed UserService endpoint. */
     internal var operationProbe: ((PrivilegedOperation) -> String?)? = null
@@ -30,20 +32,47 @@ object ShizukuShellBridge {
     val isUserServiceBound: Boolean
         get() = operationProbe != null || boundShell != null
 
+    /**
+     * Registers an observer for a real Shizuku lifecycle transition. Observers
+     * must re-query their typed capability backend rather than treating this
+     * callback as authorization to execute.
+     */
+    fun addStateListener(listener: () -> Unit) {
+        stateListeners += listener
+        listener.invoke()
+    }
+
+    private fun notifyStateChanged() {
+        stateListeners.forEach { listener -> runCatching { listener.invoke() } }
+    }
+
     /** Idempotently stores context and arms sticky rebind after a Shizuku restart. */
     fun initialize(context: Context) {
         appContext = context.applicationContext
-        if (listenerRegistered) return
+        if (listenerRegistered) {
+            bindIfGranted()
+            notifyStateChanged()
+            return
+        }
         synchronized(lock) {
             if (listenerRegistered) return
             listenerRegistered = true
             try {
-                Shizuku.addBinderReceivedListenerSticky { bindIfGranted() }
+                Shizuku.addBinderReceivedListenerSticky {
+                    bindIfGranted()
+                    notifyStateChanged()
+                }
+                Shizuku.addBinderDeadListener {
+                    boundShell = null
+                    bindAttempted = false
+                    notifyStateChanged()
+                }
             } catch (_: Throwable) {
                 listenerRegistered = false
             }
         }
         bindIfGranted()
+        notifyStateChanged()
     }
 
     private fun bindIfGranted() {
@@ -68,11 +97,13 @@ object ShizukuShellBridge {
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
             boundShell = binder?.let { IUserShellService.Stub.asInterface(it) }
+            notifyStateChanged()
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
             boundShell = null
             bindAttempted = false
+            notifyStateChanged()
         }
     }
 

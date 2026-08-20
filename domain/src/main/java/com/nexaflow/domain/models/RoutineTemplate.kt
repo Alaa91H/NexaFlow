@@ -1,5 +1,9 @@
 package com.nexaflow.domain.models
 
+import com.nexaflow.domain.capability.CapabilityRequirement
+import com.nexaflow.domain.capability.CapabilityRequirementResolver
+import com.nexaflow.domain.capability.CapabilitySnapshot
+
 /**
  * A local starting point for a routine. Templates are not persisted until the
  * user reviews and saves the resulting draft in the builder.
@@ -107,6 +111,23 @@ object RoutineTemplateCatalog {
     )
 
     fun find(id: String?): RoutineTemplate? = all.firstOrNull { it.id == id }
+
+    /**
+     * Returns templates whose every trigger and action has an executable
+     * requirement in [snapshot]. Requirement mapping is supplied by the caller
+     * so Domain remains independent from Android/ROM compatibility details.
+     */
+    fun availableTemplates(
+        snapshot: CapabilitySnapshot,
+        actionRequirement: (ActionType) -> CapabilityRequirement,
+        triggerRequirement: (TriggerType) -> CapabilityRequirement
+    ): List<RoutineTemplate> = all.filter { template ->
+        template.actions.all { action ->
+            CapabilityRequirementResolver.resolve(actionRequirement(action.type), snapshot).available
+        } && template.triggers.all { trigger ->
+            CapabilityRequirementResolver.resolve(triggerRequirement(trigger.type), snapshot).available
+        }
+    }
 
     const val SLEEP = "sleep"
     const val LOW_BATTERY = "low_battery"

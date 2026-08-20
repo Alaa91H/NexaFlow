@@ -113,10 +113,9 @@ object SystemAppStatusDetector {
     internal var rootProbe: (() -> Boolean)? = null
 
     private fun probeRoot(): Boolean {
-        // Fast path: classic static su locations (legacy SuperSU, some OEM ROMs).
-        if (suPaths.any { File(it).exists() }) return true
-        // Definitive probe: resolve su from PATH (Magisk/KernelSU/APatch) and
-        // run `id` as root. A successful uid=0 answer means root really works.
+        // A discovered binary only proves that a root manager may be present.
+        // Availability is admitted solely after `su` answers as uid=0; otherwise
+        // the UI could expose privileged actions before this app was granted root.
         return suAnswersAsRoot()
     }
 

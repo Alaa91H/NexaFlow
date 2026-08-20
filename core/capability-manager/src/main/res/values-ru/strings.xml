@@ -1,47 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="capability_title">Интеграция ROM</string>
-    <string name="detected_rom">Обнаруженная ROM: %1$s</string>
-    <string name="integration_level">Уровень интеграции: %1$s</string>
     <string name="capabilities_count">Возможности (%1$d доступно)</string>
-    <string name="about_privileged">О привилегированных возможностях</string>
     <string name="about_privileged_text">Возможности, помеченные как привилегированные, требуют установки приложения как системного/привилегированного, root-оболочки или службы Shizuku. Используйте кнопку «Предоставить», чтобы запросить возможности, которые Android открывает обычным приложениям.</string>
-    <string name="available">Доступно</string>
-    <string name="not_available">Недоступно</string>
-    <string name="settings">Настройки</string>
     <string name="grant">Предоставить</string>
     <string name="capability_subtitle">Глубокая интеграция с прошивкой вашего устройства</string>
-    <string name="section_device">Устройство</string>
-    <string name="section_capabilities">Возможности</string>
     <string name="section_about">О приложении</string>
-    <string name="security_patch">Патч безопасности: %1$s</string>
-    <string name="section_sms">SMS</string>
-    <string name="sms_android17_title">Задержка SMS в Android 17</string>
-    <string name="sms_android17_body">В Android 17 SMS с кодами проверки скрыты от приложений с target SDK 37 на 3 часа. Включите мгновенную доставку ниже, чтобы читать их сразу через диалог согласия — без разрешения на SMS.</string>
-    <string name="sms_consent_label">Мгновенная доставка (диалог согласия)</string>
-    <string name="sms_consent_sub">Показывать системный диалог для одобрения каждого входящего сообщения</string>
-    <string name="sms_consent_arm">Начать прослушивание</string>
-    <string name="sms_consent_listening">Слушает</string>
-    <string name="sms_consent_unavailable">Для мгновенной доставки SMS требуется Google Play services</string>
-    <string name="section_evolution">Evolution X</string>
-    <string name="evolution_rom_version">Версия ROM: %1$s</string>
-    <string name="evolution_build_type">Тип сборки: %1$s</string>
-    <string name="evolution_system_app_hint">Установите как системное приложение, чтобы разблокировать все привилегированные возможности без root для каждой команды.</string>
-    <string name="evolution_install_system_app">Установить как системное приложение</string>
-    <string name="evolution_install_system_app_confirm">Создать модуль Magisk, размещающий NexaFlow в /system/priv-app с полным привилегированным списком? Перезагрузка активирует его. Модуль можно удалить из приложения Magisk.</string>
-    <string name="evolution_install_done">Модуль установлен. Перезагрузите устройство, чтобы активировать NexaFlow как системное приложение.</string>
-    <string name="evolution_install_failed">Ошибка установки</string>
-    <string name="evolution_custom_settings">Пользовательские настройки ROM</string>
 
-    <string name="evolution_no_custom_settings">Пользовательские настройки не найдены — запустите с root или Shizuku, чтобы вывести их</string>
-    <string name="evolution_setting_value">Значение: %1$s</string>
 
-    <string name="evolution_setting_write">Записать</string>
-    <string name="evolution_edit_setting">Изменить настройку</string>
     <string name="cancel">Отмена</string>
 
     <string name="ok">ОК</string>
-    <string name="evolution_already_system_app">Уже системное приложение</string>
-    <string name="evolution_not_elevated">Требуется root или Shizuku</string>
-    <string name="evolution_cancel">Отмена</string>
 </resources>

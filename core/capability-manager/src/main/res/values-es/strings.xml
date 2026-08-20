@@ -1,47 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="capability_title">Integración ROM</string>
-    <string name="detected_rom">ROM detectada: %1$s</string>
-    <string name="integration_level">Nivel de integración: %1$s</string>
     <string name="capabilities_count">Capacidades (%1$d disponibles)</string>
-    <string name="about_privileged">Acerca de las capacidades privilegiadas</string>
     <string name="about_privileged_text">Las capacidades marcadas como privilegiadas requieren que la app esté instalada como app de sistema/privilegiada, un shell root o el servicio Shizuku. Usa el botón Conceder para solicitar las capacidades que Android expone a las apps normales.</string>
-    <string name="available">Disponible</string>
-    <string name="not_available">No disponible</string>
-    <string name="settings">Ajustes</string>
     <string name="grant">Conceder</string>
     <string name="capability_subtitle">Integración profunda con el ROM de tu dispositivo</string>
-    <string name="section_device">Dispositivo</string>
-    <string name="section_capabilities">Capacidades</string>
     <string name="section_about">Acerca de</string>
-    <string name="security_patch">Parche de seguridad: %1$s</string>
-    <string name="section_sms">SMS</string>
-    <string name="sms_android17_title">Retraso de SMS en Android 17</string>
-    <string name="sms_android17_body">En Android 17, los SMS de verificación se ocultan a las apps con SDK 37 durante 3 horas. Activa la entrega instantánea para leerlos al momento mediante un diálogo de consentimiento, sin permiso de SMS.</string>
-    <string name="sms_consent_label">Entrega instantánea (diálogo de consentimiento)</string>
-    <string name="sms_consent_sub">Mostrar un diálogo del sistema para aprobar cada mensaje entrante</string>
-    <string name="sms_consent_arm">Empezar a escuchar ahora</string>
-    <string name="sms_consent_listening">Escuchando</string>
-    <string name="sms_consent_unavailable">Se requiere Google Play services para la entrega instantánea de SMS</string>
-    <string name="section_evolution">Evolution X</string>
-    <string name="evolution_rom_version">Versión del ROM: %1$s</string>
-    <string name="evolution_build_type">Tipo de compilación: %1$s</string>
-    <string name="evolution_system_app_hint">Instálalo como app de sistema para desbloquear todas las capacidades privilegiadas sin root por comando.</string>
-    <string name="evolution_install_system_app">Instalar como app de sistema</string>
-    <string name="evolution_install_system_app_confirm">¿Crear un módulo Magisk que coloque NexaFlow en /system/priv-app con la lista blanca privilegiada completa? El reinicio lo activa. El módulo sigue siendo removible desde la app de Magisk.</string>
-    <string name="evolution_install_done">Módulo instalado. Reinicia para activar NexaFlow como app de sistema.</string>
-    <string name="evolution_install_failed">Instalación fallida</string>
-    <string name="evolution_custom_settings">Ajustes personalizados del ROM</string>
 
-    <string name="evolution_no_custom_settings">No se encontraron ajustes personalizados — ejecuta con root o Shizuku para listarlos</string>
-    <string name="evolution_setting_value">Valor: %1$s</string>
 
-    <string name="evolution_setting_write">Escribir</string>
-    <string name="evolution_edit_setting">Editar ajuste</string>
     <string name="cancel">Cancelar</string>
 
     <string name="ok">Aceptar</string>
-    <string name="evolution_already_system_app">Ya es una app de sistema</string>
-    <string name="evolution_not_elevated">Se requiere root o Shizuku</string>
-    <string name="evolution_cancel">Cancelar</string>
 </resources>

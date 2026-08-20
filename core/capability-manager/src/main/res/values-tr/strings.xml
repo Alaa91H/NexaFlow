@@ -1,47 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="capability_title">ROM Entegrasyonu</string>
-    <string name="detected_rom">Algılanan ROM: %1$s</string>
-    <string name="integration_level">Entegrasyon düzeyi: %1$s</string>
     <string name="capabilities_count">Yetenekler (%1$d kullanılabilir)</string>
-    <string name="about_privileged">Ayrıcalıklı yetenekler hakkında</string>
     <string name="about_privileged_text">Ayrıcalıklı olarak işaretlenen yetenekler, uygulamanın sistem/ayrıcalıklı uygulama olarak kurulmasını, Root kabuğunu veya Shizuku hizmetini gerektirir. Android\u0027in normal uygulamalara sunduğu yetenekleri istemek için İzin Ver düğmesini kullanın.</string>
-    <string name="available">Kullanılabilir</string>
-    <string name="not_available">Kullanılamıyor</string>
-    <string name="settings">Ayarlar</string>
     <string name="grant">İzin Ver</string>
     <string name="capability_subtitle">Cihazınızın ROM\'u ile derin entegrasyon</string>
-    <string name="section_device">Cihaz</string>
-    <string name="section_capabilities">Yetenekler</string>
     <string name="section_about">Hakkında</string>
-    <string name="security_patch">Güvenlik yaması: %1$s</string>
-    <string name="section_sms">SMS</string>
-    <string name="sms_android17_title">Android 17 SMS gecikmesi</string>
-    <string name="sms_android17_body">"Android 17'de doğrulama SMS'leri SDK 37 hedefli uygulamalardan 3 saat gizlenir. Aşağıdan anında teslimi etkinleştirerek onay iletişim kutusuyla hemen okuyun — SMS izni gerekmez."</string>
-    <string name="sms_consent_label">Anında teslim (onay iletişim kutusu)</string>
-    <string name="sms_consent_sub">Her gelen mesajı onaylamak için bir sistem iletişim kutusu göster</string>
-    <string name="sms_consent_arm">Şimdi dinlemeye başla</string>
-    <string name="sms_consent_listening">Dinliyor</string>
-    <string name="sms_consent_unavailable">Anında SMS teslimi için Google Play services gerekli</string>
-    <string name="section_evolution">Evolution X</string>
-    <string name="evolution_rom_version">ROM sürümü: %1$s</string>
-    <string name="evolution_build_type">Derleme türü: %1$s</string>
-    <string name="evolution_system_app_hint">Her komut için root olmadan tüm ayrıcalıklı yetenekleri açmak için sistem uygulaması olarak kurun.</string>
-    <string name="evolution_install_system_app">Sistem uygulaması olarak kur</string>
-    <string name="evolution_install_system_app_confirm">"NexaFlow'u tam ayrıcalıklı beyaz listeyle /system/priv-app içine yerleştiren bir Magisk modülü oluşturulsun mu? Yeniden başlatma etkinleştirir. Modül Magisk uygulamasından kaldırılabilir kalır."</string>
-    <string name="evolution_install_done">"Modül kuruldu. NexaFlow'u sistem uygulaması olarak etkinleştirmek için yeniden başlatın."</string>
-    <string name="evolution_install_failed">Kurulum başarısız</string>
-    <string name="evolution_custom_settings">Özel ROM ayarları</string>
 
-    <string name="evolution_no_custom_settings">Özel ROM ayarı bulunamadı — listelemek için root veya Shizuku ile çalıştırın</string>
-    <string name="evolution_setting_value">Değer: %1$s</string>
 
-    <string name="evolution_setting_write">Yaz</string>
-    <string name="evolution_edit_setting">Ayarı düzenle</string>
     <string name="cancel">İptal</string>
 
     <string name="ok">Tamam</string>
-    <string name="evolution_already_system_app">Zaten bir sistem uygulaması</string>
-    <string name="evolution_not_elevated">root veya Shizuku gerekli</string>
-    <string name="evolution_cancel">İptal</string>
 </resources>

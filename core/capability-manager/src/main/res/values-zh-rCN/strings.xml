@@ -1,47 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="capability_title">ROM 集成</string>
-    <string name="detected_rom">检测到的 ROM：%1$s</string>
-    <string name="integration_level">集成级别：%1$s</string>
     <string name="capabilities_count">能力（%1$d 项可用）</string>
-    <string name="about_privileged">关于特权能力</string>
     <string name="about_privileged_text">标记为特权的功能要求应用以系统/特权应用、Root 终端或 Shizuku 服务方式安装。使用“授予”按钮请求 Android 向普通应用开放的功能。</string>
-    <string name="available">可用</string>
-    <string name="not_available">不可用</string>
-    <string name="settings">设置</string>
     <string name="grant">授予</string>
     <string name="capability_subtitle">与设备 ROM 的深度集成</string>
-    <string name="section_device">设备</string>
-    <string name="section_capabilities">能力</string>
     <string name="section_about">关于</string>
-    <string name="security_patch">安全补丁：%1$s</string>
-    <string name="section_sms">短信</string>
-    <string name="sms_android17_title">Android 17 短信延迟</string>
-    <string name="sms_android17_body">在 Android 17 上，针对 SDK 37 的应用将在 3 小时内隐藏验证码短信。请启用下面的即时投递，通过同意对话框立即读取——无需短信权限。</string>
-    <string name="sms_consent_label">即时投递（同意对话框）</string>
-    <string name="sms_consent_sub">显示系统对话框以批准每条收到的消息</string>
-    <string name="sms_consent_arm">立即开始接收</string>
-    <string name="sms_consent_listening">正在接收</string>
-    <string name="sms_consent_unavailable">即时短信投递需要 Google Play services</string>
-    <string name="section_evolution">Evolution X</string>
-    <string name="evolution_rom_version">ROM 版本: %1$s</string>
-    <string name="evolution_build_type">构建类型: %1$s</string>
-    <string name="evolution_system_app_hint">安装为系统应用，无需为每条命令 root 即可解锁所有特权能力。</string>
-    <string name="evolution_install_system_app">安装为系统应用</string>
-    <string name="evolution_install_system_app_confirm">创建 Magisk 模块，将 NexaFlow 连同完整特权白名单放入 /system/priv-app？重启后生效。模块可从 Magisk 应用移除。</string>
-    <string name="evolution_install_done">模块已安装。重启后激活 NexaFlow 为系统应用。</string>
-    <string name="evolution_install_failed">安装失败</string>
-    <string name="evolution_custom_settings">自定义 ROM 设置</string>
 
-    <string name="evolution_no_custom_settings">未找到自定义 ROM 设置 — 使用 root 或 Shizuku 运行以列出</string>
-    <string name="evolution_setting_value">值: %1$s</string>
 
-    <string name="evolution_setting_write">写入</string>
-    <string name="evolution_edit_setting">编辑设置</string>
     <string name="cancel">取消</string>
 
     <string name="ok">确定</string>
-    <string name="evolution_already_system_app">已是系统应用</string>
-    <string name="evolution_not_elevated">需要 root 或 Shizuku</string>
-    <string name="evolution_cancel">取消</string>
 </resources>

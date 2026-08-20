@@ -12,6 +12,7 @@ import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.NotificationSettings
 import com.nexaflow.core.execution.capability.CapabilityActionMapper
 import com.nexaflow.core.execution.capability.CapabilityExecutionService
+import com.nexaflow.core.execution.compat.WorkflowCapabilityValidator
 import com.nexaflow.core.execution.handler.ActionExecutionContext
 import com.nexaflow.core.execution.handler.ActionRegistry
 import com.nexaflow.core.execution.variables.BuiltinVariables
@@ -24,6 +25,7 @@ import com.nexaflow.core.execution.constraints.ConstraintStateReader
 import com.nexaflow.core.rom.RomIntegrationManager
 import com.nexaflow.core.rom.SystemController
 import com.nexaflow.core.rom.model.SystemControlResult
+import com.nexaflow.domain.capability.CapabilitySnapshot
 import com.nexaflow.domain.capability.CapabilityStatus
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ConditionResult
@@ -70,7 +72,9 @@ class ExecutionEngine(
     // behavior when the monitor reconciles the current device state.
     private val activeExecutionStore: ActiveExecutionStore = ActiveExecutionStore(context),
     /** Optional safe-capability seam; null preserves legacy handler-only construction. */
-    private val capabilityExecutionService: CapabilityExecutionService? = null
+    private val capabilityExecutionService: CapabilityExecutionService? = null,
+    /** Current shared availability observation; absent only in legacy/test construction. */
+    private val capabilitySnapshotProvider: (() -> CapabilitySnapshot)? = null
 ) {
 
     companion object {
@@ -104,6 +108,23 @@ class ExecutionEngine(
         runContext: WorkflowRunContext? = null,
     ): ExecutionRecord {
         val startedAt = epochMillis.now()
+        capabilitySnapshotProvider?.invoke()?.let { snapshot ->
+            val validation = WorkflowCapabilityValidator.validate(automation, snapshot)
+            if (!validation.admissible) {
+                val missing = validation.missingCapabilities.joinToString().ifBlank { "unmapped or unavailable execution path" }
+                val record = ExecutionRecord(
+                    id = UUID.randomUUID().toString(),
+                    automationId = automation.id,
+                    automationName = automation.name,
+                    success = false,
+                    message = "Blocked: required capability is unavailable ($missing)",
+                    executedAt = startedAt
+                )
+                historyRepository.recordExecution(record)
+                recordTimeline(automation, "CAPABILITY_BLOCKED", record, startedAt)
+                return record
+            }
+        }
         val maintenanceNow = ZonedDateTime.now()
         val maintenanceOccurrenceKey = MaintenanceExecutionIdentity.occurrenceKey(automation, maintenanceNow)
         // Local name avoids shadowing the [Context] property used below.

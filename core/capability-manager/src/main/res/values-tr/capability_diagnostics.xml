@@ -1,0 +1,22 @@
+<resources>
+    <string name="capability_runtime_title">Yürütme ortamları</string>
+    <string name="capability_unavailable_title">Kullanılamayan yetenekler</string>
+    <string name="capability_unavailable_count">%1$d kullanılamıyor</string>
+    <string name="capability_reason">Neden: %1$s</string>
+    <string name="environment_standard">Standart Android API’leri</string>
+    <string name="environment_shizuku">Shizuku</string>
+    <string name="environment_root">Root</string>
+    <string name="environment_managed_device">Yönetilen cihaz</string>
+    <string name="environment_adb">ADB kabuğu</string>
+    <string name="capability_state_available">Kullanılabilir</string>
+    <string name="capability_state_not_installed">Yüklü değil</string>
+    <string name="capability_state_not_running">Çalışmıyor</string>
+    <string name="capability_state_permission_required">İzin gerekli</string>
+    <string name="capability_state_service_unavailable">Hizmet kullanılamıyor</string>
+    <string name="capability_state_unavailable">Kullanılamıyor</string>
+    <string name="capability_state_unsupported">Desteklenmiyor</string>
+    <string name="capability_availability_partial">Kısmen kullanılabilir</string>
+    <string name="capability_availability_permission_required">İzin gerekli</string>
+    <string name="capability_availability_unavailable">Kullanılamıyor</string>
+    <string name="capability_availability_unsupported">Desteklenmiyor</string>
+</resources>

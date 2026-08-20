@@ -176,6 +176,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.nexaflow.core.engine.LocationAccess
 import com.nexaflow.core.execution.NotificationActionButton
+import com.nexaflow.core.execution.compat.CommandRequirementCatalog
 import com.nexaflow.core.pluginsdk.LocaleContract
 import com.nexaflow.core.pluginsdk.PluginConfigParser
 import com.nexaflow.core.rom.ElevatedAccessShortcuts
@@ -863,11 +864,23 @@ fun AutomationBuilderScreen(
     val configurationContext = remember(context, configuration) {
         context.createConfigurationContext(configuration)
     }
-    // Hidden compatibility gate: only commands that can run on this device are
-    // offered. The profile is captured once per composition (cheap) and keeps
-    // the pickers identical to the execution reality.
-    val supportedActions = remember(context) { CompatibilityGate.supportedActionOptions(context) }
-    val supportedTriggers = remember(context) { CompatibilityGate.supportedTriggerOptions(context) }
+    // One reactive capability-engine snapshot is composed with Android/ROM
+    // compatibility. Options with no executable backend are not rendered in
+    // picker, browse, common or search paths.
+    val capabilitySnapshot by viewModel.capabilitySnapshot.collectAsStateWithLifecycle()
+    val supportedActions = remember(context, capabilitySnapshot) {
+        CompatibilityGate.supportedActionOptions(context, capabilitySnapshot)
+    }
+    val supportedTriggers = remember(context, capabilitySnapshot) {
+        CompatibilityGate.supportedTriggerOptions(context, capabilitySnapshot)
+    }
+    val availableTemplateIds = remember(capabilitySnapshot) {
+        RoutineTemplateCatalog.availableTemplates(
+            snapshot = capabilitySnapshot,
+            actionRequirement = CommandRequirementCatalog::requirementFor,
+            triggerRequirement = CommandRequirementCatalog::requirementFor
+        ).mapTo(linkedSetOf()) { it.id }
+    }
     val variables by viewModel.variables.collectAsStateWithLifecycle()
     // Saved tasks available for notification action buttons (run from a notification).
     val automations by viewModel.automations.collectAsStateWithLifecycle()
@@ -1034,9 +1047,11 @@ fun AutomationBuilderScreen(
     }
 
     // A template fills a new editable draft once. It never overwrites an edit.
-    LaunchedEffect(templateId, automationId) {
+    LaunchedEffect(templateId, automationId, availableTemplateIds) {
         if (automationId == null && templateId != null && appliedTemplateId != templateId) {
-            RoutineTemplateCatalog.find(templateId)?.let { template ->
+            RoutineTemplateCatalog.find(templateId)
+                ?.takeIf { it.id in availableTemplateIds }
+                ?.let { template ->
                 triggers.clear()
                 template.triggers.forEach { triggers.add(TriggerDraft(it.type, it.config)) }
                 actionDrafts.clear()

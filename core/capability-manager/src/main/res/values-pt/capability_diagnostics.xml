@@ -1,0 +1,22 @@
+<resources>
+    <string name="capability_runtime_title">Ambientes de execução</string>
+    <string name="capability_unavailable_title">Recursos indisponíveis</string>
+    <string name="capability_unavailable_count">%1$d indisponíveis</string>
+    <string name="capability_reason">Motivo: %1$s</string>
+    <string name="environment_standard">APIs públicas do Android</string>
+    <string name="environment_shizuku">Shizuku</string>
+    <string name="environment_root">Root</string>
+    <string name="environment_managed_device">Dispositivo gerenciado</string>
+    <string name="environment_adb">Shell ADB</string>
+    <string name="capability_state_available">Disponível</string>
+    <string name="capability_state_not_installed">Não instalado</string>
+    <string name="capability_state_not_running">Não está em execução</string>
+    <string name="capability_state_permission_required">Permissão necessária</string>
+    <string name="capability_state_service_unavailable">Serviço indisponível</string>
+    <string name="capability_state_unavailable">Indisponível</string>
+    <string name="capability_state_unsupported">Não compatível</string>
+    <string name="capability_availability_partial">Parcialmente disponível</string>
+    <string name="capability_availability_permission_required">Permissão necessária</string>
+    <string name="capability_availability_unavailable">Indisponível</string>
+    <string name="capability_availability_unsupported">Não compatível</string>
+</resources>

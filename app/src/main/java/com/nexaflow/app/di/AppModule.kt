@@ -17,6 +17,7 @@ import com.nexaflow.core.datastore.PrivacyPreferences
 import com.nexaflow.core.datastore.SmsPreferences
 import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.capability.AndroidCapabilityDeviceStateReader
 import com.nexaflow.core.execution.capability.AndroidIntentCapabilityBackend
 import com.nexaflow.core.execution.capability.AndroidPublicCapabilityBackend
@@ -24,9 +25,11 @@ import com.nexaflow.core.execution.capability.AndroidPublicCapabilityCatalog
 import com.nexaflow.core.execution.capability.AccessibilityCapabilityBackend
 import com.nexaflow.core.execution.capability.AccessibilityCapabilityCatalog
 import com.nexaflow.core.execution.capability.AccessibilityInteractionBridge
+import com.nexaflow.core.execution.capability.CapabilityEnvironmentInspector
 import com.nexaflow.core.execution.capability.CapabilityExecutionService
 import com.nexaflow.core.execution.capability.CapabilityRegistry
 import com.nexaflow.core.execution.capability.CapabilityResolver
+import com.nexaflow.core.execution.capability.CapabilityStateStore
 import com.nexaflow.core.execution.capability.PluginCapabilityBackend
 import com.nexaflow.core.execution.capability.PluginCapabilityCatalog
 import com.nexaflow.core.execution.capability.PluginConditionCapabilityCatalog
@@ -59,6 +62,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -247,6 +251,18 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideCapabilityStateStore(
+        registry: CapabilityRegistry,
+        @ApplicationContext context: Context,
+        @ApplicationScope scope: CoroutineScope
+    ): CapabilityStateStore = CapabilityStateStore(
+        registry = registry,
+        environmentInspector = CapabilityEnvironmentInspector.forContext(context),
+        scope = scope
+    )
+
+    @Provides
+    @Singleton
     fun provideCapabilityExecutionService(
         resolver: CapabilityResolver,
         @ApplicationContext context: Context
@@ -277,7 +293,8 @@ object AppModule {
         notificationPreferences: NotificationPreferences,
         logStore: LogStore,
         variableRepository: VariableRepository,
-        capabilityExecutionService: CapabilityExecutionService
+        capabilityExecutionService: CapabilityExecutionService,
+        capabilityStateStore: CapabilityStateStore
     ): ExecutionEngine {
         return ExecutionEngine(
             context,
@@ -285,7 +302,8 @@ object AppModule {
             notificationPreferences,
             logStore = logStore,
             variableRepository = variableRepository,
-            capabilityExecutionService = capabilityExecutionService
+            capabilityExecutionService = capabilityExecutionService,
+            capabilitySnapshotProvider = { capabilityStateStore.snapshot.value }
         )
     }
 

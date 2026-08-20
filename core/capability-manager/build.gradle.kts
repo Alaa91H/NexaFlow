@@ -50,6 +50,7 @@ dependencies {
     implementation(project(":core:rom-integration"))
     implementation(project(":core:ui-components"))
     implementation(project(":core:datastore"))
+    implementation(project(":core:execution"))
     implementation(project(":core:automation-engine"))
     implementation(libs.androidx.lifecycle.lifecycle.viewmodel.compose)
     implementation(libs.com.google.dagger.hilt.android)

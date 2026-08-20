@@ -3,6 +3,9 @@ package com.nexaflow.feature.builder
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexaflow.core.engine.BatteryMonitor
+import com.nexaflow.core.execution.capability.CapabilityStateStore
+import com.nexaflow.core.execution.compat.WorkflowCapabilityValidator
+import com.nexaflow.domain.capability.CapabilitySnapshot
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Constraint
@@ -27,8 +30,12 @@ class AutomationBuilderViewModel @Inject constructor(
     private val repository: AutomationRepository,
     private val variableRepository: VariableRepository,
     private val pluginRepository: PluginRepository,
-    private val batteryMonitor: BatteryMonitor
+    private val batteryMonitor: BatteryMonitor,
+    private val capabilityStateStore: CapabilityStateStore
 ) : ViewModel() {
+
+    /** One capability-engine snapshot for all builder visibility decisions. */
+    val capabilitySnapshot: StateFlow<CapabilitySnapshot> = capabilityStateStore.snapshot
 
     /** User-defined global variables, so the editor can offer %VAR insertion. */
     val variables: StateFlow<List<GlobalVariable>> = variableRepository.getVariables()
@@ -100,7 +107,7 @@ class AutomationBuilderViewModel @Inject constructor(
                 backgroundColor = prev?.backgroundColor ?: 0xFFE3EEFA,
                 category = prev?.category ?: "custom",
                 priority = prev?.priority ?: 1,
-                enabled = prev?.enabled ?: true,
+                enabled = false,
                 triggers = triggers,
                 actions = actions,
                 constraints = constraints,
@@ -111,8 +118,13 @@ class AutomationBuilderViewModel @Inject constructor(
                 createdAt = prev?.createdAt ?: now,
                 updatedAt = now
             )
-            existing = automation
-            repository.saveAutomation(automation)
+            val admitted = WorkflowCapabilityValidator.validate(
+                automation,
+                capabilityStateStore.snapshot.value
+            ).admissible
+            val storedAutomation = automation.copy(enabled = (prev?.enabled ?: true) && admitted)
+            existing = storedAutomation
+            repository.saveAutomation(storedAutomation)
             // Battery triggers only evaluate on ACTION_BATTERY_CHANGED broadcasts;
             // a task saved while the level is already steady below the threshold
             // would wait for the battery to move again. Re-evaluate now so a

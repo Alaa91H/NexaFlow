@@ -1,0 +1,22 @@
+<resources>
+    <string name="capability_runtime_title">بيئات التنفيذ</string>
+    <string name="capability_unavailable_title">القدرات غير المتاحة</string>
+    <string name="capability_unavailable_count">%1$d غير متاحة</string>
+    <string name="capability_reason">السبب: %1$s</string>
+    <string name="environment_standard">واجهات Android العامة</string>
+    <string name="environment_shizuku">Shizuku</string>
+    <string name="environment_root">صلاحية الجذر</string>
+    <string name="environment_managed_device">جهاز مُدار</string>
+    <string name="environment_adb">واجهة ADB</string>
+    <string name="capability_state_available">متاح</string>
+    <string name="capability_state_not_installed">غير مثبّت</string>
+    <string name="capability_state_not_running">غير قيد التشغيل</string>
+    <string name="capability_state_permission_required">الإذن مطلوب</string>
+    <string name="capability_state_service_unavailable">الخدمة غير متاحة</string>
+    <string name="capability_state_unavailable">غير متاح</string>
+    <string name="capability_state_unsupported">غير مدعوم</string>
+    <string name="capability_availability_partial">متاح جزئياً</string>
+    <string name="capability_availability_permission_required">الإذن مطلوب</string>
+    <string name="capability_availability_unavailable">غير متاح</string>
+    <string name="capability_availability_unsupported">غير مدعوم</string>
+</resources>

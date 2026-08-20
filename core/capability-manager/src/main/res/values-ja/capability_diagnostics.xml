@@ -1,0 +1,22 @@
+<resources>
+    <string name="capability_runtime_title">実行環境</string>
+    <string name="capability_unavailable_title">利用できない機能</string>
+    <string name="capability_unavailable_count">%1$d 件は利用できません</string>
+    <string name="capability_reason">理由: %1$s</string>
+    <string name="environment_standard">標準 Android API</string>
+    <string name="environment_shizuku">Shizuku</string>
+    <string name="environment_root">Root</string>
+    <string name="environment_managed_device">管理対象デバイス</string>
+    <string name="environment_adb">ADB シェル</string>
+    <string name="capability_state_available">利用可能</string>
+    <string name="capability_state_not_installed">未インストール</string>
+    <string name="capability_state_not_running">起動していません</string>
+    <string name="capability_state_permission_required">権限が必要です</string>
+    <string name="capability_state_service_unavailable">サービスを利用できません</string>
+    <string name="capability_state_unavailable">利用不可</string>
+    <string name="capability_state_unsupported">未対応</string>
+    <string name="capability_availability_partial">一部利用可能</string>
+    <string name="capability_availability_permission_required">権限が必要です</string>
+    <string name="capability_availability_unavailable">利用不可</string>
+    <string name="capability_availability_unsupported">未対応</string>
+</resources>

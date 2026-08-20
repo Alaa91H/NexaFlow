@@ -1,47 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="capability_title">ROM Integration</string>
-    <string name="detected_rom">Detected ROM: %1$s</string>
-    <string name="integration_level">Integration level: %1$s</string>
     <string name="capabilities_count">Capabilities (%1$d available)</string>
-    <string name="about_privileged">About privileged capabilities</string>
     <string name="about_privileged_text">Capabilities marked as privileged require the app to be installed as a system/privileged app, a Root shell, or the Shizuku service. Use the Grant button to request the capabilities Android exposes to normal apps.</string>
-    <string name="available">Available</string>
-    <string name="not_available">Not available</string>
-    <string name="settings">Settings</string>
     <string name="grant">Grant</string>
     <string name="capability_subtitle">Deep integration with your device\'s ROM</string>
-    <string name="section_device">Device</string>
-    <string name="section_capabilities">Capabilities</string>
     <string name="section_about">About</string>
-    <string name="security_patch">Security patch: %1$s</string>
-    <string name="section_sms">SMS</string>
-    <string name="sms_android17_title">Android 17 SMS delay</string>
-    <string name="sms_android17_body">On Android 17, verification-code SMS are hidden from apps targeting SDK 37 for 3 hours. Enable instant delivery below to read them immediately via a consent dialog — no SMS permission needed.</string>
-    <string name="sms_consent_label">Instant delivery (consent dialog)</string>
-    <string name="sms_consent_sub">Show a system dialog to approve each incoming message</string>
-    <string name="sms_consent_arm">Start listening now</string>
-    <string name="sms_consent_listening">Listening</string>
-    <string name="sms_consent_unavailable">Google Play services required for instant SMS delivery</string>
-    <string name="section_evolution">Evolution X</string>
-    <string name="evolution_rom_version">ROM version: %1$s</string>
-    <string name="evolution_build_type">Build type: %1$s</string>
-    <string name="evolution_system_app_hint">Install as a system app to unlock every privileged capability without per-command root.</string>
-    <string name="evolution_install_system_app">Install as system app</string>
-    <string name="evolution_install_system_app_confirm">Create a Magisk module that places NexaFlow in /system/priv-app with the full privileged whitelist? Reboot activates it. The module stays removable from the Magisk app.</string>
-    <string name="evolution_install_done">Module installed. Reboot to activate NexaFlow as a system app.</string>
-    <string name="evolution_install_failed">Install failed</string>
-    <string name="evolution_custom_settings">Custom ROM settings</string>
 
-    <string name="evolution_no_custom_settings">No ROM custom settings found — run with root or Shizuku to list them</string>
-    <string name="evolution_setting_value">Value: %1$s</string>
 
-    <string name="evolution_setting_write">Write</string>
-    <string name="evolution_edit_setting">Edit setting</string>
     <string name="cancel">Cancel</string>
 
     <string name="ok">OK</string>
-    <string name="evolution_already_system_app">Already a system app</string>
-    <string name="evolution_not_elevated">Root or Shizuku required</string>
-    <string name="evolution_cancel">Cancel</string>
 </resources>

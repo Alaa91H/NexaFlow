@@ -11,6 +11,7 @@ import com.nexaflow.core.datastore.LocationPreferences
 import com.nexaflow.core.engine.AutomationScheduler
 import com.nexaflow.core.engine.MonitoringService
 import com.nexaflow.core.engine.di.ApplicationScope
+import com.nexaflow.core.execution.capability.CapabilityStateStore
 import com.nexaflow.core.execution.recovery.ExecutionRecoveryCoordinator
 import com.nexaflow.core.rom.ShizukuShellBridge
 import dagger.hilt.android.HiltAndroidApp
@@ -36,6 +37,10 @@ class NexaFlowApplication : Application(), Configuration.Provider {
 
     @Inject
     lateinit var executionRecoveryCoordinator: ExecutionRecoveryCoordinator
+
+    /** Eager singleton attachment for event-driven capability-state invalidation. */
+    @Inject
+    lateinit var capabilityStateStore: CapabilityStateStore
 
     @Inject
     @ApplicationScope
