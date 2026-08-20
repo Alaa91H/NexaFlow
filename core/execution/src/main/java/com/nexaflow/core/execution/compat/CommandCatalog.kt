@@ -144,6 +144,7 @@ object CommandCatalog {
         ActionType.SYSTEM_TOGGLE_PIP to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_OPEN_PLAY_STORE_APP to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS to CommandSpec.UNIVERSAL,
+        ActionType.SYSTEM_UPDATE_GOOGLE_PLAY_APPS to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_OPEN_PLAY_UPDATES to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_OPEN_GALAXY_STORE to CommandSpec.UNIVERSAL,
 

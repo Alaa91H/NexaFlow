@@ -37,6 +37,22 @@ class ActionDraftTest {
     }
 
     @Test
+    fun googlePlayUpdateDraft_startsWithConservativePersistedConfig() {
+        val option = actionOptions.first { it.actionType == ActionType.SYSTEM_UPDATE_GOOGLE_PLAY_APPS }
+
+        val action = ActionDraft(id = "play-update", option = option).toAction()
+
+        assertEquals("true", action.config["includeGoogleApps"])
+        assertEquals("false", action.config["includeUserApps"])
+        assertEquals("true", action.config["wifiOnly"])
+        assertEquals("true", action.config["chargingOnly"])
+        assertEquals("true", action.config["requireSilentInstall"])
+        assertEquals("true", action.config["dryRun"])
+        assertEquals("1", action.config["maxConcurrentDownloads"])
+        assertEquals("0", action.config["retryCount"])
+    }
+
+    @Test
     fun cardAccent_cycleDistinguishesAdjacentCards_andRepeatsOnlyAfterPalette() {
         assertNotEquals(builderCardAccent(0), builderCardAccent(1))
         assertNotEquals(builderCardAccent(1), builderCardAccent(2))

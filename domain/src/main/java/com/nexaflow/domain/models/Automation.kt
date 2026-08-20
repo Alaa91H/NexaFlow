@@ -330,6 +330,12 @@ enum class ActionType {
      */
     SYSTEM_SET_RINGTONE,
     SYSTEM_LOCATION,
+    /**
+     * Evaluates the supported, interaction-free Google Play update route for
+     * this device. It never opens Play Store UI and skips safely when no
+     * official update-discovery source is exposed to the current environment.
+     */
+    SYSTEM_UPDATE_GOOGLE_PLAY_APPS,
     SYSTEM_OPEN_PLAY_UPDATES,
     SYSTEM_OPEN_GALAXY_STORE,
     SYSTEM_SEND_SMS,

@@ -102,6 +102,8 @@
     <string name="action_ring_volume_sub">Изменить громкость входящих звонков</string>
     <string name="action_location">Геолокация (GPS)</string>
     <string name="action_location_sub">Включить или выключить геолокацию</string>
+    <string name="action_update_google_play_apps">Проверить обновления приложений Google Play</string>
+    <string name="action_update_google_play_apps_sub">Проверяет поддерживаемую возможность обновления без открытия Play Маркета</string>
     <string name="action_play_updates">Обновления Play</string>
     <string name="action_play_updates_sub">Открыть страницу обновлений Play Store</string>
     <string name="action_galaxy_store">Galaxy Store</string>

@@ -102,6 +102,8 @@
     <string name="action_ring_volume_sub">Lautstärke eingehender Anrufe ändern</string>
     <string name="action_location">Standort (GPS)</string>
     <string name="action_location_sub">Standort ein- oder ausschalten</string>
+    <string name="action_update_google_play_apps">Google-Play-App-Update prüfen</string>
+    <string name="action_update_google_play_apps_sub">Unterstützte Update-Fähigkeit prüfen, ohne Play Store zu öffnen</string>
     <string name="action_play_updates">Play-Store-Updates</string>
     <string name="action_play_updates_sub">Update-Seite im Play Store öffnen</string>
     <string name="action_galaxy_store">Galaxy Store</string>

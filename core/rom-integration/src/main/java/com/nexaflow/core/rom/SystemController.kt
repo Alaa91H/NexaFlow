@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.admin.DevicePolicyManager
 import android.app.SearchManager
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
@@ -31,6 +32,10 @@ import androidx.core.net.toUri
 import com.nexaflow.core.security.SafeCommandBuilder
 import com.nexaflow.core.rom.model.RomCapability
 import com.nexaflow.core.rom.model.SystemControlResult
+import com.nexaflow.domain.updates.GooglePlayUpdateDecision
+import com.nexaflow.domain.updates.GooglePlayUpdateEnvironment
+import com.nexaflow.domain.updates.GooglePlayUpdatePlanner
+import com.nexaflow.domain.updates.GooglePlayUpdateRequest
 
 @Suppress("TooManyFunctions", "LargeClass") // System-ops façade: many small, single-purpose device operations
 class SystemController(
@@ -843,6 +848,52 @@ class SystemController(
             }
         } catch (t: Throwable) {
             SystemControlResult.fail("Failed to change location: ${t.message}")
+        }
+    }
+
+    /**
+     * Runs the interaction-free Google Play update eligibility check.
+     *
+     * This method intentionally does not launch Play Store, interact with its
+     * UI, extract account data, or use internal APIs. Root and Shizuku may
+     * execute local package operations, but neither is treated as evidence that
+     * this app can discover or download the official Google Play update bytes.
+     */
+    fun updateGooglePlayApps(config: Map<String, String>): SystemControlResult {
+        val request = GooglePlayUpdateRequest.fromConfig(config)
+        val policyManager = context.getSystemService(DevicePolicyManager::class.java)
+        val isDeviceOwner = runCatching {
+            policyManager?.isDeviceOwnerApp(context.packageName) == true
+        }.getOrDefault(false)
+        val isAffiliatedProfileOwner = runCatching {
+            policyManager?.isProfileOwnerApp(context.packageName) == true &&
+                policyManager.isAffiliatedUser
+        }.getOrDefault(false)
+        val environment = GooglePlayUpdateEnvironment(
+            deviceOwner = isDeviceOwner,
+            affiliatedProfileOwner = isAffiliatedProfileOwner,
+            rootAvailable = PrivilegedRunner.isRootAvailable(),
+            shizukuRunning = PrivilegedRunner.isShizukuRunning(),
+            shizukuGranted = PrivilegedRunner.isShizukuGranted(),
+            // Managed Google Play is policy-driven through an enrolled EMM / DPC.
+            // NexaFlow has no such policy channel in the current installation.
+            managedGooglePlayPolicyAvailable = false
+        )
+        val requestedScope = request.packageFilter ?: when {
+            request.includeGoogleApps && request.includeUserApps -> "Google and user apps"
+            request.includeGoogleApps -> "Google apps"
+            request.includeUserApps -> "user apps"
+            else -> "no apps"
+        }
+        return when (GooglePlayUpdatePlanner.decide(environment)) {
+            GooglePlayUpdateDecision.MANAGED_POLICY_REQUIRED -> SystemControlResult.ok(
+                "SKIPPED: Managed Google Play policy must deliver updates; NexaFlow does not download or install Play packages directly"
+            )
+            GooglePlayUpdateDecision.PLAY_DISCOVERY_NOT_EXPOSED -> SystemControlResult.ok(
+                "SKIPPED: Google Play update discovery is not exposed to this app for $requestedScope " +
+                    "(deviceOwner=${environment.deviceOwner}, root=${environment.rootAvailable}, " +
+                    "shizuku=${environment.shizukuGranted}, dryRun=${request.dryRun})"
+            )
         }
     }
 

@@ -102,6 +102,8 @@
     <string name="action_ring_volume_sub">Alterar o volume de chamadas</string>
     <string name="action_location">Localização (GPS)</string>
     <string name="action_location_sub">Ativar ou desativar a localização</string>
+    <string name="action_update_google_play_apps">Verificar atualizações de apps do Google Play</string>
+    <string name="action_update_google_play_apps_sub">Verifica a capacidade de atualização compatível sem abrir a Play Store</string>
     <string name="action_play_updates">Atualizações da Play</string>
     <string name="action_play_updates_sub">Abrir as atualizações da Play Store</string>
     <string name="action_galaxy_store">Galaxy Store</string>

@@ -192,6 +192,8 @@
     <string name="action_ring_volume_sub">Change the incoming-call volume</string>
     <string name="action_location">Location (GPS)</string>
     <string name="action_location_sub">Turn location on or off</string>
+    <string name="action_update_google_play_apps">Google Play app update check</string>
+    <string name="action_update_google_play_apps_sub">Check supported update capability without opening Play Store</string>
     <string name="action_play_updates">Play Store updates</string>
     <string name="action_play_updates_sub">Open the Play Store updates page</string>
     <string name="action_launch_app">Launch app</string>

@@ -276,6 +276,7 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_open_recents, R.string.action_open_recents_sub, Icons.Filled.ViewCarousel, ActionType.SYSTEM_OPEN_RECENTS, ActionCategory.APPS),
     ActionOption(R.string.action_close_app, R.string.action_close_app_sub, Icons.Filled.Close, ActionType.APPLICATION_CLOSE_APP, ActionCategory.APPS),
     ActionOption(R.string.action_open_app_settings, R.string.action_open_app_settings_sub, Icons.Filled.Settings, ActionType.APPLICATION_OPEN_APP_SETTINGS, ActionCategory.APPS),
+    ActionOption(R.string.action_update_google_play_apps, R.string.action_update_google_play_apps_sub, Icons.Filled.Storefront, ActionType.SYSTEM_UPDATE_GOOGLE_PLAY_APPS, ActionCategory.APPS),
     ActionOption(R.string.action_play_updates, R.string.action_play_updates_sub, Icons.Filled.Storefront, ActionType.SYSTEM_OPEN_PLAY_UPDATES, ActionCategory.APPS),
     ActionOption(R.string.action_system_update, R.string.action_system_update_sub, Icons.Filled.Settings, ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS, ActionCategory.SYSTEM),
     ActionOption(R.string.action_launch_app, R.string.action_launch_app_sub, Icons.Filled.Apps, ActionType.APPLICATION_LAUNCH_APP, ActionCategory.APPS),

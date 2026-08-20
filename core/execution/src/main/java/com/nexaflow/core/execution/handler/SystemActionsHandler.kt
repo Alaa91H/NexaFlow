@@ -19,6 +19,7 @@ class SystemActionsHandler : ActionHandler {
         ActionType.SYSTEM_SET_TIMER,
         ActionType.SYSTEM_OPEN_RECENTS,
         ActionType.SYSTEM_GO_HOME,
+        ActionType.SYSTEM_UPDATE_GOOGLE_PLAY_APPS,
         ActionType.SYSTEM_OPEN_PLAY_UPDATES,
         ActionType.SYSTEM_OPEN_GALAXY_STORE,
         ActionType.SYSTEM_OPEN_SETTINGS,
@@ -152,6 +153,8 @@ class SystemActionsHandler : ActionHandler {
                 ctx.controller.openRecents()
             ActionType.SYSTEM_GO_HOME ->
                 ctx.controller.goHome()
+            ActionType.SYSTEM_UPDATE_GOOGLE_PLAY_APPS ->
+                ctx.controller.updateGooglePlayApps(action.config)
             ActionType.SYSTEM_OPEN_PLAY_UPDATES ->
                 ctx.controller.openPlayStoreUpdates()
             ActionType.SYSTEM_OPEN_GALAXY_STORE ->

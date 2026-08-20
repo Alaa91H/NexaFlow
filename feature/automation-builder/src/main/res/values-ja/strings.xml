@@ -229,6 +229,8 @@
     <string name="action_ring_volume_sub">着信音量を変更</string>
     <string name="action_location">位置情報 (GPS)</string>
     <string name="action_location_sub">位置情報をオンまたはオフ</string>
+    <string name="action_update_google_play_apps">Google Play アプリ更新を確認</string>
+    <string name="action_update_google_play_apps_sub">Play ストアを開かずに対応する更新機能を確認</string>
     <string name="action_play_updates">Play ストアの更新</string>
     <string name="action_play_updates_sub">Play ストアの更新ページを開く</string>
     <string name="action_launch_app">アプリを起動</string>

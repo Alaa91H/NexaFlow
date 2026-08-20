@@ -102,6 +102,8 @@
     <string name="action_ring_volume_sub">Gelen arama ses düzeyini değiştir</string>
     <string name="action_location">Konum (GPS)</string>
     <string name="action_location_sub">Konumu aç veya kapat</string>
+    <string name="action_update_google_play_apps">Google Play uygulama güncellemelerini denetle</string>
+    <string name="action_update_google_play_apps_sub">Play Store’u açmadan desteklenen güncelleme özelliğini denetler</string>
     <string name="action_play_updates">Play Store güncellemeleri</string>
     <string name="action_play_updates_sub">Play Store güncelleme sayfasını aç</string>
     <string name="action_galaxy_store">Galaxy Store</string>

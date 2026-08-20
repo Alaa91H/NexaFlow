@@ -65,17 +65,19 @@ class AutomationOptionCatalogTest {
     fun recurringRoutineCategory_usesCentralOrder_andKeepsNativeOptionMetadata() {
         val media = option(ActionType.SYSTEM_MEDIA_PLAY_PAUSE).copy(category = ActionCategory.MEDIA)
         val timer = option(ActionType.SYSTEM_SET_TIMER).copy(category = ActionCategory.SYSTEM)
+        val playUpdate = option(ActionType.SYSTEM_UPDATE_GOOGLE_PLAY_APPS).copy(category = ActionCategory.APPS)
         val update = option(ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS).copy(category = ActionCategory.SYSTEM)
         val root = option(ActionType.ADVANCED_ROOT)
 
         val result = optionsForActionCategory(
             ActionCategory.ROUTINES,
-            listOf(root, update, timer, media)
+            listOf(root, update, playUpdate, timer, media)
         )
 
-        assertEquals(listOf(media, timer, update), result)
+        assertEquals(listOf(media, timer, playUpdate, update), result)
         assertEquals(ActionCategory.MEDIA, result.first().category)
-        assertTrue(result.drop(1).all { it.category == ActionCategory.SYSTEM })
+        assertEquals(ActionCategory.APPS, result[2].category)
+        assertTrue(result.filterIndexed { index, _ -> index != 0 && index != 2 }.all { it.category == ActionCategory.SYSTEM })
     }
 
     @Test

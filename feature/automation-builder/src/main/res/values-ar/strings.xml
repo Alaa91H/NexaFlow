@@ -228,6 +228,8 @@
     <string name="action_ring_volume_sub">تغيير مستوى صوت المكالمات</string>
     <string name="action_location">الموقع (GPS)</string>
     <string name="action_location_sub">تشغيل أو إيقاف الموقع</string>
+    <string name="action_update_google_play_apps">فحص تحديث تطبيقات Google Play</string>
+    <string name="action_update_google_play_apps_sub">تحقق من قدرة التحديث المدعومة دون فتح متجر Play</string>
     <string name="action_play_updates">تحديثات متجر بلاي</string>
     <string name="action_play_updates_sub">فتح صفحة التحديثات في متجر بلاي</string>
     <string name="action_launch_app">فتح تطبيق</string>

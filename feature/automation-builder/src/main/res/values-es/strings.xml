@@ -229,6 +229,8 @@
     <string name="action_ring_volume_sub">Cambiar el volumen de las llamadas</string>
     <string name="action_location">Ubicación (GPS)</string>
     <string name="action_location_sub">Activar o desactivar la ubicación</string>
+    <string name="action_update_google_play_apps">Comprobar actualizaciones de apps de Google Play</string>
+    <string name="action_update_google_play_apps_sub">Comprobar la capacidad de actualización admitida sin abrir Play Store</string>
     <string name="action_play_updates">Actualizaciones de Play</string>
     <string name="action_play_updates_sub">Abrir las actualizaciones de Play Store</string>
     <string name="action_launch_app">Abrir app</string>

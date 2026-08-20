@@ -102,6 +102,8 @@
     <string name="action_ring_volume_sub">更改来电音量</string>
     <string name="action_location">定位 (GPS)</string>
     <string name="action_location_sub">打开或关闭定位</string>
+    <string name="action_update_google_play_apps">检查 Google Play 应用更新</string>
+    <string name="action_update_google_play_apps_sub">无需打开 Play 商店即可检查受支持的更新能力</string>
     <string name="action_play_updates">Play 商店更新</string>
     <string name="action_play_updates_sub">打开 Play 商店更新页面</string>
     <string name="action_galaxy_store">Galaxy 商店</string>

@@ -132,6 +132,7 @@ fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (
     ActionType.APPLICATION_OPEN_APP_SETTINGS -> Triple(R.string.action_open_app_settings, R.string.action_open_app_settings_sub, Icons.Filled.Settings)
     ActionType.SYSTEM_RING_VOLUME -> Triple(R.string.action_ring_volume, R.string.action_ring_volume_sub, Icons.AutoMirrored.Filled.VolumeUp)
     ActionType.SYSTEM_LOCATION -> Triple(R.string.action_location, R.string.action_location_sub, Icons.Filled.Place)
+    ActionType.SYSTEM_UPDATE_GOOGLE_PLAY_APPS -> Triple(R.string.action_update_google_play_apps, R.string.action_update_google_play_apps_sub, Icons.Filled.Store)
     ActionType.SYSTEM_OPEN_PLAY_UPDATES -> Triple(R.string.action_play_updates, R.string.action_play_updates_sub, Icons.Filled.Store)
     ActionType.SYSTEM_OPEN_GALAXY_STORE -> Triple(R.string.action_galaxy_store, R.string.action_galaxy_store_sub, Icons.Filled.Store)
     ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS -> Triple(R.string.action_system_update, R.string.action_system_update_sub, Icons.Filled.Settings)

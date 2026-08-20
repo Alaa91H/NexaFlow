@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.androidx.core.core.ktx)
     implementation(libs.javax.inject.javax.inject)
     implementation(project(":core:security"))
+    implementation(project(":domain"))
     implementation(libs.dev.rikka.shizuku.api)
     implementation(libs.dev.rikka.shizuku.provider)
     testImplementation(libs.junit.junit)

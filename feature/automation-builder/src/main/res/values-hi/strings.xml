@@ -229,6 +229,8 @@
     <string name="action_ring_volume_sub">कॉल की आवाज़ बदलें</string>
     <string name="action_location">लोकेशन (GPS)</string>
     <string name="action_location_sub">लोकेशन चालू या बंद करें</string>
+    <string name="action_update_google_play_apps">Google Play ऐप अपडेट जाँचें</string>
+    <string name="action_update_google_play_apps_sub">Play Store खोले बिना समर्थित अपडेट क्षमता जाँचें</string>
     <string name="action_play_updates">Play Store अपडेट</string>
     <string name="action_play_updates_sub">Play Store अपडेट पेज खोलें</string>
     <string name="action_launch_app">ऐप लॉन्च करें</string>
