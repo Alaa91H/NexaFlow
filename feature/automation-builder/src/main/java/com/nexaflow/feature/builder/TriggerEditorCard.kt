@@ -1077,8 +1077,9 @@ fun TriggerEditorCard(
     total: Int,
     onConfigChange: (TriggerDraft) -> Unit,
     onRemove: () -> Unit,
-    // Freshly added triggers open right away; loaded ones stay collapsed.
-    initiallyExpanded: Boolean = false,
+    /** Controlled by the builder so this card is the only expanded trigger. */
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
     // Shared builder-row structure: ✕ remove, ↕️ reorder handle (long-press
     // drag + tap arrows), then the name. Wired by the reorderable list.
     modifier: Modifier = Modifier,
@@ -1103,8 +1104,8 @@ fun TriggerEditorCard(
     var showTimePicker by remember { mutableStateOf(false) }
     var timePickerTarget by remember { mutableStateOf("time") } // "time" | "rangeStart" | "rangeEnd"
     var datePickerTarget by remember { mutableStateOf<String?>(null) } // "date" | "startDate" | "endDate"
-    // Fixed header row; tapping it expands the type picker and options below.
-    var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
+    // Fixed header row; the builder owns expansion so the selected card is
+    // the sole open card and a new card can close the previous one.
     // Category accordion state for the trigger type switcher inside the expanded card.
     var expandedTriggerCategory by rememberSaveable { mutableStateOf<Int?>(null) }
     val accent = builderCardAccent(index)
@@ -1121,7 +1122,7 @@ fun TriggerEditorCard(
                     // RIGHT, regardless of the locale direction.
                     // يفتح الصف الإعداد عند الحاجة ويطويه بعد الضبط، فيبقى
                     // محرر المهمة منظماً حتى عند تعدد المحفزات والشروط.
-                    .clickable { expanded = !expanded },
+                    .clickable { onExpandedChange(!expanded) },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {

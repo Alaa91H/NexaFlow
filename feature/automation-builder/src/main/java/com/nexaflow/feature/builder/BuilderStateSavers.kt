@@ -37,6 +37,26 @@ private fun bundleToStringMap(bundle: Bundle): Map<String, String> {
 private fun <T : Enum<T>> enumFrom(bundle: Bundle, key: String, clazz: Class<T>): T? =
     bundle.getString(key)?.let { name -> runCatching { java.lang.Enum.valueOf(clazz, name) }.getOrNull() }
 
+// ---- fixed catalogue selections --------------------------------------------
+
+val TriggerTypeSelectionSaver: Saver<SnapshotStateList<TriggerType>, ArrayList<String>> = Saver(
+    save = { list -> ArrayList(list.map { it.name }) },
+    restore = { names ->
+        names.mapNotNull { name ->
+            runCatching { TriggerType.valueOf(name) }.getOrNull()
+        }.toMutableStateList()
+    }
+)
+
+val ActionTypeSelectionSaver: Saver<SnapshotStateList<ActionType>, ArrayList<String>> = Saver(
+    save = { list -> ArrayList(list.map { it.name }) },
+    restore = { names ->
+        names.mapNotNull { name ->
+            runCatching { ActionType.valueOf(name) }.getOrNull()
+        }.toMutableStateList()
+    }
+)
+
 // ---- triggers --------------------------------------------------------------
 
 private fun TriggerDraft.toBundle(): Bundle = Bundle().apply {

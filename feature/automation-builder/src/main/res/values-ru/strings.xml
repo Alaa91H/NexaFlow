@@ -936,5 +936,5 @@
     <string name="trigger_type_vpn_sub">Срабатывает при подключении или отключении VPN</string>
     <string name="trigger_type_webhook_sub">Срабатывает при входящем HTTP-запросе</string>
     <string name="trigger_type_wifi_signal_sub">Срабатывает при пересечении порога уровня сигнала Wi-Fi</string>
-    <string name="trigger_type_wifi_state_sub">Срабатывает при включении или выключении Wi-Fi</string>    <string name="add_trigger">Добавить триггер</string>
+    <string name="trigger_type_wifi_state_sub">Срабатывает при включении или выключении Wi-Fi</string>    <string name="add_trigger">Добавить триггер</string>    <string name="add_action">Добавить действие</string>
 </resources>

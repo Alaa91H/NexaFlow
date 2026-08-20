@@ -936,5 +936,5 @@
     <string name="trigger_type_vpn_sub">Wird ausgelöst, wenn sich VPN verbindet oder trennt</string>
     <string name="trigger_type_webhook_sub">Wird bei eingehenden HTTP-Anfragen ausgelöst</string>
     <string name="trigger_type_wifi_signal_sub">Wird ausgelöst, wenn die WLAN-Signalstärke einen Schwellenwert überschreitet</string>
-    <string name="trigger_type_wifi_state_sub">Wird ausgelöst, wenn WLAN ein- oder ausgeschaltet wird</string>    <string name="add_trigger">Auslöser hinzufügen</string>
+    <string name="trigger_type_wifi_state_sub">Wird ausgelöst, wenn WLAN ein- oder ausgeschaltet wird</string>    <string name="add_trigger">Auslöser hinzufügen</string>    <string name="add_action">Aktion hinzufügen</string>
 </resources>

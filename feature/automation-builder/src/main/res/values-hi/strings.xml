@@ -936,5 +936,5 @@
     <string name="trigger_type_vpn_sub">VPN जुड़ने या अलग होने पर ट्रिगर होता है</string>
     <string name="trigger_type_webhook_sub">इनकमिंग HTTP अनुरोध पर ट्रिगर होता है</string>
     <string name="trigger_type_wifi_signal_sub">Wi-Fi सिग्नल शक्ति सीमा पार करने पर ट्रिगर होता है</string>
-    <string name="trigger_type_wifi_state_sub">Wi-Fi चालू या बंद होने पर ट्रिगर होता है</string>    <string name="add_trigger">ट्रिगर जोड़ें</string>
+    <string name="trigger_type_wifi_state_sub">Wi-Fi चालू या बंद होने पर ट्रिगर होता है</string>    <string name="add_trigger">ट्रिगर जोड़ें</string>    <string name="add_action">कार्रवाई जोड़ें</string>
 </resources>

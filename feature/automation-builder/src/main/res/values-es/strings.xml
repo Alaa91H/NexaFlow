@@ -936,5 +936,5 @@
     <string name="trigger_type_vpn_sub">Se activa cuando la VPN se conecta o desconecta</string>
     <string name="trigger_type_webhook_sub">Se activa con una solicitud HTTP entrante</string>
     <string name="trigger_type_wifi_signal_sub">Se activa cuando la intensidad de la señal Wi-Fi supera un umbral</string>
-    <string name="trigger_type_wifi_state_sub">Se activa al activar o desactivar Wi-Fi</string>    <string name="add_trigger">Añadir activador</string>
+    <string name="trigger_type_wifi_state_sub">Se activa al activar o desactivar Wi-Fi</string>    <string name="add_trigger">Añadir activador</string>    <string name="add_action">Añadir acción</string>
 </resources>

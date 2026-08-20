@@ -700,8 +700,9 @@ private fun SelectedActionCard(
     automations: List<Automation> = emptyList(),
     // Re-launches the plugin's EDIT_SETTING activity (plugin actions only).
     onPluginConfigure: () -> Unit = {},
-    // Freshly added actions open right away; loaded ones start collapsed.
-    initiallyExpanded: Boolean = false,
+    /** Controlled by the builder so one execution card is open at a time. */
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
     // Real drag-and-drop: the reorder handle (arrow column) drives these
     // callbacks; the arrow buttons stay as a secondary tap-to-move option.
     modifier: Modifier = Modifier,
@@ -710,7 +711,6 @@ private fun SelectedActionCard(
     onDragDelta: (Float) -> Unit = {},
     onDragEnd: () -> Unit = {}
 ) {
-    var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     val accent = builderCardAccent(index)
     NexaFlowCard(
         modifier = modifier,
@@ -725,7 +725,7 @@ private fun SelectedActionCard(
                     // pinned to the RIGHT regardless of the locale direction.
                     // Expand-only: once opened, the card never collapses again,
                     // so the details only ever grow downward.
-                    .clickable { expanded = !expanded },
+                    .clickable { onExpandedChange(!expanded) },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -862,12 +862,18 @@ fun AutomationBuilderScreen(
     var expandedActionCategory by rememberSaveable { mutableStateOf<Int?>(0) }
     var triggerSearchQuery by rememberSaveable { mutableStateOf("") }
     var actionSearchQuery by rememberSaveable { mutableStateOf("") }
-    var triggerPickerExpanded by rememberSaveable { mutableStateOf(true) }
-    // A freshly picked trigger opens its editor; loaded ones stay collapsed.
-    var lastAddedTrigger by remember { mutableStateOf(-1) }
-    // Same for a freshly picked execution action. Each card has an immutable,
-    // stable draft id so equal action types never share configuration state.
-    var lastAddedAction by remember { mutableStateOf(-1) }
+    // Fixed multi-select catalogues. A choice is only materialised as a card
+    // after the user presses the dedicated Add button below its catalogue.
+    val selectedTriggerTypes = rememberSaveable(saver = TriggerTypeSelectionSaver) {
+        mutableStateListOf<TriggerType>()
+    }
+    val selectedActionTypes = rememberSaveable(saver = ActionTypeSelectionSaver) {
+        mutableStateListOf<ActionType>()
+    }
+    // Expansion belongs to the section, not individual card-local state: one
+    // selected trigger and one selected execution may be open at any moment.
+    var expandedTriggerIndex by rememberSaveable { mutableStateOf<Int?>(null) }
+    var expandedActionCardId by rememberSaveable { mutableStateOf<String?>(null) }
     val actionDrafts = rememberSaveable(saver = ActionDraftListSaver) { mutableStateListOf<ActionDraft>() }
     // Real drag-and-drop reorder state — one per reorderable list so
     // dragging in one section never disturbs the others (↕️ handle).
@@ -996,9 +1002,8 @@ fun AutomationBuilderScreen(
                         )
                     }
                 }
-                lastAddedTrigger = triggers.lastIndex
-                triggerPickerExpanded = false
-                lastAddedAction = actionDrafts.lastIndex
+                expandedTriggerIndex = null
+                expandedActionCardId = null
                 appliedTemplateId = templateId
                 step = if (triggers.isNotEmpty() && actionDrafts.isNotEmpty()) 2 else 0
             }
@@ -1018,7 +1023,10 @@ fun AutomationBuilderScreen(
         selectedIconColor = loaded.iconColor
         triggers.clear()
         loaded.triggers.forEach { triggers.add(TriggerDraft(it.type, it.config)) }
-        triggerPickerExpanded = false
+        selectedTriggerTypes.clear()
+        selectedActionTypes.clear()
+        expandedTriggerIndex = null
+        expandedActionCardId = null
         constraints.clear()
         loaded.constraints.forEach { constraints.add(ConstraintDraft(it.type, it.config)) }
         actionDrafts.clear()
@@ -1288,8 +1296,15 @@ fun AutomationBuilderScreen(
 
     fun moveTrigger(from: Int, to: Int) {
         if (from !in triggers.indices || to !in triggers.indices || from == to) return
+        val expanded = expandedTriggerIndex
         val item = triggers.removeAt(from)
         triggers.add(to, item)
+        expandedTriggerIndex = when {
+            expanded == from -> to
+            expanded != null && from < expanded && to >= expanded -> expanded - 1
+            expanded != null && from > expanded && to <= expanded -> expanded + 1
+            else -> expanded
+        }
     }
 
     fun moveConstraint(from: Int, to: Int) {
@@ -1523,96 +1538,96 @@ fun AutomationBuilderScreen(
                 // ── Step 1: trigger + its constraints ───────────────
                 NexaFlowCard {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        SectionHeader(
-                            text = stringResource(R.string.section_when),
-                            trailing = {
-                                IconButton(onClick = { triggerPickerExpanded = !triggerPickerExpanded }) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Add,
-                                        contentDescription = stringResource(R.string.add_trigger)
-                                    )
-                                }
-                            }
-                        )
-                    // The picker stays available on demand after the first
-                    // choice. Every selection appends a new independent card.
-                    NexaFlowAnimatedVisibility(visible = triggers.isEmpty() || triggerPickerExpanded) {
-                        val commonTriggers = remember(supportedTriggers) {
-                            AutomationOptionCatalog.commonTriggers(supportedTriggers)
-                        }
-                        if (commonTriggers.isNotEmpty()) {
-                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                commonTriggers.forEach { type ->
-                                    TriggerOptionRow(
-                                        type = type,
-                                        checked = false,
-                                        onSelect = {
-                                            triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
-                                            lastAddedTrigger = triggers.lastIndex
-                                            triggerPickerExpanded = false
-                                            expandedTriggerCategory = null
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                        OutlinedTextField(
-                            value = triggerSearchQuery,
-                            onValueChange = { triggerSearchQuery = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            label = { Text(stringResource(R.string.search)) }
-                        )
-                        val visibleTriggers = remember(supportedTriggers, triggerSearchQuery, configurationContext) {
-                            if (triggerSearchQuery.isBlank()) {
-                                supportedTriggers
-                            } else {
-                                supportedTriggers.filter { type ->
-                                    configurationContext.getString(type.labelRes())
-                                        .contains(triggerSearchQuery, ignoreCase = true)
-                                }
-                            }
-                        }
-                        if (triggerSearchQuery.isNotBlank()) {
-                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                visibleTriggers.forEach { type ->
-                                    TriggerOptionRow(
-                                        type = type,
-                                        checked = false,
-                                        onSelect = {
-                                            triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
-                                            lastAddedTrigger = triggers.lastIndex
-                                            triggerPickerExpanded = false
-                                            triggerSearchQuery = ""
-                                        }
-                                    )
-                                }
-                            }
-                        } else CategoryAccordion(
-                            tabs = triggerCategories.map { category ->
-                                stringResource(category.headerRes) to category.icon()
-                            },
-                            expandedIndex = expandedTriggerCategory,
-                            onExpandedChange = { expandedTriggerCategory = it }
-                        ) { index ->
-                            val category = triggerCategories[index]
-                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                visibleTriggers
-                                    .filter { triggerCategoryOf[it] == category }
-                                    .forEach { type ->
-                                        TriggerOptionRow(
-                                            type = type,
-                                            checked = false,
-                                            onSelect = {
-                                                triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
-                                                lastAddedTrigger = triggers.lastIndex
-                                                triggerPickerExpanded = false
-                                                expandedTriggerCategory = null
-                                            }
-                                        )
+                        SectionHeader(text = stringResource(R.string.section_when))
+                    // Fixed catalogue: choices remain visible and can be toggled
+                    // freely. The dedicated Add button below materialises the
+                    // selected choices as individual editable cards.
+                    val commonTriggers = remember(supportedTriggers) {
+                        AutomationOptionCatalog.commonTriggers(supportedTriggers)
+                    }
+                    if (commonTriggers.isNotEmpty()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            commonTriggers.forEach { type ->
+                                TriggerOptionRow(
+                                    type = type,
+                                    checked = type in selectedTriggerTypes,
+                                    onSelect = {
+                                        if (type in selectedTriggerTypes) selectedTriggerTypes.remove(type)
+                                        else selectedTriggerTypes.add(type)
                                     }
+                                )
                             }
                         }
+                    }
+                    OutlinedTextField(
+                        value = triggerSearchQuery,
+                        onValueChange = { triggerSearchQuery = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        label = { Text(stringResource(R.string.search)) }
+                    )
+                    val visibleTriggers = remember(supportedTriggers, triggerSearchQuery, configurationContext) {
+                        if (triggerSearchQuery.isBlank()) {
+                            supportedTriggers
+                        } else {
+                            supportedTriggers.filter { type ->
+                                configurationContext.getString(type.labelRes())
+                                    .contains(triggerSearchQuery, ignoreCase = true)
+                            }
+                        }
+                    }
+                    if (triggerSearchQuery.isNotBlank()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            visibleTriggers.forEach { type ->
+                                TriggerOptionRow(
+                                    type = type,
+                                    checked = type in selectedTriggerTypes,
+                                    onSelect = {
+                                        if (type in selectedTriggerTypes) selectedTriggerTypes.remove(type)
+                                        else selectedTriggerTypes.add(type)
+                                    }
+                                )
+                            }
+                        }
+                    } else CategoryAccordion(
+                        tabs = triggerCategories.map { category ->
+                            stringResource(category.headerRes) to category.icon()
+                        },
+                        expandedIndex = expandedTriggerCategory,
+                        onExpandedChange = { expandedTriggerCategory = it }
+                    ) { index ->
+                        val category = triggerCategories[index]
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            visibleTriggers
+                                .filter { triggerCategoryOf[it] == category }
+                                .forEach { type ->
+                                    TriggerOptionRow(
+                                        type = type,
+                                        checked = type in selectedTriggerTypes,
+                                        onSelect = {
+                                            if (type in selectedTriggerTypes) selectedTriggerTypes.remove(type)
+                                            else selectedTriggerTypes.add(type)
+                                        }
+                                    )
+                                }
+                        }
+                    }
+                    Button(
+                        onClick = {
+                            selectedTriggerTypes.forEach { type ->
+                                triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
+                            }
+                            expandedTriggerIndex = triggers.lastIndex.takeIf { it >= 0 }
+                            selectedTriggerTypes.clear()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = selectedTriggerTypes.isNotEmpty()
+                    ) {
+                        Icon(imageVector = Icons.Filled.Add, contentDescription = null)
+                        Text(
+                            text = stringResource(R.string.add_trigger),
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
                     }
                     triggers.forEachIndexed { index, draft ->
                 val triggerDragging = triggerDrag.draggedIndex == index
@@ -1630,8 +1645,18 @@ fun AutomationBuilderScreen(
                     onConfigChange = { updated ->
                         triggers[index] = updated
                     },
-                    onRemove = { triggers.removeAt(index) },
-                    initiallyExpanded = index == lastAddedTrigger,
+                    onRemove = {
+                        triggers.removeAt(index)
+                        expandedTriggerIndex = when {
+                            expandedTriggerIndex == index -> null
+                            expandedTriggerIndex != null && expandedTriggerIndex!! > index -> expandedTriggerIndex!! - 1
+                            else -> expandedTriggerIndex
+                        }
+                    },
+                    expanded = expandedTriggerIndex == index,
+                    onExpandedChange = { expanded ->
+                        expandedTriggerIndex = if (expanded) index else null
+                    },
                     onPickApp = { appPickerTarget = "trigger:$index" },
                     onPickBluetooth = { bluetoothPickerTarget = index },
                     onPickCalendar = { calendarPickerTarget = index },
@@ -1650,8 +1675,8 @@ fun AutomationBuilderScreen(
                 NexaFlowCard {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {                        // ── THEN (actions) ──────────────────────────
                             SectionHeader(text = stringResource(R.string.section_actions))
-                        // Progressive disclosure: compatible everyday actions first,
-                        // then local search, then the complete category catalog.
+                        // Fixed multi-select catalogue. Choices persist while
+                        // browsing/searching and become cards only via Add.
                         val commonActions = remember(supportedActions) {
                             AutomationOptionCatalog.commonActions(supportedActions)
                         }
@@ -1660,14 +1685,10 @@ fun AutomationBuilderScreen(
                                 commonActions.forEach { option ->
                                     ActionOptionRow(
                                         option = option,
-                                        checked = false,
+                                        checked = option.actionType in selectedActionTypes,
                                         onToggle = {
-                                            val draft = ActionDraft(option = option)
-                                            actionDrafts.add(draft)
-                                            lastAddedAction = actionDrafts.lastIndex
-                                            if (option.actionType == ActionType.PLUGIN_FIRE) {
-                                                pluginPickerTarget = draft.id
-                                            }
+                                            if (option.actionType in selectedActionTypes) selectedActionTypes.remove(option.actionType)
+                                            else selectedActionTypes.add(option.actionType)
                                         }
                                     )
                                 }
@@ -1697,15 +1718,10 @@ fun AutomationBuilderScreen(
                                 visibleActions.forEach { option ->
                                     ActionOptionRow(
                                         option = option,
-                                        checked = false,
+                                        checked = option.actionType in selectedActionTypes,
                                         onToggle = {
-                                            val draft = ActionDraft(option = option)
-                                            actionDrafts.add(draft)
-                                            lastAddedAction = actionDrafts.lastIndex
-                                            if (option.actionType == ActionType.PLUGIN_FIRE) {
-                                                pluginPickerTarget = draft.id
-                                            }
-                                            actionSearchQuery = ""
+                                            if (option.actionType in selectedActionTypes) selectedActionTypes.remove(option.actionType)
+                                            else selectedActionTypes.add(option.actionType)
                                         }
                                     )
                                 }
@@ -1724,21 +1740,33 @@ fun AutomationBuilderScreen(
                                     .forEach { option ->
                                         ActionOptionRow(
                                             option = option,
-                                            checked = false,
+                                            checked = option.actionType in selectedActionTypes,
                                             onToggle = {
-                                                val draft = ActionDraft(option = option)
-                                                actionDrafts.add(draft)
-                                                lastAddedAction = actionDrafts.lastIndex
-                                                // A picked plugin action immediately asks which plugin.
-                                                if (option.actionType == ActionType.PLUGIN_FIRE) {
-                                                    pluginPickerTarget = draft.id
-                                                }
-                                                // Collapse so the user sees the new card's config.
-                                                expandedActionCategory = null
+                                                if (option.actionType in selectedActionTypes) selectedActionTypes.remove(option.actionType)
+                                                else selectedActionTypes.add(option.actionType)
                                             }
                                         )
                                     }
                             }
+                        }
+                        Button(
+                            onClick = {
+                                selectedActionTypes.forEach { type ->
+                                    supportedActions.firstOrNull { it.actionType == type }?.let { option ->
+                                        actionDrafts.add(ActionDraft(option = option))
+                                    }
+                                }
+                                expandedActionCardId = actionDrafts.lastOrNull()?.id
+                                selectedActionTypes.clear()
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = selectedActionTypes.isNotEmpty()
+                        ) {
+                            Icon(imageVector = Icons.Filled.Add, contentDescription = null)
+                            Text(
+                                text = stringResource(R.string.add_action),
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
                         }
                         actionDrafts.forEachIndexed { index, draft ->
                             key(draft.id) {
@@ -1762,6 +1790,7 @@ fun AutomationBuilderScreen(
                                 onRemove = {
                                     val current = actionDrafts.indexOfFirst { it.id == draft.id }
                                     if (current >= 0) actionDrafts.removeAt(current)
+                                    if (expandedActionCardId == draft.id) expandedActionCardId = null
                                 },
                                 onPickApp = { appPickerTarget = "action:${draft.id}" },
                                 onRequestPermission = { requestPermissions(it) },
@@ -1771,15 +1800,22 @@ fun AutomationBuilderScreen(
                                 availableVariables = availableVariables,
                                 automations = automations,
                                 onPluginConfigure = {
-                                    configurePlugin(
-                                        actionId = draft.id,
-                                        packageName = draft.config["package"],
-                                        receiver = draft.config["receiver"],
-                                        editActivityClass = draft.config["editActivity"],
-                                        config = draft.config
-                                    )
+                                    if (draft.config["package"].isNullOrBlank() || draft.config["receiver"].isNullOrBlank()) {
+                                        pluginPickerTarget = draft.id
+                                    } else {
+                                        configurePlugin(
+                                            actionId = draft.id,
+                                            packageName = draft.config["package"],
+                                            receiver = draft.config["receiver"],
+                                            editActivityClass = draft.config["editActivity"],
+                                            config = draft.config
+                                        )
+                                    }
                                 },
-                                initiallyExpanded = index == lastAddedAction
+                                expanded = expandedActionCardId == draft.id,
+                                onExpandedChange = { expanded ->
+                                    expandedActionCardId = if (expanded) draft.id else null
+                                }
                                 )
                             }
                         }
