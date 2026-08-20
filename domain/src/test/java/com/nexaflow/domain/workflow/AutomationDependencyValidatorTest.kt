@@ -21,7 +21,7 @@ class AutomationDependencyValidatorTest {
         priority = 1,
         enabled = true,
         triggers = emptyList(),
-        actions = listOf(Action(ActionType.SYSTEM_SEND_NOTIFICATION)),
+        actions = listOf(Action(ActionType.SYSTEM_SEND_NOTIFICATION, emptyMap())),
         createdAt = 1L,
         updatedAt = 1L,
         maintenanceProfile = MaintenanceProfile(
