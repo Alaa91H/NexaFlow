@@ -275,7 +275,11 @@ object CommandCatalog {
         TriggerType.SMS to direct(permissions = setOf("android.permission.RECEIVE_SMS")),
         TriggerType.WEBHOOK to CommandSpec.UNIVERSAL,
         TriggerType.APPLICATION to CommandSpec.UNIVERSAL,
-        TriggerType.APP_INSTALLED to CommandSpec.UNIVERSAL
+        TriggerType.APP_INSTALLED to CommandSpec.UNIVERSAL,
+        // Sender identity is exposed to dynamically registered receivers only
+        // on Android 14+. Registry approval and component matching are checked
+        // separately by PluginEventIngress before EventBus publication.
+        TriggerType.PLUGIN_EVENT to CommandSpec(minSdk = 34, strategy = ExecutionStrategy.DIRECT)
     )
 
     fun specFor(type: Any): CommandSpec? {

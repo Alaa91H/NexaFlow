@@ -108,6 +108,7 @@ import kotlinx.coroutines.launch
 fun SettingsScreen(navController: NavController) {
     val context = LocalContext.current
     val viewModel: SettingsViewModel = hiltViewModel()
+    val pluginHealth by viewModel.pluginHealth.collectAsState()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var showAbout by remember { mutableStateOf(false) }
@@ -236,6 +237,17 @@ fun SettingsScreen(navController: NavController) {
                     title = stringResource(R.string.notification_manager),
                     subtitle = stringResource(R.string.notification_manager_sub),
                     onClick = { navController.navigate("notification_manager") }
+                )
+                SettingRow(
+                    icon = Icons.Filled.Extension,
+                    title = stringResource(R.string.plugin_health_title),
+                    subtitle = stringResource(
+                        R.string.plugin_health_sub,
+                        pluginHealth.compatible,
+                        pluginHealth.partial,
+                        pluginHealth.unavailable
+                    ),
+                    onClick = { viewModel.refreshPluginHealth() }
                 )
             }
             settingsGroup(title = sectionBackupTitle) {

@@ -79,6 +79,7 @@ dependencies {
     ksp(libs.com.google.dagger.hilt.compiler)
     implementation(project(":domain"))
     implementation(project(":core:execution"))
+    implementation(project(":core:plugin-sdk"))
     implementation(project(":core:rom-integration"))
     implementation(project(":core:common"))
     implementation(project(":core:datastore"))

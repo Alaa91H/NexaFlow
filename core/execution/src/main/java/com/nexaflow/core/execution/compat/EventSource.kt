@@ -37,7 +37,9 @@ enum class TriggerSource(val sourceId: String) {
     NOTIFICATION("notification"),
     CALENDAR("calendar"),
     SENSOR("sensor"),
-    WEBHOOK("webhook");
+    WEBHOOK("webhook"),
+    /** Explicit external-plugin events after receiver authentication. */
+    PLUGIN("plugin");
 
     companion object {
         fun forTrigger(type: TriggerType): TriggerSource = when (type) {
@@ -92,6 +94,7 @@ enum class TriggerSource(val sourceId: String) {
             TriggerType.BOOT_COMPLETED -> DEVICE
             TriggerType.NFC_TAG_SCANNED -> DEVICE
             TriggerType.ALARM_SET_CHANGED -> DEVICE
+            TriggerType.PLUGIN_EVENT -> PLUGIN
         }
     }
 }

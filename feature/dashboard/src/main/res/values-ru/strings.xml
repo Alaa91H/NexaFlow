@@ -35,6 +35,7 @@
     <string name="trigger_calendar">Событие календаря</string>
     <string name="trigger_sensor">Датчик</string>
     <string name="trigger_webhook">Вебхук</string>
+    <string name="trigger_plugin_event">Событие плагина</string>
     <string name="trigger_rom_setting">Настройка ROM</string>
     <string name="trigger_headphone">Наушники</string>
     <string name="trigger_charger">Зарядка</string>

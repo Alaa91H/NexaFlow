@@ -18,7 +18,9 @@ import kotlinx.serialization.json.Json
 data class BackupFile(
     val version: Int,
     val exportedAt: Long,
-    val automations: List<Automation>
+    val automations: List<Automation>,
+    /** Derived review index only; regenerated from actions at every boundary. */
+    val pluginDependencies: List<PluginDependency> = emptyList()
 )
 
 sealed interface ImportResult {
@@ -60,7 +62,8 @@ class BackupManager(
         return BackupFile(
             version = BACKUP_VERSION,
             exportedAt = System.currentTimeMillis(),
-            automations = automations
+            automations = automations,
+            pluginDependencies = PluginDependencyScanner.scan(automations)
         )
     }
 
@@ -95,7 +98,12 @@ class BackupManager(
             val validation = WorkflowValidator.validate(automation)
             if (!validation.isValid) return BackupPreflight.InvalidWorkflow(automation.id, validation.issues)
         }
-        return BackupPreflight.Ready(backup)
+        // Incoming dependency metadata is descriptive and may be stale or
+        // tampered with. Rebuild it from the typed workflow actions before UI
+        // review or saving, and never treat it as an authority for execution.
+        return BackupPreflight.Ready(
+            backup.copy(pluginDependencies = PluginDependencyScanner.scan(backup.automations))
+        )
     }
 
     /**

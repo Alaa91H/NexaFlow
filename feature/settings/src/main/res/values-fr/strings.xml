@@ -7,9 +7,9 @@
     <string name="accessibility_disabled">Désactivé — les déclencheurs d\u2019application ne se déclencheront pas</string>
 
 
-    <string name="accessibility_disclosure_title">Activer la détection des applications</string>
-    <string name="accessibility_disclosure_message">NexaFlow utilise le service d’accessibilité Android uniquement pour détecter l’application au premier plan des automatisations que vous créez. Il ne lit ni ne partage le contenu de votre écran. Continuez seulement si vous voulez activer les déclencheurs d’applications.</string>
-    <string name="accessibility_disclosure_continue">Vérifier le réglage système</string>
+    <string name="accessibility_disclosure_title">Activer une automatisation d’accessibilité limitée</string>
+    <string name="accessibility_disclosure_message">NexaFlow utilise le service d’accessibilité Android pour détecter l’application au premier plan et, uniquement pour une tâche que vous créez et approuvez explicitement, trouver ou interagir avec un élément d’écran précis dans l’application actuellement ouverte. Il ne collecte ni ne partage le contenu de votre écran. Continuez seulement si vous souhaitez activer ces déclencheurs et interactions limités.</string>
+    <string name="accessibility_disclosure_continue">Accepter et vérifier le réglage système</string>
 
     
 

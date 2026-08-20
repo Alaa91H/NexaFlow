@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.pluginsdk.PluginDiscoveryRegistry
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -28,6 +29,7 @@ class PackageMonitor @Inject constructor(
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
     private val activeStore: ActiveTriggerStore,
+    private val pluginDiscoveryRegistry: PluginDiscoveryRegistry,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -54,6 +56,9 @@ class PackageMonitor @Inject constructor(
                 else -> return
             }
             val pkg = intent.data?.schemeSpecificPart ?: return
+            // Reuse this existing package lifecycle source: registry discovery
+            // remains lazy and performs no background scan until a consumer asks.
+            pluginDiscoveryRegistry.invalidate()
             handleEvent(event, pkg)
         }
     }

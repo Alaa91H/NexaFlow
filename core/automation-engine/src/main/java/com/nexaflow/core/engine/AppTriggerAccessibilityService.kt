@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.view.accessibility.AccessibilityEvent
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.capability.AccessibilityInteractionBridge
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
@@ -37,6 +38,9 @@ class AppTriggerAccessibilityService : AccessibilityService() {
     lateinit var executionEngine: ExecutionEngine
 
     @Inject
+    lateinit var accessibilityBridge: AccessibilityInteractionBridge
+
+    @Inject
     @ApplicationScope
     lateinit var scope: CoroutineScope
 
@@ -48,6 +52,16 @@ class AppTriggerAccessibilityService : AccessibilityService() {
     // spawns a coroutine; serializing keeps two rapid foreground switches from
     // racing the tracker's maps (double Run / lost Exit).
     private val eventMutex = Mutex()
+
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        accessibilityBridge.attach(this)
+    }
+
+    override fun onDestroy() {
+        accessibilityBridge.detach(this)
+        super.onDestroy()
+    }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return

@@ -5,9 +5,9 @@
     <string name="accessibility_service">Accessibility service</string>
 
     <string name="accessibility_disabled">Off — app triggers won\'t fire</string>
-    <string name="accessibility_disclosure_title">Enable app detection</string>
-    <string name="accessibility_disclosure_message">NexaFlow uses the Android AccessibilityService only to detect which app is in the foreground for automations you create. It does not read or share your screen content. Continue only if you want to enable app-based triggers.</string>
-    <string name="accessibility_disclosure_continue">Review system setting</string>
+    <string name="accessibility_disclosure_title">Enable limited accessibility automation</string>
+    <string name="accessibility_disclosure_message">NexaFlow uses the Android AccessibilityService to detect the foreground app and, only for a task you explicitly create and approve, find or interact with a specific screen element in the app currently open. It does not collect or share screen content. Continue only if you want to enable these limited app triggers and interactions.</string>
+    <string name="accessibility_disclosure_continue">Acknowledge and review system setting</string>
 
     
 
@@ -111,6 +111,8 @@
     <string name="plugin_test_timeout">Plugin did not respond in time</string>
     <string name="plugin_test_pending">Plugin is still working</string>
     <string name="plugin_test_success">Plugin responded OK</string>
+    <string name="plugin_health_title">Plugin health</string>
+    <string name="plugin_health_sub">%1$d ready · %2$d partial · %3$d unavailable</string>
     <string name="section_updates">Updates</string>
     <string name="update_check">Check for updates</string>
     <string name="update_check_sub">Check GitHub for a newer version</string>

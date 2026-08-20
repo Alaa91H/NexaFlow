@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.DoNotDisturbOn
 import androidx.compose.material.icons.filled.AirplanemodeActive
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalBottomSheet
@@ -118,6 +119,10 @@ internal fun ConstraintType.labelRes(): Int = when (this) {
     ConstraintType.AIRPLANE -> R.string.constraint_type_airplane
     ConstraintType.CHARGING -> R.string.constraint_type_charging
     ConstraintType.LOCATION -> R.string.constraint_type_location
+    // Plugin conditions are created only by the verified plugin configuration
+    // flow; a persisted/imported instance remains visible but is not selectable
+    // from the generic constraint picker.
+    ConstraintType.PLUGIN -> R.string.category_plugins
 }
 
 internal fun ConstraintType.subtitleRes(): Int = when (this) {
@@ -130,6 +135,7 @@ internal fun ConstraintType.subtitleRes(): Int = when (this) {
     ConstraintType.AIRPLANE -> R.string.constraint_type_airplane_sub
     ConstraintType.CHARGING -> R.string.constraint_type_charging_sub
     ConstraintType.LOCATION -> R.string.constraint_type_location_sub
+    ConstraintType.PLUGIN -> R.string.plugin_no_edit
 }
 
 internal fun ConstraintType.icon(): ImageVector = when (this) {
@@ -142,6 +148,7 @@ internal fun ConstraintType.icon(): ImageVector = when (this) {
     ConstraintType.AIRPLANE -> Icons.Filled.AirplanemodeActive
     ConstraintType.CHARGING -> Icons.Filled.BatteryChargingFull
     ConstraintType.LOCATION -> Icons.Filled.MyLocation
+    ConstraintType.PLUGIN -> Icons.Filled.Extension
 }
 
 /** Lets the user choose which constraint to add. */
@@ -423,7 +430,8 @@ fun ConstraintEditorCard(
                 }
                 ConstraintType.WIFI,
                 ConstraintType.SCREEN_LOCKED,
-                ConstraintType.HEADSET -> {
+                ConstraintType.HEADSET,
+                ConstraintType.PLUGIN -> {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     Text(
                         text = stringResource(draft.type.subtitleRes()),

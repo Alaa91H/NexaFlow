@@ -11,7 +11,19 @@ data class PluginManifest(
     val displayName: String,
     val protocolVersion: Int = PluginConfigParser.SDK_VERSION,
     val minimumHostProtocolVersion: Int = PluginConfigParser.SDK_VERSION,
-    val declaredActionIds: Set<String> = emptySet()
+    /** Legacy action identifiers retained for previously exported manifests. */
+    val declaredActionIds: Set<String> = emptySet(),
+    /** Stable edit Activity identity when the manifest represents a configured host instance. */
+    val editActivityClass: String? = null,
+    val type: PluginType = PluginType.SETTING,
+    val protocols: Set<PluginProtocol> = setOf(PluginProtocol.LOCALE_BASE),
+    val declaredCapabilities: List<PluginCapabilityDeclaration> = emptyList(),
+    val requiredChecks: Set<PluginPermissionRequirement> = emptySet(),
+    val supportsConfiguration: Boolean = false,
+    val supportsOutputVariables: Boolean = false,
+    val supportsEventPayload: Boolean = false,
+    /** External manifests stay untrusted unless a user-policy layer explicitly approves them. */
+    val trustLevel: PluginTrustLevel = PluginTrustLevel.UNTRUSTED
 )
 
 enum class PluginManifestIssue {
@@ -20,7 +32,10 @@ enum class PluginManifestIssue {
     BLANK_LABEL,
     UNSUPPORTED_PROTOCOL,
     INVALID_ACTION_ID,
-    TOO_MANY_ACTIONS
+    TOO_MANY_ACTIONS,
+    INVALID_EDIT_ACTIVITY,
+    MISSING_PROTOCOL,
+    DUPLICATE_CAPABILITY
 }
 
 data class PluginManifestValidation(val issues: List<PluginManifestIssue>) {
@@ -44,6 +59,13 @@ object PluginManifestValidator {
             ) add(PluginManifestIssue.UNSUPPORTED_PROTOCOL)
             if (manifest.declaredActionIds.size > MAX_ACTIONS) add(PluginManifestIssue.TOO_MANY_ACTIONS)
             if (manifest.declaredActionIds.any { !actionId.matches(it) }) add(PluginManifestIssue.INVALID_ACTION_ID)
+            if (manifest.editActivityClass != null && !className.matches(manifest.editActivityClass)) {
+                add(PluginManifestIssue.INVALID_EDIT_ACTIVITY)
+            }
+            if (manifest.protocols.isEmpty()) add(PluginManifestIssue.MISSING_PROTOCOL)
+            if (manifest.declaredCapabilities.map { it.id }.distinct().size != manifest.declaredCapabilities.size) {
+                add(PluginManifestIssue.DUPLICATE_CAPABILITY)
+            }
         }
         return PluginManifestValidation(issues)
     }

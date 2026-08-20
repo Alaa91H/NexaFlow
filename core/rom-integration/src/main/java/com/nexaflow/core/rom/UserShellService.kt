@@ -23,12 +23,24 @@ import java.util.concurrent.TimeUnit
 class UserShellService : Service() {
 
     private val binder = object : IUserShellService.Stub() {
-        override fun exec(command: String): String {
-            return try {
-                runCommand(command)
-            } catch (t: Throwable) {
-                "$INTERNAL_ERROR_EXIT\n${t.message ?: "internal error"}"
-            }
+        /** Compatibility-only path for legacy SystemController callers. */
+        override fun exec(command: String): String = try {
+            runCommand(command)
+        } catch (t: Throwable) {
+            "$INTERNAL_ERROR_EXIT\n${t.message ?: "internal error"}"
+        }
+
+        override fun executeOperation(
+            operationId: String,
+            first: String,
+            second: String,
+            third: String
+        ): String = try {
+            val operation = PrivilegedOperation.fromWire(operationId, first, second, third)
+                ?: return "$INTERNAL_ERROR_EXIT\nUnsupported or invalid privileged operation"
+            runArgv(operation.argv())
+        } catch (t: Throwable) {
+            "$INTERNAL_ERROR_EXIT\n${t.message ?: "internal error"}"
         }
     }
 
@@ -39,8 +51,12 @@ class UserShellService : Service() {
      * the caller (or the binder thread) forever. stdout and stderr are merged,
      * matching the legacy `ShizukuRemoteProcess` behaviour.
      */
-    private fun runCommand(command: String): String {
-        val process = ProcessBuilder("sh", "-c", command)
+    private fun runCommand(command: String): String =
+        runArgv(listOf("sh", "-c", command))
+
+    /** Runs typed argv directly; no operation-controlled shell parsing occurs. */
+    private fun runArgv(argv: List<String>): String {
+        val process = ProcessBuilder(argv)
             .redirectErrorStream(true)
             .start()
         val output = StringBuilder()

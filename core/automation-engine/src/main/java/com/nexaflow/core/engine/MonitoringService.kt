@@ -93,6 +93,12 @@ class MonitoringService : Service() {
     lateinit var triggerIndex: TriggerIndex
 
     @Inject
+    lateinit var pluginEventSource: PluginEventSource
+
+    @Inject
+    lateinit var pluginEventRouter: PluginEventRouter
+
+    @Inject
     lateinit var activeTriggerStore: ActiveTriggerStore
 
     /**
@@ -133,6 +139,10 @@ class MonitoringService : Service() {
         // before the first re-arm read — no race between the two.
         monitorStartupJob = scope.launch {
             activeTriggerStore.purgeExpired()
+            // Subscription is established before the external receiver is
+            // registered, preserving the EventBus → TriggerIndex route and
+            // preventing any direct plugin callback execution.
+            pluginEventRouter.start()
             startMonitors()
             runCatching { romSettingMonitor.initialize() }
                 .onFailure { Log.w(TAG, "monitor 'rom-setting' failed to initialize", it) }
@@ -162,7 +172,8 @@ class MonitoringService : Service() {
             "settings-state" to { settingsStateMonitor.initialize() },
             "media" to { mediaMonitor.initialize() },
             "volume" to { volumeMonitor.initialize() },
-            "device-state-28" to { deviceStateMonitor28.initialize() }
+            "device-state-28" to { deviceStateMonitor28.initialize() },
+            "plugin-event" to { pluginEventSource.start() }
         )
         monitors.forEach { (name, init) ->
             runCatching { init() }
@@ -241,6 +252,8 @@ class MonitoringService : Service() {
         mediaMonitor.stop()
         volumeMonitor.stop()
         deviceStateMonitor28.stop()
+        pluginEventSource.stop()
+        pluginEventRouter.stop()
     }
 
     /**

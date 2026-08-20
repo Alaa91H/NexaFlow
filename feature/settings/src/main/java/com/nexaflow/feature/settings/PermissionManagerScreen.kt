@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
+import com.nexaflow.core.execution.capability.AccessibilityCapabilityConsent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -140,6 +141,9 @@ fun PermissionManagerScreen(navController: NavController) {
             text = { Text(text = stringResource(R.string.accessibility_disclosure_message)) },
             confirmButton = {
                 TextButton(onClick = {
+                    // Explicit in-app acknowledgement is required in addition
+                    // to the platform accessibility-service toggle.
+                    AccessibilityCapabilityConsent.grant(context)
                     showAccessibilityDisclosure = false
                     PermissionStatus.openAccessibilitySettings(context)
                 }) {

@@ -35,6 +35,7 @@
     <string name="trigger_calendar">Takvim etkinliği</string>
     <string name="trigger_sensor">Sensör</string>
     <string name="trigger_webhook">Webhook</string>
+    <string name="trigger_plugin_event">Eklenti olayı</string>
     <string name="trigger_rom_setting">ROM ayarı</string>
     <string name="trigger_headphone">Kulaklık</string>
     <string name="trigger_charger">Şarj</string>

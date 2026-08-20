@@ -1,8 +1,8 @@
 package com.nexaflow.data.repository
 
-import android.content.Context
-import android.content.Intent
-import com.nexaflow.core.pluginsdk.LocaleContract
+import com.nexaflow.core.pluginsdk.PluginCompatibilityStatus
+import com.nexaflow.core.pluginsdk.PluginDiscoveryRegistry
+import com.nexaflow.core.pluginsdk.PluginType
 import com.nexaflow.domain.models.PluginInfo
 import com.nexaflow.domain.repositories.PluginRepository
 import kotlinx.coroutines.Dispatchers
@@ -10,35 +10,36 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
- * Discovers Locale-compatible plugins through the package manager: any app
- * with an exported receiver for the FIRE_SETTING broadcast (exactly what
- * Tasker / MacroDroid / Automate expose as "Locale plugins").
- *
- * The app manifest already declares QUERY_ALL_PACKAGES, so receivers of every
- * installed app are visible (no per-package `<queries>` needed).
+ * Legacy picker facade over the protocol-aware registry. A plug-in is listed
+ * only when the public Locale setting Activity/receiver pair is discoverable
+ * and valid under Android package-visibility rules.
  */
 class PluginRepositoryImpl @Inject constructor(
-    private val context: Context
+    private val registry: PluginDiscoveryRegistry
 ) : PluginRepository {
 
+    /**
+     * Preserves the legacy picker contract while delegating discovery to the
+     * shared protocol-aware registry. Package lifecycle events invalidate this
+     * cache; discovery itself is still demand-driven and never periodic.
+     */
+
     override suspend fun discoverPlugins(): List<PluginInfo> = withContext(Dispatchers.IO) {
-        val pm = context.packageManager
-        val intent = Intent(LocaleContract.ACTION_FIRE_SETTING)
-        runCatching {
-            pm.queryBroadcastReceivers(intent, 0)
-                .mapNotNull { resolveInfo ->
-                    val info = resolveInfo.activityInfo ?: return@mapNotNull null
-                    PluginInfo(
-                        packageName = info.packageName,
-                        receiverClass = info.name,
-                        label = runCatching {
-                            resolveInfo.loadLabel(pm).toString()
-                        }.getOrDefault(info.packageName)
-                    )
-                }
-                // One receiver per plugin — the picker lists plugins, not actions.
-                .distinctBy { it.receiverClass }
-                .sortedBy { it.label.lowercase() }
-        }.getOrDefault(emptyList())
+        registry.refresh().descriptors
+            .asSequence()
+            .filter { it.type == PluginType.SETTING }
+            .filter { it.compatibility == PluginCompatibilityStatus.COMPATIBLE }
+            .mapNotNull { descriptor ->
+                val receiver = descriptor.receiver ?: return@mapNotNull null
+                PluginInfo(
+                    packageName = descriptor.packageName,
+                    receiverClass = receiver.className,
+                    label = descriptor.displayName,
+                    editActivityClass = descriptor.editActivity?.className.orEmpty()
+                )
+            }
+            .distinctBy { it.packageName to it.receiverClass }
+            .sortedBy { it.label.lowercase() }
+            .toList()
     }
 }

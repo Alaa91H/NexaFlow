@@ -29,6 +29,36 @@ object CapabilityActionMapper {
             actionId = action.type.name
         )
 
+        ActionType.SYSTEM_OPEN_SETTINGS -> CapabilityRequest(
+            capability = CapabilityId.SETTINGS_LAUNCH,
+            parameters = mapOf("page" to action.config["page"].orEmpty()),
+            verification = VerificationMode.NONE,
+            workflowId = workflowId,
+            executionId = executionId,
+            actionId = action.type.name
+        )
+
+        ActionType.PLUGIN_FIRE -> {
+            val instance = action.config["pluginInstance"]
+            val approved = action.config["pluginApproval"] == "approved"
+            if (instance.isNullOrBlank() || !approved) {
+                // Existing saved automations predate the opaque reference. Keep
+                // their reviewed handler path until the user reconfigures them.
+                null
+            } else {
+                CapabilityRequest(
+                    capability = CapabilityId.PLUGIN_ACTION,
+                    // The protocol Bundle remains in persisted action config.
+                    // Only a validated opaque reference crosses this boundary.
+                    parameters = mapOf("pluginInstance" to instance),
+                    verification = VerificationMode.BEST_EFFORT,
+                    workflowId = workflowId,
+                    executionId = executionId,
+                    actionId = action.type.name
+                )
+            }
+        }
+
         else -> null
     }
 }

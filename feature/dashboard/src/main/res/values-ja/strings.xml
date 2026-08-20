@@ -35,6 +35,7 @@
     <string name="trigger_calendar">カレンダーの予定</string>
     <string name="trigger_sensor">センサー</string>
     <string name="trigger_webhook">ウェブフック</string>
+    <string name="trigger_plugin_event">プラグインイベント</string>
     <string name="trigger_rom_setting">ROM設定</string>
     <string name="trigger_headphone">ヘッドホン</string>
     <string name="trigger_charger">充電器</string>

@@ -66,6 +66,8 @@ kotlin {
 }
 
 dependencies {
+    // Discovery refresh is explicit and serialized; no background polling is introduced.
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
     // Pure framework protocol module: android.os/content/app + org.json only.
     testImplementation(libs.junit.junit)
     testImplementation(libs.androidx.test.core)

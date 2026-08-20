@@ -51,10 +51,9 @@ object PrivilegedRunner {
     }
 
     /**
-     * Runs one command through the Shizuku channel. Prefers the bound AIDL
-     * UserService ([ShizukuShellBridge]) and gracefully falls back to the
-     * legacy `Shizuku.newProcess` reflection path while API 13.x servers are
-     * still in the wild (`newProcess` is removed in Shizuku API 14).
+     * Compatibility-only command bridge through the bound Shizuku UserService.
+     * It never reflects into `Shizuku.newProcess`; new workflow capabilities
+     * must use [runShizukuOperation] with a closed [PrivilegedOperation].
      */
     fun runShizuku(command: String): SystemControlResult {
         if (!isShizukuGranted()) {
@@ -63,6 +62,38 @@ object PrivilegedRunner {
         val safe = SafeCommandBuilder.validateUserCommand(command)
             ?: return SystemControlResult.fail("Command rejected: unsafe characters or too long")
         return ShizukuShellBridge.execute(safe)
+    }
+
+    /** New typed path: Shizuku only, no Root fallback and no generic command input. */
+    fun runShizukuOperation(operation: PrivilegedOperation): SystemControlResult {
+        if (!isShizukuGranted()) {
+            return SystemControlResult.fail("Shizuku is not granted. Open the Shizuku app and grant NexaFlow")
+        }
+        return ShizukuShellBridge.executeOperation(operation)
+    }
+
+    /** New typed path: Root only, no Shizuku/ADB fallback and no generic command input. */
+    fun runRootOperation(operation: PrivilegedOperation): SystemControlResult {
+        if (!isRootAvailable()) {
+            return SystemControlResult.fail("Root is not available. Grant NexaFlow in your root manager")
+        }
+        return try {
+            val command = operation.rootCommand()
+            val attempts = listOf(
+                arrayOf("su", "-c", command),
+                arrayOf("su", "0", "-c", command),
+                arrayOf("/system/bin/su", "-c", command)
+            )
+            var lastFailure: String? = null
+            for (attempt in attempts) {
+                val result = runSu(attempt)
+                if (result.success) return result
+                lastFailure = result.message
+            }
+            SystemControlResult.fail(lastFailure ?: "Root operation failed")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Root operation failed: ${t.message}")
+        }
     }
 
     /**

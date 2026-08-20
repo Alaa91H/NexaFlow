@@ -5,9 +5,9 @@
     <string name="accessibility_service">خدمة إمكانية الوصول</string>
 
     <string name="accessibility_disabled">متوقفة — لن تعمل مشغّلات التطبيق</string>
-    <string name="accessibility_disclosure_title">تفعيل اكتشاف التطبيق</string>
-    <string name="accessibility_disclosure_message">يستخدم NexaFlow خدمة إمكانية الوصول في Android لاكتشاف التطبيق الظاهر في الواجهة لأتمتة تنشئها أنت فقط. لا يقرأ محتوى الشاشة ولا يشاركه. تابع فقط إذا أردت تفعيل مشغلات التطبيقات.</string>
-    <string name="accessibility_disclosure_continue">مراجعة إعداد النظام</string>
+    <string name="accessibility_disclosure_title">تفعيل أتمتة وصول محدودة</string>
+    <string name="accessibility_disclosure_message">يستخدم NexaFlow خدمة إمكانية الوصول في Android لاكتشاف التطبيق الظاهر، وللبحث عن عنصر واجهة محدد أو التفاعل معه فقط ضمن مهمة تنشئها وتوافق عليها صراحةً وفي التطبيق المفتوح حالياً. لا يجمع محتوى الشاشة أو يشاركه. تابع فقط إذا أردت تفعيل هذه المشغلات والتفاعلات المحدودة.</string>
+    <string name="accessibility_disclosure_continue">أوافق وأراجع إعداد النظام</string>
 
     
 

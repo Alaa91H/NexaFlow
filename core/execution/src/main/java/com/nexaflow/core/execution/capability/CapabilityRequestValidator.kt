@@ -35,6 +35,8 @@ data class CapabilityValidationResult(val issues: List<CapabilityValidationIssue
 object CapabilityRequestValidator {
     private const val MAX_PARAMETERS = 32
     private val packageName = Regex("[A-Za-z][A-Za-z0-9_]*(?:\\.[A-Za-z][A-Za-z0-9_]*)+")
+    /** Non-secret backend handle such as a persisted plug-in instance id, never a Bundle or command. */
+    private val opaqueReference = Regex("[A-Za-z][A-Za-z0-9_.:/-]{0,191}")
 
     fun validate(descriptor: CapabilityDescriptor?, request: CapabilityRequest): CapabilityValidationResult {
         if (descriptor == null) {
@@ -81,6 +83,7 @@ object CapabilityRequestValidator {
             CapabilityParameterType.PACKAGE_NAME -> packageName.matches(value)
             CapabilityParameterType.HTTPS_URL -> value.startsWith("https://") && value.length > "https://".length
             CapabilityParameterType.CONTENT_URI -> value.startsWith("content://") && value.length > "content://".length
+            CapabilityParameterType.OPAQUE_REFERENCE -> opaqueReference.matches(value)
         }
         if (!typeValid) {
             issues += CapabilityValidationIssue(spec.name, CapabilityValidationCode.TYPE_MISMATCH, "Parameter has an invalid ${spec.type} value")

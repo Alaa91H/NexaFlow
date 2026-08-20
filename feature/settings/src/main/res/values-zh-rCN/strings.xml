@@ -7,9 +7,9 @@
     <string name="accessibility_disabled">已关闭 — 应用触发器不会触发</string>
 
 
-    <string name="accessibility_disclosure_title">启用应用检测</string>
-    <string name="accessibility_disclosure_message">NexaFlow 仅使用 Android 无障碍服务来检测您创建的自动化所需的前台应用。它不会读取或分享您的屏幕内容。仅当您要启用应用触发器时继续。</string>
-    <string name="accessibility_disclosure_continue">查看系统设置</string>
+    <string name="accessibility_disclosure_title">启用受限的无障碍自动化</string>
+    <string name="accessibility_disclosure_message">NexaFlow 使用 Android 无障碍服务检测前台应用，并且仅针对您明确创建和批准的任务，在当前打开的应用中查找或操作特定屏幕元素。它不会收集或分享屏幕内容。仅当您希望启用这些受限触发器和交互时继续。</string>
+    <string name="accessibility_disclosure_continue">同意并查看系统设置</string>
 
     
 

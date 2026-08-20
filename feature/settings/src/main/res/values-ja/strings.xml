@@ -7,9 +7,9 @@
     <string name="accessibility_disabled">オフ — アプリトリガーは作動しません</string>
 
 
-    <string name="accessibility_disclosure_title">アプリ検出を有効にする</string>
-    <string name="accessibility_disclosure_message">NexaFlow は、作成した自動化のために前面のアプリを検出する目的だけで Android のアクセシビリティ サービスを使用します。画面の内容を読み取ったり共有したりすることはありません。アプリトリガーを有効にする場合のみ続行してください。</string>
-    <string name="accessibility_disclosure_continue">システム設定を確認</string>
+    <string name="accessibility_disclosure_title">制限付きアクセシビリティ自動化を有効にする</string>
+    <string name="accessibility_disclosure_message">NexaFlow は前面のアプリを検出するため、また明示的に作成・承認したタスクに限り、現在開いているアプリ内の特定の画面要素を見つけたり操作したりするために Android のアクセシビリティ サービスを使用します。画面内容を収集または共有することはありません。これらの制限付きトリガーと操作を有効にする場合のみ続行してください。</string>
+    <string name="accessibility_disclosure_continue">同意してシステム設定を確認</string>
 
     
 

@@ -21,15 +21,25 @@ import com.nexaflow.core.execution.capability.AndroidCapabilityDeviceStateReader
 import com.nexaflow.core.execution.capability.AndroidIntentCapabilityBackend
 import com.nexaflow.core.execution.capability.AndroidPublicCapabilityBackend
 import com.nexaflow.core.execution.capability.AndroidPublicCapabilityCatalog
+import com.nexaflow.core.execution.capability.AccessibilityCapabilityBackend
+import com.nexaflow.core.execution.capability.AccessibilityCapabilityCatalog
+import com.nexaflow.core.execution.capability.AccessibilityInteractionBridge
 import com.nexaflow.core.execution.capability.CapabilityExecutionService
 import com.nexaflow.core.execution.capability.CapabilityRegistry
 import com.nexaflow.core.execution.capability.CapabilityResolver
+import com.nexaflow.core.execution.capability.PluginCapabilityBackend
+import com.nexaflow.core.execution.capability.PluginCapabilityCatalog
+import com.nexaflow.core.execution.capability.PluginConditionCapabilityCatalog
+import com.nexaflow.core.execution.capability.PrivilegedCapabilityCatalog
+import com.nexaflow.core.execution.capability.RootCapabilityBackend
+import com.nexaflow.core.execution.capability.ShizukuCapabilityBackend
 import com.nexaflow.core.execution.compat.AutomationWorkflowRunner
 import com.nexaflow.core.execution.dryrun.WorkflowDryRunService
 import com.nexaflow.core.execution.recovery.ExecutionRecoveryCoordinator
 import com.nexaflow.core.logging.InMemoryLogStore
 import com.nexaflow.core.logging.LogStore
 import com.nexaflow.core.logging.RedactingLogStore
+import com.nexaflow.core.pluginsdk.PluginDiscoveryRegistry
 import com.nexaflow.core.security.KeystoreSecureStorage
 import com.nexaflow.core.security.SecureStorage
 import com.nexaflow.data.backup.BackupManager
@@ -102,8 +112,14 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun providePluginRepository(@ApplicationContext context: Context): PluginRepository {
-        return PluginRepositoryImpl(context)
+    fun providePluginDiscoveryRegistry(@ApplicationContext context: Context): PluginDiscoveryRegistry {
+        return PluginDiscoveryRegistry(context)
+    }
+
+    @Provides
+    @Singleton
+    fun providePluginRepository(registry: PluginDiscoveryRegistry): PluginRepository {
+        return PluginRepositoryImpl(registry)
     }
 
     @Provides
@@ -184,12 +200,31 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideCapabilityRegistry(@ApplicationContext context: Context): CapabilityRegistry =
+    fun provideAccessibilityInteractionBridge(): AccessibilityInteractionBridge = AccessibilityInteractionBridge()
+
+    @Provides
+    @Singleton
+    fun provideCapabilityRegistry(
+        @ApplicationContext context: Context,
+        automationRepository: AutomationRepository,
+        pluginDiscoveryRegistry: PluginDiscoveryRegistry,
+        accessibilityBridge: AccessibilityInteractionBridge
+    ): CapabilityRegistry =
         CapabilityRegistry.of(
-            descriptors = AndroidPublicCapabilityCatalog.descriptors(),
+            descriptors = AndroidPublicCapabilityCatalog.descriptors() +
+                PluginCapabilityCatalog.descriptors() +
+                PluginConditionCapabilityCatalog.descriptors() +
+                PrivilegedCapabilityCatalog.descriptors() +
+                AccessibilityCapabilityCatalog.descriptors(),
             backends = listOf(
                 AndroidPublicCapabilityBackend(context),
-                AndroidIntentCapabilityBackend(context)
+                AndroidIntentCapabilityBackend(context),
+                PluginCapabilityBackend(context, automationRepository, pluginDiscoveryRegistry),
+                // Both channels require explicit request-policy selection; the
+                // resolver never falls through from Shizuku to Root or vice versa.
+                ShizukuCapabilityBackend(),
+                RootCapabilityBackend(),
+                AccessibilityCapabilityBackend(context, accessibilityBridge)
             )
         )
 

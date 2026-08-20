@@ -7,9 +7,9 @@
     <string name="accessibility_disabled">Выключена — триггеры приложений не сработают</string>
 
 
-    <string name="accessibility_disclosure_title">Включить обнаружение приложений</string>
-    <string name="accessibility_disclosure_message">NexaFlow использует службу специальных возможностей Android только для определения активного приложения в созданных вами автоматизациях. Содержимое экрана не читается и не передаётся. Продолжайте, только если хотите включить триггеры приложений.</string>
-    <string name="accessibility_disclosure_continue">Проверить системные настройки</string>
+    <string name="accessibility_disclosure_title">Включить ограниченную автоматизацию специальных возможностей</string>
+    <string name="accessibility_disclosure_message">NexaFlow использует службу специальных возможностей Android для определения активного приложения и только для задачи, которую вы явно создаёте и подтверждаете, чтобы найти или использовать конкретный элемент экрана в открытом сейчас приложении. Содержимое экрана не собирается и не передаётся. Продолжайте только если хотите включить эти ограниченные триггеры и взаимодействия.</string>
+    <string name="accessibility_disclosure_continue">Подтвердить и проверить системные настройки</string>
 
     
 

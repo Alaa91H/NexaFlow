@@ -38,5 +38,11 @@ enum class ConstraintType {
     /** Device must be charging or not (`state` = CHARGING|NOT_CHARGING). */
     CHARGING,
     /** Location services must be enabled or disabled (`state` = ON|OFF). */
-    LOCATION
+    LOCATION,
+    /**
+     * Reads one saved, approved Locale-compatible plug-in condition. Its config
+     * stores only an opaque `pluginInstance` plus protocol metadata; the Android
+     * Bundle is decoded inside the execution adapter.
+     */
+    PLUGIN
 }

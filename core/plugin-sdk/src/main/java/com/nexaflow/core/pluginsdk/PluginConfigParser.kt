@@ -74,10 +74,17 @@ object PluginConfigParser {
     /** Parses a JSON object string into a plain [Map]. Invalid JSON → empty. */
     fun parseJson(json: String): Map<String, Any?> {
         if (json.isBlank()) return emptyMap()
-        return runCatching {
-            val root = JSONObject(json)
-            jsonObjectToMap(root)
-        }.getOrDefault(emptyMap())
+        return runCatching { parseJsonStrict(json) }.getOrDefault(emptyMap())
+    }
+
+    /**
+     * Strict variant for execution boundaries. A malformed or absent saved
+     * configuration must fail before a plug-in is fired, never degrade to an
+     * empty Bundle that could trigger an unintended default action.
+     */
+    fun parseJsonStrict(json: String): Map<String, Any?> {
+        require(json.isNotBlank()) { "Plugin configuration JSON is missing" }
+        return jsonObjectToMap(JSONObject(json))
     }
 
     /** Serializes [config] to a JSON object string (values are primitives). */

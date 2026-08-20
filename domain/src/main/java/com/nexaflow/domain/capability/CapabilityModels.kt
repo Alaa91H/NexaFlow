@@ -1,7 +1,9 @@
 package com.nexaflow.domain.capability
 
 import androidx.compose.runtime.Immutable
+import com.nexaflow.domain.models.ConditionResult
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * A device operation requested by the workflow. The identifier deliberately
@@ -17,8 +19,30 @@ enum class CapabilityId {
     PACKAGE_CLEAR_DATA,
     UPDATE_APPS,
     INTENT_LAUNCH,
+    /** Launches one allowlisted Android Settings page through a public intent. */
+    SETTINGS_LAUNCH,
     NETWORK_HTTP_REQUEST,
-    DEVICE_STATE_READ
+    DEVICE_STATE_READ,
+    /** Invokes a persisted, validated external plug-in instance through PluginBackend. */
+    PLUGIN_ACTION,
+    /** Reads a persisted plug-in condition through PluginBackend without collapsing UNKNOWN. */
+    PLUGIN_CONDITION_READ,
+    /** Writes one allowlisted system/secure/global setting by typed namespace/key/value. */
+    SYSTEM_SETTING_WRITE,
+    /** Copies one controlled file path within the backend allowlist; never runs arbitrary paths. */
+    FILE_COPY,
+    /** Finds one bounded selector in the active window of an explicitly approved app. */
+    ACCESSIBILITY_FIND_NODE,
+    /** Clicks one bounded selector in the active window of an explicitly approved app. */
+    ACCESSIBILITY_CLICK,
+    /** Scrolls one bounded selector in the active window of an explicitly approved app. */
+    ACCESSIBILITY_SCROLL,
+    /** Inputs bounded text into one selector in the active window of an explicitly approved app. */
+    ACCESSIBILITY_INPUT_TEXT,
+    /** Waits within policy timeout for one bounded selector in the active approved app window. */
+    ACCESSIBILITY_WAIT_FOR_NODE,
+    /** Dispatches one constrained gesture while the requested app owns the active window. */
+    ACCESSIBILITY_GESTURE
 }
 
 /** A concrete execution channel that may implement one or more capabilities. */
@@ -34,18 +58,36 @@ enum class CapabilityBackendId {
     ADB,
     OEM,
     NATIVE,
-    NETWORK
+    NETWORK,
+    /** Explicit adapter boundary for an installed external automation plug-in. */
+    PLUGIN
 }
 
 /** The highest trust boundary a capability backend must cross. */
 @Serializable
 enum class PrivilegeLevel {
+    /** No privileged execution channel is required. */
+    NONE,
+    /**
+     * Legacy synonym retained for serialized descriptors created before the
+     * privilege taxonomy was made explicit. New descriptors should use [NONE].
+     */
+    @Deprecated("Use NONE for new capability descriptors")
     NORMAL,
+    /** Legacy platform taxonomy retained for persisted descriptors. */
+    @Deprecated("Use a concrete backend/policy instead")
     SYSTEM,
+    /** Legacy platform taxonomy retained for persisted descriptors. */
+    @Deprecated("Accessibility is a backend, not a privilege level")
     ACCESSIBILITY,
+    /** Shell identity provided by a real, currently connected ADB channel. */
+    ADB_SHELL,
     SHIZUKU,
     ROOT,
+    /** Legacy non-platform categories retained only for compatibility. */
+    @Deprecated("Network is not a privilege level")
     NETWORK,
+    @Deprecated("Native is not a privilege level")
     NATIVE
 }
 
@@ -87,7 +129,9 @@ enum class CapabilityErrorCode {
     PERMISSION_DENIED,
     POLICY_NOT_SATISFIED,
     ROOT_UNAVAILABLE,
+    ROOT_DENIED,
     SHIZUKU_UNAVAILABLE,
+    SHIZUKU_DENIED,
     ACCESSIBILITY_UNAVAILABLE,
     ADB_UNAVAILABLE,
     OEM_UNSUPPORTED,
@@ -101,6 +145,10 @@ enum class CapabilityErrorCode {
     TIMEOUT,
     CANCELLED,
     NETWORK_ERROR,
+    PLUGIN_MISSING_DEPENDENCY,
+    PLUGIN_NOT_APPROVED,
+    PLUGIN_UNAVAILABLE,
+    PLUGIN_INVALID_RESULT,
     INVALID_CONFIGURATION,
     UNKNOWN_ERROR
 }
@@ -170,7 +218,9 @@ enum class CapabilityParameterType {
     INTEGER,
     PACKAGE_NAME,
     HTTPS_URL,
-    CONTENT_URI
+    CONTENT_URI,
+    /** A non-secret identifier resolved by a backend; it is never a raw command or Bundle. */
+    OPAQUE_REFERENCE
 }
 
 /** Declarative allowlist for one request parameter; arbitrary command fields are never valid. */
@@ -211,7 +261,7 @@ data class CapabilityDescriptor(
     val description: String,
     val minAndroidApi: Int = 26,
     val requiredPermissions: List<String> = emptyList(),
-    val minimumPrivilege: PrivilegeLevel = PrivilegeLevel.NORMAL,
+    val minimumPrivilege: PrivilegeLevel = PrivilegeLevel.NONE,
     val risk: CapabilityRiskLevel = CapabilityRiskLevel.LOW,
     val supportedBackends: List<CapabilityBackendId> = emptyList(),
     /** Complete typed allowlist. Empty means this capability accepts no parameters. */
@@ -226,8 +276,10 @@ data class CapabilityDescriptor(
 
 /**
  * User/workflow policy evaluated before backend resolution. An empty
- * [allowedBackends] allows every backend declared by the descriptor; an empty
- * [preferredBackends] delegates safe ordering to the resolver.
+ * [allowedBackends] allows every non-privileged backend declared by the
+ * descriptor; typed Shizuku/Root/ADB operations require exactly one explicit
+ * allowed backend. An empty [preferredBackends] delegates safe ordering to the
+ * resolver for the remaining eligible backends.
  */
 @Immutable
 @Serializable
@@ -328,7 +380,13 @@ data class CapabilityResult(
     val packageName: String? = null,
     val previousVersion: String? = null,
     val newVersion: String? = null,
-    val metadata: Map<String, String> = emptyMap()
+    val metadata: Map<String, String> = emptyMap(),
+    /**
+     * In-process typed state of a condition query. It is transient because
+     * condition providers can change before a serialized result is replayed;
+     * callers must persist their own audited decision, never this object.
+     */
+    @Transient val conditionResult: ConditionResult? = null
 ) {
     val isSuccess: Boolean
         get() = status == CapabilityStatus.SUCCESS

@@ -7,9 +7,9 @@
     <string name="accessibility_disabled">Desativado — gatilhos de aplicativos não serão acionados</string>
 
 
-    <string name="accessibility_disclosure_title">Ativar deteção de aplicações</string>
-    <string name="accessibility_disclosure_message">O NexaFlow utiliza o serviço de acessibilidade do Android apenas para detetar a aplicação em primeiro plano nas automações que cria. Não lê nem partilha o conteúdo do ecrã. Continue apenas se quiser ativar gatilhos de aplicações.</string>
-    <string name="accessibility_disclosure_continue">Rever definição do sistema</string>
+    <string name="accessibility_disclosure_title">Ativar automação de acessibilidade limitada</string>
+    <string name="accessibility_disclosure_message">O NexaFlow utiliza o serviço de acessibilidade do Android para detetar a aplicação em primeiro plano e, apenas para uma tarefa que cria e aprova explicitamente, encontrar ou interagir com um elemento específico no ecrã da aplicação atualmente aberta. Não recolhe nem partilha o conteúdo do ecrã. Continue apenas se quiser ativar estes gatilhos e interações limitados.</string>
+    <string name="accessibility_disclosure_continue">Aceitar e rever definição do sistema</string>
 
     
 

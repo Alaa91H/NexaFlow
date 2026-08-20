@@ -5,9 +5,9 @@
     <string name="accessibility_service">Servicio de accesibilidad</string>
 
     <string name="accessibility_disabled">Apagado — los disparadores de apps no se activarán</string>
-    <string name="accessibility_disclosure_title">Activar detección de apps</string>
-    <string name="accessibility_disclosure_message">NexaFlow usa el servicio de accesibilidad de Android solo para detectar la app en primer plano de las automatizaciones que creas. No lee ni comparte el contenido de tu pantalla. Continúa solo si quieres activar disparadores de apps.</string>
-    <string name="accessibility_disclosure_continue">Revisar ajuste del sistema</string>
+    <string name="accessibility_disclosure_title">Activar automatización de accesibilidad limitada</string>
+    <string name="accessibility_disclosure_message">NexaFlow usa el servicio de accesibilidad de Android para detectar la app en primer plano y, solo para una tarea que creas y apruebas explícitamente, buscar o interactuar con un elemento específico de la pantalla en la app abierta actualmente. No recopila ni comparte el contenido de tu pantalla. Continúa solo si quieres habilitar estos disparadores e interacciones limitados.</string>
+    <string name="accessibility_disclosure_continue">Aceptar y revisar ajuste del sistema</string>
 
     
 

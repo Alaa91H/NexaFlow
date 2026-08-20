@@ -27,6 +27,10 @@ object LocaleContract {
     const val ACTION_QUERY_CONDITION =
         "com.twofortyfouram.locale.intent.action.QUERY_CONDITION"
 
+    /** Plugin → host: asks the host to re-query one configured condition/event. */
+    const val ACTION_REQUEST_QUERY =
+        "com.twofortyfouram.locale.intent.action.REQUEST_QUERY"
+
     // ── Extras (namespace com.twofortyfouram.locale.intent.extra.*) ──────────
 
     /** The persisted configuration bundle (< 25 KB, primitives/Strings only). */
@@ -45,12 +49,27 @@ object LocaleContract {
     const val EXTRA_BLURB =
         "com.twofortyfouram.locale.intent.extra.BLURB"
 
+    /** Required by Locale request-query broadcasts to identify the edit component. */
+    const val EXTRA_STRING_ACTIVITY_CLASS_NAME =
+        "com.twofortyfouram.locale.intent.extra.ACTIVITY"
+
     // ── Ordered-broadcast result codes (fire + query) ────────────────────────
 
     const val RESULT_CODE_OK = 0
     const val RESULT_CODE_PENDING = 1
     const val RESULT_CODE_CANCELED = 2
     const val RESULT_CODE_FAILED = -1
+
+    // ── Ordered condition result codes (Locale Plugin API) ─────────────────────
+
+    /** The condition receiver evaluated the configured state as true. */
+    const val RESULT_CONDITION_SATISFIED = 16
+
+    /** The condition receiver evaluated the configured state as false. */
+    const val RESULT_CONDITION_UNSATISFIED = 17
+
+    /** The receiver cannot currently determine state; this is not false. */
+    const val RESULT_CONDITION_UNKNOWN = 18
 
     // ── Hard protocol limits ──────────────────────────────────────────────────
 

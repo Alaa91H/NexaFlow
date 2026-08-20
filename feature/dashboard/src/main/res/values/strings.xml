@@ -35,6 +35,7 @@
     <string name="trigger_calendar">Calendar event</string>
     <string name="trigger_sensor">Sensor</string>
     <string name="trigger_webhook">Webhook</string>
+    <string name="trigger_plugin_event">Plugin event</string>
     <string name="trigger_rom_setting">ROM setting</string>
     <string name="trigger_headphone">Headphones</string>
     <string name="trigger_charger">Charger</string>

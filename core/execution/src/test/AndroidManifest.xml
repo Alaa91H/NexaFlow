@@ -15,6 +15,13 @@
                 <action android:name="com.twofortyfouram.locale.intent.action.FIRE_SETTING" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name="com.nexaflow.core.execution.plugin.FakePluginConditionReceiverForTest"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.twofortyfouram.locale.intent.action.QUERY_CONDITION" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

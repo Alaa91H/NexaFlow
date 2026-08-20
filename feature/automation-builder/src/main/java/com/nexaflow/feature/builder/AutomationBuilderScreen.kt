@@ -2,6 +2,7 @@ package com.nexaflow.feature.builder
 
 import android.app.Activity
 import android.content.Context
+import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -203,6 +204,7 @@ import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.launch
 import java.util.Locale
+import java.util.UUID
 
 private const val TAG = "AutomationBuilder"
 
@@ -873,31 +875,36 @@ fun AutomationBuilderScreen(
     var pluginPickerTarget by remember { mutableStateOf(false) }
     var pluginLauncherPackage by remember { mutableStateOf<String?>(null) }
     var pluginLauncherReceiver by remember { mutableStateOf<String?>(null) }
+    var pluginLauncherEditActivity by remember { mutableStateOf<String?>(null) }
     val pluginLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val pkg = pluginLauncherPackage
         val receiver = pluginLauncherReceiver
+        val editActivity = pluginLauncherEditActivity
         pluginLauncherPackage = null
         pluginLauncherReceiver = null
-        if (result.resultCode == Activity.RESULT_OK && result.data != null && pkg != null && receiver != null) {
-            val bundle: Bundle? = result.data?.getBundleExtra(LocaleContract.EXTRA_BUNDLE)
-            val blurb = result.data?.getStringExtra(LocaleContract.EXTRA_STRING_BLURB)
-                ?: result.data?.getStringExtra(LocaleContract.EXTRA_BLURB).orEmpty()
+        pluginLauncherEditActivity = null
+        val bundle: Bundle? = result.data?.getBundleExtra(LocaleContract.EXTRA_BUNDLE)
+        val blurb = result.data?.getStringExtra(LocaleContract.EXTRA_STRING_BLURB)
+            ?: result.data?.getStringExtra(LocaleContract.EXTRA_BLURB).orEmpty()
+        if (result.resultCode == Activity.RESULT_OK && pkg != null && receiver != null && bundle != null && blurb.isNotBlank()) {
             // Prefer the JSON convention; fall back to legacy flat extras.
-            val configMap = if (bundle != null) {
-                PluginConfigParser.fromBundle(bundle).ifEmpty {
-                    PluginConfigParser.flattenBundle(bundle)
-                }
-            } else {
-                emptyMap()
+            val configMap = PluginConfigParser.fromBundle(bundle).ifEmpty {
+                PluginConfigParser.flattenBundle(bundle)
             }
-            actionConfigs[ActionType.PLUGIN_FIRE] = mapOf(
-                "package" to pkg,
-                "receiver" to receiver,
-                "blurb" to blurb,
-                "bundleJson" to PluginConfigParser.toJson(configMap)
-            )
+            actionConfigs[ActionType.PLUGIN_FIRE] = buildMap {
+                put("package", pkg)
+                put("receiver", receiver)
+                put("blurb", blurb)
+                put("bundleJson", PluginConfigParser.toJson(configMap))
+                // CapabilityRequest carries only this opaque reference; the
+                // backend reloads the persisted action config by workflow id.
+                put("pluginInstance", "plugin:${UUID.randomUUID()}")
+                // The user just completed the external configuration Activity.
+                put("pluginApproval", "approved")
+                editActivity?.takeIf { it.isNotBlank() }?.let { put("editActivity", it) }
+            }
         } else {
             // Canceled/failed: drop the plugin action unless it was configured earlier.
             if ((actionConfigs[ActionType.PLUGIN_FIRE] ?: emptyMap()).isEmpty()) {
@@ -906,13 +913,28 @@ fun AutomationBuilderScreen(
         }
     }
     val stringPluginNoEdit = stringResource(R.string.plugin_no_edit)
-    fun configurePlugin(packageName: String?, receiver: String?, config: Map<String, String>) {
+    fun configurePlugin(
+        packageName: String?,
+        receiver: String?,
+        editActivityClass: String?,
+        config: Map<String, String>
+    ) {
         val pkg = packageName ?: return
         val rec = receiver ?: return
+        val editActivity = editActivityClass?.takeIf { it.isNotBlank() }
+            ?: config["editActivity"]?.takeIf { it.isNotBlank() }
         pluginLauncherPackage = pkg
         pluginLauncherReceiver = rec
+        pluginLauncherEditActivity = editActivity
         val intent = Intent(LocaleContract.ACTION_EDIT_SETTING).apply {
-            `package` = pkg
+            if (editActivity != null) {
+                component = ComponentName(pkg, editActivity)
+            } else {
+                // Legacy persisted entry: no stable edit component was stored.
+                // Keep previous package-scoped behaviour only for reconfiguration;
+                // newly discovered plug-ins always use an explicit component.
+                `package` = pkg
+            }
             putExtra(LocaleContract.EXTRA_STRING_BREADCRUMB, "NexaFlow")
         }
         // Reconfiguring: hand the saved bundle back so the plugin can pre-fill.
@@ -930,6 +952,7 @@ fun AutomationBuilderScreen(
         } catch (_: Throwable) {
             pluginLauncherPackage = null
             pluginLauncherReceiver = null
+            pluginLauncherEditActivity = null
             scope.launch { snackbarHostState.showSnackbar(stringPluginNoEdit) }
             // The plugin has no edit screen: never leave a stuck, unconfigured
             // action behind (the user can still add other plugins).
@@ -1726,6 +1749,7 @@ fun AutomationBuilderScreen(
                         configurePlugin(
                             actionConfigs[ActionType.PLUGIN_FIRE]?.get("package"),
                             actionConfigs[ActionType.PLUGIN_FIRE]?.get("receiver"),
+                            actionConfigs[ActionType.PLUGIN_FIRE]?.get("editActivity"),
                             actionConfigs[ActionType.PLUGIN_FIRE] ?: emptyMap()
                         )
                     },
@@ -1852,7 +1876,12 @@ fun AutomationBuilderScreen(
             onRefresh = { viewModel.refreshPlugins() },
             onPick = { plugin ->
                 pluginPickerTarget = false
-                configurePlugin(plugin.packageName, plugin.receiverClass, emptyMap())
+                configurePlugin(
+                    plugin.packageName,
+                    plugin.receiverClass,
+                    plugin.editActivityClass,
+                    emptyMap()
+                )
             },
             onDismiss = {
                 pluginPickerTarget = false

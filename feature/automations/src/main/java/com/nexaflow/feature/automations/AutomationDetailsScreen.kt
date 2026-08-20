@@ -63,6 +63,7 @@ import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Usb
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -407,6 +408,7 @@ private fun constraintPresentation(type: ConstraintType): Pair<Int, ImageVector>
     ConstraintType.AIRPLANE -> R.string.constraint_type_airplane to Icons.Filled.AirplanemodeActive
     ConstraintType.CHARGING -> R.string.constraint_type_charging to Icons.Filled.BatteryChargingFull
     ConstraintType.LOCATION -> R.string.constraint_type_location to Icons.Filled.MyLocation
+    ConstraintType.PLUGIN -> R.string.action_plugin to Icons.Filled.Extension
 }
 
 /** Human-readable constraint detail (e.g. battery "< 20%"). */
@@ -527,6 +529,7 @@ private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector
     TriggerType.BOOT_COMPLETED -> Triple(R.string.trigger_boot_completed, R.string.trigger_boot_completed, Icons.Filled.PowerSettingsNew)
     TriggerType.NFC_TAG_SCANNED -> Triple(R.string.trigger_nfc_tag_scanned, R.string.trigger_nfc_tag_scanned, Icons.Filled.Nfc)
     TriggerType.ALARM_SET_CHANGED -> Triple(R.string.trigger_alarm_set_changed, R.string.trigger_alarm_set_changed, Icons.Filled.Alarm)
+    TriggerType.PLUGIN_EVENT -> Triple(R.string.action_plugin, R.string.action_plugin_sub, Icons.Filled.Extension)
 }
 
 /** Human-readable trigger detail (e.g. battery direction, time range, repeat mode). */

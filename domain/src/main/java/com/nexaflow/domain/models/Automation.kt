@@ -253,7 +253,14 @@ enum class TriggerType {
     /**
      * An alarm clock was set or cleared. Config key: `event` (SET/CLEARED).
      */
-    ALARM_SET_CHANGED
+    ALARM_SET_CHANGED,
+    /**
+     * A user-approved event from an explicitly configured plugin component.
+     * Config keys: `pluginInstance`, `pluginApproval`, `package`, and
+     * `eventComponent`. No Bundle, Intent, token, or arbitrary command is
+     * persisted in the trigger.
+     */
+    PLUGIN_EVENT
 }
 
 @Immutable

@@ -47,6 +47,11 @@ object ConstraintEvaluator {
             val wantOn = (constraint.config["state"] ?: "ON") == "ON"
             if (wantOn) state.locationEnabled else !state.locationEnabled
         }
+        // External conditions are evaluated by AutomationConstraintGate through
+        // CapabilityExecutionService. A legacy direct evaluator has no typed
+        // adapter or availability information, so it safely rejects rather than
+        // coercing an unknown external state to true.
+        ConstraintType.PLUGIN -> false
     }
 
     /** True when every constraint passes (empty constraint list → true). */

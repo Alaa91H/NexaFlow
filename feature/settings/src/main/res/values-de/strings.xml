@@ -5,9 +5,9 @@
     <string name="accessibility_service">Barrierefreiheitsdienst</string>
 
     <string name="accessibility_disabled">Aus — App-Trigger werden nicht ausgelöst</string>
-    <string name="accessibility_disclosure_title">App-Erkennung aktivieren</string>
-    <string name="accessibility_disclosure_message">NexaFlow nutzt den Android-Barrierefreiheitsdienst nur, um für von Ihnen erstellte Automatisierungen die Vordergrund-App zu erkennen. Bildschirm-Inhalte werden nicht gelesen oder geteilt. Fahren Sie nur fort, wenn Sie App-Trigger aktivieren möchten.</string>
-    <string name="accessibility_disclosure_continue">Systemeinstellung prüfen</string>
+    <string name="accessibility_disclosure_title">Begrenzte Barrierefreiheitsautomatisierung aktivieren</string>
+    <string name="accessibility_disclosure_message">NexaFlow nutzt den Android-Barrierefreiheitsdienst zur Erkennung der Vordergrund-App und nur für eine von Ihnen ausdrücklich erstellte und genehmigte Aufgabe, um ein bestimmtes Bildschirmelement in der aktuell geöffneten App zu finden oder damit zu interagieren. Bildschirm-Inhalte werden nicht gesammelt oder geteilt. Fahren Sie nur fort, wenn Sie diese begrenzten Trigger und Interaktionen aktivieren möchten.</string>
+    <string name="accessibility_disclosure_continue">Bestätigen und Systemeinstellung prüfen</string>
 
     
 

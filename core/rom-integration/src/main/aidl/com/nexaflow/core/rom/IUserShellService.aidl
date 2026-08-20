@@ -16,4 +16,11 @@ interface IUserShellService {
      * and 126 an internal error in the service process.
      */
     String exec(String command);
+
+    /**
+     * Executes one allowlisted operation reconstructed by the service from a
+     * stable operation id and up to three typed arguments. New capability
+     * backends must use this method and never send a shell expression.
+     */
+    String executeOperation(String operationId, String first, String second, String third);
 }

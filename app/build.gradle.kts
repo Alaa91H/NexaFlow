@@ -253,6 +253,7 @@ dependencies {
     implementation(project(":core:logging"))
     implementation(project(":core:automation-engine"))
     implementation(project(":core:execution"))
+    implementation(project(":core:plugin-sdk"))
     implementation(project(":core:capability-manager"))
     implementation(project(":core:rom-integration"))
     implementation(project(":core:ui-components"))

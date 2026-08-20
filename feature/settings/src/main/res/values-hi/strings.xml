@@ -7,9 +7,9 @@
     <string name="accessibility_disabled">बंद — ऐप ट्रिगर नहीं चलेंगे</string>
 
 
-    <string name="accessibility_disclosure_title">ऐप पहचान सक्षम करें</string>
-    <string name="accessibility_disclosure_message">NexaFlow Android एक्सेसिबिलिटी सेवा का उपयोग केवल आपके बनाए ऑटोमेशन के लिए अग्रभूमि ऐप का पता लगाने हेतु करता है। यह आपकी स्क्रीन की सामग्री को न पढ़ता है और न साझा करता है। केवल ऐप ट्रिगर सक्षम करने के लिए आगे बढ़ें।</string>
-    <string name="accessibility_disclosure_continue">सिस्टम सेटिंग देखें</string>
+    <string name="accessibility_disclosure_title">सीमित एक्सेसिबिलिटी ऑटोमेशन सक्षम करें</string>
+    <string name="accessibility_disclosure_message">NexaFlow Android एक्सेसिबिलिटी सेवा का उपयोग अग्रभूमि ऐप का पता लगाने और केवल आपके द्वारा स्पष्ट रूप से बनाई व स्वीकृत किसी कार्य के लिए वर्तमान में खुले ऐप में किसी विशिष्ट स्क्रीन तत्व को खोजने या उससे इंटरैक्ट करने हेतु करता है। यह स्क्रीन सामग्री एकत्र या साझा नहीं करता। केवल इन सीमित ट्रिगर और इंटरैक्शन को सक्षम करने के लिए आगे बढ़ें।</string>
+    <string name="accessibility_disclosure_continue">स्वीकार करें और सिस्टम सेटिंग देखें</string>
 
     
 

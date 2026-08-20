@@ -19,13 +19,14 @@ import com.nexaflow.core.execution.variables.ScopedDataRuntime
 import com.nexaflow.core.logging.ExecutionTimelineEntry
 import com.nexaflow.core.logging.InMemoryLogStore
 import com.nexaflow.core.logging.LogStore
+import com.nexaflow.core.execution.constraints.AutomationConstraintGate
 import com.nexaflow.core.execution.constraints.ConstraintStateReader
 import com.nexaflow.core.rom.RomIntegrationManager
 import com.nexaflow.core.rom.SystemController
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.capability.CapabilityStatus
-import com.nexaflow.domain.constraints.ConstraintEvaluator
 import com.nexaflow.domain.models.Action
+import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.ActionExecutionResult
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.ConstraintSnapshot
@@ -114,16 +115,17 @@ class ExecutionEngine(
         if (automation.constraints.isNotEmpty()) {
             val state = constraintStateProvider?.invoke()
                 ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
-            if (state == null || !ConstraintEvaluator.allSatisfied(automation.constraints, state)) {
+            val constraintResult = AutomationConstraintGate(capabilityExecutionService).evaluate(automation, state)
+            if (constraintResult != ConditionResult.Satisfied) {
                 // A deliberately-blocked run is not a failure: success=true keeps
-                // history stats honest, while the BLOCKED timeline kind + the
-                // "Skipped:" prefix let UIs surface why nothing ran.
+                // history stats honest. The typed gate reason preserves UNKNOWN
+                // and UNAVAILABLE rather than silently labelling them false.
                 val record = ExecutionRecord(
                     id = UUID.randomUUID().toString(),
                     automationId = automation.id,
                     automationName = automation.name,
                     success = true,
-                    message = "Skipped: constraints not met",
+                    message = "Skipped: ${constraintResult.toGateMessage()}",
                     executedAt = startedAt,
                     channel = channel?.type?.name
                 )
@@ -264,14 +266,14 @@ class ExecutionEngine(
         // main actions run. Any false or unreadable condition follows the
         // configured "when the task ends" behavior instead.
         val triggersOk = TriggerStateEvaluator.isSatisfied(context, automation.triggers)
-        val constraintsOk = if (automation.constraints.isEmpty()) {
-            true
+        val constraintResult = if (automation.constraints.isEmpty()) {
+            ConditionResult.Satisfied
         } else {
             val state = constraintStateProvider?.invoke()
                 ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
-            state != null && ConstraintEvaluator.allSatisfied(automation.constraints, state)
+            AutomationConstraintGate(capabilityExecutionService).evaluate(automation, state)
         }
-        return if (triggersOk && constraintsOk) {
+        return if (triggersOk && constraintResult == ConditionResult.Satisfied) {
             runAutomation(automation)
         } else {
             runExit(
@@ -576,6 +578,14 @@ class ExecutionEngine(
         } catch (_: Throwable) {
             // Logging must never break execution.
         }
+    }
+
+    private fun ConditionResult.toGateMessage(): String = when (this) {
+        ConditionResult.Satisfied -> "constraints satisfied"
+        ConditionResult.Unsatisfied -> "constraints not met"
+        ConditionResult.Unknown -> "constraint state is unknown"
+        ConditionResult.Unavailable -> "constraint provider is unavailable"
+        is ConditionResult.Error -> "constraint evaluation error: $reason"
     }
 
     private fun buildMessage(results: List<ActionExecutionResult>): String {

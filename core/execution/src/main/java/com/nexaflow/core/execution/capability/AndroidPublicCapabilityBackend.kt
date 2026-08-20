@@ -8,6 +8,7 @@ import android.net.NetworkCapabilities
 import android.os.BatteryManager
 import android.os.Build
 import android.os.PowerManager
+import android.provider.Settings
 import androidx.core.net.toUri
 import com.nexaflow.domain.capability.BackendAvailability
 import com.nexaflow.domain.capability.CapabilityAvailability
@@ -50,6 +51,23 @@ object AndroidPublicCapabilityCatalog {
             supportedBackends = listOf(CapabilityBackendId.INTENT),
             parameters = listOf(
                 CapabilityParameterSpec("url", CapabilityParameterType.HTTPS_URL, required = true, maximumLength = 2_048)
+            )
+        ),
+        CapabilityDescriptor(
+            id = CapabilityId.SETTINGS_LAUNCH,
+            displayName = "Open Android settings page",
+            description = "Hands one allowlisted Android Settings page to the system UI",
+            risk = CapabilityRiskLevel.MODERATE,
+            supportedBackends = listOf(CapabilityBackendId.INTENT),
+            parameters = listOf(
+                CapabilityParameterSpec(
+                    name = "page",
+                    type = CapabilityParameterType.STRING,
+                    required = true,
+                    allowedValues = listOf(
+                        "WIFI", "BLUETOOTH", "LOCATION", "SOUND", "DISPLAY", "BATTERY", "NOTIFICATIONS"
+                    )
+                )
             )
         ),
         CapabilityDescriptor(
@@ -155,34 +173,64 @@ class AndroidPublicCapabilityBackend(private val context: Context) : CapabilityB
 /** Separate intent backend because startActivity is a user-visible handoff, not a verified side effect. */
 class AndroidIntentCapabilityBackend(private val context: Context) : CapabilityBackend {
     override val id: CapabilityBackendId = CapabilityBackendId.INTENT
-    override val supportedCapabilities: Set<CapabilityId> = setOf(CapabilityId.INTENT_LAUNCH)
+    override val supportedCapabilities: Set<CapabilityId> = setOf(
+        CapabilityId.INTENT_LAUNCH,
+        CapabilityId.SETTINGS_LAUNCH
+    )
 
     override suspend fun availability(request: CapabilityRequest): BackendAvailability {
-        val url = request.parameters["url"] ?: return BackendAvailability(id, CapabilityAvailability.AVAILABLE)
-        val intent = Intent(Intent.ACTION_VIEW, url.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val intent = intentFor(request)
+            ?: return BackendAvailability(id, CapabilityAvailability.UNSUPPORTED, "Intent parameters are not supported")
         val resolvable = intent.resolveActivity(context.packageManager) != null
         return BackendAvailability(
             id,
             if (resolvable) CapabilityAvailability.AVAILABLE else CapabilityAvailability.UNAVAILABLE,
-            if (resolvable) null else "No activity can handle the URL"
+            if (resolvable) null else "No Android activity can handle the requested handoff"
         )
     }
 
     override suspend fun execute(request: CapabilityRequest): CapabilityResult = runCatching {
-        val url = checkNotNull(request.parameters["url"])
-        context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        val intent = checkNotNull(intentFor(request))
+        context.startActivity(intent)
         CapabilityResult(
             status = CapabilityStatus.PENDING_USER_ACTION,
             backend = id,
             message = "Android activity was launched; completion is controlled by the target app",
-            metadata = mapOf("handoff" to "intent")
+            metadata = mapOf(
+                "handoff" to "intent",
+                "capability" to request.capability.name
+            )
         )
     }.getOrElse { error ->
         CapabilityResult.failed(
             com.nexaflow.domain.capability.CapabilityErrorCode.BACKEND_UNAVAILABLE,
-            error.message ?: "No activity can handle the URL",
+            error.message ?: "No Android activity can handle the requested handoff",
             id
         )
+    }
+
+    private fun intentFor(request: CapabilityRequest): Intent? = when (request.capability) {
+        CapabilityId.INTENT_LAUNCH -> request.parameters["url"]
+            ?.let { Intent(Intent.ACTION_VIEW, it.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+        CapabilityId.SETTINGS_LAUNCH -> settingsIntent(request.parameters["page"])
+        else -> null
+    }
+
+    private fun settingsIntent(page: String?): Intent? {
+        val action = when (page) {
+            "WIFI" -> Settings.ACTION_WIFI_SETTINGS
+            "BLUETOOTH" -> Settings.ACTION_BLUETOOTH_SETTINGS
+            "LOCATION" -> Settings.ACTION_LOCATION_SOURCE_SETTINGS
+            "SOUND" -> Settings.ACTION_SOUND_SETTINGS
+            "DISPLAY" -> Settings.ACTION_DISPLAY_SETTINGS
+            "BATTERY" -> Settings.ACTION_BATTERY_SAVER_SETTINGS
+            "NOTIFICATIONS" -> Settings.ACTION_APP_NOTIFICATION_SETTINGS
+            else -> return null
+        }
+        return Intent(action).apply {
+            if (page == "NOTIFICATIONS") putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
     }
 }
 

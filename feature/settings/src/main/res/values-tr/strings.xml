@@ -7,9 +7,9 @@
     <string name="accessibility_disabled">Kapalı — uygulama tetikleyicileri çalışmaz</string>
 
 
-    <string name="accessibility_disclosure_title">Uygulama algılamayı etkinleştir</string>
-    <string name="accessibility_disclosure_message">NexaFlow, yalnızca oluşturduğunuz otomasyonlarda ön plandaki uygulamayı algılamak için Android erişilebilirlik hizmetini kullanır. Ekran içeriğinizi okumaz veya paylaşmaz. Yalnızca uygulama tetikleyicilerini etkinleştirmek istiyorsanız devam edin.</string>
-    <string name="accessibility_disclosure_continue">Sistem ayarını incele</string>
+    <string name="accessibility_disclosure_title">Sınırlı erişilebilirlik otomasyonunu etkinleştir</string>
+    <string name="accessibility_disclosure_message">NexaFlow, ön plandaki uygulamayı algılamak ve yalnızca açıkça oluşturup onayladığınız bir görev için, şu anda açık olan uygulamadaki belirli bir ekran öğesini bulmak veya onunla etkileşim kurmak amacıyla Android erişilebilirlik hizmetini kullanır. Ekran içeriğini toplamaz veya paylaşmaz. Yalnızca bu sınırlı tetikleyici ve etkileşimleri etkinleştirmek istiyorsanız devam edin.</string>
+    <string name="accessibility_disclosure_continue">Onayla ve sistem ayarını incele</string>
 
     
 

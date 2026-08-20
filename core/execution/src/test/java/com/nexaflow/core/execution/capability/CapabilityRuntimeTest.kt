@@ -7,6 +7,8 @@ import com.nexaflow.domain.capability.CapabilityDescriptor
 import com.nexaflow.domain.capability.CapabilityDeviceState
 import com.nexaflow.domain.capability.CapabilityErrorCode
 import com.nexaflow.domain.capability.CapabilityId
+import com.nexaflow.domain.capability.CapabilityParameterSpec
+import com.nexaflow.domain.capability.CapabilityParameterType
 import com.nexaflow.domain.capability.CapabilityRequest
 import com.nexaflow.domain.capability.CapabilityResult
 import com.nexaflow.domain.capability.CapabilityRiskLevel
@@ -193,6 +195,42 @@ class CapabilityRuntimeTest {
         assertEquals(CapabilityErrorCode.INVALID_CONFIGURATION, result.errorCode)
         assertEquals(0, backend.availabilityCalls)
         assertEquals(0, backend.executionCalls)
+    }
+
+    @Test
+    fun `plugin capability accepts only an opaque persisted instance reference`() = runBlocking {
+        val backend = FakeBackend(CapabilityBackendId.PLUGIN, setOf(CapabilityId.PLUGIN_ACTION))
+        val registry = CapabilityRegistry.of(
+            descriptors = listOf(
+                CapabilityDescriptor(
+                    id = CapabilityId.PLUGIN_ACTION,
+                    displayName = "External plug-in action",
+                    description = "Invokes a persisted plug-in instance",
+                    supportedBackends = listOf(CapabilityBackendId.PLUGIN),
+                    parameters = listOf(
+                        CapabilityParameterSpec(
+                            name = "pluginInstance",
+                            type = CapabilityParameterType.OPAQUE_REFERENCE,
+                            required = true,
+                            maximumLength = 192
+                        )
+                    )
+                )
+            ),
+            backends = listOf(backend)
+        )
+        val service = CapabilityExecutionService(CapabilityResolver(registry), { state() })
+
+        val accepted = service.execute(
+            CapabilityRequest(CapabilityId.PLUGIN_ACTION, parameters = mapOf("pluginInstance" to "locale:com.example.plugin:abc-123"))
+        )
+        val rejected = service.execute(
+            CapabilityRequest(CapabilityId.PLUGIN_ACTION, parameters = mapOf("pluginInstance" to "{\\\"bundle\\\":\\\"arbitrary\\\"}"))
+        )
+
+        assertEquals(CapabilityStatus.SUCCESS, accepted.status)
+        assertEquals(CapabilityErrorCode.INVALID_CONFIGURATION, rejected.errorCode)
+        assertEquals(1, backend.executionCalls)
     }
 
     @Test

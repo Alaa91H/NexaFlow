@@ -4,6 +4,7 @@ import com.nexaflow.core.common.EpochMillis
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -164,6 +165,26 @@ class WorkflowInterpreterTest {
         val result = interpreter.execute(workflow)
         assertFalse(result.success)
         assertEquals(1, log.size)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun loop_rejectsIterationsAboveBoundedLimit() {
+        WorkflowNode.LoopNode(
+            id = "oversized-loop",
+            iterations = WorkflowNode.LoopNode.MAX_ITERATIONS + 1,
+            body = WorkflowNode.ActionNode("tick", action("tick"))
+        )
+    }
+
+    @Test(expected = CancellationException::class)
+    fun cancellationPropagatesInsteadOfBecomingActionFailure() {
+        runBlocking {
+            val interpreter = WorkflowInterpreter(
+                executor = ActionExecutor { throw CancellationException("cancelled by caller") }
+            )
+
+            interpreter.execute(WorkflowNode.ActionNode("cancel", action("cancel")))
+        }
     }
 
     @Test

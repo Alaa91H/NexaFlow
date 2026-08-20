@@ -59,6 +59,7 @@ import androidx.compose.material.icons.filled.Monitor
 import androidx.compose.material.icons.filled.Router
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Usb
+import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -349,6 +350,8 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.BOOT_COMPLETED -> mapOf()
     TriggerType.NFC_TAG_SCANNED -> mapOf()
     TriggerType.ALARM_SET_CHANGED -> mapOf()
+    // Created only by the verified plugin configuration path, never the generic picker.
+    TriggerType.PLUGIN_EVENT -> emptyMap()
 }
 
 internal fun TriggerType.labelRes(): Int = when (this) {
@@ -403,6 +406,7 @@ internal fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.BOOT_COMPLETED -> R.string.trigger_type_boot_completed
     TriggerType.NFC_TAG_SCANNED -> R.string.trigger_type_nfc_tag_scanned
     TriggerType.ALARM_SET_CHANGED -> R.string.trigger_type_alarm_set_changed
+    TriggerType.PLUGIN_EVENT -> R.string.action_plugin
 }
 
 internal fun TriggerType.descRes(): Int = when (this) {
@@ -457,6 +461,7 @@ internal fun TriggerType.descRes(): Int = when (this) {
     TriggerType.BOOT_COMPLETED -> R.string.trigger_type_boot_sub
     TriggerType.NFC_TAG_SCANNED -> R.string.trigger_type_nfc_sub
     TriggerType.ALARM_SET_CHANGED -> R.string.trigger_type_alarm_sub
+    TriggerType.PLUGIN_EVENT -> R.string.action_plugin_sub
 }
 
 internal fun TriggerType.icon(): ImageVector = when (this) {
@@ -511,6 +516,7 @@ internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.BOOT_COMPLETED -> Icons.Filled.PowerSettingsNew
     TriggerType.NFC_TAG_SCANNED -> Icons.Filled.Nfc
     TriggerType.ALARM_SET_CHANGED -> Icons.Filled.Alarm
+    TriggerType.PLUGIN_EVENT -> Icons.Filled.Extension
 }
 
 private fun parseDateMillis(value: String): Long? {
@@ -1059,6 +1065,7 @@ private fun triggerSummary(draft: TriggerDraft): String {
         TriggerType.BOOT_COMPLETED -> stringResource(R.string.trigger_events_on_change)
         TriggerType.NFC_TAG_SCANNED -> stringResource(R.string.trigger_events_on_change)
         TriggerType.ALARM_SET_CHANGED -> stringResource(R.string.trigger_events_on_change)
+        TriggerType.PLUGIN_EVENT -> stringResource(R.string.action_plugin)
     }
 }
 
@@ -2751,6 +2758,11 @@ fun TriggerEditorCard(
                     Text(text = stringResource(R.string.trigger_desc_nfc_tag), style = MaterialTheme.typography.bodyMedium)
                 TriggerType.ALARM_SET_CHANGED ->
                     Text(text = stringResource(R.string.trigger_desc_alarm_set), style = MaterialTheme.typography.bodyMedium)
+                // External component identity and approval are managed only by
+                // the plugin configuration flow. A persisted trigger stays
+                // visible but cannot be changed to an unsafe partial config.
+                TriggerType.PLUGIN_EVENT ->
+                    Text(text = stringResource(R.string.plugin_no_edit), style = MaterialTheme.typography.bodyMedium)
             }
             }
         }
