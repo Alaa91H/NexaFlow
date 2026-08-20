@@ -52,7 +52,11 @@ class SentryReporterTest {
         reporter = SentryReporter(
             app = app,
             privacyPreferences = privacyPreferences,
-            scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+            // CI runs the full Robolectric suite in parallel. Keeping this
+            // test collector unconfined prevents an unrelated saturated
+            // Default dispatcher from turning the initialization assertion
+            // into a 10-second scheduling timeout.
+            scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
         )
         initCalls = 0
         configuredDsn = null
