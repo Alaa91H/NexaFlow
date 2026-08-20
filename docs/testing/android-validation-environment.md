@@ -31,3 +31,16 @@
 | Compile app/androidTest | `NOT_RUN` | لا يوجد دليل compile لهذه المصادر في هذه البيئة. |
 | JVM unit tests | `NOT_RUN` | لا يوجد دليل unit-test جديد لهذه المرحلة. |
 | Connected Android tests | `ENVIRONMENT_UNAVAILABLE` | لا ADB ولا SDK ولا هدف متصل. |
+
+## نتيجة CI البعيدة
+
+تمكن CI البعيد من تشغيل بوابات JVM والبناء على الالتزام `691b71b` في التشغيل `32332299962` بنجاح كامل. يشمل ذلك parity وresource gate tests وDetekt وAndroid Lint و`testDebugUnitTest` وbuild وdependency verification وnative-library alignment وsignature وzipalign.
+
+هذه نتيجة **تجميع/اختبار وحدة/جودة بعيدة**، وليست دليلاً على instrumentation؛ لم ينفذ التشغيل `connectedAndroidTest` ولم يسجل جهازاً أو محاكياً أو XML instrumentation. لذلك لا تتغير التصنيفات القائمة لأي قدرة Android.
+
+| بوابة CI البعيدة | الحالة | القيمة الإثباتية |
+|---|---|---|
+| موارد وترجمات وDetekt وAndroid Lint | `PASSED` | مصادر المشروع وfixture تجتاز الجودة الساكنة. |
+| اختبارات الوحدة | `PASSED` | منطق JVM/Robolectric اجتاز في بيئة CI. |
+| build والتغليف والتحقق | `PASSED` | التطبيق والحزم اجتازت بوابات التجميع والتوقيع والمحاذاة. |
+| Connected Android tests | `NOT_RUN` | لا دليل Android integration أو real-device. |

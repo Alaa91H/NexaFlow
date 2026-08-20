@@ -12,9 +12,12 @@
 |---|---|---|
 | خط الأساس السابق | `831` اختبار وحدة Debug ناجح قبل هذه المرحلة | يثبت JVM/Robolectric فقط؛ لا يثبت جهاز Android. |
 | تكوين Gradle | `./gradlew help --no-daemon --no-parallel --max-workers=1 --console=plain` نجح | يثبت تحميل إعدادات Gradle ووحدة fixture الجديدة فقط. |
-| Compile app / androidTest | `NOT_RUN` | لا دليل على تجميع المصادر الجديدة. |
-| JVM unit tests في هذه المرحلة | `NOT_RUN` | لا دليل unit جديد من الجلسة الحالية. |
-| Connected Android tests | `ENVIRONMENT_UNAVAILABLE` | لا SDK ولا ADB ولا هدف اختبار. |
+| CI البعيد | التشغيل `32332299962` للالتزام `691b71b` نجح بالكامل | دليل محفوظ على GitHub لبوابتي lint وbuild. |
+| JVM unit tests | `PASSED` في CI البعيد | اختبار الوحدة نفذ بنجاح؛ لا يثبت جهاز Android. |
+| تجميع وتغليف التطبيق | `PASSED` في CI البعيد | اجتازت build، dependency verification، native alignment، signature وzipalign. |
+| Android test source execution | `NOT_RUN` | لا يوجد `connectedAndroidTest` أو artefact instrumentation؛ لا ترقية للتصنيف. |
+| Connected Android tests | `ENVIRONMENT_UNAVAILABLE` | لا SDK ولا ADB ولا هدف اختبار في البيئة المحلية. |
+| الجودة الساكنة والموارد | `PASSED` في CI البعيد | parity، resource gate tests، Detekt، Android Lint وresource gate الموحد اجتازت. |
 | فحص التباين والتنظيف | `git diff --check` نجح، ولم يرصد الفحص النصي secrets في مسارات التحقق الجديدة | صحة نصية/نظافة فقط. |
 
 الاختبارات الجديدة محصورة في `app/src/androidTest/java/com/nexaflow/app/validation/`. وهي مصممة لتستخدم المسارات المنتجة، وتنتج آثاراً قابلة للفحص عند تنفيذها، لكن **لم تنفذ**. يحدد `android-connected-test-protocol.md` المتطلبات وartefacts لكل class.
@@ -61,7 +64,7 @@
 | `android-validation-environment.md` | فصل `ENVIRONMENT_UNAVAILABLE` عن فشل التنفيذ | البيئة لا تسمح بتشغيل Android أو compile app. |
 | `android-connected-test-protocol.md` | أوامر، prerequisites، artefacts، وحكم التصنيف | بروتوكول مستقبل قابل لإعادة التنفيذ. |
 | 10 classes AndroidJUnit4 | context, DataStore/checkpoint/recovery, interpreter, TaskManager, scheduler, notification, ingress/index, fixture | مصادر غير منفذة؛ لا تُرقّي أي قدرة. |
-| `test-fixtures:locale-plugin-fixture` | APK خارجي deterministic لـ Locale setting/condition | لم يُبنَ أو يثبت أو ينفذ في هذه البيئة. |
+| `test-fixtures:locale-plugin-fixture` | APK خارجي deterministic لـ Locale setting/condition | اجتازت وحدته بوابة Android Lint ضمن CI، لكنها لم تثبت أو تنفذ على هدف Android. |
 
 ## 4. مناطق تتطلب جهازاً مادياً
 
@@ -77,7 +80,7 @@
 
 ## 5. العيوب المثبتة في هذه المرحلة
 
-لا يوجد **فشل تنفيذ فعلي** أو عيب جديد مثبت؛ إذ لم يجر تشغيل test مصدر أو جهاز. عالجت المرحلة فقط نظافة اختبار lifecycle marker كي ينظف سجل DataStore حتى عند فشل assertion. أما الفجوات التالية فهي **مخاطر/نواقص مبرهنة بالتصميم أو بالتدقيق، وليست نتائج فشل جديدة**: عدم اكتمال توحيد monitors، استمرار مسارات shell legacy، لا recovery auto-resume، لا post-condition عام للأفعال، ولا قياس performance/battery.
+لم يسجل أي **فشل تنفيذ Android متصل** أو عيب جهاز؛ إذ لم يجر تشغيل instrumentation أو جهاز. كشفت CI ثلاثة عوائق جودة قابلة لإعادة الإنتاج وأغلقت في نفس المرحلة: كان ينقص عشرة ملفات لغة مفتاحا `plugin_health_*` (فصلحت parity بترجمات فعلية)، وكان `AppModule` Hilt binding boundary يتجاوز حد Detekt بدالتين (أضيف suppression موثق لا يغير المعمارية)، وكان مورد `app_name` في fixture غير مربوط بالـmanifest (فربط). اجتاز التشغيل النهائي `32332299962` جميع البوابات بعد الإصلاح. تبقى فجوات المسارات المنتجة **مخاطر/نواقص مبرهنة بالتصميم أو بالتدقيق، وليست نتائج فشل جديدة**: عدم اكتمال توحيد monitors، استمرار مسارات shell legacy، لا recovery auto-resume، لا post-condition عام للأفعال، ولا قياس performance/battery.
 
 ## 6. القرار النهائي — الإجابات الإلزامية
 
@@ -91,7 +94,7 @@
 
 ## 7. قرار الإصدار والرفع
 
-لا تنطبق بوابة إصدار `v3.34.0` بعد: لم يثبت compile app/androidTest ولم تنفذ unit tests لهذه المرحلة أو connected tests، لذلك لم يُنشأ tag أو release ولم يُدفع تغيير باعتباره ناجحاً. هذا قرار مقصود لمنع **نجاح مزيف**. يمكن دفع commit توثيقي/اختباري منفصل فقط بعد مراجعة محلية أو CI يثبت على الأقل compile/unit gate؛ ويظل إصدار التحقق الواقعي معلقاً حتى وصول artefacts جهاز حقيقية.
+اجتازت بوابة الإصدار البرمجية على `main` في التشغيل `32332299962`: موارد، Detekt، Android Lint، اختبارات الوحدة، build، dependency verification، alignment، signature وzipalign. لذلك يصبح إصدار `v3.34.0` مؤهلاً بوصفه **Android Real-Execution Validation Sources & Evidence Phase**، وليس شهادة تحقق جهاز. سيظل تصنيف كل قدرة كما في هذا التقرير إلى أن تحفظ artefacts `connectedAndroidTest`/جهاز حقيقية. هذا الفصل يمنع **نجاحاً مزيفاً** مع السماح بإصدار تحسن موثق واجتاز بوابة البناء.
 
 ## المراجع
 
