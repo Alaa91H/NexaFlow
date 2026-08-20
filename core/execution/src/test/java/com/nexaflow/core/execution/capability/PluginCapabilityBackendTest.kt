@@ -98,6 +98,45 @@ class PluginCapabilityBackendTest {
     }
 
     @Test
+    fun selectsMatchingPluginCardWhenWorkflowContainsMultiplePluginActions() = runBlocking {
+        val first = pluginAction(instance = "plugin:first", message = "first")
+        val second = pluginAction(instance = "plugin:second", message = "second")
+        val automation = automationWithActions(listOf(first, second))
+        val backend = PluginCapabilityBackend(
+            context = context,
+            automationRepository = FakeAutomationRepository(automation),
+            discoveryRegistry = PluginDiscoveryRegistry(context)
+        )
+        val service = CapabilityExecutionService(
+            resolver = CapabilityResolver(
+                CapabilityRegistry.of(PluginCapabilityCatalog.descriptors(), listOf(backend))
+            ),
+            deviceStateProvider = { deviceState() }
+        )
+
+        val deferred = CoroutineScope(Dispatchers.Default).async {
+            service.execute(
+                CapabilityRequest(
+                    capability = CapabilityId.PLUGIN_ACTION,
+                    parameters = mapOf("pluginInstance" to "plugin:second"),
+                    workflowId = automation.id,
+                    actionId = ActionType.PLUGIN_FIRE.name,
+                    verification = VerificationMode.BEST_EFFORT
+                )
+            )
+        }
+        val deadline = System.currentTimeMillis() + 6_000L
+        while (!deferred.isCompleted && System.currentTimeMillis() < deadline) {
+            shadowOf(Looper.getMainLooper()).idle()
+            Thread.sleep(25)
+        }
+        val result = deferred.await()
+
+        assertEquals(com.nexaflow.domain.capability.CapabilityStatus.SUCCESS, result.status)
+        assertEquals("second", FakePluginReceiverForTest.lastConfig?.get("message"))
+    }
+
+    @Test
     fun rejectsReferenceThatDoesNotMatchPersistedActionBeforeFiringPlugin() = runBlocking {
         val automation = automation(instance = "plugin:approved-instance")
         val backend = PluginCapabilityBackend(
@@ -126,35 +165,36 @@ class PluginCapabilityBackendTest {
         assertEquals(null, FakePluginReceiverForTest.lastConfig)
     }
 
-    private fun automation(instance: String): Automation {
-        val packageName = context.packageName
-        return Automation(
-            id = "plugin-workflow",
-            name = "Plugin workflow",
-            description = "",
-            icon = "",
-            iconColor = 0L,
-            backgroundColor = 0L,
-            category = "Test",
-            priority = 0,
-            enabled = true,
-            triggers = emptyList(),
-            actions = listOf(
-                Action(
-                    type = ActionType.PLUGIN_FIRE,
-                    config = mapOf(
-                        "pluginInstance" to instance,
-                        "pluginApproval" to "approved",
-                        "package" to packageName,
-                        "receiver" to FakePluginReceiverForTest::class.java.name,
-                        "bundleJson" to PluginConfigParser.toJson(mapOf("message" to "approved-instance"))
-                    )
-                )
-            ),
-            createdAt = 0L,
-            updatedAt = 0L
+    private fun automation(instance: String): Automation = automationWithActions(
+        listOf(pluginAction(instance = instance, message = "approved-instance"))
+    )
+
+    private fun pluginAction(instance: String, message: String): Action = Action(
+        type = ActionType.PLUGIN_FIRE,
+        config = mapOf(
+            "pluginInstance" to instance,
+            "pluginApproval" to "approved",
+            "package" to context.packageName,
+            "receiver" to FakePluginReceiverForTest::class.java.name,
+            "bundleJson" to PluginConfigParser.toJson(mapOf("message" to message))
         )
-    }
+    )
+
+    private fun automationWithActions(actions: List<Action>): Automation = Automation(
+        id = "plugin-workflow",
+        name = "Plugin workflow",
+        description = "",
+        icon = "",
+        iconColor = 0L,
+        backgroundColor = 0L,
+        category = "Test",
+        priority = 0,
+        enabled = true,
+        triggers = emptyList(),
+        actions = actions,
+        createdAt = 0L,
+        updatedAt = 0L
+    )
 
     private fun deviceState() = CapabilityDeviceState(
         capturedAt = 1L,

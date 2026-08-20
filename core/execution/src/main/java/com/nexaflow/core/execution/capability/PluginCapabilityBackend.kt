@@ -172,14 +172,18 @@ class PluginCapabilityBackend(
             return ResolvedPluginAction(error = "Plugin request is not bound to a persisted plugin action")
         }
         val expectedInstance = request.parameters[PARAM_INSTANCE].orEmpty()
+        if (expectedInstance.isBlank()) {
+            return ResolvedPluginAction(error = "Plugin request has no instance reference")
+        }
         val automation = automationRepository.getAutomationById(workflowId)
             ?: return ResolvedPluginAction(error = "Owning workflow is no longer available")
-        val action = automation.actions.singleOrNull { it.type == ActionType.PLUGIN_FIRE }
-            ?: return ResolvedPluginAction(error = "Configured plugin action is no longer available")
+        // A workflow may contain several Locale actions. The opaque instance
+        // reference is generated at configuration time and binds this request
+        // to exactly one persisted card; action type alone is not unique.
+        val action = automation.actions.firstOrNull {
+            it.type == ActionType.PLUGIN_FIRE && it.config[KEY_INSTANCE] == expectedInstance
+        } ?: return ResolvedPluginAction(error = "Configured plugin action is no longer available")
         val config = action.config
-        if (config[KEY_INSTANCE] != expectedInstance) {
-            return ResolvedPluginAction(error = "Plugin instance reference does not match the saved workflow")
-        }
         if (config[KEY_APPROVAL] != APPROVAL_VALUE) {
             return ResolvedPluginAction(error = "Plugin action has not been approved by the user")
         }

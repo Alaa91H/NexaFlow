@@ -143,6 +143,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -710,7 +711,11 @@ private fun SelectedActionCard(
     onDragEnd: () -> Unit = {}
 ) {
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
-    NexaFlowCard(modifier = modifier) {
+    val accent = builderCardAccent(index)
+    NexaFlowCard(
+        modifier = modifier,
+        containerColor = builderCardContainerColor(index)
+    ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             Row(
@@ -753,7 +758,11 @@ private fun SelectedActionCard(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
-                TaskNumberBadge(number = index + 1)
+                TaskNumberBadge(
+                    number = index + 1,
+                    containerColor = accent,
+                    contentColor = Color.White
+                )
                 Icon(
                     imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                     contentDescription = stringResource(if (expanded) R.string.collapse_options else R.string.expand_options),
@@ -853,67 +862,71 @@ fun AutomationBuilderScreen(
     var expandedActionCategory by rememberSaveable { mutableStateOf<Int?>(0) }
     var triggerSearchQuery by rememberSaveable { mutableStateOf("") }
     var actionSearchQuery by rememberSaveable { mutableStateOf("") }
+    var triggerPickerExpanded by rememberSaveable { mutableStateOf(true) }
     // A freshly picked trigger opens its editor; loaded ones stay collapsed.
     var lastAddedTrigger by remember { mutableStateOf(-1) }
-    // Same for a freshly picked execution action.
+    // Same for a freshly picked execution action. Each card has an immutable,
+    // stable draft id so equal action types never share configuration state.
     var lastAddedAction by remember { mutableStateOf(-1) }
-    val actionConfigs = rememberSaveable(saver = ActionConfigMapSaver) { mutableStateMapOf<ActionType, Map<String, String>>() }
-    val selectedActions = rememberSaveable(saver = ActionOptionListSaver) { mutableStateListOf<ActionOption>() }
+    val actionDrafts = rememberSaveable(saver = ActionDraftListSaver) { mutableStateListOf<ActionDraft>() }
     // Real drag-and-drop reorder state — one per reorderable list so
     // dragging in one section never disturbs the others (↕️ handle).
-    val actionDrag = remember { TaskDragState<ActionOption>() }
+    val actionDrag = remember { TaskDragState<ActionDraft>() }
     val triggerDrag = remember { TaskDragState<TriggerDraft>() }
     val constraintDrag = remember { TaskDragState<ConstraintDraft>() }
-    // Per-action end behavior (leave / restore / set value) applied when the task ends.
-    val actionEndBehaviors = rememberSaveable(saver = ActionEndBehaviorMapSaver) { mutableStateMapOf<ActionType, EndBehavior?>() }
     val exitActionConfigs = rememberSaveable(saver = ActionConfigMapSaver) { mutableStateMapOf<ActionType, Map<String, String>>() }
     val selectedExitActions = rememberSaveable(saver = ActionOptionListSaver) { mutableStateListOf<ActionOption>() }
     var appliedTemplateId by rememberSaveable { mutableStateOf<String?>(null) }
 
     // ── External plugins (Locale protocol) ─────────────────────────
     val plugins by viewModel.plugins.collectAsStateWithLifecycle()
-    var pluginPickerTarget by remember { mutableStateOf(false) }
+    var pluginPickerTarget by remember { mutableStateOf<String?>(null) }
+    var pluginLauncherActionId by remember { mutableStateOf<String?>(null) }
     var pluginLauncherPackage by remember { mutableStateOf<String?>(null) }
     var pluginLauncherReceiver by remember { mutableStateOf<String?>(null) }
     var pluginLauncherEditActivity by remember { mutableStateOf<String?>(null) }
     val pluginLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
+        val actionId = pluginLauncherActionId
         val pkg = pluginLauncherPackage
         val receiver = pluginLauncherReceiver
         val editActivity = pluginLauncherEditActivity
+        pluginLauncherActionId = null
         pluginLauncherPackage = null
         pluginLauncherReceiver = null
         pluginLauncherEditActivity = null
         val bundle: Bundle? = result.data?.getBundleExtra(LocaleContract.EXTRA_BUNDLE)
         val blurb = result.data?.getStringExtra(LocaleContract.EXTRA_STRING_BLURB)
             ?: result.data?.getStringExtra(LocaleContract.EXTRA_BLURB).orEmpty()
-        if (result.resultCode == Activity.RESULT_OK && pkg != null && receiver != null && bundle != null && blurb.isNotBlank()) {
+        val draftIndex = actionId?.let { id -> actionDrafts.indexOfFirst { it.id == id } } ?: -1
+        if (result.resultCode == Activity.RESULT_OK && pkg != null && receiver != null && bundle != null && blurb.isNotBlank() && draftIndex >= 0) {
             // Prefer the JSON convention; fall back to legacy flat extras.
             val configMap = PluginConfigParser.fromBundle(bundle).ifEmpty {
                 PluginConfigParser.flattenBundle(bundle)
             }
-            actionConfigs[ActionType.PLUGIN_FIRE] = buildMap {
-                put("package", pkg)
-                put("receiver", receiver)
-                put("blurb", blurb)
-                put("bundleJson", PluginConfigParser.toJson(configMap))
-                // CapabilityRequest carries only this opaque reference; the
-                // backend reloads the persisted action config by workflow id.
-                put("pluginInstance", "plugin:${UUID.randomUUID()}")
-                // The user just completed the external configuration Activity.
-                put("pluginApproval", "approved")
-                editActivity?.takeIf { it.isNotBlank() }?.let { put("editActivity", it) }
-            }
-        } else {
-            // Canceled/failed: drop the plugin action unless it was configured earlier.
-            if ((actionConfigs[ActionType.PLUGIN_FIRE] ?: emptyMap()).isEmpty()) {
-                selectedActions.removeAll { it.actionType == ActionType.PLUGIN_FIRE }
-            }
+            actionDrafts[draftIndex] = actionDrafts[draftIndex].copy(
+                config = buildMap {
+                    put("package", pkg)
+                    put("receiver", receiver)
+                    put("blurb", blurb)
+                    put("bundleJson", PluginConfigParser.toJson(configMap))
+                    // CapabilityRequest carries only this opaque reference; the
+                    // backend reloads the persisted action config by workflow id.
+                    put("pluginInstance", "plugin:${UUID.randomUUID()}")
+                    // The user just completed the external configuration Activity.
+                    put("pluginApproval", "approved")
+                    editActivity?.takeIf { it.isNotBlank() }?.let { put("editActivity", it) }
+                }
+            )
+        } else if (draftIndex >= 0 && actionDrafts[draftIndex].config.isEmpty()) {
+            // A cancelled initial plugin setup removes only its own stub card.
+            actionDrafts.removeAt(draftIndex)
         }
     }
     val stringPluginNoEdit = stringResource(R.string.plugin_no_edit)
     fun configurePlugin(
+        actionId: String,
         packageName: String?,
         receiver: String?,
         editActivityClass: String?,
@@ -921,6 +934,7 @@ fun AutomationBuilderScreen(
     ) {
         val pkg = packageName ?: return
         val rec = receiver ?: return
+        pluginLauncherActionId = actionId
         val editActivity = editActivityClass?.takeIf { it.isNotBlank() }
             ?: config["editActivity"]?.takeIf { it.isNotBlank() }
         pluginLauncherPackage = pkg
@@ -950,14 +964,16 @@ fun AutomationBuilderScreen(
         try {
             pluginLauncher.launch(intent)
         } catch (_: Throwable) {
+            pluginLauncherActionId = null
             pluginLauncherPackage = null
             pluginLauncherReceiver = null
             pluginLauncherEditActivity = null
             scope.launch { snackbarHostState.showSnackbar(stringPluginNoEdit) }
             // The plugin has no edit screen: never leave a stuck, unconfigured
             // action behind (the user can still add other plugins).
-            if ((actionConfigs[ActionType.PLUGIN_FIRE] ?: emptyMap()).isEmpty()) {
-                selectedActions.removeAll { it.actionType == ActionType.PLUGIN_FIRE }
+            val draftIndex = actionDrafts.indexOfFirst { it.id == actionId }
+            if (draftIndex >= 0 && actionDrafts[draftIndex].config.isEmpty()) {
+                actionDrafts.removeAt(draftIndex)
             }
         }
     }
@@ -968,20 +984,23 @@ fun AutomationBuilderScreen(
             RoutineTemplateCatalog.find(templateId)?.let { template ->
                 triggers.clear()
                 template.triggers.forEach { triggers.add(TriggerDraft(it.type, it.config)) }
-                selectedActions.clear()
-                actionConfigs.clear()
-                actionEndBehaviors.clear()
+                actionDrafts.clear()
                 template.actions.forEach { action ->
                     actionOptions.find { it.actionType == action.type }?.let { option ->
-                        selectedActions.add(option)
-                        actionConfigs[option.actionType] = action.config
-                        actionEndBehaviors[option.actionType] = action.endBehavior
+                        actionDrafts.add(
+                            ActionDraft(
+                                option = option,
+                                config = action.config,
+                                endBehavior = action.endBehavior
+                            )
+                        )
                     }
                 }
                 lastAddedTrigger = triggers.lastIndex
-                lastAddedAction = selectedActions.lastIndex
+                triggerPickerExpanded = false
+                lastAddedAction = actionDrafts.lastIndex
                 appliedTemplateId = templateId
-                step = if (triggers.isNotEmpty() && selectedActions.isNotEmpty()) 2 else 0
+                step = if (triggers.isNotEmpty() && actionDrafts.isNotEmpty()) 2 else 0
             }
         }
     }
@@ -999,28 +1018,30 @@ fun AutomationBuilderScreen(
         selectedIconColor = loaded.iconColor
         triggers.clear()
         loaded.triggers.forEach { triggers.add(TriggerDraft(it.type, it.config)) }
+        triggerPickerExpanded = false
         constraints.clear()
         loaded.constraints.forEach { constraints.add(ConstraintDraft(it.type, it.config)) }
-        selectedActions.clear()
-        actionConfigs.clear()
-        actionEndBehaviors.clear()
+        actionDrafts.clear()
         loaded.actions.forEach { action ->
             actionOptions.find { it.actionType == action.type }?.let { option ->
-                selectedActions.add(option)
-                actionConfigs[option.actionType] = action.config
-                actionEndBehaviors[option.actionType] = action.endBehavior
+                val migratedEndBehavior = when {
+                    action.endBehavior != null -> action.endBehavior
+                    loaded.revertOnExit && EndBehaviorCatalog.supportsRevert(action.type) ->
+                        EndBehavior(EndMode.REVERT)
+                    else -> null
+                }
+                actionDrafts.add(
+                    ActionDraft(
+                        option = option,
+                        config = action.config,
+                        endBehavior = migratedEndBehavior
+                    )
+                )
             }
         }
         // Backward compatibility: the old global revert-on-exit toggle is now
-        // expressed per action. Expand it into per-action REVERT behaviors so
-        // existing tasks keep restoring exactly what they restored before.
-        if (loaded.revertOnExit) {
-            loaded.actions.forEach { action ->
-                if (action.endBehavior == null && EndBehaviorCatalog.supportsRevert(action.type)) {
-                    actionEndBehaviors[action.type] = EndBehavior(EndMode.REVERT)
-                }
-            }
-        }
+        // expanded for every matching card independently, preserving duplicate
+        // actions instead of merging their end behavior by type.
         selectedExitActions.clear()
         exitActionConfigs.clear()
         loaded.exitActions.forEach { action ->
@@ -1259,10 +1280,10 @@ fun AutomationBuilderScreen(
 
 
     fun moveAction(from: Int, to: Int) {
-        if (from !in selectedActions.indices || to !in selectedActions.indices) return
+        if (from !in actionDrafts.indices || to !in actionDrafts.indices) return
         if (from == to) return
-        val item = selectedActions.removeAt(from)
-        selectedActions.add(to, item)
+        val item = actionDrafts.removeAt(from)
+        actionDrafts.add(to, item)
     }
 
     fun moveTrigger(from: Int, to: Int) {
@@ -1288,7 +1309,7 @@ fun AutomationBuilderScreen(
             showSnackbar(stringNextNeedsTrigger)
             return
         }
-        if (selectedActions.isEmpty()) {
+        if (actionDrafts.isEmpty()) {
             showSnackbar(stringNextNeedsAction)
             return
         }
@@ -1305,13 +1326,7 @@ fun AutomationBuilderScreen(
         val builtTriggers = triggers.map { draft ->
             Trigger(draft.type, draft.config)
         }
-        val actions = selectedActions.map {
-            Action(
-                type = it.actionType,
-                config = actionConfigs[it.actionType] ?: emptyMap(),
-                endBehavior = actionEndBehaviors[it.actionType]
-            )
-        }
+        val actions = actionDrafts.map { it.toAction() }
         val builtConstraints = constraints.map { Constraint(it.type, it.config) }
         val exitActions = selectedExitActions.map { Action(it.actionType, exitActionConfigs[it.actionType] ?: emptyMap()) }
         viewModel.saveAutomation(
@@ -1381,12 +1396,12 @@ fun AutomationBuilderScreen(
                     icon = Icons.AutoMirrored.Filled.ArrowForward,
                     label = stringResource(R.string.permission_continue)
                 )
-                step == 1 && selectedActions.isNotEmpty() -> NexaFlowFloatingActionButton(
+                step == 1 && actionDrafts.isNotEmpty() -> NexaFlowFloatingActionButton(
                     onClick = { step = 2 },
                     icon = Icons.AutoMirrored.Filled.ArrowForward,
                     label = stringResource(R.string.quick_save)
                 )
-                step == 2 && triggers.isNotEmpty() && selectedActions.isNotEmpty() -> NexaFlowFloatingActionButton(
+                step == 2 && triggers.isNotEmpty() && actionDrafts.isNotEmpty() -> NexaFlowFloatingActionButton(
                     onClick = { save() },
                     icon = Icons.Filled.Check,
                     label = stringResource(R.string.create_task)
@@ -1478,7 +1493,7 @@ fun AutomationBuilderScreen(
                 )
                 SelectChip(
                     selected = step == 2,
-                    onClick = { if (triggers.isNotEmpty() && selectedActions.isNotEmpty()) step = 2 },
+                    onClick = { if (triggers.isNotEmpty() && actionDrafts.isNotEmpty()) step = 2 },
                     label = stringResource(R.string.save)
                 )
             }
@@ -1508,13 +1523,20 @@ fun AutomationBuilderScreen(
                 // ── Step 1: trigger + its constraints ───────────────
                 NexaFlowCard {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        SectionHeader(text = stringResource(R.string.section_when))
-                    // Single-select trigger picker, visible only while no
-                    // trigger is chosen: a category accordion where every
-                    // category's options stay visible (no-collapse). Picking a
-                    // type folds the picker away and leaves just its expanded
-                    // editor (which keeps its own type chips for later changes).
-                    NexaFlowAnimatedVisibility(visible = triggers.isEmpty()) {
+                        SectionHeader(
+                            text = stringResource(R.string.section_when),
+                            trailing = {
+                                IconButton(onClick = { triggerPickerExpanded = !triggerPickerExpanded }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Add,
+                                        contentDescription = stringResource(R.string.add_trigger)
+                                    )
+                                }
+                            }
+                        )
+                    // The picker stays available on demand after the first
+                    // choice. Every selection appends a new independent card.
+                    NexaFlowAnimatedVisibility(visible = triggers.isEmpty() || triggerPickerExpanded) {
                         val commonTriggers = remember(supportedTriggers) {
                             AutomationOptionCatalog.commonTriggers(supportedTriggers)
                         }
@@ -1525,9 +1547,9 @@ fun AutomationBuilderScreen(
                                         type = type,
                                         checked = false,
                                         onSelect = {
-                                            triggers.clear()
                                             triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
                                             lastAddedTrigger = triggers.lastIndex
+                                            triggerPickerExpanded = false
                                             expandedTriggerCategory = null
                                         }
                                     )
@@ -1558,9 +1580,9 @@ fun AutomationBuilderScreen(
                                         type = type,
                                         checked = false,
                                         onSelect = {
-                                            triggers.clear()
                                             triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
                                             lastAddedTrigger = triggers.lastIndex
+                                            triggerPickerExpanded = false
                                             triggerSearchQuery = ""
                                         }
                                     )
@@ -1582,9 +1604,9 @@ fun AutomationBuilderScreen(
                                             type = type,
                                             checked = false,
                                             onSelect = {
-                                                triggers.clear()
                                                 triggers.add(TriggerDraft(type, defaultTriggerConfig(type)))
                                                 lastAddedTrigger = triggers.lastIndex
+                                                triggerPickerExpanded = false
                                                 expandedTriggerCategory = null
                                             }
                                         )
@@ -1638,11 +1660,13 @@ fun AutomationBuilderScreen(
                                 commonActions.forEach { option ->
                                     ActionOptionRow(
                                         option = option,
-                                        checked = option in selectedActions,
+                                        checked = false,
                                         onToggle = {
-                                            if (option !in selectedActions) {
-                                                selectedActions.add(option)
-                                                lastAddedAction = selectedActions.lastIndex
+                                            val draft = ActionDraft(option = option)
+                                            actionDrafts.add(draft)
+                                            lastAddedAction = actionDrafts.lastIndex
+                                            if (option.actionType == ActionType.PLUGIN_FIRE) {
+                                                pluginPickerTarget = draft.id
                                             }
                                         }
                                     )
@@ -1673,14 +1697,13 @@ fun AutomationBuilderScreen(
                                 visibleActions.forEach { option ->
                                     ActionOptionRow(
                                         option = option,
-                                        checked = option in selectedActions,
+                                        checked = false,
                                         onToggle = {
-                                            if (option !in selectedActions) {
-                                                selectedActions.add(option)
-                                                lastAddedAction = selectedActions.lastIndex
-                                                if (option.actionType == ActionType.PLUGIN_FIRE) {
-                                                    pluginPickerTarget = true
-                                                }
+                                            val draft = ActionDraft(option = option)
+                                            actionDrafts.add(draft)
+                                            lastAddedAction = actionDrafts.lastIndex
+                                            if (option.actionType == ActionType.PLUGIN_FIRE) {
+                                                pluginPickerTarget = draft.id
                                             }
                                             actionSearchQuery = ""
                                         }
@@ -1701,15 +1724,14 @@ fun AutomationBuilderScreen(
                                     .forEach { option ->
                                         ActionOptionRow(
                                             option = option,
-                                            checked = option in selectedActions,
+                                            checked = false,
                                             onToggle = {
-                                                if (option !in selectedActions) {
-                                                    selectedActions.add(option)
-                                                    lastAddedAction = selectedActions.lastIndex
-                                                    // A picked plugin action immediately asks which plugin.
-                                                    if (option.actionType == ActionType.PLUGIN_FIRE) {
-                                                        pluginPickerTarget = true
-                                                    }
+                                                val draft = ActionDraft(option = option)
+                                                actionDrafts.add(draft)
+                                                lastAddedAction = actionDrafts.lastIndex
+                                                // A picked plugin action immediately asks which plugin.
+                                                if (option.actionType == ActionType.PLUGIN_FIRE) {
+                                                    pluginPickerTarget = draft.id
                                                 }
                                                 // Collapse so the user sees the new card's config.
                                                 expandedActionCategory = null
@@ -1718,44 +1740,49 @@ fun AutomationBuilderScreen(
                                     }
                             }
                         }
-                        selectedActions.forEachIndexed { index, option ->
-                            val actionDragging = actionDrag.draggedIndex == index
-                            SelectedActionCard(
-                    modifier = Modifier.taskDragOffset(actionDrag, option, actionDragging),
-                    isDragging = actionDragging,
-                    onDragStart = { startDrag(actionDrag, index) },
-                    onDragDelta = { dragBy(actionDrag, selectedActions, it) { f, t -> moveAction(f, t) } },
-                    onDragEnd = { endDrag(actionDrag) },
-                    option = option,
-                    index = index,
-                    total = selectedActions.size,
-                    config = actionConfigs[option.actionType] ?: emptyMap(),
-                    onConfigChange = { actionConfigs[option.actionType] = it },
-                    onMoveUp = { moveAction(index, index - 1) },
-                    onMoveDown = { moveAction(index, index + 1) },
-                    onRemove = {
-                        selectedActions.remove(option)
-                        actionConfigs.remove(option.actionType)
-                        actionEndBehaviors.remove(option.actionType)
-                    },
-                    onPickApp = { appPickerTarget = "action:${option.actionType.name}" },
-                    onRequestPermission = { requestPermissions(it) },
-                    onExplainSpecial = { explainSpecialPermission(it) },
-                    refreshKey = permissionRefreshTick,
-                    context = context,
-                    availableVariables = availableVariables,
-                    automations = automations,
-                    onPluginConfigure = {
-                        configurePlugin(
-                            actionConfigs[ActionType.PLUGIN_FIRE]?.get("package"),
-                            actionConfigs[ActionType.PLUGIN_FIRE]?.get("receiver"),
-                            actionConfigs[ActionType.PLUGIN_FIRE]?.get("editActivity"),
-                            actionConfigs[ActionType.PLUGIN_FIRE] ?: emptyMap()
-                        )
-                    },
-                    initiallyExpanded = index == lastAddedAction
-                )
-            }
+                        actionDrafts.forEachIndexed { index, draft ->
+                            key(draft.id) {
+                                val actionDragging = actionDrag.draggedIndex == index
+                                SelectedActionCard(
+                                modifier = Modifier.taskDragOffset(actionDrag, draft, actionDragging),
+                                isDragging = actionDragging,
+                                onDragStart = { startDrag(actionDrag, index) },
+                                onDragDelta = { dragBy(actionDrag, actionDrafts, it) { from, to -> moveAction(from, to) } },
+                                onDragEnd = { endDrag(actionDrag) },
+                                option = draft.option,
+                                index = index,
+                                total = actionDrafts.size,
+                                config = draft.config,
+                                onConfigChange = { config ->
+                                    val current = actionDrafts.indexOfFirst { it.id == draft.id }
+                                    if (current >= 0) actionDrafts[current] = actionDrafts[current].copy(config = config)
+                                },
+                                onMoveUp = { moveAction(index, index - 1) },
+                                onMoveDown = { moveAction(index, index + 1) },
+                                onRemove = {
+                                    val current = actionDrafts.indexOfFirst { it.id == draft.id }
+                                    if (current >= 0) actionDrafts.removeAt(current)
+                                },
+                                onPickApp = { appPickerTarget = "action:${draft.id}" },
+                                onRequestPermission = { requestPermissions(it) },
+                                onExplainSpecial = { explainSpecialPermission(it) },
+                                refreshKey = permissionRefreshTick,
+                                context = context,
+                                availableVariables = availableVariables,
+                                automations = automations,
+                                onPluginConfigure = {
+                                    configurePlugin(
+                                        actionId = draft.id,
+                                        packageName = draft.config["package"],
+                                        receiver = draft.config["receiver"],
+                                        editActivityClass = draft.config["editActivity"],
+                                        config = draft.config
+                                    )
+                                },
+                                initiallyExpanded = index == lastAddedAction
+                                )
+                            }
+                        }
 
                     }
                 }
@@ -1781,29 +1808,32 @@ fun AutomationBuilderScreen(
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary
                         )
-                        selectedActions.forEach { option ->
+                        actionDrafts.forEach { draft ->
                             Text(
-                                text = actionSummary(option, actionConfigs[option.actionType] ?: emptyMap()),
+                                text = actionSummary(draft.option, draft.config),
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
-                        val actionsWithEndOptions = selectedActions.filter { option ->
-                            option.actionType in EndBehaviorCatalog.toggleActions ||
-                                option.actionType in EndBehaviorCatalog.valueActions ||
-                                option.actionType in EndBehaviorCatalog.revertOnlyActions
+                        val actionsWithEndOptions = actionDrafts.filter { draft ->
+                            draft.option.actionType in EndBehaviorCatalog.toggleActions ||
+                                draft.option.actionType in EndBehaviorCatalog.valueActions ||
+                                draft.option.actionType in EndBehaviorCatalog.revertOnlyActions
                         }
                         if (actionsWithEndOptions.isNotEmpty()) {
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                             SectionHeader(text = stringResource(R.string.end_behavior_label))
-                            actionsWithEndOptions.forEach { option ->
+                            actionsWithEndOptions.forEach { draft ->
                                 Text(
-                                    text = stringResource(option.titleRes),
+                                    text = stringResource(draft.option.titleRes),
                                     style = MaterialTheme.typography.titleSmall
                                 )
                                 EndBehaviorEditor(
-                                    actionType = option.actionType,
-                                    behavior = actionEndBehaviors[option.actionType],
-                                    onBehaviorChange = { actionEndBehaviors[option.actionType] = it },
+                                    actionType = draft.option.actionType,
+                                    behavior = draft.endBehavior,
+                                    onBehaviorChange = { behavior ->
+                                        val current = actionDrafts.indexOfFirst { it.id == draft.id }
+                                        if (current >= 0) actionDrafts[current] = actionDrafts[current].copy(endBehavior = behavior)
+                                    },
                                     showLabel = false
                                 )
                             }
@@ -1870,24 +1900,27 @@ fun AutomationBuilderScreen(
         )
     }
 
-    if (pluginPickerTarget) {
+    pluginPickerTarget?.let { actionId ->
         PluginPickerDialog(
             plugins = plugins,
             onRefresh = { viewModel.refreshPlugins() },
             onPick = { plugin ->
-                pluginPickerTarget = false
+                pluginPickerTarget = null
                 configurePlugin(
-                    plugin.packageName,
-                    plugin.receiverClass,
-                    plugin.editActivityClass,
-                    emptyMap()
+                    actionId = actionId,
+                    packageName = plugin.packageName,
+                    receiver = plugin.receiverClass,
+                    editActivityClass = plugin.editActivityClass,
+                    config = emptyMap()
                 )
             },
             onDismiss = {
-                pluginPickerTarget = false
-                // Dropping the picker without configuring removes the stub action.
-                if ((actionConfigs[ActionType.PLUGIN_FIRE] ?: emptyMap()).isEmpty()) {
-                    selectedActions.removeAll { it.actionType == ActionType.PLUGIN_FIRE }
+                pluginPickerTarget = null
+                // Dropping the picker without configuring removes only the
+                // unconfigured plugin card that opened this dialog.
+                val draftIndex = actionDrafts.indexOfFirst { it.id == actionId }
+                if (draftIndex >= 0 && actionDrafts[draftIndex].config.isEmpty()) {
+                    actionDrafts.removeAt(draftIndex)
                 }
             }
         )
@@ -1960,43 +1993,62 @@ fun AutomationBuilderScreen(
                 onDismiss = { appPickerTarget = null }
             )
         } else {
-            val actionTypeName = target.removePrefix("action:")
-            val isOpenApp = actionTypeName == ActionType.SYSTEM_OPEN_APP.name
-            val singlePickType = when (actionTypeName) {
-                ActionType.APPLICATION_CLOSE_APP.name -> ActionType.APPLICATION_CLOSE_APP
-                ActionType.APPLICATION_OPEN_APP_SETTINGS.name -> ActionType.APPLICATION_OPEN_APP_SETTINGS
-                ActionType.SYSTEM_BLOCK_NOTIFICATION.name -> ActionType.SYSTEM_BLOCK_NOTIFICATION
-                ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS.name -> ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS
-                else -> null
-            }
-            when {
-                isOpenApp -> {
-                    val existing = actionConfigs[ActionType.SYSTEM_OPEN_APP]
-                    val pre = (existing?.get("packages") ?: existing?.get("package") ?: "")
-                        .split(',').map { it.trim() }.filter { it.isNotEmpty() }
-                    AppPickerDialog(
+            val actionId = target.removePrefix("action:")
+            val actionIndex = actionDrafts.indexOfFirst { it.id == actionId }
+            val draft = actionDrafts.getOrNull(actionIndex)
+            if (draft == null) {
+                appPickerTarget = null
+            } else {
+                val isOpenApp = draft.option.actionType == ActionType.SYSTEM_OPEN_APP
+                val isSinglePickAction = draft.option.actionType in setOf(
+                    ActionType.APPLICATION_CLOSE_APP,
+                    ActionType.APPLICATION_OPEN_APP_SETTINGS,
+                    ActionType.SYSTEM_BLOCK_NOTIFICATION,
+                    ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS
+                )
+                when {
+                    isOpenApp -> {
+                        val pre = (draft.config["packages"] ?: draft.config["package"] ?: "")
+                            .split(',').map { it.trim() }.filter { it.isNotEmpty() }
+                        AppPickerDialog(
+                            onPickSingle = { app ->
+                                val merged = (pre + app.packageName).distinct()
+                                val current = actionDrafts.getOrNull(actionIndex)
+                                if (current?.id == actionId) {
+                                    actionDrafts[actionIndex] = current.copy(
+                                        config = current.config + ("packages" to merged.joinToString(","))
+                                    )
+                                }
+                                appPickerTarget = null
+                            },
+                            onPickMultiple = { packages ->
+                                val current = actionDrafts.getOrNull(actionIndex)
+                                if (current?.id == actionId) {
+                                    actionDrafts[actionIndex] = current.copy(
+                                        config = current.config + ("packages" to packages.joinToString(",") { it.packageName })
+                                    )
+                                }
+                                appPickerTarget = null
+                            },
+                            multiSelect = true,
+                            preSelectedPackages = pre,
+                            onDismiss = { appPickerTarget = null }
+                        )
+                    }
+                    isSinglePickAction -> AppPickerDialog(
                         onPickSingle = { app ->
-                            val merged = (pre + app.packageName).distinct()
-                            actionConfigs[ActionType.SYSTEM_OPEN_APP] = mapOf("packages" to merged.joinToString(","))
+                            val current = actionDrafts.getOrNull(actionIndex)
+                            if (current?.id == actionId) {
+                                actionDrafts[actionIndex] = current.copy(
+                                    config = current.config + ("package" to app.packageName)
+                                )
+                            }
                             appPickerTarget = null
                         },
-                        onPickMultiple = { packages ->
-                            actionConfigs[ActionType.SYSTEM_OPEN_APP] = mapOf("packages" to packages.joinToString(",") { it.packageName })
-                            appPickerTarget = null
-                        },
-                        multiSelect = true,
-                        preSelectedPackages = pre,
                         onDismiss = { appPickerTarget = null }
                     )
+                    else -> appPickerTarget = null
                 }
-                singlePickType != null -> AppPickerDialog(
-                    onPickSingle = { app ->
-                        actionConfigs[singlePickType] = mapOf("package" to app.packageName)
-                        appPickerTarget = null
-                    },
-                    onDismiss = { appPickerTarget = null }
-                )
-                else -> appPickerTarget = null
             }
         }
     }

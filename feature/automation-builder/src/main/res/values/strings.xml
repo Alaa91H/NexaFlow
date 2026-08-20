@@ -936,5 +936,5 @@
     <string name="trigger_type_screen_timeout_sub">Fires when screen timeout setting changes</string>
     <string name="trigger_type_timezone_sub">Fires when device timezone changes</string>
     <string name="trigger_type_boot_sub">Fires when device finishes booting</string>
-    <string name="trigger_type_alarm_sub">Fires when an alarm is set or changed</string>
+    <string name="trigger_type_alarm_sub">Fires when an alarm is set or changed</string>    <string name="add_trigger">Add trigger</string>
 </resources>

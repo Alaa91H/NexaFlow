@@ -936,5 +936,5 @@
     <string name="trigger_type_vpn_sub">VPN が接続または切断されたときに発火</string>
     <string name="trigger_type_webhook_sub">受信 HTTP リクエストで発火</string>
     <string name="trigger_type_wifi_signal_sub">Wi-Fi 電波強度がしきい値を超えたときに発火</string>
-    <string name="trigger_type_wifi_state_sub">Wi-Fi が有効または無効になったときに発火</string>
+    <string name="trigger_type_wifi_state_sub">Wi-Fi が有効または無効になったときに発火</string>    <string name="add_trigger">トリガーを追加</string>
 </resources>

@@ -1107,7 +1107,11 @@ fun TriggerEditorCard(
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     // Category accordion state for the trigger type switcher inside the expanded card.
     var expandedTriggerCategory by rememberSaveable { mutableStateOf<Int?>(null) }
-    NexaFlowCard(modifier = modifier) {
+    val accent = builderCardAccent(index)
+    NexaFlowCard(
+        modifier = modifier,
+        containerColor = builderCardContainerColor(index)
+    ) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             Row(
@@ -1147,7 +1151,11 @@ fun TriggerEditorCard(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
-                TaskNumberBadge(number = index + 1)
+                TaskNumberBadge(
+                    number = index + 1,
+                    containerColor = accent,
+                    contentColor = Color.White
+                )
                 Icon(
                     imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                     contentDescription = stringResource(if (expanded) R.string.collapse_options else R.string.expand_options),

@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
@@ -137,18 +138,22 @@ internal fun <T> dragBy(
  * Used by the execution, trigger and constraint lists alike.
  */
 @Composable
-internal fun TaskNumberBadge(number: Int) {
+internal fun TaskNumberBadge(
+    number: Int,
+    containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer
+) {
     Box(
         modifier = Modifier
             .size(26.dp)
             .clip(RoundedCornerShape(50))
-            .background(MaterialTheme.colorScheme.primaryContainer),
+            .background(containerColor),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = number.toString(),
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
+            color = contentColor
         )
     }
 }
