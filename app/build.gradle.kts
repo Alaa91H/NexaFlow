@@ -215,6 +215,7 @@ dependencies {
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.espresso.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.ui.test.junit4)
