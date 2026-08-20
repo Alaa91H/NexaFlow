@@ -169,4 +169,7 @@
     <string name="app_language_sub">NexaFlow के लिए भाषा चुनें</string>
     <string name="app_language_system_default">सिस्टम डिफ़ॉल्ट</string>
     <string name="app_language_picker_title">ऐप की भाषा चुनें</string>
+
+    <string name="plugin_health_sub">%1$d तैयार · %2$d आंशिक · %3$d अनुपलब्ध</string>
+    <string name="plugin_health_title">प्लग-इन स्थिति</string>
 </resources>

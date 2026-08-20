@@ -169,4 +169,7 @@
     <string name="app_language_sub">选择 NexaFlow 使用的语言</string>
     <string name="app_language_system_default">系统默认</string>
     <string name="app_language_picker_title">选择应用语言</string>
+
+    <string name="plugin_health_sub">%1$d 个可用 · %2$d 个部分可用 · %3$d 个不可用</string>
+    <string name="plugin_health_title">插件状态</string>
 </resources>

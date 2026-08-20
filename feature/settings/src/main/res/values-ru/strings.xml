@@ -169,4 +169,7 @@
     <string name="app_language_sub">Выберите язык NexaFlow</string>
     <string name="app_language_system_default">Системный по умолчанию</string>
     <string name="app_language_picker_title">Выберите язык приложения</string>
+
+    <string name="plugin_health_sub">%1$d готовы · %2$d частично доступны · %3$d недоступны</string>
+    <string name="plugin_health_title">Состояние плагинов</string>
 </resources>

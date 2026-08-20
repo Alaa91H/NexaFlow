@@ -169,4 +169,7 @@
     <string name="app_language_sub">NexaFlow で使用する言語を選択します</string>
     <string name="app_language_system_default">システムのデフォルト</string>
     <string name="app_language_picker_title">アプリの言語を選択</string>
+
+    <string name="plugin_health_sub">%1$d 利用可能 · %2$d 部分対応 · %3$d 利用不可</string>
+    <string name="plugin_health_title">プラグインの状態</string>
 </resources>

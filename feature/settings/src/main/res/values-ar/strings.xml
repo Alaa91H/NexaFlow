@@ -167,4 +167,7 @@
     <string name="app_language_sub">اختر اللغة التي يستخدمها NexaFlow</string>
     <string name="app_language_system_default">افتراضي النظام</string>
     <string name="app_language_picker_title">اختر لغة التطبيق</string>
+
+    <string name="plugin_health_sub">%1$d جاهزة · %2$d جزئية · %3$d غير متاحة</string>
+    <string name="plugin_health_title">حالة الإضافات</string>
 </resources>

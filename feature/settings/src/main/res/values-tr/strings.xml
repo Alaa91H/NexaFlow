@@ -169,4 +169,7 @@
     <string name="app_language_sub">NexaFlow\'un kullanacağı dili seçin</string>
     <string name="app_language_system_default">Sistem varsayılanı</string>
     <string name="app_language_picker_title">Uygulama dilini seçin</string>
+
+    <string name="plugin_health_sub">%1$d hazır · %2$d kısmen kullanılabilir · %3$d kullanılamıyor</string>
+    <string name="plugin_health_title">Eklenti durumu</string>
 </resources>

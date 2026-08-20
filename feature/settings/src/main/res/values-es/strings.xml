@@ -167,4 +167,7 @@
     <string name="app_language_sub">Elige el idioma que usa NexaFlow</string>
     <string name="app_language_system_default">Predeterminado del sistema</string>
     <string name="app_language_picker_title">Elegir idioma de la aplicación</string>
+
+    <string name="plugin_health_sub">%1$d listos · %2$d parcialmente disponibles · %3$d no disponibles</string>
+    <string name="plugin_health_title">Estado de los complementos</string>
 </resources>
