@@ -3,6 +3,7 @@ package com.nexaflow.app
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.PrivacyPreferences
+import io.sentry.Sentry
 import io.sentry.android.core.SentryAndroidOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +43,10 @@ class SentryReporterTest {
 
     @Before
     fun setUp() {
+        // Sentry is a process-global singleton. Unit tests may run after a
+        // test that initialized it, which would make ensureInitialized() skip
+        // our fake init seam and turn this test into a timeout.
+        Sentry.close()
         app = ApplicationProvider.getApplicationContext()
         privacyPreferences = PrivacyPreferences(app)
         reporter = SentryReporter(
@@ -61,8 +66,10 @@ class SentryReporterTest {
 
     @After
     fun tearDown() {
-        // Make sure the opt-in state never leaks into another test's file.
+        // Make sure the opt-in state and process-global SDK never leak into
+        // another test's file or alter its initialization assertion.
         runBlocking { privacyPreferences.setCrashReportingEnabled(false) }
+        Sentry.close()
     }
 
     @Test
