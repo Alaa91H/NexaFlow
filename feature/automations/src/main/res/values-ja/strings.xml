@@ -420,4 +420,11 @@
     <string name="constraint_type_charging">充電状態</string>
     <string name="constraint_type_dnd">おやすみモード</string>
     <string name="constraint_type_location">位置情報サービス</string>
+
+    <string name="action_timer">タイマーを開始</string>
+    <string name="action_timer_sub">対応する時計アプリでカウントダウンを開始します</string>
+    <string name="action_system_update">システムアップデート</string>
+    <string name="action_system_update_sub">システムアップデートの設定画面を開きます</string>
+    <string name="action_media_search">音楽検索を再生</string>
+    <string name="action_media_search_sub">対応するメディアアプリに検索と再生を依頼します</string>
 </resources>

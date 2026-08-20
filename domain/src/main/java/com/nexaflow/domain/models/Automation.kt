@@ -317,6 +317,8 @@ enum class ActionType {
     SYSTEM_ANIMATIONS,
     SYSTEM_LOCK_SCREEN,
     SYSTEM_SET_ALARM,
+    /** Starts a countdown timer through a compatible system clock app. Config keys: `seconds`, `message`, `skipUi`. */
+    SYSTEM_SET_TIMER,
     SYSTEM_DARK_MODE,
     SYSTEM_OPEN_RECENTS,
     SYSTEM_GO_HOME,
@@ -452,6 +454,10 @@ enum class ActionType {
     SYSTEM_OPEN_CAMERA,
     /** Opens the app's Play Store page. Config key: `package`. */
     SYSTEM_OPEN_PLAY_STORE_APP,
+    /** Opens the device system-update settings page; it never checks for or installs an OTA update. */
+    SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS,
+    /** Delegates a music search to a compatible media app. Config keys: `query`, optional `package`. */
+    SYSTEM_MEDIA_PLAY_FROM_SEARCH,
     /** Reboots the device. Config key: `mode` (NORMAL/RECOVERY/BOOTLOADER). */
     SYSTEM_REBOOT,
     /** Powers the device off. */

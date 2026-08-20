@@ -505,6 +505,46 @@ fun ActionConfigEditor(
                 )
             }
         }
+        ActionType.SYSTEM_SET_TIMER -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = config["seconds"] ?: "300",
+                    onValueChange = { onConfigChange(config + ("seconds" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.timer_duration_seconds)) },
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = config["message"] ?: "",
+                    onValueChange = { onConfigChange(config + ("message" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.message_optional)) },
+                    singleLine = true
+                )
+                ToggleConfigRow(
+                    label = stringResource(R.string.timer_skip_ui),
+                    checked = config["skipUi"]?.toBoolean() ?: false,
+                    onCheckedChange = { onConfigChange(config + ("skipUi" to it.toString())) }
+                )
+            }
+        }
+        ActionType.SYSTEM_MEDIA_PLAY_FROM_SEARCH -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = config["query"] ?: "",
+                    onValueChange = { onConfigChange(config + ("query" to it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(text = stringResource(R.string.music_search_query)) },
+                    singleLine = true
+                )
+                VariableInsertChips(
+                    availableVariables = availableVariables,
+                    currentValue = config["query"] ?: "",
+                    onValueChange = { onConfigChange(config + ("query" to it)) }
+                )
+                PackagePickerField(config = config, onConfigChange = onConfigChange, onPickApp = onPickApp)
+            }
+        }
         ActionType.APPLICATION_OPEN_APP_SETTINGS -> {
             PackagePickerField(config = config, onConfigChange = onConfigChange, onPickApp = onPickApp)
         }
@@ -842,6 +882,7 @@ fun ActionConfigEditor(
         ActionType.SYSTEM_MEDIA_REWIND,
         ActionType.SYSTEM_OPEN_CAMERA,
         ActionType.SYSTEM_OPEN_PLAY_STORE_APP,
+        ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS,
         ActionType.SYSTEM_OPEN_WIFI_SETTINGS,
         ActionType.SYSTEM_OPEN_BLUETOOTH_SETTINGS,
         ActionType.SYSTEM_OPEN_LOCATION_SETTINGS,

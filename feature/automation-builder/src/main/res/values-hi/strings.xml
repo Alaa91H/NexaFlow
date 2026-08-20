@@ -937,4 +937,16 @@
     <string name="trigger_type_webhook_sub">इनकमिंग HTTP अनुरोध पर ट्रिगर होता है</string>
     <string name="trigger_type_wifi_signal_sub">Wi-Fi सिग्नल शक्ति सीमा पार करने पर ट्रिगर होता है</string>
     <string name="trigger_type_wifi_state_sub">Wi-Fi चालू या बंद होने पर ट्रिगर होता है</string>    <string name="add_trigger">ट्रिगर जोड़ें</string>    <string name="add_action">कार्रवाई जोड़ें</string>
+
+    <string name="category_routines">नियमित रूटीन</string>
+    <string name="action_timer">टाइमर शुरू करें</string>
+    <string name="action_timer_sub">संगत घड़ी ऐप में काउंटडाउन शुरू करता है</string>
+    <string name="action_system_update">सिस्टम अपडेट</string>
+    <string name="action_system_update_sub">सिस्टम अपडेट सेटिंग पेज खोलता है</string>
+    <string name="action_media_search">संगीत खोज चलाएँ</string>
+    <string name="action_media_search_sub">संगत मीडिया ऐप से खोजने और चलाने का अनुरोध करता है</string>
+
+    <string name="timer_duration_seconds">टाइमर अवधि (सेकंड)</string>
+    <string name="timer_skip_ui">समर्थित होने पर घड़ी ऐप की पुष्टि के बिना शुरू करें</string>
+    <string name="music_search_query">संगीत, कलाकार, एल्बम या प्लेलिस्ट</string>
 </resources>

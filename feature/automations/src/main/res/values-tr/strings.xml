@@ -420,4 +420,11 @@
     <string name="constraint_type_charging">Şarj durumu</string>
     <string name="constraint_type_dnd">Rahatsız Etmeyin</string>
     <string name="constraint_type_location">Konum hizmetleri</string>
+
+    <string name="action_timer">Zamanlayıcıyı başlat</string>
+    <string name="action_timer_sub">Uyumlu bir saat uygulamasında geri sayım başlatır</string>
+    <string name="action_system_update">Sistem güncellemesi</string>
+    <string name="action_system_update_sub">Sistem güncelleme ayarları sayfasını açar</string>
+    <string name="action_media_search">Müzik aramasını oynat</string>
+    <string name="action_media_search_sub">Uyumlu bir medya uygulamasından arayıp oynatmasını ister</string>
 </resources>

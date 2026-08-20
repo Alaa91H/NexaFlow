@@ -420,4 +420,11 @@
     <string name="constraint_type_charging">Estado de carregamento</string>
     <string name="constraint_type_dnd">Não perturbar</string>
     <string name="constraint_type_location">Serviços de localização</string>
+
+    <string name="action_timer">Iniciar temporizador</string>
+    <string name="action_timer_sub">Inicia uma contagem regressiva em um app de relógio compatível</string>
+    <string name="action_system_update">Atualização do sistema</string>
+    <string name="action_system_update_sub">Abre a página de definições de atualização do sistema</string>
+    <string name="action_media_search">Reproduzir pesquisa de música</string>
+    <string name="action_media_search_sub">Pede a um app multimédia compatível para pesquisar e reproduzir</string>
 </resources>

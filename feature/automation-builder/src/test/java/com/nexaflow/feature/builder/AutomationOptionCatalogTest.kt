@@ -49,15 +49,33 @@ class AutomationOptionCatalogTest {
     }
 
     @Test
-    fun commonActions_reusesExistingOptionMetadataInRecommendationOrder() {
-        val brightness = option(ActionType.SYSTEM_BRIGHTNESS)
+    fun commonActions_reusesExistingOptionMetadataInRecurringRoutineOrder() {
+        val media = option(ActionType.SYSTEM_MEDIA_PLAY_PAUSE)
         val dnd = option(ActionType.SYSTEM_DND)
+        val timer = option(ActionType.SYSTEM_SET_TIMER)
         val root = option(ActionType.ADVANCED_ROOT)
 
-        val result = AutomationOptionCatalog.commonActions(listOf(brightness, dnd, root))
+        val result = AutomationOptionCatalog.commonActions(listOf(root, timer, dnd, media))
 
-        assertEquals(listOf(dnd, brightness), result)
-        assertTrue(result.all { it === dnd || it === brightness })
+        assertEquals(listOf(media, dnd, timer), result)
+        assertTrue(result.all { it === media || it === dnd || it === timer })
+    }
+
+    @Test
+    fun recurringRoutineCategory_usesCentralOrder_andKeepsNativeOptionMetadata() {
+        val media = option(ActionType.SYSTEM_MEDIA_PLAY_PAUSE).copy(category = ActionCategory.MEDIA)
+        val timer = option(ActionType.SYSTEM_SET_TIMER).copy(category = ActionCategory.SYSTEM)
+        val update = option(ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS).copy(category = ActionCategory.SYSTEM)
+        val root = option(ActionType.ADVANCED_ROOT)
+
+        val result = optionsForActionCategory(
+            ActionCategory.ROUTINES,
+            listOf(root, update, timer, media)
+        )
+
+        assertEquals(listOf(media, timer, update), result)
+        assertEquals(ActionCategory.MEDIA, result.first().category)
+        assertTrue(result.drop(1).all { it.category == ActionCategory.SYSTEM })
     }
 
     @Test

@@ -36,6 +36,9 @@ class CommandCompatibilityEngineTest {
         val p = profile()
         assertTrue(engine.isSupported(ActionType.SYSTEM_TOAST, p))
         assertTrue(engine.isSupported(ActionType.SYSTEM_CLIPBOARD_SET, p))
+        assertTrue(engine.isSupported(ActionType.SYSTEM_SET_TIMER, p))
+        assertTrue(engine.isSupported(ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS, p))
+        assertTrue(engine.isSupported(ActionType.SYSTEM_MEDIA_PLAY_FROM_SEARCH, p))
         assertTrue(engine.isSupported(TriggerType.TIME, p))
         assertTrue(engine.isSupported(TriggerType.BATTERY, p))
     }

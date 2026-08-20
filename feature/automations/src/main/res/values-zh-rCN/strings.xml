@@ -420,4 +420,11 @@
     <string name="constraint_type_charging">充电状态</string>
     <string name="constraint_type_dnd">勿扰模式</string>
     <string name="constraint_type_location">位置服务</string>
+
+    <string name="action_timer">启动计时器</string>
+    <string name="action_timer_sub">在兼容的时钟应用中启动倒计时</string>
+    <string name="action_system_update">系统更新</string>
+    <string name="action_system_update_sub">打开系统更新设置页面</string>
+    <string name="action_media_search">播放音乐搜索</string>
+    <string name="action_media_search_sub">请求兼容的媒体应用搜索并播放</string>
 </resources>

@@ -210,6 +210,7 @@ import java.util.UUID
 private const val TAG = "AutomationBuilder"
 
 enum class ActionCategory(val headerRes: Int, val color: Color) {
+    ROUTINES(R.string.category_routines, Color(0xFF5F6368)),
     DISPLAY(R.string.category_display, Color(0xFF0B57D0)),
     SOUND(R.string.category_sound, Color(0xFF6750A4)),
     CONNECTIVITY(R.string.category_connectivity, Color(0xFF006A6C)),
@@ -261,6 +262,7 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_media_next, R.string.action_media_next_sub, Icons.Filled.SkipNext, ActionType.SYSTEM_MEDIA_NEXT, ActionCategory.MEDIA),
     ActionOption(R.string.action_media_prev, R.string.action_media_prev_sub, Icons.Filled.SkipPrevious, ActionType.SYSTEM_MEDIA_PREVIOUS, ActionCategory.MEDIA),
     ActionOption(R.string.action_media_stop, R.string.action_media_stop_sub, Icons.Filled.Stop, ActionType.SYSTEM_MEDIA_STOP, ActionCategory.MEDIA),
+    ActionOption(R.string.action_media_search, R.string.action_media_search_sub, Icons.Filled.MusicNote, ActionType.SYSTEM_MEDIA_PLAY_FROM_SEARCH, ActionCategory.MEDIA),
     // NOTIFICATIONS
     ActionOption(R.string.action_notification, R.string.action_notification_sub, Icons.Filled.Notifications, ActionType.SYSTEM_SEND_NOTIFICATION, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_send_sms, R.string.action_send_sms_sub, Icons.AutoMirrored.Filled.Message, ActionType.SYSTEM_SEND_SMS, ActionCategory.NOTIFICATIONS),
@@ -277,6 +279,7 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_close_app, R.string.action_close_app_sub, Icons.Filled.Close, ActionType.APPLICATION_CLOSE_APP, ActionCategory.APPS),
     ActionOption(R.string.action_open_app_settings, R.string.action_open_app_settings_sub, Icons.Filled.Settings, ActionType.APPLICATION_OPEN_APP_SETTINGS, ActionCategory.APPS),
     ActionOption(R.string.action_play_updates, R.string.action_play_updates_sub, Icons.Filled.Storefront, ActionType.SYSTEM_OPEN_PLAY_UPDATES, ActionCategory.APPS),
+    ActionOption(R.string.action_system_update, R.string.action_system_update_sub, Icons.Filled.Settings, ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS, ActionCategory.SYSTEM),
     ActionOption(R.string.action_launch_app, R.string.action_launch_app_sub, Icons.Filled.Apps, ActionType.APPLICATION_LAUNCH_APP, ActionCategory.APPS),
     ActionOption(R.string.action_galaxy_store, R.string.action_galaxy_store_sub, Icons.Filled.Store, ActionType.SYSTEM_OPEN_GALAXY_STORE, ActionCategory.APPS),
     // SYSTEM
@@ -287,6 +290,7 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_animations, R.string.action_animations_sub, Icons.Filled.Palette, ActionType.SYSTEM_ANIMATIONS, ActionCategory.SYSTEM),
     ActionOption(R.string.action_lock_screen, R.string.action_lock_screen_sub, Icons.Filled.Lock, ActionType.SYSTEM_LOCK_SCREEN, ActionCategory.SYSTEM),
     ActionOption(R.string.action_set_alarm, R.string.action_set_alarm_sub, Icons.Filled.Schedule, ActionType.SYSTEM_SET_ALARM, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_timer, R.string.action_timer_sub, Icons.Filled.HourglassEmpty, ActionType.SYSTEM_SET_TIMER, ActionCategory.SYSTEM),
     ActionOption(R.string.action_wait, R.string.action_wait_sub, Icons.Filled.HourglassEmpty, ActionType.SYSTEM_WAIT, ActionCategory.SYSTEM),
     ActionOption(R.string.action_go_home, R.string.action_go_home_sub, Icons.Filled.Home, ActionType.SYSTEM_GO_HOME, ActionCategory.SYSTEM),
     ActionOption(R.string.action_open_settings, R.string.action_open_settings_sub, Icons.Filled.Settings, ActionType.SYSTEM_OPEN_SETTINGS, ActionCategory.SYSTEM),
@@ -396,10 +400,25 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_root, R.string.action_root_sub, Icons.Filled.Terminal, ActionType.ADVANCED_ROOT, ActionCategory.SYSTEM)
 )
 
+/**
+ * A focused, ordered view over the canonical catalog. Routine options keep
+ * their native category and are never persisted as a distinct action kind.
+ */
+internal fun optionsForActionCategory(
+    category: ActionCategory,
+    options: List<ActionOption> = actionOptions
+): List<ActionOption> = if (category == ActionCategory.ROUTINES) {
+    AutomationOptionCatalog.recurringActionOrder
+        .mapNotNull { type -> options.firstOrNull { it.actionType == type } }
+} else {
+    options.filter { it.category == category }
+}
+
 internal val actionCategories: List<ActionCategory> = ActionCategory.entries.toList()
 
 /** Representative icon per action category for the accordion chips. */
 internal fun ActionCategory.icon(): ImageVector = when (this) {
+    ActionCategory.ROUTINES -> Icons.Filled.Schedule
     ActionCategory.DISPLAY -> Icons.Filled.BrightnessHigh
     ActionCategory.SOUND -> Icons.AutoMirrored.Filled.VolumeUp
     ActionCategory.CONNECTIVITY -> Icons.Filled.Wifi
@@ -591,6 +610,8 @@ private fun actionSummaryDetail(option: ActionOption, config: Map<String, String
             val minute = (config["minute"] ?: "0").padStart(2, '0')
             "$hour:$minute"
         }
+        ActionType.SYSTEM_SET_TIMER -> "${config["seconds"] ?: "300"}s"
+        ActionType.SYSTEM_MEDIA_PLAY_FROM_SEARCH -> config["query"].orEmpty().trim().ifEmpty { null }
         ActionType.SYSTEM_OPEN_APP ->
             (config["packages"] ?: config["package"] ?: "").trim().ifEmpty { null }
         ActionType.SYSTEM_SEND_NOTIFICATION -> {
@@ -1735,8 +1756,7 @@ fun AutomationBuilderScreen(
                         ) { index ->
                             val category = actionCategories[index]
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                visibleActions
-                                    .filter { it.category == category }
+                                optionsForActionCategory(category, visibleActions)
                                     .forEach { option ->
                                         ActionOptionRow(
                                             option = option,

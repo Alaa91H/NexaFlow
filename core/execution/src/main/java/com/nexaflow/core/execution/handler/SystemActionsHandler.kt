@@ -16,6 +16,7 @@ class SystemActionsHandler : ActionHandler {
         ActionType.SYSTEM_COLLAPSE_STATUS_BAR,
         ActionType.SYSTEM_LOCK_SCREEN,
         ActionType.SYSTEM_SET_ALARM,
+        ActionType.SYSTEM_SET_TIMER,
         ActionType.SYSTEM_OPEN_RECENTS,
         ActionType.SYSTEM_GO_HOME,
         ActionType.SYSTEM_OPEN_PLAY_UPDATES,
@@ -77,6 +78,8 @@ class SystemActionsHandler : ActionHandler {
         ActionType.SYSTEM_DIAL_NUMBER,
         ActionType.SYSTEM_OPEN_CAMERA,
         ActionType.SYSTEM_OPEN_PLAY_STORE_APP,
+        ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS,
+        ActionType.SYSTEM_MEDIA_PLAY_FROM_SEARCH,
         ActionType.SYSTEM_REBOOT,
         ActionType.SYSTEM_SHUTDOWN,
         ActionType.SYSTEM_RESTART_SYSTEM_UI,
@@ -138,6 +141,12 @@ class SystemActionsHandler : ActionHandler {
                 ctx.controller.setAlarm(
                     action.config["hour"]?.toIntOrNull() ?: 7,
                     action.config["minute"]?.toIntOrNull() ?: 0
+                )
+            ActionType.SYSTEM_SET_TIMER ->
+                ctx.controller.setTimer(
+                    seconds = action.config["seconds"]?.toIntOrNull() ?: 300,
+                    message = action.config["message"] ?: "NexaFlow timer",
+                    skipUi = action.config["skipUi"]?.toBoolean() ?: false
                 )
             ActionType.SYSTEM_OPEN_RECENTS ->
                 ctx.controller.openRecents()
@@ -301,6 +310,13 @@ class SystemActionsHandler : ActionHandler {
                 ctx.controller.openCamera()
             ActionType.SYSTEM_OPEN_PLAY_STORE_APP ->
                 ctx.controller.openPlayStoreApp()
+            ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS ->
+                ctx.controller.openSystemUpdateSettings()
+            ActionType.SYSTEM_MEDIA_PLAY_FROM_SEARCH ->
+                ctx.controller.playMediaFromSearch(
+                    query = action.config["query"] ?: "",
+                    packageName = action.config["package"]
+                )
             ActionType.SYSTEM_REBOOT ->
                 ctx.controller.rebootDevice()
             ActionType.SYSTEM_SHUTDOWN ->

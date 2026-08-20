@@ -143,6 +143,7 @@ object CommandCatalog {
         ActionType.SYSTEM_OPEN_APP_DRAWER to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_TOGGLE_PIP to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_OPEN_PLAY_STORE_APP to CommandSpec.UNIVERSAL,
+        ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_OPEN_PLAY_UPDATES to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_OPEN_GALAXY_STORE to CommandSpec.UNIVERSAL,
 
@@ -159,6 +160,7 @@ object CommandCatalog {
         ActionType.SYSTEM_MEDIA_STOP to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_MEDIA_FAST_FORWARD to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_MEDIA_REWIND to CommandSpec.UNIVERSAL,
+        ActionType.SYSTEM_MEDIA_PLAY_FROM_SEARCH to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_OPEN_CAMERA to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_DIAL_NUMBER to direct(permissions = setOf("android.permission.CALL_PHONE")),
         ActionType.SYSTEM_SEND_SMS to direct(permissions = setOf("android.permission.SEND_SMS")),
@@ -167,6 +169,7 @@ object CommandCatalog {
         ActionType.SYSTEM_OPEN_MAPS to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_OPEN_CONTACTS to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_SET_ALARM to CommandSpec.UNIVERSAL,
+        ActionType.SYSTEM_SET_TIMER to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_SET_SETTING to shell(setOf(RomCapability.WRITE_SETTINGS)),
         ActionType.SYSTEM_HTTP_REQUEST to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_WAIT to CommandSpec.UNIVERSAL,

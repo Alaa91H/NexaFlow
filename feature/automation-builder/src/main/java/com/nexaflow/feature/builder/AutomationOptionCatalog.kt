@@ -47,15 +47,27 @@ internal object AutomationOptionCatalog {
         TriggerType.ALARM_SET_CHANGED
     )
 
-    private val commonActionOrder = listOf(
+    /** Ordered everyday actions shown in the recurring-routines section. */
+    internal val recurringActionOrder = listOf(
+        ActionType.SYSTEM_MEDIA_PLAY_PAUSE,
+        ActionType.SYSTEM_MEDIA_PLAY_FROM_SEARCH,
+        ActionType.SYSTEM_STREAM_VOLUME,
         ActionType.SYSTEM_DND,
+        ActionType.SYSTEM_RINGER_MODE,
         ActionType.SYSTEM_WIFI,
         ActionType.SYSTEM_BLUETOOTH,
-        ActionType.SYSTEM_VOLUME,
-        ActionType.SYSTEM_BRIGHTNESS,
+        ActionType.SYSTEM_LOCATION,
+        ActionType.APPLICATION_LAUNCH_APP,
         ActionType.SYSTEM_OPEN_APP,
-        ActionType.SYSTEM_POWER_SAVER
+        ActionType.SYSTEM_SET_ALARM,
+        ActionType.SYSTEM_SET_TIMER,
+        ActionType.SYSTEM_SEND_NOTIFICATION,
+        ActionType.SYSTEM_OPEN_PLAY_UPDATES,
+        ActionType.SYSTEM_OPEN_GALAXY_STORE,
+        ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS
     )
+
+    private val commonActionOrder = recurringActionOrder
 
     private val advancedActions = setOf(
         ActionType.SYSTEM_HTTP_REQUEST,

@@ -937,4 +937,16 @@
     <string name="trigger_type_timezone_sub">Fires when device timezone changes</string>
     <string name="trigger_type_boot_sub">Fires when device finishes booting</string>
     <string name="trigger_type_alarm_sub">Fires when an alarm is set or changed</string>    <string name="add_trigger">Add trigger</string>    <string name="add_action">Add action</string>
+
+    <string name="category_routines">Popular routines</string>
+    <string name="action_timer">Start timer</string>
+    <string name="action_timer_sub">Start a countdown in a compatible clock app</string>
+    <string name="action_system_update">System update</string>
+    <string name="action_system_update_sub">Open the system update settings page</string>
+    <string name="action_media_search">Play music search</string>
+    <string name="action_media_search_sub">Ask a compatible media app to search and play</string>
+
+    <string name="timer_duration_seconds">Timer duration (seconds)</string>
+    <string name="timer_skip_ui">Start without clock confirmation when supported</string>
+    <string name="music_search_query">Music, artist, album, or playlist</string>
 </resources>

@@ -937,4 +937,16 @@
     <string name="trigger_type_webhook_sub">受信 HTTP リクエストで発火</string>
     <string name="trigger_type_wifi_signal_sub">Wi-Fi 電波強度がしきい値を超えたときに発火</string>
     <string name="trigger_type_wifi_state_sub">Wi-Fi が有効または無効になったときに発火</string>    <string name="add_trigger">トリガーを追加</string>    <string name="add_action">アクションを追加</string>
+
+    <string name="category_routines">よく使うルーティン</string>
+    <string name="action_timer">タイマーを開始</string>
+    <string name="action_timer_sub">対応する時計アプリでカウントダウンを開始します</string>
+    <string name="action_system_update">システムアップデート</string>
+    <string name="action_system_update_sub">システムアップデートの設定画面を開きます</string>
+    <string name="action_media_search">音楽検索を再生</string>
+    <string name="action_media_search_sub">対応するメディアアプリに検索と再生を依頼します</string>
+
+    <string name="timer_duration_seconds">タイマー時間（秒）</string>
+    <string name="timer_skip_ui">対応時は時計アプリの確認なしで開始</string>
+    <string name="music_search_query">音楽、アーティスト、アルバム、またはプレイリスト</string>
 </resources>

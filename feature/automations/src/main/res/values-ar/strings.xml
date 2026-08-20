@@ -420,4 +420,11 @@
     <string name="constraint_type_charging">حالة الشحن</string>
     <string name="constraint_type_dnd">عدم الإزعاج</string>
     <string name="constraint_type_location">خدمات الموقع</string>
+
+    <string name="action_timer">بدء مؤقت</string>
+    <string name="action_timer_sub">ابدأ عدّاً تنازلياً في تطبيق ساعة متوافق</string>
+    <string name="action_system_update">تحديث النظام</string>
+    <string name="action_system_update_sub">افتح صفحة إعدادات تحديث النظام</string>
+    <string name="action_media_search">تشغيل بحث موسيقي</string>
+    <string name="action_media_search_sub">اطلب من تطبيق وسائط متوافق البحث والتشغيل</string>
 </resources>

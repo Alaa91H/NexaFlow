@@ -419,4 +419,11 @@
     <string name="trigger_usb_connected">USB connected</string>
     <string name="trigger_vpn_connected">VPN connected</string>
     <string name="trigger_wifi_signal_strength">Wi-Fi signal strength</string>
+
+    <string name="action_timer">Start timer</string>
+    <string name="action_timer_sub">Start a countdown in a compatible clock app</string>
+    <string name="action_system_update">System update</string>
+    <string name="action_system_update_sub">Open the system update settings page</string>
+    <string name="action_media_search">Play music search</string>
+    <string name="action_media_search_sub">Ask a compatible media app to search and play</string>
 </resources>

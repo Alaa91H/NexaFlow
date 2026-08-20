@@ -420,4 +420,11 @@
     <string name="constraint_type_charging">चार्जिंग स्थिति</string>
     <string name="constraint_type_dnd">डू नॉट डिस्टर्ब</string>
     <string name="constraint_type_location">लोकेशन सेवाएँ</string>
+
+    <string name="action_timer">टाइमर शुरू करें</string>
+    <string name="action_timer_sub">संगत घड़ी ऐप में काउंटडाउन शुरू करता है</string>
+    <string name="action_system_update">सिस्टम अपडेट</string>
+    <string name="action_system_update_sub">सिस्टम अपडेट सेटिंग पेज खोलता है</string>
+    <string name="action_media_search">संगीत खोज चलाएँ</string>
+    <string name="action_media_search_sub">संगत मीडिया ऐप से खोजने और चलाने का अनुरोध करता है</string>
 </resources>

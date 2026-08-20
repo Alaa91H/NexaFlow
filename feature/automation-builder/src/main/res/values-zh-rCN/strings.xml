@@ -937,4 +937,16 @@
     <string name="trigger_type_webhook_sub">收到 HTTP 请求时触发</string>
     <string name="trigger_type_wifi_signal_sub">Wi-Fi 信号强度超过阈值时触发</string>
     <string name="trigger_type_wifi_state_sub">Wi-Fi 开启或关闭时触发</string>    <string name="add_trigger">添加触发器</string>    <string name="add_action">添加操作</string>
+
+    <string name="category_routines">常用例程</string>
+    <string name="action_timer">启动计时器</string>
+    <string name="action_timer_sub">在兼容的时钟应用中启动倒计时</string>
+    <string name="action_system_update">系统更新</string>
+    <string name="action_system_update_sub">打开系统更新设置页面</string>
+    <string name="action_media_search">播放音乐搜索</string>
+    <string name="action_media_search_sub">请求兼容的媒体应用搜索并播放</string>
+
+    <string name="timer_duration_seconds">计时器时长（秒）</string>
+    <string name="timer_skip_ui">支持时无需时钟应用确认即可启动</string>
+    <string name="music_search_query">音乐、艺术家、专辑或播放列表</string>
 </resources>

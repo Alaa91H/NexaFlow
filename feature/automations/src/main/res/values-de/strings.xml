@@ -420,4 +420,11 @@
     <string name="constraint_type_charging">Ladestatus</string>
     <string name="constraint_type_dnd">Nicht stören</string>
     <string name="constraint_type_location">Standortdienste</string>
+
+    <string name="action_timer">Timer starten</string>
+    <string name="action_timer_sub">Startet einen Countdown in einer kompatiblen Uhr-App</string>
+    <string name="action_system_update">Systemupdate</string>
+    <string name="action_system_update_sub">Öffnet die Einstellungen für Systemupdates</string>
+    <string name="action_media_search">Musiksuche abspielen</string>
+    <string name="action_media_search_sub">Fordert eine kompatible Medien-App zum Suchen und Abspielen auf</string>
 </resources>

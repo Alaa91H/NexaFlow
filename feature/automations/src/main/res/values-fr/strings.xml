@@ -420,4 +420,11 @@
     <string name="constraint_type_charging">État de charge</string>
     <string name="constraint_type_dnd">Ne pas déranger</string>
     <string name="constraint_type_location">Services de localisation</string>
+
+    <string name="action_timer">Démarrer un minuteur</string>
+    <string name="action_timer_sub">Démarre un compte à rebours dans une application Horloge compatible</string>
+    <string name="action_system_update">Mise à jour du système</string>
+    <string name="action_system_update_sub">Ouvre la page des paramètres de mise à jour du système</string>
+    <string name="action_media_search">Lire une recherche musicale</string>
+    <string name="action_media_search_sub">Demande à une application multimédia compatible de rechercher et lire</string>
 </resources>

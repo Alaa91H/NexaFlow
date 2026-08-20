@@ -937,4 +937,16 @@
     <string name="trigger_type_webhook_sub">Wird bei eingehenden HTTP-Anfragen ausgelöst</string>
     <string name="trigger_type_wifi_signal_sub">Wird ausgelöst, wenn die WLAN-Signalstärke einen Schwellenwert überschreitet</string>
     <string name="trigger_type_wifi_state_sub">Wird ausgelöst, wenn WLAN ein- oder ausgeschaltet wird</string>    <string name="add_trigger">Auslöser hinzufügen</string>    <string name="add_action">Aktion hinzufügen</string>
+
+    <string name="category_routines">Häufige Routinen</string>
+    <string name="action_timer">Timer starten</string>
+    <string name="action_timer_sub">Startet einen Countdown in einer kompatiblen Uhr-App</string>
+    <string name="action_system_update">Systemupdate</string>
+    <string name="action_system_update_sub">Öffnet die Einstellungen für Systemupdates</string>
+    <string name="action_media_search">Musiksuche abspielen</string>
+    <string name="action_media_search_sub">Fordert eine kompatible Medien-App zum Suchen und Abspielen auf</string>
+
+    <string name="timer_duration_seconds">Timerdauer (Sekunden)</string>
+    <string name="timer_skip_ui">Ohne Bestätigung der Uhr-App starten, sofern unterstützt</string>
+    <string name="music_search_query">Musik, Künstler, Album oder Wiedergabeliste</string>
 </resources>

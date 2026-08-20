@@ -420,4 +420,11 @@
     <string name="constraint_type_charging">Состояние зарядки</string>
     <string name="constraint_type_dnd">Не беспокоить</string>
     <string name="constraint_type_location">Службы геолокации</string>
+
+    <string name="action_timer">Запустить таймер</string>
+    <string name="action_timer_sub">Запускает обратный отсчёт в совместимом приложении часов</string>
+    <string name="action_system_update">Обновление системы</string>
+    <string name="action_system_update_sub">Открывает настройки обновления системы</string>
+    <string name="action_media_search">Воспроизвести поиск музыки</string>
+    <string name="action_media_search_sub">Запрашивает у совместимого медиаприложения поиск и воспроизведение</string>
 </resources>

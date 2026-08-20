@@ -937,4 +937,16 @@
     <string name="trigger_type_webhook_sub">É acionado em uma solicitação HTTP recebida</string>
     <string name="trigger_type_wifi_signal_sub">É acionado quando a intensidade do sinal Wi-Fi cruza um limite</string>
     <string name="trigger_type_wifi_state_sub">É acionado quando o Wi-Fi é ativado ou desativado</string>    <string name="add_trigger">Adicionar gatilho</string>    <string name="add_action">Adicionar ação</string>
+
+    <string name="category_routines">Rotinas frequentes</string>
+    <string name="action_timer">Iniciar temporizador</string>
+    <string name="action_timer_sub">Inicia uma contagem regressiva em um app de relógio compatível</string>
+    <string name="action_system_update">Atualização do sistema</string>
+    <string name="action_system_update_sub">Abre a página de definições de atualização do sistema</string>
+    <string name="action_media_search">Reproduzir pesquisa de música</string>
+    <string name="action_media_search_sub">Pede a um app multimédia compatível para pesquisar e reproduzir</string>
+
+    <string name="timer_duration_seconds">Duração do temporizador (segundos)</string>
+    <string name="timer_skip_ui">Iniciar sem confirmação do app de relógio quando suportado</string>
+    <string name="music_search_query">Música, artista, álbum ou lista de reprodução</string>
 </resources>

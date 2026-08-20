@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.SearchManager
 import android.bluetooth.BluetoothAdapter
 import android.content.Context
 import android.content.Intent
@@ -263,6 +264,28 @@ class SystemController(
             }
         } catch (t: Throwable) {
             SystemControlResult.fail("Failed to change airplane mode: ${t.message}")
+        }
+    }
+
+    /**
+     * Delegates a media query to an installed player that explicitly handles
+     * Android's media-search intent. This is deliberately best-effort: a
+     * successful launch does not claim that a provider found or played a track.
+     */
+    fun playMediaFromSearch(query: String, packageName: String? = null): SystemControlResult {
+        if (query.isBlank()) return SystemControlResult.fail("No music search query configured")
+        return try {
+            val intent = Intent(MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH)
+                .putExtra(SearchManager.QUERY, query)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .apply { packageName?.takeIf { it.isNotBlank() }?.let(::setPackage) }
+            if (intent.resolveActivity(context.packageManager) == null) {
+                return SystemControlResult.fail("No compatible media app is available for this search")
+            }
+            context.startActivity(intent)
+            SystemControlResult.ok("Sent music search to a compatible media app")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to start music search: ${t.message}")
         }
     }
 
@@ -659,17 +682,39 @@ class SystemController(
         }
     }
 
-    /** Create an alarm via the system clock app. Works on all devices. */
+    /** Create an alarm via a compatible system clock app. */
     fun setAlarm(hour: Int, minute: Int): SystemControlResult {
         return try {
             val intent = Intent(android.provider.AlarmClock.ACTION_SET_ALARM)
                 .putExtra(android.provider.AlarmClock.EXTRA_HOUR, hour)
                 .putExtra(android.provider.AlarmClock.EXTRA_MINUTES, minute)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            if (intent.resolveActivity(context.packageManager) == null) {
+                return SystemControlResult.fail("No compatible clock app is available")
+            }
             context.startActivity(intent)
             SystemControlResult.ok("Alarm set for %02d:%02d".format(hour, minute))
         } catch (t: Throwable) {
             SystemControlResult.fail("Failed to set alarm: ${t.message}")
+        }
+    }
+
+    /** Starts a countdown timer through a compatible clock app. */
+    fun setTimer(seconds: Int, message: String, skipUi: Boolean): SystemControlResult {
+        val duration = seconds.coerceIn(1, 24 * 60 * 60)
+        return try {
+            val intent = Intent(android.provider.AlarmClock.ACTION_SET_TIMER)
+                .putExtra(android.provider.AlarmClock.EXTRA_LENGTH, duration)
+                .putExtra(android.provider.AlarmClock.EXTRA_MESSAGE, message)
+                .putExtra(android.provider.AlarmClock.EXTRA_SKIP_UI, skipUi)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            if (intent.resolveActivity(context.packageManager) == null) {
+                return SystemControlResult.fail("No compatible clock app is available")
+            }
+            context.startActivity(intent)
+            SystemControlResult.ok("Timer started for ${duration}s")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to start timer: ${t.message}")
         }
     }
 
@@ -828,6 +873,21 @@ class SystemController(
             }
         } catch (t: Throwable) {
             SystemControlResult.fail("Failed to open Galaxy Store: ${t.message}")
+        }
+    }
+
+    /** Opens the system-update settings page when the device exposes one. */
+    fun openSystemUpdateSettings(): SystemControlResult {
+        return try {
+            val intent = Intent(Settings.ACTION_SYSTEM_UPDATE_SETTINGS)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            if (intent.resolveActivity(context.packageManager) == null) {
+                return SystemControlResult.fail("System update settings are unavailable on this device")
+            }
+            context.startActivity(intent)
+            SystemControlResult.ok("Opened system update settings")
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to open system update settings: ${t.message}")
         }
     }
 

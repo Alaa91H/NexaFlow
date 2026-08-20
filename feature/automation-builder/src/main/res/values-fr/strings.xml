@@ -937,4 +937,16 @@
     <string name="trigger_type_webhook_sub">Se déclenche sur une requête HTTP entrante</string>
     <string name="trigger_type_wifi_signal_sub">Se déclenche lorsque la puissance du signal Wi-Fi franchit un seuil</string>
     <string name="trigger_type_wifi_state_sub">Se déclenche lorsque le Wi-Fi est activé ou désactivé</string>    <string name="add_trigger">Ajouter un déclencheur</string>    <string name="add_action">Ajouter une action</string>
+
+    <string name="category_routines">Routines fréquentes</string>
+    <string name="action_timer">Démarrer un minuteur</string>
+    <string name="action_timer_sub">Démarre un compte à rebours dans une application Horloge compatible</string>
+    <string name="action_system_update">Mise à jour du système</string>
+    <string name="action_system_update_sub">Ouvre la page des paramètres de mise à jour du système</string>
+    <string name="action_media_search">Lire une recherche musicale</string>
+    <string name="action_media_search_sub">Demande à une application multimédia compatible de rechercher et lire</string>
+
+    <string name="timer_duration_seconds">Durée du minuteur (secondes)</string>
+    <string name="timer_skip_ui">Démarrer sans confirmation de l’application Horloge si possible</string>
+    <string name="music_search_query">Musique, artiste, album ou liste de lecture</string>
 </resources>

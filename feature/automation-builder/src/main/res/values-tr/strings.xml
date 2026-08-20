@@ -937,4 +937,16 @@
     <string name="trigger_type_webhook_sub">Gelen HTTP isteğinde tetiklenir</string>
     <string name="trigger_type_wifi_signal_sub">Wi-Fi sinyal gücü bir eşiği aştığında tetiklenir</string>
     <string name="trigger_type_wifi_state_sub">Wi-Fi etkinleştirildiğinde veya devre dışı bırakıldığında tetiklenir</string>    <string name="add_trigger">Tetikleyici ekle</string>    <string name="add_action">Eylem ekle</string>
+
+    <string name="category_routines">Sık kullanılan rutinler</string>
+    <string name="action_timer">Zamanlayıcıyı başlat</string>
+    <string name="action_timer_sub">Uyumlu bir saat uygulamasında geri sayım başlatır</string>
+    <string name="action_system_update">Sistem güncellemesi</string>
+    <string name="action_system_update_sub">Sistem güncelleme ayarları sayfasını açar</string>
+    <string name="action_media_search">Müzik aramasını oynat</string>
+    <string name="action_media_search_sub">Uyumlu bir medya uygulamasından arayıp oynatmasını ister</string>
+
+    <string name="timer_duration_seconds">Zamanlayıcı süresi (saniye)</string>
+    <string name="timer_skip_ui">Destekleniyorsa saat uygulaması onayı olmadan başlat</string>
+    <string name="music_search_query">Müzik, sanatçı, albüm veya çalma listesi</string>
 </resources>
