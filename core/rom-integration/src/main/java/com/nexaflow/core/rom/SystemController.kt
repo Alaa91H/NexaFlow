@@ -866,7 +866,8 @@ class SystemController(
             policyManager?.isDeviceOwnerApp(context.packageName) == true
         }.getOrDefault(false)
         val isAffiliatedProfileOwner = runCatching {
-            policyManager?.isProfileOwnerApp(context.packageName) == true &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
+                policyManager?.isProfileOwnerApp(context.packageName) == true &&
                 policyManager.isAffiliatedUser
         }.getOrDefault(false)
         val environment = GooglePlayUpdateEnvironment(
