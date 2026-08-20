@@ -6,6 +6,12 @@
     <string name="no_search_results_title">結果なし</string>
     <string name="no_search_results_sub">検索に一致するタスクがありません。</string>
     <string name="run_now">今すぐ実行</string>
+    <string name="edit_task">編集</string>
+    <string name="delete_task">削除</string>
+    <string name="delete_task_title">タスクを削除しますか？</string>
+    <string name="delete_task_message">「%1$s」は完全に削除されます。</string>
+    <string name="cancel">キャンセル</string>
+    <string name="task_deleted">削除しました: %1$s</string>
     <string name="section_routines">予定タスク</string>
     <string name="new_routine">新しいタスク</string>
     <string name="empty_automations_title">タスクはまだありません</string>

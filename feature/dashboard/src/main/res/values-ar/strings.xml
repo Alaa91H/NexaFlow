@@ -6,6 +6,12 @@
     <string name="no_search_results_title">لا توجد نتائج</string>
     <string name="no_search_results_sub">لا توجد مهام تطابق بحثك.</string>
     <string name="run_now">تشغيل الآن</string>
+    <string name="edit_task">تعديل</string>
+    <string name="delete_task">حذف</string>
+    <string name="delete_task_title">حذف المهمة؟</string>
+    <string name="delete_task_message">سيتم حذف «%1$s» نهائياً.</string>
+    <string name="cancel">إلغاء</string>
+    <string name="task_deleted">تم الحذف: %1$s</string>
     <string name="section_routines">المهام المجدولة</string>
     <string name="new_routine">مهمة جديدة</string>
     <string name="empty_automations_title">لا توجد مهام بعد</string>

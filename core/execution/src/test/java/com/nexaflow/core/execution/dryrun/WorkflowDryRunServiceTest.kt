@@ -15,9 +15,13 @@ import com.nexaflow.domain.capability.NetworkRequirement
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.MaintenanceKind
+import com.nexaflow.domain.models.MaintenanceProfile
+import com.nexaflow.domain.workflow.WorkflowValidationCode
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WorkflowDryRunServiceTest {
@@ -76,5 +80,39 @@ class WorkflowDryRunServiceTest {
         assertFalse(report.executable)
         assertEquals(0, backend.executions)
         assertEquals(false, report.capabilityResolutions.single().policy.allowed)
+    }
+
+    @Test
+    fun dryRunRejectsDependencyCycleBeforeCapabilityResolution() = runBlocking {
+        val first = automation.copy(
+            id = "first",
+            maintenanceProfile = MaintenanceProfile(
+                kind = MaintenanceKind.AUTOMATION,
+                dependencyAutomationIds = listOf("second")
+            )
+        )
+        val second = automation.copy(
+            id = "second",
+            maintenanceProfile = MaintenanceProfile(
+                kind = MaintenanceKind.AUTOMATION,
+                dependencyAutomationIds = listOf("first")
+            )
+        )
+        val service = WorkflowDryRunService(
+            CapabilityResolver(CapabilityRegistry.of(emptyList(), emptyList()))
+        ) { CapabilityDeviceState(capturedAt = 1L) }
+
+        val report = service.inspect(
+            WorkflowDryRunInput(
+                automation = first,
+                automationCatalog = listOf(second)
+            )
+        )
+
+        assertFalse(report.executable)
+        assertTrue(report.workflowValidation.issues.any {
+            it.code == WorkflowValidationCode.CIRCULAR_DEPENDENCY
+        })
+        assertTrue(report.capabilityResolutions.isEmpty())
     }
 }

@@ -60,7 +60,15 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
-    /** Runs a routine immediately from the home screen (Samsung-style play button). */
+    /** Deletes one routine after the dashboard confirmation dialog is accepted. */
+    fun deleteAutomation(automation: Automation) {
+        viewModelScope.launch {
+            automationRepository.deleteAutomation(automation)
+            _executionMessage.value = appContext.getString(R.string.task_deleted, automation.name)
+        }
+    }
+
+    /** Runs a routine immediately from the dashboard action menu. */
     fun runNow(automation: Automation) {
         if (automation.id in _runningIds.value) return
         viewModelScope.launch {

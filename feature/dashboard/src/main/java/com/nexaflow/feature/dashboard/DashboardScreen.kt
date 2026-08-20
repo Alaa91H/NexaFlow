@@ -1,6 +1,7 @@
 package com.nexaflow.feature.dashboard
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Box
@@ -24,12 +25,14 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PhoneAndroid
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -37,12 +40,14 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -77,6 +82,8 @@ fun DashboardScreen(navController: NavController) {
     val executionMessage by viewModel.executionMessage.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var searchQuery by remember { mutableStateOf("") }
+    var actionMenuTarget by remember { mutableStateOf<Automation?>(null) }
+    var deleteTarget by remember { mutableStateOf<Automation?>(null) }
 
     LaunchedEffect(executionMessage) {
         executionMessage?.let { message ->
@@ -197,6 +204,8 @@ fun DashboardScreen(navController: NavController) {
                     summary = automationSummary(row.automation),
                     nextRun = nextRunText(row.automation),
                     isRunning = row.automation.id in runningIds,
+                    containerColor = scheduledTaskCardColor(index),
+                    menuExpanded = actionMenuTarget?.id == row.automation.id,
                     // Google-2026 Keep-style cascade: each card springs in a
                     // beat after the one above it, capped so a long list still
                     // feels instant (no multi-second tail).
@@ -204,28 +213,69 @@ fun DashboardScreen(navController: NavController) {
                         delayMillis = minOf(index * 40, 400)
                     ),
                     onRun = { viewModel.runNow(row.automation) },
+                    onEdit = { navController.navigate("automation_builder?automationId=${row.automation.id}") },
+                    onDelete = { deleteTarget = row.automation },
                     onToggle = { viewModel.toggleAutomation(row.automation, it) },
-                    onClick = { navController.navigate("automation_details/${row.automation.id}") }
+                    onClick = { navController.navigate("automation_details/${row.automation.id}") },
+                    onLongClick = { actionMenuTarget = row.automation },
+                    onDismissMenu = { actionMenuTarget = null }
                 )
             }
         }
     }
+
+    deleteTarget?.let { automation ->
+        AlertDialog(
+            onDismissRequest = { deleteTarget = null },
+            title = { Text(stringResource(R.string.delete_task_title)) },
+            text = { Text(stringResource(R.string.delete_task_message, automation.name)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteAutomation(automation)
+                        deleteTarget = null
+                    }
+                ) {
+                    Text(stringResource(R.string.delete_task))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleteTarget = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
 }
 
-/** Routine card with a natural-language summary, live switch, and play button. */
+/** Routine card with a natural-language summary, live switch, and long-press actions. */
 @Composable
+@OptIn(ExperimentalFoundationApi::class)
 private fun RoutineCard(
     row: AutomationRow,
     summary: String,
     nextRun: String?,
     isRunning: Boolean,
+    containerColor: Color,
+    menuExpanded: Boolean,
     onRun: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
     onToggle: (Boolean) -> Unit,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    onDismissMenu: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    NexaFlowCard(modifier = modifier.clickable(onClick = onClick)) {
-        Row(
+    NexaFlowCard(
+        modifier = modifier.combinedClickable(
+            onClick = onClick,
+            onLongClick = onLongClick
+        ),
+        containerColor = containerColor
+    ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -254,28 +304,59 @@ private fun RoutineCard(
                     lastRunAt = row.lastRunAt
                 )
             }
-            if (isRunning) {
-                Box(
-                    modifier = Modifier.size(48.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.dp
-                    )
+                if (isRunning) {
+                    Box(
+                        modifier = Modifier.size(48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                    }
                 }
-            } else {
-                IconButton(onClick = onRun) {
-                    Icon(
-                        imageVector = Icons.Filled.PlayArrow,
-                        contentDescription = stringResource(R.string.run_now),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
+                Switch(checked = row.automation.enabled, onCheckedChange = onToggle)
             }
-            Switch(checked = row.automation.enabled, onCheckedChange = onToggle)
+            DropdownMenu(
+                expanded = menuExpanded,
+                onDismissRequest = onDismissMenu
+            ) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.run_now)) },
+                    onClick = {
+                        onDismissMenu()
+                        onRun()
+                    },
+                    enabled = !isRunning
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.edit_task)) },
+                    onClick = {
+                        onDismissMenu()
+                        onEdit()
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.delete_task)) },
+                    onClick = {
+                        onDismissMenu()
+                        onDelete()
+                    }
+                )
+            }
         }
     }
+}
+
+@Composable
+private fun scheduledTaskCardColor(index: Int): Color =
+    scheduledTaskCardColor(index, isSystemInDarkTheme())
+
+internal fun scheduledTaskCardColor(index: Int, darkTheme: Boolean): Color = when {
+    darkTheme && index % 2 == 0 -> Color(0xFF363636)
+    darkTheme -> Color(0xFF252525)
+    index % 2 == 0 -> Color(0xFFE7E7E7)
+    else -> Color(0xFFD3D3D3)
 }
 
 /** Samsung-style "Next run · 8:00 PM · Last run · 2 h ago" meta line under the title. */
@@ -432,9 +513,15 @@ private fun RoutineCardPreview() {
             summary = "Time · 1 action",
             nextRun = "Next · today 8:00 PM",
             isRunning = false,
+            containerColor = scheduledTaskCardColor(0),
+            menuExpanded = false,
             onRun = {},
+            onEdit = {},
+            onDelete = {},
             onToggle = {},
             onClick = {},
+            onLongClick = {},
+            onDismissMenu = {},
             modifier = Modifier
         )
     }

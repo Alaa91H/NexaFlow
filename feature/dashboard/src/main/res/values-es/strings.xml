@@ -6,6 +6,12 @@
     <string name="no_search_results_title">Sin resultados</string>
     <string name="no_search_results_sub">Ninguna tarea coincide con tu búsqueda.</string>
     <string name="run_now">Ejecutar ahora</string>
+    <string name="edit_task">Editar</string>
+    <string name="delete_task">Eliminar</string>
+    <string name="delete_task_title">¿Eliminar tarea?</string>
+    <string name="delete_task_message">“%1$s” se eliminará de forma permanente.</string>
+    <string name="cancel">Cancelar</string>
+    <string name="task_deleted">Eliminada: %1$s</string>
     <string name="section_routines">Tareas programadas</string>
     <string name="new_routine">Nueva tarea</string>
     <string name="empty_automations_title">Aún no hay tareas</string>

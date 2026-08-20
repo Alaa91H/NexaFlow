@@ -5,13 +5,16 @@ import com.nexaflow.core.execution.capability.CapabilityResolver
 import com.nexaflow.domain.capability.CapabilityDeviceState
 import com.nexaflow.domain.capability.CapabilityRequest
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.workflow.AutomationDependencyValidator
 import com.nexaflow.domain.workflow.WorkflowValidationResult
 import com.nexaflow.domain.workflow.WorkflowValidator
 
 /** Input is intentionally explicit: action-to-capability mapping remains in the existing action registry. */
 data class WorkflowDryRunInput(
     val automation: Automation,
-    val capabilityRequests: List<CapabilityRequest> = emptyList()
+    val capabilityRequests: List<CapabilityRequest> = emptyList(),
+    /** Existing definitions relevant to dependency validation; the inspected automation always wins. */
+    val automationCatalog: List<Automation> = emptyList()
 )
 
 data class WorkflowDryRunReport(
@@ -30,7 +33,11 @@ class WorkflowDryRunService(
     private val deviceStateProvider: suspend () -> CapabilityDeviceState
 ) {
     suspend fun inspect(input: WorkflowDryRunInput): WorkflowDryRunReport {
-        val workflowValidation = WorkflowValidator.validate(input.automation)
+        val catalog = input.automationCatalog.filterNot { it.id == input.automation.id } + input.automation
+        val workflowValidation = WorkflowValidationResult(
+            WorkflowValidator.validate(input.automation).issues +
+                AutomationDependencyValidator.validate(catalog).issuesFor(input.automation.id)
+        )
         if (!workflowValidation.isValid) {
             return WorkflowDryRunReport(
                 workflowValidation = workflowValidation,

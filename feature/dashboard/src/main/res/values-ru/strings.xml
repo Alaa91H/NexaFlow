@@ -6,6 +6,12 @@
     <string name="no_search_results_title">Нет результатов</string>
     <string name="no_search_results_sub">Ни одна задача не соответствует вашему запросу.</string>
     <string name="run_now">Запустить сейчас</string>
+    <string name="edit_task">Изменить</string>
+    <string name="delete_task">Удалить</string>
+    <string name="delete_task_title">Удалить задачу?</string>
+    <string name="delete_task_message">«%1$s» будет удалена безвозвратно.</string>
+    <string name="cancel">Отмена</string>
+    <string name="task_deleted">Удалено: %1$s</string>
     <string name="section_routines">Плановые задачи</string>
     <string name="new_routine">Новая задача</string>
     <string name="empty_automations_title">Пока нет задач</string>

@@ -6,6 +6,12 @@
     <string name="no_search_results_title">Sem resultados</string>
     <string name="no_search_results_sub">Nenhuma tarefa corresponde à sua pesquisa.</string>
     <string name="run_now">Executar agora</string>
+    <string name="edit_task">Editar</string>
+    <string name="delete_task">Excluir</string>
+    <string name="delete_task_title">Excluir tarefa?</string>
+    <string name="delete_task_message">“%1$s” será excluída permanentemente.</string>
+    <string name="cancel">Cancelar</string>
+    <string name="task_deleted">Excluída: %1$s</string>
     <string name="section_routines">Tarefas agendadas</string>
     <string name="new_routine">Nova tarefa</string>
     <string name="empty_automations_title">Ainda não há tarefas</string>

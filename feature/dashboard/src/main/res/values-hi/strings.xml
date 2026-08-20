@@ -6,6 +6,12 @@
     <string name="no_search_results_title">कोई परिणाम नहीं</string>
     <string name="no_search_results_sub">आपकी खोज से कोई कार्य मेल नहीं खाता।</string>
     <string name="run_now">अभी चलाएँ</string>
+    <string name="edit_task">संपादित करें</string>
+    <string name="delete_task">हटाएँ</string>
+    <string name="delete_task_title">कार्य हटाएँ?</string>
+    <string name="delete_task_message">“%1$s” स्थायी रूप से हटा दिया जाएगा।</string>
+    <string name="cancel">रद्द करें</string>
+    <string name="task_deleted">हटाया गया: %1$s</string>
     <string name="section_routines">निर्धारित कार्य</string>
     <string name="new_routine">नया कार्य</string>
     <string name="empty_automations_title">अभी कोई कार्य नहीं</string>

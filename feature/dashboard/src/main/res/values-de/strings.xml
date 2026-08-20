@@ -6,6 +6,12 @@
     <string name="no_search_results_title">Keine Ergebnisse</string>
     <string name="no_search_results_sub">Keine Aufgaben passen zu deiner Suche.</string>
     <string name="run_now">Jetzt ausführen</string>
+    <string name="edit_task">Bearbeiten</string>
+    <string name="delete_task">Löschen</string>
+    <string name="delete_task_title">Aufgabe löschen?</string>
+    <string name="delete_task_message">„%1$s“ wird dauerhaft gelöscht.</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="task_deleted">Gelöscht: %1$s</string>
     <string name="section_routines">Geplante Aufgaben</string>
     <string name="new_routine">Neue Aufgabe</string>
     <string name="empty_automations_title">Noch keine Aufgaben</string>

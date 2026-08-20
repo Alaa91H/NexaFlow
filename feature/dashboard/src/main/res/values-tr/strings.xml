@@ -6,6 +6,12 @@
     <string name="no_search_results_title">Sonuç yok</string>
     <string name="no_search_results_sub">Aramanızla eşleşen görev yok.</string>
     <string name="run_now">Şimdi çalıştır</string>
+    <string name="edit_task">Düzenle</string>
+    <string name="delete_task">Sil</string>
+    <string name="delete_task_title">Görev silinsin mi?</string>
+    <string name="delete_task_message">“%1$s” kalıcı olarak silinecek.</string>
+    <string name="cancel">İptal</string>
+    <string name="task_deleted">Silindi: %1$s</string>
     <string name="section_routines">Zamanlanmış görevler</string>
     <string name="new_routine">Yeni görev</string>
     <string name="empty_automations_title">Henüz görev yok</string>

@@ -6,6 +6,12 @@
     <string name="no_search_results_title">无结果</string>
     <string name="no_search_results_sub">没有与您的搜索匹配的任务。</string>
     <string name="run_now">立即运行</string>
+    <string name="edit_task">编辑</string>
+    <string name="delete_task">删除</string>
+    <string name="delete_task_title">删除任务？</string>
+    <string name="delete_task_message">“%1$s”将被永久删除。</string>
+    <string name="cancel">取消</string>
+    <string name="task_deleted">已删除：%1$s</string>
     <string name="section_routines">计划任务</string>
     <string name="new_routine">新建任务</string>
     <string name="empty_automations_title">暂无任务</string>

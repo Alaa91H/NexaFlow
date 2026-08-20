@@ -4,6 +4,7 @@ import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.repositories.AutomationRepository
+import com.nexaflow.domain.workflow.AutomationDependencyValidator
 import com.nexaflow.domain.workflow.WorkflowValidationIssue
 import com.nexaflow.domain.workflow.WorkflowValidator
 import kotlinx.coroutines.flow.first
@@ -94,9 +95,11 @@ class BackupManager(
         if (backup.version !in 1..BACKUP_VERSION || backup.automations.any { !it.isWellFormed() }) {
             return BackupPreflight.InvalidFile
         }
+        val dependencyValidation = AutomationDependencyValidator.validate(backup.automations)
         backup.automations.forEach { automation ->
-            val validation = WorkflowValidator.validate(automation)
-            if (!validation.isValid) return BackupPreflight.InvalidWorkflow(automation.id, validation.issues)
+            val issues = WorkflowValidator.validate(automation).issues +
+                dependencyValidation.issuesFor(automation.id)
+            if (issues.isNotEmpty()) return BackupPreflight.InvalidWorkflow(automation.id, issues)
         }
         // Incoming dependency metadata is descriptive and may be stale or
         // tampered with. Rebuild it from the typed workflow actions before UI

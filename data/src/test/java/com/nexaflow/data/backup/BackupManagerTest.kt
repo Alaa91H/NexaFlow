@@ -11,6 +11,7 @@ import com.nexaflow.domain.models.MaintenanceWindow
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
+import com.nexaflow.domain.workflow.WorkflowValidationCode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -287,6 +288,30 @@ class BackupManagerTest {
         assertEquals(original.maintenanceProfile, exported.automations.single().maintenanceProfile)
         assertEquals(ImportResult.Success(1, 1), manager.import(manager.toJson(exported)))
         assertEquals(original.copy(enabled = false), repository.saved.single())
+    }
+
+    @Test
+    fun `dependency cycle is rejected before any automation is saved`() = runBlocking {
+        val first = validAutomation("first").copy(
+            maintenanceProfile = MaintenanceProfile(
+                kind = MaintenanceKind.AUTOMATION,
+                dependencyAutomationIds = listOf("second")
+            )
+        )
+        val second = validAutomation("second").copy(
+            maintenanceProfile = MaintenanceProfile(
+                kind = MaintenanceKind.AUTOMATION,
+                dependencyAutomationIds = listOf("first")
+            )
+        )
+
+        val result = manager.import(backupJson(first, second))
+
+        assertTrue(result is ImportResult.InvalidWorkflow)
+        assertTrue((result as ImportResult.InvalidWorkflow).issues.any {
+            it.code == WorkflowValidationCode.CIRCULAR_DEPENDENCY
+        })
+        assertTrue(repository.saved.isEmpty())
     }
 
     @Test
