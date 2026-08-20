@@ -441,7 +441,11 @@ class MigrationTest {
             close()
         }
 
-        val migrated = helper.runMigrationsAndValidate(16, listOf(Migrations.MIGRATION_15_16))
+        val migrated = helper.runMigrationsAndValidate(
+            16,
+            false,
+            listOf(Migrations.MIGRATION_15_16)
+        )
         migrated.prepare("SELECT name, maintenanceJson FROM `automations` WHERE id = 'a1'").use { stmt ->
             assertTrue(stmt.step())
             assertEquals("Legacy", stmt.getText(0))
