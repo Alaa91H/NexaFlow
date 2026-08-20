@@ -9,6 +9,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  * user's automations and history.
  */
 object Migrations {
+    const val MIGRATION_15_16_SQL = "ALTER TABLE `automations` ADD COLUMN `maintenanceJson` TEXT"
+
 
     /** v1 -> v2: adds the execution history table. */
     val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -218,7 +220,7 @@ object Migrations {
      */
     val MIGRATION_15_16 = object : Migration(15, 16) {
         override fun migrate(db: SupportSQLiteDatabase) {
-            db.execSQL("ALTER TABLE `automations` ADD COLUMN `maintenanceJson` TEXT")
+            db.execSQL(MIGRATION_15_16_SQL)
         }
     }
 

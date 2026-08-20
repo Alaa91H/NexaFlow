@@ -430,7 +430,7 @@ class MigrationTest {
 
     @Test
     fun migrate15To16_addsNullableMaintenanceProfileWithoutChangingAutomation() {
-        helper.createDatabase(15).apply {
+        val migrated = helper.createDatabase(15).apply {
             execSQL(
                 "INSERT INTO `automations` " +
                     "(`id`, `name`, `description`, `icon`, `iconColor`, `backgroundColor`, `category`, " +
@@ -438,14 +438,8 @@ class MigrationTest {
                     "`revertOnExit`, `cooldownSeconds`, `workflowVersion`, `createdAt`, `updatedAt`) " +
                     "VALUES ('a1', 'Legacy', '', 'bolt', 1, 2, 'general', 1, 1, '[]', '[]', '[]', '[]', 0, 10, 1, 1, 2)"
             )
-            close()
+            execSQL(Migrations.MIGRATION_15_16_SQL)
         }
-
-        val migrated = helper.runMigrationsAndValidate(
-            16,
-            false,
-            listOf(Migrations.MIGRATION_15_16)
-        )
         migrated.prepare("SELECT name, maintenanceJson FROM `automations` WHERE id = 'a1'").use { stmt ->
             assertTrue(stmt.step())
             assertEquals("Legacy", stmt.getText(0))
