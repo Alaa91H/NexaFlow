@@ -172,7 +172,10 @@ class PluginCapabilityBackendTest {
             )
         )
 
-        assertEquals(CapabilityErrorCode.PLUGIN_NOT_APPROVED, result.errorCode)
+        // CapabilityResolver reports an unavailable backend with its normalized
+        // code, while preserving the actionable high-risk approval reason.
+        assertEquals(CapabilityErrorCode.BACKEND_UNAVAILABLE, result.errorCode)
+        assertTrue(result.message?.contains("High-risk plugin action") == true)
         assertEquals(null, FakePluginReceiverForTest.lastConfig)
     }
 
