@@ -32,6 +32,7 @@ import com.nexaflow.core.datastore.ThemeMode
 import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.datastore.ThemeSettings
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.ExecutionResultPresentation
 import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -149,7 +150,8 @@ class MainActivity : AppCompatActivity() {
                 val record = executionEngine.runAutomation(automation)
                 Toast.makeText(
                     this@MainActivity,
-                    getString(R.string.deep_link_run_toast, automation.name) + " — " + record.message,
+                    getString(R.string.deep_link_run_toast, automation.name) + " — " +
+                        ExecutionResultPresentation.summary(this@MainActivity, record),
                     Toast.LENGTH_LONG
                 ).show()
             }

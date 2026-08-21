@@ -80,9 +80,4 @@
     <string name="trigger_boot_completed">डिवाइस बूट हुआ</string>
     <string name="trigger_nfc_tag_scanned">NFC टैग स्कैन हुआ</string>
     <string name="trigger_alarm_set_changed">अलार्म सेट</string>
-    <string name="execution_google_play_updates_unavailable">ऐप अपडेट नहीं किए गए: Google Play इस डिवाइस पर NexaFlow को अपडेट खोजने या डाउनलोड करने की अनुमति नहीं देता।</string>
-    <string name="execution_google_play_managed_policy_required">ऐप अपडेट नहीं किए गए: प्रबंधित एंटरप्राइज़ डिवाइस पर Managed Google Play नीति आवश्यक है।</string>
-    <string name="execution_skipped">छोड़ा गया: %1$s</string>
-    <string name="execution_ran">पूर्ण: %1$s</string>
-    <string name="execution_failed">विफल: %1$s</string>
 </resources>

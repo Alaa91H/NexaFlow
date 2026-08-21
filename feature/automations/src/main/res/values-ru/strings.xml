@@ -429,9 +429,4 @@
     <string name="action_system_update_sub">Открывает настройки обновления системы</string>
     <string name="action_media_search">Воспроизвести поиск музыки</string>
     <string name="action_media_search_sub">Запрашивает у совместимого медиаприложения поиск и воспроизведение</string>
-    <string name="execution_google_play_updates_unavailable">Приложения не обновлены: Google Play не предоставляет NexaFlow поиск или загрузку обновлений на этом устройстве.</string>
-    <string name="execution_google_play_managed_policy_required">Приложения не обновлены: на корпоративном управляемом устройстве нужна политика Managed Google Play.</string>
-    <string name="execution_skipped">Пропущено: %1$s</string>
-    <string name="execution_ran">Завершено: %1$s</string>
-    <string name="execution_failed">Ошибка: %1$s</string>
 </resources>

@@ -4,4 +4,20 @@
     <string name="notification_action_run_now">Ejecutar tarea ahora</string>
     <string name="notification_action_reply_label">Responder</string>
     <string name="notification_action_dismiss">Descartar</string>
+
+    <!-- Localized execution-result presentation. -->
+    <string name="execution_task_completed">La tarea se completó correctamente.</string>
+    <string name="execution_task_failed">No se pudo completar la tarea.</string>
+    <string name="execution_task_skipped">Se omitió la tarea.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">No se cumplieron las condiciones. Se completó el comportamiento de finalización.</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">No se cumplieron las condiciones. No hay ningún comportamiento de finalización configurado.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">No se cumplieron las condiciones. No se pudo completar el comportamiento de finalización.</string>
+    <string name="execution_action_completed">La acción se completó correctamente.</string>
+    <string name="execution_action_failed">No se pudo completar la acción.</string>
+    <string name="execution_end_action_completed">La acción de finalización se completó correctamente.</string>
+    <string name="execution_end_action_failed">No se pudo completar la acción de finalización.</string>
+    <string name="execution_original_state_restored">Se restauró el estado original del dispositivo.</string>
+    <string name="execution_original_state_restore_failed">No se pudo restaurar el estado original del dispositivo.</string>
+    <string name="execution_google_play_updates_unavailable">Las aplicaciones no se actualizaron porque Google Play no permite a NexaFlow detectar ni descargar actualizaciones en este dispositivo.</string>
+    <string name="execution_google_play_managed_policy_required">Las aplicaciones no se actualizaron porque se requiere una política de Google Play administrado en un dispositivo gestionado por la empresa.</string>
 </resources>

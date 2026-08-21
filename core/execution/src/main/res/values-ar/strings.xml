@@ -4,4 +4,19 @@
     <string name="notification_action_run_now">تشغيل المهمة الآن</string>
     <string name="notification_action_reply_label">رد</string>
     <string name="notification_action_dismiss">تجاهل</string>
+
+    <string name="execution_task_completed">اكتملت المهمة بنجاح.</string>
+    <string name="execution_task_failed">تعذر إكمال المهمة.</string>
+    <string name="execution_task_skipped">تم تخطي المهمة.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">لم تتحقق الشروط. تم تنفيذ إجراء الإنهاء.</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">لم تتحقق الشروط. لم يتم تعيين إجراء إنهاء.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">لم تتحقق الشروط. تعذر تنفيذ إجراء الإنهاء.</string>
+    <string name="execution_action_completed">اكتمل الإجراء بنجاح.</string>
+    <string name="execution_action_failed">تعذر إكمال الإجراء.</string>
+    <string name="execution_end_action_completed">اكتمل إجراء الإنهاء بنجاح.</string>
+    <string name="execution_end_action_failed">تعذر إكمال إجراء الإنهاء.</string>
+    <string name="execution_original_state_restored">تمت استعادة حالة الجهاز الأصلية.</string>
+    <string name="execution_original_state_restore_failed">تعذر استعادة حالة الجهاز الأصلية.</string>
+    <string name="execution_google_play_updates_unavailable">لم يتم تحديث التطبيقات لأن Google Play لا يتيح لـ NexaFlow اكتشاف التحديثات أو تنزيلها على هذا الجهاز.</string>
+    <string name="execution_google_play_managed_policy_required">لم يتم تحديث التطبيقات لأن سياسة Google Play المُدارة مطلوبة على جهاز مُدار للمؤسسات.</string>
 </resources>

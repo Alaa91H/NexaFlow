@@ -429,9 +429,4 @@
     <string name="action_system_update_sub">सिस्टम अपडेट सेटिंग पेज खोलता है</string>
     <string name="action_media_search">संगीत खोज चलाएँ</string>
     <string name="action_media_search_sub">संगत मीडिया ऐप से खोजने और चलाने का अनुरोध करता है</string>
-    <string name="execution_google_play_updates_unavailable">ऐप अपडेट नहीं किए गए: Google Play इस डिवाइस पर NexaFlow को अपडेट खोजने या डाउनलोड करने की अनुमति नहीं देता।</string>
-    <string name="execution_google_play_managed_policy_required">ऐप अपडेट नहीं किए गए: प्रबंधित एंटरप्राइज़ डिवाइस पर Managed Google Play नीति आवश्यक है।</string>
-    <string name="execution_skipped">छोड़ा गया: %1$s</string>
-    <string name="execution_ran">पूर्ण: %1$s</string>
-    <string name="execution_failed">विफल: %1$s</string>
 </resources>

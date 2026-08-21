@@ -429,9 +429,4 @@
     <string name="action_system_update_sub">Abre la página de ajustes de actualización del sistema</string>
     <string name="action_media_search">Reproducir búsqueda musical</string>
     <string name="action_media_search_sub">Pide a una app multimedia compatible que busque y reproduzca</string>
-    <string name="execution_google_play_updates_unavailable">Las aplicaciones no se actualizaron: Google Play no permite a NexaFlow consultar ni descargar actualizaciones en este dispositivo.</string>
-    <string name="execution_google_play_managed_policy_required">Las aplicaciones no se actualizaron: se requiere una política de Google Play administrado en un dispositivo empresarial gestionado.</string>
-    <string name="execution_skipped">Omitido: %1$s</string>
-    <string name="execution_ran">Completado: %1$s</string>
-    <string name="execution_failed">Error: %1$s</string>
 </resources>

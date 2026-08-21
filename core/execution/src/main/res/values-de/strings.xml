@@ -4,4 +4,19 @@
     <string name="notification_action_run_now">Aufgabe jetzt ausführen</string>
     <string name="notification_action_reply_label">Antwort</string>
     <string name="notification_action_dismiss">Schließen</string>
+
+    <string name="execution_task_completed">Aufgabe wurde erfolgreich abgeschlossen.</string>
+    <string name="execution_task_failed">Aufgabe konnte nicht abgeschlossen werden.</string>
+    <string name="execution_task_skipped">Aufgabe wurde übersprungen.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">Die Bedingungen waren nicht erfüllt. Das Endverhalten wurde ausgeführt.</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">Die Bedingungen waren nicht erfüllt. Es ist kein Endverhalten eingerichtet.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">Die Bedingungen waren nicht erfüllt. Das Endverhalten konnte nicht ausgeführt werden.</string>
+    <string name="execution_action_completed">Aktion wurde erfolgreich abgeschlossen.</string>
+    <string name="execution_action_failed">Aktion konnte nicht abgeschlossen werden.</string>
+    <string name="execution_end_action_completed">Endaktion wurde erfolgreich abgeschlossen.</string>
+    <string name="execution_end_action_failed">Endaktion konnte nicht abgeschlossen werden.</string>
+    <string name="execution_original_state_restored">Der ursprüngliche Gerätezustand wurde wiederhergestellt.</string>
+    <string name="execution_original_state_restore_failed">Der ursprüngliche Gerätezustand konnte nicht wiederhergestellt werden.</string>
+    <string name="execution_google_play_updates_unavailable">Apps wurden nicht aktualisiert, weil Google Play NexaFlow auf diesem Gerät keine Aktualisierungssuche oder Downloads bereitstellt.</string>
+    <string name="execution_google_play_managed_policy_required">Apps wurden nicht aktualisiert, weil auf einem unternehmensverwalteten Gerät eine verwaltete Google-Play-Richtlinie erforderlich ist.</string>
 </resources>

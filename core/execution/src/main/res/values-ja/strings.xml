@@ -4,4 +4,20 @@
     <string name="notification_action_run_now">タスクを今すぐ実行</string>
     <string name="notification_action_reply_label">返信</string>
     <string name="notification_action_dismiss">閉じる</string>
+
+    <!-- Localized execution-result presentation. -->
+    <string name="execution_task_completed">タスクが正常に完了しました。</string>
+    <string name="execution_task_failed">タスクを完了できませんでした。</string>
+    <string name="execution_task_skipped">タスクはスキップされました。</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">条件が満たされていません。終了時の動作が完了しました。</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">条件が満たされていません。終了時の動作が設定されていません。</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">条件が満たされていません。終了時の動作を完了できませんでした。</string>
+    <string name="execution_action_completed">アクションが正常に完了しました。</string>
+    <string name="execution_action_failed">アクションを完了できませんでした。</string>
+    <string name="execution_end_action_completed">終了アクションが正常に完了しました。</string>
+    <string name="execution_end_action_failed">終了アクションを完了できませんでした。</string>
+    <string name="execution_original_state_restored">元のデバイス状態を復元しました。</string>
+    <string name="execution_original_state_restore_failed">元のデバイス状態を復元できませんでした。</string>
+    <string name="execution_google_play_updates_unavailable">このデバイスでは、Google Play が NexaFlow にアプリの更新の検出またはダウンロードを公開していないため、アプリは更新されませんでした。</string>
+    <string name="execution_google_play_managed_policy_required">企業管理デバイスでは管理対象 Google Play ポリシーが必要なため、アプリは更新されませんでした。</string>
 </resources>

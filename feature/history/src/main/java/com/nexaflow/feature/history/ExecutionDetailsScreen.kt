@@ -25,12 +25,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.nexaflow.core.execution.ExecutionResultPresentation
 import com.nexaflow.core.ui.EmptyState
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.theme.NexaFlowTheme
@@ -118,6 +120,7 @@ fun ExecutionDetailsScreen(navController: NavController) {
 /** Run header: icon, name, result message, status pill, channel and total duration. */
 @Composable
 private fun RunSummaryCard(record: ExecutionRecord) {
+    val context = LocalContext.current
     val locale = LocalConfiguration.current.locales[0]
     val timeFormat = remember(locale) { SimpleDateFormat("MMM d, HH:mm:ss", locale) }
     val totalMs = record.actionResults.sumOf { it.durationMs }
@@ -146,7 +149,7 @@ private fun RunSummaryCard(record: ExecutionRecord) {
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
-                        text = record.message,
+                        text = ExecutionResultPresentation.summary(context, record),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary,
                         maxLines = 2
@@ -201,6 +204,7 @@ private fun RunSummaryCard(record: ExecutionRecord) {
 /** One executed action: icon, localized name, result message, duration and status. */
 @Composable
 private fun TimelineRow(result: ActionExecutionResult) {
+    val context = LocalContext.current
     val msLabel = stringResource(R.string.duration_ms)
     val sLabel = stringResource(R.string.duration_s)
     val successColor = NexaFlowTheme.colors.success
@@ -229,7 +233,7 @@ private fun TimelineRow(result: ActionExecutionResult) {
                 fontWeight = FontWeight.Medium
             )
             Text(
-                text = result.message,
+                text = ExecutionResultPresentation.action(context, result),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary,
                 maxLines = 2

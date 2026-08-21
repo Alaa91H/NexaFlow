@@ -4,4 +4,20 @@
     <string name="notification_action_run_now">अभी कार्य चलाएँ</string>
     <string name="notification_action_reply_label">जवाब</string>
     <string name="notification_action_dismiss">खारिज करें</string>
+
+    <!-- Localized execution-result presentation. -->
+    <string name="execution_task_completed">कार्य सफलतापूर्वक पूरा हुआ।</string>
+    <string name="execution_task_failed">कार्य पूरा नहीं किया जा सका।</string>
+    <string name="execution_task_skipped">कार्य छोड़ दिया गया।</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">शर्तें पूरी नहीं हुईं। समाप्ति व्यवहार पूरा हो गया।</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">शर्तें पूरी नहीं हुईं। कोई समाप्ति व्यवहार कॉन्फ़िगर नहीं है।</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">शर्तें पूरी नहीं हुईं। समाप्ति व्यवहार पूरा नहीं किया जा सका।</string>
+    <string name="execution_action_completed">कार्रवाई सफलतापूर्वक पूरी हुई।</string>
+    <string name="execution_action_failed">कार्रवाई पूरी नहीं की जा सकी।</string>
+    <string name="execution_end_action_completed">समाप्ति कार्रवाई सफलतापूर्वक पूरी हुई।</string>
+    <string name="execution_end_action_failed">समाप्ति कार्रवाई पूरी नहीं की जा सकी।</string>
+    <string name="execution_original_state_restored">डिवाइस की मूल स्थिति पुनर्स्थापित कर दी गई।</string>
+    <string name="execution_original_state_restore_failed">डिवाइस की मूल स्थिति पुनर्स्थापित नहीं की जा सकी।</string>
+    <string name="execution_google_play_updates_unavailable">ऐप्स अपडेट नहीं किए गए, क्योंकि Google Play इस डिवाइस पर NexaFlow को अपडेट खोजने या डाउनलोड करने की अनुमति नहीं देता है।</string>
+    <string name="execution_google_play_managed_policy_required">ऐप्स अपडेट नहीं किए गए, क्योंकि एंटरप्राइज़-प्रबंधित डिवाइस पर प्रबंधित Google Play नीति आवश्यक है।</string>
 </resources>

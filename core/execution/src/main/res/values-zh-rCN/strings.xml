@@ -4,4 +4,20 @@
     <string name="notification_action_run_now">立即运行任务</string>
     <string name="notification_action_reply_label">回复</string>
     <string name="notification_action_dismiss">关闭</string>
+
+    <!-- Localized execution-result presentation. -->
+    <string name="execution_task_completed">任务已成功完成。</string>
+    <string name="execution_task_failed">无法完成任务。</string>
+    <string name="execution_task_skipped">已跳过任务。</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">条件不满足。已完成结束行为。</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">条件不满足。未配置结束行为。</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">条件不满足。无法完成结束行为。</string>
+    <string name="execution_action_completed">操作已成功完成。</string>
+    <string name="execution_action_failed">无法完成操作。</string>
+    <string name="execution_end_action_completed">结束操作已成功完成。</string>
+    <string name="execution_end_action_failed">无法完成结束操作。</string>
+    <string name="execution_original_state_restored">已恢复设备原始状态。</string>
+    <string name="execution_original_state_restore_failed">无法恢复设备原始状态。</string>
+    <string name="execution_google_play_updates_unavailable">应用未更新，因为 Google Play 未向此设备上的 NexaFlow 提供更新发现或下载功能。</string>
+    <string name="execution_google_play_managed_policy_required">应用未更新，因为企业管理的设备需要受管理的 Google Play 政策。</string>
 </resources>

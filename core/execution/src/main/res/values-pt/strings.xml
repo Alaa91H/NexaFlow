@@ -4,4 +4,20 @@
     <string name="notification_action_run_now">Executar tarefa agora</string>
     <string name="notification_action_reply_label">Responder</string>
     <string name="notification_action_dismiss">Dispensar</string>
+
+    <!-- Localized execution-result presentation. -->
+    <string name="execution_task_completed">A tarefa foi concluída com êxito.</string>
+    <string name="execution_task_failed">Não foi possível concluir a tarefa.</string>
+    <string name="execution_task_skipped">A tarefa foi ignorada.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">As condições não foram atendidas. O comportamento de encerramento foi concluído.</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">As condições não foram atendidas. Nenhum comportamento de encerramento foi configurado.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">As condições não foram atendidas. Não foi possível concluir o comportamento de encerramento.</string>
+    <string name="execution_action_completed">A ação foi concluída com êxito.</string>
+    <string name="execution_action_failed">Não foi possível concluir a ação.</string>
+    <string name="execution_end_action_completed">A ação de encerramento foi concluída com êxito.</string>
+    <string name="execution_end_action_failed">Não foi possível concluir a ação de encerramento.</string>
+    <string name="execution_original_state_restored">O estado original do dispositivo foi restaurado.</string>
+    <string name="execution_original_state_restore_failed">Não foi possível restaurar o estado original do dispositivo.</string>
+    <string name="execution_google_play_updates_unavailable">Os apps não foram atualizados porque o Google Play não disponibiliza a descoberta nem o download de atualizações ao NexaFlow neste dispositivo.</string>
+    <string name="execution_google_play_managed_policy_required">Os apps não foram atualizados porque uma política do Google Play gerenciado é necessária em um dispositivo gerenciado pela empresa.</string>
 </resources>

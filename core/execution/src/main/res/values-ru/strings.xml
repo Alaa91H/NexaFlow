@@ -4,4 +4,20 @@
     <string name="notification_action_run_now">Запустить задачу сейчас</string>
     <string name="notification_action_reply_label">Ответить</string>
     <string name="notification_action_dismiss">Отклонить</string>
+
+    <!-- Localized execution-result presentation. -->
+    <string name="execution_task_completed">Задача успешно выполнена.</string>
+    <string name="execution_task_failed">Не удалось выполнить задачу.</string>
+    <string name="execution_task_skipped">Задача была пропущена.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">Условия не выполнены. Действие при завершении выполнено.</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">Условия не выполнены. Действие при завершении не настроено.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">Условия не выполнены. Не удалось выполнить действие при завершении.</string>
+    <string name="execution_action_completed">Действие успешно выполнено.</string>
+    <string name="execution_action_failed">Не удалось выполнить действие.</string>
+    <string name="execution_end_action_completed">Действие при завершении успешно выполнено.</string>
+    <string name="execution_end_action_failed">Не удалось выполнить действие при завершении.</string>
+    <string name="execution_original_state_restored">Исходное состояние устройства восстановлено.</string>
+    <string name="execution_original_state_restore_failed">Не удалось восстановить исходное состояние устройства.</string>
+    <string name="execution_google_play_updates_unavailable">Приложения не обновлены, так как Google Play не предоставляет NexaFlow возможность поиска или загрузки обновлений на этом устройстве.</string>
+    <string name="execution_google_play_managed_policy_required">Приложения не обновлены, так как на корпоративно управляемом устройстве требуется политика управляемого Google Play.</string>
 </resources>

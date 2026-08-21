@@ -4,4 +4,20 @@
     <string name="notification_action_run_now">Exécuter la tâche maintenant</string>
     <string name="notification_action_reply_label">Répondre</string>
     <string name="notification_action_dismiss">Ignorer</string>
+
+    <!-- Localized execution-result presentation. -->
+    <string name="execution_task_completed">La tâche a été effectuée avec succès.</string>
+    <string name="execution_task_failed">La tâche n’a pas pu être effectuée.</string>
+    <string name="execution_task_skipped">La tâche a été ignorée.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">Les conditions n’étaient pas remplies. Le comportement de fin a été exécuté.</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">Les conditions n’étaient pas remplies. Aucun comportement de fin n’est configuré.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">Les conditions n’étaient pas remplies. Le comportement de fin n’a pas pu être exécuté.</string>
+    <string name="execution_action_completed">L’action a été effectuée avec succès.</string>
+    <string name="execution_action_failed">L’action n’a pas pu être effectuée.</string>
+    <string name="execution_end_action_completed">L’action de fin a été effectuée avec succès.</string>
+    <string name="execution_end_action_failed">L’action de fin n’a pas pu être effectuée.</string>
+    <string name="execution_original_state_restored">L’état initial de l’appareil a été restauré.</string>
+    <string name="execution_original_state_restore_failed">L’état initial de l’appareil n’a pas pu être restauré.</string>
+    <string name="execution_google_play_updates_unavailable">Les applications n’ont pas été mises à jour, car Google Play n’autorise pas NexaFlow à rechercher ou télécharger les mises à jour sur cet appareil.</string>
+    <string name="execution_google_play_managed_policy_required">Les applications n’ont pas été mises à jour, car une stratégie Google Play géré est requise sur un appareil géré par l’entreprise.</string>
 </resources>
