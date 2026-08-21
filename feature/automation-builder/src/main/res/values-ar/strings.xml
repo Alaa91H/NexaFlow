@@ -38,7 +38,7 @@
     <string name="permission_location_title">الوصول إلى الموقع</string>
     <string name="permission_location_body">يستخدم نيكسافلو موقعك لتشغيل المهام عند دخولك مكاناً أو مغادرته.</string>
     <string name="permission_sms_title">قراءة الرسائل</string>
-    <string name="permission_sms_body">يتيح ذلك للمهام التفاعل عند وصول رسالة، والرد تلقائياً.</string>
+    <string name="permission_sms_body">يتيح ذلك للمهام التفاعل عند وصول رسالة.</string>
     <string name="permission_send_sms_title">إرسال الرسائل</string>
     <string name="permission_send_sms_body">يتيح ذلك للمهمة إرسال رسالة كأحد إجراءاتها.</string>
     <string name="permission_camera_title">الوصول إلى الكاميرا</string>
@@ -218,8 +218,6 @@
     <string name="sms_from_hint">مثال 05XXXXXXXX (فارغ = أي رقم)</string>
     <string name="sms_contains">الرسالة تحتوي</string>
     <string name="sms_contains_hint">نص للمطابقة (فارغ = أي نص)</string>
-    <string name="sms_reply">رد تلقائي (اختياري)</string>
-    <string name="sms_reply_hint">سيتم إرسال رد تلقائيًا</string>
     <string name="permission_denied_hint">مطلوب إذن لتفعيل هذه الميزة</string>
 
     <string name="sms_permission_hint">يتطلب إذن الرسائل لقراءة الرسائل</string>

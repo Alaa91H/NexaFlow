@@ -38,7 +38,7 @@
     <string name="permission_location_title">Доступ к местоположению</string>
     <string name="permission_location_body">NexaFlow использует ваше местоположение для запуска задач при входе или выходе из места.</string>
     <string name="permission_sms_title">Чтение сообщений</string>
-    <string name="permission_sms_body">Позволяет задачам реагировать на приход сообщения и отвечать автоматически.</string>
+    <string name="permission_sms_body">Позволяет задачам реагировать на приход сообщения.</string>
     <string name="permission_send_sms_title">Отправка сообщений</string>
     <string name="permission_send_sms_body">Позволяет задаче отправлять сообщение в качестве одного из действий.</string>
     <string name="permission_camera_title">Доступ к камере</string>
@@ -219,8 +219,6 @@
     <string name="sms_from_hint">напр. 05XXXXXXXX (пусто = любой)</string>
     <string name="sms_contains">Сообщение содержит</string>
     <string name="sms_contains_hint">Текст для поиска (пусто = любой)</string>
-    <string name="sms_reply">Автоответ (необязательно)</string>
-    <string name="sms_reply_hint">Ответ будет отправлен автоматически</string>
     <string name="permission_denied_hint">Требуется разрешение для включения этой функции</string>
 
     <string name="sms_permission_hint">Требуется разрешение SMS для чтения сообщений</string>

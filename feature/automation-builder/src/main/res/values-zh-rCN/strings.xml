@@ -38,7 +38,7 @@
     <string name="permission_location_title">位置信息访问</string>
     <string name="permission_location_body">NexaFlow 使用您的位置信息，在您进入或离开某个地点时运行任务。</string>
     <string name="permission_sms_title">读取消息</string>
-    <string name="permission_sms_body">这允许任务在收到消息时做出反应，并自动回复。</string>
+    <string name="permission_sms_body">这允许任务在收到消息时做出反应。</string>
     <string name="permission_send_sms_title">发送消息</string>
     <string name="permission_send_sms_body">这允许任务作为其操作之一发送消息。</string>
     <string name="permission_camera_title">相机访问</string>
@@ -219,8 +219,6 @@
     <string name="sms_from_hint">例如 05XXXXXXXX（留空 = 任意）</string>
     <string name="sms_contains">消息包含</string>
     <string name="sms_contains_hint">要匹配的文本（留空 = 任意）</string>
-    <string name="sms_reply">自动回复（可选）</string>
-    <string name="sms_reply_hint">将自动发送回复</string>
     <string name="permission_denied_hint">需要权限才能启用此功能</string>
 
     <string name="sms_permission_hint">需要短信权限才能读取消息</string>

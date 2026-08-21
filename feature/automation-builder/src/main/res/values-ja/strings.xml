@@ -38,7 +38,7 @@
     <string name="permission_location_title">位置情報へのアクセス</string>
     <string name="permission_location_body">NexaFlowは場所への出入り時にタスクを実行するため、位置情報を使用します。</string>
     <string name="permission_sms_title">メッセージを読む</string>
-    <string name="permission_sms_body">メッセージ到着時にタスクが反応し、自動返信できるようになります。</string>
+    <string name="permission_sms_body">メッセージ到着時にタスクが反応できるようになります。</string>
     <string name="permission_send_sms_title">メッセージを送信</string>
     <string name="permission_send_sms_body">タスクがアクションの1つとしてメッセージを送信できるようになります。</string>
     <string name="permission_camera_title">カメラへのアクセス</string>
@@ -219,8 +219,6 @@
     <string name="sms_from_hint">例 05XXXXXXXX（空 = すべて）</string>
     <string name="sms_contains">メッセージに含む</string>
     <string name="sms_contains_hint">一致テキスト（空 = すべて）</string>
-    <string name="sms_reply">自動返信（任意）</string>
-    <string name="sms_reply_hint">自動的に返信が送信されます</string>
     <string name="permission_denied_hint">この機能を有効にするには権限が必要です</string>
 
     <string name="sms_permission_hint">メッセージの読み取りには SMS 権限が必要です</string>

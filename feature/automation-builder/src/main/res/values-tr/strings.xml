@@ -38,7 +38,7 @@
     <string name="permission_location_title">Konum erişimi</string>
     <string name="permission_location_body">NexaFlow, bir yere girerken veya çıkarken görevleri çalıştırmak için konumunuzu kullanır.</string>
     <string name="permission_sms_title">Mesajları oku</string>
-    <string name="permission_sms_body">Mesaj geldiğinde görevlerin tepki vermesini ve otomatik yanıtlamasını sağlar.</string>
+    <string name="permission_sms_body">Mesaj geldiğinde görevlerin tepki vermesini sağlar.</string>
     <string name="permission_send_sms_title">Mesaj gönder</string>
     <string name="permission_send_sms_body">Bir görevin eylemlerinden biri olarak mesaj göndermesini sağlar.</string>
     <string name="permission_camera_title">Kamera erişimi</string>
@@ -219,8 +219,6 @@
     <string name="sms_from_hint">örn. 05XXXXXXXX (boş = herhangi biri)</string>
     <string name="sms_contains">Mesaj şunu içeriyor</string>
     <string name="sms_contains_hint">Eşleşecek metin (boş = herhangi biri)</string>
-    <string name="sms_reply">Otomatik yanıt (isteğe bağlı)</string>
-    <string name="sms_reply_hint">Otomatik yanıt gönderilecek</string>
     <string name="permission_denied_hint">Bu özelliği etkinleştirmek için izin gerekli</string>
 
     <string name="sms_permission_hint">Mesajları okumak için SMS izni gerekir</string>

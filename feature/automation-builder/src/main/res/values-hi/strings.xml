@@ -38,7 +38,7 @@
     <string name="permission_location_title">स्थान पहुंच</string>
     <string name="permission_location_body">किसी स्थान में प्रवेश या निकास पर कार्य चलाने के लिए NexaFlow आपके स्थान का उपयोग करता है।</string>
     <string name="permission_sms_title">संदेश पढ़ें</string>
-    <string name="permission_sms_body">इससे संदेश आने पर कार्य प्रतिक्रिया कर सकते हैं और स्वतः उत्तर दे सकते हैं।</string>
+    <string name="permission_sms_body">इससे संदेश आने पर कार्य प्रतिक्रिया कर सकते हैं।</string>
     <string name="permission_send_sms_title">संदेश भेजें</string>
     <string name="permission_send_sms_body">इससे कोई कार्य अपनी क्रियाओं में से एक के रूप में संदेश भेज सकता है।</string>
     <string name="permission_camera_title">कैमरा पहुंच</string>
@@ -219,8 +219,6 @@
     <string name="sms_from_hint">जैसे 05XXXXXXXX (खाली = कोई भी)</string>
     <string name="sms_contains">संदेश में है</string>
     <string name="sms_contains_hint">मिलान हेतु टेक्स्ट (खाली = कोई भी)</string>
-    <string name="sms_reply">स्वतः उत्तर (वैकल्पिक)</string>
-    <string name="sms_reply_hint">उत्तर स्वतः भेजा जाएगा</string>
     <string name="permission_denied_hint">इस सुविधा को सक्षम करने के लिए अनुमति आवश्यक है</string>
 
     <string name="sms_permission_hint">संदेश पढ़ने हेतु SMS अनुमति चाहिए</string>

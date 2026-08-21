@@ -38,7 +38,7 @@
     <string name="permission_location_title">Accès à la localisation</string>
     <string name="permission_location_body">"NexaFlow utilise votre position pour exécuter des tâches à l\'entrée ou à la sortie d\'un lieu."</string>
     <string name="permission_sms_title">Lire les messages</string>
-    <string name="permission_sms_body">"Permet aux tâches de réagir à l\'arrivée d\'un message et de répondre automatiquement."</string>
+    <string name="permission_sms_body">"Permet aux tâches de réagir à l\'arrivée d\'un message."</string>
     <string name="permission_send_sms_title">Envoyer des messages</string>
     <string name="permission_send_sms_body">"Permet à une tâche d\'envoyer un message parmi ses actions."</string>
     <string name="permission_camera_title">Accès à la caméra</string>
@@ -219,8 +219,6 @@
     <string name="sms_from_hint">"ex. 05XXXXXXXX (vide = n\'importe qui)"</string>
     <string name="sms_contains">Le message contient</string>
     <string name="sms_contains_hint">"Texte à rechercher (vide = n\'importe quoi)"</string>
-    <string name="sms_reply">Réponse auto (optionnel)</string>
-    <string name="sms_reply_hint">Une réponse sera envoyée automatiquement</string>
     <string name="permission_denied_hint">Autorisation requise pour activer cette fonctionnalité</string>
 
     <string name="sms_permission_hint">Nécessite la permission SMS pour lire les messages</string>

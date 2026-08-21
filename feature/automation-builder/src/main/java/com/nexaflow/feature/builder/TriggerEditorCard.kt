@@ -306,7 +306,7 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.CONNECTIVITY -> mapOf("network" to "WIFI", "state" to "CONNECTED")
     TriggerType.NETWORK_MODE -> mapOf("state" to "4G")
     TriggerType.LOCATION -> mapOf("lat" to "", "lng" to "", "radius" to "100", "event" to "ENTER")
-    TriggerType.SMS -> mapOf("from" to "", "contains" to "", "reply" to "")
+    TriggerType.SMS -> mapOf("from" to "", "contains" to "")
     TriggerType.BLUETOOTH_DEVICE -> mapOf("deviceName" to "", "deviceAddress" to "", "event" to "CONNECTED")
     TriggerType.RINGER_MODE -> mapOf("mode" to "NORMAL")
     TriggerType.NOTIFICATION -> mapOf("packages" to "", "contains" to "", "event" to "POSTED")
@@ -1779,17 +1779,6 @@ fun TriggerEditorCard(
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text(text = stringResource(R.string.sms_contains)) },
                             placeholder = { Text(text = stringResource(R.string.sms_contains_hint)) },
-                            singleLine = true
-                        )
-                        // Auto-reply: sent back by SmsReceiver when the message
-                        // arrives. It is trigger config, not an exit action, so it
-                        // lives here with the rest of the SMS trigger settings.
-                        OutlinedTextField(
-                            value = draft.config["reply"] ?: "",
-                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("reply" to it))) },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(text = stringResource(R.string.sms_reply)) },
-                            placeholder = { Text(text = stringResource(R.string.sms_reply_hint)) },
                             singleLine = true
                         )
                         RuntimePermissionHint(
