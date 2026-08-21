@@ -100,6 +100,7 @@ import com.nexaflow.core.ui.EmptyState
 import kotlinx.coroutines.launch
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
+import com.nexaflow.core.ui.alternatingSurfaceColor
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.SettingRow
@@ -236,15 +237,21 @@ fun AutomationDetailsScreen(navController: NavController) {
                             color = MaterialTheme.colorScheme.secondary
                         )
                     } else {
-                        current.triggers.forEach { trigger ->
+                        current.triggers.forEachIndexed { index, trigger ->
                             val (titleRes, subtitleRes, icon) = triggerPresentation(trigger.type)
-                            SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes), trailing = {
-                                Text(
-                                    text = triggerDetail(trigger.config),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            })
+                            SettingRow(
+                                icon = icon,
+                                title = stringResource(titleRes),
+                                subtitle = stringResource(subtitleRes),
+                                alternatingIndex = index,
+                                trailing = {
+                                    Text(
+                                        text = triggerDetail(trigger.config),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+                            )
                         }
                     }
                 }
@@ -261,12 +268,13 @@ fun AutomationDetailsScreen(navController: NavController) {
                             color = MaterialTheme.colorScheme.secondary
                         )
                     } else {
-                        current.constraints.forEach { constraint ->
+                        current.constraints.forEachIndexed { index, constraint ->
                             val (titleRes, icon) = constraintPresentation(constraint.type)
                             SettingRow(
                                 icon = icon,
                                 title = stringResource(titleRes),
                                 subtitle = stringResource(R.string.constraint_subtitle),
+                                alternatingIndex = index,
                                 trailing = {
                                     Text(
                                         text = constraintDetail(constraint.config),
@@ -291,30 +299,36 @@ fun AutomationDetailsScreen(navController: NavController) {
                             color = MaterialTheme.colorScheme.secondary
                         )
                     } else {
-                        current.actions.forEach { action ->
+                        current.actions.forEachIndexed { index, action ->
                             val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
-                            SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes), trailing = {
-                                val detailText = actionDetail(action.config)
-                                val endText = endBehaviorText(action)
-                                if (detailText.isNotEmpty() || endText != null) {
-                                    Column(horizontalAlignment = Alignment.End) {
-                                        if (detailText.isNotEmpty()) {
-                                            Text(
-                                                text = detailText,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.tertiary
-                                            )
-                                        }
-                                        if (endText != null) {
-                                            Text(
-                                                text = endText,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.primary
-                                            )
+                            SettingRow(
+                                icon = icon,
+                                title = stringResource(titleRes),
+                                subtitle = stringResource(subtitleRes),
+                                alternatingIndex = index,
+                                trailing = {
+                                    val detailText = actionDetail(action.config)
+                                    val endText = endBehaviorText(action)
+                                    if (detailText.isNotEmpty() || endText != null) {
+                                        Column(horizontalAlignment = Alignment.End) {
+                                            if (detailText.isNotEmpty()) {
+                                                Text(
+                                                    text = detailText,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.tertiary
+                                                )
+                                            }
+                                            if (endText != null) {
+                                                Text(
+                                                    text = endText,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
                                         }
                                     }
                                 }
-                            })
+                            )
                         }
                     }
                 }
@@ -337,9 +351,14 @@ fun AutomationDetailsScreen(navController: NavController) {
                             color = MaterialTheme.colorScheme.secondary
                         )
                     } else {
-                        current.exitActions.forEach { action ->
+                        current.exitActions.forEachIndexed { index, action ->
                             val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
-                            SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes))
+                            SettingRow(
+                                icon = icon,
+                                title = stringResource(titleRes),
+                                subtitle = stringResource(subtitleRes),
+                                alternatingIndex = index
+                            )
                         }
                     }
                 }
@@ -359,16 +378,6 @@ fun AutomationDetailsScreen(navController: NavController) {
     }
 }
 
-/** Alternating surface tier for the four expandable task-detail sections. */
-internal enum class AutomationDetailsSectionTone {
-    LIGHT_GRAY,
-    DARK_GRAY
-}
-
-internal fun automationDetailsSectionTone(index: Int): AutomationDetailsSectionTone =
-    if (index % 2 == 0) AutomationDetailsSectionTone.LIGHT_GRAY
-    else AutomationDetailsSectionTone.DARK_GRAY
-
 /**
  * One consistent card for trigger, constraint, action, and end-of-task
  * sections. The header remains the only toggle target, while expanded content
@@ -382,10 +391,7 @@ private fun AutomationDetailsSectionCard(
     onExpandedChange: () -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val containerColor = when (automationDetailsSectionTone(index)) {
-        AutomationDetailsSectionTone.LIGHT_GRAY -> MaterialTheme.colorScheme.surfaceContainerLow
-        AutomationDetailsSectionTone.DARK_GRAY -> MaterialTheme.colorScheme.surfaceContainerHighest
-    }
+    val containerColor = alternatingSurfaceColor(index)
     NexaFlowCard(containerColor = containerColor) {
         SectionHeader(
             text = title,

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.content.Intent
 import android.provider.Settings
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -38,8 +39,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -51,6 +54,7 @@ import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.core.rom.SystemAppStatusDetector
 import com.nexaflow.core.ui.IconBadge
+import com.nexaflow.core.ui.alternatingSurfaceColor
 import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.core.ui.StatusPill
 import com.nexaflow.core.ui.theme.NexaFlowTheme
@@ -343,6 +347,7 @@ fun CategoryAccordion(
                     onClick = { onExpandedChange(if (selectedIndex == index) null else index) },
                     label = label,
                     leadingIcon = icon,
+                    alternatingIndex = index,
                     // Bound each chip so a long localised label is ellipsized
                     // inside its own cell and never widens the strip into an
                     // unstable layout on compact RTL displays.
@@ -396,7 +401,8 @@ fun ActionOptionRow(
     option: ActionOption,
     checked: Boolean,
     onToggle: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    alternatingIndex: Int? = null
 ) {
     CatalogOptionRow(
         title = stringResource(option.titleRes),
@@ -405,7 +411,8 @@ fun ActionOptionRow(
         color = option.color,
         checked = checked,
         onToggle = onToggle,
-        modifier = modifier
+        modifier = modifier,
+        alternatingIndex = alternatingIndex
     )
 }
 
@@ -420,7 +427,8 @@ fun TriggerOptionRow(
     type: TriggerType,
     checked: Boolean,
     onSelect: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    alternatingIndex: Int? = null
 ) {
     val categoryColor = triggerCategoryOf[type]?.color ?: MaterialTheme.colorScheme.primary
     CatalogOptionRow(
@@ -430,7 +438,8 @@ fun TriggerOptionRow(
         color = categoryColor,
         checked = checked,
         onToggle = onSelect,
-        modifier = modifier
+        modifier = modifier,
+        alternatingIndex = alternatingIndex
     )
 }
 
@@ -442,11 +451,23 @@ private fun CatalogOptionRow(
     color: Color,
     checked: Boolean,
     onToggle: () -> Unit,
-    modifier: Modifier
+    modifier: Modifier,
+    alternatingIndex: Int?
 ) {
+    val rowSurface = alternatingIndex?.let { alternatingSurfaceColor(it) }
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .then(
+                if (rowSurface != null) {
+                    Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(rowSurface)
+                        .padding(horizontal = 8.dp)
+                } else {
+                    Modifier
+                }
+            )
             .clickable(onClick = onToggle)
             .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,

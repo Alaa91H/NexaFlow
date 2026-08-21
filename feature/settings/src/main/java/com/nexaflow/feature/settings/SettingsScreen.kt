@@ -226,7 +226,7 @@ fun SettingsScreen(navController: NavController) {
                 .padding(padding),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp)
         ) {
-            settingsGroup(title = sectionAutomationTitle) {
+            settingsGroup(title = sectionAutomationTitle, alternatingIndex = 0) {
                 SettingRow(
                     icon = Icons.Filled.Security,
                     title = stringResource(R.string.permission_manager),
@@ -257,7 +257,7 @@ fun SettingsScreen(navController: NavController) {
                     onClick = { navController.navigate(SettingsDestination.EXECUTION_HISTORY_ROUTE) }
                 )
             }
-            settingsGroup(title = sectionBackupTitle) {
+            settingsGroup(title = sectionBackupTitle, alternatingIndex = 1) {
                 SettingRow(
                     icon = Icons.Filled.Upload,
                     title = stringResource(R.string.backup_export),
@@ -298,7 +298,7 @@ fun SettingsScreen(navController: NavController) {
                 val updateSettingsViewModel: UpdateSettingsViewModel = hiltViewModel()
                 val updateSettings by updateSettingsViewModel.settings.collectAsState()
                 var showUpdateFrequencyDialog by remember { mutableStateOf(false) }
-                NexaFlowCard {
+                NexaFlowCard(alternatingIndex = 2) {
                     SettingRow(
                         icon = Icons.Filled.SystemUpdate,
                         title = stringResource(R.string.update_auto_checks),
@@ -348,7 +348,7 @@ fun SettingsScreen(navController: NavController) {
                         onDismiss = { showUpdateFrequencyDialog = false }
                     )
                 }
-                NexaFlowCard {
+                NexaFlowCard(alternatingIndex = 3) {
                     when (val state = updateState) {
                         UpdateUiState.Idle -> SettingRow(
                             icon = Icons.Filled.SystemUpdate,
@@ -417,7 +417,7 @@ fun SettingsScreen(navController: NavController) {
                 val locationViewModel: LocationSettingsViewModel = hiltViewModel()
                 val checkInterval by locationViewModel.checkIntervalMinutes.collectAsState()
                 var showIntervalDialog by remember { mutableStateOf(false) }
-                NexaFlowCard {
+                NexaFlowCard(alternatingIndex = 4) {
                     SettingRow(
                         icon = Icons.Filled.MyLocation,
                         title = stringResource(R.string.location_check_interval),
@@ -451,7 +451,7 @@ fun SettingsScreen(navController: NavController) {
                     )
                 }
             }
-            settingsGroup(title = sectionAppearanceTitle) {
+            settingsGroup(title = sectionAppearanceTitle, alternatingIndex = 5) {
                 SettingRow(
                     icon = Icons.Filled.Palette,
                     title = stringResource(R.string.themes),
@@ -482,7 +482,7 @@ fun SettingsScreen(navController: NavController) {
                     onClick = { navController.navigate("widgets") }
                 )
             }
-            settingsGroup(title = sectionAboutTitle) {
+            settingsGroup(title = sectionAboutTitle, alternatingIndex = 6) {
                 SettingRow(
                     icon = Icons.Filled.Info,
                     title = stringResource(R.string.about_nexaflow),

@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 fun LazyListScope.settingsGroup(
     title: String,
     cardModifier: Modifier = Modifier,
+    alternatingIndex: Int? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     item(key = "settings_header_$title") {
@@ -30,6 +31,10 @@ fun LazyListScope.settingsGroup(
         Spacer(modifier = Modifier.height(Dimens.Space2))
     }
     item(key = "settings_card_$title") {
-        NexaFlowCard(modifier = cardModifier, content = content)
+        NexaFlowCard(
+            modifier = cardModifier,
+            alternatingIndex = alternatingIndex,
+            content = content
+        )
     }
 }

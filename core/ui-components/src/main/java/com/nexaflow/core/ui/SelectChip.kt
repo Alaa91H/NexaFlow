@@ -28,10 +28,13 @@ fun SelectChip(
     label: String,
     modifier: Modifier = Modifier,
     leadingIcon: ImageVector? = null,
+    alternatingIndex: Int? = null,
     // Weekday chips show selection purely by colour (no check mark), keeping
     // the row compact now that the day names are spelled out in full.
     showCheck: Boolean = true
 ) {
+    val restingContainerColor = alternatingIndex?.let { alternatingSurfaceColor(it) }
+        ?: MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.4f)
     FilterChip(
         selected = selected,
         onClick = onClick,
@@ -60,7 +63,7 @@ fun SelectChip(
             )
         },
         colors = FilterChipDefaults.filterChipColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.4f),
+            containerColor = restingContainerColor,
             labelColor = MaterialTheme.colorScheme.onSurface,
             iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
             selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),

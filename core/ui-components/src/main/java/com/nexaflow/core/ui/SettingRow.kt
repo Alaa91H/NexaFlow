@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Wifi
@@ -32,12 +33,24 @@ fun SettingRow(
     title: String,
     subtitle: String? = null,
     modifier: Modifier = Modifier,
+    alternatingIndex: Int? = null,
     trailing: @Composable (() -> Unit)? = null,
     onClick: (() -> Unit)? = null
 ) {
+    val rowSurface = alternatingIndex?.let { alternatingSurfaceColor(it) }
+    val iconSurface = alternatingIndex?.let { alternatingSurfaceColor(it + 1) }
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .then(
+                if (rowSurface != null) {
+                    Modifier
+                        .background(rowSurface, RoundedCornerShape(12.dp))
+                        .padding(horizontal = Space2, vertical = 2.dp)
+                } else {
+                    Modifier
+                }
+            )
             .clickable(enabled = onClick != null) { onClick?.invoke() }
             .padding(vertical = Space3),
         verticalAlignment = Alignment.CenterVertically,
@@ -47,7 +60,7 @@ fun SettingRow(
             modifier = Modifier
                 .size(RowIconSize.dp)
                 .background(
-                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    color = iconSurface ?: MaterialTheme.colorScheme.surfaceContainerHighest,
                     shape = CircleShape
                 ),
             contentAlignment = Alignment.Center

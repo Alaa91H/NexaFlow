@@ -259,7 +259,10 @@ fun ConstraintEditorCard(
     // صف ملخص ثابت: يفتح المستخدم الإعداد عند الحاجة ويطويه بعد الانتهاء
     // حتى تبقى قائمة الشروط قابلة للمسح البصري.
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
-    NexaFlowCard(modifier = modifier) {
+    NexaFlowCard(
+        modifier = modifier,
+        alternatingIndex = index
+    ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             // Keep controls and text in separate lines. At narrow widths or
             // with large fonts, a single Row made the summary compete with the

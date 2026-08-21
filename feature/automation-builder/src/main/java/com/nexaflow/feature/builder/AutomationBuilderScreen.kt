@@ -1606,10 +1606,11 @@ fun AutomationBuilderScreen(
                     }
                     if (triggerSearchQuery.isNotBlank()) {
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            visibleTriggers.forEach { type ->
+                            visibleTriggers.forEachIndexed { optionIndex, type ->
                                 TriggerOptionRow(
                                     type = type,
                                     checked = type in selectedTriggerTypes,
+                                    alternatingIndex = optionIndex,
                                     onSelect = {
                                         if (type in selectedTriggerTypes) selectedTriggerTypes.remove(type)
                                         else selectedTriggerTypes.add(type)
@@ -1628,10 +1629,11 @@ fun AutomationBuilderScreen(
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             visibleTriggers
                                 .filter { triggerCategoryOf[it] == category }
-                                .forEach { type ->
+                                .forEachIndexed { optionIndex, type ->
                                     TriggerOptionRow(
                                         type = type,
                                         checked = type in selectedTriggerTypes,
+                                        alternatingIndex = optionIndex,
                                         onSelect = {
                                             if (type in selectedTriggerTypes) selectedTriggerTypes.remove(type)
                                             else selectedTriggerTypes.add(type)
@@ -1727,10 +1729,11 @@ fun AutomationBuilderScreen(
                         }
                         if (actionSearchQuery.isNotBlank()) {
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                visibleActions.forEach { option ->
+                                visibleActions.forEachIndexed { optionIndex, option ->
                                     ActionOptionRow(
                                         option = option,
                                         checked = option.actionType in selectedActionTypes,
+                                        alternatingIndex = optionIndex,
                                         onToggle = {
                                             if (option.actionType in selectedActionTypes) selectedActionTypes.remove(option.actionType)
                                             else selectedActionTypes.add(option.actionType)
@@ -1748,10 +1751,11 @@ fun AutomationBuilderScreen(
                             val category = actionCategories[index]
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 optionsForActionCategory(category, visibleActions)
-                                    .forEach { option ->
+                                    .forEachIndexed { optionIndex, option ->
                                         ActionOptionRow(
                                             option = option,
                                             checked = option.actionType in selectedActionTypes,
+                                            alternatingIndex = optionIndex,
                                             onToggle = {
                                                 if (option.actionType in selectedActionTypes) selectedActionTypes.remove(option.actionType)
                                                 else selectedActionTypes.add(option.actionType)

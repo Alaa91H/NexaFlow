@@ -130,6 +130,7 @@ internal fun HistoryContent(
                     if (entry != null) {
                         HistoryCard(
                             entry = entry,
+                            alternatingIndex = index,
                             onClick = { onOpen(entry.id) }
                         )
                     }
@@ -162,10 +163,17 @@ internal fun HistoryContent(
 }
 
 @Composable
-private fun HistoryCard(entry: ExecutionRecord, onClick: () -> Unit) {
+private fun HistoryCard(
+    entry: ExecutionRecord,
+    alternatingIndex: Int,
+    onClick: () -> Unit
+) {
     val locale = LocalConfiguration.current.locales[0]
     val timeFormat = remember(locale) { SimpleDateFormat("MMM d, HH:mm", locale) }
-    NexaFlowCard(modifier = Modifier.clickable { onClick() }) {
+    NexaFlowCard(
+        modifier = Modifier.clickable { onClick() },
+        alternatingIndex = alternatingIndex
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
