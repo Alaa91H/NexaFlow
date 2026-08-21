@@ -2,7 +2,8 @@ package com.nexaflow.core.pluginsdk
 
 /**
  * Explicit user acknowledgement required for plugins that can execute arbitrary
- * shell/ADB commands. The allow-list is intentionally narrow and package based:
+ * shell/ADB commands or privileged system/root control. The allow-list is
+ * intentionally narrow and package based:
  * protocol discovery still decides whether the app is compatible on a device.
  */
 object PluginRiskPolicy {
@@ -11,7 +12,12 @@ object PluginRiskPolicy {
 
     private val highRiskPackages = setOf(
         "com.termux.tasker",
-        "com.ADBPlugin"
+        "com.ADBPlugin",
+        "com.joaomgcd.autotoolsroot",
+        "eu.chainfire.lumen",
+        "mobi.omegacentauri.red",
+        "com.oasisfeng.greenify",
+        "com.catchingnow.icebox"
     )
 
     fun requiresHighRiskApproval(packageName: String): Boolean = packageName in highRiskPackages

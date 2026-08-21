@@ -66,14 +66,42 @@ class PluginCatalogTest {
     }
 
     @Test
-    fun organize_places_high_risk_command_plugins_in_advanced_available_section() {
-        val state = PluginCatalog.organize(installedPackages = emptyMap(), descriptors = emptyList())
+    fun catalog_contains_all_official_tasker_entries_plus_termux_tasker() {
+        // 94 package IDs from the official Tasker list, plus Termux:Tasker,
+        // which is intentionally retained as a reviewed high-risk add-on.
+        assertEquals(95, PluginCatalog.recommended.size)
+    }
 
-        assertTrue(state.advancedAvailable.isNotEmpty())
+    @Test
+    fun organize_places_only_reviewed_high_risk_plugins_in_advanced_available_section() {
+        val state = PluginCatalog.organize(installedPackages = emptyMap(), descriptors = emptyList())
+        val highRiskPackages = setOf(
+            "com.termux.tasker",
+            "com.ADBPlugin",
+            "com.joaomgcd.autotoolsroot",
+            "eu.chainfire.lumen",
+            "mobi.omegacentauri.red",
+            "com.oasisfeng.greenify",
+            "com.catchingnow.icebox"
+        )
+
+        assertEquals(highRiskPackages, state.advancedAvailable.map { it.packageName }.toSet())
         assertTrue(state.advancedAvailable.all { it.isAdvanced && it.isHighRisk })
-        assertTrue(state.advancedAvailable.any { it.packageName == "com.termux.tasker" })
-        assertTrue(state.advancedAvailable.any { it.packageName == "com.ADBPlugin" })
         assertTrue(state.recommendedAvailable.none { it.isHighRisk })
+    }
+
+    @Test
+    fun official_generic_entries_expose_only_the_locale_tasker_protocol_capability() {
+        val generic = PluginCatalog.recommended.first { it.packageName == "com.aloggers.atimeloggerapp" }
+
+        assertEquals(listOf(PluginCatalogCapability.LOCALE_TASKER), generic.capabilities)
+        assertFalse(generic.section == PluginCatalogSection.ADVANCED)
+        assertFalse(generic.risk == PluginCatalogRisk.HIGH)
+        assertTrue(
+            PluginCatalog.recommended
+                .filter { PluginCatalogCapability.LOCALE_TASKER in it.capabilities && it.risk != PluginCatalogRisk.HIGH }
+                .none { it.section == PluginCatalogSection.ADVANCED }
+        )
     }
 
     @Test

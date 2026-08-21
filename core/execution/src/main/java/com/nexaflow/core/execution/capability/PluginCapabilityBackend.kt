@@ -127,6 +127,12 @@ class PluginCapabilityBackend(
             put("pluginReceiver", checkNotNull(config[KEY_RECEIVER]))
             request.executionId?.let { put("correlationId", it) }
             put("pluginInstance", checkNotNull(config[KEY_INSTANCE]))
+            if (result.resultCode == LocaleContract.RESULT_CODE_OK) {
+                result.outputVariables.forEach { (name, value) ->
+                    put(OUTPUT_METADATA_PREFIX + name, value)
+                }
+                put(OUTPUT_METADATA_COUNT, result.outputVariables.size.toString())
+            }
         }
         return when {
             result.timedOut -> CapabilityResult.failed(
@@ -234,5 +240,7 @@ class PluginCapabilityBackend(
         const val KEY_PACKAGE = "package"
         const val KEY_RECEIVER = "receiver"
         const val KEY_BUNDLE_JSON = "bundleJson"
+        const val OUTPUT_METADATA_PREFIX = "pluginOutput."
+        const val OUTPUT_METADATA_COUNT = "pluginOutputCount"
     }
 }

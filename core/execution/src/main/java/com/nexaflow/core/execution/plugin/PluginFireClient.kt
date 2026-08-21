@@ -20,7 +20,9 @@ data class PluginFireResult(
     /** Optional human-readable message (resultData / %errmsg). */
     val message: String? = null,
     /** True when the plugin never answered within the timeout. */
-    val timedOut: Boolean = false
+    val timedOut: Boolean = false,
+    /** Bounded, lower-case Tasker output variables returned by the plugin. */
+    val outputVariables: Map<String, String> = emptyMap()
 ) {
     val isSuccess: Boolean get() = !timedOut && resultCode == LocaleContract.RESULT_CODE_OK
 }
@@ -44,6 +46,10 @@ class PluginFireClient(
         val intent = Intent(LocaleContract.ACTION_FIRE_SETTING).apply {
             component = ComponentName(packageName, receiverClass)
             putExtra(LocaleContract.EXTRA_BUNDLE, bundle ?: Bundle())
+            putExtra(
+                LocaleContract.EXTRA_HOST_CAPABILITIES,
+                LocaleContract.HOST_CAPABILITY_SETTING_OUTPUT_VARIABLES
+            )
             // Wake force-stopped apps and mark the fire as background-initiated,
             // exactly like Tasker/MacroDroid deliver FIRE_SETTING.
             addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES or Intent.FLAG_FROM_BACKGROUND)
@@ -51,6 +57,7 @@ class PluginFireClient(
         val latch = CountDownLatch(1)
         var code = LocaleContract.RESULT_CODE_CANCELED
         var data: String? = null
+        var outputVariables: Map<String, String> = emptyMap()
         try {
             context.sendOrderedBroadcast(
                 intent,
@@ -59,6 +66,9 @@ class PluginFireClient(
                     override fun onReceive(c: Context?, received: Intent?) {
                         code = resultCode
                         data = resultData
+                        outputVariables = boundedOutputVariables(
+                            getResultExtras(false)?.getBundle(LocaleContract.EXTRA_VARIABLES_BUNDLE)
+                        )
                         latch.countDown()
                     }
                 },
@@ -68,7 +78,11 @@ class PluginFireClient(
                 null
             )
             val answered = latch.await(timeoutMs, TimeUnit.MILLISECONDS)
-            if (answered) PluginFireResult(resultCode = code, message = data)
+            if (answered) PluginFireResult(
+                resultCode = code,
+                message = data,
+                outputVariables = outputVariables
+            )
             else PluginFireResult(timedOut = true)
         } catch (e: Exception) {
             PluginFireResult(
@@ -76,5 +90,27 @@ class PluginFireClient(
                 message = e.message ?: e.javaClass.simpleName
             )
         }
+    }
+
+    /**
+     * Tasker documents action outputs as lower-case local variables.  Keep the
+     * inter-process result bounded before it reaches the workflow context so a
+     * hostile or defective plugin cannot exhaust the 256KB run budget.
+     */
+    private fun boundedOutputVariables(bundle: Bundle?): Map<String, String> {
+        if (bundle == null) return emptyMap()
+        return bundle.keySet()
+            .asSequence()
+            .filter { it.matches(TASKER_OUTPUT_VARIABLE_NAME) }
+            .sorted()
+            .take(MAX_OUTPUT_VARIABLES)
+            .mapNotNull { key -> bundle.get(key)?.toString()?.let { key to it.take(MAX_OUTPUT_VALUE_CHARS) } }
+            .toMap(LinkedHashMap())
+    }
+
+    private companion object {
+        val TASKER_OUTPUT_VARIABLE_NAME = Regex("[a-z][a-z0-9_]*")
+        const val MAX_OUTPUT_VARIABLES = 32
+        const val MAX_OUTPUT_VALUE_CHARS = 4_096
     }
 }

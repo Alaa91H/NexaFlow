@@ -58,6 +58,7 @@ class PluginCapabilityBackendTest {
 
     @Test
     fun invokesPersistedApprovedPluginOnlyThroughOpaqueInstanceReference() = runBlocking {
+        FakePluginReceiverForTest.nextOutputVariables = mapOf("city" to "Berlin")
         val automation = automation(instance = "plugin:approved-instance")
         val backend = PluginCapabilityBackend(
             context = context,
@@ -96,6 +97,8 @@ class PluginCapabilityBackendTest {
         assertEquals(CapabilityBackendId.PLUGIN, result.backend)
         assertEquals("approved-instance", FakePluginReceiverForTest.lastConfig?.get("message"))
         assertEquals("run-123", result.metadata["correlationId"])
+        assertEquals("Berlin", result.metadata["pluginOutput.city"])
+        assertEquals("1", result.metadata["pluginOutputCount"])
     }
 
     @Test

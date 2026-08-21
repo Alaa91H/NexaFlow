@@ -214,4 +214,5 @@
     <string name="plugin_capability_qr_codes">QR コード</string>
     <string name="plugin_capability_cameras">IP カメラ</string>
     <string name="plugin_capability_shell_commands">シェルコマンド</string>
+    <string name="plugin_capability_locale_tasker">Tasker / Locale</string>
 </resources>

@@ -605,6 +605,9 @@ class ExecutionEngine(
         )
         if (capabilityRequest != null && capabilityExecutionService != null) {
             val capabilityResult = capabilityExecutionService.execute(capabilityRequest)
+            if (capabilityResult.status == CapabilityStatus.SUCCESS) {
+                publishPluginOutputVariables(capabilityResult.metadata, runContext)
+            }
             return if (
                 capabilityResult.status == CapabilityStatus.SUCCESS ||
                 capabilityResult.status == CapabilityStatus.PENDING_USER_ACTION
@@ -641,6 +644,30 @@ class ExecutionEngine(
             // automation is recorded and its one-shot exit lifecycle remains valid.
             SystemControlResult.fail(failure.message ?: "Action execution failed")
         }
+    }
+
+    /**
+     * Makes Tasker setting outputs available to actions later in the same run as
+     * `%CTX.pluginOutputs.<lower_case_name>`. Values remain execution-local.
+     */
+    private fun publishPluginOutputVariables(
+        metadata: Map<String, String>,
+        runContext: WorkflowRunContext?
+    ) {
+        val context = runContext ?: return
+        val outputs = metadata
+            .asSequence()
+            .filter { (key, _) -> key.startsWith("pluginOutput.") }
+            .associate { (key, value) -> key.removePrefix("pluginOutput.") to value }
+        if (outputs.isEmpty()) return
+        val merged = LinkedHashMap<String, Any?>()
+        (context.get("$.pluginOutputs") as? Map<*, *>)
+            ?.forEach { (key, value) -> if (key is String) merged[key] = value }
+        merged.putAll(outputs)
+        // The client bounds the collection and every value. The run-context
+        // budget remains authoritative, and a rejected best-effort publication
+        // must not turn a successful external action into a failure.
+        runCatching { context.put("$.pluginOutputs", merged) }
     }
 
     private suspend fun recordTimeline(

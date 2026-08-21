@@ -1025,6 +1025,10 @@ fun AutomationBuilderScreen(
                 `package` = pkg
             }
             putExtra(LocaleContract.EXTRA_STRING_BREADCRUMB, "NexaFlow")
+            putExtra(
+                LocaleContract.EXTRA_HOST_CAPABILITIES,
+                LocaleContract.HOST_CAPABILITY_SETTING_OUTPUT_VARIABLES
+            )
         }
         // Reconfiguring: hand the saved bundle back so the plugin can pre-fill.
         val savedJson = config["bundleJson"]

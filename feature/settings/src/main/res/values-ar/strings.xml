@@ -212,4 +212,5 @@
     <string name="plugin_capability_qr_codes">رموز QR</string>
     <string name="plugin_capability_cameras">كاميرات IP</string>
     <string name="plugin_capability_shell_commands">أوامر Shell</string>
+    <string name="plugin_capability_locale_tasker">تاسكر / Locale</string>
 </resources>

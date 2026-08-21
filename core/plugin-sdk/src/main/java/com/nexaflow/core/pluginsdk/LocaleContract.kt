@@ -23,6 +23,10 @@ object LocaleContract {
     const val ACTION_EDIT_CONDITION =
         "com.twofortyfouram.locale.intent.action.EDIT_CONDITION"
 
+    /** Host → plugin: launch the configuration activity of a Tasker event plugin. */
+    const val ACTION_EDIT_EVENT =
+        "net.dinglisch.android.tasker.ACTION_EDIT_EVENT"
+
     /** Host → plugin: ordered broadcast asking whether a condition is true. */
     const val ACTION_QUERY_CONDITION =
         "com.twofortyfouram.locale.intent.action.QUERY_CONDITION"
@@ -53,6 +57,24 @@ object LocaleContract {
     const val EXTRA_STRING_ACTIVITY_CLASS_NAME =
         "com.twofortyfouram.locale.intent.extra.ACTIVITY"
 
+    // ── Tasker extension extras (namespace net.dinglisch.android.tasker.*) ─────
+
+    /** Tasker extension: action/condition variables returned to the host. */
+    const val EXTRA_VARIABLES_BUNDLE =
+        "net.dinglisch.android.tasker.extras.VARIABLES"
+
+    /** Tasker extension: a bit-mask advertising the features the host supports. */
+    const val EXTRA_HOST_CAPABILITIES =
+        "net.dinglisch.android.tasker.extras.HOST_CAPABILITIES"
+
+    /** Tasker extension: event data passed from REQUEST_QUERY to QUERY_CONDITION. */
+    const val EXTRA_REQUEST_QUERY_PASS_THROUGH_DATA =
+        "net.dinglisch.android.tasker.extras.PASS_THROUGH_DATA"
+
+    /** Key of the event message ID inside the pass-through data bundle. */
+    const val PASS_THROUGH_BUNDLE_MESSAGE_ID_KEY =
+        "net.dinglisch.android.tasker.MESSAGE_ID"
+
     // ── Ordered-broadcast result codes (fire + query) ────────────────────────
 
     const val RESULT_CODE_OK = 0
@@ -70,6 +92,17 @@ object LocaleContract {
 
     /** The receiver cannot currently determine state; this is not false. */
     const val RESULT_CONDITION_UNKNOWN = 18
+
+    // ── Tasker extension host-capability bit flags ─────────────────────────────
+
+    /** Host accepts variables returned by a setting/action plugin. */
+    const val HOST_CAPABILITY_SETTING_OUTPUT_VARIABLES = 2
+
+    /** Host accepts variables returned by a condition plugin. */
+    const val HOST_CAPABILITY_CONDITION_OUTPUT_VARIABLES = 4
+
+    /** Host forwards a pass-through data Bundle for event REQUEST_QUERY calls. */
+    const val HOST_CAPABILITY_REQUEST_QUERY_PASS_THROUGH_DATA = 64
 
     // ── Hard protocol limits ──────────────────────────────────────────────────
 

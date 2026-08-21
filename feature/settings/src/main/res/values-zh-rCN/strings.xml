@@ -214,4 +214,5 @@
     <string name="plugin_capability_qr_codes">二维码</string>
     <string name="plugin_capability_cameras">IP 摄像头</string>
     <string name="plugin_capability_shell_commands">Shell 命令</string>
+    <string name="plugin_capability_locale_tasker">Tasker / Locale</string>
 </resources>

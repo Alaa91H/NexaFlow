@@ -11,15 +11,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
-/**
- * Public Tasker extension surface used for discovery only. Event delivery stays
- * disabled until the dedicated EventBus adapter verifies the extension's
- * correlation/message-id requirements.
- */
-object TaskerExtensionContract {
-    const val ACTION_EDIT_EVENT = "net.dinglisch.android.tasker.ACTION_EDIT_EVENT"
-}
-
 /** Immutable, bounded result of one explicit discovery refresh. */
 data class PluginDiscoverySnapshot(
     val descriptors: List<PluginDescriptor>,
@@ -85,7 +76,7 @@ class PluginDiscoveryRegistry(
                 pm = pm,
                 type = PluginType.EVENT,
                 protocol = PluginProtocol.TASKER_EXTENSION,
-                editAction = TaskerExtensionContract.ACTION_EDIT_EVENT,
+                editAction = LocaleContract.ACTION_EDIT_EVENT,
                 receiverAction = LocaleContract.ACTION_QUERY_CONDITION,
                 forcePartialCompatibility = true
             )
@@ -236,9 +227,10 @@ class PluginDiscoveryRegistry(
             displayName = edit?.displayName ?: receiver?.displayName ?: primary.ref.packageName,
             requiredChecks = REQUIRED_COMPONENT_CHECKS,
             supportsConfiguration = edit != null,
-            // Extensions must be discovered and later negotiated by their adapter;
-            // never advertise outputs or event payloads based on package presence.
-            supportsOutputVariables = false,
+            // The host now accepts bounded Tasker variables returned by the
+            // verified SETTING/FIRE_SETTING path. Condition and event outputs
+            // remain unadvertised until their dedicated runtime adapters exist.
+            supportsOutputVariables = type == PluginType.SETTING,
             supportsEventPayload = false,
             trustLevel = PluginTrustLevel.UNTRUSTED,
             compatibility = if (forcePartialCompatibility && compatibility == PluginCompatibilityStatus.COMPATIBLE) {

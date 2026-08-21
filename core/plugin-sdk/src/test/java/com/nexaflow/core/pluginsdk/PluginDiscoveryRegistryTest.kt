@@ -40,7 +40,7 @@ class PluginDiscoveryRegistryTest {
         assertEquals("$packageName.EditActivity", descriptor.editActivity?.className)
         assertEquals("$packageName.FireReceiver", descriptor.receiver?.className)
         assertTrue(descriptor.supportsConfiguration)
-        assertFalse(descriptor.supportsOutputVariables)
+        assertTrue(descriptor.supportsOutputVariables)
         assertEquals(123L, result.refreshedAtMs)
     }
 

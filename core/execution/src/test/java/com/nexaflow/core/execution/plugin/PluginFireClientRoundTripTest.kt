@@ -69,6 +69,28 @@ class PluginFireClientRoundTripTest {
     }
 
     @Test
+    fun ok_returnsBoundedTaskerOutputVariablesAndAdvertisesHostCapability() {
+        FakePluginReceiverForTest.nextResult = PluginResult.Ok
+        FakePluginReceiverForTest.nextOutputVariables = buildMap {
+            put("city", "Berlin")
+            put("UPPER", "ignored")
+            put("bad-name", "ignored")
+            repeat(33) { put("value$it", "v$it") }
+        }
+
+        val result = fire()
+
+        assertEquals("Berlin", result.outputVariables["city"])
+        assertFalse("UPPER" in result.outputVariables)
+        assertFalse("bad-name" in result.outputVariables)
+        assertEquals(32, result.outputVariables.size)
+        assertTrue(
+            FakePluginReceiverForTest.lastHostCapabilities and
+                LocaleContract.HOST_CAPABILITY_SETTING_OUTPUT_VARIABLES != 0
+        )
+    }
+
+    @Test
     fun pending_deliversPendingCode() {
         FakePluginReceiverForTest.nextResult = PluginResult.Pending
 

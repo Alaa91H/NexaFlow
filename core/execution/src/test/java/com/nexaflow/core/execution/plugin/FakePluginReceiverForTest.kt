@@ -1,24 +1,39 @@
 package com.nexaflow.core.execution.plugin
 
+import android.content.BroadcastReceiver
 import android.content.Context
-import com.nexaflow.core.pluginsdk.PluginFireReceiver
+import android.content.Intent
+import android.os.Bundle
+import com.nexaflow.core.pluginsdk.LocaleContract
+import com.nexaflow.core.pluginsdk.PluginConfigParser
 import com.nexaflow.core.pluginsdk.PluginResult
 
 /**
  * Fake Locale plugin declared in the test manifest (see
- * `src/test/AndroidManifest.xml`) so the client's explicit FIRE_SETTING
- * broadcast resolves to it, exactly like an installed third-party plugin.
- * The result is configured per test through [nextResult].
+ * `src/test/AndroidManifest.xml`) so the client's explicit ordered
+ * FIRE_SETTING broadcast resolves to it, exactly like an installed third-party
+ * plugin. It also exposes Tasker output variables for host-side protocol tests.
  */
-class FakePluginReceiverForTest : PluginFireReceiver() {
+class FakePluginReceiverForTest : BroadcastReceiver() {
 
-    override fun onFire(context: Context, config: Map<String, Any?>): PluginResult {
-        lastConfig = config
-        return nextResult
+    override fun onReceive(context: Context, intent: Intent) {
+        lastConfig = PluginConfigParser.fromBundle(
+            intent.getBundleExtra(LocaleContract.EXTRA_BUNDLE)
+        )
+        lastHostCapabilities = intent.getIntExtra(LocaleContract.EXTRA_HOST_CAPABILITIES, 0)
+        if (!isOrderedBroadcast) return
+
+        resultCode = nextResult.toResultCode()
+        if (nextOutputVariables.isNotEmpty()) {
+            setResultExtras(Bundle().apply {
+                putBundle(LocaleContract.EXTRA_VARIABLES_BUNDLE, Bundle().apply {
+                    nextOutputVariables.forEach { (name, value) -> putString(name, value) }
+                })
+            })
+        }
     }
 
     companion object {
-        // Written by the test thread, read by the receiver on the main looper.
         /** Result the next fired broadcast returns. */
         @Volatile
         var nextResult: PluginResult = PluginResult.Ok
@@ -27,9 +42,19 @@ class FakePluginReceiverForTest : PluginFireReceiver() {
         @Volatile
         var lastConfig: Map<String, Any?>? = null
 
+        /** Tasker output variables returned with the next ordered result. */
+        @Volatile
+        var nextOutputVariables: Map<String, String> = emptyMap()
+
+        /** Host capability bit-mask received with the last fire request. */
+        @Volatile
+        var lastHostCapabilities: Int = 0
+
         fun reset() {
             nextResult = PluginResult.Ok
             lastConfig = null
+            nextOutputVariables = emptyMap()
+            lastHostCapabilities = 0
         }
     }
 }
