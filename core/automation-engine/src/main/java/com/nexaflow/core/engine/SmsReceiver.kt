@@ -62,7 +62,10 @@ class SmsReceiver : BroadcastReceiver() {
                         val last = SmsTriggerMatcher.lastRunAt[automation.id] ?: 0L
                         if (now - last > automation.cooldownMillis) {
                             SmsTriggerMatcher.lastRunAt[automation.id] = now
-                            executionEngine.runAutomation(automation)
+                            executionEngine.runAutomation(
+                                automation = automation,
+                                completeExitOnFinish = true
+                            )
                             val reply = SmsTriggerMatcher.replyOf(automation)
                             if (!reply.isNullOrBlank()) {
                                 // Auto-reply text supports the same %variables

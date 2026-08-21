@@ -75,7 +75,17 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                         // The time-range window closed: run the exit/revert behavior.
                         executionEngine.runExit(automation)
                     } else {
-                        executionEngine.runAutomation(automation)
+                        val isTimeRange = automation.triggers
+                            .firstOrNull { it.type == com.nexaflow.domain.models.TriggerType.TIME }
+                            ?.config?.get("timeMode") == "RANGE"
+                        // A single clock event has no inverse state; close its
+                        // lifecycle after its actions so "when task ends" is
+                        // guaranteed to run. A range remains active until the
+                        // separately scheduled end alarm arrives.
+                        executionEngine.runAutomation(
+                            automation = automation,
+                            completeExitOnFinish = !isTimeRange
+                        )
                     }
                 }
                 scheduler.scheduleNext(automationId)

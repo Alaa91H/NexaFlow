@@ -155,6 +155,28 @@ class ExecutionEngineExitBehaviorTest {
     }
 
     @Test
+    fun `one-shot completion runs configured exit actions immediately`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(handler, history)
+        val automation = automation(exitActions = listOf(action))
+
+        val record = engine.runAutomation(
+            automation = automation,
+            completeExitOnFinish = true
+        )
+
+        assertTrue(record.success)
+        assertEquals("main action and end action must both run", 2, handler.calls)
+        assertEquals("main and exit records must both be durable", 2, history.messages.size)
+
+        // The automatic exit consumes the lifecycle, so a later duplicate end
+        // signal cannot repeat the configured action.
+        engine.runExit(automation)
+        assertEquals("end action must run exactly once", 2, handler.calls)
+    }
+
+    @Test
     fun `no end behavior configured records nothing and executes nothing on exit`() = runBlocking {
         val handler = RecordingHandler()
         val history = RecordingHistory()

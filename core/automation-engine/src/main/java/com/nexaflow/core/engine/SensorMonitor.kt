@@ -225,9 +225,18 @@ class SensorMonitor @Inject constructor(
                     val last = lastRunAt[automation.id] ?: 0L
                     if (now - last > automation.cooldownMillis) {
                         lastRunAt[automation.id] = now
-                        activeStates[automation.id] = true
-                        activeStore.markActive(SOURCE, automation.id)
-                        executionEngine.runAutomation(automation)
+                        val stateful = SensorTriggerMatcher.isStateful(sensor)
+                        if (stateful) {
+                            activeStates[automation.id] = true
+                            activeStore.markActive(SOURCE, automation.id)
+                        }
+                        // Shake and step events have no inverse transition;
+                        // close them after their action chain. Light/proximity
+                        // conditions stay armed until their state changes.
+                        executionEngine.runAutomation(
+                            automation = automation,
+                            completeExitOnFinish = !stateful
+                        )
                     }
                 } else if (SensorTriggerMatcher.isStateful(sensor) &&
                     activeStates.remove(automation.id) != null

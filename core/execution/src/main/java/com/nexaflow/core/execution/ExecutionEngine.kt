@@ -106,6 +106,14 @@ class ExecutionEngine(
         // null, a fresh context is created for this run so handlers always see
         // one — callers may also pass their own to seed or inspect it.
         runContext: WorkflowRunContext? = null,
+        /**
+         * One-shot event sources (SMS, a single scheduled time, webhook, etc.)
+         * have no later opposite state that can close the lifecycle. When true,
+         * execute the configured end behavior immediately after the main action
+         * chain finishes. State and time-range sources keep the default false
+         * and close only when their actual condition ends.
+         */
+        completeExitOnFinish: Boolean = false,
     ): ExecutionRecord {
         val startedAt = epochMillis.now()
         capabilitySnapshotProvider?.invoke()?.let { snapshot ->
@@ -324,6 +332,12 @@ class ExecutionEngine(
         }
         recordTimeline(automation, "RUN", record, startedAt)
         context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
+        // Event-driven tasks have no later inverse transition. Consume their
+        // armed lifecycle now so end actions (or per-action end behavior) run
+        // exactly once after the main chain, and no stale durable marker remains.
+        if (completeExitOnFinish) {
+            runExit(automation)
+        }
         return record
     }
 
