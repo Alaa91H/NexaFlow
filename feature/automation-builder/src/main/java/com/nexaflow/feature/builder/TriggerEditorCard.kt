@@ -1106,8 +1106,6 @@ fun TriggerEditorCard(
     var datePickerTarget by remember { mutableStateOf<String?>(null) } // "date" | "startDate" | "endDate"
     // Fixed header row; the builder owns expansion so the selected card is
     // the sole open card and a new card can close the previous one.
-    // Category accordion state for the trigger type switcher inside the expanded card.
-    var expandedTriggerCategory by rememberSaveable { mutableStateOf<Int?>(null) }
     val accent = builderCardAccent(index)
     NexaFlowCard(
         modifier = modifier,
@@ -1167,38 +1165,9 @@ fun TriggerEditorCard(
             }
             if (expanded) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            // Category-grouped trigger type picker: chips stay pinned on top
-            // and every category's options stay visible below (strict
-            // no-collapse), so the 50+ types never hide behind a tap.
-            CategoryAccordion(
-                tabs = triggerCategories.map { category ->
-                    stringResource(category.headerRes) to category.icon()
-                },
-                expandedIndex = expandedTriggerCategory,
-                onExpandedChange = { expandedTriggerCategory = it }
-            ) { catIndex ->
-                val category = triggerCategories[catIndex]
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    triggerTypeOptions
-                        .filter { triggerCategoryOf[it] == category }
-                        .forEach { option ->
-                            TriggerOptionRow(
-                                type = option,
-                                checked = draft.type == option,
-                                onSelect = {
-                                    val defaults = defaultTriggerConfig(option)
-                                    onConfigChange(
-                                        TriggerDraft(
-                                            type = option,
-                                            config = defaults + draft.config.filterKeys { it in defaults.keys }
-                                        )
-                                    )
-                                    expandedTriggerCategory = null
-                                }
-                            )
-                        }
-                }
-            }
+            // A task card configures its already-selected trigger only. Type
+            // discovery lives in the builder search/category browser before
+            // the card is added, so no category strip is rendered here.
             when (draft.type) {
                 TriggerType.TIME -> {
                     val rangeMode = draft.config["timeMode"] == "RANGE"
