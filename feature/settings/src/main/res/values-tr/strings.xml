@@ -215,4 +215,16 @@
     <string name="plugin_capability_cameras">IP kameralar</string>
     <string name="plugin_capability_shell_commands">Shell komutları</string>
     <string name="plugin_capability_locale_tasker">Tasker / Locale</string>
+    <string name="update_auto_checks">Otomatik güncelleme denetimi</string>
+    <string name="update_auto_checks_enabled_sub">Seçilen aralıkta arka planda daha yeni sürümleri denetler</string>
+    <string name="update_auto_checks_disabled_sub">Devre dışı — arka plan denetimi veya güncelleme bildirimi yok</string>
+    <string name="update_check_frequency">Otomatik denetim sıklığı</string>
+    <string name="update_check_frequency_sub">Arka plan güncelleme denetimlerinin ne zaman çalışacağını seçin</string>
+    <string name="update_frequency_daily">Günlük</string>
+    <string name="update_frequency_weekly">Haftalık</string>
+    <string name="update_frequency_monthly">Aylık</string>
+    <string name="update_notification_title">Güncelleme mevcut</string>
+    <string name="update_notification_text">NexaFlow %1$s kullanılabilir</string>
+    <string name="update_notification_channel">Uygulama güncellemeleri</string>
+    <string name="update_notification_channel_sub">Daha yeni bir NexaFlow sürümü olduğunda bildirimler</string>
 </resources>

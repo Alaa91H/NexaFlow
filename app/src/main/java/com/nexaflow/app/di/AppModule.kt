@@ -16,6 +16,7 @@ import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.PrivacyPreferences
 import com.nexaflow.core.datastore.SmsPreferences
 import com.nexaflow.core.datastore.ThemePreferences
+import com.nexaflow.core.datastore.UpdatePreferences
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.capability.AndroidCapabilityDeviceStateReader
@@ -157,6 +158,12 @@ object AppModule {
     @Singleton
     fun provideLocationPreferences(@ApplicationContext context: Context): LocationPreferences {
         return LocationPreferences(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUpdatePreferences(@ApplicationContext context: Context): UpdatePreferences {
+        return UpdatePreferences(context)
     }
 
     @Provides

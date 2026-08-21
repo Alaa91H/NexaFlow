@@ -165,7 +165,10 @@ class UpdateViewModelOffMainThreadTest {
 
     @Test
     fun downloadAndVerify_runsOffMainThread() {
-        val vm = UpdateViewModel(ApplicationProvider.getApplicationContext())
+        val vm = UpdateViewModel(
+            application = ApplicationProvider.getApplicationContext(),
+            installedVersionForTest = "v3.38.8"
+        )
         vm.check()
         awaitTerminalState(vm)
         assertTrue(

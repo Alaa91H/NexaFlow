@@ -213,4 +213,16 @@
     <string name="plugin_capability_cameras">كاميرات IP</string>
     <string name="plugin_capability_shell_commands">أوامر Shell</string>
     <string name="plugin_capability_locale_tasker">تاسكر / Locale</string>
+    <string name="update_auto_checks">فحص التحديثات التلقائي</string>
+    <string name="update_auto_checks_enabled_sub">يتحقق في الخلفية من الإصدارات الأحدث وفق الفترة المحددة</string>
+    <string name="update_auto_checks_disabled_sub">معطّل — لا توجد عمليات فحص في الخلفية أو إشعارات تحديث</string>
+    <string name="update_check_frequency">فترة الفحص التلقائي</string>
+    <string name="update_check_frequency_sub">اختر موعد تشغيل فحص التحديثات في الخلفية</string>
+    <string name="update_frequency_daily">يوميًا</string>
+    <string name="update_frequency_weekly">أسبوعيًا</string>
+    <string name="update_frequency_monthly">شهريًا</string>
+    <string name="update_notification_title">يتوفر تحديث</string>
+    <string name="update_notification_text">يتوفر NexaFlow %1$s</string>
+    <string name="update_notification_channel">تحديثات التطبيق</string>
+    <string name="update_notification_channel_sub">إشعارات عند توفر إصدار أحدث من NexaFlow</string>
 </resources>

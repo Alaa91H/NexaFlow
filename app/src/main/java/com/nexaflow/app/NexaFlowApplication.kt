@@ -7,7 +7,9 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.nexaflow.app.work.LocationCheckScheduler
 import com.nexaflow.app.work.MaintenanceWorker
+import com.nexaflow.app.work.UpdateCheckScheduler
 import com.nexaflow.core.datastore.LocationPreferences
+import com.nexaflow.core.datastore.UpdatePreferences
 import com.nexaflow.core.engine.AutomationScheduler
 import com.nexaflow.core.engine.MonitoringService
 import com.nexaflow.core.engine.di.ApplicationScope
@@ -16,6 +18,7 @@ import com.nexaflow.core.execution.recovery.ExecutionRecoveryCoordinator
 import com.nexaflow.core.rom.ShizukuShellBridge
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -34,6 +37,9 @@ class NexaFlowApplication : Application(), Configuration.Provider {
 
     @Inject
     lateinit var locationPreferences: LocationPreferences
+
+    @Inject
+    lateinit var updatePreferences: UpdatePreferences
 
     @Inject
     lateinit var executionRecoveryCoordinator: ExecutionRecoveryCoordinator
@@ -82,6 +88,16 @@ class NexaFlowApplication : Application(), Configuration.Provider {
                 )
             }
         }.onFailure { Log.e(TAG, "Location check schedule failed", it) }
+        // The persisted update settings are the single source of truth. The
+        // default disabled value cancels stale work from older installs; later
+        // user edits replace or cancel the unique periodic request immediately.
+        appScope.launch {
+            updatePreferences.settings.collect { settings ->
+                runCatching {
+                    UpdateCheckScheduler.schedule(this@NexaFlowApplication, settings)
+                }.onFailure { Log.e(TAG, "Update check schedule failed", it) }
+            }
+        }
         runCatching { scheduler.initialize() }
             .onFailure { Log.e(TAG, "Scheduler init failed", it) }
         // Recovery claims only durable checkpoints. It never replays an action

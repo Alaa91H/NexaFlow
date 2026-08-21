@@ -18,4 +18,8 @@
     <string name="widget_status_count_format">%1$d / %2$d</string>
     <string name="widget_last_run_format">最終実行: %1$s</string>
     <string name="deep_link_run_toast">%1$s を実行しました</string>
+    <string name="update_notification_title">更新があります</string>
+    <string name="update_notification_text">NexaFlow %1$s が利用できます</string>
+    <string name="update_notification_channel">アプリの更新</string>
+    <string name="update_notification_channel_sub">新しい NexaFlow バージョンが利用可能になった際の通知</string>
 </resources>

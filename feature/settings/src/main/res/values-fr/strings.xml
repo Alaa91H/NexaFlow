@@ -215,4 +215,16 @@
     <string name="plugin_capability_cameras">Caméras IP</string>
     <string name="plugin_capability_shell_commands">Commandes shell</string>
     <string name="plugin_capability_locale_tasker">Tasker / Locale</string>
+    <string name="update_auto_checks">Vérification automatique des mises à jour</string>
+    <string name="update_auto_checks_enabled_sub">Recherche les versions plus récentes en arrière-plan selon l’intervalle choisi</string>
+    <string name="update_auto_checks_disabled_sub">Désactivé — aucune vérification en arrière-plan ni notification de mise à jour</string>
+    <string name="update_check_frequency">Fréquence de vérification automatique</string>
+    <string name="update_check_frequency_sub">Choisissez quand les vérifications en arrière-plan s’exécutent</string>
+    <string name="update_frequency_daily">Quotidienne</string>
+    <string name="update_frequency_weekly">Hebdomadaire</string>
+    <string name="update_frequency_monthly">Mensuelle</string>
+    <string name="update_notification_title">Mise à jour disponible</string>
+    <string name="update_notification_text">NexaFlow %1$s est disponible</string>
+    <string name="update_notification_channel">Mises à jour de l’application</string>
+    <string name="update_notification_channel_sub">Notifications lorsqu’une version plus récente de NexaFlow est disponible</string>
 </resources>

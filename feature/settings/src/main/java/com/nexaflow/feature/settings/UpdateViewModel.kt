@@ -27,6 +27,15 @@ class UpdateViewModel @Inject constructor(
     application: Application
 ) : AndroidViewModel(application) {
 
+    // Robolectric's test package does not expose the app's Git-derived
+    // versionName. Keep the production lookup intact while allowing the
+    // off-main-thread test to supply a known installed release.
+    private var currentVersionOverrideForTest: String? = null
+
+    internal constructor(application: Application, installedVersionForTest: String) : this(application) {
+        currentVersionOverrideForTest = installedVersionForTest
+    }
+
     private val _state = MutableStateFlow<UpdateUiState>(UpdateUiState.Idle)
     val state: StateFlow<UpdateUiState> = _state.asStateFlow()
 
@@ -50,10 +59,13 @@ class UpdateViewModel @Inject constructor(
             }
             _state.value = if (info == null) {
                 UpdateUiState.Error("update_check_failed")
-            } else if (info.version.removePrefix("v") == currentVersion()) {
-                UpdateUiState.Latest(info)
-            } else {
+            } else if (UpdateVersion.isStrictlyNewer(info.version, currentVersion())) {
                 UpdateUiState.Available(info)
+            } else {
+                // Equal, older, already-ahead development builds, and unparseable
+                // tags all fail closed as "up to date". A check must never prompt
+                // an install unless the remote artifact is proven newer.
+                UpdateUiState.Latest(info)
             }
         }
     }
@@ -90,7 +102,7 @@ class UpdateViewModel @Inject constructor(
         }
     }
 
-    private fun currentVersion(): String = runCatching {
+    private fun currentVersion(): String = currentVersionOverrideForTest ?: runCatching {
         getApplication<Application>().packageManager
             .getPackageInfo(getApplication<Application>().packageName, 0)
             .versionName

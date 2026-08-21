@@ -215,4 +215,16 @@
     <string name="plugin_capability_cameras">IP 摄像头</string>
     <string name="plugin_capability_shell_commands">Shell 命令</string>
     <string name="plugin_capability_locale_tasker">Tasker / Locale</string>
+    <string name="update_auto_checks">自动检查更新</string>
+    <string name="update_auto_checks_enabled_sub">按所选间隔在后台检查新版本</string>
+    <string name="update_auto_checks_disabled_sub">已关闭 — 不进行后台检查或更新通知</string>
+    <string name="update_check_frequency">自动检查频率</string>
+    <string name="update_check_frequency_sub">选择后台更新检查的执行频率</string>
+    <string name="update_frequency_daily">每天</string>
+    <string name="update_frequency_weekly">每周</string>
+    <string name="update_frequency_monthly">每月</string>
+    <string name="update_notification_title">有可用更新</string>
+    <string name="update_notification_text">NexaFlow %1$s 已可用</string>
+    <string name="update_notification_channel">应用更新</string>
+    <string name="update_notification_channel_sub">有较新 NexaFlow 版本时的通知</string>
 </resources>

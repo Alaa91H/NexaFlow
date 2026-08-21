@@ -215,4 +215,16 @@
     <string name="plugin_capability_cameras">IP कैमरे</string>
     <string name="plugin_capability_shell_commands">Shell कमांड</string>
     <string name="plugin_capability_locale_tasker">Tasker / Locale</string>
+    <string name="update_auto_checks">स्वचालित अपडेट जाँच</string>
+    <string name="update_auto_checks_enabled_sub">चुने गए अंतराल पर पृष्ठभूमि में नए संस्करणों की जाँच करता है</string>
+    <string name="update_auto_checks_disabled_sub">बंद — पृष्ठभूमि जाँच या अपडेट सूचनाएँ नहीं</string>
+    <string name="update_check_frequency">स्वचालित जाँच की आवृत्ति</string>
+    <string name="update_check_frequency_sub">चुनें कि पृष्ठभूमि में अपडेट जाँच कब चले</string>
+    <string name="update_frequency_daily">दैनिक</string>
+    <string name="update_frequency_weekly">साप्ताहिक</string>
+    <string name="update_frequency_monthly">मासिक</string>
+    <string name="update_notification_title">अपडेट उपलब्ध है</string>
+    <string name="update_notification_text">NexaFlow %1$s उपलब्ध है</string>
+    <string name="update_notification_channel">ऐप अपडेट</string>
+    <string name="update_notification_channel_sub">NexaFlow का नया संस्करण उपलब्ध होने पर सूचनाएँ</string>
 </resources>

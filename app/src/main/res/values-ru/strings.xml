@@ -18,4 +18,8 @@
     <string name="widget_status_count_format">%1$d / %2$d</string>
     <string name="widget_last_run_format">Последний запуск: %1$s</string>
     <string name="deep_link_run_toast">Запущено: %1$s</string>
+    <string name="update_notification_title">Доступно обновление</string>
+    <string name="update_notification_text">Доступен NexaFlow %1$s</string>
+    <string name="update_notification_channel">Обновления приложения</string>
+    <string name="update_notification_channel_sub">Уведомления о доступности более новой версии NexaFlow</string>
 </resources>

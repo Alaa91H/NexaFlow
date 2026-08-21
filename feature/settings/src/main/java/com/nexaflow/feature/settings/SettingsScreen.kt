@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
@@ -52,6 +53,7 @@ import java.io.File
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -91,6 +93,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavController
 import com.nexaflow.core.datastore.AppLanguageManager
 import com.nexaflow.core.datastore.LocationPreferences
+import com.nexaflow.core.datastore.UpdateCheckFrequency
 import com.nexaflow.core.compat.ChannelTier
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.CheckableRow
@@ -290,6 +293,59 @@ fun SettingsScreen(navController: NavController) {
                         downloading = updateState is UpdateUiState.Downloading,
                         onDownloadAndInstall = { updateViewModel.downloadAndInstall() },
                         onDismiss = { updateDialogInfo = null }
+                    )
+                }
+                val updateSettingsViewModel: UpdateSettingsViewModel = hiltViewModel()
+                val updateSettings by updateSettingsViewModel.settings.collectAsState()
+                var showUpdateFrequencyDialog by remember { mutableStateOf(false) }
+                NexaFlowCard {
+                    SettingRow(
+                        icon = Icons.Filled.SystemUpdate,
+                        title = stringResource(R.string.update_auto_checks),
+                        subtitle = stringResource(
+                            if (updateSettings.automaticChecksEnabled) {
+                                R.string.update_auto_checks_enabled_sub
+                            } else {
+                                R.string.update_auto_checks_disabled_sub
+                            }
+                        ),
+                        trailing = {
+                            Switch(
+                                checked = updateSettings.automaticChecksEnabled,
+                                onCheckedChange = updateSettingsViewModel::setAutomaticChecksEnabled
+                            )
+                        },
+                        onClick = {
+                            updateSettingsViewModel.setAutomaticChecksEnabled(
+                                !updateSettings.automaticChecksEnabled
+                            )
+                        }
+                    )
+                    if (updateSettings.automaticChecksEnabled) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        SettingRow(
+                            icon = Icons.Filled.Schedule,
+                            title = stringResource(R.string.update_check_frequency),
+                            subtitle = stringResource(R.string.update_check_frequency_sub),
+                            trailing = {
+                                Text(
+                                    text = stringResource(updateFrequencyLabel(updateSettings.frequency)),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                            },
+                            onClick = { showUpdateFrequencyDialog = true }
+                        )
+                    }
+                }
+                if (showUpdateFrequencyDialog) {
+                    UpdateFrequencyDialog(
+                        selected = updateSettings.frequency,
+                        onSelect = {
+                            updateSettingsViewModel.setFrequency(it)
+                            showUpdateFrequencyDialog = false
+                        },
+                        onDismiss = { showUpdateFrequencyDialog = false }
                     )
                 }
                 NexaFlowCard {
@@ -618,6 +674,43 @@ private fun locationIntervalLabel(minutes: Int): Triple<Int, Int?, Int?> = when 
         minutes >= 60 -> Triple(R.string.location_check_custom_h_m, minutes / 60, minutes % 60)
         else -> Triple(R.string.location_check_custom_minutes, minutes, null)
     }
+}
+
+private fun updateFrequencyLabel(frequency: UpdateCheckFrequency): Int = when (frequency) {
+    UpdateCheckFrequency.DAILY -> R.string.update_frequency_daily
+    UpdateCheckFrequency.WEEKLY -> R.string.update_frequency_weekly
+    UpdateCheckFrequency.MONTHLY -> R.string.update_frequency_monthly
+}
+
+@Composable
+private fun UpdateFrequencyDialog(
+    selected: UpdateCheckFrequency,
+    onSelect: (UpdateCheckFrequency) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.update_check_frequency)) },
+        text = {
+            Column {
+                UpdateCheckFrequency.entries.forEachIndexed { index, frequency ->
+                    if (index > 0) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    }
+                    CheckableRow(
+                        selected = frequency == selected,
+                        onClick = { onSelect(frequency) }
+                    ) {
+                        Text(
+                            text = stringResource(updateFrequencyLabel(frequency)),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {}
+    )
 }
 
 /**

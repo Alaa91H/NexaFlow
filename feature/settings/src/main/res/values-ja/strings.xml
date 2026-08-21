@@ -215,4 +215,16 @@
     <string name="plugin_capability_cameras">IP カメラ</string>
     <string name="plugin_capability_shell_commands">シェルコマンド</string>
     <string name="plugin_capability_locale_tasker">Tasker / Locale</string>
+    <string name="update_auto_checks">更新の自動確認</string>
+    <string name="update_auto_checks_enabled_sub">選択した間隔で新しいバージョンをバックグラウンド確認します</string>
+    <string name="update_auto_checks_disabled_sub">無効 — バックグラウンド確認と更新通知は行いません</string>
+    <string name="update_check_frequency">自動確認の頻度</string>
+    <string name="update_check_frequency_sub">バックグラウンド確認を実行する頻度を選択します</string>
+    <string name="update_frequency_daily">毎日</string>
+    <string name="update_frequency_weekly">毎週</string>
+    <string name="update_frequency_monthly">毎月</string>
+    <string name="update_notification_title">更新があります</string>
+    <string name="update_notification_text">NexaFlow %1$s が利用できます</string>
+    <string name="update_notification_channel">アプリの更新</string>
+    <string name="update_notification_channel_sub">新しい NexaFlow バージョンが利用可能になった際の通知</string>
 </resources>

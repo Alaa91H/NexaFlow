@@ -18,4 +18,8 @@
     <string name="widget_status_count_format">%1$d / %2$d</string>
     <string name="widget_last_run_format">अंतिम रन: %1$s</string>
     <string name="deep_link_run_toast">%1$s चलाया गया</string>
+    <string name="update_notification_title">अपडेट उपलब्ध है</string>
+    <string name="update_notification_text">NexaFlow %1$s उपलब्ध है</string>
+    <string name="update_notification_channel">ऐप अपडेट</string>
+    <string name="update_notification_channel_sub">NexaFlow का नया संस्करण उपलब्ध होने पर सूचनाएँ</string>
 </resources>
