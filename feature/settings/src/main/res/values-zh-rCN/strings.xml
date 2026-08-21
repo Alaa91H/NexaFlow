@@ -104,8 +104,6 @@
     <string name="plugin_manager_sub">此设备上安装的外部自动化插件</string>
     <string name="plugin_refresh">刷新</string>
     <string name="plugin_test">测试</string>
-    <string name="plugin_no_plugins">未安装插件</string>
-    <string name="plugin_no_plugins_hint">安装与 Tasker 或 MacroDroid 兼容的插件以添加新操作</string>
     <string name="plugin_open_info">应用信息</string>
     <string name="plugin_test_failed">插件失败</string>
     <string name="plugin_test_timeout">插件未及时响应</string>

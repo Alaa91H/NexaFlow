@@ -104,8 +104,6 @@
     <string name="plugin_manager_sub">इस डिवाइस पर स्थापित बाहरी ऑटोमेशन प्लगइन</string>
     <string name="plugin_refresh">रीफ़्रेश</string>
     <string name="plugin_test">परीक्षण</string>
-    <string name="plugin_no_plugins">कोई प्लगइन इंस्टॉल नहीं</string>
-    <string name="plugin_no_plugins_hint">नई क्रियाएँ जोड़ने के लिए Tasker या MacroDroid संगत प्लगइन इंस्टॉल करें</string>
     <string name="plugin_open_info">ऐप जानकारी</string>
     <string name="plugin_test_failed">प्लगइन विफल</string>
     <string name="plugin_test_timeout">प्लगइन ने समय पर जवाब नहीं दिया</string>

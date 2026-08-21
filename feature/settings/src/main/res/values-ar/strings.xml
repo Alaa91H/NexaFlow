@@ -102,8 +102,6 @@
     <string name="plugin_manager_sub">إضافات الأتمتة الخارجية المثبتة على هذا الجهاز</string>
     <string name="plugin_refresh">تحديث</string>
     <string name="plugin_test">اختبار</string>
-    <string name="plugin_no_plugins">لا توجد إضافات مثبتة</string>
-    <string name="plugin_no_plugins_hint">ثبّت إضافة متوافقة مع Tasker أو MacroDroid لإضافة إجراءات جديدة</string>
     <string name="plugin_open_info">معلومات التطبيق</string>
     <string name="plugin_test_failed">فشل الإضافة</string>
     <string name="plugin_test_timeout">لم تستجب الإضافة في الوقت المحدد</string>

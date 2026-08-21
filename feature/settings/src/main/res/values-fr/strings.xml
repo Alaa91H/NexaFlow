@@ -104,8 +104,6 @@
     <string name="plugin_manager_sub">"Plugins d'automatisation externes installés sur cet appareil"</string>
     <string name="plugin_refresh">Actualiser</string>
     <string name="plugin_test">Tester</string>
-    <string name="plugin_no_plugins">Aucun plugin installé</string>
-    <string name="plugin_no_plugins_hint">Installez un plugin compatible Tasker ou MacroDroid pour ajouter de nouvelles actions</string>
     <string name="plugin_open_info">"Infos de l'app"</string>
     <string name="plugin_test_failed">Échec du plugin</string>
     <string name="plugin_test_timeout">"Le plugin n'a pas répondu à temps"</string>
