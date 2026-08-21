@@ -91,12 +91,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.rememberCoroutineScope
 import com.nexaflow.core.engine.currentCellularGeneration
 import com.nexaflow.core.rom.EvolutionXSettingsBridge
@@ -271,11 +273,7 @@ val triggerTypeOptions = listOf(
 
 private val repeatOptions = listOf(
     "ONCE" to R.string.repeat_once,
-    "DAILY" to R.string.repeat_daily,
-    "SPECIFIC_DAYS" to R.string.repeat_specific_days,
-    "MONTHLY" to R.string.repeat_monthly,
-    "MONTHLY_WEEKDAY" to R.string.repeat_monthly_weekday,
-    "DATE_RANGE" to R.string.repeat_date_range
+    "INTERVAL" to R.string.repeat_custom
 )
 
 /** Google-Tasks-style occurrence of a weekday inside a month (1st..4th / Last). */
@@ -620,9 +618,9 @@ private fun TimeField(
 }
 
 /**
- * Shared repeat schedule (once / daily / specific days / specific date / date range).
- * Used by both the single-time and time-range modes so every time trigger can
- * choose exactly how often it runs.
+ * Google-Tasks-style recurrence for both single-time and time-range triggers.
+ * Legacy repeat values remain readable; entering the custom editor normalizes
+ * them to INTERVAL while preserving their selected weekday or month-day data.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -631,11 +629,10 @@ private fun TimeRepeatSection(
     onConfigChange: (TriggerDraft) -> Unit,
     onPickDate: (String) -> Unit
 ) {
+    val storedRepeat = draft.config["repeat"] ?: "DAILY"
+    val isOnce = storedRepeat == "ONCE"
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(
-            text = stringResource(R.string.repeat_label),
-            style = MaterialTheme.typography.titleSmall
-        )
+        Text(text = stringResource(R.string.repeat_label), style = MaterialTheme.typography.titleSmall)
         FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -643,33 +640,80 @@ private fun TimeRepeatSection(
         ) {
             repeatOptions.forEach { (value, labelRes) ->
                 SelectChip(
-                    selected = (draft.config["repeat"] ?: "DAILY") == value,
+                    selected = if (value == "ONCE") isOnce else !isOnce,
                     onClick = {
-                        onConfigChange(draft.copy(config = draft.config + ("repeat" to value)))
+                        val config = if (value == "ONCE") {
+                            draft.config.filterKeys { it !in setOf("endMode", "endCount") } + ("repeat" to "ONCE")
+                        } else {
+                            intervalConfig(draft.config)
+                        }
+                        onConfigChange(draft.copy(config = config))
                     },
                     label = stringResource(labelRes)
                 )
             }
         }
-        RepeatSummary(draft = draft)
-        when (draft.config["repeat"] ?: "DAILY") {
-            "SPECIFIC_DAYS" -> {
-                Text(
-                    text = stringResource(R.string.select_days),
-                    style = MaterialTheme.typography.titleSmall
-                )
+        if (!isOnce) {
+            val intervalConfig = intervalConfig(draft.config)
+            val interval = (intervalConfig["interval"]?.toIntOrNull() ?: 1).coerceIn(1, 99)
+            val unit = intervalConfig["intervalUnit"] ?: "DAY"
+            Text(text = stringResource(R.string.repeat_every), style = MaterialTheme.typography.titleSmall)
+            OutlinedTextField(
+                value = interval.toString(),
+                onValueChange = { input ->
+                    val digits = input.filter(Char::isDigit).take(2)
+                    val value = digits.toIntOrNull()?.coerceIn(1, 99) ?: 1
+                    onConfigChange(draft.copy(config = intervalConfig + ("interval" to value.toString())))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(stringResource(R.string.repeat_every)) },
+                placeholder = { Text(stringResource(R.string.repeat_interval_hint)) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                listOf(
+                    "DAY" to R.string.repeat_unit_day,
+                    "WEEK" to R.string.repeat_unit_week,
+                    "MONTH" to R.string.repeat_unit_month,
+                    "YEAR" to R.string.repeat_unit_year
+                ).forEach { (value, labelRes) ->
+                    SelectChip(
+                        selected = unit == value,
+                        onClick = {
+                            val updates = if (value == "WEEK" && intervalConfig["days"].isNullOrBlank()) {
+                                intervalConfig + ("intervalUnit" to value) +
+                                    ("days" to LocalDate.now().dayOfWeek.value.toString())
+                            } else {
+                                intervalConfig + ("intervalUnit" to value)
+                            }
+                            onConfigChange(draft.copy(config = updates))
+                        },
+                        label = stringResource(labelRes)
+                    )
+                }
+            }
+            if (unit == "WEEK") {
+                Text(text = stringResource(R.string.select_days), style = MaterialTheme.typography.titleSmall)
+                val selectedDays = intervalConfig["days"]?.split(',')?.mapNotNull { it.trim().toIntOrNull() }
+                    ?.filter { it in 1..7 }.orEmpty()
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     weekdayOptions.forEach { (day, labelRes) ->
-                        val selectedDays = draft.config["days"]?.split(',')?.mapNotNull { it.trim().toIntOrNull() }.orEmpty()
                         SelectChip(
                             selected = day in selectedDays,
                             onClick = {
                                 val updated = if (day in selectedDays) selectedDays - day else selectedDays + day
-                                onConfigChange(draft.copy(config = draft.config + ("days" to updated.sorted().joinToString(","))))
+                                onConfigChange(
+                                    draft.copy(config = intervalConfig + ("days" to updated.sorted().joinToString(",")))
+                                )
                             },
                             label = stringResource(labelRes),
                             showCheck = false
@@ -677,83 +721,87 @@ private fun TimeRepeatSection(
                     }
                 }
             }
-            "MONTHLY" -> {
-                val monthDay = (draft.config["monthDay"] ?: "1").toIntOrNull() ?: 1
-                SliderRow(
-                    label = stringResource(R.string.month_day_label, monthDay),
-                    value = monthDay.toFloat(),
-                    onValueChange = { value ->
-                        onConfigChange(draft.copy(config = draft.config + ("monthDay" to value.toInt().toString())))
-                    },
-                    valueRange = 1f..28f
-                )
-            }
-            "MONTHLY_WEEKDAY" -> {
-                val weekday = (draft.config["weekday"] ?: "1").toIntOrNull() ?: 1
-                val occurrence = draft.config["weekOfMonth"] ?: "1"
-                Text(
-                    text = stringResource(R.string.select_days),
-                    style = MaterialTheme.typography.titleSmall
-                )
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    weekdayOptions.forEach { (day, labelRes) ->
-                        SelectChip(
-                            selected = weekday == day,
-                            onClick = {
-                                onConfigChange(draft.copy(config = draft.config + ("weekday" to day.toString())))
-                            },
-                            label = stringResource(labelRes),
-                            showCheck = false
-                        )
-                    }
-                }
-                Text(
-                    text = stringResource(R.string.week_of_month_label),
-                    style = MaterialTheme.typography.titleSmall
-                )
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    occurrenceOptions.forEach { (value, labelRes) ->
-                        SelectChip(
-                            selected = occurrence == value,
-                            onClick = {
-                                onConfigChange(draft.copy(config = draft.config + ("weekOfMonth" to value)))
-                            },
-                            label = stringResource(labelRes)
-                        )
-                    }
-                }
-            }
-            "DATE_RANGE" -> {
-                DateField(
-                    label = stringResource(R.string.start_date),
-                    value = draft.config["startDate"] ?: "",
-                    onClick = { onPickDate("startDate") }
-                )
-                DateField(
-                    label = stringResource(R.string.end_date),
-                    value = draft.config["endDate"] ?: "",
-                    onClick = { onPickDate("endDate") }
-                )
-                val start = draft.config["startDate"]?.let(::parseDateMillis)
-                val end = draft.config["endDate"]?.let(::parseDateMillis)
-                if (start != null && end != null && start > end) {
-                    Text(
-                        text = stringResource(R.string.date_range_invalid),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
+            DateField(
+                label = stringResource(R.string.repeat_starts),
+                value = intervalConfig["startDate"] ?: "",
+                onClick = { onPickDate("startDate") }
+            )
+            Text(text = stringResource(R.string.repeat_ends), style = MaterialTheme.typography.titleSmall)
+            val endMode = intervalConfig["endMode"] ?: "NEVER"
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                listOf(
+                    "NEVER" to R.string.repeat_end_never,
+                    "ON_DATE" to R.string.repeat_end_on,
+                    "AFTER_OCCURRENCES" to R.string.repeat_end_after
+                ).forEach { (value, labelRes) ->
+                    SelectChip(
+                        selected = endMode == value,
+                        onClick = {
+                            onConfigChange(draft.copy(config = intervalConfig + ("endMode" to value)))
+                        },
+                        label = stringResource(labelRes)
                     )
                 }
             }
+            when (endMode) {
+                "ON_DATE" -> DateField(
+                    label = stringResource(R.string.end_date),
+                    value = intervalConfig["endDate"] ?: "",
+                    onClick = { onPickDate("endDate") }
+                )
+                "AFTER_OCCURRENCES" -> OutlinedTextField(
+                    value = (intervalConfig["endCount"]?.toIntOrNull() ?: 1).coerceIn(1, 999).toString(),
+                    onValueChange = { input ->
+                        val digits = input.filter(Char::isDigit).take(3)
+                        val value = digits.toIntOrNull()?.coerceIn(1, 999) ?: 1
+                        onConfigChange(draft.copy(config = intervalConfig + ("endCount" to value.toString())))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.repeat_occurrences)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+            }
+            val start = intervalConfig["startDate"]?.let(::parseDateMillis)
+            val end = intervalConfig["endDate"]?.let(::parseDateMillis)
+            if (endMode == "ON_DATE" && start != null && end != null && start > end) {
+                Text(
+                    text = stringResource(R.string.date_range_invalid),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         }
+        RepeatSummary(draft = draft)
     }
+}
+
+private fun intervalConfig(config: Map<String, String>): Map<String, String> {
+    if (config["repeat"] == "INTERVAL") return config
+    val legacyRepeat = config["repeat"] ?: "DAILY"
+    val unit = when (legacyRepeat) {
+        "SPECIFIC_DAYS", "WEEKDAYS", "WEEKENDS" -> "WEEK"
+        "MONTHLY", "MONTHLY_WEEKDAY" -> "MONTH"
+        else -> "DAY"
+    }
+    val inheritedDays = when (legacyRepeat) {
+        "WEEKDAYS" -> "1,2,3,4,5"
+        "WEEKENDS" -> "6,7"
+        "MONTHLY_WEEKDAY" -> config["weekday"].orEmpty()
+        else -> config["days"].orEmpty()
+    }
+    return config + mapOf(
+        "repeat" to "INTERVAL",
+        "interval" to "1",
+        "intervalUnit" to unit,
+        "startDate" to (config["startDate"] ?: LocalDate.now().toString()),
+        "endMode" to (if (config["endDate"].isNullOrBlank()) "NEVER" else "ON_DATE"),
+        "days" to inheritedDays
+    )
 }
 
 /** Human-readable label of the current repeat choice (no "Selected:" prefix). */
@@ -782,6 +830,27 @@ private fun repeatLabel(draft: TriggerDraft): String {
             val occLabel = occurrenceOptions.firstOrNull { it.first == occurrence }
                 ?.let { (_, res) -> stringResource(res) } ?: occurrence
             stringResource(R.string.monthly_weekday_summary, occLabel, dayLabel)
+        }
+        "INTERVAL" -> {
+            val interval = (config["interval"]?.toIntOrNull() ?: 1).coerceIn(1, 99)
+            val unitRes = when (config["intervalUnit"] ?: "DAY") {
+                "WEEK" -> R.string.repeat_unit_week
+                "MONTH" -> R.string.repeat_unit_month
+                "YEAR" -> R.string.repeat_unit_year
+                else -> R.string.repeat_unit_day
+            }
+            val days = config["days"]?.split(',')?.mapNotNull { it.trim().toIntOrNull() }
+                ?.mapNotNull { day -> weekdayOptions.firstOrNull { it.first == day }?.let { (_, res) -> stringResource(res) } }
+                .orEmpty()
+            buildString {
+                append(interval)
+                append(" ")
+                append(stringResource(unitRes))
+                if ((config["intervalUnit"] ?: "DAY") == "WEEK" && days.isNotEmpty()) {
+                    append(" · ")
+                    append(days.joinToString(", "))
+                }
+            }
         }
         "DATE_RANGE" -> {
             val start = config["startDate"] ?: ""

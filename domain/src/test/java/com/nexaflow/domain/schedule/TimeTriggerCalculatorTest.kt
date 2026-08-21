@@ -481,4 +481,83 @@ class TimeTriggerCalculatorTest {
             )
         )
     }
+
+    @Test
+    fun `custom interval every three days keeps its start-date anchor`() {
+        val config = mapOf(
+            "time" to "08:00",
+            "repeat" to "INTERVAL",
+            "interval" to "3",
+            "intervalUnit" to "DAY",
+            "startDate" to "2026-08-01"
+        )
+        val next = TimeTriggerCalculator.nextFireTime(config, millisOf(2026, 8, 5, 9, 0))
+
+        assertNotNull(next)
+        assertEquals(LocalDate.of(2026, 8, 7), localDateOf(next!!))
+    }
+
+    @Test
+    fun `custom interval every two weeks observes selected weekdays`() {
+        val config = mapOf(
+            "time" to "08:00",
+            "repeat" to "INTERVAL",
+            "interval" to "2",
+            "intervalUnit" to "WEEK",
+            "days" to "1,5",
+            "startDate" to "2026-08-03"
+        )
+        val next = TimeTriggerCalculator.nextFireTime(config, millisOf(2026, 8, 7, 9, 0))
+
+        assertNotNull(next)
+        assertEquals(LocalDate.of(2026, 8, 17), localDateOf(next!!))
+    }
+
+    @Test
+    fun `custom interval every two months preserves the anchor day`() {
+        val config = mapOf(
+            "time" to "08:00",
+            "repeat" to "INTERVAL",
+            "interval" to "2",
+            "intervalUnit" to "MONTH",
+            "startDate" to "2026-01-15"
+        )
+        val next = TimeTriggerCalculator.nextFireTime(config, millisOf(2026, 2, 20, 9, 0))
+
+        assertNotNull(next)
+        assertEquals(LocalDate.of(2026, 3, 15), localDateOf(next!!))
+    }
+
+    @Test
+    fun `custom interval stops on the selected end date`() {
+        val config = mapOf(
+            "time" to "08:00",
+            "repeat" to "INTERVAL",
+            "interval" to "1",
+            "intervalUnit" to "DAY",
+            "startDate" to "2026-08-01",
+            "endMode" to "ON_DATE",
+            "endDate" to "2026-08-03"
+        )
+
+        assertNull(TimeTriggerCalculator.nextFireTime(config, millisOf(2026, 8, 3, 9, 0)))
+    }
+
+    @Test
+    fun `custom interval stops after the configured occurrence count`() {
+        val config = mapOf(
+            "time" to "08:00",
+            "repeat" to "INTERVAL",
+            "interval" to "1",
+            "intervalUnit" to "DAY",
+            "startDate" to "2026-08-01",
+            "endMode" to "AFTER_OCCURRENCES",
+            "endCount" to "3"
+        )
+
+        val third = TimeTriggerCalculator.nextFireTime(config, millisOf(2026, 8, 2, 9, 0))
+        assertNotNull(third)
+        assertEquals(LocalDate.of(2026, 8, 3), localDateOf(third!!))
+        assertNull(TimeTriggerCalculator.nextFireTime(config, millisOf(2026, 8, 3, 9, 0)))
+    }
 }

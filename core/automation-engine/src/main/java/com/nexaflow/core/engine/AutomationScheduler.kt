@@ -58,6 +58,10 @@ class AutomationScheduler @Inject constructor(
 
     fun schedule(automation: Automation) {
         try {
+            // Configuration changes can make a schedule finite or already ended.
+            // Remove any prior alarm before recomputing so a stale PendingIntent
+            // cannot fire after the user selects an end date or occurrence limit.
+            cancel(automation.id)
             val config = automation.triggers
                 .firstOrNull { it.type == TriggerType.TIME }
                 ?.config ?: return
