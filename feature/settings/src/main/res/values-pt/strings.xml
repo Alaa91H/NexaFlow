@@ -25,8 +25,6 @@
 
     <string name="execution_history">Histórico de execução</string>
     <string name="execution_history_sub">Ver execuções de automações</string>
-    <string name="expert_section_title">Opções avançadas</string>
-    <string name="expert_section_sub">Registo de execução, plug-ins e ferramentas avançadas</string>
     <string name="section_about">Sobre</string>
     <string name="about_nexaflow">Sobre o NexaFlow</string>
     <string name="version">Versão %1$s</string>

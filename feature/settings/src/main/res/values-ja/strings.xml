@@ -25,8 +25,6 @@
 
     <string name="execution_history">実行履歴</string>
     <string name="execution_history_sub">自動化の実行を表示</string>
-    <string name="expert_section_title">上級者向けオプション</string>
-    <string name="expert_section_sub">実行ログ、プラグイン、高度なツール</string>
     <string name="section_about">情報</string>
     <string name="about_nexaflow">NexaFlowについて</string>
     <string name="version">バージョン %1$s</string>

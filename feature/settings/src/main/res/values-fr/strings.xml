@@ -25,8 +25,6 @@
 
     <string name="execution_history">Historique d\u2019exécution</string>
     <string name="execution_history_sub">Voir les exécutions des automatisations</string>
-    <string name="expert_section_title">Options expertes</string>
-    <string name="expert_section_sub">Journal d\'exécution, modules et outils avancés</string>
     <string name="section_about">À propos</string>
     <string name="about_nexaflow">À propos de NexaFlow</string>
     <string name="version">Version %1$s</string>

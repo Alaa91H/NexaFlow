@@ -25,8 +25,6 @@
 
     <string name="execution_history">执行历史</string>
     <string name="execution_history_sub">查看自动化运行记录</string>
-    <string name="expert_section_title">高级选项</string>
-    <string name="expert_section_sub">执行日志、插件和高级工具</string>
     <string name="section_about">关于</string>
     <string name="about_nexaflow">关于 NexaFlow</string>
     <string name="version">版本 %1$s</string>

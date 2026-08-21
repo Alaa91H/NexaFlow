@@ -30,15 +30,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Notifications
@@ -93,7 +92,6 @@ import androidx.navigation.NavController
 import com.nexaflow.core.datastore.AppLanguageManager
 import com.nexaflow.core.datastore.LocationPreferences
 import com.nexaflow.core.compat.ChannelTier
-import com.nexaflow.core.ui.NexaFlowAnimatedVisibility
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.CheckableRow
 import com.nexaflow.core.ui.NexaFlowTopBar
@@ -248,6 +246,12 @@ fun SettingsScreen(navController: NavController) {
                         pluginHealth.unavailable
                     ),
                     onClick = { navController.navigate(PluginDestination.ROUTE) }
+                )
+                SettingRow(
+                    icon = Icons.Filled.PlayArrow,
+                    title = stringResource(R.string.execution_history),
+                    subtitle = stringResource(R.string.execution_history_sub),
+                    onClick = { navController.navigate(SettingsDestination.EXECUTION_HISTORY_ROUTE) }
                 )
             }
             settingsGroup(title = sectionBackupTitle) {
@@ -429,53 +433,6 @@ fun SettingsScreen(navController: NavController) {
                     subtitle = stringResource(R.string.version, appVersion(context)),
                     onClick = { showAbout = true }
                 )
-            }
-            item {
-                // ── Hidden expert section ───────────────────────────
-                // Advanced tools that don't matter to the average user stay
-                // folded away at the bottom of Settings: execution log,
-                // plugins. Tapping the header row expands them.
-                var expertExpanded by rememberSaveable { mutableStateOf(false) }
-                NexaFlowCard {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        SettingRow(
-                            icon = Icons.Filled.Build,
-                            title = stringResource(R.string.expert_section_title),
-                            subtitle = stringResource(R.string.expert_section_sub),
-                            trailing = {
-                                Icon(
-                                    imageVector = if (expertExpanded) {
-                                        Icons.Filled.KeyboardArrowUp
-                                    } else {
-                                        Icons.Filled.KeyboardArrowDown
-                                    },
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            },
-                            onClick = { expertExpanded = !expertExpanded }
-                        )
-                        NexaFlowAnimatedVisibility(visible = expertExpanded) {
-                            Column(modifier = Modifier.fillMaxWidth()) {
-                                HorizontalDivider(
-                                    color = MaterialTheme.colorScheme.outlineVariant
-                                )
-                                SettingRow(
-                                    icon = Icons.Filled.PlayArrow,
-                                    title = stringResource(R.string.execution_history),
-                                    subtitle = stringResource(R.string.execution_history_sub),
-                                    onClick = { navController.navigate("history") }
-                                )
-                                SettingRow(
-                                    icon = Icons.Filled.Extension,
-                                    title = stringResource(R.string.plugins),
-                                    subtitle = stringResource(R.string.plugins_sub),
-                                    onClick = { navController.navigate(PluginDestination.ROUTE) }
-                                )
-                            }
-                        }
-                    }
-                }
             }
         }
     }

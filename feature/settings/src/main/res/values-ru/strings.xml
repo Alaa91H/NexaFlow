@@ -25,8 +25,6 @@
 
     <string name="execution_history">История выполнения</string>
     <string name="execution_history_sub">Просмотр запусков автоматизаций</string>
-    <string name="expert_section_title">Параметры эксперта</string>
-    <string name="expert_section_sub">Журнал выполнения, плагины и расширенные инструменты</string>
     <string name="section_about">О приложении</string>
     <string name="about_nexaflow">О NexaFlow</string>
     <string name="version">Версия %1$s</string>

@@ -23,8 +23,6 @@
 
     <string name="execution_history">سجل التنفيذ</string>
     <string name="execution_history_sub">عرض عمليات تشغيل الأتمتات</string>
-    <string name="expert_section_title">خيارات الخبير</string>
-    <string name="expert_section_sub">سجل التنفيذ والمكوّنات الإضافية والأدوات المتقدمة</string>
     <string name="section_about">حول</string>
     <string name="about_nexaflow">حول NexaFlow</string>
     <string name="version">الإصدار %1$s</string>

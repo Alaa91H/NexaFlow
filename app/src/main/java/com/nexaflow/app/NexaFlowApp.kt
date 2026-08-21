@@ -24,6 +24,7 @@ import com.nexaflow.feature.settings.NotificationManagerScreen
 import com.nexaflow.feature.settings.PermissionManagerScreen
 import com.nexaflow.feature.settings.PluginDestination
 import com.nexaflow.feature.settings.PluginManagerScreen
+import com.nexaflow.feature.settings.SettingsDestination
 import com.nexaflow.feature.settings.SettingsScreen
 import com.nexaflow.feature.themes.ThemeScreen
 import com.nexaflow.feature.widgets.WidgetsScreen
@@ -126,7 +127,7 @@ fun NexaFlowApp() {
             composable(PluginDestination.ROUTE) {
                 PluginManagerScreen(navController = navController)
             }
-            composable("history") {
+            composable(SettingsDestination.EXECUTION_HISTORY_ROUTE) {
                 HistoryScreen(navController = navController)
             }
             composable("execution_details/{recordId}") {

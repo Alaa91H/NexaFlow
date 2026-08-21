@@ -25,8 +25,6 @@
 
     <string name="execution_history">निष्पादन इतिहास</string>
     <string name="execution_history_sub">ऑटोमेशन रन देखें</string>
-    <string name="expert_section_title">विशेषज्ञ विकल्प</string>
-    <string name="expert_section_sub">निष्पादन लॉग, प्लगइन और उन्नत उपकरण</string>
     <string name="section_about">परिचय</string>
     <string name="about_nexaflow">NexaFlow के बारे में</string>
     <string name="version">संस्करण %1$s</string>

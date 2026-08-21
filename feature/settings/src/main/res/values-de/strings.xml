@@ -23,8 +23,6 @@
 
     <string name="execution_history">Ausführungsverlauf</string>
     <string name="execution_history_sub">Automatisierungsläufe anzeigen</string>
-    <string name="expert_section_title">Expertenoptionen</string>
-    <string name="expert_section_sub">Ausführungsprotokoll, Plugins und erweiterte Werkzeuge</string>
     <string name="section_about">Über</string>
     <string name="about_nexaflow">Über NexaFlow</string>
     <string name="version">Version %1$s</string>
