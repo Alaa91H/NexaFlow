@@ -89,6 +89,15 @@ class CommandCompatibilityEngineTest {
         assertTrue(engine.isSupported(TriggerType.CALENDAR, withPerm))
     }
 
+    @Test
+    fun `SMS trigger is selectable when receive SMS permission is granted`() {
+        val noPerm = profile()
+        val withPermission = profile(perms = setOf("android.permission.RECEIVE_SMS"))
+
+        assertFalse(engine.isSupported(TriggerType.SMS, noPerm))
+        assertTrue(engine.isSupported(TriggerType.SMS, withPermission))
+    }
+
     // ── Filtering drops unsupported items, keeps the rest ────────────────
     @Test
     fun `filter keeps supported and drops unsupported`() {

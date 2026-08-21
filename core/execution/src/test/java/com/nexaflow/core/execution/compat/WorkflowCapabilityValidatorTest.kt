@@ -37,10 +37,10 @@ class WorkflowCapabilityValidatorTest {
     }
 
     @Test
-    fun `blocks unmapped elevated legacy action instead of inferring root capability`() {
+    fun `admits legacy elevated action for the concrete handler to verify root`() {
         val result = WorkflowCapabilityValidator.validate(automation(ActionType.SYSTEM_REBOOT), CapabilitySnapshot())
 
-        assertFalse(result.admissible)
+        assertTrue(result.admissible)
     }
 
     private fun automation(action: ActionType) = Automation(

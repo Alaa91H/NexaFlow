@@ -9,10 +9,10 @@ import com.nexaflow.domain.models.TriggerType
  * Capability-engine admission metadata layered on top of [CommandCatalog].
  *
  * `CommandCatalog` remains the source of Android/ROM compatibility. This catalog
- * adds only requirements backed by a registered, typed capability backend. A
- * legacy command marked SHELL, ELEVATED or BRIDGE is deliberately non-admissible
- * here until it is mapped into such a backend; Root/Shizuku presence alone is
- * never promoted into a generic command entitlement.
+ * adds only requirements backed by a registered, typed capability backend.
+ * Legacy commands continue through their existing handlers, where the concrete
+ * runner verifies Root, Shizuku or Android privilege at execution time. They
+ * must not be rejected here merely because they have no capability-engine map.
  */
 object CommandRequirementCatalog {
     fun requirementFor(type: ActionType): CapabilityRequirement = when (type) {
@@ -32,8 +32,13 @@ object CommandRequirementCatalog {
         requirementForSpec(CommandCatalog.specFor(type))
 
     private fun requirementForSpec(spec: CommandSpec?): CapabilityRequirement = when {
+        // No catalog entry means no execution path has been documented.
         spec == null -> unsupportedRequirement()
-        spec.strategy in UNMAPPED_PRIVILEGED_STRATEGIES -> unsupportedRequirement()
+        // This is an explicit product-level exclusion, not a missing privilege.
+        spec.strategy == ExecutionStrategy.UNSUPPORTED -> unsupportedRequirement()
+        // DIRECT, BRIDGE, SHELL and ELEVATED commands retain their existing
+        // handler paths. The handler/runner verifies the concrete privilege at
+        // dispatch time, so a static capability snapshot cannot reject them.
         else -> CapabilityRequirement.None
     }
 
@@ -44,10 +49,4 @@ object CommandRequirementCatalog {
     private fun unsupportedRequirement(): CapabilityRequirement =
         CapabilityRequirement.Not(CapabilityRequirement.None)
 
-    private val UNMAPPED_PRIVILEGED_STRATEGIES = setOf(
-        ExecutionStrategy.SHELL,
-        ExecutionStrategy.ELEVATED,
-        ExecutionStrategy.BRIDGE,
-        ExecutionStrategy.UNSUPPORTED
-    )
 }

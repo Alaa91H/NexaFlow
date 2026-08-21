@@ -31,13 +31,13 @@ class CommandRequirementCatalogTest {
     }
 
     @Test
-    fun `unmapped elevated command is never admitted from generic root state`() {
+    fun `legacy elevated command is admitted for its concrete handler to verify privilege`() {
         val result = CapabilityRequirementResolver.resolve(
             CommandRequirementCatalog.requirementFor(ActionType.SYSTEM_REBOOT),
-            snapshot(CapabilityId.PACKAGE_FORCE_STOP, CapabilityAvailability.AVAILABLE)
+            CapabilitySnapshot()
         )
 
-        assertFalse(result.available)
+        assertTrue(result.available)
     }
 
     @Test

@@ -59,25 +59,18 @@ data class DeviceProfile(
             context: Context
         ): DeviceProfile {
             val perms = try {
-                // Derive the standard runtime permissions we declare from the
-                // manifest by probing the granted state directly.
-                val known = setOf(
-                    "android.permission.CAMERA",
-                    "android.permission.ACCESS_FINE_LOCATION",
-                    "android.permission.ACCESS_COARSE_LOCATION",
-                    "android.permission.READ_CONTACTS",
-                    "android.permission.SEND_SMS",
-                    "android.permission.READ_CALENDAR",
-                    "android.permission.READ_PHONE_STATE",
-                    "android.permission.RECORD_AUDIO",
-                    "android.permission.POST_NOTIFICATIONS",
-                    "android.permission.BLUETOOTH_CONNECT",
-                    "android.permission.BLUETOOTH_SCAN"
-                )
-                val granted = known.filter {
-                    context.checkSelfPermission(it) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                // Probe every permission declared by this app instead of keeping
+                // a hand-maintained subset. The old subset omitted RECEIVE_SMS and
+                // CALL_PHONE, causing compatible commands to disappear before the
+                // user could choose them even after Android had granted permission.
+                @Suppress("DEPRECATION")
+                val declared = context.packageManager.getPackageInfo(
+                    context.packageName,
+                    android.content.pm.PackageManager.GET_PERMISSIONS
+                ).requestedPermissions.orEmpty()
+                declared.filter { permission ->
+                    context.checkSelfPermission(permission) == android.content.pm.PackageManager.PERMISSION_GRANTED
                 }.toSet()
-                granted
             } catch (_: Throwable) {
                 emptySet()
             }
