@@ -22,6 +22,7 @@ import com.nexaflow.feature.history.HistoryScreen
 import com.nexaflow.feature.icons.IconPickerScreen
 import com.nexaflow.feature.settings.NotificationManagerScreen
 import com.nexaflow.feature.settings.PermissionManagerScreen
+import com.nexaflow.feature.settings.PluginDestination
 import com.nexaflow.feature.settings.PluginManagerScreen
 import com.nexaflow.feature.settings.SettingsScreen
 import com.nexaflow.feature.themes.ThemeScreen
@@ -122,7 +123,7 @@ fun NexaFlowApp() {
             composable("notification_manager") {
                 NotificationManagerScreen(navController = navController)
             }
-            composable("plugins") {
+            composable(PluginDestination.ROUTE) {
                 PluginManagerScreen(navController = navController)
             }
             composable("history") {

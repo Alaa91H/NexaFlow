@@ -247,7 +247,7 @@ fun SettingsScreen(navController: NavController) {
                         pluginHealth.partial,
                         pluginHealth.unavailable
                     ),
-                    onClick = { viewModel.refreshPluginHealth() }
+                    onClick = { navController.navigate(PluginDestination.ROUTE) }
                 )
             }
             settingsGroup(title = sectionBackupTitle) {
@@ -470,7 +470,7 @@ fun SettingsScreen(navController: NavController) {
                                     icon = Icons.Filled.Extension,
                                     title = stringResource(R.string.plugins),
                                     subtitle = stringResource(R.string.plugins_sub),
-                                    onClick = { navController.navigate("plugins") }
+                                    onClick = { navController.navigate(PluginDestination.ROUTE) }
                                 )
                             }
                         }
