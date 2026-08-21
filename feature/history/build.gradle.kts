@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.com.google.dagger.hilt.android)
     ksp(libs.com.google.dagger.hilt.compiler)
     implementation(project(":domain"))
+    implementation(project(":core:execution"))
     implementation(project(":core:ui-components"))
     implementation(project(":feature:automations"))
     testImplementation(libs.junit.junit)
