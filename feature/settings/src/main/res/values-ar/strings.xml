@@ -94,8 +94,6 @@
     <string name="oem_compat_action">فتح الإعدادات</string>
     <string name="dismiss">تجاهل</string>
     <string name="cancel">إلغاء</string>
-    <string name="plugins">الإضافات</string>
-    <string name="plugins_sub">إدارة إجراءات الإضافات الخارجية</string>
     <string name="plugin_manager_title">الإضافات</string>
     <string name="plugin_manager_sub">إضافات الأتمتة الخارجية المثبتة على هذا الجهاز</string>
     <string name="plugin_refresh">تحديث</string>

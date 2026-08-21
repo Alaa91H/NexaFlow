@@ -96,8 +96,6 @@
     <string name="oem_compat_action">Open settings</string>
     <string name="dismiss">Dismiss</string>
     <string name="cancel">Cancel</string>
-    <string name="plugins">Plugins</string>
-    <string name="plugins_sub">Manage external plugin actions</string>
     <string name="plugin_manager_title">Plugins</string>
     <string name="plugin_manager_sub">External automation plugins installed on this device</string>
     <string name="plugin_refresh">Refresh</string>

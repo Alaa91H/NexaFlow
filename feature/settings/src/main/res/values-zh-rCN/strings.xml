@@ -96,8 +96,6 @@
     <string name="oem_compat_action">打开设置</string>
     <string name="dismiss">忽略</string>
     <string name="cancel">取消</string>
-    <string name="plugins">插件</string>
-    <string name="plugins_sub">管理外部插件操作</string>
     <string name="plugin_manager_title">插件</string>
     <string name="plugin_manager_sub">此设备上安装的外部自动化插件</string>
     <string name="plugin_refresh">刷新</string>

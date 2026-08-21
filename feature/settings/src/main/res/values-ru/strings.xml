@@ -96,8 +96,6 @@
     <string name="oem_compat_action">Открыть настройки</string>
     <string name="dismiss">Скрыть</string>
     <string name="cancel">Отмена</string>
-    <string name="plugins">Плагины</string>
-    <string name="plugins_sub">Управление действиями внешних плагинов</string>
     <string name="plugin_manager_title">Плагины</string>
     <string name="plugin_manager_sub">Внешние плагины автоматизации, установленные на этом устройстве</string>
     <string name="plugin_refresh">Обновить</string>

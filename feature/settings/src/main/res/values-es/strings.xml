@@ -94,8 +94,6 @@
     <string name="oem_compat_action">Abrir ajustes</string>
     <string name="dismiss">Descartar</string>
     <string name="cancel">Cancelar</string>
-    <string name="plugins">Complementos</string>
-    <string name="plugins_sub">Gestionar acciones de complementos externos</string>
     <string name="plugin_manager_title">Complementos</string>
     <string name="plugin_manager_sub">Complementos de automatización externos instalados en este dispositivo</string>
     <string name="plugin_refresh">Actualizar</string>

@@ -96,8 +96,6 @@
     <string name="oem_compat_action">Abrir configurações</string>
     <string name="dismiss">Dispensar</string>
     <string name="cancel">Cancelar</string>
-    <string name="plugins">Plugins</string>
-    <string name="plugins_sub">Gerenciar ações de plugins externos</string>
     <string name="plugin_manager_title">Plugins</string>
     <string name="plugin_manager_sub">Plugins de automação externos instalados neste dispositivo</string>
     <string name="plugin_refresh">Atualizar</string>

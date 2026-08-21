@@ -96,8 +96,6 @@
     <string name="oem_compat_action">Ayarları aç</string>
     <string name="dismiss">Kapat</string>
     <string name="cancel">İptal</string>
-    <string name="plugins">Eklentiler</string>
-    <string name="plugins_sub">Harici eklenti işlemlerini yönet</string>
     <string name="plugin_manager_title">Eklentiler</string>
     <string name="plugin_manager_sub">Bu cihazda yüklü harici otomasyon eklentileri</string>
     <string name="plugin_refresh">Yenile</string>

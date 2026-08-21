@@ -96,8 +96,6 @@
     <string name="oem_compat_action">Ouvrir les paramètres</string>
     <string name="dismiss">Ignorer</string>
     <string name="cancel">Annuler</string>
-    <string name="plugins">Extensions</string>
-    <string name="plugins_sub">Gérer les actions des plugins externes</string>
     <string name="plugin_manager_title">Extensions</string>
     <string name="plugin_manager_sub">"Plugins d'automatisation externes installés sur cet appareil"</string>
     <string name="plugin_refresh">Actualiser</string>

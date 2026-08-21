@@ -96,8 +96,6 @@
     <string name="oem_compat_action">सेटिंग्स खोलें</string>
     <string name="dismiss">खारिज करें</string>
     <string name="cancel">रद्द करें</string>
-    <string name="plugins">प्लगइन</string>
-    <string name="plugins_sub">बाहरी प्लगइन क्रियाएँ प्रबंधित करें</string>
     <string name="plugin_manager_title">प्लगइन</string>
     <string name="plugin_manager_sub">इस डिवाइस पर स्थापित बाहरी ऑटोमेशन प्लगइन</string>
     <string name="plugin_refresh">रीफ़्रेश</string>

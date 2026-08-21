@@ -96,8 +96,6 @@
     <string name="oem_compat_action">設定を開く</string>
     <string name="dismiss">閉じる</string>
     <string name="cancel">キャンセル</string>
-    <string name="plugins">プラグイン</string>
-    <string name="plugins_sub">外部プラグイン操作を管理</string>
     <string name="plugin_manager_title">プラグイン</string>
     <string name="plugin_manager_sub">このデバイスにインストールされた外部オートメーションプラグイン</string>
     <string name="plugin_refresh">更新</string>

@@ -94,8 +94,6 @@
     <string name="oem_compat_action">Einstellungen öffnen</string>
     <string name="dismiss">Ausblenden</string>
     <string name="cancel">Abbrechen</string>
-    <string name="plugins">Plugins</string>
-    <string name="plugins_sub">Externe Plugin-Aktionen verwalten</string>
     <string name="plugin_manager_title">Plugins</string>
     <string name="plugin_manager_sub">Auf diesem Gerät installierte externe Automatisierungs-Plugins</string>
     <string name="plugin_refresh">Aktualisieren</string>
