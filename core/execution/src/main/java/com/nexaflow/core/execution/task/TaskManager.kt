@@ -278,9 +278,12 @@ class TaskManager(
         runningJobs.remove(envelope.task.id)
         // A task that completed (or failed) normally is no longer cancellable;
         // drop any stale cancellation marker to avoid an unbounded set and allow
-        // a later explicit re-submit with the same id.
+        // a later explicit re-submit with the same id. Keep activeTaskId set
+        // until this lifecycle cleanup commits: awaitIdle() must never report
+        // idle while cancel() can still observe the completed task as known.
         cancelledIds.remove(envelope.task.id)
         knownTaskIds.remove(envelope.task.id)
+        activeTaskId.compareAndSet(envelope.task.id, null)
     }
 
     private suspend fun runWithRetry(envelope: Envelope) {
@@ -357,7 +360,9 @@ class TaskManager(
             }
             throw e
         } finally {
-            activeTaskId.set(null)
+            // processEnvelope clears activeTaskId only after it has removed this
+            // task from the running and admission ledgers. That ordering makes
+            // awaitIdle() a true terminal-state barrier rather than a race.
         }
     }
 
