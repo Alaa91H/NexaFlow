@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -222,163 +223,123 @@ fun AutomationDetailsScreen(navController: NavController) {
                         }
                     }
                 }
-                SectionHeader(
-                    text = stringResource(R.string.section_triggers),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { triggersExpanded = !triggersExpanded },
-                    trailing = {
-                        Icon(
-                            imageVector = if (triggersExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                AutomationDetailsSectionCard(
+                    index = 0,
+                    title = stringResource(R.string.section_triggers),
+                    expanded = triggersExpanded,
+                    onExpandedChange = { triggersExpanded = !triggersExpanded }
+                ) {
+                    if (current.triggers.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.no_triggers),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.secondary
                         )
+                    } else {
+                        current.triggers.forEach { trigger ->
+                            val (titleRes, subtitleRes, icon) = triggerPresentation(trigger.type)
+                            SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes), trailing = {
+                                Text(
+                                    text = triggerDetail(trigger.config),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            })
+                        }
                     }
-                )
-                if (triggersExpanded) {
-                    NexaFlowCard {
-                        if (current.triggers.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.no_triggers),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                        } else {
-                            current.triggers.forEach { trigger ->
-                                val (titleRes, subtitleRes, icon) = triggerPresentation(trigger.type)
-                                SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes), trailing = {
+                }
+                AutomationDetailsSectionCard(
+                    index = 1,
+                    title = stringResource(R.string.section_constraints),
+                    expanded = constraintsExpanded,
+                    onExpandedChange = { constraintsExpanded = !constraintsExpanded }
+                ) {
+                    if (current.constraints.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.no_constraints),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    } else {
+                        current.constraints.forEach { constraint ->
+                            val (titleRes, icon) = constraintPresentation(constraint.type)
+                            SettingRow(
+                                icon = icon,
+                                title = stringResource(titleRes),
+                                subtitle = stringResource(R.string.constraint_subtitle),
+                                trailing = {
                                     Text(
-                                        text = triggerDetail(trigger.config),
+                                        text = constraintDetail(constraint.config),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.secondary
                                     )
-                                })
-                            }
+                                }
+                            )
                         }
                     }
                 }
-                SectionHeader(
-                    text = stringResource(R.string.section_constraints),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { constraintsExpanded = !constraintsExpanded },
-                    trailing = {
-                        Icon(
-                            imageVector = if (constraintsExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                AutomationDetailsSectionCard(
+                    index = 2,
+                    title = stringResource(R.string.section_actions),
+                    expanded = actionsExpanded,
+                    onExpandedChange = { actionsExpanded = !actionsExpanded }
+                ) {
+                    if (current.actions.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.no_actions),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.secondary
                         )
-                    }
-                )
-                if (constraintsExpanded) {
-                    NexaFlowCard {
-                        if (current.constraints.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.no_constraints),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                        } else {
-                            current.constraints.forEach { constraint ->
-                                val (titleRes, icon) = constraintPresentation(constraint.type)
-                                SettingRow(
-                                    icon = icon,
-                                    title = stringResource(titleRes),
-                                    subtitle = stringResource(R.string.constraint_subtitle),
-                                    trailing = {
-                                        Text(
-                                            text = constraintDetail(constraint.config),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.secondary
-                                        )
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-                SectionHeader(
-                    text = stringResource(R.string.section_actions),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { actionsExpanded = !actionsExpanded },
-                    trailing = {
-                        Icon(
-                            imageVector = if (actionsExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                )
-                if (actionsExpanded) {
-                    NexaFlowCard {
-                        if (current.actions.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.no_actions),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                        } else {
-                            current.actions.forEach { action ->
-                                val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
-                                SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes), trailing = {
-                                    val detailText = actionDetail(action.config)
-                                    val endText = endBehaviorText(action)
-                                    if (detailText.isNotEmpty() || endText != null) {
-                                        Column(horizontalAlignment = Alignment.End) {
-                                            if (detailText.isNotEmpty()) {
-                                                Text(
-                                                    text = detailText,
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = MaterialTheme.colorScheme.tertiary
-                                                )
-                                            }
-                                            if (endText != null) {
-                                                Text(
-                                                    text = endText,
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = MaterialTheme.colorScheme.primary
-                                                )
-                                            }
+                    } else {
+                        current.actions.forEach { action ->
+                            val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
+                            SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes), trailing = {
+                                val detailText = actionDetail(action.config)
+                                val endText = endBehaviorText(action)
+                                if (detailText.isNotEmpty() || endText != null) {
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        if (detailText.isNotEmpty()) {
+                                            Text(
+                                                text = detailText,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.tertiary
+                                            )
+                                        }
+                                        if (endText != null) {
+                                            Text(
+                                                text = endText,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
                                         }
                                     }
-                                })
-                            }
+                                }
+                            })
                         }
                     }
                 }
-                SectionHeader(
-                    text = stringResource(R.string.section_exit_behavior),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { exitBehaviorExpanded = !exitBehaviorExpanded },
-                    trailing = {
-                        Icon(
-                            imageVector = if (exitBehaviorExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                AutomationDetailsSectionCard(
+                    index = 3,
+                    title = stringResource(R.string.section_exit_behavior),
+                    expanded = exitBehaviorExpanded,
+                    onExpandedChange = { exitBehaviorExpanded = !exitBehaviorExpanded }
+                ) {
+                    if (current.revertOnExit) {
+                        SettingRow(
+                            icon = Icons.Filled.Security,
+                            title = stringResource(R.string.exit_revert_label),
+                            subtitle = stringResource(R.string.exit_revert_sub)
                         )
-                    }
-                )
-                if (exitBehaviorExpanded) {
-                    NexaFlowCard {
-                        if (current.revertOnExit) {
-                            SettingRow(
-                                icon = Icons.Filled.Security,
-                                title = stringResource(R.string.exit_revert_label),
-                                subtitle = stringResource(R.string.exit_revert_sub)
-                            )
-                        } else if (current.exitActions.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.exit_nothing_sub),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                        } else {
-                            current.exitActions.forEach { action ->
-                                val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
-                                SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes))
-                            }
+                    } else if (current.exitActions.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.exit_nothing_sub),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    } else {
+                        current.exitActions.forEach { action ->
+                            val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
+                            SettingRow(icon = icon, title = stringResource(titleRes), subtitle = stringResource(subtitleRes))
                         }
                     }
                 }
@@ -394,6 +355,57 @@ fun AutomationDetailsScreen(navController: NavController) {
                     )
                 }
             }
+        }
+    }
+}
+
+/** Alternating surface tier for the four expandable task-detail sections. */
+internal enum class AutomationDetailsSectionTone {
+    LIGHT_GRAY,
+    DARK_GRAY
+}
+
+internal fun automationDetailsSectionTone(index: Int): AutomationDetailsSectionTone =
+    if (index % 2 == 0) AutomationDetailsSectionTone.LIGHT_GRAY
+    else AutomationDetailsSectionTone.DARK_GRAY
+
+/**
+ * One consistent card for trigger, constraint, action, and end-of-task
+ * sections. The header remains the only toggle target, while expanded content
+ * stays inside the same card to preserve a clear visual grouping.
+ */
+@Composable
+private fun AutomationDetailsSectionCard(
+    index: Int,
+    title: String,
+    expanded: Boolean,
+    onExpandedChange: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val containerColor = when (automationDetailsSectionTone(index)) {
+        AutomationDetailsSectionTone.LIGHT_GRAY -> MaterialTheme.colorScheme.surfaceContainerLow
+        AutomationDetailsSectionTone.DARK_GRAY -> MaterialTheme.colorScheme.surfaceContainerHighest
+    }
+    NexaFlowCard(containerColor = containerColor) {
+        SectionHeader(
+            text = title,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onExpandedChange),
+            trailing = {
+                Icon(
+                    imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        )
+        if (expanded) {
+            Column(
+                modifier = Modifier.padding(top = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                content = content
+            )
         }
     }
 }
