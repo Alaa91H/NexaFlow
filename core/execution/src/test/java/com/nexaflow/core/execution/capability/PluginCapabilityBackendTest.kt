@@ -13,6 +13,7 @@ import com.nexaflow.core.pluginsdk.PluginConfigParser
 import com.nexaflow.core.pluginsdk.PluginDiscoveryRegistry
 import com.nexaflow.domain.capability.CapabilityBackendId
 import com.nexaflow.domain.capability.CapabilityDeviceState
+import com.nexaflow.domain.capability.CapabilityErrorCode
 import com.nexaflow.domain.capability.CapabilityId
 import com.nexaflow.domain.capability.CapabilityRequest
 import com.nexaflow.domain.capability.VerificationMode
@@ -134,6 +135,45 @@ class PluginCapabilityBackendTest {
 
         assertEquals(com.nexaflow.domain.capability.CapabilityStatus.SUCCESS, result.status)
         assertEquals("second", FakePluginReceiverForTest.lastConfig?.get("message"))
+    }
+
+    @Test
+    fun rejectsHighRiskPluginWithoutExplicitHighRiskApprovalBeforeDiscoveryOrFire() = runBlocking {
+        val action = Action(
+            type = ActionType.PLUGIN_FIRE,
+            config = mapOf(
+                "pluginInstance" to "plugin:high-risk",
+                "pluginApproval" to "approved",
+                "package" to "com.termux.tasker",
+                "receiver" to "com.termux.tasker.FireReceiver",
+                "bundleJson" to PluginConfigParser.toJson(mapOf("message" to "must-not-run"))
+            )
+        )
+        val automation = automationWithActions(listOf(action))
+        val backend = PluginCapabilityBackend(
+            context = context,
+            automationRepository = FakeAutomationRepository(automation),
+            discoveryRegistry = PluginDiscoveryRegistry(context)
+        )
+        val service = CapabilityExecutionService(
+            resolver = CapabilityResolver(
+                CapabilityRegistry.of(PluginCapabilityCatalog.descriptors(), listOf(backend))
+            ),
+            deviceStateProvider = { deviceState() }
+        )
+
+        val result = service.execute(
+            CapabilityRequest(
+                capability = CapabilityId.PLUGIN_ACTION,
+                parameters = mapOf("pluginInstance" to "plugin:high-risk"),
+                workflowId = automation.id,
+                actionId = ActionType.PLUGIN_FIRE.name,
+                verification = VerificationMode.BEST_EFFORT
+            )
+        )
+
+        assertEquals(CapabilityErrorCode.PLUGIN_NOT_APPROVED, result.errorCode)
+        assertEquals(null, FakePluginReceiverForTest.lastConfig)
     }
 
     @Test

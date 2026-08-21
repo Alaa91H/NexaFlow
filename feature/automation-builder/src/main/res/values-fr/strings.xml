@@ -962,4 +962,8 @@
     <string name="monthly_last_day">Dernier jour du mois</string>
     <string name="month_day_label_short">Jour du mois</string>
     <string name="monthly_weekday_filter">Uniquement si cela tombe un</string>
+    <string name="plugin_high_risk_title">Configurer %1$s ?</string>
+    <string name="plugin_high_risk_message">Ce module peut exécuter des commandes shell ou ADB. Continuez seulement si vous faites confiance à sa source et comprenez les commandes exécutées.</string>
+    <string name="plugin_high_risk_continue">Je comprends</string>
+    <string name="plugin_high_risk_badge">Avancé : accès aux commandes élevées</string>
 </resources>

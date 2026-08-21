@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,32 +25,37 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.nexaflow.core.pluginsdk.PluginRiskPolicy
 import com.nexaflow.core.ui.toImageBitmapOrNull
 import com.nexaflow.domain.models.PluginInfo
 
 /**
- * Lists every installed Locale-compatible plugin (apps with an exported
- * FIRE_SETTING receiver). Picking one launches its EDIT_SETTING activity so
- * the user can configure the action parameters.
+ * Lists installed Locale-compatible action plugins. High-risk command plugins
+ * require a clear local acknowledgement before their configuration activity can
+ * be opened; the acknowledgement is persisted with the configured action.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PluginPickerDialog(
     plugins: List<PluginInfo>,
     onRefresh: () -> Unit,
-    onPick: (PluginInfo) -> Unit,
+    onPick: (PluginInfo, Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    var pendingHighRiskPlugin by remember { mutableStateOf<PluginInfo?>(null) }
     LaunchedEffect(Unit) { onRefresh() }
 
-    // Google 2026: selection tasks open as a full-height modal bottom sheet.
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberBottomSheetState(
@@ -102,46 +108,16 @@ fun PluginPickerDialog(
             ) {
                 items(plugins.size, key = { plugins[it].receiverClass }) { index ->
                     val plugin = plugins[index]
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onPick(plugin) }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        val drawable = runCatching {
-                            context.packageManager.getApplicationIcon(plugin.packageName)
-                        }.getOrNull()
-                        val bitmap = drawable?.toImageBitmapOrNull()
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(MaterialTheme.shapes.small),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (bitmap != null) {
-                                Image(bitmap = bitmap, contentDescription = null)
+                    PluginPickerRow(
+                        plugin = plugin,
+                        onClick = {
+                            if (PluginRiskPolicy.requiresHighRiskApproval(plugin.packageName)) {
+                                pendingHighRiskPlugin = plugin
                             } else {
-                                Icon(
-                                    imageVector = Icons.Filled.Extension,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
+                                onPick(plugin, false)
                             }
                         }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = plugin.label,
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                            Text(
-                                text = plugin.packageName,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                        }
-                    }
+                    )
                 }
             }
         }
@@ -153,6 +129,79 @@ fun PluginPickerDialog(
         ) {
             TextButton(onClick = onDismiss) {
                 Text(text = stringResource(R.string.cancel))
+            }
+        }
+    }
+
+    pendingHighRiskPlugin?.let { plugin ->
+        AlertDialog(
+            onDismissRequest = { pendingHighRiskPlugin = null },
+            title = { Text(stringResource(R.string.plugin_high_risk_title, plugin.label)) },
+            text = { Text(stringResource(R.string.plugin_high_risk_message)) },
+            dismissButton = {
+                TextButton(onClick = { pendingHighRiskPlugin = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pendingHighRiskPlugin = null
+                        onPick(plugin, true)
+                    }
+                ) {
+                    Text(stringResource(R.string.plugin_high_risk_continue))
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun PluginPickerRow(plugin: PluginInfo, onClick: () -> Unit) {
+    val context = LocalContext.current
+    val bitmap = remember(plugin.packageName, context) {
+        runCatching { context.packageManager.getApplicationIcon(plugin.packageName) }
+            .getOrNull()
+            ?.toImageBitmapOrNull()
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(MaterialTheme.shapes.small),
+            contentAlignment = Alignment.Center
+        ) {
+            if (bitmap != null) {
+                Image(bitmap = bitmap, contentDescription = null)
+            } else {
+                Icon(
+                    imageVector = Icons.Filled.Extension,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = plugin.label, style = MaterialTheme.typography.titleSmall)
+            Text(
+                text = plugin.packageName,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+            if (PluginRiskPolicy.requiresHighRiskApproval(plugin.packageName)) {
+                Text(
+                    text = stringResource(R.string.plugin_high_risk_badge),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.tertiary
+                )
             }
         }
     }

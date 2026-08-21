@@ -6,12 +6,24 @@ import com.nexaflow.core.pluginsdk.PluginDescriptor
 import com.nexaflow.core.pluginsdk.PluginType
 import com.nexaflow.domain.models.PluginInfo
 
-/** A curated Play Store entry that is useful in the Locale/Tasker ecosystem. */
+/** A reviewed catalog entry; discovery still decides whether the device can use it. */
 data class PluginCatalogDefinition(
     val packageName: String,
     val displayName: String,
-    val capabilities: List<PluginCatalogCapability>
+    val capabilities: List<PluginCatalogCapability>,
+    val section: PluginCatalogSection = PluginCatalogSection.RECOMMENDED,
+    val risk: PluginCatalogRisk = PluginCatalogRisk.STANDARD
 )
+
+enum class PluginCatalogSection {
+    RECOMMENDED,
+    ADVANCED
+}
+
+enum class PluginCatalogRisk {
+    STANDARD,
+    HIGH
+}
 
 enum class PluginCatalogCapability(@StringRes val labelRes: Int) {
     NOTIFICATIONS(R.string.plugin_capability_notifications),
@@ -29,10 +41,13 @@ enum class PluginCatalogCapability(@StringRes val labelRes: Int) {
     CALENDAR(R.string.plugin_capability_calendar),
     MEDIA(R.string.plugin_capability_media),
     PUSH(R.string.plugin_capability_push),
-    BLUETOOTH(R.string.plugin_capability_bluetooth)
+    BLUETOOTH(R.string.plugin_capability_bluetooth),
+    QR_CODES(R.string.plugin_capability_qr_codes),
+    CAMERAS(R.string.plugin_capability_cameras),
+    SHELL_COMMANDS(R.string.plugin_capability_shell_commands)
 }
 
-/** One card rendered by the plugin catalog. Unknown discovered plugins are retained too. */
+/** One card rendered by the catalog. Unknown discovered plugins are retained too. */
 data class PluginCatalogEntry(
     val packageName: String,
     val displayName: String,
@@ -46,6 +61,12 @@ data class PluginCatalogEntry(
 
     val compatibility: PluginCompatibilityStatus?
         get() = settingDescriptor?.compatibility ?: descriptors.firstOrNull()?.compatibility
+
+    val isAdvanced: Boolean
+        get() = definition?.section == PluginCatalogSection.ADVANCED
+
+    val isHighRisk: Boolean
+        get() = definition?.risk == PluginCatalogRisk.HIGH
 
     val testablePlugin: PluginInfo?
         get() {
@@ -64,12 +85,16 @@ data class PluginCatalogEntry(
 
 data class PluginCatalogUiState(
     val installed: List<PluginCatalogEntry> = emptyList(),
-    val available: List<PluginCatalogEntry> = emptyList()
+    val recommendedAvailable: List<PluginCatalogEntry> = emptyList(),
+    val advancedAvailable: List<PluginCatalogEntry> = emptyList()
 )
 
 /**
- * A local, reviewable catalog rather than a remote feed. Store availability can
- * vary by country, while package presence is always read from Android itself.
+ * A local, reviewable catalog rather than a remote feed.
+ *
+ * The catalog does not assert plug-in compatibility: Android discovery validates
+ * the actual component pair and permissions on each device. Advanced entries are
+ * visibly isolated because their configuration can execute shell/ADB commands.
  */
 object PluginCatalog {
     val recommended: List<PluginCatalogDefinition> = listOf(
@@ -88,7 +113,25 @@ object PluginCatalog {
         PluginCatalogDefinition("com.joaomgcd.autocalendar", "AutoCalendar", listOf(PluginCatalogCapability.CALENDAR)),
         PluginCatalogDefinition("com.joaomgcd.autobluetooth", "AutoBluetooth", listOf(PluginCatalogCapability.BLUETOOTH)),
         PluginCatalogDefinition("org.leetzone.android.yatsewidgetfree", "Yatse", listOf(PluginCatalogCapability.MEDIA, PluginCatalogCapability.NETWORK)),
-        PluginCatalogDefinition("net.superblock.pushover", "Pushover", listOf(PluginCatalogCapability.PUSH, PluginCatalogCapability.NETWORK))
+        PluginCatalogDefinition("net.superblock.pushover", "Pushover", listOf(PluginCatalogCapability.PUSH, PluginCatalogCapability.NETWORK)),
+        PluginCatalogDefinition("com.joaomgcd.autocast", "AutoCast", listOf(PluginCatalogCapability.MEDIA, PluginCatalogCapability.NETWORK)),
+        PluginCatalogDefinition("com.joaomgcd.barcode", "AutoBarcode", listOf(PluginCatalogCapability.QR_CODES)),
+        PluginCatalogDefinition("com.bitklog.wolon", "WolOn", listOf(PluginCatalogCapability.NETWORK)),
+        PluginCatalogDefinition("com.alexvas.dvr.pro", "tinyCam Monitor PRO", listOf(PluginCatalogCapability.CAMERAS, PluginCatalogCapability.NETWORK)),
+        PluginCatalogDefinition(
+            packageName = "com.termux.tasker",
+            displayName = "Termux:Tasker",
+            capabilities = listOf(PluginCatalogCapability.SHELL_COMMANDS),
+            section = PluginCatalogSection.ADVANCED,
+            risk = PluginCatalogRisk.HIGH
+        ),
+        PluginCatalogDefinition(
+            packageName = "com.ADBPlugin",
+            displayName = "ADB Shell [Tasker Plugin]",
+            capabilities = listOf(PluginCatalogCapability.SHELL_COMMANDS, PluginCatalogCapability.NETWORK),
+            section = PluginCatalogSection.ADVANCED,
+            risk = PluginCatalogRisk.HIGH
+        )
     )
 
     fun organize(
@@ -132,7 +175,12 @@ object PluginCatalog {
             }
         return PluginCatalogUiState(
             installed = (installedKnown + discoveredExternal).sortedBy { it.displayName.lowercase() },
-            available = available.sortedBy { it.displayName.lowercase() }
+            recommendedAvailable = available
+                .filter { !it.isAdvanced }
+                .sortedBy { it.displayName.lowercase() },
+            advancedAvailable = available
+                .filter { it.isAdvanced }
+                .sortedBy { it.displayName.lowercase() }
         )
     }
 }

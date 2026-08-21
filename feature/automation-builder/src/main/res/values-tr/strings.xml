@@ -962,4 +962,8 @@
     <string name="monthly_last_day">Ayın son günü</string>
     <string name="month_day_label_short">Ayın günü</string>
     <string name="monthly_weekday_filter">Yalnızca şu güne denk gelirse</string>
+    <string name="plugin_high_risk_title">%1$s yapılandırılsın mı?</string>
+    <string name="plugin_high_risk_message">Bu eklenti shell veya ADB komutları çalıştırabilir. Yalnızca kaynağa güveniyor ve çalıştıracağı komutları anlıyorsanız devam edin.</string>
+    <string name="plugin_high_risk_continue">Anlıyorum</string>
+    <string name="plugin_high_risk_badge">Gelişmiş: yükseltilmiş komut erişimi</string>
 </resources>

@@ -961,4 +961,8 @@
     <string name="monthly_last_day">آخر يوم من الشهر</string>
     <string name="month_day_label_short">يوم الشهر</string>
     <string name="monthly_weekday_filter">نفّذ فقط إذا وافق</string>
+    <string name="plugin_high_risk_title">تهيئة %1$s؟</string>
+    <string name="plugin_high_risk_message">يمكن لهذه الإضافة تنفيذ أوامر Shell أو ADB. تابع فقط إذا كنت تثق بمصدرها وتفهم الأوامر التي ستشغلها.</string>
+    <string name="plugin_high_risk_continue">أفهم ذلك</string>
+    <string name="plugin_high_risk_badge">متقدم: وصول لأوامر بصلاحيات مرتفعة</string>
 </resources>

@@ -212,4 +212,10 @@
     <string name="plugin_capability_bluetooth">ब्लूटूथ</string>
     <string name="plugin_enable">सक्षम करें</string>
     <string name="plugin_status_disabled">Android द्वारा अक्षम</string>
+    <string name="plugin_advanced_title">उन्नत प्लग-इन (%1$d)</string>
+    <string name="plugin_advanced_disclaimer">ये एकीकरण shell या ADB कमांड चला सकते हैं। इन्हें केवल तभी कॉन्फ़िगर और उपयोग करें जब आप इनके प्रभाव समझते हों।</string>
+    <string name="plugin_high_risk_badge">उन्नत: उन्नत कमांड पहुँच</string>
+    <string name="plugin_capability_qr_codes">QR कोड</string>
+    <string name="plugin_capability_cameras">IP कैमरे</string>
+    <string name="plugin_capability_shell_commands">Shell कमांड</string>
 </resources>

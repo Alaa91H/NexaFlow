@@ -3,6 +3,7 @@ package com.nexaflow.core.execution.handler
 import com.nexaflow.core.execution.plugin.PluginFireClient
 import com.nexaflow.core.pluginsdk.LocaleContract
 import com.nexaflow.core.pluginsdk.PluginConfigParser
+import com.nexaflow.core.pluginsdk.PluginRiskPolicy
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
@@ -23,6 +24,14 @@ class PluginFireHandler : ActionHandler {
         val receiverClass = action.config["receiver"].orEmpty()
         if (packageName.isBlank() || receiverClass.isBlank()) {
             return SystemControlResult.fail("Plugin not configured")
+        }
+        if (action.config["pluginApproval"] != "approved") {
+            return SystemControlResult.fail("Plugin action has not been approved by the user")
+        }
+        if (PluginRiskPolicy.requiresHighRiskApproval(packageName) &&
+            action.config[PluginRiskPolicy.HIGH_RISK_APPROVAL_KEY] != PluginRiskPolicy.APPROVAL_VALUE
+        ) {
+            return SystemControlResult.fail("High-risk plugin action has not been approved by the user")
         }
         // The JSON config is opaque to %variable resolution (see ExecutionEngine
         // OPAQUE keys); rebuild the protocol bundle exactly as saved. A corrupt

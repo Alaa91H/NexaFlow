@@ -6,6 +6,7 @@ import com.nexaflow.core.pluginsdk.LocaleContract
 import com.nexaflow.core.pluginsdk.PluginCompatibilityStatus
 import com.nexaflow.core.pluginsdk.PluginConfigParser
 import com.nexaflow.core.pluginsdk.PluginDiscoveryRegistry
+import com.nexaflow.core.pluginsdk.PluginRiskPolicy
 import com.nexaflow.core.pluginsdk.PluginType
 import com.nexaflow.domain.capability.BackendAvailability
 import com.nexaflow.domain.capability.CapabilityAvailability
@@ -191,6 +192,11 @@ class PluginCapabilityBackend(
         val receiver = config[KEY_RECEIVER]
         if (packageName.isNullOrBlank() || receiver.isNullOrBlank()) {
             return ResolvedPluginAction(error = "Plugin component configuration is missing")
+        }
+        if (PluginRiskPolicy.requiresHighRiskApproval(packageName) &&
+            config[PluginRiskPolicy.HIGH_RISK_APPROVAL_KEY] != PluginRiskPolicy.APPROVAL_VALUE
+        ) {
+            return ResolvedPluginAction(error = "High-risk plugin action has not been approved by the user")
         }
         val snapshot = discoveryRegistry.snapshot().takeIf { it.refreshedAtMs > 0L }
             ?: discoveryRegistry.refresh()

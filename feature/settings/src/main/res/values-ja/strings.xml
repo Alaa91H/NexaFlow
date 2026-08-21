@@ -212,4 +212,10 @@
     <string name="plugin_capability_bluetooth">Bluetooth</string>
     <string name="plugin_enable">有効にする</string>
     <string name="plugin_status_disabled">Android により無効</string>
+    <string name="plugin_advanced_title">高度なプラグイン（%1$d）</string>
+    <string name="plugin_advanced_disclaimer">これらの連携はシェルまたは ADB コマンドを実行できます。影響を理解している場合にのみ設定・使用してください。</string>
+    <string name="plugin_high_risk_badge">高度：権限の高いコマンドへのアクセス</string>
+    <string name="plugin_capability_qr_codes">QR コード</string>
+    <string name="plugin_capability_cameras">IP カメラ</string>
+    <string name="plugin_capability_shell_commands">シェルコマンド</string>
 </resources>

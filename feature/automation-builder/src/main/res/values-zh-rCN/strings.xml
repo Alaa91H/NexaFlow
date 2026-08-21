@@ -962,4 +962,8 @@
     <string name="monthly_last_day">每月最后一天</string>
     <string name="month_day_label_short">每月日期</string>
     <string name="monthly_weekday_filter">仅当日期为</string>
+    <string name="plugin_high_risk_title">要配置 %1$s 吗？</string>
+    <string name="plugin_high_risk_message">此插件可以运行 shell 或 ADB 命令。仅当您信任其来源并了解其将运行的命令时才继续。</string>
+    <string name="plugin_high_risk_continue">我了解</string>
+    <string name="plugin_high_risk_badge">高级：可访问高权限命令</string>
 </resources>

@@ -210,4 +210,10 @@
     <string name="plugin_capability_bluetooth">بلوتوث</string>
     <string name="plugin_enable">تفعيل</string>
     <string name="plugin_status_disabled">معطّلة من Android</string>
+    <string name="plugin_advanced_title">إضافات متقدمة (%1$d)</string>
+    <string name="plugin_advanced_disclaimer">قد تنفذ هذه التكاملات أوامر Shell أو ADB. لا تهيئها أو تستخدمها إلا عند فهم تأثير أوامرها.</string>
+    <string name="plugin_high_risk_badge">متقدم: وصول لأوامر بصلاحيات مرتفعة</string>
+    <string name="plugin_capability_qr_codes">رموز QR</string>
+    <string name="plugin_capability_cameras">كاميرات IP</string>
+    <string name="plugin_capability_shell_commands">أوامر Shell</string>
 </resources>

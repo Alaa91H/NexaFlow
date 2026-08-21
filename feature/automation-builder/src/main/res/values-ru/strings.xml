@@ -962,4 +962,8 @@
     <string name="monthly_last_day">Последний день месяца</string>
     <string name="month_day_label_short">День месяца</string>
     <string name="monthly_weekday_filter">Только если приходится на</string>
+    <string name="plugin_high_risk_title">Настроить %1$s?</string>
+    <string name="plugin_high_risk_message">Этот плагин может выполнять команды shell или ADB. Продолжайте, только если доверяете источнику и понимаете выполняемые команды.</string>
+    <string name="plugin_high_risk_continue">Я понимаю</string>
+    <string name="plugin_high_risk_badge">Расширенный: доступ к привилегированным командам</string>
 </resources>

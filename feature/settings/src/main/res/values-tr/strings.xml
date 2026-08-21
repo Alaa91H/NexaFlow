@@ -212,4 +212,10 @@
     <string name="plugin_capability_bluetooth">Bluetooth</string>
     <string name="plugin_enable">Etkinleştir</string>
     <string name="plugin_status_disabled">Android tarafından devre dışı</string>
+    <string name="plugin_advanced_title">Gelişmiş eklentiler (%1$d)</string>
+    <string name="plugin_advanced_disclaimer">Bu entegrasyonlar shell veya ADB komutları çalıştırabilir. Yalnızca etkilerini anlıyorsanız yapılandırın ve kullanın.</string>
+    <string name="plugin_high_risk_badge">Gelişmiş: yükseltilmiş komut erişimi</string>
+    <string name="plugin_capability_qr_codes">QR kodları</string>
+    <string name="plugin_capability_cameras">IP kameralar</string>
+    <string name="plugin_capability_shell_commands">Shell komutları</string>
 </resources>

@@ -962,4 +962,8 @@
     <string name="monthly_last_day">Letzter Tag des Monats</string>
     <string name="month_day_label_short">Tag des Monats</string>
     <string name="monthly_weekday_filter">Nur wenn es fällt auf</string>
+    <string name="plugin_high_risk_title">%1$s konfigurieren?</string>
+    <string name="plugin_high_risk_message">Dieses Plug-in kann Shell- oder ADB-Befehle ausführen. Fahren Sie nur fort, wenn Sie der Quelle vertrauen und die Befehle verstehen.</string>
+    <string name="plugin_high_risk_continue">Ich verstehe</string>
+    <string name="plugin_high_risk_badge">Erweitert: Zugriff auf privilegierte Befehle</string>
 </resources>

@@ -210,4 +210,10 @@
     <string name="plugin_capability_bluetooth">Bluetooth</string>
     <string name="plugin_enable">Activar</string>
     <string name="plugin_status_disabled">Desactivado por Android</string>
+    <string name="plugin_advanced_title">Complementos avanzados (%1$d)</string>
+    <string name="plugin_advanced_disclaimer">Estas integraciones pueden ejecutar comandos de shell o ADB. Configúralas y úsalas solo si comprendes sus efectos.</string>
+    <string name="plugin_high_risk_badge">Avanzado: acceso a comandos elevados</string>
+    <string name="plugin_capability_qr_codes">Códigos QR</string>
+    <string name="plugin_capability_cameras">Cámaras IP</string>
+    <string name="plugin_capability_shell_commands">Comandos de shell</string>
 </resources>

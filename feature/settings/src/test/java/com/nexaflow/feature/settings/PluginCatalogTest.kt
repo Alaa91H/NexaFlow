@@ -26,8 +26,8 @@ class PluginCatalogTest {
         assertEquals(listOf(installedDefinition.packageName), state.installed.map { it.packageName })
         assertTrue(state.installed.single().installed)
         assertTrue(state.installed.single().appEnabled)
-        assertFalse(state.available.any { it.packageName == installedDefinition.packageName })
-        assertEquals(PluginCatalog.recommended.size - 1, state.available.size)
+        assertFalse(allAvailable(state).any { it.packageName == installedDefinition.packageName })
+        assertEquals(PluginCatalog.recommended.size - 1, allAvailable(state).size)
     }
 
     @Test
@@ -50,7 +50,7 @@ class PluginCatalogTest {
         assertEquals(null, entry.definition)
         assertTrue(entry.installed)
         assertTrue(entry.appEnabled)
-        assertEquals(PluginCatalog.recommended.size, state.available.size)
+        assertEquals(PluginCatalog.recommended.size, allAvailable(state).size)
     }
 
     @Test
@@ -63,6 +63,31 @@ class PluginCatalogTest {
         )
 
         assertFalse(state.installed.single().appEnabled)
+    }
+
+    @Test
+    fun organize_places_high_risk_command_plugins_in_advanced_available_section() {
+        val state = PluginCatalog.organize(installedPackages = emptyMap(), descriptors = emptyList())
+
+        assertTrue(state.advancedAvailable.isNotEmpty())
+        assertTrue(state.advancedAvailable.all { it.isAdvanced && it.isHighRisk })
+        assertTrue(state.advancedAvailable.any { it.packageName == "com.termux.tasker" })
+        assertTrue(state.advancedAvailable.any { it.packageName == "com.ADBPlugin" })
+        assertTrue(state.recommendedAvailable.none { it.isHighRisk })
+    }
+
+    @Test
+    fun organize_keeps_installed_high_risk_plugin_visible_in_installed_section() {
+        val state = PluginCatalog.organize(
+            installedPackages = mapOf("com.termux.tasker" to true),
+            descriptors = emptyList()
+        )
+
+        val entry = state.installed.single()
+        assertEquals("com.termux.tasker", entry.packageName)
+        assertTrue(entry.isAdvanced)
+        assertTrue(entry.isHighRisk)
+        assertTrue(entry.appEnabled)
     }
 
     @Test
@@ -82,6 +107,9 @@ class PluginCatalogTest {
 
         assertNull(state.installed.single().testablePlugin)
     }
+
+    private fun allAvailable(state: PluginCatalogUiState): List<PluginCatalogEntry> =
+        state.recommendedAvailable + state.advancedAvailable
 
     private fun descriptor(
         packageName: String,

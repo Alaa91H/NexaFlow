@@ -953,6 +953,7 @@ fun AutomationBuilderScreen(
     var pluginLauncherPackage by remember { mutableStateOf<String?>(null) }
     var pluginLauncherReceiver by remember { mutableStateOf<String?>(null) }
     var pluginLauncherEditActivity by remember { mutableStateOf<String?>(null) }
+    var pluginLauncherHighRiskApproved by remember { mutableStateOf(false) }
     val pluginLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -960,10 +961,12 @@ fun AutomationBuilderScreen(
         val pkg = pluginLauncherPackage
         val receiver = pluginLauncherReceiver
         val editActivity = pluginLauncherEditActivity
+        val highRiskApproved = pluginLauncherHighRiskApproved
         pluginLauncherActionId = null
         pluginLauncherPackage = null
         pluginLauncherReceiver = null
         pluginLauncherEditActivity = null
+        pluginLauncherHighRiskApproved = false
         val bundle: Bundle? = result.data?.getBundleExtra(LocaleContract.EXTRA_BUNDLE)
         val blurb = result.data?.getStringExtra(LocaleContract.EXTRA_STRING_BLURB)
             ?: result.data?.getStringExtra(LocaleContract.EXTRA_BLURB).orEmpty()
@@ -984,6 +987,7 @@ fun AutomationBuilderScreen(
                     put("pluginInstance", "plugin:${UUID.randomUUID()}")
                     // The user just completed the external configuration Activity.
                     put("pluginApproval", "approved")
+                    if (highRiskApproved) put("pluginHighRiskApproval", "approved")
                     editActivity?.takeIf { it.isNotBlank() }?.let { put("editActivity", it) }
                 }
             )
@@ -998,7 +1002,8 @@ fun AutomationBuilderScreen(
         packageName: String?,
         receiver: String?,
         editActivityClass: String?,
-        config: Map<String, String>
+        config: Map<String, String>,
+        highRiskApproved: Boolean = false
     ) {
         val pkg = packageName ?: return
         val rec = receiver ?: return
@@ -1008,6 +1013,8 @@ fun AutomationBuilderScreen(
         pluginLauncherPackage = pkg
         pluginLauncherReceiver = rec
         pluginLauncherEditActivity = editActivity
+        pluginLauncherHighRiskApproved = highRiskApproved ||
+            config["pluginHighRiskApproval"] == "approved"
         val intent = Intent(LocaleContract.ACTION_EDIT_SETTING).apply {
             if (editActivity != null) {
                 component = ComponentName(pkg, editActivity)
@@ -1036,6 +1043,7 @@ fun AutomationBuilderScreen(
             pluginLauncherPackage = null
             pluginLauncherReceiver = null
             pluginLauncherEditActivity = null
+            pluginLauncherHighRiskApproved = false
             scope.launch { snackbarHostState.showSnackbar(stringPluginNoEdit) }
             // The plugin has no edit screen: never leave a stuck, unconfigured
             // action behind (the user can still add other plugins).
@@ -1939,14 +1947,15 @@ fun AutomationBuilderScreen(
         PluginPickerDialog(
             plugins = plugins,
             onRefresh = { viewModel.refreshPlugins() },
-            onPick = { plugin ->
+            onPick = { plugin, highRiskApproved ->
                 pluginPickerTarget = null
                 configurePlugin(
                     actionId = actionId,
                     packageName = plugin.packageName,
                     receiver = plugin.receiverClass,
                     editActivityClass = plugin.editActivityClass,
-                    config = emptyMap()
+                    config = emptyMap(),
+                    highRiskApproved = highRiskApproved
                 )
             },
             onDismiss = {

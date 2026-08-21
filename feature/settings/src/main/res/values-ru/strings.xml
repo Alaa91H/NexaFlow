@@ -212,4 +212,10 @@
     <string name="plugin_capability_bluetooth">Bluetooth</string>
     <string name="plugin_enable">Включить</string>
     <string name="plugin_status_disabled">Отключено Android</string>
+    <string name="plugin_advanced_title">Расширенные плагины (%1$d)</string>
+    <string name="plugin_advanced_disclaimer">Эти интеграции могут выполнять команды shell или ADB. Настраивайте и используйте их, только если понимаете последствия.</string>
+    <string name="plugin_high_risk_badge">Расширенный: доступ к привилегированным командам</string>
+    <string name="plugin_capability_qr_codes">QR-коды</string>
+    <string name="plugin_capability_cameras">IP-камеры</string>
+    <string name="plugin_capability_shell_commands">Команды shell</string>
 </resources>

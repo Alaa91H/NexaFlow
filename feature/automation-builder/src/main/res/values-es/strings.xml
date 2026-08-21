@@ -962,4 +962,8 @@
     <string name="monthly_last_day">Último día del mes</string>
     <string name="month_day_label_short">Día del mes</string>
     <string name="monthly_weekday_filter">Solo si coincide con</string>
+    <string name="plugin_high_risk_title">¿Configurar %1$s?</string>
+    <string name="plugin_high_risk_message">Este complemento puede ejecutar comandos de shell o ADB. Continúa solo si confías en su origen y entiendes los comandos que ejecutará.</string>
+    <string name="plugin_high_risk_continue">Lo entiendo</string>
+    <string name="plugin_high_risk_badge">Avanzado: acceso a comandos elevados</string>
 </resources>

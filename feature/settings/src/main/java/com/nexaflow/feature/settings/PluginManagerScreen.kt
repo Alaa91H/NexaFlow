@@ -142,7 +142,9 @@ fun PluginManagerScreen(navController: NavController) {
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
             }
-            if (refreshing && catalog.installed.isEmpty() && catalog.available.isEmpty()) {
+            if (refreshing && catalog.installed.isEmpty() &&
+                catalog.recommendedAvailable.isEmpty() && catalog.advancedAvailable.isEmpty()
+            ) {
                 item {
                     Row(
                         modifier = Modifier
@@ -180,10 +182,13 @@ fun PluginManagerScreen(navController: NavController) {
             }
             item {
                 SectionHeader(
-                    text = stringResource(R.string.plugin_available_title, catalog.available.size)
+                    text = stringResource(
+                        R.string.plugin_available_title,
+                        catalog.recommendedAvailable.size
+                    )
                 )
             }
-            if (catalog.available.isEmpty()) {
+            if (catalog.recommendedAvailable.isEmpty()) {
                 item {
                     PluginSectionEmpty(
                         title = stringResource(R.string.plugin_no_available_plugins),
@@ -191,9 +196,41 @@ fun PluginManagerScreen(navController: NavController) {
                     )
                 }
             }
-            items(catalog.available.size, key = { "available:${catalog.available[it].packageName}" }) { index ->
+            items(
+                catalog.recommendedAvailable.size,
+                key = { "recommended:${catalog.recommendedAvailable[it].packageName}" }
+            ) { index ->
                 PluginCatalogCard(
-                    entry = catalog.available[index],
+                    entry = catalog.recommendedAvailable[index],
+                    testing = false,
+                    onTest = {},
+                    onOpenStore = { openStore(context, it) },
+                    onOpenApp = {},
+                    onOpenAppInfo = {},
+                    onUninstall = {}
+                )
+            }
+            item {
+                SectionHeader(
+                    text = stringResource(
+                        R.string.plugin_advanced_title,
+                        catalog.advancedAvailable.size
+                    )
+                )
+            }
+            item {
+                Text(
+                    text = stringResource(R.string.plugin_advanced_disclaimer),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+            items(
+                catalog.advancedAvailable.size,
+                key = { "advanced:${catalog.advancedAvailable[it].packageName}" }
+            ) { index ->
+                PluginCatalogCard(
+                    entry = catalog.advancedAvailable[index],
                     testing = false,
                     onTest = {},
                     onOpenStore = { openStore(context, it) },
@@ -307,6 +344,13 @@ private fun PluginCatalogCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = status.tone.color()
                     )
+                    if (entry.isHighRisk) {
+                        Text(
+                            text = stringResource(R.string.plugin_high_risk_badge),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
+                    }
                 }
                 if (testing) {
                     CircularProgressIndicator(modifier = Modifier.size(20.dp))
@@ -419,12 +463,17 @@ private fun PluginCatalogCard(
 @Composable
 private fun PluginIcon(entry: PluginCatalogEntry) {
     val context = LocalContext.current
-    val drawable = if (entry.installed) {
-        runCatching { context.packageManager.getApplicationIcon(entry.packageName) }.getOrNull()
-    } else {
-        null
+    // Installed packages provide the only authoritative local source for their
+    // launcher icon. Cache the rasterized value across ordinary recompositions.
+    val bitmap = remember(entry.packageName, entry.installed, context) {
+        if (entry.installed) {
+            runCatching { context.packageManager.getApplicationIcon(entry.packageName) }
+                .getOrNull()
+                ?.toImageBitmapOrNull()
+        } else {
+            null
+        }
     }
-    val bitmap = drawable?.toImageBitmapOrNull()
     Box(
         modifier = Modifier
             .size(44.dp)

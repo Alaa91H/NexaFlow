@@ -962,4 +962,8 @@
     <string name="monthly_last_day">毎月の最終日</string>
     <string name="month_day_label_short">月の日</string>
     <string name="monthly_weekday_filter">次の曜日の場合のみ</string>
+    <string name="plugin_high_risk_title">%1$s を設定しますか？</string>
+    <string name="plugin_high_risk_message">このプラグインはシェルまたは ADB コマンドを実行できます。提供元を信頼し、実行されるコマンドを理解している場合のみ続行してください。</string>
+    <string name="plugin_high_risk_continue">理解しました</string>
+    <string name="plugin_high_risk_badge">高度：権限の高いコマンドへのアクセス</string>
 </resources>

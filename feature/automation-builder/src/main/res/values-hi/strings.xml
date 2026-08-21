@@ -962,4 +962,8 @@
     <string name="monthly_last_day">महीने का आख़िरी दिन</string>
     <string name="month_day_label_short">महीने का दिन</string>
     <string name="monthly_weekday_filter">केवल अगर यह दिन हो</string>
+    <string name="plugin_high_risk_title">%1$s कॉन्फ़िगर करें?</string>
+    <string name="plugin_high_risk_message">यह प्लग-इन shell या ADB कमांड चला सकता है। केवल तभी जारी रखें जब आप इसके स्रोत पर भरोसा करते हों और कमांड समझते हों।</string>
+    <string name="plugin_high_risk_continue">मैं समझता हूँ</string>
+    <string name="plugin_high_risk_badge">उन्नत: उन्नत कमांड पहुँच</string>
 </resources>

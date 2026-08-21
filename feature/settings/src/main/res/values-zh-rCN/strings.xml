@@ -212,4 +212,10 @@
     <string name="plugin_capability_bluetooth">蓝牙</string>
     <string name="plugin_enable">启用</string>
     <string name="plugin_status_disabled">已被 Android 停用</string>
+    <string name="plugin_advanced_title">高级插件（%1$d）</string>
+    <string name="plugin_advanced_disclaimer">这些集成可以执行 shell 或 ADB 命令。仅当您了解其影响时才进行配置和使用。</string>
+    <string name="plugin_high_risk_badge">高级：可访问高权限命令</string>
+    <string name="plugin_capability_qr_codes">二维码</string>
+    <string name="plugin_capability_cameras">IP 摄像头</string>
+    <string name="plugin_capability_shell_commands">Shell 命令</string>
 </resources>
