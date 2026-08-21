@@ -135,6 +135,23 @@ class UpdateViewModelOffMainThreadTest {
     }
 
     @Test
+    fun updateChecking_isDisabledByDefaultUntilUserRequestsIt() {
+        val vm = UpdateViewModel(ApplicationProvider.getApplicationContext())
+
+        // Construction represents a fresh Settings screen / app launch. It must
+        // not begin a network request or surface a download prompt by itself.
+        shadowOf(Looper.getMainLooper()).idle()
+        assertTrue(
+            "Update checking must remain idle until the user explicitly taps Check for updates",
+            vm.state.value is UpdateUiState.Idle
+        )
+        assertTrue(
+            "No update network request may start automatically on a fresh install",
+            calls.isEmpty()
+        )
+    }
+
+    @Test
     fun fetchLatestJson_runsOffMainThread() {
         val vm = UpdateViewModel(ApplicationProvider.getApplicationContext())
         vm.check()

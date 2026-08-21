@@ -32,6 +32,12 @@ class UpdateViewModel @Inject constructor(
 
     private var downloadedApk: java.io.File? = null
 
+    /**
+     * Starts an update check only after an explicit user action. The ViewModel
+     * deliberately has no init-time check, so newly installed apps keep update
+     * checking disabled by default and never contact GitHub until this method
+     * is invoked from the Settings screen.
+     */
     fun check() {
         _state.value = UpdateUiState.Checking
         viewModelScope.launch {
