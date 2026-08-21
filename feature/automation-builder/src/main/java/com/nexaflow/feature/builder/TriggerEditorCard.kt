@@ -3,6 +3,7 @@ package com.nexaflow.feature.builder
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -62,6 +63,8 @@ import androidx.compose.material.icons.filled.Usb
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -622,7 +625,7 @@ private fun TimeField(
  * Legacy repeat values remain readable; entering the custom editor normalizes
  * them to INTERVAL while preserving their selected weekday or month-day data.
  */
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun TimeRepeatSection(
     draft: TriggerDraft,
@@ -657,44 +660,100 @@ private fun TimeRepeatSection(
             val intervalConfig = intervalConfig(draft.config)
             val interval = (intervalConfig["interval"]?.toIntOrNull() ?: 1).coerceIn(1, 99)
             val unit = intervalConfig["intervalUnit"] ?: "DAY"
-            Text(text = stringResource(R.string.repeat_every), style = MaterialTheme.typography.titleSmall)
-            OutlinedTextField(
-                value = interval.toString(),
-                onValueChange = { input ->
-                    val digits = input.filter(Char::isDigit).take(2)
-                    val value = digits.toIntOrNull()?.coerceIn(1, 99) ?: 1
-                    onConfigChange(draft.copy(config = intervalConfig + ("interval" to value.toString())))
-                },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.repeat_every)) },
-                placeholder = { Text(stringResource(R.string.repeat_interval_hint)) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            var unitMenuExpanded by rememberSaveable { mutableStateOf(false) }
+            val unitOptions = listOf(
+                "DAY" to R.string.repeat_unit_day,
+                "WEEK" to R.string.repeat_unit_week,
+                "MONTH" to R.string.repeat_unit_month,
+                "YEAR" to R.string.repeat_unit_year
             )
-            FlowRow(
+            // Mirrors the compact Google Tasks flow: the repeat number and
+            // period remain in one row instead of splitting the decision across
+            // a full-width input and a second row of category chips.
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                listOf(
-                    "DAY" to R.string.repeat_unit_day,
-                    "WEEK" to R.string.repeat_unit_week,
-                    "MONTH" to R.string.repeat_unit_month,
-                    "YEAR" to R.string.repeat_unit_year
-                ).forEach { (value, labelRes) ->
-                    SelectChip(
-                        selected = unit == value,
-                        onClick = {
-                            val updates = if (value == "WEEK" && intervalConfig["days"].isNullOrBlank()) {
-                                intervalConfig + ("intervalUnit" to value) +
-                                    ("days" to LocalDate.now().dayOfWeek.value.toString())
-                            } else {
-                                intervalConfig + ("intervalUnit" to value)
-                            }
-                            onConfigChange(draft.copy(config = updates))
-                        },
-                        label = stringResource(labelRes)
-                    )
+                OutlinedTextField(
+                    value = interval.toString(),
+                    onValueChange = { input ->
+                        val digits = input.filter(Char::isDigit).take(2)
+                        val value = digits.toIntOrNull()?.coerceIn(1, 99) ?: 1
+                        onConfigChange(draft.copy(config = intervalConfig + ("interval" to value.toString())))
+                    },
+                    modifier = Modifier.weight(0.28f),
+                    label = { Text(stringResource(R.string.repeat_every)) },
+                    placeholder = { Text(stringResource(R.string.repeat_interval_hint)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+                Box(modifier = Modifier.weight(0.72f)) {
+                    OutlinedButton(
+                        onClick = { unitMenuExpanded = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = stringResource(unitOptions.first { it.first == unit }.second),
+                            modifier = Modifier.weight(1f)
+                        )
+                        Icon(
+                            imageVector = Icons.Filled.KeyboardArrowDown,
+                            contentDescription = null
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = unitMenuExpanded,
+                        onDismissRequest = { unitMenuExpanded = false }
+                    ) {
+                        unitOptions.forEach { (value, labelRes) ->
+                            DropdownMenuItem(
+                                text = { Text(stringResource(labelRes)) },
+                                onClick = {
+                                    val updates = if (
+                                        (value == "WEEK" || value == "MONTH") &&
+                                        intervalConfig["days"].isNullOrBlank()
+                                    ) {
+                                        intervalConfig + ("intervalUnit" to value) +
+                                            ("days" to LocalDate.now().dayOfWeek.value.toString())
+                                    } else {
+                                        intervalConfig + ("intervalUnit" to value)
+                                    }
+                                    unitMenuExpanded = false
+                                    onConfigChange(draft.copy(config = updates))
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+            if (unit == "WEEK" || unit == "MONTH") {
+                Text(
+                    text = stringResource(
+                        if (unit == "MONTH") R.string.monthly_weekday_filter else R.string.select_days
+                    ),
+                    style = MaterialTheme.typography.titleSmall
+                )
+                val selectedDays = intervalConfig["days"]?.split(',')?.mapNotNull { it.trim().toIntOrNull() }
+                    ?.filter { it in 1..7 }.orEmpty()
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    weekdayOptions.forEach { (day, labelRes) ->
+                        SelectChip(
+                            selected = day in selectedDays,
+                            onClick = {
+                                val updated = if (day in selectedDays) selectedDays - day else selectedDays + day
+                                onConfigChange(
+                                    draft.copy(config = intervalConfig + ("days" to updated.sorted().joinToString(",")))
+                                )
+                            },
+                            label = stringResource(labelRes),
+                            showCheck = false
+                        )
+                    }
                 }
             }
             if (unit == "MONTH") {
@@ -735,35 +794,6 @@ private fun TimeRepeatSection(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
-                }
-            }
-            if (unit == "WEEK" || unit == "MONTH") {
-                Text(
-                    text = stringResource(
-                        if (unit == "MONTH") R.string.monthly_weekday_filter else R.string.select_days
-                    ),
-                    style = MaterialTheme.typography.titleSmall
-                )
-                val selectedDays = intervalConfig["days"]?.split(',')?.mapNotNull { it.trim().toIntOrNull() }
-                    ?.filter { it in 1..7 }.orEmpty()
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    weekdayOptions.forEach { (day, labelRes) ->
-                        SelectChip(
-                            selected = day in selectedDays,
-                            onClick = {
-                                val updated = if (day in selectedDays) selectedDays - day else selectedDays + day
-                                onConfigChange(
-                                    draft.copy(config = intervalConfig + ("days" to updated.sorted().joinToString(",")))
-                                )
-                            },
-                            label = stringResource(labelRes),
-                            showCheck = false
-                        )
-                    }
                 }
             }
             DateField(
