@@ -1572,26 +1572,9 @@ fun AutomationBuilderScreen(
                 NexaFlowCard {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         SectionHeader(text = stringResource(R.string.section_when))
-                    // Fixed catalogue: choices remain visible and can be toggled
-                    // freely. The dedicated Add button below materialises the
-                    // selected choices as individual editable cards.
-                    val commonTriggers = remember(supportedTriggers) {
-                        AutomationOptionCatalog.commonTriggers(supportedTriggers)
-                    }
-                    if (commonTriggers.isNotEmpty()) {
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            commonTriggers.forEach { type ->
-                                TriggerOptionRow(
-                                    type = type,
-                                    checked = type in selectedTriggerTypes,
-                                    onSelect = {
-                                        if (type in selectedTriggerTypes) selectedTriggerTypes.remove(type)
-                                        else selectedTriggerTypes.add(type)
-                                    }
-                                )
-                            }
-                        }
-                    }
+                    // Discovery starts with search and the category browser below.
+                    // Do not render a second "common" option list above search:
+                    // it duplicates the same selectable rows and wastes vertical space.
                     OutlinedTextField(
                         value = triggerSearchQuery,
                         onValueChange = { triggerSearchQuery = it },
@@ -1708,25 +1691,9 @@ fun AutomationBuilderScreen(
                 NexaFlowCard {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {                        // ── THEN (actions) ──────────────────────────
                             SectionHeader(text = stringResource(R.string.section_actions))
-                        // Fixed multi-select catalogue. Choices persist while
-                        // browsing/searching and become cards only via Add.
-                        val commonActions = remember(supportedActions) {
-                            AutomationOptionCatalog.commonActions(supportedActions)
-                        }
-                        if (commonActions.isNotEmpty()) {
-                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                commonActions.forEach { option ->
-                                    ActionOptionRow(
-                                        option = option,
-                                        checked = option.actionType in selectedActionTypes,
-                                        onToggle = {
-                                            if (option.actionType in selectedActionTypes) selectedActionTypes.remove(option.actionType)
-                                            else selectedActionTypes.add(option.actionType)
-                                        }
-                                    )
-                                }
-                            }
-                        }
+                        // Discovery starts with search and the category browser below.
+                        // Do not render a second "common" option list above search:
+                        // it duplicates the same selectable rows and wastes vertical space.
                         OutlinedTextField(
                             value = actionSearchQuery,
                             onValueChange = { actionSearchQuery = it },
