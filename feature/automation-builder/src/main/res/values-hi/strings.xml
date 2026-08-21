@@ -213,7 +213,6 @@
     <string name="repeat_label">दोहराएं</string>
     <string name="repeat_once">एक बार</string>
     <string name="repeat_daily">दैनिक</string>
-    <string name="repeat_specific_days">खास दिन</string>
     <string name="repeat_date_range">तिथि सीमा</string>
     <string name="select_days">दिन चुनें</string>
     <string name="day_mon">सोमवार</string>
@@ -223,7 +222,6 @@
     <string name="day_fri">शुक्रवार</string>
     <string name="day_sat">शनिवार</string>
     <string name="day_sun">रविवार</string>
-    <string name="start_date">आरंभ तिथि</string>
     <string name="end_date">समाप्ति तिथि</string>
     <string name="date_range_invalid">समाप्ति तिथि आरंभ तिथि के बाद होनी चाहिए</string>
     <string name="pick_date">तिथि चुनें</string>
@@ -324,9 +322,6 @@
     <string name="change_now">अभी बदलें</string>
 
     <string name="next_needs_action">पहले कम से कम एक निष्पादन चरण जोड़ें</string>
-    <string name="repeat_monthly">मासिक</string>
-    <string name="repeat_monthly_weekday">महीने का वही दिन</string>
-    <string name="week_of_month_label">महीने का कौन सा सप्ताह</string>
     <string name="occurrence_first">पहला</string>
     <string name="occurrence_second">दूसरा</string>
     <string name="occurrence_third">तीसरा</string>

@@ -213,7 +213,6 @@
     <string name="repeat_label">重复</string>
     <string name="repeat_once">一次</string>
     <string name="repeat_daily">每天</string>
-    <string name="repeat_specific_days">指定日期</string>
     <string name="repeat_date_range">日期范围</string>
     <string name="select_days">选择日期</string>
     <string name="day_mon">星期一</string>
@@ -223,7 +222,6 @@
     <string name="day_fri">星期五</string>
     <string name="day_sat">星期六</string>
     <string name="day_sun">星期日</string>
-    <string name="start_date">开始日期</string>
     <string name="end_date">结束日期</string>
     <string name="date_range_invalid">结束日期必须在开始日期之后</string>
     <string name="pick_date">选择日期</string>
@@ -324,9 +322,6 @@
     <string name="change_now">立即更改</string>
 
     <string name="next_needs_action">请先添加至少一个执行步骤</string>
-    <string name="repeat_monthly">每月</string>
-    <string name="repeat_monthly_weekday">每月同一天</string>
-    <string name="week_of_month_label">每月的第几周</string>
     <string name="occurrence_first">第1周</string>
     <string name="occurrence_second">第2周</string>
     <string name="occurrence_third">第3周</string>

@@ -213,7 +213,6 @@
     <string name="repeat_label">Repetir</string>
     <string name="repeat_once">Una vez</string>
     <string name="repeat_daily">Diario</string>
-    <string name="repeat_specific_days">Días concretos</string>
     <string name="repeat_date_range">Rango de fechas</string>
     <string name="select_days">Seleccionar días</string>
     <string name="day_mon">Lunes</string>
@@ -223,7 +222,6 @@
     <string name="day_fri">Viernes</string>
     <string name="day_sat">Sábado</string>
     <string name="day_sun">Domingo</string>
-    <string name="start_date">Fecha de inicio</string>
     <string name="end_date">Fecha de fin</string>
     <string name="date_range_invalid">La fecha de fin debe ser posterior a la de inicio</string>
     <string name="pick_date">Elegir fecha</string>
@@ -324,9 +322,6 @@
     <string name="change_now">Cambiar ahora</string>
 
     <string name="next_needs_action">Añade al menos un paso de ejecución primero</string>
-    <string name="repeat_monthly">Mensual</string>
-    <string name="repeat_monthly_weekday">Mismo día de la semana del mes</string>
-    <string name="week_of_month_label">Qué semana del mes</string>
     <string name="occurrence_first">1.º</string>
     <string name="occurrence_second">2.º</string>
     <string name="occurrence_third">3.º</string>

@@ -212,7 +212,6 @@
     <string name="repeat_label">التكرار</string>
     <string name="repeat_once">مرة واحدة</string>
     <string name="repeat_daily">يوميًا</string>
-    <string name="repeat_specific_days">أيام محددة</string>
     <string name="repeat_date_range">نطاق تواريخ</string>
     <string name="select_days">اختر الأيام</string>
     <string name="day_mon">الاثنين</string>
@@ -222,7 +221,6 @@
     <string name="day_fri">الجمعة</string>
     <string name="day_sat">السبت</string>
     <string name="day_sun">الأحد</string>
-    <string name="start_date">تاريخ البداية</string>
     <string name="end_date">تاريخ النهاية</string>
     <string name="date_range_invalid">يجب أن يكون تاريخ النهاية بعد تاريخ البداية</string>
     <string name="pick_date">اختر تاريخاً</string>
@@ -323,9 +321,6 @@
     <string name="change_now">غيّر الآن</string>
 
     <string name="next_needs_action">أضف خطوة تنفيذ واحدة على الأقل أولاً</string>
-    <string name="repeat_monthly">شهرياً</string>
-    <string name="repeat_monthly_weekday">نفس اليوم من الشهر</string>
-    <string name="week_of_month_label">أي أسبوع من الشهر</string>
     <string name="occurrence_first">الأول</string>
     <string name="occurrence_second">الثاني</string>
     <string name="occurrence_third">الثالث</string>

@@ -37,7 +37,6 @@
     <string name="repeat_label">Repeat</string>
     <string name="repeat_once">Once</string>
     <string name="repeat_daily">Daily</string>
-    <string name="repeat_specific_days">Days</string>
     <string name="repeat_date_range">Date range</string>
     <string name="select_days">Select days</string>
     <string name="day_mon">Monday</string>
@@ -47,7 +46,6 @@
     <string name="day_fri">Friday</string>
     <string name="day_sat">Saturday</string>
     <string name="day_sun">Sunday</string>
-    <string name="start_date">Start date</string>
     <string name="end_date">End date</string>
     <string name="date_range_invalid">End date must be after the start date</string>
     <string name="pick_date">Pick a date</string>
@@ -336,9 +334,6 @@
     <string name="change_now">Change now</string>
 
     <string name="next_needs_action">Add at least one execution step first</string>
-    <string name="repeat_monthly">Monthly</string>
-    <string name="repeat_monthly_weekday">Same weekday of month</string>
-    <string name="week_of_month_label">Which week of the month</string>
     <string name="occurrence_first">1st</string>
     <string name="occurrence_second">2nd</string>
     <string name="occurrence_third">3rd</string>

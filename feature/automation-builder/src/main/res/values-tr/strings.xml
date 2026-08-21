@@ -213,7 +213,6 @@
     <string name="repeat_label">Tekrar</string>
     <string name="repeat_once">Bir kez</string>
     <string name="repeat_daily">Her gün</string>
-    <string name="repeat_specific_days">Belirli günler</string>
     <string name="repeat_date_range">Tarih aralığı</string>
     <string name="select_days">Günleri seç</string>
     <string name="day_mon">Pazartesi</string>
@@ -223,7 +222,6 @@
     <string name="day_fri">Cuma</string>
     <string name="day_sat">Cumartesi</string>
     <string name="day_sun">Pazar</string>
-    <string name="start_date">Başlangıç tarihi</string>
     <string name="end_date">Bitiş tarihi</string>
     <string name="date_range_invalid">Bitiş tarihi başlangıç tarihinden sonra olmalı</string>
     <string name="pick_date">Tarih seç</string>
@@ -324,9 +322,6 @@
     <string name="change_now">Şimdi değiştir</string>
 
     <string name="next_needs_action">Önce en az bir yürütme adımı ekleyin</string>
-    <string name="repeat_monthly">Aylık</string>
-    <string name="repeat_monthly_weekday">Ayın aynı günü</string>
-    <string name="week_of_month_label">Ayın kaçıncı haftası</string>
     <string name="occurrence_first">1.</string>
     <string name="occurrence_second">2.</string>
     <string name="occurrence_third">3.</string>
