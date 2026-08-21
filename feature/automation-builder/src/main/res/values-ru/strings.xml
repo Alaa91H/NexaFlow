@@ -955,4 +955,11 @@
     <string name="timer_duration_seconds">Длительность таймера (секунды)</string>
     <string name="timer_skip_ui">Запускать без подтверждения приложения часов, если поддерживается</string>
     <string name="music_search_query">Музыка, исполнитель, альбом или плейлист</string>
+
+    <string name="monthly_date_rule">Дата месяца</string>
+    <string name="monthly_day_of_month">День месяца</string>
+    <string name="monthly_first_day">Первый день месяца</string>
+    <string name="monthly_last_day">Последний день месяца</string>
+    <string name="month_day_label_short">День месяца</string>
+    <string name="monthly_weekday_filter">Только если приходится на</string>
 </resources>

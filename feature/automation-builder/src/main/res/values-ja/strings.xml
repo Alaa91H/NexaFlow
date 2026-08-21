@@ -955,4 +955,11 @@
     <string name="timer_duration_seconds">タイマー時間（秒）</string>
     <string name="timer_skip_ui">対応時は時計アプリの確認なしで開始</string>
     <string name="music_search_query">音楽、アーティスト、アルバム、またはプレイリスト</string>
+
+    <string name="monthly_date_rule">毎月の日付</string>
+    <string name="monthly_day_of_month">月の日</string>
+    <string name="monthly_first_day">毎月の初日</string>
+    <string name="monthly_last_day">毎月の最終日</string>
+    <string name="month_day_label_short">月の日</string>
+    <string name="monthly_weekday_filter">次の曜日の場合のみ</string>
 </resources>

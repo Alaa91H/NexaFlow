@@ -955,4 +955,11 @@
     <string name="timer_duration_seconds">Timer duration (seconds)</string>
     <string name="timer_skip_ui">Start without clock confirmation when supported</string>
     <string name="music_search_query">Music, artist, album, or playlist</string>
+
+    <string name="monthly_date_rule">Monthly date</string>
+    <string name="monthly_day_of_month">Day of month</string>
+    <string name="monthly_first_day">First day of month</string>
+    <string name="monthly_last_day">Last day of month</string>
+    <string name="month_day_label_short">Day of month</string>
+    <string name="monthly_weekday_filter">Only if it falls on</string>
 </resources>

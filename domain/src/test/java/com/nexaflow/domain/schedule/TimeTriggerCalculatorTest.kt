@@ -253,6 +253,65 @@ class TimeTriggerCalculatorTest {
     }
 
     @Test
+    fun `monthly first day fires only when it matches a selected weekday`() {
+        // 1 Aug 2026 is Saturday. With Tuesday/Wednesday selected, the first
+        // eligible day-one is Tuesday 1 Sep 2026.
+        val from = millisOf(2026, 8, 1, 0, 0)
+        val config = mapOf(
+            "time" to "08:00",
+            "repeat" to "INTERVAL",
+            "interval" to "1",
+            "intervalUnit" to "MONTH",
+            "startDate" to "2026-08-01",
+            "monthlyDayMode" to "FIRST_DAY",
+            "days" to "2,3"
+        )
+
+        val next = TimeTriggerCalculator.nextFireTime(config, from)
+
+        assertNotNull(next)
+        assertEquals(LocalDate.of(2026, 9, 1), localDateOf(next!!))
+    }
+
+    @Test
+    fun `monthly first day retains legacy behavior when no weekday is selected`() {
+        val from = millisOf(2026, 8, 1, 0, 0)
+        val config = mapOf(
+            "time" to "08:00",
+            "repeat" to "INTERVAL",
+            "interval" to "1",
+            "intervalUnit" to "MONTH",
+            "startDate" to "2026-08-01",
+            "monthlyDayMode" to "FIRST_DAY"
+        )
+
+        val next = TimeTriggerCalculator.nextFireTime(config, from)
+
+        assertNotNull(next)
+        assertEquals(LocalDate.of(2026, 8, 1), localDateOf(next!!))
+    }
+
+    @Test
+    fun `monthly last day skips months whose last day is outside selected weekdays`() {
+        // Aug 31 and Sep 30, 2026 are Monday and Wednesday; Oct 31 is Saturday.
+        val from = millisOf(2026, 8, 1, 0, 0)
+        val config = mapOf(
+            "time" to "08:00",
+            "repeat" to "INTERVAL",
+            "interval" to "1",
+            "intervalUnit" to "MONTH",
+            "startDate" to "2026-08-01",
+            "monthlyDayMode" to "LAST_DAY",
+            "days" to "6,7"
+        )
+
+        val next = TimeTriggerCalculator.nextFireTime(config, from)
+
+        assertNotNull(next)
+        assertEquals(LocalDate.of(2026, 10, 31), localDateOf(next!!))
+    }
+
+    @Test
     fun `monthly weekday first monday fires on the first monday of the month`() {
         // August 2026: Mondays are the 3rd, 10th, 17th, 24th, 31st.
         val from = millisOf(2026, 8, 1, 0, 0)

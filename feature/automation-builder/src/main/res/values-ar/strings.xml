@@ -954,4 +954,11 @@
     <string name="timer_duration_seconds">مدة المؤقت (بالثواني)</string>
     <string name="timer_skip_ui">ابدأ من دون تأكيد تطبيق الساعة عند الدعم</string>
     <string name="music_search_query">موسيقى أو فنان أو ألبوم أو قائمة تشغيل</string>
+
+    <string name="monthly_date_rule">تاريخ التكرار الشهري</string>
+    <string name="monthly_day_of_month">يوم محدد من الشهر</string>
+    <string name="monthly_first_day">أول يوم من الشهر</string>
+    <string name="monthly_last_day">آخر يوم من الشهر</string>
+    <string name="month_day_label_short">يوم الشهر</string>
+    <string name="monthly_weekday_filter">نفّذ فقط إذا وافق</string>
 </resources>

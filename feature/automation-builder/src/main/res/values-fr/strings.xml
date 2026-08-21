@@ -955,4 +955,11 @@
     <string name="timer_duration_seconds">Durée du minuteur (secondes)</string>
     <string name="timer_skip_ui">Démarrer sans confirmation de l’application Horloge si possible</string>
     <string name="music_search_query">Musique, artiste, album ou liste de lecture</string>
+
+    <string name="monthly_date_rule">Date mensuelle</string>
+    <string name="monthly_day_of_month">Jour du mois</string>
+    <string name="monthly_first_day">Premier jour du mois</string>
+    <string name="monthly_last_day">Dernier jour du mois</string>
+    <string name="month_day_label_short">Jour du mois</string>
+    <string name="monthly_weekday_filter">Uniquement si cela tombe un</string>
 </resources>

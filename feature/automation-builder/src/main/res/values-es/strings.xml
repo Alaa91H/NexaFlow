@@ -955,4 +955,11 @@
     <string name="timer_duration_seconds">Duración del temporizador (segundos)</string>
     <string name="timer_skip_ui">Iniciar sin confirmación de la app de reloj si es compatible</string>
     <string name="music_search_query">Música, artista, álbum o lista de reproducción</string>
+
+    <string name="monthly_date_rule">Fecha mensual</string>
+    <string name="monthly_day_of_month">Día del mes</string>
+    <string name="monthly_first_day">Primer día del mes</string>
+    <string name="monthly_last_day">Último día del mes</string>
+    <string name="month_day_label_short">Día del mes</string>
+    <string name="monthly_weekday_filter">Solo si coincide con</string>
 </resources>

@@ -34,6 +34,11 @@ object TimeTriggerCalculator {
     const val INTERVAL_MONTH = "MONTH"
     const val INTERVAL_YEAR = "YEAR"
 
+    /** Monthly day selector used with INTERVAL_MONTH. */
+    const val MONTHLY_DAY_OF_MONTH = "DAY_OF_MONTH"
+    const val MONTHLY_FIRST_DAY = "FIRST_DAY"
+    const val MONTHLY_LAST_DAY = "LAST_DAY"
+
     const val END_NEVER = "NEVER"
     const val END_ON_DATE = "ON_DATE"
     const val END_AFTER_OCCURRENCES = "AFTER_OCCURRENCES"
@@ -176,8 +181,21 @@ object TimeTriggerCalculator {
             }
             INTERVAL_MONTH -> {
                 val months = (day.year - anchor.year) * 12 + day.monthValue - anchor.monthValue
-                val monthDay = config["monthDay"]?.toIntOrNull() ?: anchor.dayOfMonth
-                months >= 0 && months % interval == 0 && day.dayOfMonth == monthDay
+                val monthlyDay = when (config["monthlyDayMode"] ?: MONTHLY_DAY_OF_MONTH) {
+                    MONTHLY_FIRST_DAY -> day.dayOfMonth == 1
+                    MONTHLY_LAST_DAY -> day.dayOfMonth == day.lengthOfMonth()
+                    else -> {
+                        val monthDay = config["monthDay"]?.toIntOrNull() ?: anchor.dayOfMonth
+                        day.dayOfMonth == monthDay
+                    }
+                }
+                // A monthly date can optionally be constrained to selected
+                // weekdays. With no selected day it retains the legacy
+                // day-of-month behavior; with (for example) Tue/Wed selected,
+                // the first/last/custom monthly date fires only on those days.
+                val allowedWeekdays = selectedWeekdays(config)
+                months >= 0 && months % interval == 0 && monthlyDay &&
+                    (allowedWeekdays.isEmpty() || day.dayOfWeek.value in allowedWeekdays)
             }
             INTERVAL_YEAR -> {
                 val years = day.year - anchor.year

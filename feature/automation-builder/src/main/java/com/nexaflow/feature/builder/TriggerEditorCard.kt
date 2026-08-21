@@ -697,8 +697,53 @@ private fun TimeRepeatSection(
                     )
                 }
             }
-            if (unit == "WEEK") {
-                Text(text = stringResource(R.string.select_days), style = MaterialTheme.typography.titleSmall)
+            if (unit == "MONTH") {
+                Text(text = stringResource(R.string.monthly_date_rule), style = MaterialTheme.typography.titleSmall)
+                val monthlyDayMode = intervalConfig["monthlyDayMode"] ?: "DAY_OF_MONTH"
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    listOf(
+                        "DAY_OF_MONTH" to R.string.monthly_day_of_month,
+                        "FIRST_DAY" to R.string.monthly_first_day,
+                        "LAST_DAY" to R.string.monthly_last_day
+                    ).forEach { (value, labelRes) ->
+                        SelectChip(
+                            selected = monthlyDayMode == value,
+                            onClick = {
+                                onConfigChange(
+                                    draft.copy(config = intervalConfig + ("monthlyDayMode" to value))
+                                )
+                            },
+                            label = stringResource(labelRes)
+                        )
+                    }
+                }
+                if (monthlyDayMode == "DAY_OF_MONTH") {
+                    OutlinedTextField(
+                        value = (intervalConfig["monthDay"]?.toIntOrNull() ?: LocalDate.now().dayOfMonth)
+                            .coerceIn(1, 31).toString(),
+                        onValueChange = { input ->
+                            val digits = input.filter(Char::isDigit).take(2)
+                            val value = digits.toIntOrNull()?.coerceIn(1, 31) ?: 1
+                            onConfigChange(draft.copy(config = intervalConfig + ("monthDay" to value.toString())))
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.month_day_label_short)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    )
+                }
+            }
+            if (unit == "WEEK" || unit == "MONTH") {
+                Text(
+                    text = stringResource(
+                        if (unit == "MONTH") R.string.monthly_weekday_filter else R.string.select_days
+                    ),
+                    style = MaterialTheme.typography.titleSmall
+                )
                 val selectedDays = intervalConfig["days"]?.split(',')?.mapNotNull { it.trim().toIntOrNull() }
                     ?.filter { it in 1..7 }.orEmpty()
                 FlowRow(
@@ -849,6 +894,23 @@ private fun repeatLabel(draft: TriggerDraft): String {
                 if ((config["intervalUnit"] ?: "DAY") == "WEEK" && days.isNotEmpty()) {
                     append(" · ")
                     append(days.joinToString(", "))
+                }
+                if ((config["intervalUnit"] ?: "DAY") == "MONTH") {
+                    val mode = config["monthlyDayMode"] ?: "DAY_OF_MONTH"
+                    val monthLabel = when (mode) {
+                        "FIRST_DAY" -> stringResource(R.string.monthly_first_day)
+                        "LAST_DAY" -> stringResource(R.string.monthly_last_day)
+                        else -> stringResource(
+                            R.string.month_day_label,
+                            (config["monthDay"]?.toIntOrNull() ?: LocalDate.now().dayOfMonth).coerceIn(1, 31)
+                        )
+                    }
+                    append(" · ")
+                    append(monthLabel)
+                    if (days.isNotEmpty()) {
+                        append(" · ")
+                        append(days.joinToString(", "))
+                    }
                 }
             }
         }

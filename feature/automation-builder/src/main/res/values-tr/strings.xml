@@ -955,4 +955,11 @@
     <string name="timer_duration_seconds">Zamanlayıcı süresi (saniye)</string>
     <string name="timer_skip_ui">Destekleniyorsa saat uygulaması onayı olmadan başlat</string>
     <string name="music_search_query">Müzik, sanatçı, albüm veya çalma listesi</string>
+
+    <string name="monthly_date_rule">Aylık tarih</string>
+    <string name="monthly_day_of_month">Ayın günü</string>
+    <string name="monthly_first_day">Ayın ilk günü</string>
+    <string name="monthly_last_day">Ayın son günü</string>
+    <string name="month_day_label_short">Ayın günü</string>
+    <string name="monthly_weekday_filter">Yalnızca şu güne denk gelirse</string>
 </resources>

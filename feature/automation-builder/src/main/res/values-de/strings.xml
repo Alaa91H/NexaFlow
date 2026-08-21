@@ -955,4 +955,11 @@
     <string name="timer_duration_seconds">Timerdauer (Sekunden)</string>
     <string name="timer_skip_ui">Ohne Bestätigung der Uhr-App starten, sofern unterstützt</string>
     <string name="music_search_query">Musik, Künstler, Album oder Wiedergabeliste</string>
+
+    <string name="monthly_date_rule">Monatliches Datum</string>
+    <string name="monthly_day_of_month">Tag des Monats</string>
+    <string name="monthly_first_day">Erster Tag des Monats</string>
+    <string name="monthly_last_day">Letzter Tag des Monats</string>
+    <string name="month_day_label_short">Tag des Monats</string>
+    <string name="monthly_weekday_filter">Nur wenn es fällt auf</string>
 </resources>

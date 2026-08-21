@@ -955,4 +955,11 @@
     <string name="timer_duration_seconds">टाइमर अवधि (सेकंड)</string>
     <string name="timer_skip_ui">समर्थित होने पर घड़ी ऐप की पुष्टि के बिना शुरू करें</string>
     <string name="music_search_query">संगीत, कलाकार, एल्बम या प्लेलिस्ट</string>
+
+    <string name="monthly_date_rule">मासिक तारीख</string>
+    <string name="monthly_day_of_month">महीने का दिन</string>
+    <string name="monthly_first_day">महीने का पहला दिन</string>
+    <string name="monthly_last_day">महीने का आख़िरी दिन</string>
+    <string name="month_day_label_short">महीने का दिन</string>
+    <string name="monthly_weekday_filter">केवल अगर यह दिन हो</string>
 </resources>
