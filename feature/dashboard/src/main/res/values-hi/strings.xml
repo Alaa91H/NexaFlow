@@ -80,7 +80,6 @@
     <string name="trigger_boot_completed">डिवाइस बूट हुआ</string>
     <string name="trigger_nfc_tag_scanned">NFC टैग स्कैन हुआ</string>
     <string name="trigger_alarm_set_changed">अलार्म सेट</string>
-    <string name="task_details_expand">कार्य विस्तृत करें</string>
     <string name="task_details_collapse">कार्य समेटें</string>
     <string name="task_status_running">चल रहा है</string>
     <string name="task_status_enabled">तैयार</string>
@@ -92,7 +91,6 @@
     <string name="task_details_actions">क्रियाएँ (%1$d)</string>
     <string name="task_details_exit_actions">कार्य समाप्त होने पर (%1$d)</string>
     <string name="task_details_revert_on_exit">डिवाइस की पिछली स्थिति पुनर्स्थापित करें</string>
-    <string name="task_details_none">कॉन्फ़िगर नहीं है</string>
     <string name="task_details_end_behavior">समाप्ति पर: %1$s</string>
     <string name="task_details_end_revert">मूल स्थिति बहाल करें</string>
     <string name="task_details_end_rerun">समाप्ति पर फिर चलाएँ</string>

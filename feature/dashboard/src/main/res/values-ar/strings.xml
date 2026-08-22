@@ -80,7 +80,6 @@
     <string name="trigger_boot_completed">إقلاع الجهاز</string>
     <string name="trigger_nfc_tag_scanned">مسح بطاقة NFC</string>
     <string name="trigger_alarm_set_changed">ضبط منبّه</string>
-    <string name="task_details_expand">توسيع المهمة</string>
     <string name="task_details_collapse">طي المهمة</string>
     <string name="task_status_running">قيد التنفيذ</string>
     <string name="task_status_enabled">جاهزة</string>
@@ -92,7 +91,6 @@
     <string name="task_details_actions">التنفيذات (%1$d)</string>
     <string name="task_details_exit_actions">عند انتهاء المهمة (%1$d)</string>
     <string name="task_details_revert_on_exit">استعادة حالة الجهاز السابقة</string>
-    <string name="task_details_none">لا يوجد إعداد</string>
     <string name="task_details_end_behavior">عند الانتهاء: %1$s</string>
     <string name="task_details_end_revert">استعادة الحالة الأصلية</string>
     <string name="task_details_end_rerun">تنفيذ مجدداً عند الانتهاء</string>

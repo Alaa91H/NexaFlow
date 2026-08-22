@@ -80,7 +80,6 @@
     <string name="trigger_boot_completed">Устройство загружено</string>
     <string name="trigger_nfc_tag_scanned">NFC-метка считана</string>
     <string name="trigger_alarm_set_changed">Будильник установлен</string>
-    <string name="task_details_expand">Развернуть задачу</string>
     <string name="task_details_collapse">Свернуть задачу</string>
     <string name="task_status_running">Выполняется</string>
     <string name="task_status_enabled">Готова</string>
@@ -92,7 +91,6 @@
     <string name="task_details_actions">Действия (%1$d)</string>
     <string name="task_details_exit_actions">По завершении задачи (%1$d)</string>
     <string name="task_details_revert_on_exit">Восстановить предыдущее состояние устройства</string>
-    <string name="task_details_none">Не настроено</string>
     <string name="task_details_end_behavior">При завершении: %1$s</string>
     <string name="task_details_end_revert">Восстановить исходное состояние</string>
     <string name="task_details_end_rerun">Выполнить снова при завершении</string>

@@ -80,7 +80,6 @@
     <string name="trigger_boot_completed">端末起動</string>
     <string name="trigger_nfc_tag_scanned">NFCタグ検出</string>
     <string name="trigger_alarm_set_changed">アラーム設定</string>
-    <string name="task_details_expand">タスクを展開</string>
     <string name="task_details_collapse">タスクを折りたたむ</string>
     <string name="task_status_running">実行中</string>
     <string name="task_status_enabled">準備完了</string>
@@ -92,7 +91,6 @@
     <string name="task_details_actions">実行（%1$d）</string>
     <string name="task_details_exit_actions">タスク終了時（%1$d）</string>
     <string name="task_details_revert_on_exit">以前のデバイス状態を復元</string>
-    <string name="task_details_none">未設定</string>
     <string name="task_details_end_behavior">終了時: %1$s</string>
     <string name="task_details_end_revert">元の状態に戻す</string>
     <string name="task_details_end_rerun">終了時に再実行</string>
