@@ -24,7 +24,11 @@ class PermissionManagerPhoneStateTest {
 
         assertEquals(listOf(Manifest.permission.CAMERA), entries["camera"]?.runtimePermissions)
         assertEquals(
-            listOf(Manifest.permission.ACTIVITY_RECOGNITION),
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                listOf(Manifest.permission.ACTIVITY_RECOGNITION)
+            } else {
+                emptyList()
+            },
             entries["activity_recognition"]?.runtimePermissions
         )
         assertEquals(
