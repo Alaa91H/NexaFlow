@@ -155,16 +155,42 @@ object NetworkModePolicy {
     fun matches(requested: Long, actual: Long): Boolean =
         (requested and BITMASK_SELECTABLE_CELLULAR) == (actual and BITMASK_SELECTABLE_CELLULAR)
 
-    /** Parses both AOSP text output and numeric OEM shell output exactly. */
-    fun coversReadBack(actual: String, request: Request): Boolean {
+    /**
+     * Parses AOSP/OEM `cmd phone` read-back output into a selectable cellular
+     * mask. Binary must be considered before decimal: a short binary mask such
+     * as `1000000000000000` is also syntactically a decimal number but means a
+     * completely different radio family when interpreted that way.
+     */
+    fun parseReadBackMask(actual: String): Long? {
         val trimmed = actual.trim()
-        if (trimmed.isEmpty() || trimmed.equals("-1", ignoreCase = true)) return false
-        trimmed.toLongOrNull()?.let { return matches(request.bitmask, it) }
-        if (trimmed.length > 10 && trimmed.all { it == '0' || it == '1' }) {
-            trimmed.toLongOrNull(2)?.let { return matches(request.bitmask, it) }
-        }
-        return matches(request.bitmask, maskFromNames(trimmed.uppercase()))
+        val upper = trimmed.uppercase()
+        if (trimmed.isEmpty() || trimmed.equals("-1", ignoreCase = true) ||
+            upper.contains("FAILED") || upper.contains("ERROR") ||
+            upper.contains("EXCEPTION") || upper.contains("UNKNOWN") ||
+            upper.contains("NO SUCH") || upper.contains("UNSUPPORTED")
+        ) return null
+
+        // OEMs may prefix a valid number with a label or a slot id. Prefer the
+        // final numeric token, which is the actual mask for all known formats.
+        val binaryToken = Regex("(?<![01])[01]{11,}(?![01])")
+            .findAll(trimmed)
+            .lastOrNull()
+            ?.value
+        val decimalToken = Regex("(?<![0-9])-?[0-9]+(?![0-9])")
+            .findAll(trimmed)
+            .lastOrNull()
+            ?.value
+        val rawMask = binaryToken?.toLongOrNull(2)
+            ?: decimalToken?.toLongOrNull()
+            ?: maskFromNames(upper)
+        return rawMask
+            .and(BITMASK_SELECTABLE_CELLULAR)
+            .takeIf { it > 0L }
     }
+
+    /** Parses both AOSP text output and numeric OEM shell output exactly. */
+    fun coversReadBack(actual: String, request: Request): Boolean =
+        parseReadBackMask(actual)?.let { matches(request.bitmask, it) } ?: false
 
     private fun maskFromNames(names: String): Long {
         var mask = 0L

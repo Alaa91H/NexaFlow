@@ -95,19 +95,18 @@ class NetworkModeController(
      * subscription. A null result means the platform did not expose a reliable
      * read-back, so restore-original must not pretend it has a value to restore.
      */
-    @SuppressLint("MissingPermission")
     fun captureNetworkModeSnapshot(): String? {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || !hasReadPhoneState()) return null
-        val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
-            ?: return null
-        val masks = activeSubscriptionIds(telephony).mapNotNull { subId ->
-            val mask = runCatching {
-                telephony.createForSubscriptionId(subId).getAllowedNetworkTypesForReason(
-                    TelephonyManager.ALLOWED_NETWORK_TYPES_REASON_USER
-                )
-            }.getOrNull()?.and(NetworkModePolicy.BITMASK_SELECTABLE_CELLULAR)
-            if (mask != null && mask > 0L) subId to mask else null
-        }.toMap()
+        if (!hasReadPhoneState()) return null
+        // Reuse the capability reader so restore-original benefits from the
+        // same Root/Shizuku TelephonyShell fallback that made the selected
+        // options readable on OEM ROMs which block the app-level API.
+        val masks = NetworkModeCapabilities(context).read().subscriptions
+            .mapNotNull { subscription ->
+                subscription.currentUserMask
+                    ?.takeIf { it > 0L }
+                    ?.let { subscription.subscriptionId to it }
+            }
+            .toMap()
         return NetworkModePolicy.encodeSnapshot(masks)
     }
 

@@ -65,21 +65,42 @@ class NetworkModeCapabilities(private val context: Context) {
             val scoped = telephony.createForSubscriptionId(subscription.subscriptionId)
             val supportedMask = readSupportedMask(scoped)
             val carrierMask = readAllowedMask(scoped, TelephonyManager.ALLOWED_NETWORK_TYPES_REASON_CARRIER)
-            val selectableMask = supportedMask?.let { supported ->
+            val platformSelectableMask = supportedMask?.let { supported ->
                 // A readable carrier restriction is authoritative. When it is
                 // unavailable, retain only confirmed hardware support.
                 carrierMask?.let { carrier -> supported and carrier } ?: supported
             }?.and(NetworkModePolicy.BITMASK_SELECTABLE_CELLULAR)
+                ?.takeIf { it > 0L }
+            val platformUserMask = readAllowedMask(
+                scoped,
+                TelephonyManager.ALLOWED_NETWORK_TYPES_REASON_USER
+            )?.and(NetworkModePolicy.BITMASK_SELECTABLE_CELLULAR)
+                ?.takeIf { it > 0L }
 
-            if (selectableMask == null || selectableMask == 0L) return@mapNotNull null
+            /*
+             * READ_PHONE_STATE grants the app its runtime permission but does
+             * not grant READ_PRIVILEGED_PHONE_STATE. Samsung and other OEM
+             * telephony stacks commonly reserve supportedRadioAccessFamily for
+             * the latter, so the public read above can still fail. When a live
+             * Root/Shizuku bridge exists, use TelephonyShell's per-user mask as
+             * a conservative fallback: it is a real value returned by the
+             * device, and only its subsets are offered. It is never combined
+             * with an invented universal 2G/3G/4G/5G list.
+             */
+            val elevatedUserMask = if (platformSelectableMask == null) {
+                readElevatedUserMask(subscription.simSlotIndex)
+            } else {
+                null
+            }
+            val selectableMask = platformSelectableMask ?: elevatedUserMask
+                ?: return@mapNotNull null
+            val currentUserMask = platformUserMask ?: elevatedUserMask
+
             NetworkModeSnapshot.Subscription(
                 subscriptionId = subscription.subscriptionId,
                 slotIndex = subscription.simSlotIndex,
                 selectableMask = selectableMask,
-                currentUserMask = readAllowedMask(
-                    scoped,
-                    TelephonyManager.ALLOWED_NETWORK_TYPES_REASON_USER
-                )?.and(NetworkModePolicy.BITMASK_SELECTABLE_CELLULAR),
+                currentUserMask = currentUserMask,
                 currentDataNetworkType = readCurrentDataNetworkType(scoped),
                 options = NetworkModePolicy.optionsFor(selectableMask)
             )
@@ -107,6 +128,26 @@ class NetworkModeCapabilities(private val context: Context) {
         // Stock Android often restricts this read to privileged callers. Treat
         // denial as unavailable capability rather than assuming a radio mask.
         return runCatching { telephony.getAllowedNetworkTypesForReason(reason) }.getOrNull()
+    }
+
+    /**
+     * Reads the selected user's allowed network types through TelephonyShell.
+     * The command accepts either a slot-scoped form or a default-subscription
+     * form across Android/OEM variants, so both are tried. A successful command
+     * with unparsable/zero output remains unavailable rather than becoming a
+     * guessed capability.
+     */
+    private fun readElevatedUserMask(slotIndex: Int): Long? {
+        if (!PrivilegedRunner.isShizukuGranted() && !PrivilegedRunner.isRootAvailable()) return null
+        val variants = if (slotIndex >= 0) listOf("-s $slotIndex ", "") else listOf("")
+        for (variant in variants) {
+            val result = PrivilegedRunner.runShell(
+                "cmd phone get-allowed-network-types-for-users $variant"
+            )
+            if (!result.success) continue
+            NetworkModePolicy.parseReadBackMask(result.message)?.let { return it }
+        }
+        return null
     }
 
     private fun readCurrentDataNetworkType(telephony: TelephonyManager): Int? {

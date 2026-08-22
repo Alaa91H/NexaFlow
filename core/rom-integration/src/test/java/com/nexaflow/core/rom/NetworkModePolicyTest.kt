@@ -147,6 +147,30 @@ class NetworkModePolicyTest {
     }
 
     @Test
+    fun `shell read-back parser preserves confirmed decimal binary and named masks`() {
+        val nrLte = NetworkModePolicy.BITMASK_5G or NetworkModePolicy.BITMASK_4G
+
+        assertEquals(nrLte, NetworkModePolicy.parseReadBackMask(nrLte.toString()))
+        assertEquals(
+            NetworkModePolicy.BITMASK_4G,
+            NetworkModePolicy.parseReadBackMask(
+                java.lang.Long.toString(NetworkModePolicy.BITMASK_4G, 2)
+            )
+        )
+        assertEquals(nrLte, NetworkModePolicy.parseReadBackMask("LTE|NR"))
+        assertEquals(
+            NetworkModePolicy.BITMASK_4G,
+            NetworkModePolicy.parseReadBackMask(
+                "Allowed network types for slot 0: ${NetworkModePolicy.BITMASK_4G}"
+            )
+        )
+        assertEquals(null, NetworkModePolicy.parseReadBackMask(""))
+        assertEquals(null, NetworkModePolicy.parseReadBackMask("-1"))
+        assertEquals(null, NetworkModePolicy.parseReadBackMask("unknown option"))
+        assertEquals(null, NetworkModePolicy.parseReadBackMask("command failed: 1581056"))
+    }
+
+    @Test
     fun `options are derived only from confirmed device support`() {
         val nrLte = NetworkModePolicy.optionsFor(
             NetworkModePolicy.BITMASK_5G or NetworkModePolicy.BITMASK_4G
