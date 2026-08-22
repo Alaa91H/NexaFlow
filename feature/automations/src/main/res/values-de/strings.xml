@@ -429,4 +429,12 @@
     <string name="action_system_update_sub">Öffnet die Einstellungen für Systemupdates</string>
     <string name="action_media_search">Musiksuche abspielen</string>
     <string name="action_media_search_sub">Fordert eine kompatible Medien-App zum Suchen und Abspielen auf</string>
+
+    <string name="action_private_dns">Privates DNS</string>
+    <string name="action_private_dns_sub">Privaten DNS-Modus oder Anbieter von Android festlegen</string>
+    <string name="action_charging_limit">Ladelimit</string>
+    <string name="action_charging_limit_sub">Unterstützten Hardware-Ladestopp-Prozentsatz festlegen</string>
+
+    <string name="action_charging_feedback">Ladegeräusch und Vibration</string>
+    <string name="action_charging_feedback_sub">Ladefeedback steuern, wenn das ROM es unterstützt</string>
 </resources>

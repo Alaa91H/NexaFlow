@@ -971,4 +971,23 @@
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Tatsächlich unterstützte Netzwerkmodi sind für dieses Gerät oder Abonnement nicht verfügbar. Nicht bestätigte Optionen werden nicht angezeigt.</string>
     <string name="network_mode_grant_phone_permission">Telefonzugriff erlauben</string>
+
+    <string name="action_private_dns">Privates DNS</string>
+    <string name="action_private_dns_sub">Privaten DNS-Modus oder Anbieter von Android festlegen</string>
+    <string name="action_charging_limit">Ladelimit</string>
+    <string name="action_charging_limit_sub">Unterstützten Hardware-Ladestopp-Prozentsatz festlegen</string>
+    <string name="private_dns_mode">Privater DNS-Modus</string>
+    <string name="private_dns_off">Aus</string>
+    <string name="private_dns_automatic">Automatisch</string>
+    <string name="private_dns_hostname_mode">Anbieter-Hostname</string>
+    <string name="private_dns_hostname">Anbieter-Hostname</string>
+    <string name="private_dns_elevated_note">Erfordert Root oder Shizuku. Dies ändert Private DNS für das Gerät, nicht nur für eine App.</string>
+    <string name="charging_limit_value">Ladelimit: %1$d%%</string>
+    <string name="charging_limit_root_note">Erfordert Root und einen Standard-Hardwareknoten zur Ladesteuerung; nicht unterstützte Geräte melden einen eindeutigen Fehler.</string>
+
+    <string name="action_charging_feedback">Ladegeräusch und Vibration</string>
+    <string name="action_charging_feedback_sub">Ladefeedback steuern, wenn das ROM es unterstützt</string>
+    <string name="charging_sound">Ladegeräusch</string>
+    <string name="charging_vibration">Ladevibration</string>
+    <string name="charging_feedback_elevated_note">Erfordert Root oder Shizuku und prüft die Einstellungen nach dem Schreiben. Nicht unterstützte ROMs melden einen Fehler.</string>
 </resources>

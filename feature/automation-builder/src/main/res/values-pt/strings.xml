@@ -971,4 +971,23 @@
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Os modos de rede realmente suportados não estão disponíveis para este dispositivo ou subscrição. Não são mostradas opções não confirmadas.</string>
     <string name="network_mode_grant_phone_permission">Permitir acesso ao telefone</string>
+
+    <string name="action_private_dns">DNS privado</string>
+    <string name="action_private_dns_sub">Defina o modo ou provedor de DNS privado do Android</string>
+    <string name="action_charging_limit">Limite de carga</string>
+    <string name="action_charging_limit_sub">Defina a porcentagem de parada de carga suportada</string>
+    <string name="private_dns_mode">Modo DNS privado</string>
+    <string name="private_dns_off">Desativado</string>
+    <string name="private_dns_automatic">Automático</string>
+    <string name="private_dns_hostname_mode">Nome do host do provedor</string>
+    <string name="private_dns_hostname">Nome do host do provedor</string>
+    <string name="private_dns_elevated_note">Requer root ou Shizuku. Isto altera o DNS privado do dispositivo, não apenas de um app.</string>
+    <string name="charging_limit_value">Limite de carga: %1$d%%</string>
+    <string name="charging_limit_root_note">Requer root e um nó padrão de controle de carga; dispositivos não suportados retornam falha explícita.</string>
+
+    <string name="action_charging_feedback">Som e vibração de carregamento</string>
+    <string name="action_charging_feedback_sub">Controle o retorno de carga quando suportado pela ROM</string>
+    <string name="charging_sound">Som de carregamento</string>
+    <string name="charging_vibration">Vibração de carregamento</string>
+    <string name="charging_feedback_elevated_note">Requer root ou Shizuku e verifica as configurações após gravar. ROMs não suportadas informam falha.</string>
 </resources>

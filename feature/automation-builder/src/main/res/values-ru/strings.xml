@@ -971,4 +971,23 @@
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Фактически поддерживаемые режимы сети недоступны для этого устройства или подписки. Неподтверждённые варианты не показаны.</string>
     <string name="network_mode_grant_phone_permission">Разрешить доступ к состоянию телефона</string>
+
+    <string name="action_private_dns">Частный DNS</string>
+    <string name="action_private_dns_sub">Настроить режим или провайдера частного DNS Android</string>
+    <string name="action_charging_limit">Предел зарядки</string>
+    <string name="action_charging_limit_sub">Установить поддерживаемый процент остановки зарядки</string>
+    <string name="private_dns_mode">Режим частного DNS</string>
+    <string name="private_dns_off">Отключено</string>
+    <string name="private_dns_automatic">Автоматически</string>
+    <string name="private_dns_hostname_mode">Имя хоста провайдера</string>
+    <string name="private_dns_hostname">Имя хоста провайдера</string>
+    <string name="private_dns_elevated_note">Требуется root или Shizuku. Это меняет частный DNS для устройства, а не только для одного приложения.</string>
+    <string name="charging_limit_value">Предел зарядки: %1$d%%</string>
+    <string name="charging_limit_root_note">Требуются root и стандартный аппаратный узел управления зарядкой; неподдерживаемые устройства вернут явную ошибку.</string>
+
+    <string name="action_charging_feedback">Звук и вибрация зарядки</string>
+    <string name="action_charging_feedback_sub">Управляйте откликом зарядки, если ROM его поддерживает</string>
+    <string name="charging_sound">Звук зарядки</string>
+    <string name="charging_vibration">Вибрация при зарядке</string>
+    <string name="charging_feedback_elevated_note">Требуется root или Shizuku с проверкой настроек после записи. Неподдерживаемые ROM сообщают об ошибке.</string>
 </resources>

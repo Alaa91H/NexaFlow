@@ -429,4 +429,12 @@
     <string name="action_system_update_sub">打开系统更新设置页面</string>
     <string name="action_media_search">播放音乐搜索</string>
     <string name="action_media_search_sub">请求兼容的媒体应用搜索并播放</string>
+
+    <string name="action_private_dns">私人 DNS</string>
+    <string name="action_private_dns_sub">设置 Android 私人 DNS 模式或提供商</string>
+    <string name="action_charging_limit">充电上限</string>
+    <string name="action_charging_limit_sub">设置受支持硬件的停止充电百分比</string>
+
+    <string name="action_charging_feedback">充电声音和振动</string>
+    <string name="action_charging_feedback_sub">在 ROM 支持时控制充电反馈</string>
 </resources>

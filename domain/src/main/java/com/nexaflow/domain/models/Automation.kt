@@ -313,6 +313,8 @@ enum class ActionType {
      * fallbacks. Requires MODIFY_PHONE_STATE or a system/privileged install.
      */
     SYSTEM_NETWORK_MODE,
+    /** Sets Android device-wide Private DNS. Config keys: `mode` (OFF/AUTOMATIC/HOSTNAME), `hostname`. Requires elevated settings access. */
+    SYSTEM_PRIVATE_DNS,
     SYSTEM_HOTSPOT,
     SYSTEM_NFC,
     SYSTEM_POWER_SAVER,
@@ -406,6 +408,10 @@ enum class ActionType {
     SYSTEM_SCREENSAVER,
     /** Sets the battery-saver auto-trigger level. Config key: `level` (0-100). */
     SYSTEM_BATTERY_SAVER_THRESHOLD,
+    /** Sets a hardware charge-control end threshold. Config key: `percent` (50-100). Requires a verified writable standard sysfs node. */
+    SYSTEM_CHARGING_LIMIT,
+    /** Toggles Android charging sound and/or charging vibration. Config keys: `sound`, `vibration`. Requires elevated settings access and verified read-back. */
+    SYSTEM_CHARGING_FEEDBACK,
     /** Toggles always-on display (AOD). Config key: `enabled`. */
     SYSTEM_ALWAYS_ON_DISPLAY,
     /** Toggles developer "show taps". Config key: `enabled`. */

@@ -637,6 +637,80 @@ class SystemController(
         )
     }
 
+    /**
+     * Sets Android's device-wide Private DNS mode. A third-party app cannot
+     * alter this global setting through the public SDK, so this deliberately
+     * requires an elevated runtime. It is not presented as per-app DNS: that
+     * would require a real user-consented [android.net.VpnService] tunnel.
+     */
+    fun setPrivateDns(modeValue: String?, hostnameValue: String?): SystemControlResult {
+        val request = PrivateDnsPolicy.request(modeValue, hostnameValue).getOrElse { error ->
+            return SystemControlResult.fail(error.message ?: "Invalid Private DNS configuration")
+        }
+        // Write the dormant specifier first. This avoids enabling hostname mode
+        // with a stale provider if the second write cannot be performed.
+        val specifierWrite = writeSetting(
+            namespace = "GLOBAL",
+            key = PrivateDnsPolicy.SPECIFIER_KEY,
+            value = request.hostname
+        )
+        if (!specifierWrite.success) return specifierWrite
+        val modeWrite = writeSetting(
+            namespace = "GLOBAL",
+            key = PrivateDnsPolicy.MODE_KEY,
+            value = request.mode.settingValue
+        )
+        if (!modeWrite.success) return modeWrite
+
+        val actualMode = readGlobalSetting(PrivateDnsPolicy.MODE_KEY)
+        val actualHostname = readGlobalSetting(PrivateDnsPolicy.SPECIFIER_KEY)
+        if (actualMode != request.mode.settingValue || actualHostname != request.hostname) {
+            return SystemControlResult.fail(
+                "Private DNS read-back did not match the requested configuration"
+            )
+        }
+        val label = when (request.mode) {
+            PrivateDnsMode.OFF -> "Private DNS disabled"
+            PrivateDnsMode.AUTOMATIC -> "Private DNS set to automatic"
+            PrivateDnsMode.HOSTNAME -> "Private DNS provider set to ${request.hostname}"
+        }
+        return SystemControlResult.ok(label)
+    }
+
+    /**
+     * Uses AOSP's documented charging-feedback keys and checks each write by
+     * reading the same global setting back. OEMs may omit or ignore either key;
+     * in that case the action fails instead of reporting a pretend success.
+     */
+    fun setChargingFeedback(sound: Boolean, vibration: Boolean): SystemControlResult {
+        val soundResult = writeAndReadGlobalBoolean("charging_sounds_enabled", sound)
+        if (!soundResult.success) return soundResult
+        val vibrationResult = writeAndReadGlobalBoolean("charging_vibration_enabled", vibration)
+        if (!vibrationResult.success) return vibrationResult
+        return SystemControlResult.ok(
+            "Charging sound ${if (sound) "enabled" else "disabled"}; vibration ${if (vibration) "enabled" else "disabled"}"
+        )
+    }
+
+    /**
+     * Uses the standard Linux power-supply end-threshold node only. No OEM
+     * node name is guessed, and Shizuku is intentionally not used because a
+     * shell UID normally cannot write sysfs charge-control nodes.
+     */
+    fun setChargingLimit(percent: Int): SystemControlResult {
+        val limit = percent.coerceIn(50, 100)
+        val node = "/sys/class/power_supply/battery/charge_control_end_threshold"
+        val command = "if [ -w $node ]; then echo $limit > $node && [ \"$(cat $node)\" = \"$limit\" ]; else exit 1; fi"
+        val result = PrivilegedRunner.runRoot(command)
+        return if (result.success) {
+            SystemControlResult.ok("Charging limit set to $limit%")
+        } else {
+            SystemControlResult.fail(
+                "Charging limit is unavailable: this device does not expose a writable standard charge-control threshold"
+            )
+        }
+    }
+
     /** Enable or disable system animations. Requires WRITE_SECURE_SETTINGS or elevated runtime. */
     fun setAnimations(enabled: Boolean): SystemControlResult {
         val scale = if (enabled) 1.0f else 0.0f
@@ -1169,6 +1243,22 @@ class SystemController(
     ): SystemControlResult =
         writeRomSetting(namespace, key, if (enabled) "1" else "0")
 
+
+    private fun readGlobalSetting(key: String): String? {
+        val result = PrivilegedRunner.runShell(SafeCommandBuilder.build("settings", "get", "global", key))
+        return result.message.trim().takeIf { result.success && it != "null" }
+    }
+
+    private fun writeAndReadGlobalBoolean(key: String, enabled: Boolean): SystemControlResult {
+        val expected = if (enabled) "1" else "0"
+        val write = writeSetting("GLOBAL", key, expected)
+        if (!write.success) return write
+        return if (readGlobalSetting(key) == expected) {
+            SystemControlResult.ok("$key = $expected")
+        } else {
+            SystemControlResult.fail("$key was not accepted by this ROM")
+        }
+    }
 
     /** Writes any Settings key (SYSTEM/SECURE/GLOBAL) through the shell. */
     fun writeSetting(namespace: String, key: String, value: String): SystemControlResult {

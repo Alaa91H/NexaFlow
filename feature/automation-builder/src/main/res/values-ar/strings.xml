@@ -970,4 +970,23 @@
     <string name="network_mode_sim">الشريحة %1$d</string>
     <string name="network_mode_unavailable">أوضاع الشبكة المدعومة فعلياً غير متاحة لهذه الشريحة أو الجهاز، لذلك لا تظهر خيارات غير مؤكدة.</string>
     <string name="network_mode_grant_phone_permission">السماح بالوصول إلى حالة الهاتف</string>
+
+    <string name="action_private_dns">DNS خاص</string>
+    <string name="action_private_dns_sub">تعيين وضع أو موفّر DNS الخاص في Android</string>
+    <string name="action_charging_limit">حد الشحن</string>
+    <string name="action_charging_limit_sub">تعيين نسبة إيقاف الشحن التي يدعمها العتاد</string>
+    <string name="private_dns_mode">وضع DNS الخاص</string>
+    <string name="private_dns_off">إيقاف</string>
+    <string name="private_dns_automatic">تلقائي</string>
+    <string name="private_dns_hostname_mode">اسم مضيف الموفّر</string>
+    <string name="private_dns_hostname">اسم مضيف الموفّر</string>
+    <string name="private_dns_elevated_note">يتطلب root أو Shizuku. يغيّر هذا DNS الخاص للجهاز كله، وليس لتطبيق واحد فقط.</string>
+    <string name="charging_limit_value">حد الشحن: %1$d%%</string>
+    <string name="charging_limit_root_note">يتطلب root وعقدة عتاد قياسية للتحكم بالشحن؛ الأجهزة غير المدعومة تعيد فشلاً صريحاً.</string>
+
+    <string name="action_charging_feedback">صوت واهتزاز الشحن</string>
+    <string name="action_charging_feedback_sub">التحكم بتغذية الشحن الراجعة عندما يدعمها ROM</string>
+    <string name="charging_sound">صوت الشحن</string>
+    <string name="charging_vibration">اهتزاز الشحن</string>
+    <string name="charging_feedback_elevated_note">يتطلب root أو Shizuku ويتحقق من الإعدادات بعد الكتابة. تعيد ROM غير المدعومة فشلاً صريحاً.</string>
 </resources>

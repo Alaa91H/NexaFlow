@@ -429,4 +429,12 @@
     <string name="action_system_update_sub">Открывает настройки обновления системы</string>
     <string name="action_media_search">Воспроизвести поиск музыки</string>
     <string name="action_media_search_sub">Запрашивает у совместимого медиаприложения поиск и воспроизведение</string>
+
+    <string name="action_private_dns">Частный DNS</string>
+    <string name="action_private_dns_sub">Настроить режим или провайдера частного DNS Android</string>
+    <string name="action_charging_limit">Предел зарядки</string>
+    <string name="action_charging_limit_sub">Установить поддерживаемый процент остановки зарядки</string>
+
+    <string name="action_charging_feedback">Звук и вибрация зарядки</string>
+    <string name="action_charging_feedback_sub">Управляйте откликом зарядки, если ROM его поддерживает</string>
 </resources>

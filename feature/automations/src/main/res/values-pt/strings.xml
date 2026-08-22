@@ -429,4 +429,12 @@
     <string name="action_system_update_sub">Abre a página de definições de atualização do sistema</string>
     <string name="action_media_search">Reproduzir pesquisa de música</string>
     <string name="action_media_search_sub">Pede a um app multimédia compatível para pesquisar e reproduzir</string>
+
+    <string name="action_private_dns">DNS privado</string>
+    <string name="action_private_dns_sub">Defina o modo ou provedor de DNS privado do Android</string>
+    <string name="action_charging_limit">Limite de carga</string>
+    <string name="action_charging_limit_sub">Defina a porcentagem de parada de carga suportada</string>
+
+    <string name="action_charging_feedback">Som e vibração de carregamento</string>
+    <string name="action_charging_feedback_sub">Controle o retorno de carga quando suportado pela ROM</string>
 </resources>

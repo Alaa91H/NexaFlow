@@ -45,12 +45,15 @@ class SystemActionsHandler : ActionHandler {
         ActionType.SYSTEM_SOUND_EFFECTS,
         ActionType.SYSTEM_FORCE_STOP_APP,
         ActionType.SYSTEM_CLEAR_APP_DATA,
+        ActionType.SYSTEM_PRIVATE_DNS,
         ActionType.SYSTEM_LOCATION_MODE,
         ActionType.SYSTEM_DATA_SAVER,
         ActionType.SYSTEM_FONT_SCALE,
         ActionType.SYSTEM_DISPLAY_DENSITY,
         ActionType.SYSTEM_SCREENSAVER,
         ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD,
+        ActionType.SYSTEM_CHARGING_LIMIT,
+        ActionType.SYSTEM_CHARGING_FEEDBACK,
         ActionType.SYSTEM_ALWAYS_ON_DISPLAY,
         ActionType.SYSTEM_SHOW_TAPS,
         ActionType.SYSTEM_POINTER_LOCATION,
@@ -170,6 +173,12 @@ class SystemActionsHandler : ActionHandler {
             }
             ActionType.SYSTEM_POWER_SAVER ->
                 ctx.controller.setPowerSaver(action.config["enabled"]?.toBoolean() ?: true)
+            ActionType.SYSTEM_PRIVATE_DNS ->
+                ctx.controller.setPrivateDns(action.config["mode"], action.config["hostname"])
+            ActionType.SYSTEM_LOCATION_MODE ->
+                ctx.controller.setLocationMode(action.config["mode"] ?: "HIGH")
+            ActionType.SYSTEM_DATA_SAVER ->
+                ctx.controller.setDataSaver(action.config["enabled"]?.toBoolean() ?: true)
             ActionType.SYSTEM_VIBRATE ->
                 ctx.controller.vibrate(action.config["seconds"]?.toIntOrNull() ?: 1)
             ActionType.SYSTEM_WAKE_SCREEN ->
@@ -245,10 +254,6 @@ class SystemActionsHandler : ActionHandler {
                 ctx.controller.forceStopApp(action.config["package"] ?: "")
             ActionType.SYSTEM_CLEAR_APP_DATA ->
                 ctx.controller.clearAppData(action.config["package"] ?: "")
-            ActionType.SYSTEM_LOCATION_MODE ->
-                ctx.controller.setLocationMode(action.config["mode"] ?: "HIGH_ACCURACY")
-            ActionType.SYSTEM_DATA_SAVER ->
-                ctx.controller.setDataSaver(action.config["enabled"]?.toBoolean() ?: true)
             ActionType.SYSTEM_FONT_SCALE ->
                 ctx.controller.setFontScale(action.config["scale"]?.toFloatOrNull() ?: 1.0f)
             ActionType.SYSTEM_DISPLAY_DENSITY ->
@@ -257,6 +262,13 @@ class SystemActionsHandler : ActionHandler {
                 ctx.controller.setScreensaver(action.config["enabled"]?.toBoolean() ?: true)
             ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD ->
                 ctx.controller.setBatterySaverThreshold(action.config["percent"]?.toIntOrNull() ?: 20)
+            ActionType.SYSTEM_CHARGING_LIMIT ->
+                ctx.controller.setChargingLimit(action.config["percent"]?.toIntOrNull() ?: 80)
+            ActionType.SYSTEM_CHARGING_FEEDBACK ->
+                ctx.controller.setChargingFeedback(
+                    sound = action.config["sound"]?.toBoolean() ?: true,
+                    vibration = action.config["vibration"]?.toBoolean() ?: true
+                )
             ActionType.SYSTEM_ALWAYS_ON_DISPLAY ->
                 ctx.controller.setAlwaysOnDisplay(action.config["enabled"]?.toBoolean() ?: true)
             ActionType.SYSTEM_SHOW_TAPS ->

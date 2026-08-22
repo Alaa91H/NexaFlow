@@ -429,4 +429,12 @@
     <string name="action_system_update_sub">सिस्टम अपडेट सेटिंग पेज खोलता है</string>
     <string name="action_media_search">संगीत खोज चलाएँ</string>
     <string name="action_media_search_sub">संगत मीडिया ऐप से खोजने और चलाने का अनुरोध करता है</string>
+
+    <string name="action_private_dns">निजी DNS</string>
+    <string name="action_private_dns_sub">Android निजी DNS मोड या प्रदाता सेट करें</string>
+    <string name="action_charging_limit">चार्जिंग सीमा</string>
+    <string name="action_charging_limit_sub">समर्थित हार्डवेयर चार्ज-स्टॉप प्रतिशत सेट करें</string>
+
+    <string name="action_charging_feedback">चार्जिंग ध्वनि और कंपन</string>
+    <string name="action_charging_feedback_sub">ROM द्वारा समर्थित होने पर चार्जिंग फीडबैक नियंत्रित करें</string>
 </resources>

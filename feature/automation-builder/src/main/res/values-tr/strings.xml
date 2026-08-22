@@ -971,4 +971,23 @@
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Bu cihaz veya abonelik için gerçekten desteklenen ağ modları kullanılamıyor. Doğrulanmamış seçenekler gösterilmez.</string>
     <string name="network_mode_grant_phone_permission">Telefon durumuna erişime izin ver</string>
+
+    <string name="action_private_dns">Özel DNS</string>
+    <string name="action_private_dns_sub">Android özel DNS modunu veya sağlayıcısını ayarlayın</string>
+    <string name="action_charging_limit">Şarj sınırı</string>
+    <string name="action_charging_limit_sub">Desteklenen donanım şarj durdurma yüzdesini ayarlayın</string>
+    <string name="private_dns_mode">Özel DNS modu</string>
+    <string name="private_dns_off">Kapalı</string>
+    <string name="private_dns_automatic">Otomatik</string>
+    <string name="private_dns_hostname_mode">Sağlayıcı ana makine adı</string>
+    <string name="private_dns_hostname">Sağlayıcı ana makine adı</string>
+    <string name="private_dns_elevated_note">Root veya Shizuku gerekir. Bu yalnızca bir uygulamayı değil, cihazın özel DNS ayarını değiştirir.</string>
+    <string name="charging_limit_value">Şarj sınırı: %1$d%%</string>
+    <string name="charging_limit_root_note">Root ve standart bir donanım şarj denetim düğümü gerekir; desteklenmeyen cihazlar açık bir hata döndürür.</string>
+
+    <string name="action_charging_feedback">Şarj sesi ve titreşimi</string>
+    <string name="action_charging_feedback_sub">ROM destekliyorsa şarj geri bildirimini denetleyin</string>
+    <string name="charging_sound">Şarj sesi</string>
+    <string name="charging_vibration">Şarj titreşimi</string>
+    <string name="charging_feedback_elevated_note">Root veya Shizuku gerekir ve yazıldıktan sonra ayarları doğrular. Desteklenmeyen ROM’lar hata bildirir.</string>
 </resources>

@@ -429,4 +429,12 @@
     <string name="action_system_update_sub">システムアップデートの設定画面を開きます</string>
     <string name="action_media_search">音楽検索を再生</string>
     <string name="action_media_search_sub">対応するメディアアプリに検索と再生を依頼します</string>
+
+    <string name="action_private_dns">プライベート DNS</string>
+    <string name="action_private_dns_sub">Android のプライベート DNS モードまたはプロバイダを設定</string>
+    <string name="action_charging_limit">充電上限</string>
+    <string name="action_charging_limit_sub">対応ハードウェアの充電停止率を設定</string>
+
+    <string name="action_charging_feedback">充電時の音と振動</string>
+    <string name="action_charging_feedback_sub">ROM が対応している場合に充電フィードバックを制御</string>
 </resources>

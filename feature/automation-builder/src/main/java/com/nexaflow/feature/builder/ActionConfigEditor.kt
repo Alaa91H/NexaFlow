@@ -1229,6 +1229,49 @@ fun ActionConfigEditor(
         ActionType.SYSTEM_CLEAR_APP_DATA -> {
             PackagePickerField(config = config, onConfigChange = onConfigChange, onPickApp = onPickApp)
         }
+        ActionType.SYSTEM_PRIVATE_DNS -> {
+            val mode = config["mode"] ?: "AUTOMATIC"
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = stringResource(R.string.private_dns_mode), style = MaterialTheme.typography.titleSmall)
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    listOf("OFF", "AUTOMATIC", "HOSTNAME").forEach { value ->
+                        val label = when (value) {
+                            "OFF" -> stringResource(R.string.private_dns_off)
+                            "HOSTNAME" -> stringResource(R.string.private_dns_hostname_mode)
+                            else -> stringResource(R.string.private_dns_automatic)
+                        }
+                        SelectChip(
+                            selected = mode == value,
+                            onClick = {
+                                onConfigChange(
+                                    config + ("mode" to value) +
+                                        ("hostname" to if (value == "HOSTNAME") config["hostname"].orEmpty() else "")
+                                )
+                            },
+                            label = label
+                        )
+                    }
+                }
+                if (mode == "HOSTNAME") {
+                    OutlinedTextField(
+                        value = config["hostname"].orEmpty(),
+                        onValueChange = { onConfigChange(config + ("hostname" to it.trim())) },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(text = stringResource(R.string.private_dns_hostname)) },
+                        singleLine = true
+                    )
+                }
+                Text(
+                    text = stringResource(R.string.private_dns_elevated_note),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
         ActionType.SYSTEM_LOCATION_MODE -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(text = stringResource(R.string.location_mode), style = MaterialTheme.typography.titleSmall)
@@ -1289,6 +1332,41 @@ fun ActionConfigEditor(
                 onValueChange = { onConfigChange(mapOf("percent" to it.toInt().toString())) },
                 valueRange = 0f..100f
             )
+        }
+        ActionType.SYSTEM_CHARGING_LIMIT -> {
+            val value = (config["percent"]?.toIntOrNull() ?: 80).coerceIn(50, 100)
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                SliderRow(
+                    label = stringResource(R.string.charging_limit_value, value),
+                    value = value.toFloat(),
+                    onValueChange = { onConfigChange(mapOf("percent" to it.toInt().toString())) },
+                    valueRange = 50f..100f
+                )
+                Text(
+                    text = stringResource(R.string.charging_limit_root_note),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        ActionType.SYSTEM_CHARGING_FEEDBACK -> {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                ToggleConfigRow(
+                    label = stringResource(R.string.charging_sound),
+                    checked = config["sound"]?.toBoolean() ?: true,
+                    onCheckedChange = { onConfigChange(config + ("sound" to it.toString())) }
+                )
+                ToggleConfigRow(
+                    label = stringResource(R.string.charging_vibration),
+                    checked = config["vibration"]?.toBoolean() ?: true,
+                    onCheckedChange = { onConfigChange(config + ("vibration" to it.toString())) }
+                )
+                Text(
+                    text = stringResource(R.string.charging_feedback_elevated_note),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
         ActionType.SYSTEM_WIFI_SLEEP_POLICY -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

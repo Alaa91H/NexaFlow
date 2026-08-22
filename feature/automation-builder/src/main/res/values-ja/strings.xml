@@ -971,4 +971,23 @@
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">この端末または契約で実際に対応するネットワーク モードを取得できません。未確認の選択肢は表示しません。</string>
     <string name="network_mode_grant_phone_permission">電話の状態へのアクセスを許可</string>
+
+    <string name="action_private_dns">プライベート DNS</string>
+    <string name="action_private_dns_sub">Android のプライベート DNS モードまたはプロバイダを設定</string>
+    <string name="action_charging_limit">充電上限</string>
+    <string name="action_charging_limit_sub">対応ハードウェアの充電停止率を設定</string>
+    <string name="private_dns_mode">プライベート DNS モード</string>
+    <string name="private_dns_off">オフ</string>
+    <string name="private_dns_automatic">自動</string>
+    <string name="private_dns_hostname_mode">プロバイダのホスト名</string>
+    <string name="private_dns_hostname">プロバイダのホスト名</string>
+    <string name="private_dns_elevated_note">root または Shizuku が必要です。これは 1 つのアプリだけでなく、端末全体のプライベート DNS を変更します。</string>
+    <string name="charging_limit_value">充電上限: %1$d%%</string>
+    <string name="charging_limit_root_note">root と標準の充電制御ハードウェアノードが必要です。非対応端末では明示的に失敗します。</string>
+
+    <string name="action_charging_feedback">充電時の音と振動</string>
+    <string name="action_charging_feedback_sub">ROM が対応している場合に充電フィードバックを制御</string>
+    <string name="charging_sound">充電音</string>
+    <string name="charging_vibration">充電時の振動</string>
+    <string name="charging_feedback_elevated_note">root または Shizuku が必要で、書き込み後に設定を検証します。非対応 ROM では失敗が報告されます。</string>
 </resources>

@@ -971,4 +971,23 @@
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Les modes réseau réellement pris en charge sont indisponibles pour cet appareil ou cet abonnement. Aucune option non confirmée n’est affichée.</string>
     <string name="network_mode_grant_phone_permission">Autoriser l’accès au téléphone</string>
+
+    <string name="action_private_dns">DNS privé</string>
+    <string name="action_private_dns_sub">Définir le mode ou le fournisseur DNS privé d’Android</string>
+    <string name="action_charging_limit">Limite de charge</string>
+    <string name="action_charging_limit_sub">Définir le pourcentage d’arrêt de charge pris en charge</string>
+    <string name="private_dns_mode">Mode DNS privé</string>
+    <string name="private_dns_off">Désactivé</string>
+    <string name="private_dns_automatic">Automatique</string>
+    <string name="private_dns_hostname_mode">Nom d’hôte du fournisseur</string>
+    <string name="private_dns_hostname">Nom d’hôte du fournisseur</string>
+    <string name="private_dns_elevated_note">Nécessite root ou Shizuku. Cela modifie le DNS privé de l’appareil, pas seulement d’une application.</string>
+    <string name="charging_limit_value">Limite de charge : %1$d%%</string>
+    <string name="charging_limit_root_note">Nécessite root et un nœud standard de contrôle de charge ; les appareils non pris en charge renvoient un échec explicite.</string>
+
+    <string name="action_charging_feedback">Son et vibration de charge</string>
+    <string name="action_charging_feedback_sub">Contrôler le retour de charge si la ROM le permet</string>
+    <string name="charging_sound">Son de charge</string>
+    <string name="charging_vibration">Vibration de charge</string>
+    <string name="charging_feedback_elevated_note">Nécessite root ou Shizuku et vérifie les réglages après écriture. Les ROM non prises en charge signalent un échec.</string>
 </resources>

@@ -318,6 +318,7 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_open_play_store_app, R.string.action_open_play_store_app_sub, Icons.Filled.Storefront, ActionType.SYSTEM_OPEN_PLAY_STORE_APP, ActionCategory.APPS),
     ActionOption(R.string.action_location_mode, R.string.action_location_mode_sub, Icons.Filled.LocationOn, ActionType.SYSTEM_LOCATION_MODE, ActionCategory.CONNECTIVITY),
     ActionOption(R.string.action_data_saver, R.string.action_data_saver_sub, Icons.Filled.DataUsage, ActionType.SYSTEM_DATA_SAVER, ActionCategory.CONNECTIVITY),
+    ActionOption(R.string.action_private_dns, R.string.action_private_dns_sub, Icons.Filled.Public, ActionType.SYSTEM_PRIVATE_DNS, ActionCategory.CONNECTIVITY),
     ActionOption(R.string.action_wifi_sleep_policy, R.string.action_wifi_sleep_policy_sub, Icons.Filled.Wifi, ActionType.SYSTEM_WIFI_SLEEP_POLICY, ActionCategory.CONNECTIVITY),
     ActionOption(R.string.action_bluetooth_discoverability, R.string.action_bluetooth_discoverability_sub, Icons.Filled.Bluetooth, ActionType.SYSTEM_BLUETOOTH_DISCOVERABILITY, ActionCategory.CONNECTIVITY),
     ActionOption(R.string.action_auto_time, R.string.action_auto_time_sub, Icons.Filled.Schedule, ActionType.SYSTEM_AUTO_TIME, ActionCategory.SYSTEM),
@@ -330,6 +331,8 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_show_taps, R.string.action_show_taps_sub, Icons.Filled.TouchApp, ActionType.SYSTEM_SHOW_TAPS, ActionCategory.DISPLAY),
     ActionOption(R.string.action_pointer_location, R.string.action_pointer_location_sub, Icons.Filled.GpsFixed, ActionType.SYSTEM_POINTER_LOCATION, ActionCategory.DISPLAY),
     ActionOption(R.string.action_battery_saver_threshold, R.string.action_battery_saver_threshold_sub, Icons.Filled.BatteryChargingFull, ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD, ActionCategory.BATTERY),
+    ActionOption(R.string.action_charging_limit, R.string.action_charging_limit_sub, Icons.Filled.BatteryChargingFull, ActionType.SYSTEM_CHARGING_LIMIT, ActionCategory.BATTERY),
+    ActionOption(R.string.action_charging_feedback, R.string.action_charging_feedback_sub, Icons.Filled.Vibration, ActionType.SYSTEM_CHARGING_FEEDBACK, ActionCategory.BATTERY),
     ActionOption(R.string.action_adaptive_battery, R.string.action_adaptive_battery_sub, Icons.Filled.BatteryChargingFull, ActionType.SYSTEM_ADAPTIVE_BATTERY, ActionCategory.BATTERY),
     ActionOption(R.string.action_haptic_intensity, R.string.action_haptic_intensity_sub, Icons.Filled.Equalizer, ActionType.SYSTEM_HAPTIC_INTENSITY, ActionCategory.SOUND),
     ActionOption(R.string.action_camera_shutter_sound, R.string.action_camera_shutter_sound_sub, Icons.Filled.CameraAlt, ActionType.SYSTEM_CAMERA_SHUTTER_SOUND, ActionCategory.SOUND),
@@ -664,6 +667,16 @@ private fun actionSummaryDetail(option: ActionOption, config: Map<String, String
         ActionType.SYSTEM_FONT_SCALE -> config["scale"] ?: "1.0"
         ActionType.SYSTEM_DISPLAY_DENSITY -> "${config["dpi"] ?: "440"} dpi"
         ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD -> "${config["percent"] ?: "20"}%"
+        ActionType.SYSTEM_CHARGING_LIMIT -> "${config["percent"] ?: "80"}%"
+        ActionType.SYSTEM_CHARGING_FEEDBACK -> listOfNotNull(
+            if (config["sound"]?.toBoolean() ?: true) stringResource(R.string.charging_sound) else null,
+            if (config["vibration"]?.toBoolean() ?: true) stringResource(R.string.charging_vibration) else null
+        ).joinToString(" + ")
+        ActionType.SYSTEM_PRIVATE_DNS -> when (config["mode"] ?: "AUTOMATIC") {
+            "OFF" -> stringResource(R.string.private_dns_off)
+            "HOSTNAME" -> config["hostname"].orEmpty().trim().ifEmpty { null }
+            else -> stringResource(R.string.private_dns_automatic)
+        }
         ActionType.SYSTEM_WIFI_SLEEP_POLICY -> when (config["policy"] ?: "ALWAYS") {
             "PLUGGED" -> stringResource(R.string.wifi_sleep_plugged)
             "NEVER" -> stringResource(R.string.wifi_sleep_never)

@@ -100,6 +100,7 @@ object CommandCatalog {
         ActionType.SYSTEM_BLUETOOTH_SCAN to elevated(),
         ActionType.SYSTEM_MOBILE_DATA to shell(setOf(RomCapability.MODIFY_PHONE_STATE)),
         ActionType.SYSTEM_NETWORK_MODE to shell(setOf(RomCapability.MODIFY_PHONE_STATE)),
+        ActionType.SYSTEM_PRIVATE_DNS to elevated(),
         ActionType.SYSTEM_HOTSPOT to shell(setOf(RomCapability.MODIFY_PHONE_STATE)),
         ActionType.SYSTEM_NFC to shell(setOf(RomCapability.WRITE_SECURE_SETTINGS)),
         ActionType.SYSTEM_AIRPLANE_MODE to shell(setOf(RomCapability.WRITE_SECURE_SETTINGS)),
@@ -109,6 +110,12 @@ object CommandCatalog {
         ActionType.SYSTEM_DATA_SAVER to shell(setOf(RomCapability.WRITE_SECURE_SETTINGS)),
         ActionType.SYSTEM_ADAPTIVE_BATTERY to shell(setOf(RomCapability.WRITE_SECURE_SETTINGS)),
         ActionType.SYSTEM_BATTERY_SAVER_THRESHOLD to shell(setOf(RomCapability.WRITE_SECURE_SETTINGS)),
+        ActionType.SYSTEM_CHARGING_LIMIT to CommandSpec(
+            capabilities = setOf(RomCapability.ROOT_SHELL),
+            requiresIntegration = com.nexaflow.core.rom.model.IntegrationLevel.ROOT,
+            strategy = ExecutionStrategy.ELEVATED
+        ),
+        ActionType.SYSTEM_CHARGING_FEEDBACK to elevated(),
         ActionType.SYSTEM_POWER_SAVER to shell(setOf(RomCapability.WRITE_SECURE_SETTINGS)),
         ActionType.SYSTEM_AUTO_TIME to shell(setOf(RomCapability.WRITE_SECURE_SETTINGS)),
         ActionType.SYSTEM_AUTO_TIMEZONE to shell(setOf(RomCapability.WRITE_SECURE_SETTINGS)),

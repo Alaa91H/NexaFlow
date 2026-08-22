@@ -971,4 +971,23 @@
     <string name="network_mode_sim">SIM 卡 %1$d</string>
     <string name="network_mode_unavailable">无法获取此设备或订阅实际支持的网络模式。不会显示未经确认的选项。</string>
     <string name="network_mode_grant_phone_permission">允许访问电话状态</string>
+
+    <string name="action_private_dns">私人 DNS</string>
+    <string name="action_private_dns_sub">设置 Android 私人 DNS 模式或提供商</string>
+    <string name="action_charging_limit">充电上限</string>
+    <string name="action_charging_limit_sub">设置受支持硬件的停止充电百分比</string>
+    <string name="private_dns_mode">私人 DNS 模式</string>
+    <string name="private_dns_off">关闭</string>
+    <string name="private_dns_automatic">自动</string>
+    <string name="private_dns_hostname_mode">提供商主机名</string>
+    <string name="private_dns_hostname">提供商主机名</string>
+    <string name="private_dns_elevated_note">需要 root 或 Shizuku。这会更改整个设备的私人 DNS，而不仅是一个应用。</string>
+    <string name="charging_limit_value">充电上限：%1$d%%</string>
+    <string name="charging_limit_root_note">需要 root 和标准硬件充电控制节点；不支持的设备会返回明确失败。</string>
+
+    <string name="action_charging_feedback">充电声音和振动</string>
+    <string name="action_charging_feedback_sub">在 ROM 支持时控制充电反馈</string>
+    <string name="charging_sound">充电声音</string>
+    <string name="charging_vibration">充电振动</string>
+    <string name="charging_feedback_elevated_note">需要 root 或 Shizuku，并在写入后验证设置。不支持的 ROM 会报告失败。</string>
 </resources>

@@ -56,10 +56,13 @@ object PermissionCatalog {
         ActionType.SYSTEM_DND,
         ActionType.SYSTEM_RINGER_MODE -> SpecialPermission.DND_ACCESS
         ActionType.ADVANCED_SHIZUKU -> SpecialPermission.SHIZUKU
-        ActionType.ADVANCED_ROOT -> SpecialPermission.ROOT
+        ActionType.ADVANCED_ROOT,
+        ActionType.SYSTEM_CHARGING_LIMIT -> SpecialPermission.ROOT
         ActionType.APPLICATION_CLOSE_APP,
         ActionType.SYSTEM_MOBILE_DATA,
         ActionType.SYSTEM_NETWORK_MODE,
+        ActionType.SYSTEM_PRIVATE_DNS,
+        ActionType.SYSTEM_CHARGING_FEEDBACK,
         ActionType.SYSTEM_HOTSPOT,
         ActionType.SYSTEM_NFC,
         ActionType.SYSTEM_POWER_SAVER,

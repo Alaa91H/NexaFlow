@@ -428,4 +428,12 @@
     <string name="action_system_update_sub">Open the system update settings page</string>
     <string name="action_media_search">Play music search</string>
     <string name="action_media_search_sub">Ask a compatible media app to search and play</string>
+
+    <string name="action_private_dns">Private DNS</string>
+    <string name="action_private_dns_sub">Set Android Private DNS mode or provider</string>
+    <string name="action_charging_limit">Charging limit</string>
+    <string name="action_charging_limit_sub">Set the supported hardware charge-stop percentage</string>
+
+    <string name="action_charging_feedback">Charging sound and vibration</string>
+    <string name="action_charging_feedback_sub">Control charging feedback when supported by the ROM</string>
 </resources>
