@@ -199,7 +199,7 @@
     <string name="shortcut_added">Verknüpfung zum Startbildschirm hinzugefügt</string>
     <string name="shortcut_in_app_shortcuts">Zu den App-Verknüpfungen hinzugefügt</string>
 
-    <string name="action_network_mode_sub">2G, 3G, 4G, 5G oder automatisch erzwingen</string>
+    <string name="action_network_mode_sub">Wählen Sie aus den tatsächlich für die ausgewählte SIM verfügbaren Modi. Zum Anwenden ist erhöhter Zugriff erforderlich.</string>
     <string name="action_network_mode">Netzwerkmodus</string>
     <string name="action_set_ringtone_sub">Standard-Klingelton auswählen</string>
     <string name="action_set_ringtone">Klingelton festlegen</string>

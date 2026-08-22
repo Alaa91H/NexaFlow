@@ -37,6 +37,8 @@ class DeviceStateSnapshot private constructor(
     private val bluetoothEnabled: Boolean?,
     private val nfcEnabled: Boolean?,
     private val mobileDataEnabled: Boolean?,
+    // A versioned, per-subscription allowed-network-types snapshot. Null means
+    // Android/OEM did not expose a reliable state, so restore-original skips it.
     private val networkMode: String?,
     private val hotspotEnabled: Boolean?,
     private val airplaneModeEnabled: Boolean?,
@@ -77,7 +79,7 @@ class DeviceStateSnapshot private constructor(
         restoreToggle(controller::setNfc, nfcEnabled)
         restoreToggle(controller::setMobileData, mobileDataEnabled)
         networkMode?.let {
-            runCatching { controller.setNetworkMode(it) }
+            runCatching { controller.restoreNetworkMode(it) }
         }
         restoreToggle(controller::setHotspot, hotspotEnabled)
         restoreToggle(controller::setAirplaneMode, airplaneModeEnabled)
@@ -124,7 +126,7 @@ class DeviceStateSnapshot private constructor(
             ActionType.SYSTEM_MOBILE_DATA -> restoreToggle(controller::setMobileData, mobileDataEnabled)
             ActionType.SYSTEM_NETWORK_MODE -> {
                 val mode = networkMode ?: return SystemControlResult.ok("Nothing to restore")
-                runCatching { controller.setNetworkMode(mode) }.getOrElse {
+                runCatching { controller.restoreNetworkMode(mode) }.getOrElse {
                     SystemControlResult.fail("Restore failed: ${it.message}")
                 }
             }
@@ -334,9 +336,12 @@ class DeviceStateSnapshot private constructor(
                 bluetoothEnabled = globalBool(context, Settings.Global.BLUETOOTH_ON),
                 nfcEnabled = globalBool(context, "nfc_on"),
                 mobileDataEnabled = globalBool(context, "mobile_data"),
+                // Do not fall back to preferred_network_mode: it is a legacy
+                // global default and cannot faithfully represent modern,
+                // per-subscription allowed-network-type masks.
                 networkMode = runCatching {
-                    Settings.Global.getInt(context.contentResolver, "preferred_network_mode", -1)
-                }.getOrNull()?.takeIf { it >= 0 }?.toString(),
+                    RomIntegrationManager.controller(context).captureNetworkModeSnapshot()
+                }.getOrNull(),
                 colorInversion = secureBool(context, "accessibility_display_inversion_enabled"),
                 grayscale = secureBool(context, "accessibility_display_daltonizer_enabled"),
                 extraDim = secureBool(context, "reduce_bright_colors_activated"),

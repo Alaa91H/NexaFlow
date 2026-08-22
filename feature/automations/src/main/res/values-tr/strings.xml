@@ -199,7 +199,7 @@
     <string name="shortcut_added">Kısayol ana ekrana eklendi</string>
     <string name="shortcut_in_app_shortcuts">Uygulama kısayollarına eklendi</string>
 
-    <string name="action_network_mode_sub">2G, 3G, 4G, 5G veya otomatik zorla</string>
+    <string name="action_network_mode_sub">Seçilen SIM için gerçekten kullanılabilir modlardan birini seçin. Değişikliği uygulamak için yükseltilmiş erişim gerekir.</string>
     <string name="action_network_mode">Ağ modu</string>
     <string name="action_set_ringtone_sub">Varsayılan arama zil sesini seç</string>
     <string name="action_set_ringtone">Zil sesini ayarla</string>

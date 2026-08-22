@@ -779,8 +779,20 @@ class SystemController(
      * per-subscription `setAllowedNetworkTypesForReason` bitmask API with
      * legacy and elevated-shell fallbacks and verifies the result.
      */
-    fun setNetworkMode(mode: String): SystemControlResult =
-        NetworkModeController(context).setNetworkMode(mode)
+    fun setNetworkMode(
+        mode: String,
+        requestedMask: Long? = null,
+        subscriptionId: Int? = null
+    ): SystemControlResult =
+        NetworkModeController(context).setNetworkMode(mode, requestedMask, subscriptionId)
+
+    /** Per-subscription user masks, when the device exposes a reliable read-back. */
+    fun captureNetworkModeSnapshot(): String? =
+        NetworkModeController(context).captureNetworkModeSnapshot()
+
+    /** Restores a captured per-subscription snapshot or a legacy mode label. */
+    fun restoreNetworkMode(snapshotOrLegacyMode: String): SystemControlResult =
+        NetworkModeController(context).restoreNetworkMode(snapshotOrLegacyMode)
 
     /** The currently configured default ringtone URI, or null when unreadable. */
     fun currentDefaultRingtone(): String? = runCatching {

@@ -493,7 +493,7 @@
 
     <string name="charging_yes">Şarj oluyor</string>
     <string name="ringtone_label">Varsayılan zil sesi</string>
-    <string name="network_mode_sub">root, Shizuku veya sistem ayrıcalıkları gerektirir; uyumlu radyosu olmayan cihazlar geçerli modu korur</string>
+    <string name="network_mode_sub">Seçilen SIM için gerçekten kullanılabilir modlardan birini seçin. Değişikliği uygulamak için yükseltilmiş erişim gerekir.</string>
     <string name="network_mode_2g">2G</string>
     <string name="network_mode_auto">Otomatik</string>
     <string name="network_mode_5g">5G</string>
@@ -504,7 +504,7 @@
     <string name="charging_any">Herhangi biri</string>
     <string name="network_mode_4g">4G</string>
     <string name="choose_ringtone">Zil sesi seç</string>
-    <string name="action_network_mode_sub">2G, 3G, 4G, 5G veya otomatik zorla</string>
+    <string name="action_network_mode_sub">Seçilen SIM için gerçekten kullanılabilir modlardan birini seçin. Değişikliği uygulamak için yükseltilmiş erişim gerekir.</string>
     <string name="action_set_ringtone_sub">Varsayılan arama zil sesini seç</string>
     <string name="network_mode_3g">3G</string>
     <string name="action_network_mode">Ağ modu</string>
@@ -967,4 +967,8 @@
     <string name="plugin_high_risk_continue">Anlıyorum</string>
     <string name="plugin_high_risk_badge">Gelişmiş: yükseltilmiş komut erişimi</string>
     <string name="map_google_fallback">Google Haritalar yüklenemedi. Alternatif bir haritaya geçildi.</string>
+    <string name="network_mode_reading">Kullanılabilir ağ modları okunuyor…</string>
+    <string name="network_mode_sim">SIM %1$d</string>
+    <string name="network_mode_unavailable">Bu cihaz veya abonelik için gerçekten desteklenen ağ modları kullanılamıyor. Doğrulanmamış seçenekler gösterilmez.</string>
+    <string name="network_mode_grant_phone_permission">Telefon durumuna erişime izin ver</string>
 </resources>

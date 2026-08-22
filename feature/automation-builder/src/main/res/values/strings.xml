@@ -178,7 +178,7 @@
     <string name="action_hotspot">Hotspot</string>
     <string name="action_hotspot_sub">Turn the Wi-Fi hotspot on or off</string>
     <string name="action_network_mode">Network mode</string>
-    <string name="action_network_mode_sub">Force 2G, 3G, 4G, 5G or auto</string>
+    <string name="action_network_mode_sub">Choose from modes actually available for the selected SIM. Applying a change requires elevated access.</string>
     <string name="action_set_ringtone">Set ringtone</string>
     <string name="action_set_ringtone_sub">Pick the default call ringtone</string>
     <string name="action_nfc">NFC</string>
@@ -382,7 +382,7 @@
     <string name="network_hotspot">Hotspot</string>
     <string name="network_mode">Network mode</string>
     <string name="network_mode_label">Preferred network generation</string>
-    <string name="network_mode_sub">Requires root, Shizuku or system privileges; devices without the matching radio keep the current mode</string>
+    <string name="network_mode_sub">Choose from the modes actually available for the selected SIM. Applying a change requires elevated access.</string>
     <string name="network_mode_auto">Auto</string>
     <string name="network_mode_2g">2G</string>
     <string name="network_mode_3g">3G</string>
@@ -967,4 +967,8 @@
     <string name="plugin_high_risk_continue">I understand</string>
     <string name="plugin_high_risk_badge">Advanced: elevated command access</string>
     <string name="map_google_fallback">Google Maps couldn\'t load. Switched to an alternative map.</string>
+    <string name="network_mode_reading">Reading available network modes…</string>
+    <string name="network_mode_sim">SIM %1$d</string>
+    <string name="network_mode_unavailable">Actual supported network modes are unavailable for this device or subscription. No unsupported options are shown.</string>
+    <string name="network_mode_grant_phone_permission">Allow phone access</string>
 </resources>

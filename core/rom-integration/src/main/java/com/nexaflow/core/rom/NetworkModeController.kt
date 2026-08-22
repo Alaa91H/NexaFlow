@@ -1,6 +1,7 @@
 package com.nexaflow.core.rom
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
@@ -10,8 +11,8 @@ import android.telephony.TelephonyManager
 import com.nexaflow.core.rom.model.SystemControlResult
 
 /**
- * Forces the preferred cellular network generation (2G/3G/4G/5G) on every
- * active SIM. A bare `settings put global preferred_network_mode` write is
+ * Applies a confirmed preferred cellular-radio profile to the selected active
+ * SIM, or preserves the historical all-active-SIM behavior for legacy tasks. A bare `settings put global preferred_network_mode` write is
  * ignored on Android 10+ (the framework reads it once as a default only) and
  * is per-subscription on multi-SIM devices — so this uses the modern
  * `setAllowedNetworkTypesForReason` bitmask API (stable since Android 11, the
@@ -27,18 +28,51 @@ class NetworkModeController(
     private val context: Context
 ) {
 
-    fun setNetworkMode(mode: String): SystemControlResult {
-        val request = NetworkModePolicy.request(
-            mode,
-            nrSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-        )
+    fun setNetworkMode(
+        mode: String,
+        requestedMask: Long? = null,
+        subscriptionId: Int? = null
+    ): SystemControlResult {
+        val request = requestedMask
+            ?.takeIf { it > 0L }
+            ?.let(NetworkModePolicy::requestForMask)
+            ?: NetworkModePolicy.request(
+                mode,
+                nrSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+            )
         return try {
             val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
                 ?: return SystemControlResult.fail("Telephony service unavailable")
-            val subIds = activeSubscriptionIds(telephony)
-            if (subIds.isEmpty()) {
+            if (requestedMask != null) {
+                val selectedSubId = subscriptionId
+                    ?: return SystemControlResult.fail("Dynamic network mode requires a selected SIM subscription")
+                val capabilities = NetworkModeCapabilities(context).read()
+                val confirmed = capabilities.subscriptions.firstOrNull {
+                    it.subscriptionId == selectedSubId
+                }
+                if (capabilities.status != NetworkModeSnapshot.Status.AVAILABLE || confirmed == null) {
+                    return SystemControlResult.fail(
+                        "Network capabilities for the selected SIM are no longer readable"
+                    )
+                }
+                if ((request.bitmask and confirmed.selectableMask) != request.bitmask ||
+                    confirmed.options.none { it.allowedNetworkTypes == request.bitmask }
+                ) {
+                    return SystemControlResult.fail(
+                        "Saved network mode is no longer supported by the selected SIM"
+                    )
+                }
+            }
+            val activeSubIds = activeSubscriptionIds(telephony)
+            if (activeSubIds.isEmpty()) {
                 return SystemControlResult.fail("No active SIM subscription found")
             }
+            val subIds = subscriptionId?.let { requested ->
+                if (requested !in activeSubIds) {
+                    return SystemControlResult.fail("Selected SIM subscription is no longer active")
+                }
+                listOf(requested)
+            } ?: activeSubIds
             val applied = subIds.map { subId -> setModeForSubscription(telephony, subId, request) }
             val okCount = applied.count { it.first }
             when {
@@ -57,12 +91,59 @@ class NetworkModeController(
     }
 
     /**
+     * Captures the current user restriction for every readable active
+     * subscription. A null result means the platform did not expose a reliable
+     * read-back, so restore-original must not pretend it has a value to restore.
+     */
+    @SuppressLint("MissingPermission")
+    fun captureNetworkModeSnapshot(): String? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || !hasReadPhoneState()) return null
+        val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+            ?: return null
+        val masks = activeSubscriptionIds(telephony).mapNotNull { subId ->
+            val mask = runCatching {
+                telephony.createForSubscriptionId(subId).getAllowedNetworkTypesForReason(
+                    TelephonyManager.ALLOWED_NETWORK_TYPES_REASON_USER
+                )
+            }.getOrNull()?.and(NetworkModePolicy.BITMASK_SELECTABLE_CELLULAR)
+            if (mask != null && mask > 0L) subId to mask else null
+        }.toMap()
+        return NetworkModePolicy.encodeSnapshot(masks)
+    }
+
+    /** Restores a versioned per-SIM snapshot, preserving legacy string tasks. */
+    fun restoreNetworkMode(snapshotOrLegacyMode: String): SystemControlResult {
+        val snapshots = NetworkModePolicy.decodeSnapshot(snapshotOrLegacyMode)
+            ?: return setNetworkMode(snapshotOrLegacyMode)
+        if (!hasReadPhoneState()) {
+            return SystemControlResult.fail("Cannot restore per-SIM network modes without phone-state permission")
+        }
+        val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+            ?: return SystemControlResult.fail("Telephony service unavailable")
+        val active = activeSubscriptionIds(telephony).toSet()
+        val applicable = snapshots.filterKeys { it in active }
+        if (applicable.isEmpty()) {
+            return SystemControlResult.fail("No captured SIM subscription is active")
+        }
+        val applied = applicable.map { (subId, mask) ->
+            setModeForSubscription(telephony, subId, NetworkModePolicy.requestForMask(mask))
+        }
+        val count = applied.count { it.first }
+        return when {
+            count == applicable.size -> SystemControlResult.ok("Original network mode restored")
+            count > 0 -> SystemControlResult.ok("Original mode restored on $count/${applicable.size} subscriptions")
+            else -> SystemControlResult.fail("Network mode restore failed: ${applied.firstNotNullOfOrNull { it.second }}")
+        }
+    }
+
+    /**
      * Applies [request] to one subscription through a multi-step ladder, each
      * step verified by a read-back where the platform exposes one. A step that
      * dispatches but cannot be confirmed NEVER aborts the ladder — it records
      * a diagnostic note and falls through, because ROMs disagree on both the
      * write message and the read-back format. Returns (applied, note).
      */
+    @SuppressLint("MissingPermission")
     private fun setModeForSubscription(
         telephony: TelephonyManager,
         subId: Int,
@@ -71,29 +152,28 @@ class NetworkModeController(
         val label = "sub$subId"
         val notes = mutableListOf<String>()
 
-        // 1) Modern per-subscription bitmask API (Android 11+). Reflection is
-        //    exempt for system/privileged installs; a blocked hidden API
-        //    simply reports not-dispatched and falls through.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val call = reflectTelephony(
-                telephony,
-                "setAllowedNetworkTypesForReason",
-                arrayOf(
-                    Int::class.javaPrimitiveType!!,
-                    Int::class.javaPrimitiveType!!,
-                    Long::class.javaPrimitiveType!!
-                ),
-                subId, TelephonyManager.ALLOWED_NETWORK_TYPES_REASON_USER, request.bitmask
-            )
-            if (call.dispatched && call.value == true) {
-                val readBack = reflectTelephony(
-                    telephony,
-                    "getAllowedNetworkTypesForReason",
-                    arrayOf(Int::class.javaPrimitiveType!!, Int::class.javaPrimitiveType!!),
-                    subId, TelephonyManager.ALLOWED_NETWORK_TYPES_REASON_USER
+        // 1) Modern subscription-scoped bitmask API (Android 13+). The
+        //    TelephonyManager instance must be pinned to the subscription;
+        //    passing a subId as a hidden extra argument is not Android's API
+        //    signature and silently prevents the modern path from working.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val scoped = telephony.createForSubscriptionId(subId)
+            val dispatched = runCatching {
+                scoped.setAllowedNetworkTypesForReason(
+                    TelephonyManager.ALLOWED_NETWORK_TYPES_REASON_USER,
+                    request.bitmask
                 )
-                val confirmed = readBack.dispatched && readBack.value is Long &&
-                    NetworkModePolicy.covers(request.bitmask, readBack.value)
+                true
+            }.getOrDefault(false)
+            if (dispatched) {
+                val confirmed = runCatching {
+                    NetworkModePolicy.matches(
+                        request.bitmask,
+                        scoped.getAllowedNetworkTypesForReason(
+                            TelephonyManager.ALLOWED_NETWORK_TYPES_REASON_USER
+                        )
+                    )
+                }.getOrDefault(false)
                 if (confirmed) {
                     return true to "$label via allowed-network-types"
                 }
@@ -130,29 +210,35 @@ class NetworkModeController(
         }
 
         // 3) Legacy ITelephony call (void return — only dispatch is observable).
-        val legacy = reflectTelephony(
-            telephony,
-            "setPreferredNetworkType",
-            arrayOf(Int::class.javaPrimitiveType!!, Int::class.javaPrimitiveType!!),
-            subId, request.legacyInt
-        )
-        if (legacy.dispatched) {
-            val readBack = reflectTelephony(
-                telephony, "getPreferredNetworkType", arrayOf(Int::class.javaPrimitiveType!!), subId
+        //    Dynamic profiles intentionally skip this path: PhoneConstants
+        //    cannot represent every modern NR/TD-SCDMA/carrier combination.
+        if (request.legacyCompatible) {
+            val legacy = reflectTelephony(
+                telephony,
+                "setPreferredNetworkType",
+                arrayOf(Int::class.javaPrimitiveType!!, Int::class.javaPrimitiveType!!),
+                subId, request.legacyInt
             )
-            val confirmed = readBack.dispatched && readBack.value is Int &&
-                readBack.value == request.legacyInt
-            if (confirmed) {
-                return true to "$label via preferred-network-type"
+            if (legacy.dispatched) {
+                val readBack = reflectTelephony(
+                    telephony, "getPreferredNetworkType", arrayOf(Int::class.javaPrimitiveType!!), subId
+                )
+                val confirmed = readBack.dispatched && readBack.value is Int &&
+                    readBack.value == request.legacyInt
+                if (confirmed) {
+                    return true to "$label via preferred-network-type"
+                }
+                notes += "$label via preferred-network-type (unconfirmed read-back)"
             }
-            notes += "$label via preferred-network-type (unconfirmed read-back)"
         }
 
         // 4) Elevated shell: per-subscription key (multi-SIM) plus the plain
         //    default key, verified through Settings.Global. Last resort — the
         //    framework ignores this at runtime on Android 10+, but some OEM
         //    builds still honor it, and it costs nothing to try.
-        if (PrivilegedRunner.isShizukuGranted() || PrivilegedRunner.isRootAvailable()) {
+        if (request.legacyCompatible &&
+            (PrivilegedRunner.isShizukuGranted() || PrivilegedRunner.isRootAvailable())
+        ) {
             val subKey = "preferred_network_mode$subId"
             val shell = PrivilegedRunner.runShell(
                 "settings put global $subKey ${request.legacyInt} && " +
@@ -198,15 +284,20 @@ class NetworkModeController(
             .getOrDefault(-1)
     }
 
-    /** Active subscription ids, falling back to the primary slot id (or 0). */
-    @Suppress("DEPRECATION")
-    private fun activeSubscriptionIds(telephony: TelephonyManager): List<Int> {
-        val granted = context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) ==
+    private fun hasReadPhoneState(): Boolean =
+        context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) ==
             PackageManager.PERMISSION_GRANTED
-        val ids = if (granted) {
+
+    /** Active subscription ids, falling back to the primary slot id (or 0). */
+    private fun activeSubscriptionIds(telephony: TelephonyManager): List<Int> {
+        val ids = if (context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
             runCatching {
-                SubscriptionManager.from(context).activeSubscriptionInfoList
-                    ?.map { it.subscriptionId }.orEmpty()
+                context.getSystemService(SubscriptionManager::class.java)
+                    ?.activeSubscriptionInfoList
+                    .orEmpty()
+                    .map { it.subscriptionId }
             }.getOrDefault(emptyList())
         } else {
             emptyList()

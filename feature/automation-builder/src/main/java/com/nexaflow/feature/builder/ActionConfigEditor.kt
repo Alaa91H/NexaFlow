@@ -1,6 +1,8 @@
 package com.nexaflow.feature.builder
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
@@ -33,6 +35,7 @@ import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,10 +46,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.execution.NotificationActionButton
+import com.nexaflow.core.rom.NetworkModeCapabilities
+import com.nexaflow.core.rom.NetworkModePolicy
+import com.nexaflow.core.rom.NetworkModeSnapshot
 import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.variables.VariableResolver
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** Simple toggle actions that use "turn_on" as their label. */
 private val TURN_ON_TOGGLE_ACTIONS = setOf(
@@ -68,6 +76,143 @@ private val TURN_ON_TOGGLE_ACTIONS = setOf(
     ActionType.SYSTEM_CALL_VIBRATION,
     ActionType.SYSTEM_STATUS_BAR_TOGGLE
 )
+
+/**
+ * Network-mode editor backed by a live per-subscription telephony snapshot.
+ * It never promotes a generic generation list to a device capability: when
+ * Android/OEM policy blocks the read, the card says so and preserves existing
+ * task data rather than inventing choices that the device may reject.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun NetworkModeSelector(
+    config: Map<String, String>,
+    onConfigChange: (Map<String, String>) -> Unit
+) {
+    val context = LocalContext.current
+    var snapshot by remember { mutableStateOf<NetworkModeSnapshot?>(null) }
+    var permissionRevision by remember { mutableStateOf(0) }
+    val phoneStatePermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        // Always re-read: a denial remains explicit, while a grant can expose
+        // the live per-SIM capabilities without requiring the user to reopen.
+        permissionRevision += 1
+    }
+    LaunchedEffect(context, permissionRevision) {
+        snapshot = withContext(Dispatchers.IO) {
+            NetworkModeCapabilities(context.applicationContext).read()
+        }
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(text = stringResource(R.string.network_mode_label), style = MaterialTheme.typography.titleSmall)
+        when (val state = snapshot) {
+            null -> Text(
+                text = stringResource(R.string.network_mode_reading),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+            else -> when (state.status) {
+                NetworkModeSnapshot.Status.AVAILABLE -> {
+                    val subscriptions = state.subscriptions
+                    val selectedSubscriptionId = config["network_subscription_id"]?.toIntOrNull()
+                        ?.takeIf { id -> subscriptions.any { it.subscriptionId == id } }
+                        ?: subscriptions.first().subscriptionId
+                    val selectedSubscription = subscriptions.first { it.subscriptionId == selectedSubscriptionId }
+                    if (subscriptions.size > 1) {
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            subscriptions.forEach { subscription ->
+                                SelectChip(
+                                    selected = subscription.subscriptionId == selectedSubscriptionId,
+                                    onClick = {
+                                        onConfigChange(
+                                            config + ("network_subscription_id" to subscription.subscriptionId.toString()) -
+                                                "network_mask"
+                                        )
+                                    },
+                                    label = stringResource(
+                                        R.string.network_mode_sim,
+                                        subscription.slotIndex + 1
+                                    )
+                                )
+                            }
+                        }
+                    }
+                    selectedSubscription.currentUserMask?.let { current ->
+                        Text(
+                            text = stringResource(
+                                R.string.network_mode_current,
+                                NetworkModePolicy.describe(current)
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    val savedMask = config["network_mask"]?.toLongOrNull()
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        selectedSubscription.options.forEach { option ->
+                            val selected = savedMask == option.allowedNetworkTypes ||
+                                (savedMask == null && option.isAutomatic &&
+                                    (config["mode"] ?: "AUTO") == "AUTO")
+                            SelectChip(
+                                selected = selected,
+                                onClick = {
+                                    onConfigChange(
+                                        config + mapOf(
+                                            "mode" to if (option.isAutomatic) "AUTO" else "DYNAMIC",
+                                            "network_mask" to option.allowedNetworkTypes.toString(),
+                                            "network_subscription_id" to selectedSubscriptionId.toString()
+                                        )
+                                    )
+                                },
+                                label = if (option.isAutomatic) {
+                                    "${stringResource(R.string.network_mode_auto)}: ${option.label}"
+                                } else {
+                                    option.label
+                                }
+                            )
+                        }
+                    }
+                }
+                NetworkModeSnapshot.Status.NO_TELEPHONY,
+                NetworkModeSnapshot.Status.NO_ACTIVE_SUBSCRIPTION,
+                NetworkModeSnapshot.Status.UNREADABLE -> {
+                    Text(
+                        text = stringResource(R.string.network_mode_unavailable),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    val phoneStateGranted = context.checkSelfPermission(
+                        Manifest.permission.READ_PHONE_STATE
+                    ) == PackageManager.PERMISSION_GRANTED
+                    if (state.status == NetworkModeSnapshot.Status.UNREADABLE && !phoneStateGranted) {
+                        TextButton(
+                            onClick = {
+                                phoneStatePermissionLauncher.launch(Manifest.permission.READ_PHONE_STATE)
+                            }
+                        ) {
+                            Text(stringResource(R.string.network_mode_grant_phone_permission))
+                        }
+                    }
+                }
+            }
+        }
+        Text(
+            text = stringResource(R.string.network_mode_sub),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.secondary
+        )
+    }
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -205,31 +350,7 @@ fun ActionConfigEditor(
             }
         }
         ActionType.SYSTEM_NETWORK_MODE -> {
-            val modes = NETWORK_MODE_OPTIONS.map { (key, res) -> key to stringResource(res) }
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = stringResource(R.string.network_mode_label),
-                    style = MaterialTheme.typography.titleSmall
-                )
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    modes.forEach { (value, label) ->
-                        SelectChip(
-                            selected = (config["mode"] ?: "AUTO") == value,
-                            onClick = { onConfigChange(mapOf("mode" to value)) },
-                            label = label
-                        )
-                    }
-                }
-                Text(
-                    text = stringResource(R.string.network_mode_sub),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-            }
+            NetworkModeSelector(config = config, onConfigChange = onConfigChange)
         }
         ActionType.SYSTEM_SET_RINGTONE -> {
             val context = LocalContext.current

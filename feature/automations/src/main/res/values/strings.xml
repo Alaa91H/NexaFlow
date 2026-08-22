@@ -75,7 +75,7 @@
     <string name="action_mobile_data">Mobile Data</string>
     <string name="action_mobile_data_sub">Toggle mobile data</string>
     <string name="action_network_mode">Network mode</string>
-    <string name="action_network_mode_sub">Force 2G, 3G, 4G, 5G or auto</string>
+    <string name="action_network_mode_sub">Choose from the modes actually available for the selected SIM. Applying a change requires elevated access.</string>
     <string name="action_set_ringtone">Set ringtone</string>
     <string name="action_set_ringtone_sub">Pick the default call ringtone</string>
     <string name="action_hotspot">Hotspot</string>

@@ -33,6 +33,9 @@ object PermissionCatalog {
             android.Manifest.permission.ACCESS_FINE_LOCATION,
             android.Manifest.permission.ACCESS_COARSE_LOCATION
         )
+        // SubscriptionManager requires this dangerous runtime permission to
+        // enumerate active SIMs and read confirmed per-SIM network capability.
+        ActionType.SYSTEM_NETWORK_MODE -> listOf(android.Manifest.permission.READ_PHONE_STATE)
         // Android 17 (API 37) makes ACCESS_LOCAL_NETWORK mandatory to reach
         // LAN devices (home-assistant hubs, NAS, smart plugs). HTTP requests
         // to private IPs / mDNS names need it; public URLs do not, but the

@@ -493,7 +493,7 @@
 
     <string name="charging_yes">充电中</string>
     <string name="ringtone_label">默认铃声</string>
-    <string name="network_mode_sub">需要 root、Shizuku 或系统权限；不支持相应制式的设备将保持当前模式</string>
+    <string name="network_mode_sub">从所选 SIM 卡实际可用的模式中选择。应用更改需要提升权限。</string>
     <string name="network_mode_2g">2G</string>
     <string name="network_mode_auto">自动</string>
     <string name="network_mode_5g">5G</string>
@@ -504,7 +504,7 @@
     <string name="charging_any">任意</string>
     <string name="network_mode_4g">4G</string>
     <string name="choose_ringtone">选择铃声</string>
-    <string name="action_network_mode_sub">强制 2G、3G、4G、5G 或自动</string>
+    <string name="action_network_mode_sub">从所选 SIM 卡实际可用的模式中选择。应用更改需要提升权限。</string>
     <string name="action_set_ringtone_sub">选择默认来电铃声</string>
     <string name="network_mode_3g">3G</string>
     <string name="action_network_mode">网络模式</string>
@@ -967,4 +967,8 @@
     <string name="plugin_high_risk_continue">我了解</string>
     <string name="plugin_high_risk_badge">高级：可访问高权限命令</string>
     <string name="map_google_fallback">无法加载 Google 地图，已切换至备用地图。</string>
+    <string name="network_mode_reading">正在读取可用网络模式…</string>
+    <string name="network_mode_sim">SIM 卡 %1$d</string>
+    <string name="network_mode_unavailable">无法获取此设备或订阅实际支持的网络模式。不会显示未经确认的选项。</string>
+    <string name="network_mode_grant_phone_permission">允许访问电话状态</string>
 </resources>

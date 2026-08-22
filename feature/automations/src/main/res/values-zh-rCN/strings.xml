@@ -199,7 +199,7 @@
     <string name="shortcut_added">快捷方式已添加到主屏幕</string>
     <string name="shortcut_in_app_shortcuts">已添加到应用快捷方式</string>
 
-    <string name="action_network_mode_sub">强制 2G、3G、4G、5G 或自动</string>
+    <string name="action_network_mode_sub">从所选 SIM 卡实际可用的模式中选择。应用更改需要提升权限。</string>
     <string name="action_network_mode">网络模式</string>
     <string name="action_set_ringtone_sub">选择默认来电铃声</string>
     <string name="action_set_ringtone">设置铃声</string>

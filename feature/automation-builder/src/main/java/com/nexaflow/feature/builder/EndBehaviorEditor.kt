@@ -266,20 +266,7 @@ private fun EndValueEditor(
             }
         }
         ActionType.SYSTEM_NETWORK_MODE -> {
-            val modes = NETWORK_MODE_OPTIONS.map { (key, res) -> key to stringResource(res) }
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                modes.forEach { (value, label) ->
-                    SelectChip(
-                        selected = (config["mode"] ?: "AUTO") == value,
-                        onClick = { onConfigChange(mapOf("mode" to value)) },
-                        label = label
-                    )
-                }
-            }
+            NetworkModeSelector(config = config, onConfigChange = onConfigChange)
         }
         else -> Unit
     }

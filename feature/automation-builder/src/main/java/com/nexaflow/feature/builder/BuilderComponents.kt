@@ -667,15 +667,6 @@ internal val STREAM_OPTIONS = listOf(
     "ACCESSIBILITY" to R.string.stream_accessibility
 )
 
-/** Shared network mode options. */
-internal val NETWORK_MODE_OPTIONS = listOf(
-    "AUTO" to R.string.network_mode_auto,
-    "2G" to R.string.network_mode_2g,
-    "3G" to R.string.network_mode_3g,
-    "4G" to R.string.network_mode_4g,
-    "5G" to R.string.network_mode_5g
-)
-
 // region Previews
 
 @Preview(name = "SelectChip", showBackground = true)

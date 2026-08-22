@@ -492,7 +492,7 @@
 
     <string name="charging_yes">يشحن</string>
     <string name="ringtone_label">نغمة الرنين الافتراضية</string>
-    <string name="network_mode_sub">يتطلب صلاحيات root أو Shizuku أو صلاحيات النظام؛ الأجهزة التي لا تدعم الجيل تُبقي الوضع الحالي</string>
+    <string name="network_mode_sub">اختر من الأوضاع المتاحة فعلياً للشريحة المحددة. يتطلب تطبيق التغيير صلاحيات مرتفعة.</string>
     <string name="network_mode_2g">2G</string>
     <string name="network_mode_auto">تلقائي</string>
     <string name="network_mode_5g">5G</string>
@@ -503,7 +503,7 @@
     <string name="charging_any">أي</string>
     <string name="network_mode_4g">4G</string>
     <string name="choose_ringtone">اختر النغمة</string>
-    <string name="action_network_mode_sub">فرض 2G أو 3G أو 4G أو 5G أو تلقائي</string>
+    <string name="action_network_mode_sub">اختر من الأوضاع المتاحة فعلياً للشريحة المحددة. يتطلب تطبيق التغيير صلاحيات مرتفعة.</string>
     <string name="action_set_ringtone_sub">اختر نغمة الرنين الافتراضية للمكالمات</string>
     <string name="network_mode_3g">3G</string>
     <string name="action_network_mode">وضع الشبكة</string>
@@ -966,4 +966,8 @@
     <string name="plugin_high_risk_continue">أفهم ذلك</string>
     <string name="plugin_high_risk_badge">متقدم: وصول لأوامر بصلاحيات مرتفعة</string>
     <string name="map_google_fallback">تعذر تحميل خرائط Google، لذلك تم الانتقال إلى خريطة بديلة.</string>
+    <string name="network_mode_reading">جارٍ قراءة أوضاع الشبكة المتاحة…</string>
+    <string name="network_mode_sim">الشريحة %1$d</string>
+    <string name="network_mode_unavailable">أوضاع الشبكة المدعومة فعلياً غير متاحة لهذه الشريحة أو الجهاز، لذلك لا تظهر خيارات غير مؤكدة.</string>
+    <string name="network_mode_grant_phone_permission">السماح بالوصول إلى حالة الهاتف</string>
 </resources>

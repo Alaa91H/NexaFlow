@@ -23,7 +23,11 @@ class ConnectivityActionsHandler : ActionHandler {
             ActionType.SYSTEM_WIFI -> ctx.controller.setWifi(enabled)
             ActionType.SYSTEM_BLUETOOTH -> ctx.controller.setBluetooth(enabled)
             ActionType.SYSTEM_MOBILE_DATA -> ctx.controller.setMobileData(enabled)
-            ActionType.SYSTEM_NETWORK_MODE -> ctx.controller.setNetworkMode(action.config["mode"] ?: "AUTO")
+            ActionType.SYSTEM_NETWORK_MODE -> ctx.controller.setNetworkMode(
+                mode = action.config["mode"] ?: "AUTO",
+                requestedMask = action.config["network_mask"]?.toLongOrNull(),
+                subscriptionId = action.config["network_subscription_id"]?.toIntOrNull()
+            )
             ActionType.SYSTEM_HOTSPOT -> ctx.controller.setHotspot(enabled)
             ActionType.SYSTEM_NFC -> ctx.controller.setNfc(enabled)
             ActionType.SYSTEM_AIRPLANE_MODE -> ctx.controller.setAirplaneMode(enabled)

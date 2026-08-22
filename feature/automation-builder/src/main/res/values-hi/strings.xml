@@ -493,7 +493,7 @@
 
     <string name="charging_yes">चार्ज हो रहा है</string>
     <string name="ringtone_label">डिफ़ॉल्ट रिंगटोन</string>
-    <string name="network_mode_sub">रूट, शिजुकु या सिस्टम विशेषाधिकार चाहिए; बिना संगत रेडियो वाले उपकरण वर्तमान मोड बनाए रखते हैं</string>
+    <string name="network_mode_sub">चुनी गई SIM के लिए वास्तव में उपलब्ध मोड में से चुनें। परिवर्तन लागू करने के लिए उन्नत अनुमति चाहिए।</string>
     <string name="network_mode_2g">2G</string>
     <string name="network_mode_auto">ऑटो</string>
     <string name="network_mode_5g">5G</string>
@@ -504,7 +504,7 @@
     <string name="charging_any">कोई भी</string>
     <string name="network_mode_4g">4G</string>
     <string name="choose_ringtone">रिंगटोन चुनें</string>
-    <string name="action_network_mode_sub">2G, 3G, 4G, 5G या ऑटो पर बल दें</string>
+    <string name="action_network_mode_sub">चुनी गई SIM के लिए वास्तव में उपलब्ध मोड में से चुनें। परिवर्तन लागू करने के लिए उन्नत अनुमति चाहिए।</string>
     <string name="action_set_ringtone_sub">डिफ़ॉल्ट कॉल रिंगटोन चुनें</string>
     <string name="network_mode_3g">3G</string>
     <string name="action_network_mode">नेटवर्क मोड</string>
@@ -967,4 +967,8 @@
     <string name="plugin_high_risk_continue">मैं समझता हूँ</string>
     <string name="plugin_high_risk_badge">उन्नत: उन्नत कमांड पहुँच</string>
     <string name="map_google_fallback">Google Maps लोड नहीं हो सका। वैकल्पिक मानचित्र पर स्विच कर दिया गया है।</string>
+    <string name="network_mode_reading">उपलब्ध नेटवर्क मोड पढ़े जा रहे हैं…</string>
+    <string name="network_mode_sim">SIM %1$d</string>
+    <string name="network_mode_unavailable">इस डिवाइस या सदस्यता के लिए वास्तव में समर्थित नेटवर्क मोड उपलब्ध नहीं हैं। असमर्थित विकल्प नहीं दिखाए जाते।</string>
+    <string name="network_mode_grant_phone_permission">फ़ोन स्थिति की अनुमति दें</string>
 </resources>

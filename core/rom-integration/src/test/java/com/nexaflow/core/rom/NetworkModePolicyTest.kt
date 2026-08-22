@@ -137,13 +137,74 @@ class NetworkModePolicyTest {
         val req4g = NetworkModePolicy.request("4G")
         // Decimal: 532480 == BITMASK_4G.
         assertTrue(NetworkModePolicy.coversReadBack("532480", req4g))
-        // Decimal with the NR bit still set (532480 | 1<<20) is tolerated
-        // as a superset — the radio kept NR, but LTE is allowed.
-        assertTrue(NetworkModePolicy.coversReadBack("1581056", req4g))
+        // Decimal with the NR bit still set (532480 | 1<<20) must not
+        // confirm LTE-only: preferred mode is a restriction, not a minimum.
+        assertFalse(NetworkModePolicy.coversReadBack("1581056", req4g))
         // Binary form of BITMASK_4G.
         assertTrue(NetworkModePolicy.coversReadBack(java.lang.Long.toString(NetworkModePolicy.BITMASK_4G, 2), req4g))
         // A read-back that lost the LTE bits must not confirm 4G.
         assertFalse(NetworkModePolicy.coversReadBack("1", req4g))
+    }
+
+    @Test
+    fun `options are derived only from confirmed device support`() {
+        val nrLte = NetworkModePolicy.optionsFor(
+            NetworkModePolicy.BITMASK_5G or NetworkModePolicy.BITMASK_4G
+        )
+        assertTrue(nrLte.any { it.id == "AUTO" && it.allowedNetworkTypes ==
+            (NetworkModePolicy.BITMASK_5G or NetworkModePolicy.BITMASK_4G) })
+        // The complete NR/LTE mask is represented once by AUTO; its
+        // narrower real profiles remain selectable independently.
+        assertTrue(nrLte.any { it.id == "NR" })
+        assertTrue(nrLte.any { it.id == "LTE" })
+        assertFalse(nrLte.any { it.label.contains("GSM") || it.label.contains("WCDMA") })
+    }
+
+    @Test
+    fun `options retain a supported TD-SCDMA combination without inventing NR`() {
+        val supported = NetworkModePolicy.BITMASK_4G or NetworkModePolicy.BITMASK_TD_SCDMA or
+            NetworkModePolicy.BITMASK_2G or NetworkModePolicy.BITMASK_3G
+        val options = NetworkModePolicy.optionsFor(supported)
+        assertTrue(options.any { it.id == "AUTO" && it.allowedNetworkTypes == supported })
+        assertTrue(options.any { it.id == "LTE" })
+        assertTrue(options.any { it.id == "TDSCDMA" })
+        assertFalse(options.any { it.label.contains("NR") })
+    }
+
+    @Test
+    fun `exact match rejects preserved types outside the requested profile`() {
+        assertTrue(NetworkModePolicy.matches(NetworkModePolicy.BITMASK_4G, NetworkModePolicy.BITMASK_4G))
+        assertFalse(
+            NetworkModePolicy.matches(
+                NetworkModePolicy.BITMASK_4G,
+                NetworkModePolicy.BITMASK_4G or NetworkModePolicy.BITMASK_5G
+            )
+        )
+    }
+
+    @Test
+    fun `per subscription snapshot round trips exact masks in stable order`() {
+        val input = mapOf(
+            7 to (NetworkModePolicy.BITMASK_4G or NetworkModePolicy.BITMASK_5G),
+            2 to NetworkModePolicy.BITMASK_2G
+        )
+
+        val encoded = NetworkModePolicy.encodeSnapshot(input)
+
+        assertEquals(
+            "network-mask-v1:2=${NetworkModePolicy.BITMASK_2G},7=${NetworkModePolicy.BITMASK_4G or NetworkModePolicy.BITMASK_5G}",
+            encoded
+        )
+        assertEquals(input, encoded?.let(NetworkModePolicy::decodeSnapshot))
+    }
+
+    @Test
+    fun `per subscription snapshot rejects legacy empty and malformed values`() {
+        assertEquals(null, NetworkModePolicy.encodeSnapshot(emptyMap()))
+        assertEquals(null, NetworkModePolicy.decodeSnapshot("AUTO"))
+        assertEquals(null, NetworkModePolicy.decodeSnapshot("network-mask-v1:"))
+        assertEquals(null, NetworkModePolicy.decodeSnapshot("network-mask-v1:7=0"))
+        assertEquals(null, NetworkModePolicy.decodeSnapshot("network-mask-v1:not-a-sub=1"))
     }
 
     @Test

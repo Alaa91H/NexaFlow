@@ -199,7 +199,7 @@
     <string name="shortcut_added">تمت إضافة الاختصار إلى الشاشة الرئيسية</string>
     <string name="shortcut_in_app_shortcuts">أُضيف إلى اختصارات التطبيق</string>
 
-    <string name="action_network_mode_sub">فرض 2G أو 3G أو 4G أو 5G أو تلقائي</string>
+    <string name="action_network_mode_sub">اختر من الأوضاع المتاحة فعلياً للشريحة المحددة. يتطلب تطبيق التغيير صلاحيات مرتفعة.</string>
     <string name="action_network_mode">وضع الشبكة</string>
     <string name="action_set_ringtone_sub">اختر نغمة الرنين الافتراضية للمكالمات</string>
     <string name="action_set_ringtone">تعيين النغمة</string>

@@ -1,48 +1,86 @@
 package com.nexaflow.core.rom
 
 /**
- * Pure mapping for the cellular network-generation action
- * (`SYSTEM_NETWORK_MODE`). No `android.*` imports so the table and the
- * read-back verification are atomically testable on the JVM.
- *
- * Two value spaces exist because the two write paths disagree:
- *
- *  - [Request.legacyInt] — the `preferred_network_mode` /
- *    `setPreferredNetworkType` PhoneConstants table (1 = GSM only,
- *    2 = WCDMA only, 11 = LTE only, 22 = NR + LTE + legacy, 10 = classic
- *    full-auto). These integers were appended per Android release, so the
- *    NR entries are **not stable across versions** — the bitmask path below
- *    is the reliable one.
- *  - [Request.bitmask] — the `NetworkTypeBitMask` values consumed by
- *    `setAllowedNetworkTypesForReason`, stable since Android 11.
+ * Pure cellular-radio policy shared by the UI capability reader and the
+ * privileged writer. Values are Android [TelephonyManager.NetworkTypeBitMask]
+ * compatible and are deliberately JVM-testable.
  */
 object NetworkModePolicy {
 
-    /** GSM | GPRS | EDGE — mirrors `TelephonyManager.NETWORK_TYPE_BITMASK_*`. */
+    /** GSM | GPRS | EDGE. */
     const val BITMASK_2G: Long = (1L shl 16) or (1L shl 1) or (1L shl 2)
 
     /** UMTS | HSDPA | HSUPA | HSPA | HSPAP. */
-    const val BITMASK_3G: Long = (1L shl 3) or (1L shl 8) or (1L shl 9) or (1L shl 10) or (1L shl 15)
+    const val BITMASK_3G: Long =
+        (1L shl 3) or (1L shl 8) or (1L shl 9) or (1L shl 10) or (1L shl 15)
 
-    /** LTE | LTE_CA. */
+    /** CDMA | 1xRTT. */
+    const val BITMASK_CDMA: Long = (1L shl 4) or (1L shl 7)
+
+    /** EVDO-0 | EVDO-A | EVDO-B | eHRPD. */
+    const val BITMASK_EVDO: Long = (1L shl 5) or (1L shl 6) or (1L shl 12) or (1L shl 14)
+
+    /** TD-SCDMA. */
+    const val BITMASK_TD_SCDMA: Long = 1L shl 17
+
+    /** LTE | LTE-CA. */
     const val BITMASK_4G: Long = (1L shl 13) or (1L shl 19)
 
-    /** NR. */
+    /** NR (5G). */
     const val BITMASK_5G: Long = 1L shl 20
 
-    /** The pre-Android-14 full set: 2G/3G/4G/5G families + TD-SCDMA + IWLAN. */
-    const val BITMASK_AUTO: Long =
-        BITMASK_2G or BITMASK_3G or BITMASK_4G or BITMASK_5G or (1L shl 17) or (1L shl 18)
+    /** Cellular RATs that make sense as a user-selectable preferred mode. */
+    const val BITMASK_SELECTABLE_CELLULAR: Long =
+        BITMASK_2G or BITMASK_3G or BITMASK_CDMA or BITMASK_EVDO or BITMASK_TD_SCDMA or
+            BITMASK_4G or BITMASK_5G
 
-    data class Request(val label: String, val legacyInt: Int, val bitmask: Long)
+    /** The full AOSP set, retained for legacy AUTO tasks only. */
+    const val BITMASK_AUTO: Long = BITMASK_SELECTABLE_CELLULAR or (1L shl 18)
+
+    data class Request(
+        val label: String,
+        val legacyInt: Int,
+        val bitmask: Long,
+        /** Legacy PhoneConstants cannot represent this exact profile safely. */
+        val legacyCompatible: Boolean = true
+    )
+
+    /** A candidate profile that is filtered against a confirmed device mask. */
+    data class Option(
+        val id: String,
+        val allowedNetworkTypes: Long,
+        val label: String,
+        val isAutomatic: Boolean = false
+    )
+
+    /** Versioned, per-subscription capture used by restore-original behavior. */
+    private const val SNAPSHOT_PREFIX = "network-mask-v1:"
+
+    fun encodeSnapshot(masksBySubscription: Map<Int, Long>): String? {
+        if (masksBySubscription.isEmpty()) return null
+        return SNAPSHOT_PREFIX + masksBySubscription
+            .toSortedMap()
+            .entries
+            .joinToString(",") { (subId, mask) -> "$subId=$mask" }
+    }
+
+    fun decodeSnapshot(value: String): Map<Int, Long>? {
+        if (!value.startsWith(SNAPSHOT_PREFIX)) return null
+        val entries = value.removePrefix(SNAPSHOT_PREFIX)
+            .split(',')
+            .filter { it.isNotBlank() }
+            .mapNotNull { entry ->
+                val subId = entry.substringBefore('=').toIntOrNull()
+                val mask = entry.substringAfter('=', missingDelimiterValue = "").toLongOrNull()
+                if (subId != null && mask != null && mask > 0L) subId to mask else null
+            }
+            .toMap()
+        return entries.takeIf { it.isNotEmpty() }
+    }
 
     /**
-     * Resolves a mode label to its write values. Unknown or blank labels
-     * fall back to AUTO so a stale config never locks the radio to a wrong
-     * generation.
-     *
-     * @param nrSupported whether the platform exposes NR modes (Android 11+);
-     *                    controls the legacy full-auto fallback value.
+     * Resolves legacy task values. Unknown values deliberately return AUTO so a
+     * saved task cannot silently lock a radio to a guessed technology.
      */
     fun request(mode: String, nrSupported: Boolean = true): Request = when (mode) {
         "2G" -> Request("2G", legacyInt = 1, BITMASK_2G)
@@ -53,54 +91,120 @@ object NetworkModePolicy {
     }
 
     /**
-     * Full-auto legacy int: on Android 11+ the NR-aware value (22) is valid;
-     * earlier releases cap at the classic full-legacy 10.
+     * Builds an exact request from a mode read from this device. The legacy
+     * PhoneConstants fallback is explicitly disabled because its integer table
+     * cannot faithfully encode modern NR/TD-SCDMA/carrier combinations.
      */
-    fun legacyAuto(nrSupported: Boolean): Int = if (nrSupported) 22 else 10
+    fun requestForMask(mask: Long): Request {
+        val cellular = mask and BITMASK_SELECTABLE_CELLULAR
+        return Request(
+            label = describe(cellular),
+            legacyInt = legacyAuto(nrSupported = (cellular and BITMASK_5G) != 0L),
+            bitmask = cellular,
+            legacyCompatible = false
+        )
+    }
 
     /**
-     * Read-back check for `getAllowedNetworkTypesForReason`: true when
-     * [actual] still permits every generation [requested] demands. Extra bits
-     * the radio cannot serve are tolerated, so a carrier that silently drops
-     * one band still counts the mode as applied.
+     * Generates only profiles that are complete subsets of [supportedMask].
+     * This preserves real carrier/hardware limits instead of displaying a
+     * hard-coded list of 2G/3G/4G/5G choices on every phone.
      */
+    fun optionsFor(supportedMask: Long): List<Option> {
+        val supported = supportedMask and BITMASK_SELECTABLE_CELLULAR
+        if (supported == 0L) return emptyList()
+        val options = mutableListOf(
+            Option(
+                id = "AUTO",
+                allowedNetworkTypes = supported,
+                label = describe(supported),
+                isAutomatic = true
+            )
+        )
+        standardProfiles.forEach { option ->
+            if (option.allowedNetworkTypes != supported &&
+                (supported and option.allowedNetworkTypes) == option.allowedNetworkTypes
+            ) {
+                options += option
+            }
+        }
+        return options.distinctBy { it.allowedNetworkTypes }
+    }
+
+    /** Name every supported radio family without assuming the carrier supports it. */
+    fun describe(mask: Long): String = buildList {
+        if ((mask and BITMASK_5G) != 0L) add("NR")
+        if ((mask and BITMASK_4G) != 0L) add("LTE")
+        if ((mask and BITMASK_TD_SCDMA) != 0L) add("TD-SCDMA")
+        if ((mask and BITMASK_CDMA) != 0L) add("CDMA")
+        if ((mask and BITMASK_EVDO) != 0L) add("EvDo")
+        if ((mask and BITMASK_3G) != 0L) add("WCDMA")
+        if ((mask and BITMASK_2G) != 0L) add("GSM")
+    }.joinToString(" / ").ifBlank { "Unknown" }
+
+    fun legacyAuto(nrSupported: Boolean): Int = if (nrSupported) 22 else 10
+
+    /** True when [actual] retains the entire requested profile. */
     fun covers(requested: Long, actual: Long): Boolean = (actual and requested) == requested
 
     /**
-     * Read-back check for `cmd phone get-allowed-network-types-for-users`,
-     * which prints the allowed set as band names (e.g. "LTE" or "LTE|NR").
-     * True when the printed set matches the requested generation's defining
-     * band family.
+     * Preferred-network mode is a restriction, not a minimum capability. A
+     * read-back containing NR after the user chose LTE-only is therefore not a
+     * success. Ignore IWLAN/unknown bits but require exact cellular equality.
      */
-    fun coversByName(actual: String, label: String): Boolean {
-        val a = actual.uppercase()
-        return when (label) {
-            "2G" -> a.contains("GSM") || a.contains("GPRS") || a.contains("EDGE")
-            "3G" -> a.contains("UMTS") || a.contains("HSDPA") || a.contains("HSPA")
-            "4G" -> a.contains("LTE") && !a.contains("NR")
-            "5G" -> a.contains("NR")
-            else -> a.isNotBlank() && !a.contains("UNKNOWN")
-        }
-    }
+    fun matches(requested: Long, actual: Long): Boolean =
+        (requested and BITMASK_SELECTABLE_CELLULAR) == (actual and BITMASK_SELECTABLE_CELLULAR)
 
-    /**
-     * Read-back check for the `cmd phone get-allowed-network-types-for-users`
-     * output, which varies across ROMs: AOSP prints band names
-     * (`TelephonyManager.convertNetworkTypeBitmaskToString`, e.g. "LTE" or
-     * "LTE|NR"), while several OEM builds print the raw bitmask as a decimal
-     * (or binary) number. This handles both so the write can be confirmed on
-     * any ROM.
-     */
+    /** Parses both AOSP text output and numeric OEM shell output exactly. */
     fun coversReadBack(actual: String, request: Request): Boolean {
         val trimmed = actual.trim()
         if (trimmed.isEmpty() || trimmed.equals("-1", ignoreCase = true)) return false
-        // Numeric output: decimal, or binary when it only contains 0/1 and is
-        // too long to be a plausible decimal bitmask.
-        trimmed.toLongOrNull()?.let { return covers(request.bitmask, it) }
+        trimmed.toLongOrNull()?.let { return matches(request.bitmask, it) }
         if (trimmed.length > 10 && trimmed.all { it == '0' || it == '1' }) {
-            trimmed.toLongOrNull(2)?.let { return covers(request.bitmask, it) }
+            trimmed.toLongOrNull(2)?.let { return matches(request.bitmask, it) }
         }
-        // Name output (AOSP convertNetworkTypeBitmaskToString).
-        return coversByName(trimmed, request.label)
+        return matches(request.bitmask, maskFromNames(trimmed.uppercase()))
     }
+
+    private fun maskFromNames(names: String): Long {
+        var mask = 0L
+        if (names.contains("NR")) mask = mask or BITMASK_5G
+        if (names.contains("LTE")) mask = mask or BITMASK_4G
+        if (names.contains("TD")) mask = mask or BITMASK_TD_SCDMA
+        if (names.contains("CDMA")) mask = mask or BITMASK_CDMA
+        if (names.contains("EVDO") || names.contains("EHRPD")) mask = mask or BITMASK_EVDO
+        if (names.contains("UMTS") || names.contains("WCDMA") || names.contains("HSPA")) {
+            mask = mask or BITMASK_3G
+        }
+        if (names.contains("GSM") || names.contains("GPRS") || names.contains("EDGE")) {
+            mask = mask or BITMASK_2G
+        }
+        return mask
+    }
+
+    private val standardProfiles = listOf(
+        profile("NR_LTE_TDSCDMA_CDMA_EVDO_GSM_WCDMA", BITMASK_5G or BITMASK_4G or BITMASK_TD_SCDMA or BITMASK_CDMA or BITMASK_EVDO or BITMASK_2G or BITMASK_3G),
+        profile("NR_LTE_TDSCDMA_GSM_WCDMA", BITMASK_5G or BITMASK_4G or BITMASK_TD_SCDMA or BITMASK_2G or BITMASK_3G),
+        profile("NR_LTE_GSM_WCDMA", BITMASK_5G or BITMASK_4G or BITMASK_2G or BITMASK_3G),
+        profile("NR_LTE_WCDMA", BITMASK_5G or BITMASK_4G or BITMASK_3G),
+        profile("NR_LTE", BITMASK_5G or BITMASK_4G),
+        profile("NR", BITMASK_5G),
+        profile("LTE_TDSCDMA_CDMA_EVDO_GSM_WCDMA", BITMASK_4G or BITMASK_TD_SCDMA or BITMASK_CDMA or BITMASK_EVDO or BITMASK_2G or BITMASK_3G),
+        profile("LTE_TDSCDMA_GSM_WCDMA", BITMASK_4G or BITMASK_TD_SCDMA or BITMASK_2G or BITMASK_3G),
+        profile("LTE_GSM_WCDMA", BITMASK_4G or BITMASK_2G or BITMASK_3G),
+        profile("LTE_WCDMA", BITMASK_4G or BITMASK_3G),
+        profile("LTE", BITMASK_4G),
+        profile("TDSCDMA_WCDMA", BITMASK_TD_SCDMA or BITMASK_3G),
+        profile("TDSCDMA_GSM", BITMASK_TD_SCDMA or BITMASK_2G),
+        profile("TDSCDMA", BITMASK_TD_SCDMA),
+        profile("CDMA_EVDO", BITMASK_CDMA or BITMASK_EVDO),
+        profile("CDMA", BITMASK_CDMA),
+        profile("EVDO", BITMASK_EVDO),
+        profile("GSM_WCDMA", BITMASK_2G or BITMASK_3G),
+        profile("WCDMA", BITMASK_3G),
+        profile("GSM", BITMASK_2G)
+    )
+
+    private fun profile(id: String, mask: Long): Option =
+        Option(id = id, allowedNetworkTypes = mask, label = describe(mask))
 }
