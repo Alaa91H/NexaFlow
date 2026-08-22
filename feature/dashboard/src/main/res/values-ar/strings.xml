@@ -81,6 +81,7 @@
     <string name="trigger_nfc_tag_scanned">مسح بطاقة NFC</string>
     <string name="trigger_alarm_set_changed">ضبط منبّه</string>
     <string name="task_details_collapse">طي المهمة</string>
+    <string name="task_details_expand">توسيع المهمة</string>
     <string name="task_status_running">قيد التنفيذ</string>
     <string name="task_status_enabled">جاهزة</string>
     <string name="task_status_disabled">متوقفة</string>

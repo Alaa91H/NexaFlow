@@ -21,6 +21,10 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
+    testOptions {
+        // Compose unit tests need merged Android resources under Robolectric.
+        unitTests.isIncludeAndroidResources = true
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -62,5 +66,8 @@ dependencies {
     implementation(project(":core:ui-components"))
     implementation(project(":feature:automations"))
     testImplementation(libs.junit.junit)
+    testImplementation(libs.androidx.compose.ui.ui.test.junit4)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.org.robolectric.robolectric)
 }
 

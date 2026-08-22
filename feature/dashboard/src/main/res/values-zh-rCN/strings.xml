@@ -81,6 +81,7 @@
     <string name="trigger_nfc_tag_scanned">已扫描 NFC 标签</string>
     <string name="trigger_alarm_set_changed">闹钟已设置</string>
     <string name="task_details_collapse">收起任务</string>
+    <string name="task_details_expand">展开任务</string>
     <string name="task_status_running">正在运行</string>
     <string name="task_status_enabled">已就绪</string>
     <string name="task_status_disabled">已停用</string>

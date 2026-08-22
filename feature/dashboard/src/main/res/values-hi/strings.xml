@@ -81,6 +81,7 @@
     <string name="trigger_nfc_tag_scanned">NFC टैग स्कैन हुआ</string>
     <string name="trigger_alarm_set_changed">अलार्म सेट</string>
     <string name="task_details_collapse">कार्य समेटें</string>
+    <string name="task_details_expand">कार्य विस्तृत करें</string>
     <string name="task_status_running">चल रहा है</string>
     <string name="task_status_enabled">तैयार</string>
     <string name="task_status_disabled">निष्क्रिय</string>

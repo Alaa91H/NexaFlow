@@ -81,6 +81,7 @@
     <string name="trigger_nfc_tag_scanned">Étiquette NFC détectée</string>
     <string name="trigger_alarm_set_changed">Alarme définie</string>
     <string name="task_details_collapse">Réduire la tâche</string>
+    <string name="task_details_expand">Développer la tâche</string>
     <string name="task_status_running">En cours</string>
     <string name="task_status_enabled">Prête</string>
     <string name="task_status_disabled">Désactivée</string>

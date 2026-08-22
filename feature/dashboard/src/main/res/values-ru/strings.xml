@@ -81,6 +81,7 @@
     <string name="trigger_nfc_tag_scanned">NFC-метка считана</string>
     <string name="trigger_alarm_set_changed">Будильник установлен</string>
     <string name="task_details_collapse">Свернуть задачу</string>
+    <string name="task_details_expand">Развернуть задачу</string>
     <string name="task_status_running">Выполняется</string>
     <string name="task_status_enabled">Готова</string>
     <string name="task_status_disabled">Отключена</string>

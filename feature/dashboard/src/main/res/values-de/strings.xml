@@ -81,6 +81,7 @@
     <string name="trigger_nfc_tag_scanned">NFC-Tag erkannt</string>
     <string name="trigger_alarm_set_changed">Wecker gestellt</string>
     <string name="task_details_collapse">Aufgabe einklappen</string>
+    <string name="task_details_expand">Aufgabe erweitern</string>
     <string name="task_status_running">Wird ausgeführt</string>
     <string name="task_status_enabled">Bereit</string>
     <string name="task_status_disabled">Deaktiviert</string>

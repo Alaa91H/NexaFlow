@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Search
@@ -58,6 +59,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -273,14 +275,21 @@ internal fun nextExpandedAutomationId(
     tappedAutomationId: String
 ): String? = if (currentExpandedId == tappedAutomationId) null else tappedAutomationId
 
+/** Stable semantics used by the dashboard Compose contract test. */
+internal object RoutineCardTestTags {
+    const val HeaderIcon = "routine_card_header_icon"
+    const val HeaderToggle = "routine_card_header_toggle"
+    const val HeaderExpand = "routine_card_header_expand"
+}
+
 /**
- * A progressive-disclosure task card. In its resting state it exposes only the
- * task name; a tap expands exactly one card on the dashboard to reveal the
- * task's persisted definition and live execution metadata.
+ * A progressive-disclosure task card. Its header always exposes the task icon,
+ * name, enabled state, and explicit expansion control; a tap expands exactly
+ * one card on the dashboard to reveal persisted definition and live metadata.
  */
 @Composable
 @OptIn(ExperimentalFoundationApi::class)
-private fun RoutineCard(
+internal fun RoutineCard(
     row: AutomationRow,
     summary: String,
     nextRun: String?,
@@ -316,6 +325,14 @@ private fun RoutineCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    // Identity stays visible in the collapsed state: users can
+                    // distinguish routines without opening each card.
+                    IconBadge(
+                        modifier = Modifier.testTag(RoutineCardTestTags.HeaderIcon),
+                        icon = iconVector(row.automation.icon),
+                        containerColor = Color(row.automation.backgroundColor),
+                        contentColor = Color(row.automation.iconColor)
+                    )
                     Text(
                         text = row.automation.name,
                         style = MaterialTheme.typography.titleSmall,
@@ -324,13 +341,19 @@ private fun RoutineCard(
                         modifier = Modifier.weight(1f)
                     )
                     Switch(
+                        modifier = Modifier.testTag(RoutineCardTestTags.HeaderToggle),
                         checked = row.automation.enabled,
                         onCheckedChange = onToggle
                     )
-                    if (expanded) {
+                    IconButton(
+                        modifier = Modifier.testTag(RoutineCardTestTags.HeaderExpand),
+                        onClick = onExpandedChange
+                    ) {
                         Icon(
-                            imageVector = Icons.Filled.ExpandLess,
-                            contentDescription = stringResource(R.string.task_details_collapse),
+                            imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                            contentDescription = stringResource(
+                                if (expanded) R.string.task_details_collapse else R.string.task_details_expand
+                            ),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -341,8 +364,7 @@ private fun RoutineCard(
                         row = row,
                         summary = summary,
                         nextRun = nextRun,
-                        isRunning = isRunning,
-                        onToggle = onToggle
+                        isRunning = isRunning
                     )
                 }
             }
@@ -382,8 +404,7 @@ private fun RoutineDetails(
     row: AutomationRow,
     summary: String,
     nextRun: String?,
-    isRunning: Boolean,
-    onToggle: (Boolean) -> Unit
+    isRunning: Boolean
 ) {
     val automation = row.automation
     Row(
@@ -391,11 +412,6 @@ private fun RoutineDetails(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        IconBadge(
-            icon = iconVector(automation.icon),
-            containerColor = Color(automation.backgroundColor),
-            contentColor = Color(automation.iconColor)
-        )
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = stringResource(
@@ -417,7 +433,6 @@ private fun RoutineDetails(
         if (isRunning) {
             CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
         }
-        Switch(checked = automation.enabled, onCheckedChange = onToggle)
     }
 
     if (automation.hasUserAuthoredDescription()) {

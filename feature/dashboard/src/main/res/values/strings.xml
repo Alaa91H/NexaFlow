@@ -81,6 +81,7 @@
     <string name="trigger_nfc_tag_scanned">NFC tag scanned</string>
     <string name="trigger_alarm_set_changed">Alarm set</string>
     <string name="task_details_collapse">Collapse task</string>
+    <string name="task_details_expand">Expand task</string>
     <string name="task_status_running">Running</string>
     <string name="task_status_enabled">Ready</string>
     <string name="task_status_disabled">Disabled</string>

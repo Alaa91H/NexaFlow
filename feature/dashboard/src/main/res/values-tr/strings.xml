@@ -81,6 +81,7 @@
     <string name="trigger_nfc_tag_scanned">NFC etiketi okundu</string>
     <string name="trigger_alarm_set_changed">Alarm kuruldu</string>
     <string name="task_details_collapse">Görevi daralt</string>
+    <string name="task_details_expand">Görevi genişlet</string>
     <string name="task_status_running">Çalışıyor</string>
     <string name="task_status_enabled">Hazır</string>
     <string name="task_status_disabled">Devre dışı</string>
