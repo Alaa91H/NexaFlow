@@ -69,6 +69,9 @@
     <string name="special_elevated_body">يحتاج هذا الإجراء إلى الجذر أو شيزوكو أو صلاحيات تطبيق نظام للتحكم في الإعدادات المحمية.</string>
     <string name="special_bluetooth_title">البلوتوث</string>
     <string name="special_bluetooth_body">يحتاج نيكسافلو إلى تفعيل البلوتوث لاكتشاف الأجهزة المقترنة وتشغيل المهام عند اتصالها.</string>
+    <string name="special_exact_alarm_title">المنبهات الدقيقة</string>
+    <string name="special_exact_alarm_body">يسمح لـ NexaFlow بتشغيل المهمة في وقتها المحدد حتى عندما يكون الجهاز خاملاً. بدونه قد يؤخر Android المهمة.</string>
+    <string name="special_exact_alarm_hint">فعّل المنبهات والتذكيرات لضمان تنفيذ المهمة في وقتها.</string>
 
     <string name="battery_above">البطارية فوق الحد</string>
     <string name="battery_above_sub">التشغيل فقط عندما تكون البطارية فوق المستوى</string>

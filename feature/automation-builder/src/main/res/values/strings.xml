@@ -108,6 +108,9 @@
     <string name="special_elevated_body">This action needs root, Shizuku, or system-app privileges to control protected settings.</string>
     <string name="special_bluetooth_title">Bluetooth</string>
     <string name="special_bluetooth_body">NexaFlow needs Bluetooth turned on to detect paired devices and run tasks when they connect.</string>
+    <string name="special_exact_alarm_title">Exact alarms</string>
+    <string name="special_exact_alarm_body">Allows NexaFlow to run a scheduled task at its selected time, even when the device is idle. Without it, Android may delay the task.</string>
+    <string name="special_exact_alarm_hint">Enable Alarms &amp; reminders to keep this task on time.</string>
 
     <string name="battery_above">Battery above threshold</string>
     <string name="battery_above_sub">Only run when battery is above the level</string>

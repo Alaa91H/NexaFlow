@@ -33,21 +33,19 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED ||
             intent.action == Intent.ACTION_LOCKED_BOOT_COMPLETED ||
-            intent.action == Intent.ACTION_MY_PACKAGE_REPLACED ||
-            intent.action == ALARM_PERMISSION_CHANGED_ACTION
+            intent.action == Intent.ACTION_MY_PACKAGE_REPLACED
         ) {
             restoreAfterBoot(context)
             return
         }
-        // The user changed the clock or crossed into another time zone: every
-        // RTC-based alarm (computed from the previous zone) is now wrong.
-        // Recompute all schedules from scratch. RTC_WALL_CLOCK alarms are NOT
-        // shifted automatically, so without this the next fire time silently
-        // drifts by the offset — the classic "9am task now fires at 8am" bug.
-        if (intent.action == Intent.ACTION_TIME_CHANGED ||
-            intent.action == Intent.ACTION_TIMEZONE_CHANGED ||
-            intent.action == TIMEZONE_OFFSET_CHANGED_ACTION
-        ) {
+        // Android cancels future exact alarms when this access changes. The
+        // scheduler may already be initialized in the current process, so
+        // initialize() alone is intentionally insufficient here: explicitly
+        // recompute and re-arm every enabled time task after a grant.
+        // The user changed the clock, crossed into another time zone, or
+        // granted/revoked exact-alarm access. In each case every RTC alarm must
+        // be recomputed; Android cancels exact alarms when the access changes.
+        if (intent.action in rescheduleActions) {
             rescheduleAll()
             return
         }
@@ -55,7 +53,8 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
             // Fired by the alarm scheduled in restoreAfterBoot: Android 15+
             // forbids launching time-limited FGS types from BOOT_COMPLETED, so
             // the service is started from here instead of the boot receiver.
-            MonitoringService.start(context.applicationContext)
+            runCatching { MonitoringService.start(context.applicationContext) }
+                .onFailure { Log.e(TAG, "Failed to start background trigger monitoring", it) }
             return
         }
         if (intent.action != AutomationScheduler.ACTION_RUN_AUTOMATION &&
@@ -89,6 +88,12 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                     }
                 }
                 scheduler.scheduleNext(automationId)
+            } catch (failure: Throwable) {
+                // Never lose an automatic execution failure behind a receiver
+                // crash. ExecutionEngine records action-level results; this
+                // guard covers repository/scheduling failures before or after
+                // the engine can persist its own execution record.
+                Log.e(TAG, "Automatic execution failed for $automationId", failure)
             } finally {
                 releaseWakeLock(wakeLock)
                 result.finish()
@@ -120,29 +125,36 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
     }
 
     private fun restoreAfterBoot(context: Context) {
-        try {
-            scheduler.initialize()
-            // Best practice on Android 15+: schedule an exact alarm that fires
-            // a few seconds after boot and starts monitoring from the alarm
-            // receiver, instead of launching the FGS directly from here.
-            MonitoringService.scheduleStart(context.applicationContext)
-        } catch (t: Throwable) {
-            Log.e(TAG, "Failed to restore after boot", t)
+        val pendingResult = goAsync()
+        scope.launch {
+            try {
+                scheduler.initialize()
+                // Do not rely only on the long-lived repository collector:
+                // boot/package replacement must synchronously request a fresh
+                // schedule pass before Android can reclaim the receiver process.
+                scheduler.rescheduleAll(repository.getAutomations().first())
+                // Android 15+ forbids launching time-limited FGS types directly
+                // from BOOT_COMPLETED, so the service starts from a short alarm.
+                MonitoringService.scheduleStart(context.applicationContext)
+            } catch (t: Throwable) {
+                Log.e(TAG, "Failed to restore automation schedules after boot", t)
+            } finally {
+                pendingResult.finish()
+            }
         }
     }
 
-    /**
-     * Recomputes every time trigger after a clock/time-zone change. Runs on
-     * the application scope (not goAsync) because it only touches the
-     * scheduler and the repository — no user-visible work is blocked.
-     */
+    /** Recomputes every time trigger after clock, time-zone, or alarm-access changes. */
     private fun rescheduleAll() {
-        try {
-            scope.launch {
+        val pendingResult = goAsync()
+        scope.launch {
+            try {
                 scheduler.rescheduleAll(repository.getAutomations().first())
+            } catch (t: Throwable) {
+                Log.e(TAG, "Failed to reschedule automatic tasks", t)
+            } finally {
+                pendingResult.finish()
             }
-        } catch (t: Throwable) {
-            Log.e(TAG, "Failed to reschedule after time change", t)
         }
     }
 
@@ -153,6 +165,15 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
         /** Android 17: sent when a fixed UTC offset changes without a zone switch. */
         const val TIMEZONE_OFFSET_CHANGED_ACTION =
             "android.intent.action.TIMEZONE_OFFSET_CHANGED"
+
+        /** Every broadcast that invalidates pending user-selected wall-clock alarms. */
+        internal val rescheduleActions: Set<String> = setOf(
+            ALARM_PERMISSION_CHANGED_ACTION,
+            Intent.ACTION_TIME_CHANGED,
+            Intent.ACTION_TIMEZONE_CHANGED,
+            TIMEZONE_OFFSET_CHANGED_ACTION
+        )
+
         private const val WAKE_LOCK_TIMEOUT_MS = 30_000L
     }
 }

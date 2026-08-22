@@ -43,20 +43,17 @@ class AutomationAlarmReceiverTimeChangeTest {
     }
 
     @Test
-    fun rescheduleAction_setIsSubsetOfHandledActions() {
-        // Every action the receiver treats as a reschedule trigger must be one
-        // of the three time-change broadcasts (or boot/perm-change, handled in
-        // restoreAfterBoot). This pins the onReceive dispatch table.
-        val handled = setOf(
-            Intent.ACTION_TIME_CHANGED,
-            Intent.ACTION_TIMEZONE_CHANGED,
-            AutomationAlarmReceiver.TIMEZONE_OFFSET_CHANGED_ACTION
-        )
+    fun rescheduleAction_setIncludesEveryScheduleInvalidatingBroadcast() {
+        val handled = AutomationAlarmReceiver.rescheduleActions
         assertTrue("TIME_SET handled", handled.contains(Intent.ACTION_TIME_CHANGED))
         assertTrue("TIMEZONE_CHANGED handled", handled.contains(Intent.ACTION_TIMEZONE_CHANGED))
         assertTrue(
             "TIMEZONE_OFFSET_CHANGED handled",
             handled.contains(AutomationAlarmReceiver.TIMEZONE_OFFSET_CHANGED_ACTION)
+        )
+        assertTrue(
+            "Exact-alarm permission change re-arms all enabled time tasks",
+            handled.contains(AutomationAlarmReceiver.ALARM_PERMISSION_CHANGED_ACTION)
         )
     }
 }

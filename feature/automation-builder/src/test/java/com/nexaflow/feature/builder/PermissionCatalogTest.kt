@@ -2,6 +2,7 @@ package com.nexaflow.feature.builder
 
 import android.Manifest
 import com.nexaflow.domain.models.ActionType
+import com.nexaflow.domain.models.TriggerType
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -19,6 +20,11 @@ class PermissionCatalogTest {
     fun `private dns and charging feedback require elevated access`() {
         assertEquals(SpecialPermission.ELEVATED, PermissionCatalog.specialPermissionFor(ActionType.SYSTEM_PRIVATE_DNS))
         assertEquals(SpecialPermission.ELEVATED, PermissionCatalog.specialPermissionFor(ActionType.SYSTEM_CHARGING_FEEDBACK))
+    }
+
+    @Test
+    fun `time trigger requires exact alarm access`() {
+        assertEquals(SpecialPermission.EXACT_ALARM, PermissionCatalog.specialPermissionFor(TriggerType.TIME))
     }
 
     @Test

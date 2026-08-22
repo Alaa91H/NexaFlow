@@ -118,13 +118,24 @@ class AutomationScheduler @Inject constructor(
 
     private fun setAlarm(triggerAt: Long, pendingIntent: PendingIntent) {
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
-                alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
+            if (!exactAlarmAllowed(
+                    sdkInt = Build.VERSION.SDK_INT,
+                    canScheduleExactAlarms = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+                        alarmManager.canScheduleExactAlarms()
+                )
+            ) {
+                // Preserve eventual execution while the user has not yet granted
+                // Alarms & reminders. This is intentionally visible in the UI as
+                // a missing requirement: Android may defer an inexact alarm, so
+                // it must never be presented as a precise scheduled run.
+                Log.w(TAG, "Exact alarm access missing; using inexact idle-safe fallback")
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
             } else {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
             }
-        } catch (_: SecurityException) {
-            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
+        } catch (security: SecurityException) {
+            Log.w(TAG, "Exact alarm rejected; using inexact idle-safe fallback", security)
+            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
         }
     }
 
@@ -141,6 +152,9 @@ class AutomationScheduler @Inject constructor(
     }
 
     companion object {
+        internal fun exactAlarmAllowed(sdkInt: Int, canScheduleExactAlarms: Boolean): Boolean =
+            sdkInt < Build.VERSION_CODES.S || canScheduleExactAlarms
+
         private const val TAG = "AutomationScheduler"
         const val ACTION_RUN_AUTOMATION = "com.nexaflow.core.engine.action.RUN_AUTOMATION"
         const val ACTION_END_AUTOMATION = "com.nexaflow.core.engine.action.END_AUTOMATION"

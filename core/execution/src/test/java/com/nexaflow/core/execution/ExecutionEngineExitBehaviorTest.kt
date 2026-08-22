@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -38,7 +39,9 @@ class ExecutionEngineExitBehaviorTest {
 
     private lateinit var context: Context
 
-    private class RecordingHandler : ActionHandler {
+    private class RecordingHandler(
+        private val failFirstCall: Boolean = false
+    ) : ActionHandler {
         var calls = 0
         override val supportedTypes: Set<ActionType> = setOf(ActionType.SYSTEM_SEND_NOTIFICATION)
         override suspend fun execute(
@@ -46,7 +49,11 @@ class ExecutionEngineExitBehaviorTest {
             ctx: ActionExecutionContext
         ): SystemControlResult {
             calls++
-            return SystemControlResult.ok("ok")
+            return if (failFirstCall && calls == 1) {
+                SystemControlResult.fail("main action failed")
+            } else {
+                SystemControlResult.ok("ok")
+            }
         }
     }
 
@@ -174,6 +181,25 @@ class ExecutionEngineExitBehaviorTest {
         // signal cannot repeat the configured action.
         engine.runExit(automation)
         assertEquals("end action must run exactly once", 2, handler.calls)
+    }
+
+    @Test
+    fun `one-shot completion still runs end behavior after main action failure`() = runBlocking {
+        val handler = RecordingHandler(failFirstCall = true)
+        val history = RecordingHistory()
+        val engine = engine(handler, history)
+        val automation = automation(
+            actions = listOf(action.copy(endBehavior = EndBehavior(EndMode.SET_VALUE, mapOf("enabled" to "true"))))
+        )
+
+        val record = engine.runAutomation(
+            automation = automation,
+            completeExitOnFinish = true
+        )
+
+        assertFalse("main failure must remain visible in its execution record", record.success)
+        assertEquals("end behavior must still run after the failed main action", 2, handler.calls)
+        assertEquals("main and end records must both be durable", 2, history.messages.size)
     }
 
     @Test

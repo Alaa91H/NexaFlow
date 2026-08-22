@@ -69,6 +69,9 @@
     <string name="special_elevated_body">संरक्षित सेटिंग्स नियंत्रित करने के लिए इस क्रिया को रूट, शिज़ुकु या सिस्टम-ऐप विशेषाधिकार चाहिए।</string>
     <string name="special_bluetooth_title">ब्लूटूथ</string>
     <string name="special_bluetooth_body">जोड़े गए डिवाइस का पता लगाने और उनके कनेक्ट होने पर कार्य चलाने के लिए NexaFlow को ब्लूटूथ चालू चाहिए।</string>
+    <string name="special_exact_alarm_title">सटीक अलार्म</string>
+    <string name="special_exact_alarm_body">NexaFlow को चुने गए समय पर निर्धारित कार्य चलाने देता है, भले ही डिवाइस निष्क्रिय हो। इसके बिना Android कार्य में देरी कर सकता है।</string>
+    <string name="special_exact_alarm_hint">कार्य को समय पर चलाने के लिए अलार्म और रिमाइंडर चालू करें।</string>
 
     <string name="battery_above">बैटरी सीमा से ऊपर</string>
     <string name="battery_above_sub">केवल तभी चलाएँ जब बैटरी स्तर से ऊपर हो</string>

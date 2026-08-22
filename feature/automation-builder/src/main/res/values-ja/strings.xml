@@ -69,6 +69,9 @@
     <string name="special_elevated_body">保護された設定を操作するには、root、Shizuku、またはシステムアプリの権限が必要です。</string>
     <string name="special_bluetooth_title">Bluetooth</string>
     <string name="special_bluetooth_body">ペアリング済みデバイスを検出し、接続時にタスクを実行するためにBluetoothの有効化が必要です。</string>
+    <string name="special_exact_alarm_title">正確なアラーム</string>
+    <string name="special_exact_alarm_body">端末がアイドル状態でも、NexaFlow が指定時刻にスケジュール済みタスクを実行できるようにします。許可がない場合、Android によりタスクが遅延することがあります。</string>
+    <string name="special_exact_alarm_hint">このタスクを時間どおりに実行するには、アラームとリマインダーを有効にしてください。</string>
 
     <string name="battery_above">バッテリーがしきい値を超えている</string>
     <string name="battery_above_sub">バッテリーがレベルを超えている場合のみ実行</string>

@@ -69,6 +69,9 @@
     <string name="special_elevated_body">Для управления защищёнными настройками этому действию нужны root, Shizuku или привилегии системного приложения.</string>
     <string name="special_bluetooth_title">Bluetooth</string>
     <string name="special_bluetooth_body">NexaFlow нужен включённый Bluetooth для обнаружения сопряжённых устройств и запуска задач при подключении.</string>
+    <string name="special_exact_alarm_title">Точные будильники</string>
+    <string name="special_exact_alarm_body">Позволяет NexaFlow запускать запланированную задачу в выбранное время, даже когда устройство бездействует. Без этого разрешения Android может отложить задачу.</string>
+    <string name="special_exact_alarm_hint">Включите будильники и напоминания, чтобы задача выполнялась вовремя.</string>
 
     <string name="battery_above">Батарея выше порога</string>
     <string name="battery_above_sub">Запускать только когда батарея выше уровня</string>

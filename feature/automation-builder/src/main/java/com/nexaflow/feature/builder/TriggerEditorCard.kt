@@ -1414,6 +1414,12 @@ fun TriggerEditorCard(
                                 }
                             }
                         }
+                        SpecialPermissionStatusRow(
+                            hintText = stringResource(R.string.special_exact_alarm_hint),
+                            special = SpecialPermission.EXACT_ALARM,
+                            refreshKey = refreshKey,
+                            onRequest = { onExplainSpecial(SpecialPermission.EXACT_ALARM) }
+                        )
                         TimeRepeatSection(
                             draft = draft,
                             onConfigChange = onConfigChange,

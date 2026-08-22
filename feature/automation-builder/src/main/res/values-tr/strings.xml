@@ -69,6 +69,9 @@
     <string name="special_elevated_body">Bu eylem, korumalı ayarları kontrol etmek için root, Shizuku veya sistem uygulaması ayrıcalıkları gerektirir.</string>
     <string name="special_bluetooth_title">Bluetooth</string>
     <string name="special_bluetooth_body">"NexaFlow'un eşleştirilmiş cihazları algılaması ve bağlandıklarında görevleri çalıştırması için Bluetooth'un açık olması gerekir."</string>
+    <string name="special_exact_alarm_title">Kesin alarmlar</string>
+    <string name="special_exact_alarm_body">NexaFlow’un, cihaz boşta olsa bile planlanan görevi seçilen saatte çalıştırmasını sağlar. Bu izin olmadan Android görevi geciktirebilir.</string>
+    <string name="special_exact_alarm_hint">Görevin zamanında çalışması için Alarmlar ve hatırlatıcıları etkinleştirin.</string>
 
     <string name="battery_above">Pil eşiğin üzerinde</string>
     <string name="battery_above_sub">Yalnızca pil seviyenin üzerindeyken çalıştır</string>

@@ -91,6 +91,11 @@ object PermissionCatalog {
 
     /** Special permission required by a trigger, if any. */
     fun specialPermissionFor(triggerType: TriggerType): SpecialPermission? = when (triggerType) {
+        // Android 12+ denies exact alarms by default on many fresh installs.
+        // A task set for a user-selected wall-clock time must request this
+        // special access instead of silently being treated as punctual while an
+        // inexact fallback can be deferred by Doze or battery restrictions.
+        TriggerType.TIME -> SpecialPermission.EXACT_ALARM
         TriggerType.NOTIFICATION -> SpecialPermission.NOTIFICATION_ACCESS
         TriggerType.APPLICATION -> SpecialPermission.ACCESSIBILITY
         TriggerType.BLUETOOTH_DEVICE -> SpecialPermission.BLUETOOTH

@@ -69,6 +69,9 @@
     <string name="special_elevated_body">此操作需要 root、Shizuku 或系统应用权限来控制受保护的设置。</string>
     <string name="special_bluetooth_title">蓝牙</string>
     <string name="special_bluetooth_body">NexaFlow 需要开启蓝牙来检测已配对的设备并在它们连接时运行任务。</string>
+    <string name="special_exact_alarm_title">精确闹钟</string>
+    <string name="special_exact_alarm_body">允许 NexaFlow 即使在设备空闲时也能在所选时间运行计划任务。没有此权限，Android 可能会延迟任务。</string>
+    <string name="special_exact_alarm_hint">启用闹钟和提醒，以便此任务按时运行。</string>
 
     <string name="battery_above">电量高于阈值</string>
     <string name="battery_above_sub">仅当电量高于该水平时运行</string>

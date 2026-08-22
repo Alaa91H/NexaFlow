@@ -1,8 +1,11 @@
 package com.nexaflow.feature.builder
 
+import android.app.AlarmManager
 import android.content.Context
 import android.content.res.Configuration
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -585,6 +588,11 @@ object PermissionShortcuts {
                     context.checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) ==
                     android.content.pm.PackageManager.PERMISSION_GRANTED
             }
+            SpecialPermission.EXACT_ALARM -> {
+                Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+                    (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager)
+                        .canScheduleExactAlarms()
+            }
         }
     } catch (_: Throwable) {
         false
@@ -633,6 +641,18 @@ object PermissionShortcuts {
                 }
             }
             SpecialPermission.BLUETOOTH -> openBluetoothSettings(context)
+            SpecialPermission.EXACT_ALARM -> openExactAlarmSettings(context)
+        }
+    }
+
+    fun openExactAlarmSettings(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val intent = Intent(
+                Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                Uri.parse("package:${context.packageName}")
+            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            runCatching { context.startActivity(intent) }
+                .onFailure { context.startActivity(Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
         }
     }
 

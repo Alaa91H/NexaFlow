@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material3.Button
@@ -53,7 +54,8 @@ enum class SpecialPermission {
     SHIZUKU,
     ROOT,
     ELEVATED,
-    BLUETOOTH
+    BLUETOOTH,
+    EXACT_ALARM
 }
 
 /**
@@ -103,6 +105,8 @@ fun specialPermissionExplainInfo(type: SpecialPermission): PermissionExplainInfo
         PermissionExplainInfo(Icons.Filled.Lock, Color(0xFF6750A4), R.string.special_elevated_title, R.string.special_elevated_body)
     SpecialPermission.BLUETOOTH ->
         PermissionExplainInfo(Icons.Filled.Bluetooth, Color(0xFF006D3C), R.string.special_bluetooth_title, R.string.special_bluetooth_body)
+    SpecialPermission.EXACT_ALARM ->
+        PermissionExplainInfo(Icons.Filled.Schedule, Color(0xFF6750A4), R.string.special_exact_alarm_title, R.string.special_exact_alarm_body)
 }
 
 /**
