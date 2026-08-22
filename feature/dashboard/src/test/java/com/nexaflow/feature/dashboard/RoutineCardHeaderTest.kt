@@ -80,7 +80,10 @@ class RoutineCardHeaderTest {
     }
 
     private fun assertPersistentHeaderAndSingleToggle() {
-        composeRule.onNodeWithTag(RoutineCardTestTags.HeaderIcon).assertIsDisplayed()
+        composeRule.onNodeWithTag(
+            RoutineCardTestTags.HeaderIcon,
+            useUnmergedTree = true
+        ).assertIsDisplayed()
         composeRule.onNodeWithTag(RoutineCardTestTags.HeaderToggle).assertIsDisplayed()
         composeRule.onNodeWithTag(RoutineCardTestTags.HeaderExpand).assertIsDisplayed()
         composeRule.onAllNodesWithTag(RoutineCardTestTags.HeaderToggle).assertCountEquals(1)
