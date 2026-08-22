@@ -995,4 +995,5 @@
     <string name="charging_sound">Звук зарядки</string>
     <string name="charging_vibration">Вибрация при зарядке</string>
     <string name="charging_feedback_elevated_note">Требуется root или Shizuku с проверкой настроек после записи. Неподдерживаемые ROM сообщают об ошибке.</string>
+    <string name="network_mode_phone_permission_hint">Разрешите доступ к состоянию телефона, чтобы читать активные SIM-карты и режимы сети, действительно поддерживаемые устройством. Для изменения режима сети также нужны root, Shizuku или доступ системного приложения.</string>
 </resources>

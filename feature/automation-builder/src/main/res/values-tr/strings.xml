@@ -995,4 +995,5 @@
     <string name="charging_sound">Şarj sesi</string>
     <string name="charging_vibration">Şarj titreşimi</string>
     <string name="charging_feedback_elevated_note">Root veya Shizuku gerekir ve yazıldıktan sonra ayarları doğrular. Desteklenmeyen ROM’lar hata bildirir.</string>
+    <string name="network_mode_phone_permission_hint">Etkin SIM kartları ve cihazınızın gerçekten desteklediği ağ modlarını okumak için telefon durumu erişimine izin verin. Ağ modunu değiştirmek için root, Shizuku veya sistem uygulaması erişimi de gerekir.</string>
 </resources>

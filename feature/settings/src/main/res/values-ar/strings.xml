@@ -225,4 +225,6 @@
     <string name="update_notification_text">يتوفر NexaFlow %1$s</string>
     <string name="update_notification_channel">تحديثات التطبيق</string>
     <string name="update_notification_channel_sub">إشعارات عند توفر إصدار أحدث من NexaFlow</string>
+    <string name="phone_state_permission">حالة الهاتف ووضع الشبكة</string>
+    <string name="phone_state_permission_sub">قراءة الشرائح النشطة وأوضاع الشبكة التي يدعمها الجهاز فعلياً. يتطلب تغيير الوضع أيضاً روت أو Shizuku أو صلاحية تطبيق نظام.</string>
 </resources>

@@ -995,4 +995,5 @@
     <string name="charging_sound">चार्जिंग ध्वनि</string>
     <string name="charging_vibration">चार्जिंग कंपन</string>
     <string name="charging_feedback_elevated_note">root या Shizuku आवश्यक है और लिखने के बाद सेटिंग की जांच करता है। असमर्थित ROM विफलता बताती हैं।</string>
+    <string name="network_mode_phone_permission_hint">सक्रिय SIM और आपके डिवाइस द्वारा वास्तव में समर्थित नेटवर्क मोड पढ़ने के लिए फ़ोन स्थिति एक्सेस की अनुमति दें। नेटवर्क मोड बदलने के लिए root, Shizuku या सिस्टम-ऐप एक्सेस भी आवश्यक है।</string>
 </resources>

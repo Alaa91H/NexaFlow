@@ -995,4 +995,5 @@
     <string name="charging_sound">Som de carregamento</string>
     <string name="charging_vibration">Vibração de carregamento</string>
     <string name="charging_feedback_elevated_note">Requer root ou Shizuku e verifica as configurações após gravar. ROMs não suportadas informam falha.</string>
+    <string name="network_mode_phone_permission_hint">Permita o acesso ao estado do telefone para ler os SIMs ativos e os modos de rede realmente compatíveis com o seu dispositivo. Alterar um modo de rede também requer acesso root, Shizuku ou de app do sistema.</string>
 </resources>

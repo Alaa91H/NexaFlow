@@ -1,5 +1,6 @@
 package com.nexaflow.feature.settings
 
+import android.Manifest
 import android.app.AlarmManager
 import android.app.NotificationManager
 import android.content.Context
@@ -10,6 +11,8 @@ import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
 import com.nexaflow.core.execution.capability.AccessibilityCapabilityConsent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -28,6 +31,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material.icons.filled.Tune
@@ -71,13 +75,15 @@ import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.SettingRow
 
-private data class PermissionEntry(
+internal data class PermissionEntry(
     val key: String,
     val titleRes: Int,
     val subtitleRes: Int,
     val icon: ImageVector,
     val isGranted: (Context) -> Boolean,
-    val openAction: (Context) -> Unit
+    val openAction: (Context) -> Unit,
+    /** A dangerous runtime permission that this row can request directly. */
+    val runtimePermission: String? = null
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,6 +93,23 @@ fun PermissionManagerScreen(navController: NavController) {
     val lifecycleOwner = LocalLifecycleOwner.current
     var refreshTick by remember { mutableStateOf(0) }
     var showAccessibilityDisclosure by rememberSaveable { mutableStateOf(false) }
+    var pendingRuntimePermission by rememberSaveable { mutableStateOf<String?>(null) }
+    var deniedRuntimePermission by rememberSaveable { mutableStateOf<String?>(null) }
+    val runtimePermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        // Android returns the final grant decision here. Recompute the visible
+        // manager state even on denial so the row never claims success. A later
+        // tap after a denial opens App info, where a permanently denied Android
+        // permission can still be enabled by the user.
+        if (granted) {
+            deniedRuntimePermission = null
+        } else {
+            deniedRuntimePermission = pendingRuntimePermission
+        }
+        pendingRuntimePermission = null
+        refreshTick++
+    }
 
     // Re-check permissions whenever the screen resumes (after returning from settings).
     DisposableEffect(lifecycleOwner) {
@@ -159,7 +182,20 @@ fun PermissionManagerScreen(navController: NavController) {
     }
 
     fun openPermission(entry: PermissionEntry) {
-        if (entry.key == "accessibility" && !isAccessibilityEnabled(context)) {
+        val runtimePermission = entry.runtimePermission
+        if (runtimePermission != null && !entry.isGranted(context)) {
+            if (deniedRuntimePermission == runtimePermission) {
+                // The previous system dialog was denied. App info is the only
+                // reliable recovery route when Android suppresses a repeat
+                // dialog after a permanent denial.
+                entry.openAction(context)
+            } else {
+                // Unlike an App-info deep link, this launches Android's actual
+                // dangerous-permission dialog and reports its result above.
+                pendingRuntimePermission = runtimePermission
+                runtimePermissionLauncher.launch(runtimePermission)
+            }
+        } else if (entry.key == "accessibility" && !isAccessibilityEnabled(context)) {
             showAccessibilityDisclosure = true
         } else {
             entry.openAction(context)
@@ -260,7 +296,7 @@ fun PermissionManagerScreen(navController: NavController) {
     }
 }
 
-private fun buildPermissionEntries(): List<PermissionEntry> {
+internal fun buildPermissionEntries(): List<PermissionEntry> {
     return listOf(
         PermissionEntry(
             key = "accessibility",
@@ -324,6 +360,20 @@ private fun buildPermissionEntries(): List<PermissionEntry> {
                 ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
             },
             openAction = { context -> PermissionStatus.openAppDetails(context) }
+        ),
+        PermissionEntry(
+            key = "phone_state",
+            titleRes = R.string.phone_state_permission,
+            subtitleRes = R.string.phone_state_permission_sub,
+            icon = Icons.Filled.SignalCellularAlt,
+            isGranted = { context ->
+                ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) ==
+                    PackageManager.PERMISSION_GRANTED
+            },
+            // App details remains the correct destination once Android has
+            // permanently denied a runtime permission at platform level.
+            openAction = { context -> PermissionStatus.openAppDetails(context) },
+            runtimePermission = Manifest.permission.READ_PHONE_STATE
         ),
         PermissionEntry(
             key = "calendar",

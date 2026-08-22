@@ -994,4 +994,5 @@
     <string name="charging_sound">صوت الشحن</string>
     <string name="charging_vibration">اهتزاز الشحن</string>
     <string name="charging_feedback_elevated_note">يتطلب root أو Shizuku ويتحقق من الإعدادات بعد الكتابة. تعيد ROM غير المدعومة فشلاً صريحاً.</string>
+    <string name="network_mode_phone_permission_hint">اسمح بالوصول إلى حالة الهاتف لقراءة الشرائح النشطة وأوضاع الشبكة التي يدعمها جهازك فعلياً. يتطلب تغيير وضع الشبكة أيضاً روت أو Shizuku أو صلاحية تطبيق نظام.</string>
 </resources>

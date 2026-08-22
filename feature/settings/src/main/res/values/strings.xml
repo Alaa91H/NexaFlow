@@ -50,6 +50,8 @@
     <string name="sms_permission_sub">Required for SMS triggers</string>
     <string name="location_permission">Location</string>
     <string name="location_permission_sub">Required for location triggers</string>
+    <string name="phone_state_permission">Phone state and network mode</string>
+    <string name="phone_state_permission_sub">Read active SIMs and network modes supported by this device. Changing a mode also requires root, Shizuku, or system-app access.</string>
     <string name="write_settings_permission">Modify system settings</string>
     <string name="write_settings_permission_sub">Change brightness, volume and more</string>
     <string name="dnd_access">Do Not Disturb access</string>

@@ -227,4 +227,6 @@
     <string name="update_notification_text">Доступен NexaFlow %1$s</string>
     <string name="update_notification_channel">Обновления приложения</string>
     <string name="update_notification_channel_sub">Уведомления о доступности более новой версии NexaFlow</string>
+    <string name="phone_state_permission">Состояние телефона и режим сети</string>
+    <string name="phone_state_permission_sub">Считывает активные SIM-карты и режимы сети, действительно поддерживаемые устройством. Для изменения режима также нужны root, Shizuku или доступ системного приложения.</string>
 </resources>

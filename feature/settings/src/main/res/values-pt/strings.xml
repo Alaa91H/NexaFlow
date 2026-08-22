@@ -227,4 +227,6 @@
     <string name="update_notification_text">NexaFlow %1$s está disponível</string>
     <string name="update_notification_channel">Atualizações do aplicativo</string>
     <string name="update_notification_channel_sub">Notificações quando houver uma versão mais recente do NexaFlow</string>
+    <string name="phone_state_permission">Estado do telefone e modo de rede</string>
+    <string name="phone_state_permission_sub">Lê os SIMs ativos e os modos de rede compatíveis com este dispositivo. Alterar um modo também requer acesso root, Shizuku ou de app do sistema.</string>
 </resources>

@@ -995,4 +995,5 @@
     <string name="charging_sound">充電音</string>
     <string name="charging_vibration">充電時の振動</string>
     <string name="charging_feedback_elevated_note">root または Shizuku が必要で、書き込み後に設定を検証します。非対応 ROM では失敗が報告されます。</string>
+    <string name="network_mode_phone_permission_hint">有効な SIM と端末が実際に対応するネットワークモードを読み取るため、電話の状態へのアクセスを許可してください。ネットワークモードの変更には root、Shizuku、またはシステムアプリのアクセスも必要です。</string>
 </resources>

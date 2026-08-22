@@ -227,4 +227,6 @@
     <string name="update_notification_text">NexaFlow %1$s kullanılabilir</string>
     <string name="update_notification_channel">Uygulama güncellemeleri</string>
     <string name="update_notification_channel_sub">Daha yeni bir NexaFlow sürümü olduğunda bildirimler</string>
+    <string name="phone_state_permission">Telefon durumu ve ağ modu</string>
+    <string name="phone_state_permission_sub">Etkin SIM kartları ve bu cihazın gerçekten desteklediği ağ modlarını okur. Bir modu değiştirmek için root, Shizuku veya sistem uygulaması erişimi de gerekir.</string>
 </resources>

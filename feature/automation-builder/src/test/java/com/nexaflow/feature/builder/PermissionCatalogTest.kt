@@ -17,6 +17,14 @@ class PermissionCatalogTest {
     }
 
     @Test
+    fun `network mode shows the phone state permission hint instead of a location hint`() {
+        assertEquals(
+            R.string.network_mode_phone_permission_hint,
+            permissionHintTextForAction(ActionType.SYSTEM_NETWORK_MODE)
+        )
+    }
+
+    @Test
     fun `private dns and charging feedback require elevated access`() {
         assertEquals(SpecialPermission.ELEVATED, PermissionCatalog.specialPermissionFor(ActionType.SYSTEM_PRIVATE_DNS))
         assertEquals(SpecialPermission.ELEVATED, PermissionCatalog.specialPermissionFor(ActionType.SYSTEM_CHARGING_FEEDBACK))

@@ -227,4 +227,6 @@
     <string name="update_notification_text">NexaFlow %1$s 已可用</string>
     <string name="update_notification_channel">应用更新</string>
     <string name="update_notification_channel_sub">有较新 NexaFlow 版本时的通知</string>
+    <string name="phone_state_permission">手机状态和网络模式</string>
+    <string name="phone_state_permission_sub">读取活跃 SIM 卡及此设备实际支持的网络模式。更改模式还需要 root、Shizuku 或系统应用访问权限。</string>
 </resources>

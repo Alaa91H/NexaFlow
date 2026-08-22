@@ -499,6 +499,18 @@ private fun CatalogOptionRow(
     }
 }
 
+internal fun permissionHintTextForAction(actionType: ActionType): Int = when (actionType) {
+    ActionType.SYSTEM_SEND_SMS -> R.string.sms_permission_hint
+    ActionType.SYSTEM_FLASHLIGHT -> R.string.flashlight_hint
+    ActionType.SYSTEM_SEND_NOTIFICATION,
+    ActionType.SYSTEM_SEND_REMINDER,
+    ActionType.BATTERY_ALERTS,
+    ActionType.BATTERY_CHARGING_NOTIFICATIONS -> R.string.notification_permission_hint
+    ActionType.SYSTEM_HTTP_REQUEST -> R.string.http_request_hint
+    ActionType.SYSTEM_NETWORK_MODE -> R.string.network_mode_phone_permission_hint
+    else -> R.string.location_hint
+}
+
 @Composable
 fun PermissionHintForAction(
     actionType: ActionType,
@@ -518,18 +530,7 @@ fun PermissionHintForAction(
         }
         if (!allGranted) {
             PermissionHint(
-                text = stringResource(
-                    when (actionType) {
-                        ActionType.SYSTEM_SEND_SMS -> R.string.sms_permission_hint
-                        ActionType.SYSTEM_FLASHLIGHT -> R.string.flashlight_hint
-                        ActionType.SYSTEM_SEND_NOTIFICATION,
-                        ActionType.SYSTEM_SEND_REMINDER,
-                        ActionType.BATTERY_ALERTS,
-                        ActionType.BATTERY_CHARGING_NOTIFICATIONS -> R.string.notification_permission_hint
-                        ActionType.SYSTEM_HTTP_REQUEST -> R.string.http_request_hint
-                        else -> R.string.location_hint
-                    }
-                ),
+                text = stringResource(permissionHintTextForAction(actionType)),
                 buttonLabel = stringResource(R.string.grant),
                 onClick = { onRequestPermission(runtimePermissions.toTypedArray()) }
             )
