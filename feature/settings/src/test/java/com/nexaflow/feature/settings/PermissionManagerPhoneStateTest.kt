@@ -1,6 +1,7 @@
 package com.nexaflow.feature.settings
 
 import android.Manifest
+import android.os.Build
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
@@ -27,7 +28,7 @@ class PermissionManagerPhoneStateTest {
             entries["activity_recognition"]?.runtimePermissions
         )
         assertEquals(
-            listOf(Manifest.permission.ACCESS_LOCAL_NETWORK),
+            if (Build.VERSION.SDK_INT >= 37) listOf(Manifest.permission.ACCESS_LOCAL_NETWORK) else emptyList(),
             entries["local_network"]?.runtimePermissions
         )
         assertEquals(listOf(Manifest.permission.READ_CALENDAR), entries["calendar"]?.runtimePermissions)
