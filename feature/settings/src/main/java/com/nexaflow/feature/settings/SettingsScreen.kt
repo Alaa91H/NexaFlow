@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -17,6 +18,7 @@ import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -100,7 +102,6 @@ import com.nexaflow.core.ui.CheckableRow
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.SettingRow
-import com.nexaflow.core.ui.settingsGroup
 import com.nexaflow.data.backup.ImportResult
 import kotlinx.coroutines.launch
 
@@ -114,6 +115,9 @@ fun SettingsScreen(navController: NavController) {
     val snackbarHostState = remember { SnackbarHostState() }
     var showAbout by remember { mutableStateOf(false) }
     var showLanguagePicker by rememberSaveable { mutableStateOf(false) }
+    // Keep the settings screen compact: every group starts collapsed and a
+    // tap replaces the currently expanded group instead of stacking content.
+    var expandedSettingsGroup by rememberSaveable { mutableStateOf<String?>(null) }
     val stringBackupImportFailed = stringResource(R.string.backup_import_failed)
     val stringShareBackupTitle = stringResource(R.string.share_backup_title)
     val stringBackupImportedTemplate = stringResource(R.string.backup_imported)
@@ -226,7 +230,18 @@ fun SettingsScreen(navController: NavController) {
                 .padding(padding),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp)
         ) {
-            settingsGroup(title = sectionAutomationTitle, alternatingIndex = 0) {
+            item(key = "settings_group_automation") {
+                SettingsGroupCard(
+                    title = sectionAutomationTitle,
+                    expanded = expandedSettingsGroup == SettingsGroupId.AUTOMATION,
+                    onExpandedChange = {
+                        expandedSettingsGroup = nextExpandedSettingsGroup(
+                            currentExpandedGroup = expandedSettingsGroup,
+                            tappedGroup = SettingsGroupId.AUTOMATION
+                        )
+                    },
+                    alternatingIndex = 0
+                ) {
                 SettingRow(
                     icon = Icons.Filled.Security,
                     title = stringResource(R.string.permission_manager),
@@ -256,8 +271,20 @@ fun SettingsScreen(navController: NavController) {
                     subtitle = stringResource(R.string.execution_history_sub),
                     onClick = { navController.navigate(SettingsDestination.EXECUTION_HISTORY_ROUTE) }
                 )
+                }
             }
-            settingsGroup(title = sectionBackupTitle, alternatingIndex = 1) {
+            item(key = "settings_group_backup") {
+                SettingsGroupCard(
+                    title = sectionBackupTitle,
+                    expanded = expandedSettingsGroup == SettingsGroupId.BACKUP,
+                    onExpandedChange = {
+                        expandedSettingsGroup = nextExpandedSettingsGroup(
+                            currentExpandedGroup = expandedSettingsGroup,
+                            tappedGroup = SettingsGroupId.BACKUP
+                        )
+                    },
+                    alternatingIndex = 1
+                ) {
                 SettingRow(
                     icon = Icons.Filled.Upload,
                     title = stringResource(R.string.backup_export),
@@ -270,11 +297,9 @@ fun SettingsScreen(navController: NavController) {
                     subtitle = stringResource(R.string.backup_import_sub),
                     onClick = { importLauncher.launch(arrayOf("application/json", "text/plain", "text/*", "*/*")) }
                 )
+                }
             }
-            item {
-                SectionHeader(text = stringResource(R.string.section_updates))
-            }
-            item {
+            item(key = "settings_group_updates") {
                 val updateViewModel: UpdateViewModel = hiltViewModel()
                 val updateState by updateViewModel.state.collectAsState()
                 var updateDialogInfo by remember { mutableStateOf<UpdateInfo?>(null) }
@@ -298,7 +323,17 @@ fun SettingsScreen(navController: NavController) {
                 val updateSettingsViewModel: UpdateSettingsViewModel = hiltViewModel()
                 val updateSettings by updateSettingsViewModel.settings.collectAsState()
                 var showUpdateFrequencyDialog by remember { mutableStateOf(false) }
-                NexaFlowCard(alternatingIndex = 2) {
+                SettingsGroupCard(
+                    title = stringResource(R.string.section_updates),
+                    expanded = expandedSettingsGroup == SettingsGroupId.UPDATES,
+                    onExpandedChange = {
+                        expandedSettingsGroup = nextExpandedSettingsGroup(
+                            currentExpandedGroup = expandedSettingsGroup,
+                            tappedGroup = SettingsGroupId.UPDATES
+                        )
+                    },
+                    alternatingIndex = 2
+                ) {
                     SettingRow(
                         icon = Icons.Filled.SystemUpdate,
                         title = stringResource(R.string.update_auto_checks),
@@ -337,7 +372,6 @@ fun SettingsScreen(navController: NavController) {
                             onClick = { showUpdateFrequencyDialog = true }
                         )
                     }
-                }
                 if (showUpdateFrequencyDialog) {
                     UpdateFrequencyDialog(
                         selected = updateSettings.frequency,
@@ -348,7 +382,6 @@ fun SettingsScreen(navController: NavController) {
                         onDismiss = { showUpdateFrequencyDialog = false }
                     )
                 }
-                NexaFlowCard(alternatingIndex = 3) {
                     when (val state = updateState) {
                         UpdateUiState.Idle -> SettingRow(
                             icon = Icons.Filled.SystemUpdate,
@@ -410,14 +443,21 @@ fun SettingsScreen(navController: NavController) {
                     }
                 }
             }
-            item {
-                SectionHeader(text = stringResource(R.string.section_location))
-            }
-            item {
+            item(key = "settings_group_location") {
                 val locationViewModel: LocationSettingsViewModel = hiltViewModel()
                 val checkInterval by locationViewModel.checkIntervalMinutes.collectAsState()
                 var showIntervalDialog by remember { mutableStateOf(false) }
-                NexaFlowCard(alternatingIndex = 4) {
+                SettingsGroupCard(
+                    title = stringResource(R.string.section_location),
+                    expanded = expandedSettingsGroup == SettingsGroupId.LOCATION,
+                    onExpandedChange = {
+                        expandedSettingsGroup = nextExpandedSettingsGroup(
+                            currentExpandedGroup = expandedSettingsGroup,
+                            tappedGroup = SettingsGroupId.LOCATION
+                        )
+                    },
+                    alternatingIndex = 3
+                ) {
                     SettingRow(
                         icon = Icons.Filled.MyLocation,
                         title = stringResource(R.string.location_check_interval),
@@ -451,7 +491,18 @@ fun SettingsScreen(navController: NavController) {
                     )
                 }
             }
-            settingsGroup(title = sectionAppearanceTitle, alternatingIndex = 5) {
+            item(key = "settings_group_appearance") {
+                SettingsGroupCard(
+                    title = sectionAppearanceTitle,
+                    expanded = expandedSettingsGroup == SettingsGroupId.APPEARANCE,
+                    onExpandedChange = {
+                        expandedSettingsGroup = nextExpandedSettingsGroup(
+                            currentExpandedGroup = expandedSettingsGroup,
+                            tappedGroup = SettingsGroupId.APPEARANCE
+                        )
+                    },
+                    alternatingIndex = 4
+                ) {
                 SettingRow(
                     icon = Icons.Filled.Palette,
                     title = stringResource(R.string.themes),
@@ -481,14 +532,27 @@ fun SettingsScreen(navController: NavController) {
                     subtitle = stringResource(R.string.widgets_sub),
                     onClick = { navController.navigate("widgets") }
                 )
+                }
             }
-            settingsGroup(title = sectionAboutTitle, alternatingIndex = 6) {
+            item(key = "settings_group_about") {
+                SettingsGroupCard(
+                    title = sectionAboutTitle,
+                    expanded = expandedSettingsGroup == SettingsGroupId.ABOUT,
+                    onExpandedChange = {
+                        expandedSettingsGroup = nextExpandedSettingsGroup(
+                            currentExpandedGroup = expandedSettingsGroup,
+                            tappedGroup = SettingsGroupId.ABOUT
+                        )
+                    },
+                    alternatingIndex = 5
+                ) {
                 SettingRow(
                     icon = Icons.Filled.Info,
                     title = stringResource(R.string.about_nexaflow),
                     subtitle = stringResource(R.string.version, appVersion(context)),
                     onClick = { showAbout = true }
                 )
+                }
             }
         }
     }
@@ -567,6 +631,62 @@ fun SettingsScreen(navController: NavController) {
                 TextButton(onClick = { showAbout = false }) { Text(stringResource(R.string.ok)) }
             }
         )
+    }
+}
+
+private object SettingsGroupId {
+    const val AUTOMATION = "automation"
+    const val BACKUP = "backup"
+    const val UPDATES = "updates"
+    const val LOCATION = "location"
+    const val APPEARANCE = "appearance"
+    const val ABOUT = "about"
+}
+
+internal fun nextExpandedSettingsGroup(
+    currentExpandedGroup: String?,
+    tappedGroup: String
+): String? = if (currentExpandedGroup == tappedGroup) null else tappedGroup
+
+/**
+ * A single progressive-disclosure settings group. The resting card exposes its
+ * title only; expanding it reveals the existing settings rows without allowing
+ * several lengthy groups to occupy the screen at once.
+ */
+@Composable
+private fun SettingsGroupCard(
+    title: String,
+    expanded: Boolean,
+    onExpandedChange: () -> Unit,
+    alternatingIndex: Int,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    NexaFlowCard(
+        modifier = Modifier.animateContentSize(),
+        alternatingIndex = alternatingIndex
+    ) {
+        SectionHeader(
+            text = title,
+            modifier = Modifier.clickable(onClick = onExpandedChange),
+            trailing = {
+                Icon(
+                    imageVector = if (expanded) {
+                        Icons.Filled.KeyboardArrowUp
+                    } else {
+                        Icons.Filled.KeyboardArrowDown
+                    },
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        )
+        if (expanded) {
+            Column(
+                modifier = Modifier.padding(top = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                content = content
+            )
+        }
     }
 }
 
