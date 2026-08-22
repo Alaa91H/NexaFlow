@@ -78,6 +78,31 @@ class RootPermissionGranterTest {
         assertTrue("no shell command may run without an elevated runtime", commands.isEmpty())
     }
 
+    @Test
+    fun `runtime permission path requests root approval when su exists but app is not approved`() {
+        assertEquals(
+            RootPermissionGranter.RuntimePermissionGrantPath.REQUEST_ROOT_ACCESS,
+            RootPermissionGranter.runtimePermissionGrantPath(
+                elevatedShellAvailable = false,
+                suBinaryAvailable = true
+            )
+        )
+        assertEquals(
+            RootPermissionGranter.RuntimePermissionGrantPath.ELEVATED_SHELL,
+            RootPermissionGranter.runtimePermissionGrantPath(
+                elevatedShellAvailable = true,
+                suBinaryAvailable = true
+            )
+        )
+        assertEquals(
+            RootPermissionGranter.RuntimePermissionGrantPath.ANDROID_RUNTIME_FALLBACK,
+            RootPermissionGranter.runtimePermissionGrantPath(
+                elevatedShellAvailable = false,
+                suBinaryAvailable = false
+            )
+        )
+    }
+
     // ──────────────────────────────────────────────────────────────
     // Runtime permissions — pm grant
     // ──────────────────────────────────────────────────────────────

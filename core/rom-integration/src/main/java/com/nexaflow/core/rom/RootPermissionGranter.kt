@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.content.pm.PermissionInfo
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.Process
 import android.provider.Settings
 import androidx.annotation.RequiresApi
@@ -68,6 +70,85 @@ object RootPermissionGranter {
     /** True when an elevated shell (root or Shizuku) is available. */
     fun canAutoGrant(): Boolean =
         PrivilegedRunner.isRootAvailable() || PrivilegedRunner.isShizukuGranted()
+
+    /**
+     * Chooses how an in-context runtime-permission request should proceed.
+     *
+     * A root manager can expose `su` before it has approved NexaFlow. That is
+     * not an elevated shell yet, but it is a reason to show the root manager's
+     * allow prompt — not Android's unrelated runtime-permission dialog.
+     */
+    internal enum class RuntimePermissionGrantPath {
+        ELEVATED_SHELL,
+        REQUEST_ROOT_ACCESS,
+        ANDROID_RUNTIME_FALLBACK
+    }
+
+    internal fun runtimePermissionGrantPath(
+        elevatedShellAvailable: Boolean,
+        suBinaryAvailable: Boolean
+    ): RuntimePermissionGrantPath = when {
+        elevatedShellAvailable -> RuntimePermissionGrantPath.ELEVATED_SHELL
+        suBinaryAvailable -> RuntimePermissionGrantPath.REQUEST_ROOT_ACCESS
+        else -> RuntimePermissionGrantPath.ANDROID_RUNTIME_FALLBACK
+    }
+
+    /**
+     * Attempts a targeted runtime grant through an already-approved elevated
+     * shell, or first requests the root manager's one-time approval when `su`
+     * exists but NexaFlow has not been approved yet. [onResult] always runs on
+     * the main thread and reports verified remaining permissions; callers use
+     * Android's dialog only for those remaining permissions.
+     */
+    fun requestRuntimePermissionsWithRootPrompt(
+        context: Context,
+        permissions: Collection<String>,
+        onResult: (RuntimeGrantResult) -> Unit
+    ) {
+        val appContext = context.applicationContext
+        val requested = permissions.distinct()
+        val mainHandler = Handler(Looper.getMainLooper())
+
+        fun deliver(result: RuntimeGrantResult) {
+            mainHandler.post { onResult(result) }
+        }
+
+        if (requested.isEmpty()) {
+            deliver(RuntimeGrantResult())
+            return
+        }
+
+        Thread {
+            when (
+                runtimePermissionGrantPath(
+                    elevatedShellAvailable = canAutoGrant(),
+                    suBinaryAvailable = SystemAppStatusDetector.isSuBinaryAvailable()
+                )
+            ) {
+                RuntimePermissionGrantPath.ELEVATED_SHELL -> {
+                    deliver(grantRuntimePermissions(appContext, requested))
+                }
+                RuntimePermissionGrantPath.REQUEST_ROOT_ACCESS -> {
+                    ElevatedAccessShortcuts.requestRootAccess(appContext) { rootGranted ->
+                        Thread {
+                            val result = if (rootGranted) {
+                                grantRuntimePermissions(appContext, requested)
+                            } else {
+                                RuntimeGrantResult(
+                                    remaining = requested,
+                                    failures = listOf("Root access was not granted")
+                                )
+                            }
+                            deliver(result)
+                        }.start()
+                    }
+                }
+                RuntimePermissionGrantPath.ANDROID_RUNTIME_FALLBACK -> {
+                    deliver(RuntimeGrantResult(remaining = requested))
+                }
+            }
+        }.start()
+    }
 
     /**
      * Verified result for a targeted Android runtime-permission repair. The
