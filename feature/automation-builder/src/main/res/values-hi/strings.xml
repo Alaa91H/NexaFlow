@@ -522,7 +522,7 @@
     <string name="charging_no">चार्ज नहीं हो रहा</string>
     <string name="map_search_hint">स्थान खोजें</string>
     <string name="map_pick_hint">बिंदु रखने के लिए मानचित्र पर टैप करें — बारीक समायोजन के लिए मार्कर को खींचें</string>
-    <string name="map_no_key">Google Maps अभी कॉन्फ़िगर नहीं है। gradle.properties में NEXAFLOW_MAPS_API_KEY जोड़ें और पुनर्निर्माण करें।</string>
+    <string name="map_no_key">इस ऐप बिल्ड में Google Maps उपलब्ध नहीं है। अंतर्निहित वैकल्पिक मानचित्र का उपयोग किया जा रहा है।</string>
     <string name="map_search_not_found">स्थान नहीं मिला</string>
     <string name="trigger_cat_schedule">शेड्यूल</string>    <string name="trigger_cat_device">डिवाइस</string>    <string name="trigger_cat_connectivity">कनेक्टिविटी</string>    <string name="trigger_cat_location">स्थान</string>    <string name="trigger_cat_apps">ऐप्स</string>    <string name="trigger_cat_communication">संचार</string>
 <string name="add_variable">चर जोड़ें</string>
@@ -970,6 +970,8 @@
     <string name="plugin_high_risk_continue">मैं समझता हूँ</string>
     <string name="plugin_high_risk_badge">उन्नत: उन्नत कमांड पहुँच</string>
     <string name="map_google_fallback">Google Maps लोड नहीं हो सका। वैकल्पिक मानचित्र पर स्विच कर दिया गया है।</string>
+    <string name="map_alternative_renderer_failed">अंतर्निहित वैकल्पिक मानचित्र शुरू नहीं हो सका। Android System WebView को अपडेट करके फिर प्रयास करें।</string>
+    <string name="map_alternative_tiles_failed">वैकल्पिक मानचित्र लोड हो गया, लेकिन मानचित्र टाइलें डाउनलोड नहीं हो सकीं। इंटरनेट, DNS या फ़ायरवॉल जाँचें; आप अभी भी खोज सकते हैं या वर्तमान स्थान उपयोग कर सकते हैं।</string>
     <string name="network_mode_reading">उपलब्ध नेटवर्क मोड पढ़े जा रहे हैं…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">इस डिवाइस या सदस्यता के लिए वास्तव में समर्थित नेटवर्क मोड उपलब्ध नहीं हैं। असमर्थित विकल्प नहीं दिखाए जाते।</string>

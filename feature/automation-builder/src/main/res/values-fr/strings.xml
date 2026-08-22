@@ -522,7 +522,7 @@
     <string name="charging_no">Pas en charge</string>
     <string name="map_search_hint">Rechercher un lieu</string>
     <string name="map_pick_hint">Touchez la carte pour placer le point — glissez le repère pour ajuster</string>
-    <string name="map_no_key">"Google Maps n\'est pas configuré. Ajoutez NEXAFLOW_MAPS_API_KEY à gradle.properties et reconstruisez."</string>
+    <string name="map_no_key">Google Maps n’est pas disponible dans cette version de l’application. La carte alternative intégrée est utilisée.</string>
     <string name="map_search_not_found">Lieu introuvable</string>
     <string name="trigger_cat_schedule">Planification</string>    <string name="trigger_cat_device">Appareil</string>    <string name="trigger_cat_connectivity">Connectivité</string>    <string name="trigger_cat_location">Localisation</string>    <string name="trigger_cat_apps">Applications</string>    <string name="trigger_cat_communication">Communication</string>
 <string name="add_variable">Ajouter une variable</string>
@@ -970,6 +970,8 @@
     <string name="plugin_high_risk_continue">Je comprends</string>
     <string name="plugin_high_risk_badge">Avancé : accès aux commandes élevées</string>
     <string name="map_google_fallback">Google Maps n’a pas pu se charger. Une carte alternative a été ouverte.</string>
+    <string name="map_alternative_renderer_failed">La carte alternative intégrée n’a pas pu démarrer. Mettez à jour Android System WebView puis réessayez.</string>
+    <string name="map_alternative_tiles_failed">La carte alternative est chargée, mais les tuiles n’ont pas pu être téléchargées. Vérifiez Internet, le DNS ou le pare-feu ; la recherche et la position actuelle restent disponibles.</string>
     <string name="network_mode_reading">Lecture des modes réseau disponibles…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Les modes réseau réellement pris en charge sont indisponibles pour cet appareil ou cet abonnement. Aucune option non confirmée n’est affichée.</string>

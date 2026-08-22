@@ -522,7 +522,7 @@
     <string name="charging_no">Wird nicht geladen</string>
     <string name="map_search_hint">Ort suchen</string>
     <string name="map_pick_hint">Tippen Sie auf die Karte, um den Punkt zu setzen — ziehen Sie die Markierung zum Anpassen</string>
-    <string name="map_no_key">Google Maps ist noch nicht konfiguriert. Fügen Sie NEXAFLOW_MAPS_API_KEY zu gradle.properties hinzu und bauen Sie neu.</string>
+    <string name="map_no_key">Google Maps ist in dieser App-Version nicht verfügbar. Die integrierte alternative Karte wird verwendet.</string>
     <string name="map_search_not_found">Ort nicht gefunden</string>
     <string name="trigger_cat_schedule">Zeitplan</string>    <string name="trigger_cat_device">Gerät</string>    <string name="trigger_cat_connectivity">Konnektivität</string>    <string name="trigger_cat_location">Standort</string>    <string name="trigger_cat_apps">Apps</string>    <string name="trigger_cat_communication">Kommunikation</string>
 <string name="add_variable">Variable hinzufügen</string>
@@ -970,6 +970,8 @@
     <string name="plugin_high_risk_continue">Ich verstehe</string>
     <string name="plugin_high_risk_badge">Erweitert: Zugriff auf privilegierte Befehle</string>
     <string name="map_google_fallback">Google Maps konnte nicht geladen werden. Es wurde zu einer alternativen Karte gewechselt.</string>
+    <string name="map_alternative_renderer_failed">Die integrierte alternative Karte konnte nicht gestartet werden. Aktualisieren Sie Android System WebView und versuchen Sie es erneut.</string>
+    <string name="map_alternative_tiles_failed">Die alternative Karte wurde geladen, aber Kartenkacheln konnten nicht heruntergeladen werden. Prüfen Sie Internet, DNS oder Firewall; Suche und aktueller Standort bleiben verfügbar.</string>
     <string name="network_mode_reading">Verfügbare Netzwerkmodi werden gelesen…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Tatsächlich unterstützte Netzwerkmodi sind für dieses Gerät oder Abonnement nicht verfügbar. Nicht bestätigte Optionen werden nicht angezeigt.</string>

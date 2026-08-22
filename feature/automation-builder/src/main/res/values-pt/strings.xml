@@ -522,7 +522,7 @@
     <string name="charging_no">Sem carregar</string>
     <string name="map_search_hint">Pesquisar um lugar</string>
     <string name="map_pick_hint">Toque no mapa para colocar o ponto — arraste o marcador para ajustar</string>
-    <string name="map_no_key">O Google Maps ainda não está configurado. Adicione NEXAFLOW_MAPS_API_KEY ao gradle.properties e recompile.</string>
+    <string name="map_no_key">O Google Maps não está disponível nesta versão do aplicativo. O mapa alternativo integrado está em uso.</string>
     <string name="map_search_not_found">Lugar não encontrado</string>
     <string name="trigger_cat_schedule">Agendamento</string>    <string name="trigger_cat_device">Dispositivo</string>    <string name="trigger_cat_connectivity">Conectividade</string>    <string name="trigger_cat_location">Localização</string>    <string name="trigger_cat_apps">Apps</string>    <string name="trigger_cat_communication">Comunicação</string>
 <string name="add_variable">Adicionar variável</string>
@@ -970,6 +970,8 @@
     <string name="plugin_high_risk_continue">Eu entendo</string>
     <string name="plugin_high_risk_badge">Avançado: acesso a comandos elevados</string>
     <string name="map_google_fallback">Não foi possível carregar o Google Maps. Foi usado um mapa alternativo.</string>
+    <string name="map_alternative_renderer_failed">Não foi possível iniciar o mapa alternativo integrado. Atualize o Android System WebView e tente novamente.</string>
+    <string name="map_alternative_tiles_failed">O mapa alternativo foi carregado, mas os blocos do mapa não puderam ser baixados. Verifique a Internet, o DNS ou o firewall; você ainda pode pesquisar ou usar a localização atual.</string>
     <string name="network_mode_reading">A ler os modos de rede disponíveis…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Os modos de rede realmente suportados não estão disponíveis para este dispositivo ou subscrição. Não são mostradas opções não confirmadas.</string>

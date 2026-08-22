@@ -522,7 +522,7 @@
     <string name="charging_no">No cargando</string>
     <string name="map_search_hint">Buscar un lugar</string>
     <string name="map_pick_hint">Toca el mapa para colocar el punto — arrastra el marcador para ajustarlo</string>
-    <string name="map_no_key">Google Maps no está configurado todavía. Añade NEXAFLOW_MAPS_API_KEY a gradle.properties y recompila.</string>
+    <string name="map_no_key">Google Maps no está disponible en esta versión de la aplicación. Se está usando el mapa alternativo integrado.</string>
     <string name="map_search_not_found">Lugar no encontrado</string>
     <string name="trigger_cat_schedule">Programación</string>    <string name="trigger_cat_device">Dispositivo</string>    <string name="trigger_cat_connectivity">Conectividad</string>    <string name="trigger_cat_location">Ubicación</string>    <string name="trigger_cat_apps">Apps</string>    <string name="trigger_cat_communication">Comunicación</string>
 <string name="add_variable">Añadir variable</string>
@@ -970,6 +970,8 @@
     <string name="plugin_high_risk_continue">Lo entiendo</string>
     <string name="plugin_high_risk_badge">Avanzado: acceso a comandos elevados</string>
     <string name="map_google_fallback">No se pudo cargar Google Maps. Se cambió a un mapa alternativo.</string>
+    <string name="map_alternative_renderer_failed">No se pudo iniciar el mapa alternativo integrado. Actualiza Android System WebView y vuelve a intentarlo.</string>
+    <string name="map_alternative_tiles_failed">El mapa alternativo se cargó, pero no se pudieron descargar los mosaicos. Comprueba Internet, DNS o el cortafuegos; aún puedes buscar o usar tu ubicación actual.</string>
     <string name="network_mode_reading">Leyendo los modos de red disponibles…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Los modos de red realmente compatibles no están disponibles para este dispositivo o suscripción. No se muestran opciones no confirmadas.</string>

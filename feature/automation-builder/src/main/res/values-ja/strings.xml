@@ -522,7 +522,7 @@
     <string name="charging_no">充電なし</string>
     <string name="map_search_hint">場所を検索</string>
     <string name="map_pick_hint">マップをタップして地点を配置 — マーカーをドラッグして微調整</string>
-    <string name="map_no_key">Googleマップがまだ設定されていません。gradle.propertiesにNEXAFLOW_MAPS_API_KEYを追加して再ビルドしてください。</string>
+    <string name="map_no_key">このアプリ版では Google マップを利用できません。内蔵の代替地図を使用しています。</string>
     <string name="map_search_not_found">場所が見つかりません</string>
     <string name="trigger_cat_schedule">スケジュール</string>    <string name="trigger_cat_device">デバイス</string>    <string name="trigger_cat_connectivity">接続</string>    <string name="trigger_cat_location">場所</string>    <string name="trigger_cat_apps">アプリ</string>    <string name="trigger_cat_communication">通信</string>
 <string name="add_variable">変数を追加</string>
@@ -970,6 +970,8 @@
     <string name="plugin_high_risk_continue">理解しました</string>
     <string name="plugin_high_risk_badge">高度：権限の高いコマンドへのアクセス</string>
     <string name="map_google_fallback">Google マップを読み込めなかったため、代替地図に切り替えました。</string>
+    <string name="map_alternative_renderer_failed">内蔵の代替地図を開始できませんでした。Android System WebView を更新してからもう一度お試しください。</string>
+    <string name="map_alternative_tiles_failed">代替地図は読み込まれましたが、地図タイルをダウンロードできませんでした。インターネット接続、DNS、またはファイアウォールを確認してください。検索と現在地の使用は引き続き可能です。</string>
     <string name="network_mode_reading">利用可能なネットワーク モードを読み込んでいます…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">この端末または契約で実際に対応するネットワーク モードを取得できません。未確認の選択肢は表示しません。</string>

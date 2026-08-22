@@ -75,6 +75,10 @@ private const val GOOGLE_MAP_LOAD_TIMEOUT_MS = 12_000L
 internal fun shouldUseOpenStreetMap(apiKey: String, googleMapFailed: Boolean): Boolean =
     apiKey.isBlank() || googleMapFailed
 
+/** Tile delivery is optional for interaction; only a renderer failure disables the picker. */
+internal fun isAlternativeMapRendererFailure(reason: String?): Boolean =
+    reason != "tile_network_unavailable"
+
 /**
  * Embedded map picker. The map is only a VIEWING/selection surface:
  *
@@ -118,17 +122,21 @@ fun MapPickerScreen(navController: NavController) {
     }
     var searchQuery by remember { mutableStateOf("") }
     var searchError by remember { mutableStateOf<String?>(null) }
+    var mapStatusMessage by remember { mutableStateOf<String?>(null) }
     var locating by remember { mutableStateOf(false) }
     var marker by remember { mutableStateOf<Marker?>(null) }
     var circle by remember { mutableStateOf<Circle?>(null) }
     var googleMapLoaded by remember { mutableStateOf(false) }
     var googleMapFailed by remember { mutableStateOf(false) }
     var osmReady by remember { mutableStateOf(false) }
+    var osmTileNetworkUnavailable by remember { mutableStateOf(false) }
 
     val mapSearchNotFoundText = stringResource(R.string.map_search_not_found)
     val locationFixFailedText = stringResource(R.string.location_fix_failed)
     val mapNoKeyText = stringResource(R.string.map_no_key)
     val mapGoogleFallbackText = stringResource(R.string.map_google_fallback)
+    val mapAlternativeRendererFailedText = stringResource(R.string.map_alternative_renderer_failed)
+    val mapAlternativeTilesFailedText = stringResource(R.string.map_alternative_tiles_failed)
 
     val apiKey = remember {
         runCatching {
@@ -155,7 +163,7 @@ fun MapPickerScreen(navController: NavController) {
             marker = null
             circle = null
             googleMapFailed = true
-            searchError = mapGoogleFallbackText
+            mapStatusMessage = mapGoogleFallbackText
         }
     }
 
@@ -167,6 +175,34 @@ fun MapPickerScreen(navController: NavController) {
             fun onPointSelected(lat: Double, lng: Double) {
                 if (lat !in -90.0..90.0 || lng !in -180.0..180.0) return
                 mainHandler.post { markerPos = LatLng(lat, lng) }
+            }
+
+            @JavascriptInterface
+            fun onMapReady() {
+                mainHandler.post {
+                    osmReady = true
+                    mapStatusMessage = if (osmTileNetworkUnavailable) {
+                        mapAlternativeTilesFailedText
+                    } else {
+                        null
+                    }
+                }
+            }
+
+            @JavascriptInterface
+            fun onMapError(reason: String?) {
+                mainHandler.post {
+                    if (!isAlternativeMapRendererFailure(reason)) {
+                        // The renderer is still interactive: location can be
+                        // searched, selected, and confirmed even if the tile
+                        // provider is unreachable on this network.
+                        osmTileNetworkUnavailable = true
+                        mapStatusMessage = mapAlternativeTilesFailedText
+                    } else {
+                        osmReady = false
+                        mapStatusMessage = mapAlternativeRendererFailedText
+                    }
+                }
             }
         }
     }
@@ -214,28 +250,29 @@ fun MapPickerScreen(navController: NavController) {
             WebView(context).apply {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
+                // Identify the application to the tile provider while retaining
+                // the platform WebView identity for compatibility and debugging.
+                settings.userAgentString = "${settings.userAgentString} NexaFlow/${context.packageName}"
+                // The local picker may render network tile images, but it must
+                // never receive file/content cross-origin access to device data.
+                settings.allowContentAccess = false
+                @Suppress("DEPRECATION")
+                settings.allowFileAccessFromFileURLs = false
+                @Suppress("DEPRECATION")
+                settings.allowUniversalAccessFromFileURLs = false
                 // Lint cannot see @JavascriptInterface on anonymous objects, so
                 // the suppression lives at the call site (method is annotated).
                 @SuppressLint("JavascriptInterface")
                 addJavascriptInterface(osmBridge, "Android")
                 webViewClient = object : WebViewClient() {
-                    override fun onPageFinished(view: WebView?, url: String?) {
-                        osmReady = true
-                        val p = markerPos
-                        view?.evaluateJavascript(
-                            "if (window.setPoint) setPoint(" +
-                                "${p?.latitude ?: 0.0}, ${p?.longitude ?: 0.0}, $radius);",
-                            null
-                        )
-                    }
-
                     override fun onReceivedError(
                         view: WebView?,
                         request: WebResourceRequest?,
                         error: WebResourceError?
                     ) {
                         if (request?.isForMainFrame != false) {
-                            searchError = mapNoKeyText
+                            osmReady = false
+                            mapStatusMessage = mapAlternativeRendererFailedText
                         }
                     }
                 }
@@ -263,6 +300,19 @@ fun MapPickerScreen(navController: NavController) {
                 lifecycleOwner.lifecycle.removeObserver(observer)
                 wv.destroy()
             }
+        }
+    }
+
+    // Leaflet sends `onMapReady` only after its locally bundled renderer is
+    // initialized. Apply the current picker state then, rather than treating
+    // a loaded HTML shell as proof that an interactive map exists.
+    LaunchedEffect(useOsm, osmReady, markerPos, radius) {
+        val p = markerPos
+        if (useOsm && osmReady && p != null) {
+            osmWebView?.evaluateJavascript(
+                "if (window.setPoint) setPoint(${p.latitude}, ${p.longitude}, $radius);",
+                null
+            )
         }
     }
 
@@ -429,6 +479,19 @@ fun MapPickerScreen(navController: NavController) {
                     text = searchError!!,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error
+                )
+            }
+            if (mapStatusMessage != null) {
+                Text(
+                    text = mapStatusMessage!!,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            } else if (useOsm && apiKey.isBlank()) {
+                Text(
+                    text = mapNoKeyText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
                 )
             }
 

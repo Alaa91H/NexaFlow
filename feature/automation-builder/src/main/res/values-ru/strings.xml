@@ -522,7 +522,7 @@
     <string name="charging_no">Не заряжается</string>
     <string name="map_search_hint">Найти место</string>
     <string name="map_pick_hint">Коснитесь карты, чтобы поставить точку — перетащите маркер для точной настройки</string>
-    <string name="map_no_key">Google Карты ещё не настроены. Добавьте NEXAFLOW_MAPS_API_KEY в gradle.properties и пересоберите.</string>
+    <string name="map_no_key">Google Карты недоступны в этой сборке приложения. Используется встроенная альтернативная карта.</string>
     <string name="map_search_not_found">Место не найдено</string>
     <string name="trigger_cat_schedule">Расписание</string>    <string name="trigger_cat_device">Устройство</string>    <string name="trigger_cat_connectivity">Подключение</string>    <string name="trigger_cat_location">Местоположение</string>    <string name="trigger_cat_apps">Приложения</string>    <string name="trigger_cat_communication">Связь</string>
 <string name="add_variable">Добавить переменную</string>
@@ -970,6 +970,8 @@
     <string name="plugin_high_risk_continue">Я понимаю</string>
     <string name="plugin_high_risk_badge">Расширенный: доступ к привилегированным командам</string>
     <string name="map_google_fallback">Не удалось загрузить Google Карты. Выполнен переход к альтернативной карте.</string>
+    <string name="map_alternative_renderer_failed">Не удалось запустить встроенную альтернативную карту. Обновите Android System WebView и повторите попытку.</string>
+    <string name="map_alternative_tiles_failed">Альтернативная карта загружена, но не удалось скачать её плитки. Проверьте интернет, DNS или брандмауэр; поиск и использование текущего местоположения по-прежнему доступны.</string>
     <string name="network_mode_reading">Чтение доступных режимов сети…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Фактически поддерживаемые режимы сети недоступны для этого устройства или подписки. Неподтверждённые варианты не показаны.</string>

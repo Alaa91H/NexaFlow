@@ -522,7 +522,7 @@
     <string name="charging_no">Şarj olmuyor</string>
     <string name="map_search_hint">Bir yer arayın</string>
     <string name="map_pick_hint">Noktayı koymak için haritaya dokunun — hassas ayar için işaretçiyi sürükleyin</string>
-    <string name="map_no_key">Google Haritalar henüz yapılandırılmadı. gradle.properties dosyasına NEXAFLOW_MAPS_API_KEY ekleyin ve yeniden derleyin.</string>
+    <string name="map_no_key">Google Haritalar bu uygulama sürümünde kullanılamıyor. Yerleşik alternatif harita kullanılıyor.</string>
     <string name="map_search_not_found">Yer bulunamadı</string>
     <string name="trigger_cat_schedule">Zamanlama</string>    <string name="trigger_cat_device">Cihaz</string>    <string name="trigger_cat_connectivity">Bağlantı</string>    <string name="trigger_cat_location">Konum</string>    <string name="trigger_cat_apps">Uygulamalar</string>    <string name="trigger_cat_communication">İletişim</string>
 <string name="add_variable">Değişken ekle</string>
@@ -970,6 +970,8 @@
     <string name="plugin_high_risk_continue">Anlıyorum</string>
     <string name="plugin_high_risk_badge">Gelişmiş: yükseltilmiş komut erişimi</string>
     <string name="map_google_fallback">Google Haritalar yüklenemedi. Alternatif bir haritaya geçildi.</string>
+    <string name="map_alternative_renderer_failed">Yerleşik alternatif harita başlatılamadı. Android System WebView’i güncelleyin ve tekrar deneyin.</string>
+    <string name="map_alternative_tiles_failed">Alternatif harita yüklendi ancak harita döşemeleri indirilemedi. İnternet bağlantısını, DNS’i veya güvenlik duvarını kontrol edin; arama yapabilir ya da mevcut konumu kullanabilirsiniz.</string>
     <string name="network_mode_reading">Kullanılabilir ağ modları okunuyor…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Bu cihaz veya abonelik için gerçekten desteklenen ağ modları kullanılamıyor. Doğrulanmamış seçenekler gösterilmez.</string>

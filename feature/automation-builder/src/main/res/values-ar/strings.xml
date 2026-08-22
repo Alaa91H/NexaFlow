@@ -521,7 +521,7 @@
     <string name="charging_no">لا يشحن</string>
     <string name="map_search_hint">ابحث عن مكان</string>
     <string name="map_pick_hint">اضغط على الخريطة لتحديد النقطة — واسحب العلامة للضبط الدقيق</string>
-    <string name="map_no_key">خرائط جوجل غير مكوّنة بعد. أضف NEXAFLOW_MAPS_API_KEY إلى gradle.properties وأعد البناء.</string>
+    <string name="map_no_key">خرائط Google غير متاحة في هذا الإصدار من التطبيق. يتم استخدام الخريطة البديلة المضمّنة.</string>
     <string name="map_search_not_found">لم يُعثر على المكان</string>
     <string name="trigger_cat_schedule">الجدولة</string>    <string name="trigger_cat_device">الجهاز</string>    <string name="trigger_cat_connectivity">الاتصال</string>    <string name="trigger_cat_location">الموقع</string>    <string name="trigger_cat_apps">التطبيقات</string>    <string name="trigger_cat_communication">التواصل</string>
 <string name="add_variable">إضافة متغير</string>
@@ -969,6 +969,8 @@
     <string name="plugin_high_risk_continue">أفهم ذلك</string>
     <string name="plugin_high_risk_badge">متقدم: وصول لأوامر بصلاحيات مرتفعة</string>
     <string name="map_google_fallback">تعذر تحميل خرائط Google، لذلك تم الانتقال إلى خريطة بديلة.</string>
+    <string name="map_alternative_renderer_failed">تعذر تشغيل محرّك الخريطة البديلة المضمّن. حدّث Android System WebView ثم حاول مجدداً.</string>
+    <string name="map_alternative_tiles_failed">تم تحميل الخريطة البديلة، لكن تعذر تنزيل بلاطات الخريطة. تحقق من اتصال الإنترنت أو DNS أو جدار الحماية؛ ما زال بإمكانك البحث أو استخدام موقعك الحالي.</string>
     <string name="network_mode_reading">جارٍ قراءة أوضاع الشبكة المتاحة…</string>
     <string name="network_mode_sim">الشريحة %1$d</string>
     <string name="network_mode_unavailable">أوضاع الشبكة المدعومة فعلياً غير متاحة لهذه الشريحة أو الجهاز، لذلك لا تظهر خيارات غير مؤكدة.</string>

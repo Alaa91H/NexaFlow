@@ -522,7 +522,7 @@
     <string name="charging_no">未充电</string>
     <string name="map_search_hint">搜索地点</string>
     <string name="map_pick_hint">点击地图放置点 — 拖动标记进行微调</string>
-    <string name="map_no_key">Google 地图尚未配置。请在 gradle.properties 中添加 NEXAFLOW_MAPS_API_KEY 并重新构建。</string>
+    <string name="map_no_key">此应用构建版本中 Google 地图不可用。正在使用内置备用地图。</string>
     <string name="map_search_not_found">未找到地点</string>
     <string name="trigger_cat_schedule">计划</string>    <string name="trigger_cat_device">设备</string>    <string name="trigger_cat_connectivity">连接</string>    <string name="trigger_cat_location">位置</string>    <string name="trigger_cat_apps">应用</string>    <string name="trigger_cat_communication">通信</string>
 <string name="add_variable">添加变量</string>
@@ -970,6 +970,8 @@
     <string name="plugin_high_risk_continue">我了解</string>
     <string name="plugin_high_risk_badge">高级：可访问高权限命令</string>
     <string name="map_google_fallback">无法加载 Google 地图，已切换至备用地图。</string>
+    <string name="map_alternative_renderer_failed">无法启动内置备用地图。请更新 Android System WebView 后重试。</string>
+    <string name="map_alternative_tiles_failed">备用地图已加载，但无法下载地图瓦片。请检查网络连接、DNS 或防火墙；仍可搜索或使用当前位置。</string>
     <string name="network_mode_reading">正在读取可用网络模式…</string>
     <string name="network_mode_sim">SIM 卡 %1$d</string>
     <string name="network_mode_unavailable">无法获取此设备或订阅实际支持的网络模式。不会显示未经确认的选项。</string>

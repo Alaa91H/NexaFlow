@@ -3,22 +3,51 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
-        onerror="this.onerror=null;this.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'"></script>
+<link rel="stylesheet" href="leaflet/leaflet.css" />
 <style>
-  html, body, #map { height: 100%; margin: 0; padding: 0; }
+  html, body, #map { height: 100%; margin: 0; padding: 0; background: #e6e8eb; }
   body { font-family: system-ui, sans-serif; }
+  #map-error {
+    display: none; box-sizing: border-box; height: 100%; padding: 24px;
+    color: #4a1b1b; background: #fff2f0; font-size: 16px; line-height: 1.45;
+  }
 </style>
+<script src="leaflet/leaflet.js"></script>
 </head>
 <body>
 <div id="map"></div>
+<div id="map-error">The offline map renderer could not start. Check the app update and try again.</div>
 <script>
+(function () {
+  function notifyReady() {
+    if (window.Android && window.Android.onMapReady) window.Android.onMapReady();
+  }
+  function notifyError(reason) {
+    if (window.Android && window.Android.onMapError) window.Android.onMapError(String(reason));
+  }
+  function showFatalError(reason) {
+    document.getElementById('map').style.display = 'none';
+    document.getElementById('map-error').style.display = 'block';
+    notifyError(reason);
+  }
+
+  if (!window.L) {
+    showFatalError('leaflet_unavailable');
+    return;
+  }
+
   var map = L.map('map', { zoomControl: true }).setView([0, 0], 2);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  var failedTiles = 0;
+  var tileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
+  tileLayer.on('tileerror', function () {
+    failedTiles += 1;
+    // Tile failures do not disable point selection; report once so Android can
+    // show an actionable network/provider message instead of a white surface.
+    if (failedTiles === 1) notifyError('tile_network_unavailable');
+  });
 
   var marker = null;
   var circle = null;
@@ -48,7 +77,7 @@
     if (move) map.setView([lat, lng], 16);
   }
 
-  // Called from the Android side (search result / current location / init).
+  // Called from Android for a search result, current location, or initial value.
   window.setPoint = function (lat, lng, r) {
     if (typeof r === 'number') radius = r;
     drawPoint(lat, lng, true);
@@ -62,6 +91,8 @@
     drawPoint(e.latlng.lat, e.latlng.lng, false);
     if (window.Android) window.Android.onPointSelected(e.latlng.lat, e.latlng.lng);
   });
+  notifyReady();
+}());
 </script>
 </body>
 </html>

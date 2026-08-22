@@ -534,7 +534,7 @@
     <string name="search">Search</string>
     <string name="map_search_hint">Search for a place</string>
     <string name="map_pick_hint">Tap the map to place the point — drag the marker to fine-tune</string>
-    <string name="map_no_key">"Google Maps isn't configured yet. Add NEXAFLOW_MAPS_API_KEY to gradle.properties and rebuild."</string>
+    <string name="map_no_key">Google Maps is unavailable in this app build. The built-in alternative map is being used.</string>
     <string name="map_search_not_found">Place not found</string>
     <string name="trigger_cat_schedule">Schedule</string>    <string name="trigger_cat_device">Device</string>    <string name="trigger_cat_connectivity">Connectivity</string>    <string name="trigger_cat_location">Location</string>    <string name="trigger_cat_apps">Apps</string>    <string name="trigger_cat_communication">Communication</string>
 <string name="add_variable">Add variable</string>
@@ -970,6 +970,8 @@
     <string name="plugin_high_risk_continue">I understand</string>
     <string name="plugin_high_risk_badge">Advanced: elevated command access</string>
     <string name="map_google_fallback">Google Maps couldn\'t load. Switched to an alternative map.</string>
+    <string name="map_alternative_renderer_failed">The built-in alternative map could not start. Update Android System WebView and try again.</string>
+    <string name="map_alternative_tiles_failed">The alternative map loaded, but map tiles could not be downloaded. Check your internet connection, DNS, or firewall; you can still search or use current location.</string>
     <string name="network_mode_reading">Reading available network modes…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Actual supported network modes are unavailable for this device or subscription. No unsupported options are shown.</string>
