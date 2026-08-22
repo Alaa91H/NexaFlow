@@ -1,8 +1,12 @@
 package com.nexaflow.core.engine
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.Network
+import android.net.wifi.WifiManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.provider.Settings
@@ -12,12 +16,14 @@ import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
-import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
+import androidx.core.content.ContextCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,10 +39,32 @@ class ConnectivityMonitor @Inject constructor(
     @Volatile
     private var initialized = false
 
-    private val lastRunAt = mutableMapOf<String, Long>()
+    /** Serializes state transitions so duplicate network callbacks cannot re-run one task. */
+    private val transitionMutex = Mutex()
     /** Automations currently in their triggered state, mapped to the active state string. */
     private val activeStates = mutableMapOf<String, String>()
     private var callback: ConnectivityManager.NetworkCallback? = null
+    /** Last definitive tethering state reported by the Wi‑Fi AP state broadcast. */
+    @Volatile private var hotspotEnabledHint: Boolean? = null
+    private val hotspotStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(receiverContext: Context, intent: Intent) {
+            if (intent.action == HOTSPOT_STATE_CHANGED_ACTION) {
+                onHotspotStateChanged(intent.getIntExtra(HOTSPOT_STATE_EXTRA, HOTSPOT_STATE_UNAVAILABLE))
+            }
+        }
+    }
+
+    /** Receives the AP state carried by the system tethering broadcast. */
+    internal fun onHotspotStateChanged(state: Int) {
+        hotspotEnabledHint = when (state) {
+            HOTSPOT_STATE_ENABLED -> true
+            HOTSPOT_STATE_DISABLED,
+            HOTSPOT_STATE_DISABLING,
+            HOTSPOT_STATE_FAILED -> false
+            else -> null
+        }
+        handleChange()
+    }
 
     fun initialize() {
         if (initialized) return
@@ -61,6 +89,12 @@ class ConnectivityMonitor @Inject constructor(
             }
             callback = networkCallback
             connectivityManager.registerDefaultNetworkCallback(networkCallback)
+            ContextCompat.registerReceiver(
+                context,
+                hotspotStateReceiver,
+                IntentFilter(HOTSPOT_STATE_CHANGED_ACTION),
+                ContextCompat.RECEIVER_NOT_EXPORTED
+            )
         }
     }
 
@@ -88,6 +122,15 @@ class ConnectivityMonitor @Inject constructor(
 
     private companion object {
         const val SOURCE = "connectivity"
+        // Public broadcast action delivered when local Wi‑Fi tethering changes.
+        // Kept as a literal because SDK stubs do not expose the hidden constant.
+        const val HOTSPOT_STATE_CHANGED_ACTION = "android.net.wifi.WIFI_AP_STATE_CHANGED"
+        const val HOTSPOT_STATE_EXTRA = "wifi_state"
+        const val HOTSPOT_STATE_UNAVAILABLE = -1
+        const val HOTSPOT_STATE_DISABLED = 11
+        const val HOTSPOT_STATE_DISABLING = 10
+        const val HOTSPOT_STATE_ENABLED = 13
+        const val HOTSPOT_STATE_FAILED = 14
     }
 
     fun stop() {
@@ -102,55 +145,54 @@ class ConnectivityMonitor @Inject constructor(
             }
         }
         callback = null
+        runCatching { context.unregisterReceiver(hotspotStateReceiver) }
     }
 
     private fun handleChange() {
         scope.launch {
-            // Every network condition is re-read from live state (capabilities,
-            // tether setting, cellular generation) on each callback, so stale
-            // callbacks self-correct.
-            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-            val automations = repository.getAutomations().first()
-            val now = System.currentTimeMillis()
-            automations
-                .filter { automation ->
-                    automation.enabled && automation.triggers.any {
-                        it.type == TriggerType.CONNECTIVITY || it.type == TriggerType.NETWORK_MODE
+            transitionMutex.withLock {
+                // Every condition is re-read from live state (capabilities,
+                // tether setting, cellular generation) on each callback, so
+                // stale callbacks self-correct. A state task runs exactly once
+                // when it enters the requested state, not on every callback.
+                val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+                val automations = repository.getAutomations().first()
+                automations
+                    .filter { automation ->
+                        automation.enabled && automation.triggers.any {
+                            it.type == TriggerType.CONNECTIVITY || it.type == TriggerType.NETWORK_MODE
+                        }
                     }
-                }
-                .forEach { automation ->
-                    // A task may use either the combined CONNECTIVITY trigger or the
-                    // standalone NETWORK_MODE trigger (cellular generation).
-                    val trigger = automation.triggers.firstOrNull {
-                        it.type == TriggerType.CONNECTIVITY || it.type == TriggerType.NETWORK_MODE
-                    } ?: return@forEach
-                    val network = trigger.config["network"]
-                        ?: if (trigger.type == TriggerType.NETWORK_MODE) "NETWORK_MODE" else "WIFI"
-                    val desiredState = trigger.config["state"] ?: "CONNECTED"
-                    val current = currentNetworkValue(network, capabilities)
-                    // NETWORK_MODE with AUTO matches any active cellular
-                    // generation; every other combination is an exact match.
-                    val matched = if (network == "NETWORK_MODE" && desiredState == "AUTO") {
-                        current != null
-                    } else {
-                        current == desiredState
-                    }
-                    if (matched) {
-                        val last = lastRunAt[automation.id] ?: 0L
-                        if (now - last > automation.cooldownMillis) {
-                            lastRunAt[automation.id] = now
+                    .forEach { automation ->
+                        // A task may use either the combined CONNECTIVITY trigger or the
+                        // standalone NETWORK_MODE trigger (cellular generation).
+                        val trigger = automation.triggers.firstOrNull {
+                            it.type == TriggerType.CONNECTIVITY || it.type == TriggerType.NETWORK_MODE
+                        } ?: return@forEach
+                        val network = trigger.config["network"]
+                            ?: if (trigger.type == TriggerType.NETWORK_MODE) "NETWORK_MODE" else "WIFI"
+                        val desiredState = trigger.config["state"] ?: "CONNECTED"
+                        val current = currentNetworkValue(network, capabilities)
+                        // NETWORK_MODE with AUTO matches any active cellular
+                        // generation; every other combination is an exact match.
+                        val matched = if (network == "NETWORK_MODE" && desiredState == "AUTO") {
+                            current != null
+                        } else {
+                            current == desiredState
+                        }
+                        if (matched && activeStates[automation.id] != desiredState) {
                             activeStates[automation.id] = desiredState
                             activeStore.markActive(SOURCE, "$automation.id|$desiredState")
                             executionEngine.runAutomation(automation)
+                        } else if (!matched && activeStates[automation.id] == desiredState) {
+                            // The condition ended (state flipped or network lost): fire exit once.
+                            activeStates.remove(automation.id)
+                            activeStore.clearAutomation(SOURCE, automation.id)
+                            executionEngine.runExit(automation)
                         }
-                    } else if (activeStates[automation.id] == desiredState) {
-                        // The condition ended (state flipped or network lost): fire exit.
-                        activeStates.remove(automation.id)
-                        activeStore.clearAutomation(SOURCE, automation.id)
-                        executionEngine.runExit(automation)
                     }
-                }
+            }
         }
     }
 
@@ -173,9 +215,11 @@ class ConnectivityMonitor @Inject constructor(
             capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true -> "CONNECTED"
             else -> "DISCONNECTED"
         }
-        "HOTSPOT" -> runCatching {
-            Settings.Global.getInt(context.contentResolver, "tether_on", 0) == 1
-        }.getOrDefault(false).let { if (it) "ON" else "OFF" }
+        "HOTSPOT" -> (
+            hotspotEnabledHint ?: runCatching {
+                Settings.Global.getInt(context.contentResolver, "tether_on", 0) == 1
+            }.getOrDefault(false)
+        ).let { if (it) "ON" else "OFF" }
         "NETWORK_MODE" -> {
             if (capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) != true) return null
             currentCellularGeneration(context) ?: "AUTO"

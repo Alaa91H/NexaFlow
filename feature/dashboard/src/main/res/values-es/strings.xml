@@ -93,4 +93,8 @@
     <string name="task_details_exit_actions">Al finalizar la tarea (%1$d)</string>
     <string name="task_details_revert_on_exit">Restaurar el estado anterior del dispositivo</string>
     <string name="task_details_none">Sin configurar</string>
+    <string name="task_details_end_behavior">Al finalizar: %1$s</string>
+    <string name="task_details_end_revert">Estado original restaurar</string>
+    <string name="task_details_end_rerun">Al finalizar, ejecutar de nuevo</string>
+    <string name="task_details_end_set_value">Establecer valor: %1$s</string>
 </resources>

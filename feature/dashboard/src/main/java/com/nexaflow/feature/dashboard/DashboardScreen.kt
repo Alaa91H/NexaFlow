@@ -70,7 +70,9 @@ import com.nexaflow.core.ui.NexaFlowFloatingActionButton
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.iconVector
 import com.nexaflow.core.ui.nexaFlowEntrance
+import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.EndMode
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.schedule.TimeTriggerCalculator
 import java.time.Instant
@@ -436,20 +438,42 @@ private fun RoutineDetails(
     DetailBlock(
         title = stringResource(R.string.task_details_actions, automation.actions.size),
         lines = automation.actions.map { action ->
-            listOf(action.type.name.toDisplayLabel(), taskConfigDetail(action.config))
+            listOf(
+                action.type.name.toDisplayLabel(),
+                taskConfigDetail(action.config),
+                taskEndBehaviorDetail(action)
+            )
                 .filter { it.isNotBlank() }
                 .joinToString(" · ")
         }.ifEmpty { listOf(stringResource(R.string.task_details_none)) }
     )
+    val perActionEndBehaviors = automation.actions.filter { action ->
+        action.endBehavior?.mode?.let { it != EndMode.LEAVE } == true
+    }
     DetailBlock(
-        title = stringResource(R.string.task_details_exit_actions, automation.exitActions.size),
+        title = stringResource(
+            R.string.task_details_exit_actions,
+            automation.exitActions.size + perActionEndBehaviors.size
+        ),
         lines = when {
             automation.revertOnExit -> listOf(stringResource(R.string.task_details_revert_on_exit))
-            automation.exitActions.isEmpty() -> listOf(stringResource(R.string.task_details_none))
-            else -> automation.exitActions.map { action ->
-                listOf(action.type.name.toDisplayLabel(), taskConfigDetail(action.config))
-                    .filter { it.isNotBlank() }
-                    .joinToString(" · ")
+            automation.exitActions.isEmpty() && perActionEndBehaviors.isEmpty() ->
+                listOf(stringResource(R.string.task_details_none))
+            else -> buildList {
+                perActionEndBehaviors.forEach { action ->
+                    add(
+                        listOf(action.type.name.toDisplayLabel(), taskEndBehaviorDetail(action))
+                            .filter { it.isNotBlank() }
+                            .joinToString(" · ")
+                    )
+                }
+                automation.exitActions.forEach { action ->
+                    add(
+                        listOf(action.type.name.toDisplayLabel(), taskConfigDetail(action.config))
+                            .filter { it.isNotBlank() }
+                            .joinToString(" · ")
+                    )
+                }
             }
         }
     )
@@ -477,6 +501,22 @@ internal fun taskConfigDetail(config: Map<String, String>): String =
     config.entries
         .sortedBy { it.key }
         .joinToString(" · ") { (key, value) -> "$key: $value" }
+
+/** Exact, per-action end behavior shown in task cards; null means leave unchanged. */
+@Composable
+private fun taskEndBehaviorDetail(action: Action): String {
+    val behavior = action.endBehavior ?: return ""
+    val label = when (behavior.mode) {
+        EndMode.LEAVE -> return ""
+        EndMode.REVERT -> stringResource(R.string.task_details_end_revert)
+        EndMode.RERUN -> stringResource(R.string.task_details_end_rerun)
+        EndMode.SET_VALUE -> stringResource(
+            R.string.task_details_end_set_value,
+            taskConfigDetail(behavior.config)
+        )
+    }
+    return stringResource(R.string.task_details_end_behavior, label)
+}
 
 private fun String.toDisplayLabel(): String =
     removePrefix("SYSTEM_")

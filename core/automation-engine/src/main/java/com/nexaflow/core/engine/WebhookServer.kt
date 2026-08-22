@@ -192,7 +192,8 @@ class WebhookServer @Inject constructor(
                 if (now - last > automation.cooldownMillis) {
                     lastRunAt[automation.id] = now
                     anyFired = true
-                    executionEngine.runAutomation(automation)
+                    // A webhook is a one-shot event with no opposite callback.
+                    executionEngine.runAutomation(automation, completeExitOnFinish = true)
                 }
             }
         }

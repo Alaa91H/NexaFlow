@@ -93,4 +93,8 @@
     <string name="task_details_exit_actions">タスク終了時（%1$d）</string>
     <string name="task_details_revert_on_exit">以前のデバイス状態を復元</string>
     <string name="task_details_none">未設定</string>
+    <string name="task_details_end_behavior">終了時: %1$s</string>
+    <string name="task_details_end_revert">元の状態に戻す</string>
+    <string name="task_details_end_rerun">終了時に再実行</string>
+    <string name="task_details_end_set_value">値を設定: %1$s</string>
 </resources>

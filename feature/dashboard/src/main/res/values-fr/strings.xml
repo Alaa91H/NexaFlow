@@ -93,4 +93,8 @@
     <string name="task_details_exit_actions">À la fin de la tâche (%1$d)</string>
     <string name="task_details_revert_on_exit">Restaurer l’état précédent de l’appareil</string>
     <string name="task_details_none">Non configuré</string>
+    <string name="task_details_end_behavior">À la fin : %1$s</string>
+    <string name="task_details_end_revert">Restaurer l’état d’origine</string>
+    <string name="task_details_end_rerun">Exécuter à nouveau à la fin</string>
+    <string name="task_details_end_set_value">Définir la valeur : %1$s</string>
 </resources>

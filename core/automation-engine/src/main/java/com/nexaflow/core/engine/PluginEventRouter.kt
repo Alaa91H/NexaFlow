@@ -88,7 +88,8 @@ class PluginEventRouter(
             // The event has already crossed the authenticated receiver → bus →
             // index boundary. This reuses the singleton execution engine rather
             // than constructing an interpreter, manager, or recovery path.
-            runCatching { executionEngine.runAutomation(automation) }
+            // Plugin events are one-shot notifications, not a persistent state.
+            runCatching { executionEngine.runAutomation(automation, completeExitOnFinish = true) }
         }
     }
 

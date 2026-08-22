@@ -263,7 +263,10 @@ class DeviceStateMonitor28 @Inject constructor(
             automations
                 .filter { it.enabled && it.triggers.any { t -> t.type == type } }
                 .forEach { automation ->
-                    executionEngine.runAutomation(automation)
+                    // These signals are momentary events, not a durable state
+                    // with an opposite callback. Close their lifecycle after the
+                    // main chain so per-action end behavior is never stranded.
+                    executionEngine.runAutomation(automation, completeExitOnFinish = true)
                 }
         }
     }

@@ -93,4 +93,8 @@
     <string name="task_details_exit_actions">عند انتهاء المهمة (%1$d)</string>
     <string name="task_details_revert_on_exit">استعادة حالة الجهاز السابقة</string>
     <string name="task_details_none">لا يوجد إعداد</string>
+    <string name="task_details_end_behavior">عند الانتهاء: %1$s</string>
+    <string name="task_details_end_revert">استعادة الحالة الأصلية</string>
+    <string name="task_details_end_rerun">تنفيذ مجدداً عند الانتهاء</string>
+    <string name="task_details_end_set_value">تعيين قيمة: %1$s</string>
 </resources>

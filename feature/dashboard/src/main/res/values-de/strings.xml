@@ -93,4 +93,8 @@
     <string name="task_details_exit_actions">Beim Aufgabenende (%1$d)</string>
     <string name="task_details_revert_on_exit">Vorherigen Gerätestatus wiederherstellen</string>
     <string name="task_details_none">Nicht konfiguriert</string>
+    <string name="task_details_end_behavior">Beim Ende: %1$s</string>
+    <string name="task_details_end_revert">Ursprünglichen Zustand wiederherstellen</string>
+    <string name="task_details_end_rerun">Beim Ende erneut ausführen</string>
+    <string name="task_details_end_set_value">Wert setzen: %1$s</string>
 </resources>

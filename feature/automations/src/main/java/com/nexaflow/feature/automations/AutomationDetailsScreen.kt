@@ -338,27 +338,43 @@ fun AutomationDetailsScreen(navController: NavController) {
                     expanded = exitBehaviorExpanded,
                     onExpandedChange = { exitBehaviorExpanded = !exitBehaviorExpanded }
                 ) {
-                    if (current.revertOnExit) {
-                        SettingRow(
-                            icon = Icons.Filled.Security,
-                            title = stringResource(R.string.exit_revert_label),
-                            subtitle = stringResource(R.string.exit_revert_sub)
-                        )
-                    } else if (current.exitActions.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.exit_nothing_sub),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    } else {
-                        current.exitActions.forEachIndexed { index, action ->
-                            val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
+                    val perActionEndBehaviors = current.actions.filter { action ->
+                        action.endBehavior?.mode?.let { it != com.nexaflow.domain.models.EndMode.LEAVE } == true
+                    }
+                    when {
+                        current.revertOnExit -> {
                             SettingRow(
-                                icon = icon,
-                                title = stringResource(titleRes),
-                                subtitle = stringResource(subtitleRes),
-                                alternatingIndex = index
+                                icon = Icons.Filled.Security,
+                                title = stringResource(R.string.exit_revert_label),
+                                subtitle = stringResource(R.string.exit_revert_sub)
                             )
+                        }
+                        current.exitActions.isEmpty() && perActionEndBehaviors.isEmpty() -> {
+                            Text(
+                                text = stringResource(R.string.exit_nothing_sub),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                        else -> {
+                            perActionEndBehaviors.forEachIndexed { index, action ->
+                                val (titleRes, _, icon) = actionPresentation(action.type)
+                                SettingRow(
+                                    icon = icon,
+                                    title = stringResource(titleRes),
+                                    subtitle = endBehaviorText(action).orEmpty(),
+                                    alternatingIndex = index
+                                )
+                            }
+                            current.exitActions.forEachIndexed { index, action ->
+                                val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
+                                SettingRow(
+                                    icon = icon,
+                                    title = stringResource(titleRes),
+                                    subtitle = stringResource(subtitleRes),
+                                    alternatingIndex = perActionEndBehaviors.size + index
+                                )
+                            }
                         }
                     }
                 }
@@ -637,7 +653,14 @@ private fun endBehaviorText(action: Action): String? {
             }
         }
     }
-    return stringResource(R.string.end_summary, label)
+    val configuredValue = if (behavior.mode == com.nexaflow.domain.models.EndMode.SET_VALUE) {
+        actionDetail(behavior.config).takeIf { it.isNotBlank() }
+    } else {
+        null
+    }
+    return listOf(stringResource(R.string.end_summary, label), configuredValue)
+        .filterNotNull()
+        .joinToString(" · ")
 }
 
 /** Localized charger-type label shown in the battery trigger detail. */

@@ -93,4 +93,8 @@
     <string name="task_details_exit_actions">任务结束时（%1$d）</string>
     <string name="task_details_revert_on_exit">恢复之前的设备状态</string>
     <string name="task_details_none">未配置</string>
+    <string name="task_details_end_behavior">结束时：%1$s</string>
+    <string name="task_details_end_revert">恢复原始状态</string>
+    <string name="task_details_end_rerun">结束时再次执行</string>
+    <string name="task_details_end_set_value">设置值：%1$s</string>
 </resources>

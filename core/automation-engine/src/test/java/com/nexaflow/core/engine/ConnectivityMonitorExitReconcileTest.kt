@@ -12,6 +12,7 @@ import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -50,6 +51,7 @@ class ConnectivityMonitorExitReconcileTest {
         runBlocking {
             ActiveTriggerStore(context).clearSource("connectivity")
             ActiveExecutionStore(context).clear("conn-task")
+            ActiveExecutionStore(context).clear("hotspot-task")
         }
     }
 
@@ -60,6 +62,17 @@ class ConnectivityMonitorExitReconcileTest {
                 Trigger(
                     TriggerType.CONNECTIVITY,
                     mapOf("network" to "WIFI", "state" to "CONNECTED")
+                )
+            )
+        )
+
+    private fun hotspotAutomation(id: String): com.nexaflow.domain.models.Automation =
+        testAutomation(
+            id = id,
+            triggers = listOf(
+                Trigger(
+                    TriggerType.CONNECTIVITY,
+                    mapOf("network" to "HOTSPOT", "state" to "ON")
                 )
             )
         )
@@ -136,6 +149,48 @@ class ConnectivityMonitorExitReconcileTest {
         // the live state, so any network object works here. ShadowNetwork's
         // factory bypasses the real handle validation.
         shadowCm().getNetworkCallbacks().first().onAvailable(ShadowNetwork.newInstance(1))
+    }
+
+    @Test
+    fun `matching connectivity callbacks run once and a later loss runs exit once`() = runBlocking {
+        val history = RecordingHistory()
+        val engine = testEngine(context, history)
+        val repository = FakeRepository(listOf(connectivityAutomation("conn-task")))
+        val monitor = monitorFor(repository, engine, ActiveTriggerStore(context))
+        setWifiConnected()
+        monitor.initialize()
+
+        driveFirstNetworkCallback()
+        waitUntil(timeoutMs = 15_000) { history.exits.size == 1 }
+        shadowCm().getNetworkCallbacks().first().onAvailable(ShadowNetwork.newInstance(2))
+        Thread.sleep(150)
+        assertEquals("state callbacks must not repeat the main action", 1, history.exits.size)
+
+        setWifiDisconnected()
+        shadowCm().getNetworkCallbacks().first().onLost(ShadowNetwork.newInstance(1))
+        waitUntil(timeoutMs = 15_000) { history.exits.any { it == EXIT_NOOP_MARKER } }
+        val afterExit = history.exits.size
+        shadowCm().getNetworkCallbacks().first().onLost(ShadowNetwork.newInstance(3))
+        Thread.sleep(150)
+        assertEquals("state loss must not repeat the end behavior", afterExit, history.exits.size)
+        monitor.stop()
+    }
+
+    @Test
+    fun `hotspot state broadcast closes the task lifecycle`() = runBlocking {
+        val history = RecordingHistory()
+        val engine = testEngine(context, history)
+        val repository = FakeRepository(listOf(hotspotAutomation("hotspot-task")))
+        val monitor = monitorFor(repository, engine, ActiveTriggerStore(context))
+        monitor.initialize()
+        waitUntil { shadowCm().getNetworkCallbacks().isNotEmpty() }
+
+        monitor.onHotspotStateChanged(13)
+        waitUntil(timeoutMs = 15_000) { history.exits.size == 1 }
+
+        monitor.onHotspotStateChanged(11)
+        waitUntil(timeoutMs = 15_000) { history.exits.any { it == EXIT_NOOP_MARKER } }
+        monitor.stop()
     }
 
     @Test
