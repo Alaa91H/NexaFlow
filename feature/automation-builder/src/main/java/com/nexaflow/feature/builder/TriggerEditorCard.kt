@@ -245,9 +245,10 @@ val triggerTypeOptions = listOf(
     TriggerType.NFC_STATE,
     TriggerType.DATA_SAVER_STATE,
     TriggerType.WEBHOOK,
-    // LOCATION
+    // LOCATION — retain the geographic enter/exit trigger only. LOCATION_STATE
+    // remains readable for legacy tasks but is intentionally not addable from
+    // the picker because it duplicates no useful user workflow.
     TriggerType.LOCATION,
-    TriggerType.LOCATION_STATE,
     // APPS
     TriggerType.APPLICATION,
     TriggerType.APP_INSTALLED,
