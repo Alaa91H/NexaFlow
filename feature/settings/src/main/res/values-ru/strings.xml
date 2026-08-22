@@ -87,6 +87,12 @@
 
     
 
+    <string name="camera_permission">Камера</string>
+    <string name="camera_permission_sub">Требуется для действий с фонариком</string>
+    <string name="activity_recognition_permission">Физическая активность</string>
+    <string name="activity_recognition_permission_sub">Определяет шаги и триггеры на основе активности</string>
+    <string name="local_network_permission">Локальная сеть</string>
+    <string name="local_network_permission_sub">Доступ к устройствам домашней сети из HTTP-задач</string>
     <string name="root_permission">Root-доступ</string>
     <string name="root_permission_sub">Предоставьте доступ суперпользователя для расширенных команд</string>
     <string name="shizuku_permission">Shizuku</string>

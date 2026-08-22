@@ -120,6 +120,48 @@ class RootPermissionGranterTest {
     }
 
     @Test
+    fun `targeted runtime grant verifies phone state after root grant`() {
+        assertTrue(grantRoot())
+        var phoneStateGranted = false
+        RootPermissionGranter.shellRunner = { command ->
+            commands += command
+            if (command == "pm grant com.nexaflow.app android.permission.READ_PHONE_STATE") {
+                phoneStateGranted = true
+            }
+            SystemControlResult.ok("ok")
+        }
+
+        val result = RootPermissionGranter.grantRuntimePermissionsInternal(
+            packageName = "com.nexaflow.app",
+            permissions = listOf("android.permission.READ_PHONE_STATE"),
+            grantedChecker = { phoneStateGranted }
+        )
+
+        assertTrue(result.allGranted)
+        assertEquals(listOf("android.permission.READ_PHONE_STATE"), result.granted)
+        assertTrue(commands.contains("pm grant com.nexaflow.app android.permission.READ_PHONE_STATE"))
+    }
+
+    @Test
+    fun `targeted runtime grant keeps permission missing when root command does not land`() {
+        assertTrue(grantRoot())
+        RootPermissionGranter.shellRunner = { command ->
+            commands += command
+            SystemControlResult.ok("reported success without changing permission")
+        }
+
+        val result = RootPermissionGranter.grantRuntimePermissionsInternal(
+            packageName = "com.nexaflow.app",
+            permissions = listOf("android.permission.READ_PHONE_STATE"),
+            grantedChecker = { false }
+        )
+
+        assertFalse(result.allGranted)
+        assertEquals(listOf("android.permission.READ_PHONE_STATE"), result.remaining)
+        assertTrue(result.failures.isEmpty())
+    }
+
+    @Test
     fun `grantAllInternal records pm grant failures without aborting`() {
         assertTrue(grantRoot())
         RootPermissionGranter.permissionsProvider = { listOf("android.permission.CAMERA") }

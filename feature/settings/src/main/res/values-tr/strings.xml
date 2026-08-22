@@ -87,6 +87,12 @@
 
     
 
+    <string name="camera_permission">Kamera</string>
+    <string name="camera_permission_sub">El feneri işlemleri için gereklidir</string>
+    <string name="activity_recognition_permission">Fiziksel etkinlik</string>
+    <string name="activity_recognition_permission_sub">Adımları ve etkinlik tabanlı tetikleyicileri algılar</string>
+    <string name="local_network_permission">Yerel ağ</string>
+    <string name="local_network_permission_sub">HTTP görevlerinden ev ağı cihazlarına erişir</string>
     <string name="root_permission">Root erişimi</string>
     <string name="root_permission_sub">Gelişmiş komutlar için süper kullanıcı erişimi verin</string>
     <string name="shizuku_permission">Shizuku</string>

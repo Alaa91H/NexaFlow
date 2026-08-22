@@ -70,6 +70,63 @@ object RootPermissionGranter {
         PrivilegedRunner.isRootAvailable() || PrivilegedRunner.isShizukuGranted()
 
     /**
+     * Verified result for a targeted Android runtime-permission repair. The
+     * shell command is not trusted on its own: [remaining] is computed by
+     * re-checking the app process permission state after `pm grant` runs.
+     */
+    data class RuntimeGrantResult(
+        val granted: List<String> = emptyList(),
+        val remaining: List<String> = emptyList(),
+        val failures: List<String> = emptyList()
+    ) {
+        val allGranted: Boolean get() = remaining.isEmpty() && failures.isEmpty()
+    }
+
+    /**
+     * Grants only [permissions] through the currently verified elevated shell.
+     * This is used by an in-context permission request so a rooted device does
+     * not need to show an Android runtime dialog for a permission that `pm
+     * grant` can grant to NexaFlow's own UID. It never treats root availability
+     * as a substitute for a successful app-permission verification.
+     */
+    fun grantRuntimePermissions(
+        context: Context,
+        permissions: Collection<String>
+    ): RuntimeGrantResult = grantRuntimePermissionsInternal(
+        packageName = context.applicationContext.packageName,
+        permissions = permissions,
+        grantedChecker = { permission -> isRuntimeGranted(context, permission) }
+    )
+
+    /** Test seam for targeted elevated grants without an Android Context. */
+    internal fun grantRuntimePermissionsInternal(
+        packageName: String,
+        permissions: Collection<String>,
+        grantedChecker: (String) -> Boolean
+    ): RuntimeGrantResult {
+        val requested = permissions.distinct()
+        if (!canAutoGrant()) {
+            return RuntimeGrantResult(
+                remaining = requested,
+                failures = listOf("No elevated runtime available")
+            )
+        }
+        val initiallyGranted = requested.filter(grantedChecker).toMutableList()
+        val failures = mutableListOf<String>()
+        requested.filterNot(grantedChecker).forEach { permission ->
+            val outcome = runShell("pm grant $packageName $permission")
+            if (!outcome.success) failures += permission
+        }
+        val remaining = requested.filterNot(grantedChecker)
+        failures.retainAll(remaining.toSet())
+        return RuntimeGrantResult(
+            granted = initiallyGranted + requested.filter { it !in remaining && it !in initiallyGranted },
+            remaining = remaining,
+            failures = failures
+        )
+    }
+
+    /**
      * Requests superuser access first when a root manager is installed but
      * root was never granted (the grant dialog shows and waits up to 30s for
      * the user), then grants every permission. On a device where root (or
@@ -285,9 +342,16 @@ object RootPermissionGranter {
                 PackageManager.GET_PERMISSIONS
             )
             info.requestedPermissions
-                ?.filter { p ->
-                    context.packageManager.getPermissionInfo(p, 0)
-                        .isDangerousRuntimePermission()
+                ?.filter { permission ->
+                    // A manifest can declare a permission introduced after the
+                    // device's Android version (for example local-network
+                    // access). Skip only that unknown permission; do not let a
+                    // NameNotFoundException discard every known dangerous
+                    // permission such as READ_PHONE_STATE.
+                    runCatching {
+                        context.packageManager.getPermissionInfo(permission, 0)
+                            .isDangerousRuntimePermission()
+                    }.getOrDefault(false)
                 }
                 .orEmpty()
         }.getOrDefault(emptyList())

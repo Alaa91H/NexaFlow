@@ -85,6 +85,12 @@
 
     
 
+    <string name="camera_permission">الكاميرا</string>
+    <string name="camera_permission_sub">مطلوب لإجراءات المصباح اليدوي</string>
+    <string name="activity_recognition_permission">النشاط البدني</string>
+    <string name="activity_recognition_permission_sub">اكتشاف الخطوات ومحفزات النشاط</string>
+    <string name="local_network_permission">الشبكة المحلية</string>
+    <string name="local_network_permission_sub">الوصول إلى أجهزة الشبكة المنزلية من مهام HTTP</string>
     <string name="root_permission">صلاحيات الروت</string>
     <string name="root_permission_sub">منح صلاحيات المستخدم المتميز للأوامر المتقدمة</string>
     <string name="shizuku_permission">شيزوكو</string>

@@ -85,6 +85,12 @@
 
     
 
+    <string name="camera_permission">Cámara</string>
+    <string name="camera_permission_sub">Necesario para las acciones de linterna</string>
+    <string name="activity_recognition_permission">Actividad física</string>
+    <string name="activity_recognition_permission_sub">Detecta pasos y activadores basados en actividad</string>
+    <string name="local_network_permission">Red local</string>
+    <string name="local_network_permission_sub">Permite llegar a dispositivos de la red doméstica desde tareas HTTP</string>
     <string name="root_permission">Acceso root</string>
     <string name="root_permission_sub">Concede acceso de superusuario para comandos avanzados</string>
     <string name="shizuku_permission">Shizuku</string>

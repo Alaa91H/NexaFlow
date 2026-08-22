@@ -87,6 +87,12 @@
 
     
 
+    <string name="camera_permission">相机</string>
+    <string name="camera_permission_sub">手电筒操作需要此权限</string>
+    <string name="activity_recognition_permission">身体活动</string>
+    <string name="activity_recognition_permission_sub">检测步数和基于活动的触发条件</string>
+    <string name="local_network_permission">本地网络</string>
+    <string name="local_network_permission_sub">允许 HTTP 任务访问家庭网络中的设备</string>
     <string name="root_permission">Root 权限</string>
     <string name="root_permission_sub">授予超级用户权限以执行高级命令</string>
     <string name="shizuku_permission">Shizuku</string>

@@ -180,6 +180,7 @@ import com.nexaflow.core.execution.compat.CommandRequirementCatalog
 import com.nexaflow.core.pluginsdk.LocaleContract
 import com.nexaflow.core.pluginsdk.PluginConfigParser
 import com.nexaflow.core.rom.ElevatedAccessShortcuts
+import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowAnimatedVisibility
 import com.nexaflow.core.ui.NexaFlowCard
@@ -202,7 +203,9 @@ import com.nexaflow.domain.models.EndBehaviorCatalog
 import com.nexaflow.domain.models.EndMode
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 import java.util.UUID
 
@@ -1460,18 +1463,33 @@ fun AutomationBuilderScreen(
             .filter {
                 context.checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED
             }
-        if (missingRuntime.isNotEmpty()) {
-            requestPermissions(missingRuntime.toTypedArray())
-        } else {
-            val missingSpecial = PermissionCatalog.allSpecialPermissions(builtTriggers, actions, exitActions)
-                .firstOrNull { !PermissionShortcuts.isGranted(context, it) }
-            if (missingSpecial != null) {
-                explainSpecialPermission(missingSpecial)
+        scope.launch {
+            // A verified elevated shell can grant a dangerous permission to
+            // NexaFlow's own UID through `pm grant`. Do that first and use the
+            // Android dialog only for permissions a ROM still leaves missing.
+            val remainingRuntime = withContext(Dispatchers.IO) {
+                if (missingRuntime.isNotEmpty() && RootPermissionGranter.canAutoGrant()) {
+                    RootPermissionGranter.grantRuntimePermissions(
+                        context.applicationContext,
+                        missingRuntime
+                    ).remaining
+                } else {
+                    missingRuntime
+                }
+            }
+            if (remainingRuntime.isNotEmpty()) {
+                requestPermissions(remainingRuntime.toTypedArray())
             } else {
-                // All runtime/special permissions satisfied: keep the monitoring
-                // service alive in the background by requesting the battery
-                // optimization exemption right away (system dialog, one tap).
-                ElevatedAccessShortcuts.requestBatteryOptimizationExemption(context)
+                val missingSpecial = PermissionCatalog.allSpecialPermissions(builtTriggers, actions, exitActions)
+                    .firstOrNull { !PermissionShortcuts.isGranted(context, it) }
+                if (missingSpecial != null) {
+                    explainSpecialPermission(missingSpecial)
+                } else {
+                    // All runtime/special permissions satisfied: keep the monitoring
+                    // service alive in the background by requesting the battery
+                    // optimization exemption right away (system dialog, one tap).
+                    ElevatedAccessShortcuts.requestBatteryOptimizationExemption(context)
+                }
             }
         }
         if (closeAfterSave) {

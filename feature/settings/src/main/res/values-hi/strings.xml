@@ -87,6 +87,12 @@
 
     
 
+    <string name="camera_permission">कैमरा</string>
+    <string name="camera_permission_sub">टॉर्च कार्रवाइयों के लिए आवश्यक</string>
+    <string name="activity_recognition_permission">शारीरिक गतिविधि</string>
+    <string name="activity_recognition_permission_sub">कदमों और गतिविधि-आधारित ट्रिगर का पता लगाता है</string>
+    <string name="local_network_permission">स्थानीय नेटवर्क</string>
+    <string name="local_network_permission_sub">HTTP कार्यों से घरेलू नेटवर्क उपकरणों तक पहुँच देता है</string>
     <string name="root_permission">रूट एक्सेस</string>
     <string name="root_permission_sub">उन्नत कमांड के लिए सुपरयूज़र एक्सेस दें</string>
     <string name="shizuku_permission">शिज़ुकु</string>

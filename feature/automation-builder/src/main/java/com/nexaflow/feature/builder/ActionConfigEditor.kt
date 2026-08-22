@@ -39,6 +39,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,11 +50,13 @@ import com.nexaflow.core.execution.NotificationActionButton
 import com.nexaflow.core.rom.NetworkModeCapabilities
 import com.nexaflow.core.rom.NetworkModePolicy
 import com.nexaflow.core.rom.NetworkModeSnapshot
+import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.variables.VariableResolver
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** Simple toggle actions that use "turn_on" as their label. */
@@ -91,7 +94,9 @@ internal fun NetworkModeSelector(
 ) {
     val context = LocalContext.current
     var snapshot by remember { mutableStateOf<NetworkModeSnapshot?>(null) }
+    var elevatedPermissionGrantAvailable by remember { mutableStateOf(false) }
     var permissionRevision by remember { mutableStateOf(0) }
+    val scope = rememberCoroutineScope()
     val phoneStatePermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) {
@@ -100,9 +105,12 @@ internal fun NetworkModeSelector(
         permissionRevision += 1
     }
     LaunchedEffect(context, permissionRevision) {
-        snapshot = withContext(Dispatchers.IO) {
-            NetworkModeCapabilities(context.applicationContext).read()
+        val state = withContext(Dispatchers.IO) {
+            NetworkModeCapabilities(context.applicationContext).read() to
+                RootPermissionGranter.canAutoGrant()
         }
+        snapshot = state.first
+        elevatedPermissionGrantAvailable = state.second
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -197,7 +205,22 @@ internal fun NetworkModeSelector(
                     if (state.status == NetworkModeSnapshot.Status.UNREADABLE && !phoneStateGranted) {
                         TextButton(
                             onClick = {
-                                phoneStatePermissionLauncher.launch(Manifest.permission.READ_PHONE_STATE)
+                                if (elevatedPermissionGrantAvailable) {
+                                    scope.launch {
+                                        withContext(Dispatchers.IO) {
+                                            RootPermissionGranter.grantRuntimePermissions(
+                                                context.applicationContext,
+                                                listOf(Manifest.permission.READ_PHONE_STATE)
+                                            )
+                                        }
+                                        // The result is validated inside the
+                                        // grant helper; always re-read live
+                                        // SIM capabilities after it finishes.
+                                        permissionRevision += 1
+                                    }
+                                } else {
+                                    phoneStatePermissionLauncher.launch(Manifest.permission.READ_PHONE_STATE)
+                                }
                             }
                         ) {
                             Text(stringResource(R.string.network_mode_grant_phone_permission))

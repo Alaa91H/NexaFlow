@@ -39,6 +39,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,6 +65,7 @@ import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -523,6 +525,14 @@ fun PermissionHintForAction(
 ) {
     val runtimePermissions = PermissionCatalog.runtimePermissionsFor(actionType)
     if (runtimePermissions.isNotEmpty()) {
+        var grantRevision by remember { mutableStateOf(0) }
+        var elevatedGrantAvailable by remember { mutableStateOf(false) }
+        val scope = rememberCoroutineScope()
+        LaunchedEffect(refreshKey, grantRevision) {
+            elevatedGrantAvailable = withContext(Dispatchers.IO) {
+                RootPermissionGranter.canAutoGrant()
+            }
+        }
         // The hint exists only to collect a missing permission: once every
         // permission of this action is granted, the row disappears entirely.
         val allGranted = runtimePermissions.all {
@@ -532,7 +542,24 @@ fun PermissionHintForAction(
             PermissionHint(
                 text = stringResource(permissionHintTextForAction(actionType)),
                 buttonLabel = stringResource(R.string.grant),
-                onClick = { onRequestPermission(runtimePermissions.toTypedArray()) }
+                onClick = {
+                    if (elevatedGrantAvailable) {
+                        scope.launch {
+                            val result = withContext(Dispatchers.IO) {
+                                RootPermissionGranter.grantRuntimePermissions(
+                                    context.applicationContext,
+                                    runtimePermissions
+                                )
+                            }
+                            grantRevision += 1
+                            if (result.remaining.isNotEmpty()) {
+                                onRequestPermission(result.remaining.toTypedArray())
+                            }
+                        }
+                    } else {
+                        onRequestPermission(runtimePermissions.toTypedArray())
+                    }
+                }
             )
         }
         return

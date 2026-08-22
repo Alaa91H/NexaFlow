@@ -87,6 +87,12 @@
 
     
 
+    <string name="camera_permission">Appareil photo</string>
+    <string name="camera_permission_sub">Requis pour les actions de lampe torche</string>
+    <string name="activity_recognition_permission">Activité physique</string>
+    <string name="activity_recognition_permission_sub">Détecte les pas et les déclencheurs basés sur l’activité</string>
+    <string name="local_network_permission">Réseau local</string>
+    <string name="local_network_permission_sub">Atteint les appareils du réseau domestique depuis les tâches HTTP</string>
     <string name="root_permission">Accès root</string>
     <string name="root_permission_sub">Accorder l\'accès superutilisateur pour les commandes avancées</string>
     <string name="shizuku_permission">Shizuku</string>

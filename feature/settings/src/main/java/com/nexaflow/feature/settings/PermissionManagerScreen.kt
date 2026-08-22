@@ -49,10 +49,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
@@ -82,8 +84,8 @@ internal data class PermissionEntry(
     val icon: ImageVector,
     val isGranted: (Context) -> Boolean,
     val openAction: (Context) -> Unit,
-    /** A dangerous runtime permission that this row can request directly. */
-    val runtimePermission: String? = null
+    /** Dangerous Android permissions this row can request directly. */
+    val runtimePermissions: List<String> = emptyList()
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,21 +95,17 @@ fun PermissionManagerScreen(navController: NavController) {
     val lifecycleOwner = LocalLifecycleOwner.current
     var refreshTick by remember { mutableStateOf(0) }
     var showAccessibilityDisclosure by rememberSaveable { mutableStateOf(false) }
-    var pendingRuntimePermission by rememberSaveable { mutableStateOf<String?>(null) }
-    var deniedRuntimePermission by rememberSaveable { mutableStateOf<String?>(null) }
+    var pendingRuntimePermissions by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var deniedRuntimePermissions by remember { mutableStateOf<Set<String>>(emptySet()) }
+    val scope = rememberCoroutineScope()
     val runtimePermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        // Android returns the final grant decision here. Recompute the visible
-        // manager state even on denial so the row never claims success. A later
-        // tap after a denial opens App info, where a permanently denied Android
-        // permission can still be enabled by the user.
-        if (granted) {
-            deniedRuntimePermission = null
-        } else {
-            deniedRuntimePermission = pendingRuntimePermission
-        }
-        pendingRuntimePermission = null
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { result ->
+        // Re-read every row after Android's actual answer. A permission is only
+        // shown as granted after the app process itself can verify it.
+        val denied = result.filterValues { granted -> !granted }.keys
+        deniedRuntimePermissions = deniedRuntimePermissions - pendingRuntimePermissions + denied
+        pendingRuntimePermissions = emptySet()
         refreshTick++
     }
 
@@ -182,18 +180,78 @@ fun PermissionManagerScreen(navController: NavController) {
     }
 
     fun openPermission(entry: PermissionEntry) {
-        val runtimePermission = entry.runtimePermission
-        if (runtimePermission != null && !entry.isGranted(context)) {
-            if (deniedRuntimePermission == runtimePermission) {
-                // The previous system dialog was denied. App info is the only
-                // reliable recovery route when Android suppresses a repeat
-                // dialog after a permanent denial.
+        if (entry.key == "root") {
+            // Root availability only proves an elevated shell exists. Run the
+            // complete verified grant pipeline every time the user taps this
+            // row, so a previously approved Root grant also repairs any
+            // Android runtime permissions still missing from the app UID.
+            ElevatedAccessShortcuts.requestRootAccess(context) { granted ->
+                if (granted) {
+                    scope.launch {
+                        withContext(Dispatchers.IO) {
+                            RootPermissionGranter.requestAndGrantAll(context.applicationContext)
+                        }
+                        refreshTick++
+                    }
+                } else {
+                    ElevatedAccessShortcuts.openRootManager(context)
+                }
+            }
+            return
+        }
+        if (entry.runtimePermissions.isEmpty() && !entry.isGranted(context) &&
+            RootPermissionGranter.canAutoGrant()
+        ) {
+            // Special capabilities (app-ops, secure settings and battery
+            // exemption) can also be repaired by the verified elevated
+            // pipeline. Only fall back to a settings page if the OEM rejects
+            // that privileged operation.
+            scope.launch {
+                withContext(Dispatchers.IO) {
+                    RootPermissionGranter.grantAll(context.applicationContext)
+                }
+                refreshTick++
+                if (!entry.isGranted(context)) {
+                    entry.openAction(context)
+                }
+            }
+            return
+        }
+        val missingRuntimePermissions = entry.runtimePermissions.filter { permission ->
+            ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED
+        }
+        if (missingRuntimePermissions.isNotEmpty()) {
+            if (RootPermissionGranter.canAutoGrant()) {
+                // Root/Shizuku commands run as an elevated shell, whereas
+                // framework APIs run as NexaFlow's UID. `pm grant` bridges that
+                // boundary, then RootPermissionGranter verifies the UID state.
+                scope.launch {
+                    val result = withContext(Dispatchers.IO) {
+                        RootPermissionGranter.grantRuntimePermissions(
+                            context.applicationContext,
+                            missingRuntimePermissions
+                        )
+                    }
+                    refreshTick++
+                    if (result.remaining.isNotEmpty()) {
+                        // A ROM may block an elevated `pm grant`; fall back to
+                        // Android's own dialog only when it has not already
+                        // been denied during this screen visit.
+                        if (result.remaining.any { it in deniedRuntimePermissions }) {
+                            entry.openAction(context)
+                        } else {
+                            pendingRuntimePermissions = result.remaining.toSet()
+                            runtimePermissionLauncher.launch(result.remaining.toTypedArray())
+                        }
+                    }
+                }
+            } else if (missingRuntimePermissions.any { it in deniedRuntimePermissions }) {
+                // Android suppressed a repeat dialog after denial; App info is
+                // the reliable recovery path for the affected permission group.
                 entry.openAction(context)
             } else {
-                // Unlike an App-info deep link, this launches Android's actual
-                // dangerous-permission dialog and reports its result above.
-                pendingRuntimePermission = runtimePermission
-                runtimePermissionLauncher.launch(runtimePermission)
+                pendingRuntimePermissions = missingRuntimePermissions.toSet()
+                runtimePermissionLauncher.launch(missingRuntimePermissions.toTypedArray())
             }
         } else if (entry.key == "accessibility" && !isAccessibilityEnabled(context)) {
             showAccessibilityDisclosure = true
@@ -307,6 +365,18 @@ internal fun buildPermissionEntries(): List<PermissionEntry> {
             openAction = { context -> PermissionStatus.openAccessibilitySettings(context) }
         ),
         PermissionEntry(
+            key = "camera",
+            titleRes = R.string.camera_permission,
+            subtitleRes = R.string.camera_permission_sub,
+            icon = Icons.Filled.Info,
+            isGranted = { context ->
+                ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                    PackageManager.PERMISSION_GRANTED
+            },
+            openAction = { context -> PermissionStatus.openAppDetails(context) },
+            runtimePermissions = listOf(Manifest.permission.CAMERA)
+        ),
+        PermissionEntry(
             key = "notifications",
             titleRes = R.string.notifications_permission,
             subtitleRes = R.string.notifications_permission_sub,
@@ -318,7 +388,10 @@ internal fun buildPermissionEntries(): List<PermissionEntry> {
             },
             openAction = { context ->
                 context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName))
-            }
+            },
+            runtimePermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                listOf(Manifest.permission.POST_NOTIFICATIONS)
+            } else emptyList()
         ),
         PermissionEntry(
             key = "notification_access",
@@ -334,10 +407,11 @@ internal fun buildPermissionEntries(): List<PermissionEntry> {
             subtitleRes = R.string.sms_permission_sub,
             icon = Icons.Filled.Sms,
             isGranted = { context ->
-                ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED
+                ContextCompat.checkSelfPermission(context, Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED
             },
-            openAction = { context -> PermissionStatus.openAppDetails(context) }
+            openAction = { context -> PermissionStatus.openAppDetails(context) },
+            runtimePermissions = listOf(Manifest.permission.RECEIVE_SMS, Manifest.permission.SEND_SMS)
         ),
         PermissionEntry(
             key = "bluetooth",
@@ -345,11 +419,14 @@ internal fun buildPermissionEntries(): List<PermissionEntry> {
             subtitleRes = R.string.bluetooth_permission_sub,
             icon = Icons.Filled.Bluetooth,
             isGranted = { context ->
-                if (Build.VERSION.SDK_INT >= 31) {
-                    ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
-                } else true
+                Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+                    (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED &&
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED)
             },
-            openAction = { context -> PermissionStatus.openAppDetails(context) }
+            openAction = { context -> PermissionStatus.openAppDetails(context) },
+            runtimePermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                listOf(Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN)
+            } else emptyList()
         ),
         PermissionEntry(
             key = "location",
@@ -357,9 +434,14 @@ internal fun buildPermissionEntries(): List<PermissionEntry> {
             subtitleRes = R.string.location_permission_sub,
             icon = Icons.Filled.LocationOn,
             isGranted = { context ->
-                ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
             },
-            openAction = { context -> PermissionStatus.openAppDetails(context) }
+            openAction = { context -> PermissionStatus.openAppDetails(context) },
+            runtimePermissions = listOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
         ),
         PermissionEntry(
             key = "phone_state",
@@ -373,7 +455,7 @@ internal fun buildPermissionEntries(): List<PermissionEntry> {
             // App details remains the correct destination once Android has
             // permanently denied a runtime permission at platform level.
             openAction = { context -> PermissionStatus.openAppDetails(context) },
-            runtimePermission = Manifest.permission.READ_PHONE_STATE
+            runtimePermissions = listOf(Manifest.permission.READ_PHONE_STATE)
         ),
         PermissionEntry(
             key = "calendar",
@@ -381,9 +463,40 @@ internal fun buildPermissionEntries(): List<PermissionEntry> {
             subtitleRes = R.string.calendar_permission_sub,
             icon = Icons.Filled.DateRange,
             isGranted = { context ->
-                ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
+                ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
             },
-            openAction = { context -> PermissionStatus.openAppDetails(context) }
+            openAction = { context -> PermissionStatus.openAppDetails(context) },
+            runtimePermissions = listOf(Manifest.permission.READ_CALENDAR)
+        ),
+        PermissionEntry(
+            key = "activity_recognition",
+            titleRes = R.string.activity_recognition_permission,
+            subtitleRes = R.string.activity_recognition_permission_sub,
+            icon = Icons.Filled.Accessibility,
+            isGranted = { context ->
+                Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION) ==
+                    PackageManager.PERMISSION_GRANTED
+            },
+            openAction = { context -> PermissionStatus.openAppDetails(context) },
+            runtimePermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                listOf(Manifest.permission.ACTIVITY_RECOGNITION)
+            } else emptyList()
+        ),
+        PermissionEntry(
+            key = "local_network",
+            titleRes = R.string.local_network_permission,
+            subtitleRes = R.string.local_network_permission_sub,
+            icon = Icons.Filled.SignalCellularAlt,
+            isGranted = { context ->
+                Build.VERSION.SDK_INT < 37 ||
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_LOCAL_NETWORK) ==
+                    PackageManager.PERMISSION_GRANTED
+            },
+            openAction = { context -> PermissionStatus.openAppDetails(context) },
+            runtimePermissions = if (Build.VERSION.SDK_INT >= 37) {
+                listOf(Manifest.permission.ACCESS_LOCAL_NETWORK)
+            } else emptyList()
         ),
         PermissionEntry(
             key = "root",

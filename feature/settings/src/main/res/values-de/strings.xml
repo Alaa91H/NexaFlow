@@ -85,6 +85,12 @@
 
     
 
+    <string name="camera_permission">Kamera</string>
+    <string name="camera_permission_sub">Für Taschenlampenaktionen erforderlich</string>
+    <string name="activity_recognition_permission">Körperliche Aktivität</string>
+    <string name="activity_recognition_permission_sub">Erkennt Schritte und aktivitätsbasierte Auslöser</string>
+    <string name="local_network_permission">Lokales Netzwerk</string>
+    <string name="local_network_permission_sub">Erreicht Heimnetzwerkgeräte über HTTP-Aufgaben</string>
     <string name="root_permission">Root-Zugriff</string>
     <string name="root_permission_sub">Superuser-Zugriff für erweiterte Befehle gewähren</string>
     <string name="shizuku_permission">Shizuku</string>

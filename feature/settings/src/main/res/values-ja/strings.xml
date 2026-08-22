@@ -87,6 +87,12 @@
 
     
 
+    <string name="camera_permission">カメラ</string>
+    <string name="camera_permission_sub">懐中電灯アクションに必要です</string>
+    <string name="activity_recognition_permission">身体活動</string>
+    <string name="activity_recognition_permission_sub">歩数と活動ベースのトリガーを検出します</string>
+    <string name="local_network_permission">ローカルネットワーク</string>
+    <string name="local_network_permission_sub">HTTPタスクからホームネットワーク上の機器に接続します</string>
     <string name="root_permission">ルートアクセス</string>
     <string name="root_permission_sub">高度なコマンドにスーパーユーザーアクセスを許可</string>
     <string name="shizuku_permission">Shizuku</string>

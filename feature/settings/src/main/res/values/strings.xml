@@ -44,6 +44,8 @@
     <string name="permission_manager_sub">Check and grant the permissions NexaFlow needs</string>
     <string name="granted">Granted</string>
     <string name="grant">Grant</string>
+    <string name="camera_permission">Camera</string>
+    <string name="camera_permission_sub">Required for flashlight actions</string>
     <string name="notifications_permission">Notifications</string>
     <string name="notifications_permission_sub">Allow NexaFlow to post notifications</string>
     <string name="sms_permission">SMS</string>
@@ -78,6 +80,10 @@
     <string name="notification_access_sub">Read and manage notifications</string>
     <string name="calendar_permission">Calendar</string>
     <string name="calendar_permission_sub">Read your events for calendar triggers</string>
+    <string name="activity_recognition_permission">Physical activity</string>
+    <string name="activity_recognition_permission_sub">Detect steps and activity-based triggers</string>
+    <string name="local_network_permission">Local network</string>
+    <string name="local_network_permission_sub">Reach devices on your home network from HTTP tasks</string>
     <string name="root_permission">Root access</string>
     <string name="root_permission_sub">Grant superuser access for elevated commands</string>
     <string name="shizuku_permission">Shizuku</string>

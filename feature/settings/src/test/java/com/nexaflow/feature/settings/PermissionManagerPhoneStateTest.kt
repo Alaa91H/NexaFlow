@@ -12,8 +12,24 @@ class PermissionManagerPhoneStateTest {
         val entry = buildPermissionEntries().singleOrNull { it.key == "phone_state" }
 
         assertNotNull("Permission Manager must expose phone state for network mode", entry)
-        assertEquals(Manifest.permission.READ_PHONE_STATE, entry?.runtimePermission)
+        assertEquals(listOf(Manifest.permission.READ_PHONE_STATE), entry?.runtimePermissions)
         assertEquals(R.string.phone_state_permission, entry?.titleRes)
         assertEquals(R.string.phone_state_permission_sub, entry?.subtitleRes)
+    }
+
+    @Test
+    fun managerExposesEveryDedicatedRuntimePermissionRow() {
+        val entries = buildPermissionEntries().associateBy { entry -> entry.key }
+
+        assertEquals(listOf(Manifest.permission.CAMERA), entries["camera"]?.runtimePermissions)
+        assertEquals(
+            listOf(Manifest.permission.ACTIVITY_RECOGNITION),
+            entries["activity_recognition"]?.runtimePermissions
+        )
+        assertEquals(
+            listOf(Manifest.permission.ACCESS_LOCAL_NETWORK),
+            entries["local_network"]?.runtimePermissions
+        )
+        assertEquals(listOf(Manifest.permission.READ_CALENDAR), entries["calendar"]?.runtimePermissions)
     }
 }
