@@ -966,4 +966,5 @@
     <string name="plugin_high_risk_message">Este complemento puede ejecutar comandos de shell o ADB. Continúa solo si confías en su origen y entiendes los comandos que ejecutará.</string>
     <string name="plugin_high_risk_continue">Lo entiendo</string>
     <string name="plugin_high_risk_badge">Avanzado: acceso a comandos elevados</string>
+    <string name="map_google_fallback">No se pudo cargar Google Maps. Se cambió a un mapa alternativo.</string>
 </resources>

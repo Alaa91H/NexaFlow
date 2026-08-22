@@ -966,4 +966,5 @@
     <string name="plugin_high_risk_message">Ce module peut exécuter des commandes shell ou ADB. Continuez seulement si vous faites confiance à sa source et comprenez les commandes exécutées.</string>
     <string name="plugin_high_risk_continue">Je comprends</string>
     <string name="plugin_high_risk_badge">Avancé : accès aux commandes élevées</string>
+    <string name="map_google_fallback">Google Maps n’a pas pu se charger. Une carte alternative a été ouverte.</string>
 </resources>

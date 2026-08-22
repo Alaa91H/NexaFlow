@@ -966,4 +966,5 @@
     <string name="plugin_high_risk_message">This plugin can run shell or ADB commands. Continue only if you trust its source and understand the commands it will run.</string>
     <string name="plugin_high_risk_continue">I understand</string>
     <string name="plugin_high_risk_badge">Advanced: elevated command access</string>
+    <string name="map_google_fallback">Google Maps couldn\'t load. Switched to an alternative map.</string>
 </resources>

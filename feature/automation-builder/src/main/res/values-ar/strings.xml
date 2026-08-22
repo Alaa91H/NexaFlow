@@ -965,4 +965,5 @@
     <string name="plugin_high_risk_message">يمكن لهذه الإضافة تنفيذ أوامر Shell أو ADB. تابع فقط إذا كنت تثق بمصدرها وتفهم الأوامر التي ستشغلها.</string>
     <string name="plugin_high_risk_continue">أفهم ذلك</string>
     <string name="plugin_high_risk_badge">متقدم: وصول لأوامر بصلاحيات مرتفعة</string>
+    <string name="map_google_fallback">تعذر تحميل خرائط Google، لذلك تم الانتقال إلى خريطة بديلة.</string>
 </resources>

@@ -966,4 +966,5 @@
     <string name="plugin_high_risk_message">यह प्लग-इन shell या ADB कमांड चला सकता है। केवल तभी जारी रखें जब आप इसके स्रोत पर भरोसा करते हों और कमांड समझते हों।</string>
     <string name="plugin_high_risk_continue">मैं समझता हूँ</string>
     <string name="plugin_high_risk_badge">उन्नत: उन्नत कमांड पहुँच</string>
+    <string name="map_google_fallback">Google Maps लोड नहीं हो सका। वैकल्पिक मानचित्र पर स्विच कर दिया गया है।</string>
 </resources>

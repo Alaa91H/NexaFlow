@@ -966,4 +966,5 @@
     <string name="plugin_high_risk_message">Bu eklenti shell veya ADB komutları çalıştırabilir. Yalnızca kaynağa güveniyor ve çalıştıracağı komutları anlıyorsanız devam edin.</string>
     <string name="plugin_high_risk_continue">Anlıyorum</string>
     <string name="plugin_high_risk_badge">Gelişmiş: yükseltilmiş komut erişimi</string>
+    <string name="map_google_fallback">Google Haritalar yüklenemedi. Alternatif bir haritaya geçildi.</string>
 </resources>

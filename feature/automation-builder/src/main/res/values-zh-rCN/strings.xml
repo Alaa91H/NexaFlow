@@ -966,4 +966,5 @@
     <string name="plugin_high_risk_message">此插件可以运行 shell 或 ADB 命令。仅当您信任其来源并了解其将运行的命令时才继续。</string>
     <string name="plugin_high_risk_continue">我了解</string>
     <string name="plugin_high_risk_badge">高级：可访问高权限命令</string>
+    <string name="map_google_fallback">无法加载 Google 地图，已切换至备用地图。</string>
 </resources>

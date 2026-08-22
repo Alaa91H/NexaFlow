@@ -32,6 +32,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,6 +59,7 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.nexaflow.core.engine.LocationAccess
 import com.nexaflow.core.ui.NexaFlowTopBar
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -67,6 +69,11 @@ import kotlin.coroutines.resume
 private const val MAP_MIN_RADIUS_M = 50
 private const val MAP_MAX_RADIUS_M = 2000
 private const val MAP_RADIUS_STEPS = (MAP_MAX_RADIUS_M - MAP_MIN_RADIUS_M) / 50 - 1
+private const val GOOGLE_MAP_LOAD_TIMEOUT_MS = 12_000L
+
+/** Returns the rendering backend without treating a configured key as proof of a loaded map. */
+internal fun shouldUseOpenStreetMap(apiKey: String, googleMapFailed: Boolean): Boolean =
+    apiKey.isBlank() || googleMapFailed
 
 /**
  * Embedded map picker. The map is only a VIEWING/selection surface:
@@ -114,12 +121,14 @@ fun MapPickerScreen(navController: NavController) {
     var locating by remember { mutableStateOf(false) }
     var marker by remember { mutableStateOf<Marker?>(null) }
     var circle by remember { mutableStateOf<Circle?>(null) }
-    var googleFailed by remember { mutableStateOf(false) }
+    var googleMapLoaded by remember { mutableStateOf(false) }
+    var googleMapFailed by remember { mutableStateOf(false) }
     var osmReady by remember { mutableStateOf(false) }
 
     val mapSearchNotFoundText = stringResource(R.string.map_search_not_found)
     val locationFixFailedText = stringResource(R.string.location_fix_failed)
     val mapNoKeyText = stringResource(R.string.map_no_key)
+    val mapGoogleFallbackText = stringResource(R.string.map_google_fallback)
 
     val apiKey = remember {
         runCatching {
@@ -130,7 +139,25 @@ fun MapPickerScreen(navController: NavController) {
             ai.metaData?.getString("com.google.android.geo.API_KEY").orEmpty()
         }.getOrDefault("")
     }
-    val useOsm = apiKey.isBlank() || googleFailed
+    val useOsm = shouldUseOpenStreetMap(apiKey, googleMapFailed)
+
+    // A valid-looking key is not evidence that the Maps SDK can authenticate:
+    // wrong Android SHA-1/package restrictions, disabled Maps SDK, quota/billing
+    // issues, or a network failure all leave MapView as an empty tile surface.
+    // The Maps callback below only fires after tiles load, so a timeout provides
+    // a deterministic escape path to the existing keyless picker.
+    LaunchedEffect(apiKey, mapRequested, googleMapLoaded, googleMapFailed) {
+        if (apiKey.isNotBlank() && mapRequested && !googleMapLoaded && !googleMapFailed) {
+            delay(GOOGLE_MAP_LOAD_TIMEOUT_MS)
+            // Do not retain the hidden GoogleMap reference: placePoint() must
+            // target the fallback WebView after the rendering backend changes.
+            currentMap = null
+            marker = null
+            circle = null
+            googleMapFailed = true
+            searchError = mapGoogleFallbackText
+        }
+    }
 
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
 
@@ -273,6 +300,7 @@ fun MapPickerScreen(navController: NavController) {
     @Suppress("EmptyFunctionBlock")
     fun setupMap(g: GoogleMap) {
         currentMap = g
+        g.setOnMapLoadedCallback { googleMapLoaded = true }
         g.uiSettings.isZoomControlsEnabled = true
         g.uiSettings.isCompassEnabled = true
         g.uiSettings.isMyLocationButtonEnabled = false
