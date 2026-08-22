@@ -8,10 +8,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.assertExists
-import androidx.compose.ui.test.isToggleable
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodes
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -50,7 +49,8 @@ class RoutineCardHeaderTest {
                             actions = emptyList(),
                             createdAt = 0,
                             updatedAt = 0
-                        )
+                        ),
+                        lastRunAt = null
                     ),
                     summary = "Task summary",
                     nextRun = null,
@@ -76,13 +76,13 @@ class RoutineCardHeaderTest {
         composeRule.waitForIdle()
 
         assertPersistentHeaderAndSingleToggle()
-        composeRule.onNodeWithText("Task summary").assertExists()
+        composeRule.onNodeWithText("Task summary").assertIsDisplayed()
     }
 
     private fun assertPersistentHeaderAndSingleToggle() {
-        composeRule.onNodeWithTag(RoutineCardTestTags.HeaderIcon).assertExists()
-        composeRule.onNodeWithTag(RoutineCardTestTags.HeaderToggle).assertExists()
-        composeRule.onNodeWithTag(RoutineCardTestTags.HeaderExpand).assertExists()
-        composeRule.onAllNodes(isToggleable()).assertCountEquals(1)
+        composeRule.onNodeWithTag(RoutineCardTestTags.HeaderIcon).assertIsDisplayed()
+        composeRule.onNodeWithTag(RoutineCardTestTags.HeaderToggle).assertIsDisplayed()
+        composeRule.onNodeWithTag(RoutineCardTestTags.HeaderExpand).assertIsDisplayed()
+        composeRule.onAllNodesWithTag(RoutineCardTestTags.HeaderToggle).assertCountEquals(1)
     }
 }
