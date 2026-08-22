@@ -8,8 +8,15 @@ class UpdateVersionTest {
 
     @Test
     fun sameReleaseWithOrWithoutVPrefixIsNeverAnUpdate() {
-        assertFalse(UpdateVersion.isStrictlyNewer("v3.38.8", "3.38.8"))
-        assertFalse(UpdateVersion.isStrictlyNewer("3.38.8", "v3.38.8"))
+        assertFalse(UpdateVersion.shouldOfferUpdate("v3.38.8", "3.38.8"))
+        assertFalse(UpdateVersion.shouldOfferUpdate("3.38.8", "v3.38.8"))
+    }
+
+    @Test
+    fun exactInstalledReleaseIsNeverOfferedAsAnUpdate() {
+        assertFalse(UpdateVersion.shouldOfferUpdate("v3.39.1", "v3.39.1"))
+        assertFalse(UpdateVersion.shouldOfferUpdate(" v3.39.1 ", "3.39.1"))
+        assertTrue(UpdateVersion.isSameRelease("v3.39.1", "3.39.1"))
     }
 
     @Test

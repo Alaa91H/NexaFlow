@@ -78,6 +78,23 @@ class UpdatePreferences(private val context: Context) {
         return claimed
     }
 
+    /**
+     * Clears the reservation only after the matching release is installed. This
+     * allows app startup to remove a stale system notification without erasing
+     * the de-duplication state for a different, genuinely newer release.
+     */
+    suspend fun clearNotificationReservationForInstalledVersion(canonicalVersion: String): Boolean {
+        if (canonicalVersion.isBlank()) return false
+        var cleared = false
+        dataStore.edit { preferences ->
+            if (preferences[KEY_LAST_NOTIFIED_VERSION] == canonicalVersion) {
+                preferences.remove(KEY_LAST_NOTIFIED_VERSION)
+                cleared = true
+            }
+        }
+        return cleared
+    }
+
     companion object {
         private val KEY_AUTOMATIC_CHECKS_ENABLED = booleanPreferencesKey("automatic_update_checks_enabled")
         private val KEY_FREQUENCY = stringPreferencesKey("automatic_update_check_frequency")

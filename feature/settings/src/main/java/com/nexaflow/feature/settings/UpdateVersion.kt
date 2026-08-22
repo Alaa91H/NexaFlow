@@ -11,11 +11,28 @@ package com.nexaflow.feature.settings
  */
 object UpdateVersion {
 
-    /** True only when [remote] is a verifiably newer release than [installed]. */
-    fun isStrictlyNewer(remote: String, installed: String): Boolean {
+    /**
+     * The single decision boundary for the manual checker and the periodic
+     * notification worker. A remote release is offered only when it is proven
+     * newer than the installed release; equality is rejected explicitly before
+     * ordering so a leading `v` can never produce a false update prompt.
+     */
+    fun shouldOfferUpdate(remote: String, installed: String): Boolean {
         val remoteVersion = parse(remote) ?: return false
         val installedVersion = parse(installed) ?: return false
+        if (remoteVersion.canonical == installedVersion.canonical) return false
         return remoteVersion > installedVersion
+    }
+
+    /** Backward-compatible name for callers that used the prior API. */
+    fun isStrictlyNewer(remote: String, installed: String): Boolean =
+        shouldOfferUpdate(remote, installed)
+
+    /** True only when both strings positively identify the same release. */
+    fun isSameRelease(first: String, second: String): Boolean {
+        val firstCanonical = canonical(first) ?: return false
+        val secondCanonical = canonical(second) ?: return false
+        return firstCanonical == secondCanonical
     }
 
     /** Canonical display form used for equality and notification de-duplication. */

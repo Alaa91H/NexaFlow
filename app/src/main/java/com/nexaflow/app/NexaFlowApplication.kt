@@ -8,6 +8,7 @@ import androidx.work.Configuration
 import com.nexaflow.app.work.LocationCheckScheduler
 import com.nexaflow.app.work.MaintenanceWorker
 import com.nexaflow.app.work.UpdateCheckScheduler
+import com.nexaflow.app.work.UpdateNotification
 import com.nexaflow.core.datastore.LocationPreferences
 import com.nexaflow.core.datastore.UpdatePreferences
 import com.nexaflow.core.engine.AutomationScheduler
@@ -16,6 +17,7 @@ import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.capability.CapabilityStateStore
 import com.nexaflow.core.execution.recovery.ExecutionRecoveryCoordinator
 import com.nexaflow.core.rom.ShizukuShellBridge
+import com.nexaflow.feature.settings.UpdateVersion
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
@@ -98,6 +100,16 @@ class NexaFlowApplication : Application(), Configuration.Provider {
                 }.onFailure { Log.e(TAG, "Update check schedule failed", it) }
             }
         }
+        // If the user just installed the release announced by a prior periodic
+        // check, remove that stale alert immediately. This is local-only: no
+        // network call occurs at app start and another release stays reserved.
+        appScope.launch {
+            val installed = installedVersionName()
+            val canonicalInstalled = UpdateVersion.canonical(installed) ?: return@launch
+            if (updatePreferences.clearNotificationReservationForInstalledVersion(canonicalInstalled)) {
+                UpdateNotification.cancel(this@NexaFlowApplication)
+            }
+        }
         runCatching { scheduler.initialize() }
             .onFailure { Log.e(TAG, "Scheduler init failed", it) }
         // Recovery claims only durable checkpoints. It never replays an action
@@ -126,6 +138,10 @@ class NexaFlowApplication : Application(), Configuration.Provider {
      * dispatcher (e.g. viewModelScope), and penaltyDeath on disk made debug
      * builds FC on service creation and "Run now". Never active in release.
      */
+    private fun installedVersionName(): String = runCatching {
+        packageManager.getPackageInfo(packageName, 0).versionName.orEmpty()
+    }.getOrDefault("")
+
     private fun enableStrictMode() {
         StrictMode.setThreadPolicy(
             StrictMode.ThreadPolicy.Builder()

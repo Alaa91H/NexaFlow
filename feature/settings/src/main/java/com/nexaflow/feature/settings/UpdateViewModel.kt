@@ -59,7 +59,7 @@ class UpdateViewModel @Inject constructor(
             }
             _state.value = if (info == null) {
                 UpdateUiState.Error("update_check_failed")
-            } else if (UpdateVersion.isStrictlyNewer(info.version, currentVersion())) {
+            } else if (UpdateVersion.shouldOfferUpdate(info.version, currentVersion())) {
                 UpdateUiState.Available(info)
             } else {
                 // Equal, older, already-ahead development builds, and unparseable

@@ -48,7 +48,7 @@ class UpdateCheckWorker @AssistedInject constructor(
 
         val info = UpdateChecker.fetchLatestJson()?.let(UpdateChecker::parseRelease)
             ?: return Result.success()
-        if (!UpdateVersion.isStrictlyNewer(info.version, installedVersionName())) {
+        if (!UpdateVersion.shouldOfferUpdate(info.version, installedVersionName())) {
             return Result.success()
         }
         val canonicalVersion = UpdateVersion.canonical(info.version) ?: return Result.success()
@@ -78,6 +78,7 @@ object UpdateCheckScheduler {
         val workManager = WorkManager.getInstance(context)
         if (!settings.automaticChecksEnabled) {
             workManager.cancelUniqueWork(UpdateCheckWorker.UNIQUE_WORK_NAME)
+            UpdateNotification.cancel(context)
             return
         }
         val request = PeriodicWorkRequestBuilder<UpdateCheckWorker>(
@@ -101,15 +102,19 @@ object UpdateCheckScheduler {
     }
 }
 
-private object UpdateNotification {
+internal object UpdateNotification {
     private const val CHANNEL_ID = "nexaflow_updates"
-    private const val NOTIFICATION_ID = 5_038_800
+    internal const val NOTIFICATION_ID = 5_038_800
 
     fun canPost(context: Context): Boolean =
         NotificationManagerCompat.from(context).areNotificationsEnabled() &&
             (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
                 ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
                     PackageManager.PERMISSION_GRANTED)
+
+    fun cancel(context: Context) {
+        NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
+    }
 
     fun show(context: Context, version: String) {
         // Keep this check in the same method as notify so Android Lint can

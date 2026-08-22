@@ -41,6 +41,23 @@ class UpdatePreferencesTest {
     }
 
     @Test
+    fun installedMatchingReleaseClearsOnlyItsOwnNotificationReservation() = runBlocking {
+        val preferences = UpdatePreferences(context)
+        val installed = "3.39.1-test-${System.nanoTime()}"
+        val newer = "3.39.2-test-${System.nanoTime()}"
+        try {
+            preferences.setAutomaticChecksEnabled(true)
+            assertTrue(preferences.claimNotification(installed))
+            assertTrue(preferences.clearNotificationReservationForInstalledVersion(installed))
+            assertTrue(preferences.claimNotification(installed))
+            assertTrue(preferences.claimNotification(newer))
+            assertFalse(preferences.clearNotificationReservationForInstalledVersion(installed))
+        } finally {
+            preferences.setAutomaticChecksEnabled(false)
+        }
+    }
+
+    @Test
     fun frequencyPersistsOnlySupportedCadences() = runBlocking {
         val preferences = UpdatePreferences(context)
         try {
