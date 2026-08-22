@@ -437,4 +437,5 @@
 
     <string name="action_charging_feedback">Som e vibração de carregamento</string>
     <string name="action_charging_feedback_sub">Controle o retorno de carga quando suportado pela ROM</string>
+    <string name="detail_default">Padrão</string>
 </resources>

@@ -96,5 +96,9 @@
     <string name="task_details_end_behavior">При завершении: %1$s</string>
     <string name="task_details_end_revert">Восстановить исходное состояние</string>
     <string name="task_details_end_rerun">Выполнить снова при завершении</string>
-    <string name="task_details_end_set_value">Задать значение: %1$s</string>
+    <string name="task_details_end_set_value">Установить выбранное значение</string>
+    <string name="task_details_end_action">%1$s — %2$s</string>
+    <string name="task_details_enabled">Включить</string>
+    <string name="task_details_disabled">Выключить</string>
+    <string name="task_details_configured_count">Настроено: %1$d</string>
 </resources>

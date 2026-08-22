@@ -2,6 +2,7 @@ package com.nexaflow.feature.dashboard
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -25,7 +27,6 @@ import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Search
@@ -53,6 +54,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
@@ -70,10 +72,15 @@ import com.nexaflow.core.ui.NexaFlowFloatingActionButton
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.iconVector
 import com.nexaflow.core.ui.nexaFlowEntrance
+import com.nexaflow.core.ui.rememberInstalledAppPresentation
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.EndBehaviorCatalog
 import com.nexaflow.domain.models.EndMode
+import com.nexaflow.domain.models.hasUserAuthoredDescription
+import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
+import com.nexaflow.feature.automations.actionPresentation
 import com.nexaflow.domain.schedule.TimeTriggerCalculator
 import java.time.Instant
 import java.time.ZoneId
@@ -316,13 +323,17 @@ private fun RoutineCard(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
-                    Icon(
-                        imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                        contentDescription = stringResource(
-                            if (expanded) R.string.task_details_collapse else R.string.task_details_expand
-                        ),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    Switch(
+                        checked = row.automation.enabled,
+                        onCheckedChange = onToggle
                     )
+                    if (expanded) {
+                        Icon(
+                            imageVector = Icons.Filled.ExpandLess,
+                            contentDescription = stringResource(R.string.task_details_collapse),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
                 if (expanded) {
@@ -409,7 +420,7 @@ private fun RoutineDetails(
         Switch(checked = automation.enabled, onCheckedChange = onToggle)
     }
 
-    if (automation.description.isNotBlank()) {
+    if (automation.hasUserAuthoredDescription()) {
         DetailBlock(
             title = stringResource(R.string.task_details_description),
             lines = listOf(automation.description)
@@ -419,64 +430,85 @@ private fun RoutineDetails(
         title = stringResource(R.string.task_details_summary),
         lines = listOf(summary)
     )
-    DetailBlock(
-        title = stringResource(R.string.task_details_triggers, automation.triggers.size),
-        lines = automation.triggers.map { trigger ->
-            listOf(stringResource(triggerLabel(trigger.type)), taskConfigDetail(trigger.config))
-                .filter { it.isNotBlank() }
-                .joinToString(" · ")
-        }.ifEmpty { listOf(stringResource(R.string.task_details_none)) }
-    )
-    DetailBlock(
-        title = stringResource(R.string.task_details_constraints, automation.constraints.size),
-        lines = automation.constraints.map { constraint ->
-            listOf(constraint.type.name.toDisplayLabel(), taskConfigDetail(constraint.config))
-                .filter { it.isNotBlank() }
-                .joinToString(" · ")
-        }.ifEmpty { listOf(stringResource(R.string.task_details_none)) }
-    )
-    DetailBlock(
-        title = stringResource(R.string.task_details_actions, automation.actions.size),
-        lines = automation.actions.map { action ->
-            listOf(
-                action.type.name.toDisplayLabel(),
-                taskConfigDetail(action.config),
-                taskEndBehaviorDetail(action)
-            )
-                .filter { it.isNotBlank() }
-                .joinToString(" · ")
-        }.ifEmpty { listOf(stringResource(R.string.task_details_none)) }
-    )
+    if (automation.triggers.isNotEmpty()) {
+        DetailBlock(
+            title = stringResource(R.string.task_details_triggers, automation.triggers.size),
+            lines = automation.triggers.map { trigger ->
+                stringResource(triggerLabel(trigger.type))
+            }
+        )
+        automation.triggers.forEach { trigger ->
+            TriggerApps(trigger = trigger)
+        }
+    }
+    if (automation.constraints.isNotEmpty()) {
+        DetailBlock(
+            title = stringResource(R.string.task_details_constraints, automation.constraints.size),
+            lines = listOf(stringResource(R.string.task_details_configured_count, automation.constraints.size))
+        )
+    }
+    if (automation.actions.isNotEmpty()) {
+        DetailBlock(
+            title = stringResource(R.string.task_details_actions, automation.actions.size),
+            lines = automation.actions.map { action -> actionDisplayText(action) }
+        )
+    }
     val perActionEndBehaviors = automation.actions.filter { action ->
         action.endBehavior?.mode?.let { it != EndMode.LEAVE } == true
     }
-    DetailBlock(
-        title = stringResource(
-            R.string.task_details_exit_actions,
-            automation.exitActions.size + perActionEndBehaviors.size
-        ),
-        lines = when {
-            automation.revertOnExit -> listOf(stringResource(R.string.task_details_revert_on_exit))
-            automation.exitActions.isEmpty() && perActionEndBehaviors.isEmpty() ->
-                listOf(stringResource(R.string.task_details_none))
-            else -> buildList {
-                perActionEndBehaviors.forEach { action ->
-                    add(
-                        listOf(action.type.name.toDisplayLabel(), taskEndBehaviorDetail(action))
-                            .filter { it.isNotBlank() }
-                            .joinToString(" · ")
-                    )
-                }
-                automation.exitActions.forEach { action ->
-                    add(
-                        listOf(action.type.name.toDisplayLabel(), taskConfigDetail(action.config))
-                            .filter { it.isNotBlank() }
-                            .joinToString(" · ")
-                    )
+    val exitActionCount = automation.exitBehaviorItemCount()
+    if (automation.revertOnExit || exitActionCount > 0) {
+        DetailBlock(
+            title = stringResource(R.string.task_details_exit_actions, exitActionCount),
+            lines = when {
+                automation.revertOnExit -> listOf(stringResource(R.string.task_details_revert_on_exit))
+                else -> buildList {
+                    perActionEndBehaviors.forEach { action ->
+                        add(
+                            stringResource(
+                                R.string.task_details_end_action,
+                                actionDisplayText(action),
+                                taskEndBehaviorDetail(action)
+                            )
+                        )
+                    }
+                    automation.exitActions.forEach { action ->
+                        add(actionDisplayText(action))
+                    }
                 }
             }
+        )
+    }
+}
+
+@Composable
+private fun TriggerApps(trigger: Trigger) {
+    val packages = trigger.config.selectedPackages()
+    if (packages.isEmpty()) return
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        packages.forEach { packageName ->
+            val app = rememberInstalledAppPresentation(packageName)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                app.icon?.let { icon ->
+                    Image(
+                        bitmap = icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(28.dp).clip(CircleShape)
+                    )
+                }
+                Text(
+                    text = app.label,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
-    )
+    }
 }
 
 @Composable
@@ -497,10 +529,28 @@ private fun DetailBlock(title: String, lines: List<String>) {
     }
 }
 
-internal fun taskConfigDetail(config: Map<String, String>): String =
-    config.entries
-        .sortedBy { it.key }
-        .joinToString(" · ") { (key, value) -> "$key: $value" }
+internal fun Automation.exitBehaviorItemCount(): Int =
+    exitActions.size + actions.count { action ->
+        action.endBehavior?.mode?.let { it != EndMode.LEAVE } == true
+    }
+
+private fun Map<String, String>.selectedPackages(): List<String> =
+    (this["packages"] ?: this["package"] ?: "")
+        .split(',')
+        .map(String::trim)
+        .filter(String::isNotEmpty)
+        .distinct()
+
+@Composable
+private fun actionDisplayText(action: Action): String {
+    val (titleRes, _, _) = actionPresentation(action.type)
+    val setting = action.config["enabled"]?.let { enabled ->
+        stringResource(if (enabled == "true") R.string.task_details_enabled else R.string.task_details_disabled)
+    }
+    return listOf(stringResource(titleRes), setting)
+        .filterNotNull()
+        .joinToString(" · ")
+}
 
 /** Exact, per-action end behavior shown in task cards; null means leave unchanged. */
 @Composable
@@ -510,18 +560,22 @@ private fun taskEndBehaviorDetail(action: Action): String {
         EndMode.LEAVE -> return ""
         EndMode.REVERT -> stringResource(R.string.task_details_end_revert)
         EndMode.RERUN -> stringResource(R.string.task_details_end_rerun)
-        EndMode.SET_VALUE -> stringResource(
-            R.string.task_details_end_set_value,
-            taskConfigDetail(behavior.config)
-        )
+        EndMode.SET_VALUE -> {
+            if (action.type in EndBehaviorCatalog.toggleActions) {
+                stringResource(
+                    if (behavior.config["enabled"] == "true") {
+                        R.string.task_details_enabled
+                    } else {
+                        R.string.task_details_disabled
+                    }
+                )
+            } else {
+                stringResource(R.string.task_details_end_set_value)
+            }
+        }
     }
     return stringResource(R.string.task_details_end_behavior, label)
 }
-
-private fun String.toDisplayLabel(): String =
-    removePrefix("SYSTEM_")
-        .split('_')
-        .joinToString(" ") { part -> part.lowercase().replaceFirstChar(Char::uppercase) }
 
 @Composable
 private fun scheduledTaskCardColor(index: Int): Color =

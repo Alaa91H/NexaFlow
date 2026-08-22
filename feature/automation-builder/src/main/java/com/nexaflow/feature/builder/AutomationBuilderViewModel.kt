@@ -8,6 +8,7 @@ import com.nexaflow.core.execution.compat.WorkflowCapabilityValidator
 import com.nexaflow.domain.capability.CapabilitySnapshot
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.isLegacyGeneratedAutomationDescription
 import com.nexaflow.domain.models.Constraint
 import com.nexaflow.domain.models.MaintenanceProfile
 import com.nexaflow.domain.models.GlobalVariable
@@ -101,7 +102,9 @@ class AutomationBuilderViewModel @Inject constructor(
             val automation = Automation(
                 id = id,
                 name = name.ifBlank { "Untitled Task" },
-                description = buildDescription(triggers, actions),
+                description = prev?.description
+                    ?.takeIf { previous -> previous.isNotBlank() && !previous.isLegacyGeneratedAutomationDescription() }
+                    .orEmpty(),
                 icon = icon,
                 iconColor = iconColor,
                 backgroundColor = prev?.backgroundColor ?: 0xFFE3EEFA,
@@ -133,13 +136,4 @@ class AutomationBuilderViewModel @Inject constructor(
         }
     }
 
-    private fun buildDescription(triggers: List<Trigger>, actions: List<Action>): String {
-        val triggerText = if (triggers.isEmpty()) {
-            "When configured"
-        } else {
-            val types = triggers.joinToString(", ") { it.type.name.replace('_', ' ').lowercase() }
-            "When $types"
-        }
-        return "$triggerText, then ${actions.size} action(s)"
-    }
 }

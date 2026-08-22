@@ -96,5 +96,9 @@
     <string name="task_details_end_behavior">عند الانتهاء: %1$s</string>
     <string name="task_details_end_revert">استعادة الحالة الأصلية</string>
     <string name="task_details_end_rerun">تنفيذ مجدداً عند الانتهاء</string>
-    <string name="task_details_end_set_value">تعيين قيمة: %1$s</string>
+    <string name="task_details_end_set_value">تعيين القيمة المختارة</string>
+    <string name="task_details_end_action">%1$s — %2$s</string>
+    <string name="task_details_enabled">تشغيل</string>
+    <string name="task_details_disabled">إيقاف</string>
+    <string name="task_details_configured_count">تم إعداد %1$d</string>
 </resources>

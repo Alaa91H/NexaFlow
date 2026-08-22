@@ -60,6 +60,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":core:execution"))
     implementation(project(":core:ui-components"))
+    implementation(project(":feature:automations"))
     testImplementation(libs.junit.junit)
 }
 

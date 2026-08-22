@@ -96,5 +96,9 @@
     <string name="task_details_end_behavior">Al finalizar: %1$s</string>
     <string name="task_details_end_revert">Estado original restaurar</string>
     <string name="task_details_end_rerun">Al finalizar, ejecutar de nuevo</string>
-    <string name="task_details_end_set_value">Establecer valor: %1$s</string>
+    <string name="task_details_end_set_value">Establecer el valor seleccionado</string>
+    <string name="task_details_end_action">%1$s — %2$s</string>
+    <string name="task_details_enabled">Activar</string>
+    <string name="task_details_disabled">Desactivar</string>
+    <string name="task_details_configured_count">%1$d configurado(s)</string>
 </resources>

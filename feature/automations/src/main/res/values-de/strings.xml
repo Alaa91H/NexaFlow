@@ -437,4 +437,5 @@
 
     <string name="action_charging_feedback">Ladegeräusch und Vibration</string>
     <string name="action_charging_feedback_sub">Ladefeedback steuern, wenn das ROM es unterstützt</string>
+    <string name="detail_default">Standard</string>
 </resources>

@@ -96,5 +96,9 @@
     <string name="task_details_end_behavior">结束时：%1$s</string>
     <string name="task_details_end_revert">恢复原始状态</string>
     <string name="task_details_end_rerun">结束时再次执行</string>
-    <string name="task_details_end_set_value">设置值：%1$s</string>
+    <string name="task_details_end_set_value">设置所选值</string>
+    <string name="task_details_end_action">%1$s — %2$s</string>
+    <string name="task_details_enabled">开启</string>
+    <string name="task_details_disabled">关闭</string>
+    <string name="task_details_configured_count">已配置 %1$d 项</string>
 </resources>

@@ -437,4 +437,5 @@
 
     <string name="action_charging_feedback">充電時の音と振動</string>
     <string name="action_charging_feedback_sub">ROM が対応している場合に充電フィードバックを制御</string>
+    <string name="detail_default">デフォルト</string>
 </resources>

@@ -96,5 +96,9 @@
     <string name="task_details_end_behavior">Bittiğinde: %1$s</string>
     <string name="task_details_end_revert">Özgün durumu geri yükle</string>
     <string name="task_details_end_rerun">Bittiğinde yeniden çalıştır</string>
-    <string name="task_details_end_set_value">Değer ayarla: %1$s</string>
+    <string name="task_details_end_set_value">Seçilen değeri ayarla</string>
+    <string name="task_details_end_action">%1$s — %2$s</string>
+    <string name="task_details_enabled">Aç</string>
+    <string name="task_details_disabled">Kapat</string>
+    <string name="task_details_configured_count">%1$d ayarlandı</string>
 </resources>

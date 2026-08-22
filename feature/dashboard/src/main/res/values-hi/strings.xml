@@ -96,5 +96,9 @@
     <string name="task_details_end_behavior">समाप्ति पर: %1$s</string>
     <string name="task_details_end_revert">मूल स्थिति बहाल करें</string>
     <string name="task_details_end_rerun">समाप्ति पर फिर चलाएँ</string>
-    <string name="task_details_end_set_value">मान सेट करें: %1$s</string>
+    <string name="task_details_end_set_value">चुना हुआ मान सेट करें</string>
+    <string name="task_details_end_action">%1$s — %2$s</string>
+    <string name="task_details_enabled">चालू करें</string>
+    <string name="task_details_disabled">बंद करें</string>
+    <string name="task_details_configured_count">%1$d कॉन्फ़िगर किया गया</string>
 </resources>

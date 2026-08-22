@@ -437,4 +437,5 @@
 
     <string name="action_charging_feedback">Звук и вибрация зарядки</string>
     <string name="action_charging_feedback_sub">Управляйте откликом зарядки, если ROM его поддерживает</string>
+    <string name="detail_default">По умолчанию</string>
 </resources>

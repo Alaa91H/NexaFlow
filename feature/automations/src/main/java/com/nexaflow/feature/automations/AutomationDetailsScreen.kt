@@ -105,9 +105,11 @@ import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.SettingRow
 import com.nexaflow.core.ui.iconVector
+import com.nexaflow.core.ui.resolveInstalledAppPresentation
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.hasUserAuthoredDescription
 import com.nexaflow.domain.models.Constraint
 import com.nexaflow.domain.models.ConstraintType
 import com.nexaflow.domain.models.Trigger
@@ -202,11 +204,13 @@ fun AutomationDetailsScreen(navController: NavController) {
                                 text = current.name,
                                 style = MaterialTheme.typography.titleMedium
                             )
-                            Text(
-                                text = current.description,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
+                            if (current.hasUserAuthoredDescription()) {
+                                Text(
+                                    text = current.description,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
                         }
                         Column(
                             horizontalAlignment = Alignment.End,
@@ -458,12 +462,16 @@ private fun constraintDetail(config: Map<String, String>): String {
     }
 }
 
-/** Human-readable action detail (e.g. brightness value, package name). */
-private fun actionDetail(config: Map<String, String>): String = when {
+/** Human-readable action detail (e.g. brightness value or installed app name). */
+@Composable
+private fun actionDetail(config: Map<String, String>): String {
+    val context = LocalContext.current
+    return when {
     config["value"] != null -> config["value"]!!
     config["title"]?.isNotBlank() == true -> config["title"]!!
     config["url"]?.isNotBlank() == true -> config["url"]!!
-    config["package"]?.isNotBlank() == true -> config["package"]!!
+    config["package"]?.isNotBlank() == true ->
+        resolveInstalledAppPresentation(context, config.getValue("package")).label
     config["number"]?.isNotBlank() == true -> config["number"]!!
     config["text"]?.isNotBlank() == true -> config["text"]!!.take(40)
     config["command"]?.isNotBlank() == true -> config["command"]!!.take(40)
@@ -478,6 +486,7 @@ private fun actionDetail(config: Map<String, String>): String = when {
     config["lat"]?.isNotBlank() == true -> "${config["lat"]}, ${config["lng"]}"
     config["method"]?.isNotBlank() == true -> "${config["method"]} · ${config["url"] ?: ""}"
     else -> ""
+    }
 }
 
 /**
@@ -569,6 +578,9 @@ private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector
 /** Human-readable trigger detail (e.g. battery direction, time range, repeat mode). */
 @Composable
 private fun triggerDetail(config: Map<String, String>): String {
+    val context = LocalContext.current
+    val selectedAppNames = config.selectedPackages()
+        .map { packageName -> resolveInstalledAppPresentation(context, packageName).label }
     val parts = buildList {
         if (config["timeMode"] == "RANGE") {
             add("${config["rangeStart"] ?: ""} → ${config["rangeEnd"] ?: ""}")
@@ -589,7 +601,7 @@ private fun triggerDetail(config: Map<String, String>): String {
         config["days"]?.let { add(it) }
         config["date"]?.let { add(it) }
         config["startDate"]?.let { add("$it → ${config["endDate"]}") }
-        config["packages"]?.let { add("${it.split(',').size} app(s)") }
+        selectedAppNames.takeIf { it.isNotEmpty() }?.let { add(it.joinToString(", ")) }
         config["network"]?.let { add(it.lowercase()) }
         config["event"]?.let { add(it.lowercase()) }
         config["from"]?.takeIf { it.isNotBlank() }?.let { add("from $it") }
@@ -601,8 +613,15 @@ private fun triggerDetail(config: Map<String, String>): String {
         config["calendar"]?.takeIf { it.isNotBlank() }?.let { add(it) }
         config["beforeMinutes"]?.takeIf { it != "0" && it.isNotBlank() }?.let { add("-$it min") }
     }
-    return parts.joinToString(", ").ifEmpty { "default" }
+    return parts.joinToString(", ").ifEmpty { stringResource(R.string.detail_default) }
 }
+
+private fun Map<String, String>.selectedPackages(): List<String> =
+    (this["packages"] ?: this["package"] ?: "")
+        .split(',')
+        .map(String::trim)
+        .filter(String::isNotEmpty)
+        .distinct()
 
 /**
  * Google-Tasks-style summary for a MONTHLY_WEEKDAY trigger, e.g.

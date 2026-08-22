@@ -437,4 +437,5 @@
 
     <string name="action_charging_feedback">صوت واهتزاز الشحن</string>
     <string name="action_charging_feedback_sub">التحكم بتغذية الشحن الراجعة عندما يدعمها ROM</string>
+    <string name="detail_default">الإعداد الافتراضي</string>
 </resources>

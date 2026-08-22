@@ -437,4 +437,5 @@
 
     <string name="action_charging_feedback">चार्जिंग ध्वनि और कंपन</string>
     <string name="action_charging_feedback_sub">ROM द्वारा समर्थित होने पर चार्जिंग फीडबैक नियंत्रित करें</string>
+    <string name="detail_default">डिफ़ॉल्ट</string>
 </resources>
