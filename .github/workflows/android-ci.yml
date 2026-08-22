@@ -122,6 +122,8 @@ jobs:
         # distributed APK so the map works for all users, not just local builds.
         NEXAFLOW_MAPS_API_KEY: ${{ secrets.NEXAFLOW_MAPS_API_KEY }}
       run: ./gradlew assembleRelease
+    - name: Verify packaged phone-state permission manifest
+      run: python3 scripts/check_apk_phone_permission.py app/build/outputs/apk/release/app-release.apk
     - name: Verify dependency verification metadata is up to date
       run: |
         cp gradle/verification-metadata.xml /tmp/verification-metadata.expected.xml
