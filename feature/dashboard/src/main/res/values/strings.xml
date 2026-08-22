@@ -80,4 +80,17 @@
     <string name="trigger_boot_completed">Device booted</string>
     <string name="trigger_nfc_tag_scanned">NFC tag scanned</string>
     <string name="trigger_alarm_set_changed">Alarm set</string>
+    <string name="task_details_expand">Expand task</string>
+    <string name="task_details_collapse">Collapse task</string>
+    <string name="task_status_running">Running</string>
+    <string name="task_status_enabled">Ready</string>
+    <string name="task_status_disabled">Disabled</string>
+    <string name="task_details_description">Description</string>
+    <string name="task_details_summary">Summary</string>
+    <string name="task_details_triggers">Triggers (%1$d)</string>
+    <string name="task_details_constraints">Constraints (%1$d)</string>
+    <string name="task_details_actions">Actions (%1$d)</string>
+    <string name="task_details_exit_actions">When task ends (%1$d)</string>
+    <string name="task_details_revert_on_exit">Restore the previous device state</string>
+    <string name="task_details_none">None configured</string>
 </resources>

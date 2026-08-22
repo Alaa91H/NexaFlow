@@ -1,5 +1,6 @@
 package com.nexaflow.feature.dashboard
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +24,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Search
@@ -84,6 +87,8 @@ fun DashboardScreen(navController: NavController) {
     var searchQuery by remember { mutableStateOf("") }
     var actionMenuTarget by remember { mutableStateOf<Automation?>(null) }
     var deleteTarget by remember { mutableStateOf<Automation?>(null) }
+    // Keep one task expanded at a time so the dashboard remains scannable.
+    var expandedAutomationId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(executionMessage) {
         executionMessage?.let { message ->
@@ -205,6 +210,7 @@ fun DashboardScreen(navController: NavController) {
                     nextRun = nextRunText(row.automation),
                     isRunning = row.automation.id in runningIds,
                     containerColor = scheduledTaskCardColor(index),
+                    expanded = expandedAutomationId == row.automation.id,
                     menuExpanded = actionMenuTarget?.id == row.automation.id,
                     // Google-2026 Keep-style cascade: each card springs in a
                     // beat after the one above it, capped so a long list still
@@ -216,7 +222,12 @@ fun DashboardScreen(navController: NavController) {
                     onEdit = { navController.navigate("automation_builder?automationId=${row.automation.id}") },
                     onDelete = { deleteTarget = row.automation },
                     onToggle = { viewModel.toggleAutomation(row.automation, it) },
-                    onClick = { navController.navigate("automation_details/${row.automation.id}") },
+                    onExpandedChange = {
+                        expandedAutomationId = nextExpandedAutomationId(
+                            currentExpandedId = expandedAutomationId,
+                            tappedAutomationId = row.automation.id
+                        )
+                    },
                     onLongClick = { actionMenuTarget = row.automation },
                     onDismissMenu = { actionMenuTarget = null }
                 )
@@ -248,7 +259,16 @@ fun DashboardScreen(navController: NavController) {
     }
 }
 
-/** Routine card with a natural-language summary, live switch, and long-press actions. */
+internal fun nextExpandedAutomationId(
+    currentExpandedId: String?,
+    tappedAutomationId: String
+): String? = if (currentExpandedId == tappedAutomationId) null else tappedAutomationId
+
+/**
+ * A progressive-disclosure task card. In its resting state it exposes only the
+ * task name; a tap expands exactly one card on the dashboard to reveal the
+ * task's persisted definition and live execution metadata.
+ */
 @Composable
 @OptIn(ExperimentalFoundationApi::class)
 private fun RoutineCard(
@@ -257,65 +277,61 @@ private fun RoutineCard(
     nextRun: String?,
     isRunning: Boolean,
     containerColor: Color,
+    expanded: Boolean,
     menuExpanded: Boolean,
     onRun: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onToggle: (Boolean) -> Unit,
-    onClick: () -> Unit,
+    onExpandedChange: () -> Unit,
     onLongClick: () -> Unit,
     onDismissMenu: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     NexaFlowCard(
-        modifier = modifier.combinedClickable(
-            onClick = onClick,
-            onLongClick = onLongClick
-        ),
+        modifier = modifier
+            .animateContentSize()
+            .combinedClickable(
+                onClick = onExpandedChange,
+                onLongClick = onLongClick
+            ),
         containerColor = containerColor
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
-            Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            IconBadge(
-                icon = iconVector(row.automation.icon),
-                containerColor = Color(row.automation.backgroundColor),
-                contentColor = Color(row.automation.iconColor)
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = row.automation.name,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = summary,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                RoutineMetaLine(
-                    nextRun = nextRun,
-                    lastRunAt = row.lastRunAt
-                )
-            }
-                if (isRunning) {
-                    Box(
-                        modifier = Modifier.size(48.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            strokeWidth = 2.dp
-                        )
-                    }
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = row.automation.name,
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                        contentDescription = stringResource(
+                            if (expanded) R.string.task_details_collapse else R.string.task_details_expand
+                        ),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-                Switch(checked = row.automation.enabled, onCheckedChange = onToggle)
+
+                if (expanded) {
+                    RoutineDetails(
+                        row = row,
+                        summary = summary,
+                        nextRun = nextRun,
+                        isRunning = isRunning,
+                        onToggle = onToggle
+                    )
+                }
             }
             DropdownMenu(
                 expanded = menuExpanded,
@@ -347,6 +363,125 @@ private fun RoutineCard(
         }
     }
 }
+
+@Composable
+private fun RoutineDetails(
+    row: AutomationRow,
+    summary: String,
+    nextRun: String?,
+    isRunning: Boolean,
+    onToggle: (Boolean) -> Unit
+) {
+    val automation = row.automation
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        IconBadge(
+            icon = iconVector(automation.icon),
+            containerColor = Color(automation.backgroundColor),
+            contentColor = Color(automation.iconColor)
+        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(
+                    when {
+                        isRunning -> R.string.task_status_running
+                        automation.enabled -> R.string.task_status_enabled
+                        else -> R.string.task_status_disabled
+                    }
+                ),
+                style = MaterialTheme.typography.labelLarge,
+                color = when {
+                    isRunning -> MaterialTheme.colorScheme.primary
+                    automation.enabled -> MaterialTheme.colorScheme.tertiary
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                }
+            )
+            RoutineMetaLine(nextRun = nextRun, lastRunAt = row.lastRunAt)
+        }
+        if (isRunning) {
+            CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+        }
+        Switch(checked = automation.enabled, onCheckedChange = onToggle)
+    }
+
+    if (automation.description.isNotBlank()) {
+        DetailBlock(
+            title = stringResource(R.string.task_details_description),
+            lines = listOf(automation.description)
+        )
+    }
+    DetailBlock(
+        title = stringResource(R.string.task_details_summary),
+        lines = listOf(summary)
+    )
+    DetailBlock(
+        title = stringResource(R.string.task_details_triggers, automation.triggers.size),
+        lines = automation.triggers.map { trigger ->
+            listOf(stringResource(triggerLabel(trigger.type)), taskConfigDetail(trigger.config))
+                .filter { it.isNotBlank() }
+                .joinToString(" · ")
+        }.ifEmpty { listOf(stringResource(R.string.task_details_none)) }
+    )
+    DetailBlock(
+        title = stringResource(R.string.task_details_constraints, automation.constraints.size),
+        lines = automation.constraints.map { constraint ->
+            listOf(constraint.type.name.toDisplayLabel(), taskConfigDetail(constraint.config))
+                .filter { it.isNotBlank() }
+                .joinToString(" · ")
+        }.ifEmpty { listOf(stringResource(R.string.task_details_none)) }
+    )
+    DetailBlock(
+        title = stringResource(R.string.task_details_actions, automation.actions.size),
+        lines = automation.actions.map { action ->
+            listOf(action.type.name.toDisplayLabel(), taskConfigDetail(action.config))
+                .filter { it.isNotBlank() }
+                .joinToString(" · ")
+        }.ifEmpty { listOf(stringResource(R.string.task_details_none)) }
+    )
+    DetailBlock(
+        title = stringResource(R.string.task_details_exit_actions, automation.exitActions.size),
+        lines = when {
+            automation.revertOnExit -> listOf(stringResource(R.string.task_details_revert_on_exit))
+            automation.exitActions.isEmpty() -> listOf(stringResource(R.string.task_details_none))
+            else -> automation.exitActions.map { action ->
+                listOf(action.type.name.toDisplayLabel(), taskConfigDetail(action.config))
+                    .filter { it.isNotBlank() }
+                    .joinToString(" · ")
+            }
+        }
+    )
+}
+
+@Composable
+private fun DetailBlock(title: String, lines: List<String>) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
+        lines.forEach { line ->
+            Text(
+                text = line,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+internal fun taskConfigDetail(config: Map<String, String>): String =
+    config.entries
+        .sortedBy { it.key }
+        .joinToString(" · ") { (key, value) -> "$key: $value" }
+
+private fun String.toDisplayLabel(): String =
+    removePrefix("SYSTEM_")
+        .split('_')
+        .joinToString(" ") { part -> part.lowercase().replaceFirstChar(Char::uppercase) }
 
 @Composable
 private fun scheduledTaskCardColor(index: Int): Color =
@@ -514,12 +649,13 @@ private fun RoutineCardPreview() {
             nextRun = "Next · today 8:00 PM",
             isRunning = false,
             containerColor = scheduledTaskCardColor(0),
+            expanded = true,
             menuExpanded = false,
             onRun = {},
             onEdit = {},
             onDelete = {},
             onToggle = {},
-            onClick = {},
+            onExpandedChange = {},
             onLongClick = {},
             onDismissMenu = {},
             modifier = Modifier

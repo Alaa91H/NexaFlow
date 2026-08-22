@@ -80,4 +80,17 @@
     <string name="trigger_boot_completed">Dispositivo iniciado</string>
     <string name="trigger_nfc_tag_scanned">Etiqueta NFC escaneada</string>
     <string name="trigger_alarm_set_changed">Alarma configurada</string>
+    <string name="task_details_expand">Expandir tarea</string>
+    <string name="task_details_collapse">Contraer tarea</string>
+    <string name="task_status_running">En ejecución</string>
+    <string name="task_status_enabled">Lista</string>
+    <string name="task_status_disabled">Desactivada</string>
+    <string name="task_details_description">Descripción</string>
+    <string name="task_details_summary">Resumen</string>
+    <string name="task_details_triggers">Disparadores (%1$d)</string>
+    <string name="task_details_constraints">Restricciones (%1$d)</string>
+    <string name="task_details_actions">Acciones (%1$d)</string>
+    <string name="task_details_exit_actions">Al finalizar la tarea (%1$d)</string>
+    <string name="task_details_revert_on_exit">Restaurar el estado anterior del dispositivo</string>
+    <string name="task_details_none">Sin configurar</string>
 </resources>

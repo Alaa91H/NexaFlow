@@ -80,4 +80,17 @@
     <string name="trigger_boot_completed">Gerät gestartet</string>
     <string name="trigger_nfc_tag_scanned">NFC-Tag erkannt</string>
     <string name="trigger_alarm_set_changed">Wecker gestellt</string>
+    <string name="task_details_expand">Aufgabe erweitern</string>
+    <string name="task_details_collapse">Aufgabe einklappen</string>
+    <string name="task_status_running">Wird ausgeführt</string>
+    <string name="task_status_enabled">Bereit</string>
+    <string name="task_status_disabled">Deaktiviert</string>
+    <string name="task_details_description">Beschreibung</string>
+    <string name="task_details_summary">Zusammenfassung</string>
+    <string name="task_details_triggers">Auslöser (%1$d)</string>
+    <string name="task_details_constraints">Bedingungen (%1$d)</string>
+    <string name="task_details_actions">Aktionen (%1$d)</string>
+    <string name="task_details_exit_actions">Beim Aufgabenende (%1$d)</string>
+    <string name="task_details_revert_on_exit">Vorherigen Gerätestatus wiederherstellen</string>
+    <string name="task_details_none">Nicht konfiguriert</string>
 </resources>

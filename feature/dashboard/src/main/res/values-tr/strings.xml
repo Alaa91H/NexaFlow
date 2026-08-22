@@ -80,4 +80,17 @@
     <string name="trigger_boot_completed">Cihaz açıldı</string>
     <string name="trigger_nfc_tag_scanned">NFC etiketi okundu</string>
     <string name="trigger_alarm_set_changed">Alarm kuruldu</string>
+    <string name="task_details_expand">Görevi genişlet</string>
+    <string name="task_details_collapse">Görevi daralt</string>
+    <string name="task_status_running">Çalışıyor</string>
+    <string name="task_status_enabled">Hazır</string>
+    <string name="task_status_disabled">Devre dışı</string>
+    <string name="task_details_description">Açıklama</string>
+    <string name="task_details_summary">Özet</string>
+    <string name="task_details_triggers">Tetikleyiciler (%1$d)</string>
+    <string name="task_details_constraints">Kısıtlamalar (%1$d)</string>
+    <string name="task_details_actions">Eylemler (%1$d)</string>
+    <string name="task_details_exit_actions">Görev bittiğinde (%1$d)</string>
+    <string name="task_details_revert_on_exit">Önceki cihaz durumunu geri yükle</string>
+    <string name="task_details_none">Yapılandırılmadı</string>
 </resources>
