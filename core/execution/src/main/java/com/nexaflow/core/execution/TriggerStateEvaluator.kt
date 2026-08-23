@@ -6,12 +6,15 @@ import android.content.res.Configuration
 import android.media.AudioManager
 import android.os.BatteryManager
 import android.provider.Settings
+import com.nexaflow.core.common.CellularNetworkReader
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.schedule.TimeTriggerCalculator
 import java.time.LocalDate
 import java.time.LocalTime
 import kotlin.math.abs
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Best-effort evaluation of whether a task's trigger condition is currently
@@ -34,6 +37,15 @@ object TriggerStateEvaluator {
     fun isSatisfied(context: Context, triggers: List<Trigger>): Boolean =
         triggers.isEmpty() || triggers.any { triggerSatisfied(context, it) }
 
+    /**
+     * Manual execution entry point. System and telephony probes run on IO so a
+     * "run now" tap never performs a phone-state read on the main thread.
+     */
+    suspend fun isSatisfiedAsync(context: Context, triggers: List<Trigger>): Boolean =
+        triggers.isEmpty() || triggers.any { trigger ->
+            withContext(Dispatchers.IO) { triggerSatisfied(context, trigger) }
+        }
+
     // ConnectivityManager reads (ethernet/VPN/connectivity) need
     // ACCESS_NETWORK_STATE, which is a normal permission the app declares in
     // the manifest — lint cannot see the manifest here, so suppress it; every
@@ -42,6 +54,12 @@ object TriggerStateEvaluator {
     fun triggerSatisfied(context: Context, trigger: Trigger): Boolean {
         val c = trigger.config
         return when (trigger.type) {
+            TriggerType.NETWORK_MODE ->
+                CellularNetworkReader.matchesNetworkMode(
+                    c["state"] ?: CellularNetworkReader.GENERATION_4G,
+                    CellularNetworkReader.read(context)
+                )
+            TriggerType.CONNECTIVITY -> connectivitySatisfied(context, c)
             TriggerType.TIME -> timeTriggerSatisfied(c)
             TriggerType.RINGER_MODE -> ringerModeSatisfied(context, c)
             TriggerType.BATTERY -> batterySatisfied(context, c)
@@ -292,6 +310,38 @@ object TriggerStateEvaluator {
 
     private fun parseTime(value: String?): LocalTime? =
         value?.let { runCatching { LocalTime.parse(it) }.getOrNull() }
+
+    @SuppressLint("MissingPermission")
+    private fun connectivitySatisfied(context: Context, config: Map<String, String>): Boolean {
+        val network = config["network"] ?: "WIFI"
+        val desired = config["state"] ?: "CONNECTED"
+        val actual = when (network) {
+            "NETWORK_MODE" -> CellularNetworkReader.read(context)
+            "WIFI" -> {
+                val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE)
+                    as? android.net.ConnectivityManager
+                if (cm?.getNetworkCapabilities(cm.activeNetwork)
+                        ?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) == true
+                ) "CONNECTED" else "DISCONNECTED"
+            }
+            "MOBILE" -> {
+                val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE)
+                    as? android.net.ConnectivityManager
+                if (cm?.getNetworkCapabilities(cm.activeNetwork)
+                        ?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) == true
+                ) "CONNECTED" else "DISCONNECTED"
+            }
+            "HOTSPOT" -> runCatching {
+                Settings.Global.getInt(context.contentResolver, "tether_on", 0) == 1
+            }.getOrDefault(false).let { if (it) "ON" else "OFF" }
+            else -> null
+        }
+        return if (network == "NETWORK_MODE") {
+            CellularNetworkReader.matchesNetworkMode(desired, actual)
+        } else {
+            actual == desired
+        }
+    }
 
     private fun ringerModeSatisfied(context: Context, config: Map<String, String>): Boolean {
         val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return true

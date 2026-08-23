@@ -47,7 +47,7 @@ fun NexaFlowFloatingActionButton(
 @Preview(name = "FAB", showBackground = true)
 @Composable
 private fun FabPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         NexaFlowFloatingActionButton(
             onClick = {},
             icon = Icons.Filled.Add,
@@ -59,7 +59,7 @@ private fun FabPreview() {
 @Preview(name = "FAB – Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun FabDarkPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         NexaFlowFloatingActionButton(
             onClick = {},
             icon = Icons.Filled.Add,

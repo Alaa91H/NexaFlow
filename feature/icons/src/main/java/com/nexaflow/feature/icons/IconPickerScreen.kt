@@ -26,7 +26,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import com.nexaflow.feature.builder.SelectChip
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -192,17 +192,17 @@ fun IconPickerScreen(navController: NavController) {
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    SelectChip(
+                    FilterChip(
                         selected = category == null,
                         onClick = { category = null },
-                        label = stringResource(R.string.category_all)
+                        label = { Text(text = stringResource(R.string.category_all)) }
                     )
                     NexaFlowIcons.categories.forEach { cat ->
                         val isSelected = category == cat
-                        SelectChip(
+                        FilterChip(
                             selected = isSelected,
                             onClick = { category = cat },
-                            label = stringResource(categoryLabelRes(cat))
+                            label = { Text(text = stringResource(categoryLabelRes(cat))) }
                         )
                     }
                 }

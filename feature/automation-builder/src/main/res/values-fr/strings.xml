@@ -495,6 +495,7 @@
     <string name="network_mode_current_hint">Lecture en direct de la génération cellulaire réelle (détection 5G réelle)</string>
     <string name="network_mode_fire_when">Déclencher quand</string>
     <string name="network_mode_unknown">Inconnu</string>
+    <string name="network_mode_permission_hint">L’autorisation téléphonique améliore la génération en direct et la détection 5G</string>
     <string name="charging_any">Tous</string>
     <string name="network_mode_4g">4G</string>
     <string name="choose_ringtone">Choisir la sonnerie</string>

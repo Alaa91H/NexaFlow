@@ -494,6 +494,7 @@
     <string name="network_mode_current_hint">قراءة مباشرة للجيل الخلوي الفعلي للجهاز (كشف 5G حقيقي)</string>
     <string name="network_mode_fire_when">تنفيذ عند</string>
     <string name="network_mode_unknown">غير معروف</string>
+    <string name="network_mode_permission_hint">يساعد إذن الهاتف على تحسين قراءة الجيل وكشف 5G مباشرةً</string>
     <string name="charging_any">أي</string>
     <string name="network_mode_4g">4G</string>
     <string name="choose_ringtone">اختر النغمة</string>

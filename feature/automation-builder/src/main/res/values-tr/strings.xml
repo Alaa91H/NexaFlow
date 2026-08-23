@@ -495,6 +495,7 @@
     <string name="network_mode_current_hint">Cihazın gerçek hücresel neslinin canlı okuması (gerçek 5G algılama)</string>
     <string name="network_mode_fire_when">Şu durumda tetikle</string>
     <string name="network_mode_unknown">Bilinmiyor</string>
+    <string name="network_mode_permission_hint">Telefon izni, canlı nesil ve 5G algılamasını iyileştirir</string>
     <string name="charging_any">Herhangi biri</string>
     <string name="network_mode_4g">4G</string>
     <string name="choose_ringtone">Zil sesi seç</string>

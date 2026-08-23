@@ -495,6 +495,7 @@
     <string name="network_mode_current_hint">डिवाइस की वास्तविक सेलुलर पीढ़ी का लाइव रीड (वास्तविक 5G पहचान)</string>
     <string name="network_mode_fire_when">इस पर ट्रिगर करें</string>
     <string name="network_mode_unknown">अज्ञात</string>
+    <string name="network_mode_permission_hint">फ़ोन अनुमति लाइव पीढ़ी और 5G पहचान को बेहतर बनाती है</string>
     <string name="charging_any">कोई भी</string>
     <string name="network_mode_4g">4G</string>
     <string name="choose_ringtone">रिंगटोन चुनें</string>

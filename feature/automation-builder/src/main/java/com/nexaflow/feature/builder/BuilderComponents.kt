@@ -313,6 +313,7 @@ fun SpecialPermissionStatusRow(
     if (status == SpecialStatus.GRANTED) return
 
     val (pillText, pillBg, pillFg) = when (status) {
+        SpecialStatus.GRANTED -> return
         SpecialStatus.AVAILABLE -> Triple(
             stringResource(R.string.elevated_status_available),
             NexaFlowTheme.colors.warningContainer,
@@ -387,29 +388,13 @@ fun CategoryAccordion(
                 )
             }
         }
-        tabs.forEachIndexed { index, (label, icon) ->
-            if (expandedIndex == index) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.padding(top = 2.dp)
-                ) {
-                    icon?.let {
-                        Icon(
-                            imageVector = it,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                content(index)
-            }
+        // Keep every category's options mounted below the chips. The selected
+        // chip is a visual navigation aid, not a visibility gate: hiding and
+        // re-mounting option content made selections disappear and forced users
+        // to reopen categories after every pick. This also keeps the picker
+        // stable while the caller appends selected cards below it.
+        tabs.forEachIndexed { index, (_, _) ->
+            content(index)
         }
     }
 }
@@ -636,7 +621,7 @@ internal val NETWORK_MODE_OPTIONS = listOf(
 @Preview(name = "SelectChip", showBackground = true)
 @Composable
 private fun SelectChipPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         Column {
             SelectChip(selected = true, onClick = {}, label = "Selected")
             SelectChip(selected = false, onClick = {}, label = "Unselected")
@@ -647,7 +632,7 @@ private fun SelectChipPreview() {
 @Preview(name = "SelectChip – Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun SelectChipDarkPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         Column {
             SelectChip(selected = true, onClick = {}, label = "Selected")
             SelectChip(selected = false, onClick = {}, label = "Unselected")
@@ -658,7 +643,7 @@ private fun SelectChipDarkPreview() {
 @Preview(name = "OptionChips", showBackground = true)
 @Composable
 private fun OptionChipsPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         OptionChips(
             options = listOf("ON", "OFF", "AUTO"),
             labels = mapOf("ON" to "On", "OFF" to "Off", "AUTO" to "Auto"),
@@ -671,7 +656,7 @@ private fun OptionChipsPreview() {
 @Preview(name = "SliderRow", showBackground = true)
 @Composable
 private fun SliderRowPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         SliderRow(label = "Volume", value = 0.5f, valueRange = 0f..1f, onValueChange = {})
     }
 }
@@ -679,13 +664,13 @@ private fun SliderRowPreview() {
 @Preview(name = "ItemHeader", showBackground = true)
 @Composable
 private fun ItemHeaderPreview() {
-    NexaFlowTheme { ItemHeader(text = "Section Title") }
+    MaterialTheme { ItemHeader(text = "Section Title") }
 }
 
 @Preview(name = "CategoryAccordion", showBackground = true)
 @Composable
 private fun CategoryAccordionPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         CategoryAccordion(
             tabs = listOf("Display" to Icons.Filled.DisplaySettings),
             expandedIndex = 0,

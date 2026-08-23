@@ -3,7 +3,10 @@
 /local.properties
 /.idea
 .DS_Store
-**/build
+**/build/
+# buildSrc contains real source under a package named `com/nexaflow/build`.
+!buildSrc/src/main/java/com/nexaflow/build/
+!buildSrc/src/main/java/com/nexaflow/build/**
 /captures
 .externalNativeBuild
 .cxx

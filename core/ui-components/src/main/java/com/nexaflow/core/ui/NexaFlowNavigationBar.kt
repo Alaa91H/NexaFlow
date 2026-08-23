@@ -62,7 +62,7 @@ fun NexaFlowNavigationBar(
 @Preview(name = "NavigationBar", showBackground = true)
 @Composable
 private fun NavigationBarPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         NexaFlowNavigationBar(
             currentRoute = "home",
             destinations = listOf(
@@ -77,7 +77,7 @@ private fun NavigationBarPreview() {
 @Preview(name = "NavigationBar – Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun NavigationBarDarkPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         NexaFlowNavigationBar(
             currentRoute = "home",
             destinations = listOf(

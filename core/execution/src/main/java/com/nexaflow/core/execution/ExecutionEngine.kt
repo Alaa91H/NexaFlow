@@ -161,7 +161,7 @@ class ExecutionEngine(
         // in while it fires). Only when BOTH are currently satisfied do the
         // task's actions run; otherwise the exit behavior ("when the task
         // ends") runs instead, so a manual run is always correct.
-        val triggersOk = TriggerStateEvaluator.isSatisfied(context, automation.triggers)
+        val triggersOk = TriggerStateEvaluator.isSatisfiedAsync(context, automation.triggers)
         val constraintsOk = if (automation.constraints.isEmpty()) {
             true
         } else {

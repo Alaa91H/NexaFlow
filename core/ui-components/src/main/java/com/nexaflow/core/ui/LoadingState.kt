@@ -98,19 +98,19 @@ fun ErrorState(
 @Preview(name = "LoadingState", showBackground = true)
 @Composable
 private fun LoadingStatePreview() {
-    NexaFlowTheme { LoadingState() }
+    MaterialTheme { LoadingState() }
 }
 
 @Preview(name = "LoadingState – Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun LoadingStateDarkPreview() {
-    NexaFlowTheme { LoadingState() }
+    MaterialTheme { LoadingState() }
 }
 
 @Preview(name = "ErrorState", showBackground = true)
 @Composable
 private fun ErrorStatePreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         ErrorState(
             message = "Something went wrong",
             retryLabel = "Retry",
@@ -122,7 +122,7 @@ private fun ErrorStatePreview() {
 @Preview(name = "ErrorState – Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ErrorStateDarkPreview() {
-    NexaFlowTheme {
+    MaterialTheme {
         ErrorState(
             message = "Something went wrong",
             retryLabel = "Retry",

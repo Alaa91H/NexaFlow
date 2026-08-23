@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
@@ -83,6 +84,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -1075,6 +1077,7 @@ private fun triggerSummary(draft: TriggerDraft): String {
         TriggerType.BOOT_COMPLETED -> stringResource(R.string.trigger_events_on_change)
         TriggerType.NFC_TAG_SCANNED -> stringResource(R.string.trigger_events_on_change)
         TriggerType.ALARM_SET_CHANGED -> stringResource(R.string.trigger_events_on_change)
+        else -> stringResource(R.string.trigger_events_on_change)
     }
 }
 
@@ -1684,7 +1687,16 @@ fun TriggerEditorCard(
                     }
                 }
                 TriggerType.NETWORK_MODE -> {
-                    var currentGen by remember { mutableStateOf(currentCellularGeneration(context)) }
+                    var currentGen by remember { mutableStateOf<String?>(null) }
+                    var currentGenLoading by remember { mutableStateOf(false) }
+                    var currentGenRefreshToken by remember { mutableStateOf(0) }
+                    LaunchedEffect(currentGenRefreshToken, refreshKey) {
+                        currentGenLoading = true
+                        currentGen = withContext(Dispatchers.IO) {
+                            currentCellularGeneration(context)
+                        }
+                        currentGenLoading = false
+                    }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         // Live read of the device's actual cellular generation,
                         // using the same real-5G detection as the runtime monitor.
@@ -1699,11 +1711,18 @@ fun TriggerEditorCard(
                             )
                             Spacer(modifier = Modifier.weight(1f))
                             Text(
-                                text = currentGen ?: stringResource(R.string.network_mode_unknown),
+                                text = if (currentGenLoading) {
+                                    stringResource(R.string.network_mode_unknown)
+                                } else {
+                                    currentGen ?: stringResource(R.string.network_mode_unknown)
+                                },
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
-                            IconButton(onClick = { currentGen = currentCellularGeneration(context) }) {
+                            IconButton(
+                                enabled = !currentGenLoading,
+                                onClick = { currentGenRefreshToken++ }
+                            ) {
                                 Icon(
                                     imageVector = Icons.Filled.Refresh,
                                     contentDescription = stringResource(R.string.refresh)
@@ -1714,6 +1733,15 @@ fun TriggerEditorCard(
                             text = stringResource(R.string.network_mode_current_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.secondary
+                        )
+                        RuntimePermissionHint(
+                            context = context,
+                            permissions = listOf(android.Manifest.permission.READ_PHONE_STATE),
+                            text = stringResource(R.string.network_mode_permission_hint),
+                            buttonLabel = stringResource(R.string.enable),
+                            onRequest = {
+                                onRequestPermission(arrayOf(android.Manifest.permission.READ_PHONE_STATE))
+                            }
                         )
                         Text(
                             text = stringResource(R.string.network_mode_fire_when),
@@ -2811,6 +2839,7 @@ fun TriggerEditorCard(
                     Text(text = stringResource(R.string.trigger_desc_nfc_tag), style = MaterialTheme.typography.bodyMedium)
                 TriggerType.ALARM_SET_CHANGED ->
                     Text(text = stringResource(R.string.trigger_desc_alarm_set), style = MaterialTheme.typography.bodyMedium)
+                else -> Unit
             }
             }
         }
