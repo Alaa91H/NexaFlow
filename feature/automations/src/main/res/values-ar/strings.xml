@@ -415,4 +415,9 @@
     <string name="trigger_usb_connected">اتصال USB</string>
     <string name="trigger_vpn_connected">اتصال VPN</string>
     <string name="trigger_wifi_signal_strength">قوة إشارة الواي فاي</string>
+    <string name="constraint_type_airplane">وضع الطيران</string>
+    <string name="constraint_type_bluetooth">البلوتوث مفعّل</string>
+    <string name="constraint_type_charging">حالة الشحن</string>
+    <string name="constraint_type_dnd">عدم الإزعاج</string>
+    <string name="constraint_type_location">خدمات الموقع</string>
 </resources>

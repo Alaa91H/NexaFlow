@@ -26,7 +26,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -46,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.nexaflow.core.ui.NexaFlowIcons
 import com.nexaflow.core.ui.NexaFlowTopBar
+import com.nexaflow.core.ui.SelectChip
 
 /**
  * Ready-made accent palette (Google 2026 tones) shown as a fixed strip at the
@@ -192,17 +192,17 @@ fun IconPickerScreen(navController: NavController) {
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    FilterChip(
+                    SelectChip(
                         selected = category == null,
                         onClick = { category = null },
-                        label = { Text(text = stringResource(R.string.category_all)) }
+                        label = stringResource(R.string.category_all)
                     )
                     NexaFlowIcons.categories.forEach { cat ->
                         val isSelected = category == cat
-                        FilterChip(
+                        SelectChip(
                             selected = isSelected,
                             onClick = { category = cat },
-                            label = { Text(text = stringResource(categoryLabelRes(cat))) }
+                            label = stringResource(categoryLabelRes(cat))
                         )
                     }
                 }

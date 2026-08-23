@@ -887,10 +887,8 @@
     <string name="wifi_ssid">Wi-Fi name (SSID)</string>
 
     <!-- Trigger type descriptions -->
-    <string name="trigger_type_wifi_sub">Fires when Wi-Fi connects or disconnects</string>
     <string name="trigger_type_bluetooth_sub">Fires when a Bluetooth device connects or disconnects</string>
     <string name="trigger_type_battery_sub">Fires when battery level changes</string>
-    <string name="trigger_type_screen_sub">Fires when the screen turns on or off</string>
     <string name="trigger_type_charger_sub">Fires when charger is plugged in or removed</string>
     <string name="trigger_type_headset_sub">Fires when a headset is plugged in or removed</string>
     <string name="trigger_type_app_sub">Fires when an app is opened or closed</string>
@@ -921,10 +919,7 @@
     <string name="trigger_type_data_roaming_sub">Fires when data roaming toggles</string>
     <string name="trigger_type_rom_setting_sub">Fires when a ROM-specific setting changes</string>
     <string name="trigger_type_device_sub">Fires on device state changes</string>
-    <string name="trigger_type_battery_level_sub">Fires when battery reaches a level</string>
     <string name="trigger_type_media_sub">Fires on media playback events</string>
-    <string name="trigger_type_plugin_sub">Fires when a plugin sends an event</string>
-    <string name="trigger_type_dynamic_sub">Fires on dynamic system events</string>
     <string name="trigger_type_ringer_sub">Fires when the sound mode changes</string>
     <string name="trigger_type_network_mode_sub">Fires when cellular network mode matches</string>
     <string name="trigger_type_calendar_sub">Fires around calendar events</string>

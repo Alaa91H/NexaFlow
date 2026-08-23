@@ -20,7 +20,16 @@
     "plugin_test_failed": "Plugin failed",
     "plugin_test_timeout": "Plugin did not respond in time",
     "plugin_test_pending": "Plugin is still working",
-    "plugin_test_success": "Plugin responded OK"
+    "plugin_test_success": "Plugin responded OK",
+    "about_developer": "Developer",
+    "about_github": "GitHub",
+    "about_github_sub": "@Alaa91H",
+    "about_email": "Email",
+    "about_email_sub": "alahus2591@gmail.com",
+    "about_telegram": "Telegram",
+    "about_telegram_sub": "@Alaa91h",
+    "about_support": "Support the developer",
+    "about_support_sub": "Buy me a coffee on Ko-fi"
   },
   "-ar": {
     "root_permission": "صلاحيات الروت",
@@ -43,7 +52,16 @@
     "plugin_test_failed": "فشل الإضافة",
     "plugin_test_timeout": "لم تستجب الإضافة في الوقت المحدد",
     "plugin_test_pending": "الإضافة ما زالت تعمل",
-    "plugin_test_success": "استجابت الإضافة بنجاح"
+    "plugin_test_success": "استجابت الإضافة بنجاح",
+    "about_developer": "المطوّر",
+    "about_github": "GitHub",
+    "about_github_sub": "@Alaa91H",
+    "about_email": "البريد الإلكتروني",
+    "about_email_sub": "alahus2591@gmail.com",
+    "about_telegram": "تيليجرام",
+    "about_telegram_sub": "@Alaa91h",
+    "about_support": "ادعم المطوّر",
+    "about_support_sub": "قدّم لي قهوة على Ko-fi"
   },
   "-de": {
     "root_permission": "Root-Zugriff",
@@ -66,7 +84,16 @@
     "plugin_test_failed": "Plugin fehlgeschlagen",
     "plugin_test_timeout": "Plugin hat nicht rechtzeitig geantwortet",
     "plugin_test_pending": "Plugin arbeitet noch",
-    "plugin_test_success": "Plugin hat geantwortet"
+    "plugin_test_success": "Plugin hat geantwortet",
+    "about_developer": "Entwickler",
+    "about_github": "GitHub",
+    "about_github_sub": "@Alaa91H",
+    "about_email": "E-Mail",
+    "about_email_sub": "alahus2591@gmail.com",
+    "about_telegram": "Telegram",
+    "about_telegram_sub": "@Alaa91h",
+    "about_support": "Entwickler unterstützen",
+    "about_support_sub": "Lade mir einen Kaffee auf Ko-fi"
   },
   "-es": {
     "root_permission": "Acceso root",
@@ -89,7 +116,16 @@
     "plugin_test_failed": "El complemento falló",
     "plugin_test_timeout": "El complemento no respondió a tiempo",
     "plugin_test_pending": "El complemento sigue trabajando",
-    "plugin_test_success": "El complemento respondió correctamente"
+    "plugin_test_success": "El complemento respondió correctamente",
+    "about_developer": "Desarrollador",
+    "about_github": "GitHub",
+    "about_github_sub": "@Alaa91H",
+    "about_email": "Correo electrónico",
+    "about_email_sub": "alahus2591@gmail.com",
+    "about_telegram": "Telegram",
+    "about_telegram_sub": "@Alaa91h",
+    "about_support": "Apoyar al desarrollador",
+    "about_support_sub": "Invítame a un café en Ko-fi"
   },
   "-fr": {
     "root_permission": "Accès root",
@@ -112,7 +148,16 @@
     "plugin_test_failed": "Échec du plugin",
     "plugin_test_timeout": "\"Le plugin n'a pas répondu à temps\"",
     "plugin_test_pending": "Le plugin travaille encore",
-    "plugin_test_success": "Le plugin a répondu correctement"
+    "plugin_test_success": "Le plugin a répondu correctement",
+    "about_developer": "Développeur",
+    "about_github": "GitHub",
+    "about_github_sub": "@Alaa91H",
+    "about_email": "E-mail",
+    "about_email_sub": "alahus2591@gmail.com",
+    "about_telegram": "Telegram",
+    "about_telegram_sub": "@Alaa91h",
+    "about_support": "Soutenir le développeur",
+    "about_support_sub": "Offrez-moi un café sur Ko-fi"
   },
   "-hi": {
     "root_permission": "रूट एक्सेस",
@@ -135,7 +180,16 @@
     "plugin_test_failed": "प्लगइन विफल",
     "plugin_test_timeout": "प्लगइन ने समय पर जवाब नहीं दिया",
     "plugin_test_pending": "प्लगइन अभी भी काम कर रहा है",
-    "plugin_test_success": "प्लगइन ने सफलतापूर्वक जवाब दिया"
+    "plugin_test_success": "प्लगइन ने सफलतापूर्वक जवाब दिया",
+    "about_developer": "डेवलपर",
+    "about_github": "GitHub",
+    "about_github_sub": "@Alaa91H",
+    "about_email": "ईमेल",
+    "about_email_sub": "alahus2591@gmail.com",
+    "about_telegram": "टेलीग्राम",
+    "about_telegram_sub": "@Alaa91h",
+    "about_support": "डेवलपर का समर्थन करें",
+    "about_support_sub": "Ko-fi पर मुझे कॉफ़ी पिलाएँ"
   },
   "-ja": {
     "root_permission": "ルートアクセス",
@@ -158,7 +212,16 @@
     "plugin_test_failed": "プラグインが失敗しました",
     "plugin_test_timeout": "プラグインが時間内に応答しませんでした",
     "plugin_test_pending": "プラグインはまだ動作中です",
-    "plugin_test_success": "プラグインが正常に応答しました"
+    "plugin_test_success": "プラグインが正常に応答しました",
+    "about_developer": "開発者",
+    "about_github": "GitHub",
+    "about_github_sub": "@Alaa91H",
+    "about_email": "メール",
+    "about_email_sub": "alahus2591@gmail.com",
+    "about_telegram": "Telegram",
+    "about_telegram_sub": "@Alaa91h",
+    "about_support": "開発者をサポート",
+    "about_support_sub": "Ko-fiでコーヒーをごちそうしてください"
   },
   "-pt": {
     "root_permission": "Acesso root",
@@ -181,7 +244,16 @@
     "plugin_test_failed": "Falha do plugin",
     "plugin_test_timeout": "O plugin não respondeu a tempo",
     "plugin_test_pending": "O plugin ainda está trabalhando",
-    "plugin_test_success": "O plugin respondeu com sucesso"
+    "plugin_test_success": "O plugin respondeu com sucesso",
+    "about_developer": "Desenvolvedor",
+    "about_github": "GitHub",
+    "about_github_sub": "@Alaa91H",
+    "about_email": "E-mail",
+    "about_email_sub": "alahus2591@gmail.com",
+    "about_telegram": "Telegram",
+    "about_telegram_sub": "@Alaa91h",
+    "about_support": "Apoie o desenvolvedor",
+    "about_support_sub": "Pague-me um café no Ko-fi"
   },
   "-ru": {
     "root_permission": "Root-доступ",
@@ -204,7 +276,16 @@
     "plugin_test_failed": "Сбой плагина",
     "plugin_test_timeout": "Плагин не ответил вовремя",
     "plugin_test_pending": "Плагин ещё работает",
-    "plugin_test_success": "Плагин ответил успешно"
+    "plugin_test_success": "Плагин ответил успешно",
+    "about_developer": "Разработчик",
+    "about_github": "GitHub",
+    "about_github_sub": "@Alaa91H",
+    "about_email": "Эл. почта",
+    "about_email_sub": "alahus2591@gmail.com",
+    "about_telegram": "Telegram",
+    "about_telegram_sub": "@Alaa91h",
+    "about_support": "Поддержать разработчика",
+    "about_support_sub": "Угостите меня кофе на Ko-fi"
   },
   "-tr": {
     "root_permission": "Root erişimi",
@@ -227,7 +308,16 @@
     "plugin_test_failed": "Eklenti başarısız",
     "plugin_test_timeout": "Eklenti zamanında yanıt vermedi",
     "plugin_test_pending": "Eklenti hâlâ çalışıyor",
-    "plugin_test_success": "Eklenti başarıyla yanıt verdi"
+    "plugin_test_success": "Eklenti başarıyla yanıt verdi",
+    "about_developer": "Geliştirici",
+    "about_github": "GitHub",
+    "about_github_sub": "@Alaa91H",
+    "about_email": "E-posta",
+    "about_email_sub": "alahus2591@gmail.com",
+    "about_telegram": "Telegram",
+    "about_telegram_sub": "@Alaa91h",
+    "about_support": "Geliştiriciyi destekle",
+    "about_support_sub": "Ko-fi\\'de bana kahve ısmarla"
   },
   "-zh-rCN": {
     "root_permission": "Root 权限",
@@ -250,6 +340,15 @@
     "plugin_test_failed": "插件失败",
     "plugin_test_timeout": "插件未及时响应",
     "plugin_test_pending": "插件仍在运行",
-    "plugin_test_success": "插件响应正常"
+    "plugin_test_success": "插件响应正常",
+    "about_developer": "开发者",
+    "about_github": "GitHub",
+    "about_github_sub": "@Alaa91H",
+    "about_email": "邮箱",
+    "about_email_sub": "alahus2591@gmail.com",
+    "about_telegram": "Telegram",
+    "about_telegram_sub": "@Alaa91h",
+    "about_support": "支持开发者",
+    "about_support_sub": "在 Ko-fi 上请我喝咖啡"
   }
 }

@@ -415,4 +415,9 @@
     <string name="trigger_usb_connected">USB bağlı</string>
     <string name="trigger_vpn_connected">VPN bağlı</string>
     <string name="trigger_wifi_signal_strength">Wi-Fi sinyal gücü</string>
+    <string name="constraint_type_airplane">Uçak modu</string>
+    <string name="constraint_type_bluetooth">Bluetooth etkin</string>
+    <string name="constraint_type_charging">Şarj durumu</string>
+    <string name="constraint_type_dnd">Rahatsız Etmeyin</string>
+    <string name="constraint_type_location">Konum hizmetleri</string>
 </resources>

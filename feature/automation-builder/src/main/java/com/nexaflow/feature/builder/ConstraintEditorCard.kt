@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
+import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.domain.models.ConstraintType
 
 /**

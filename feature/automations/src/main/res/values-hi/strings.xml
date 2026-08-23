@@ -415,4 +415,9 @@
     <string name="trigger_usb_connected">USB कनेक्टेड</string>
     <string name="trigger_vpn_connected">VPN कनेक्टेड</string>
     <string name="trigger_wifi_signal_strength">वाई-फ़ाई सिग्नल शक्ति</string>
+    <string name="constraint_type_airplane">हवाई जहाज़ मोड</string>
+    <string name="constraint_type_bluetooth">ब्लूटूथ चालू</string>
+    <string name="constraint_type_charging">चार्जिंग स्थिति</string>
+    <string name="constraint_type_dnd">डू नॉट डिस्टर्ब</string>
+    <string name="constraint_type_location">लोकेशन सेवाएँ</string>
 </resources>

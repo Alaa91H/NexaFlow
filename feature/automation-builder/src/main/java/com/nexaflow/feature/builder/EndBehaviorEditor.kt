@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.EndBehavior
 import com.nexaflow.domain.models.EndBehaviorCatalog
@@ -290,7 +291,7 @@ private fun EndValueEditor(
 private fun EndBehaviorEditorPreview() {
     MaterialTheme {
         EndBehaviorEditor(
-            actionType = ActionType.SYSTEM_WIFI,
+            actionType = ActionType.SYSTEM_DND,
             behavior = EndBehavior(),
             onBehaviorChange = {}
         )

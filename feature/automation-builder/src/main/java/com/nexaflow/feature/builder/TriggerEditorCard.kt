@@ -109,6 +109,7 @@ import com.nexaflow.core.engine.currentCellularGeneration
 import com.nexaflow.core.rom.EvolutionXSettingsBridge
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.IconBadge
+import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -116,18 +117,6 @@ import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-
-/** Trigger types that use a simple ON/OFF state toggle with "trigger_state_label" title. */
-private val SIMPLE_ON_OFF_TRIGGERS = setOf(
-    TriggerType.USB_CONNECTED,
-    TriggerType.HDMI_CONNECTED,
-    TriggerType.ETHERNET_CONNECTED,
-    TriggerType.VPN_CONNECTED,
-    TriggerType.DND_STATE,
-    TriggerType.STAY_AWAKE_STATE,
-    TriggerType.AUTO_BRIGHTNESS_STATE,
-    TriggerType.DATA_ROAMING_STATE
-)
 
 /** Trigger types that use ON/OFF state but with custom labels. */
 private val ON_OFF_TRIGGER_LABELS = mapOf(
@@ -138,9 +127,6 @@ private val ON_OFF_TRIGGER_LABELS = mapOf(
     TriggerType.WIFI_STATE to R.string.trigger_wifi_state_hint,
     TriggerType.NFC_STATE to R.string.trigger_nfc_state_hint
 )
-
-/** All trigger types that use ON/OFF state toggle (for summary rendering). */
-private val ON_OFF_SUMMARY_TRIGGERS = SIMPLE_ON_OFF_TRIGGERS + ON_OFF_TRIGGER_LABELS.keys
 
 private const val LOCATION_RADIUS_MIN_M = 50
 private const val LOCATION_RADIUS_MAX_M = 2000
@@ -1016,7 +1002,12 @@ private fun triggerSummary(draft: TriggerDraft): String {
             }
             "$stream · $direction ${c["threshold"] ?: "50"}"
         }
-        in ON_OFF_SUMMARY_TRIGGERS ->
+        // Simple ON/OFF state triggers (custom labels + plain toggle).
+        TriggerType.POWER_SAVER, TriggerType.BLUETOOTH_STATE, TriggerType.AUTO_ROTATE,
+        TriggerType.DATA_SAVER_STATE, TriggerType.WIFI_STATE, TriggerType.NFC_STATE,
+        TriggerType.USB_CONNECTED, TriggerType.HDMI_CONNECTED, TriggerType.ETHERNET_CONNECTED,
+        TriggerType.VPN_CONNECTED, TriggerType.DND_STATE, TriggerType.STAY_AWAKE_STATE,
+        TriggerType.AUTO_BRIGHTNESS_STATE, TriggerType.DATA_ROAMING_STATE ->
             if ((c["state"] ?: "ON") == "ON") stringResource(R.string.state_on)
             else stringResource(R.string.state_off)
         TriggerType.BRIGHTNESS_LEVEL -> {
@@ -1171,9 +1162,9 @@ fun TriggerEditorCard(
             }
             if (expanded) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            // Category-grouped trigger type picker: only ONE category is open
-            // at a time, matching the initial picker's accordion pattern so the
-            // user can navigate the 50+ types without scrolling a flat list.
+            // Category-grouped trigger type picker: chips stay pinned on top
+            // and every category's options stay visible below (strict
+            // no-collapse), so the 50+ types never hide behind a tap.
             CategoryAccordion(
                 tabs = triggerCategories.map { category ->
                     stringResource(category.headerRes) to category.icon()
@@ -2669,7 +2660,9 @@ fun TriggerEditorCard(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-                in ON_OFF_TRIGGER_LABELS -> {
+                // State triggers with their own labels (power saver, Wi-Fi, NFC…).
+                TriggerType.POWER_SAVER, TriggerType.BLUETOOTH_STATE, TriggerType.AUTO_ROTATE,
+                TriggerType.DATA_SAVER_STATE, TriggerType.WIFI_STATE, TriggerType.NFC_STATE -> {
                     val labelRes = ON_OFF_TRIGGER_LABELS[draft.type] ?: R.string.trigger_state_label
                     Text(text = stringResource(labelRes), style = MaterialTheme.typography.titleSmall)
                     OptionChips(
@@ -2815,7 +2808,11 @@ fun TriggerEditorCard(
                         onSelect = { onConfigChange(draft.copy(config = draft.config + ("direction" to it))) }
                     )
                 }
-                in SIMPLE_ON_OFF_TRIGGERS -> {
+                // Simple ON/OFF state triggers (generic "State" title).
+                TriggerType.USB_CONNECTED, TriggerType.HDMI_CONNECTED,
+                TriggerType.ETHERNET_CONNECTED, TriggerType.VPN_CONNECTED,
+                TriggerType.DND_STATE, TriggerType.STAY_AWAKE_STATE,
+                TriggerType.AUTO_BRIGHTNESS_STATE, TriggerType.DATA_ROAMING_STATE -> {
                     Text(text = stringResource(R.string.trigger_state_label), style = MaterialTheme.typography.titleSmall)
                     OptionChips(
                         options = listOf("ON", "OFF"),

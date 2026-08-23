@@ -26,7 +26,7 @@ object ConstraintStateReader {
             batteryLevel = batteryLevel(app),
             screenLocked = isScreenLocked(app),
             headsetConnected = isHeadsetConnected(app),
-            bluetoothEnabled = isBluetoothEnabled(app),
+            bluetoothEnabled = isBluetoothEnabled(),
             dndActive = isDndActive(app),
             airplaneModeOn = isAirplaneModeOn(app),
             isCharging = isCharging(app),
@@ -74,7 +74,7 @@ object ConstraintStateReader {
     }.getOrDefault(false)
 
     /** True when Bluetooth is enabled. */
-    private fun isBluetoothEnabled(context: Context): Boolean = runCatching {
+    private fun isBluetoothEnabled(): Boolean = runCatching {
         val bm = android.bluetooth.BluetoothAdapter.getDefaultAdapter()
         bm?.isEnabled ?: false
     }.getOrDefault(false)

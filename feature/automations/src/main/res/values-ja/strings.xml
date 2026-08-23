@@ -415,4 +415,9 @@
     <string name="trigger_usb_connected">USB接続</string>
     <string name="trigger_vpn_connected">VPN接続</string>
     <string name="trigger_wifi_signal_strength">Wi-Fiの電波強度</string>
+    <string name="constraint_type_airplane">機内モード</string>
+    <string name="constraint_type_bluetooth">Bluetooth オン</string>
+    <string name="constraint_type_charging">充電状態</string>
+    <string name="constraint_type_dnd">おやすみモード</string>
+    <string name="constraint_type_location">位置情報サービス</string>
 </resources>
