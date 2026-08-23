@@ -68,8 +68,10 @@ object CellularNetworkReader {
 
     /** Returns the subscription id currently selected for mobile data, or null. */
     @SuppressLint("MissingPermission")
-    fun activeDataSubscriptionId(context: Context): Int? {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return null
+    fun activeDataSubscriptionId(): Int? {
+        // getActiveDataSubscriptionId() is API 30; older devices have no
+        // framework-level notion of the active data subscription.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return null
         val id = runCatching { SubscriptionManager.getActiveDataSubscriptionId() }
             .getOrDefault(SubscriptionManager.INVALID_SUBSCRIPTION_ID)
         return id.takeUnless { it == SubscriptionManager.INVALID_SUBSCRIPTION_ID }
@@ -84,7 +86,7 @@ object CellularNetworkReader {
     fun telephonyForDefaultDataSubscription(context: Context): TelephonyManager? {
         val base = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
             ?: return null
-        val subId = activeDataSubscriptionId(context) ?: return base
+        val subId = activeDataSubscriptionId() ?: return base
         return runCatching { base.createForSubscriptionId(subId) }.getOrDefault(base)
     }
 
@@ -117,6 +119,8 @@ object CellularNetworkReader {
 
     /** Maps the platform's display override and reported type to a generation. */
     fun generationOf(displayInfo: TelephonyDisplayInfo): String? {
+        // TelephonyDisplayInfo only exists on API 30+.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return null
         return when (displayInfo.overrideNetworkType) {
             TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_ADVANCED,
             TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_NSA,
@@ -129,11 +133,13 @@ object CellularNetworkReader {
     fun matchesNetworkMode(desired: String, actual: String?): Boolean =
         actual != null && (desired == AUTO || desired == actual)
 
-    private fun ServiceState.hasNrPacketRegistration(): Boolean =
-        networkRegistrationInfoList.orEmpty().any { info ->
+    private fun ServiceState.hasNrPacketRegistration(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return false
+        return networkRegistrationInfoList.orEmpty().any { info ->
             info.domain == NetworkRegistrationInfo.DOMAIN_PS &&
                 info.accessNetworkTechnology == ACCESS_NETWORK_TECHNOLOGY_NR
         }
+    }
 
     // NetworkRegistrationInfo.ACCESS_NETWORK_TECHNOLOGY_NR is 20 on API 30+.
     private const val ACCESS_NETWORK_TECHNOLOGY_NR = 20
