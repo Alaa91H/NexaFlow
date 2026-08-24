@@ -35,7 +35,7 @@ class CapabilityResolverAdapter(
     ): DomainCapabilityBackend? {
         val resolution = runtimeResolver.resolve(request, snapshot)
         val selected = resolution.selectedBackend ?: return null
-        return domainBackendAdapters.getOrPut(selected.id) { adaptBackend(selected, context) }
+        return domainBackendAdapters.getOrPut(selected.id) { adaptBackend(selected) }
     }
 
     override suspend fun resolveWithFallbacks(
@@ -49,7 +49,7 @@ class CapabilityResolverAdapter(
             .mapNotNull { avail -> registry.backendFor(avail.backend) }
             .map { runtimeBackend ->
                 domainBackendAdapters.getOrPut(runtimeBackend.id) {
-                    adaptBackend(runtimeBackend, context)
+                    adaptBackend(runtimeBackend)
                 }
             }
     }
@@ -67,8 +67,7 @@ class CapabilityResolverAdapter(
      * into the domain [CapabilityBackend] interface which includes Context.
      */
     private fun adaptBackend(
-        runtime: CapabilityBackend,
-        context: Context
+        runtime: CapabilityBackend
     ): DomainCapabilityBackend = object : DomainCapabilityBackend {
         override val backendId: CapabilityBackendId = runtime.id
 
