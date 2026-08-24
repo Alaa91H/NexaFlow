@@ -30,10 +30,8 @@ class ManifestValidatorTest {
     @Test
     fun `rejects tampered payload`() {
         val payload = "{\"nodes\": []}"
-        // Checksum calculated on original payload
         val checksum = WorkflowManifest.calculateChecksum(payload)
         
-        // Manifest created with tampered payload but original checksum
         val manifest = WorkflowManifest(
             id = "w1",
             name = "Test Workflow",
@@ -48,9 +46,11 @@ class ManifestValidatorTest {
         val validator = ManifestValidator()
         val result = validator.validate(manifest, currentAppVersion = 2)
         
-        assertTrue(result is ManifestValidator.ValidationResult.Invalid)
-        val invalid = result as ManifestValidator.ValidationResult.Invalid
-        assertTrue(invalid.reason.contains("tampered"))
+        if (result is ManifestValidator.ValidationResult.Invalid) {
+            assertTrue(result.reason.contains("tampered"))
+        } else {
+            fail("Expected Invalid result but got $result")
+        }
     }
 
     @Test
@@ -62,17 +62,19 @@ class ManifestValidatorTest {
             name = "Test Workflow",
             author = "Dev",
             version = 1,
-            minNexaFlowVersion = 10, // Requires version 10
+            minNexaFlowVersion = 10,
             payload = payload,
             requiredCapabilities = emptySet(),
             payloadChecksum = checksum
         )
         
         val validator = ManifestValidator()
-        val result = validator.validate(manifest, currentAppVersion = 5) // App is version 5
+        val result = validator.validate(manifest, currentAppVersion = 5)
         
-        assertTrue(result is ManifestValidator.ValidationResult.Invalid)
-        val invalid = result as ManifestValidator.ValidationResult.Invalid
-        assertTrue(invalid.reason.contains("too old"))
+        if (result is ManifestValidator.ValidationResult.Invalid) {
+            assertTrue(result.reason.contains("too old"))
+        } else {
+            fail("Expected Invalid result but got $result")
+        }
     }
 }
