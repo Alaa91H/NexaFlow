@@ -121,7 +121,17 @@ jobs:
         # Google Maps API key for the embedded map picker; baked into every
         # distributed APK so the map works for all users, not just local builds.
         NEXAFLOW_MAPS_API_KEY: ${{ secrets.NEXAFLOW_MAPS_API_KEY }}
-      run: ./gradlew assembleRelease
+      run: ./gradlew assembleDebug assembleRelease
+    - name: Verify release APK signing certificate
+      if: ${{ env.KEYSTORE_B64 != '' }}
+      run: |
+        APKSIGNER="$(ls "$ANDROID_SDK_ROOT"/build-tools/*/apksigner | sort -V | tail -1)"
+        echo "=== Release APK signing certificate ==="
+        "$APKSIGNER" verify --print-certs app/build/outputs/apk/release/app-release.apk \
+          | grep -E "Signer|CN=|SHA-256" || true
+        echo ""
+        echo "Compare the SHA-256 above with the expected certificate."
+        echo "If they differ, the CI secrets contain a different keystore than local builds."
     - name: Verify packaged phone-state permission manifest
       run: python3 scripts/check_apk_phone_permission.py app/build/outputs/apk/release/app-release.apk
     - name: Verify dependency verification metadata is up to date
