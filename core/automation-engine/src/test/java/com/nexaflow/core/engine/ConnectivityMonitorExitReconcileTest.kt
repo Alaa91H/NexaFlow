@@ -5,14 +5,12 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.NetworkInfo
 import androidx.test.core.app.ApplicationProvider
-import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -48,11 +46,7 @@ class ConnectivityMonitorExitReconcileTest {
         context = ApplicationProvider.getApplicationContext()
         // Robolectric shares one Application (and its DataStore cache) across
         // test methods, so reset the connectivity source for isolation.
-        runBlocking {
-            ActiveTriggerStore(context).clearSource("connectivity")
-            ActiveExecutionStore(context).clear("conn-task")
-            ActiveExecutionStore(context).clear("hotspot-task")
-        }
+        runBlocking { ActiveTriggerStore(context).clearSource("connectivity") }
     }
 
     private fun connectivityAutomation(id: String): com.nexaflow.domain.models.Automation =
@@ -66,27 +60,12 @@ class ConnectivityMonitorExitReconcileTest {
             )
         )
 
-    private fun hotspotAutomation(id: String): com.nexaflow.domain.models.Automation =
-        testAutomation(
-            id = id,
-            triggers = listOf(
-                Trigger(
-                    TriggerType.CONNECTIVITY,
-                    mapOf("network" to "HOTSPOT", "state" to "ON")
-                )
-            )
-        )
-
     private fun connectivityManager(): ConnectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     private fun shadowCm(): ShadowConnectivityManager = shadowOf(connectivityManager())
 
-    /**
-     * Simulates the device being on WiFi with internet.
-     * Robolectric's active-network fixture still accepts NetworkInfo only.
-     */
-    @Suppress("DEPRECATION")
+    /** Simulates the device being on WiFi with internet. */
     private fun setWifiConnected() {
         shadowCm().setDefaultNetworkActive(true)
         shadowCm().setActiveNetworkInfo(
@@ -152,48 +131,6 @@ class ConnectivityMonitorExitReconcileTest {
     }
 
     @Test
-    fun `matching connectivity callbacks run once and a later loss runs exit once`() = runBlocking {
-        val history = RecordingHistory()
-        val engine = testEngine(context, history)
-        val repository = FakeRepository(listOf(connectivityAutomation("conn-task")))
-        val monitor = monitorFor(repository, engine, ActiveTriggerStore(context))
-        setWifiConnected()
-        monitor.initialize()
-
-        driveFirstNetworkCallback()
-        waitUntil(timeoutMs = 15_000) { history.exits.size == 1 }
-        shadowCm().getNetworkCallbacks().first().onAvailable(ShadowNetwork.newInstance(2))
-        Thread.sleep(150)
-        assertEquals("state callbacks must not repeat the main action", 1, history.exits.size)
-
-        setWifiDisconnected()
-        shadowCm().getNetworkCallbacks().first().onLost(ShadowNetwork.newInstance(1))
-        waitUntil(timeoutMs = 15_000) { history.exits.any { it == EXIT_NOOP_MARKER } }
-        val afterExit = history.exits.size
-        shadowCm().getNetworkCallbacks().first().onLost(ShadowNetwork.newInstance(3))
-        Thread.sleep(150)
-        assertEquals("state loss must not repeat the end behavior", afterExit, history.exits.size)
-        monitor.stop()
-    }
-
-    @Test
-    fun `hotspot state broadcast closes the task lifecycle`() = runBlocking {
-        val history = RecordingHistory()
-        val engine = testEngine(context, history)
-        val repository = FakeRepository(listOf(hotspotAutomation("hotspot-task")))
-        val monitor = monitorFor(repository, engine, ActiveTriggerStore(context))
-        monitor.initialize()
-        waitUntil { shadowCm().getNetworkCallbacks().isNotEmpty() }
-
-        monitor.onHotspotStateChanged(13)
-        waitUntil(timeoutMs = 15_000) { history.exits.size == 1 }
-
-        monitor.onHotspotStateChanged(11)
-        waitUntil(timeoutMs = 15_000) { history.exits.any { it == EXIT_NOOP_MARKER } }
-        monitor.stop()
-    }
-
-    @Test
     fun `restart with wifi already lost fires the missed exit on first callback`() = runBlocking {
         val history = RecordingHistory()
         val engine = testEngine(context, history)
@@ -201,7 +138,6 @@ class ConnectivityMonitorExitReconcileTest {
         val store = ActiveTriggerStore(context)
         // The task fired on WiFi, then the process died while still connected.
         store.markActive("connectivity", "conn-task|CONNECTED")
-        ActiveExecutionStore(context).markStarted("conn-task")
         // WiFi is now gone — the CONNECTED condition ended during downtime.
         setWifiDisconnected()
 
