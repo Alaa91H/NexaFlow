@@ -5,6 +5,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.NetworkInfo
 import androidx.test.core.app.ApplicationProvider
+import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
@@ -46,7 +47,10 @@ class ConnectivityMonitorExitReconcileTest {
         context = ApplicationProvider.getApplicationContext()
         // Robolectric shares one Application (and its DataStore cache) across
         // test methods, so reset the connectivity source for isolation.
-        runBlocking { ActiveTriggerStore(context).clearSource("connectivity") }
+        runBlocking {
+            ActiveTriggerStore(context).clearSource("connectivity")
+            ActiveExecutionStore(context).clear("conn-task")
+        }
     }
 
     private fun connectivityAutomation(id: String): com.nexaflow.domain.models.Automation =
@@ -138,6 +142,7 @@ class ConnectivityMonitorExitReconcileTest {
         val store = ActiveTriggerStore(context)
         // The task fired on WiFi, then the process died while still connected.
         store.markActive("connectivity", "conn-task|CONNECTED")
+        ActiveExecutionStore(context).markStarted("conn-task")
         // WiFi is now gone — the CONNECTED condition ended during downtime.
         setWifiDisconnected()
 
@@ -157,6 +162,7 @@ class ConnectivityMonitorExitReconcileTest {
         val repository = FakeRepository(listOf(connectivityAutomation("conn-task")))
         val store = ActiveTriggerStore(context)
         store.markActive("connectivity", "conn-task|CONNECTED")
+        ActiveExecutionStore(context).markStarted("conn-task")
         // WiFi is still up — the condition still holds after the restart.
         setWifiConnected()
 

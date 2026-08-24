@@ -48,7 +48,7 @@ object TriggerStateEvaluator {
      * "run now" tap never performs a phone-state read on the main thread.
      */
     suspend fun isSatisfiedAsync(context: Context, triggers: List<Trigger>): Boolean =
-        triggers.isEmpty() || triggers.any { trigger ->
+        triggers.isEmpty() || triggers.all { trigger ->
             withContext(Dispatchers.IO) { triggerSatisfied(context, trigger) }
         }
 
