@@ -106,7 +106,6 @@ class CommandCompatibilityEngine(
         if (!versionOk(spec, profile.sdk)) return ExecutionStrategy.UNSUPPORTED
         if (!romOk(spec, profile.romFamily)) return ExecutionStrategy.UNSUPPORTED
         if (!integrationOk(spec, profile)) return ExecutionStrategy.UNSUPPORTED
-        if (!capabilitiesOk(spec, profile)) return ExecutionStrategy.UNSUPPORTED
         if (!permissionsOk(spec, profile)) return ExecutionStrategy.UNSUPPORTED
 
         // An elevated-only command that has an elevated shell is ELEVATED.
