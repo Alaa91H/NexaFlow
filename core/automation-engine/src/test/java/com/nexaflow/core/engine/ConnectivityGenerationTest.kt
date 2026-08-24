@@ -1,14 +1,17 @@
 package com.nexaflow.core.engine
 
 import android.telephony.TelephonyManager
+import com.nexaflow.core.common.CellularNetworkReader
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
  * Verifies the cellular generation mapping behind the NETWORK_MODE trigger.
  * The matcher must answer the same vocabulary the trigger config uses
  * (2G/3G/4G/5G), with 5G reported only for a genuine NR network type and
- * unknown types falling back to AUTO so an AUTO trigger matches.
+ * unknown types staying unknown so an AUTO trigger cannot fire on a failed read.
  */
 class ConnectivityGenerationTest {
 
@@ -48,8 +51,16 @@ class ConnectivityGenerationTest {
     }
 
     @Test
-    fun `unknown types map to AUTO so an AUTO trigger matches`() {
-        assertEquals("AUTO", cellularGenerationOf(TelephonyManager.NETWORK_TYPE_UNKNOWN))
-        assertEquals("AUTO", cellularGenerationOf(Int.MIN_VALUE))
+    fun `unknown types stay unknown`() {
+        assertEquals(null, cellularGenerationOf(TelephonyManager.NETWORK_TYPE_UNKNOWN))
+        assertEquals(null, cellularGenerationOf(Int.MIN_VALUE))
+    }
+
+    @Test
+    fun `AUTO matches known generations but not an unknown read`() {
+        assertTrue(CellularNetworkReader.matchesNetworkMode("AUTO", "5G"))
+        assertTrue(CellularNetworkReader.matchesNetworkMode("AUTO", "2G"))
+        assertFalse(CellularNetworkReader.matchesNetworkMode("AUTO", null))
+        assertFalse(CellularNetworkReader.matchesNetworkMode("5G", null))
     }
 }

@@ -17,7 +17,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.SelectChip
-import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.EndBehavior
 import com.nexaflow.domain.models.EndBehaviorCatalog

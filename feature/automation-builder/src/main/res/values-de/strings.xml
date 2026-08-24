@@ -504,6 +504,7 @@
     <string name="network_mode_current_hint">Live-Ablesung der tatsächlichen Mobilfunkgeneration (echte 5G-Erkennung)</string>
     <string name="network_mode_fire_when">Auslösen bei</string>
     <string name="network_mode_unknown">Unbekannt</string>
+    <string name="network_mode_permission_hint">Die Telefonberechtigung verbessert die Live-Generations- und 5G-Erkennung</string>
     <string name="charging_any">Beliebig</string>
     <string name="network_mode_4g">4G</string>
     <string name="choose_ringtone">Klingelton auswählen</string>

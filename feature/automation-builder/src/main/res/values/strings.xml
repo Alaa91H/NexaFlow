@@ -395,6 +395,7 @@
     <string name="network_mode_current_hint">"Live read of the device\'s actual cellular generation (real 5G detection)"</string>
     <string name="network_mode_fire_when">Fire when</string>
     <string name="network_mode_unknown">Unknown</string>
+    <string name="network_mode_permission_hint">Phone permission improves live generation and 5G detection</string>
     <string name="state_connected">Connected</string>
     <string name="state_disconnected">Disconnected</string>
     <string name="state_on">On</string>

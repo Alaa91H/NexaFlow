@@ -75,8 +75,9 @@ object PermissionCatalog {
         else -> null
     }
 
-    /** Runtime permissions required by a trigger. */
+    /** Runtime permissions required by a trigger type. */
     fun runtimePermissionsFor(triggerType: TriggerType): List<String> = when (triggerType) {
+        TriggerType.NETWORK_MODE -> listOf(android.Manifest.permission.READ_PHONE_STATE)
         TriggerType.SMS -> listOf(android.Manifest.permission.RECEIVE_SMS)
         TriggerType.LOCATION -> listOf(
             android.Manifest.permission.ACCESS_FINE_LOCATION,
@@ -87,6 +88,14 @@ object PermissionCatalog {
         TriggerType.BLUETOOTH_DEVICE -> listOf(android.Manifest.permission.BLUETOOTH_CONNECT)
         TriggerType.SENSOR -> listOf(android.Manifest.permission.ACTIVITY_RECOGNITION)
         else -> emptyList()
+    }
+
+    /** Runtime permissions required by a trigger, including config-specific reads. */
+    fun runtimePermissionsFor(trigger: Trigger): List<String> = when {
+        trigger.type == TriggerType.CONNECTIVITY &&
+            trigger.config["network"] == "NETWORK_MODE" ->
+            listOf(android.Manifest.permission.READ_PHONE_STATE)
+        else -> runtimePermissionsFor(trigger.type)
     }
 
     /** Special permission required by a trigger, if any. */
@@ -114,7 +123,7 @@ object PermissionCatalog {
     ): List<PermissionRequirement> {
         val result = mutableListOf<PermissionRequirement>()
         triggers.forEach { trigger ->
-            val runtime = runtimePermissionsFor(trigger.type)
+            val runtime = runtimePermissionsFor(trigger)
             val special = specialPermissionFor(trigger.type)
             if (runtime.isNotEmpty() || special != null) {
                 result += PermissionRequirement(

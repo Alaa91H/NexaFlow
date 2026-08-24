@@ -504,6 +504,7 @@
     <string name="network_mode_current_hint">Lectura en vivo de la generación celular real (detección 5G real)</string>
     <string name="network_mode_fire_when">Disparar cuando</string>
     <string name="network_mode_unknown">Desconocido</string>
+    <string name="network_mode_permission_hint">El permiso telefónico mejora la generación en vivo y la detección de 5G</string>
     <string name="charging_any">Cualquiera</string>
     <string name="network_mode_4g">4G</string>
     <string name="choose_ringtone">Elegir tono</string>

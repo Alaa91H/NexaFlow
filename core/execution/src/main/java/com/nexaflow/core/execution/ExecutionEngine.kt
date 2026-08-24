@@ -353,7 +353,7 @@ class ExecutionEngine(
         // EVERY constraint is currently and verifiably satisfied do the task's
         // main actions run. Any false or unreadable condition follows the
         // configured "when the task ends" behavior instead.
-        val triggersOk = TriggerStateEvaluator.isSatisfied(context, automation.triggers)
+        val triggersOk = TriggerStateEvaluator.isSatisfiedAsync(context, automation.triggers)
         val constraintResult = if (automation.constraints.isEmpty()) {
             ConditionResult.Satisfied
         } else {

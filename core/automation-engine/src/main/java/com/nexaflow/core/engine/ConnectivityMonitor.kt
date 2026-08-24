@@ -1,29 +1,31 @@
 package com.nexaflow.core.engine
 
-import android.content.BroadcastReceiver
+import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.Network
-import android.net.wifi.WifiManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import android.provider.Settings
-import android.telephony.NetworkRegistrationInfo
+import android.telephony.PhoneStateListener
+import android.telephony.ServiceState
+import android.telephony.TelephonyCallback
+import android.telephony.TelephonyDisplayInfo
 import android.telephony.TelephonyManager
+import com.nexaflow.core.common.CellularNetworkReader
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
+import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
-import androidx.core.content.ContextCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,36 +41,27 @@ class ConnectivityMonitor @Inject constructor(
     @Volatile
     private var initialized = false
 
-    /** Serializes state transitions so duplicate network callbacks cannot re-run one task. */
-    private val transitionMutex = Mutex()
+    private val lastRunAt = ConcurrentHashMap<String, Long>()
     /** Automations currently in their triggered state, mapped to the active state string. */
-    private val activeStates = mutableMapOf<String, String>()
+    private val activeStates = ConcurrentHashMap<String, String>()
     private var callback: ConnectivityManager.NetworkCallback? = null
-    /** Last definitive tethering state reported by the Wi‑Fi AP state broadcast. */
-    @Volatile private var hotspotEnabledHint: Boolean? = null
-    private val hotspotStateReceiver = object : BroadcastReceiver() {
-        override fun onReceive(receiverContext: Context, intent: Intent) {
-            if (intent.action == HOTSPOT_STATE_CHANGED_ACTION) {
-                onHotspotStateChanged(intent.getIntExtra(HOTSPOT_STATE_EXTRA, HOTSPOT_STATE_UNAVAILABLE))
-            }
-        }
-    }
 
-    /** Receives the AP state carried by the system tethering broadcast. */
-    internal fun onHotspotStateChanged(state: Int) {
-        hotspotEnabledHint = when (state) {
-            HOTSPOT_STATE_ENABLED -> true
-            HOTSPOT_STATE_DISABLED,
-            HOTSPOT_STATE_DISABLING,
-            HOTSPOT_STATE_FAILED -> false
-            else -> null
-        }
-        handleChange()
-    }
+    // Telephony callbacks are delivered off the main thread. Their callbacks
+    // only schedule a full condition read on the application scope.
+    private var telephonyExecutor: ExecutorService = newTelephonyExecutor()
+    private var telephonyManager: TelephonyManager? = null
+    private var telephonyCallback: TelephonyCallback? = null
+    private var legacyTelephonyListener: PhoneStateListener? = null
+
+    @Volatile
+    private var latestDisplayInfo: TelephonyDisplayInfo? = null
 
     fun initialize() {
         if (initialized) return
         initialized = true
+        if (telephonyExecutor.isShutdown) {
+            telephonyExecutor = newTelephonyExecutor()
+        }
         scope.launch {
             // Re-arm the in-memory active set from the durable ledger BEFORE
             // the network callback is registered: registering delivers the
@@ -77,7 +70,13 @@ class ConnectivityMonitor @Inject constructor(
             // while the process was down fires its exit behavior right away.
             rearmFromLedger()
             if (!initialized) return@launch
-            val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+            val connectivityManager =
+                context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            if (connectivityManager == null) {
+                initialized = false
+                return@launch
+            }
             val networkCallback = object : ConnectivityManager.NetworkCallback() {
                 override fun onAvailable(network: Network) {
                     handleChange()
@@ -86,15 +85,19 @@ class ConnectivityMonitor @Inject constructor(
                 override fun onLost(network: Network) {
                     handleChange()
                 }
+
+                override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
+                    // A 4G/5G transition can be reported as a capability change
+                    // while the default mobile network remains available.
+                    handleChange()
+                }
             }
             callback = networkCallback
-            connectivityManager.registerDefaultNetworkCallback(networkCallback)
-            ContextCompat.registerReceiver(
-                context,
-                hotspotStateReceiver,
-                IntentFilter(HOTSPOT_STATE_CHANGED_ACTION),
-                ContextCompat.RECEIVER_NOT_EXPORTED
-            )
+            runCatching {
+                connectivityManager.registerDefaultNetworkCallback(networkCallback)
+            }
+            registerTelephonyCallbacks()
+            handleChange()
         }
     }
 
@@ -122,86 +125,177 @@ class ConnectivityMonitor @Inject constructor(
 
     private companion object {
         const val SOURCE = "connectivity"
-        // Public broadcast action delivered when local Wi‑Fi tethering changes.
-        // Kept as a literal because SDK stubs do not expose the hidden constant.
-        const val HOTSPOT_STATE_CHANGED_ACTION = "android.net.wifi.WIFI_AP_STATE_CHANGED"
-        const val HOTSPOT_STATE_EXTRA = "wifi_state"
-        const val HOTSPOT_STATE_UNAVAILABLE = -1
-        const val HOTSPOT_STATE_DISABLED = 11
-        const val HOTSPOT_STATE_DISABLING = 10
-        const val HOTSPOT_STATE_ENABLED = 13
-        const val HOTSPOT_STATE_FAILED = 14
     }
 
     fun stop() {
         if (!initialized) return
         initialized = false
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
         callback?.let { c ->
-            try {
-                connectivityManager.unregisterNetworkCallback(c)
-            } catch (_: Throwable) {
-                // ignore
-            }
+            runCatching { connectivityManager?.unregisterNetworkCallback(c) }
         }
         callback = null
-        runCatching { context.unregisterReceiver(hotspotStateReceiver) }
+        unregisterTelephonyCallbacks()
+        activeStates.clear()
+        lastRunAt.clear()
+        telephonyExecutor.shutdownNow()
+    }
+
+    private fun newTelephonyExecutor(): ExecutorService =
+        Executors.newSingleThreadExecutor { runnable ->
+            Thread(runnable, "NexaFlow-telephony").apply { isDaemon = true }
+        }
+
+    /**
+     * Uses TelephonyCallback on Android 12+ and the public PhoneStateListener
+     * callbacks on older releases. Registration failures are expected on
+     * devices without phone permission or telephony hardware and are ignored;
+     * the synchronous reader still degrades to null.
+     */
+    @SuppressLint("MissingPermission")
+    @Suppress("DEPRECATION")
+    private fun registerTelephonyCallbacks() {
+        if (!initialized) return
+        unregisterTelephonyCallbacks()
+        val manager = CellularNetworkReader.telephonyForDefaultDataSubscription(context)
+            ?: return
+        telephonyManager = manager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val callback = object : TelephonyCallback(),
+                TelephonyCallback.DisplayInfoListener,
+                TelephonyCallback.ServiceStateListener,
+                TelephonyCallback.ActiveDataSubscriptionIdListener {
+                override fun onDisplayInfoChanged(telephonyDisplayInfo: TelephonyDisplayInfo) {
+                    latestDisplayInfo = telephonyDisplayInfo
+                    handleChange()
+                }
+
+                override fun onServiceStateChanged(serviceState: ServiceState) {
+                    handleChange()
+                }
+
+                override fun onActiveDataSubscriptionIdChanged(subId: Int) {
+                    latestDisplayInfo = null
+                    registerTelephonyCallbacks()
+                    handleChange()
+                }
+            }
+            if (runCatching {
+                    manager.registerTelephonyCallback(telephonyExecutor, callback)
+                }.isSuccess
+            ) {
+                telephonyCallback = callback
+                return
+            }
+        }
+
+        val listener = object : PhoneStateListener() {
+            override fun onServiceStateChanged(serviceState: ServiceState) {
+                handleChange()
+            }
+
+            override fun onDataConnectionStateChanged(state: Int, networkType: Int) {
+                handleChange()
+            }
+
+            override fun onActiveDataSubscriptionIdChanged(subId: Int) {
+                latestDisplayInfo = null
+                registerTelephonyCallbacks()
+                handleChange()
+            }
+        }
+        var listenFlags = PhoneStateListener.LISTEN_SERVICE_STATE or
+            PhoneStateListener.LISTEN_DATA_CONNECTION_STATE
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            listenFlags = listenFlags or PhoneStateListener.LISTEN_ACTIVE_DATA_SUBSCRIPTION_ID_CHANGE
+        }
+        if (runCatching { manager.listen(listener, listenFlags) }.isSuccess) {
+            legacyTelephonyListener = listener
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    @Suppress("DEPRECATION")
+    private fun unregisterTelephonyCallbacks() {
+        val manager = telephonyManager
+        if (manager != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                telephonyCallback?.let { callback ->
+                    runCatching { manager.unregisterTelephonyCallback(callback) }
+                }
+            }
+            legacyTelephonyListener?.let { listener ->
+                runCatching { manager.listen(listener, PhoneStateListener.LISTEN_NONE) }
+            }
+        }
+        telephonyCallback = null
+        legacyTelephonyListener = null
+        telephonyManager = null
+        latestDisplayInfo = null
     }
 
     private fun handleChange() {
+        if (!initialized) return
         scope.launch {
-            transitionMutex.withLock {
-                // Every condition is re-read from live state (capabilities,
-                // tether setting, cellular generation) on each callback, so
-                // stale callbacks self-correct. A state task runs exactly once
-                // when it enters the requested state, not on every callback.
-                val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-                val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-                val automations = repository.getAutomations().first()
-                automations
-                    .filter { automation ->
-                        automation.enabled && automation.triggers.any {
-                            it.type == TriggerType.CONNECTIVITY || it.type == TriggerType.NETWORK_MODE
-                        }
+            if (!initialized) return@launch
+            // Every network condition is re-read from live state (capabilities,
+            // tether setting, cellular generation) on each callback, so stale
+            // callbacks self-correct.
+            val connectivityManager =
+                context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            val capabilities = connectivityManager?.getNetworkCapabilities(connectivityManager.activeNetwork)
+            val automations = repository.getAutomations().first()
+            val now = System.currentTimeMillis()
+            automations
+                .filter { automation ->
+                    automation.enabled && automation.triggers.any {
+                        it.type == TriggerType.CONNECTIVITY || it.type == TriggerType.NETWORK_MODE
                     }
-                    .forEach { automation ->
-                        // A task may use either the combined CONNECTIVITY trigger or the
-                        // standalone NETWORK_MODE trigger (cellular generation).
-                        val trigger = automation.triggers.firstOrNull {
-                            it.type == TriggerType.CONNECTIVITY || it.type == TriggerType.NETWORK_MODE
-                        } ?: return@forEach
-                        val network = trigger.config["network"]
-                            ?: if (trigger.type == TriggerType.NETWORK_MODE) "NETWORK_MODE" else "WIFI"
-                        val desiredState = trigger.config["state"] ?: "CONNECTED"
-                        val current = currentNetworkValue(network, capabilities)
-                        // NETWORK_MODE with AUTO matches any active cellular
-                        // generation; every other combination is an exact match.
-                        val matched = if (network == "NETWORK_MODE" && desiredState == "AUTO") {
-                            current != null
-                        } else {
-                            current == desiredState
-                        }
-                        if (matched && activeStates[automation.id] != desiredState) {
+                }
+                .forEach { automation ->
+                    // A task may use either the combined CONNECTIVITY trigger or the
+                    // standalone NETWORK_MODE trigger (cellular generation).
+                    val trigger = automation.triggers.firstOrNull {
+                        it.type == TriggerType.CONNECTIVITY || it.type == TriggerType.NETWORK_MODE
+                    } ?: return@forEach
+                    val network = trigger.config["network"]
+                        ?: if (trigger.type == TriggerType.NETWORK_MODE) "NETWORK_MODE" else "WIFI"
+                    val desiredState = trigger.config["state"] ?: "CONNECTED"
+                    val current = currentNetworkValue(network, capabilities)
+                    val matched = if (network == "NETWORK_MODE") {
+                        CellularNetworkReader.matchesNetworkMode(desiredState, current)
+                    } else {
+                        current == desiredState
+                    }
+                    if (matched) {
+                        val last = lastRunAt[automation.id] ?: 0L
+                        if (now - last > automation.cooldownMillis) {
+                            lastRunAt[automation.id] = now
                             activeStates[automation.id] = desiredState
-                            activeStore.markActive(SOURCE, "$automation.id|$desiredState")
+                            activeStore.markActive(SOURCE, "${automation.id}|$desiredState")
                             executionEngine.runAutomation(automation)
-                        } else if (!matched && activeStates[automation.id] == desiredState) {
-                            // The condition ended (state flipped or network lost): fire exit once.
-                            activeStates.remove(automation.id)
-                            activeStore.clearAutomation(SOURCE, automation.id)
-                            executionEngine.runExit(automation)
                         }
+                    } else if (current != null && activeStates[automation.id] == desiredState) {
+                        // A known non-matching value ends the condition. An
+                        // unreadable cellular generation is deliberately not an
+                        // exit event, otherwise a transient permission/OEM read
+                        // failure could run exit actions incorrectly.
+                        activeStates.remove(automation.id)
+                        activeStore.clearAutomation(SOURCE, automation.id)
+                        executionEngine.runExit(automation)
                     }
-            }
+                }
         }
     }
 
     /**
      * The current value of the monitored connectivity condition, in the same
      * vocabulary the trigger config uses: CONNECTED/DISCONNECTED for WIFI and
-     * MOBILE, ON/OFF for the hotspot, and the cellular generation (2G/3G/4G/5G,
-     * or AUTO when the generation cannot be read) for NETWORK_MODE. Null means
-     * the condition is not applicable right now (e.g. no cellular for modes).
+     * MOBILE, ON/OFF for the hotspot, and the cellular generation (2G/3G/4G/5G)
+     * for NETWORK_MODE. Null means the condition is not applicable or could not
+     * be read; it never becomes AUTO implicitly.
      */
     private fun currentNetworkValue(
         network: String,
@@ -215,80 +309,31 @@ class ConnectivityMonitor @Inject constructor(
             capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true -> "CONNECTED"
             else -> "DISCONNECTED"
         }
-        "HOTSPOT" -> (
-            hotspotEnabledHint ?: runCatching {
-                Settings.Global.getInt(context.contentResolver, "tether_on", 0) == 1
-            }.getOrDefault(false)
-        ).let { if (it) "ON" else "OFF" }
+        "HOTSPOT" -> runCatching {
+            Settings.Global.getInt(context.contentResolver, "tether_on", 0) == 1
+        }.getOrDefault(false).let { if (it) "ON" else "OFF" }
         "NETWORK_MODE" -> {
-            if (capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) != true) return null
-            currentCellularGeneration(context) ?: "AUTO"
+            // The cellular registration can remain active while Wi-Fi is the
+            // default route; do not gate the telephony read on the currently
+            // active transport or a 4G/5G transition will be missed.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                CellularNetworkReader.read(context, latestDisplayInfo)
+            } else {
+                CellularNetworkReader.read(context)
+            }
         }
         else -> null
     }
 }
 
 /**
- * The generation the device is genuinely on. The ServiceState packet-switched
- * registration is checked first — on 5G NSA (LTE-anchored) networks the legacy
- * [TelephonyManager.getNetworkType] still reports LTE even though data runs on
- * NR, and the PS/NR registration is the only signal that reflects real 5G on
- * modern devices. Falls back to [TelephonyManager.getNetworkType] (per the
- * requested source; more representative on dual-SIM and hybrid-voice setups)
- * for everything else. Returns null when telephony is unavailable.
+ * Compatibility entry point for callers that only need a one-shot read. The
+ * actual implementation lives in core:common so the monitor, manual gate and
+ * editor share exactly the same semantics.
  */
-// Every privileged read below is wrapped in runCatching and degrades to the
-// legacy network type (or null) when the READ_PHONE_STATE/READ_BASIC_PHONE_STATE
-// grant is missing — lint cannot prove that, so the calls are suppressed here.
-@Suppress("MissingPermission")
-fun currentCellularGeneration(context: Context): String? {
-    val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
-        ?: return null
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        // Requires READ_PHONE_STATE on API 31+; degrade gracefully when the
-        // permission is missing and rely on the network type instead.
-        // (getNetworkRegistrationInfoList and the access-technology getters
-        // require API 30, hence the R guard.)
-        val serviceState = runCatching { telephony.serviceState }.getOrNull()
-        val onReal5g = serviceState?.networkRegistrationInfoList.orEmpty().any { info ->
-            info.domain == NetworkRegistrationInfo.DOMAIN_PS &&
-                info.accessNetworkTechnology == ACCESS_NETWORK_TECHNOLOGY_NR
-        }
-        if (onReal5g) return "5G"
-    }
-    @Suppress("DEPRECATION")
-    return cellularGenerationOf(telephony.networkType)
-}
+fun currentCellularGeneration(context: Context): String? =
+    CellularNetworkReader.read(context)
 
-/** NetworkRegistrationInfo.ACCESS_NETWORK_TECHNOLOGY_NR (AOSP-stable value). */
-internal const val ACCESS_NETWORK_TECHNOLOGY_NR = 20
-
-/**
- * Maps a TelephonyManager network type to its generation (2G/3G/4G/5G).
- *
- * The deprecated constants below are the only public identifiers for legacy
- * radio technologies and are retained solely to classify old devices.
- */
-@Suppress("DEPRECATION")
-internal fun cellularGenerationOf(networkType: Int): String? = when (networkType) {
-    TelephonyManager.NETWORK_TYPE_GPRS,
-    TelephonyManager.NETWORK_TYPE_EDGE,
-    TelephonyManager.NETWORK_TYPE_CDMA,
-    TelephonyManager.NETWORK_TYPE_1xRTT,
-    TelephonyManager.NETWORK_TYPE_IDEN -> "2G"
-    TelephonyManager.NETWORK_TYPE_UMTS,
-    TelephonyManager.NETWORK_TYPE_EVDO_0,
-    TelephonyManager.NETWORK_TYPE_EVDO_A,
-    TelephonyManager.NETWORK_TYPE_HSDPA,
-    TelephonyManager.NETWORK_TYPE_HSUPA,
-    TelephonyManager.NETWORK_TYPE_HSPA,
-    TelephonyManager.NETWORK_TYPE_EVDO_B,
-    TelephonyManager.NETWORK_TYPE_EHRPD,
-    TelephonyManager.NETWORK_TYPE_HSPAP,
-    TelephonyManager.NETWORK_TYPE_TD_SCDMA -> "3G"
-    TelephonyManager.NETWORK_TYPE_LTE,
-    TelephonyManager.NETWORK_TYPE_IWLAN -> "4G"
-    TelephonyManager.NETWORK_TYPE_NR -> "5G"
-    // Unknown / not available: report AUTO so an AUTO trigger matches.
-    else -> "AUTO"
-}
+/** Maps a TelephonyManager network type to the trigger vocabulary. */
+internal fun cellularGenerationOf(networkType: Int): String? =
+    CellularNetworkReader.generationOf(networkType)

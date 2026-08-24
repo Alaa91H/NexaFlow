@@ -18,7 +18,10 @@ import org.gradle.api.Project
 data class GitVersionInfo(val versionName: String, val versionCode: Int)
 
 fun Project.gitVersion(): GitVersionInfo {
-    val tag = runGit("describe", "--tags", "--always")
+    // Freebuff snapshot tags are workspace metadata, not release versions.
+    // Restrict the lookup to semantic v* tags so local and CI builds produce
+    // the same version when the worktree contains both kinds of tags.
+    val tag = runGit("describe", "--tags", "--always", "--match", "v[0-9]*")
         .ifBlank { return GitVersionInfo("0.0.1-unknown", 1) }
 
     // 1) Distance commit: v3.26.0-alpha-6-g150fcaa  (most specific — check first)
