@@ -1,24 +1,26 @@
 package com.nexaflow.core.security
 
+import com.nexaflow.domain.variables.SecretStore
+
 /**
  * Minimal opaque-secret facade over encrypted [SecureStorage]. The public API
  * accepts a reference key and never provides enumeration, export or logging of
  * stored values. Callers must avoid retaining a resolved value past an action.
  */
-class SecretVault(private val secureStorage: SecureStorage) {
+class SecretVault(private val secureStorage: SecureStorage) : SecretStore {
 
-    suspend fun store(referenceKey: String, value: String) {
+    override suspend fun store(referenceKey: String, value: String) {
         validateReference(referenceKey)
         require(value.length <= MAX_SECRET_LENGTH) { "Secret exceeds maximum allowed length" }
         secureStorage.put(storageKey(referenceKey), value)
     }
 
-    suspend fun resolve(referenceKey: String): String? {
+    override suspend fun resolve(referenceKey: String): String? {
         validateReference(referenceKey)
         return secureStorage.get(storageKey(referenceKey))
     }
 
-    suspend fun delete(referenceKey: String) {
+    override suspend fun delete(referenceKey: String) {
         validateReference(referenceKey)
         secureStorage.remove(storageKey(referenceKey))
     }
