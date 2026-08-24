@@ -45,6 +45,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.NonCancellable
 import java.time.ZonedDateTime
 import java.util.UUID
 
@@ -306,6 +308,26 @@ class ExecutionEngine(
                 }
             }
             throw cancellation
+        } catch (failure: Throwable) {
+            inProgressActionIndex?.let { index ->
+                runCatching {
+                    activeExecutionStore.markActionUnknown(
+                        runId = payloadContext.runId,
+                        message = "Action $index crashed: ${failure.message?.take(100)}",
+                        updatedAt = epochMillis.now()
+                    )
+                }
+            }
+            throw failure
+        } finally {
+            // Strict enforcement: ensure checkpoint is removed and one-shot exit is consumed 
+            // even if the run timed out or was forcefully cancelled.
+            activeExecutionStore.completeCheckpoint(payloadContext.runId)
+            if (completeExitOnFinish) {
+                withContext(NonCancellable) {
+                    runExit(automation)
+                }
+            }
         }
         // Actions are executed sequentially, so a SYSTEM_WAIT action placed anywhere
         // pauses the chain for the configured duration (counter mode).
@@ -320,9 +342,8 @@ class ExecutionEngine(
             actionResults = results
         )
         historyRepository.recordExecution(record)
-        // History is now durable; the active checkpoint may be removed. Exit
-        // lifecycle remains separately armed in ActiveExecutionStore.
-        activeExecutionStore.completeCheckpoint(payloadContext.runId)
+        // History is now durable. The active checkpoint and exit lifecycle were 
+        // guaranteed to be consumed by the finally block above.
         if (record.success && maintenanceOccurrenceKey != null) {
             activeExecutionStore.recordCompletedMaintenanceOccurrence(
                 occurrenceKey = maintenanceOccurrenceKey,
@@ -332,12 +353,6 @@ class ExecutionEngine(
         }
         recordTimeline(automation, "RUN", record, startedAt)
         context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
-        // Event-driven tasks have no later inverse transition. Consume their
-        // armed lifecycle now so end actions (or per-action end behavior) run
-        // exactly once after the main chain, and no stale durable marker remains.
-        if (completeExitOnFinish) {
-            runExit(automation)
-        }
         return record
     }
 

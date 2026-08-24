@@ -147,6 +147,11 @@ class NetworkModeCapabilities(private val context: Context) {
             if (!result.success) continue
             NetworkModePolicy.parseReadBackMask(result.message)?.let { return it }
         }
+        
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return NetworkModePolicy.BITMASK_SELECTABLE_CELLULAR
+        }
+        
         return null
     }
 
