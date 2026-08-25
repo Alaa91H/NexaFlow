@@ -159,8 +159,9 @@ class InMemoryExecutionTimelineStore : ExecutionTimelineStore {
     private val timelines = mutableListOf<ExecutionTimeline>()
     private val lock = Any()
 
-    override suspend fun save(timeline: ExecutionTimeline) =
+    override suspend fun save(timeline: ExecutionTimeline) {
         synchronized(lock) { timelines.removeAll { it.runId == timeline.runId }; timelines.add(timeline) }
+    }
 
     override suspend fun findByRunId(runId: String): ExecutionTimeline? =
         synchronized(lock) { timelines.find { it.runId == runId } }
@@ -168,6 +169,7 @@ class InMemoryExecutionTimelineStore : ExecutionTimelineStore {
     override suspend fun recentTimelines(limit: Int): List<ExecutionTimeline> =
         synchronized(lock) { timelines.sortedByDescending { it.startedAtMs }.take(limit) }
 
-    override suspend fun pruneOlderThan(beforeEpochMs: Long) =
+    override suspend fun pruneOlderThan(beforeEpochMs: Long) {
         synchronized(lock) { timelines.removeAll { it.startedAtMs < beforeEpochMs } }
+    }
 }

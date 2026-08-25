@@ -151,9 +151,11 @@ class InMemoryPluginLifecycleManager : PluginLifecycleManager {
         }.forEach { it.onLifecycleEvent(event) }
     }
 
-    override fun addListener(listener: PluginLifecycleListener) =
+    override fun addListener(listener: PluginLifecycleListener) {
         synchronized(lock) { listeners.add(listener) }
+    }
 
-    override fun removeListener(listener: PluginLifecycleListener) =
+    override fun removeListener(listener: PluginLifecycleListener) {
         synchronized(lock) { listeners.remove(listener) }
+    }
 }
