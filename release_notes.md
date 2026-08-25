@@ -1,4 +1,4 @@
-# NexaFlow v3.41.3 — Benchmark Remediation
+# NexaFlow v3.41.4 — Benchmark Remediation
 
 هذا إصدار تصحيحي يركز على **سلامة بيانات المستخدم ووضوح الصلاحيات** بعد مراجعة معيارية مقابل وثائق Android وتطبيقات الأتمتة المرجعية.
 
@@ -14,4 +14,4 @@
 
 > تظل بعض قدرات الأتمتة خاضعة لقيود Android وROM وشركة الاتصال وصلاحيات Root/Shizuku. لا يغير هذا الإصدار تلك القيود ولا يعد بتجاوزها.
 
-راجع التقرير العربي المرفق في المستودع: `docs/reports/v3.41.3-benchmark-remediation-report-ar.md`.
+راجع التقرير العربي المرفق في المستودع: `docs/reports/v3.41.4-benchmark-remediation-report-ar.md`.
