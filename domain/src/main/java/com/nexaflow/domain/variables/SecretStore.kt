@@ -67,9 +67,9 @@ class SecureVariableResolver(private val secretStore: SecretStore) {
             if (secretRef != null) {
                 val secretValue = secretStore.resolve(secretRef.key)
                 if (secretValue != null) {
-                    // We must escape percentage signs in the secret value so they aren't parsed again
-                    val safeSecret = secretValue.replace("%", "%%")
-                    fullyResolved = VariableResolver.resolve(fullyResolved, mapOf(placeholder to safeSecret))
+                    // VariableResolver replaces placeholders in a single pass, so
+                    // secret values are inserted literally and are never re-parsed.
+                    fullyResolved = VariableResolver.resolve(fullyResolved, mapOf(placeholder to secretValue))
                 }
             }
         }

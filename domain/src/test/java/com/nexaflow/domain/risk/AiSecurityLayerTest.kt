@@ -39,7 +39,7 @@ class AiSecurityLayerTest {
         val policy = AiRoutinePolicy()
         val securityLayer = AiSecurityLayer(policy)
 
-        val requested = setOf(CapabilityId.DEVICE_STATE_READ, CapabilityId.DEVICE_SCREEN_READ)
+        val requested = setOf(CapabilityId.DEVICE_STATE_READ, CapabilityId.PLUGIN_CONDITION_READ)
         val result = securityLayer.validateAiCapabilities(requested)
 
         assertTrue(result.isSafe)

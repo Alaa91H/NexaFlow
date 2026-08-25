@@ -8,10 +8,9 @@ import com.nexaflow.domain.capability.CapabilityDeviceState
 import com.nexaflow.domain.capability.CapabilityId
 import com.nexaflow.domain.capability.CapabilityRequest
 import com.nexaflow.domain.capability.CapabilityResult
-import com.nexaflow.domain.capability.CapabilityErrorCode
 import com.nexaflow.domain.capability.VerificationResult
 import com.nexaflow.domain.capability.CapabilityBackend as DomainCapabilityBackend
-import com.nexaflow.domain.capability.CapabilityResolver
+import com.nexaflow.domain.capability.CapabilityResolver as DomainCapabilityResolver
 
 /**
  * Concrete implementation of [CapabilityResolver] that bridges the domain
@@ -24,7 +23,7 @@ import com.nexaflow.domain.capability.CapabilityResolver
 class CapabilityResolverAdapter(
     private val registry: CapabilityRegistry,
     private val runtimeResolver: CapabilityResolver
-) : com.nexaflow.domain.capability.CapabilityResolver {
+) : DomainCapabilityResolver {
 
     private val domainBackendAdapters = mutableMapOf<CapabilityBackendId, DomainCapabilityBackend>()
 

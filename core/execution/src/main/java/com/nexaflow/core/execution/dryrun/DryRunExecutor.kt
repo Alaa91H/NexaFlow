@@ -22,7 +22,7 @@ class DryRunExecutor {
      */
     suspend fun simulate(root: WorkflowNode): WorkflowExecutionResult {
         val dryRunActionExecutor = ActionExecutor { action ->
-            SystemControlResult.success("Simulated execution of ${action.type}")
+            SystemControlResult.ok("Simulated execution of ${action.type}")
         }
         
         val interpreter = WorkflowInterpreter(executor = dryRunActionExecutor)

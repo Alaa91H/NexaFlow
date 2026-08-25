@@ -93,7 +93,26 @@ class WorkflowInterpreter(
             is WorkflowNode.WhileNode -> runWhile(node, results)
             is WorkflowNode.TryNode -> runTry(node, results)
             is WorkflowNode.WaitUntilNode -> runWaitUntil(node, results)
+            is SubworkflowNode -> runUnsupported(node, "Subworkflow execution is not configured", results)
+            is HumanApprovalNode -> runUnsupported(node, "Human approval execution is not configured", results)
+            is SagaNode -> runUnsupported(node, "Saga execution is not configured", results)
+            is ForEachNode -> runUnsupported(node, "For-each execution is not configured", results)
         }
+    }
+
+    /**
+     * The extension nodes require collaborators (workflow lookup, approval
+     * transport, compensation store, and variable context) that are not part
+     * of this interpreter's current constructor. Fail explicitly instead of
+     * silently skipping a requested workflow step.
+     */
+    private fun runUnsupported(
+        node: WorkflowNode,
+        message: String,
+        results: MutableList<NodeResult>
+    ): Boolean {
+        results += NodeResult(node.id, false, message, 0)
+        return false
     }
 
     private suspend fun runAction(node: WorkflowNode.ActionNode, results: MutableList<NodeResult>): Boolean {

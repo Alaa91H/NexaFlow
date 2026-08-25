@@ -6,6 +6,7 @@ import com.nexaflow.domain.capability.CapabilityBackendId
 import com.nexaflow.domain.capability.CapabilityId
 import com.nexaflow.domain.capability.CapabilityRequest
 import com.nexaflow.domain.capability.CapabilityResult
+import com.nexaflow.domain.capability.CapabilityStatus
 import com.nexaflow.domain.capability.VerificationResult
 import com.nexaflow.core.execution.capability.CapabilityBackend
 import com.nexaflow.core.execution.capability.CapabilityRegistry
@@ -19,7 +20,11 @@ class VerificationEngineTest {
     private val fakeCapability = CapabilityId.DEVICE_STATE_READ
 
     private val request = CapabilityRequest(capability = fakeCapability)
-    private val result = CapabilityResult.success(backend = fakeBackendId, message = "OK")
+    private val result = CapabilityResult(
+        status = CapabilityStatus.SUCCESS,
+        backend = fakeBackendId,
+        message = "OK"
+    )
 
     @Test
     fun `verification succeeds on first attempt`() = runBlocking {
@@ -53,9 +58,9 @@ class VerificationEngineTest {
             }
         }
         val registry = CapabilityRegistry.of(emptyList(), listOf(backend))
-        val engine = VerificationEngine(registry, maxRetries = 3, backoffMs = 10L)
+        val engine = VerificationEngine(registry)
 
-        val vr = engine.verify(request, result)
+        val vr = engine.verify(request, result, maxRetries = 3, backoffMs = 10L)
         assertTrue(vr.attempted)
         assertTrue(vr.verified)
         assertEquals(2, attempts)
@@ -75,9 +80,9 @@ class VerificationEngineTest {
             }
         }
         val registry = CapabilityRegistry.of(emptyList(), listOf(backend))
-        val engine = VerificationEngine(registry, maxRetries = 2, backoffMs = 10L)
+        val engine = VerificationEngine(registry)
 
-        val vr = engine.verify(request, result)
+        val vr = engine.verify(request, result, maxRetries = 2, backoffMs = 10L)
         assertTrue(vr.attempted)
         assertFalse(vr.verified)
         assertEquals(2, attempts) // Exhausted retries

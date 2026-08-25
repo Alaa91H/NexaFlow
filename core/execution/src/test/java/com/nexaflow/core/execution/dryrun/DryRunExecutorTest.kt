@@ -12,7 +12,7 @@ class DryRunExecutorTest {
     @Test
     fun `simulate executes action safely`() = runBlocking {
         val executor = DryRunExecutor()
-        val action = Action("a1", ActionType.SYSTEM_WIFI, emptyMap())
+        val action = Action(ActionType.SYSTEM_WIFI, emptyMap())
         val root = WorkflowNode.ActionNode("node1", action)
 
         val result = executor.simulate(root)
