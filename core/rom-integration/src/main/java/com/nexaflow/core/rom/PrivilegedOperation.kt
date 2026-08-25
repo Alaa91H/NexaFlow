@@ -65,6 +65,41 @@ sealed interface PrivilegedOperation {
         override fun argv(): List<String> = listOf("cp", "--", source, destination)
     }
 
+    /** Reads the user-selected allowed-network-types mask for one physical SIM slot. */
+    data class ReadAllowedNetworkTypes(val slotIndex: Int) : PrivilegedOperation {
+        override val wireId: PrivilegedOperationId = PrivilegedOperationId.NETWORK_MODE_READ
+        init { require(slotIndex in NO_SLOT..MAX_SIM_SLOT) { "SIM slot is out of range" } }
+        override fun wireArguments(): List<String> = listOf(slotIndex.toString())
+        override fun argv(): List<String> = buildList {
+            addAll(listOf("cmd", "phone", "get-allowed-network-types-for-users"))
+            if (slotIndex != NO_SLOT) addAll(listOf("-s", slotIndex.toString()))
+        }
+    }
+
+    /** Applies one confirmed allowed-network-types mask for one physical SIM slot. */
+    data class SetAllowedNetworkTypes(
+        val slotIndex: Int,
+        val allowedNetworkTypes: Long
+    ) : PrivilegedOperation {
+        override val wireId: PrivilegedOperationId = PrivilegedOperationId.NETWORK_MODE_SET
+        init {
+            require(slotIndex in NO_SLOT..MAX_SIM_SLOT) { "SIM slot is out of range" }
+            require(allowedNetworkTypes > 0L &&
+                allowedNetworkTypes and NetworkModePolicy.BITMASK_SELECTABLE_CELLULAR ==
+                    allowedNetworkTypes
+            ) { "Network mask is invalid" }
+        }
+        override fun wireArguments(): List<String> = listOf(
+            slotIndex.toString(),
+            java.lang.Long.toString(allowedNetworkTypes, 2)
+        )
+        override fun argv(): List<String> = buildList {
+            addAll(listOf("cmd", "phone", "set-allowed-network-types-for-users"))
+            if (slotIndex != NO_SLOT) addAll(listOf("-s", slotIndex.toString()))
+            add(java.lang.Long.toString(allowedNetworkTypes, 2))
+        }
+    }
+
     enum class SettingNamespace(val commandValue: String) {
         SYSTEM("system"),
         SECURE("secure"),
@@ -92,6 +127,11 @@ sealed interface PrivilegedOperation {
                     value = third
                 )
                 PrivilegedOperationId.FILE_COPY -> CopyControlledFile(first, second)
+                PrivilegedOperationId.NETWORK_MODE_READ -> ReadAllowedNetworkTypes(first.toInt())
+                PrivilegedOperationId.NETWORK_MODE_SET -> SetAllowedNetworkTypes(
+                    slotIndex = first.toInt(),
+                    allowedNetworkTypes = second.toLong(2)
+                )
                 null -> null
             }
         }.getOrNull()
@@ -111,6 +151,8 @@ sealed interface PrivilegedOperation {
         private val PACKAGE = Regex("[A-Za-z][A-Za-z0-9_]*(?:\\.[A-Za-z][A-Za-z0-9_]*)+")
         private const val CONTROLLED_FILE_ROOT = "/sdcard/NexaFlow/"
         private const val MAX_SETTING_VALUE_LENGTH = 512
+        private const val NO_SLOT = -1
+        private const val MAX_SIM_SLOT = 8
 
         private fun String.isPackageName(): Boolean = PACKAGE.matches(this)
         private fun String.isSettingValue(): Boolean =
@@ -126,5 +168,7 @@ enum class PrivilegedOperationId(val wireValue: String) {
     PACKAGE_FORCE_STOP("package.force_stop"),
     PACKAGE_SET_ENABLED("package.set_enabled"),
     SYSTEM_SETTING_WRITE("settings.write"),
-    FILE_COPY("file.copy")
+    FILE_COPY("file.copy"),
+    NETWORK_MODE_READ("network.mode.read"),
+    NETWORK_MODE_SET("network.mode.set")
 }

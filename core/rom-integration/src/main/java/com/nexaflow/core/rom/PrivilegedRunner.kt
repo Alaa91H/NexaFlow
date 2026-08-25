@@ -64,6 +64,17 @@ object PrivilegedRunner {
         return ShizukuShellBridge.execute(safe)
     }
 
+    /**
+     * Executes one reviewed typed operation through the best currently granted
+     * elevated channel. The operation itself has a closed argv shape, so this
+     * fallback never turns workflow input into a shell expression.
+     */
+    fun runElevatedOperation(operation: PrivilegedOperation): SystemControlResult = when {
+        isShizukuGranted() -> runShizukuOperation(operation)
+        isRootAvailable() -> runRootOperation(operation)
+        else -> SystemControlResult.fail("No elevated runtime available (Shizuku or root)")
+    }
+
     /** New typed path: Shizuku only, no Root fallback and no generic command input. */
     fun runShizukuOperation(operation: PrivilegedOperation): SystemControlResult {
         if (!isShizukuGranted()) {

@@ -131,27 +131,25 @@ class NetworkModeCapabilities(private val context: Context) {
     }
 
     /**
-     * Reads the selected user's allowed network types through TelephonyShell.
-     * The command accepts either a slot-scoped form or a default-subscription
-     * form across Android/OEM variants, so both are tried. A successful command
-     * with unparsable/zero output remains unavailable rather than becoming a
-     * guessed capability.
+     * Reads the selected user's allowed network types through the reviewed
+     * Shizuku/Root operation. Both slot-scoped and default forms are tried
+     * because AOSP and OEM TelephonyShell implementations differ. A successful
+     * call with unparsable or zero output remains unavailable rather than
+     * becoming an invented capability list.
      */
     private fun readElevatedUserMask(slotIndex: Int): Long? {
         if (!PrivilegedRunner.isShizukuGranted() && !PrivilegedRunner.isRootAvailable()) return null
-        val variants = if (slotIndex >= 0) listOf("-s $slotIndex ", "") else listOf("")
+        val variants = buildList {
+            if (slotIndex in 0..8) add(slotIndex)
+            add(-1)
+        }.distinct()
         for (variant in variants) {
-            val result = PrivilegedRunner.runShell(
-                "cmd phone get-allowed-network-types-for-users $variant"
+            val result = PrivilegedRunner.runElevatedOperation(
+                PrivilegedOperation.ReadAllowedNetworkTypes(variant)
             )
             if (!result.success) continue
             NetworkModePolicy.parseReadBackMask(result.message)?.let { return it }
         }
-        
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            return NetworkModePolicy.BITMASK_SELECTABLE_CELLULAR
-        }
-        
         return null
     }
 

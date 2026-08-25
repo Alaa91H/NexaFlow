@@ -77,6 +77,54 @@ class ShizukuShellBridgeTest {
     }
 
     @Test
+    fun `network mode read wire builds a fixed TelephonyShell argv`() {
+        val operation = PrivilegedOperation.fromWire(
+            wireId = "network.mode.read",
+            first = "1",
+            second = "",
+            third = ""
+        )
+
+        assertEquals(PrivilegedOperation.ReadAllowedNetworkTypes(1), operation)
+        assertEquals(
+            listOf("cmd", "phone", "get-allowed-network-types-for-users", "-s", "1"),
+            operation?.argv()
+        )
+    }
+
+    @Test
+    fun `network mode set wire preserves the confirmed bitmask as binary argv`() {
+        val mask = NetworkModePolicy.BITMASK_5G or NetworkModePolicy.BITMASK_4G
+        val operation = PrivilegedOperation.fromWire(
+            wireId = "network.mode.set",
+            first = "0",
+            second = java.lang.Long.toString(mask, 2),
+            third = ""
+        )
+
+        assertEquals(PrivilegedOperation.SetAllowedNetworkTypes(0, mask), operation)
+        assertEquals(
+            listOf(
+                "cmd", "phone", "set-allowed-network-types-for-users", "-s", "0",
+                java.lang.Long.toString(mask, 2)
+            ),
+            operation?.argv()
+        )
+    }
+
+    @Test
+    fun `network mode wire rejects invalid slots and shell-like masks`() {
+        assertEquals(
+            null,
+            PrivilegedOperation.fromWire("network.mode.read", "99", "", "")
+        )
+        assertEquals(
+            null,
+            PrivilegedOperation.fromWire("network.mode.set", "0", "1;reboot", "")
+        )
+    }
+
+    @Test
     fun `runShizuku rejects when not granted without touching legacy bridge`() {
         var bridgeCalled = false
         ShizukuShellBridge.legacyExecProbe = {

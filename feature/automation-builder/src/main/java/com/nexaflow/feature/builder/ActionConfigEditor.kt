@@ -50,6 +50,7 @@ import com.nexaflow.core.execution.NotificationActionButton
 import com.nexaflow.core.rom.NetworkModeCapabilities
 import com.nexaflow.core.rom.NetworkModePolicy
 import com.nexaflow.core.rom.NetworkModeSnapshot
+import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.domain.models.ActionType
@@ -196,31 +197,50 @@ internal fun NetworkModeSelector(
                     val phoneStateGranted = context.checkSelfPermission(
                         Manifest.permission.READ_PHONE_STATE
                     ) == PackageManager.PERMISSION_GRANTED
-                    if (state.status == NetworkModeSnapshot.Status.UNREADABLE && !phoneStateGranted) {
-                        TextButton(
-                            onClick = {
-                                // If `su` exists but has not yet approved
-                                // NexaFlow, request that approval first. The
-                                // helper grants and verifies READ_PHONE_STATE
-                                // before Android's dialog is considered.
-                                RootPermissionGranter.requestRuntimePermissionsWithRootPrompt(
-                                    context = context,
-                                    permissions = listOf(Manifest.permission.READ_PHONE_STATE)
-                                ) { result ->
-                                    // Always re-read the live SIM capabilities
-                                    // after an elevated attempt. Android's
-                                    // dialog is only a factual fallback for a
-                                    // permission still missing after it.
-                                    permissionRevision += 1
-                                    if (result.remaining.isNotEmpty()) {
-                                        phoneStatePermissionLauncher.launch(
-                                            Manifest.permission.READ_PHONE_STATE
-                                        )
+                    if (state.status == NetworkModeSnapshot.Status.UNREADABLE) {
+                        if (!phoneStateGranted) {
+                            TextButton(
+                                onClick = {
+                                    // If `su` exists but has not yet approved
+                                    // NexaFlow, request that approval first. The
+                                    // helper grants and verifies READ_PHONE_STATE
+                                    // before Android's dialog is considered.
+                                    RootPermissionGranter.requestRuntimePermissionsWithRootPrompt(
+                                        context = context,
+                                        permissions = listOf(Manifest.permission.READ_PHONE_STATE)
+                                    ) { result ->
+                                        // Always re-read the live SIM capabilities
+                                        // after an elevated attempt. Android's
+                                        // dialog is only a factual fallback for a
+                                        // permission still missing after it.
+                                        permissionRevision += 1
+                                        if (result.remaining.isNotEmpty()) {
+                                            phoneStatePermissionLauncher.launch(
+                                                Manifest.permission.READ_PHONE_STATE
+                                            )
+                                        }
                                     }
                                 }
+                            ) {
+                                Text(stringResource(R.string.network_mode_grant_phone_permission))
                             }
-                        ) {
-                            Text(stringResource(R.string.network_mode_grant_phone_permission))
+                        }
+                        val elevatedGranted = PrivilegedRunner.isShizukuGranted() ||
+                            PrivilegedRunner.isRootAvailable()
+                        if (!elevatedGranted) {
+                            TextButton(
+                                onClick = {
+                                    PermissionShortcuts.openSpecial(
+                                        context,
+                                        SpecialPermission.ELEVATED
+                                    )
+                                }
+                            ) {
+                                Text(stringResource(R.string.special_elevated_title))
+                            }
+                        }
+                        TextButton(onClick = { permissionRevision += 1 }) {
+                            Text(stringResource(R.string.refresh))
                         }
                     }
                 }

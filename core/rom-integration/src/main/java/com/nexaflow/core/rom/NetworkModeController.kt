@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
-import android.provider.Settings
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import com.nexaflow.core.rom.model.SystemControlResult
@@ -15,14 +14,15 @@ import com.nexaflow.core.rom.model.SystemControlResult
  * SIM, or preserves the historical all-active-SIM behavior for legacy tasks. A bare `settings put global preferred_network_mode` write is
  * ignored on Android 10+ (the framework reads it once as a default only) and
  * is per-subscription on multi-SIM devices — so this uses the modern
- * `setAllowedNetworkTypesForReason` bitmask API (stable since Android 11, the
- * exact path the system network-mode UI uses) via reflection when the app
- * holds MODIFY_PHONE_STATE / runs as a system app, falls back to the elevated
- * `cmd phone` shell API (Shizuku/root), then to the legacy per-sub
- * `setPreferredNetworkType` ITelephony call, and finally to the
- * per-subscription global setting. Every step is verified by reading the
- * resulting state back, and a step that cannot be confirmed falls through to
- * the next one instead of aborting, so the ladder stays adaptive across ROMs.
+ * `setAllowedNetworkTypesForReason` bitmask API on Android 13+ via reflection
+ * when the app
+ * holds MODIFY_PHONE_STATE / runs as a system app, falls back to a reviewed
+ * elevated `cmd phone` operation (Shizuku/root), then to the legacy per-sub
+ * `setPreferredNetworkType` ITelephony call. The obsolete global-setting path
+ * is deliberately excluded because modern Android does not apply it reliably.
+ * Every applicable step is verified by reading the resulting state back, and a
+ * step that cannot be confirmed falls through to the next one instead of
+ * aborting, so the ladder stays adaptive across ROMs.
  */
 class NetworkModeController(
     private val context: Context
@@ -179,24 +179,20 @@ class NetworkModeController(
                 notes += "$label via allowed-network-types (unconfirmed read-back)"
             }
         }
-        // 2) Elevated shell: the `cmd phone` API (Android 14+ TelephonyShell-
-        //    Command). NOTE: on AOSP the SET command prints
-        //    "set-allowed-network-types-for-users completed" OR "... failed"
-        //    and returns exit code 0 in BOTH cases, so the exit code alone
-        //    cannot prove the write took effect — the message is checked too,
-        //    and the write is always confirmed with a read-back. The `-s`
-        //    slot flag is optional across ROMs, so each variant is attempted
-        //    and the first one that both reports success and confirms wins.
+        // 2) Elevated TelephonyShell command through a closed typed operation.
+        //    AOSP can print a failure message while returning exit code 0, so a
+        //    successful process is never accepted without reading the resulting
+        //    mask back. Both slot-scoped and default forms are attempted because
+        //    OEM command parsers vary.
         if (PrivilegedRunner.isShizukuGranted() || PrivilegedRunner.isRootAvailable()) {
             val variants = setCommandVariants(slotIndexFor(subId))
-            for (variant in variants) {
-                val binary = java.lang.Long.toString(request.bitmask, 2)
-                val set = PrivilegedRunner.runShell(
-                    "cmd phone set-allowed-network-types-for-users $variant$binary"
+            for (slot in variants) {
+                val set = PrivilegedRunner.runElevatedOperation(
+                    PrivilegedOperation.SetAllowedNetworkTypes(slot, request.bitmask)
                 )
                 if (set.success && !shellReportedFailure(set.message)) {
-                    val readBack = PrivilegedRunner.runShell(
-                        "cmd phone get-allowed-network-types-for-users $variant"
+                    val readBack = PrivilegedRunner.runElevatedOperation(
+                        PrivilegedOperation.ReadAllowedNetworkTypes(slot)
                     ).message
                     if (NetworkModePolicy.coversReadBack(readBack, request)) {
                         return true to "$label via cmd phone"
@@ -231,43 +227,17 @@ class NetworkModeController(
             }
         }
 
-        // 4) Elevated shell: per-subscription key (multi-SIM) plus the plain
-        //    default key, verified through Settings.Global. Last resort — the
-        //    framework ignores this at runtime on Android 10+, but some OEM
-        //    builds still honor it, and it costs nothing to try.
-        if (request.legacyCompatible &&
-            (PrivilegedRunner.isShizukuGranted() || PrivilegedRunner.isRootAvailable())
-        ) {
-            val subKey = "preferred_network_mode$subId"
-            val shell = PrivilegedRunner.runShell(
-                "settings put global $subKey ${request.legacyInt} && " +
-                    "settings put global preferred_network_mode ${request.legacyInt}"
-            )
-            if (shell.success) {
-                val stored = runCatching {
-                    Settings.Global.getInt(context.contentResolver, subKey, -1)
-                }.getOrDefault(-1)
-                if (stored == request.legacyInt) {
-                    return true to "$label via settings"
-                }
-                notes += "$label via settings (value not persisted)"
-            } else {
-                notes += "$label via settings (${shell.message.trim().take(80)})"
-            }
-        }
-
         return false to (notes.firstOrNull() ?: "$label rejected by the radio")
     }
     /**
-     * The `-s` slot flag variants to try for the `cmd phone` commands. The
-     * flag is understood on AOSP 14+ and most OEM builds; older or customized
-     * builds may reject it or require it, so both forms are attempted and the
-     * first confirming write wins.
+     * The physical slot variants to try for TelephonyShell. The AOSP `-s` form
+     * is exposed only through the reviewed [PrivilegedOperation] argv shape;
+     * older/customized ROMs may require the default invocation instead.
      */
-    private fun setCommandVariants(slot: Int): List<String> = when {
-        slot >= 0 -> listOf("-s $slot ", "")
-        else -> listOf("")
-    }
+    private fun setCommandVariants(slot: Int): List<Int> = buildList {
+        if (slot in 0..8) add(slot)
+        add(-1)
+    }.distinct()
 
     /** AOSP prints "... completed"/"... failed" and exits 0 in both cases. */
     private fun shellReportedFailure(message: String): Boolean {
