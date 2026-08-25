@@ -104,7 +104,9 @@ class BackupManager(
             )
         }
         val disabledCount = backup.automations.count { it.enabled }
-        importedAutomations.forEach(automationRepository::saveAutomation)
+        for (automation in importedAutomations) {
+            automationRepository.saveAutomation(automation)
+        }
         return ImportResult.Success(importedAutomations.size, disabledCount)
     }
 
