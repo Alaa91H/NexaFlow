@@ -10,6 +10,7 @@ import com.nexaflow.domain.workflow.WorkflowValidator
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.util.UUID
 
 /**
  * Portable JSON backup file produced by [BackupManager.export].
@@ -79,11 +80,32 @@ class BackupManager(
         // Imported rules are data from outside this installation. Saving them
         // disabled prevents a trigger — especially an advanced Root/Shizuku
         // action — from running before the user has reviewed its capabilities.
-        val disabledCount = backup.automations.count { it.enabled }
-        backup.automations.forEach { automation ->
-            automationRepository.saveAutomation(automation.copy(enabled = false))
+        //
+        // A backup is also a template-sharing format. Never let an imported ID
+        // silently replace a local automation: Room uses REPLACE for ordinary
+        // user edits, so collisions must be made unique at this boundary.
+        // Re-key only colliding imported rules and rewrite their internal
+        // maintenance dependencies in the same pass, preserving the imported
+        // workflow graph while leaving the local graph untouched.
+        val existingIds = automationRepository.getAutomations().first().map { it.id }.toSet()
+        val importedIdMap = backup.automations.associate { automation ->
+            automation.id to if (automation.id in existingIds) UUID.randomUUID().toString() else automation.id
         }
-        return ImportResult.Success(backup.automations.size, disabledCount)
+        val importedAutomations = backup.automations.map { automation ->
+            val remappedDependencies = automation.maintenanceProfile
+                ?.dependencyAutomationIds
+                ?.map { dependencyId -> importedIdMap[dependencyId] ?: dependencyId }
+            automation.copy(
+                id = importedIdMap.getValue(automation.id),
+                enabled = false,
+                maintenanceProfile = automation.maintenanceProfile?.copy(
+                    dependencyAutomationIds = remappedDependencies.orEmpty()
+                )
+            )
+        }
+        val disabledCount = backup.automations.count { it.enabled }
+        importedAutomations.forEach(automationRepository::saveAutomation)
+        return ImportResult.Success(importedAutomations.size, disabledCount)
     }
 
     fun preflight(jsonText: String): BackupPreflight {

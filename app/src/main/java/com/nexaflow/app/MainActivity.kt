@@ -1,8 +1,6 @@
 package com.nexaflow.app
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
@@ -11,7 +9,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -24,7 +21,6 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
-import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.nexaflow.app.ui.theme.NexaFlowTheme
@@ -58,9 +54,6 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var automationRepository: AutomationRepository
 
-    private val requestNotificationPermission =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         // Branded splash (core-splashscreen): keep it up until the theme is
         // resolved so the background matches the actual Material You surface
@@ -85,8 +78,9 @@ class MainActivity : AppCompatActivity() {
         // explicitly so every API level draws behind the system bars
         // uniformly (status/nav bars stay transparent, Scaffolds handle insets).
         enableEdgeToEdge()
-        // On a rooted device, grant everything silently first so the system
-        // permission prompt below is skipped entirely.
+        // On a rooted device, set up privileged capabilities when the user has
+        // already authorized root. Runtime notification access is requested
+        // later from the user action that needs it, not on first launch.
         autoGrantPermissionsWithRoot()
         // Deep link (P2-5): nexaflow://run-task/{id} runs the task directly.
         handleDeepLink(intent)
@@ -158,23 +152,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun requestNotificationPermissionIfNeeded() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
-            PackageManager.PERMISSION_GRANTED
-        ) {
-            requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
-    }
-
     /**
      * On a rooted (or Shizuku-granted) device, grant every permission the app
      * needs automatically — no dialogs, no system screens. When a root manager
      * is installed but root was never granted yet, [requestAndGrantAll] first
      * pops the manager's one-tap allow dialog and waits for the user, so a
      * fresh install ends up fully granted instead of silently skipping. Runs
-     * once on launch, off the main thread; the notification permission prompt
-     * below is skipped entirely when the grant succeeds.
+     * once on launch, off the main thread. Notification permission is handled
+     * only by the user-visible feature that needs to post a notification.
      */
     private fun autoGrantPermissionsWithRoot() {
         lifecycleScope.launch {
@@ -203,18 +188,8 @@ class MainActivity : AppCompatActivity() {
                     Log.w(TAG, "Auto-grant skipped", t)
                 }
             }
-            // Only prompt for notifications when root was NOT able to grant
-            // them — a rooted user never sees the system permission dialog.
-            if (!hasNotificationPermission()) {
-                requestNotificationPermissionIfNeeded()
-            }
         }
     }
-
-    private fun hasNotificationPermission(): Boolean =
-        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
-            PackageManager.PERMISSION_GRANTED
 
     /**
      * The actual surface color the splash should paint, mirroring the same

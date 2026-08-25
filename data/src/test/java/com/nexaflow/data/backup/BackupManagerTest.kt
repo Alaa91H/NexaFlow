@@ -82,6 +82,31 @@ class BackupManagerTest {
     }
 
     @Test
+    fun `import preserves local automation and rewrites imported dependency collisions`() = runBlocking {
+        val local = validAutomation("shared").copy(name = "Local Morning", enabled = true)
+        val importedDependency = validAutomation("shared").copy(name = "Imported Morning")
+        val importedDependent = validAutomation("dependent").copy(
+            maintenanceProfile = MaintenanceProfile(
+                kind = MaintenanceKind.AUTOMATION,
+                dependencyAutomationIds = listOf("shared")
+            )
+        )
+        repository.saveAutomation(local)
+
+        val result = manager.import(backupJson(importedDependency, importedDependent))
+
+        assertEquals(ImportResult.Success(2, 2), result)
+        assertEquals(3, repository.saved.size)
+        assertEquals(local, repository.saved.single { it.id == "shared" })
+        val remappedDependency = repository.saved.single { it.name == "Imported Morning" }
+        val remappedDependent = repository.saved.single { it.id == "dependent" }
+        assertFalse(remappedDependency.enabled)
+        assertFalse(remappedDependent.enabled)
+        assertTrue(remappedDependency.id != "shared")
+        assertEquals(listOf(remappedDependency.id), remappedDependent.maintenanceProfile?.dependencyAutomationIds)
+    }
+
+    @Test
     fun `future version is rejected`() = runBlocking {
         val result = manager.import(backupJson(validAutomation(), version = BackupManager.BACKUP_VERSION + 1))
         assertEquals(ImportResult.InvalidFile, result)
@@ -264,7 +289,9 @@ class BackupManagerTest {
         assertEquals(1, exported.automations.size)
         val result = manager.import(manager.toJson(exported))
         assertEquals(ImportResult.Success(1, 1), result)
-        assertEquals(original.copy(enabled = false), repository.saved.single())
+        assertEquals(2, repository.saved.size)
+        val imported = repository.saved.single { it.id != original.id }
+        assertEquals(original.copy(id = imported.id, enabled = false), imported)
     }
 
     @Test
@@ -287,7 +314,9 @@ class BackupManagerTest {
         assertEquals(BackupManager.BACKUP_VERSION, exported.version)
         assertEquals(original.maintenanceProfile, exported.automations.single().maintenanceProfile)
         assertEquals(ImportResult.Success(1, 1), manager.import(manager.toJson(exported)))
-        assertEquals(original.copy(enabled = false), repository.saved.single())
+        assertEquals(2, repository.saved.size)
+        val imported = repository.saved.single { it.id != original.id }
+        assertEquals(original.copy(id = imported.id, enabled = false), imported)
     }
 
     @Test

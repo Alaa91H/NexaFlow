@@ -31,6 +31,12 @@ class PermissionCatalogTest {
     }
 
     @Test
+    fun `notification trigger requires listener access but not notification posting permission`() {
+        assertEquals(emptyList<String>(), PermissionCatalog.runtimePermissionsFor(TriggerType.NOTIFICATION))
+        assertEquals(SpecialPermission.NOTIFICATION_ACCESS, PermissionCatalog.specialPermissionFor(TriggerType.NOTIFICATION))
+    }
+
+    @Test
     fun `time trigger requires exact alarm access`() {
         assertEquals(SpecialPermission.EXACT_ALARM, PermissionCatalog.specialPermissionFor(TriggerType.TIME))
     }

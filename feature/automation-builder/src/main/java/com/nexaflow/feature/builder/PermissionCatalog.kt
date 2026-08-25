@@ -84,7 +84,11 @@ object PermissionCatalog {
             android.Manifest.permission.ACCESS_COARSE_LOCATION
         )
         TriggerType.CALENDAR -> listOf(android.Manifest.permission.READ_CALENDAR)
-        TriggerType.NOTIFICATION -> listOf(android.Manifest.permission.POST_NOTIFICATIONS)
+        // Monitoring other apps' notifications is authorized by the dedicated
+        // Notification Listener special access below. POST_NOTIFICATIONS only
+        // controls this app posting visible notifications; it is not required
+        // to receive listener callbacks and must not be requested needlessly.
+        TriggerType.NOTIFICATION -> emptyList()
         TriggerType.BLUETOOTH_DEVICE -> listOf(android.Manifest.permission.BLUETOOTH_CONNECT)
         TriggerType.SENSOR -> listOf(android.Manifest.permission.ACTIVITY_RECOGNITION)
         else -> emptyList()
