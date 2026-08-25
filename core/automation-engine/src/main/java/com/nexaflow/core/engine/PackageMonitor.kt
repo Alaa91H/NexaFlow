@@ -4,11 +4,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.pluginsdk.PluginDiscoveryRegistry
 import com.nexaflow.domain.models.TriggerType
+import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -20,15 +20,14 @@ import javax.inject.Singleton
 /**
  * Standalone APP_INSTALLED trigger: fires a task when a package is INSTALLED,
  * REMOVED or UPDATED (per the configured `event` and optional `package`
- * filter). Transient events — the task's exit behavior runs when the package
- * is removed after an install-fire, or installed after a remove-fire.
+ * filter). These are momentary events with no reliable lifecycle-end callback,
+ * so each matching execution closes its own end behavior immediately.
  */
 @Singleton
 class PackageMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
-    private val activeStore: ActiveTriggerStore,
     private val pluginDiscoveryRegistry: PluginDiscoveryRegistry,
     @ApplicationScope private val scope: CoroutineScope
 ) {
@@ -36,13 +35,8 @@ class PackageMonitor @Inject constructor(
     @Volatile
     private var registered = false
 
-    /** Automations currently in their triggered state (to fire the opposite event). */
-    private val activeStates = mutableMapOf<String, String>()
-
-    private val oppositeEvent = mapOf(
-        "INSTALLED" to "REMOVED",
-        "REMOVED" to "INSTALLED"
-    )
+    /** Per-task de-duplication for package broadcasts emitted in a short burst. */
+    private val lastRunAt = mutableMapOf<String, Long>()
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(receiverContext: Context, intent: Intent) {
@@ -87,6 +81,7 @@ class PackageMonitor @Inject constructor(
     private fun handleEvent(event: String, pkg: String) {
         scope.launch {
             val automations = repository.getAutomations().first()
+            val now = System.currentTimeMillis()
             automations
                 .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.APP_INSTALLED } }
                 .forEach { automation ->
@@ -95,19 +90,17 @@ class PackageMonitor @Inject constructor(
                     val filterPkg = trigger.config["package"]?.takeIf { it.isNotBlank() }
                     if (filterPkg != null && filterPkg != pkg) return@forEach
                     if (event == want) {
-                        if (activeStates.put(automation.id, event) == null) {
-                            activeStore.markActive(SOURCE, automation.id)
-                            executionEngine.runAutomation(automation)
+                        val last = lastRunAt[automation.id] ?: 0L
+                        if (now - last > automation.cooldownMillis) {
+                            lastRunAt[automation.id] = now
+                            executionEngine.runAutomation(
+                                automation = automation,
+                                completeExitOnFinish = true
+                            )
                         }
-                    } else if (oppositeEvent[event] == want && activeStates.remove(automation.id) != null) {
-                        activeStore.clearAutomation(SOURCE, automation.id)
-                        executionEngine.runExit(automation)
                     }
                 }
         }
     }
 
-    private companion object {
-        const val SOURCE = "package"
-    }
 }

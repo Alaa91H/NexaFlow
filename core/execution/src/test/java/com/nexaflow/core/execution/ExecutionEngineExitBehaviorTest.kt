@@ -14,6 +14,8 @@ import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.EndBehavior
 import com.nexaflow.domain.models.EndMode
 import com.nexaflow.domain.models.ExecutionRecord
+import com.nexaflow.domain.models.Trigger
+import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.HistoryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -76,7 +78,8 @@ class ExecutionEngineExitBehaviorTest {
     private fun automation(
         actions: List<Action> = listOf(action),
         exitActions: List<Action> = emptyList(),
-        revertOnExit: Boolean = false
+        revertOnExit: Boolean = false,
+        triggers: List<Trigger> = emptyList()
     ): Automation = Automation(
         id = "auto-exit",
         name = "Exit task",
@@ -87,7 +90,7 @@ class ExecutionEngineExitBehaviorTest {
         category = "general",
         priority = 1,
         enabled = true,
-        triggers = emptyList(),
+        triggers = triggers,
         actions = actions,
         exitActions = exitActions,
         revertOnExit = revertOnExit,
@@ -200,6 +203,40 @@ class ExecutionEngineExitBehaviorTest {
         assertFalse("main failure must remain visible in its execution record", record.success)
         assertEquals("end behavior must still run after the failed main action", 2, handler.calls)
         assertEquals("main and end records must both be durable", 2, history.messages.size)
+    }
+
+    @Test
+    fun `momentary trigger automatically runs end actions after the main chain`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(handler, history)
+        val automation = automation(
+            triggers = listOf(Trigger(TriggerType.APP_INSTALLED, mapOf("event" to "INSTALLED"))),
+            exitActions = listOf(action)
+        )
+
+        val record = engine.runAutomation(automation)
+
+        assertTrue(record.success)
+        assertEquals("main action and automatic end action must both run", 2, handler.calls)
+        assertEquals("main and end records must both be durable", 2, history.messages.size)
+    }
+
+    @Test
+    fun `stateful trigger does not auto run end actions before its condition ends`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(handler, history)
+        val automation = automation(
+            triggers = listOf(Trigger(TriggerType.CONNECTIVITY, mapOf("state" to "CONNECTED"))),
+            exitActions = listOf(action)
+        )
+
+        engine.runAutomation(automation)
+        assertEquals("stateful task must remain active until its opposite condition", 1, handler.calls)
+
+        engine.runExit(automation)
+        assertEquals("end action must run when the stateful task ends", 2, handler.calls)
     }
 
     @Test

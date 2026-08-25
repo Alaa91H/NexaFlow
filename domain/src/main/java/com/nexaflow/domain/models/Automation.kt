@@ -52,6 +52,29 @@ data class Automation(
 /** Cooldown as milliseconds for the monitors' event de-duplication. */
 val Automation.cooldownMillis: Long get() = (cooldownSeconds.coerceAtLeast(0)) * 1000L
 
+/**
+ * True when every configured trigger is a momentary event that has no later
+ * opposite state to close the task lifecycle. The execution engine uses this
+ * policy as a safe default so end actions are never stranded when a caller
+ * omits an explicit completion flag.
+ */
+val Automation.completesExitOnFinish: Boolean
+    get() = triggers.isNotEmpty() && triggers.all { trigger -> trigger.isOneShotEvent() }
+
+private fun Trigger.isOneShotEvent(): Boolean = when (type) {
+    TriggerType.TIME -> config["timeMode"] != "RANGE"
+    TriggerType.SMS,
+    TriggerType.WEBHOOK,
+    TriggerType.APP_INSTALLED,
+    TriggerType.CLIPBOARD_CHANGED,
+    TriggerType.TIMEZONE_CHANGED,
+    TriggerType.BOOT_COMPLETED,
+    TriggerType.NFC_TAG_SCANNED,
+    TriggerType.ALARM_SET_CHANGED,
+    TriggerType.PLUGIN_EVENT -> true
+    else -> false
+}
+
 @Immutable
 @Serializable
 // config must never be mutated in place (Compose @Immutable contract).

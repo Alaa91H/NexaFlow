@@ -37,6 +37,7 @@ import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.models.MaintenanceReadiness
 import com.nexaflow.domain.models.MaintenanceReadinessEvaluator
 import com.nexaflow.domain.models.MaintenanceExecutionIdentity
+import com.nexaflow.domain.models.completesExitOnFinish
 import com.nexaflow.domain.repositories.HistoryRepository
 import com.nexaflow.domain.repositories.VariableRepository
 import com.nexaflow.domain.variables.RuntimeValueCodec
@@ -323,7 +324,11 @@ class ExecutionEngine(
             // Strict enforcement: ensure checkpoint is removed and one-shot exit is consumed 
             // even if the run timed out or was forcefully cancelled.
             activeExecutionStore.completeCheckpoint(payloadContext.runId)
-            if (completeExitOnFinish) {
+            // Explicit callers can force completion, while the domain policy
+            // closes purely event-driven tasks even if their monitor omitted the
+            // flag. Stateful conditions remain open until their opposite state
+            // is observed by the relevant monitor.
+            if (completeExitOnFinish || automation.completesExitOnFinish) {
                 withContext(NonCancellable) {
                     runExit(automation)
                 }
