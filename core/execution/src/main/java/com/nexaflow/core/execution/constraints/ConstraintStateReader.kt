@@ -6,13 +6,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Environment
 import android.os.PowerManager
 import android.os.StatFs
+import com.nexaflow.core.common.DefaultNetworkStateReader
 import com.nexaflow.domain.models.ConstraintSnapshot
 
 /**
@@ -51,10 +50,7 @@ object ConstraintStateReader {
         if (context.checkSelfPermission(android.Manifest.permission.ACCESS_NETWORK_STATE) !=
             PackageManager.PERMISSION_GRANTED
         ) return false
-        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
-        val capabilities = cm.getNetworkCapabilities(cm.activeNetwork) ?: return false
-        capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) &&
-            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        DefaultNetworkStateReader.isValidatedWifi(DefaultNetworkStateReader.read(context))
     }.getOrDefault(false)
 
     /** True when the active validated network has no metered-cost restriction. */
@@ -63,10 +59,7 @@ object ConstraintStateReader {
         if (context.checkSelfPermission(android.Manifest.permission.ACCESS_NETWORK_STATE) !=
             PackageManager.PERMISSION_GRANTED
         ) return false
-        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
-        val capabilities = cm.getNetworkCapabilities(cm.activeNetwork) ?: return false
-        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) &&
-            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+        DefaultNetworkStateReader.isValidatedUnmetered(DefaultNetworkStateReader.read(context))
     }.getOrDefault(false)
 
     /** Battery percentage 0..100, or -1 when unreadable. */

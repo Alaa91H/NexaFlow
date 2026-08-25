@@ -13,6 +13,9 @@ import android.telephony.TelephonyCallback
 import android.telephony.TelephonyDisplayInfo
 import android.telephony.TelephonyManager
 import com.nexaflow.core.common.CellularNetworkReader
+import com.nexaflow.core.common.DefaultNetworkSnapshot
+import com.nexaflow.core.common.DefaultNetworkStateReader
+import com.nexaflow.core.common.NetworkTransportState
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
@@ -79,17 +82,26 @@ class ConnectivityMonitor @Inject constructor(
             }
             val networkCallback = object : ConnectivityManager.NetworkCallback() {
                 override fun onAvailable(network: Network) {
+                    // Queue a guarded snapshot for compatibility, but never read
+                    // capabilities synchronously on the callback thread. Android
+                    // supplies the authoritative payload immediately afterward
+                    // through onCapabilitiesChanged on supported releases.
                     handleChange()
                 }
 
                 override fun onLost(network: Network) {
+                    // A default-network handover can report a replacement before
+                    // the old network is lost. Read after this callback returns so
+                    // the fresh default state, if any, decides the trigger.
                     handleChange()
                 }
 
                 override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
-                    // A 4G/5G transition can be reported as a capability change
-                    // while the default mobile network remains available.
-                    handleChange()
+                    // Consume the callback payload directly instead of calling
+                    // getNetworkCapabilities from the callback, which Android
+                    // documents as race-prone. Telephony callbacks separately
+                    // refresh NETWORK_MODE for 4G/5G transitions.
+                    handleChange(DefaultNetworkSnapshot.Available(caps))
                 }
             }
             callback = networkCallback
@@ -236,16 +248,15 @@ class ConnectivityMonitor @Inject constructor(
         latestDisplayInfo = null
     }
 
-    private fun handleChange() {
+    private fun handleChange(callbackSnapshot: DefaultNetworkSnapshot? = null) {
         if (!initialized) return
         scope.launch {
             if (!initialized) return@launch
-            // Every network condition is re-read from live state (capabilities,
-            // tether setting, cellular generation) on each callback, so stale
-            // callbacks self-correct.
-            val connectivityManager =
-                context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-            val capabilities = connectivityManager?.getNetworkCapabilities(connectivityManager.activeNetwork)
+            // Callback-delivered capabilities are authoritative for that change.
+            // Outside a callback, take one guarded snapshot that preserves the
+            // distinction between no default network and a transient unreadable
+            // capability read.
+            val networkSnapshot = callbackSnapshot ?: DefaultNetworkStateReader.read(context)
             val automations = repository.getAutomations().first()
             val now = System.currentTimeMillis()
             automations
@@ -263,7 +274,7 @@ class ConnectivityMonitor @Inject constructor(
                     val network = trigger.config["network"]
                         ?: if (trigger.type == TriggerType.NETWORK_MODE) "NETWORK_MODE" else "WIFI"
                     val desiredState = trigger.config["state"] ?: "CONNECTED"
-                    val current = currentNetworkValue(network, capabilities)
+                    val current = currentNetworkValue(network, networkSnapshot)
                     val matched = if (network == "NETWORK_MODE") {
                         CellularNetworkReader.matchesNetworkMode(desiredState, current)
                     } else {
@@ -299,16 +310,10 @@ class ConnectivityMonitor @Inject constructor(
      */
     private fun currentNetworkValue(
         network: String,
-        capabilities: NetworkCapabilities?
+        snapshot: DefaultNetworkSnapshot
     ): String? = when (network) {
-        "WIFI" -> when {
-            capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true -> "CONNECTED"
-            else -> "DISCONNECTED"
-        }
-        "MOBILE" -> when {
-            capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true -> "CONNECTED"
-            else -> "DISCONNECTED"
-        }
+        "WIFI" -> defaultTransportValue(snapshot, NetworkCapabilities.TRANSPORT_WIFI)
+        "MOBILE" -> defaultTransportValue(snapshot, NetworkCapabilities.TRANSPORT_CELLULAR)
         "HOTSPOT" -> runCatching {
             Settings.Global.getInt(context.contentResolver, "tether_on", 0) == 1
         }.getOrDefault(false).let { if (it) "ON" else "OFF" }
@@ -323,6 +328,15 @@ class ConnectivityMonitor @Inject constructor(
             }
         }
         else -> null
+    }
+
+    private fun defaultTransportValue(
+        snapshot: DefaultNetworkSnapshot,
+        transport: Int
+    ): String? = when (DefaultNetworkStateReader.transportState(snapshot, transport)) {
+        NetworkTransportState.CONNECTED -> "CONNECTED"
+        NetworkTransportState.DISCONNECTED -> "DISCONNECTED"
+        NetworkTransportState.UNKNOWN -> null
     }
 }
 

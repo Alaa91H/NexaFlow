@@ -3,12 +3,14 @@ package com.nexaflow.core.execution.variables
 import android.annotation.SuppressLint
 import android.content.Context
 import android.media.AudioManager
-import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.BatteryManager
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
+import com.nexaflow.core.common.DefaultNetworkSnapshot
+import com.nexaflow.core.common.DefaultNetworkStateReader
+import com.nexaflow.core.common.NetworkTransportState
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -58,17 +60,25 @@ object BuiltinVariables {
             // ignore
         }
         try {
-            val connectivityManager =
-                context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-            val capabilities = connectivityManager
-                ?.getNetworkCapabilities(connectivityManager.activeNetwork)
-            out["WIFI"] =
-                if (capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true) "on" else "off"
-            out["NETWORK"] = when {
-                capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true -> "wifi"
-                capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) == true -> "mobile"
-                connectivityManager?.activeNetwork == null -> "none"
-                else -> "other"
+            val snapshot = DefaultNetworkStateReader.read(context)
+            out["WIFI"] = when (
+                DefaultNetworkStateReader.transportState(
+                    snapshot,
+                    NetworkCapabilities.TRANSPORT_WIFI
+                )
+            ) {
+                NetworkTransportState.CONNECTED -> "on"
+                NetworkTransportState.DISCONNECTED -> "off"
+                NetworkTransportState.UNKNOWN -> "unknown"
+            }
+            out["NETWORK"] = when (snapshot) {
+                is DefaultNetworkSnapshot.Available -> when {
+                    snapshot.capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "wifi"
+                    snapshot.capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "mobile"
+                    else -> "other"
+                }
+                DefaultNetworkSnapshot.NoActiveNetwork -> "none"
+                DefaultNetworkSnapshot.Unavailable -> "unknown"
             }
         } catch (_: Throwable) {
             // ignore

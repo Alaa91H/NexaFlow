@@ -9,6 +9,9 @@ import android.media.AudioManager
 import android.os.BatteryManager
 import android.provider.Settings
 import com.nexaflow.core.common.CellularNetworkReader
+import com.nexaflow.core.common.DefaultNetworkSnapshot
+import com.nexaflow.core.common.DefaultNetworkStateReader
+import com.nexaflow.core.common.NetworkTransportState
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.schedule.TimeTriggerCalculator
@@ -309,22 +312,17 @@ object TriggerStateEvaluator {
     private fun connectivitySatisfied(context: Context, config: Map<String, String>): Boolean {
         val network = config["network"] ?: "WIFI"
         val desired = config["state"] ?: "CONNECTED"
+        val snapshot = DefaultNetworkStateReader.read(context)
         val actual = when (network) {
             "NETWORK_MODE" -> CellularNetworkReader.read(context)
-            "WIFI" -> {
-                val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE)
-                    as? android.net.ConnectivityManager
-                if (cm?.getNetworkCapabilities(cm.activeNetwork)
-                        ?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) == true
-                ) "CONNECTED" else "DISCONNECTED"
-            }
-            "MOBILE" -> {
-                val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE)
-                    as? android.net.ConnectivityManager
-                if (cm?.getNetworkCapabilities(cm.activeNetwork)
-                        ?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) == true
-                ) "CONNECTED" else "DISCONNECTED"
-            }
+            "WIFI" -> defaultTransportValue(
+                snapshot,
+                android.net.NetworkCapabilities.TRANSPORT_WIFI
+            )
+            "MOBILE" -> defaultTransportValue(
+                snapshot,
+                android.net.NetworkCapabilities.TRANSPORT_CELLULAR
+            )
             "HOTSPOT" -> runCatching {
                 Settings.Global.getInt(context.contentResolver, "tether_on", 0) == 1
             }.getOrDefault(false).let { if (it) "ON" else "OFF" }
@@ -335,6 +333,15 @@ object TriggerStateEvaluator {
         } else {
             actual == desired
         }
+    }
+
+    private fun defaultTransportValue(
+        snapshot: DefaultNetworkSnapshot,
+        transport: Int
+    ): String? = when (DefaultNetworkStateReader.transportState(snapshot, transport)) {
+        NetworkTransportState.CONNECTED -> "CONNECTED"
+        NetworkTransportState.DISCONNECTED -> "DISCONNECTED"
+        NetworkTransportState.UNKNOWN -> null
     }
 
     private fun ringerModeSatisfied(context: Context, config: Map<String, String>): Boolean {
