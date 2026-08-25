@@ -75,6 +75,21 @@ object ShizukuShellBridge {
         notifyStateChanged()
     }
 
+    /**
+     * Explicit user-requested recovery for a granted Shizuku server whose
+     * UserService never connected or was disconnected by an OEM. Permission
+     * alone is insufficient: typed operations require a live AIDL endpoint.
+     */
+    fun reconnect(context: Context) {
+        appContext = context.applicationContext
+        synchronized(lock) {
+            if (boundShell != null) return
+            bindAttempted = false
+        }
+        bindIfGranted()
+        notifyStateChanged()
+    }
+
     private fun bindIfGranted() {
         if (!PrivilegedRunner.isShizukuGranted() || boundShell != null || bindAttempted) return
         synchronized(lock) {

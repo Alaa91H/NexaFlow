@@ -38,13 +38,38 @@ class UserShellService : Service() {
         ): String = try {
             val operation = PrivilegedOperation.fromWire(operationId, first, second, third)
                 ?: return "$INTERNAL_ERROR_EXIT\nUnsupported or invalid privileged operation"
-            runArgv(operation.argv())
+            runTypedOperation(operation)
         } catch (t: Throwable) {
             "$INTERNAL_ERROR_EXIT\n${t.message ?: "internal error"}"
         }
     }
 
     override fun onBind(intent: Intent): IBinder = binder
+
+    /**
+     * Uses a direct ITelephony read/write when its reflected signature exists,
+     * then retains the fixed TelephonyShell argv as a compatibility fallback.
+     * This method accepts only a closed [PrivilegedOperation] shape.
+     */
+    private fun runTypedOperation(operation: PrivilegedOperation): String = when (operation) {
+        is PrivilegedOperation.ReadAllowedNetworkTypes -> {
+            PrivilegedTelephonyBridge.readUserAllowedNetworkTypes(operation.subscriptionId)
+                ?.let { "0\n${java.lang.Long.toString(it, 2)}" }
+                ?: runArgv(operation.argv())
+        }
+        is PrivilegedOperation.SetAllowedNetworkTypes -> {
+            if (PrivilegedTelephonyBridge.setUserAllowedNetworkTypes(
+                    operation.subscriptionId,
+                    operation.allowedNetworkTypes
+                )
+            ) {
+                "0\nset-allowed-network-types-for-users dispatched via ITelephony"
+            } else {
+                runArgv(operation.argv())
+            }
+        }
+        else -> runArgv(operation.argv())
+    }
 
     /**
      * Runs one command with a hard timeout so a hung process can never block

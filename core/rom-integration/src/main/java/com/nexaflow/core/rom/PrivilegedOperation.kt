@@ -65,11 +65,21 @@ sealed interface PrivilegedOperation {
         override fun argv(): List<String> = listOf("cp", "--", source, destination)
     }
 
-    /** Reads the user-selected allowed-network-types mask for one physical SIM slot. */
-    data class ReadAllowedNetworkTypes(val slotIndex: Int) : PrivilegedOperation {
+    /**
+     * Reads the user-selected allowed-network-types mask for one physical SIM
+     * slot. [subscriptionId] lets a Shizuku UserService use the direct
+     * ITelephony read fallback on ROMs that omit or alter TelephonyShell.
+     */
+    data class ReadAllowedNetworkTypes(
+        val slotIndex: Int,
+        val subscriptionId: Int = NO_SUBSCRIPTION
+    ) : PrivilegedOperation {
         override val wireId: PrivilegedOperationId = PrivilegedOperationId.NETWORK_MODE_READ
-        init { require(slotIndex in NO_SLOT..MAX_SIM_SLOT) { "SIM slot is out of range" } }
-        override fun wireArguments(): List<String> = listOf(slotIndex.toString())
+        init {
+            require(slotIndex in NO_SLOT..MAX_SIM_SLOT) { "SIM slot is out of range" }
+            require(subscriptionId >= NO_SUBSCRIPTION) { "Subscription id is invalid" }
+        }
+        override fun wireArguments(): List<String> = listOf(slotIndex.toString(), subscriptionId.toString())
         override fun argv(): List<String> = buildList {
             addAll(listOf("cmd", "phone", "get-allowed-network-types-for-users"))
             if (slotIndex != NO_SLOT) addAll(listOf("-s", slotIndex.toString()))
@@ -79,11 +89,13 @@ sealed interface PrivilegedOperation {
     /** Applies one confirmed allowed-network-types mask for one physical SIM slot. */
     data class SetAllowedNetworkTypes(
         val slotIndex: Int,
+        val subscriptionId: Int = NO_SUBSCRIPTION,
         val allowedNetworkTypes: Long
     ) : PrivilegedOperation {
         override val wireId: PrivilegedOperationId = PrivilegedOperationId.NETWORK_MODE_SET
         init {
             require(slotIndex in NO_SLOT..MAX_SIM_SLOT) { "SIM slot is out of range" }
+            require(subscriptionId >= NO_SUBSCRIPTION) { "Subscription id is invalid" }
             require(allowedNetworkTypes > 0L &&
                 allowedNetworkTypes and NetworkModePolicy.BITMASK_SELECTABLE_CELLULAR ==
                     allowedNetworkTypes
@@ -91,6 +103,7 @@ sealed interface PrivilegedOperation {
         }
         override fun wireArguments(): List<String> = listOf(
             slotIndex.toString(),
+            subscriptionId.toString(),
             java.lang.Long.toString(allowedNetworkTypes, 2)
         )
         override fun argv(): List<String> = buildList {
@@ -127,10 +140,14 @@ sealed interface PrivilegedOperation {
                     value = third
                 )
                 PrivilegedOperationId.FILE_COPY -> CopyControlledFile(first, second)
-                PrivilegedOperationId.NETWORK_MODE_READ -> ReadAllowedNetworkTypes(first.toInt())
+                PrivilegedOperationId.NETWORK_MODE_READ -> ReadAllowedNetworkTypes(
+                    slotIndex = first.toInt(),
+                    subscriptionId = second.toInt()
+                )
                 PrivilegedOperationId.NETWORK_MODE_SET -> SetAllowedNetworkTypes(
                     slotIndex = first.toInt(),
-                    allowedNetworkTypes = second.toLong(2)
+                    subscriptionId = second.toInt(),
+                    allowedNetworkTypes = third.toLong(2)
                 )
                 null -> null
             }
@@ -152,6 +169,7 @@ sealed interface PrivilegedOperation {
         private const val CONTROLLED_FILE_ROOT = "/sdcard/NexaFlow/"
         private const val MAX_SETTING_VALUE_LENGTH = 512
         private const val NO_SLOT = -1
+        private const val NO_SUBSCRIPTION = -1
         private const val MAX_SIM_SLOT = 8
 
         private fun String.isPackageName(): Boolean = PACKAGE.matches(this)

@@ -52,6 +52,7 @@ import com.nexaflow.core.rom.NetworkModePolicy
 import com.nexaflow.core.rom.NetworkModeSnapshot
 import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.rom.RootPermissionGranter
+import com.nexaflow.core.rom.ShizukuShellBridge
 import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
@@ -225,21 +226,39 @@ internal fun NetworkModeSelector(
                                 Text(stringResource(R.string.network_mode_grant_phone_permission))
                             }
                         }
-                        val elevatedGranted = PrivilegedRunner.isShizukuGranted() ||
-                            PrivilegedRunner.isRootAvailable()
-                        if (!elevatedGranted) {
+                        val shizukuReady = PrivilegedRunner.isShizukuGranted() &&
+                            ShizukuShellBridge.isUserServiceBound
+                        val elevatedReady = shizukuReady || PrivilegedRunner.isRootAvailable()
+                        if (!elevatedReady) {
                             TextButton(
                                 onClick = {
-                                    PermissionShortcuts.openSpecial(
-                                        context,
-                                        SpecialPermission.ELEVATED
-                                    )
+                                    if (PrivilegedRunner.isShizukuGranted()) {
+                                        // A granted server can survive while its
+                                        // UserService is disconnected on some ROMs.
+                                        // Reconnect rather than falsely presenting
+                                        // the permission as a usable execution path.
+                                        ShizukuShellBridge.reconnect(context)
+                                    } else {
+                                        PermissionShortcuts.openSpecial(
+                                            context,
+                                            SpecialPermission.ELEVATED
+                                        )
+                                    }
                                 }
                             ) {
                                 Text(stringResource(R.string.special_elevated_title))
                             }
                         }
-                        TextButton(onClick = { permissionRevision += 1 }) {
+                        TextButton(
+                            onClick = {
+                                if (PrivilegedRunner.isShizukuGranted() &&
+                                    !ShizukuShellBridge.isUserServiceBound
+                                ) {
+                                    ShizukuShellBridge.reconnect(context)
+                                }
+                                permissionRevision += 1
+                            }
+                        ) {
                             Text(stringResource(R.string.refresh))
                         }
                     }

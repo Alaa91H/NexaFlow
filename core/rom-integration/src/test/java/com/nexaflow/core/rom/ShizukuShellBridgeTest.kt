@@ -81,11 +81,11 @@ class ShizukuShellBridgeTest {
         val operation = PrivilegedOperation.fromWire(
             wireId = "network.mode.read",
             first = "1",
-            second = "",
+            second = "42",
             third = ""
         )
 
-        assertEquals(PrivilegedOperation.ReadAllowedNetworkTypes(1), operation)
+        assertEquals(PrivilegedOperation.ReadAllowedNetworkTypes(1, 42), operation)
         assertEquals(
             listOf("cmd", "phone", "get-allowed-network-types-for-users", "-s", "1"),
             operation?.argv()
@@ -98,11 +98,11 @@ class ShizukuShellBridgeTest {
         val operation = PrivilegedOperation.fromWire(
             wireId = "network.mode.set",
             first = "0",
-            second = java.lang.Long.toString(mask, 2),
-            third = ""
+            second = "42",
+            third = java.lang.Long.toString(mask, 2)
         )
 
-        assertEquals(PrivilegedOperation.SetAllowedNetworkTypes(0, mask), operation)
+        assertEquals(PrivilegedOperation.SetAllowedNetworkTypes(0, 42, mask), operation)
         assertEquals(
             listOf(
                 "cmd", "phone", "set-allowed-network-types-for-users", "-s", "0",
@@ -116,11 +116,11 @@ class ShizukuShellBridgeTest {
     fun `network mode wire rejects invalid slots and shell-like masks`() {
         assertEquals(
             null,
-            PrivilegedOperation.fromWire("network.mode.read", "99", "", "")
+            PrivilegedOperation.fromWire("network.mode.read", "99", "42", "")
         )
         assertEquals(
             null,
-            PrivilegedOperation.fromWire("network.mode.set", "0", "1;reboot", "")
+            PrivilegedOperation.fromWire("network.mode.set", "0", "42", "1;reboot")
         )
     }
 

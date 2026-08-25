@@ -88,7 +88,10 @@ class NetworkModeCapabilities(private val context: Context) {
              * with an invented universal 2G/3G/4G/5G list.
              */
             val elevatedUserMask = if (platformSelectableMask == null) {
-                readElevatedUserMask(subscription.simSlotIndex)
+                readElevatedUserMask(
+                    slotIndex = subscription.simSlotIndex,
+                    subscriptionId = subscription.subscriptionId
+                )
             } else {
                 null
             }
@@ -137,7 +140,7 @@ class NetworkModeCapabilities(private val context: Context) {
      * call with unparsable or zero output remains unavailable rather than
      * becoming an invented capability list.
      */
-    private fun readElevatedUserMask(slotIndex: Int): Long? {
+    private fun readElevatedUserMask(slotIndex: Int, subscriptionId: Int): Long? {
         if (!PrivilegedRunner.isShizukuGranted() && !PrivilegedRunner.isRootAvailable()) return null
         val variants = buildList {
             if (slotIndex in 0..8) add(slotIndex)
@@ -145,7 +148,10 @@ class NetworkModeCapabilities(private val context: Context) {
         }.distinct()
         for (variant in variants) {
             val result = PrivilegedRunner.runElevatedOperation(
-                PrivilegedOperation.ReadAllowedNetworkTypes(variant)
+                PrivilegedOperation.ReadAllowedNetworkTypes(
+                    slotIndex = variant,
+                    subscriptionId = subscriptionId
+                )
             )
             if (!result.success) continue
             NetworkModePolicy.parseReadBackMask(result.message)?.let { return it }

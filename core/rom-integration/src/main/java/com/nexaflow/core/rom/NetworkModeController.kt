@@ -188,11 +188,18 @@ class NetworkModeController(
             val variants = setCommandVariants(slotIndexFor(subId))
             for (slot in variants) {
                 val set = PrivilegedRunner.runElevatedOperation(
-                    PrivilegedOperation.SetAllowedNetworkTypes(slot, request.bitmask)
+                    PrivilegedOperation.SetAllowedNetworkTypes(
+                        slotIndex = slot,
+                        subscriptionId = subId,
+                        allowedNetworkTypes = request.bitmask
+                    )
                 )
                 if (set.success && !shellReportedFailure(set.message)) {
                     val readBack = PrivilegedRunner.runElevatedOperation(
-                        PrivilegedOperation.ReadAllowedNetworkTypes(slot)
+                        PrivilegedOperation.ReadAllowedNetworkTypes(
+                            slotIndex = slot,
+                            subscriptionId = subId
+                        )
                     ).message
                     if (NetworkModePolicy.coversReadBack(readBack, request)) {
                         return true to "$label via cmd phone"

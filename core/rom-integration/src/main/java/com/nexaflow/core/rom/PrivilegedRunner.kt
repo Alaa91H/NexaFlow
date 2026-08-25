@@ -70,8 +70,11 @@ object PrivilegedRunner {
      * fallback never turns workflow input into a shell expression.
      */
     fun runElevatedOperation(operation: PrivilegedOperation): SystemControlResult = when {
-        isShizukuGranted() -> runShizukuOperation(operation)
+        isShizukuGranted() && ShizukuShellBridge.isUserServiceBound -> runShizukuOperation(operation)
         isRootAvailable() -> runRootOperation(operation)
+        isShizukuGranted() -> SystemControlResult.fail(
+            "Shizuku permission is granted but its UserService is not connected; reconnect Shizuku and retry"
+        )
         else -> SystemControlResult.fail("No elevated runtime available (Shizuku or root)")
     }
 
