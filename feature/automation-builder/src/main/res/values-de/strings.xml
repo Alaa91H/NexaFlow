@@ -997,4 +997,15 @@
     <string name="charging_vibration">Ladevibration</string>
     <string name="charging_feedback_elevated_note">Erfordert Root oder Shizuku und prüft die Einstellungen nach dem Schreiben. Nicht unterstützte ROMs melden einen Fehler.</string>
     <string name="network_mode_phone_permission_hint">Erlauben Sie den Telefonstatuszugriff, um aktive SIM-Karten und die von Ihrem Gerät tatsächlich unterstützten Netzwerkmodi zu lesen. Das Ändern eines Netzwerkmodus erfordert zusätzlich Root, Shizuku oder System-App-Zugriff.</string>
+
+
+    <!-- Safe local starter-routine chooser. -->
+    <string name="starter_routines">Start-Routinen</string>
+    <string name="starter_routines_sub">Beginnen Sie mit einer bearbeitbaren Routine. Sie wird deaktiviert gespeichert, bis Sie sie prüfen und aktivieren.</string>
+    <string name="starter_template_sleep">Schlafmodus</string>
+    <string name="starter_template_low_battery">Energiesparen bei niedrigem Akkustand</string>
+    <string name="starter_template_charging">Beim Anschließen des Ladegeräts</string>
+    <string name="starter_template_daily_app_maintenance">Tägliche App-Wartung</string>
+    <string name="starter_template_weekly_storage_cleanup">Wöchentliche Speicherprüfung</string>
+    <string name="starter_template_nightly_automation_sync">Nächtliche Automatisierungserinnerung</string>
 </resources>

@@ -93,7 +93,11 @@ class AutomationBuilderViewModel @Inject constructor(
         // Always immediate: the cooldown UI was removed and every trigger now
         // fires at once; the engine gate stays pinned to zero.
         cooldownSeconds: Int = 0,
-        maintenanceProfile: MaintenanceProfile? = null
+        maintenanceProfile: MaintenanceProfile? = null,
+        // Bundled starter routines are intentionally saved disabled. This gives
+        // the user one review point in the dashboard before a prebuilt routine
+        // can react to a device event; manual creation keeps its existing flow.
+        startDisabled: Boolean = false
     ) {
         viewModelScope.launch {
             val now = System.currentTimeMillis()
@@ -125,7 +129,13 @@ class AutomationBuilderViewModel @Inject constructor(
                 automation,
                 capabilityStateStore.snapshot.value
             ).admissible
-            val storedAutomation = automation.copy(enabled = (prev?.enabled ?: true) && admitted)
+            val storedAutomation = automation.copy(
+                enabled = resolvedSavedEnabled(
+                    previousEnabled = prev?.enabled,
+                    admissible = admitted,
+                    startDisabled = startDisabled
+                )
+            )
             existing = storedAutomation
             repository.saveAutomation(storedAutomation)
             // Battery triggers only evaluate on ACTION_BATTERY_CHANGED broadcasts;
@@ -136,4 +146,21 @@ class AutomationBuilderViewModel @Inject constructor(
         }
     }
 
+}
+
+/**
+ * Single source of truth for the first-save activation policy.
+ *
+ * Existing routines retain the user's toggle, an inadmissible routine can never
+ * be enabled, and a starter routine begins disabled until the user reviews it.
+ */
+internal fun resolvedSavedEnabled(
+    previousEnabled: Boolean?,
+    admissible: Boolean,
+    startDisabled: Boolean
+): Boolean = when {
+    !admissible -> false
+    previousEnabled != null -> previousEnabled
+    startDisabled -> false
+    else -> true
 }

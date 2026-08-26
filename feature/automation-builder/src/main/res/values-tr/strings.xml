@@ -997,4 +997,15 @@
     <string name="charging_vibration">Şarj titreşimi</string>
     <string name="charging_feedback_elevated_note">Root veya Shizuku gerekir ve yazıldıktan sonra ayarları doğrular. Desteklenmeyen ROM’lar hata bildirir.</string>
     <string name="network_mode_phone_permission_hint">Etkin SIM kartları ve cihazınızın gerçekten desteklediği ağ modlarını okumak için telefon durumu erişimine izin verin. Ağ modunu değiştirmek için root, Shizuku veya sistem uygulaması erişimi de gerekir.</string>
+
+
+    <!-- Safe local starter-routine chooser. -->
+    <string name="starter_routines">Başlangıç rutinleri</string>
+    <string name="starter_routines_sub">Düzenlenebilir bir rutinle başlayın. Siz inceleyip etkinleştirene kadar devre dışı kaydedilir.</string>
+    <string name="starter_template_sleep">Uyku modu</string>
+    <string name="starter_template_low_battery">Düşük pil tasarrufu</string>
+    <string name="starter_template_charging">Şarj cihazı bağlandığında</string>
+    <string name="starter_template_daily_app_maintenance">Günlük uygulama bakımı</string>
+    <string name="starter_template_weekly_storage_cleanup">Haftalık depolama incelemesi</string>
+    <string name="starter_template_nightly_automation_sync">Gece otomasyon hatırlatıcısı</string>
 </resources>

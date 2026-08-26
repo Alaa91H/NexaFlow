@@ -997,4 +997,15 @@
     <string name="charging_sound">Charging sound</string>
     <string name="charging_vibration">Charging vibration</string>
     <string name="charging_feedback_elevated_note">Requires root or Shizuku and verifies the settings after writing. Unsupported ROMs report a failure.</string>
+
+
+    <!-- Safe local starter-routine chooser. -->
+    <string name="starter_routines">Starter routines</string>
+    <string name="starter_routines_sub">Start with an editable routine. It will be saved off until you review and enable it.</string>
+    <string name="starter_template_sleep">Sleep mode</string>
+    <string name="starter_template_low_battery">Low battery saver</string>
+    <string name="starter_template_charging">Charging connection</string>
+    <string name="starter_template_daily_app_maintenance">Daily app maintenance</string>
+    <string name="starter_template_weekly_storage_cleanup">Weekly storage review</string>
+    <string name="starter_template_nightly_automation_sync">Nightly automation reminder</string>
 </resources>

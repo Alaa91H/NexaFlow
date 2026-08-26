@@ -997,4 +997,15 @@
     <string name="charging_vibration">Вибрация при зарядке</string>
     <string name="charging_feedback_elevated_note">Требуется root или Shizuku с проверкой настроек после записи. Неподдерживаемые ROM сообщают об ошибке.</string>
     <string name="network_mode_phone_permission_hint">Разрешите доступ к состоянию телефона, чтобы читать активные SIM-карты и режимы сети, действительно поддерживаемые устройством. Для изменения режима сети также нужны root, Shizuku или доступ системного приложения.</string>
+
+
+    <!-- Safe local starter-routine chooser. -->
+    <string name="starter_routines">Стартовые сценарии</string>
+    <string name="starter_routines_sub">Начните с редактируемого сценария. Он будет сохранён отключённым, пока вы не проверите и не включите его.</string>
+    <string name="starter_template_sleep">Режим сна</string>
+    <string name="starter_template_low_battery">Экономия при низком заряде</string>
+    <string name="starter_template_charging">При подключении зарядки</string>
+    <string name="starter_template_daily_app_maintenance">Ежедневное обслуживание приложений</string>
+    <string name="starter_template_weekly_storage_cleanup">Еженедельная проверка хранилища</string>
+    <string name="starter_template_nightly_automation_sync">Ночное напоминание об автоматизации</string>
 </resources>

@@ -997,4 +997,15 @@
     <string name="charging_vibration">充电振动</string>
     <string name="charging_feedback_elevated_note">需要 root 或 Shizuku，并在写入后验证设置。不支持的 ROM 会报告失败。</string>
     <string name="network_mode_phone_permission_hint">请允许访问手机状态，以读取活跃 SIM 卡和设备实际支持的网络模式。更改网络模式还需要 root、Shizuku 或系统应用访问权限。</string>
+
+
+    <!-- Safe local starter-routine chooser. -->
+    <string name="starter_routines">入门例程</string>
+    <string name="starter_routines_sub">从可编辑的例程开始。在您审核并启用前，它将保持停用状态保存。</string>
+    <string name="starter_template_sleep">睡眠模式</string>
+    <string name="starter_template_low_battery">低电量省电</string>
+    <string name="starter_template_charging">连接充电器时</string>
+    <string name="starter_template_daily_app_maintenance">每日应用维护</string>
+    <string name="starter_template_weekly_storage_cleanup">每周存储检查</string>
+    <string name="starter_template_nightly_automation_sync">夜间自动化提醒</string>
 </resources>

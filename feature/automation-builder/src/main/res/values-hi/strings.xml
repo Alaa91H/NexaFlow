@@ -997,4 +997,15 @@
     <string name="charging_vibration">चार्जिंग कंपन</string>
     <string name="charging_feedback_elevated_note">root या Shizuku आवश्यक है और लिखने के बाद सेटिंग की जांच करता है। असमर्थित ROM विफलता बताती हैं।</string>
     <string name="network_mode_phone_permission_hint">सक्रिय SIM और आपके डिवाइस द्वारा वास्तव में समर्थित नेटवर्क मोड पढ़ने के लिए फ़ोन स्थिति एक्सेस की अनुमति दें। नेटवर्क मोड बदलने के लिए root, Shizuku या सिस्टम-ऐप एक्सेस भी आवश्यक है।</string>
+
+
+    <!-- Safe local starter-routine chooser. -->
+    <string name="starter_routines">प्रारंभिक रूटीन</string>
+    <string name="starter_routines_sub">संपादित करने योग्य रूटीन से शुरू करें। समीक्षा और सक्षम करने तक यह बंद स्थिति में सहेजी जाएगी।</string>
+    <string name="starter_template_sleep">नींद मोड</string>
+    <string name="starter_template_low_battery">कम बैटरी बचत</string>
+    <string name="starter_template_charging">चार्जर जुड़ने पर</string>
+    <string name="starter_template_daily_app_maintenance">दैनिक ऐप रखरखाव</string>
+    <string name="starter_template_weekly_storage_cleanup">साप्ताहिक स्टोरेज समीक्षा</string>
+    <string name="starter_template_nightly_automation_sync">रात्रि ऑटोमेशन अनुस्मारक</string>
 </resources>

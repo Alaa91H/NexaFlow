@@ -997,4 +997,15 @@
     <string name="charging_vibration">Vibração de carregamento</string>
     <string name="charging_feedback_elevated_note">Requer root ou Shizuku e verifica as configurações após gravar. ROMs não suportadas informam falha.</string>
     <string name="network_mode_phone_permission_hint">Permita o acesso ao estado do telefone para ler os SIMs ativos e os modos de rede realmente compatíveis com o seu dispositivo. Alterar um modo de rede também requer acesso root, Shizuku ou de app do sistema.</string>
+
+
+    <!-- Safe local starter-routine chooser. -->
+    <string name="starter_routines">Rotinas iniciais</string>
+    <string name="starter_routines_sub">Comece com uma rotina editável. Ela será salva desativada até você revisá-la e ativá-la.</string>
+    <string name="starter_template_sleep">Modo de sono</string>
+    <string name="starter_template_low_battery">Economia de bateria baixa</string>
+    <string name="starter_template_charging">Ao conectar o carregador</string>
+    <string name="starter_template_daily_app_maintenance">Manutenção diária de aplicações</string>
+    <string name="starter_template_weekly_storage_cleanup">Revisão semanal de armazenamento</string>
+    <string name="starter_template_nightly_automation_sync">Lembrete noturno de automação</string>
 </resources>

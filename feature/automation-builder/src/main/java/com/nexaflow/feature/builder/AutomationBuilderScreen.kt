@@ -124,6 +124,7 @@ import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Restore
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -138,6 +139,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -890,12 +892,15 @@ fun AutomationBuilderScreen(
     val supportedTriggers = remember(context, capabilitySnapshot) {
         CompatibilityGate.supportedTriggerOptions(context, capabilitySnapshot)
     }
-    val availableTemplateIds = remember(capabilitySnapshot) {
+    val availableTemplates = remember(capabilitySnapshot) {
         RoutineTemplateCatalog.availableTemplates(
             snapshot = capabilitySnapshot,
             actionRequirement = CommandRequirementCatalog::requirementFor,
             triggerRequirement = CommandRequirementCatalog::requirementFor
-        ).mapTo(linkedSetOf()) { it.id }
+        )
+    }
+    val availableTemplateIds = remember(availableTemplates) {
+        availableTemplates.mapTo(linkedSetOf()) { it.id }
     }
     val variables by viewModel.variables.collectAsStateWithLifecycle()
     // Saved tasks available for notification action buttons (run from a notification).
@@ -961,6 +966,8 @@ fun AutomationBuilderScreen(
     val exitActionConfigs = rememberSaveable(saver = ActionConfigMapSaver) { mutableStateMapOf<ActionType, Map<String, String>>() }
     val selectedExitActions = rememberSaveable(saver = ActionOptionListSaver) { mutableStateListOf<ActionOption>() }
     var appliedTemplateId by rememberSaveable { mutableStateOf<String?>(null) }
+    var requestedTemplateId by rememberSaveable(templateId) { mutableStateOf(templateId) }
+    var showStarterRoutineChooser by rememberSaveable { mutableStateOf(false) }
 
     // ── External plugins (Locale protocol) ─────────────────────────
     val plugins by viewModel.plugins.collectAsStateWithLifecycle()
@@ -1075,9 +1082,10 @@ fun AutomationBuilderScreen(
     }
 
     // A template fills a new editable draft once. It never overwrites an edit.
-    LaunchedEffect(templateId, automationId, availableTemplateIds) {
-        if (automationId == null && templateId != null && appliedTemplateId != templateId) {
-            RoutineTemplateCatalog.find(templateId)
+    LaunchedEffect(requestedTemplateId, automationId, availableTemplateIds) {
+        val requestedId = requestedTemplateId
+        if (automationId == null && requestedId != null && appliedTemplateId != requestedId) {
+            RoutineTemplateCatalog.find(requestedId)
                 ?.takeIf { it.id in availableTemplateIds }
                 ?.let { template ->
                 triggers.clear()
@@ -1096,7 +1104,10 @@ fun AutomationBuilderScreen(
                 }
                 expandedTriggerIndex = null
                 expandedActionCardId = null
-                appliedTemplateId = templateId
+                // A template is only a starting point. Prefill the editable name,
+                // show the full review station, and persist it disabled on first save.
+                name = configurationContext.getString(starterRoutineTitleRes(template.id))
+                appliedTemplateId = requestedId
                 step = if (triggers.isNotEmpty() && actionDrafts.isNotEmpty()) 2 else 0
             }
         }
@@ -1344,6 +1355,10 @@ fun AutomationBuilderScreen(
     }
 
     val isEditing = automationId != null
+    val canChooseStarterRoutine = !isEditing &&
+        triggers.isEmpty() &&
+        actionDrafts.isEmpty() &&
+        availableTemplates.isNotEmpty()
 
     val stringPermissionDenied = stringResource(R.string.permission_denied_hint)
     // Permission request currently waiting for the user to confirm the Samsung-style
@@ -1454,7 +1469,8 @@ fun AutomationBuilderScreen(
             revertOnExit = false,
             cooldownSeconds = 0,
             maintenanceProfile = RoutineTemplateCatalog.find(appliedTemplateId)?.maintenanceProfile
-                ?: loadedAutomation?.maintenanceProfile
+                ?: loadedAutomation?.maintenanceProfile,
+            startDisabled = !isEditing && appliedTemplateId != null
         )
         // Aggressive permission flow: right after saving, request any missing
         // runtime permission through the system dialog immediately, and explain
@@ -1509,7 +1525,16 @@ fun AutomationBuilderScreen(
                 },
                 // A single primary action is kept at the bottom of each station.
                 // This avoids competing save actions while the routine is incomplete.
-                actions = { }
+                actions = {
+                    if (canChooseStarterRoutine) {
+                        IconButton(onClick = { showStarterRoutineChooser = true }) {
+                            Icon(
+                                imageVector = Icons.Filled.ViewCarousel,
+                                contentDescription = stringResource(R.string.starter_routines)
+                            )
+                        }
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -1971,6 +1996,38 @@ fun AutomationBuilderScreen(
         }
     }
 
+    if (showStarterRoutineChooser) {
+        AlertDialog(
+            onDismissRequest = { showStarterRoutineChooser = false },
+            title = { Text(stringResource(R.string.starter_routines)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = stringResource(R.string.starter_routines_sub),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    availableTemplates.forEach { template ->
+                        Button(
+                            onClick = {
+                                requestedTemplateId = template.id
+                                showStarterRoutineChooser = false
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(starterRoutineTitleRes(template.id)))
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showStarterRoutineChooser = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
     if (showConstraintPicker) {
         ConstraintTypePickerDialog(
             onPick = { type ->
@@ -2157,4 +2214,15 @@ fun AutomationBuilderScreen(
             onDismiss = { pendingSpecialPermission = null }
         )
     }
+}
+
+/** Localized presentation label for a bundled, capability-filtered starter routine. */
+internal fun starterRoutineTitleRes(templateId: String): Int = when (templateId) {
+    RoutineTemplateCatalog.SLEEP -> R.string.starter_template_sleep
+    RoutineTemplateCatalog.LOW_BATTERY -> R.string.starter_template_low_battery
+    RoutineTemplateCatalog.CHARGING -> R.string.starter_template_charging
+    RoutineTemplateCatalog.DAILY_APP_MAINTENANCE -> R.string.starter_template_daily_app_maintenance
+    RoutineTemplateCatalog.WEEKLY_STORAGE_CLEANUP -> R.string.starter_template_weekly_storage_cleanup
+    RoutineTemplateCatalog.NIGHTLY_AUTOMATION_SYNC -> R.string.starter_template_nightly_automation_sync
+    else -> R.string.builder_title
 }

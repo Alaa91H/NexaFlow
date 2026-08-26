@@ -997,4 +997,15 @@
     <string name="charging_vibration">充電時の振動</string>
     <string name="charging_feedback_elevated_note">root または Shizuku が必要で、書き込み後に設定を検証します。非対応 ROM では失敗が報告されます。</string>
     <string name="network_mode_phone_permission_hint">有効な SIM と端末が実際に対応するネットワークモードを読み取るため、電話の状態へのアクセスを許可してください。ネットワークモードの変更には root、Shizuku、またはシステムアプリのアクセスも必要です。</string>
+
+
+    <!-- Safe local starter-routine chooser. -->
+    <string name="starter_routines">スタータールーチン</string>
+    <string name="starter_routines_sub">編集可能なルーチンから始めます。確認して有効にするまで無効のまま保存されます。</string>
+    <string name="starter_template_sleep">睡眠モード</string>
+    <string name="starter_template_low_battery">低バッテリー節約</string>
+    <string name="starter_template_charging">充電器接続時</string>
+    <string name="starter_template_daily_app_maintenance">毎日のアプリメンテナンス</string>
+    <string name="starter_template_weekly_storage_cleanup">毎週のストレージ確認</string>
+    <string name="starter_template_nightly_automation_sync">夜間自動化リマインダー</string>
 </resources>
