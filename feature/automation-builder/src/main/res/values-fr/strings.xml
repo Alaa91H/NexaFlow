@@ -1001,11 +1001,11 @@
 
     <!-- Safe local starter-routine chooser. -->
     <string name="starter_routines">Routines de démarrage</string>
-    <string name="starter_routines_sub">Commencez avec une routine modifiable. Elle sera enregistrée désactivée jusqu'à votre vérification et son activation.</string>
+    <string name="starter_routines_sub">Commencez avec une routine modifiable. Elle sera enregistrée désactivée jusqu\'à votre vérification et son activation.</string>
     <string name="starter_template_sleep">Mode sommeil</string>
     <string name="starter_template_low_battery">Économie de batterie faible</string>
     <string name="starter_template_charging">À la connexion du chargeur</string>
     <string name="starter_template_daily_app_maintenance">Maintenance quotidienne des applications</string>
     <string name="starter_template_weekly_storage_cleanup">Vérification hebdomadaire du stockage</string>
-    <string name="starter_template_nightly_automation_sync">Rappel d'automatisation nocturne</string>
+    <string name="starter_template_nightly_automation_sync">Rappel d\'automatisation nocturne</string>
 </resources>
