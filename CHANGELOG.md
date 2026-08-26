@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Rejected backup files that contain duplicate automation IDs before any write occurs. This prevents ambiguous dependency remapping and protects against silent replacement of one imported automation by another.
+
+### Added
+- Added a regression test that proves duplicate automation IDs are rejected atomically, with no automation saved.
+- Added a 2026 competitive and Android-platform research record to guide reliability, portability, and release-quality investments.
+
 ## [v3.41.4] - 2026-08-25
 
 ### Fixed

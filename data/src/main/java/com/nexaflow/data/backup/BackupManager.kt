@@ -116,7 +116,19 @@ class BackupManager(
         } catch (_: Exception) {
             return BackupPreflight.InvalidFile
         }
-        if (backup.version !in 1..BACKUP_VERSION || backup.automations.any { !it.isWellFormed() }) {
+        // A duplicate ID makes the later ID-remapping map ambiguous. More
+        // importantly, Room's normal save path replaces equal IDs, so accepting
+        // a hand-edited or corrupt backup could silently discard one automation.
+        // Reject the whole file before any persistence takes place.
+        val hasDuplicateAutomationIds = backup.automations
+            .map { it.id }
+            .toSet()
+            .size != backup.automations.size
+        if (
+            backup.version !in 1..BACKUP_VERSION ||
+            backup.automations.any { !it.isWellFormed() } ||
+            hasDuplicateAutomationIds
+        ) {
             return BackupPreflight.InvalidFile
         }
         val dependencyValidation = AutomationDependencyValidator.validate(backup.automations)

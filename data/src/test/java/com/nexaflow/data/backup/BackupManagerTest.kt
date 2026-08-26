@@ -82,6 +82,19 @@ class BackupManagerTest {
     }
 
     @Test
+    fun `duplicate automation ids in one backup are rejected before any save`() = runBlocking {
+        val result = manager.import(
+            backupJson(
+                validAutomation("duplicate"),
+                validAutomation("duplicate").copy(name = "Second definition")
+            )
+        )
+
+        assertEquals(ImportResult.InvalidFile, result)
+        assertTrue(repository.saved.isEmpty())
+    }
+
+    @Test
     fun `import preserves local automation and rewrites imported dependency collisions`() = runBlocking {
         val local = validAutomation("shared").copy(name = "Local Morning", enabled = true)
         val importedDependency = validAutomation("shared").copy(name = "Imported Morning")
