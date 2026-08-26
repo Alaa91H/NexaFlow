@@ -1,27 +1,27 @@
-# NexaFlow v3.42.0
+# NexaFlow v3.43.0
 
-NexaFlow v3.42.0 makes the app’s existing local starter routines discoverable while preserving a deliberate review-before-activation workflow. This release is informed by a new comparative review of Samsung Modes and Routines, MacroDroid, TaskerNet, vFlow, and current Android platform guidance.
+NexaFlow v3.43.0 makes routine behaviour easier to understand at the point where users inspect and manage a routine. The release turns existing local execution-history analysis into a concise, read-only health summary while keeping the diagnostic surface private, local, and non-invasive.
 
 ## Added
 
-The New Task builder now exposes **Starter routines** when compatible bundled templates are available on the current device. Each starter routine is local, editable, and filtered through NexaFlow’s existing capability model before it is offered. The chooser pre-fills a localized routine name and opens the full review stage, so the user can inspect and adjust the exact triggers and actions before saving.
+Routine details now include an **Execution health** card. It presents one clear, evidence-based state: **No recorded runs**, **Activity recorded**, or **Needs attention** when repeated failures are detected. The card also shows completed, skipped, and failed run counts, plus the latest recorded failure message when one exists.
 
-Starter-routine labels and review guidance are localized across every language shipped by NexaFlow. The release also adds regression coverage for the template title mapping and the activation policy.
+The health summary is localized across every language shipped by NexaFlow. The release adds regression coverage for every health-status presentation mapping.
 
 ## Changed
 
-A routine created from a starter template is saved **disabled by default**. This adds a clear user-controlled review point: the user must explicitly enable it from the dashboard after reviewing the generated configuration. Existing routines retain their current enabled state, and manually created routines preserve their existing first-save behavior.
+Routine details now observe NexaFlow’s existing `HealthRepository` flow. The card updates reactively from the execution records already stored locally; it does not add a permission, network request, telemetry stream, database schema change, new background service, or a user-writable raw log.
 
-## Fixed
+## Design and safety
 
-French starter-routine strings now escape apostrophes correctly for Android resource compilation. This restores successful resource merging and Android Lint for the French locale.
+The interaction follows a review of Tasker Run Log, MacroDroid System Log, and Automate Flow Logs. The implementation deliberately favors a low-noise, read-only summary over a mutable raw-log feature. This helps users understand repeated failures and skipped work without letting workflows alter diagnostic evidence.
+
+> Execution health reports facts from already-recorded runs. Android and device-specific conditions can still affect future execution, so users should inspect the routine’s trigger, constraints, permissions, and device settings when a failure is reported.
 
 ## Verification
 
-The final `main` candidate passed the complete GitHub Actions pipeline: resource hygiene checks, locale-parity checks, Python resource-gate tests, Detekt, Android Lint, Android unit tests, debug and release APK builds, release AAB build, dependency-verification checks, APK permission checks, APK signature checks, zip alignment, 16 KB native-library alignment, and bundle validation.
-
-> Starter routines are local templates, not downloaded automation code. This release does not add cloud storage, remote sharing, webhooks, scripting, AI generation, accessibility-driven screen control, or elevated process capabilities.
+The final `main` candidate passed the complete GitHub Actions pipeline: resource hygiene and locale-parity checks, Python resource-gate tests, Detekt, Android Lint, Android unit tests, debug and release APK builds, release AAB build, dependency verification, APK permission and signature checks, zip alignment, 16 KB native-library alignment, and bundle validation.
 
 ## Research record
 
-The comparative evidence, selected scope, acceptance criteria, and explicitly deferred work are documented in [`docs/RESEARCH_2026.md`](docs/RESEARCH_2026.md).
+The market comparison, observability-security rationale, acceptance criteria, and deferred scope are documented in [`docs/RESEARCH_2026.md`](docs/RESEARCH_2026.md).
