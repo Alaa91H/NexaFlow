@@ -19,7 +19,7 @@ class HistoryViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val routineId: String? = savedStateHandle["automationId"]
+    private val routineId: String? = savedStateHandle.get<String>("automationId")
         ?.trim()
         ?.takeIf { it.isNotEmpty() }
 
