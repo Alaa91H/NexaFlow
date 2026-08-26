@@ -108,3 +108,49 @@ The next release will make the existing local catalog discoverable **inside the 
 ### Explicitly deferred
 
 Remote template stores, cloud backup, webhooks, scripting, shared links, AI generation, accessibility-driven screen control, and privileged-process changes are not included. They require separate threat modeling, privacy policy, authentication/operations design, or platform-policy analysis.
+
+## Execution observability research — 2026-08-26
+
+| Product | Verified diagnostic pattern | Relevance to NexaFlow | Source |
+|---|---|---|---|
+| Tasker | Run Log records profile state changes plus task and action execution; it distinguishes service, profile, task, and action status, identifies error/rejection states, allows navigation to the corresponding configured item, and filters entries. | NexaFlow should make an existing execution record explainable in one place: what ran, what was blocked, where it failed, and the user-controlled next step. A compact outcome-oriented layer is preferable to verbose always-on raw logging. | https://tasker.joaoapps.com/userguide/en/activity_runlog.html |
+| MacroDroid | System Log supports detailed, standard, warning, and error-only levels; it can include/exclude trigger/action/constraint data, filter individual macros and variables, and suppress noisy macros. | Severity-first filtering and low-noise per-routine diagnostic views are established patterns. For NexaFlow, a deterministic readiness explanation can be surfaced without expanding persistent logging or collecting new data. | https://macrodroidforum.com/wiki/index.php/System_log |
+
+### Decision note
+
+The product already contains `AutomationHealthReport`, `ExecutionTimeline`, capability snapshots, and execution history. The next investigation must first confirm whether these domain capabilities already reach the routine-detail UI. If not, a **readiness/reason card** with only derived local state is a lower-risk, higher-clarity improvement than a new raw log transport.
+
+## Additional references
+
+13. Tasker, *Run Log*, https://tasker.joaoapps.com/userguide/en/activity_runlog.html.
+14. MacroDroid Wiki, *System Log*, https://macrodroidforum.com/wiki/index.php/System_log.
+| Automate | Flow logs can be displayed, read, written, colored, and cleared as files; the published guide explicitly notes that mutable logs can let a malicious flow erase its own evidence. | NexaFlow should not introduce user- or workflow-writable diagnostic evidence. A read-only health summary derived from persisted execution records is the safer first release. | https://llamalab.com/automate/community/flows/43009 |
+
+### Observability security decision
+
+The proposed experience will not expose a writable raw log and will not add a background logging service, remote telemetry, or a new database table. It will surface the already-derived `AutomationHealthReport` in the routine detail screen and use only persisted `ExecutionRecord` data. This avoids mutable-evidence risks highlighted by Automate while still making repeated failures, skips, and last failure explanations visible.
+
+15. Automate Community, *Flow Logs*, https://llamalab.com/automate/community/flows/43009.
+
+## Release-scope decision: routine health summary in details
+
+### Confirmed product gap
+
+NexaFlow persists execution records, derives `AutomationHealthReport` values (completed, skipped, failed, consecutive failures, latest failure, and health status), and exposes a full execution-history screen. The automation-detail ViewModel does not currently consume `HealthRepository`, and the routine-detail screen does not render any health information. Users therefore cannot see, while inspecting a routine, whether it has never run, has repeatedly failed, has skips, or carries a latest failure explanation.
+
+### Selected implementation
+
+The next release will add a read-only **Execution health** card to the routine-detail screen. It will observe the existing health repository and summarize only locally-derived persisted history: no recorded runs, activity observed, or needs attention after repeated failures. It will show completed/skipped/failed counts and the latest failure text where relevant. The card will be present for every routine, with no network request, telemetry, permission, background worker, new database table, or mutable raw-log surface.
+
+| Acceptance criterion | Required behavior |
+|---|---|
+| State accuracy | The screen subscribes to the existing health report for the displayed automation ID and updates reactively. |
+| Clear interpretation | The title describes one of no recorded runs, activity observed, or needs attention; it never presents a single failure as a healthy success. |
+| Evidence visibility | Counts for completed, skipped, and failed executions are displayed; the latest failure message is displayed only when one exists. |
+| Safety | The feature is read-only and derives data from existing `ExecutionRecord` history. |
+| Scope discipline | No change to the execution engine, scheduler, permissions, database schema, background execution, telemetry, or remote sharing. |
+| Localization and regression | All new user-facing strings exist in every shipped locale and mapping logic is covered by unit tests. |
+
+### Explicitly deferred
+
+Filtering the paged History screen by a routine ID, raw log export, per-routine log-level controls, retry orchestration, remediation automation, remote diagnostics, and analytics are deferred. They either require navigation/data-layer changes, potentially sensitive export semantics, or broader operational design beyond a safe visibility release.

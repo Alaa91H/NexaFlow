@@ -438,4 +438,16 @@
     <string name="action_charging_feedback">चार्जिंग ध्वनि और कंपन</string>
     <string name="action_charging_feedback_sub">ROM द्वारा समर्थित होने पर चार्जिंग फीडबैक नियंत्रित करें</string>
     <string name="detail_default">डिफ़ॉल्ट</string>
+
+
+    <!-- Read-only execution health summary. -->
+    <string name="execution_health">निष्पादन स्थिति</string>
+    <string name="execution_health_no_runs">कोई निष्पादन दर्ज नहीं</string>
+    <string name="execution_health_activity">गतिविधि दर्ज है</string>
+    <string name="execution_health_attention">ध्यान आवश्यक है</string>
+    <string name="execution_health_no_runs_sub">इस रूटीन ने अभी तक कोई निष्पादन रिकॉर्ड नहीं बनाया है।</string>
+    <string name="execution_health_activity_sub">इस रूटीन के लिए हाल का निष्पादन डेटा उपलब्ध है।</string>
+    <string name="execution_health_attention_sub">बार-बार होने वाली निष्पादन विफलताओं की समीक्षा आवश्यक है।</string>
+    <string name="execution_health_counts">%1$d पूर्ण · %2$d छोड़े गए · %3$d विफल</string>
+    <string name="execution_health_last_issue">नवीनतम समस्या: %1$s</string>
 </resources>

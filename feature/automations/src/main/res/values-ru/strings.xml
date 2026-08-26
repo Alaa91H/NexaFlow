@@ -438,4 +438,16 @@
     <string name="action_charging_feedback">Звук и вибрация зарядки</string>
     <string name="action_charging_feedback_sub">Управляйте откликом зарядки, если ROM его поддерживает</string>
     <string name="detail_default">По умолчанию</string>
+
+
+    <!-- Read-only execution health summary. -->
+    <string name="execution_health">Состояние выполнения</string>
+    <string name="execution_health_no_runs">Нет записанных запусков</string>
+    <string name="execution_health_activity">Активность записана</string>
+    <string name="execution_health_attention">Требуется внимание</string>
+    <string name="execution_health_no_runs_sub">Для этого сценария пока нет записи о выполнении.</string>
+    <string name="execution_health_activity_sub">Для этого сценария доступны недавние данные выполнения.</string>
+    <string name="execution_health_attention_sub">Повторяющиеся ошибки выполнения требуют проверки.</string>
+    <string name="execution_health_counts">Завершено %1$d · пропущено %2$d · ошибок %3$d</string>
+    <string name="execution_health_last_issue">Последняя проблема: %1$s</string>
 </resources>

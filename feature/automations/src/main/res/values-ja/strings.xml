@@ -438,4 +438,16 @@
     <string name="action_charging_feedback">充電時の音と振動</string>
     <string name="action_charging_feedback_sub">ROM が対応している場合に充電フィードバックを制御</string>
     <string name="detail_default">デフォルト</string>
+
+
+    <!-- Read-only execution health summary. -->
+    <string name="execution_health">実行状態</string>
+    <string name="execution_health_no_runs">記録された実行はありません</string>
+    <string name="execution_health_activity">実行履歴あり</string>
+    <string name="execution_health_attention">確認が必要です</string>
+    <string name="execution_health_no_runs_sub">このルーチンはまだ実行記録を作成していません。</string>
+    <string name="execution_health_activity_sub">このルーチンには最近の実行データがあります。</string>
+    <string name="execution_health_attention_sub">繰り返される実行失敗を確認する必要があります。</string>
+    <string name="execution_health_counts">完了 %1$d · スキップ %2$d · 失敗 %3$d</string>
+    <string name="execution_health_last_issue">最新の問題: %1$s</string>
 </resources>

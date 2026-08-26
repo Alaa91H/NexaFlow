@@ -438,4 +438,16 @@
     <string name="action_charging_feedback">صوت واهتزاز الشحن</string>
     <string name="action_charging_feedback_sub">التحكم بتغذية الشحن الراجعة عندما يدعمها ROM</string>
     <string name="detail_default">الإعداد الافتراضي</string>
+
+
+    <!-- Read-only execution health summary. -->
+    <string name="execution_health">صحة التنفيذ</string>
+    <string name="execution_health_no_runs">لا توجد عمليات مسجلة</string>
+    <string name="execution_health_activity">تم رصد نشاط</string>
+    <string name="execution_health_attention">يحتاج إلى اهتمام</string>
+    <string name="execution_health_no_runs_sub">لم ينتج هذا الروتين أي سجل تنفيذ حتى الآن.</string>
+    <string name="execution_health_activity_sub">تتوفر بيانات تنفيذ حديثة لهذا الروتين.</string>
+    <string name="execution_health_attention_sub">تحتاج إخفاقات التنفيذ المتكررة إلى مراجعة.</string>
+    <string name="execution_health_counts">اكتمل %1$d · تم تخطي %2$d · فشل %3$d</string>
+    <string name="execution_health_last_issue">أحدث مشكلة: %1$s</string>
 </resources>

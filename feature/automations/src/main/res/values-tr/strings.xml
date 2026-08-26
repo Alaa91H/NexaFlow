@@ -438,4 +438,16 @@
     <string name="action_charging_feedback">Şarj sesi ve titreşimi</string>
     <string name="action_charging_feedback_sub">ROM destekliyorsa şarj geri bildirimini denetleyin</string>
     <string name="detail_default">Varsayılan</string>
+
+
+    <!-- Read-only execution health summary. -->
+    <string name="execution_health">Yürütme durumu</string>
+    <string name="execution_health_no_runs">Kaydedilmiş yürütme yok</string>
+    <string name="execution_health_activity">Etkinlik kaydedildi</string>
+    <string name="execution_health_attention">Dikkat gerekiyor</string>
+    <string name="execution_health_no_runs_sub">Bu rutin henüz bir yürütme kaydı oluşturmadı.</string>
+    <string name="execution_health_activity_sub">Bu rutin için güncel yürütme verileri mevcut.</string>
+    <string name="execution_health_attention_sub">Tekrarlanan yürütme hataları incelenmelidir.</string>
+    <string name="execution_health_counts">%1$d tamamlandı · %2$d atlandı · %3$d başarısız</string>
+    <string name="execution_health_last_issue">Son sorun: %1$s</string>
 </resources>

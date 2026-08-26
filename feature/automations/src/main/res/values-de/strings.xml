@@ -438,4 +438,16 @@
     <string name="action_charging_feedback">Ladegeräusch und Vibration</string>
     <string name="action_charging_feedback_sub">Ladefeedback steuern, wenn das ROM es unterstützt</string>
     <string name="detail_default">Standard</string>
+
+
+    <!-- Read-only execution health summary. -->
+    <string name="execution_health">Ausführungsstatus</string>
+    <string name="execution_health_no_runs">Keine aufgezeichneten Ausführungen</string>
+    <string name="execution_health_activity">Aktivität aufgezeichnet</string>
+    <string name="execution_health_attention">Aufmerksamkeit erforderlich</string>
+    <string name="execution_health_no_runs_sub">Diese Routine hat noch keinen Ausführungseintrag erzeugt.</string>
+    <string name="execution_health_activity_sub">Für diese Routine sind aktuelle Ausführungsdaten verfügbar.</string>
+    <string name="execution_health_attention_sub">Wiederholte Ausführungsfehler müssen geprüft werden.</string>
+    <string name="execution_health_counts">%1$d abgeschlossen · %2$d übersprungen · %3$d fehlgeschlagen</string>
+    <string name="execution_health_last_issue">Letztes Problem: %1$s</string>
 </resources>

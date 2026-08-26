@@ -109,6 +109,8 @@ import com.nexaflow.core.ui.resolveInstalledAppPresentation
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.AutomationHealthReport
+import com.nexaflow.domain.models.AutomationHealthStatus
 import com.nexaflow.domain.models.hasUserAuthoredDescription
 import com.nexaflow.domain.models.Constraint
 import com.nexaflow.domain.models.ConstraintType
@@ -120,6 +122,7 @@ import com.nexaflow.domain.models.TriggerType
 fun AutomationDetailsScreen(navController: NavController) {
     val viewModel: AutomationDetailsViewModel = hiltViewModel()
     val automation by viewModel.automation.collectAsStateWithLifecycle()
+    val healthReport by viewModel.healthReport.collectAsStateWithLifecycle()
     val running by viewModel.running.collectAsStateWithLifecycle()
     val executionMessage by viewModel.executionMessage.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -228,6 +231,7 @@ fun AutomationDetailsScreen(navController: NavController) {
                         }
                     }
                 }
+                ExecutionHealthCard(report = healthReport)
                 AutomationDetailsSectionCard(
                     index = 0,
                     title = stringResource(R.string.section_triggers),
@@ -749,4 +753,95 @@ private fun AutomationDetailsPreview() {
             }
         }
     }
+}
+
+/** Read-only summary derived from persisted execution history for the current routine. */
+@Composable
+private fun ExecutionHealthCard(report: AutomationHealthReport) {
+    val status = report.status
+    val attention = status == AutomationHealthStatus.NEEDS_ATTENTION
+    val icon = when (status) {
+        AutomationHealthStatus.NO_EXECUTIONS -> Icons.Filled.Schedule
+        AutomationHealthStatus.HEALTHY -> Icons.Filled.Bolt
+        AutomationHealthStatus.NEEDS_ATTENTION -> Icons.Filled.NotificationImportant
+    }
+    val containerColor = if (attention) {
+        MaterialTheme.colorScheme.errorContainer
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerHigh
+    }
+    val contentColor = if (attention) {
+        MaterialTheme.colorScheme.onErrorContainer
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
+    NexaFlowCard {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            IconBadge(
+                icon = icon,
+                containerColor = containerColor,
+                contentColor = contentColor
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.execution_health),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = stringResource(executionHealthTitleRes(status)),
+                    style = MaterialTheme.typography.titleSmall
+                )
+                Text(
+                    text = stringResource(executionHealthSubtitleRes(status)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Text(
+                    text = stringResource(
+                        R.string.execution_health_counts,
+                        report.completedRuns,
+                        report.skippedRuns,
+                        report.failedRuns
+                    ),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                report.latestFailureMessage
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { failure ->
+                        Text(
+                            text = stringResource(R.string.execution_health_last_issue, failure),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (attention) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                MaterialTheme.colorScheme.secondary
+                            }
+                        )
+                    }
+            }
+        }
+    }
+}
+
+@androidx.annotation.StringRes
+internal fun executionHealthTitleRes(status: AutomationHealthStatus): Int = when (status) {
+    AutomationHealthStatus.NO_EXECUTIONS -> R.string.execution_health_no_runs
+    AutomationHealthStatus.HEALTHY -> R.string.execution_health_activity
+    AutomationHealthStatus.NEEDS_ATTENTION -> R.string.execution_health_attention
+}
+
+@androidx.annotation.StringRes
+internal fun executionHealthSubtitleRes(status: AutomationHealthStatus): Int = when (status) {
+    AutomationHealthStatus.NO_EXECUTIONS -> R.string.execution_health_no_runs_sub
+    AutomationHealthStatus.HEALTHY -> R.string.execution_health_activity_sub
+    AutomationHealthStatus.NEEDS_ATTENTION -> R.string.execution_health_attention_sub
 }

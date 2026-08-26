@@ -438,4 +438,16 @@
     <string name="action_charging_feedback">Som e vibração de carregamento</string>
     <string name="action_charging_feedback_sub">Controle o retorno de carga quando suportado pela ROM</string>
     <string name="detail_default">Padrão</string>
+
+
+    <!-- Read-only execution health summary. -->
+    <string name="execution_health">Estado de execução</string>
+    <string name="execution_health_no_runs">Nenhuma execução registrada</string>
+    <string name="execution_health_activity">Atividade registrada</string>
+    <string name="execution_health_attention">Precisa de atenção</string>
+    <string name="execution_health_no_runs_sub">Esta rotina ainda não produziu um registro de execução.</string>
+    <string name="execution_health_activity_sub">Há dados recentes de execução disponíveis para esta rotina.</string>
+    <string name="execution_health_attention_sub">Falhas repetidas de execução precisam de revisão.</string>
+    <string name="execution_health_counts">%1$d concluídas · %2$d ignoradas · %3$d falhas</string>
+    <string name="execution_health_last_issue">Último problema: %1$s</string>
 </resources>

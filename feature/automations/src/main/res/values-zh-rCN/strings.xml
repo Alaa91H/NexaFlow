@@ -438,4 +438,16 @@
     <string name="action_charging_feedback">充电声音和振动</string>
     <string name="action_charging_feedback_sub">在 ROM 支持时控制充电反馈</string>
     <string name="detail_default">默认</string>
+
+
+    <!-- Read-only execution health summary. -->
+    <string name="execution_health">执行状态</string>
+    <string name="execution_health_no_runs">没有已记录的执行</string>
+    <string name="execution_health_activity">已记录活动</string>
+    <string name="execution_health_attention">需要关注</string>
+    <string name="execution_health_no_runs_sub">此例程尚未产生执行记录。</string>
+    <string name="execution_health_activity_sub">此例程有最近的执行数据。</string>
+    <string name="execution_health_attention_sub">重复的执行失败需要检查。</string>
+    <string name="execution_health_counts">已完成 %1$d · 已跳过 %2$d · 失败 %3$d</string>
+    <string name="execution_health_last_issue">最新问题：%1$s</string>
 </resources>

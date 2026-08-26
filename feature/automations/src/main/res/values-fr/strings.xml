@@ -438,4 +438,16 @@
     <string name="action_charging_feedback">Son et vibration de charge</string>
     <string name="action_charging_feedback_sub">Contrôler le retour de charge si la ROM le permet</string>
     <string name="detail_default">Par défaut</string>
+
+
+    <!-- Read-only execution health summary. -->
+    <string name="execution_health">État d’exécution</string>
+    <string name="execution_health_no_runs">Aucune exécution enregistrée</string>
+    <string name="execution_health_activity">Activité enregistrée</string>
+    <string name="execution_health_attention">Attention requise</string>
+    <string name="execution_health_no_runs_sub">Cette routine ne possède pas encore de journal d’exécution.</string>
+    <string name="execution_health_activity_sub">Des données d’exécution récentes sont disponibles pour cette routine.</string>
+    <string name="execution_health_attention_sub">Les échecs d’exécution répétés doivent être examinés.</string>
+    <string name="execution_health_counts">%1$d terminées · %2$d ignorées · %3$d échouées</string>
+    <string name="execution_health_last_issue">Dernier problème : %1$s</string>
 </resources>
