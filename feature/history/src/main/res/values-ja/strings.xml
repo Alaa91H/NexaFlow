@@ -26,4 +26,8 @@
     <string name="history_load_error_title">履歴を読み込めませんでした</string>
     <string name="history_load_error_subtitle">履歴の読み取り中にエラーが発生しました。</string>
     <string name="history_retry">再試行</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="routine_history_title">ルーチン履歴</string>
 </resources>

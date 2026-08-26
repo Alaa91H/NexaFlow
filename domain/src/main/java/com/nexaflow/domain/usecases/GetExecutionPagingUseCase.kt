@@ -8,5 +8,8 @@ import javax.inject.Inject
 class GetExecutionPagingUseCase @Inject constructor(
     private val repository: HistoryRepository
 ) {
-    operator fun invoke(): PagingSource<Int, ExecutionRecord> = repository.getExecutionPaging()
+    operator fun invoke(automationId: String? = null): PagingSource<Int, ExecutionRecord> =
+        automationId?.takeIf { it.isNotBlank() }
+            ?.let { repository.getExecutionPaging(it) }
+            ?: repository.getExecutionPaging()
 }

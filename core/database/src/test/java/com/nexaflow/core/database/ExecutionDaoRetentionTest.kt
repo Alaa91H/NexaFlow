@@ -1,5 +1,6 @@
 package com.nexaflow.core.database
 
+import androidx.paging.PagingSource
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.runBlocking
@@ -36,9 +37,13 @@ class ExecutionDaoRetentionTest {
         db.close()
     }
 
-    private fun entity(id: String, executedAt: Long) = ExecutionRecordEntity(
+    private fun entity(
+        id: String,
+        executedAt: Long,
+        automationId: String = "a1"
+    ) = ExecutionRecordEntity(
         id = id,
-        automationId = "a1",
+        automationId = automationId,
         automationName = "Task",
         success = true,
         message = "ok",
@@ -71,6 +76,24 @@ class ExecutionDaoRetentionTest {
         assertNull(dao.getExecutionById("e6"))
         assertNotNull(dao.getExecutionById("e7"))
         assertNotNull(dao.getExecutionById("e9"))
+    }
+
+    @Test
+    fun pagedHistoryForAutomation_returnsOnlyThatRoutineNewestFirst() = runBlocking {
+        dao.insertExecution(entity("a-old", 10L, automationId = "routine-a"))
+        dao.insertExecution(entity("other", 99L, automationId = "routine-b"))
+        dao.insertExecution(entity("a-new", 20L, automationId = "routine-a"))
+
+        val result = dao.getExecutionsPagedForAutomation("routine-a").load(
+            PagingSource.LoadParams.Refresh(
+                key = null,
+                loadSize = 10,
+                placeholdersEnabled = false
+            )
+        )
+
+        val page = result as PagingSource.LoadResult.Page<Int, ExecutionRecordEntity>
+        assertEquals(listOf("a-new", "a-old"), page.data.map { it.id })
     }
 
     @Test

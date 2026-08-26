@@ -450,4 +450,8 @@
     <string name="execution_health_attention_sub">Повторяющиеся ошибки выполнения требуют проверки.</string>
     <string name="execution_health_counts">Завершено %1$d · пропущено %2$d · ошибок %3$d</string>
     <string name="execution_health_last_issue">Последняя проблема: %1$s</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="view_routine_history">Показать историю сценария</string>
 </resources>

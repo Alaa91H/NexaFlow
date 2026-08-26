@@ -26,4 +26,8 @@
     <string name="history_load_error_title">تعذّر تحميل السجل</string>
     <string name="history_load_error_subtitle">حدث خطأ ما أثناء قراءة سجلك.</string>
     <string name="history_retry">إعادة المحاولة</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="routine_history_title">سجل الروتين</string>
 </resources>

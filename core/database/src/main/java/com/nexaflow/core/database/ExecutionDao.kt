@@ -20,6 +20,10 @@ interface ExecutionDao {
     @Query("SELECT * FROM execution_history ORDER BY executedAt DESC")
     fun getExecutionsPaged(): PagingSource<Int, ExecutionRecordEntity>
 
+    /** Pageable execution history scoped to one routine, newest record first. */
+    @Query("SELECT * FROM execution_history WHERE automationId = :automationId ORDER BY executedAt DESC")
+    fun getExecutionsPagedForAutomation(automationId: String): PagingSource<Int, ExecutionRecordEntity>
+
     @Query("SELECT * FROM execution_history ORDER BY executedAt DESC LIMIT 1")
     suspend fun getLatestExecution(): ExecutionRecordEntity?
 

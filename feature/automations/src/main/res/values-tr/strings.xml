@@ -450,4 +450,8 @@
     <string name="execution_health_attention_sub">Tekrarlanan yürütme hataları incelenmelidir.</string>
     <string name="execution_health_counts">%1$d tamamlandı · %2$d atlandı · %3$d başarısız</string>
     <string name="execution_health_last_issue">Son sorun: %1$s</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="view_routine_history">Rutin geçmişini görüntüle</string>
 </resources>

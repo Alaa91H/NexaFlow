@@ -450,4 +450,8 @@
     <string name="execution_health_attention_sub">Wiederholte Ausführungsfehler müssen geprüft werden.</string>
     <string name="execution_health_counts">%1$d abgeschlossen · %2$d übersprungen · %3$d fehlgeschlagen</string>
     <string name="execution_health_last_issue">Letztes Problem: %1$s</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="view_routine_history">Routineverlauf anzeigen</string>
 </resources>

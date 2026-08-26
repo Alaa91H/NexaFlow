@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
 import com.nexaflow.core.ui.isSystemReduceMotionEnabled
 import com.nexaflow.core.ui.nexaFlowEffectsSpec
@@ -127,7 +129,16 @@ fun NexaFlowApp() {
             composable(PluginDestination.ROUTE) {
                 PluginManagerScreen(navController = navController)
             }
-            composable(SettingsDestination.EXECUTION_HISTORY_ROUTE) {
+            composable(
+                route = "${SettingsDestination.EXECUTION_HISTORY_ROUTE}?automationId={automationId}",
+                arguments = listOf(
+                    navArgument("automationId") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) {
                 HistoryScreen(navController = navController)
             }
             composable("execution_details/{recordId}") {

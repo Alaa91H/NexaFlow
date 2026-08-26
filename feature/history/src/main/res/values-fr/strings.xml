@@ -26,4 +26,8 @@
     <string name="history_load_error_title">"Impossible de charger l'historique"</string>
     <string name="history_load_error_subtitle">"Une erreur s'est produite lors de la lecture de l'historique."</string>
     <string name="history_retry">Réessayer</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="routine_history_title">Historique de la routine</string>
 </resources>

@@ -26,4 +26,8 @@
     <string name="history_load_error_title">Не удалось загрузить историю</string>
     <string name="history_load_error_subtitle">При чтении истории произошла ошибка.</string>
     <string name="history_retry">Повторить</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="routine_history_title">История сценария</string>
 </resources>

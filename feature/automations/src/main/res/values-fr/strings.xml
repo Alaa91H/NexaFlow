@@ -450,4 +450,8 @@
     <string name="execution_health_attention_sub">Les échecs d’exécution répétés doivent être examinés.</string>
     <string name="execution_health_counts">%1$d terminées · %2$d ignorées · %3$d échouées</string>
     <string name="execution_health_last_issue">Dernier problème : %1$s</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="view_routine_history">Voir l’historique de la routine</string>
 </resources>

@@ -450,4 +450,8 @@
     <string name="execution_health_attention_sub">重复的执行失败需要检查。</string>
     <string name="execution_health_counts">已完成 %1$d · 已跳过 %2$d · 失败 %3$d</string>
     <string name="execution_health_last_issue">最新问题：%1$s</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="view_routine_history">查看例程历史记录</string>
 </resources>

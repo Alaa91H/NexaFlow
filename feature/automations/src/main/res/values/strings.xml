@@ -449,4 +449,8 @@
     <string name="execution_health_attention_sub">Repeated execution failures need review.</string>
     <string name="execution_health_counts">%1$d completed · %2$d skipped · %3$d failed</string>
     <string name="execution_health_last_issue">Latest issue: %1$s</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="view_routine_history">View routine history</string>
 </resources>

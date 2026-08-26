@@ -26,4 +26,8 @@
     <string name="history_load_error_title">No se pudo cargar el historial</string>
     <string name="history_load_error_subtitle">Se produjo un error al leer tu historial.</string>
     <string name="history_retry">Reintentar</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="routine_history_title">Historial de rutina</string>
 </resources>

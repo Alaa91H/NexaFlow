@@ -55,6 +55,7 @@ fun HistoryScreen(navController: NavController) {
     HistoryContent(
         // Streams pages from Room instead of materializing the whole table.
         history = viewModel.pagingData.collectAsLazyPagingItems(),
+        isRoutineHistory = viewModel.isRoutineHistory,
         onBack = { navController.popBackStack() },
         onOpen = { id -> navController.navigate("execution_details/$id") }
     )
@@ -70,9 +71,19 @@ fun HistoryScreen(navController: NavController) {
 internal fun HistoryContent(
     history: LazyPagingItems<ExecutionRecord>,
     onBack: () -> Unit,
-    onOpen: (String) -> Unit
+    onOpen: (String) -> Unit,
+    isRoutineHistory: Boolean = false
 ) {
-    Scaffold(topBar = { NexaFlowTopBar(title = stringResource(R.string.history_title), onBack = onBack) }) { padding ->
+    Scaffold(
+        topBar = {
+            NexaFlowTopBar(
+                title = stringResource(
+                    if (isRoutineHistory) R.string.routine_history_title else R.string.history_title
+                ),
+                onBack = onBack
+            )
+        }
+    ) { padding ->
         when (val refresh = history.loadState.refresh) {
             is LoadState.Loading -> {
                 if (history.itemCount == 0) {

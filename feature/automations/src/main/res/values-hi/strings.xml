@@ -450,4 +450,8 @@
     <string name="execution_health_attention_sub">बार-बार होने वाली निष्पादन विफलताओं की समीक्षा आवश्यक है।</string>
     <string name="execution_health_counts">%1$d पूर्ण · %2$d छोड़े गए · %3$d विफल</string>
     <string name="execution_health_last_issue">नवीनतम समस्या: %1$s</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="view_routine_history">रूटीन इतिहास देखें</string>
 </resources>

@@ -25,6 +25,10 @@ class HistoryRepositoryImpl @Inject constructor(
         return MappedPagingSource(executionDao.getExecutionsPaged()) { it.toDomain() }
     }
 
+    override fun getExecutionPaging(automationId: String): PagingSource<Int, ExecutionRecord> {
+        return MappedPagingSource(executionDao.getExecutionsPagedForAutomation(automationId)) { it.toDomain() }
+    }
+
     override suspend fun getExecutionById(id: String): ExecutionRecord? {
         return executionDao.getExecutionById(id)?.toDomain()
     }

@@ -26,4 +26,8 @@
     <string name="history_load_error_title">Verlauf konnte nicht geladen werden</string>
     <string name="history_load_error_subtitle">Beim Lesen des Verlaufs ist ein Fehler aufgetreten.</string>
     <string name="history_retry">Erneut versuchen</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="routine_history_title">Routineverlauf</string>
 </resources>

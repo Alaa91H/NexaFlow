@@ -450,4 +450,8 @@
     <string name="execution_health_attention_sub">تحتاج إخفاقات التنفيذ المتكررة إلى مراجعة.</string>
     <string name="execution_health_counts">اكتمل %1$d · تم تخطي %2$d · فشل %3$d</string>
     <string name="execution_health_last_issue">أحدث مشكلة: %1$s</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="view_routine_history">عرض سجل الروتين</string>
 </resources>

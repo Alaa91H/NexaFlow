@@ -450,4 +450,8 @@
     <string name="execution_health_attention_sub">繰り返される実行失敗を確認する必要があります。</string>
     <string name="execution_health_counts">完了 %1$d · スキップ %2$d · 失敗 %3$d</string>
     <string name="execution_health_last_issue">最新の問題: %1$s</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="view_routine_history">ルーチン履歴を表示</string>
 </resources>

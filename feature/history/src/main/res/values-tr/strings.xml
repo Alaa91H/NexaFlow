@@ -26,4 +26,8 @@
     <string name="history_load_error_title">Geçmiş yüklenemedi</string>
     <string name="history_load_error_subtitle">Geçmişiniz okunurken bir sorun oluştu.</string>
     <string name="history_retry">Yeniden dene</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="routine_history_title">Rutin geçmişi</string>
 </resources>

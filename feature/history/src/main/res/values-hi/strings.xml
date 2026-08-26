@@ -26,4 +26,8 @@
     <string name="history_load_error_title">इतिहास लोड नहीं हो सका</string>
     <string name="history_load_error_subtitle">आपका इतिहास पढ़ते समय कुछ गड़बड़ हुई।</string>
     <string name="history_retry">पुनः प्रयास करें</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="routine_history_title">रूटीन इतिहास</string>
 </resources>

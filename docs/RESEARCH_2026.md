@@ -154,3 +154,30 @@ The next release will add a read-only **Execution health** card to the routine-d
 ### Explicitly deferred
 
 Filtering the paged History screen by a routine ID, raw log export, per-routine log-level controls, retry orchestration, remediation automation, remote diagnostics, and analytics are deferred. They either require navigation/data-layer changes, potentially sensitive export semantics, or broader operational design beyond a safe visibility release.
+
+## Release-scope decision: filtered routine execution history
+
+### Confirmed product gap
+
+The new execution-health card identifies a routine needing attention but the current History destination always streams every record. The routine-detail screen has no direct path to the evidence underlying its health summary. Tasker supports log filtering and MacroDroid supports macro-level filtering, so a direct, local routine-history view is a high-value follow-on to the read-only health summary.
+
+### Persistence and performance review
+
+`ExecutionDao` already exposes a Room `PagingSource` and retention is capped at 1,000 rows. A `WHERE automationId = :automationId ORDER BY executedAt DESC` query can therefore filter at the database layer without materializing a global list. The small, bounded table and existing reactive invalidation make a schema migration or index unnecessary for this narrowly scoped release; the query will be exercised through the same paging path as global history.
+
+### Selected implementation
+
+The next release will add an optional `automationId` argument to the existing History destination. When present and non-blank, the ViewModel will request a filtered PagingSource, the title will describe the selected routine's run history, and the routine-details health card will expose an accessible action to open it. The global Settings entry keeps the unfiltered History view.
+
+| Acceptance criterion | Required behavior |
+|---|---|
+| Database-side filtering | The DAO query filters by `automationId` before Paging maps entities to domain records. |
+| Backward compatibility | Calling History with no valid routine ID keeps the existing global history behavior. |
+| Direct evidence | The health card opens `history?automationId=<encoded-id>` for its routine. |
+| State clarity | The filtered screen identifies itself as routine history without relying on a raw log. |
+| Scope and privacy | No schema migration, network call, telemetry, new permission, export, or raw log mutation. |
+| Testability | Selection logic and title mapping are covered by unit tests; existing paging-state tests remain valid. |
+
+### Explicitly deferred
+
+Search text, multi-routine selection, date-range filtering, destructive actions, export, raw log access, and remote diagnostics remain separate work. They require a fuller query/user-consent design than a routine-scoped evidence link.

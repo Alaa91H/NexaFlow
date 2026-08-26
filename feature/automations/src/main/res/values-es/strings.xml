@@ -450,4 +450,8 @@
     <string name="execution_health_attention_sub">Los fallos de ejecución repetidos necesitan revisión.</string>
     <string name="execution_health_counts">%1$d completadas · %2$d omitidas · %3$d fallidas</string>
     <string name="execution_health_last_issue">Último problema: %1$s</string>
+
+
+    <!-- Routine-scoped execution history navigation. -->
+    <string name="view_routine_history">Ver historial de rutina</string>
 </resources>

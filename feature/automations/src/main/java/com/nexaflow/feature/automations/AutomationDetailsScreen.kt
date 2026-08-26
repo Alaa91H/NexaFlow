@@ -73,6 +73,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -231,7 +232,10 @@ fun AutomationDetailsScreen(navController: NavController) {
                         }
                     }
                 }
-                ExecutionHealthCard(report = healthReport)
+                ExecutionHealthCard(
+                    report = healthReport,
+                    onOpenHistory = { navController.navigate(routineHistoryRoute(current.id)) }
+                )
                 AutomationDetailsSectionCard(
                     index = 0,
                     title = stringResource(R.string.section_triggers),
@@ -757,7 +761,10 @@ private fun AutomationDetailsPreview() {
 
 /** Read-only summary derived from persisted execution history for the current routine. */
 @Composable
-private fun ExecutionHealthCard(report: AutomationHealthReport) {
+private fun ExecutionHealthCard(
+    report: AutomationHealthReport,
+    onOpenHistory: () -> Unit
+) {
     val status = report.status
     val attention = status == AutomationHealthStatus.NEEDS_ATTENTION
     val icon = when (status) {
@@ -827,6 +834,9 @@ private fun ExecutionHealthCard(report: AutomationHealthReport) {
                             }
                         )
                     }
+                TextButton(onClick = onOpenHistory) {
+                    Text(stringResource(R.string.view_routine_history))
+                }
             }
         }
     }
@@ -845,3 +855,7 @@ internal fun executionHealthSubtitleRes(status: AutomationHealthStatus): Int = w
     AutomationHealthStatus.HEALTHY -> R.string.execution_health_activity_sub
     AutomationHealthStatus.NEEDS_ATTENTION -> R.string.execution_health_attention_sub
 }
+
+/** Builds the optional-query route used to show evidence for one routine only. */
+internal fun routineHistoryRoute(automationId: String): String =
+    "history?automationId=${Uri.encode(automationId)}"
