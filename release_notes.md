@@ -1,21 +1,27 @@
-# NexaFlow v3.41.5
+# NexaFlow v3.42.0
 
-NexaFlow v3.41.5 is a reliability patch focused on protecting routine data during JSON backup import. It follows a competitive and Android-platform review that prioritized safe portability and predictable automation behavior over speculative feature expansion.
-
-## Fixed
-
-Backup files containing duplicate automation IDs are now rejected before any data is written. Previously, duplicate IDs inside a malformed or hand-edited file could make ID remapping ambiguous and allow the repository’s replacement semantics to discard one imported automation silently. The import remains all-or-nothing for this validation path, so no automation is saved when the file is rejected.
+NexaFlow v3.42.0 makes the app’s existing local starter routines discoverable while preserving a deliberate review-before-activation workflow. This release is informed by a new comparative review of Samsung Modes and Routines, MacroDroid, TaskerNet, vFlow, and current Android platform guidance.
 
 ## Added
 
-This release adds a regression test that verifies duplicate automation IDs fail safely without persisting data. It also adds a documented 2026 research record that captures the competitive and platform evidence used to prioritize reliability, portability, permission-aware scheduling, and release quality.
+The New Task builder now exposes **Starter routines** when compatible bundled templates are available on the current device. Each starter routine is local, editable, and filtered through NexaFlow’s existing capability model before it is offered. The chooser pre-fills a localized routine name and opens the full review stage, so the user can inspect and adjust the exact triggers and actions before saving.
+
+Starter-routine labels and review guidance are localized across every language shipped by NexaFlow. The release also adds regression coverage for the template title mapping and the activation policy.
+
+## Changed
+
+A routine created from a starter template is saved **disabled by default**. This adds a clear user-controlled review point: the user must explicitly enable it from the dashboard after reviewing the generated configuration. Existing routines retain their current enabled state, and manually created routines preserve their existing first-save behavior.
+
+## Fixed
+
+French starter-routine strings now escape apostrophes correctly for Android resource compilation. This restores successful resource merging and Android Lint for the French locale.
 
 ## Verification
 
-The release candidate passed the complete GitHub Actions pipeline: resource hygiene checks, locale parity checks, Python resource-gate tests, Detekt, Android Lint, Android unit tests, debug and release APK builds, release AAB build, dependency-verification checks, APK permission checks, APK signature checks, zip alignment, 16 KB native-library alignment, and bundle validation.
+The final `main` candidate passed the complete GitHub Actions pipeline: resource hygiene checks, locale-parity checks, Python resource-gate tests, Detekt, Android Lint, Android unit tests, debug and release APK builds, release AAB build, dependency-verification checks, APK permission checks, APK signature checks, zip alignment, 16 KB native-library alignment, and bundle validation.
 
-> Android automation still depends on the permissions available on the device, Android version, OEM behavior, and any explicitly enabled Root or Shizuku capabilities. This release strengthens backup safety; it does not bypass platform restrictions.
+> Starter routines are local templates, not downloaded automation code. This release does not add cloud storage, remote sharing, webhooks, scripting, AI generation, accessibility-driven screen control, or elevated process capabilities.
 
-## Research references
+## Research record
 
-The supporting research record is available at [`docs/RESEARCH_2026.md`](docs/RESEARCH_2026.md). It links the official Android scheduling guidance and comparable automation products that informed this release scope.
+The comparative evidence, selected scope, acceptance criteria, and explicitly deferred work are documented in [`docs/RESEARCH_2026.md`](docs/RESEARCH_2026.md).

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.42.0] - 2026-08-26
+
+### Added
+- Made capability-filtered, bundled starter routines discoverable from the new-task builder. Users can choose an editable local starting point only when its declared trigger and action requirements are available on the current device.
+- Added localized starter-routine names and review guidance across every shipped locale.
+- Added regression coverage for starter-routine title mapping and the first-save activation policy.
+
+### Changed
+- Newly saved starter routines now remain disabled until the user reviews the generated trigger/action configuration and explicitly enables the routine from the dashboard. Manual creation and edits keep their existing activation behavior.
+
+### Fixed
+- Escaped French starter-routine strings correctly so Android resource compilation and Android Lint complete successfully.
+
 ## [v3.41.5] - 2026-08-26
 
 ### Fixed
