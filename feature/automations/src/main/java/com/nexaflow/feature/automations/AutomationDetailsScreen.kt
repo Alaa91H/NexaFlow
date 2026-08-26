@@ -7,6 +7,8 @@ import androidx.compose.material.icons.filled.Nfc
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.Storage
 
+import java.net.URLEncoder
+
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -858,4 +860,4 @@ internal fun executionHealthSubtitleRes(status: AutomationHealthStatus): Int = w
 
 /** Builds the optional-query route used to show evidence for one routine only. */
 internal fun routineHistoryRoute(automationId: String): String =
-    "history?automationId=${Uri.encode(automationId)}"
+    "history?automationId=${URLEncoder.encode(automationId, "UTF-8").replace("+", "%20")}"
