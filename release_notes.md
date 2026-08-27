@@ -43,7 +43,7 @@ For the Cellular Network action, reopen the action configuration after the capab
 
 ## Verification
 
-The final main-branch candidate passed the complete remote GitHub Actions pipeline: [run 33077245706](https://github.com/Alaa91H/NexaFlow/actions/runs/33077245706). The accepted workflow completed Android unit tests, Detekt, Android Lint, debug/release APK and AAB builds, dependency and packaging verification, signing verification, alignment checks, and bundle validation. No Gradle build, lint task, or unit test was run locally.
+The final main-branch candidate passed the complete remote GitHub Actions pipeline: [run 33080964645](https://github.com/Alaa91H/NexaFlow/actions/runs/33080964645). The accepted workflow completed Android unit tests, Detekt, Android Lint, debug/release APK and AAB builds, dependency and packaging verification, signing verification, alignment checks, and bundle validation. No Gradle build, lint task, or unit test was run locally.
 
 ## References
 
