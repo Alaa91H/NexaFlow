@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.49.0] - 2026-08-27
+
+### Added
+- Added occurrence-aware lifecycle ownership to the consolidated settings-state monitor. The supported settings/radio/state triggers now admit a durable occurrence before main effects, retain an unreadable device state as `UNKNOWN`, and route confirmed condition ends through `ExitCoordinator`.
+- Added durable recovery preservation for interrupted main actions. An action cancelled after it has started is retained as `ACTION_UNKNOWN` and is classified at startup as verification-or-compensation work instead of being silently removed or replayed.
+- Added regression coverage for checkpoint recovery classification, failed whole-snapshot restore reporting, manual event-trigger safety, settings-state `UNKNOWN` retention, and sustained charger state after restart.
+
+### Changed
+- Updated whole-snapshot revert to aggregate real `SystemControlResult` values for the setting families changed by the automation. `STATE_RESTORE` now accurately carries the resulting success state and diagnostic message.
+- Updated manual **Run now** gating to use typed condition results. An unverifiable event or ambiguous legacy platform read records a visible safe skip; it does not synthesize configured end actions. A confirmed false condition continues to use the explicit end-behavior path.
+- Updated hotspot state observation so an unreadable `tether_on` setting remains unknown rather than being interpreted as `OFF`.
+- Updated the privileged location-mode command to use the shared `SafeCommandBuilder` and declared its security-module dependency explicitly.
+
+### Fixed
+- Fixed battery and charger monitor branches that could request an exit for an occurrence that was still in its configured active state after reconciliation or restart.
+- Fixed settings-state monitor cleanup ordering: compatibility active keys are now mirrored only after durable admission and are removed only after successful coordinated completion or a verified absent/stale occurrence.
+- Fixed a false-success path where whole-device restore failures could be recorded as a successful exit and therefore consume recovery evidence.
+- Fixed CI-detected test contracts during validation, including coroutine/JUnit lifecycle signatures and the prior manual event-trigger expectation.
+
 ## [v3.48.0] - 2026-08-27
 
 ### Added

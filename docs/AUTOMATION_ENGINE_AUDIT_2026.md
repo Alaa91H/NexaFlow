@@ -3,7 +3,7 @@
 **Author:** Manus AI
 
 **Audit baseline:** `v3.48.0` / `7a7183c096f176c51e81edb81b4620fd9ea1f01d`
-**Status:** In progress; this record is updated only from inspected implementation paths and verified platform references.
+**Status:** Implementation candidate accepted by remote CI run [33055298598](https://github.com/Alaa91H/NexaFlow/actions/runs/33055298598); release documentation and tag are pending. This record is updated only from inspected implementation paths and verified platform references.
 
 ## 1. Architecture map
 
@@ -200,6 +200,7 @@ The implementation is deliberately source-scoped. `SettingsStateMonitor` now has
 | Manual `UNKNOWN` policy | Event-only and ambiguous legacy probes write an explicit safe skip record and do not dispatch configured end actions. | `ExecutionEngineExitBehaviorTest` verifies `APP_INSTALLED` manual execution does not invoke end actions. |
 | Settings-state lifecycle | Confirmed true admits a durable occurrence before compatibility mirroring; confirmed false requests one coordinator exit; unknown retains it. | `SettingsStateMonitorLifecycleTest` deterministically covers unavailable NFC as `UNKNOWN`; coordinated confirmed-false behavior is source-reviewed and accepted through the remote suite rather than a platform-setting-dependent unit test. |
 | Hotspot state read | Failed `tether_on` reads produce unknown/null instead of `OFF`. | No new isolated test seam exists in this slice; the repository's complete remote unit suite and static source review are the acceptance evidence. |
+| Privileged location command | The location helper composed a raw shell string with a variable argument. | Converted to the existing `SafeCommandBuilder`; the mode remains a typed integer argument and the module depends explicitly on `core:security`. |
 | Battery and charger sustained-state reconcile | Previously active battery and charger occurrences remain active while their configured condition remains true; only a confirmed false branch requests exit. | The pre-existing battery restart test exposed the defective branch in remote CI; `BatteryMonitorExitReconcileTest` now also covers sustained charging after restart. |
 
-The automated Gradle acceptance for these tests has not yet been run locally by design. It will be performed exclusively by the repository's remote GitHub Actions workflow after the implementation commit is pushed. The remaining direct-exit monitor families, stale seven-day compatibility keys outside the migrated source, generic delete-before-exit behavior, one-shot alarm late-delivery policy, receiver-length constraints, elapsed-time cooldown migration, SMS ingress deduplication, and cross-automation setting ownership remain open risks and must not be inferred as resolved.
+No Gradle acceptance was run locally by design. The full remote GitHub Actions acceptance passed in [run 33055298598](https://github.com/Alaa91H/NexaFlow/actions/runs/33055298598): resource hygiene, locale parity, resource-gate tests, Detekt, Android Lint, Android unit tests, debug/release APK builds, AAB build, dependency verification, manifest/permission checks, signature verification, 16 KB and zip alignment, and bundle validation. The remaining direct-exit monitor families, stale seven-day compatibility keys outside the migrated source, generic delete-before-exit behavior, one-shot alarm late-delivery policy, receiver-length constraints, elapsed-time cooldown migration, SMS ingress deduplication, and cross-automation setting ownership remain open risks and must not be inferred as resolved.

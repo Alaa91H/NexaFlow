@@ -12,6 +12,7 @@ import android.os.Looper
 import android.provider.Settings
 import androidx.core.content.ContextCompat
 import com.nexaflow.core.rom.PrivilegedRunner
+import com.nexaflow.core.security.SafeCommandBuilder
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
@@ -110,7 +111,9 @@ object LocationAccess {
             return setLegacyLocationMode(context, mode)
         }
         // Elevated runtime path (Shizuku or root): `settings put secure ...`.
-        return PrivilegedRunner.runShell("settings put secure location_mode $mode").success
+        return PrivilegedRunner.runShell(
+            SafeCommandBuilder.build("settings", "put", "secure", "location_mode", mode.toString())
+        ).success
     }
 
     @Suppress("DEPRECATION")

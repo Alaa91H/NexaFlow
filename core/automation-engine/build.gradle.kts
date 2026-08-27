@@ -83,6 +83,7 @@ dependencies {
     implementation(project(":core:rom-integration"))
     implementation(project(":core:common"))
     implementation(project(":core:datastore"))
+    implementation(project(":core:security"))
     testImplementation(libs.junit.junit)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.org.robolectric.robolectric)
