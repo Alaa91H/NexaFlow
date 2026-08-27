@@ -73,45 +73,40 @@ class DeviceStateSnapshot private constructor(
     private val screensaverTimeout: String?
 ) {
 
-    fun restore(context: Context) {
-        restoreAudio(context)
-        restoreDisplaySettings(context)
-        val controller = RomIntegrationManager.controller(context)
-        restoreToggle(controller::setWifi, wifiEnabled)
-        restoreToggle(controller::setBluetooth, bluetoothEnabled)
-        restoreToggle(controller::setNfc, nfcEnabled)
-        restoreToggle(controller::setMobileData, mobileDataEnabled)
-        networkMode?.let {
-            runCatching { controller.restoreNetworkMode(it) }
+    /**
+     * Restores the captured device settings and reports any operation the
+     * platform rejected. A best-effort snapshot must not turn a partially
+     * restored device into a false successful exit: callers use this result to
+     * retain durable exit state for recovery and user-visible diagnostics.
+     */
+    fun restore(context: Context, changedActions: List<Action>): SystemControlResult {
+        // A snapshot intentionally records a broad local state so the same
+        // format supports every action type. Restore only the setting families
+        // this occurrence actually changed: trying to write unrelated secure
+        // settings would turn an otherwise complete revert into a false failure
+        // on stock devices where those settings are deliberately protected.
+        val results = changedActions
+            .map { action -> restoreSetting(context, action) }
+            .filterNot { result -> result.message.startsWith("Nothing to restore") }
+        val failures = results.filterNot(SystemControlResult::success)
+        return when {
+            failures.isNotEmpty() -> SystemControlResult.fail(
+                "Failed to restore ${failures.size} setting(s): " +
+                    failures.joinToString(limit = 2, truncated = "…") { it.message }
+            )
+            results.isEmpty() -> SystemControlResult.ok("Nothing to restore")
+            else -> SystemControlResult.ok("Restored original state")
         }
-        restoreToggle(controller::setHotspot, hotspotEnabled)
-        restoreToggle(controller::setAirplaneMode, airplaneModeEnabled)
-        restoreToggle(controller::setDoNotDisturb, dndEnabled)
-        restoreToggle(controller::setFlashlight, flashlightEnabled)
-        restoreToggle(controller::setPowerSaver, powerSaverEnabled)
-        restoreToggle(controller::setAnimations, animationsEnabled)
-        restoreToggle(controller::setLocationEnabled, locationEnabled)
-        restoreSettingsToggle(controller, "SECURE", "accessibility_display_inversion_enabled", colorInversion)
-        restoreSettingsToggle(controller, "SECURE", "accessibility_display_daltonizer_enabled", grayscale)
-        restoreSettingsToggle(controller, "SECURE", "reduce_bright_colors_activated", extraDim)
-        restoreSettingsToggle(controller, "SECURE", "night_display_activated", nightLight)
-        restoreSettingsToggle(controller, "SYSTEM", "haptic_feedback_enabled", hapticFeedback)
-        restoreSettingsToggle(controller, "SYSTEM", "sound_effects_enabled", soundEffects)
-        restoreSettingsToggle(controller, "GLOBAL", "data_saver", dataSaver)
-        restoreSettingsToggle(controller, "SECURE", "screensaver_enabled", screensaver)
-        restoreSettingsToggle(controller, "SECURE", "always_on_display_enabled", alwaysOnDisplay)
-        restoreSettingsToggle(controller, "SYSTEM", "show_touches", showTaps)
-        restoreSettingsToggle(controller, "SYSTEM", "pointer_location", pointerLocation)
-        restoreSettingsToggle(controller, "GLOBAL", "adaptive_battery_management_enabled", adaptiveBattery)
-        restoreSettingsToggle(controller, "GLOBAL", "auto_time", autoTime)
-        restoreSettingsToggle(controller, "GLOBAL", "auto_time_zone", autoTimezone)
-        restoreSettingsToggle(controller, "SYSTEM", "camera_sound", cameraShutterSound)
-        restoreSettingsToggle(controller, "GLOBAL", "wifi_scan_always_enabled", wifiScanning)
-        restoreSettingsToggle(controller, "GLOBAL", "data_roaming", dataRoaming)
-        restoreSettingsToggle(controller, "SYSTEM", "vibrate_when_ringing", callVibration)
-        restoreRawSetting(controller, "SYSTEM", "pointer_speed", pointerSpeed)
-        restoreRawSetting(controller, "SECURE", "screensaver_timeout", screensaverTimeout)
     }
+
+    /**
+     * Compatibility fallback for the workflow transaction path, whose historic
+     * contract captured a broad snapshot without retaining the action list.
+     * ExecutionEngine uses the narrower overload above. Unsupported action
+     * types are filtered as explicit no-ops by [restore].
+     */
+    fun restore(context: Context): SystemControlResult =
+        restore(context, ActionType.entries.map { type -> Action(type, emptyMap()) })
 
     /**
      * Restores a single setting — used by the per-action adaptive end behavior
@@ -220,37 +215,6 @@ class DeviceStateSnapshot private constructor(
         AudioManager.STREAM_DTMF -> dtmfVolume
         AudioManager.STREAM_ACCESSIBILITY -> accessibilityVolume
         else -> musicVolume
-    }
-
-    private fun restoreAudio(context: Context) {
-        runCatching {
-            val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            audio.setStreamVolume(AudioManager.STREAM_MUSIC, musicVolume, 0)
-            audio.setStreamVolume(AudioManager.STREAM_RING, ringVolume, 0)
-            audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, notificationVolume, 0)
-            audio.setStreamVolume(AudioManager.STREAM_ALARM, alarmVolume, 0)
-            audio.setStreamVolume(AudioManager.STREAM_VOICE_CALL, voiceCallVolume, 0)
-            audio.setStreamVolume(AudioManager.STREAM_SYSTEM, systemVolume, 0)
-            audio.setStreamVolume(AudioManager.STREAM_DTMF, dtmfVolume, 0)
-            audio.setStreamVolume(AudioManager.STREAM_ACCESSIBILITY, accessibilityVolume, 0)
-            audio.ringerMode = ringerMode
-        }
-    }
-
-    private fun restoreDisplaySettings(context: Context) {
-        runCatching {
-            Settings.System.putInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS, brightness)
-            Settings.System.putInt(
-                context.contentResolver,
-                Settings.System.SCREEN_BRIGHTNESS_MODE,
-                if (autoBrightness) Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC
-                else Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL
-            )
-            Settings.System.putInt(context.contentResolver, Settings.System.SCREEN_OFF_TIMEOUT, screenTimeout)
-            Settings.System.putInt(context.contentResolver, "stay_on_while_plugged_in", if (stayAwake) 1 else 0)
-            Settings.System.putInt(context.contentResolver, Settings.System.ACCELEROMETER_ROTATION, if (autoRotate) 1 else 0)
-            Settings.Secure.putInt(context.contentResolver, "ui_night_mode", if (darkMode) 2 else 1)
-        }
     }
 
     private fun restoreToggle(

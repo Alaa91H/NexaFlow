@@ -12,6 +12,7 @@ import com.nexaflow.core.common.CellularNetworkReader
 import com.nexaflow.core.common.DefaultNetworkSnapshot
 import com.nexaflow.core.common.DefaultNetworkStateReader
 import com.nexaflow.core.common.NetworkTransportState
+import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.schedule.TimeTriggerCalculator
@@ -51,9 +52,44 @@ object TriggerStateEvaluator {
      * "run now" tap never performs a phone-state read on the main thread.
      */
     suspend fun isSatisfiedAsync(context: Context, triggers: List<Trigger>): Boolean =
-        triggers.isEmpty() || triggers.all { trigger ->
-            withContext(Dispatchers.IO) { triggerSatisfied(context, trigger) }
+        evaluateAsync(context, triggers) == ConditionResult.Satisfied
+
+    /**
+     * Typed manual-gate evaluation. A manual exit is permitted only after a
+     * confirmed false condition; an event-only source, unavailable service, or
+     * read whose false result cannot be distinguished from an API failure is
+     * intentionally [ConditionResult.Unknown].
+     */
+    suspend fun evaluateAsync(context: Context, triggers: List<Trigger>): ConditionResult {
+        if (triggers.isEmpty()) return ConditionResult.Satisfied
+        var unknown = false
+        triggers.forEach { trigger ->
+            when (val result = withContext(Dispatchers.IO) { evaluateTriggerForManualGate(context, trigger) }) {
+                ConditionResult.Satisfied -> Unit
+                ConditionResult.Unsatisfied -> return ConditionResult.Unsatisfied
+                ConditionResult.Unknown,
+                ConditionResult.Unavailable,
+                is ConditionResult.Error -> unknown = true
+            }
         }
+        return if (unknown) ConditionResult.Unknown else ConditionResult.Satisfied
+    }
+
+    private fun evaluateTriggerForManualGate(context: Context, trigger: Trigger): ConditionResult {
+        if (trigger.type in MANUAL_EVENT_ONLY_TYPES) return ConditionResult.Unknown
+        val satisfied = runCatching { triggerSatisfied(context, trigger) }.getOrNull()
+            ?: return ConditionResult.Unknown
+        if (satisfied) return ConditionResult.Satisfied
+        // Most legacy boolean probes intentionally collapse service/permission
+        // failures to false. Until each adapter exposes typed reads, only these
+        // platform values are treated as a confirmed manual false. This is
+        // conservative by design: UNKNOWN skips rather than runs end actions.
+        return if (trigger.type in MANUAL_DEFINITIVE_FALSE_TYPES) {
+            ConditionResult.Unsatisfied
+        } else {
+            ConditionResult.Unknown
+        }
+    }
 
     // ConnectivityManager reads (ethernet/VPN/connectivity) need
     // ACCESS_NETWORK_STATE, which is a normal permission the app declares in
@@ -354,6 +390,22 @@ object TriggerStateEvaluator {
         }
         return wanted == actual
     }
+
+    private val MANUAL_EVENT_ONLY_TYPES = setOf(
+        TriggerType.APP_INSTALLED,
+        TriggerType.TIMEZONE_CHANGED,
+        TriggerType.BOOT_COMPLETED,
+        TriggerType.NFC_TAG_SCANNED,
+        TriggerType.CLIPBOARD_CHANGED,
+        TriggerType.SCREEN_TIMEOUT_CHANGED,
+        TriggerType.ALARM_SET_CHANGED
+    )
+
+    private val MANUAL_DEFINITIVE_FALSE_TYPES = setOf(
+        TriggerType.TIME,
+        TriggerType.DARK_MODE,
+        TriggerType.SCREEN_ROTATION_STATE
+    )
 
     private fun batterySatisfied(context: Context, config: Map<String, String>): Boolean {
         val battery = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager ?: return false

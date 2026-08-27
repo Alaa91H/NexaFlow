@@ -35,18 +35,22 @@ object LocationAccess {
 
     private const val DEFAULT_FIX_TIMEOUT_MS = 12_000L
 
-    fun isLocationEnabled(context: Context): Boolean {
-        return try {
-            val manager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                manager.isLocationEnabled
-            } else {
-                legacyLocationMode(context) != MODE_OFF
-            }
-        } catch (_: Throwable) {
-            false
+    /**
+     * Returns the master location-switch state when it can be read. A null
+     * result is deliberately distinct from OFF so stateful triggers never
+     * interpret a transient service/read failure as a confirmed leave event.
+     */
+    fun locationEnabledOrNull(context: Context): Boolean? = runCatching {
+        val manager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
+            ?: return@runCatching null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            manager.isLocationEnabled
+        } else {
+            legacyLocationModeOrNull(context)?.let { it != MODE_OFF }
         }
-    }
+    }.getOrNull()
+
+    fun isLocationEnabled(context: Context): Boolean = locationEnabledOrNull(context) ?: false
 
     fun hasLocationPermission(context: Context): Boolean {
         return ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
@@ -55,12 +59,22 @@ object LocationAccess {
             PackageManager.PERMISSION_GRANTED
     }
 
-    fun currentLocationMode(context: Context): Int =
+    /**
+     * Reads the best portable location mode when available. Android P+ exposes
+     * only the master enabled switch through the public API, so enabled maps to
+     * HIGH_ACCURACY for this legacy trigger vocabulary; a failed read is null.
+     */
+    fun currentLocationModeOrNull(context: Context): Int? =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            if (isLocationEnabled(context)) MODE_HIGH_ACCURACY else MODE_OFF
+            locationEnabledOrNull(context)?.let { enabled ->
+                if (enabled) MODE_HIGH_ACCURACY else MODE_OFF
+            }
         } else {
-            legacyLocationMode(context)
+            legacyLocationModeOrNull(context)
         }
+
+    fun currentLocationMode(context: Context): Int =
+        currentLocationModeOrNull(context) ?: MODE_OFF
 
     /**
      * Turns location on without any user interaction, if an elevated runtime is
@@ -101,9 +115,11 @@ object LocationAccess {
 
     @Suppress("DEPRECATION")
     private fun legacyLocationMode(context: Context): Int =
-        runCatching {
-            Settings.Secure.getInt(context.contentResolver, Settings.Secure.LOCATION_MODE, MODE_OFF)
-        }.getOrDefault(MODE_OFF)
+        legacyLocationModeOrNull(context) ?: MODE_OFF
+
+    private fun legacyLocationModeOrNull(context: Context): Int? = runCatching {
+        Settings.Secure.getInt(context.contentResolver, Settings.Secure.LOCATION_MODE)
+    }.getOrNull()
 
     @Suppress("DEPRECATION")
     private fun setLegacyLocationMode(context: Context, mode: Int): Boolean =

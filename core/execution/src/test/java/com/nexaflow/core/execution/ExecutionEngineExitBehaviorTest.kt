@@ -98,12 +98,18 @@ class ExecutionEngineExitBehaviorTest {
         updatedAt = 0L
     )
 
-    private fun engine(handler: RecordingHandler, history: RecordingHistory): ExecutionEngine =
+    private fun engine(
+        handler: RecordingHandler,
+        history: RecordingHistory,
+        snapshotRestorer: (DeviceStateSnapshot, List<Action>) -> SystemControlResult =
+            { snapshot, actions -> snapshot.restore(context, actions) }
+    ): ExecutionEngine =
         ExecutionEngine(
             context = context,
             historyRepository = history,
             notificationPreferences = NotificationPreferences(context),
-            actionRegistry = ActionRegistry.from(listOf(handler))
+            actionRegistry = ActionRegistry.from(listOf(handler)),
+            snapshotRestorer = snapshotRestorer
         )
 
     @Before
@@ -117,6 +123,43 @@ class ExecutionEngineExitBehaviorTest {
             "a malformed persisted snapshot must fail closed",
             DeviceStateSnapshot.decodeForRuntime("not-json") == null
         )
+    }
+
+    @Test
+    fun `failed whole snapshot restore is reported as a failed exit`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(
+            handler = handler,
+            history = history,
+            snapshotRestorer = { _, _ -> SystemControlResult.fail("controlled restore failure") }
+        )
+        val automation = automation(revertOnExit = true)
+
+        engine.runAutomation(automation)
+        val record = engine.runExit(automation)
+
+        assertFalse("a rejected restore must not be reported as a successful exit", record.success)
+        assertEquals("STATE_RESTORE", record.actionResults.single().actionType)
+        assertFalse(record.actionResults.single().success)
+        assertTrue(record.message.contains("controlled restore failure"))
+    }
+
+    @Test
+    fun `manual run with unverifiable event trigger skips without end actions`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(handler, history)
+        val automation = automation(
+            triggers = listOf(Trigger(TriggerType.APP_INSTALLED, mapOf("event" to "INSTALLED"))),
+            exitActions = listOf(action)
+        )
+
+        val record = engine.runWithConditionGate(automation)
+
+        assertTrue(record.success)
+        assertTrue(record.message.contains("could not be verified"))
+        assertEquals("unknown condition must not dispatch the configured exit", 0, handler.calls)
     }
 
     @Test

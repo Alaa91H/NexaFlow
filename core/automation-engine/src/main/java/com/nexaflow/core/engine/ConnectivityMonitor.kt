@@ -394,8 +394,8 @@ class ConnectivityMonitor @Inject constructor(
         "WIFI" -> defaultTransportValue(snapshot, NetworkCapabilities.TRANSPORT_WIFI)
         "MOBILE" -> defaultTransportValue(snapshot, NetworkCapabilities.TRANSPORT_CELLULAR)
         "HOTSPOT" -> runCatching {
-            Settings.Global.getInt(context.contentResolver, "tether_on", 0) == 1
-        }.getOrDefault(false).let { if (it) "ON" else "OFF" }
+            Settings.Global.getInt(context.contentResolver, "tether_on") == 1
+        }.getOrNull()?.let { enabled -> if (enabled) "ON" else "OFF" }
         "NETWORK_MODE" -> {
             // The cellular registration can remain active while Wi-Fi is the
             // default route; do not gate the telephony read on the currently

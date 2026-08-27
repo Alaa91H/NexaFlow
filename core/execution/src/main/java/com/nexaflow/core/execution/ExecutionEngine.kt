@@ -83,7 +83,10 @@ class ExecutionEngine(
     /** Optional safe-capability seam; null preserves legacy handler-only construction. */
     private val capabilityExecutionService: CapabilityExecutionService? = null,
     /** Current shared availability observation; absent only in legacy/test construction. */
-    private val capabilitySnapshotProvider: (() -> CapabilitySnapshot)? = null
+    private val capabilitySnapshotProvider: (() -> CapabilitySnapshot)? = null,
+    /** Test seam for deterministic whole-snapshot restore outcome coverage. */
+    private val snapshotRestorer: (DeviceStateSnapshot, List<Action>) -> SystemControlResult =
+        { snapshot, changedActions -> snapshot.restore(context, changedActions) }
 ) {
 
     companion object {
@@ -313,6 +316,13 @@ class ExecutionEngine(
         // then apply pure string substitution per action.
         val variables = runCatching { resolveVariables() }.getOrDefault(emptyMap())
         var inProgressActionIndex: Int? = null
+        // A checkpoint is removed only after a fully known action chain. Once
+        // an action starts and the coroutine is interrupted, its side effect
+        // may have happened; startup recovery must be able to claim that
+        // checkpoint rather than losing the evidence in this invocation's
+        // finally block.
+        var checkpointRequiresRecovery = false
+        var actionChainCompleted = false
         val results = try {
             automation.actions.mapIndexed { actionIndex, action ->
                 inProgressActionIndex = actionIndex
@@ -350,40 +360,48 @@ class ExecutionEngine(
                     message = result.message,
                     durationMs = epochMillis.now() - actionStartedAt
                 )
-            }
+            }.also { actionChainCompleted = true }
         } catch (cancellation: CancellationException) {
-            // The process may have interrupted a side effect after it began;
-            // recovery must verify/compensate instead of replaying it blindly.
+            // The process may have interrupted a side effect after it began.
+            // Persist this classification in NonCancellable: otherwise the
+            // cancelled caller context can abort the DataStore write and the
+            // finally block would erase the only recovery evidence.
             inProgressActionIndex?.let { index ->
-                runCatching {
-                    activeExecutionStore.markActionUnknown(
-                        runId = payloadContext.runId,
-                        message = "Action $index interrupted before durable completion",
-                        updatedAt = epochMillis.now()
-                    )
+                checkpointRequiresRecovery = true
+                withContext(NonCancellable) {
+                    runCatching {
+                        activeExecutionStore.markActionUnknown(
+                            runId = payloadContext.runId,
+                            message = "Action $index interrupted before durable completion",
+                            updatedAt = epochMillis.now()
+                        )
+                    }
                 }
             }
             throw cancellation
         } catch (failure: Throwable) {
             inProgressActionIndex?.let { index ->
-                runCatching {
-                    activeExecutionStore.markActionUnknown(
-                        runId = payloadContext.runId,
-                        message = "Action $index crashed: ${failure.message?.take(100)}",
-                        updatedAt = epochMillis.now()
-                    )
+                checkpointRequiresRecovery = true
+                withContext(NonCancellable) {
+                    runCatching {
+                        activeExecutionStore.markActionUnknown(
+                            runId = payloadContext.runId,
+                            message = "Action $index crashed: ${failure.message?.take(100)}",
+                            updatedAt = epochMillis.now()
+                        )
+                    }
                 }
             }
             throw failure
         } finally {
-            // Strict enforcement: ensure checkpoint is removed and one-shot exit is consumed 
-            // even if the run timed out or was forcefully cancelled.
-            activeExecutionStore.completeCheckpoint(payloadContext.runId)
-            // Explicit callers can force completion, while the domain policy
-            // closes purely event-driven tasks even if their monitor omitted the
-            // flag. Stateful conditions remain open until their opposite state
-            // is observed by the relevant monitor.
-            if (completeExitOnFinish || automation.completesExitOnFinish) {
+            if (!checkpointRequiresRecovery) {
+                activeExecutionStore.completeCheckpoint(payloadContext.runId)
+            }
+            // A one-shot exit is meaningful only after the entire main chain is
+            // known to have completed. Do not start end actions after a
+            // cancellation/crash with an uncertain main-side effect; recovery
+            // intentionally classifies that state instead of guessing.
+            if (actionChainCompleted && (completeExitOnFinish || automation.completesExitOnFinish)) {
                 withContext(NonCancellable) {
                     runExit(automation)
                 }
@@ -402,8 +420,9 @@ class ExecutionEngine(
             actionResults = results
         )
         historyRepository.recordExecution(record)
-        // History is now durable. The active checkpoint and exit lifecycle were 
-        // guaranteed to be consumed by the finally block above.
+        // History is now durable. A fully-known action chain has consumed its
+        // checkpoint; interrupted action chains intentionally remain for
+        // ExecutionRecoveryCoordinator to classify on the next startup.
         if (record.success && maintenanceOccurrenceKey != null) {
             activeExecutionStore.recordCompletedMaintenanceOccurrence(
                 occurrenceKey = maintenanceOccurrenceKey,
@@ -423,12 +442,14 @@ class ExecutionEngine(
      * when the condition that should fire the task is not met right now.
      */
     suspend fun runWithConditionGate(automation: Automation): ExecutionRecord {
+        val startedAt = epochMillis.now()
         // The manual "run now" gate is tied to the task's full condition set:
         // triggers AND constraints. Only when EVERY configured trigger and
         // EVERY constraint is currently and verifiably satisfied do the task's
-        // main actions run. Any false or unreadable condition follows the
-        // configured "when the task ends" behavior instead.
-        val triggersOk = TriggerStateEvaluator.isSatisfiedAsync(context, automation.triggers)
+        // main actions run. A confirmed false condition follows the configured
+        // "when the task ends" behavior; unreadable conditions are recorded as
+        // an explicit safe skip and never fabricate an end event.
+        val triggerResult = TriggerStateEvaluator.evaluateAsync(context, automation.triggers)
         val constraintResult = if (automation.constraints.isEmpty()) {
             ConditionResult.Satisfied
         } else {
@@ -436,15 +457,38 @@ class ExecutionEngine(
                 ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
             AutomationConstraintGate(capabilityExecutionService).evaluate(automation, state)
         }
-        return if (triggersOk && constraintResult == ConditionResult.Satisfied) {
-            runAutomation(automation)
-        } else {
-            runExit(
-                automation = automation,
-                forceConfiguredEnd = true,
-                manualConditionRejected = true
-            )
+        return when {
+            triggerResult == ConditionResult.Satisfied && constraintResult == ConditionResult.Satisfied ->
+                runAutomation(automation)
+
+            triggerResult == ConditionResult.Unsatisfied || constraintResult == ConditionResult.Unsatisfied ->
+                runExit(
+                    automation = automation,
+                    forceConfiguredEnd = true,
+                    manualConditionRejected = true
+                )
+
+            else -> manualConditionUnknownRecord(automation, startedAt)
         }
+    }
+
+    /** Records an unverified manual condition without fabricating an end event. */
+    private suspend fun manualConditionUnknownRecord(
+        automation: Automation,
+        startedAt: Long
+    ): ExecutionRecord {
+        val record = ExecutionRecord(
+            id = UUID.randomUUID().toString(),
+            automationId = automation.id,
+            automationName = automation.name,
+            success = true,
+            message = "Skipped: conditions could not be verified; no end behavior was run",
+            executedAt = startedAt
+        )
+        historyRepository.recordExecution(record)
+        recordTimeline(automation, "MANUAL_CONDITION_UNKNOWN", record, startedAt)
+        context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
+        return record
     }
 
     /**
@@ -527,12 +571,12 @@ class ExecutionEngine(
             val snapshot = snapshots.remove(automation.id)
                 ?: DeviceStateSnapshot.decodeForRuntime(runtimeSnapshotJson)
             if (snapshot != null) {
-                snapshot.restore(context)
+                val restoreResult = snapshotRestorer(snapshot, automation.actions)
                 listOf(
                     ActionExecutionResult(
                         actionType = "STATE_RESTORE",
-                        success = true,
-                        message = "Restored original state",
+                        success = restoreResult.success,
+                        message = restoreResult.message,
                         durationMs = 0
                     )
                 )

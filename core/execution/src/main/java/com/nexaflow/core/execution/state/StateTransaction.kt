@@ -32,12 +32,9 @@ class DeviceStateTransaction private constructor(
         return SystemControlResult.ok("Device state captured")
     }
 
-    override fun rollback(context: Context): SystemControlResult {
-        return runCatching {
-            snapshot.restore(context)
-            SystemControlResult.ok("Device state restored")
-        }.getOrElse { SystemControlResult.fail("Restore failed: ${it.message}") }
-    }
+    override fun rollback(context: Context): SystemControlResult = runCatching {
+        snapshot.restore(context)
+    }.getOrElse { SystemControlResult.fail("Restore failed: ${it.message}") }
 
     companion object {
         fun capture(context: Context): DeviceStateTransaction =
