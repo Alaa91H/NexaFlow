@@ -143,6 +143,17 @@ class WorkflowInterpreter(
                 if (node.rollbackOnFailure) {
                     executedActions.asReversed().forEach { actionNode ->
                         runCatching { rollbackHandler?.rollback(actionNode) }
+                            .onFailure { rollbackFailure ->
+                                // Retain the original action failure while making a
+                                // failed compensating operation visible in history.
+                                results += NodeResult(
+                                    actionNode.id,
+                                    false,
+                                    rollbackFailure.message ?: "Rollback failed",
+                                    0,
+                                    actionNode.action.type.name
+                                )
+                            }
                     }
                 }
                 return false
@@ -160,7 +171,13 @@ class WorkflowInterpreter(
     }
 
     private suspend fun runBranch(node: WorkflowNode.BranchNode, results: MutableList<NodeResult>): Boolean {
-        val condition = runCatching { node.condition.evaluate() }.getOrDefault(false)
+        // A failed condition is not a false condition. Treating it as false used
+        // to execute whenFalse while the engine reported a successful workflow,
+        // which is unsafe for automation branches that change device state.
+        val condition = runCatching { node.condition.evaluate() }.getOrElse { failure ->
+            results += NodeResult(node.id, false, failure.message ?: "Branch condition failed", 0)
+            return false
+        }
         return if (condition) {
             runNode(node.whenTrue, results)
         } else {
@@ -247,16 +264,25 @@ class WorkflowInterpreter(
 
     private suspend fun runWaitUntil(node: WorkflowNode.WaitUntilNode, results: MutableList<NodeResult>): Boolean {
         val startedAt = epochMillis.now()
+        var lastConditionFailure: Throwable? = null
         while (epochMillis.now() - startedAt < node.timeoutMs) {
             currentCoroutineContext().ensureActive()
-            val matched = runCatching { node.condition.evaluate() }.getOrDefault(false)
+            val matched = runCatching { node.condition.evaluate() }
+                .onFailure { lastConditionFailure = it }
+                .getOrDefault(false)
             if (matched) {
                 results += NodeResult(node.id, true, "Wait condition satisfied", epochMillis.now() - startedAt)
                 return true
             }
             delay(node.pollIntervalMs)
         }
-        results += NodeResult(node.id, false, "Wait condition timed out after ${node.timeoutMs}ms", epochMillis.now() - startedAt)
+        val failureDetail = lastConditionFailure?.message?.let { "; last condition error: $it" }.orEmpty()
+        results += NodeResult(
+            node.id,
+            false,
+            "Wait condition timed out after ${node.timeoutMs}ms$failureDetail",
+            epochMillis.now() - startedAt
+        )
         return false
     }
 }

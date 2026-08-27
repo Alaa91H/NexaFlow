@@ -421,7 +421,17 @@ class SystemController(
             val max = audioManager.getStreamMaxVolume(stream)
             val clamped = value.coerceIn(0, max)
             audioManager.setStreamVolume(stream, clamped, 0)
-            SystemControlResult.ok("Volume set to $clamped")
+            // Android 17 can silently discard background volume writes. A
+            // postcondition read is required before reporting this action as
+            // successful; otherwise history incorrectly claims the automation
+            // changed a stream that the platform left untouched.
+            if (audioManager.getStreamVolume(stream) == clamped) {
+                SystemControlResult.ok("Volume set to $clamped")
+            } else {
+                SystemControlResult.fail(
+                    "Android rejected the background volume change; keep NexaFlow visible or use a valid foreground service"
+                )
+            }
         } catch (t: Throwable) {
             SystemControlResult.fail("Failed to set volume: ${t.message}")
         }

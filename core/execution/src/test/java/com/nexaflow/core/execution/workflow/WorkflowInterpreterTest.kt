@@ -126,6 +126,26 @@ class WorkflowInterpreterTest {
     }
 
     @Test
+    fun branch_conditionFailureStopsWithoutExecutingEitherPath() = runBlocking {
+        val log = mutableListOf<String>()
+        val interpreter = WorkflowInterpreter(recordingExecutor(log))
+        val workflow = WorkflowNode.BranchNode(
+            id = "branch",
+            condition = WorkflowCondition { throw IllegalStateException("condition unavailable") },
+            whenTrue = WorkflowNode.ActionNode("yes", action("yes")),
+            whenFalse = WorkflowNode.ActionNode("no", action("no"))
+        )
+
+        val result = interpreter.execute(workflow)
+
+        assertFalse(result.success)
+        assertTrue(log.isEmpty())
+        assertEquals("branch", result.nodeResults.single().nodeId)
+        assertFalse(result.nodeResults.single().success)
+        assertTrue(result.nodeResults.single().message.contains("condition unavailable"))
+    }
+
+    @Test
     fun branch_withoutElseSucceedsWhenFalse() = runBlocking {
         val log = mutableListOf<String>()
         val interpreter = WorkflowInterpreter(recordingExecutor(log))
