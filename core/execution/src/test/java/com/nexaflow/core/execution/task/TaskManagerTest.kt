@@ -2,6 +2,8 @@ package com.nexaflow.core.execution.task
 
 import com.nexaflow.core.rom.model.SystemControlResult
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -355,7 +357,7 @@ class TaskManagerHardeningTest {
         try {
             val taskId = manager.enqueue(PendingTask(name = "cancel-state") {
                 started.complete(Unit)
-                delay(5_000L)
+                awaitCancellation()
                 SystemControlResult.ok("late")
             })
             started.await()

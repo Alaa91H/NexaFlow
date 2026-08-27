@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -271,9 +272,13 @@ class TaskManager(
             activeTaskId.set(null)
             return
         }
-        // Run in a child job so cancel(taskId) can stop it independently.
-        val job = scope.launch { runWithRetry(envelope) }
+        // Register the child before it can execute. A DEFAULT launch can run
+        // `task.run()` before this map write, leaving a narrow window where
+        // cancel(taskId) records the request but cannot interrupt the running
+        // job until its own next suspension. LAZY creation closes that gap.
+        val job = scope.launch(start = CoroutineStart.LAZY) { runWithRetry(envelope) }
         runningJobs[envelope.task.id] = job
+        job.start()
         job.join()
         runningJobs.remove(envelope.task.id)
         // A task that completed (or failed) normally is no longer cancellable;
