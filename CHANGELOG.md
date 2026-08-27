@@ -7,17 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [v3.50.2] - 2026-08-27
+## [v3.50.3] - 2026-08-27
 
 ### Fixed
 - Rebuilt all durable time-trigger occurrences immediately after the Root/Shizuku permission pipeline has **verified** Android 12+ exact-alarm access. This repairs the case where Android had already canceled exact `START` and `END` alarms and a privileged app-op repair did not produce the framework grant broadcast.
 - Added the explicit `END_AUTOMATION` receiver action to the app manifest, so a scheduled range end is declared alongside its paired `RUN_AUTOMATION` start under hardened intent matching.
+- Closed a task-cancellation race exposed by remote CI: a child execution job is now registered before it starts, so a cancellation cannot land in the launch-to-registration window and wait for the task's next suspension.
 - Stopped treating the `USER` allowed-network-types mask as the cellular hardware capability menu. A current GSM-only preference no longer hides modem-supported LTE or NR profiles by itself.
 
 ### Changed
 - Added a reviewed, closed elevated profile read. A Shizuku UserService first reads AOSP `ITelephony.getRadioAccessFamily(slot)`; when that binder route is unavailable, Root/Shizuku can read only `ro.telephony.default_network` and NexaFlow maps a known AOSP RIL mode through a strict 0–33 table. Unknown, malformed, or slot-ambiguous values remain unavailable.
 - Kept carrier and OEM limits authoritative: the picker still exposes only evidence-backed profiles, and a selected profile remains successful only after subscription-scoped allowed-network-type read-back confirms it.
-- Added deterministic coverage for the private verified-exact-alarm recheck, the closed profile-read operation, and AOSP default-network mappings including LTE/GSM/WCDMA, full LTE legacy coverage, NR-only, and NR/LTE.
+- Added deterministic coverage for the private verified-exact-alarm recheck, the closed profile-read operation, AOSP default-network mappings including LTE/GSM/WCDMA, full LTE legacy coverage, NR-only, and NR/LTE, plus a cancellation test that waits for a real coroutine cancellation rather than a fixed delay.
 
 ### Compatibility and safety
 - The modem-default property is a device capability hint, not a claim that the active carrier supports every profile. NexaFlow does not build a synthetic universal 2G/3G/4G/5G list, does not execute a global `preferred_network_mode` write, and does not report an unverified write as applied.

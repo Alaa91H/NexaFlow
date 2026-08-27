@@ -1,11 +1,11 @@
-# NexaFlow v3.50.2 — Automatic Schedule Reconciliation and Cellular Capability Profiles
+# NexaFlow v3.50.3 — Automatic Schedule Reconciliation and Cellular Capability Profiles
 
 **Release date:** 2026-08-27
 **Release scope:** Recovery of automatically scheduled time automations after verified exact-alarm access, explicit range-end delivery declaration, and evidence-based cellular profile discovery for Android 17 rooted devices.
 
 ## Overview
 
-v3.50.2 addresses two connected production problems. First, user-defined wall-clock tasks could remain unscheduled after Android had canceled exact alarms and the elevated permission repair succeeded without a framework permission-grant broadcast. Second, the Cellular Network action could show **GSM** as its only choice when Android exposed a GSM-only `USER` configuration, even though the modem itself supported LTE or NR.
+v3.50.3 addresses three connected production problems. First, user-defined wall-clock tasks could remain unscheduled after Android had canceled exact alarms and the elevated permission repair succeeded without a framework permission-grant broadcast. Second, the Cellular Network action could show **GSM** as its only choice when Android exposed a GSM-only `USER` configuration, even though the modem itself supported LTE or NR. Third, remote CI exposed a narrow execution-queue cancellation race in which a task child job could begin before it was registered for direct cancellation.
 
 Android treats `SCHEDULE_EXACT_ALARM` as special access. It is denied by default for most fresh Android 13+ installations, revocation cancels future exact alarms, and applications must re-check access and rebuild required alarms after a grant. [1] [2] NexaFlow now performs that durable rebuild after its elevated permission pipeline has verified exact-alarm access. The existing immutable occurrence ledger remains the single source of truth for scheduled `START` and paired `END` work.
 
@@ -15,6 +15,7 @@ Android treats `SCHEDULE_EXACT_ALARM` as special access. It is denied by default
 |---|---|
 | Verified exact-alarm recovery | After the Root/Shizuku all-permissions flow completes final platform verification, NexaFlow sends a package-scoped recheck signal on Android 12+. `AutomationAlarmReceiver` handles it through the same durable reconciliation path used for boot, clock, time-zone, package-replace, and framework exact-alarm-change events. Enabled time automations therefore rebuild their tracked `START` and `END` alarms without waiting for a process restart. |
 | Scheduled range end | `END_AUTOMATION` is now declared explicitly in the application receiver intent filter beside `RUN_AUTOMATION`. The receiver keeps occurrence-id, generation, and end-time validation before `ExitCoordinator` dispatches configured end behavior through the normal `ExecutionEngine` path. |
+| Cancellation ownership | `TaskManager` now creates its child job lazily, registers it as cancellable, then starts it. A cancellation can therefore interrupt the job immediately instead of landing in the former launch-to-registration gap and waiting for its next suspension. The regression test blocks on real coroutine cancellation rather than a five-second delay. |
 | Cellular capability source | The dynamic picker no longer treats the current `USER` allowed-network-types restriction as the hardware menu. A GSM-only current restriction therefore does not by itself hide LTE or NR options. |
 | Elevated modem read | With a live Shizuku UserService, NexaFlow attempts the AOSP binder-equivalent `ITelephony.getRadioAccessFamily(slot)` capability read. If it is unavailable, the reviewed elevated operation reads only `ro.telephony.default_network` and maps known AOSP RIL modes 0–33 through a closed table. [3] [4] |
 | Safety and verification | Malformed, vendor-specific, unknown, or multi-SIM slot-ambiguous property values remain unavailable. The picker never creates a universal profile list, and network writes still require selected-SIM read-back confirmation before a success is recorded. |
@@ -36,7 +37,7 @@ Existing saved automations are not deleted or automatically rewritten. The v3.50
 
 ## Upgrade guidance
 
-Install v3.50.2, then open **Permissions** and confirm that **Alarms & reminders** is allowed. On a rooted device, running the verified permission repair also causes all enabled time automations to be re-armed immediately. Keep the exact-alarm access enabled if a time such as 06:00 must be delivered punctually while the device is idle.
+Install v3.50.3, then open **Permissions** and confirm that **Alarms & reminders** is allowed. On a rooted device, running the verified permission repair also causes all enabled time automations to be re-armed immediately. Keep the exact-alarm access enabled if a time such as 06:00 must be delivered punctually while the device is idle.
 
 For the Cellular Network action, reopen the action configuration after the capability card has loaded. The picker now requests a capability source independent of the current GSM/LTE/NR `USER` restriction. Select only the profile you intend to use, and retain the post-change result message: a ROM/carrier refusal is correctly reported as a failed or unavailable change rather than an applied profile.
 
