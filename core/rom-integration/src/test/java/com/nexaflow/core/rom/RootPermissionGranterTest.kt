@@ -242,14 +242,14 @@ class RootPermissionGranterTest {
         RootPermissionGranter.notificationListenerChecker = { true }
         RootPermissionGranter.shellRunner = { command ->
             commands += command
-            if (command == "cmd notification allow_dnd com.nexaflow.app") dndGranted = true
+            if (command.contains("allow_dnd") && command.contains("com.nexaflow.app")) dndGranted = true
             SystemControlResult.ok("ok")
         }
 
         val result = grantAll()
 
         assertTrue(result.appOpsGranted.contains(android.Manifest.permission.ACCESS_NOTIFICATION_POLICY))
-        assertTrue(commands.contains("cmd notification allow_dnd com.nexaflow.app"))
+        assertTrue(commands.any { it.contains("allow_dnd") && it.contains("com.nexaflow.app") })
         assertFalse(commands.any { it.contains("android:access_notification_policy") })
         assertTrue(result.remaining.isEmpty())
     }

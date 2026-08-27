@@ -300,12 +300,13 @@ class AutomationScheduler @Inject constructor(
                     it.expectedEndAt != null
             }
             ?.let { active ->
+                val expectedEndAt = active.expectedEndAt ?: return@let null
                 occurrences.firstOrNull { occurrence ->
                     occurrence.automationId == active.automationId &&
                         occurrence.occurrenceId == active.occurrenceId &&
                         occurrence.generation == active.scheduleGeneration &&
-                        occurrence.windowEndAt == active.expectedEndAt &&
-                        occurrence.windowEndAt > now
+                        occurrence.windowEndAt == expectedEndAt &&
+                        expectedEndAt > now
                 }
             }
 
