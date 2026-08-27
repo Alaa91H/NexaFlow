@@ -61,6 +61,27 @@ val Automation.cooldownMillis: Long get() = (cooldownSeconds.coerceAtLeast(0)) *
 val Automation.completesExitOnFinish: Boolean
     get() = triggers.isNotEmpty() && triggers.all { trigger -> trigger.isOneShotEvent() }
 
+/**
+ * True when the task has an end behavior that can produce a side effect. The
+ * neutral [EndMode.LEAVE] option is deliberately excluded: it means the task
+ * has no action to perform when its condition ends.
+ */
+val Automation.hasExecutableEndBehavior: Boolean
+    get() = revertOnExit ||
+        exitActions.isNotEmpty() ||
+        actions.any { action -> action.endBehavior?.mode != null && action.endBehavior.mode != EndMode.LEAVE }
+
+/**
+ * A scheduled point in time has no later end boundary. Combining it with an
+ * executable end behavior would apply the main action and then immediately
+ * undo or replace it, which is not a meaningful timed lifecycle. Such tasks
+ * must be configured as a TIME range with an explicit end time.
+ */
+val Automation.requiresTimeRangeForEndBehavior: Boolean
+    get() = hasExecutableEndBehavior && triggers.any { trigger ->
+        trigger.type == TriggerType.TIME && trigger.config["timeMode"] != "RANGE"
+    }
+
 private fun Trigger.isOneShotEvent(): Boolean = when (type) {
     TriggerType.TIME -> config["timeMode"] != "RANGE"
     TriggerType.SMS,

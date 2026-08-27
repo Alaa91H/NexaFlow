@@ -42,6 +42,7 @@ import com.nexaflow.domain.models.MaintenanceReadiness
 import com.nexaflow.domain.models.MaintenanceReadinessEvaluator
 import com.nexaflow.domain.models.MaintenanceExecutionIdentity
 import com.nexaflow.domain.models.completesExitOnFinish
+import com.nexaflow.domain.models.requiresTimeRangeForEndBehavior
 import com.nexaflow.domain.repositories.HistoryRepository
 import com.nexaflow.domain.repositories.VariableRepository
 import com.nexaflow.domain.variables.RuntimeValueCodec
@@ -132,6 +133,9 @@ class ExecutionEngine(
         lifecycleContext: AutomationLifecycleContext? = null
     ): ExecutionRecord {
         val startedAt = epochMillis.now()
+        if (automation.requiresTimeRangeForEndBehavior) {
+            return rejectIncompleteTimeRange(automation, startedAt)
+        }
         capabilitySnapshotProvider?.invoke()?.let { snapshot ->
             val validation = WorkflowCapabilityValidator.validate(automation, snapshot)
             if (!validation.admissible) {
@@ -451,6 +455,10 @@ class ExecutionEngine(
      * state can therefore never fabricate an automatic lifecycle exit.
      */
     suspend fun runWithConditionGate(automation: Automation): ExecutionRecord {
+        val startedAt = epochMillis.now()
+        if (automation.requiresTimeRangeForEndBehavior) {
+            return rejectIncompleteTimeRange(automation, startedAt)
+        }
         val triggerResult = TriggerStateEvaluator.evaluateAsync(context, automation.triggers)
         val constraintResult = if (automation.constraints.isEmpty()) {
             ConditionResult.Satisfied
@@ -471,6 +479,30 @@ class ExecutionEngine(
                 manualConditionRejected = true
             )
         }
+    }
+
+    /**
+     * Rejects an invalid time lifecycle before either a main or end action can
+     * change device state. A point-in-time trigger has no future end boundary;
+     * users must explicitly select a time range when they configure a real end
+     * behavior. The durable history entry makes a failed schedule observable.
+     */
+    private suspend fun rejectIncompleteTimeRange(
+        automation: Automation,
+        startedAt: Long
+    ): ExecutionRecord {
+        val record = ExecutionRecord(
+            id = UUID.randomUUID().toString(),
+            automationId = automation.id,
+            automationName = automation.name,
+            success = false,
+            message = "Configuration blocked: end behavior requires a time range with an explicit end time",
+            executedAt = startedAt
+        )
+        historyRepository.recordExecution(record)
+        recordTimeline(automation, "CONFIGURATION_BLOCKED", record, startedAt)
+        context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
+        return record
     }
 
     /**

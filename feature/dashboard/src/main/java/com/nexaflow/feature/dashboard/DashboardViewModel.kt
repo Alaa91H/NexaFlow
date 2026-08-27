@@ -28,11 +28,11 @@ class DashboardViewModel @Inject constructor(
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
-    /** automationId -> timestamp of the most recent execution, if any. */
+    /** automationId -> most recent durable execution, including its outcome. */
     private val lastRunFlow = historyRepository.getExecutionHistory()
         .map { history ->
             history.groupBy { it.automationId }
-                .mapValues { (_, records) -> records.maxOf { it.executedAt } }
+                .mapValues { (_, records) -> records.maxByOrNull { it.executedAt } }
         }
 
     private val automationsFlow = combine(
@@ -40,7 +40,12 @@ class DashboardViewModel @Inject constructor(
         lastRunFlow
     ) { automations, lastRuns ->
         automations.map { automation ->
-            AutomationRow(automation, lastRuns[automation.id])
+            val lastRun = lastRuns[automation.id]
+            AutomationRow(
+                automation = automation,
+                lastRunAt = lastRun?.executedAt,
+                lastRunSucceeded = lastRun?.success
+            )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -86,8 +91,10 @@ class DashboardViewModel @Inject constructor(
     }
 }
 
-/** A routine paired with the timestamp of its last execution (null = never ran). */
+/** A routine paired with its latest durable outcome (null = never ran). */
 data class AutomationRow(
     val automation: Automation,
-    val lastRunAt: Long?
+    val lastRunAt: Long?,
+    /** Null when no run exists; false means the action chain or configuration failed. */
+    val lastRunSucceeded: Boolean? = null
 )

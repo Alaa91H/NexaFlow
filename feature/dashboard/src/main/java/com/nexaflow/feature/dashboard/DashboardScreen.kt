@@ -67,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.nexaflow.core.execution.R as ExecutionR
 import com.nexaflow.core.ui.EmptyState
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
@@ -429,6 +430,14 @@ private fun RoutineDetails(
                 }
             )
             RoutineMetaLine(nextRun = nextRun, lastRunAt = row.lastRunAt)
+            if (row.lastRunSucceeded == false) {
+                Text(
+                    text = stringResource(ExecutionR.string.execution_task_failed),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
         }
         if (isRunning) {
             CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)

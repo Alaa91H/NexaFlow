@@ -128,6 +128,42 @@ class ExecutionEngineExitBehaviorTest {
     }
 
     @Test
+    fun `single time with executable end behavior is blocked before scheduled main action`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(handler, history)
+        val automation = automation(
+            triggers = listOf(Trigger(TriggerType.TIME, mapOf("time" to "22:00"))),
+            actions = listOf(action.copy(endBehavior = EndBehavior(EndMode.SET_VALUE, mapOf("title" to "end"))))
+        )
+
+        val record = engine.runAutomation(automation)
+
+        assertFalse(record.success)
+        assertTrue(record.message.contains("end behavior requires a time range"))
+        assertEquals("invalid time lifecycle must not invoke the main or end action", 0, handler.calls)
+        assertEquals("the configuration rejection must be recorded", 1, history.messages.size)
+    }
+
+    @Test
+    fun `single time with executable end behavior is blocked before manual end dispatch`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(handler, history)
+        val automation = automation(
+            triggers = listOf(Trigger(TriggerType.TIME, mapOf("time" to "22:00"))),
+            actions = listOf(action.copy(endBehavior = EndBehavior(EndMode.SET_VALUE, mapOf("title" to "end"))))
+        )
+
+        val record = engine.runWithConditionGate(automation)
+
+        assertFalse(record.success)
+        assertTrue(record.message.contains("end behavior requires a time range"))
+        assertEquals("invalid time lifecycle must not dispatch a manual end action", 0, handler.calls)
+        assertEquals("the configuration rejection must be recorded", 1, history.messages.size)
+    }
+
+    @Test
     fun `failed whole snapshot restore is reported as a failed exit`() = runBlocking {
         val handler = RecordingHandler()
         val history = RecordingHistory()
