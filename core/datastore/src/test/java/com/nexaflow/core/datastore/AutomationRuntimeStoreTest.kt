@@ -21,11 +21,13 @@ class AutomationRuntimeStoreTest {
     private lateinit var store: AutomationRuntimeStore
 
     @Before
-    fun setUp() = runBlocking {
-        context = ApplicationProvider.getApplicationContext()
-        store = AutomationRuntimeStore(context)
-        store.clear("automation-a")
-        store.clearSchedule("automation-a")
+    fun setUp() {
+        runBlocking {
+            context = ApplicationProvider.getApplicationContext()
+            store = AutomationRuntimeStore(context)
+            store.clear("automation-a")
+            store.clearSchedule("automation-a")
+        }
     }
 
     private fun state(

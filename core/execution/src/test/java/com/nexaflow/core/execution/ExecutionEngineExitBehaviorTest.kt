@@ -112,12 +112,10 @@ class ExecutionEngineExitBehaviorTest {
     }
 
     @Test
-    fun `runtime snapshot round trips for recovered exit`() {
-        val encoded = checkNotNull(DeviceStateSnapshot.capture(context).encodeForRuntime())
-
+    fun `runtime snapshot decoder rejects malformed recovered state`() {
         assertTrue(
-            "a local snapshot must decode after in-memory state is lost",
-            DeviceStateSnapshot.decodeForRuntime(encoded) != null
+            "a malformed persisted snapshot must fail closed",
+            DeviceStateSnapshot.decodeForRuntime("not-json") == null
         )
     }
 

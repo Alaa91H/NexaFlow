@@ -25,10 +25,12 @@ class ExitCoordinatorTest {
     private lateinit var store: AutomationRuntimeStore
 
     @Before
-    fun setUp() = runBlocking {
-        context = ApplicationProvider.getApplicationContext()
-        store = AutomationRuntimeStore(context)
-        store.clear("exit-task")
+    fun setUp() {
+        runBlocking {
+            context = ApplicationProvider.getApplicationContext()
+            store = AutomationRuntimeStore(context)
+            store.clear("exit-task")
+        }
     }
 
     private fun activeState(
