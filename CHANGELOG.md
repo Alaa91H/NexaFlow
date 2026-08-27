@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.47.0] - 2026-08-27
+
+### Added
+- Added an explicit active-data subscription identity to the read-only network-mode capability snapshot. New network-mode actions now prefer that confirmed data SIM when the user has not previously selected a SIM, while a valid saved subscription remains authoritative.
+- Added distinct configured and known-effective allowed-network-type masks. The effective value is shown only when Android exposes both the USER and CARRIER restrictions; it is never inferred from the live radio technology.
+- Added deterministic JVM coverage for user/carrier bitmask intersection and single-/dual-SIM selection precedence.
+
+### Changed
+- Updated the network-mode editor to identify the active data SIM and to display configured network types separately from a stricter effective restriction when it is readable.
+- Updated dynamic network-mode summaries so saved device-specific profiles describe their confirmed radio families instead of being incorrectly shown as **Auto**.
+- Moved `SYSTEM_NETWORK_MODE` application onto `Dispatchers.IO` at the action-handler boundary, preventing its telephony binder, Root, or Shizuku work from blocking a caller on the main thread.
+
+### Fixed
+- Removed the synthetic subscription-id fallback from legacy all-SIM network-mode writes. NexaFlow now rejects an unreadable subscription set rather than risking a write to an inferred SIM.
+- Preserved elevated USER-mask read-back when Android can expose selectable hardware/carrier capability but blocks the app-level USER getter.
+- Resolved two CI findings during release validation: a Turkish Android-resource apostrophe was escaped correctly, and the explicit phone-state permission guard is documented for Android Lint.
+
 ## [v3.46.0] - 2026-08-27
 
 ### Added
