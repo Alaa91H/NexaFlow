@@ -127,6 +127,9 @@ class BatteryMonitorExitReconcileTest {
         val repository = FakeRepository(listOf(batteryAutomation("batt-task", 20)))
         val store = ActiveTriggerStore(context)
         val runtimeStore = AutomationRuntimeStore(context)
+        // Existing installations can carry the compatibility key as well as
+        // the new occurrence record; rearm must preserve this active state.
+        store.markActive("battery", "batt-task")
         seedActiveOccurrence(runtimeStore)
         setStickyBatteryState(10, BatteryManager.BATTERY_STATUS_DISCHARGING, 0)
 

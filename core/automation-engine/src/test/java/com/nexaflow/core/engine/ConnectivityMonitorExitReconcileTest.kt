@@ -180,6 +180,7 @@ class ConnectivityMonitorExitReconcileTest {
         val engine = testEngine(context, history)
         val repository = FakeRepository(listOf(connectivityAutomation("conn-task")))
         val store = ActiveTriggerStore(context)
+        store.markActive("connectivity", "conn-task|CONNECTED")
         ActiveExecutionStore(context).markStarted("conn-task")
         val runtimeStore = AutomationRuntimeStore(context)
         runtimeStore.activate(
