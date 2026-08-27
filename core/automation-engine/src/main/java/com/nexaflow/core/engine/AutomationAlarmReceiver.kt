@@ -249,10 +249,10 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
     companion object {
         private const val TAG = "AutomationAlarmReceiver"
         private const val SOURCE_TIME_RANGE = "time-range"
-        private const val ALARM_PERMISSION_CHANGED_ACTION =
+        internal const val ALARM_PERMISSION_CHANGED_ACTION =
             "android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED"
         /** Android 17: sent when a fixed UTC offset changes without a zone switch. */
-        private const val TIMEZONE_OFFSET_CHANGED_ACTION =
+        internal const val TIMEZONE_OFFSET_CHANGED_ACTION =
             "android.intent.action.TIMEZONE_OFFSET_CHANGED"
 
         /** Every broadcast that invalidates pending user-selected wall-clock alarms. */

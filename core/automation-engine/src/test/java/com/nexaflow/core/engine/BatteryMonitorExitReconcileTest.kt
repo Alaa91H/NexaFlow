@@ -116,7 +116,7 @@ class BatteryMonitorExitReconcileTest {
 
         waitUntil { history.exits.any { it == EXIT_NOOP_MARKER } }
         waitUntil { store.activeKeys("battery").isEmpty() }
-        assertTrue("successful exit consumes the runtime occurrence", runtimeStore.statesForTest().isEmpty())
+        assertTrue("successful exit consumes the runtime occurrence", runtimeStore.activeStates().isEmpty())
         monitor.stop()
     }
 
@@ -142,7 +142,7 @@ class BatteryMonitorExitReconcileTest {
         waitUntil { store.activeKeys("battery").isNotEmpty() }
         assertTrue("no exit while the battery condition still holds", history.exits.none { it == EXIT_NOOP_MARKER })
         assertTrue("active mark survives while the condition holds", store.activeKeys("battery").isNotEmpty())
-        assertTrue("runtime occurrence survives while active", runtimeStore.statesForTest().isNotEmpty())
+        assertTrue("runtime occurrence survives while active", runtimeStore.activeStates().isNotEmpty())
         monitor.stop()
     }
 
