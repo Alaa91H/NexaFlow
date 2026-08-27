@@ -309,30 +309,32 @@ class BatteryMonitor @Inject constructor(
                         } else {
                             "${automation.id}|$plugType"
                         }
-                    if (active && !activeBatteryTriggers.contains(key)) {
-                        val last = lastRunAt[automation.id] ?: 0L
-                        val now = System.currentTimeMillis()
-                        if (now - last > automation.cooldownMillis) {
-                            lastRunAt[automation.id] = now
-                            val occurrenceId = "battery:${automation.id}:${UUID.randomUUID()}"
-                            executionEngine.runAutomation(
-                                automation = automation,
-                                lifecycleContext = AutomationLifecycleContext(
-                                    occurrenceId = occurrenceId,
-                                    source = sourceId,
-                                    sourceKey = key
+                    if (active) {
+                        if (!activeBatteryTriggers.contains(key)) {
+                            val last = lastRunAt[automation.id] ?: 0L
+                            val now = System.currentTimeMillis()
+                            if (now - last > automation.cooldownMillis) {
+                                lastRunAt[automation.id] = now
+                                val occurrenceId = "battery:${automation.id}:${UUID.randomUUID()}"
+                                executionEngine.runAutomation(
+                                    automation = automation,
+                                    lifecycleContext = AutomationLifecycleContext(
+                                        occurrenceId = occurrenceId,
+                                        source = sourceId,
+                                        sourceKey = key
+                                    )
                                 )
-                            )
-                            val accepted = runtimeStore.current(automation.id)?.let { state ->
-                                state.occurrenceId == occurrenceId && state.source == sourceId
-                            } == true
-                            if (accepted) {
-                                activeBatteryTriggers.add(key)
-                                activeStore.markActive(sourceId, key)
-                                // A threshold can be crossed back while the
-                                // action chain is suspended. Re-read sticky
-                                // state now that the durable owner exists.
-                                refresh()
+                                val accepted = runtimeStore.current(automation.id)?.let { state ->
+                                    state.occurrenceId == occurrenceId && state.source == sourceId
+                                } == true
+                                if (accepted) {
+                                    activeBatteryTriggers.add(key)
+                                    activeStore.markActive(sourceId, key)
+                                    // A threshold can be crossed back while the
+                                    // action chain is suspended. Re-read sticky
+                                    // state now that the durable owner exists.
+                                    refresh()
+                                }
                             }
                         }
                     } else {
@@ -369,26 +371,28 @@ class BatteryMonitor @Inject constructor(
                     val wantConnected = (chargerTrigger.config["event"] ?: "CONNECTED") == "CONNECTED"
                     val chargerKey = "${automation.id}|charger"
                     val now = System.currentTimeMillis()
-                    if (charging == wantConnected && !activeBatteryTriggers.contains(chargerKey)) {
-                        val last = lastRunAt[automation.id] ?: 0L
-                        if (now - last > automation.cooldownMillis) {
-                            lastRunAt[automation.id] = now
-                            val occurrenceId = "charger:${automation.id}:${UUID.randomUUID()}"
-                            executionEngine.runAutomation(
-                                automation = automation,
-                                lifecycleContext = AutomationLifecycleContext(
-                                    occurrenceId = occurrenceId,
-                                    source = sourceId,
-                                    sourceKey = chargerKey
+                    if (charging == wantConnected) {
+                        if (!activeBatteryTriggers.contains(chargerKey)) {
+                            val last = lastRunAt[automation.id] ?: 0L
+                            if (now - last > automation.cooldownMillis) {
+                                lastRunAt[automation.id] = now
+                                val occurrenceId = "charger:${automation.id}:${UUID.randomUUID()}"
+                                executionEngine.runAutomation(
+                                    automation = automation,
+                                    lifecycleContext = AutomationLifecycleContext(
+                                        occurrenceId = occurrenceId,
+                                        source = sourceId,
+                                        sourceKey = chargerKey
+                                    )
                                 )
-                            )
-                            val accepted = runtimeStore.current(automation.id)?.let { state ->
-                                state.occurrenceId == occurrenceId && state.source == sourceId
-                            } == true
-                            if (accepted) {
-                                activeBatteryTriggers.add(chargerKey)
-                                activeStore.markActive(sourceId, chargerKey)
-                                refresh()
+                                val accepted = runtimeStore.current(automation.id)?.let { state ->
+                                    state.occurrenceId == occurrenceId && state.source == sourceId
+                                } == true
+                                if (accepted) {
+                                    activeBatteryTriggers.add(chargerKey)
+                                    activeStore.markActive(sourceId, chargerKey)
+                                    refresh()
+                                }
                             }
                         }
                     } else if (activeBatteryTriggers.contains(chargerKey)) {

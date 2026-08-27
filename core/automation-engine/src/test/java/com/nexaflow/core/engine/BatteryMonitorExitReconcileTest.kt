@@ -36,6 +36,7 @@ class BatteryMonitorExitReconcileTest {
         runBlocking {
             ActiveTriggerStore(context).clearSource("battery")
             AutomationRuntimeStore(context).clear("batt-task")
+            AutomationRuntimeStore(context).clear("charger-task")
         }
     }
 
@@ -82,13 +83,18 @@ class BatteryMonitorExitReconcileTest {
         scope = CoroutineScope(Dispatchers.Default)
     )
 
-    private suspend fun seedActiveOccurrence(runtimeStore: AutomationRuntimeStore) {
+    private suspend fun seedActiveOccurrence(
+        runtimeStore: AutomationRuntimeStore,
+        automationId: String = "batt-task",
+        occurrenceId: String = "battery:batt-task:restarted",
+        sourceKey: String = automationId
+    ) {
         runtimeStore.activate(
             AutomationRuntimeState(
-                automationId = "batt-task",
-                occurrenceId = "battery:batt-task:restarted",
+                automationId = automationId,
+                occurrenceId = occurrenceId,
                 source = "battery",
-                sourceKey = "batt-task",
+                sourceKey = sourceKey,
                 lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
                 activatedAt = 1L
             )
@@ -146,6 +152,46 @@ class BatteryMonitorExitReconcileTest {
         assertTrue("no exit while the battery condition still holds", history.exits.none { it == EXIT_NOOP_MARKER })
         assertTrue("active mark survives while the condition holds", store.activeKeys("battery").isNotEmpty())
         assertTrue("runtime occurrence survives while active", runtimeStore.current("batt-task") != null)
+        monitor.stop()
+    }
+
+    @Test
+    fun `restart while charger remains connected keeps the task active`() = runBlocking {
+        val history = RecordingHistory()
+        val engine = testEngine(context, history)
+        val automation = testAutomation(
+            id = "charger-task",
+            triggers = listOf(Trigger(TriggerType.CHARGER, mapOf("event" to "CONNECTED")))
+        )
+        val repository = FakeRepository(listOf(automation))
+        val store = ActiveTriggerStore(context)
+        val runtimeStore = AutomationRuntimeStore(context)
+        val chargerKey = "charger-task|charger"
+        store.markActive("battery", chargerKey)
+        seedActiveOccurrence(
+            runtimeStore = runtimeStore,
+            automationId = "charger-task",
+            occurrenceId = "charger:charger-task:restarted",
+            sourceKey = chargerKey
+        )
+        setStickyBatteryState(80, BatteryManager.BATTERY_STATUS_CHARGING, BatteryManager.BATTERY_PLUGGED_USB)
+
+        val monitor = monitorFor(
+            repository,
+            engine,
+            ExitCoordinator(runtimeStore, engine, repository, history),
+            runtimeStore,
+            store
+        )
+        monitor.initialize()
+
+        waitUntil { store.activeKeys("battery").contains(chargerKey) }
+        // Let the asynchronous initial refresh observe the sticky charging
+        // state; the former branch exited an already-active charger occurrence
+        // during that refresh.
+        Thread.sleep(250)
+        assertTrue("no exit while the charger condition still holds", history.exits.none { it == EXIT_NOOP_MARKER })
+        assertTrue("charger occurrence survives while active", runtimeStore.current("charger-task") != null)
         monitor.stop()
     }
 

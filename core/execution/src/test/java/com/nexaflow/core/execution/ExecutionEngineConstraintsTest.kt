@@ -211,7 +211,7 @@ class ExecutionEngineConstraintsTest {
     }
 
     @Test
-    fun `manual run requires every verifiable trigger and executes only end behavior when an event is absent`() = runBlocking {
+    fun `manual run with an unverifiable event trigger skips without end behavior`() = runBlocking {
         val handler = RecordingHandler()
         val history = RecordingHistory()
         val engine = engine(handler, history, ConstraintSnapshot())
@@ -230,13 +230,12 @@ class ExecutionEngineConstraintsTest {
 
         val record = engine.runWithConditionGate(automation)
 
-        assertEquals(
-            "an event trigger without a live event must never authorize the main action",
-            listOf(ActionType.SYSTEM_CLEAR_NOTIFICATIONS),
-            handler.actionTypes
+        assertTrue(
+            "an event trigger without a live event must not authorize either main or end actions",
+            handler.actionTypes.isEmpty()
         )
-        assertTrue(record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX))
-        assertTrue(history.messages.any { it.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX) })
+        assertTrue(record.message.contains("could not be verified"))
+        assertTrue(history.messages.any { it.contains("could not be verified") })
     }
 
     @Test
