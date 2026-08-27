@@ -1,47 +1,50 @@
-# NexaFlow v3.50.0 — Root Network Diagnostics and Dedicated Hotspot Trigger
+# NexaFlow v3.50.1 — Time-Range End Recovery and Android 17 Network-Mask Correction
 
 **Release date:** 2026-08-27
-**Release scope:** Root-assisted cellular capability diagnostics, a dedicated Hotspot trigger, and a simplified new-task connectivity picker.
+**Release scope:** Reliable re-arming of active time-range end alarms, verified restoration of the normal ringer mode, and corrected Android cellular network-type bitmasks.
 
 ## Overview
 
-v3.50.0 resolves a recurring usability failure in which the cellular network-mode editor could only report that supported modes were unavailable, even after the user had granted elevated access. The release does not invent device capabilities or declare a radio-mode write successful solely because a root command launched. Instead, it makes the privileged read path diagnosable, refreshes the capability card after the targeted root permission flow completes, and preserves same-subscription read-back verification for every network-mode write.
+v3.50.1 addresses a concrete overnight automation failure: a time range could set the device to silent at 22:00 yet fail to reach its configured end behavior at 06:00 after Android alarm loss and schedule reconciliation. The release preserves the immutable occurrence that owns the active range, restores only its matching future `END` alarm, and keeps the normal end dispatcher unchanged. A dedicated regression test verifies that a configured `SYSTEM_RINGER_MODE` end value of `{mode=NORMAL}` is dispatched exactly once through the same `ActionRegistry` route used by ordinary actions.
 
-The release also separates **Hotspot** into its own `ON` / `OFF` trigger. The legacy combined **Connectivity** trigger is intentionally hidden from the picker for new tasks because its former menu duplicated dedicated Hotspot and Cellular Network functionality. Existing saved Connectivity automations remain compatible and are neither migrated nor rewritten.
+The release also corrects the one-bit offset in NexaFlow's `TelephonyManager.NetworkTypeBitMask` family constants. The defect could turn a valid privileged Android 17 LTE/NR read into an empty selectable mask and display the diagnostic that no supported cellular mask was returned. The corrected mapping follows AOSP's `1 << (NETWORK_TYPE - 1)` rule for GSM/GPRS/EDGE, UMTS/HSPA, CDMA/EVDO, TD-SCDMA, LTE/LTE-CA, NR, and IWLAN. [1]
 
 ## Delivered changes
 
 | Area | Delivered behavior |
 |---|---|
-| Root network-mode capability read | `NetworkModeSnapshot` carries a bounded, local-only diagnostic when the app cannot derive a confirmed mode mask. The editor distinguishes missing `READ_PHONE_STATE`, unavailable elevated access, a failed privileged read, and an unparseable returned cellular mask. |
-| Root permission refresh | When Shizuku is not the live path, the cellular-mode editor invokes the targeted root prompt and runtime-phone-state permission flow. It then reloads its capability state instead of retaining a stale unreadable snapshot. |
-| Write verification | The existing privileged write → read-back flow remains mandatory and subscription-scoped. A non-confirmed radio mode remains an observable failure; it is not shown as applied. |
-| Hotspot trigger | New `TriggerType.HOTSPOT` supports `ON` / `OFF`, maps to the existing connectivity source, participates in monitor and manual evaluation, and is rendered in the builder, dashboard, and routine details. |
-| Simplified picker | The legacy combined Connectivity item is no longer addable for new tasks. Dedicated Hotspot and Cellular Network choices remain available. Legacy Connectivity records can still be viewed, edited, and executed. |
-| Unknown-safe handling | A failed manual `tether_on` read stays `UNKNOWN`, not `OFF`, preventing a read failure from matching a negative state or synthesizing an end path. |
-| Localization | Added dashboard labels for Hotspot across every shipped locale and corrected Android escaping for the French string. |
+| Active time-range END alarm | During `scheduleFresh`, NexaFlow now re-arms the existing future `END` alarm only when the durable `ACTIVE` lifecycle and stored schedule occurrence match on automation id, occurrence id, generation, and expected end time. The original `PendingIntent` identity is reused; no new occurrence is generated and no exit is executed while re-arming. |
+| Overnight regression coverage | Tests cover the retained 22:00–06:00-style occurrence and explicitly reject elapsed, exiting, or generation-mismatched records. |
+| Unified end-action dispatch | A new coordinator test proves that `TIME_WINDOW_ENDED` dispatches `SYSTEM_RINGER_MODE` with the configured normal-mode payload once through `ExecutionEngine.runExit`, `executeAction`, and `ActionRegistry`. |
+| Ringer restoration | `SystemController` verifies the framework ringer mode. When Android rejects a return from `SILENT` or `VIBRATE` to `NORMAL`, the elevated path requests only NexaFlow's notification-policy special access with AOSP `cmd notification allow_dnd`, verifies `NotificationManager.isNotificationPolicyAccessGranted`, and retries `AudioManager`. It does not alter the interruption filter or notification policy. [2] |
+| Permission grant flow | The root/Shizuku all-permissions flow now uses the same notification-policy command instead of an app-op that can appear successful while leaving Android notification-policy access unavailable. |
+| Android 17 cellular masks | Corrected all local `NetworkTypeBitMask` positions and added tests for named (`LTE`, `LTE|LTE_CA`, `NR`), decimal, and binary AOSP read-back values. |
+| Dynamic-profile compatibility | New dynamic cellular profiles store an explicit `aosp-network-type-bitmask-v1` marker. A legacy dynamic `network_mask` without that marker is rejected safely until the user reselects the profile; it is never silently remapped to a potentially different radio restriction. |
 
 ## Verification
 
-The implementation commit was accepted by the complete remote GitHub Actions pipeline: [run 33061943012](https://github.com/Alaa91H/NexaFlow/actions/runs/33061943012). The successful workflow ran resource hygiene and locale-parity checks, resource-gate tests, Detekt, Android Lint, the Android unit-test suite, debug/release APK builds, release AAB build, dependency verification, packaged-permission verification, APK signing verification, native-library 16 KB alignment checks, zip alignment, and bundle validation.
+The final main-branch candidate was accepted by the complete remote GitHub Actions pipeline: [run 33069758773](https://github.com/Alaa91H/NexaFlow/actions/runs/33069758773). The successful workflow completed resource hygiene, locale parity, resource-gate tests, Detekt, Android Lint, Android unit tests, debug and release APK builds, release AAB build, dependency verification, packaged-permission verification, APK signing verification, native-library 16 KB alignment checks, zip alignment, and bundle validation.
 
-> No local Gradle build, lint task, or unit test was run. All Gradle acceptance was performed remotely in GitHub Actions.
+> No Gradle build, lint task, or unit test was run locally. All Gradle acceptance for this release was performed remotely in GitHub Actions.
 
 ## Compatibility and operational limits
 
-Android exposes public subscription-scoped allowed-network-type APIs from API 33, while privileged shell access depends on the ROM's telephony service. AOSP accepts `root` or `shell` for its `cmd phone` allowed-network-type commands, but availability, output format, carrier restrictions, radio persistence, and resulting mode support can still vary by OEM, modem, SIM, and carrier. NexaFlow therefore presents actual local diagnostic evidence and keeps unavailable/unparseable results unavailable; it does not fall back to an unsafe global setting or claim universal baseband control. [1] [2]
+Android cancels alarms at shutdown, so the release repairs the specific retained-range re-arm path required after boot or schedule reconciliation. Precise delivery still depends on Android exact-alarm access; where that access is absent, NexaFlow retains its existing inexact idle-safe fallback. [3]
 
-No database migration, new runtime permission declaration, telemetry, cloud service, or user-data collection is introduced. Granting root remains entirely under the device's root manager. The application only requests the already-declared `READ_PHONE_STATE` grant when the user explicitly starts the elevated network-mode recovery flow.
+An exit action that returns a failure remains visible as `EXIT_FAILED`. NexaFlow intentionally does not blindly replay a lifecycle already in `EXITING` after process interruption: arbitrary exit effects such as an external command or notification can be uncertain, and a normal service start does not prove a previous coroutine has died. A future automatic `EXITING` recovery requires a durable per-exit action checkpoint and explicit ownership epoch. This release therefore fixes the lost-END path without making an unsafe exactly-once claim across process death.
+
+Root or Shizuku access enables the reviewed operations but does not override device-specific telephony limits. Android/OEM telephony services, modem firmware, carrier policy, SIM configuration, and command/output availability can still prevent a readable or persistently writable allowed-network-types mask. NexaFlow preserves the selected-SIM write-and-read-back contract and keeps an unconfirmed value unavailable rather than reporting success. It does not use the obsolete global `preferred_network_mode` setting as a modern write fallback. [1] [4] [5]
 
 ## Upgrade guidance
 
-After installing v3.50.0, open a Cellular Network action and tap the elevated-access control if the card reports that `READ_PHONE_STATE` is not granted. Once the root manager returns, the capability card refreshes automatically. If the result reports a failed privileged read or an unreadable mask, retain the diagnostic when comparing the device's ROM, modem, SIM, and carrier configuration; do not treat the presence of root alone as a guarantee that the telephony service exposes a supported control path.
+After installing v3.50.1, keep the desired 22:00–06:00 range enabled and ensure NexaFlow retains exact-alarm access if punctual delivery is required. When a normal-ringer end action runs, the app will verify its result. On a rooted device where Android has not yet approved notification-policy access, the app requests only that app-specific access through the reviewed elevated route; a ROM rejection remains a visible failed action rather than a false success.
 
-Create new tethering automations through **Hotspot** under Connectivity and choose **On** or **Off**. Existing combined Connectivity rules continue to load for compatibility; users can replace them intentionally with dedicated rules when appropriate.
+For every saved **dynamic** Cellular Network action created before v3.50.1, open the action and select its intended profile again after the capability card has loaded. This writes the new schema marker and avoids ambiguously reinterpreting an old shifted mask. Traditional `2G`, `3G`, `4G`, `5G`, or `AUTO` actions without a stored dynamic mask continue to use the corrected mapping. If Android still reports a failed privileged read or unsupported cellular mask, retain the local diagnostic when checking the ROM, modem, SIM, and carrier path; root alone is not a universal radio-control guarantee.
 
 ## References
 
-[1]: https://developer.android.com/reference/android/telephony/TelephonyManager#setAllowedNetworkTypesForReason(int,long) "Android Developers: setAllowedNetworkTypesForReason"
-[2]: https://android.googlesource.com/platform/packages/services/Telephony/+/master/src/com/android/phone/TelephonyShellCommand.java "AOSP: TelephonyShellCommand"
-[3]: https://github.com/Dhangofa/NetToggle "NetToggle: comparable Root/Shizuku diagnostic approach"
-[4]: https://github.com/aunchagaonkar/NetworkSwitch "NetworkSwitch: comparable Root/Shizuku control approach"
+[1]: https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/telephony/java/android/telephony/TelephonyManager.java "AOSP: TelephonyManager NetworkTypeBitMask"
+[2]: https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/services/core/java/com/android/server/notification/NotificationShellCmd.java "AOSP: NotificationShellCmd allow_dnd"
+[3]: https://developer.android.com/develop/background-work/services/alarms "Android Developers: Schedule alarms"
+[4]: https://developer.android.com/reference/android/telephony/TelephonyManager#setAllowedNetworkTypesForReason(int,long) "Android Developers: setAllowedNetworkTypesForReason"
+[5]: https://android.googlesource.com/platform/packages/services/Telephony/+/refs/heads/main/src/com/android/phone/TelephonyShellCommand.java "AOSP: TelephonyShellCommand"

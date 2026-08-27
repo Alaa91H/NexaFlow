@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.50.1] - 2026-08-27
+
+### Fixed
+- Re-armed the **existing immutable END alarm** for an already-active time range during schedule reconciliation. After Android drops alarms at reboot, a 22:00–06:00 range now restores only the END `PendingIntent` that matches its active occurrence id, schedule generation, and expected end; it does not create a new occurrence or execute an exit while re-arming.
+- Added regression coverage proving that a time-window end dispatches a configured `SYSTEM_RINGER_MODE` `SET_VALUE` payload of `{mode=NORMAL}` exactly once through the same `ExecutionEngine` / `ActionRegistry` path as an ordinary action.
+- Corrected all local `TelephonyManager.NetworkTypeBitMask` family values to AOSP's `1 << (NETWORK_TYPE - 1)` positions. Valid Android 17 LTE/NR masks can no longer be filtered to zero solely by NexaFlow's local mapping.
+- Replaced the ineffective notification-policy `appops` grant with AOSP `cmd notification allow_dnd` for the current user. When Android rejects `SILENT`/`VIBRATE → NORMAL`, NexaFlow verifies the app-specific notification-policy grant and retries `AudioManager`; it does not change the user's interruption filter or notification policy.
+
+### Changed
+- New dynamic Cellular Network profiles now persist `aosp-network-type-bitmask-v1`. A saved dynamic mask without this schema is rejected safely until the user reselects the profile, avoiding an ambiguous radio-mode migration after the bit-position correction.
+- Extended network-mode regression coverage to AOSP named, decimal, and binary LTE/LTE-CA/NR read-back values, and extended elevated-operation coverage to the closed notification-policy grant command.
+
+### Compatibility and safety
+- Static `2G`, `3G`, `4G`, `5G`, and `AUTO` actions without a dynamic mask continue using the corrected mappings. Existing raw per-subscription restore snapshots are preserved because they contain masks read from the device, not locally generated family profiles.
+- An interrupted `EXITING` lifecycle is intentionally not replayed automatically. Arbitrary exit side effects remain uncertain until a future durable per-exit checkpoint and ownership epoch can make recovery safe. `EXIT_FAILED` remains observable and retains the established bounded recovery policy.
+- Root or Shizuku does not override ROM, modem, SIM, carrier, or OEM telephony-service limits. Network writes remain subscription-scoped and require same-SIM read-back confirmation; the obsolete global `preferred_network_mode` write remains excluded.
+
 ## [v3.50.0] - 2026-08-27
 
 ### Added
