@@ -554,7 +554,6 @@ fun PermissionHintForAction(
                 }
             )
         }
-        return
     }
 
     val special = PermissionCatalog.specialPermissionFor(actionType)

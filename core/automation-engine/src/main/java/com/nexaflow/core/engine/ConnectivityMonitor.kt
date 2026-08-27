@@ -6,7 +6,6 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.os.Build
-import android.provider.Settings
 import android.telephony.PhoneStateListener
 import android.telephony.ServiceState
 import android.telephony.TelephonyCallback
@@ -15,6 +14,7 @@ import android.telephony.TelephonyManager
 import com.nexaflow.core.common.CellularNetworkReader
 import com.nexaflow.core.common.DefaultNetworkSnapshot
 import com.nexaflow.core.common.DefaultNetworkStateReader
+import com.nexaflow.core.common.HotspotStateReader
 import com.nexaflow.core.common.NetworkTransportState
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.datastore.AutomationLifecycleContext
@@ -62,6 +62,7 @@ class ConnectivityMonitor @Inject constructor(
     private var telephonyExecutor: ExecutorService = newTelephonyExecutor()
     private var telephonyManager: TelephonyManager? = null
     private var telephonyCallback: TelephonyCallback? = null
+    private var hotspotRegistration: AutoCloseable? = null
     private var legacyTelephonyListener: PhoneStateListener? = null
 
     @Volatile
@@ -117,6 +118,7 @@ class ConnectivityMonitor @Inject constructor(
                 connectivityManager.registerDefaultNetworkCallback(networkCallback)
             }
             registerTelephonyCallbacks()
+            registerHotspotCallback()
             handleChange()
         }
     }
@@ -201,6 +203,8 @@ class ConnectivityMonitor @Inject constructor(
             runCatching { connectivityManager?.unregisterNetworkCallback(c) }
         }
         callback = null
+        hotspotRegistration?.close()
+        hotspotRegistration = null
         unregisterTelephonyCallbacks()
         activeStates.clear()
         lastRunAt.clear()
@@ -211,6 +215,18 @@ class ConnectivityMonitor @Inject constructor(
         Executors.newSingleThreadExecutor { runnable ->
             Thread(runnable, "NexaFlow-telephony").apply { isDaemon = true }
         }
+
+    /**
+     * Android 16/API 36 and Android 17/API 37 expose an app-facing tethering
+     * callback. It is the authoritative event for the HOTSPOT trigger; default
+     * network callbacks do not report the device's own Soft AP state.
+     */
+    private fun registerHotspotCallback() {
+        hotspotRegistration?.close()
+        hotspotRegistration = HotspotStateReader.observe(context, telephonyExecutor) {
+            handleChange()
+        }
+    }
 
     /**
      * Uses TelephonyCallback on Android 12+ and the public PhoneStateListener
@@ -401,9 +417,8 @@ class ConnectivityMonitor @Inject constructor(
     ): String? = when (network) {
         "WIFI" -> defaultTransportValue(snapshot, NetworkCapabilities.TRANSPORT_WIFI)
         "MOBILE" -> defaultTransportValue(snapshot, NetworkCapabilities.TRANSPORT_CELLULAR)
-        "HOTSPOT" -> runCatching {
-            Settings.Global.getInt(context.contentResolver, "tether_on") == 1
-        }.getOrNull()?.let { enabled -> if (enabled) "ON" else "OFF" }
+        "HOTSPOT" -> HotspotStateReader.currentState(context)
+            ?.let { enabled -> if (enabled) "ON" else "OFF" }
         "NETWORK_MODE" -> {
             // The cellular registration can remain active while Wi-Fi is the
             // default route; do not gate the telephony read on the currently

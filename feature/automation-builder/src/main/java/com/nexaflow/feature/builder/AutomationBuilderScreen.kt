@@ -1374,14 +1374,31 @@ fun AutomationBuilderScreen(
     var pendingPermissions by remember { mutableStateOf<Array<String>?>(null) }
     // Special permission (settings-screen) request awaiting the explain screen.
     var pendingSpecialPermission by remember { mutableStateOf<SpecialPermission?>(null) }
+    // Captures special requirements discovered while saving. A task containing
+    // both a dangerous runtime permission (READ_PHONE_STATE) and a special
+    // permission (exact alarm / elevated access) must not abandon the latter
+    // after the Android runtime dialog closes.
+    var specialPermissionsAfterRuntimeGrant by remember { mutableStateOf<List<SpecialPermission>>(emptyList()) }
     val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()
     ) { grants ->
         // Surface denied permissions so the user knows why the feature may not work.
         if (grants.values.any { !it }) {
+            specialPermissionsAfterRuntimeGrant = emptyList()
             scope.launch {
                 snackbarHostState.showSnackbar(stringPermissionDenied)
             }
+        } else {
+            // Continue the same save flow with the highest-priority missing
+            // special access. TIME requirements are collected first, therefore
+            // an exact alarm request is never silently skipped for a task that
+            // also changes the cellular network.
+            val nextSpecial = specialPermissionsAfterRuntimeGrant.firstOrNull {
+                !PermissionShortcuts.isGranted(context, it)
+            }
+            specialPermissionsAfterRuntimeGrant = emptyList()
+            if (nextSpecial != null) pendingSpecialPermission = nextSpecial
+            else ElevatedAccessShortcuts.requestBatteryOptimizationExemption(context)
         }
     }
 
@@ -1501,13 +1518,19 @@ fun AutomationBuilderScreen(
                     missingRuntime
                 }
             }
+            val missingSpecial = PermissionCatalog.allSpecialPermissions(builtTriggers, actions, exitActions)
+                .filter { !PermissionShortcuts.isGranted(context, it) }
+            val userPermissionFlowRequired = remainingRuntime.isNotEmpty() || missingSpecial.isNotEmpty()
             if (remainingRuntime.isNotEmpty()) {
+                // The launcher callback continues directly to the first special
+                // requirement rather than losing exact-alarm access after the
+                // phone-state dialog succeeds.
+                specialPermissionsAfterRuntimeGrant = missingSpecial
                 requestPermissions(remainingRuntime.toTypedArray())
             } else {
-                val missingSpecial = PermissionCatalog.allSpecialPermissions(builtTriggers, actions, exitActions)
-                    .firstOrNull { !PermissionShortcuts.isGranted(context, it) }
-                if (missingSpecial != null) {
-                    explainSpecialPermission(missingSpecial)
+                val firstMissingSpecial = missingSpecial.firstOrNull()
+                if (firstMissingSpecial != null) {
+                    explainSpecialPermission(firstMissingSpecial)
                 } else {
                     // All runtime/special permissions satisfied: keep the monitoring
                     // service alive in the background by requesting the battery
@@ -1515,11 +1538,16 @@ fun AutomationBuilderScreen(
                     ElevatedAccessShortcuts.requestBatteryOptimizationExemption(context)
                 }
             }
-        }
-        if (closeAfterSave) {
-            navController.popBackStack()
-        } else {
-            showSnackbar(stringSavedSuccessfully)
+            // The permission dialogs are owned by this composable. Popping the
+            // builder immediately after save disposed it before either the exact
+            // alarm or elevated-access dialog could be shown, leaving a task that
+            // looked ready but could not run reliably. Stay until the user sees
+            // the required next step; a later normal save can close the screen.
+            if (closeAfterSave && !userPermissionFlowRequired) {
+                navController.popBackStack()
+            } else if (!closeAfterSave) {
+                showSnackbar(stringSavedSuccessfully)
+            }
         }
     }
 

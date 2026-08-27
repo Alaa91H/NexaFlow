@@ -11,6 +11,7 @@ import android.provider.Settings
 import com.nexaflow.core.common.CellularNetworkReader
 import com.nexaflow.core.common.DefaultNetworkSnapshot
 import com.nexaflow.core.common.DefaultNetworkStateReader
+import com.nexaflow.core.common.HotspotStateReader
 import com.nexaflow.core.common.NetworkTransportState
 import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.Trigger
@@ -360,9 +361,8 @@ object TriggerStateEvaluator {
                 snapshot,
                 android.net.NetworkCapabilities.TRANSPORT_CELLULAR
             )
-            "HOTSPOT" -> runCatching {
-                Settings.Global.getInt(context.contentResolver, "tether_on") == 1
-            }.getOrNull()?.let { enabled -> if (enabled) "ON" else "OFF" }
+            "HOTSPOT" -> HotspotStateReader.currentState(context)
+                ?.let { enabled -> if (enabled) "ON" else "OFF" }
             else -> null
         }
         return if (network == "NETWORK_MODE") {
