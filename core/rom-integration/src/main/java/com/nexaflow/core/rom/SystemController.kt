@@ -477,20 +477,18 @@ class SystemController(
         )
     }
 
-    /** Ringer mode: NORMAL / VIBRATE / SILENT.
- *
- * Android only lets apps LOWER the ringer mode through
- * [AudioManager.setRingerMode] (NORMAL -> VIBRATE/SILENT); raising it
- * (VIBRATE/SILENT -> NORMAL) requires DND (notification-policy) access.
- * The old privileged fallback used `cmd audio set_mode`, which sets the AUDIO
- * MODE (IN_CALL/RINGTONE/...) — not the ringer mode — so the change silently
- * never applied. To be reliable on every ROM (stock AOSP, OneUI, MIUI, custom
- * ROMs, with or without DND/root/Shizuku) we drive the framework's own
- * derivation instead: the ringer mode follows the RING stream volume (>0 =
- * NORMAL) plus the "vibrate when ringing" setting (ring muted + vibrate =
- * VIBRATE, ring muted + no vibrate = SILENT). The direct API is still tried
- * first (covers lowering and DND holders), then the stream-based path.
- */
+    /**
+     * Ringer mode: NORMAL / VIBRATE / SILENT.
+     *
+     * Android lets ordinary apps lower the ringer mode, but returning from
+     * VIBRATE/SILENT to NORMAL requires notification-policy access. The obsolete
+     * `cmd audio set_mode` fallback changed audio call mode rather than ringer
+     * mode. A failed return to NORMAL therefore requests only NexaFlow's own
+     * notification-policy access through the reviewed AOSP command, verifies the
+     * grant, and retries AudioManager without changing the interruption filter.
+     * Stream volume remains a final compatibility fallback whose result is always
+     * read back from ringerMode.
+     */
     fun setRingerMode(mode: String): SystemControlResult {
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val ringerMode = when (mode.uppercase()) {
@@ -514,10 +512,23 @@ class SystemController(
             return SystemControlResult.ok("Ringer mode set to $label")
         }
 
-        // 2) Stream-based derivation: RING volume + vibrate-when-ringing.
-        //    Raising the ring volume is allowed for any app and flips the
-        //    mode back to NORMAL on every ROM; muting it (plus the vibrate
-        //    setting) selects VIBRATE vs SILENT.
+        // 2) Android rejects SILENT/VIBRATE -> NORMAL without notification-policy
+        //    access. Root/Shizuku can ask the platform to grant this app-only
+        //    special access; the command's exit code is never trusted without the
+        //    NotificationManager read-back, and no DND mode/policy is changed.
+        if (ringerMode == AudioManager.RINGER_MODE_NORMAL) {
+            val accessFailure = ensureNotificationPolicyAccess()
+            if (accessFailure != null) return SystemControlResult.fail(accessFailure)
+            val confirmed = runCatching {
+                audioManager.ringerMode = AudioManager.RINGER_MODE_NORMAL
+                audioManager.ringerMode == AudioManager.RINGER_MODE_NORMAL
+            }.getOrDefault(false)
+            if (confirmed) return SystemControlResult.ok("Ringer mode set to $label")
+        }
+
+        // 3) Stream-based compatibility fallback. A stream write is not treated as
+        //    success on its own: OEM DND/audio policy may still reject NORMAL, so
+        //    the framework ringer mode is read back below.
         return try {
             val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_RING)
             audioManager.setStreamVolume(
@@ -552,6 +563,32 @@ class SystemController(
             }
         } catch (t: Throwable) {
             SystemControlResult.fail("Failed to set ringer mode: ${t.message}")
+        }
+    }
+
+    /**
+     * Ensures the app has Android's special notification-policy access. This is
+     * intentionally on-demand: only a failed attempt to restore NORMAL invokes
+     * the closed elevated operation, and the result is verified in this app's
+     * own user context before it is accepted.
+     */
+    private fun ensureNotificationPolicyAccess(): String? {
+        val notificationManager = context.getSystemService(NotificationManager::class.java)
+            ?: return "Notification service is unavailable; cannot restore NORMAL ringer mode"
+        if (notificationManager.isNotificationPolicyAccessGranted) return null
+        val grant = PrivilegedRunner.runElevatedOperation(
+            PrivilegedOperation.GrantNotificationPolicyAccess(
+                packageName = context.packageName,
+                userId = context.userId
+            )
+        )
+        if (!grant.success) {
+            return "NORMAL ringer mode requires notification-policy access; elevated grant failed: ${grant.message.take(160)}"
+        }
+        return if (notificationManager.isNotificationPolicyAccessGranted) {
+            null
+        } else {
+            "The ROM did not grant notification-policy access; NORMAL ringer mode was not changed"
         }
     }
 

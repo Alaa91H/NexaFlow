@@ -7,6 +7,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeState
 import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.ScheduledAutomationOccurrence
 import com.nexaflow.core.datastore.ExitReason
@@ -102,6 +104,12 @@ class AutomationScheduler @Inject constructor(
      */
     private suspend fun scheduleFresh(automation: Automation): Boolean = try {
         cancel(automation.id, preserveActiveWindow = true)
+        // AlarmManager drops alarms over reboot. `cancel(... preserveActiveWindow
+        // = true)` intentionally retains the immutable schedule ledger so an
+        // already-running cross-midnight range can still end. Re-arm only that
+        // exact durable END identity; creating a fresh occurrence here would
+        // detach the 06:00 delivery from the ACTIVE lifecycle that owns it.
+        rearmRetainedActiveRangeEnd(automation.id)
         val config = automation.timeConfigOrNull()
         val triggerAt = config?.let { TimeTriggerCalculator.nextFireTime(it, System.currentTimeMillis()) }
         if (config == null || triggerAt == null) false
@@ -154,6 +162,18 @@ class AutomationScheduler @Inject constructor(
         } else {
             runtimeStore.clearSchedule(automationId)
         }
+    }
+
+    /** Re-arms the exact future END alarm retained for an already ACTIVE time range. */
+    private suspend fun rearmRetainedActiveRangeEnd(automationId: String) {
+        val retained = retainedActiveEndForRearm(
+            activeState = runtimeStore.current(automationId),
+            occurrences = runtimeStore.schedulesFor(automationId),
+            now = System.currentTimeMillis()
+        ) ?: return
+        val endAt = checkNotNull(retained.windowEndAt)
+        setAlarm(endAt, buildPendingIntent(automationId, ACTION_END_AUTOMATION, retained))
+        Log.i(TAG, "Re-armed retained time-range END for $automationId at $endAt")
     }
 
     /** Validates that an incoming alarm still belongs to an armed occurrence. */
@@ -262,6 +282,32 @@ class AutomationScheduler @Inject constructor(
     companion object {
         internal fun exactAlarmAllowed(sdkInt: Int, canScheduleExactAlarms: Boolean): Boolean =
             sdkInt < Build.VERSION_CODES.S || canScheduleExactAlarms
+
+        /**
+         * Selects an immutable END occurrence for reboot/reconciliation re-arm.
+         * Every field is intentionally matched: an edited schedule may retain an
+         * older ledger entry, but only the occurrence the ACTIVE lifecycle owns
+         * can consume its exit behavior.
+         */
+        internal fun retainedActiveEndForRearm(
+            activeState: AutomationRuntimeState?,
+            occurrences: List<ScheduledAutomationOccurrence>,
+            now: Long
+        ): ScheduledAutomationOccurrence? = activeState
+            ?.takeIf {
+                it.lifecycleState == AutomationRuntimeLifecycleState.ACTIVE &&
+                    it.source == SOURCE_TIME_RANGE &&
+                    it.expectedEndAt != null
+            }
+            ?.let { active ->
+                occurrences.firstOrNull { occurrence ->
+                    occurrence.automationId == active.automationId &&
+                        occurrence.occurrenceId == active.occurrenceId &&
+                        occurrence.generation == active.scheduleGeneration &&
+                        occurrence.windowEndAt == active.expectedEndAt &&
+                        occurrence.windowEndAt > now
+                }
+            }
 
         internal fun occurrenceId(windowStartAt: Long, windowEndAt: Long?): String =
             "time:$windowStartAt:${windowEndAt ?: 0L}"

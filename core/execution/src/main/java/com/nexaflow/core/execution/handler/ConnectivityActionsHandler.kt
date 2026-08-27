@@ -1,5 +1,6 @@
 package com.nexaflow.core.execution.handler
 
+import com.nexaflow.core.rom.NetworkModePolicy
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
@@ -30,11 +31,24 @@ class ConnectivityActionsHandler : ActionHandler {
             // handler boundary because workflow executors are intentionally
             // dispatcher-agnostic.
             ActionType.SYSTEM_NETWORK_MODE -> withContext(Dispatchers.IO) {
-                ctx.controller.setNetworkMode(
-                    mode = action.config["mode"] ?: "AUTO",
-                    requestedMask = action.config["network_mask"]?.toLongOrNull(),
-                    subscriptionId = action.config["network_subscription_id"]?.toIntOrNull()
-                )
+                val requestedMask = action.config["network_mask"]?.toLongOrNull()
+                if (requestedMask != null &&
+                    action.config["network_mask_schema"] != NetworkModePolicy.NETWORK_MASK_SCHEMA_AOSP_V1
+                ) {
+                    // v3.50 and earlier persisted a one-bit-shifted dynamic mask.
+                    // It is unsafe to reinterpret it after correcting the AOSP
+                    // constants: a saved LTE mask could become LTE+NR. The user
+                    // must reselect a profile, which writes the explicit schema.
+                    SystemControlResult.fail(
+                        "Saved dynamic network profile uses an obsolete mask mapping; open the task and reselect the network profile"
+                    )
+                } else {
+                    ctx.controller.setNetworkMode(
+                        mode = action.config["mode"] ?: "AUTO",
+                        requestedMask = requestedMask,
+                        subscriptionId = action.config["network_subscription_id"]?.toIntOrNull()
+                    )
+                }
             }
             ActionType.SYSTEM_HOTSPOT -> ctx.controller.setHotspot(enabled)
             ActionType.SYSTEM_NFC -> ctx.controller.setNfc(enabled)

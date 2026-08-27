@@ -12,6 +12,7 @@ import android.os.Process
 import android.provider.Settings
 import androidx.annotation.RequiresApi
 import com.nexaflow.core.rom.model.SystemControlResult
+import com.nexaflow.core.security.SafeCommandBuilder
 
 /**
  * Auto-grants every permission the app needs through the elevated shell
@@ -19,7 +20,8 @@ import com.nexaflow.core.rom.model.SystemControlResult
  *
  * On a rooted device the user never has to tap through system permission
  * dialogs: runtime permissions go through `pm grant`, special-app-op
- * capabilities through `appops set ... allow`, battery exemption through
+ * capabilities through `appops set ... allow` (with `cmd notification allow_dnd`
+ * for notification-policy access), battery exemption through
  * `dumpsys deviceidle whitelist`, and the accessibility + notification
  * listener services through `settings put secure` (plain root can write
  * secure settings via the `settings` binary).
@@ -307,16 +309,33 @@ object RootPermissionGranter {
             else failures += "pm grant $permission"
         }
 
-        // 2) Special capabilities exposed as app-ops.
+        // 2) Special capabilities. Notification-policy access is not a normal
+        // app-op: Android's NotificationManager keeps a separate approved-package
+        // ledger, so use its AOSP command rather than reporting an appops success
+        // that still fails `isNotificationPolicyAccessGranted`.
         for ((permission, op) in appOpsProvider?.invoke() ?: specialAppOps()) {
             val alreadyGranted = grantedChecker?.invoke(permission)
                 ?: context?.let { isAppOpGranted(it, permission, op) } ?: false
             if (alreadyGranted) continue
             val outcome = runShell(
-                "appops set $packageName $op allow"
+                if (permission == android.Manifest.permission.ACCESS_NOTIFICATION_POLICY) {
+                    SafeCommandBuilder.build(
+                        "cmd",
+                        "notification",
+                        "allow_dnd",
+                        packageName,
+                        (context?.userId ?: 0).toString()
+                    )
+                } else {
+                    "appops set $packageName $op allow"
+                }
             )
             if (outcome.success) appOpsGranted += permission
-            else failures += "appops $op"
+            else failures += if (permission == android.Manifest.permission.ACCESS_NOTIFICATION_POLICY) {
+                "notification policy access"
+            } else {
+                "appops $op"
+            }
         }
 
         // 3) Battery optimization exemption.

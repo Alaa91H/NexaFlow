@@ -583,9 +583,12 @@ private fun actionSummaryDetail(option: ActionOption, config: Map<String, String
         }
         ActionType.SYSTEM_NETWORK_MODE -> when (config["mode"] ?: "AUTO") {
             "DYNAMIC" -> config["network_mask"]?.toLongOrNull()
-                ?.takeIf { it > 0L }
+                ?.takeIf {
+                    it > 0L && config["network_mask_schema"] ==
+                        NetworkModePolicy.NETWORK_MASK_SCHEMA_AOSP_V1
+                }
                 ?.let(NetworkModePolicy::describe)
-                ?: stringResource(R.string.network_mode_auto)
+                ?: stringResource(R.string.network_mode_unavailable)
             "2G" -> stringResource(R.string.network_mode_2g)
             "3G" -> stringResource(R.string.network_mode_3g)
             "4G" -> stringResource(R.string.network_mode_4g)

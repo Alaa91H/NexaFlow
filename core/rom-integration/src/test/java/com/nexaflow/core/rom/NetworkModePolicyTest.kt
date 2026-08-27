@@ -18,8 +18,8 @@ class NetworkModePolicyTest {
         assertEquals("2G", req.label)
         assertEquals(1, req.legacyInt)
         assertEquals(NetworkModePolicy.BITMASK_2G, req.bitmask)
-        // Pins the framework contract: GSM(1<<16)|GPRS(1<<1)|EDGE(1<<2).
-        assertEquals(65_542L, req.bitmask)
+        // AOSP NetworkTypeBitMask: GSM(1<<15)|GPRS(1<<0)|EDGE(1<<1).
+        assertEquals(32_771L, req.bitmask)
     }
 
     @Test
@@ -27,8 +27,8 @@ class NetworkModePolicyTest {
         val req = NetworkModePolicy.request("3G")
         assertEquals(2, req.legacyInt)
         assertEquals(NetworkModePolicy.BITMASK_3G, req.bitmask)
-        // UMTS(1<<3)|HSDPA(1<<8)|HSUPA(1<<9)|HSPA(1<<10)|HSPAP(1<<15).
-        assertEquals(34_568L, req.bitmask)
+        // AOSP NetworkTypeBitMask: UMTS(1<<2)|HSDPA(1<<7)|HSUPA(1<<8)|HSPA(1<<9)|HSPAP(1<<14).
+        assertEquals(17_284L, req.bitmask)
     }
 
     @Test
@@ -36,15 +36,15 @@ class NetworkModePolicyTest {
         val req = NetworkModePolicy.request("4G")
         assertEquals(11, req.legacyInt)
         assertEquals(NetworkModePolicy.BITMASK_4G, req.bitmask)
-        // LTE(1<<13)|LTE_CA(1<<19).
-        assertEquals(532_480L, req.bitmask)
+        // AOSP NetworkTypeBitMask: LTE(1<<12)|LTE_CA(1<<18).
+        assertEquals(266_240L, req.bitmask)
     }
 
     @Test
     fun `5G maps to the NR bitmask with a version-tolerant legacy fallback`() {
         val req = NetworkModePolicy.request("5G")
         assertEquals(NetworkModePolicy.BITMASK_5G, req.bitmask)
-        assertEquals(1L shl 20, req.bitmask)
+        assertEquals(1L shl 19, req.bitmask)
         // 22 = NR+LTE+legacy in the PhoneConstants table (the closest stable entry).
         assertEquals(22, req.legacyInt)
     }
@@ -135,11 +135,11 @@ class NetworkModePolicyTest {
     @Test
     fun `coversReadBack accepts numeric read-backs from OEM ROMs`() {
         val req4g = NetworkModePolicy.request("4G")
-        // Decimal: 532480 == BITMASK_4G.
-        assertTrue(NetworkModePolicy.coversReadBack("532480", req4g))
-        // Decimal with the NR bit still set (532480 | 1<<20) must not
+        // AOSP decimal: 266240 == LTE(1<<12) | LTE_CA(1<<18).
+        assertTrue(NetworkModePolicy.coversReadBack("266240", req4g))
+        // Decimal with the AOSP NR bit still set (266240 | 1<<19) must not
         // confirm LTE-only: preferred mode is a restriction, not a minimum.
-        assertFalse(NetworkModePolicy.coversReadBack("1581056", req4g))
+        assertFalse(NetworkModePolicy.coversReadBack("790528", req4g))
         // Binary form of BITMASK_4G.
         assertTrue(NetworkModePolicy.coversReadBack(java.lang.Long.toString(NetworkModePolicy.BITMASK_4G, 2), req4g))
         // A read-back that lost the LTE bits must not confirm 4G.
@@ -158,6 +158,11 @@ class NetworkModePolicyTest {
             )
         )
         assertEquals(nrLte, NetworkModePolicy.parseReadBackMask("LTE|NR"))
+        assertEquals(
+            NetworkModePolicy.BITMASK_4G,
+            NetworkModePolicy.parseReadBackMask("LTE|LTE_CA")
+        )
+        assertEquals(NetworkModePolicy.BITMASK_5G, NetworkModePolicy.parseReadBackMask("NR"))
         assertEquals(
             NetworkModePolicy.BITMASK_4G,
             NetworkModePolicy.parseReadBackMask(

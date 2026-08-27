@@ -7,27 +7,30 @@ package com.nexaflow.core.rom
  */
 object NetworkModePolicy {
 
+    /** Marks a dynamic mask written with the official AOSP bit positions. */
+    const val NETWORK_MASK_SCHEMA_AOSP_V1 = "aosp-network-type-bitmask-v1"
+
     /** GSM | GPRS | EDGE. */
-    const val BITMASK_2G: Long = (1L shl 16) or (1L shl 1) or (1L shl 2)
+    const val BITMASK_2G: Long = (1L shl 15) or (1L shl 0) or (1L shl 1)
 
     /** UMTS | HSDPA | HSUPA | HSPA | HSPAP. */
     const val BITMASK_3G: Long =
-        (1L shl 3) or (1L shl 8) or (1L shl 9) or (1L shl 10) or (1L shl 15)
+        (1L shl 2) or (1L shl 7) or (1L shl 8) or (1L shl 9) or (1L shl 14)
 
     /** CDMA | 1xRTT. */
-    const val BITMASK_CDMA: Long = (1L shl 4) or (1L shl 7)
+    const val BITMASK_CDMA: Long = (1L shl 3) or (1L shl 6)
 
     /** EVDO-0 | EVDO-A | EVDO-B | eHRPD. */
-    const val BITMASK_EVDO: Long = (1L shl 5) or (1L shl 6) or (1L shl 12) or (1L shl 14)
+    const val BITMASK_EVDO: Long = (1L shl 4) or (1L shl 5) or (1L shl 11) or (1L shl 13)
 
     /** TD-SCDMA. */
-    const val BITMASK_TD_SCDMA: Long = 1L shl 17
+    const val BITMASK_TD_SCDMA: Long = 1L shl 16
 
     /** LTE | LTE-CA. */
-    const val BITMASK_4G: Long = (1L shl 13) or (1L shl 19)
+    const val BITMASK_4G: Long = (1L shl 12) or (1L shl 18)
 
     /** NR (5G). */
-    const val BITMASK_5G: Long = 1L shl 20
+    const val BITMASK_5G: Long = 1L shl 19
 
     /** Cellular RATs that make sense as a user-selectable preferred mode. */
     const val BITMASK_SELECTABLE_CELLULAR: Long =
@@ -35,7 +38,7 @@ object NetworkModePolicy {
             BITMASK_4G or BITMASK_5G
 
     /** The full AOSP set, retained for legacy AUTO tasks only. */
-    const val BITMASK_AUTO: Long = BITMASK_SELECTABLE_CELLULAR or (1L shl 18)
+    const val BITMASK_AUTO: Long = BITMASK_SELECTABLE_CELLULAR or (1L shl 17)
 
     data class Request(
         val label: String,

@@ -227,6 +227,34 @@ class RootPermissionGranterTest {
     }
 
     @Test
+    fun `grantAllInternal uses the AOSP notification policy grant instead of appops`() {
+        assertTrue(grantRoot())
+        RootPermissionGranter.permissionsProvider = { emptyList() }
+        RootPermissionGranter.appOpsProvider = {
+            listOf(android.Manifest.permission.ACCESS_NOTIFICATION_POLICY to "android:access_notification_policy")
+        }
+        var dndGranted = false
+        RootPermissionGranter.grantedChecker = { permission ->
+            permission == android.Manifest.permission.ACCESS_NOTIFICATION_POLICY && dndGranted
+        }
+        RootPermissionGranter.batteryExemptChecker = { true }
+        RootPermissionGranter.accessibilityChecker = { true }
+        RootPermissionGranter.notificationListenerChecker = { true }
+        RootPermissionGranter.shellRunner = { command ->
+            commands += command
+            if (command == "cmd notification allow_dnd com.nexaflow.app 0") dndGranted = true
+            SystemControlResult.ok("ok")
+        }
+
+        val result = grantAll()
+
+        assertTrue(result.appOpsGranted.contains(android.Manifest.permission.ACCESS_NOTIFICATION_POLICY))
+        assertTrue(commands.contains("cmd notification allow_dnd com.nexaflow.app 0"))
+        assertFalse(commands.any { it.contains("android:access_notification_policy") })
+        assertTrue(result.remaining.isEmpty())
+    }
+
+    @Test
     fun `grantAllInternal adds battery exemption when not exempt`() {
         assertTrue(grantRoot())
         RootPermissionGranter.permissionsProvider = { emptyList() }

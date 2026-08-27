@@ -93,6 +93,28 @@ class ShizukuShellBridgeTest {
     }
 
     @Test
+    fun `notification policy grant wire builds the fixed AOSP argv`() {
+        val operation = PrivilegedOperation.fromWire(
+            wireId = "notification.policy_access.grant",
+            first = "com.nexaflow.app",
+            second = "10",
+            third = ""
+        )
+
+        assertEquals(PrivilegedOperation.GrantNotificationPolicyAccess("com.nexaflow.app", 10), operation)
+        assertEquals(
+            listOf("cmd", "notification", "allow_dnd", "com.nexaflow.app", "10"),
+            operation?.argv()
+        )
+        assertEquals(
+            null,
+            PrivilegedOperation.fromWire(
+                "notification.policy_access.grant", "com.nexaflow.app;reboot", "10", ""
+            )
+        )
+    }
+
+    @Test
     fun `network mode set wire preserves the confirmed bitmask as binary argv`() {
         val mask = NetworkModePolicy.BITMASK_5G or NetworkModePolicy.BITMASK_4G
         val operation = PrivilegedOperation.fromWire(

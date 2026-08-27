@@ -142,7 +142,7 @@ internal fun NetworkModeSelector(
                                     onClick = {
                                         onConfigChange(
                                             config + ("network_subscription_id" to subscription.subscriptionId.toString()) -
-                                                "network_mask"
+                                                setOf("network_mask", "network_mask_schema")
                                         )
                                     },
                                     label = if (subscription.isActiveDataSubscription) {
@@ -193,6 +193,7 @@ internal fun NetworkModeSelector(
                                         config + mapOf(
                                             "mode" to if (option.isAutomatic) "AUTO" else "DYNAMIC",
                                             "network_mask" to option.allowedNetworkTypes.toString(),
+                                            "network_mask_schema" to NetworkModePolicy.NETWORK_MASK_SCHEMA_AOSP_V1,
                                             "network_subscription_id" to selectedSubscriptionId.toString()
                                         )
                                     )

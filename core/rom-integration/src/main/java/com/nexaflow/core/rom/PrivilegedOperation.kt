@@ -86,6 +86,26 @@ sealed interface PrivilegedOperation {
         }
     }
 
+    /**
+     * Grants notification-policy access for one owned package/user pair. This
+     * capability is required before AudioManager can raise SILENT/VIBRATE back
+     * to NORMAL; it never changes the user's interruption filter or policy.
+     */
+    data class GrantNotificationPolicyAccess(
+        val packageName: String,
+        val userId: Int
+    ) : PrivilegedOperation {
+        override val wireId: PrivilegedOperationId = PrivilegedOperationId.NOTIFICATION_POLICY_ACCESS_GRANT
+        init {
+            require(packageName.isPackageName())
+            require(userId in MIN_USER_ID..MAX_USER_ID) { "User id is invalid" }
+        }
+        override fun wireArguments(): List<String> = listOf(packageName, userId.toString())
+        override fun argv(): List<String> = listOf(
+            "cmd", "notification", "allow_dnd", packageName, userId.toString()
+        )
+    }
+
     /** Applies one confirmed allowed-network-types mask for one physical SIM slot. */
     data class SetAllowedNetworkTypes(
         val slotIndex: Int,
@@ -144,6 +164,10 @@ sealed interface PrivilegedOperation {
                     slotIndex = first.toInt(),
                     subscriptionId = second.toInt()
                 )
+                PrivilegedOperationId.NOTIFICATION_POLICY_ACCESS_GRANT -> GrantNotificationPolicyAccess(
+                    packageName = first,
+                    userId = second.toInt()
+                )
                 PrivilegedOperationId.NETWORK_MODE_SET -> SetAllowedNetworkTypes(
                     slotIndex = first.toInt(),
                     subscriptionId = second.toInt(),
@@ -171,6 +195,8 @@ sealed interface PrivilegedOperation {
         private const val NO_SLOT = -1
         private const val NO_SUBSCRIPTION = -1
         private const val MAX_SIM_SLOT = 8
+        private const val MIN_USER_ID = 0
+        private const val MAX_USER_ID = 999_999
 
         private fun String.isPackageName(): Boolean = PACKAGE.matches(this)
         private fun String.isSettingValue(): Boolean =
@@ -188,5 +214,6 @@ enum class PrivilegedOperationId(val wireValue: String) {
     SYSTEM_SETTING_WRITE("settings.write"),
     FILE_COPY("file.copy"),
     NETWORK_MODE_READ("network.mode.read"),
-    NETWORK_MODE_SET("network.mode.set")
+    NETWORK_MODE_SET("network.mode.set"),
+    NOTIFICATION_POLICY_ACCESS_GRANT("notification.policy_access.grant")
 }
