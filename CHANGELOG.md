@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.46.0] - 2026-08-27
+
+### Added
+- Added a local **Skipped runs** filter to global and routine-scoped execution history. It is backed by a dedicated Room Paging query that selects only successful records using the established `Skipped:` protocol, preserving newest-first ordering.
+- Added a contextual **View skipped runs** action to the routine Execution health card when it has recorded skips, opening the same routine history with `outcome=skipped` selected.
+- Added localized skipped-state labels and empty-state guidance across every shipped locale, domain outcome-classification coverage, database paging coverage, route coverage, and history-screen interaction coverage.
+
+### Changed
+- Replaced the binary history-filter state with an explicit outcome model shared by route parsing, paging, health aggregation, result presentation, and history status pills.
+- Made the three local filter controls wrap on narrow displays or with longer localized labels rather than forcing a single fixed row.
+
+### Fixed
+- Corrected History status pills so intentionally skipped runs are labeled **Skipped** instead of being visually reported as ordinary successful completions.
+
 ## [v3.45.0] - 2026-08-27
 
 ### Added

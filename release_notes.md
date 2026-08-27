@@ -1,26 +1,28 @@
-# NexaFlow v3.45.0
+# NexaFlow v3.46.0
 
-NexaFlow v3.45.0 makes recorded execution problems faster to investigate. Execution history now offers a local **All runs / Failures** filter, so users can focus on persisted failed runs without exporting data, enabling telemetry, or scanning successful activity.
+NexaFlow v3.46.0 completes the local outcome-filtering path for execution history. Users can now isolate **Skipped runs** alongside all runs and failures, making it easier to understand intentional non-execution without mistaking it for a completed action or a failure.
 
 ## Added
 
-The History screen now provides an **All runs / Failures** filter in both global history and routine-scoped history. Selecting **Failures** switches the Paging source to a Room query that filters `ExecutionRecord.success = false` before records reach the UI, while preserving newest-first ordering.
+Execution History now includes a **Skipped runs** filter in both the global view and routine-scoped history. The selection is backed by a dedicated Room Paging query that applies routine scope, `success = 1`, and the established `Skipped:%` record pattern before results are mapped to the UI. Results remain newest first.
 
-The **Execution health** card now shows **View failures** only when its routine has at least one recorded failed run. The action opens the same routine-scoped history screen with the failure filter already selected. The release also adds localized filter and empty-state text in every shipped locale, database coverage for the failure-only Paging query, and navigation coverage for the direct failure route.
+The routine **Execution health** card now provides **View skipped runs** when that routine has recorded skips. It opens the same evidence view with `outcome=skipped` already selected. This release adds localized skipped-state labels and empty-state guidance across every shipped locale, plus domain, Room DAO, navigation, and Compose screen regression coverage.
 
 ## Changed
 
-The History destination accepts an optional typed `outcome` argument. `outcome=failed` initializes the local failure filter; when no outcome is supplied, NexaFlow retains the established all-runs behavior. Changing the filter reactively recreates the appropriate Paging flow without changing historical records.
+History now uses an explicit shared execution-outcome model rather than a binary failure-only UI state. Route parsing, Paging selection, health aggregation, summary presentation, and the History status pill use the same classification: a skipped run is a successful stored record whose message begins with `Skipped:`.
+
+The three filter chips wrap on compact screens and with longer localized text, rather than requiring one fixed-width row.
 
 ## Fixed
 
-Release validation exposed two regressions in the initial implementation: the Compose delegated-state import was absent from the filter UI, and the initial English filter label duplicated the existing failed-status text used by a screen test. Both issues were corrected before release approval, and the final candidate passed CI.
+Skipped records were previously presented with the same History status pill as ordinary completed runs because both are persisted with `success = true`. They are now explicitly labeled **Skipped**, while preserving their non-failure semantics.
 
 ## Privacy and scope
 
-This release is a **read-only, on-device view** over existing execution records. It adds no account, network request, telemetry, permission, background service, schema migration, export path, raw-log mutation, automated remediation, or prediction. A skipped execution remains distinct from a failure: skips are stored as successful records with a `Skipped:` message and are therefore not included in the failure-only filter.
+This is a **read-only, on-device diagnostic improvement** over existing execution records. It adds no account, network request, telemetry, permission, foreground service, background task, schema migration, export path, raw-log mutation, automatic retry, or automated remediation.
 
-> The filter helps inspect evidence that has already been recorded. It does not predict future execution outcomes; Android permissions, device state, OEM behavior, and background limits may still affect later runs.
+> A skipped run records that NexaFlow deliberately performed no action, such as when a condition is not met or a maintenance occurrence is not ready. It is not an error prediction, and it does not guarantee or alter subsequent Android background behavior.
 
 ## Verification
 
@@ -28,4 +30,4 @@ The final release candidate passed the complete GitHub Actions pipeline: resourc
 
 ## Research record
 
-The competitive review, Android-platform constraints, selected failure-filter scope, acceptance criteria, and deferred work are documented in [`docs/RESEARCH_2026.md`](docs/RESEARCH_2026.md).
+The current review of Tasker, MacroDroid, Automate, and Android platform guidance; the resulting scope decision; acceptance criteria; and deferred work are recorded in [`docs/RESEARCH_2026.md`](docs/RESEARCH_2026.md).
