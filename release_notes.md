@@ -1,22 +1,26 @@
-# NexaFlow v3.43.0
+# NexaFlow v3.44.0
 
-NexaFlow v3.43.0 makes routine behaviour easier to understand at the point where users inspect and manage a routine. The release turns existing local execution-history analysis into a concise, read-only health summary while keeping the diagnostic surface private, local, and non-invasive.
+NexaFlow v3.44.0 completes the path from a routine health signal to the execution evidence behind it. Users can now open a focused, paged run history for the routine they are inspecting, without losing the existing global history view.
 
 ## Added
 
-Routine details now include an **Execution health** card. It presents one clear, evidence-based state: **No recorded runs**, **Activity recorded**, or **Needs attention** when repeated failures are detected. The card also shows completed, skipped, and failed run counts, plus the latest recorded failure message when one exists.
+The **Execution health** card in routine details now includes **View routine history**. It opens a history screen that is filtered at the database layer to the selected routine and ordered newest first. The history destination clearly identifies routine-scoped history, while the Settings entry continues to show all routines.
 
-The health summary is localized across every language shipped by NexaFlow. The release adds regression coverage for every health-status presentation mapping.
+The release adds a Room Paging query for `automationId`, localized history-navigation labels in every shipped language, a DAO regression test proving that only the selected routine’s records are returned in newest-first order, and a route regression test.
 
 ## Changed
 
-Routine details now observe NexaFlow’s existing `HealthRepository` flow. The card updates reactively from the execution records already stored locally; it does not add a permission, network request, telemetry stream, database schema change, new background service, or a user-writable raw log.
+The History navigation route now accepts an optional routine identifier. When it is missing or blank, NexaFlow preserves the original global-history behaviour; when it is present, the ViewModel uses the filtered Paging source before records are mapped to the UI.
 
-## Design and safety
+## Fixed
 
-The interaction follows a review of Tasker Run Log, MacroDroid System Log, and Automate Flow Logs. The implementation deliberately favors a low-noise, read-only summary over a mutable raw-log feature. This helps users understand repeated failures and skipped work without letting workflows alter diagnostic evidence.
+Release validation identified two implementation issues: Kotlin could not infer the optional navigation argument type, and the first route test depended on an Android API in a plain JVM test. The argument is now retrieved with an explicit type and route encoding is JVM-safe. The final main candidate passed CI after both corrections.
 
-> Execution health reports facts from already-recorded runs. Android and device-specific conditions can still affect future execution, so users should inspect the routine’s trigger, constraints, permissions, and device settings when a failure is reported.
+## Privacy and scope
+
+Routine history remains a local, read-only view over existing `ExecutionRecord` data. This release adds no network request, telemetry, account, permission, background service, database schema migration, export capability, raw log mutation, or automatic remediation.
+
+> The filtered view shows recorded evidence, not a prediction of future execution. Device settings, permissions, constraints, OEM behavior, and Android background limits can still affect subsequent runs.
 
 ## Verification
 
@@ -24,4 +28,4 @@ The final `main` candidate passed the complete GitHub Actions pipeline: resource
 
 ## Research record
 
-The market comparison, observability-security rationale, acceptance criteria, and deferred scope are documented in [`docs/RESEARCH_2026.md`](docs/RESEARCH_2026.md).
+The competitive research, database review, acceptance criteria, safety constraints, and deferred scope are documented in [`docs/RESEARCH_2026.md`](docs/RESEARCH_2026.md).
