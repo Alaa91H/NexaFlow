@@ -86,6 +86,9 @@ class AutomationRuntimeStore(private val context: Context) {
                 current.lifecycleState == AutomationRuntimeLifecycleState.EXITING -> ExitClaim.AlreadyExiting
                 current.lifecycleState == AutomationRuntimeLifecycleState.EXIT_FAILED ->
                     ExitClaim.RecoveryRequired(current)
+                // Defensive forward compatibility for a future lifecycle enum:
+                // do not execute an unrecognised state as though it were active.
+                else -> ExitClaim.RecoveryRequired(current)
             }
         }
         return claim
