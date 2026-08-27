@@ -142,6 +142,15 @@ class ConnectivityMonitorExitReconcileTest {
         shadowCm().getNetworkCallbacks().first().onAvailable(ShadowNetwork.newInstance(1))
     }
 
+    /** Delivers an authoritative Wi-Fi capabilities snapshot to the callback. */
+    private suspend fun driveFirstWifiCapabilitiesCallback() {
+        waitUntil { shadowCm().getNetworkCallbacks().isNotEmpty() }
+        shadowCm().getNetworkCallbacks().first().onCapabilitiesChanged(
+            ShadowNetwork.newInstance(1),
+            wifiCapabilities()
+        )
+    }
+
     @Test
     fun `restart with wifi already lost fires the missed exit on first callback`() = runBlocking {
         val history = RecordingHistory()
@@ -200,7 +209,7 @@ class ConnectivityMonitorExitReconcileTest {
         val monitor = monitorFor(repository, engine, exitCoordinator, runtimeStore, store)
         monitor.initialize()
 
-        driveFirstNetworkCallback()
+        driveFirstWifiCapabilitiesCallback()
         assertTrue(
             "no exit while the network condition still holds",
             history.exits.none { it == EXIT_NOOP_MARKER }
