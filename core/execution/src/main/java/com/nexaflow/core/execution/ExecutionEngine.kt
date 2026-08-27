@@ -85,8 +85,10 @@ class ExecutionEngine(
     /** Current shared availability observation; absent only in legacy/test construction. */
     private val capabilitySnapshotProvider: (() -> CapabilitySnapshot)? = null,
     /** Test seam for deterministic whole-snapshot restore outcome coverage. */
-    private val snapshotRestorer: (DeviceStateSnapshot, List<Action>) -> SystemControlResult =
-        { snapshot, changedActions -> snapshot.restore(context, changedActions) }
+    private val snapshotRestorer: (DeviceStateSnapshot?, List<Action>) -> SystemControlResult =
+        { snapshot, changedActions ->
+            snapshot?.restore(context, changedActions) ?: SystemControlResult.ok("Nothing to restore")
+        }
 ) {
 
     companion object {
@@ -570,26 +572,15 @@ class ExecutionEngine(
         val actionResults = if (automation.revertOnExit) {
             val snapshot = snapshots.remove(automation.id)
                 ?: DeviceStateSnapshot.decodeForRuntime(runtimeSnapshotJson)
-            if (snapshot != null) {
-                val restoreResult = snapshotRestorer(snapshot, automation.actions)
-                listOf(
-                    ActionExecutionResult(
-                        actionType = "STATE_RESTORE",
-                        success = restoreResult.success,
-                        message = restoreResult.message,
-                        durationMs = 0
-                    )
+            val restoreResult = snapshotRestorer(snapshot, automation.actions)
+            listOf(
+                ActionExecutionResult(
+                    actionType = "STATE_RESTORE",
+                    success = restoreResult.success,
+                    message = restoreResult.message,
+                    durationMs = 0
                 )
-            } else {
-                listOf(
-                    ActionExecutionResult(
-                        actionType = "STATE_RESTORE",
-                        success = true,
-                        message = "Nothing to restore",
-                        durationMs = 0
-                    )
-                )
-            }
+            )
         } else {
             mutableListOf<ActionExecutionResult>().apply {
                 // %variables resolved only when exit actions actually run — pure

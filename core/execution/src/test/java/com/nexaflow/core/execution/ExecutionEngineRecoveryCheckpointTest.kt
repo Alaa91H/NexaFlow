@@ -18,6 +18,7 @@ import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.repositories.HistoryRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -36,11 +37,11 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class ExecutionEngineRecoveryCheckpointTest {
 
-    private class CrashingHandler : ActionHandler {
+    private class CancellingHandler : ActionHandler {
         override val supportedTypes: Set<ActionType> = setOf(ActionType.SYSTEM_SEND_NOTIFICATION)
 
         override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult {
-            throw IllegalStateException("side effect interrupted")
+            throw CancellationException("side effect interrupted")
         }
     }
 
@@ -82,7 +83,7 @@ class ExecutionEngineRecoveryCheckpointTest {
             context = context,
             historyRepository = NoopHistory(),
             notificationPreferences = NotificationPreferences(context),
-            actionRegistry = ActionRegistry.from(listOf(CrashingHandler())),
+            actionRegistry = ActionRegistry.from(listOf(CancellingHandler())),
             activeExecutionStore = store
         )
         try {
@@ -93,7 +94,8 @@ class ExecutionEngineRecoveryCheckpointTest {
                 )
             }.exceptionOrNull()
 
-            assertNotNull("the handler failure must reach the caller", failure)
+            assertNotNull("the handler cancellation must reach the caller", failure)
+            assertTrue(failure is CancellationException)
             assertEquals(
                 DurableExecutionStatus.ACTION_UNKNOWN,
                 store.checkpoint(runId)?.status

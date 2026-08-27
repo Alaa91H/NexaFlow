@@ -35,21 +35,25 @@ class SettingsStateMonitorLifecycleTest {
     private val scopes = mutableListOf<CoroutineScope>()
 
     @Before
-    fun setUp() = runBlocking {
-        context = ApplicationProvider.getApplicationContext()
-        runtimeStore = AutomationRuntimeStore(context)
-        activeStore = ActiveTriggerStore(context)
-        runtimeStore.clear("settings-unknown")
-        runtimeStore.clear("settings-false")
-        activeStore.clearSource("settings-state")
-        Settings.Global.putInt(context.contentResolver, "low_power", 0)
+    fun setUp() {
+        runBlocking {
+            context = ApplicationProvider.getApplicationContext()
+            runtimeStore = AutomationRuntimeStore(context)
+            activeStore = ActiveTriggerStore(context)
+            runtimeStore.clear("settings-unknown")
+            runtimeStore.clear("settings-false")
+            activeStore.clearSource("settings-state")
+            Settings.Global.putInt(context.contentResolver, "low_power", 0)
+        }
     }
 
     @After
-    fun tearDown() = runBlocking {
-        runtimeStore.clear("settings-unknown")
-        runtimeStore.clear("settings-false")
-        activeStore.clearSource("settings-state")
+    fun tearDown() {
+        runBlocking {
+            runtimeStore.clear("settings-unknown")
+            runtimeStore.clear("settings-false")
+            activeStore.clearSource("settings-state")
+        }
     }
 
     private fun monitorFor(automation: com.nexaflow.domain.models.Automation, history: RecordingHistory): SettingsStateMonitor {

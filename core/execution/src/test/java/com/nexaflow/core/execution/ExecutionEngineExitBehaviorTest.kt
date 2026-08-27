@@ -101,8 +101,10 @@ class ExecutionEngineExitBehaviorTest {
     private fun engine(
         handler: RecordingHandler,
         history: RecordingHistory,
-        snapshotRestorer: (DeviceStateSnapshot, List<Action>) -> SystemControlResult =
-            { snapshot, actions -> snapshot.restore(context, actions) }
+        snapshotRestorer: (DeviceStateSnapshot?, List<Action>) -> SystemControlResult =
+            { snapshot, actions ->
+                snapshot?.restore(context, actions) ?: SystemControlResult.ok("Nothing to restore")
+            }
     ): ExecutionEngine =
         ExecutionEngine(
             context = context,
