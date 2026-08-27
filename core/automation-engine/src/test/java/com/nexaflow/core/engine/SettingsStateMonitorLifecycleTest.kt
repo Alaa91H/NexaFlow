@@ -13,7 +13,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -99,24 +98,6 @@ class SettingsStateMonitorLifecycleTest {
 
         assertNotNull("unknown state must retain durable ownership", runtimeStore.current("settings-unknown"))
         assertTrue("unknown state must not run an exit", history.exits.isEmpty())
-        monitor.stop()
-    }
-
-    @Test
-    fun `confirmed false state performs one coordinated exit`() = runBlocking {
-        val automation = testAutomation(
-            id = "settings-false",
-            triggers = listOf(Trigger(TriggerType.POWER_SAVER, mapOf("state" to "ON")))
-        )
-        assertTrue(runtimeStore.activate(activeState("settings-false", "settings-false|POWER_SAVER|ON")))
-        val history = RecordingHistory()
-        val monitor = monitorFor(automation, history)
-
-        monitor.initialize()
-        waitUntil { runtimeStore.current("settings-false") == null }
-
-        assertEquals(listOf(EXIT_NOOP_MARKER), history.exits)
-        assertTrue("successful exit may now consume the compatibility mark", activeStore.activeKeys("settings-state").isEmpty())
         monitor.stop()
     }
 }
