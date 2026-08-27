@@ -276,7 +276,10 @@ class NetworkModeController(
      * allowed-network-types APIs are subscription-scoped, and applying a
      * legacy all-SIM action to an inferred id could alter the wrong radio.
      */
+    @SuppressLint("MissingPermission")
     private fun activeSubscriptionIds(): List<Int> {
+        // [hasReadPhoneState] is an explicit runtime permission gate; Android
+        // Lint does not infer custom helper predicates across this call.
         if (!hasReadPhoneState()) return emptyList()
         return runCatching {
             context.getSystemService(SubscriptionManager::class.java)
