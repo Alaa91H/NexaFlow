@@ -134,6 +134,72 @@ object NetworkModePolicy {
         return options.distinctBy { it.allowedNetworkTypes }
     }
 
+    /**
+     * Parses the comma-separated AOSP `ro.telephony.default_network` property
+     * for one physical slot. A single value describes a single-radio device;
+     * multi-radio properties require a known slot so an unrelated SIM is never
+     * used as evidence for this subscription.
+     *
+     * This is only a modem-default capability hint. It is never treated as a
+     * carrier-authoritative USER restriction, and write success still requires
+     * subscription-scoped read-back in [NetworkModeController].
+     */
+    fun defaultNetworkMaskFromProperty(property: String, slotIndex: Int): Long? {
+        val modes = property.trim()
+            .split(',')
+            .map { it.trim().toIntOrNull() ?: return null }
+            .takeIf { it.isNotEmpty() }
+            ?: return null
+        val mode = when {
+            modes.size == 1 -> modes.single()
+            slotIndex in modes.indices -> modes[slotIndex]
+            else -> return null
+        }
+        return defaultNetworkModeMask(mode)
+    }
+
+    /**
+     * AOSP `RadioAccessFamily.getRafFromNetworkType` translated to NexaFlow's
+     * public long NetworkTypeBitMask groups. Unknown/vendor identifiers return
+     * null: no caller may promote an unrecognised integer to a radio profile.
+     */
+    internal fun defaultNetworkModeMask(mode: Int): Long? = when (mode) {
+        0, 3 -> BITMASK_2G or BITMASK_3G
+        1 -> BITMASK_2G
+        2 -> BITMASK_3G
+        4 -> BITMASK_CDMA or BITMASK_EVDO
+        5 -> BITMASK_CDMA
+        6 -> BITMASK_EVDO
+        7 -> BITMASK_2G or BITMASK_3G or BITMASK_CDMA or BITMASK_EVDO
+        8 -> BITMASK_4G or BITMASK_CDMA or BITMASK_EVDO
+        9 -> BITMASK_4G or BITMASK_2G or BITMASK_3G
+        10 -> BITMASK_4G or BITMASK_2G or BITMASK_3G or BITMASK_CDMA or BITMASK_EVDO
+        11 -> BITMASK_4G
+        12 -> BITMASK_4G or BITMASK_3G
+        13 -> BITMASK_TD_SCDMA
+        14 -> BITMASK_TD_SCDMA or BITMASK_3G
+        15 -> BITMASK_4G or BITMASK_TD_SCDMA
+        16 -> BITMASK_TD_SCDMA or BITMASK_2G
+        17 -> BITMASK_4G or BITMASK_TD_SCDMA or BITMASK_2G
+        18 -> BITMASK_TD_SCDMA or BITMASK_2G or BITMASK_3G
+        19 -> BITMASK_4G or BITMASK_TD_SCDMA or BITMASK_3G
+        20 -> BITMASK_4G or BITMASK_TD_SCDMA or BITMASK_2G or BITMASK_3G
+        21 -> BITMASK_TD_SCDMA or BITMASK_CDMA or BITMASK_EVDO or BITMASK_2G or BITMASK_3G
+        22 -> BITMASK_4G or BITMASK_TD_SCDMA or BITMASK_CDMA or BITMASK_EVDO or BITMASK_2G or BITMASK_3G
+        23 -> BITMASK_5G
+        24 -> BITMASK_5G or BITMASK_4G
+        25 -> BITMASK_5G or BITMASK_4G or BITMASK_CDMA or BITMASK_EVDO
+        26 -> BITMASK_5G or BITMASK_4G or BITMASK_2G or BITMASK_3G
+        27 -> BITMASK_5G or BITMASK_4G or BITMASK_CDMA or BITMASK_EVDO or BITMASK_2G or BITMASK_3G
+        28 -> BITMASK_5G or BITMASK_4G or BITMASK_3G
+        29 -> BITMASK_5G or BITMASK_4G or BITMASK_TD_SCDMA
+        30 -> BITMASK_5G or BITMASK_4G or BITMASK_TD_SCDMA or BITMASK_2G
+        31 -> BITMASK_5G or BITMASK_4G or BITMASK_TD_SCDMA or BITMASK_3G
+        32 -> BITMASK_5G or BITMASK_4G or BITMASK_TD_SCDMA or BITMASK_2G or BITMASK_3G
+        33 -> BITMASK_5G or BITMASK_4G or BITMASK_TD_SCDMA or BITMASK_CDMA or BITMASK_EVDO or BITMASK_2G or BITMASK_3G
+        else -> null
+    }
+
     /** Name every supported radio family without assuming the carrier supports it. */
     fun describe(mask: Long): String = buildList {
         if ((mask and BITMASK_5G) != 0L) add("NR")

@@ -377,6 +377,18 @@ class RootPermissionGranterTest {
     }
 
     @Test
+    fun `exact alarm recheck requires modern Android and verified special access`() {
+        assertFalse(RootPermissionGranter.shouldRecheckExactAlarms(30, emptyList()))
+        assertFalse(
+            RootPermissionGranter.shouldRecheckExactAlarms(
+                31,
+                listOf("appop:android:schedule_exact_alarm")
+            )
+        )
+        assertTrue(RootPermissionGranter.shouldRecheckExactAlarms(31, emptyList()))
+    }
+
+    @Test
     fun `grantAllInternal reports empty remaining when everything is granted`() {
         assertTrue(grantRoot())
         RootPermissionGranter.permissionsProvider = { listOf("android.permission.CAMERA") }

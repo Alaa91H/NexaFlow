@@ -176,6 +176,40 @@ class NetworkModePolicyTest {
     }
 
     @Test
+    fun `AOSP default network profile maps known modem modes without inventing support`() {
+        assertEquals(
+            NetworkModePolicy.BITMASK_4G or NetworkModePolicy.BITMASK_2G or NetworkModePolicy.BITMASK_3G,
+            NetworkModePolicy.defaultNetworkModeMask(9)
+        )
+        assertEquals(
+            NetworkModePolicy.BITMASK_4G or NetworkModePolicy.BITMASK_TD_SCDMA or
+                NetworkModePolicy.BITMASK_CDMA or NetworkModePolicy.BITMASK_EVDO or
+                NetworkModePolicy.BITMASK_2G or NetworkModePolicy.BITMASK_3G,
+            NetworkModePolicy.defaultNetworkModeMask(22)
+        )
+        assertEquals(NetworkModePolicy.BITMASK_5G, NetworkModePolicy.defaultNetworkModeMask(23))
+        assertEquals(
+            NetworkModePolicy.BITMASK_5G or NetworkModePolicy.BITMASK_4G,
+            NetworkModePolicy.defaultNetworkModeMask(24)
+        )
+        assertEquals(null, NetworkModePolicy.defaultNetworkModeMask(-1))
+        assertEquals(null, NetworkModePolicy.defaultNetworkModeMask(34))
+    }
+
+    @Test
+    fun `default network property is slot-aware and rejects malformed or ambiguous values`() {
+        val lteGsmWcdma = NetworkModePolicy.BITMASK_4G or NetworkModePolicy.BITMASK_2G or
+            NetworkModePolicy.BITMASK_3G
+        val nrLte = NetworkModePolicy.BITMASK_5G or NetworkModePolicy.BITMASK_4G
+
+        assertEquals(lteGsmWcdma, NetworkModePolicy.defaultNetworkMaskFromProperty("9", 0))
+        assertEquals(nrLte, NetworkModePolicy.defaultNetworkMaskFromProperty("9,24", 1))
+        assertEquals(null, NetworkModePolicy.defaultNetworkMaskFromProperty("9,24", -1))
+        assertEquals(null, NetworkModePolicy.defaultNetworkMaskFromProperty("9,unknown", 0))
+        assertEquals(null, NetworkModePolicy.defaultNetworkMaskFromProperty("34", 0))
+    }
+
+    @Test
     fun `options are derived only from confirmed device support`() {
         val nrLte = NetworkModePolicy.optionsFor(
             NetworkModePolicy.BITMASK_5G or NetworkModePolicy.BITMASK_4G

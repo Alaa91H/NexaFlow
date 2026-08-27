@@ -57,6 +57,11 @@ class UserShellService : Service() {
                 ?.let { "0\n${java.lang.Long.toString(it, 2)}" }
                 ?: runArgv(operation.argv())
         }
+        is PrivilegedOperation.ReadDefaultNetworkProfile -> {
+            PrivilegedTelephonyBridge.readSupportedRadioAccessFamily(operation.slotIndex)
+                ?.let { "0\n${java.lang.Long.toString(it, 2)}" }
+                ?: runArgv(operation.argv())
+        }
         is PrivilegedOperation.SetAllowedNetworkTypes -> {
             if (PrivilegedTelephonyBridge.setUserAllowedNetworkTypes(
                     operation.subscriptionId,

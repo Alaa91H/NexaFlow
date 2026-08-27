@@ -1,6 +1,7 @@
 package com.nexaflow.core.engine
 
 import android.content.Intent
+import com.nexaflow.core.rom.RootPermissionGranter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -54,6 +55,10 @@ class AutomationAlarmReceiverTimeChangeTest {
         assertTrue(
             "Exact-alarm permission change re-arms all enabled time tasks",
             handled.contains(AutomationAlarmReceiver.ALARM_PERMISSION_CHANGED_ACTION)
+        )
+        assertTrue(
+            "Verified Root exact-alarm repair re-arms all enabled time tasks",
+            handled.contains(RootPermissionGranter.ACTION_EXACT_ALARM_ACCESS_RECHECK)
         )
     }
 }

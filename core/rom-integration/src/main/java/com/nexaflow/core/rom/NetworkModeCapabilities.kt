@@ -107,16 +107,15 @@ class NetworkModeCapabilities(private val context: Context) {
                 ?.takeIf { it > 0L }
 
             /*
-             * READ_PHONE_STATE grants the app its runtime permission but does
-             * not grant READ_PRIVILEGED_PHONE_STATE. Samsung and other OEM
-             * telephony stacks commonly reserve supportedRadioAccessFamily for
-             * the latter, so the public read above can still fail. When a live
-             * Root/Shizuku bridge exists, use TelephonyShell's per-user mask as
-             * a conservative fallback: it is a real value returned by the
-             * device, and only its subsets are offered. It is never combined
-             * with an invented universal 2G/3G/4G/5G list.
+             * The USER reason is the currently configured restriction, not
+             * modem support. If it is GSM-only, deriving picker options from it
+             * would erase LTE/NR choices even when the physical radio supports
+             * them. Prefer the public hardware/carrier read, then the exact
+             * elevated ITelephony radio-access-family read, then a bounded AOSP
+             * default-network profile. USER is a final visibility fallback only
+             * when no capability source is obtainable.
              */
-            val elevatedRead = if (platformSelectableMask == null || platformUserMask == null) {
+            val elevatedUserRead = if (platformUserMask == null) {
                 readElevatedUserMask(
                     slotIndex = subscription.simSlotIndex,
                     subscriptionId = subscription.subscriptionId
@@ -124,11 +123,16 @@ class NetworkModeCapabilities(private val context: Context) {
             } else {
                 null
             }
-            elevatedRead?.diagnostic?.let { diagnostic ->
+            val elevatedCapabilityRead = if (platformSelectableMask == null) {
+                readElevatedCapabilityMask(subscription.simSlotIndex)
+            } else {
+                null
+            }
+            (elevatedUserRead?.diagnostic ?: elevatedCapabilityRead?.diagnostic)?.let { diagnostic ->
                 diagnostics += "SIM ${subscription.simSlotIndex + 1}: $diagnostic"
             }
-            val elevatedUserMask = elevatedRead?.mask
-            val selectableMask = platformSelectableMask ?: elevatedUserMask
+            val elevatedUserMask = elevatedUserRead?.mask
+            val selectableMask = platformSelectableMask ?: elevatedCapabilityRead?.mask ?: elevatedUserMask
                 ?: return@mapNotNull null
             val configuredUserMask = platformUserMask ?: elevatedUserMask
             // Android applies the intersection of every active reason. The app
@@ -217,6 +221,35 @@ class NetworkModeCapabilities(private val context: Context) {
             mask = null,
             diagnostic = failures.firstOrNull() ?: "Privileged network-mode read failed"
         )
+    }
+
+    /**
+     * Reads an elevated physical-radio mask whenever the app process cannot
+     * access the privileged framework API. Shizuku's UserService first invokes
+     * AOSP ITelephony.getRadioAccessFamily(slot); root-only execution receives
+     * the bounded `ro.telephony.default_network` property and parses it through
+     * the closed AOSP RIL table. Neither branch promotes an unknown value.
+     */
+    private fun readElevatedCapabilityMask(slotIndex: Int): ElevatedMaskRead? {
+        if (!PrivilegedRunner.isShizukuGranted() && !PrivilegedRunner.isRootAvailable()) {
+            return ElevatedMaskRead(mask = null, diagnostic = "No approved root or Shizuku session")
+        }
+        val result = PrivilegedRunner.runElevatedOperation(
+            PrivilegedOperation.ReadDefaultNetworkProfile(slotIndex)
+        )
+        if (!result.success) {
+            return ElevatedMaskRead(mask = null, diagnostic = elevatedFailureSummary(result.message))
+        }
+        val mask = NetworkModePolicy.defaultNetworkMaskFromProperty(result.message, slotIndex)
+            ?: NetworkModePolicy.parseReadBackMask(result.message)
+        return if (mask != null) {
+            ElevatedMaskRead(mask = mask)
+        } else {
+            ElevatedMaskRead(
+                mask = null,
+                diagnostic = "The elevated modem capability read returned no supported cellular mask"
+            )
+        }
     }
 
     private fun elevatedFailureSummary(message: String): String {

@@ -87,6 +87,18 @@ sealed interface PrivilegedOperation {
     }
 
     /**
+     * Reads the AOSP modem-default preferred-network profile. This is a
+     * bounded capability hint used only when the real per-slot supported-radio
+     * binder read is unavailable; it is not a carrier restriction or a write.
+     */
+    data class ReadDefaultNetworkProfile(val slotIndex: Int) : PrivilegedOperation {
+        override val wireId: PrivilegedOperationId = PrivilegedOperationId.NETWORK_DEFAULT_PROFILE_READ
+        init { require(slotIndex in NO_SLOT..MAX_SIM_SLOT) { "SIM slot is out of range" } }
+        override fun wireArguments(): List<String> = listOf(slotIndex.toString())
+        override fun argv(): List<String> = listOf("getprop", "ro.telephony.default_network")
+    }
+
+    /**
      * Grants notification-policy access for one owned package in the current
      * user. This capability is required before AudioManager can raise SILENT/VIBRATE back
      * to NORMAL; it never changes the user's interruption filter or policy.
@@ -140,7 +152,7 @@ sealed interface PrivilegedOperation {
     }
 
     companion object {
-        /** Decodes the only four operation shapes permitted across the AIDL boundary. */
+        /** Decodes only the reviewed operation shapes permitted across the AIDL boundary. */
         fun fromWire(
             wireId: String,
             first: String,
@@ -159,6 +171,9 @@ sealed interface PrivilegedOperation {
                 PrivilegedOperationId.NETWORK_MODE_READ -> ReadAllowedNetworkTypes(
                     slotIndex = first.toInt(),
                     subscriptionId = second.toInt()
+                )
+                PrivilegedOperationId.NETWORK_DEFAULT_PROFILE_READ -> ReadDefaultNetworkProfile(
+                    slotIndex = first.toInt()
                 )
                 PrivilegedOperationId.NOTIFICATION_POLICY_ACCESS_GRANT -> GrantNotificationPolicyAccess(
                     packageName = first
@@ -207,6 +222,7 @@ enum class PrivilegedOperationId(val wireValue: String) {
     SYSTEM_SETTING_WRITE("settings.write"),
     FILE_COPY("file.copy"),
     NETWORK_MODE_READ("network.mode.read"),
+    NETWORK_DEFAULT_PROFILE_READ("network.default_profile.read"),
     NETWORK_MODE_SET("network.mode.set"),
     NOTIFICATION_POLICY_ACCESS_GRANT("notification.policy_access.grant")
 }

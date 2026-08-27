@@ -9,6 +9,7 @@ import com.nexaflow.core.datastore.AutomationLifecycleContext
 import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -258,6 +259,7 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
         /** Every broadcast that invalidates pending user-selected wall-clock alarms. */
         internal val rescheduleActions: Set<String> = setOf(
             ALARM_PERMISSION_CHANGED_ACTION,
+            RootPermissionGranter.ACTION_EXACT_ALARM_ACCESS_RECHECK,
             Intent.ACTION_TIME_CHANGED,
             Intent.ACTION_TIMEZONE_CHANGED,
             TIMEZONE_OFFSET_CHANGED_ACTION

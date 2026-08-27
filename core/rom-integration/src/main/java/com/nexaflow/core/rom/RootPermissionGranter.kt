@@ -3,6 +3,7 @@ package com.nexaflow.core.rom
 import android.app.AlarmManager
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.PermissionInfo
 import android.os.Build
@@ -40,6 +41,10 @@ import com.nexaflow.core.security.SafeCommandBuilder
  * needs manual action via [Result.remaining].
  */
 object RootPermissionGranter {
+
+    /** Private signal emitted after verified exact-alarm access is available. */
+    const val ACTION_EXACT_ALARM_ACCESS_RECHECK =
+        "com.nexaflow.core.rom.action.EXACT_ALARM_ACCESS_RECHECK"
 
     /** Package-qualified accessibility service component. */
     private const val ACCESSIBILITY_SERVICE =
@@ -422,7 +427,7 @@ object RootPermissionGranter {
             remaining += "notification_listener"
         }
 
-        return Result(
+        val result = Result(
             runtimeGranted = runtimeGranted,
             appOpsGranted = appOpsGranted,
             secureSettingsWritten = secureSettingsWritten,
@@ -431,7 +436,27 @@ object RootPermissionGranter {
             remaining = remaining,
             failures = failures
         )
+        // A Root `appops` repair does not have to emit Android's public
+        // exact-alarm grant broadcast. Once the final platform read-back proves
+        // access, explicitly make the engine rebuild its durable occurrences.
+        // The package restriction plus the non-exported receiver keep this
+        // private signal inside NexaFlow and it carries no task data.
+        if (context != null && shouldRecheckExactAlarms(Build.VERSION.SDK_INT, remaining)) {
+            context.sendBroadcast(
+                Intent(ACTION_EXACT_ALARM_ACCESS_RECHECK).setPackage(context.packageName)
+            )
+        }
+        return result
     }
+
+    /**
+     * Exact alarms are meaningful only on Android 12+, and a private scheduler
+     * recheck is justified only after the final read-back no longer reports the
+     * special permission missing.
+     */
+    internal fun shouldRecheckExactAlarms(sdkInt: Int, remaining: Collection<String>): Boolean =
+        sdkInt >= Build.VERSION_CODES.S &&
+            "appop:android:schedule_exact_alarm" !in remaining
 
     /** All `dangerous` permissions the app declares in its merged manifest. */
     private fun declaredRuntimePermissions(context: Context): List<String> {

@@ -149,7 +149,9 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="com.nexaflow.core.engine.action.RUN_AUTOMATION" />
+                <action android:name="com.nexaflow.core.engine.action.END_AUTOMATION" />
                 <action android:name="com.nexaflow.core.engine.action.START_MONITORING" />
+                <action android:name="com.nexaflow.core.rom.action.EXACT_ALARM_ACCESS_RECHECK" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />

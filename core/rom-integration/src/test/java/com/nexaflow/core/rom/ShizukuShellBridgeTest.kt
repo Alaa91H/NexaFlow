@@ -93,6 +93,23 @@ class ShizukuShellBridgeTest {
     }
 
     @Test
+    fun `default network profile wire reads only the fixed modem property for one valid slot`() {
+        val operation = PrivilegedOperation.fromWire(
+            wireId = "network.default_profile.read",
+            first = "1",
+            second = "",
+            third = ""
+        )
+
+        assertEquals(PrivilegedOperation.ReadDefaultNetworkProfile(1), operation)
+        assertEquals(listOf("getprop", "ro.telephony.default_network"), operation?.argv())
+        assertEquals(
+            null,
+            PrivilegedOperation.fromWire("network.default_profile.read", "9", "", "")
+        )
+    }
+
+    @Test
     fun `notification policy grant wire builds the fixed AOSP argv`() {
         val operation = PrivilegedOperation.fromWire(
             wireId = "notification.policy_access.grant",

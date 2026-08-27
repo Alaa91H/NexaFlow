@@ -49,6 +49,33 @@ internal object PrivilegedTelephonyBridge {
         return null
     }
 
+    /**
+     * Reads the modem radio-access family for one physical phone/slot. AOSP's
+     * public `getSupportedRadioAccessFamily()` delegates to this exact binder
+     * method, but it normally requires privileged phone-state access. The
+     * caller is the elevated UserService; root-only execution falls back to the
+     * separately bounded default-profile property operation.
+     */
+    fun readSupportedRadioAccessFamily(slotIndex: Int): Long? {
+        if (slotIndex < 0) return null
+        val service = telephonyService() ?: return null
+        service.javaClass.methods
+            .filter { method ->
+                method.name == "getRadioAccessFamily" &&
+                    method.parameterCount == 2 &&
+                    method.parameterTypes[0] == Int::class.javaPrimitiveType &&
+                    method.parameterTypes[1] == String::class.java
+            }
+            .forEach { method ->
+                val value = runCatching { method.invoke(service, slotIndex, PHONE_PACKAGE) }.getOrNull()
+                (value as? Number)?.toLong()
+                    ?.and(NetworkModePolicy.BITMASK_SELECTABLE_CELLULAR)
+                    ?.takeIf { it > 0L }
+                    ?.let { return it }
+            }
+        return null
+    }
+
     fun setUserAllowedNetworkTypes(subscriptionId: Int, allowedNetworkTypes: Long): Boolean {
         if (subscriptionId < 0) return false
         val service = telephonyService() ?: return false
