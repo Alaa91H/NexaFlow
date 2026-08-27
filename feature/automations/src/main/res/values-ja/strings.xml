@@ -454,4 +454,8 @@
 
     <!-- Routine-scoped execution history navigation. -->
     <string name="view_routine_history">ルーチン履歴を表示</string>
+
+
+    <!-- Local execution-history outcome filtering. -->
+    <string name="view_failures">失敗を表示</string>
 </resources>

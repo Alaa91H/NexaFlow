@@ -16,6 +16,16 @@ interface HistoryRepository {
      */
     fun getExecutionPaging(automationId: String): PagingSource<Int, ExecutionRecord> = getExecutionPaging()
 
+    /**
+     * Pageable history with optional routine and outcome predicates. Legacy test doubles
+     * safely return the global stream until they need to exercise a specific filter.
+     */
+    fun getExecutionPaging(
+        automationId: String?,
+        success: Boolean?
+    ): PagingSource<Int, ExecutionRecord> =
+        automationId?.takeIf { it.isNotBlank() }?.let { getExecutionPaging(it) } ?: getExecutionPaging()
+
     suspend fun getExecutionById(id: String): ExecutionRecord?
     suspend fun recordExecution(record: ExecutionRecord)
 }

@@ -236,7 +236,10 @@ fun AutomationDetailsScreen(navController: NavController) {
                 }
                 ExecutionHealthCard(
                     report = healthReport,
-                    onOpenHistory = { navController.navigate(routineHistoryRoute(current.id)) }
+                    onOpenHistory = { navController.navigate(routineHistoryRoute(current.id)) },
+                    onOpenFailures = {
+                        navController.navigate(routineHistoryRoute(current.id, failuresOnly = true))
+                    }
                 )
                 AutomationDetailsSectionCard(
                     index = 0,
@@ -765,7 +768,8 @@ private fun AutomationDetailsPreview() {
 @Composable
 private fun ExecutionHealthCard(
     report: AutomationHealthReport,
-    onOpenHistory: () -> Unit
+    onOpenHistory: () -> Unit,
+    onOpenFailures: () -> Unit
 ) {
     val status = report.status
     val attention = status == AutomationHealthStatus.NEEDS_ATTENTION
@@ -839,6 +843,11 @@ private fun ExecutionHealthCard(
                 TextButton(onClick = onOpenHistory) {
                     Text(stringResource(R.string.view_routine_history))
                 }
+                if (report.failedRuns > 0) {
+                    TextButton(onClick = onOpenFailures) {
+                        Text(stringResource(R.string.view_failures))
+                    }
+                }
             }
         }
     }
@@ -859,5 +868,10 @@ internal fun executionHealthSubtitleRes(status: AutomationHealthStatus): Int = w
 }
 
 /** Builds the optional-query route used to show evidence for one routine only. */
-internal fun routineHistoryRoute(automationId: String): String =
-    "history?automationId=${URLEncoder.encode(automationId, "UTF-8").replace("+", "%20")}"
+internal fun routineHistoryRoute(
+    automationId: String,
+    failuresOnly: Boolean = false
+): String {
+    val encodedId = URLEncoder.encode(automationId, "UTF-8").replace("+", "%20")
+    return "history?automationId=$encodedId" + if (failuresOnly) "&outcome=failed" else ""
+}

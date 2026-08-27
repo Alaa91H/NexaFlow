@@ -181,3 +181,39 @@ The next release will add an optional `automationId` argument to the existing Hi
 ### Explicitly deferred
 
 Search text, multi-routine selection, date-range filtering, destructive actions, export, raw log access, and remote diagnostics remain separate work. They require a fuller query/user-consent design than a routine-scoped evidence link.
+
+## Observability-filter research
+
+Tasker documents a Run Log with status-coded task and action outcomes, a text filter, category toggles, and entry-to-configuration navigation. It distinguishes successful completion, errors, rejections, disabled actions, and queue/termination states. MacroDroid documents four log-detail levels and controls that can include or exclude triggers, actions, constraints, individual macros, and global variables. Together, these patterns confirm that low-noise, local filtering is a core troubleshooting capability, provided it is scoped and does not introduce mutable or remote logging [16] [17].
+
+| Competitor lesson | NexaFlow implication |
+|---|---|
+| Tasker separates successful, rejected, skipped, and errored outcomes, then supplies category and text filters. | The first NexaFlow filter should be a small, explicit outcome filter using persisted execution semantics, not a free-form or remote query. |
+| MacroDroid lets users drill down to individual macros and control log detail. | Routine-scoped history is a sound base; outcome filtering should apply inside this already-scoped local history rather than widening the global surface. |
+| Both frame filtering as diagnostic assistance. | Preserve local-only, read-only history, transparent filter state, and an obvious route back to the complete routine history. |
+
+[16]: https://tasker.joaoapps.com/userguide/en/activity_runlog.html "Tasker — Run Log"
+[17]: https://macrodroidforum.com/wiki/index.php/System_log "MacroDroid Wiki — System Log"
+
+## Release-scope decision: local failed-run filter
+
+### Confirmed product gap
+
+v3.44.0 lets users reach the evidence for one routine, but a routine with a long history can still bury the failures that caused an attention signal. `ExecutionRecord.success` is a persisted boolean: `false` denotes a failed run, while a skipped maintenance run is persisted as `success = true` with a separate `Skipped:` message prefix. The first filter must therefore expose the unambiguous, database-queryable **Failed** state rather than incorrectly label all `success = true` rows as completed.
+
+### Selected implementation
+
+The next release will add a two-state local outcome filter to History: **All runs** and **Failed**. It will work in both the global and routine-scoped history views, execute inside Room before Paging, and retain the selected filter as the screen state. The Execution health card will include a direct **View failures** action only when the report contains one or more failures; that action opens the same routine history with the Failed filter selected.
+
+| Acceptance criterion | Required behavior |
+|---|---|
+| Outcome integrity | Failed means persisted `success = false`; skipped records remain visible in All runs and are not mislabeled as completed. |
+| Database-side filtering | The optional failure predicate is passed into Room before Paging and domain mapping. |
+| Direct troubleshooting | A routine with failures offers a direct route to `history?automationId=…&outcome=failed`. |
+| Backward compatibility | The existing History entry and an absent/invalid query parameter open All runs. |
+| Scope and privacy | No schema migration, network call, telemetry, permission, mutable log, export, or destructive history operation. |
+| Localization and coverage | Filter labels and direct action exist in every shipped locale; DAO and filter-state logic receive regression coverage. |
+
+### Explicitly deferred
+
+Completed-only and skipped-only filters, free-text search, date ranges, multi-select filters, export, raw action logs, remote diagnostics, and automated retry remain deferred. They require a richer persisted outcome model or a separate consent and query-design review.

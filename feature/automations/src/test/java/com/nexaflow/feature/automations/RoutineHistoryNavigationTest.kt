@@ -12,4 +12,12 @@ class RoutineHistoryNavigationTest {
             routineHistoryRoute("routine-42")
         )
     }
+
+    @Test
+    fun `failure route includes the failed outcome filter`() {
+        assertEquals(
+            "history?automationId=routine-42&outcome=failed",
+            routineHistoryRoute("routine-42", failuresOnly = true)
+        )
+    }
 }

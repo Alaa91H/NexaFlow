@@ -30,4 +30,11 @@
 
     <!-- Routine-scoped execution history navigation. -->
     <string name="routine_history_title">Routine history</string>
+
+
+    <!-- Local execution-history outcome filtering. -->
+    <string name="history_filter_all_runs">All runs</string>
+    <string name="history_filter_failed">Failed</string>
+    <string name="no_failed_runs_title">No failed runs</string>
+    <string name="no_failed_runs_subtitle">No failed executions match this filter.</string>
 </resources>

@@ -30,4 +30,11 @@
 
     <!-- Routine-scoped execution history navigation. -->
     <string name="routine_history_title">例程历史记录</string>
+
+
+    <!-- Local execution-history outcome filtering. -->
+    <string name="history_filter_all_runs">所有执行</string>
+    <string name="history_filter_failed">失败</string>
+    <string name="no_failed_runs_title">没有失败的执行</string>
+    <string name="no_failed_runs_subtitle">没有与此筛选条件匹配的失败执行。</string>
 </resources>

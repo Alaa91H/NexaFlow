@@ -453,4 +453,8 @@
 
     <!-- Routine-scoped execution history navigation. -->
     <string name="view_routine_history">View routine history</string>
+
+
+    <!-- Local execution-history outcome filtering. -->
+    <string name="view_failures">View failures</string>
 </resources>

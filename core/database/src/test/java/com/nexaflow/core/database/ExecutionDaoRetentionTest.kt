@@ -97,6 +97,29 @@ class ExecutionDaoRetentionTest {
     }
 
     @Test
+    fun pagedHistoryFilter_returnsOnlyFailedRunsForSelectedRoutine() = runBlocking {
+        dao.insertExecution(entity("success", 30L, automationId = "routine-a"))
+        dao.insertExecution(entity("skipped", 20L, automationId = "routine-a"))
+        dao.insertExecution(
+            entity("failed", 10L, automationId = "routine-a").copy(success = false, message = "network unavailable")
+        )
+        dao.insertExecution(
+            entity("other-failed", 40L, automationId = "routine-b").copy(success = false, message = "other")
+        )
+
+        val result = dao.getExecutionsPagedFiltered("routine-a", false).load(
+            PagingSource.LoadParams.Refresh(
+                key = null,
+                loadSize = 10,
+                placeholdersEnabled = false
+            )
+        )
+
+        val page = result as PagingSource.LoadResult.Page<Int, ExecutionRecordEntity>
+        assertEquals(listOf("failed"), page.data.map { it.id })
+    }
+
+    @Test
     fun insertWithRetention_prunesExpiredHistoryAtomically() = runBlocking {
         val now = System.currentTimeMillis()
         dao.insertExecution(entity("expired", now - ExecutionDao.RETENTION_MS - 1_000))

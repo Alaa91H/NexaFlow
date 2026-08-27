@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.History
 import com.nexaflow.core.ui.LoadingState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,6 +32,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -52,10 +54,13 @@ import java.util.Locale
 @Composable
 fun HistoryScreen(navController: NavController) {
     val viewModel: HistoryViewModel = hiltViewModel()
+    val showFailuresOnly by viewModel.showFailuresOnly.collectAsStateWithLifecycle()
     HistoryContent(
         // Streams pages from Room instead of materializing the whole table.
         history = viewModel.pagingData.collectAsLazyPagingItems(),
         isRoutineHistory = viewModel.isRoutineHistory,
+        showFailuresOnly = showFailuresOnly,
+        onShowFailuresOnlyChange = viewModel::setShowFailuresOnly,
         onBack = { navController.popBackStack() },
         onOpen = { id -> navController.navigate("execution_details/$id") }
     )
@@ -72,7 +77,9 @@ internal fun HistoryContent(
     history: LazyPagingItems<ExecutionRecord>,
     onBack: () -> Unit,
     onOpen: (String) -> Unit,
-    isRoutineHistory: Boolean = false
+    isRoutineHistory: Boolean = false,
+    showFailuresOnly: Boolean = false,
+    onShowFailuresOnlyChange: (Boolean) -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -118,11 +125,24 @@ internal fun HistoryContent(
         }
 
         if (history.itemCount == 0 && history.loadState.refresh is LoadState.NotLoading) {
-            EmptyState(
-                icon = Icons.Filled.History,
-                title = stringResource(R.string.no_runs_title),
-                subtitle = stringResource(R.string.no_runs_subtitle)
-            )
+            Column(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                HistoryOutcomeFilters(
+                    showFailuresOnly = showFailuresOnly,
+                    onShowFailuresOnlyChange = onShowFailuresOnlyChange
+                )
+                EmptyState(
+                    icon = Icons.Filled.History,
+                    title = stringResource(
+                        if (showFailuresOnly) R.string.no_failed_runs_title else R.string.no_runs_title
+                    ),
+                    subtitle = stringResource(
+                        if (showFailuresOnly) R.string.no_failed_runs_subtitle else R.string.no_runs_subtitle
+                    )
+                )
+            }
         } else if (history.itemCount > 0) {
             LazyColumn(
                 modifier = Modifier
@@ -131,6 +151,12 @@ internal fun HistoryContent(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                item {
+                    HistoryOutcomeFilters(
+                        showFailuresOnly = showFailuresOnly,
+                        onShowFailuresOnlyChange = onShowFailuresOnlyChange
+                    )
+                }
                 // Paging 3.4 API: LazyPagingItems exposes stable key/contentType
                 // factories; the list itself is streamed via items(count = ...).
                 items(
@@ -241,5 +267,28 @@ internal fun channelLabelRes(channel: String): Int {
         "ANDROID" -> R.string.channel_android
         "ACCESSIBILITY" -> R.string.channel_accessibility
         else -> R.string.channel_unknown
+    }
+}
+
+/** Local, read-only outcome controls for global or routine-scoped execution history. */
+@Composable
+private fun HistoryOutcomeFilters(
+    showFailuresOnly: Boolean,
+    onShowFailuresOnlyChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        FilterChip(
+            selected = !showFailuresOnly,
+            onClick = { onShowFailuresOnlyChange(false) },
+            label = { Text(stringResource(R.string.history_filter_all_runs)) }
+        )
+        FilterChip(
+            selected = showFailuresOnly,
+            onClick = { onShowFailuresOnlyChange(true) },
+            label = { Text(stringResource(R.string.history_filter_failed)) }
+        )
     }
 }

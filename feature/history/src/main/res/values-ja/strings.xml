@@ -30,4 +30,11 @@
 
     <!-- Routine-scoped execution history navigation. -->
     <string name="routine_history_title">ルーチン履歴</string>
+
+
+    <!-- Local execution-history outcome filtering. -->
+    <string name="history_filter_all_runs">すべての実行</string>
+    <string name="history_filter_failed">失敗</string>
+    <string name="no_failed_runs_title">失敗した実行はありません</string>
+    <string name="no_failed_runs_subtitle">このフィルターに一致する失敗した実行はありません。</string>
 </resources>

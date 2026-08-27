@@ -30,4 +30,11 @@
 
     <!-- Routine-scoped execution history navigation. -->
     <string name="routine_history_title">История сценария</string>
+
+
+    <!-- Local execution-history outcome filtering. -->
+    <string name="history_filter_all_runs">Все запуски</string>
+    <string name="history_filter_failed">Ошибки</string>
+    <string name="no_failed_runs_title">Нет запусков с ошибкой</string>
+    <string name="no_failed_runs_subtitle">Нет запусков с ошибкой, соответствующих этому фильтру.</string>
 </resources>

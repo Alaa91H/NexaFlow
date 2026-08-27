@@ -30,4 +30,11 @@
 
     <!-- Routine-scoped execution history navigation. -->
     <string name="routine_history_title">Rutin geçmişi</string>
+
+
+    <!-- Local execution-history outcome filtering. -->
+    <string name="history_filter_all_runs">Tüm yürütmeler</string>
+    <string name="history_filter_failed">Başarısız</string>
+    <string name="no_failed_runs_title">Başarısız yürütme yok</string>
+    <string name="no_failed_runs_subtitle">Bu filtreyle eşleşen başarısız yürütme yok.</string>
 </resources>

@@ -454,4 +454,8 @@
 
     <!-- Routine-scoped execution history navigation. -->
     <string name="view_routine_history">查看例程历史记录</string>
+
+
+    <!-- Local execution-history outcome filtering. -->
+    <string name="view_failures">查看失败项</string>
 </resources>

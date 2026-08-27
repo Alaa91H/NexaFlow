@@ -30,4 +30,11 @@
 
     <!-- Routine-scoped execution history navigation. -->
     <string name="routine_history_title">سجل الروتين</string>
+
+
+    <!-- Local execution-history outcome filtering. -->
+    <string name="history_filter_all_runs">كل التشغيلات</string>
+    <string name="history_filter_failed">الفاشلة</string>
+    <string name="no_failed_runs_title">لا توجد تشغيلات فاشلة</string>
+    <string name="no_failed_runs_subtitle">لا توجد عمليات تنفيذ فاشلة تطابق هذا الفلتر.</string>
 </resources>

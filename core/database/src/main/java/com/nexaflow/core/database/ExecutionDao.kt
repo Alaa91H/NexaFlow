@@ -24,6 +24,21 @@ interface ExecutionDao {
     @Query("SELECT * FROM execution_history WHERE automationId = :automationId ORDER BY executedAt DESC")
     fun getExecutionsPagedForAutomation(automationId: String): PagingSource<Int, ExecutionRecordEntity>
 
+    /**
+     * Pageable execution history with optional routine and outcome predicates.
+     * A null [automationId] or [success] leaves that dimension unfiltered.
+     */
+    @Query(
+        "SELECT * FROM execution_history " +
+            "WHERE (:automationId IS NULL OR automationId = :automationId) " +
+            "AND (:success IS NULL OR success = :success) " +
+            "ORDER BY executedAt DESC"
+    )
+    fun getExecutionsPagedFiltered(
+        automationId: String?,
+        success: Boolean?
+    ): PagingSource<Int, ExecutionRecordEntity>
+
     @Query("SELECT * FROM execution_history ORDER BY executedAt DESC LIMIT 1")
     suspend fun getLatestExecution(): ExecutionRecordEntity?
 

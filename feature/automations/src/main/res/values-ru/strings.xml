@@ -454,4 +454,8 @@
 
     <!-- Routine-scoped execution history navigation. -->
     <string name="view_routine_history">Показать историю сценария</string>
+
+
+    <!-- Local execution-history outcome filtering. -->
+    <string name="view_failures">Показать ошибки</string>
 </resources>

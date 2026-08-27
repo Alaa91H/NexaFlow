@@ -130,9 +130,14 @@ fun NexaFlowApp() {
                 PluginManagerScreen(navController = navController)
             }
             composable(
-                route = "${SettingsDestination.EXECUTION_HISTORY_ROUTE}?automationId={automationId}",
+                route = "${SettingsDestination.EXECUTION_HISTORY_ROUTE}?automationId={automationId}&outcome={outcome}",
                 arguments = listOf(
                     navArgument("automationId") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                    navArgument("outcome") {
                         type = NavType.StringType
                         nullable = true
                         defaultValue = null
