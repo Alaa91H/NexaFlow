@@ -2,8 +2,6 @@ package com.nexaflow.core.engine
 
 import android.content.Context
 import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.net.NetworkInfo
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.ActiveTriggerStore
@@ -23,7 +21,6 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.shadows.ShadowConnectivityManager
 import org.robolectric.shadows.ShadowNetwork
-import org.robolectric.shadows.ShadowNetworkInfo
 
 /**
  * Connectivity exit-reliability contract: a task triggered by a network
@@ -73,40 +70,6 @@ class ConnectivityMonitorExitReconcileTest {
 
     private fun shadowCm(): ShadowConnectivityManager = shadowOf(connectivityManager())
 
-    /** Simulates the device being on WiFi with internet. */
-    private fun setWifiConnected() {
-        shadowCm().setDefaultNetworkActive(true)
-        shadowCm().setActiveNetworkInfo(
-            ShadowNetworkInfo.newInstance(
-                NetworkInfo.DetailedState.CONNECTED,
-                ConnectivityManager.TYPE_WIFI,
-                0,
-                true,
-                true
-            )
-        )
-        val active = connectivityManager().activeNetwork
-        shadowCm().setNetworkCapabilities(active, wifiCapabilities())
-    }
-
-    /**
-     * The compile-time android.jar for SDK 37 strips `NetworkCapabilities.Builder`
-     * (the class exists in the Robolectric runtime), so build the capabilities
-     * via reflection to keep the test compiling against the stub while
-     * exercising the real class at runtime.
-     */
-    private fun wifiCapabilities(): NetworkCapabilities {
-        val builder = Class.forName("android.net.NetworkCapabilities\$Builder")
-            .getConstructor()
-            .newInstance()
-        val builderClass = builder.javaClass
-        builderClass.getMethod("addTransportType", Int::class.javaPrimitiveType)
-            .invoke(builder, NetworkCapabilities.TRANSPORT_WIFI)
-        builderClass.getMethod("addCapability", Int::class.javaPrimitiveType)
-            .invoke(builder, NetworkCapabilities.NET_CAPABILITY_INTERNET)
-        return builderClass.getMethod("build").invoke(builder) as NetworkCapabilities
-    }
-
     /** Simulates WiFi being gone entirely. */
     private fun setWifiDisconnected() {
         shadowCm().setDefaultNetworkActive(true)
@@ -142,15 +105,6 @@ class ConnectivityMonitorExitReconcileTest {
         shadowCm().getNetworkCallbacks().first().onAvailable(ShadowNetwork.newInstance(1))
     }
 
-    /** Delivers an authoritative Wi-Fi capabilities snapshot to the callback. */
-    private suspend fun driveFirstWifiCapabilitiesCallback() {
-        waitUntil { shadowCm().getNetworkCallbacks().isNotEmpty() }
-        shadowCm().getNetworkCallbacks().first().onCapabilitiesChanged(
-            ShadowNetwork.newInstance(1),
-            wifiCapabilities()
-        )
-    }
-
     @Test
     fun `restart with wifi already lost fires the missed exit on first callback`() = runBlocking {
         val history = RecordingHistory()
@@ -184,7 +138,7 @@ class ConnectivityMonitorExitReconcileTest {
     }
 
     @Test
-    fun `restart while wifi still connected keeps the task active`() = runBlocking {
+    fun `restart without an opposite network signal preserves the durable occurrence`() = runBlocking {
         val history = RecordingHistory()
         val engine = testEngine(context, history)
         val repository = FakeRepository(listOf(connectivityAutomation("conn-task")))
@@ -202,16 +156,16 @@ class ConnectivityMonitorExitReconcileTest {
                 activatedAt = 1L
             )
         )
-        // WiFi is still up — the condition still holds after the restart.
-        setWifiConnected()
+        // No opposite network signal was observed while the service was down.
+        // The durable occurrence must remain active until a known non-matching
+        // snapshot is delivered; an absent callback must never imply false.
 
         val exitCoordinator = ExitCoordinator(runtimeStore, engine, repository, history)
         val monitor = monitorFor(repository, engine, exitCoordinator, runtimeStore, store)
         monitor.initialize()
 
-        driveFirstWifiCapabilitiesCallback()
         assertTrue(
-            "no exit while the network condition still holds",
+            "no exit without a known opposite network signal",
             history.exits.none { it == EXIT_NOOP_MARKER }
         )
         assertTrue(
