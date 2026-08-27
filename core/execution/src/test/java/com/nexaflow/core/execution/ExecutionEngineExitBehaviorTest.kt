@@ -148,7 +148,7 @@ class ExecutionEngineExitBehaviorTest {
     }
 
     @Test
-    fun `manual run with unverifiable event trigger skips without end actions`() = runBlocking {
+    fun `manual run with unavailable trigger runs configured end action`() = runBlocking {
         val handler = RecordingHandler()
         val history = RecordingHistory()
         val engine = engine(handler, history)
@@ -160,8 +160,26 @@ class ExecutionEngineExitBehaviorTest {
         val record = engine.runWithConditionGate(automation)
 
         assertTrue(record.success)
-        assertTrue(record.message.contains("could not be verified"))
-        assertEquals("unknown condition must not dispatch the configured exit", 0, handler.calls)
+        assertTrue(record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX))
+        assertEquals("unavailable main condition must dispatch the configured end action", 1, handler.calls)
+        assertEquals(1, record.actionResults.size)
+    }
+
+    @Test
+    fun `manual run with unavailable trigger and no end action has no side effect`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(handler, history)
+        val automation = automation(
+            triggers = listOf(Trigger(TriggerType.APP_INSTALLED, mapOf("event" to "INSTALLED")))
+        )
+
+        val record = engine.runWithConditionGate(automation)
+
+        assertTrue(record.success)
+        assertTrue(record.message.contains("no end behavior configured"))
+        assertTrue("no configured end action means no handler dispatch", record.actionResults.isEmpty())
+        assertEquals("no main or end action may run", 0, handler.calls)
     }
 
     @Test

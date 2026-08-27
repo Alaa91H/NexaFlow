@@ -56,10 +56,10 @@ object TriggerStateEvaluator {
         evaluateAsync(context, triggers) == ConditionResult.Satisfied
 
     /**
-     * Typed manual-gate evaluation. A manual exit is permitted only after a
-     * confirmed false condition; an event-only source, unavailable service, or
-     * read whose false result cannot be distinguished from an API failure is
-     * intentionally [ConditionResult.Unknown].
+     * Typed manual-gate evaluation. Event-only sources, unavailable services,
+     * and reads whose false result cannot be distinguished from an API failure
+     * remain [ConditionResult.Unknown]. The caller keeps that distinction for
+     * diagnostics while applying its explicit manual-run policy.
      */
     suspend fun evaluateAsync(context: Context, triggers: List<Trigger>): ConditionResult {
         if (triggers.isEmpty()) return ConditionResult.Satisfied
@@ -83,8 +83,9 @@ object TriggerStateEvaluator {
         if (satisfied) return ConditionResult.Satisfied
         // Most legacy boolean probes intentionally collapse service/permission
         // failures to false. Until each adapter exposes typed reads, only these
-        // platform values are treated as a confirmed manual false. This is
-        // conservative by design: UNKNOWN skips rather than runs end actions.
+        // platform values are treated as a confirmed manual false. The explicit
+        // manual-run policy may still route UNKNOWN to a configured end action,
+        // but automatic monitors never infer a lifecycle end from UNKNOWN.
         return if (trigger.type in MANUAL_DEFINITIVE_FALSE_TYPES) {
             ConditionResult.Unsatisfied
         } else {

@@ -211,7 +211,7 @@ class ExecutionEngineConstraintsTest {
     }
 
     @Test
-    fun `manual run with an unverifiable event trigger skips without end behavior`() = runBlocking {
+    fun `manual run with an unavailable trigger runs configured end behavior without main action`() = runBlocking {
         val handler = RecordingHandler()
         val history = RecordingHistory()
         val engine = engine(handler, history, ConstraintSnapshot())
@@ -230,12 +230,37 @@ class ExecutionEngineConstraintsTest {
 
         val record = engine.runWithConditionGate(automation)
 
-        assertTrue(
-            "an event trigger without a live event must not authorize either main or end actions",
-            handler.actionTypes.isEmpty()
+        assertEquals(
+            "an unavailable main condition must dispatch only the configured end action",
+            listOf(ActionType.SYSTEM_CLEAR_NOTIFICATIONS),
+            handler.actionTypes
         )
-        assertTrue(record.message.contains("could not be verified"))
-        assertTrue(history.messages.any { it.contains("could not be verified") })
+        assertTrue(record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX))
+        assertTrue(history.messages.any { it.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX) })
+    }
+
+    @Test
+    fun `manual run with unsatisfied constraint runs configured end behavior without main action`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(
+            handler = handler,
+            history = history,
+            state = ConstraintSnapshot(wifiConnected = false)
+        )
+        val automation = automation(
+            constraints = listOf(Constraint(ConstraintType.WIFI)),
+            exitActions = listOf(Action(ActionType.SYSTEM_CLEAR_NOTIFICATIONS, emptyMap()))
+        )
+
+        val record = engine.runWithConditionGate(automation)
+
+        assertEquals(
+            "an unsatisfied constraint must dispatch only the configured end action",
+            listOf(ActionType.SYSTEM_CLEAR_NOTIFICATIONS),
+            handler.actionTypes
+        )
+        assertTrue(record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX))
     }
 
     @Test

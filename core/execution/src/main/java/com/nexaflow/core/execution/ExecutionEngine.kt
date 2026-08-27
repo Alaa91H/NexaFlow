@@ -438,19 +438,19 @@ class ExecutionEngine(
     }
 
     /**
-     * Manual "run now" gate: executes the task's actions when its trigger
-     * condition is currently satisfied, and its exit behavior (the "when the
-     * task ends" actions) otherwise — so a manual run is always correct even
-     * when the condition that should fire the task is not met right now.
+     * Manual "run now" gate: executes the task's main actions only when every
+     * trigger and constraint is currently and verifiably satisfied. Every other
+     * outcome follows the configured "when the task ends" behavior. This is an
+     * explicit user-directed command: when the main condition is unavailable,
+     * NexaFlow performs the requested end action if one exists, otherwise it
+     * performs no action.
+     *
+     * This policy is intentionally limited to the manual entry point. Automatic
+     * monitors still require a durably active occurrence and a confirmed end
+     * transition before dispatching an end action; an unreadable background
+     * state can therefore never fabricate an automatic lifecycle exit.
      */
     suspend fun runWithConditionGate(automation: Automation): ExecutionRecord {
-        val startedAt = epochMillis.now()
-        // The manual "run now" gate is tied to the task's full condition set:
-        // triggers AND constraints. Only when EVERY configured trigger and
-        // EVERY constraint is currently and verifiably satisfied do the task's
-        // main actions run. A confirmed false condition follows the configured
-        // "when the task ends" behavior; unreadable conditions are recorded as
-        // an explicit safe skip and never fabricate an end event.
         val triggerResult = TriggerStateEvaluator.evaluateAsync(context, automation.triggers)
         val constraintResult = if (automation.constraints.isEmpty()) {
             ConditionResult.Satisfied
@@ -459,38 +459,18 @@ class ExecutionEngine(
                 ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
             AutomationConstraintGate(capabilityExecutionService).evaluate(automation, state)
         }
-        return when {
-            triggerResult == ConditionResult.Satisfied && constraintResult == ConditionResult.Satisfied ->
-                runAutomation(automation)
-
-            triggerResult == ConditionResult.Unsatisfied || constraintResult == ConditionResult.Unsatisfied ->
-                runExit(
-                    automation = automation,
-                    forceConfiguredEnd = true,
-                    manualConditionRejected = true
-                )
-
-            else -> manualConditionUnknownRecord(automation, startedAt)
+        return if (
+            triggerResult == ConditionResult.Satisfied &&
+            constraintResult == ConditionResult.Satisfied
+        ) {
+            runAutomation(automation)
+        } else {
+            runExit(
+                automation = automation,
+                forceConfiguredEnd = true,
+                manualConditionRejected = true
+            )
         }
-    }
-
-    /** Records an unverified manual condition without fabricating an end event. */
-    private suspend fun manualConditionUnknownRecord(
-        automation: Automation,
-        startedAt: Long
-    ): ExecutionRecord {
-        val record = ExecutionRecord(
-            id = UUID.randomUUID().toString(),
-            automationId = automation.id,
-            automationName = automation.name,
-            success = true,
-            message = "Skipped: conditions could not be verified; no end behavior was run",
-            executedAt = startedAt
-        )
-        historyRepository.recordExecution(record)
-        recordTimeline(automation, "MANUAL_CONDITION_UNKNOWN", record, startedAt)
-        context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
-        return record
     }
 
     /**
