@@ -7,6 +7,9 @@ import android.net.NetworkInfo
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeState
+import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.CoroutineScope
@@ -26,7 +29,7 @@ import org.robolectric.shadows.ShadowNetworkInfo
  * Connectivity exit-reliability contract: a task triggered by a network
  * condition BEFORE a process/service restart must still fire its exit behavior
  * when the condition ends. The monitor's in-memory active set dies with the
- * process, so it re-arms from the durable [ActiveTriggerStore] ledger on start
+ * process, so it re-arms from the durable occurrence lifecycle ledger on start
  * — and the first network callback re-evaluates the CURRENT network, so a
  * condition that already ended while the process was down (e.g. WiFi dropped)
  * fires its missed exit on that first callback instead of waiting for the
@@ -50,6 +53,7 @@ class ConnectivityMonitorExitReconcileTest {
         runBlocking {
             ActiveTriggerStore(context).clearSource("connectivity")
             ActiveExecutionStore(context).clear("conn-task")
+            AutomationRuntimeStore(context).clear("conn-task")
         }
     }
 
@@ -112,11 +116,15 @@ class ConnectivityMonitorExitReconcileTest {
     private fun monitorFor(
         repository: FakeRepository,
         engine: com.nexaflow.core.execution.ExecutionEngine,
+        exitCoordinator: ExitCoordinator,
+        runtimeStore: AutomationRuntimeStore,
         store: ActiveTriggerStore
     ): ConnectivityMonitor = ConnectivityMonitor(
         context = context,
         repository = repository,
         executionEngine = engine,
+        exitCoordinator = exitCoordinator,
+        runtimeStore = runtimeStore,
         activeStore = store,
         scope = CoroutineScope(Dispatchers.Default)
     )
@@ -141,12 +149,23 @@ class ConnectivityMonitorExitReconcileTest {
         val repository = FakeRepository(listOf(connectivityAutomation("conn-task")))
         val store = ActiveTriggerStore(context)
         // The task fired on WiFi, then the process died while still connected.
-        store.markActive("connectivity", "conn-task|CONNECTED")
         ActiveExecutionStore(context).markStarted("conn-task")
+        val runtimeStore = AutomationRuntimeStore(context)
+        runtimeStore.activate(
+            AutomationRuntimeState(
+                automationId = "conn-task",
+                occurrenceId = "connectivity:conn-task:restarted",
+                source = "connectivity",
+                sourceKey = "conn-task|CONNECTED",
+                lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                activatedAt = 1L
+            )
+        )
         // WiFi is now gone — the CONNECTED condition ended during downtime.
         setWifiDisconnected()
 
-        val monitor = monitorFor(repository, engine, store)
+        val exitCoordinator = ExitCoordinator(runtimeStore, engine, repository, history)
+        val monitor = monitorFor(repository, engine, exitCoordinator, runtimeStore, store)
         monitor.initialize()
 
         driveFirstNetworkCallback()
@@ -161,17 +180,26 @@ class ConnectivityMonitorExitReconcileTest {
         val engine = testEngine(context, history)
         val repository = FakeRepository(listOf(connectivityAutomation("conn-task")))
         val store = ActiveTriggerStore(context)
-        store.markActive("connectivity", "conn-task|CONNECTED")
         ActiveExecutionStore(context).markStarted("conn-task")
+        val runtimeStore = AutomationRuntimeStore(context)
+        runtimeStore.activate(
+            AutomationRuntimeState(
+                automationId = "conn-task",
+                occurrenceId = "connectivity:conn-task:restarted",
+                source = "connectivity",
+                sourceKey = "conn-task|CONNECTED",
+                lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                activatedAt = 1L
+            )
+        )
         // WiFi is still up — the condition still holds after the restart.
         setWifiConnected()
 
-        val monitor = monitorFor(repository, engine, store)
+        val exitCoordinator = ExitCoordinator(runtimeStore, engine, repository, history)
+        val monitor = monitorFor(repository, engine, exitCoordinator, runtimeStore, store)
         monitor.initialize()
 
         driveFirstNetworkCallback()
-        // Give the async evaluation a moment, then assert no exit ran.
-        Thread.sleep(300)
         assertTrue(
             "no exit while the network condition still holds",
             history.exits.none { it == EXIT_NOOP_MARKER }
@@ -194,11 +222,12 @@ class ConnectivityMonitorExitReconcileTest {
         store.markActive("connectivity", "conn-task|CONNECTED")
         setWifiDisconnected()
 
-        val monitor = monitorFor(repository, engine, store)
+        val runtimeStore = AutomationRuntimeStore(context)
+        val exitCoordinator = ExitCoordinator(runtimeStore, engine, repository, history)
+        val monitor = monitorFor(repository, engine, exitCoordinator, runtimeStore, store)
         monitor.initialize()
 
         driveFirstNetworkCallback()
-        Thread.sleep(300)
         assertTrue(
             "disabled task must not fire a stale exit",
             history.exits.none { it == EXIT_NOOP_MARKER }

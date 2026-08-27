@@ -284,3 +284,31 @@ The selected follow-on must therefore: (1) make the active-data identity visible
 [26]: https://developer.android.com/reference/android/telephony/SubscriptionManager "Android Developers — SubscriptionManager"
 [27]: https://github.com/RikkaApps/Shizuku "Shizuku — official repository and API guidance"
 [28]: https://github.com/Dhangofa/NetToggle "NetToggle — Root/Shizuku network-mode comparison"
+
+
+## Exit lifecycle and time-window reliability review
+
+The post-v3.47 investigation found a lifecycle defect, not an AlarmManager-only defect. Stateful monitors such as connectivity and battery currently remove their in-memory active key and clear the durable trigger key **before** calling `ExecutionEngine.runExit`. At the same time, `runExit` consumes its durable started marker before it executes any end action. This makes a monitor race, process death, or exit-action failure capable of erasing the only evidence that an active occurrence still needs cleanup.
+
+The time-range path has a second, independent weakness. `AutomationScheduler` schedules start and end `PendingIntent`s carrying only an automation id; `AutomationAlarmReceiver` accepts an end alarm and calls `runExit` without validating a window, occurrence, or scheduling generation. Reconfiguration can therefore leave an old end alarm capable of consuming the lifecycle of a newer run. The receiver already uses `goAsync()` and a bounded wake lock, so it is not a fire-and-forget receiver bug; however, Android documents that `goAsync()` does not remove the receiver execution deadline and that extended work should move to an appropriate durable facility [29].
+
+Android confirms that alarms are canceled on device shutdown and must be recomputed after boot. It also confirms that changing exact-alarm access cancels future exact alarms and should be followed by a fresh schedule pass. An `RTC_WAKEUP` alarm remains appropriate for a user-selected wall-clock range, but exact alarms should carry identity data and their delivery must be reconciled against durable application state rather than treated as authority by itself [30].
+
+| Audit finding | Resulting design requirement |
+|---|---|
+| Active trigger record is only an opaque source/key plus timestamp. | Add an occurrence-aware, durable runtime ledger whose state transition is the source of truth for exit, not `ConcurrentHashMap` membership. |
+| `runExit` clears its only durable active marker before actions execute. | Atomically claim `ACTIVE -> EXITING` first; keep an observable `EXIT_FAILED`/`RECOVERY_REQUIRED` state on failure; clear only after successful/terminal persistence. |
+| End alarms contain only `automationId`. | Include a deterministic occurrence and generation token; receiver must reject any token that is not the currently registered window. |
+| Monitor families duplicate remove/clear/runExit ordering. | Route exits through one coordinator so trigger false, end alarm, disable, recovery, and reconciliation use the same idempotent transition. |
+| The receiver correctly calls `goAsync()` but can execute a full action chain. | Keep receiver ownership until the coordinator returns; avoid fire-and-forget launches and record a pending/recoverable state before action dispatch. |
+
+### Selected architectural scope
+
+The implementation adds an occurrence-aware, bounded DataStore ledger and a single `ExitCoordinator` for the time-range, connectivity, and battery stateful paths—the sources with the concrete durable-state or stale-alarm defects. Each admitted activation is persisted before its actions run. A matching exit source atomically claims `ACTIVE -> EXITING`; only its winner invokes end behavior. Completion removes the occurrence only after a successful exit record, while an unsuccessful record or thrown failure becomes observable `EXIT_FAILED` rather than silently inactive. Time-range alarms now include and validate a deterministic occurrence id, generation, window start, and window end. A late start for an already expired range is discarded and the following recurrence is armed rather than creating a lifecycle whose end has passed.
+
+Recovery reconciles only facts that are safe to act on: a persisted elapsed range end or a visible failed exit. It never interprets an unknown connectivity or battery reading as false. Automatic recovery is deliberately bounded to one additional attempt after the initial exit attempt (two total); a second failure remains visible in `EXIT_FAILED` for diagnosis rather than creating an unbounded loop. During upgrade/restart, the new ledger is authoritative; compatible legacy active keys are promoted once where an enabled definition remains, without destructive migration or a claim that an old process-memory snapshot can be restored.
+
+The change preserves stateless one-shot behavior and manual “Run now” previews. It does not add arbitrary delays, `Thread.sleep`, user-supplied shell execution, destructive persistence migration, telemetry, or a claim that every OEM/background condition can survive forced process termination. Existing direct-exit monitor families outside time ranges, connectivity, and battery/charger remain explicitly outside this release scope; their broader conversion requires source-specific lifecycle ownership and regression coverage rather than an unsafe mass rewrite.
+
+[29]: https://developer.android.com/reference/android/content/BroadcastReceiver "Android Developers — BroadcastReceiver and goAsync execution limits"
+[30]: https://developer.android.com/develop/background-work/services/alarms "Android Developers — Schedule alarms, reboot recovery, and exact-alarm access"

@@ -6,6 +6,11 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationLifecycleContext
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeState
+import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.compat.EventSource
@@ -16,6 +21,7 @@ import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.schedule.BatteryTriggerMatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -31,6 +37,8 @@ class BatteryMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
+    private val exitCoordinator: ExitCoordinator,
+    private val runtimeStore: AutomationRuntimeStore,
     private val activeStore: ActiveTriggerStore,
     @ApplicationScope private val scope: CoroutineScope
 ) : EventSource {
@@ -209,17 +217,59 @@ class BatteryMonitor @Inject constructor(
      * exit check matches either form.
      */
     private suspend fun rearmFromLedger() {
-        val enabledIds = repository.getAutomations().first()
-            .filter { it.enabled }
-            .map { it.id }
-            .toSet()
-        activeStore.activeKeys(sourceId).forEach { key ->
-            val id = key.substringBefore('|')
-            if (id in enabledIds) {
-                activeBatteryTriggers.add(id)
-            } else {
-                activeStore.clearAutomation(sourceId, id)
+        val automations = repository.getAutomations().first().associateBy { it.id }
+        runtimeStore.activeStates()
+            .filter { it.source == sourceId }
+            .forEach { state ->
+                val automation = automations[state.automationId]
+                when {
+                    automation?.enabled == true -> {
+                        activeBatteryTriggers.add(state.sourceKey)
+                        activeStore.markActive(sourceId, state.sourceKey)
+                    }
+                    automation != null -> {
+                        when (exitCoordinator.requestExit(
+                            automation,
+                            ExitReason.AUTOMATION_DISABLED,
+                            state.occurrenceId
+                        )) {
+                            is ExitCoordinatorResult.Executed,
+                            ExitCoordinatorResult.NotActive,
+                            ExitCoordinatorResult.StaleOccurrence -> {
+                                activeBatteryTriggers.remove(state.sourceKey)
+                                activeStore.clearAutomation(sourceId, state.automationId)
+                            }
+                            ExitCoordinatorResult.AlreadyInProgress,
+                            is ExitCoordinatorResult.RecoveryRequired -> Unit
+                        }
+                    }
+                }
             }
+        // Upgrade compatibility for the old ActiveTriggerStore ledger. Its
+        // state is promoted once so subsequent restarts use occurrence-aware
+        // recovery; historic snapshots were not serialised by earlier versions.
+        activeStore.activeKeys(sourceId).forEach { sourceKey ->
+            val automationId = sourceKey.substringBefore('|')
+            val automation = automations[automationId]
+            if (automation?.enabled != true) {
+                activeStore.clearAutomation(sourceId, automationId)
+                return@forEach
+            }
+            if (runtimeStore.current(automationId) == null) {
+                runtimeStore.activate(
+                    AutomationRuntimeState(
+                        automationId = automationId,
+                        occurrenceId = "legacy:$sourceId:$automationId:${UUID.randomUUID()}",
+                        source = sourceId,
+                        sourceKey = sourceKey,
+                        lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                        activatedAt = System.currentTimeMillis()
+                    )
+                )
+            }
+            runtimeStore.current(automationId)
+                ?.takeIf { it.source == sourceId }
+                ?.let { activeBatteryTriggers.add(it.sourceKey) }
         }
     }
 
@@ -259,13 +309,31 @@ class BatteryMonitor @Inject constructor(
                         } else {
                             "${automation.id}|$plugType"
                         }
-                    if (active) {
+                    if (active && !activeBatteryTriggers.contains(key)) {
                         val last = lastRunAt[automation.id] ?: 0L
                         val now = System.currentTimeMillis()
-                        if (activeBatteryTriggers.add(key) && now - last > automation.cooldownMillis) {
+                        if (now - last > automation.cooldownMillis) {
                             lastRunAt[automation.id] = now
-                            activeStore.markActive(sourceId, key)
-                            executionEngine.runAutomation(automation)
+                            val occurrenceId = "battery:${automation.id}:${UUID.randomUUID()}"
+                            executionEngine.runAutomation(
+                                automation = automation,
+                                lifecycleContext = AutomationLifecycleContext(
+                                    occurrenceId = occurrenceId,
+                                    source = sourceId,
+                                    sourceKey = key
+                                )
+                            )
+                            val accepted = runtimeStore.current(automation.id)?.let { state ->
+                                state.occurrenceId == occurrenceId && state.source == sourceId
+                            } == true
+                            if (accepted) {
+                                activeBatteryTriggers.add(key)
+                                activeStore.markActive(sourceId, key)
+                                // A threshold can be crossed back while the
+                                // action chain is suspended. Re-read sticky
+                                // state now that the durable owner exists.
+                                refresh()
+                            }
                         }
                     } else {
                         val prefix = "${automation.id}|"
@@ -273,11 +341,18 @@ class BatteryMonitor @Inject constructor(
                             it == automation.id || it.startsWith(prefix)
                         }
                         if (hadActive) {
-                            activeBatteryTriggers.removeAll {
-                                it == automation.id || it.startsWith(prefix)
+                            when (exitCoordinator.requestExit(automation, ExitReason.TRIGGER_FALSE)) {
+                                is ExitCoordinatorResult.Executed,
+                                ExitCoordinatorResult.NotActive,
+                                ExitCoordinatorResult.StaleOccurrence -> {
+                                    activeBatteryTriggers.removeAll {
+                                        it == automation.id || it.startsWith(prefix)
+                                    }
+                                    activeStore.clearAutomation(sourceId, automation.id)
+                                }
+                                ExitCoordinatorResult.AlreadyInProgress,
+                                is ExitCoordinatorResult.RecoveryRequired -> Unit
                             }
-                            activeStore.clearAutomation(sourceId, automation.id)
-                            executionEngine.runExit(automation)
                         }
                     }
                 }
@@ -294,18 +369,39 @@ class BatteryMonitor @Inject constructor(
                     val wantConnected = (chargerTrigger.config["event"] ?: "CONNECTED") == "CONNECTED"
                     val chargerKey = "${automation.id}|charger"
                     val now = System.currentTimeMillis()
-                    if (charging == wantConnected) {
-                        if (activeBatteryTriggers.add(chargerKey)) {
-                            val last = lastRunAt[automation.id] ?: 0L
-                            if (now - last > automation.cooldownMillis) {
-                                lastRunAt[automation.id] = now
+                    if (charging == wantConnected && !activeBatteryTriggers.contains(chargerKey)) {
+                        val last = lastRunAt[automation.id] ?: 0L
+                        if (now - last > automation.cooldownMillis) {
+                            lastRunAt[automation.id] = now
+                            val occurrenceId = "charger:${automation.id}:${UUID.randomUUID()}"
+                            executionEngine.runAutomation(
+                                automation = automation,
+                                lifecycleContext = AutomationLifecycleContext(
+                                    occurrenceId = occurrenceId,
+                                    source = sourceId,
+                                    sourceKey = chargerKey
+                                )
+                            )
+                            val accepted = runtimeStore.current(automation.id)?.let { state ->
+                                state.occurrenceId == occurrenceId && state.source == sourceId
+                            } == true
+                            if (accepted) {
+                                activeBatteryTriggers.add(chargerKey)
                                 activeStore.markActive(sourceId, chargerKey)
-                                executionEngine.runAutomation(automation)
+                                refresh()
                             }
                         }
-                    } else if (activeBatteryTriggers.remove(chargerKey)) {
-                        activeStore.clearAutomation(sourceId, automation.id)
-                        executionEngine.runExit(automation)
+                    } else if (activeBatteryTriggers.contains(chargerKey)) {
+                        when (exitCoordinator.requestExit(automation, ExitReason.TRIGGER_FALSE)) {
+                            is ExitCoordinatorResult.Executed,
+                            ExitCoordinatorResult.NotActive,
+                            ExitCoordinatorResult.StaleOccurrence -> {
+                                activeBatteryTriggers.remove(chargerKey)
+                                activeStore.clearAutomation(sourceId, automation.id)
+                            }
+                            ExitCoordinatorResult.AlreadyInProgress,
+                            is ExitCoordinatorResult.RecoveryRequired -> Unit
+                        }
                     }
                 }
 

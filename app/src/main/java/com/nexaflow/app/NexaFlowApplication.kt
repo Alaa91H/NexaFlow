@@ -9,9 +9,11 @@ import com.nexaflow.app.work.LocationCheckScheduler
 import com.nexaflow.app.work.MaintenanceWorker
 import com.nexaflow.app.work.UpdateCheckScheduler
 import com.nexaflow.app.work.UpdateNotification
+import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.datastore.LocationPreferences
 import com.nexaflow.core.datastore.UpdatePreferences
 import com.nexaflow.core.engine.AutomationScheduler
+import com.nexaflow.core.engine.ExitCoordinator
 import com.nexaflow.core.engine.MonitoringService
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.capability.CapabilityStateStore
@@ -45,6 +47,9 @@ class NexaFlowApplication : Application(), Configuration.Provider {
 
     @Inject
     lateinit var executionRecoveryCoordinator: ExecutionRecoveryCoordinator
+
+    @Inject
+    lateinit var exitCoordinator: ExitCoordinator
 
     /** Eager singleton attachment for event-driven capability-state invalidation. */
     @Inject
@@ -112,6 +117,13 @@ class NexaFlowApplication : Application(), Configuration.Provider {
         }
         runCatching { scheduler.initialize() }
             .onFailure { Log.e(TAG, "Scheduler init failed", it) }
+        // Runtime exit recovery is separate from action-checkpoint recovery:
+        // completed windows and a persisted failed exit can be reconciled from
+        // lifecycle facts without replaying an uncertain main action.
+        appScope.launch {
+            runCatching { exitCoordinator.reconcile(ExitReason.PROCESS_RECOVERY) }
+                .onFailure { Log.e(TAG, "exit lifecycle recovery scan failed", it) }
+        }
         // Recovery claims only durable checkpoints. It never replays an action
         // at startup; unknown side effects remain explicitly diagnostic until a
         // workflow-aware verifier/compensator handles them.

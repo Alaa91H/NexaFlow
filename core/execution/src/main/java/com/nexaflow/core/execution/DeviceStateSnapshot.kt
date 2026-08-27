@@ -7,6 +7,8 @@ import com.nexaflow.core.rom.RomIntegrationManager
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 /**
  * Captures the state of the settings a task may change, so that when the
@@ -17,6 +19,7 @@ import com.nexaflow.domain.models.ActionType
  * setting (unusual ROM, missing permission) stores `null` and is simply
  * skipped when restoring, so a capture failure can never block a run.
  */
+@Serializable
 class DeviceStateSnapshot private constructor(
     private val musicVolume: Int,
     private val ringVolume: Int,
@@ -289,7 +292,25 @@ class DeviceStateSnapshot private constructor(
         }
     }
 
+    /** Encodes only the local device-state snapshot for the bounded runtime ledger. */
+    internal fun encodeForRuntime(): String? = runCatching {
+        runtimeJson.encodeToString(DeviceStateSnapshot.serializer(), this)
+    }.getOrNull()
+
     companion object {
+        private val runtimeJson = Json {
+            encodeDefaults = true
+            ignoreUnknownKeys = true
+        }
+
+        /** Decodes a previously captured local snapshot; malformed data is never trusted. */
+        internal fun decodeForRuntime(encoded: String?): DeviceStateSnapshot? {
+            if (encoded.isNullOrBlank()) return null
+            return runCatching {
+                runtimeJson.decodeFromString(DeviceStateSnapshot.serializer(), encoded)
+            }.getOrNull()
+        }
+
         fun capture(context: Context): DeviceStateSnapshot {
             val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
             return DeviceStateSnapshot(

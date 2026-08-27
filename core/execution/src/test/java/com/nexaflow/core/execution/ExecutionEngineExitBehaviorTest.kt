@@ -112,6 +112,16 @@ class ExecutionEngineExitBehaviorTest {
     }
 
     @Test
+    fun `runtime snapshot round trips for recovered exit`() {
+        val encoded = checkNotNull(DeviceStateSnapshot.capture(context).encodeForRuntime())
+
+        assertTrue(
+            "a local snapshot must decode after in-memory state is lost",
+            DeviceStateSnapshot.decodeForRuntime(encoded) != null
+        )
+    }
+
+    @Test
     fun `per-action end behavior runs on exit when no exit actions are configured`() = runBlocking {
         val handler = RecordingHandler()
         val history = RecordingHistory()

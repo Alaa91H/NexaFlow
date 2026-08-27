@@ -17,6 +17,11 @@ import com.nexaflow.core.common.DefaultNetworkSnapshot
 import com.nexaflow.core.common.DefaultNetworkStateReader
 import com.nexaflow.core.common.NetworkTransportState
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationLifecycleContext
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeState
+import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
@@ -28,6 +33,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
+import java.util.UUID
 import java.util.concurrent.Executors
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -37,6 +43,8 @@ class ConnectivityMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
+    private val exitCoordinator: ExitCoordinator,
+    private val runtimeStore: AutomationRuntimeStore,
     private val activeStore: ActiveTriggerStore,
     @ApplicationScope private val scope: CoroutineScope
 ) {
@@ -121,17 +129,62 @@ class ConnectivityMonitor @Inject constructor(
      * exit.
      */
     private suspend fun rearmFromLedger() {
-        val enabledIds = repository.getAutomations().first()
-            .filter { it.enabled }
-            .map { it.id }
-            .toSet()
-        activeStore.activeKeys(SOURCE).forEach { key ->
-            val id = key.substringBefore('|')
-            if (id in enabledIds) {
-                activeStates[id] = key.substringAfter('|', "CONNECTED")
-            } else {
-                activeStore.clearAutomation(SOURCE, id)
+        val automations = repository.getAutomations().first().associateBy { it.id }
+        // The occurrence ledger is authoritative. This closes the process-death
+        // gap between durable lifecycle activation and writing the older active
+        // trigger key used for backwards-compatible monitor bookkeeping.
+        runtimeStore.activeStates()
+            .filter { it.source == SOURCE }
+            .forEach { state ->
+                val automation = automations[state.automationId]
+                if (automation?.enabled == true) {
+                    activeStates[state.automationId] = state.sourceKey.substringAfter('|', "CONNECTED")
+                    activeStore.markActive(SOURCE, state.sourceKey)
+                } else if (automation != null) {
+                    when (exitCoordinator.requestExit(
+                        automation,
+                        ExitReason.AUTOMATION_DISABLED,
+                        state.occurrenceId
+                    )) {
+                        is ExitCoordinatorResult.Executed,
+                        ExitCoordinatorResult.NotActive,
+                        ExitCoordinatorResult.StaleOccurrence -> {
+                            activeStates.remove(state.automationId)
+                            activeStore.clearAutomation(SOURCE, state.automationId)
+                        }
+                        ExitCoordinatorResult.AlreadyInProgress,
+                        is ExitCoordinatorResult.RecoveryRequired -> Unit
+                    }
+                }
             }
+        // Migrate a pre-runtime-ledger active key once, preserving configured
+        // exit actions after an upgrade. No snapshot existed in that old format,
+        // so only normal exit actions (not state restoration) can be recovered.
+        activeStore.activeKeys(SOURCE).forEach { sourceKey ->
+            val automationId = sourceKey.substringBefore('|')
+            val automation = automations[automationId]
+            if (automation?.enabled != true) {
+                activeStore.clearAutomation(SOURCE, automationId)
+                return@forEach
+            }
+            val current = runtimeStore.current(automationId)
+            if (current == null) {
+                runtimeStore.activate(
+                    AutomationRuntimeState(
+                        automationId = automationId,
+                        occurrenceId = "legacy:$SOURCE:$automationId:${UUID.randomUUID()}",
+                        source = SOURCE,
+                        sourceKey = sourceKey,
+                        lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                        activatedAt = System.currentTimeMillis()
+                    )
+                )
+            }
+            runtimeStore.current(automationId)
+                ?.takeIf { it.source == SOURCE }
+                ?.let { state ->
+                    activeStates[automationId] = state.sourceKey.substringAfter('|', "CONNECTED")
+                }
         }
     }
 
@@ -280,22 +333,48 @@ class ConnectivityMonitor @Inject constructor(
                     } else {
                         current == desiredState
                     }
-                    if (matched) {
+                    if (matched && activeStates[automation.id] != desiredState) {
                         val last = lastRunAt[automation.id] ?: 0L
                         if (now - last > automation.cooldownMillis) {
                             lastRunAt[automation.id] = now
-                            activeStates[automation.id] = desiredState
-                            activeStore.markActive(SOURCE, "${automation.id}|$desiredState")
-                            executionEngine.runAutomation(automation)
+                            val sourceKey = "${automation.id}|$desiredState"
+                            val occurrenceId = "connectivity:${automation.id}:${UUID.randomUUID()}"
+                            executionEngine.runAutomation(
+                                automation = automation,
+                                lifecycleContext = AutomationLifecycleContext(
+                                    occurrenceId = occurrenceId,
+                                    source = SOURCE,
+                                    sourceKey = sourceKey
+                                )
+                            )
+                            val accepted = runtimeStore.current(automation.id)?.let { state ->
+                                state.occurrenceId == occurrenceId && state.source == SOURCE
+                            } == true
+                            if (accepted) {
+                                activeStore.markActive(SOURCE, sourceKey)
+                                activeStates[automation.id] = desiredState
+                                // The condition can flip while runAutomation
+                                // is awaiting actions. Re-read now that a
+                                // durable owner exists, so no later callback
+                                // is required to close the occurrence.
+                                handleChange()
+                            }
                         }
                     } else if (current != null && activeStates[automation.id] == desiredState) {
                         // A known non-matching value ends the condition. An
                         // unreadable cellular generation is deliberately not an
                         // exit event, otherwise a transient permission/OEM read
                         // failure could run exit actions incorrectly.
-                        activeStates.remove(automation.id)
-                        activeStore.clearAutomation(SOURCE, automation.id)
-                        executionEngine.runExit(automation)
+                        when (exitCoordinator.requestExit(automation, ExitReason.TRIGGER_FALSE)) {
+                            is ExitCoordinatorResult.Executed,
+                            ExitCoordinatorResult.NotActive,
+                            ExitCoordinatorResult.StaleOccurrence -> {
+                                activeStates.remove(automation.id)
+                                activeStore.clearAutomation(SOURCE, automation.id)
+                            }
+                            ExitCoordinatorResult.AlreadyInProgress,
+                            is ExitCoordinatorResult.RecoveryRequired -> Unit
+                        }
                     }
                 }
         }

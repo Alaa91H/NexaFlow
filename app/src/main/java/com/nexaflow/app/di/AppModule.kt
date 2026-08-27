@@ -11,6 +11,7 @@ import com.nexaflow.core.database.Migrations
 import com.nexaflow.core.database.VariableDao
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.LocationPreferences
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.PrivacyPreferences
@@ -18,6 +19,7 @@ import com.nexaflow.core.datastore.SmsPreferences
 import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.datastore.UpdatePreferences
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.engine.ExitCoordinator
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.capability.AndroidCapabilityDeviceStateReader
 import com.nexaflow.core.execution.capability.AndroidIntentCapabilityBackend
@@ -180,9 +182,29 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideAutomationRuntimeStore(@ApplicationContext context: Context): AutomationRuntimeStore {
+        return AutomationRuntimeStore(context)
+    }
+
+    @Provides
+    @Singleton
     fun provideExecutionRecoveryCoordinator(
         activeExecutionStore: ActiveExecutionStore
     ): ExecutionRecoveryCoordinator = ExecutionRecoveryCoordinator(activeExecutionStore)
+
+    @Provides
+    @Singleton
+    fun provideExitCoordinator(
+        automationRuntimeStore: AutomationRuntimeStore,
+        executionEngine: ExecutionEngine,
+        automationRepository: AutomationRepository,
+        historyRepository: HistoryRepository
+    ): ExitCoordinator = ExitCoordinator(
+        runtimeStore = automationRuntimeStore,
+        executionEngine = executionEngine,
+        automationRepository = automationRepository,
+        historyRepository = historyRepository
+    )
 
     @Provides
     @Singleton
@@ -301,7 +323,8 @@ object AppModule {
         logStore: LogStore,
         variableRepository: VariableRepository,
         capabilityExecutionService: CapabilityExecutionService,
-        capabilityStateStore: CapabilityStateStore
+        capabilityStateStore: CapabilityStateStore,
+        automationRuntimeStore: AutomationRuntimeStore
     ): ExecutionEngine {
         return ExecutionEngine(
             context,
@@ -309,6 +332,7 @@ object AppModule {
             notificationPreferences,
             logStore = logStore,
             variableRepository = variableRepository,
+            automationRuntimeStore = automationRuntimeStore,
             capabilityExecutionService = capabilityExecutionService,
             capabilitySnapshotProvider = { capabilityStateStore.snapshot.value }
         )

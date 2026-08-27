@@ -6,6 +6,10 @@ import com.nexaflow.core.common.EpochMillis
 import com.nexaflow.core.compat.ExecutionChannelSelector
 import com.nexaflow.core.compat.ExecutionProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
+import com.nexaflow.core.datastore.AutomationLifecycleContext
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeState
+import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.DurableExecutionCheckpoint
 import com.nexaflow.core.datastore.DurableExecutionStatus
 import com.nexaflow.core.datastore.NotificationPreferences
@@ -74,6 +78,8 @@ class ExecutionEngine(
     // process restart so a genuinely running task can still execute its end
     // behavior when the monitor reconciles the current device state.
     private val activeExecutionStore: ActiveExecutionStore = ActiveExecutionStore(context),
+    /** Occurrence-aware durable source of truth for stateful trigger lifecycles. */
+    private val automationRuntimeStore: AutomationRuntimeStore = AutomationRuntimeStore(context),
     /** Optional safe-capability seam; null preserves legacy handler-only construction. */
     private val capabilityExecutionService: CapabilityExecutionService? = null,
     /** Current shared availability observation; absent only in legacy/test construction. */
@@ -117,6 +123,8 @@ class ExecutionEngine(
          * and close only when their actual condition ends.
          */
         completeExitOnFinish: Boolean = false,
+        /** Present only for a stateful trigger occurrence owned by ExitCoordinator. */
+        lifecycleContext: AutomationLifecycleContext? = null
     ): ExecutionRecord {
         val startedAt = epochMillis.now()
         capabilitySnapshotProvider?.invoke()?.let { snapshot ->
@@ -251,8 +259,55 @@ class ExecutionEngine(
         // unusual ROM used to abort the whole run before any action executed).
         val needsSnapshot = automation.revertOnExit ||
             automation.actions.any { it.endBehavior?.mode == EndMode.REVERT }
+        val capturedSnapshot = if (needsSnapshot) {
+            runCatching { DeviceStateSnapshot.capture(context) }.getOrNull()
+        } else {
+            null
+        }
+        // Stateful sources must establish an occurrence-aware durable owner
+        // before their first side effect. A new activation cannot overwrite a
+        // still-active, exiting, or failed occurrence of the same automation.
+        if (lifecycleContext != null) {
+            val lifecycleAccepted = automationRuntimeStore.activate(
+                AutomationRuntimeState(
+                    automationId = automation.id,
+                    occurrenceId = lifecycleContext.occurrenceId,
+                    source = lifecycleContext.source,
+                    sourceKey = lifecycleContext.sourceKey,
+                    lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                    activatedAt = startedAt,
+                    expectedEndAt = lifecycleContext.expectedEndAt,
+                    scheduleGeneration = lifecycleContext.scheduleGeneration,
+                    snapshotJson = capturedSnapshot?.encodeForRuntime()
+                )
+            )
+            if (!lifecycleAccepted) {
+                // The action checkpoint and legacy marker were accepted earlier
+                // solely to reserve this run. Undo that reservation before
+                // returning the explicit skip record; never overwrite the
+                // previous lifecycle or its original-state snapshot.
+                // Never remove the id-scoped legacy marker or in-memory
+                // snapshot here: they may belong to the older lifecycle that
+                // correctly caused this admission to be rejected.
+                activeExecutionStore.completeCheckpoint(payloadContext.runId)
+                val record = ExecutionRecord(
+                    id = UUID.randomUUID().toString(),
+                    automationId = automation.id,
+                    automationName = automation.name,
+                    success = true,
+                    message = "Skipped: a prior automation lifecycle still requires cleanup",
+                    executedAt = startedAt,
+                    channel = channel?.type?.name
+                )
+                historyRepository.recordExecution(record)
+                recordTimeline(automation, "LIFECYCLE_CONFLICT", record, startedAt)
+                return record
+            }
+        }
+        // The durable admission succeeded (or this is a legacy/stateless run),
+        // so this invocation may now own the in-memory restore snapshot too.
         if (needsSnapshot) {
-            snapshots[automation.id] = runCatching { DeviceStateSnapshot.capture(context) }.getOrNull()
+            snapshots[automation.id] = capturedSnapshot
         }
         // Resolve %variables once per run (single repo read + device probe),
         // then apply pure string substitution per action.
@@ -404,7 +459,9 @@ class ExecutionEngine(
         forceConfiguredEnd: Boolean = false,
         // Distinguishes a condition-gated manual tap from a monitor-driven exit
         // so the timeline and UI never report the outcome as a successful main run.
-        manualConditionRejected: Boolean = false
+        manualConditionRejected: Boolean = false,
+        /** Durable local snapshot supplied by the occurrence coordinator after restart. */
+        runtimeSnapshotJson: String? = null
     ): ExecutionRecord {
         val startedAt = epochMillis.now()
         // Consume both ledgers as one critical section. Without this per-task
@@ -468,6 +525,7 @@ class ExecutionEngine(
         // this to run them too — that would double-apply end actions after a revert.
         val actionResults = if (automation.revertOnExit) {
             val snapshot = snapshots.remove(automation.id)
+                ?: DeviceStateSnapshot.decodeForRuntime(runtimeSnapshotJson)
             if (snapshot != null) {
                 snapshot.restore(context)
                 listOf(
@@ -497,6 +555,7 @@ class ExecutionEngine(
                 // end behavior (leave / restore original / set a specific value)
                 // is honored exactly as configured, before the custom exit actions.
                 val snapshot = snapshots.remove(automation.id)
+                    ?: DeviceStateSnapshot.decodeForRuntime(runtimeSnapshotJson)
                 automation.actions.forEach { action ->
                     val behavior = action.endBehavior ?: return@forEach
                     val actionStartedAt = epochMillis.now()

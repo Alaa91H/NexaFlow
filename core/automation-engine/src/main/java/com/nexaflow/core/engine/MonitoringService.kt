@@ -16,6 +16,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.SmsPreferences
 import dagger.hilt.android.AndroidEntryPoint
@@ -101,6 +102,9 @@ class MonitoringService : Service() {
     @Inject
     lateinit var activeTriggerStore: ActiveTriggerStore
 
+    @Inject
+    lateinit var exitCoordinator: ExitCoordinator
+
     /**
      * Mirror of the Notification Manager's «monitoring notification» toggle.
      * Starts hidden (matching the [NotificationSettings.monitoringEnabled]
@@ -139,6 +143,10 @@ class MonitoringService : Service() {
         // before the first re-arm read — no race between the two.
         monitorStartupJob = scope.launch {
             activeTriggerStore.purgeExpired()
+            // A process/service restart can occur after a range end or after a
+            // failed exit. Reconcile durable lifecycle state before callbacks
+            // re-arm so cleanup never depends on seeing a future condition flip.
+            exitCoordinator.reconcile(ExitReason.PROCESS_RECOVERY)
             // Subscription is established before the external receiver is
             // registered, preserving the EventBus → TriggerIndex route and
             // preventing any direct plugin callback execution.
