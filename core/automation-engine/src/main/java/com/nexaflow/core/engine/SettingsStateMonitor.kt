@@ -162,7 +162,7 @@ class SettingsStateMonitor @Inject constructor(
                     runtime?.source == SOURCE &&
                         (!automation.enabled || automation.triggers.none { it.type in WATCHED_TRIGGERS })
                 }
-                .forEach(::requestDisableExit)
+                .forEach { automation -> requestDisableExit(automation) }
 
             automations
                 .filter { automation ->
