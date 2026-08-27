@@ -1,31 +1,31 @@
-# NexaFlow v3.44.0
+# NexaFlow v3.45.0
 
-NexaFlow v3.44.0 completes the path from a routine health signal to the execution evidence behind it. Users can now open a focused, paged run history for the routine they are inspecting, without losing the existing global history view.
+NexaFlow v3.45.0 makes recorded execution problems faster to investigate. Execution history now offers a local **All runs / Failures** filter, so users can focus on persisted failed runs without exporting data, enabling telemetry, or scanning successful activity.
 
 ## Added
 
-The **Execution health** card in routine details now includes **View routine history**. It opens a history screen that is filtered at the database layer to the selected routine and ordered newest first. The history destination clearly identifies routine-scoped history, while the Settings entry continues to show all routines.
+The History screen now provides an **All runs / Failures** filter in both global history and routine-scoped history. Selecting **Failures** switches the Paging source to a Room query that filters `ExecutionRecord.success = false` before records reach the UI, while preserving newest-first ordering.
 
-The release adds a Room Paging query for `automationId`, localized history-navigation labels in every shipped language, a DAO regression test proving that only the selected routine’s records are returned in newest-first order, and a route regression test.
+The **Execution health** card now shows **View failures** only when its routine has at least one recorded failed run. The action opens the same routine-scoped history screen with the failure filter already selected. The release also adds localized filter and empty-state text in every shipped locale, database coverage for the failure-only Paging query, and navigation coverage for the direct failure route.
 
 ## Changed
 
-The History navigation route now accepts an optional routine identifier. When it is missing or blank, NexaFlow preserves the original global-history behaviour; when it is present, the ViewModel uses the filtered Paging source before records are mapped to the UI.
+The History destination accepts an optional typed `outcome` argument. `outcome=failed` initializes the local failure filter; when no outcome is supplied, NexaFlow retains the established all-runs behavior. Changing the filter reactively recreates the appropriate Paging flow without changing historical records.
 
 ## Fixed
 
-Release validation identified two implementation issues: Kotlin could not infer the optional navigation argument type, and the first route test depended on an Android API in a plain JVM test. The argument is now retrieved with an explicit type and route encoding is JVM-safe. The final main candidate passed CI after both corrections.
+Release validation exposed two regressions in the initial implementation: the Compose delegated-state import was absent from the filter UI, and the initial English filter label duplicated the existing failed-status text used by a screen test. Both issues were corrected before release approval, and the final candidate passed CI.
 
 ## Privacy and scope
 
-Routine history remains a local, read-only view over existing `ExecutionRecord` data. This release adds no network request, telemetry, account, permission, background service, database schema migration, export capability, raw log mutation, or automatic remediation.
+This release is a **read-only, on-device view** over existing execution records. It adds no account, network request, telemetry, permission, background service, schema migration, export path, raw-log mutation, automated remediation, or prediction. A skipped execution remains distinct from a failure: skips are stored as successful records with a `Skipped:` message and are therefore not included in the failure-only filter.
 
-> The filtered view shows recorded evidence, not a prediction of future execution. Device settings, permissions, constraints, OEM behavior, and Android background limits can still affect subsequent runs.
+> The filter helps inspect evidence that has already been recorded. It does not predict future execution outcomes; Android permissions, device state, OEM behavior, and background limits may still affect later runs.
 
 ## Verification
 
-The final `main` candidate passed the complete GitHub Actions pipeline: resource hygiene and locale-parity checks, Python resource-gate tests, Detekt, Android Lint, Android unit tests, debug and release APK builds, release AAB build, dependency verification, APK permission and signature checks, zip alignment, 16 KB native-library alignment, and bundle validation.
+The final release candidate passed the complete GitHub Actions pipeline: resource hygiene and locale-parity checks, Python resource-gate tests, Detekt, Android Lint, Android unit tests, debug and release APK builds, release AAB build, dependency verification, APK permission and signature checks, zip alignment, 16 KB native-library alignment, and bundle validation.
 
 ## Research record
 
-The competitive research, database review, acceptance criteria, safety constraints, and deferred scope are documented in [`docs/RESEARCH_2026.md`](docs/RESEARCH_2026.md).
+The competitive review, Android-platform constraints, selected failure-filter scope, acceptance criteria, and deferred work are documented in [`docs/RESEARCH_2026.md`](docs/RESEARCH_2026.md).

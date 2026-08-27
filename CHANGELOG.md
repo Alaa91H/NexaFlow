@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.45.0] - 2026-08-27
+
+### Added
+- Added a local **All runs / Failures** filter to execution history. It works in both global and routine-scoped history and is backed by a Room Paging query that returns only persisted failed executions when selected.
+- Added a contextual **View failures** action to the Execution health card when a routine has recorded failures, taking users directly to that routine’s filtered evidence.
+- Added localized filter labels and empty-state guidance across every shipped locale, plus DAO and navigation regression coverage for the failure-only route and query.
+
+### Changed
+- Extended the optional History navigation arguments with a typed outcome value. The History ViewModel derives its initial filter from the route and recreates the Paging source when the user changes the selected outcome.
+- Kept the existing global and routine-scoped history views unchanged by default: both still show all recorded runs unless the user explicitly selects **Failures**.
+
+### Fixed
+- Resolved two release-validation issues found by CI: the Compose state-delegate import was missing from the new filter UI, and the English filter label conflicted with the existing failed-status assertion in the screen test.
+
 ## [v3.44.0] - 2026-08-27
 
 ### Added
