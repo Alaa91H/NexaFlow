@@ -114,6 +114,7 @@ import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.AutomationHealthReport
 import com.nexaflow.domain.models.AutomationHealthStatus
+import com.nexaflow.domain.models.ExecutionHistoryOutcome
 import com.nexaflow.domain.models.hasUserAuthoredDescription
 import com.nexaflow.domain.models.Constraint
 import com.nexaflow.domain.models.ConstraintType
@@ -238,7 +239,14 @@ fun AutomationDetailsScreen(navController: NavController) {
                     report = healthReport,
                     onOpenHistory = { navController.navigate(routineHistoryRoute(current.id)) },
                     onOpenFailures = {
-                        navController.navigate(routineHistoryRoute(current.id, failuresOnly = true))
+                        navController.navigate(
+                            routineHistoryRoute(current.id, outcome = ExecutionHistoryOutcome.FAILED)
+                        )
+                    },
+                    onOpenSkips = {
+                        navController.navigate(
+                            routineHistoryRoute(current.id, outcome = ExecutionHistoryOutcome.SKIPPED)
+                        )
                     }
                 )
                 AutomationDetailsSectionCard(
@@ -769,7 +777,8 @@ private fun AutomationDetailsPreview() {
 private fun ExecutionHealthCard(
     report: AutomationHealthReport,
     onOpenHistory: () -> Unit,
-    onOpenFailures: () -> Unit
+    onOpenFailures: () -> Unit,
+    onOpenSkips: () -> Unit
 ) {
     val status = report.status
     val attention = status == AutomationHealthStatus.NEEDS_ATTENTION
@@ -848,6 +857,11 @@ private fun ExecutionHealthCard(
                         Text(stringResource(R.string.view_failures))
                     }
                 }
+                if (report.skippedRuns > 0) {
+                    TextButton(onClick = onOpenSkips) {
+                        Text(stringResource(R.string.view_skipped_runs))
+                    }
+                }
             }
         }
     }
@@ -870,8 +884,9 @@ internal fun executionHealthSubtitleRes(status: AutomationHealthStatus): Int = w
 /** Builds the optional-query route used to show evidence for one routine only. */
 internal fun routineHistoryRoute(
     automationId: String,
-    failuresOnly: Boolean = false
+    outcome: ExecutionHistoryOutcome? = null
 ): String {
     val encodedId = URLEncoder.encode(automationId, "UTF-8").replace("+", "%20")
-    return "history?automationId=$encodedId" + if (failuresOnly) "&outcome=failed" else ""
+    val outcomeParameter = outcome?.let { "&outcome=${it.routeValue}" }.orEmpty()
+    return "history?automationId=$encodedId$outcomeParameter"
 }

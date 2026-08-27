@@ -217,3 +217,40 @@ The next release will add a two-state local outcome filter to History: **All run
 ### Explicitly deferred
 
 Completed-only and skipped-only filters, free-text search, date ranges, multi-select filters, export, raw action logs, remote diagnostics, and automated retry remain deferred. They require a richer persisted outcome model or a separate consent and query-design review.
+
+
+## Post-v3.45 observability review
+
+The v3.45 failed-run filter intentionally addressed the least ambiguous persisted state first. A post-release review re-examined the remaining diagnostic gap against current competitor and platform guidance. Tasker’s Run Log distinguishes action and task statuses, supports local filters, and treats abnormal/rejected states separately from normal completion [16]. MacroDroid describes the system log as the first troubleshooting location and presents constraints as first-class conditions of an automation [18]. Automate exposes bounded failure catching and separately returns the failure type, message, block identifier, and retry count, reinforcing that intentional non-execution and action failure should not be collapsed into one result [19].
+
+Android’s current background-work guidance advises developers to select APIs that match the use case and to account for lifecycle and power-management limits; foreground-service types must also be declared correctly when used [20] [21]. This makes automated retry, remote diagnostics, new background work, or permission expansion inappropriate for this narrow follow-on. A local read-only diagnostic view reuses existing data while avoiding those platform and privacy risks.
+
+| Reviewed gap | Evidence in NexaFlow | Decision |
+|---|---|---|
+| Intentional non-execution is counted but hard to inspect. | `AutomationHealthReport` exposes `skippedRuns`; the health card displays that count, but v3.45 only offered a direct route for failures. | Add an optional direct **View skipped runs** route when `skippedRuns > 0`. |
+| A skipped record is distinct from a successful side effect. | Existing engine paths write `success = true` and a `Skipped:` prefix before any action side effect; the health analyzer already excludes that class from completed runs. | Preserve this established persisted protocol and label it **Skipped**, never **Success**. |
+| The v3.45 generic success predicate cannot identify skips accurately. | Both ordinary completion and skipping persist `success = true`. | Add one dedicated Room Paging query that requires `success = 1` and a passed `Skipped:%` pattern, instead of filtering a loaded page or treating all successes as skips. |
+| The prior research deferred skipped-only filtering. | The earlier deferral correctly required a separate query-design review rather than adding it speculatively. | This review performs that design review and deliberately reopens only skipped-only filtering; richer outcome storage, search, exports, and remote diagnostics remain deferred. |
+
+### Release-scope decision: local skipped-run filter
+
+The selected v3.46 scope adds a third explicit local history choice, **Skipped runs**, in global and routine-scoped History. An optional `outcome=skipped` route initializes the same selection, and the routine health card offers the direct route only where a persisted skipped-run count is nonzero. A shared domain classifier centralizes the legacy skip contract so the health summary, result presentation, History status pill, route parsing, and data repository agree on the same meaning.
+
+| Acceptance criterion | Required behavior |
+|---|---|
+| Outcome integrity | A skipped run is exactly a persisted `success = true` record whose message starts with `Skipped:`. It remains distinct from failures and ordinary completed runs. |
+| Database-side filtering | The skipped view is supplied by a Room Paging query using routine scope, `success = 1`, and the `Skipped:%` pattern before records are mapped to the domain. |
+| Clear UI | The filter and status pill say **Skipped**; an empty skipped filter explains that no skipped executions match. |
+| Direct evidence | A routine with skipped runs can open `history?automationId=…&outcome=skipped`; other routines do not show that action. |
+| Compatibility | No query argument and unknown outcome values continue to show All runs. Existing persisted records require no migration. |
+| Safety and privacy | No new permission, service, telemetry, account, network request, external export, log mutation, automatic retry, or schema change is permitted. |
+| Verification | Domain classifier, DAO filtering/order, navigation, screen empty state, resource parity, and CI must all pass. |
+
+### Explicitly deferred after v3.46
+
+Free-text search, date-range and multi-select filters, completed-only history, a typed persisted outcome migration, raw technical-log exposure, retry configuration, autonomous retries, background-service expansion, remote diagnostics, accounts, telemetry, export, and destructive log actions remain outside this release.
+
+[18]: https://macrodroidforum.com/wiki/index.php/Overview "MacroDroid — Overview"
+[19]: https://llamalab.com/automate/doc/block/failure_catch.html "Automate — Failure catch"
+[20]: https://developer.android.com/develop/background-work "Android Developers — Background work"
+[21]: https://developer.android.com/about/versions/14/changes/fgs-types-required "Android Developers — Foreground service types are required"

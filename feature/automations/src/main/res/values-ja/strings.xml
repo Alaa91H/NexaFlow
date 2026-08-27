@@ -458,4 +458,7 @@
 
     <!-- Local execution-history outcome filtering. -->
     <string name="view_failures">失敗を表示</string>
+
+    <!-- Routine health navigation to skipped executions. -->
+    <string name="view_skipped_runs">スキップされた実行を表示</string>
 </resources>

@@ -37,4 +37,10 @@
     <string name="history_filter_failed">失敗</string>
     <string name="no_failed_runs_title">失敗した実行はありません</string>
     <string name="no_failed_runs_subtitle">このフィルターに一致する失敗した実行はありません。</string>
+
+    <!-- Local skipped-execution history filtering. -->
+    <string name="status_skipped">スキップ</string>
+    <string name="history_filter_skipped">スキップ</string>
+    <string name="no_skipped_runs_title">スキップされた実行はありません</string>
+    <string name="no_skipped_runs_subtitle">このフィルターに一致するスキップされた実行はありません。</string>
 </resources>

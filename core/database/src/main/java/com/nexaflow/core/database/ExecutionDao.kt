@@ -39,6 +39,22 @@ interface ExecutionDao {
         success: Boolean?
     ): PagingSource<Int, ExecutionRecordEntity>
 
+    /**
+     * Pageable view of intentionally skipped runs. The skip protocol is a
+     * successful record whose persisted message matches [skipMessageLike].
+     */
+    @Query(
+        "SELECT * FROM execution_history " +
+            "WHERE (:automationId IS NULL OR automationId = :automationId) " +
+            "AND success = 1 " +
+            "AND message LIKE :skipMessageLike " +
+            "ORDER BY executedAt DESC"
+    )
+    fun getExecutionsPagedSkipped(
+        automationId: String?,
+        skipMessageLike: String
+    ): PagingSource<Int, ExecutionRecordEntity>
+
     @Query("SELECT * FROM execution_history ORDER BY executedAt DESC LIMIT 1")
     suspend fun getLatestExecution(): ExecutionRecordEntity?
 

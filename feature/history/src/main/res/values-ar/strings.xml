@@ -37,4 +37,10 @@
     <string name="history_filter_failed">الفاشلة</string>
     <string name="no_failed_runs_title">لا توجد تشغيلات فاشلة</string>
     <string name="no_failed_runs_subtitle">لا توجد عمليات تنفيذ فاشلة تطابق هذا الفلتر.</string>
+
+    <!-- Local skipped-execution history filtering. -->
+    <string name="status_skipped">تم التخطي</string>
+    <string name="history_filter_skipped">المتخطاة</string>
+    <string name="no_skipped_runs_title">لا توجد تشغيلات متخطاة</string>
+    <string name="no_skipped_runs_subtitle">لا توجد عمليات تنفيذ متخطاة تطابق هذا الفلتر.</string>
 </resources>

@@ -37,4 +37,10 @@
     <string name="history_filter_failed">Ошибки</string>
     <string name="no_failed_runs_title">Нет запусков с ошибкой</string>
     <string name="no_failed_runs_subtitle">Нет запусков с ошибкой, соответствующих этому фильтру.</string>
+
+    <!-- Local skipped-execution history filtering. -->
+    <string name="status_skipped">Пропущено</string>
+    <string name="history_filter_skipped">Пропущенные</string>
+    <string name="no_skipped_runs_title">Нет пропущенных запусков</string>
+    <string name="no_skipped_runs_subtitle">Нет пропущенных запусков, соответствующих этому фильтру.</string>
 </resources>

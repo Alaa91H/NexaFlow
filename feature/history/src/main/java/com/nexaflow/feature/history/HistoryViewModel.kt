@@ -7,6 +7,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.nexaflow.domain.models.ExecutionHistoryOutcome
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.usecases.GetExecutionPagingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,34 +31,32 @@ class HistoryViewModel @Inject constructor(
     /** True only when this destination was opened from one routine's health card. */
     val isRoutineHistory: Boolean = routineId != null
 
-    private val _showFailuresOnly = MutableStateFlow(
-        savedStateHandle.get<String>("outcome")?.equals(FAILED_OUTCOME, ignoreCase = true) == true
+    /** Null means all recorded runs; a non-null value is filtered by Room Paging. */
+    private val _selectedOutcome = MutableStateFlow(
+        ExecutionHistoryOutcome.fromRoute(savedStateHandle.get<String>("outcome"))
     )
-    val showFailuresOnly = _showFailuresOnly.asStateFlow()
+    val selectedOutcome = _selectedOutcome.asStateFlow()
 
     /**
      * Pageable history. The table is capped at 1000 rows, so materializing the
      * whole list on every DB change is wasteful; Paging streams [PAGE_SIZE]
      * rows at a time and is cached for the ViewModel's lifetime.
      */
-    val pagingData: Flow<PagingData<ExecutionRecord>> = showFailuresOnly
-        .map { failuresOnly ->
+    val pagingData: Flow<PagingData<ExecutionRecord>> = selectedOutcome
+        .map { outcome ->
             Pager(
                 config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
-                pagingSourceFactory = {
-                    getExecutionPaging(routineId, success = if (failuresOnly) false else null)
-                }
+                pagingSourceFactory = { getExecutionPaging(routineId, outcome) }
             ).flow
         }
         .flatMapLatest { it }
         .cachedIn(viewModelScope)
 
-    fun setShowFailuresOnly(enabled: Boolean) {
-        _showFailuresOnly.value = enabled
+    fun setSelectedOutcome(outcome: ExecutionHistoryOutcome?) {
+        _selectedOutcome.value = outcome
     }
 
     private companion object {
-        const val FAILED_OUTCOME = "failed"
         const val PAGE_SIZE = 30
     }
 }

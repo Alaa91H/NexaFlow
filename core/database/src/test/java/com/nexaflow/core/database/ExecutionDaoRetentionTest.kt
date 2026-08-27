@@ -120,6 +120,38 @@ class ExecutionDaoRetentionTest {
     }
 
     @Test
+    fun pagedSkippedHistory_returnsOnlySkippedRunsForSelectedRoutineNewestFirst() = runBlocking {
+        dao.insertExecution(entity("completed", 50L, automationId = "routine-a"))
+        dao.insertExecution(
+            entity("a-old-skip", 10L, automationId = "routine-a")
+                .copy(message = "Skipped: maintenance waiting for CHARGING_REQUIRED")
+        )
+        dao.insertExecution(
+            entity("a-new-skip", 30L, automationId = "routine-a")
+                .copy(message = "Skipped: constraint not met")
+        )
+        dao.insertExecution(
+            entity("failed", 40L, automationId = "routine-a")
+                .copy(success = false, message = "network unavailable")
+        )
+        dao.insertExecution(
+            entity("other-skip", 60L, automationId = "routine-b")
+                .copy(message = "Skipped: other routine")
+        )
+
+        val result = dao.getExecutionsPagedSkipped("routine-a", "Skipped:%").load(
+            PagingSource.LoadParams.Refresh(
+                key = null,
+                loadSize = 10,
+                placeholdersEnabled = false
+            )
+        )
+
+        val page = result as PagingSource.LoadResult.Page<Int, ExecutionRecordEntity>
+        assertEquals(listOf("a-new-skip", "a-old-skip"), page.data.map { it.id })
+    }
+
+    @Test
     fun insertWithRetention_prunesExpiredHistoryAtomically() = runBlocking {
         val now = System.currentTimeMillis()
         dao.insertExecution(entity("expired", now - ExecutionDao.RETENTION_MS - 1_000))

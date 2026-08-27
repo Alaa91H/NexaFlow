@@ -31,9 +31,9 @@ object AutomationHealthAnalyzer {
             .filter { it.automationId == automationId }
             .sortedByDescending { it.executedAt }
             .toList()
-        val skipped = relevant.count { it.success && it.message.startsWith(SKIPPED_PREFIX) }
-        val failed = relevant.count { !it.success }
-        val completed = relevant.count { it.success && !it.message.startsWith(SKIPPED_PREFIX) }
+        val skipped = relevant.count(ExecutionOutcomeClassifier::isSkipped)
+        val failed = relevant.count { ExecutionOutcomeClassifier.classify(it) == ExecutionHistoryOutcome.FAILED }
+        val completed = relevant.count { it.success && !ExecutionOutcomeClassifier.isSkipped(it) }
         val consecutiveFailures = relevant.takeWhile { !it.success }.size
         val latestFailure = relevant.firstOrNull { !it.success }?.message
         return AutomationHealthReport(
@@ -52,5 +52,4 @@ object AutomationHealthAnalyzer {
         )
     }
 
-    private const val SKIPPED_PREFIX = "Skipped:"
 }

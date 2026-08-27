@@ -458,4 +458,7 @@
 
     <!-- Local execution-history outcome filtering. -->
     <string name="view_failures">查看失败项</string>
+
+    <!-- Routine health navigation to skipped executions. -->
+    <string name="view_skipped_runs">查看已跳过的执行</string>
 </resources>

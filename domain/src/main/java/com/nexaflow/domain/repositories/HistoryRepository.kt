@@ -1,6 +1,7 @@
 package com.nexaflow.domain.repositories
 
 import androidx.paging.PagingSource
+import com.nexaflow.domain.models.ExecutionHistoryOutcome
 import com.nexaflow.domain.models.ExecutionRecord
 import kotlinx.coroutines.flow.Flow
 
@@ -25,6 +26,20 @@ interface HistoryRepository {
         success: Boolean?
     ): PagingSource<Int, ExecutionRecord> =
         automationId?.takeIf { it.isNotBlank() }?.let { getExecutionPaging(it) } ?: getExecutionPaging()
+
+    /**
+     * Pageable history with one explicit diagnostic outcome. The default keeps
+     * legacy test doubles safe while real implementations may filter skipped
+     * records at the database layer.
+     */
+    fun getExecutionPaging(
+        automationId: String?,
+        outcome: ExecutionHistoryOutcome?
+    ): PagingSource<Int, ExecutionRecord> = when (outcome) {
+        ExecutionHistoryOutcome.FAILED -> getExecutionPaging(automationId, success = false)
+        ExecutionHistoryOutcome.SKIPPED,
+        null -> getExecutionPaging(automationId, success = null)
+    }
 
     suspend fun getExecutionById(id: String): ExecutionRecord?
     suspend fun recordExecution(record: ExecutionRecord)

@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,6 +47,8 @@ import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.theme.NexaFlowTheme
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.StatusPill
+import com.nexaflow.domain.models.ExecutionHistoryOutcome
+import com.nexaflow.domain.models.ExecutionOutcomeClassifier
 import com.nexaflow.domain.models.ExecutionRecord
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -55,13 +59,13 @@ import java.util.Locale
 @Composable
 fun HistoryScreen(navController: NavController) {
     val viewModel: HistoryViewModel = hiltViewModel()
-    val showFailuresOnly by viewModel.showFailuresOnly.collectAsStateWithLifecycle()
+    val selectedOutcome by viewModel.selectedOutcome.collectAsStateWithLifecycle()
     HistoryContent(
         // Streams pages from Room instead of materializing the whole table.
         history = viewModel.pagingData.collectAsLazyPagingItems(),
         isRoutineHistory = viewModel.isRoutineHistory,
-        showFailuresOnly = showFailuresOnly,
-        onShowFailuresOnlyChange = viewModel::setShowFailuresOnly,
+        selectedOutcome = selectedOutcome,
+        onSelectedOutcomeChange = viewModel::setSelectedOutcome,
         onBack = { navController.popBackStack() },
         onOpen = { id -> navController.navigate("execution_details/$id") }
     )
@@ -79,8 +83,8 @@ internal fun HistoryContent(
     onBack: () -> Unit,
     onOpen: (String) -> Unit,
     isRoutineHistory: Boolean = false,
-    showFailuresOnly: Boolean = false,
-    onShowFailuresOnlyChange: (Boolean) -> Unit = {}
+    selectedOutcome: ExecutionHistoryOutcome? = null,
+    onSelectedOutcomeChange: (ExecutionHistoryOutcome?) -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -131,16 +135,24 @@ internal fun HistoryContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 HistoryOutcomeFilters(
-                    showFailuresOnly = showFailuresOnly,
-                    onShowFailuresOnlyChange = onShowFailuresOnlyChange
+                    selectedOutcome = selectedOutcome,
+                    onSelectedOutcomeChange = onSelectedOutcomeChange
                 )
                 EmptyState(
                     icon = Icons.Filled.History,
                     title = stringResource(
-                        if (showFailuresOnly) R.string.no_failed_runs_title else R.string.no_runs_title
+                        when (selectedOutcome) {
+                            ExecutionHistoryOutcome.FAILED -> R.string.no_failed_runs_title
+                            ExecutionHistoryOutcome.SKIPPED -> R.string.no_skipped_runs_title
+                            null -> R.string.no_runs_title
+                        }
                     ),
                     subtitle = stringResource(
-                        if (showFailuresOnly) R.string.no_failed_runs_subtitle else R.string.no_runs_subtitle
+                        when (selectedOutcome) {
+                            ExecutionHistoryOutcome.FAILED -> R.string.no_failed_runs_subtitle
+                            ExecutionHistoryOutcome.SKIPPED -> R.string.no_skipped_runs_subtitle
+                            null -> R.string.no_runs_subtitle
+                        }
                     )
                 )
             }
@@ -154,8 +166,8 @@ internal fun HistoryContent(
             ) {
                 item {
                     HistoryOutcomeFilters(
-                        showFailuresOnly = showFailuresOnly,
-                        onShowFailuresOnlyChange = onShowFailuresOnlyChange
+                        selectedOutcome = selectedOutcome,
+                        onSelectedOutcomeChange = onSelectedOutcomeChange
                     )
                 }
                 // Paging 3.4 API: LazyPagingItems exposes stable key/contentType
@@ -249,7 +261,13 @@ private fun HistoryCard(
                 )
             }
             StatusPill(
-                text = if (entry.success) stringResource(R.string.status_success) else stringResource(R.string.status_failed),
+                text = stringResource(
+                    when {
+                        !entry.success -> R.string.status_failed
+                        ExecutionOutcomeClassifier.isSkipped(entry) -> R.string.status_skipped
+                        else -> R.string.status_success
+                    }
+                ),
                 background = if (entry.success) NexaFlowTheme.colors.successContainer else MaterialTheme.colorScheme.errorContainer,
                 contentColor = if (entry.success) NexaFlowTheme.colors.success else MaterialTheme.colorScheme.error
             )
@@ -272,24 +290,31 @@ internal fun channelLabelRes(channel: String): Int {
 }
 
 /** Local, read-only outcome controls for global or routine-scoped execution history. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun HistoryOutcomeFilters(
-    showFailuresOnly: Boolean,
-    onShowFailuresOnlyChange: (Boolean) -> Unit
+    selectedOutcome: ExecutionHistoryOutcome?,
+    onSelectedOutcomeChange: (ExecutionHistoryOutcome?) -> Unit
 ) {
-    Row(
+    FlowRow(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         FilterChip(
-            selected = !showFailuresOnly,
-            onClick = { onShowFailuresOnlyChange(false) },
+            selected = selectedOutcome == null,
+            onClick = { onSelectedOutcomeChange(null) },
             label = { Text(stringResource(R.string.history_filter_all_runs)) }
         )
         FilterChip(
-            selected = showFailuresOnly,
-            onClick = { onShowFailuresOnlyChange(true) },
+            selected = selectedOutcome == ExecutionHistoryOutcome.FAILED,
+            onClick = { onSelectedOutcomeChange(ExecutionHistoryOutcome.FAILED) },
             label = { Text(stringResource(R.string.history_filter_failed)) }
+        )
+        FilterChip(
+            selected = selectedOutcome == ExecutionHistoryOutcome.SKIPPED,
+            onClick = { onSelectedOutcomeChange(ExecutionHistoryOutcome.SKIPPED) },
+            label = { Text(stringResource(R.string.history_filter_skipped)) }
         )
     }
 }

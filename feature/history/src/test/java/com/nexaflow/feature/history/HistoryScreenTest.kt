@@ -1,6 +1,7 @@
 package com.nexaflow.feature.history
 
 import android.content.Context
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -16,10 +17,12 @@ import androidx.paging.PagingState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.domain.models.ActionExecutionResult
+import com.nexaflow.domain.models.ExecutionHistoryOutcome
 import com.nexaflow.domain.models.ExecutionRecord
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -46,23 +49,32 @@ class HistoryScreenTest {
 
     private val context: Context = ApplicationProvider.getApplicationContext()
 
-    private fun record(id: String, name: String, success: Boolean = true) = ExecutionRecord(
+    private fun record(
+        id: String,
+        name: String,
+        success: Boolean = true,
+        message: String = "completed"
+    ) = ExecutionRecord(
         id = id,
         automationId = "a-$id",
         automationName = name,
         success = success,
-        message = "completed",
+        message = message,
         executedAt = 1_700_000_000_000L,
         channel = "ROOT",
         actionResults = listOf(ActionExecutionResult("SYSTEM_BRIGHTNESS", true, "ok", 5))
     )
 
-    private fun setScreen(flow: Flow<PagingData<ExecutionRecord>>) {
+    private fun setScreen(
+        flow: Flow<PagingData<ExecutionRecord>>,
+        selectedOutcome: ExecutionHistoryOutcome? = null
+    ) {
         composeRule.setContent {
             HistoryContent(
                 history = flow.collectAsLazyPagingItems(),
                 onBack = {},
-                onOpen = {}
+                onOpen = {},
+                selectedOutcome = selectedOutcome
             )
         }
     }
@@ -117,6 +129,18 @@ class HistoryScreenTest {
         composeRule.onNodeWithText(context.getString(R.string.no_runs_subtitle)).assertIsDisplayed()
     }
 
+    @Test
+    fun skippedFilterEmptyState_explainsThatNoSkippedRunsMatch() {
+        setScreen(
+            flow = Pager(PagingConfig(pageSize = 30)) { EmptySource() }.flow,
+            selectedOutcome = ExecutionHistoryOutcome.SKIPPED
+        )
+
+        waitForText(context.getString(R.string.no_skipped_runs_title))
+        composeRule.onNodeWithText(context.getString(R.string.no_skipped_runs_title)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.no_skipped_runs_subtitle)).assertIsDisplayed()
+    }
+
     // --- populated list -----------------------------------------------------
 
     @Test
@@ -137,6 +161,48 @@ class HistoryScreenTest {
         composeRule.onNodeWithText("Night Mode").assertIsDisplayed()
         // The channel line is rendered for the stored provider (e.g. "via Root").
         composeRule.onNodeWithText(context.getString(R.string.status_failed)).assertIsDisplayed()
+    }
+
+    @Test
+    fun skippedState_showsSkippedStatusPill() {
+        setScreen(
+            flowOf(
+                PagingData.from(
+                    listOf(
+                        record(
+                            id = "skip",
+                            name = "Charging maintenance",
+                            message = "Skipped: maintenance waiting for CHARGING_REQUIRED"
+                        )
+                    )
+                )
+            )
+        )
+
+        waitForText("Charging maintenance")
+        composeRule.onNodeWithText(context.getString(R.string.status_skipped)).assertIsDisplayed()
+    }
+
+    @Test
+    fun skippedFilterChip_selectsSkippedOutcome() {
+        val selectedOutcome = mutableStateOf<ExecutionHistoryOutcome?>(null)
+        composeRule.setContent {
+            HistoryContent(
+                history = Pager(PagingConfig(pageSize = 30)) { EmptySource() }
+                    .flow
+                    .collectAsLazyPagingItems(),
+                onBack = {},
+                onOpen = {},
+                selectedOutcome = selectedOutcome.value,
+                onSelectedOutcomeChange = { selectedOutcome.value = it }
+            )
+        }
+
+        waitForText(context.getString(R.string.history_filter_skipped))
+        composeRule.onNodeWithText(context.getString(R.string.history_filter_skipped)).performClick()
+        composeRule.runOnIdle {
+            assertEquals(ExecutionHistoryOutcome.SKIPPED, selectedOutcome.value)
+        }
     }
 
     // --- fakes --------------------------------------------------------------

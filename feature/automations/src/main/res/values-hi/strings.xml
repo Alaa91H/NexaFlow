@@ -458,4 +458,7 @@
 
     <!-- Local execution-history outcome filtering. -->
     <string name="view_failures">विफलताएँ देखें</string>
+
+    <!-- Routine health navigation to skipped executions. -->
+    <string name="view_skipped_runs">छोड़े गए निष्पादन देखें</string>
 </resources>

@@ -37,4 +37,10 @@
     <string name="history_filter_failed">Fallidas</string>
     <string name="no_failed_runs_title">No hay ejecuciones fallidas</string>
     <string name="no_failed_runs_subtitle">Ninguna ejecución fallida coincide con este filtro.</string>
+
+    <!-- Local skipped-execution history filtering. -->
+    <string name="status_skipped">Omitida</string>
+    <string name="history_filter_skipped">Omitidas</string>
+    <string name="no_skipped_runs_title">No hay ejecuciones omitidas</string>
+    <string name="no_skipped_runs_subtitle">Ninguna ejecución omitida coincide con este filtro.</string>
 </resources>

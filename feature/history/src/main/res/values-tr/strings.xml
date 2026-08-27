@@ -37,4 +37,10 @@
     <string name="history_filter_failed">Başarısız</string>
     <string name="no_failed_runs_title">Başarısız yürütme yok</string>
     <string name="no_failed_runs_subtitle">Bu filtreyle eşleşen başarısız yürütme yok.</string>
+
+    <!-- Local skipped-execution history filtering. -->
+    <string name="status_skipped">Atlandı</string>
+    <string name="history_filter_skipped">Atlananlar</string>
+    <string name="no_skipped_runs_title">Atlanan yürütme yok</string>
+    <string name="no_skipped_runs_subtitle">Bu filtreyle eşleşen atlanan yürütme yok.</string>
 </resources>

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.annotation.StringRes
 import com.nexaflow.domain.models.ActionExecutionResult
 import com.nexaflow.domain.models.ExecutionRecord
+import com.nexaflow.domain.models.ExecutionOutcomeClassifier
 import com.nexaflow.domain.models.ExecutionResultClassification
 import com.nexaflow.domain.models.ExecutionResultClassifier
 
@@ -40,7 +41,7 @@ object ExecutionResultPresentation {
                 else ->
                     R.string.execution_conditions_not_satisfied_end_behavior_failed
             }
-            record.success && record.message.startsWith(SKIPPED_PREFIX) ->
+            ExecutionOutcomeClassifier.isSkipped(record) ->
                 R.string.execution_task_skipped
             record.success ->
                 R.string.execution_task_completed
@@ -65,7 +66,6 @@ object ExecutionResultPresentation {
         else -> R.string.execution_action_failed
     }
 
-    private const val SKIPPED_PREFIX = "Skipped:"
     private const val STATE_RESTORE = "STATE_RESTORE"
     private const val END_ACTION_SUFFIX = "_END"
 }

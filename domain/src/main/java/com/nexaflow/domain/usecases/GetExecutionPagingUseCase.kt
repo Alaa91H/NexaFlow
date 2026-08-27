@@ -1,5 +1,6 @@
 package com.nexaflow.domain.usecases
 
+import com.nexaflow.domain.models.ExecutionHistoryOutcome
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.repositories.HistoryRepository
 import androidx.paging.PagingSource
@@ -10,11 +11,11 @@ class GetExecutionPagingUseCase @Inject constructor(
 ) {
     operator fun invoke(
         automationId: String? = null,
-        success: Boolean? = null
+        outcome: ExecutionHistoryOutcome? = null
     ): PagingSource<Int, ExecutionRecord> =
-        if (automationId.isNullOrBlank() && success == null) {
+        if (automationId.isNullOrBlank() && outcome == null) {
             repository.getExecutionPaging()
         } else {
-            repository.getExecutionPaging(automationId, success)
+            repository.getExecutionPaging(automationId, outcome)
         }
 }

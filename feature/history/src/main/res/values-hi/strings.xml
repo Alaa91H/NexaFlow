@@ -37,4 +37,10 @@
     <string name="history_filter_failed">विफल</string>
     <string name="no_failed_runs_title">कोई विफल निष्पादन नहीं</string>
     <string name="no_failed_runs_subtitle">कोई विफल निष्पादन इस फ़िल्टर से मेल नहीं खाता।</string>
+
+    <!-- Local skipped-execution history filtering. -->
+    <string name="status_skipped">छोड़ा गया</string>
+    <string name="history_filter_skipped">छोड़े गए</string>
+    <string name="no_skipped_runs_title">कोई छोड़ा गया निष्पादन नहीं</string>
+    <string name="no_skipped_runs_subtitle">कोई छोड़ा गया निष्पादन इस फ़िल्टर से मेल नहीं खाता।</string>
 </resources>

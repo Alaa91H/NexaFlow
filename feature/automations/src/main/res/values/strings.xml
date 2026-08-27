@@ -457,4 +457,7 @@
 
     <!-- Local execution-history outcome filtering. -->
     <string name="view_failures">View failures</string>
+
+    <!-- Routine health navigation to skipped executions. -->
+    <string name="view_skipped_runs">View skipped runs</string>
 </resources>

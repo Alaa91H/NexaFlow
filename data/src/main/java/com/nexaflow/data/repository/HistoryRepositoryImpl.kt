@@ -5,6 +5,8 @@ import com.nexaflow.core.database.ExecutionDao
 import com.nexaflow.data.mapper.toDomain
 import com.nexaflow.data.mapper.toEntity
 import com.nexaflow.data.paging.MappedPagingSource
+import com.nexaflow.domain.models.ExecutionHistoryOutcome
+import com.nexaflow.domain.models.ExecutionOutcomeClassifier
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.repositories.HistoryRepository
 import kotlinx.coroutines.flow.Flow
@@ -36,6 +38,25 @@ class HistoryRepositoryImpl @Inject constructor(
         return MappedPagingSource(
             executionDao.getExecutionsPagedFiltered(automationId, success)
         ) { it.toDomain() }
+    }
+
+    override fun getExecutionPaging(
+        automationId: String?,
+        outcome: ExecutionHistoryOutcome?
+    ): PagingSource<Int, ExecutionRecord> {
+        return when (outcome) {
+            ExecutionHistoryOutcome.SKIPPED -> MappedPagingSource(
+                executionDao.getExecutionsPagedSkipped(
+                    automationId = automationId,
+                    skipMessageLike = ExecutionOutcomeClassifier.SKIPPED_MESSAGE_PREFIX + "%"
+                )
+            ) { it.toDomain() }
+            ExecutionHistoryOutcome.FAILED,
+            null -> getExecutionPaging(
+                automationId = automationId,
+                success = if (outcome == ExecutionHistoryOutcome.FAILED) false else null
+            )
+        }
     }
 
     override suspend fun getExecutionById(id: String): ExecutionRecord? {

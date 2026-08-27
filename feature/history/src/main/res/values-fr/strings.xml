@@ -37,4 +37,10 @@
     <string name="history_filter_failed">Échecs</string>
     <string name="no_failed_runs_title">Aucune exécution en échec</string>
     <string name="no_failed_runs_subtitle">Aucune exécution en échec ne correspond à ce filtre.</string>
+
+    <!-- Local skipped-execution history filtering. -->
+    <string name="status_skipped">Ignorée</string>
+    <string name="history_filter_skipped">Ignorées</string>
+    <string name="no_skipped_runs_title">Aucune exécution ignorée</string>
+    <string name="no_skipped_runs_subtitle">Aucune exécution ignorée ne correspond à ce filtre.</string>
 </resources>

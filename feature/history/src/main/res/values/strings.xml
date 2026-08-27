@@ -37,4 +37,10 @@
     <string name="history_filter_failed">Failures</string>
     <string name="no_failed_runs_title">No failed runs</string>
     <string name="no_failed_runs_subtitle">No failed executions match this filter.</string>
+
+    <!-- Local skipped-execution history filtering. -->
+    <string name="status_skipped">Skipped</string>
+    <string name="history_filter_skipped">Skipped runs</string>
+    <string name="no_skipped_runs_title">No skipped runs</string>
+    <string name="no_skipped_runs_subtitle">No skipped executions match this filter.</string>
 </resources>
