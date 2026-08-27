@@ -978,7 +978,7 @@
     <string name="network_mode_unavailable">Bu cihaz veya abonelik için gerçekten desteklenen ağ modları kullanılamıyor. Doğrulanmamış seçenekler gösterilmez.</string>
     <string name="network_mode_configured">Yapılandırılmış ağ türleri: %1$s</string>
     <string name="network_mode_effective">Etkin ağ türleri: %1$s</string>
-    <string name="network_mode_data_sim">Veri SIM'i</string>
+    <string name="network_mode_data_sim">Veri SIM\'i</string>
     <string name="network_mode_grant_phone_permission">Telefon durumuna erişime izin ver</string>
 
     <string name="action_private_dns">Özel DNS</string>
