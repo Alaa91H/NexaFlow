@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.50.0] - 2026-08-27
+
+### Added
+- Added a first-class **Hotspot** trigger with an explicit `ON` / `OFF` state. It is indexed under the existing connectivity source, evaluated by the durable connectivity monitor, represented in manual condition gating, and rendered in the builder, dashboard, and routine details.
+- Added bounded, local-only diagnostics to unreadable cellular network-mode capability snapshots. The editor can now distinguish a missing `READ_PHONE_STATE` grant, unavailable elevated session, failed privileged command, or unparseable returned cellular mask instead of showing one opaque unavailable state.
+- Added regression coverage proving that Hotspot is addable, the legacy combined Connectivity picker option is hidden for new tasks, and the new type resolves to the canonical connectivity source.
+
+### Changed
+- Updated the network-mode capability card to use the targeted root permission-and-refresh flow when Shizuku is not the live route. After the root result, the card reloads its capability snapshot rather than retaining the stale unreadable result.
+- Simplified the new-trigger connectivity picker by hiding the legacy combined **Connectivity** entry. Saved Connectivity automations remain readable, editable, and executable for compatibility; dedicated Hotspot and Cellular Network entries replace its duplicated new-task choices.
+- Updated manual hotspot evaluation so an unreadable `tether_on` setting remains unknown. It cannot be interpreted as `OFF` or initiate a speculative end path.
+
+### Fixed
+- Escaped the French Hotspot label according to Android resource syntax, restoring Android resource compilation and lint acceptance.
+
+### Compatibility and safety
+- No saved automation is migrated, deleted, or rewritten by this release. Existing legacy Connectivity records—including historic hotspot/network-mode configurations—continue to load so users can preserve or intentionally replace them.
+- Network-mode writes retain the existing same-subscription privileged write-and-read-back verification. A root grant does not override OEM, RIL, modem, SIM, or carrier restrictions; an unconfirmed or unparsable result stays unavailable rather than being reported as applied.
+
 ## [v3.49.0] - 2026-08-27
 
 ### Added

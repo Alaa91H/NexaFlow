@@ -1,47 +1,47 @@
-# NexaFlow v3.49.0 — Durable State and Recovery Safety
+# NexaFlow v3.50.0 — Root Network Diagnostics and Dedicated Hotspot Trigger
 
 **Release date:** 2026-08-27
+**Release scope:** Root-assisted cellular capability diagnostics, a dedicated Hotspot trigger, and a simplified new-task connectivity picker.
 
-**Release scope:** Automation-engine reliability hardening
+## Overview
 
-**Baseline:** v3.48.0
+v3.50.0 resolves a recurring usability failure in which the cellular network-mode editor could only report that supported modes were unavailable, even after the user had granted elevated access. The release does not invent device capabilities or declare a radio-mode write successful solely because a root command launched. Instead, it makes the privileged read path diagnosable, refreshes the capability card after the targeted root permission flow completes, and preserves same-subscription read-back verification for every network-mode write.
 
-## Release summary
+The release also separates **Hotspot** into its own `ON` / `OFF` trigger. The legacy combined **Connectivity** trigger is intentionally hidden from the picker for new tasks because its former menu duplicated dedicated Hotspot and Cellular Network functionality. Existing saved Connectivity automations remain compatible and are neither migrated nor rewritten.
 
-NexaFlow v3.49.0 hardens the automation lifecycle at the boundary where Android state reads, action execution, recovery, and end behavior meet. The release extends occurrence-aware ownership to the consolidated settings-state monitor, prevents interrupted actions from losing their recovery evidence, and makes whole-device restore failures visible to the exit coordinator instead of reporting a false successful exit.
-
-The implementation is intentionally conservative. An unreadable setting, unavailable adapter, missing platform service, or event that cannot be re-derived later is treated as **unknown**, not as a confirmed false condition. In those cases NexaFlow preserves lifecycle evidence and records a safe manual skip rather than running end actions speculatively.
-
-## What changed
+## Delivered changes
 
 | Area | Delivered behavior |
 |---|---|
-| Settings-state triggers | `POWER_SAVER`, Bluetooth/Wi-Fi/NFC state, brightness, storage, rotation, data saver, device lock, location switch, and screen rotation now use `SATISFIED` / `NOT_SATISFIED` / `UNKNOWN` evaluation. A source-owned durable occurrence is admitted before main effects, and only a confirmed false state can request coordinated exit. |
-| Interrupted actions | An action cancelled after durable start is retained as `ACTION_UNKNOWN`. Startup recovery claims it and marks it `RECOVERY_REQUIRED` for verification or compensation; it is never replayed automatically. One-shot end actions do not run after an uncertain main action. |
-| Restore-on-exit | Whole-snapshot restore aggregates actual `SystemControlResult` values for the setting families changed by the automation. `STATE_RESTORE` now reports the true result, allowing a failed exit to remain durable as `EXIT_FAILED`. |
-| Manual Run now | Manual condition gating now consumes typed `ConditionResult`. Unverifiable event-only and ambiguous legacy reads produce a visible skip with no synthesized end behavior. Confirmed false conditions retain the explicit end-behavior path. |
-| Connectivity | A failed hotspot `tether_on` read now remains unknown rather than being interpreted as `OFF`, preventing an accidental lifecycle exit. |
-| Battery and charging | Corrected sustained-state handling so an active battery threshold or charger occurrence stays active while its configured condition still holds. |
-| Privileged commands | The location-mode helper now builds its elevated `settings put` command through the shared `SafeCommandBuilder`, rather than composing a variable shell string. |
+| Root network-mode capability read | `NetworkModeSnapshot` carries a bounded, local-only diagnostic when the app cannot derive a confirmed mode mask. The editor distinguishes missing `READ_PHONE_STATE`, unavailable elevated access, a failed privileged read, and an unparseable returned cellular mask. |
+| Root permission refresh | When Shizuku is not the live path, the cellular-mode editor invokes the targeted root prompt and runtime-phone-state permission flow. It then reloads its capability state instead of retaining a stale unreadable snapshot. |
+| Write verification | The existing privileged write → read-back flow remains mandatory and subscription-scoped. A non-confirmed radio mode remains an observable failure; it is not shown as applied. |
+| Hotspot trigger | New `TriggerType.HOTSPOT` supports `ON` / `OFF`, maps to the existing connectivity source, participates in monitor and manual evaluation, and is rendered in the builder, dashboard, and routine details. |
+| Simplified picker | The legacy combined Connectivity item is no longer addable for new tasks. Dedicated Hotspot and Cellular Network choices remain available. Legacy Connectivity records can still be viewed, edited, and executed. |
+| Unknown-safe handling | A failed manual `tether_on` read stays `UNKNOWN`, not `OFF`, preventing a read failure from matching a negative state or synthesizing an end path. |
+| Localization | Added dashboard labels for Hotspot across every shipped locale and corrected Android escaping for the French string. |
 
 ## Verification
 
-The implementation candidate passed the complete remote GitHub Actions pipeline in [run 33055298598](https://github.com/Alaa91H/NexaFlow/actions/runs/33055298598). The accepted workflow completed resource hygiene and locale parity checks, Python resource-gate tests, Detekt, Android Lint, the Android unit-test suite, debug and release APK builds, release AAB build, dependency-verification validation, packaged-manifest/permission checks, APK signature verification, 16 KB native-library alignment, zip alignment, and bundle validation.
+The implementation commit was accepted by the complete remote GitHub Actions pipeline: [run 33061943012](https://github.com/Alaa91H/NexaFlow/actions/runs/33061943012). The successful workflow ran resource hygiene and locale-parity checks, resource-gate tests, Detekt, Android Lint, the Android unit-test suite, debug/release APK builds, release AAB build, dependency verification, packaged-permission verification, APK signing verification, native-library 16 KB alignment checks, zip alignment, and bundle validation.
 
-> No local Gradle build, lint task, or unit test was executed. Gradle acceptance for this release is provided exclusively by remote GitHub Actions.
+> No local Gradle build, lint task, or unit test was run. All Gradle acceptance was performed remotely in GitHub Actions.
 
-## Scope and limitations
+## Compatibility and operational limits
 
-This release hardens the **settings-state** source family in addition to the prior time-range, connectivity, and battery/charger lifecycle work. It does **not** claim that every monitor is occurrence-aware. Location geofence, Bluetooth-device, device-event, ringer, media, notification, sensor, ROM-setting, calendar, and other legacy direct-exit sources still require source-specific migration and regression coverage.
+Android exposes public subscription-scoped allowed-network-type APIs from API 33, while privileged shell access depends on the ROM's telephony service. AOSP accepts `root` or `shell` for its `cmd phone` allowed-network-type commands, but availability, output format, carrier restrictions, radio persistence, and resulting mode support can still vary by OEM, modem, SIM, and carrier. NexaFlow therefore presents actual local diagnostic evidence and keeps unavailable/unparseable results unavailable; it does not fall back to an unsafe global setting or claim universal baseband control. [1] [2]
 
-Cross-automation ownership of the same device setting is also intentionally not introduced here. NexaFlow does not yet provide a global setting-ownership stack, precedence policy, or user-intervention reconciliation for overlapping reversible automations. Deleting an active automation before coordinated exit, stale legacy active-key expiry outside migrated sources, one-shot alarm late-delivery policy, elapsed-time cooldown migration, SMS cross-ingress deduplication, and Android/OEM background-delivery variation remain tracked risks.
+No database migration, new runtime permission declaration, telemetry, cloud service, or user-data collection is introduced. Granting root remains entirely under the device's root manager. The application only requests the already-declared `READ_PHONE_STATE` grant when the user explicitly starts the elevated network-mode recovery flow.
 
-Android can restrict background delivery, exact-alarm access, carrier/telephony behavior, and privileged setting writes depending on device, OEM, user permission, power management, and available elevated runtime. This release preserves observable failure and recovery state rather than claiming universal platform execution.
+## Upgrade guidance
 
-## Full audit record
+After installing v3.50.0, open a Cellular Network action and tap the elevated-access control if the card reports that `READ_PHONE_STATE` is not granted. Once the root manager returns, the capability card refreshes automatically. If the result reports a failed privileged read or an unreadable mask, retain the diagnostic when comparing the device's ROM, modem, SIM, and carrier configuration; do not treat the presence of root alone as a guarantee that the telephony service exposes a supported control path.
 
-The code-derived architecture map, trigger catalog, implementation evidence, Android references, and explicit deferred risks are recorded in [`docs/AUTOMATION_ENGINE_AUDIT_2026.md`](docs/AUTOMATION_ENGINE_AUDIT_2026.md).
+Create new tethering automations through **Hotspot** under Connectivity and choose **On** or **Off**. Existing combined Connectivity rules continue to load for compatibility; users can replace them intentionally with dedicated rules when appropriate.
 
-## Upgrade notes
+## References
 
-No database migration, new runtime permission, cloud service, telemetry, or user-data collection is introduced by v3.49.0. Users upgrading from v3.48.0 retain their existing automations. Existing settings-state compatibility keys are promoted to a local durable occurrence on monitor startup when an eligible automation remains available; no missing original-state snapshot is invented during that compatibility promotion.
+[1]: https://developer.android.com/reference/android/telephony/TelephonyManager#setAllowedNetworkTypesForReason(int,long) "Android Developers: setAllowedNetworkTypesForReason"
+[2]: https://android.googlesource.com/platform/packages/services/Telephony/+/master/src/com/android/phone/TelephonyShellCommand.java "AOSP: TelephonyShellCommand"
+[3]: https://github.com/Dhangofa/NetToggle "NetToggle: comparable Root/Shizuku diagnostic approach"
+[4]: https://github.com/aunchagaonkar/NetworkSwitch "NetworkSwitch: comparable Root/Shizuku control approach"
