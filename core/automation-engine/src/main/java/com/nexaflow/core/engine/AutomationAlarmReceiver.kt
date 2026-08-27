@@ -128,7 +128,7 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                         occurrenceId = occurrenceId
                     )) {
                         is ExitCoordinatorResult.RecoveryRequired ->
-                            Log.w(TAG, "Exit needs recovery for $automationId: ${exit.state.lastFailure}")
+                            Log.w(TAG, "Exit needs recovery for $automationId: ${exit.state.lastError}")
                         ExitCoordinatorResult.AlreadyInProgress ->
                             Log.i(TAG, "Exit already in progress for $automationId")
                         ExitCoordinatorResult.StaleOccurrence ->
