@@ -19,6 +19,8 @@ import android.telephony.TelephonyManager
  */
 data class NetworkModeSnapshot(
     val subscriptions: List<Subscription>,
+    /** The data subscription Android currently reports, when the platform exposes one. */
+    val activeDataSubscriptionId: Int?,
     val status: Status
 ) {
     enum class Status {
@@ -31,9 +33,15 @@ data class NetworkModeSnapshot(
     data class Subscription(
         val subscriptionId: Int,
         val slotIndex: Int,
+        /** Confirmed hardware/carrier mask used to construct selectable profiles. */
         val selectableMask: Long,
-        val currentUserMask: Long?,
+        /** The USER allowed-network-types reason; this is configuration, not the live RAT. */
+        val configuredUserMask: Long?,
+        /** The readable USER ∩ CARRIER restriction. Null means no complete read-back is available. */
+        val knownEffectiveMask: Long?,
+        /** The radio technology currently reported for this subscription's packet data, if readable. */
         val currentDataNetworkType: Int?,
+        val isActiveDataSubscription: Boolean,
         val options: List<NetworkModePolicy.Option>
     )
 }
@@ -49,17 +57,34 @@ class NetworkModeCapabilities(private val context: Context) {
 
     fun read(): NetworkModeSnapshot {
         if (!context.packageManager.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
-            return NetworkModeSnapshot(emptyList(), NetworkModeSnapshot.Status.NO_TELEPHONY)
+            return NetworkModeSnapshot(
+                subscriptions = emptyList(),
+                activeDataSubscriptionId = null,
+                status = NetworkModeSnapshot.Status.NO_TELEPHONY
+            )
         }
         val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
-            ?: return NetworkModeSnapshot(emptyList(), NetworkModeSnapshot.Status.NO_TELEPHONY)
+            ?: return NetworkModeSnapshot(
+                subscriptions = emptyList(),
+                activeDataSubscriptionId = null,
+                status = NetworkModeSnapshot.Status.NO_TELEPHONY
+            )
         if (!hasReadPhoneState()) {
-            return NetworkModeSnapshot(emptyList(), NetworkModeSnapshot.Status.UNREADABLE)
+            return NetworkModeSnapshot(
+                subscriptions = emptyList(),
+                activeDataSubscriptionId = null,
+                status = NetworkModeSnapshot.Status.UNREADABLE
+            )
         }
         val subscriptions = activeSubscriptions()
         if (subscriptions.isEmpty()) {
-            return NetworkModeSnapshot(emptyList(), NetworkModeSnapshot.Status.NO_ACTIVE_SUBSCRIPTION)
+            return NetworkModeSnapshot(
+                subscriptions = emptyList(),
+                activeDataSubscriptionId = null,
+                status = NetworkModeSnapshot.Status.NO_ACTIVE_SUBSCRIPTION
+            )
         }
+        val activeDataSubscriptionId = activeDataSubscriptionId()
 
         val snapshots = subscriptions.mapNotNull { subscription ->
             val scoped = telephony.createForSubscriptionId(subscription.subscriptionId)
@@ -87,7 +112,7 @@ class NetworkModeCapabilities(private val context: Context) {
              * device, and only its subsets are offered. It is never combined
              * with an invented universal 2G/3G/4G/5G list.
              */
-            val elevatedUserMask = if (platformSelectableMask == null) {
+            val elevatedUserMask = if (platformSelectableMask == null || platformUserMask == null) {
                 readElevatedUserMask(
                     slotIndex = subscription.simSlotIndex,
                     subscriptionId = subscription.subscriptionId
@@ -97,20 +122,31 @@ class NetworkModeCapabilities(private val context: Context) {
             }
             val selectableMask = platformSelectableMask ?: elevatedUserMask
                 ?: return@mapNotNull null
-            val currentUserMask = platformUserMask ?: elevatedUserMask
+            val configuredUserMask = platformUserMask ?: elevatedUserMask
+            // Android applies the intersection of every active reason. The app
+            // can only report an effective mask when both USER and CARRIER are
+            // readable; other reasons remain intentionally undisclosed instead
+            // of being guessed from the current RAT.
+            val knownEffectiveMask = NetworkModePolicy.effectiveMask(
+                userMask = platformUserMask,
+                carrierMask = carrierMask
+            )
 
             NetworkModeSnapshot.Subscription(
                 subscriptionId = subscription.subscriptionId,
                 slotIndex = subscription.simSlotIndex,
                 selectableMask = selectableMask,
-                currentUserMask = currentUserMask,
+                configuredUserMask = configuredUserMask,
+                knownEffectiveMask = knownEffectiveMask,
                 currentDataNetworkType = readCurrentDataNetworkType(scoped),
+                isActiveDataSubscription = subscription.subscriptionId == activeDataSubscriptionId,
                 options = NetworkModePolicy.optionsFor(selectableMask)
             )
         }
 
         return NetworkModeSnapshot(
             subscriptions = snapshots,
+            activeDataSubscriptionId = activeDataSubscriptionId,
             status = if (snapshots.isEmpty()) NetworkModeSnapshot.Status.UNREADABLE
             else NetworkModeSnapshot.Status.AVAILABLE
         )
@@ -169,6 +205,21 @@ class NetworkModeCapabilities(private val context: Context) {
     private fun hasReadPhoneState(): Boolean =
         context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) ==
             PackageManager.PERMISSION_GRANTED
+
+    /**
+     * Uses the Android 11 active-data identity when available and the older
+     * default-data identity otherwise. Both are subscription ids, never slots.
+     */
+    private fun activeDataSubscriptionId(): Int? {
+        val id = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            runCatching { SubscriptionManager.getActiveDataSubscriptionId() }
+                .getOrDefault(SubscriptionManager.INVALID_SUBSCRIPTION_ID)
+        } else {
+            runCatching { SubscriptionManager.getDefaultDataSubscriptionId() }
+                .getOrDefault(SubscriptionManager.INVALID_SUBSCRIPTION_ID)
+        }
+        return id.takeUnless { it == SubscriptionManager.INVALID_SUBSCRIPTION_ID }
+    }
 
     private fun activeSubscriptions(): List<android.telephony.SubscriptionInfo> {
         if (context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) !=

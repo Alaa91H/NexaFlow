@@ -976,6 +976,9 @@
     <string name="network_mode_reading">正在读取可用网络模式…</string>
     <string name="network_mode_sim">SIM 卡 %1$d</string>
     <string name="network_mode_unavailable">无法获取此设备或订阅实际支持的网络模式。不会显示未经确认的选项。</string>
+    <string name="network_mode_configured">已配置的网络类型：%1$s</string>
+    <string name="network_mode_effective">有效网络类型：%1$s</string>
+    <string name="network_mode_data_sim">数据 SIM 卡</string>
     <string name="network_mode_grant_phone_permission">允许访问电话状态</string>
 
     <string name="action_private_dns">私人 DNS</string>

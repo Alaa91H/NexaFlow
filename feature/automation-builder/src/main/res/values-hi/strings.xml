@@ -976,6 +976,9 @@
     <string name="network_mode_reading">उपलब्ध नेटवर्क मोड पढ़े जा रहे हैं…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">इस डिवाइस या सदस्यता के लिए वास्तव में समर्थित नेटवर्क मोड उपलब्ध नहीं हैं। असमर्थित विकल्प नहीं दिखाए जाते।</string>
+    <string name="network_mode_configured">कॉन्फ़िगर किए गए नेटवर्क प्रकार: %1$s</string>
+    <string name="network_mode_effective">प्रभावी नेटवर्क प्रकार: %1$s</string>
+    <string name="network_mode_data_sim">डेटा SIM</string>
     <string name="network_mode_grant_phone_permission">फ़ोन स्थिति की अनुमति दें</string>
 
     <string name="action_private_dns">निजी DNS</string>

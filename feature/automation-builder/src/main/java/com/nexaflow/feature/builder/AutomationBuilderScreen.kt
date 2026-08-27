@@ -182,6 +182,7 @@ import com.nexaflow.core.execution.compat.CommandRequirementCatalog
 import com.nexaflow.core.pluginsdk.LocaleContract
 import com.nexaflow.core.pluginsdk.PluginConfigParser
 import com.nexaflow.core.rom.ElevatedAccessShortcuts
+import com.nexaflow.core.rom.NetworkModePolicy
 import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowAnimatedVisibility
@@ -581,6 +582,10 @@ private fun actionSummaryDetail(option: ActionOption, config: Map<String, String
             "$stream · ${config["value"] ?: "50"}"
         }
         ActionType.SYSTEM_NETWORK_MODE -> when (config["mode"] ?: "AUTO") {
+            "DYNAMIC" -> config["network_mask"]?.toLongOrNull()
+                ?.takeIf { it > 0L }
+                ?.let(NetworkModePolicy::describe)
+                ?: stringResource(R.string.network_mode_auto)
             "2G" -> stringResource(R.string.network_mode_2g)
             "3G" -> stringResource(R.string.network_mode_3g)
             "4G" -> stringResource(R.string.network_mode_4g)

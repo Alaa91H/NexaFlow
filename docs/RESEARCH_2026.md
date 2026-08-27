@@ -254,3 +254,33 @@ Free-text search, date-range and multi-select filters, completed-only history, a
 [19]: https://llamalab.com/automate/doc/block/failure_catch.html "Automate — Failure catch"
 [20]: https://developer.android.com/develop/background-work "Android Developers — Background work"
 [21]: https://developer.android.com/about/versions/14/changes/fgs-types-required "Android Developers — Foreground service types are required"
+
+
+## Cellular network-mode control review
+
+A focused post-v3.46 review compared the existing NexaFlow path with current Android/AOSP contracts and maintained Root/Shizuku projects. The review confirms that NexaFlow already has a substantive multi-SIM, dynamic-capability, elevated-backend implementation; the appropriate work is therefore a targeted reliability refinement, not a parallel `core/telephony` stack.
+
+Android's `setAllowedNetworkTypesForReason` requires `MODIFY_PHONE_STATE` or carrier privileges and applies the intersection across all reasons. The paired getter requires `READ_PRIVILEGED_PHONE_STATE` or carrier privileges. Consequently a normal app holding only `READ_PHONE_STATE` cannot truthfully claim native write or read-back capability, even when the symbols are present in the SDK [22]. AOSP's `cmd phone` handler permits these commands only to the shell UID, maps `-s` from a slot string to a valid subscription, calls the `USER` reason, and prints a failure message while returning process exit code `0` in both the completed and failed cases. Shell exit status must therefore never be treated as proof of application [23].
+
+| Reviewed source | Confirmed implication for NexaFlow |
+|---|---|
+| Android/AOSP allowed-network-types contract | Prefer subscription-pinned framework calls only when their elevated privilege is actually available; require read-back equality, and never infer success from dispatch. |
+| AOSP TelephonyShell | Preserve the existing closed typed argv and per-slot/default fallback. Treat command text and post-write read-back as authoritative, not process exit alone. |
+| `SubscriptionManager` | Keep `subscriptionId` distinct from `simSlotIndex`; use active subscription records for hardware slots and expose the active data subscription independently [26]. |
+| `TelephonyDisplayInfo` / `NetworkRegistrationInfo` | Current RAT, configured allowed types, and effective allowed types are separate. `TelephonyDisplayInfo` may signal NR NSA on LTE but is display-oriented, while packet-switched `NetworkRegistrationInfo` distinguishes connected NR [24] [25]. |
+| Shizuku | Shizuku mediates a privileged system-server context; availability and permission must be checked independently from the ability of a particular telephony operation to succeed [27]. |
+| NetToggle comparison | A current Root/Shizuku network-mode utility also documents device/ROM/modem/SIM/carrier variability rather than promising universal ordinary-app control [28]. |
+
+### Root cause and selected scope
+
+The primary correctness risk is not a missing static network-mode list. The current implementation already derives options from confirmed masks and protects typed elevated commands against injection. The remaining defects are ambiguity at the identity/verification boundary: legacy all-SIM writes can fall back to a synthetic subscription id when active subscriptions are unreadable, while the capability snapshot does not explicitly expose the active data subscription or distinguish the configured user mask from the effective carrier-constrained mask.
+
+The selected follow-on must therefore: (1) make the active-data identity visible in the read-only capability snapshot and prefer it as the UI default, (2) model configured versus effective allowed masks explicitly, and (3) refuse an all-SIM legacy write when active subscription identity cannot be verified. It must retain the existing native-first / Shizuku-or-Root / legacy ladder, closed `PrivilegedOperation` arguments, read-back verification, no-telephony handling, and existing generation trigger semantics. It will not claim a universal unprivileged native backend, add privileged permissions, introduce shell text supplied by users, or simulate radio stabilization through blocking sleeps.
+
+[22]: https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/telephony/java/android/telephony/TelephonyManager.java "AOSP TelephonyManager — allowed network types permissions and intersection"
+[23]: https://android.googlesource.com/platform/packages/services/Telephony/+/refs/heads/main/src/com/android/phone/TelephonyShellCommand.java "AOSP TelephonyShellCommand — allowed network types handler"
+[24]: https://developer.android.com/reference/android/telephony/TelephonyDisplayInfo "Android Developers — TelephonyDisplayInfo"
+[25]: https://developer.android.com/reference/android/telephony/NetworkRegistrationInfo "Android Developers — NetworkRegistrationInfo"
+[26]: https://developer.android.com/reference/android/telephony/SubscriptionManager "Android Developers — SubscriptionManager"
+[27]: https://github.com/RikkaApps/Shizuku "Shizuku — official repository and API guidance"
+[28]: https://github.com/Dhangofa/NetToggle "NetToggle — Root/Shizuku network-mode comparison"

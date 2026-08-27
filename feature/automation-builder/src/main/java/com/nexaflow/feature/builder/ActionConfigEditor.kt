@@ -120,9 +120,11 @@ internal fun NetworkModeSelector(
             else -> when (state.status) {
                 NetworkModeSnapshot.Status.AVAILABLE -> {
                     val subscriptions = state.subscriptions
-                    val selectedSubscriptionId = config["network_subscription_id"]?.toIntOrNull()
-                        ?.takeIf { id -> subscriptions.any { it.subscriptionId == id } }
-                        ?: subscriptions.first().subscriptionId
+                    val selectedSubscriptionId = NetworkModePolicy.selectSubscriptionId(
+                        savedSubscriptionId = config["network_subscription_id"]?.toIntOrNull(),
+                        activeDataSubscriptionId = state.activeDataSubscriptionId,
+                        availableSubscriptionIds = subscriptions.map { it.subscriptionId }
+                    ) ?: subscriptions.first().subscriptionId
                     val selectedSubscription = subscriptions.first { it.subscriptionId == selectedSubscriptionId }
                     if (subscriptions.size > 1) {
                         FlowRow(
@@ -131,6 +133,10 @@ internal fun NetworkModeSelector(
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             subscriptions.forEach { subscription ->
+                                val simLabel = stringResource(
+                                    R.string.network_mode_sim,
+                                    subscription.slotIndex + 1
+                                )
                                 SelectChip(
                                     selected = subscription.subscriptionId == selectedSubscriptionId,
                                     onClick = {
@@ -139,23 +145,36 @@ internal fun NetworkModeSelector(
                                                 "network_mask"
                                         )
                                     },
-                                    label = stringResource(
-                                        R.string.network_mode_sim,
-                                        subscription.slotIndex + 1
-                                    )
+                                    label = if (subscription.isActiveDataSubscription) {
+                                        "$simLabel · ${stringResource(R.string.network_mode_data_sim)}"
+                                    } else {
+                                        simLabel
+                                    }
                                 )
                             }
                         }
                     }
-                    selectedSubscription.currentUserMask?.let { current ->
+                    selectedSubscription.configuredUserMask?.let { configured ->
                         Text(
                             text = stringResource(
-                                R.string.network_mode_current,
-                                NetworkModePolicy.describe(current)
+                                R.string.network_mode_configured,
+                                NetworkModePolicy.describe(configured)
                             ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.secondary
                         )
+                        selectedSubscription.knownEffectiveMask
+                            ?.takeIf { it != configured }
+                            ?.let { effective ->
+                                Text(
+                                    text = stringResource(
+                                        R.string.network_mode_effective,
+                                        NetworkModePolicy.describe(effective)
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
                     }
                     val savedMask = config["network_mask"]?.toLongOrNull()
                     FlowRow(

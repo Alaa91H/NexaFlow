@@ -976,6 +976,9 @@
     <string name="network_mode_reading">Lecture des modes réseau disponibles…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Les modes réseau réellement pris en charge sont indisponibles pour cet appareil ou cet abonnement. Aucune option non confirmée n’est affichée.</string>
+    <string name="network_mode_configured">Types de réseau configurés : %1$s</string>
+    <string name="network_mode_effective">Types de réseau effectifs : %1$s</string>
+    <string name="network_mode_data_sim">SIM de données</string>
     <string name="network_mode_grant_phone_permission">Autoriser l’accès au téléphone</string>
 
     <string name="action_private_dns">DNS privé</string>

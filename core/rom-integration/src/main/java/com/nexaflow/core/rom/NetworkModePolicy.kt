@@ -156,6 +156,35 @@ object NetworkModePolicy {
         (requested and BITMASK_SELECTABLE_CELLULAR) == (actual and BITMASK_SELECTABLE_CELLULAR)
 
     /**
+     * Selects a confirmed subscription without confusing slot index and
+     * subscription id. A valid explicit saved choice is stable across data-SIM
+     * changes; otherwise the current data subscription is the safest default
+     * for a new dual-SIM action.
+     */
+    fun selectSubscriptionId(
+        savedSubscriptionId: Int?,
+        activeDataSubscriptionId: Int?,
+        availableSubscriptionIds: List<Int>
+    ): Int? {
+        val available = availableSubscriptionIds.distinct()
+        return savedSubscriptionId?.takeIf { it in available }
+            ?: activeDataSubscriptionId?.takeIf { it in available }
+            ?: available.firstOrNull()
+    }
+
+    /**
+     * Returns the effective cellular restriction that can be established from
+     * both readable framework reasons. Android may additionally apply other
+     * reasons, so an absent input deliberately remains unknown rather than
+     * being replaced by the current RAT or a synthetic full mask.
+     */
+    fun effectiveMask(userMask: Long?, carrierMask: Long?): Long? {
+        if (userMask == null || carrierMask == null) return null
+        return (userMask and carrierMask and BITMASK_SELECTABLE_CELLULAR)
+            .takeIf { it > 0L }
+    }
+
+    /**
      * Parses AOSP/OEM `cmd phone` read-back output into a selectable cellular
      * mask. Binary must be considered before decimal: a short binary mask such
      * as `1000000000000000` is also syntactically a decimal number but means a

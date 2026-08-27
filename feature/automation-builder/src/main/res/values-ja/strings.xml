@@ -976,6 +976,9 @@
     <string name="network_mode_reading">利用可能なネットワーク モードを読み込んでいます…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">この端末または契約で実際に対応するネットワーク モードを取得できません。未確認の選択肢は表示しません。</string>
+    <string name="network_mode_configured">設定済みのネットワーク タイプ: %1$s</string>
+    <string name="network_mode_effective">有効なネットワーク タイプ: %1$s</string>
+    <string name="network_mode_data_sim">データ SIM</string>
     <string name="network_mode_grant_phone_permission">電話の状態へのアクセスを許可</string>
 
     <string name="action_private_dns">プライベート DNS</string>

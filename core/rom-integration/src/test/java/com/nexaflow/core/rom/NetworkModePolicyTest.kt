@@ -232,6 +232,60 @@ class NetworkModePolicyTest {
     }
 
     @Test
+    fun `effective mask intersects user and carrier restrictions without inventing a result`() {
+        val user = NetworkModePolicy.BITMASK_5G or NetworkModePolicy.BITMASK_4G
+        val carrier = NetworkModePolicy.BITMASK_4G or NetworkModePolicy.BITMASK_3G
+
+        assertEquals(NetworkModePolicy.BITMASK_4G, NetworkModePolicy.effectiveMask(user, carrier))
+        assertEquals(null, NetworkModePolicy.effectiveMask(user, null))
+        assertEquals(null, NetworkModePolicy.effectiveMask(null, carrier))
+        assertEquals(
+            null,
+            NetworkModePolicy.effectiveMask(NetworkModePolicy.BITMASK_5G, NetworkModePolicy.BITMASK_4G)
+        )
+    }
+
+    @Test
+    fun `subscription selection preserves a valid saved SIM before the active data SIM`() {
+        assertEquals(
+            7,
+            NetworkModePolicy.selectSubscriptionId(
+                savedSubscriptionId = 7,
+                activeDataSubscriptionId = 2,
+                availableSubscriptionIds = listOf(2, 7)
+            )
+        )
+    }
+
+    @Test
+    fun `subscription selection chooses active data SIM then first confirmed SIM`() {
+        assertEquals(
+            7,
+            NetworkModePolicy.selectSubscriptionId(
+                savedSubscriptionId = 99,
+                activeDataSubscriptionId = 7,
+                availableSubscriptionIds = listOf(2, 7)
+            )
+        )
+        assertEquals(
+            2,
+            NetworkModePolicy.selectSubscriptionId(
+                savedSubscriptionId = null,
+                activeDataSubscriptionId = 99,
+                availableSubscriptionIds = listOf(2, 7)
+            )
+        )
+        assertEquals(
+            null,
+            NetworkModePolicy.selectSubscriptionId(
+                savedSubscriptionId = null,
+                activeDataSubscriptionId = null,
+                availableSubscriptionIds = emptyList()
+            )
+        )
+    }
+
+    @Test
     fun `coversReadBack rejects failure outputs`() {
         val req = NetworkModePolicy.request("4G")
         assertFalse(NetworkModePolicy.coversReadBack("", req))

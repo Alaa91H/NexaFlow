@@ -976,6 +976,9 @@
     <string name="network_mode_reading">Reading available network modes…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Actual supported network modes are unavailable for this device or subscription. No unsupported options are shown.</string>
+    <string name="network_mode_configured">Configured network types: %1$s</string>
+    <string name="network_mode_effective">Effective network types: %1$s</string>
+    <string name="network_mode_data_sim">Data SIM</string>
     <string name="network_mode_grant_phone_permission">Allow phone access</string>
     <string name="network_mode_phone_permission_hint">Allow phone access to read active SIMs and the network modes actually supported by your device. Changing a network mode also requires root, Shizuku, or system-app access.</string>
 

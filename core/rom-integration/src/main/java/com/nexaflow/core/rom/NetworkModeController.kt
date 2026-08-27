@@ -43,6 +43,11 @@ class NetworkModeController(
         return try {
             val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
                 ?: return SystemControlResult.fail("Telephony service unavailable")
+            if (!hasReadPhoneState()) {
+                return SystemControlResult.fail(
+                    "Cannot identify active SIM subscriptions without phone-state permission"
+                )
+            }
             if (requestedMask != null) {
                 val selectedSubId = subscriptionId
                     ?: return SystemControlResult.fail("Dynamic network mode requires a selected SIM subscription")
@@ -63,7 +68,7 @@ class NetworkModeController(
                     )
                 }
             }
-            val activeSubIds = activeSubscriptionIds(telephony)
+            val activeSubIds = activeSubscriptionIds()
             if (activeSubIds.isEmpty()) {
                 return SystemControlResult.fail("No active SIM subscription found")
             }
@@ -102,7 +107,7 @@ class NetworkModeController(
         // options readable on OEM ROMs which block the app-level API.
         val masks = NetworkModeCapabilities(context).read().subscriptions
             .mapNotNull { subscription ->
-                subscription.currentUserMask
+                subscription.configuredUserMask
                     ?.takeIf { it > 0L }
                     ?.let { subscription.subscriptionId to it }
             }
@@ -119,7 +124,7 @@ class NetworkModeController(
         }
         val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
             ?: return SystemControlResult.fail("Telephony service unavailable")
-        val active = activeSubscriptionIds(telephony).toSet()
+        val active = activeSubscriptionIds().toSet()
         val applicable = snapshots.filterKeys { it in active }
         if (applicable.isEmpty()) {
             return SystemControlResult.fail("No captured SIM subscription is active")
@@ -264,30 +269,23 @@ class NetworkModeController(
         context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) ==
             PackageManager.PERMISSION_GRANTED
 
-    /** Active subscription ids, falling back to the primary slot id (or 0). */
-    private fun activeSubscriptionIds(telephony: TelephonyManager): List<Int> {
-        val ids = if (context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) ==
-            PackageManager.PERMISSION_GRANTED
-        ) {
-            runCatching {
-                context.getSystemService(SubscriptionManager::class.java)
-                    ?.activeSubscriptionInfoList
-                    .orEmpty()
-                    .map { it.subscriptionId }
-            }.getOrDefault(emptyList())
-        } else {
-            emptyList()
-        }
-        if (ids.isNotEmpty()) return ids.distinct()
-        // TelephonyManager#getSubscriptionId was only added in API 30.
-        val subId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            runCatching { telephony.subscriptionId }
-                .getOrDefault(SubscriptionManager.INVALID_SUBSCRIPTION_ID)
-        } else {
-            SubscriptionManager.INVALID_SUBSCRIPTION_ID
-        }
-        val safe = if (subId == SubscriptionManager.INVALID_SUBSCRIPTION_ID) 0 else subId
-        return listOf(safe)
+    /**
+     * Returns only subscription ids confirmed active by SubscriptionManager.
+     *
+     * A synthetic `0` or a default manager subscription is not safe here: the
+     * allowed-network-types APIs are subscription-scoped, and applying a
+     * legacy all-SIM action to an inferred id could alter the wrong radio.
+     */
+    private fun activeSubscriptionIds(): List<Int> {
+        if (!hasReadPhoneState()) return emptyList()
+        return runCatching {
+            context.getSystemService(SubscriptionManager::class.java)
+                ?.activeSubscriptionInfoList
+                .orEmpty()
+                .map { it.subscriptionId }
+                .filter { it != SubscriptionManager.INVALID_SUBSCRIPTION_ID }
+                .distinct()
+        }.getOrDefault(emptyList())
     }
 
     private class ReflectCall(val dispatched: Boolean, val value: Any?)

@@ -975,6 +975,9 @@
     <string name="network_mode_reading">جارٍ قراءة أوضاع الشبكة المتاحة…</string>
     <string name="network_mode_sim">الشريحة %1$d</string>
     <string name="network_mode_unavailable">أوضاع الشبكة المدعومة فعلياً غير متاحة لهذه الشريحة أو الجهاز، لذلك لا تظهر خيارات غير مؤكدة.</string>
+    <string name="network_mode_configured">أنواع الشبكة المُعدّة: %1$s</string>
+    <string name="network_mode_effective">أنواع الشبكة الفعّالة: %1$s</string>
+    <string name="network_mode_data_sim">شريحة بيانات</string>
     <string name="network_mode_grant_phone_permission">السماح بالوصول إلى حالة الهاتف</string>
 
     <string name="action_private_dns">DNS خاص</string>

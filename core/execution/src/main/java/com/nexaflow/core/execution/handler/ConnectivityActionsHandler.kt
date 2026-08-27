@@ -3,6 +3,8 @@ package com.nexaflow.core.execution.handler
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** Wi-Fi, Bluetooth, mobile data, hotspot, NFC, airplane mode, location. */
 class ConnectivityActionsHandler : ActionHandler {
@@ -23,11 +25,17 @@ class ConnectivityActionsHandler : ActionHandler {
             ActionType.SYSTEM_WIFI -> ctx.controller.setWifi(enabled)
             ActionType.SYSTEM_BLUETOOTH -> ctx.controller.setBluetooth(enabled)
             ActionType.SYSTEM_MOBILE_DATA -> ctx.controller.setMobileData(enabled)
-            ActionType.SYSTEM_NETWORK_MODE -> ctx.controller.setNetworkMode(
-                mode = action.config["mode"] ?: "AUTO",
-                requestedMask = action.config["network_mask"]?.toLongOrNull(),
-                subscriptionId = action.config["network_subscription_id"]?.toIntOrNull()
-            )
+            // Root/Shizuku paths can wait for a process and framework calls can
+            // block on a remote telephony binder. Keep this explicit at the
+            // handler boundary because workflow executors are intentionally
+            // dispatcher-agnostic.
+            ActionType.SYSTEM_NETWORK_MODE -> withContext(Dispatchers.IO) {
+                ctx.controller.setNetworkMode(
+                    mode = action.config["mode"] ?: "AUTO",
+                    requestedMask = action.config["network_mask"]?.toLongOrNull(),
+                    subscriptionId = action.config["network_subscription_id"]?.toIntOrNull()
+                )
+            }
             ActionType.SYSTEM_HOTSPOT -> ctx.controller.setHotspot(enabled)
             ActionType.SYSTEM_NFC -> ctx.controller.setNfc(enabled)
             ActionType.SYSTEM_AIRPLANE_MODE -> ctx.controller.setAirplaneMode(enabled)

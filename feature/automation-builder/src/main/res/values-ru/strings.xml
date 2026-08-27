@@ -976,6 +976,9 @@
     <string name="network_mode_reading">Чтение доступных режимов сети…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Фактически поддерживаемые режимы сети недоступны для этого устройства или подписки. Неподтверждённые варианты не показаны.</string>
+    <string name="network_mode_configured">Настроенные типы сети: %1$s</string>
+    <string name="network_mode_effective">Действующие типы сети: %1$s</string>
+    <string name="network_mode_data_sim">SIM для передачи данных</string>
     <string name="network_mode_grant_phone_permission">Разрешить доступ к состоянию телефона</string>
 
     <string name="action_private_dns">Частный DNS</string>
