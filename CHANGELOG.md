@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.48.0] - 2026-08-27
+
+### Added
+- Added a bounded, local occurrence-aware runtime ledger for stateful automation exits. The ledger persists `ACTIVE`, `EXITING`, and observable `EXIT_FAILED` lifecycle states before main actions can acquire effects.
+- Added a single `ExitCoordinator` that atomically claims a matching occurrence before end behavior executes, preventing duplicate exits when trigger-false, time-window-end, process-recovery, or boot-recovery signals race.
+- Added immutable time-range occurrence and configuration-generation tokens to scheduled start/end alarms, together with deterministic coverage for stale-generation, end-window, atomic-claim, failed-exit, and recovery behavior.
+- Added local snapshot serialization support for restore-on-exit recovery; malformed stored snapshots are rejected safely.
+
+### Changed
+- Updated time-range scheduling and alarm delivery to validate occurrence id, generation, window start, and window end against durable schedule state before execution. A late start for an expired range is consumed and rescheduled rather than applied late.
+- Updated the connectivity and battery/charger monitors to use durable lifecycle admission and coordinated exits. Compatibility active keys are retained until exit has completed or no active occurrence remains.
+- Updated process, boot, clock, and exact-alarm-access reconciliation to rebuild valid schedule identity and resume only safe elapsed-window or visible failed-exit cleanup.
+- Bounded automatic failed-exit recovery to one additional attempt after the initial exit attempt; a further failure remains visible for diagnosis instead of producing an unbounded retry loop.
+
+### Fixed
+- Prevented a monitor race, process death, or exit-action failure from clearing the only evidence that a stateful automation still requires exit cleanup.
+- Prevented stale or reconfigured time-window end alarms from consuming a newer automation lifecycle.
+- Resolved CI findings uncovered during this release cycle, including a lifecycle-state exhaustiveness condition, test/module visibility contracts, and deterministic monitor-fixture assertions.
+
 ## [v3.47.0] - 2026-08-27
 
 ### Added

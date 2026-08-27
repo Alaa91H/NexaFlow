@@ -1,31 +1,41 @@
-# NexaFlow v3.47.0
+# NexaFlow v3.48.0 — Durable Exit Lifecycle
 
-NexaFlow v3.47.0 hardens the existing cellular network-mode action for real dual-SIM devices. It makes the distinction between a SIM's **configured user restriction**, its **known effective restriction**, and the device's **current radio technology** explicit, while preserving NexaFlow's conservative, device-derived mode selection.
+NexaFlow v3.48.0 delivers a reliability-focused hardening of stateful automation exits. The release addresses conditions in which an automation had already applied changes but its required exit behavior could be lost during a monitor race, a stale scheduled alarm, an action failure, or process recovery.
 
 ## What changed
 
-The Network Mode editor now identifies the active data SIM and uses it as the default for a newly configured action. A previously saved, still-active SIM remains the user's explicit choice. This avoids confusing a physical slot number with a subscription ID and improves predictable behavior when a phone has two active SIMs.
+| Area | Improvement |
+|---|---|
+| Durable lifecycle ownership | Added a bounded, local DataStore runtime ledger with explicit `ACTIVE`, `EXITING`, and `EXIT_FAILED` states. A stateful occurrence is admitted and persisted before its main actions run. |
+| Idempotent exit coordination | Added one `ExitCoordinator` that atomically claims a matching active occurrence before invoking exit behavior. Competing trigger-false, time-window-end, or recovery signals cannot execute the same logical exit twice. |
+| Time-range alarms | Start and end alarms now carry a deterministic occurrence identifier, configuration generation, window start, and window end. The receiver validates all of them against the durable schedule record before acting, so an old or reconfigured end alarm cannot consume a newer lifecycle. |
+| Late and recovered work | An already-expired range start is consumed safely and the next occurrence is armed instead of applying late side effects. Process, boot, clock, and exact-alarm-access reconciliation can resume safe elapsed-window cleanup. |
+| Connectivity and battery | Connectivity plus battery/charger paths now acquire lifecycle ownership through the durable ledger and route known condition-end signals through the coordinator. Legacy active-key cleanup occurs only after a completed exit or verified absence of an active occurrence. |
+| Recoverable failure | An unsuccessful exit remains visible as `EXIT_FAILED`; it is never silently discarded. Automatic recovery is bounded to one additional attempt after the initial exit attempt, after which the durable failure remains available for diagnosis. |
 
-When Android exposes both the USER and CARRIER allowed-network-type reasons, NexaFlow shows their known intersection as the effective restriction. The configured USER mask and the effective mask are intentionally separate. The app does not fabricate an effective value from the currently registered RAT, because a live LTE or NR connection is not proof of the configured allowed-network-types mask.
+## Reliability and safety model
 
-Dynamic network-mode actions are now summarized with their device-confirmed radio families instead of being shown incorrectly as **Auto**. Applying this action is also explicitly dispatched on `Dispatchers.IO`, so telephony binder work and elevated Root/Shizuku processes cannot block the workflow caller's main thread.
+A lifecycle transition is the source of truth, not a process-local collection. The coordinator performs `ACTIVE → EXITING` durably before exit actions begin, records an unsuccessful result as `EXIT_FAILED`, and removes an occurrence only after successful exit completion. Device-state snapshots used for restore-on-exit are serialized locally for recovered exits and malformed stored snapshots fail closed.
 
-## Reliability and safety
+Receiver work remains bounded: the alarm receiver retains ownership while it validates the durable occurrence and calls the coordinator, using `goAsync()` and a bounded wake lock. This follows Android's receiver-lifetime guidance: asynchronous receiver work must still complete promptly and must call `finish()`.[1]
 
-Legacy all-SIM actions no longer fall back to a synthetic subscription ID when Android cannot provide an active subscription list. NexaFlow now fails safely with a clear phone-state-permission reason rather than risking a network-mode write to an inferred SIM.
-
-The capability reader retains its existing native-first, elevated fallback design and now also uses the reviewed Root/Shizuku USER-mask read-back when the framework exposes selectable hardware/carrier support but blocks the app-level USER getter. Stored dynamic modes remain numeric masks only at the platform boundary; the editor continues to derive choices from confirmed device data rather than from a universal 2G/3G/4G/5G list.
-
-> Android's public `setAllowedNetworkTypesForReason` API requires `MODIFY_PHONE_STATE` or carrier privileges, and its getter requires privileged phone-state access or carrier privileges. Root or Shizuku availability therefore remains a capability to try and verify—not a promise that a carrier, modem, OEM build, or system interface will accept a requested configuration.
+> Recovery never treats an unknown connectivity or battery reading as a false condition. A known elapsed time-range end or visible failed exit is required before automatic cleanup is attempted.
 
 ## Verification
 
-The functional release candidate passed the full GitHub Actions pipeline, including resource hygiene and locale parity, Python resource-gate tests, Detekt, Android Lint, Android unit tests, debug and release APK builds, release AAB build, dependency verification, APK permission and signature checks, zip alignment, 16 KB native-library alignment, and bundle validation.
+The final candidate passed the full remote GitHub Actions pipeline: resource hygiene and locale parity, Python resource-gate tests, Detekt, Android Lint, all Android unit tests, debug and release APK builds, release AAB build, dependency-verification validation, packaged-permission checks, APK signature verification, 16 KB native-library alignment, zip alignment, and bundle validation.
 
-During release validation, CI identified and the release fixed an Android-resource escaping issue in the Turkish Data SIM label and made the explicit phone-state permission guard visible to Android Lint. No local Gradle build was performed; all build and test acceptance is provided by the remote pipeline.
+The release validation cycle also corrected CI-detected Kotlin exhaustiveness, visibility-boundary, and deterministic test-fixture issues. No local Gradle build or test was run; build and test acceptance is provided by the remote pipeline.
 
 ## Scope and limitations
 
-This release adds no account, cloud service, telemetry, new runtime permission, hidden permission, schema migration, automated retry, vendor-specific command, or user-supplied shell execution. It does not represent a current RAT as proof of a configured radio mode, nor does it claim universal unprivileged control over Android telephony.
+This release deliberately covers **time ranges, connectivity, and battery/charger** stateful exit paths. Other legacy monitor families that still own direct exit paths are not represented as covered by this release; converting them requires source-specific occurrence ownership and regression coverage rather than a broad, unsafe rewrite.
 
-The supporting Android/AOSP, Shizuku, and open-source compatibility research, accepted scope, and deferred device-specific work are recorded in [`docs/RESEARCH_2026.md`](docs/RESEARCH_2026.md).
+NexaFlow adds no account, cloud service, telemetry, permission, schema migration, fixed-delay workaround, background retry loop, or user-supplied shell execution. Android can cancel alarms on shutdown and may constrain exact-alarm access; the scheduler therefore rebuilds schedules after relevant system changes, but the release does not claim universal delivery or universal action success across all OEM, power-management, carrier, or device states.[2]
+
+The architecture rationale, platform references, accepted scope, and deferred monitor work are recorded in [`docs/RESEARCH_2026.md`](docs/RESEARCH_2026.md).
+
+## References
+
+[1]: https://developer.android.com/reference/android/content/BroadcastReceiver "Android Developers — BroadcastReceiver"
+[2]: https://developer.android.com/develop/background-work/services/alarms "Android Developers — Schedule alarms"
