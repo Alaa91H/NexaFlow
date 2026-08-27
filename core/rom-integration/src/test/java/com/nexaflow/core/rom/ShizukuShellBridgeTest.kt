@@ -97,13 +97,13 @@ class ShizukuShellBridgeTest {
         val operation = PrivilegedOperation.fromWire(
             wireId = "notification.policy_access.grant",
             first = "com.nexaflow.app",
-            second = "10",
+            second = "",
             third = ""
         )
 
-        assertEquals(PrivilegedOperation.GrantNotificationPolicyAccess("com.nexaflow.app", 10), operation)
+        assertEquals(PrivilegedOperation.GrantNotificationPolicyAccess("com.nexaflow.app"), operation)
         assertEquals(
-            listOf("cmd", "notification", "allow_dnd", "com.nexaflow.app", "10"),
+            listOf("cmd", "notification", "allow_dnd", "com.nexaflow.app"),
             operation?.argv()
         )
         assertEquals(

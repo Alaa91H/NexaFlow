@@ -323,8 +323,7 @@ object RootPermissionGranter {
                         "cmd",
                         "notification",
                         "allow_dnd",
-                        packageName,
-                        (context?.userId ?: 0).toString()
+                        packageName
                     )
                 } else {
                     "appops set $packageName $op allow"

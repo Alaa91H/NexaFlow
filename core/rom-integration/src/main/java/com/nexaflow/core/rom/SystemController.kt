@@ -578,8 +578,7 @@ class SystemController(
         if (notificationManager.isNotificationPolicyAccessGranted) return null
         val grant = PrivilegedRunner.runElevatedOperation(
             PrivilegedOperation.GrantNotificationPolicyAccess(
-                packageName = context.packageName,
-                userId = context.userId
+                packageName = context.packageName
             )
         )
         if (!grant.success) {

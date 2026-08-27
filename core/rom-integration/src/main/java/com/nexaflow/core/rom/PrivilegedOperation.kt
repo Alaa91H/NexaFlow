@@ -87,23 +87,19 @@ sealed interface PrivilegedOperation {
     }
 
     /**
-     * Grants notification-policy access for one owned package/user pair. This
-     * capability is required before AudioManager can raise SILENT/VIBRATE back
+     * Grants notification-policy access for one owned package in the current
+     * user. This capability is required before AudioManager can raise SILENT/VIBRATE back
      * to NORMAL; it never changes the user's interruption filter or policy.
      */
     data class GrantNotificationPolicyAccess(
-        val packageName: String,
-        val userId: Int
+        val packageName: String
     ) : PrivilegedOperation {
         override val wireId: PrivilegedOperationId = PrivilegedOperationId.NOTIFICATION_POLICY_ACCESS_GRANT
-        init {
-            require(packageName.isPackageName())
-            require(userId in MIN_USER_ID..MAX_USER_ID) { "User id is invalid" }
-        }
-        override fun wireArguments(): List<String> = listOf(packageName, userId.toString())
-        override fun argv(): List<String> = listOf(
-            "cmd", "notification", "allow_dnd", packageName, userId.toString()
-        )
+        init { require(packageName.isPackageName()) }
+        // AOSP selects ActivityManager's current user when this optional shell
+        // argument is omitted, avoiding a hidden/non-SDK user-id API in the app.
+        override fun wireArguments(): List<String> = listOf(packageName)
+        override fun argv(): List<String> = listOf("cmd", "notification", "allow_dnd", packageName)
     }
 
     /** Applies one confirmed allowed-network-types mask for one physical SIM slot. */
@@ -165,8 +161,7 @@ sealed interface PrivilegedOperation {
                     subscriptionId = second.toInt()
                 )
                 PrivilegedOperationId.NOTIFICATION_POLICY_ACCESS_GRANT -> GrantNotificationPolicyAccess(
-                    packageName = first,
-                    userId = second.toInt()
+                    packageName = first
                 )
                 PrivilegedOperationId.NETWORK_MODE_SET -> SetAllowedNetworkTypes(
                     slotIndex = first.toInt(),
@@ -195,8 +190,6 @@ sealed interface PrivilegedOperation {
         private const val NO_SLOT = -1
         private const val NO_SUBSCRIPTION = -1
         private const val MAX_SIM_SLOT = 8
-        private const val MIN_USER_ID = 0
-        private const val MAX_USER_ID = 999_999
 
         private fun String.isPackageName(): Boolean = PACKAGE.matches(this)
         private fun String.isSettingValue(): Boolean =
