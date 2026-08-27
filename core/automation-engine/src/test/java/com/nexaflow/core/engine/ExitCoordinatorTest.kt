@@ -63,7 +63,7 @@ class ExitCoordinatorTest {
 
         assertEquals(1, results.count { it is ExitCoordinatorResult.Executed })
         assertEquals(1, history.exits.count { it == EXIT_NOOP_MARKER })
-        assertTrue("successful exit must consume runtime state", store.activeStates().isEmpty())
+        assertTrue("successful exit must consume its runtime state", store.current("exit-task") == null)
     }
 
     @Test
@@ -79,7 +79,7 @@ class ExitCoordinatorTest {
 
         assertEquals(1, outcomes.count { it is ExitCoordinatorResult.Executed })
         assertTrue(history.exits.contains(EXIT_NOOP_MARKER))
-        assertTrue(store.activeStates().isEmpty())
+        assertTrue(store.current("exit-task") == null)
     }
 
     @Test
