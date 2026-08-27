@@ -12,4 +12,10 @@ class TriggerPickerOptionsTest {
         assertTrue(TriggerType.LOCATION in triggerTypeOptions)
         assertFalse(TriggerType.LOCATION_STATE in triggerTypeOptions)
     }
+
+    @Test
+    fun hotspotIsAddableWhileLegacyCombinedConnectivityIsHidden() {
+        assertTrue(TriggerType.HOTSPOT in triggerTypeOptions)
+        assertFalse(TriggerType.CONNECTIVITY in triggerTypeOptions)
+    }
 }

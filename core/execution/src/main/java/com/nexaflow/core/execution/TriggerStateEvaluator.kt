@@ -105,6 +105,7 @@ object TriggerStateEvaluator {
                     CellularNetworkReader.read(context)
                 )
             TriggerType.CONNECTIVITY -> connectivitySatisfied(context, c)
+            TriggerType.HOTSPOT -> connectivitySatisfied(context, c + ("network" to "HOTSPOT"))
             TriggerType.TIME -> timeTriggerSatisfied(c)
             TriggerType.RINGER_MODE -> ringerModeSatisfied(context, c)
             TriggerType.BATTERY -> batterySatisfied(context, c)
@@ -360,8 +361,8 @@ object TriggerStateEvaluator {
                 android.net.NetworkCapabilities.TRANSPORT_CELLULAR
             )
             "HOTSPOT" -> runCatching {
-                Settings.Global.getInt(context.contentResolver, "tether_on", 0) == 1
-            }.getOrDefault(false).let { if (it) "ON" else "OFF" }
+                Settings.Global.getInt(context.contentResolver, "tether_on") == 1
+            }.getOrNull()?.let { enabled -> if (enabled) "ON" else "OFF" }
             else -> null
         }
         return if (network == "NETWORK_MODE") {

@@ -32,6 +32,7 @@
     <string name="trigger_app">التطبيق</string>
     <string name="trigger_device">الجهاز</string>
     <string name="trigger_connectivity">الاتصال</string>
+    <string name="trigger_hotspot">نقطة الاتصال</string>
     <string name="trigger_location">الموقع</string>
     <string name="trigger_sms">رسالة</string>
     <string name="trigger_battery">البطارية</string>

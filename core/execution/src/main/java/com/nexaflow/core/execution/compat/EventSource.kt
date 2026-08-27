@@ -47,7 +47,8 @@ enum class TriggerSource(val sourceId: String) {
             TriggerType.BATTERY -> BATTERY
             TriggerType.APPLICATION -> APPLICATION
             TriggerType.DEVICE -> DEVICE
-            TriggerType.CONNECTIVITY -> CONNECTIVITY
+            TriggerType.CONNECTIVITY,
+            TriggerType.HOTSPOT -> CONNECTIVITY
             TriggerType.LOCATION -> LOCATION
             TriggerType.SMS -> SMS
             TriggerType.BLUETOOTH_DEVICE -> BLUETOOTH_DEVICE

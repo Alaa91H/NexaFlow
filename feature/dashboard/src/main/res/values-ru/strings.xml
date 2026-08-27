@@ -32,6 +32,7 @@
     <string name="trigger_app">Приложение</string>
     <string name="trigger_device">Устройство</string>
     <string name="trigger_connectivity">Подключение</string>
+    <string name="trigger_hotspot">Точка доступа</string>
     <string name="trigger_location">Местоположение</string>
     <string name="trigger_sms">SMS</string>
     <string name="trigger_battery">Батарея</string>

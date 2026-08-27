@@ -259,6 +259,7 @@ object CommandCatalog {
         TriggerType.DEVICE_LOCKED to CommandSpec.UNIVERSAL,
         TriggerType.SCREEN_ROTATION_STATE to CommandSpec.UNIVERSAL,
         TriggerType.CONNECTIVITY to CommandSpec.UNIVERSAL,
+        TriggerType.HOTSPOT to CommandSpec.UNIVERSAL,
         TriggerType.NETWORK_MODE to CommandSpec.UNIVERSAL,
         TriggerType.WIFI_STATE to CommandSpec.UNIVERSAL,
         TriggerType.WIFI_SIGNAL_STRENGTH to CommandSpec.UNIVERSAL,

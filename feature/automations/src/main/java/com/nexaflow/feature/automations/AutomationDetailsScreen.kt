@@ -547,6 +547,7 @@ private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector
     TriggerType.APPLICATION -> Triple(R.string.trigger_app, R.string.trigger_app_sub, Icons.Filled.Add)
     TriggerType.DEVICE -> Triple(R.string.trigger_device, R.string.trigger_device_sub, Icons.Filled.Bolt)
     TriggerType.CONNECTIVITY -> Triple(R.string.trigger_connectivity, R.string.trigger_connectivity_sub, Icons.Filled.Wifi)
+    TriggerType.HOTSPOT -> Triple(R.string.action_hotspot, R.string.action_hotspot, Icons.Filled.Wifi)
     TriggerType.LOCATION -> Triple(R.string.trigger_location, R.string.trigger_location_sub, Icons.Filled.Place)
     TriggerType.SMS -> Triple(R.string.trigger_sms, R.string.trigger_sms_sub, Icons.Filled.NotificationImportant)
     TriggerType.BLUETOOTH_DEVICE -> Triple(R.string.trigger_bluetooth, R.string.trigger_bluetooth_sub, Icons.Filled.Bluetooth)

@@ -89,7 +89,17 @@ enum class TriggerType {
     BATTERY,
     APPLICATION,
     DEVICE,
+    /**
+     * Legacy combined Wi-Fi/mobile/network-mode trigger. It remains readable
+     * for saved automations but is not offered to new tasks because its former
+     * sub-options duplicated dedicated connectivity triggers.
+     */
     CONNECTIVITY,
+    /**
+     * Wi-Fi tethering state. Config key: `state` (ON/OFF). This is a dedicated
+     * trigger so new tasks do not need the legacy combined connectivity menu.
+     */
+    HOTSPOT,
     LOCATION,
     SMS,
     BLUETOOTH_DEVICE,

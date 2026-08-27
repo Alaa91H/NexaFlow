@@ -214,6 +214,13 @@ internal fun NetworkModeSelector(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary
                     )
+                    state.diagnostics.firstOrNull()?.let { diagnostic ->
+                        Text(
+                            text = diagnostic,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
                     val phoneStateGranted = context.checkSelfPermission(
                         Manifest.permission.READ_PHONE_STATE
                     ) == PackageManager.PERMISSION_GRANTED
@@ -257,11 +264,19 @@ internal fun NetworkModeSelector(
                                         // Reconnect rather than falsely presenting
                                         // the permission as a usable execution path.
                                         ShizukuShellBridge.reconnect(context)
+                                        permissionRevision += 1
                                     } else {
-                                        PermissionShortcuts.openSpecial(
-                                            context,
-                                            SpecialPermission.ELEVATED
-                                        )
+                                        // Use the targeted root path so the UI
+                                        // refreshes on the main thread after the
+                                        // superuser grant and verified permission
+                                        // check, rather than leaving an old
+                                        // UNREADABLE snapshot on screen.
+                                        RootPermissionGranter.requestRuntimePermissionsWithRootPrompt(
+                                            context = context,
+                                            permissions = listOf(Manifest.permission.READ_PHONE_STATE)
+                                        ) {
+                                            permissionRevision += 1
+                                        }
                                     }
                                 }
                             ) {

@@ -21,7 +21,9 @@ data class NetworkModeSnapshot(
     val subscriptions: List<Subscription>,
     /** The data subscription Android currently reports, when the platform exposes one. */
     val activeDataSubscriptionId: Int?,
-    val status: Status
+    val status: Status,
+    /** Local, bounded diagnostics for unreadable privileged capability reads. */
+    val diagnostics: List<String> = emptyList()
 ) {
     enum class Status {
         AVAILABLE,
@@ -73,7 +75,8 @@ class NetworkModeCapabilities(private val context: Context) {
             return NetworkModeSnapshot(
                 subscriptions = emptyList(),
                 activeDataSubscriptionId = null,
-                status = NetworkModeSnapshot.Status.UNREADABLE
+                status = NetworkModeSnapshot.Status.UNREADABLE,
+                diagnostics = listOf("READ_PHONE_STATE is not granted")
             )
         }
         val subscriptions = activeSubscriptions()
@@ -85,6 +88,7 @@ class NetworkModeCapabilities(private val context: Context) {
             )
         }
         val activeDataSubscriptionId = activeDataSubscriptionId()
+        val diagnostics = mutableListOf<String>()
 
         val snapshots = subscriptions.mapNotNull { subscription ->
             val scoped = telephony.createForSubscriptionId(subscription.subscriptionId)
@@ -112,7 +116,7 @@ class NetworkModeCapabilities(private val context: Context) {
              * device, and only its subsets are offered. It is never combined
              * with an invented universal 2G/3G/4G/5G list.
              */
-            val elevatedUserMask = if (platformSelectableMask == null || platformUserMask == null) {
+            val elevatedRead = if (platformSelectableMask == null || platformUserMask == null) {
                 readElevatedUserMask(
                     slotIndex = subscription.simSlotIndex,
                     subscriptionId = subscription.subscriptionId
@@ -120,6 +124,10 @@ class NetworkModeCapabilities(private val context: Context) {
             } else {
                 null
             }
+            elevatedRead?.diagnostic?.let { diagnostic ->
+                diagnostics += "SIM ${subscription.simSlotIndex + 1}: $diagnostic"
+            }
+            val elevatedUserMask = elevatedRead?.mask
             val selectableMask = platformSelectableMask ?: elevatedUserMask
                 ?: return@mapNotNull null
             val configuredUserMask = platformUserMask ?: elevatedUserMask
@@ -148,7 +156,8 @@ class NetworkModeCapabilities(private val context: Context) {
             subscriptions = snapshots,
             activeDataSubscriptionId = activeDataSubscriptionId,
             status = if (snapshots.isEmpty()) NetworkModeSnapshot.Status.UNREADABLE
-            else NetworkModeSnapshot.Status.AVAILABLE
+            else NetworkModeSnapshot.Status.AVAILABLE,
+            diagnostics = diagnostics.distinct()
         )
     }
 
@@ -176,12 +185,20 @@ class NetworkModeCapabilities(private val context: Context) {
      * call with unparsable or zero output remains unavailable rather than
      * becoming an invented capability list.
      */
-    private fun readElevatedUserMask(slotIndex: Int, subscriptionId: Int): Long? {
-        if (!PrivilegedRunner.isShizukuGranted() && !PrivilegedRunner.isRootAvailable()) return null
+    private data class ElevatedMaskRead(
+        val mask: Long?,
+        val diagnostic: String? = null
+    )
+
+    private fun readElevatedUserMask(slotIndex: Int, subscriptionId: Int): ElevatedMaskRead? {
+        if (!PrivilegedRunner.isShizukuGranted() && !PrivilegedRunner.isRootAvailable()) {
+            return ElevatedMaskRead(mask = null, diagnostic = "No approved root or Shizuku session")
+        }
         val variants = buildList {
             if (slotIndex in 0..8) add(slotIndex)
             add(-1)
         }.distinct()
+        val failures = mutableListOf<String>()
         for (variant in variants) {
             val result = PrivilegedRunner.runElevatedOperation(
                 PrivilegedOperation.ReadAllowedNetworkTypes(
@@ -189,10 +206,22 @@ class NetworkModeCapabilities(private val context: Context) {
                     subscriptionId = subscriptionId
                 )
             )
-            if (!result.success) continue
-            NetworkModePolicy.parseReadBackMask(result.message)?.let { return it }
+            if (!result.success) {
+                failures += elevatedFailureSummary(result.message)
+                continue
+            }
+            NetworkModePolicy.parseReadBackMask(result.message)?.let { return ElevatedMaskRead(mask = it) }
+            failures += "The privileged read returned no supported cellular mask"
         }
-        return null
+        return ElevatedMaskRead(
+            mask = null,
+            diagnostic = failures.firstOrNull() ?: "Privileged network-mode read failed"
+        )
+    }
+
+    private fun elevatedFailureSummary(message: String): String {
+        val compact = message.replace(Regex("\\s+"), " ").trim()
+        return compact.take(160).ifBlank { "Privileged network-mode read failed" }
     }
 
     private fun readCurrentDataNetworkType(telephony: TelephonyManager): Int? {

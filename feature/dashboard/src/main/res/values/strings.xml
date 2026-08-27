@@ -32,6 +32,7 @@
     <string name="trigger_app">App</string>
     <string name="trigger_device">Device</string>
     <string name="trigger_connectivity">Connectivity</string>
+    <string name="trigger_hotspot">Hotspot</string>
     <string name="trigger_location">Location</string>
     <string name="trigger_sms">SMS</string>
     <string name="trigger_battery">Battery</string>

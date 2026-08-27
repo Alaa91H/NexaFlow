@@ -680,6 +680,7 @@ private fun triggerLabel(type: TriggerType): Int = when (type) {
     TriggerType.APPLICATION -> R.string.trigger_app
     TriggerType.DEVICE -> R.string.trigger_device
     TriggerType.CONNECTIVITY -> R.string.trigger_connectivity
+    TriggerType.HOTSPOT -> R.string.trigger_hotspot
     TriggerType.LOCATION -> R.string.trigger_location
     TriggerType.SMS -> R.string.trigger_sms
     TriggerType.BLUETOOTH_DEVICE -> R.string.trigger_bluetooth

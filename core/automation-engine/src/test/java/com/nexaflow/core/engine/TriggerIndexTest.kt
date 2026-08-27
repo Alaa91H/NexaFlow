@@ -108,16 +108,18 @@ class TriggerIndexTest {
     }
 
     @Test
-    fun `network mode and rom setting map to their canonical sources`() = runTest {
+    fun `network mode hotspot and rom setting map to their canonical sources`() = runTest {
         val net = automation("net", triggerTypes = listOf(TriggerType.NETWORK_MODE))
+        val hotspot = automation("hotspot", triggerTypes = listOf(TriggerType.HOTSPOT))
         val rom = automation("rom", triggerTypes = listOf(TriggerType.ROM_SETTING))
-        val index = TriggerIndex(MutableStateFlow(listOf(net, rom)))
+        val index = TriggerIndex(MutableStateFlow(listOf(net, hotspot, rom)))
         startCollecting(index)
         advanceUntilIdle()
 
-        // Canonical mapping (EventSource contract): NETWORK_MODE → connectivity,
-        // ROM_SETTING → device.
-        assertEquals(listOf("net"), index.bySource(sourceOf(TriggerType.NETWORK_MODE)).map { it.id })
+        // Canonical mapping (EventSource contract): NETWORK_MODE and HOTSPOT
+        // map to connectivity; ROM_SETTING maps to device.
+        assertEquals(listOf("net", "hotspot"), index.bySource(sourceOf(TriggerType.NETWORK_MODE)).map { it.id })
+        assertEquals(listOf("net", "hotspot"), index.bySource(sourceOf(TriggerType.HOTSPOT)).map { it.id })
         assertEquals(listOf("rom"), index.bySource(sourceOf(TriggerType.ROM_SETTING)).map { it.id })
     }
 

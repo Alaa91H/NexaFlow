@@ -166,6 +166,7 @@ internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> = mapOf(
     TriggerType.RINGER_MODE to TriggerCategory.DEVICE,
     TriggerType.NOTIFICATION to TriggerCategory.DEVICE,
     TriggerType.CONNECTIVITY to TriggerCategory.CONNECTIVITY,
+    TriggerType.HOTSPOT to TriggerCategory.CONNECTIVITY,
     TriggerType.NETWORK_MODE to TriggerCategory.CONNECTIVITY,
     TriggerType.BLUETOOTH_DEVICE to TriggerCategory.CONNECTIVITY,
     TriggerType.WEBHOOK to TriggerCategory.CONNECTIVITY,
@@ -237,8 +238,9 @@ val triggerTypeOptions = listOf(
     TriggerType.AUTO_ROTATE,
     TriggerType.DEVICE_LOCKED,
     TriggerType.SCREEN_ROTATION_STATE,
-    // CONNECTIVITY
-    TriggerType.CONNECTIVITY,
+    // CONNECTIVITY — CONNECTIVITY itself remains supported for saved tasks but
+    // is intentionally not addable because it duplicated dedicated triggers.
+    TriggerType.HOTSPOT,
     TriggerType.NETWORK_MODE,
     TriggerType.BLUETOOTH_DEVICE,
     TriggerType.BLUETOOTH_STATE,
@@ -307,6 +309,7 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.APPLICATION -> mapOf("packages" to "")
     TriggerType.DEVICE -> mapOf("event" to "SCREEN_ON")
     TriggerType.CONNECTIVITY -> mapOf("network" to "WIFI", "state" to "CONNECTED")
+    TriggerType.HOTSPOT -> mapOf("state" to "ON")
     TriggerType.NETWORK_MODE -> mapOf("state" to "4G")
     TriggerType.LOCATION -> mapOf("lat" to "", "lng" to "", "radius" to "100", "event" to "ENTER")
     TriggerType.SMS -> mapOf("from" to "", "contains" to "")
@@ -363,6 +366,7 @@ internal fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.APPLICATION -> R.string.trigger_type_app
     TriggerType.DEVICE -> R.string.trigger_type_device
     TriggerType.CONNECTIVITY -> R.string.trigger_type_connectivity
+    TriggerType.HOTSPOT -> R.string.action_hotspot
     TriggerType.NETWORK_MODE -> R.string.trigger_type_network_mode
     TriggerType.LOCATION -> R.string.trigger_type_location
     TriggerType.SMS -> R.string.trigger_type_sms
@@ -418,6 +422,7 @@ internal fun TriggerType.descRes(): Int = when (this) {
     TriggerType.APPLICATION -> R.string.trigger_type_app_sub
     TriggerType.DEVICE -> R.string.trigger_type_device_sub
     TriggerType.CONNECTIVITY -> R.string.trigger_type_connectivity_sub
+    TriggerType.HOTSPOT -> R.string.action_hotspot_sub
     TriggerType.NETWORK_MODE -> R.string.trigger_type_network_mode_sub
     TriggerType.LOCATION -> R.string.trigger_type_location_sub
     TriggerType.SMS -> R.string.trigger_type_sms_sub
@@ -473,6 +478,7 @@ internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.APPLICATION -> Icons.Filled.Apps
     TriggerType.DEVICE -> Icons.Filled.Bolt
     TriggerType.CONNECTIVITY -> Icons.Filled.Wifi
+    TriggerType.HOTSPOT -> Icons.Filled.Router
     TriggerType.NETWORK_MODE -> Icons.Filled.SignalCellularAlt
     TriggerType.LOCATION -> Icons.Filled.Place
     TriggerType.SMS -> Icons.AutoMirrored.Filled.Message
@@ -1028,6 +1034,14 @@ private fun triggerSummary(draft: TriggerDraft): String {
                 else -> stringResource(R.string.state_disconnected)
             }
             "$networkLabel · $stateLabel"
+        }
+        TriggerType.HOTSPOT -> {
+            val state = if ((c["state"] ?: "ON") == "ON") {
+                stringResource(R.string.state_on)
+            } else {
+                stringResource(R.string.state_off)
+            }
+            "${stringResource(R.string.network_hotspot)} · $state"
         }
         TriggerType.NETWORK_MODE -> when (c["state"] ?: "4G") {
             "AUTO" -> stringResource(R.string.network_mode_auto)
@@ -1707,19 +1721,32 @@ fun TriggerEditorCard(
                         }
                     }
                 }
+                TriggerType.HOTSPOT -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = stringResource(R.string.state), style = MaterialTheme.typography.titleSmall)
+                        OptionChips(
+                            options = listOf("ON", "OFF"),
+                            labels = mapOf(
+                                "ON" to stringResource(R.string.state_on),
+                                "OFF" to stringResource(R.string.state_off)
+                            ),
+                            selected = draft.config["state"] ?: "ON",
+                            onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                        )
+                    }
+                }
                 TriggerType.CONNECTIVITY -> {
                     val network = draft.config["network"] ?: "WIFI"
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(text = stringResource(R.string.network), style = MaterialTheme.typography.titleSmall)
-                        // WIFI / MOBILE / hotspot ON-OFF / cellular network mode
-                        // (2G/3G/4G/5G) — each with its own state vocabulary.
+                        // Legacy tasks retain their existing configuration, but
+                        // new choices are limited to Wi-Fi/mobile. Hotspot and
+                        // network mode are first-class trigger types.
                         OptionChips(
-                            options = listOf("WIFI", "MOBILE", "HOTSPOT", "NETWORK_MODE"),
+                            options = listOf("WIFI", "MOBILE"),
                             labels = mapOf(
                                 "WIFI" to stringResource(R.string.network_wifi),
-                                "MOBILE" to stringResource(R.string.network_mobile),
-                                "HOTSPOT" to stringResource(R.string.network_hotspot),
-                                "NETWORK_MODE" to stringResource(R.string.network_mode)
+                                "MOBILE" to stringResource(R.string.network_mobile)
                             ),
                             selected = network,
                             onSelect = {

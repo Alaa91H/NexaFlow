@@ -32,6 +32,7 @@
     <string name="trigger_app">Uygulama</string>
     <string name="trigger_device">Cihaz</string>
     <string name="trigger_connectivity">Bağlantı</string>
+    <string name="trigger_hotspot">Erişim noktası</string>
     <string name="trigger_location">Konum</string>
     <string name="trigger_sms">SMS</string>
     <string name="trigger_battery">Pil</string>

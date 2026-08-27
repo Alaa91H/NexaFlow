@@ -315,18 +315,26 @@ class ConnectivityMonitor @Inject constructor(
             automations
                 .filter { automation ->
                     automation.enabled && automation.triggers.any {
-                        it.type == TriggerType.CONNECTIVITY || it.type == TriggerType.NETWORK_MODE
+                        it.type == TriggerType.CONNECTIVITY ||
+                            it.type == TriggerType.HOTSPOT ||
+                            it.type == TriggerType.NETWORK_MODE
                     }
                 }
                 .forEach { automation ->
-                    // A task may use either the combined CONNECTIVITY trigger or the
-                    // standalone NETWORK_MODE trigger (cellular generation).
+                    // Saved tasks can keep the legacy combined CONNECTIVITY type;
+                    // newly created hotspot tasks use the dedicated HOTSPOT type.
                     val trigger = automation.triggers.firstOrNull {
-                        it.type == TriggerType.CONNECTIVITY || it.type == TriggerType.NETWORK_MODE
+                        it.type == TriggerType.CONNECTIVITY ||
+                            it.type == TriggerType.HOTSPOT ||
+                            it.type == TriggerType.NETWORK_MODE
                     } ?: return@forEach
-                    val network = trigger.config["network"]
-                        ?: if (trigger.type == TriggerType.NETWORK_MODE) "NETWORK_MODE" else "WIFI"
-                    val desiredState = trigger.config["state"] ?: "CONNECTED"
+                    val network = trigger.config["network"] ?: when (trigger.type) {
+                        TriggerType.HOTSPOT -> "HOTSPOT"
+                        TriggerType.NETWORK_MODE -> "NETWORK_MODE"
+                        else -> "WIFI"
+                    }
+                    val desiredState = trigger.config["state"]
+                        ?: if (network == "HOTSPOT") "ON" else "CONNECTED"
                     val current = currentNetworkValue(network, networkSnapshot)
                     val matched = if (network == "NETWORK_MODE") {
                         CellularNetworkReader.matchesNetworkMode(desiredState, current)

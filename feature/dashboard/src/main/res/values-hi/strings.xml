@@ -32,6 +32,7 @@
     <string name="trigger_app">ऐप</string>
     <string name="trigger_device">डिवाइस</string>
     <string name="trigger_connectivity">कनेक्टिविटी</string>
+    <string name="trigger_hotspot">हॉटस्पॉट</string>
     <string name="trigger_location">स्थान</string>
     <string name="trigger_sms">SMS</string>
     <string name="trigger_battery">बैटरी</string>
