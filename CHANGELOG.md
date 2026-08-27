@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.50.4] - 2026-08-27
+
+### Fixed
+- Declared `ACCESS_NETWORK_STATE` in the `core:common` Android library manifest, matching the public `TetheringManager.registerTetheringEventCallback()` contract. This removes the CI-blocking `MissingPermission` finding while preserving strict Android Lint enforcement.
+- Changed workflow branch evaluation to fail closed. If a branch condition throws, NexaFlow now records the failure and executes neither branch instead of treating the error as `false` and potentially running the fallback path.
+- Preserved failed rollback attempts in the workflow timeline, so compensation errors are visible alongside the original action failure.
+- Retained the last `WaitUntil` condition exception in its timeout outcome, separating an unavailable device state from an ordinary unmet condition.
+- Verified volume writes after `AudioManager.setStreamVolume()`. Android 17 can reject background audio changes silently; NexaFlow now reports a clear failed action instead of a false success when read-back does not match the requested value.
+
+### Changed
+- Added Android 17 automation research, a release-quality audit record, and a device acceptance protocol covering exact alarms, 22:00–06:00 ranges, Doze, reboot recovery, Hotspot state, telephony capability, permissions, local-network HTTP, and background UI restrictions.
+- Kept the execution architecture capability-gated: protected telephony, hotspot, and secure-settings actions remain explicitly unavailable without a verified privileged route and postcondition evidence.
+
+### Quality assurance
+- CI now passes its complete lint, unit-test, debug/release APK, AAB, signing, dependency-verification, page-alignment, and bundle validation gates for this release candidate.
+- Added a regression test proving that a failed branch condition cannot execute either the true or false action path.
+
 ## [v3.50.3] - 2026-08-27
 
 ### Fixed

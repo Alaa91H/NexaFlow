@@ -1,54 +1,50 @@
-# NexaFlow v3.50.3 — Automatic Schedule Reconciliation and Cellular Capability Profiles
+# NexaFlow v3.50.4 — Android 17 Automation Reliability and CI Hardening
 
 **Release date:** 2026-08-27
-**Release scope:** Recovery of automatically scheduled time automations after verified exact-alarm access, explicit range-end delivery declaration, and evidence-based cellular profile discovery for Android 17 rooted devices.
+**Release scope:** Correct Android 17 Hotspot callback permission declaration, fail-closed workflow execution, observable recovery failures, and verified background-audio outcomes.
 
 ## Overview
 
-v3.50.3 addresses three connected production problems. First, user-defined wall-clock tasks could remain unscheduled after Android had canceled exact alarms and the elevated permission repair succeeded without a framework permission-grant broadcast. Second, the Cellular Network action could show **GSM** as its only choice when Android exposed a GSM-only `USER` configuration, even though the modem itself supported LTE or NR. Third, remote CI exposed a narrow execution-queue cancellation race in which a task child job could begin before it was registered for direct cancellation.
-
-Android treats `SCHEDULE_EXACT_ALARM` as special access. It is denied by default for most fresh Android 13+ installations, revocation cancels future exact alarms, and applications must re-check access and rebuild required alarms after a grant. [1] [2] NexaFlow now performs that durable rebuild after its elevated permission pipeline has verified exact-alarm access. The existing immutable occurrence ledger remains the single source of truth for scheduled `START` and paired `END` work.
+NexaFlow v3.50.4 is a reliability patch focused on **truthful automation outcomes** under modern Android restrictions. It closes a CI-blocking permission declaration gap for Hotspot state observation and hardens the workflow engine so uncertain platform outcomes are recorded as actionable failures rather than reported as successful automation.
 
 ## Delivered changes
 
 | Area | Delivered behavior |
 |---|---|
-| Verified exact-alarm recovery | After the Root/Shizuku all-permissions flow completes final platform verification, NexaFlow sends a package-scoped recheck signal on Android 12+. `AutomationAlarmReceiver` handles it through the same durable reconciliation path used for boot, clock, time-zone, package-replace, and framework exact-alarm-change events. Enabled time automations therefore rebuild their tracked `START` and `END` alarms without waiting for a process restart. |
-| Scheduled range end | `END_AUTOMATION` is now declared explicitly in the application receiver intent filter beside `RUN_AUTOMATION`. The receiver keeps occurrence-id, generation, and end-time validation before `ExitCoordinator` dispatches configured end behavior through the normal `ExecutionEngine` path. |
-| Cancellation ownership | `TaskManager` now creates its child job lazily, registers it as cancellable, then starts it. A cancellation can therefore interrupt the job immediately instead of landing in the former launch-to-registration gap and waiting for its next suspension. The regression test blocks on real coroutine cancellation rather than a five-second delay. |
-| Cellular capability source | The dynamic picker no longer treats the current `USER` allowed-network-types restriction as the hardware menu. A GSM-only current restriction therefore does not by itself hide LTE or NR options. |
-| Elevated modem read | With a live Shizuku UserService, NexaFlow attempts the AOSP binder-equivalent `ITelephony.getRadioAccessFamily(slot)` capability read. If it is unavailable, the reviewed elevated operation reads only `ro.telephony.default_network` and maps known AOSP RIL modes 0–33 through a closed table. [3] [4] |
-| Safety and verification | Malformed, vendor-specific, unknown, or multi-SIM slot-ambiguous property values remain unavailable. The picker never creates a universal profile list, and network writes still require selected-SIM read-back confirmation before a success is recorded. |
-| Regression coverage | Added deterministic unit coverage for exact-alarm recheck gating, the private receiver action, the closed profile-read operation, slot-aware property parsing, and AOSP RIL mappings for modes 9, 22, 23, and 24. |
+| Hotspot callback contract | Declares `ACCESS_NETWORK_STATE` in the `core:common` library manifest, the owning module for `TetheringManager.registerTetheringEventCallback()`. Android Lint now validates the public API contract without suppression or a baseline exception. |
+| Workflow branches | A thrown condition evaluation fails closed. NexaFlow records the diagnostic and executes neither the true nor false action path, preventing a condition-read error from being interpreted as a valid false state. |
+| Rollback evidence | A failed compensation attempt is retained in the workflow timeline beside the original action failure rather than being swallowed. |
+| Wait-until evidence | An expired `WaitUntil` node now includes the last condition-evaluation error, distinguishing an unavailable device state from a condition that remained unmet. |
+| Android 17 audio | Volume changes verify `AudioManager` read-back after calling `setStreamVolume()`. A background restriction that silently rejects the change is reported as a failure instead of a false success. |
+| Device acceptance | Added Android 17 platform research, a quality-audit record, and a device acceptance protocol for exact alarms, 22:00–06:00 ranges, Doze, reboot recovery, Hotspot, telephony, permissions, local-network HTTP, and background UI restrictions. |
 
 ## Operational behavior
 
-When Android grants exact-alarm access, NexaFlow uses the existing `RTC_WAKEUP` and `setExactAndAllowWhileIdle` path for a user-selected wall-clock time. This is the appropriate scheduling mechanism for punctual, user-visible time automation where access is present. [1] The new recovery signal does not replace an alarm with an in-process timer, does not insert an arbitrary delay, and does not manufacture a new occurrence identity.
+This release retains NexaFlow’s capability-gated automation model. Cellular network-mode, Hotspot, and protected-settings operations require an available privileged route where Android or the device manufacturer requires one. A successful operation must still satisfy its postcondition check when the platform exposes one. Root or Shizuku does not override SIM, carrier, modem, OEM, or Android framework limitations.
 
-If exact-alarm access is denied or later revoked, Android governs delivery through its documented inexact fallback behavior. That fallback cannot truthfully promise an on-the-minute execution time; NexaFlow does not label it as such. [1] [2] The permissions screen continues to expose the system exact-alarm access route, while a successful elevated repair now triggers re-arming immediately after verification.
+No saved automation is migrated, deleted, or rewritten by this release. Precise time automations continue to need **Alarms & reminders** access, while protected network-mode operations require a live verified Root or Shizuku session and validation on the target SIM.
 
-The cellular fallback improves discovery, not the authority of a carrier. A modem-default profile is evidence of a device radio configuration, whereas available service can still be constrained by the active SIM, carrier policy, modem firmware, OEM telephony implementation, region, or a different allowed-network-types reason. The selected subscription is preserved and post-write confirmation remains mandatory. There is no global `settings put preferred_network_mode` write path.
-
-## Compatibility and safety
-
-Existing saved automations are not deleted or automatically rewritten. The v3.50.1 dynamic-mask schema guard remains in effect: a pre-v3.50.1 saved dynamic `network_mask` without the AOSP marker is rejected until the user intentionally selects the desired profile again. Legacy named `2G`, `3G`, `4G`, `5G`, and `AUTO` actions continue to use the corrected public bitmasks.
-
-> Root or Shizuku gives NexaFlow access only to reviewed operations. It cannot guarantee a readable or persistently writable network mask on every ROM, modem, carrier, or SIM. An unavailable or unverified result remains visible rather than being converted into a false success.
-
-## Upgrade guidance
-
-Install v3.50.3, then open **Permissions** and confirm that **Alarms & reminders** is allowed. On a rooted device, running the verified permission repair also causes all enabled time automations to be re-armed immediately. Keep the exact-alarm access enabled if a time such as 06:00 must be delivered punctually while the device is idle.
-
-For the Cellular Network action, reopen the action configuration after the capability card has loaded. The picker now requests a capability source independent of the current GSM/LTE/NR `USER` restriction. Select only the profile you intend to use, and retain the post-change result message: a ROM/carrier refusal is correctly reported as a failed or unavailable change rather than an applied profile.
+> Device-dependent functionality must be verified on the intended handset, ROM, carrier, and SIM. When Android or an OEM blocks an operation, NexaFlow records the inability to verify or apply it instead of claiming that it succeeded.
 
 ## Verification
 
-The final main-branch candidate passed the complete remote GitHub Actions pipeline: [run 33080964645](https://github.com/Alaa91H/NexaFlow/actions/runs/33080964645). The accepted workflow completed Android unit tests, Detekt, Android Lint, debug/release APK and AAB builds, dependency and packaging verification, signing verification, alignment checks, and bundle validation. No Gradle build, lint task, or unit test was run locally.
+The release candidate passed the complete GitHub Actions Android CI workflow: [run 33105036238](https://github.com/Alaa91H/NexaFlow/actions/runs/33105036238).
 
-## References
+| Verification gate | Result |
+|---|---|
+| Android unit tests | Passed |
+| Detekt and Android Lint | Passed |
+| Debug and release APK builds | Passed |
+| Release AAB and bundletool validation | Passed |
+| Dependency-verification metadata | Passed |
+| APK signature and zipalign validation | Passed |
+| 16 KB page-alignment and native-library audit | Passed |
+| Resource quality and locale-parity gates | Passed |
 
-[1]: https://developer.android.com/develop/background-work/services/alarms "Android Developers: Schedule alarms"
-[2]: https://developer.android.com/about/versions/14/changes/schedule-exact-alarms "Android Developers: Schedule exact alarms are denied by default"
-[3]: https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/telephony/java/android/telephony/TelephonyManager.java "AOSP: TelephonyManager getSupportedRadioAccessFamily"
-[4]: https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/telephony/java/android/telephony/RadioAccessFamily.java "AOSP: RadioAccessFamily network-mode mapping"
-[5]: https://android.googlesource.com/platform/packages/services/Telephony/+/refs/heads/main/src/com/android/phone/PhoneInterfaceManager.java "AOSP: PhoneInterfaceManager getRadioAccessFamily"
+## Upgrade guidance
+
+Install the release over the existing application or as a clean installation. For exact time tasks, retain **Alarms & reminders** access. For a Cellular Network action, verify that Root or Shizuku remains granted, reopen the capability selector after access is available, and confirm the selected profile on the target SIM. The device acceptance protocol in the repository should be followed before production rollout on a new ROM or carrier.
+
+## Full changelog
+
+See [`CHANGELOG.md`](https://github.com/Alaa91H/NexaFlow/blob/main/CHANGELOG.md) for the complete release history.
