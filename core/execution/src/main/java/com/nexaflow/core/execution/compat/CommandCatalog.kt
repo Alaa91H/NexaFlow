@@ -254,6 +254,7 @@ object CommandCatalog {
         TriggerType.BLUETOOTH_STATE to CommandSpec.UNIVERSAL,
         TriggerType.BLUETOOTH_DEVICE to CommandSpec.UNIVERSAL,
         TriggerType.LOCATION to CommandSpec.UNIVERSAL,
+        TriggerType.FIXED_LOCATION to CommandSpec.UNIVERSAL,
         TriggerType.LOCATION_STATE to CommandSpec.UNIVERSAL,
         TriggerType.NFC_STATE to CommandSpec.UNIVERSAL,
         TriggerType.NFC_TAG_SCANNED to CommandSpec.UNIVERSAL,

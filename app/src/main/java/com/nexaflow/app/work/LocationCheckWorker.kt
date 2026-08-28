@@ -44,7 +44,7 @@ class LocationCheckWorker @AssistedInject constructor(
             // trigger type exactly (a LOCATION-trigger, not the
             // SYSTEM_LOCATION action whose JSON reads "SYSTEM_LOCATION").
             val needsLocation = automations.any {
-                it.enabled && it.triggersJson.contains("\"type\":\"LOCATION\"")
+                it.enabled && (it.triggersJson.contains("\"type\":\"LOCATION\"") || it.triggersJson.contains("\"type\":\"FIXED_LOCATION\""))
             }
             if (!needsLocation) return Result.success()
             if (!LocationAccess.hasLocationPermission(applicationContext)) return Result.success()

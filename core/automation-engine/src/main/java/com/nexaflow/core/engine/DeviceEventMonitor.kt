@@ -26,6 +26,7 @@ class DeviceEventMonitor @Inject constructor(
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
     private val activeStore: ActiveTriggerStore,
+    private val exitCoordinator: ExitExecutionCoordinator,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -186,8 +187,7 @@ class DeviceEventMonitor @Inject constructor(
                     } else if (oppositeEvent[triggerEvent] == event) {
                         // The condition ended: fire the exit behavior once.
                         if (activeStates.remove(automation.id) != null) {
-                            activeStore.clearAutomation(SOURCE, automation.id)
-                            executionEngine.runExit(automation)
+                            exitCoordinator.submit(SOURCE, automation)
                         }
                     }
                 }

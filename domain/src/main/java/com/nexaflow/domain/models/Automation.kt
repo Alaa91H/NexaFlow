@@ -56,6 +56,8 @@ enum class TriggerType {
     DEVICE,
     CONNECTIVITY,
     LOCATION,
+    /** A provider-independent geographic point evaluated by the shared location monitor. */
+    FIXED_LOCATION,
     SMS,
     BLUETOOTH_DEVICE,
     RINGER_MODE,

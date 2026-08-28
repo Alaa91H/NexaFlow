@@ -205,6 +205,8 @@ class ExecutionEngine(
             recordTimeline(automation, "EXIT", record, startedAt)
             return record
         }
+        // Exit execution is a first-class workflow run and must not be blocked
+        // by the normal trigger cooldown or scheduler path.
         val controller = RomIntegrationManager.controller(context)
         val notif = notificationPreferences.settings.first()
         val channel = channelSelector.select(context)

@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Made condition-ending workflows first-class executions across trigger monitors.
+- Serialized exit dispatch to prevent concurrent monitor callbacks from losing end events.
+- Removed normal-run cooldown interference from exit workflows.
+- Preserved exit behavior across process restarts through the durable active-trigger ledger.
+- Corrected location transition baselining to prevent duplicate or synthetic ENTER/EXIT events.
+
+### Added
+- Provider-independent fixed-location trigger support using the shared location engine.
+- External `geo:` intent integration with manual coordinate fallback and no embedded map SDK.
+
+## [3.28.0] - 2026-08-28
+
+### Fixed
+- Ensured configured exit actions, state restoration, reruns, and value resets execute reliably when trigger conditions end.
+- Added serialized, failure-isolated exit execution so one failing end action cannot suppress subsequent exit processing.
+
+### Added
+- Fixed location trigger with latitude, longitude, radius, and ENTER/EXIT semantics.
+- Unit coverage for coordinate validation, geofence distance checks, and transition detection.
+
+### Compatibility
+- No Google Maps, MapLibre, OpenStreetMap, tile, or offline-map dependencies were added.
+- Existing Current Location behavior and location permissions remain supported.
+
+
 ### Added
 - Initial project setup and modular architecture.
 - Basic UI for Dashboard, Automation Builder, Profiles, History, Capability Center, Icon Picker, Themes, Widgets, and Settings.

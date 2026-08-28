@@ -29,6 +29,7 @@ class DarkModeMonitor @Inject constructor(
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
     private val activeStore: ActiveTriggerStore,
+    private val exitCoordinator: ExitExecutionCoordinator,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -107,8 +108,7 @@ class DarkModeMonitor @Inject constructor(
                 val wasActive = activeStates[automation.id] ?: return@forEach
                 if (wasActive != (dark == wantDark)) {
                     activeStates.remove(automation.id)
-                    activeStore.clearAutomation(SOURCE, automation.id)
-                    executionEngine.runExit(automation)
+                    exitCoordinator.submit(SOURCE, automation)
                 }
             }
     }

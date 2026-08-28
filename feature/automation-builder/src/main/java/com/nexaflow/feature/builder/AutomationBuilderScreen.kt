@@ -988,15 +988,25 @@ fun AutomationBuilderScreen(
      * exact coordinates via the shared savedStateHandle.
      */
     fun launchMapPicker(index: Int) {
-        // Remember which trigger the picker was opened for. It lives in the
-        // builder's own savedStateHandle (survives the navigation round-trip
-        // and process death) so the returned point lands on the right row.
+        // Fixed locations use the platform geo intent. ACTION_VIEW is deliberately
+        // provider-neutral; it may show Google Maps or any installed maps app.
+        // ACTION_VIEW cannot reliably return a coordinate, so the coordinate
+        // fields remain editable in the fixed-location card as a documented fallback.
+        val cfg = triggers.getOrNull(index)?.config.orEmpty()
+        val lat = cfg["latitude"]?.toDoubleOrNull() ?: cfg["lat"]?.toDoubleOrNull()
+        val lng = cfg["longitude"]?.toDoubleOrNull() ?: cfg["lng"]?.toDoubleOrNull()
+        val uri = if (lat != null && lng != null) "geo:$lat,$lng?q=$lat,$lng" else "geo:0,0?q="
+        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(uri))
+        if (intent.resolveActivity(context.packageManager) != null) {
+            runCatching { context.startActivity(intent) }
+        } else {
+            scope.launch { snackbarHostState.showSnackbar("No maps application available. Enter coordinates manually.") }
+        }
+        // Remember which trigger the picker was opened for. The returned
+        // coordinate can be supplied by a maps app or by the manual fallback.
         stableSavedStateHandle?.set("map_picker_target", index)
         // Seed the embedded map with the trigger's current point + radius.
-        val cfg = triggers.getOrNull(index)?.config.orEmpty()
-        val lat = cfg["lat"]?.toDoubleOrNull() ?: 0.0
-        val lng = cfg["lng"]?.toDoubleOrNull() ?: 0.0
-        val radius = cfg["radius"]?.toIntOrNull() ?: 100
+        val radius = cfg["radiusMeters"]?.toIntOrNull() ?: cfg["radius"]?.toIntOrNull() ?: 150
         stableSavedStateHandle?.set(
             "map_picker_init",
             String.format(Locale.US, "%f,%f,%d", lat, lng, radius)
@@ -1055,6 +1065,8 @@ fun AutomationBuilderScreen(
                         config = triggers[index].config +
                             ("lat" to fix.latitude.toString()) +
                             ("lng" to fix.longitude.toString()) +
+                            ("latitude" to fix.latitude.toString()) +
+                            ("longitude" to fix.longitude.toString()) +
                             ("source" to "current")
                     )
                 } else {
@@ -1144,8 +1156,12 @@ fun AutomationBuilderScreen(
                             config = triggers[index].config +
                                 ("lat" to lat.toString()) +
                                 ("lng" to lng.toString()) +
-                                (if (radius != null) mapOf("radius" to radius.toString()) else emptyMap()) +
-                                ("source" to "map")
+                                ("latitude" to lat.toString()) +
+                                ("longitude" to lng.toString()) +
+                                (if (radius != null) mapOf("radius" to radius.toString(), "radiusMeters" to radius.toString()) else emptyMap()) +
+                                ("source" to "map") +
+                                ("eventType" to (triggers[index].config["eventType"] ?: "ENTER")) +
+                                ("locationName" to (triggers[index].config["locationName"] ?: ""))
                         )
                         stableSavedStateHandle?.set("map_picker_target", null)
                     }

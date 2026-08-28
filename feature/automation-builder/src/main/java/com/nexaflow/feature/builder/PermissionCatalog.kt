@@ -72,7 +72,8 @@ object PermissionCatalog {
     /** Runtime permissions required by a trigger. */
     fun runtimePermissionsFor(triggerType: TriggerType): List<String> = when (triggerType) {
         TriggerType.SMS -> listOf(android.Manifest.permission.RECEIVE_SMS)
-        TriggerType.LOCATION -> listOf(
+        TriggerType.LOCATION,
+        TriggerType.FIXED_LOCATION -> listOf(
             android.Manifest.permission.ACCESS_FINE_LOCATION,
             android.Manifest.permission.ACCESS_COARSE_LOCATION
         )

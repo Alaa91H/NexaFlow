@@ -25,6 +25,7 @@ class LocationMonitor @Inject constructor(
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
     private val activeStore: ActiveTriggerStore,
+    private val exitCoordinator: ExitExecutionCoordinator,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -34,6 +35,7 @@ class LocationMonitor @Inject constructor(
     private var listening = false
     private val insideByAutomation = mutableMapOf<String, Boolean>()
     private val lastRunAt = mutableMapOf<String, Long>()
+    private val evaluationMutex = kotlinx.coroutines.sync.Mutex()
     /** Automations currently in their triggered state (to fire exit when leaving). */
     private val activeStates = mutableMapOf<String, Boolean>()
 
@@ -57,7 +59,7 @@ class LocationMonitor @Inject constructor(
             rearmFromLedger()
             repository.getAutomations().collect { automations ->
                 val hasLocationTrigger = automations.any { automation ->
-                    automation.enabled && automation.triggers.any { it.type == TriggerType.LOCATION }
+                    automation.enabled && automation.triggers.any { it.type == TriggerType.LOCATION || it.type == TriggerType.FIXED_LOCATION }
                 }
                 updateListening(hasLocationTrigger, automations)
             }
@@ -104,7 +106,7 @@ class LocationMonitor @Inject constructor(
         scope.launch {
             repository.getAutomations().collect { automations ->
                 val hasLocationTrigger = automations.any { automation ->
-                    automation.enabled && automation.triggers.any { it.type == TriggerType.LOCATION }
+                    automation.enabled && automation.triggers.any { it.type == TriggerType.LOCATION || it.type == TriggerType.FIXED_LOCATION }
                 }
                 updateListening(hasLocationTrigger, automations)
             }
@@ -170,9 +172,10 @@ class LocationMonitor @Inject constructor(
      */
     private fun adaptiveParams(automations: List<Automation>): Pair<Long, Float> {
         val radius = automations
-            .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.LOCATION } }
+            .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.LOCATION || t.type == TriggerType.FIXED_LOCATION } }
             .mapNotNull {
-                it.triggers.first { t -> t.type == TriggerType.LOCATION }.config["radius"]?.toFloatOrNull()
+                it.triggers.first { t -> t.type == TriggerType.LOCATION || t.type == TriggerType.FIXED_LOCATION }.config["radiusMeters"]?.toFloatOrNull()
+                    ?: it.triggers.first { t -> t.type == TriggerType.LOCATION || t.type == TriggerType.FIXED_LOCATION }.config["radius"]?.toFloatOrNull()
             }
             .minOrNull()
         return when {
@@ -185,28 +188,33 @@ class LocationMonitor @Inject constructor(
 
     private fun handleLocation(location: Location) {
         scope.launch {
-            val automations = repository.getAutomations().first()
+            evaluationMutex.lock()
+            try {
+                val automations = repository.getAutomations().first()
             val now = System.currentTimeMillis()
             automations
-                .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.LOCATION } }
+                .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.LOCATION || t.type == TriggerType.FIXED_LOCATION } }
                 .forEach { automation ->
-                    val trigger = automation.triggers.first { it.type == TriggerType.LOCATION }
-                    val lat = trigger.config["lat"]?.toDoubleOrNull() ?: return@forEach
-                    val lng = trigger.config["lng"]?.toDoubleOrNull() ?: return@forEach
-                    val radius = trigger.config["radius"]?.toFloatOrNull() ?: 100f
-                    val event = trigger.config["event"] ?: "ENTER"
+                    val trigger = automation.triggers.first { it.type == TriggerType.LOCATION || it.type == TriggerType.FIXED_LOCATION }
+                    val fixed = FixedLocationEvaluator.parse(trigger)
+                    val lat = (fixed?.latitude ?: trigger.config["lat"]?.toDoubleOrNull()) ?: return@forEach
+                    val lng = (fixed?.longitude ?: trigger.config["lng"]?.toDoubleOrNull()) ?: return@forEach
+                    val radius = (fixed?.radiusMeters ?: trigger.config["radiusMeters"]?.toFloatOrNull()?.toDouble()
+                        ?: trigger.config["radius"]?.toFloatOrNull()?.toDouble() ?: 100.0).toFloat()
+                    val event = fixed?.event?.name ?: trigger.config["event"] ?: "ENTER"
 
                     val distance = FloatArray(1)
                     Location.distanceBetween(lat, lng, location.latitude, location.longitude, distance)
                     val inside = distance[0] <= radius
                     val wasInside = insideByAutomation[automation.id]
-
-                    val shouldRun = when (event) {
-                        "ENTER" -> inside && wasInside != true
-                        "EXIT" -> !inside && wasInside != false
+                    // First fix establishes the baseline only. This prevents a
+                    // restart while already inside from fabricating ENTER/EXIT.
+                    val shouldRun = wasInside != null && when (event) {
+                        "ENTER" -> inside && !wasInside
+                        "EXIT" -> !inside && wasInside
                         else -> false
                     }
-                    if (shouldRun && now - (lastRunAt[automation.id] ?: 0L) > automation.cooldownMillis) {
+                    if (shouldRun && now - (lastRunAt[automation.id] ?: 0L) >= automation.cooldownMillis) {
                         lastRunAt[automation.id] = now
                         activeStates[automation.id] = true
                         activeStore.markActive(SOURCE, automation.id)
@@ -218,14 +226,16 @@ class LocationMonitor @Inject constructor(
                         "EXIT" -> inside && activeStates[automation.id] == true
                         else -> false
                     }
-                    if (activeShouldEnd && now - (lastRunAt[automation.id] ?: 0L) > automation.cooldownMillis) {
+                    if (activeShouldEnd) {
                         lastRunAt[automation.id] = now
                         activeStates.remove(automation.id)
-                        activeStore.clearAutomation(SOURCE, automation.id)
-                        executionEngine.runExit(automation)
+                        exitCoordinator.submit(SOURCE, automation)
                     }
                     insideByAutomation[automation.id] = inside
                 }
+            } finally {
+                evaluationMutex.unlock()
+            }
         }
     }
 

@@ -19,7 +19,9 @@
     <string name="trigger_type_network_mode">Cellular network</string>
 
     <string name="refresh">Refresh</string>
-    <string name="trigger_type_location">Location</string>
+    <string name="trigger_type_location">Current location</string>
+    <string name="trigger_type_fixed_location">Fixed location</string>
+    <string name="trigger_type_fixed_location_sub">Enter or leave a saved coordinate without an embedded map</string>
     <string name="trigger_type_sms">SMS</string>
     <string name="repeat_label">Repeat</string>
     <string name="repeat_once">Once</string>

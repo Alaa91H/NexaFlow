@@ -262,6 +262,7 @@ val triggerTypeOptions = listOf(
     TriggerType.WEBHOOK,
     // LOCATION
     TriggerType.LOCATION,
+    TriggerType.FIXED_LOCATION,
     TriggerType.LOCATION_STATE,
     // APPS
     TriggerType.APPLICATION,
@@ -325,7 +326,8 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.DEVICE -> mapOf("event" to "SCREEN_ON")
     TriggerType.CONNECTIVITY -> mapOf("network" to "WIFI", "state" to "CONNECTED")
     TriggerType.NETWORK_MODE -> mapOf("state" to "4G")
-    TriggerType.LOCATION -> mapOf("lat" to "", "lng" to "", "radius" to "100", "event" to "ENTER")
+    TriggerType.LOCATION -> mapOf("lat" to "", "lng" to "", "radius" to "100", "event" to "ENTER", "source" to "current")
+    TriggerType.FIXED_LOCATION -> mapOf("latitude" to "", "longitude" to "", "radiusMeters" to "150", "eventType" to "ENTER", "locationName" to "")
     TriggerType.SMS -> mapOf("from" to "", "contains" to "", "reply" to "")
     TriggerType.BLUETOOTH_DEVICE -> mapOf("deviceName" to "", "deviceAddress" to "", "event" to "CONNECTED")
     TriggerType.RINGER_MODE -> mapOf("mode" to "NORMAL")
@@ -380,6 +382,7 @@ internal fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.CONNECTIVITY -> R.string.trigger_type_connectivity
     TriggerType.NETWORK_MODE -> R.string.trigger_type_network_mode
     TriggerType.LOCATION -> R.string.trigger_type_location
+    TriggerType.FIXED_LOCATION -> R.string.trigger_type_fixed_location
     TriggerType.SMS -> R.string.trigger_type_sms
     TriggerType.BLUETOOTH_DEVICE -> R.string.trigger_type_bluetooth
     TriggerType.RINGER_MODE -> R.string.trigger_type_ringer
@@ -434,6 +437,7 @@ internal fun TriggerType.descRes(): Int = when (this) {
     TriggerType.CONNECTIVITY -> R.string.trigger_type_connectivity_sub
     TriggerType.NETWORK_MODE -> R.string.trigger_type_network_mode_sub
     TriggerType.LOCATION -> R.string.trigger_type_location_sub
+    TriggerType.FIXED_LOCATION -> R.string.trigger_type_fixed_location_sub
     TriggerType.SMS -> R.string.trigger_type_sms_sub
     TriggerType.BLUETOOTH_DEVICE -> R.string.trigger_type_bluetooth_sub
     TriggerType.RINGER_MODE -> R.string.trigger_type_ringer_sub
@@ -487,7 +491,8 @@ internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.DEVICE -> Icons.Filled.Bolt
     TriggerType.CONNECTIVITY -> Icons.Filled.Wifi
     TriggerType.NETWORK_MODE -> Icons.Filled.SignalCellularAlt
-    TriggerType.LOCATION -> Icons.Filled.Place
+    TriggerType.LOCATION -> Icons.Filled.MyLocation
+    TriggerType.FIXED_LOCATION -> Icons.Filled.Place
     TriggerType.SMS -> Icons.AutoMirrored.Filled.Message
     TriggerType.BLUETOOTH_DEVICE -> Icons.Filled.Bluetooth
     TriggerType.RINGER_MODE -> Icons.Filled.NotificationsActive
@@ -891,18 +896,18 @@ private fun triggerSummary(draft: TriggerDraft): String {
         TriggerType.LOCATION -> {
             val lat = c["lat"] ?: ""
             val lng = c["lng"] ?: ""
-            if (lat.isBlank() || lng.isBlank()) {
-                stringResource(R.string.location_not_set)
-            } else {
-                val radius = (c["radius"]?.toIntOrNull() ?: 100)
-                    .coerceIn(LOCATION_RADIUS_MIN_M, LOCATION_RADIUS_MAX_M)
-                val inside = if ((c["event"] ?: "ENTER") == "ENTER") {
-                    stringResource(R.string.location_inside)
-                } else {
-                    stringResource(R.string.location_outside)
-                }
-                "$inside · ${stringResource(R.string.radius_meters_format, radius)}"
+            if (lat.isBlank() || lng.isBlank()) stringResource(R.string.location_not_set)
+            else {
+                val radius = (c["radius"]?.toIntOrNull() ?: 100).coerceIn(LOCATION_RADIUS_MIN_M, LOCATION_RADIUS_MAX_M)
+                val side = if ((c["event"] ?: "ENTER") == "ENTER") stringResource(R.string.location_inside) else stringResource(R.string.location_outside)
+                "$side · ${stringResource(R.string.radius_meters_format, radius)}"
             }
+        }
+        TriggerType.FIXED_LOCATION -> {
+            val lat = c["latitude"] ?: ""
+            val lng = c["longitude"] ?: ""
+            if (lat.isBlank() || lng.isBlank()) "No fixed location"
+            else "${c["locationName"].orEmpty().ifBlank { "Selected location" }} · ${c["eventType"] ?: "ENTER"} · ${c["radiusMeters"] ?: "150"} m"
         }
         TriggerType.SMS -> {
             val from = (c["from"] ?: "").trim()
@@ -1843,6 +1848,65 @@ fun TriggerEditorCard(
                                     )
                                 )
                             }
+                        )
+                    }
+                }
+                TriggerType.FIXED_LOCATION -> {
+                    val latitude = draft.config["latitude"] ?: ""
+                    val longitude = draft.config["longitude"] ?: ""
+                    val radius = draft.config["radiusMeters"] ?: "150"
+                    val eventType = draft.config["eventType"] ?: "ENTER"
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = "Fixed location", style = MaterialTheme.typography.titleSmall)
+                        OutlinedTextField(
+                            value = latitude,
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("latitude" to it))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Latitude") },
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = longitude,
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("longitude" to it))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Longitude") },
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = radius,
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("radiusMeters" to it))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Radius (m)") },
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = draft.config["locationName"] ?: "",
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("locationName" to it))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Location name (optional)") },
+                            singleLine = true
+                        )
+                        Text(text = "When", style = MaterialTheme.typography.titleSmall)
+                        OptionChips(
+                            options = listOf("ENTER", "EXIT"),
+                            selected = eventType,
+                            onSelect = { onConfigChange(draft.copy(config = draft.config + ("eventType" to it))) }
+                        )
+                        OutlinedButton(onClick = onPickFromMap, modifier = Modifier.fillMaxWidth()) {
+                            Icon(imageVector = Icons.Filled.Map, contentDescription = null)
+                            Text("Choose location", modifier = Modifier.padding(start = 6.dp))
+                        }
+                        Text(
+                            text = if (latitude.isNotBlank() && longitude.isNotBlank()) "$latitude, $longitude" else "No location selected",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        RuntimePermissionHint(
+                            context = context,
+                            permissions = listOf(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION),
+                            text = stringResource(R.string.location_hint),
+                            buttonLabel = stringResource(R.string.grant),
+                            onRequest = { onRequestPermission(arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION)) }
                         )
                     }
                 }
