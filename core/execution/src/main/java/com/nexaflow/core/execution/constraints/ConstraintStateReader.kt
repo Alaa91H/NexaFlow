@@ -74,7 +74,7 @@ object ConstraintStateReader {
     }.getOrDefault(false)
 
     /** True when Bluetooth is enabled. */
-    private fun isBluetoothEnabled(context: Context): Boolean = runCatching {
+    private fun isBluetoothEnabled(@Suppress("UNUSED_PARAMETER") context: Context): Boolean = runCatching {
         val bm = android.bluetooth.BluetoothAdapter.getDefaultAdapter()
         bm?.isEnabled ?: false
     }.getOrDefault(false)

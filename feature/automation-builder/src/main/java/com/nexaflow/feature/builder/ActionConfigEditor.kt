@@ -51,6 +51,7 @@ import com.nexaflow.domain.variables.VariableResolver
  * Adding a new toggle-only action type here automatically renders the correct
  * switch UI without any new `when` branch.
  */
+@Suppress("unused")
 private val SIMPLE_TOGGLE_ACTIONS = setOf(
     ActionType.SYSTEM_LOCATION,
     ActionType.SYSTEM_DND,
@@ -111,6 +112,7 @@ private val TURN_ON_TOGGLE_ACTIONS = setOf(
 /**
  * All action types whose only config is a package name + app picker.
  */
+@Suppress("unused")
 private val PACKAGE_PICKER_ACTIONS = setOf(
     ActionType.APPLICATION_OPEN_APP_SETTINGS,
     ActionType.SYSTEM_FORCE_STOP_APP,
@@ -121,6 +123,7 @@ private val PACKAGE_PICKER_ACTIONS = setOf(
 /**
  * Multi-package variant: uses `packages` key instead of `package`.
  */
+@Suppress("unused")
 private val MULTI_PACKAGE_ACTIONS = setOf(
     ActionType.SYSTEM_OPEN_APP
 )
@@ -128,6 +131,7 @@ private val MULTI_PACKAGE_ACTIONS = setOf(
 /**
  * All action types that require no configuration at all.
  */
+@Suppress("unused")
 private val RUNS_IMMEDIATELY_ACTIONS = setOf(
     ActionType.SYSTEM_MEDIA_PLAY_PAUSE,
     ActionType.SYSTEM_MEDIA_NEXT,
