@@ -119,8 +119,12 @@ android {
     signingConfigs {
         create("release") {
             // Only configure when a real keystore is available; the release
-            // build type falls back to the debug config otherwise.
-            val storeFileValue = releaseStoreFile?.let { file(it) }
+            // build type falls back to the debug config otherwise. Resolve the
+            // store file against the repo root so the CI-provided path
+            // (keystore/nexaflow-release.jks) and keystore.properties both
+            // point at the real keystore instead of silently falling back to
+            // the debug key.
+            val storeFileValue = releaseStoreFile?.let { rootProject.file(it) }
             if (storeFileValue?.exists() == true && !releaseStorePassword.isNullOrBlank()
                 && !releaseKeyAlias.isNullOrBlank() && !releaseKeyPassword.isNullOrBlank()
             ) {
