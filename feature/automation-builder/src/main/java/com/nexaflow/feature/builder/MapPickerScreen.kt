@@ -133,7 +133,6 @@ fun MapPickerScreen(navController: NavController) {
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
 
     val osmBridge = remember {
-        @SuppressLint("JavascriptInterface")
         object {
             @JavascriptInterface
             fun onPointSelected(lat: Double, lng: Double) {
@@ -186,6 +185,7 @@ fun MapPickerScreen(navController: NavController) {
             WebView(context).apply {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
+                @SuppressLint("JavascriptInterface")
                 addJavascriptInterface(osmBridge, "Android")
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, url: String?) {
