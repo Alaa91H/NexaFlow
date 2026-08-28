@@ -490,11 +490,7 @@
     <string name="radius_meters_format">Rayon : %1$d m</string>
     <string name="location_inside">"À l\'intérieur de la position"</string>
     <string name="location_outside">"À l\'extérieur de la position"</string>
-    <string name="location_fix_failed">"Impossible d\'obtenir votre position. Activez la position et réessayez."</string>
-
-    <string name="confirm_location">Confirmer la position</string>
-
-    <string name="charging_yes">En charge</string>
+    <string name="location_fix_failed">"Impossible d\'obtenir votre position. Activez la position et réessayez."</string><string name="charging_yes">En charge</string>
     <string name="ringtone_label">Sonnerie par défaut</string>
     <string name="network_mode_sub">Choisissez parmi les modes réellement disponibles pour la carte SIM sélectionnée. L’application exige un accès privilégié.</string>
     <string name="network_mode_2g">2G</string>
@@ -520,12 +516,7 @@
     <string name="state_off">Désactivé</string>
     <string name="network_hotspot">Point d’accès</string>
     <string name="charging_state_section">État de charge</string>
-    <string name="charging_no">Pas en charge</string>
-    <string name="map_search_hint">Rechercher un lieu</string>
-    <string name="map_pick_hint">Touchez la carte pour placer le point — glissez le repère pour ajuster</string>
-    <string name="map_no_key">Google Maps n’est pas disponible dans cette version de l’application. La carte alternative intégrée est utilisée.</string>
-    <string name="map_search_not_found">Lieu introuvable</string>
-    <string name="trigger_cat_schedule">Planification</string>    <string name="trigger_cat_device">Appareil</string>    <string name="trigger_cat_connectivity">Connectivité</string>    <string name="trigger_cat_location">Localisation</string>    <string name="trigger_cat_apps">Applications</string>    <string name="trigger_cat_communication">Communication</string>
+    <string name="charging_no">Pas en charge</string><string name="trigger_cat_schedule">Planification</string>    <string name="trigger_cat_device">Appareil</string>    <string name="trigger_cat_connectivity">Connectivité</string>    <string name="trigger_cat_location">Localisation</string>    <string name="trigger_cat_apps">Applications</string>    <string name="trigger_cat_communication">Communication</string>
 <string name="add_variable">Ajouter une variable</string>
 <string name="delete_variable">Supprimer</string>
 <string name="variable_name">Nom</string>
@@ -969,11 +960,7 @@
     <string name="plugin_high_risk_title">Configurer %1$s ?</string>
     <string name="plugin_high_risk_message">Ce module peut exécuter des commandes shell ou ADB. Continuez seulement si vous faites confiance à sa source et comprenez les commandes exécutées.</string>
     <string name="plugin_high_risk_continue">Je comprends</string>
-    <string name="plugin_high_risk_badge">Avancé : accès aux commandes élevées</string>
-    <string name="map_google_fallback">Google Maps n’a pas pu se charger. Une carte alternative a été ouverte.</string>
-    <string name="map_alternative_renderer_failed">La carte alternative intégrée n’a pas pu démarrer. Mettez à jour Android System WebView puis réessayez.</string>
-    <string name="map_alternative_tiles_failed">La carte alternative est chargée, mais les tuiles n’ont pas pu être téléchargées. Vérifiez Internet, le DNS ou le pare-feu ; la recherche et la position actuelle restent disponibles.</string>
-    <string name="network_mode_reading">Lecture des modes réseau disponibles…</string>
+    <string name="plugin_high_risk_badge">Avancé : accès aux commandes élevées</string><string name="network_mode_reading">Lecture des modes réseau disponibles…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Les modes réseau réellement pris en charge sont indisponibles pour cet appareil ou cet abonnement. Aucune option non confirmée n’est affichée.</string>
     <string name="network_mode_configured">Types de réseau configurés : %1$s</string>

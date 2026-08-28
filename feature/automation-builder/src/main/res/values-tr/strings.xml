@@ -490,11 +490,7 @@
     <string name="radius_meters_format">Yarıçap: %1$d m</string>
     <string name="location_inside">Konumun içinde</string>
     <string name="location_outside">Konumun dışında</string>
-    <string name="location_fix_failed">Konumunuz alınamadı. Konumu açıp tekrar deneyin.</string>
-
-    <string name="confirm_location">Konumu onayla</string>
-
-    <string name="charging_yes">Şarj oluyor</string>
+    <string name="location_fix_failed">Konumunuz alınamadı. Konumu açıp tekrar deneyin.</string><string name="charging_yes">Şarj oluyor</string>
     <string name="ringtone_label">Varsayılan zil sesi</string>
     <string name="network_mode_sub">Seçilen SIM için gerçekten kullanılabilir modlardan birini seçin. Değişikliği uygulamak için yükseltilmiş erişim gerekir.</string>
     <string name="network_mode_2g">2G</string>
@@ -520,12 +516,7 @@
     <string name="state_off">Kapalı</string>
     <string name="network_hotspot">Etkin nokta</string>
     <string name="charging_state_section">Şarj durumu</string>
-    <string name="charging_no">Şarj olmuyor</string>
-    <string name="map_search_hint">Bir yer arayın</string>
-    <string name="map_pick_hint">Noktayı koymak için haritaya dokunun — hassas ayar için işaretçiyi sürükleyin</string>
-    <string name="map_no_key">Google Haritalar bu uygulama sürümünde kullanılamıyor. Yerleşik alternatif harita kullanılıyor.</string>
-    <string name="map_search_not_found">Yer bulunamadı</string>
-    <string name="trigger_cat_schedule">Zamanlama</string>    <string name="trigger_cat_device">Cihaz</string>    <string name="trigger_cat_connectivity">Bağlantı</string>    <string name="trigger_cat_location">Konum</string>    <string name="trigger_cat_apps">Uygulamalar</string>    <string name="trigger_cat_communication">İletişim</string>
+    <string name="charging_no">Şarj olmuyor</string><string name="trigger_cat_schedule">Zamanlama</string>    <string name="trigger_cat_device">Cihaz</string>    <string name="trigger_cat_connectivity">Bağlantı</string>    <string name="trigger_cat_location">Konum</string>    <string name="trigger_cat_apps">Uygulamalar</string>    <string name="trigger_cat_communication">İletişim</string>
 <string name="add_variable">Değişken ekle</string>
 <string name="delete_variable">Sil</string>
 <string name="variable_name">Ad</string>
@@ -969,11 +960,7 @@
     <string name="plugin_high_risk_title">%1$s yapılandırılsın mı?</string>
     <string name="plugin_high_risk_message">Bu eklenti shell veya ADB komutları çalıştırabilir. Yalnızca kaynağa güveniyor ve çalıştıracağı komutları anlıyorsanız devam edin.</string>
     <string name="plugin_high_risk_continue">Anlıyorum</string>
-    <string name="plugin_high_risk_badge">Gelişmiş: yükseltilmiş komut erişimi</string>
-    <string name="map_google_fallback">Google Haritalar yüklenemedi. Alternatif bir haritaya geçildi.</string>
-    <string name="map_alternative_renderer_failed">Yerleşik alternatif harita başlatılamadı. Android System WebView’i güncelleyin ve tekrar deneyin.</string>
-    <string name="map_alternative_tiles_failed">Alternatif harita yüklendi ancak harita döşemeleri indirilemedi. İnternet bağlantısını, DNS’i veya güvenlik duvarını kontrol edin; arama yapabilir ya da mevcut konumu kullanabilirsiniz.</string>
-    <string name="network_mode_reading">Kullanılabilir ağ modları okunuyor…</string>
+    <string name="plugin_high_risk_badge">Gelişmiş: yükseltilmiş komut erişimi</string><string name="network_mode_reading">Kullanılabilir ağ modları okunuyor…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Bu cihaz veya abonelik için gerçekten desteklenen ağ modları kullanılamıyor. Doğrulanmamış seçenekler gösterilmez.</string>
     <string name="network_mode_configured">Yapılandırılmış ağ türleri: %1$s</string>

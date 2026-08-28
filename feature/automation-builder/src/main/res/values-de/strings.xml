@@ -490,11 +490,7 @@
     <string name="radius_meters_format">Radius: %1$d m</string>
     <string name="location_inside">Innerhalb des Standorts</string>
     <string name="location_outside">Außerhalb des Standorts</string>
-    <string name="location_fix_failed">Standort konnte nicht ermittelt werden. Aktiviere den Standort und versuche es erneut.</string>
-
-    <string name="confirm_location">Standort bestätigen</string>
-
-    <string name="charging_yes">Wird geladen</string>
+    <string name="location_fix_failed">Standort konnte nicht ermittelt werden. Aktiviere den Standort und versuche es erneut.</string><string name="charging_yes">Wird geladen</string>
     <string name="ringtone_label">Standard-Klingelton</string>
     <string name="network_mode_sub">Wählen Sie aus den tatsächlich für die ausgewählte SIM verfügbaren Modi. Zum Anwenden ist erhöhter Zugriff erforderlich.</string>
     <string name="network_mode_2g">2G</string>
@@ -520,12 +516,7 @@
     <string name="state_off">Aus</string>
     <string name="network_hotspot">Hotspot</string>
     <string name="charging_state_section">Ladestatus</string>
-    <string name="charging_no">Wird nicht geladen</string>
-    <string name="map_search_hint">Ort suchen</string>
-    <string name="map_pick_hint">Tippen Sie auf die Karte, um den Punkt zu setzen — ziehen Sie die Markierung zum Anpassen</string>
-    <string name="map_no_key">Google Maps ist in dieser App-Version nicht verfügbar. Die integrierte alternative Karte wird verwendet.</string>
-    <string name="map_search_not_found">Ort nicht gefunden</string>
-    <string name="trigger_cat_schedule">Zeitplan</string>    <string name="trigger_cat_device">Gerät</string>    <string name="trigger_cat_connectivity">Konnektivität</string>    <string name="trigger_cat_location">Standort</string>    <string name="trigger_cat_apps">Apps</string>    <string name="trigger_cat_communication">Kommunikation</string>
+    <string name="charging_no">Wird nicht geladen</string><string name="trigger_cat_schedule">Zeitplan</string>    <string name="trigger_cat_device">Gerät</string>    <string name="trigger_cat_connectivity">Konnektivität</string>    <string name="trigger_cat_location">Standort</string>    <string name="trigger_cat_apps">Apps</string>    <string name="trigger_cat_communication">Kommunikation</string>
 <string name="add_variable">Variable hinzufügen</string>
 <string name="delete_variable">Löschen</string>
 <string name="variable_name">Name</string>
@@ -969,11 +960,7 @@
     <string name="plugin_high_risk_title">%1$s konfigurieren?</string>
     <string name="plugin_high_risk_message">Dieses Plug-in kann Shell- oder ADB-Befehle ausführen. Fahren Sie nur fort, wenn Sie der Quelle vertrauen und die Befehle verstehen.</string>
     <string name="plugin_high_risk_continue">Ich verstehe</string>
-    <string name="plugin_high_risk_badge">Erweitert: Zugriff auf privilegierte Befehle</string>
-    <string name="map_google_fallback">Google Maps konnte nicht geladen werden. Es wurde zu einer alternativen Karte gewechselt.</string>
-    <string name="map_alternative_renderer_failed">Die integrierte alternative Karte konnte nicht gestartet werden. Aktualisieren Sie Android System WebView und versuchen Sie es erneut.</string>
-    <string name="map_alternative_tiles_failed">Die alternative Karte wurde geladen, aber Kartenkacheln konnten nicht heruntergeladen werden. Prüfen Sie Internet, DNS oder Firewall; Suche und aktueller Standort bleiben verfügbar.</string>
-    <string name="network_mode_reading">Verfügbare Netzwerkmodi werden gelesen…</string>
+    <string name="plugin_high_risk_badge">Erweitert: Zugriff auf privilegierte Befehle</string><string name="network_mode_reading">Verfügbare Netzwerkmodi werden gelesen…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Tatsächlich unterstützte Netzwerkmodi sind für dieses Gerät oder Abonnement nicht verfügbar. Nicht bestätigte Optionen werden nicht angezeigt.</string>
     <string name="network_mode_configured">Konfigurierte Netztypen: %1$s</string>

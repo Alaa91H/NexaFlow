@@ -490,11 +490,7 @@
     <string name="radius_meters_format">Радиус: %1$d м</string>
     <string name="location_inside">Внутри зоны</string>
     <string name="location_outside">Вне зоны</string>
-    <string name="location_fix_failed">Не удалось получить местоположение. Включите его и попробуйте снова.</string>
-
-    <string name="confirm_location">Подтвердить местоположение</string>
-
-    <string name="charging_yes">Заряжается</string>
+    <string name="location_fix_failed">Не удалось получить местоположение. Включите его и попробуйте снова.</string><string name="charging_yes">Заряжается</string>
     <string name="ringtone_label">Рингтон по умолчанию</string>
     <string name="network_mode_sub">Выберите режим из действительно доступных для выбранной SIM. Для применения изменения требуются повышенные права.</string>
     <string name="network_mode_2g">2G</string>
@@ -520,12 +516,7 @@
     <string name="state_off">Выкл</string>
     <string name="network_hotspot">Точка доступа</string>
     <string name="charging_state_section">Состояние зарядки</string>
-    <string name="charging_no">Не заряжается</string>
-    <string name="map_search_hint">Найти место</string>
-    <string name="map_pick_hint">Коснитесь карты, чтобы поставить точку — перетащите маркер для точной настройки</string>
-    <string name="map_no_key">Google Карты недоступны в этой сборке приложения. Используется встроенная альтернативная карта.</string>
-    <string name="map_search_not_found">Место не найдено</string>
-    <string name="trigger_cat_schedule">Расписание</string>    <string name="trigger_cat_device">Устройство</string>    <string name="trigger_cat_connectivity">Подключение</string>    <string name="trigger_cat_location">Местоположение</string>    <string name="trigger_cat_apps">Приложения</string>    <string name="trigger_cat_communication">Связь</string>
+    <string name="charging_no">Не заряжается</string><string name="trigger_cat_schedule">Расписание</string>    <string name="trigger_cat_device">Устройство</string>    <string name="trigger_cat_connectivity">Подключение</string>    <string name="trigger_cat_location">Местоположение</string>    <string name="trigger_cat_apps">Приложения</string>    <string name="trigger_cat_communication">Связь</string>
 <string name="add_variable">Добавить переменную</string>
 <string name="delete_variable">Удалить</string>
 <string name="variable_name">Имя</string>
@@ -969,11 +960,7 @@
     <string name="plugin_high_risk_title">Настроить %1$s?</string>
     <string name="plugin_high_risk_message">Этот плагин может выполнять команды shell или ADB. Продолжайте, только если доверяете источнику и понимаете выполняемые команды.</string>
     <string name="plugin_high_risk_continue">Я понимаю</string>
-    <string name="plugin_high_risk_badge">Расширенный: доступ к привилегированным командам</string>
-    <string name="map_google_fallback">Не удалось загрузить Google Карты. Выполнен переход к альтернативной карте.</string>
-    <string name="map_alternative_renderer_failed">Не удалось запустить встроенную альтернативную карту. Обновите Android System WebView и повторите попытку.</string>
-    <string name="map_alternative_tiles_failed">Альтернативная карта загружена, но не удалось скачать её плитки. Проверьте интернет, DNS или брандмауэр; поиск и использование текущего местоположения по-прежнему доступны.</string>
-    <string name="network_mode_reading">Чтение доступных режимов сети…</string>
+    <string name="plugin_high_risk_badge">Расширенный: доступ к привилегированным командам</string><string name="network_mode_reading">Чтение доступных режимов сети…</string>
     <string name="network_mode_sim">SIM %1$d</string>
     <string name="network_mode_unavailable">Фактически поддерживаемые режимы сети недоступны для этого устройства или подписки. Неподтверждённые варианты не показаны.</string>
     <string name="network_mode_configured">Настроенные типы сети: %1$s</string>
