@@ -7,16 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.51.0] - 2026-08-28
+
 ### Fixed
 - Made condition-ending workflows first-class executions across trigger monitors.
 - Serialized exit dispatch to prevent concurrent monitor callbacks from losing end events.
 - Removed normal-run cooldown interference from exit workflows.
 - Preserved exit behavior across process restarts through the durable active-trigger ledger.
 - Corrected location transition baselining to prevent duplicate or synthetic ENTER/EXIT events.
+- Exposed `LoadingState` content descriptions to accessibility services.
 
 ### Added
 - Provider-independent fixed-location trigger support using the shared location engine.
 - External `geo:` intent integration with manual coordinate fallback and no embedded map SDK.
+
+### Improved
+- Refined shared Compose UI components and theme tokens for more consistent interaction and presentation.
+
 
 ## [3.28.0] - 2026-08-28
 
