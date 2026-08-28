@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Close
@@ -68,6 +69,7 @@ import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.Usb
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -837,6 +839,7 @@ private fun triggerSummary(draft: TriggerDraft): String {
             }
             "${repeatLabel(draft)} · $time"
         }
+        TriggerType.FIXED_LOCATION -> stringResource(R.string.trigger_type_fixed_location)
         TriggerType.BATTERY -> {
             val threshold = (c["above"] ?: "80").toIntOrNull() ?: 80
             val level = if ((c["direction"] ?: "ABOVE") == "ABOVE") "≥ $threshold%" else "≤ $threshold%"
@@ -1080,6 +1083,7 @@ private fun triggerSummary(draft: TriggerDraft): String {
         TriggerType.BOOT_COMPLETED -> stringResource(R.string.trigger_events_on_change)
         TriggerType.NFC_TAG_SCANNED -> stringResource(R.string.trigger_events_on_change)
         TriggerType.ALARM_SET_CHANGED -> stringResource(R.string.trigger_events_on_change)
+        else -> stringResource(R.string.trigger_events_on_change)
     }
 }
 
@@ -2875,6 +2879,7 @@ fun TriggerEditorCard(
                     Text(text = stringResource(R.string.trigger_desc_nfc_tag), style = MaterialTheme.typography.bodyMedium)
                 TriggerType.ALARM_SET_CHANGED ->
                     Text(text = stringResource(R.string.trigger_desc_alarm_set), style = MaterialTheme.typography.bodyMedium)
+                else -> Unit
             }
             }
         }

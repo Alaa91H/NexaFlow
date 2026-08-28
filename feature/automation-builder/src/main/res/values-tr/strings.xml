@@ -872,4 +872,205 @@
     <string name="vibrate_pattern_label">Titreşim deseni</string>
     <string name="wifi_password">Şifre</string>
     <string name="wifi_ssid">Wi-Fi adı (SSID)</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="collapse_options">Collapse options</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="constraint_state_label">State</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="constraint_type_airplane">Airplane mode</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="constraint_type_airplane_sub">Only run when airplane mode is on or off</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="constraint_type_bluetooth">Bluetooth enabled</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="constraint_type_bluetooth_sub">Only run when Bluetooth is on or off</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="constraint_type_charging">Charging state</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="constraint_type_charging_sub">Only run when device is charging or not</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="constraint_type_dnd">Do Not Disturb</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="constraint_type_dnd_sub">Only run when DND mode is active</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="constraint_type_location">Location services</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="constraint_type_location_sub">Only run when location is enabled or disabled</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="http_request_hint">Needs local network permission to reach LAN devices</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="search">Search</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_airplane_sub">Fires when airplane mode toggles</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_alarm_sub">Fires when an alarm is set or changed</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_app_installed_sub">Fires when an app is installed, removed, or updated</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_app_sub">Fires when an app is opened or closed</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_auto_brightness_sub">Fires when auto-brightness toggles</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_auto_rotate_sub">Fires when auto-rotate toggles</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_battery_sub">Fires when battery level changes</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_battery_temp_sub">Fires when battery temperature crosses a threshold</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_bluetooth_state_sub">Fires when Bluetooth is enabled or disabled</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_bluetooth_sub">Fires when a Bluetooth device connects or disconnects</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_boot_sub">Fires when device finishes booting</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_brightness_sub">Fires when screen brightness crosses a threshold</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_calendar_sub">Fires around calendar events</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_call_sub">Fires on incoming, outgoing, or missed calls</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_cell_signal_sub">Fires when cellular signal strength crosses a threshold</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_charger_sub">Fires when charger is plugged in or removed</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_clipboard_sub">Fires when clipboard content changes</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_connectivity_sub">Fires when network connectivity changes</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_dark_mode_sub">Fires when dark mode toggles</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_data_roaming_sub">Fires when data roaming toggles</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_data_saver_sub">Fires when data saver toggles</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_device_locked_sub">Fires when device is locked or unlocked</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_device_sub">Fires on device state changes</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_dnd_sub">Fires when Do Not Disturb toggles</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_ethernet_sub">Fires when an Ethernet cable connects</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_fixed_location">Fixed location</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_fixed_location_sub">Enter or leave a saved coordinate without an embedded map</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_hdmi_sub">Fires when an HDMI device connects</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_headset_sub">Fires when a headset is plugged in or removed</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_location_state_sub">Fires when location mode changes</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_location_sub">Fires when entering or leaving a location</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_media_sub">Fires on media playback events</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_network_mode_sub">Fires when cellular network mode matches</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_nfc_state_sub">Fires when NFC is enabled or disabled</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_nfc_sub">Fires when an NFC tag is scanned</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_notification_sub">Fires when a notification is posted or removed</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_power_saver_sub">Fires when battery saver mode toggles</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_ringer_sub">Fires when the sound mode changes</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_rom_setting_sub">Fires when a ROM-specific setting changes</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_schedule_sub">Fires at a scheduled time</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_screen_rotation_sub">Fires when screen rotation changes</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_screen_timeout_sub">Fires when screen timeout setting changes</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_sensor_sub">Fires when a device sensor detects activity</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_sms_sub">Fires when an SMS is received</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_stay_awake_sub">Fires when stay-awake toggles</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_storage_sub">Fires when storage falls below a threshold</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_timezone_sub">Fires when device timezone changes</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_usb_sub">Fires when a USB device connects</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_volume_changed_sub">Fires when volume crosses a threshold</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_vpn_sub">Fires when VPN connects or disconnects</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_webhook_sub">Fires on incoming HTTP request</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_wifi_signal_sub">Fires when Wi-Fi signal strength crosses a threshold</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="trigger_type_wifi_state_sub">Fires when Wi-Fi is enabled or disabled</string>
 </resources>

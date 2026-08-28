@@ -291,7 +291,7 @@ private fun EndValueEditor(
 private fun EndBehaviorEditorPreview() {
     NexaFlowTheme {
         EndBehaviorEditor(
-            actionType = ActionType.TOGGLE_NOTIFICATION_LISTENER,
+            actionType = ActionType.SYSTEM_WIFI,
             behavior = EndBehavior(),
             onBehaviorChange = {}
         )

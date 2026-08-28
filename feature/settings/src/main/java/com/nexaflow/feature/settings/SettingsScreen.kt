@@ -436,7 +436,7 @@ fun SettingsScreen(navController: NavController) {
     if (showAbout) {
         AlertDialog(
             onDismissRequest = { showAbout = false },
-            title = { Text(stringResource(R.string.app_name)) },
+            title = { Text(stringResource(R.string.about_nexaflow)) },
             text = {
                 Column {
                     Text(stringResource(R.string.version, appVersion(context)))

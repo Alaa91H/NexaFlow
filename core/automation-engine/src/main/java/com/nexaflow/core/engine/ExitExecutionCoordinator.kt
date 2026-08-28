@@ -2,6 +2,7 @@ package com.nexaflow.core.engine
 
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.domain.models.Automation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.sync.Mutex
@@ -19,7 +20,7 @@ import javax.inject.Singleton
 class ExitExecutionCoordinator @Inject constructor(
     private val executionEngine: ExecutionEngine,
     private val activeStore: ActiveTriggerStore,
-    private val scope: CoroutineScope
+    @ApplicationScope private val scope: CoroutineScope
 ) {
     private val mutex = Mutex()
 

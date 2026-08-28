@@ -5,11 +5,16 @@ import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import org.junit.Assert.*
 import org.junit.Test
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import org.junit.runner.RunWith
 
+@RunWith(RobolectricTestRunner::class)
+@Config(manifest = Config.NONE)
 class FixedLocationEvaluatorTest {
     private fun location(lat: Double, lng: Double): Location = Location("test").apply {
-        latitude = lat
-        longitude = lng
+        setLatitude(lat)
+        setLongitude(lng)
     }
 
     @Test fun validatesCoordinatesAndRadius() {

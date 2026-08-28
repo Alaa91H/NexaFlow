@@ -415,4 +415,19 @@
     <string name="trigger_usb_connected">USB 已连接</string>
     <string name="trigger_vpn_connected">VPN 已连接</string>
     <string name="trigger_wifi_signal_strength">Wi-Fi 信号强度</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="constraint_type_airplane">Airplane mode</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="constraint_type_bluetooth">Bluetooth</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="constraint_type_charging">Charging</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="constraint_type_dnd">Do Not Disturb</string>
+
+    <!-- TODO(translate): auto-filled by scripts/auto_fix.py -->
+    <string name="constraint_type_location">Location</string>
 </resources>

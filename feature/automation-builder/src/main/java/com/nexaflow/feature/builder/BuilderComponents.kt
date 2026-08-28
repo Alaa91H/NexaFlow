@@ -325,6 +325,7 @@ fun SpecialPermissionStatusRow(
             MaterialTheme.colorScheme.surfaceContainerHighest,
             MaterialTheme.colorScheme.secondary
         )
+        SpecialStatus.GRANTED -> return
     }
     // The whole row is the button: tap it (or the pill) to start the grant flow.
     // A chevron hints the row is tappable — no separate button, matching the
