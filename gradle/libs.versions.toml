@@ -78,7 +78,6 @@ androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "v
 androidx-test-uiautomator-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "v2_4_0" }
 androidx-work-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "v2_11_2" }
 com-google-android-gms-play-services-auth-api-phone = { module = "com.google.android.gms:play-services-auth-api-phone", version.ref = "v18_1_0" }
-com-google-android-gms-play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "v19_2_0" }
 com-google-code-gson-gson = { module = "com.google.code.gson:gson", version.ref = "v2_14_0" }
 com-google-dagger-hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "v2_60_1" }
 com-google-dagger-hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "v2_60_1" }

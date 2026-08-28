@@ -193,18 +193,38 @@ class LocationMonitor @Inject constructor(
                     val trigger = automation.triggers.first { it.type == TriggerType.LOCATION }
                     val lat = trigger.config["lat"]?.toDoubleOrNull() ?: return@forEach
                     val lng = trigger.config["lng"]?.toDoubleOrNull() ?: return@forEach
-                    val radius = trigger.config["radius"]?.toFloatOrNull() ?: 100f
+                    val radius = trigger.config["radius"]?.toDoubleOrNull() ?: return@forEach
                     val event = trigger.config["event"] ?: "ENTER"
+                    val source = trigger.config["source"] ?: "current"
+                    if (!FixedLocationEvaluator.isValidCoordinate(lat, lng) ||
+                        !FixedLocationEvaluator.isValidRadius(radius) ||
+                        !FixedLocationEvaluator.isValidCoordinate(location.latitude, location.longitude) ||
+                        event !in setOf("ENTER", "EXIT")
+                    ) return@forEach
 
                     val distance = FloatArray(1)
                     Location.distanceBetween(lat, lng, location.latitude, location.longitude, distance)
-                    val inside = distance[0] <= radius
+                    val inside = distance[0].toDouble() <= radius
                     val wasInside = insideByAutomation[automation.id]
 
-                    val shouldRun = when (event) {
-                        "ENTER" -> inside && wasInside != true
-                        "EXIT" -> !inside && wasInside != false
-                        else -> false
+                    // Selected fixed locations deliberately initialise their state
+                    // without emitting an event after process/device restart.
+                    // The legacy current-location flow retains its established
+                    // first-fix behavior.
+                    val shouldRun = if (source == "selected") {
+                        val previous = wasInside?.let {
+                            if (it) FixedLocationEvaluator.TransitionState.INSIDE
+                            else FixedLocationEvaluator.TransitionState.OUTSIDE
+                        } ?: FixedLocationEvaluator.TransitionState.UNKNOWN
+                        val requested = if (event == "ENTER") FixedLocationEvaluator.EventType.ENTER
+                        else FixedLocationEvaluator.EventType.EXIT
+                        FixedLocationEvaluator.transition(previous, inside, requested) != null
+                    } else {
+                        when (event) {
+                            "ENTER" -> inside && wasInside != true
+                            "EXIT" -> !inside && wasInside != false
+                            else -> false
+                        }
                     }
                     if (shouldRun && now - (lastRunAt[automation.id] ?: 0L) > automation.cooldownMillis) {
                         lastRunAt[automation.id] = now

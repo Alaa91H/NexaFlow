@@ -101,9 +101,6 @@ write_properties() {
     local store_password="$1"
     local alias="$2"
     local key_password="$3"
-    local maps_api_key
-    maps_api_key="$(read_property mapsApiKey || true)"
-
     validate_property_value "store password" "$store_password"
     validate_property_value "key alias" "$alias"
     validate_property_value "key password" "$key_password"
@@ -116,10 +113,6 @@ storePassword=$store_password
 keyAlias=$alias
 keyPassword=$key_password
 EOF
-    if [ -n "$maps_api_key" ]; then
-        validate_property_value "Maps API key" "$maps_api_key"
-        printf 'mapsApiKey=%s\n' "$maps_api_key" >> "$PROPS"
-    fi
     chmod 600 "$PROPS"
     note "Wrote protected local credentials to $PROPS"
 }

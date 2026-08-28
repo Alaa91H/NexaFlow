@@ -86,15 +86,6 @@ android {
             "SENTRY_DSN",
             "\"${providers.gradleProperty("NEXAFLOW_SENTRY_DSN").orElse("").get()}\""
         )
-        // Google Maps API key for the embedded map picker. Optional: an empty
-        // key renders a setup hint instead of a map. Resolved the same way as
-        // the signing secrets: CI env var, then keystore.properties
-        // (gitignored), then empty. Never commit a real key.
-        val mapsApiKey = providers.environmentVariable("NEXAFLOW_MAPS_API_KEY")
-            .orNull?.takeIf { it.isNotBlank() }
-            ?: keystoreProps.getProperty("mapsApiKey")?.takeIf { it.isNotBlank() }
-            .orEmpty()
-        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     buildFeatures {
         buildConfig = true
     }

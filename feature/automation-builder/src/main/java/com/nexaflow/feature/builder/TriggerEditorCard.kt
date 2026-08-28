@@ -1874,8 +1874,8 @@ fun TriggerEditorCard(
                 }
                 TriggerType.LOCATION -> {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        // Two ways to set the location: current position or map,
-                        // stacked vertically (full width each) for easier tapping.
+                        // Two distinct location modes share the existing location engine:
+                        // current device location or a provider-independent fixed point.
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             OutlinedButton(
                                 onClick = onUseCurrentLocation,
@@ -1898,8 +1898,8 @@ fun TriggerEditorCard(
                                 )
                             }
                         }
-                        // Read-only summary of the chosen point (replaces the
-                        // old manual latitude/longitude text fields).
+                        // Read-only summary of a selected fixed point. Coordinates are
+                        // provider-independent and remain editable through the picker.
                         val lat = draft.config["lat"] ?: ""
                         val lng = draft.config["lng"] ?: ""
                         if (lat.isNotBlank() && lng.isNotBlank()) {
@@ -1915,17 +1915,13 @@ fun TriggerEditorCard(
                                 color = MaterialTheme.colorScheme.secondary
                             )
                         }
-                        // The location point can come from two flows. "Use my
-                        // current location" has no radius control of its own, so
-                        // the radius slider + inside/outside chips below belong
-                        // to it. Picking on the map sets its own radius inside
-                        // the map screen, so here we show a read-only summary
-                        // for the map-sourced point instead of a second slider.
+                        // The current-location flow uses the shared location fix;
+                        // selected-location stores a fixed coordinate and its radius.
                         val radius = (draft.config["radius"]?.toIntOrNull() ?: 100)
                             .coerceIn(LOCATION_RADIUS_MIN_M, LOCATION_RADIUS_MAX_M)
                         val locationSource = draft.config["source"] ?: "current"
-                        if (locationSource != "map") {
-                            // Radius slider — tied to "use my current location".
+                        if (locationSource == "current") {
+                            // Current-location mode keeps the existing radius editor.
                             Text(
                                 text = stringResource(R.string.radius_meters_format, radius),
                                 style = MaterialTheme.typography.titleSmall
@@ -1943,7 +1939,7 @@ fun TriggerEditorCard(
                                 steps = LOCATION_RADIUS_STEPS
                             )
                         } else {
-                            // Map flow: the map screen already picked the radius.
+                            // Selected fixed-location mode keeps the saved radius visible.
                             Text(
                                 text = stringResource(R.string.map_radius_summary, radius),
                                 style = MaterialTheme.typography.bodyMedium,

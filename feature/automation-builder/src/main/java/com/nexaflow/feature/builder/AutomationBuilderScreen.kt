@@ -1305,7 +1305,7 @@ fun AutomationBuilderScreen(
                             ("lat" to lat.toString()) +
                             ("lng" to lng.toString()) +
                             (if (radius != null) mapOf("radius" to radius.toString()) else emptyMap()) +
-                            ("source" to "map")
+                            ("source" to "selected")
                     )
                     handle.set("map_picker_target", null)
                 }
@@ -1351,7 +1351,7 @@ fun AutomationBuilderScreen(
                                 ("lat" to lat.toString()) +
                                 ("lng" to lng.toString()) +
                                 (if (radius != null) mapOf("radius" to radius.toString()) else emptyMap()) +
-                                ("source" to "map")
+                                ("source" to "selected")
                         )
                         handle.set("map_picker_target", null)
                     }

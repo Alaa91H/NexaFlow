@@ -1,68 +1,31 @@
 package com.nexaflow.feature.builder
 
-import android.content.Context
-import androidx.test.core.app.ApplicationProvider
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35])
 class MapPickerFallbackTest {
-
     @Test
-    fun blankKeyUsesAlternativeMapImmediately() {
-        assertTrue(shouldUseOpenStreetMap(apiKey = "", googleMapFailed = false))
+    fun validCoordinatesAreAccepted() {
+        assertTrue(validCoordinate(52.5208, 13.4095))
+        assertTrue(validCoordinate(-90.0, 180.0))
     }
 
     @Test
-    fun configuredKeyUsesGoogleMapUntilARealLoadFailureOccurs() {
-        assertFalse(shouldUseOpenStreetMap(apiKey = "configured-key", googleMapFailed = false))
+    fun malformedAndOutOfRangeCoordinatesAreRejected() {
+        assertFalse(validCoordinate(null, 13.4095))
+        assertFalse(validCoordinate(91.0, 13.4095))
+        assertFalse(validCoordinate(52.5208, 181.0))
+        assertFalse(validCoordinate(Double.NaN, 13.4095))
+        assertFalse(validCoordinate(52.5208, Double.POSITIVE_INFINITY))
     }
 
     @Test
-    fun googleMapLoadFailureUsesAlternativeMapEvenWithConfiguredKey() {
-        assertTrue(shouldUseOpenStreetMap(apiKey = "configured-key", googleMapFailed = true))
+    fun radiusMustBeWithinTheSupportedRange() {
+        assertTrue(validRadius(50))
+        assertTrue(validRadius(2000))
+        assertFalse(validRadius(0))
+        assertFalse(validRadius(-10))
+        assertFalse(validRadius(2001))
     }
-
-    @Test
-    fun tileProviderFailureDoesNotRepresentRendererFailure() {
-        assertFalse(isAlternativeMapRendererFailure("tile_network_unavailable"))
-        assertTrue(isAlternativeMapRendererFailure("leaflet_unavailable"))
-        assertTrue(isAlternativeMapRendererFailure(null))
-    }
-
-    @Test
-    fun alternativeMapUsesBundledLeafletInsteadOfRuntimeCdn() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        val html = context.readAsset("map_picker.html").decodeToString()
-        val stylesheet = context.readAsset("leaflet/leaflet.css").decodeToString()
-        val license = context.readAsset("leaflet/LICENSE").decodeToString()
-
-        assertTrue(html.contains("leaflet/leaflet.css"))
-        assertTrue(html.contains("leaflet/leaflet.js"))
-        assertTrue(html.contains("onMapReady"))
-        assertTrue(html.contains("tile_network_unavailable"))
-        assertFalse(html.contains("cdn.jsdelivr.net"))
-        assertFalse(html.contains("unpkg.com"))
-        assertTrue(stylesheet.contains("images/marker-icon.png"))
-        assertTrue(license.contains("BSD 2-Clause License"))
-
-        listOf(
-            "leaflet/leaflet.js",
-            "leaflet/images/marker-icon.png",
-            "leaflet/images/marker-icon-2x.png",
-            "leaflet/images/marker-shadow.png",
-            "leaflet/images/layers.png",
-            "leaflet/images/layers-2x.png"
-        ).forEach { path ->
-            assertTrue("Expected non-empty asset: $path", context.readAsset(path).isNotEmpty())
-        }
-    }
-
-    private fun Context.readAsset(path: String): ByteArray =
-        assets.open(path).use { it.readBytes() }
 }

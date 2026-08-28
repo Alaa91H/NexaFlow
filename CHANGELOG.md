@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.52.0] - 2026-08-28
+
+### Added
+- Added provider-independent **Selected Location** automation triggers alongside the existing **Current Location** flow. Selected locations persist latitude, longitude, radius, event type, and an optional source marker through the existing trigger configuration contract.
+- Added strict coordinate and radius validation, lightweight Haversine distance evaluation, inclusive radius boundaries, and transition-only `ENTER` / `EXIT` event detection.
+- Added restart-safe fixed-location initialization. A persisted selected location enters `UNKNOWN` state after restart and does not emit a false event until a real outside/inside transition is observed.
+- Added an external maps selection flow using Android's standard `ACTION_VIEW` `geo:` URI. When no compatible maps application is available or coordinate return is unsupported, NexaFlow provides a validated manual coordinate-entry fallback.
+
+### Changed
+- Reused the existing location monitor, permission handling, background execution, persistence, event bus, and workflow execution layers. The trigger emits normalized events and never executes device actions directly.
+- Removed all embedded map-rendering infrastructure, including Google Maps SDK, Maps API-key configuration, OpenStreetMap/Leaflet assets, map tiles, and provider-specific verification metadata.
+
+### Tests
+- Added unit coverage for coordinate validation, `NaN`/infinity rejection, radius bounds, distance evaluation, boundary inclusion, ENTER/EXIT transitions, duplicate suppression, and restart semantics.
+- Added builder validation coverage for malformed coordinates and unsupported radius values.
+
+### Documentation
+- Added [`docs/FIXED_LOCATION_TRIGGER.md`](docs/FIXED_LOCATION_TRIGGER.md) with architecture, persistence, permissions, testing, command, and device-verification details.
+
 ## [v3.50.4] - 2026-08-27
 
 ### Fixed
