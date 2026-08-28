@@ -93,6 +93,11 @@ class DeviceEventMonitorExitReconcileTest {
         repository = repository,
         executionEngine = engine,
         activeStore = store,
+        exitCoordinator = ExitExecutionCoordinator(
+            executionEngine = engine,
+            activeStore = store,
+            scope = CoroutineScope(Dispatchers.Default)
+        ),
         scope = CoroutineScope(Dispatchers.Default)
     )
 
