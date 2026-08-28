@@ -1,5 +1,7 @@
 package com.nexaflow.core.ui
 
+import com.nexaflow.core.ui.theme.NexaFlowTheme
+
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -43,6 +46,7 @@ fun LoadingState(
             .padding(vertical = Space8)
             .semantics {
                 if (contentDescription != null) {
+                    this.contentDescription = contentDescription
                     liveRegion = LiveRegionMode.Polite
                 }
             },

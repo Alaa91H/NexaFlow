@@ -1,5 +1,7 @@
 package com.nexaflow.core.ui
 
+import com.nexaflow.core.ui.theme.NexaFlowTheme
+
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row

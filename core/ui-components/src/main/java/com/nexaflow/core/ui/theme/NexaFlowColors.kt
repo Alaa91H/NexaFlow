@@ -1,5 +1,8 @@
 package com.nexaflow.core.ui.theme
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
@@ -56,4 +59,17 @@ object NexaFlowTheme {
     val colors: NexaFlowColors
         @androidx.compose.runtime.Composable
         get() = LocalNexaFlowColors.current
+
+    /**
+     * Preview-friendly wrapper so any module can render content inside a
+     * MaterialTheme without depending on the app-level theme (:app owns the
+     * accent/dynamic variants). Supplies the light [NexaFlowColors] local so
+     * [colors] reads correctly inside previews.
+     */
+    @Composable
+    operator fun invoke(content: @Composable () -> Unit) {
+        CompositionLocalProvider(LocalNexaFlowColors provides LightNexaFlowColors) {
+            MaterialTheme(content = content)
+        }
+    }
 }
