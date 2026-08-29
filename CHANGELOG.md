@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.52.1] - 2026-08-29
+
+### Fixed
+- Routed location-triggered automation activation through the durable `AutomationLifecycleContext` and `AutomationRuntimeStore` path. A location task is now considered active only after its exact occurrence is durably admitted.
+- Routed location condition endings through `ExitCoordinator` instead of dispatching end behavior directly from `LocationMonitor`. End actions are now atomically claimed, executed, recorded, and completed through the same lifecycle contract as other stateful triggers.
+- Preserved active markers and durable `EXIT_FAILED` state when an end action fails or is already in progress. The task is no longer cleared or reported as finished until a successful exit is confirmed.
+- Restored location lifecycle ownership from the durable runtime ledger before listening for fixes, preventing process-death gaps from silently losing an active task.
+- Serialized location evaluations to prevent activation and exit callbacks from racing each other.
+
+### Documentation
+- Added [`docs/STRICT_TASK_LIFECYCLE.md`](docs/STRICT_TASK_LIFECYCLE.md) describing the failure modes, guarantees, and recovery behavior.
+
+### Quality assurance
+- The local resource gate passes. Android unit tests require an Android SDK, which is unavailable in the local sandbox; GitHub Actions remains the authoritative Android validation gate.
+
 ## [v3.52.0] - 2026-08-28
 
 ### Added

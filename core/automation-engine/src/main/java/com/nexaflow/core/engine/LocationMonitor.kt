@@ -6,6 +6,9 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationLifecycleContext
+import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.Automation
@@ -14,8 +17,11 @@ import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,6 +30,8 @@ class LocationMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
+    private val exitCoordinator: ExitCoordinator,
+    private val runtimeStore: AutomationRuntimeStore,
     private val activeStore: ActiveTriggerStore,
     @ApplicationScope private val scope: CoroutineScope
 ) {
@@ -36,6 +44,8 @@ class LocationMonitor @Inject constructor(
     private val lastRunAt = mutableMapOf<String, Long>()
     /** Automations currently in their triggered state (to fire exit when leaving). */
     private val activeStates = mutableMapOf<String, Boolean>()
+    /** Serializes location transitions so an exit cannot race activation. */
+    private val evaluationMutex = Mutex()
 
     private val listener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
@@ -69,10 +79,20 @@ class LocationMonitor @Inject constructor(
      * deleted/disabled automations are pruned.
      */
     private suspend fun rearmFromLedger() {
-        val enabledIds = repository.getAutomations().first()
-            .filter { it.enabled }
-            .map { it.id }
-            .toSet()
+        val automations = repository.getAutomations().first().associateBy { it.id }
+        val enabledIds = automations.values.filter { it.enabled }.map { it.id }.toSet()
+        // The occurrence ledger is authoritative. Restore it before consuming
+        // location fixes so a process death cannot lose a real active task.
+        runtimeStore.activeStates()
+            .filter { it.source == SOURCE }
+            .forEach { state ->
+                if (state.automationId in enabledIds) {
+                    activeStates[state.automationId] = true
+                    activeStore.markActive(SOURCE, state.automationId)
+                } else {
+                    runtimeStore.clear(state.automationId, state.occurrenceId)
+                }
+            }
         activeStore.activeKeys(SOURCE).forEach { key ->
             val id = key.substringBefore('|')
             if (id in enabledIds) {
@@ -185,8 +205,9 @@ class LocationMonitor @Inject constructor(
 
     private fun handleLocation(location: Location) {
         scope.launch {
-            val automations = repository.getAutomations().first()
-            val now = System.currentTimeMillis()
+            evaluationMutex.withLock {
+                val automations = repository.getAutomations().first()
+                val now = System.currentTimeMillis()
             automations
                 .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.LOCATION } }
                 .forEach { automation ->
@@ -228,9 +249,26 @@ class LocationMonitor @Inject constructor(
                     }
                     if (shouldRun && now - (lastRunAt[automation.id] ?: 0L) > automation.cooldownMillis) {
                         lastRunAt[automation.id] = now
-                        activeStates[automation.id] = true
-                        activeStore.markActive(SOURCE, automation.id)
-                        executionEngine.runAutomation(automation)
+                        val occurrenceId = "location:${automation.id}:${UUID.randomUUID()}"
+                        executionEngine.runAutomation(
+                            automation = automation,
+                            lifecycleContext = AutomationLifecycleContext(
+                                occurrenceId = occurrenceId,
+                                source = SOURCE,
+                                sourceKey = automation.id
+                            )
+                        )
+                        val accepted = runtimeStore.current(automation.id)?.let { state ->
+                            state.occurrenceId == occurrenceId && state.source == SOURCE
+                        } == true
+                        if (accepted) {
+                            activeStates[automation.id] = true
+                            activeStore.markActive(SOURCE, automation.id)
+                        } else {
+                            // Never claim an active state when durable lifecycle
+                            // admission or main execution was not established.
+                            lastRunAt.remove(automation.id)
+                        }
                     }
                     // Exit behavior: fire when the configured state (ENTER=inside, EXIT=outside) ends.
                     val activeShouldEnd = when (event) {
@@ -242,12 +280,24 @@ class LocationMonitor @Inject constructor(
                     // active, its configured end behavior must run immediately
                     // when the location condition ends, even during cooldown.
                     if (activeShouldEnd) {
-                        activeStates.remove(automation.id)
-                        activeStore.clearAutomation(SOURCE, automation.id)
-                        executionEngine.runExit(automation)
+                        when (exitCoordinator.requestExit(automation, ExitReason.TRIGGER_FALSE)) {
+                            is ExitCoordinatorResult.Executed,
+                            ExitCoordinatorResult.NotActive,
+                            ExitCoordinatorResult.StaleOccurrence -> {
+                                activeStates.remove(automation.id)
+                                activeStore.clearAutomation(SOURCE, automation.id)
+                            }
+                            ExitCoordinatorResult.AlreadyInProgress,
+                            is ExitCoordinatorResult.RecoveryRequired -> {
+                                // Retain the active marker until the durable
+                                // coordinator confirms a successful end.
+                                activeStates[automation.id] = true
+                            }
+                        }
                     }
                     insideByAutomation[automation.id] = inside
                 }
+            }
         }
     }
 
