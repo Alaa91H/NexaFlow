@@ -143,12 +143,18 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                     val isTimeRange = automation.triggers
                         .firstOrNull { it.type == TriggerType.TIME }
                         ?.config?.get("timeMode") == "RANGE"
-                    if (isTimeRange && (windowEndAt == null || windowEndAt <= System.currentTimeMillis())) {
-                        Log.w(TAG, "Ignoring expired or malformed time range for $automationId")
+                    val now = System.currentTimeMillis()
+                    val expiredRange = isTimeRange && windowEndAt != null && windowEndAt <= now
+                    if (!shouldExecuteRangeStart(isTimeRange, windowEndAt)) {
+                        Log.e(TAG, "Refusing malformed time range without an end for $automationId")
                         scheduler.completeOccurrence(automationId, occurrenceId)
                         scheduler.scheduleNext(automationId)
                         return@launch
                     }
+                    // A delayed delivery is still a real occurrence. Never
+                    // discard its main actions merely because Android delivered
+                    // START after the nominal END; execute START, then close the
+                    // same durable occurrence immediately below.
                     val record = executionEngine.runAutomation(
                         automation = automation,
                         completeExitOnFinish = !isTimeRange,
@@ -173,6 +179,22 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                         if (!record.success) {
                             Log.w(TAG, "Time occurrence failed for $automationId: ${record.message}")
                         }
+                    } else if (expiredRange) {
+                        // START was delivered late but must still have a real
+                        // terminal lifecycle. The coordinator will execute the
+                        // configured end behavior only after START has returned.
+                        when (val exit = exitCoordinator.requestExit(
+                            automation = automation,
+                            reason = ExitReason.TIME_WINDOW_ENDED,
+                            occurrenceId = occurrenceId
+                        )) {
+                            is ExitCoordinatorResult.RecoveryRequired ->
+                                Log.e(TAG, "Delayed range exit requires recovery for $automationId: ${exit.state.lastError}")
+                            ExitCoordinatorResult.AlreadyInProgress ->
+                                Log.w(TAG, "Delayed range exit already in progress for $automationId")
+                            else -> Unit
+                        }
+                        scheduler.completeOccurrence(automationId, occurrenceId)
                     }
                     // Only START arms a following occurrence. END must never
                     // reschedule over a lifecycle it just attempted to close.
@@ -248,6 +270,15 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
     }
 
     companion object {
+        /**
+         * A valid range occurrence remains executable even when delivery is
+         * late. The caller closes it through ExitCoordinator after START.
+         */
+        internal fun shouldExecuteRangeStart(
+            isTimeRange: Boolean,
+            windowEndAt: Long?
+        ): Boolean = !isTimeRange || windowEndAt != null
+
         private const val TAG = "AutomationAlarmReceiver"
         private const val SOURCE_TIME_RANGE = "time-range"
         internal const val ALARM_PERMISSION_CHANGED_ACTION =

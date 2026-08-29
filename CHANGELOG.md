@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.52.2] - 2026-08-29
+
+### Fixed
+- Stopped discarding valid time-range START occurrences when Android delivers the alarm after the nominal window end. NexaFlow now executes the admitted START occurrence and closes that same occurrence through `ExitCoordinator`.
+- Preserved strict malformed-range rejection: a RANGE trigger without a valid end remains blocked and is recorded instead of being executed ambiguously.
+- Ensured delayed range delivery cannot leave the main action unexecuted merely because the device was in Doze, the process was recreated, or AlarmManager delivered late.
+
+### Tests
+- Added regression coverage proving late valid range starts remain executable, malformed ranges are rejected, and one-shot schedules retain their existing behavior.
+
+### Documentation
+- Extended the strict lifecycle documentation and release notes to cover delayed AlarmManager delivery and guaranteed terminal cleanup.
+
 ## [v3.52.1] - 2026-08-29
 
 ### Fixed

@@ -19,4 +19,6 @@ Location monitoring now uses the same durable lifecycle path as the other statef
 
 A successful lifecycle completion is now backed by a durable terminal transition. A failed main action or end action is recorded as a failure and retained for recovery rather than being reported as completed or discarded. Repeated location fixes cannot execute the same end behavior concurrently.
 
+For time-range schedules, a valid occurrence is never discarded solely because Android delivered its START alarm late. The admitted START action is executed first, then the same occurrence is closed through the durable exit coordinator. Only a malformed RANGE configuration without a valid end is rejected. This makes delayed delivery observable and deterministic instead of silently skipping the task.
+
 The Android CI pipeline remains the authoritative build validation because the local sandbox does not provide an Android SDK.
