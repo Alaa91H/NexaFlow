@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.53.0] - 2026-08-30
+
+### Added
+- Added read-only DNS inspection through Android's public `ConnectivityManager` and `LinkProperties` APIs, including active-network DNS servers and Private DNS mode, hostname, and active state.
+- Added a ROM-aware DNS provider catalog. NexaFlow discovers provider profiles exposed by ROM resources and falls back to a validated built-in catalog containing Cloudflare, Google, Quad9, and AdGuard profiles when no ROM catalog is available.
+- Added DNS provider selection to connectivity action configuration, with hostname and server-address validation before a configuration request is accepted.
+- Added system-controller DNS inspection and guarded configuration façades so unsupported or unverifiable platform operations are reported explicitly instead of being reported as successful.
+
+### Changed
+- DNS inspection now fails closed when `ACCESS_NETWORK_STATE` is unavailable and returns an explicit diagnostic rather than attempting an unverified read.
+- Kept DNS capability boundaries explicit: Android public APIs can inspect current DNS state, while Private DNS changes require a supported ROM or privileged implementation and postcondition verification.
+
+### Tests
+- Added DNS hostname-validation coverage and provider-catalog integrity tests, including duplicate prevention, malformed profile rejection, and stable provider metadata checks.
+- Passed the repository resource gate, Android Lint, and the production build/release validation workflow for commit `70eaa9cf`.
+
+### Documentation
+- Added [`docs/dns-platform-findings.md`](docs/dns-platform-findings.md) describing Android API limitations, ROM resource discovery, capability boundaries, and device-verification requirements.
+
 ## [v3.52.3] - 2026-08-29
 
 ### Fixed
