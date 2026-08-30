@@ -1,7 +1,9 @@
 package com.nexaflow.core.rom
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.LinkProperties
 import android.os.Build
@@ -89,6 +91,18 @@ object DnsStateReader {
     @SuppressLint("MissingPermission")
     fun read(context: Context): CurrentDnsState {
         return runCatching {
+            if (context.checkSelfPermission(Manifest.permission.ACCESS_NETWORK_STATE) !=
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                return CurrentDnsState(
+                    privateDnsMode = PrivateDnsMode.AUTOMATIC,
+                    privateDnsHostname = null,
+                    privateDnsActive = false,
+                    dnsServers = emptyList(),
+                    networksRead = 0,
+                    readError = "ACCESS_NETWORK_STATE permission unavailable"
+                )
+            }
             val connectivity = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
                 ?: return CurrentDnsState(
                     privateDnsMode = PrivateDnsMode.AUTOMATIC,
@@ -138,6 +152,7 @@ object DnsStateReader {
         }
     }
 
+    @SuppressLint("MissingPermission")
     private fun activeLinks(connectivity: ConnectivityManager): List<LinkProperties> {
         val networks = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             listOfNotNull(connectivity.activeNetwork)
