@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.52.3] - 2026-08-29
+
+### Fixed
+- Prevented valid time schedules from being reported as armed when AlarmManager registration fails. The durable occurrence is rolled back unless its START and, when applicable, END alarms are both accepted by the platform.
+- Added bounded receiver-level re-delivery for transient failures. Retries reuse the same occurrence and generation, so recovery cannot create a duplicate logical execution.
+- Preserved strict observability by logging an explicit terminal diagnostic when bounded re-delivery is exhausted instead of silently dropping the event.
+
+### Quality assurance
+- Resource hygiene and repository checks pass. Android unit tests and release validation are executed by the GitHub Actions pipeline.
+
 ## [v3.52.2] - 2026-08-29
 
 ### Fixed

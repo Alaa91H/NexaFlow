@@ -84,7 +84,9 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
             Log.w(TAG, "Ignoring alarm without window start")
             return
         }
-        val isEndOfWindow = intent.action == AutomationScheduler.ACTION_END_AUTOMATION
+        val alarmAction = intent.action ?: return
+        val retryCount = intent.getIntExtra(AutomationScheduler.EXTRA_RETRY_COUNT, 0)
+        val isEndOfWindow = alarmAction == AutomationScheduler.ACTION_END_AUTOMATION
         val windowEndAt = if (intent.hasExtra(AutomationScheduler.EXTRA_WINDOW_END_AT)) {
             intent.getLongExtra(AutomationScheduler.EXTRA_WINDOW_END_AT, -1L).takeIf { it >= windowStartAt }
         } else {
@@ -202,8 +204,22 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                 }
             } catch (failure: Throwable) {
                 // ExecutionEngine/ExitCoordinator persist action and lifecycle
-                // failures. This protects repository or schedule failures too.
-                Log.e(TAG, "Automatic lifecycle event failed for $automationId", failure)
+                // failures. Re-arm the same immutable occurrence for a bounded
+                // retry when the receiver itself fails before consuming it.
+                val rearmed = runCatching {
+                    scheduler.rearmOccurrence(
+                        automationId = automationId,
+                        occurrenceId = occurrenceId,
+                        action = alarmAction,
+                        retryCount = retryCount
+                    )
+                }.getOrDefault(false)
+                Log.e(
+                    TAG,
+                    "Automatic lifecycle event failed for $automationId; " +
+                        if (rearmed) "same occurrence re-armed" else "no retry available",
+                    failure
+                )
             } finally {
                 releaseWakeLock(wakeLock)
                 result.finish()

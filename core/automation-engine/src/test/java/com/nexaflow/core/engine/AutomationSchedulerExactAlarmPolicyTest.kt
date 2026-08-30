@@ -134,6 +134,14 @@ class AutomationSchedulerExactAlarmPolicyTest {
     }
 
     @Test
+    fun receiverRetryPolicyIsBoundedAndRejectsInvalidAttempts() {
+        assertFalse(AutomationScheduler.receiverRetryAllowed(-1))
+        assertTrue(AutomationScheduler.receiverRetryAllowed(0))
+        assertTrue(AutomationScheduler.receiverRetryAllowed(1))
+        assertFalse(AutomationScheduler.receiverRetryAllowed(2))
+    }
+
+    @Test
     fun android12PlusRequiresExactAlarmSpecialAccessForPunctualExecution() {
         assertFalse(
             AutomationScheduler.exactAlarmAllowed(

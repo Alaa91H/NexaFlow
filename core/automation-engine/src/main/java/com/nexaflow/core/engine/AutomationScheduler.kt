@@ -20,6 +20,8 @@ import com.nexaflow.domain.schedule.TimeTriggerCalculator
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.security.MessageDigest
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -43,6 +45,7 @@ class AutomationScheduler @Inject constructor(
 
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     private val scheduledIds = mutableSetOf<String>()
+    private val retryJobs = java.util.concurrent.ConcurrentHashMap<String, Job>()
     // Enables best-effort deletion cleanup while this process still owns the
     // immutable definition needed for configured exit actions. Persisted state
     // is never replayed after deletion because its definition is unavailable.
@@ -85,8 +88,14 @@ class AutomationScheduler @Inject constructor(
         automations.forEach { automation ->
             if (automation.enabled && automation.triggers.any { it.type == TriggerType.TIME }) {
                 // One malformed stored config must never break every schedule.
+                // Only retain the id when the occurrence was actually admitted
+                // and its alarm was armed. A failed registration must remain
+                // retryable and must never look scheduled in memory.
                 if (scheduleFresh(automation)) {
                     desired.add(automation.id)
+                    retryJobs.remove(automation.id)?.cancel()
+                } else {
+                    scheduleRetry(automation.id)
                 }
             }
         }
@@ -95,6 +104,31 @@ class AutomationScheduler @Inject constructor(
         scheduledIds.clear()
         scheduledIds.addAll(desired)
         lastKnownAutomations = currentById
+    }
+
+    /**
+     * Retries a failed admission a bounded number of times. The durable ledger
+     * is cleared when arming fails, so each attempt either owns a real alarm or
+     * remains explicitly unarmed; no phantom schedule is reported as active.
+     */
+    private fun scheduleRetry(automationId: String) {
+        if (retryJobs[automationId]?.isActive == true) return
+        retryJobs[automationId] = scope.launch {
+            try {
+                RETRY_DELAYS_MS.forEach { waitMs ->
+                    delay(waitMs)
+                    val automation = repository.getAutomationById(automationId)
+                    if (automation == null || !automation.enabled) return@launch
+                    if (scheduleFresh(automation)) {
+                        Log.i(TAG, "Recovered time schedule for $automationId after alarm admission retry")
+                        return@launch
+                    }
+                }
+                Log.e(TAG, "Time schedule remains unarmed after bounded retries for $automationId")
+            } finally {
+                retryJobs.remove(automationId)
+            }
+        }
     }
 
     /**
@@ -172,8 +206,32 @@ class AutomationScheduler @Inject constructor(
             now = System.currentTimeMillis()
         ) ?: return
         val endAt = checkNotNull(retained.windowEndAt)
-        setAlarm(endAt, buildPendingIntent(automationId, ACTION_END_AUTOMATION, retained))
-        Log.i(TAG, "Re-armed retained time-range END for $automationId at $endAt")
+        if (setAlarm(endAt, buildPendingIntent(automationId, ACTION_END_AUTOMATION, retained))) {
+            Log.i(TAG, "Re-armed retained time-range END for $automationId at $endAt")
+        } else {
+            Log.e(TAG, "Unable to re-arm retained time-range END for $automationId at $endAt")
+        }
+    }
+
+    /**
+     * Re-arms one still-valid occurrence after a transient receiver failure.
+     * Retries are bounded by the receiver and reuse the immutable occurrence
+     * identity, so this cannot create a new logical execution.
+     */
+    suspend fun rearmOccurrence(
+        automationId: String,
+        occurrenceId: String,
+        action: String,
+        retryCount: Int
+    ): Boolean {
+        if (!receiverRetryAllowed(retryCount)) return false
+        val occurrence = runtimeStore.schedulesFor(automationId)
+            .firstOrNull { it.occurrenceId == occurrenceId } ?: return false
+        val retryAt = System.currentTimeMillis() + RECEIVER_RETRY_DELAY_MS
+        return setAlarm(
+            retryAt,
+            buildPendingIntent(automationId, action, occurrence, retryCount + 1)
+        )
     }
 
     /** Validates that an incoming alarm still belongs to an armed occurrence. */
@@ -213,15 +271,25 @@ class AutomationScheduler @Inject constructor(
             Log.w(TAG, "Schedule ledger is full; refusing untracked alarm for $automationId")
             return false
         }
-        setAlarm(triggerAt, buildPendingIntent(automationId, ACTION_RUN_AUTOMATION, occurrence))
-        endAt?.takeIf { it > System.currentTimeMillis() }?.let { windowEnd ->
+        if (!setAlarm(triggerAt, buildPendingIntent(automationId, ACTION_RUN_AUTOMATION, occurrence))) {
+            runtimeStore.clearScheduleOccurrence(automationId, occurrence.occurrenceId)
+            Log.e(TAG, "Failed to arm START alarm; occurrence was not admitted for $automationId")
+            return false
+        }
+        val endArmed = endAt?.takeIf { it > System.currentTimeMillis() }?.let { windowEnd ->
             setAlarm(windowEnd, buildPendingIntent(automationId, ACTION_END_AUTOMATION, occurrence))
+        } ?: true
+        if (!endArmed) {
+            cancelPendingIntent(buildPendingIntent(automationId, ACTION_RUN_AUTOMATION, occurrence))
+            runtimeStore.clearScheduleOccurrence(automationId, occurrence.occurrenceId)
+            Log.e(TAG, "Failed to arm END alarm; occurrence was not admitted for $automationId")
+            return false
         }
         return true
     }
 
-    private fun setAlarm(triggerAt: Long, pendingIntent: PendingIntent) {
-        try {
+    private fun setAlarm(triggerAt: Long, pendingIntent: PendingIntent): Boolean {
+        return try {
             if (!exactAlarmAllowed(
                     sdkInt = Build.VERSION.SDK_INT,
                     canScheduleExactAlarms = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
@@ -233,9 +301,15 @@ class AutomationScheduler @Inject constructor(
             } else {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
             }
+            true
         } catch (security: SecurityException) {
             Log.w(TAG, "Exact alarm rejected; using inexact idle-safe fallback", security)
-            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
+            runCatching {
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
+            }.isSuccess
+        } catch (failure: Throwable) {
+            Log.e(TAG, "Alarm registration failed at $triggerAt", failure)
+            false
         }
     }
 
@@ -247,7 +321,8 @@ class AutomationScheduler @Inject constructor(
     private fun buildPendingIntent(
         automationId: String,
         action: String,
-        occurrence: ScheduledAutomationOccurrence?
+        occurrence: ScheduledAutomationOccurrence?,
+        retryCount: Int = 0
     ): PendingIntent {
         val intent = Intent(context, AutomationAlarmReceiver::class.java)
             .setAction(action)
@@ -265,6 +340,7 @@ class AutomationScheduler @Inject constructor(
             intent.putExtra(EXTRA_SCHEDULE_GENERATION, occurrence.generation)
             intent.putExtra(EXTRA_WINDOW_START_AT, occurrence.windowStartAt)
             occurrence.windowEndAt?.let { intent.putExtra(EXTRA_WINDOW_END_AT, it) }
+            intent.putExtra(EXTRA_RETRY_COUNT, retryCount)
         }
         return PendingIntent.getBroadcast(
             context,
@@ -337,8 +413,14 @@ class AutomationScheduler @Inject constructor(
                 .joinToString(separator = "") { "%02x".format(it) }
         }
 
+        internal fun receiverRetryAllowed(retryCount: Int): Boolean =
+            retryCount in 0 until MAX_RECEIVER_RETRIES
+
         private const val TAG = "AutomationScheduler"
+        private val RETRY_DELAYS_MS = longArrayOf(10_000L, 60_000L, 300_000L)
         private const val SCHEDULE_GUARD_MS = 60_000L
+        private const val RECEIVER_RETRY_DELAY_MS = 15_000L
+        private const val MAX_RECEIVER_RETRIES = 2
         private const val SOURCE_TIME_RANGE = "time-range"
         private const val TIME_MODE_RANGE = "RANGE"
         const val ACTION_RUN_AUTOMATION = "com.nexaflow.core.engine.action.RUN_AUTOMATION"
@@ -347,6 +429,7 @@ class AutomationScheduler @Inject constructor(
         const val EXTRA_OCCURRENCE_ID = "com.nexaflow.core.engine.extra.OCCURRENCE_ID"
         const val EXTRA_SCHEDULE_GENERATION = "com.nexaflow.core.engine.extra.SCHEDULE_GENERATION"
         const val EXTRA_WINDOW_START_AT = "com.nexaflow.core.engine.extra.WINDOW_START_AT"
-        const val EXTRA_WINDOW_END_AT = "com.nexaflow.core.engine.extra.WINDOW_END_AT"
+        const val EXTRA_WINDOW_END_AT = "extra_window_end_at"
+        const val EXTRA_RETRY_COUNT = "extra_retry_count"
     }
 }
