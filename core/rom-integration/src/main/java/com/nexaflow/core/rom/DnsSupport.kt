@@ -1,5 +1,6 @@
 package com.nexaflow.core.rom
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.LinkProperties
@@ -85,6 +86,7 @@ object DnsProviderCatalog {
 
 /** Read-only DNS inspection through public Android networking APIs. */
 object DnsStateReader {
+    @SuppressLint("MissingPermission")
     fun read(context: Context): CurrentDnsState {
         return runCatching {
             val connectivity = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
