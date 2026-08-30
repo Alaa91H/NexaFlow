@@ -31,6 +31,9 @@ object PrivateDnsPolicy {
             "[a-zA-Z](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$"
     )
 
+    /** Returns whether a value is a valid DNS-over-TLS provider hostname. */
+    fun isValidHostname(value: String): Boolean = hostnamePattern.matches(value.trim().lowercase())
+
     /**
      * `HOSTNAME` is the only mode that needs a provider name. The other modes
      * explicitly clear it so an old hostname cannot be mistaken for an active
@@ -41,7 +44,7 @@ object PrivateDnsPolicy {
             ?: return Result.failure(IllegalArgumentException("Unsupported Private DNS mode"))
         val hostname = hostnameValue?.trim().orEmpty().lowercase()
         if (mode == PrivateDnsMode.HOSTNAME) {
-            if (!hostnamePattern.matches(hostname)) {
+            if (!isValidHostname(hostname)) {
                 return Result.failure(
                     IllegalArgumentException("Private DNS provider must be a valid DNS hostname")
                 )

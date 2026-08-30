@@ -47,6 +47,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.execution.NotificationActionButton
+import com.nexaflow.core.rom.DnsProviderCatalog
 import com.nexaflow.core.rom.NetworkModeCapabilities
 import com.nexaflow.core.rom.NetworkModePolicy
 import com.nexaflow.core.rom.NetworkModeSnapshot
@@ -1351,6 +1352,25 @@ fun ActionConfigEditor(
                     }
                 }
                 if (mode == "HOSTNAME") {
+                    Text(
+                        text = stringResource(R.string.private_dns_hostname),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        DnsProviderCatalog.all().forEach { provider ->
+                            SelectChip(
+                                selected = config["hostname"].equals(provider.hostname, ignoreCase = true),
+                                onClick = {
+                                    onConfigChange(config + ("hostname" to provider.hostname))
+                                },
+                                label = provider.displayName
+                            )
+                        }
+                    }
                     OutlinedTextField(
                         value = config["hostname"].orEmpty(),
                         onValueChange = { onConfigChange(config + ("hostname" to it.trim())) },

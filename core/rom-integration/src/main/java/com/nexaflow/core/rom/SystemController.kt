@@ -684,6 +684,19 @@ class SystemController(
     }
 
     /**
+     * Reads the DNS state Android exposes for the active network. This is
+     * intentionally read-only and never claims that a system setting changed.
+     */
+    fun readCurrentDns(): CurrentDnsState = DnsStateReader.read(context)
+
+    /**
+     * Returns validated provider profiles from the app catalog plus any
+     * provider hostnames explicitly exposed by the installed ROM.
+     */
+    fun availableDnsProviders(currentHostname: String? = readCurrentDns().privateDnsHostname):
+        List<DnsProviderProfile> = DnsProviderCatalog.all(context, currentHostname)
+
+    /**
      * Sets Android's device-wide Private DNS mode. A third-party app cannot
      * alter this global setting through the public SDK, so this deliberately
      * requires an elevated runtime. It is not presented as per-app DNS: that
