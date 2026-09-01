@@ -52,7 +52,7 @@ fun TaskLifecycleState.canTransitionTo(next: TaskLifecycleState): Boolean = when
 }
 
 /** A task status entry may be created in any state, but later writes must follow the contract. */
-fun TaskLifecycleState?.canTransitionTo(next: TaskLifecycleState): Boolean =
+fun TaskLifecycleState?.canStartTransitionTo(next: TaskLifecycleState): Boolean =
     this == null || this.canTransitionTo(next)
 
 data class TaskStatus(

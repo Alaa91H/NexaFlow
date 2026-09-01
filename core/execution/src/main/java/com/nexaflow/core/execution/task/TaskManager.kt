@@ -442,7 +442,7 @@ class TaskManager(
     private fun updateStatus(status: TaskStatus) {
         synchronized(lock) {
             val previous = statusesFlow.value[status.taskId]?.state
-            check(previous.canTransitionTo(status.state)) {
+            check(previous.canStartTransitionTo(status.state)) {
                 "Invalid lifecycle transition for ${status.taskId}: $previous -> ${status.state}"
             }
             val next = LinkedHashMap(statusesFlow.value)
