@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.54.1] - 2026-09-01
+
+### Fixed
+- Preserved terminal deadline evidence when a cancellation request races with the worker's deadline checkpoint. The runtime now allows `CANCEL_REQUESTED` to resolve to `DEADLINE_EXCEEDED` without reopening or silently discarding the task.
+- Kept lifecycle transitions explicit and bounded across queued, running, retry, cancellation, timeout, deadline, rejection, and terminal states.
+
+### Quality assurance
+- Corrected the regression test scope identified by CI, then passed the complete Android Lint and production build/release validation workflow for commit `1d31ccd5`.
+
 ## [v3.54.0] - 2026-09-01
 
 ### Added
