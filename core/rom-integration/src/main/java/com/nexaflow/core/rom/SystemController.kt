@@ -723,7 +723,11 @@ class SystemController(
 
         val actualMode = readGlobalSetting(PrivateDnsPolicy.MODE_KEY)
         val actualHostname = readGlobalSetting(PrivateDnsPolicy.SPECIFIER_KEY)
-        if (actualMode != request.mode.settingValue || actualHostname != request.hostname) {
+        // Android/OEM settings providers may expose an empty specifier as either
+        // an empty string or null. Normalize that representation before comparing;
+        // strict hostname mode still requires an exact, validated hostname.
+        val normalizedActualHostname = actualHostname.orEmpty()
+        if (actualMode != request.mode.settingValue || normalizedActualHostname != request.hostname) {
             return SystemControlResult.fail(
                 "Private DNS read-back did not match the requested configuration"
             )
