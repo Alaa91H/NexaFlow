@@ -14,6 +14,47 @@ enum class TaskLifecycleState {
     REJECTED
 }
 
+/**
+ * Canonical transition contract for the existing task runtime.
+ * Terminal states are immutable; a cancellation request is allowed from any
+ * non-terminal admitted state and must end in CANCELLED.
+ */
+fun TaskLifecycleState.canTransitionTo(next: TaskLifecycleState): Boolean = when (this) {
+    TaskLifecycleState.QUEUED -> next in setOf(
+        TaskLifecycleState.RUNNING,
+        TaskLifecycleState.CANCEL_REQUESTED,
+        TaskLifecycleState.CANCELLED,
+        TaskLifecycleState.DEADLINE_EXCEEDED,
+        TaskLifecycleState.REJECTED
+    )
+    TaskLifecycleState.RUNNING -> next in setOf(
+        TaskLifecycleState.RETRY_WAIT,
+        TaskLifecycleState.CANCEL_REQUESTED,
+        TaskLifecycleState.SUCCEEDED,
+        TaskLifecycleState.FAILED,
+        TaskLifecycleState.TIMED_OUT,
+        TaskLifecycleState.DEADLINE_EXCEEDED,
+        TaskLifecycleState.CANCELLED
+    )
+    TaskLifecycleState.RETRY_WAIT -> next in setOf(
+        TaskLifecycleState.RUNNING,
+        TaskLifecycleState.CANCEL_REQUESTED,
+        TaskLifecycleState.CANCELLED,
+        TaskLifecycleState.DEADLINE_EXCEEDED
+    )
+    TaskLifecycleState.CANCEL_REQUESTED -> next == TaskLifecycleState.CANCELLED
+    TaskLifecycleState.SUCCEEDED,
+    TaskLifecycleState.FAILED,
+    TaskLifecycleState.TIMED_OUT,
+    TaskLifecycleState.DEADLINE_EXCEEDED,
+    TaskLifecycleState.CANCELLED,
+    TaskLifecycleState.REJECTED -> next == this
+}
+
+/** A task status entry may be created in any state, but later writes must follow the contract. */
+fun TaskLifecycleState?.canTransitionTo(next: TaskLifecycleState): Boolean =
+    this == null || this.canTransitionTo(next)
+
 data class TaskStatus(
     val taskId: String,
     val name: String,

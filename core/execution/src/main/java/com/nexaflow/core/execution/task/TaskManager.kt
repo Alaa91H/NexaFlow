@@ -160,7 +160,7 @@ class TaskManager(
         }
         if (rejection != null) {
             publish(TaskResult.Rejected(task.id, rejection))
-            publishStatus(task, TaskLifecycleState.REJECTED, message = rejection.message())
+            publishRejectedStatus(task, rejection.message())
             return TaskAdmission.Rejected(task.id, rejection)
         }
         synchronized(lock) {
@@ -174,7 +174,7 @@ class TaskManager(
                     else -> TaskRejectionReason.QueueCapacityExceeded
                 }
                 publish(TaskResult.Rejected(task.id, racedReason))
-                publishStatus(task, TaskLifecycleState.REJECTED, message = racedReason.message())
+                publishRejectedStatus(task, racedReason.message())
                 return TaskAdmission.Rejected(task.id, racedReason)
             }
             knownTaskIds.add(task.id)
@@ -200,8 +200,12 @@ class TaskManager(
      */
     fun cancel(taskId: String): Boolean {
         if (taskId !in knownTaskIds) return false
+        val current = statusFor(taskId)
+        if (current != null && !current.state.canTransitionTo(TaskLifecycleState.CANCEL_REQUESTED)) {
+            return false
+        }
         cancelledIds.add(taskId)
-        statusFor(taskId)?.let { status ->
+        current?.let { status ->
             updateStatus(status.copy(state = TaskLifecycleState.CANCEL_REQUESTED, updatedAt = epochMillis.now()))
         }
         runningJobs[taskId]?.cancel()
@@ -428,8 +432,19 @@ class TaskManager(
 
     private fun statusFor(taskId: String): TaskStatus? = statusesFlow.value[taskId]
 
+    private fun publishRejectedStatus(task: PendingTask, message: String) {
+        val current = statusFor(task.id)
+        if (current == null || current.state.canTransitionTo(TaskLifecycleState.REJECTED)) {
+            publishStatus(task, TaskLifecycleState.REJECTED, message = message)
+        }
+    }
+
     private fun updateStatus(status: TaskStatus) {
         synchronized(lock) {
+            val previous = statusesFlow.value[status.taskId]?.state
+            check(previous.canTransitionTo(status.state)) {
+                "Invalid lifecycle transition for ${status.taskId}: $previous -> ${status.state}"
+            }
             val next = LinkedHashMap(statusesFlow.value)
             next.remove(status.taskId)
             next[status.taskId] = status

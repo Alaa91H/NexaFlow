@@ -14,6 +14,24 @@ import org.junit.Test
 
 class TaskManagerTest {
 
+    @Test
+    fun lifecycleTransitionContract_allowsOnlyValidatedPaths() {
+        assertTrue(TaskLifecycleState.QUEUED.canTransitionTo(TaskLifecycleState.RUNNING))
+        assertTrue(TaskLifecycleState.RUNNING.canTransitionTo(TaskLifecycleState.RETRY_WAIT))
+        assertTrue(TaskLifecycleState.RETRY_WAIT.canTransitionTo(TaskLifecycleState.RUNNING))
+        assertTrue(TaskLifecycleState.RUNNING.canTransitionTo(TaskLifecycleState.SUCCEEDED))
+        assertTrue(TaskLifecycleState.CANCEL_REQUESTED.canTransitionTo(TaskLifecycleState.CANCELLED))
+        assertTrue((null as TaskLifecycleState?).canTransitionTo(TaskLifecycleState.REJECTED))
+    }
+
+    @Test
+    fun lifecycleTransitionContract_rejectsTerminalRegressionAndInvalidCancellation() {
+        assertFalse(TaskLifecycleState.SUCCEEDED.canTransitionTo(TaskLifecycleState.RUNNING))
+        assertFalse(TaskLifecycleState.FAILED.canTransitionTo(TaskLifecycleState.CANCELLED))
+        assertFalse(TaskLifecycleState.CANCEL_REQUESTED.canTransitionTo(TaskLifecycleState.RUNNING))
+        assertFalse(TaskLifecycleState.QUEUED.canTransitionTo(TaskLifecycleState.SUCCEEDED))
+    }
+
     private fun okTask(name: String) = PendingTask(name = name) { SystemControlResult.ok(name) }
 
     @Test
@@ -345,6 +363,20 @@ class TaskManagerHardeningTest {
             assertTrue(manager.awaitIdle(5_000L))
             assertEquals(TaskLifecycleState.SUCCEEDED, manager.statuses.value.getValue(taskId).state)
             assertFalse(manager.cancel(taskId))
+        } finally {
+            manager.shutdown()
+        }
+    }
+
+    @Test
+    fun cancelAfterTerminalStateIsRejectedWithoutLifecycleRegression() = runBlocking {
+        val manager = TaskManager()
+        try {
+            val taskId = manager.enqueue(okTask("terminal-cancel"))
+            assertTrue(manager.awaitIdle(5_000L))
+            assertEquals(TaskLifecycleState.SUCCEEDED, manager.statuses.value.getValue(taskId).state)
+            assertFalse(manager.cancel(taskId))
+            assertEquals(TaskLifecycleState.SUCCEEDED, manager.statuses.value.getValue(taskId).state)
         } finally {
             manager.shutdown()
         }
