@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.53.1] - 2026-09-01
+
+### Fixed
+- Normalized empty Private DNS specifier read-back values across Android and OEM settings providers. `OFF` and `AUTOMATIC` requests now succeed only when the mode matches and an empty or null provider specifier is confirmed, while strict hostname mode continues to require an exact hostname match.
+- Preserved truthful outcome reporting: a mismatched mode or provider hostname remains a failed action and is never converted into a success based solely on the write command result.
+
+### Quality assurance
+- Passed the repository resource gate, Android Lint, and production build/release validation in GitHub Actions for commit `5e5c43ea`.
+
 ## [v3.53.0] - 2026-08-30
 
 ### Added

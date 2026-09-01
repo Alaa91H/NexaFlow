@@ -25,6 +25,7 @@ A schedule identity contains the automation ID, occurrence ID, generation, windo
 | Stale delivery | Old schedule identities could be delivered after edits or reconciliation. | Validate occurrence ID, generation, and expected end before dispatch. | Fixed |
 | Reboot/process recovery | AlarmManager alarms are not retained across reboot, and lifecycle state can outlive the process. | Reconcile durable lifecycle state and re-arm retained future END occurrences during recovery. | Fixed |
 | Resource integrity | Removed map implementation left obsolete resource declarations. | Removed stale resources and enforced the repository resource gate. | Fixed |
+| Private DNS read-back | Android and OEM settings providers may expose an empty Private DNS specifier as either an empty string or null, which could falsely reject valid OFF/AUTOMATIC changes. | Normalize empty/null specifier representations while retaining exact mode and strict-hostname verification. | Fixed in v3.53.1 |
 
 ## Strict guarantees now enforced
 
@@ -36,7 +37,7 @@ The main action chain is checkpointed before side effects. An interrupted action
 
 The repository resource gate passed with zero orphaned resources, zero unused resources, zero missing or extra translations, zero hardcoded-text findings, and zero lint-gate findings. The main-branch Android CI pipeline passed after the time-range execution fix, and the v3.52.2 tagged release pipeline passed the Android build, test, lint, signature, dependency, alignment, bundle, and native-library checks.
 
-The v3.52.3 changes are prepared for the next CI run. Local Android compilation is not treated as evidence because the sandbox does not provide a complete Android SDK/device environment; the remote GitHub Actions pipeline is the authoritative Android gate.
+The v3.52.3 changes are prepared for the next CI run. The DNS implementation and the v3.53.1 read-back correction passed the remote GitHub Actions lint and production-build gates. Local Android compilation is not treated as evidence because the sandbox does not provide a complete Android SDK/device environment; the remote GitHub Actions pipeline is the authoritative Android gate.
 
 ## Residual platform limitations
 
