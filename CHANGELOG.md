@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.54.0] - 2026-09-01
+
+### Added
+- Added an explicit transition contract for the existing `TaskLifecycleState` runtime. Initial admission, execution, retry, cancellation, timeout, deadline, rejection, and terminal states now have documented legal transitions.
+- Added regression coverage for valid lifecycle paths, terminal-state immutability, invalid cancellation, and cancellation after successful completion.
+
+### Fixed
+- Prevented terminal task statuses from being reopened by late cancellation requests.
+- Prevented duplicate or raced task rejections from overwriting an already-running task's lifecycle status under the same task ID.
+- Made invalid lifecycle writes fail immediately at the runtime boundary instead of silently replacing durable-looking status evidence.
+
+### Documentation
+- Added [`docs/audit/CURRENT_ARCHITECTURE_2026.md`](docs/audit/CURRENT_ARCHITECTURE_2026.md), [`docs/audit/GAP_ANALYSIS_2026.md`](docs/audit/GAP_ANALYSIS_2026.md), and the machine-readable [`docs/audit/GAP_ANALYSIS_2026.json`](docs/audit/GAP_ANALYSIS_2026.json) as the forensic baseline required before broader architecture work.
+
+### Quality assurance
+- Passed the repository resource gate, Android Lint, and production build/release validation in GitHub Actions for commit `834b8257`.
+
 ## [v3.53.1] - 2026-09-01
 
 ### Fixed
