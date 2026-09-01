@@ -21,6 +21,7 @@ class TaskManagerTest {
         assertTrue(TaskLifecycleState.RETRY_WAIT.canTransitionTo(TaskLifecycleState.RUNNING))
         assertTrue(TaskLifecycleState.RUNNING.canTransitionTo(TaskLifecycleState.SUCCEEDED))
         assertTrue(TaskLifecycleState.CANCEL_REQUESTED.canTransitionTo(TaskLifecycleState.CANCELLED))
+        assertTrue(TaskLifecycleState.CANCEL_REQUESTED.canTransitionTo(TaskLifecycleState.DEADLINE_EXCEEDED))
         assertTrue((null as TaskLifecycleState?).canStartTransitionTo(TaskLifecycleState.REJECTED))
     }
 

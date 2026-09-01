@@ -42,7 +42,12 @@ fun TaskLifecycleState.canTransitionTo(next: TaskLifecycleState): Boolean = when
         TaskLifecycleState.CANCELLED,
         TaskLifecycleState.DEADLINE_EXCEEDED
     )
-    TaskLifecycleState.CANCEL_REQUESTED -> next == TaskLifecycleState.CANCELLED
+    TaskLifecycleState.CANCEL_REQUESTED -> next in setOf(
+        TaskLifecycleState.CANCELLED,
+        // A deadline can win a cancellation race before the worker reaches its
+        // cancellation checkpoint; preserve that terminal evidence explicitly.
+        TaskLifecycleState.DEADLINE_EXCEEDED
+    )
     TaskLifecycleState.SUCCEEDED,
     TaskLifecycleState.FAILED,
     TaskLifecycleState.TIMED_OUT,
