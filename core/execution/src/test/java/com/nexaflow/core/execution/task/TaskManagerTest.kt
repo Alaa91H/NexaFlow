@@ -372,7 +372,9 @@ class TaskManagerHardeningTest {
     fun cancelAfterTerminalStateIsRejectedWithoutLifecycleRegression() = runBlocking {
         val manager = TaskManager()
         try {
-            val taskId = manager.enqueue(okTask("terminal-cancel"))
+            val taskId = manager.enqueue(PendingTask(name = "terminal-cancel") {
+                SystemControlResult.ok("terminal-cancel")
+            })
             assertTrue(manager.awaitIdle(5_000L))
             assertEquals(TaskLifecycleState.SUCCEEDED, manager.statuses.value.getValue(taskId).state)
             assertFalse(manager.cancel(taskId))
