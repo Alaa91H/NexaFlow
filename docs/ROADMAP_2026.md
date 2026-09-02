@@ -24,6 +24,7 @@
 | CI quality gates | Resource/orphan/banned-key gate, string parity across 11 locales, Detekt, Android Lint zero-tolerance, dependency verification, 16 KB alignment, APK signing verification | ✅ |
 | Observability | Sentry (opt-in, no NDK), execution history with outcome filters, routine health card | ✅ |
 | Performance | Baseline profile, Macrobenchmark startup, R8 full + resource shrinking, Paging 3 for history/variables, `reportFullyDrawn()` | ✅ |
+| Strict execution core | Shared node-visit + time budget across nested subworkflows, suspend-safe fail-closed condition evaluation, saga compensation, ForEach scoping, approval gates, optional per-node journal | ✅ (v3.58.0) |
 
 The runtime core is strong. The remaining distance to "best in the world" is not
 more triggers — it is **convergence**: one canonical execution contract, per-capability
@@ -188,6 +189,7 @@ in `docs/android17_device_acceptance.md` (or a successor document).
 |---|---|
 | **T-1 (this release)** | Catalog parity gates (triggers + actions), tag/changelog hygiene gate, release-notes generator, nightly CI schedule, required-checks doc, SMS dedup ledger groundwork audit |
 | **T-2** | Capability metadata model + engine consumption (WS-1.2), verification upgrade for settings-family actions (WS-3.2), secrets-redaction test (WS-5.3) |
+| **T-1.5 (this release)** | Strict execution core: shared budget, fail-closed suspend conditions, subworkflow/approval/saga/ForEach activation with bounded providers, per-node journal |
 | **T-3** | Failure-injection suite (WS-1.3), plugin trust lifecycle (WS-5.2), capability report screen (WS-2.2), OEM matrix expansion (WS-2.3) |
 
 ---

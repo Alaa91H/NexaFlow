@@ -45,7 +45,10 @@ class WorkflowInterpreterFlowControlTest {
         val result = interpreter.execute(
             WorkflowNode.WhileNode(
                 id = "while",
-                condition = WorkflowCondition { remaining > 0 },
+                condition = WorkflowCondition {
+                    delay(0L)
+                    remaining > 0
+                },
                 body = WorkflowNode.ActionNode("tick", action("tick"))
             )
         )
@@ -118,14 +121,58 @@ class WorkflowInterpreterFlowControlTest {
         val result = interpreter.execute(
             WorkflowNode.WaitUntilNode(
                 id = "wait",
-                condition = WorkflowCondition { ++checks == 3 },
-                timeoutMs = 1_000L,
+                condition = WorkflowCondition {
+                    delay(0L),
+                    ++checks == 3
+                },
+                timeoutMs = 1000L,
                 pollIntervalMs = 10L
             )
         )
 
         assertTrue(result.success)
         assertEquals(3, checks)
+    }
+
+    @Test
+    fun strictWhileConditionFailureStopsWithoutHidingRuntimeErrors() = runBlocking {
+        val interpreter = WorkflowInterpreter(ActionExecutor { SystemControlResult.ok("unused") })
+
+        val result = interpreter.execute(
+            WorkflowNode.WhileNode(
+                id = "while",
+                condition = WorkflowCondition {
+                    delay(0L),
+                    error("while condition is unavailable")
+                },
+                body = WorkflowNode.ActionNode("tick", action("tick"))
+            )
+        )
+
+        assertFalse(result.success)
+        assertTrue(result.nodeResults.single().message.contains("while condition is unavailable"))
+    }
+
+    @Test
+    fun branchConditionFailureStopsWithoutExecutingEitherPath() = runBlocking {
+        val interpreter = WorkflowInterpreter(ActionExecutor { SystemControlResult.ok("unused") })
+
+        val result = interpreter.execute(
+            WorkflowNode.BranchNode(
+                id = "branch",
+                condition = WorkflowCondition {
+                    delay(0L),
+                    error("branch condition is unavailable")
+                },
+                whenTrue = WorkflowNode.ActionNode("yes", action("yes")),
+                whenFalse = WorkflowNode.ActionNode("no", action("no"))
+            )
+        )
+
+        assertFalse(result.success)
+        assertTrue(result.nodeResults.single().message.contains("branch condition is unavailable"))
+        val executed = result.nodeResults.any { it.nodeId in listOf("yes", "no") }
+        assertFalse(executed)
     }
 
     private fun action(id: String): Action = Action(

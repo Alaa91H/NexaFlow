@@ -1,7 +1,5 @@
 package com.nexaflow.core.execution.workflow
 
-import com.nexaflow.domain.models.Action
-
 /**
  * Extends [WorkflowInterpreter] to handle [WorkflowNodeExtensions] node types:
  * SubworkflowNode, HumanApprovalNode, SagaNode, and ForEachNode.
@@ -13,12 +11,29 @@ interface SubworkflowProvider {
     /**
      * Loads a workflow by its persistent [workflowId] and executes it via
      * the interpreter. Returns a [WorkflowExecutionResult].
+     *
+     * This is the source-compatible legacy entry point. New implementations
+     * should override the budget-aware overload below so nested node visits and
+     * the parent deadline remain one shared safety boundary.
      */
     suspend fun executeSubworkflow(
         workflowId: String,
         inputParameters: Map<String, String>,
         depth: Int
     ): WorkflowExecutionResult
+
+    /**
+     * Executes a child within the parent's shared budget. The default delegates
+     * to the legacy method for compatibility; such an implementation can enforce
+     * only the boundary checks it performs itself and must not claim full nested
+     * budget accounting until it passes [executionBudget] to its child interpreter.
+     */
+    suspend fun executeSubworkflow(
+        workflowId: String,
+        inputParameters: Map<String, String>,
+        depth: Int,
+        executionBudget: WorkflowExecutionBudget
+    ): WorkflowExecutionResult = executeSubworkflow(workflowId, inputParameters, depth)
 }
 
 /**

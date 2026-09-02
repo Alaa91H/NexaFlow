@@ -1,6 +1,7 @@
 package com.nexaflow.core.execution.workflow
 
 import com.nexaflow.domain.models.Action
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * A node in a workflow tree. The interpreter walks this tree and delegates each
@@ -145,3 +146,82 @@ data class Workflow(
     val name: String,
     val root: WorkflowNode
 )
+
+/**
+ * A node-visit budget shared by one workflow tree, including nested providers.
+ *
+ * Providers that execute a child workflow can pass this object to the child
+ * interpreter. The atomic counter makes the limit meaningful when parallel
+ * branches consume it concurrently.
+ */
+class WorkflowExecutionBudget private constructor(
+    private val maxNodeVisits: Int,
+    val maxExecutionTimeMs: Long
+) {
+    private val consumed = AtomicInteger(0)
+    private val deadlineNanos = System.nanoTime() + (maxExecutionTimeMs * NANOS_PER_MILLISECOND)
+
+    init {
+        require(maxNodeVisits > 0) { "maxNodeVisits must be positive" }
+        require(maxExecutionTimeMs > 0L) { "maxExecutionTimeMs must be positive" }
+    }
+
+    /** Atomically reserves one node visit, returning false when the budget is exhausted. */
+    fun tryConsumeNodeVisit(): Boolean = consumed.incrementAndGet() <= maxNodeVisits
+
+    /** Number of node visits reserved so far. */
+    val consumedNodeVisits: Int
+        get() = consumed.get()
+
+    /** Number of node visits still available, never negative. */
+    val remainingNodeVisits: Int
+        get() = (maxNodeVisits - consumed.get()).coerceAtLeast(0)
+
+    /** Whether the shared monotonic execution deadline has elapsed. */
+    fun isExpired(): Boolean = System.nanoTime() >= deadlineNanos
+
+    /** Remaining time for a child interpreter, rounded up to avoid a premature zero timeout. */
+    fun remainingTimeMs(): Long {
+        val remainingNanos = deadlineNanos - System.nanoTime()
+        if (remainingNanos <= 0L) return 0L
+        return ((remainingNanos + NANOS_PER_MILLISECOND - 1L) / NANOS_PER_MILLISECOND)
+            .coerceAtLeast(1L)
+    }
+
+    companion object {
+        private const val NANOS_PER_MILLISECOND = 1_000_000L
+
+        internal fun fromPolicy(policy: WorkflowExecutionPolicy): WorkflowExecutionBudget =
+            WorkflowExecutionBudget(policy.maxNodeVisits, policy.maxExecutionTimeMs)
+    }
+}
+
+/**
+ * Global safety limits applied to one interpreter run.
+ *
+ * Individual nodes already carry local bounds (loop iterations, delay,
+ * retries, and polling time). These limits close the multiplication gap where
+ * nested control-flow nodes could otherwise make the total work unbounded.
+ * The time limit is cooperative: Android and plugin handlers must honor
+ * coroutine cancellation for it to stop promptly.
+ */
+data class WorkflowExecutionPolicy(
+    val maxExecutionTimeMs: Long = DEFAULT_MAX_EXECUTION_TIME_MS,
+    val maxNodeVisits: Int = DEFAULT_MAX_NODE_VISITS
+) {
+    init {
+        require(maxExecutionTimeMs in 1L..MAX_EXECUTION_TIME_MS) {
+            "maxExecutionTimeMs must be in 1..$MAX_EXECUTION_TIME_MS"
+        }
+        require(maxNodeVisits in 1..MAX_NODE_VISITS) {
+            "maxNodeVisits must be in 1..$MAX_NODE_VISITS"
+        }
+    }
+
+    companion object {
+        const val DEFAULT_MAX_EXECUTION_TIME_MS = 15 * 60 * 1_000L
+        const val MAX_EXECUTION_TIME_MS = 24 * 60 * 60 * 1_000L
+        const val DEFAULT_MAX_NODE_VISITS = 10_000
+        const val MAX_NODE_VISITS = 1_000_000
+    }
+}

@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.58.0] - 2026-09-02
+
+### Added
+- Activated the workflow control-flow primitives that previously failed closed: **subworkflows** (bounded recursion, input/output parameter passing, isolated or shared context), **human approval gates** (explicit gateway contract with configurable timeout policy), **saga compensation** (reverse-order undo of declared side effects), and **ForEach loops** (per-item variable scoping with index exposure and failure policy).
+- Added a **shared execution budget** (`WorkflowExecutionBudget`) spanning the whole tree — including nested subworkflows — with an atomic node-visit ceiling and a monotonic wall-clock deadline, so loops, retries, fan-out, and nested providers can no longer multiply work past the run's safety limits.
+- Added per-node **execution journaling** (optional, non-blocking) that records run id, node, action type, timestamps, outcome, and error code without ever failing a workflow.
+- Wired the budget-aware `executeSubworkflow` overload through the provider contract so child interpreters inherit the parent's visit counter and deadline; the legacy three-argument method remains source-compatible.
+
+### Changed
+- Condition evaluation for `BranchNode`, `WhileNode`, and `WaitUntilNode` is now strictly suspend-aware: an evaluator exception fails the node closed with a diagnostic instead of being treated as `false`, and cancellation always propagates instead of being swallowed.
+- `WhileNode` re-checks its condition after the final iteration and reports `While iteration limit reached` truthfully when the condition is still true, instead of returning success.
+- Timeout handling is unified: node-level timeouts and the workflow time budget both produce explicit failed results with side-effect-verification warnings, never unstructured coroutine cancellations.
+- Retry reconciles declared compensations between attempts so a partially applied failed attempt cannot leak stale undo entries into a later successful attempt.
+- The `workflow` failure result and the execution journal now share the same truthful outcome and error-code classification (`EXECUTION_TIME_LIMIT`, `NODE_VISIT_LIMIT`).
+
+### Tests
+- Added deterministic JVM coverage for subworkflow input/output contracts, missing-provider fail-closed behavior, recursion-depth enforcement, approval gateway decision and timeout policy, ForEach scope restoration, saga reverse-order compensation, shared-budget propagation to nested execution, strict condition-failure semantics, and node-visit-limit enforcement.
+
+### Quality assurance
+- The strict execution contract keeps unsupported device/backend work unavailable rather than pretending it succeeded: subworkflows require a provider, approvals require a gateway, and both fail closed with diagnostics when absent.
+- Android unit tests, lint, and the production build are executed authoritatively by the GitHub Actions pipeline; no published tag was modified, and this release ships on top of the green `v3.57.0` baseline.
+
 ## [v3.57.0] - 2026-09-02
 
 ### Added
