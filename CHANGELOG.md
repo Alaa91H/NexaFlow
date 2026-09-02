@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.55.1] - 2026-09-02
+
+### Fixed
+- Corrected the durable recovery regression test to follow the production contract: a checkpoint must be atomically claimed before it can be marked `RECOVERY_REQUIRED`.
+- Preserved the strict persistence boundary while keeping recovery-required checkpoints excluded from automatic re-claim.
+
+### Quality assurance
+- Resolved the failure reported by CI, then passed the complete Android Lint and production build/unit-test workflow for commit `ddbac5dd`.
+
 ## [v3.55.0] - 2026-09-02
 
 ### Added
