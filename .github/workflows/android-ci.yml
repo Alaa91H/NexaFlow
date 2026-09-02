@@ -6,11 +6,15 @@ on:
     tags: [ "v*" ]
   pull_request:
     branches: [ "main" ]
+  schedule:
+    # Nightly dependency-rot and flake catcher on main (06:00 UTC).
+    - cron: '0 6 * * *'
 
-# A newer run for the same branch or tag supersedes an older one. This prevents
-# duplicate tag deliveries from racing to publish the same release asset.
+# A newer run for the same branch or tag supersedes an older one. Scheduled
+# runs get their own concurrency group so a nightly never cancels a release
+# build racing it on the same workflow.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -32,6 +36,11 @@ jobs:
       run: python3 scripts/auto_fix.py --check
     - name: Verify string parity across all locales
       run: python3 scripts/check_strings_parity.py
+    - name: Catalog parity (trigger/action enum ↔ builder picker)
+      run: python3 scripts/audit_catalog_and_releases.py catalog
+    - name: Tag hygiene (tag ↔ changelog entry) on version tags
+      if: startsWith(github.ref, 'refs/tags/')
+      run: python3 scripts/audit_catalog_and_releases.py tag-changelog "${{ github.ref_name }}"
     - name: Unit-test the resource gate (orphan drawable/layout/dimen)
       run: python3 scripts/tests/test_check_resources.py
     - name: Install pytest for the resource-gate suite
@@ -217,15 +226,17 @@ jobs:
           PRERELEASE="--prerelease"
         fi
         APK_NAME="NexaFlow-$GITHUB_REF_NAME.apk"
+        python3 scripts/generate_release_notes.py "$GITHUB_REF_NAME" > release-notes.md
         if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
           echo "Release $GITHUB_REF_NAME already exists — replacing APK asset with the latest build."
           gh release delete-asset "$GITHUB_REF_NAME" "$APK_NAME" --yes >/dev/null 2>&1 || true
           gh release delete-asset "$GITHUB_REF_NAME" "app-release.apk" --yes >/dev/null 2>&1 || true
           gh release upload "$GITHUB_REF_NAME" "app/build/outputs/apk/release/app-release.apk#$APK_NAME" --clobber
+          gh release edit "$GITHUB_REF_NAME" --notes-file release-notes.md
         else
           gh release create "$GITHUB_REF_NAME" \
             "app/build/outputs/apk/release/app-release.apk#$APK_NAME" \
             --title "NexaFlow $GITHUB_REF_NAME" \
-            --generate-notes \
+            --notes-file release-notes.md \
             $PRERELEASE
         fi

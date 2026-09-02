@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.57.0] - 2026-09-02
+
+### Added
+- Added the master improvement and development plan ([`docs/ROADMAP_2026.md`](docs/ROADMAP_2026.md)): a comprehensive, evidence-based roadmap covering truthful execution, device-adaptive compatibility, catalog completeness, performance budgets, security, and release governance across six workstreams.
+- Added deterministic **catalog parity gates** (`scripts/audit_catalog_and_releases.py`): every `TriggerType` (53) and `ActionType` (157) enum value must appear exactly once in the builder picker, with `PLUGIN_EVENT` pinned as the only restricted trigger; drift in either direction now fails CI instead of shipping unconfigurable catalog entries.
+- Added **tag hygiene gate** for version tags: a `v*` tag must have its own complete `CHANGELOG.md` section (with `###` subsections), and any leftover `[Unreleased]` content blocks the release so notes can never be stale.
+- Added **release-notes generator** (`scripts/generate_release_notes.py`): renders the tagged changelog section, absolute documentation links, the standing quality-evidence table, and install guidance into the GitHub Release body — replacing auto-generated commit lists with a professional, reviewed change record.
+- Added a nightly CI schedule (06:00 UTC) on `main` to catch dependency rot and flaky tests between releases, with a schedule-scoped concurrency group so nightlies never cancel release builds.
+- Added `docs/REQUIRED_CHECKS.md` documenting every CI gate with branch-protection setup instructions.
+- Added `CatalogParityTest` in the builder module mirroring the catalog-parity invariants inside the JVM test suite.
+
+### Changed
+- GitHub Releases for version tags now publish **generated professional notes** (changelog-derived) instead of `--generate-notes`, and re-render the body when an existing release is re-published.
+- Wired the catalog-parity and tag-hygiene gates into the `lint` CI job, running on every push, pull request, and tag.
+
+### Quality assurance
+- Catalog parity verified locally: 53 triggers (52 exposed, `PLUGIN_EVENT` restricted) and 157 actions each appear exactly once in the builder.
+- Tag-hygiene and release-notes scripts verified against existing release tags (`v3.56.2` passes; unknown tags fail closed).
+- Both new scripts are UTF-8-explicit and CRLF/LF line-ending agnostic, so Windows checkouts and Linux CI behave identically.
+
 ## [v3.56.2] - 2026-09-02
 
 ### Added

@@ -107,8 +107,13 @@ Pre-release tags (`alpha` / `beta` / `rc`) are published as pre-releases automat
 
 ## Documentation
 
+- [`docs/ROADMAP_2026.md`](docs/ROADMAP_2026.md) — the master fix/develop/optimize
+  plan: workstreams, catalog policy, capability metadata design, device-matrix
+  policy, and the release operating manual.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — module map and the
   Trigger → Scheduler → Engine → Execution → History data flow.
+- [`docs/REQUIRED_CHECKS.md`](docs/REQUIRED_CHECKS.md) — every CI quality gate and
+  the branch-protection setup that enforces them.
 - [`docs/PLUGIN_SDK.md`](docs/PLUGIN_SDK.md) — the Locale plugin protocol (EDIT_SETTING /
   FIRE_SETTING + Bundle JSON + Blurb) and the experimental `core/plugin-sdk` blueprint for
   third-party plugin developers.
