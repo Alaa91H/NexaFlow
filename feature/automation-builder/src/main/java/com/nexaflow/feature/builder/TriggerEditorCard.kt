@@ -192,6 +192,9 @@ internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> = mapOf(
     TriggerType.DEVICE_LOCKED to TriggerCategory.DEVICE,
     TriggerType.WIFI_STATE to TriggerCategory.CONNECTIVITY,
     TriggerType.NFC_STATE to TriggerCategory.CONNECTIVITY,
+    // Legacy combined connectivity remains supported for imported automations and
+    // is now also available to new users who need one unified network condition.
+    TriggerType.CONNECTIVITY to TriggerCategory.CONNECTIVITY,
     TriggerType.LOCATION_STATE to TriggerCategory.LOCATION,
     TriggerType.SCREEN_ROTATION_STATE to TriggerCategory.DEVICE,
     TriggerType.WIFI_SIGNAL_STRENGTH to TriggerCategory.CONNECTIVITY,
@@ -238,8 +241,9 @@ val triggerTypeOptions = listOf(
     TriggerType.AUTO_ROTATE,
     TriggerType.DEVICE_LOCKED,
     TriggerType.SCREEN_ROTATION_STATE,
-    // CONNECTIVITY — CONNECTIVITY itself remains supported for saved tasks but
-    // is intentionally not addable because it duplicated dedicated triggers.
+    // CONNECTIVITY — unified Wi-Fi/mobile condition for users who prefer one
+    // network trigger instead of separate radio-specific triggers.
+    TriggerType.CONNECTIVITY,
     TriggerType.HOTSPOT,
     TriggerType.NETWORK_MODE,
     TriggerType.BLUETOOTH_DEVICE,
@@ -248,10 +252,9 @@ val triggerTypeOptions = listOf(
     TriggerType.NFC_STATE,
     TriggerType.DATA_SAVER_STATE,
     TriggerType.WEBHOOK,
-    // LOCATION — retain the geographic enter/exit trigger only. LOCATION_STATE
-    // remains readable for legacy tasks but is intentionally not addable from
-    // the picker because it duplicates no useful user workflow.
+    // LOCATION — GPS geofence plus the device location-mode state trigger.
     TriggerType.LOCATION,
+    TriggerType.LOCATION_STATE,
     // APPS
     TriggerType.APPLICATION,
     TriggerType.APP_INSTALLED,

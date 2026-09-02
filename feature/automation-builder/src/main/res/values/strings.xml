@@ -19,7 +19,7 @@
     <string name="trigger_type_network_mode">Cellular network</string>
 
     <string name="refresh">Refresh</string>
-    <string name="trigger_type_location">Location</string>
+    <string name="trigger_type_location">GPS Geofence</string>
     <string name="trigger_type_sms">SMS</string>
     <string name="repeat_custom">Custom</string>
     <string name="repeat_every">Repeats every</string>
@@ -896,7 +896,7 @@
     <string name="trigger_type_call_sub">Fires on incoming, outgoing, or missed calls</string>
     <string name="trigger_type_sms_sub">Fires when an SMS is received</string>
     <string name="trigger_type_schedule_sub">Fires at a scheduled time</string>
-    <string name="trigger_type_location_sub">Fires when entering or leaving a location</string>
+    <string name="trigger_type_location_sub">Fires when entering or leaving a GPS geofence</string>
     <string name="trigger_type_nfc_sub">Fires when an NFC tag is scanned</string>
     <string name="trigger_type_sensor_sub">Fires when a device sensor detects activity</string>
     <string name="trigger_type_notification_sub">Fires when a notification is posted or removed</string>

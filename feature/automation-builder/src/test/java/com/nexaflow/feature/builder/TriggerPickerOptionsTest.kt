@@ -8,14 +8,19 @@ import org.junit.Test
 class TriggerPickerOptionsTest {
 
     @Test
-    fun geographicLocationRemainsAddableButLocationModeIsNotOffered() {
+    fun gpsGeofenceAndLocationModeAreAddable() {
         assertTrue(TriggerType.LOCATION in triggerTypeOptions)
-        assertFalse(TriggerType.LOCATION_STATE in triggerTypeOptions)
+        assertTrue(TriggerType.LOCATION_STATE in triggerTypeOptions)
     }
 
     @Test
-    fun hotspotIsAddableWhileLegacyCombinedConnectivityIsHidden() {
+    fun unifiedConnectivityTriggerIsAddable() {
+        assertTrue(TriggerType.CONNECTIVITY in triggerTypeOptions)
         assertTrue(TriggerType.HOTSPOT in triggerTypeOptions)
-        assertFalse(TriggerType.CONNECTIVITY in triggerTypeOptions)
+    }
+
+    @Test
+    fun pluginEventsRemainRestrictedToVerifiedPluginConfiguration() {
+        assertFalse(TriggerType.PLUGIN_EVENT in triggerTypeOptions)
     }
 }

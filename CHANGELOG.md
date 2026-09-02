@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.56.2] - 2026-09-02
+
+### Added
+- Added the **GPS Geofence** trigger to the builder catalog, clearly labeled for location-based automation.
+- Added the unified `CONNECTIVITY` trigger and `LOCATION_STATE` trigger to the builder, completing the user-facing catalog for all supported non-plugin trigger types.
+
+### Changed
+- Improved trigger categorization so legacy-compatible network and location-mode conditions can be configured for new automations without changing the persisted model or runtime contracts.
+- Kept `PLUGIN_EVENT` intentionally restricted to the verified plugin configuration flow; it is not exposed in the generic picker and cannot be created with incomplete or untrusted configuration.
+
+### Tests
+- Added regression coverage for GPS geofences, unified connectivity, location-mode triggers, and the security boundary around plugin events.
+- Verified the trigger catalog against the authoritative `TriggerType` enum and checked the working tree for whitespace errors.
+
 ## [v3.56.1] - 2026-09-02
 
 ### Fixed

@@ -1,17 +1,18 @@
-# NexaFlow v3.50.4 — Android 17 Automation Reliability and CI Hardening
+# NexaFlow v3.56.2 — Trigger Catalog and GPS Geofence Expansion
 
-**Release date:** 2026-08-27
-**Release scope:** Correct Android 17 Hotspot callback permission declaration, fail-closed workflow execution, observable recovery failures, and verified background-audio outcomes.
+**Release date:** 2026-09-02
+**Release scope:** Expand the trigger catalog with a clearly labeled GPS geofence and complete the user-facing coverage of supported connectivity and location-state triggers.
 
 ## Overview
 
-NexaFlow v3.50.4 is a reliability patch focused on **truthful automation outcomes** under modern Android restrictions. It closes a CI-blocking permission declaration gap for Hotspot state observation and hardens the workflow engine so uncertain platform outcomes are recorded as actionable failures rather than reported as successful automation.
+NexaFlow v3.56.2 improves automation discoverability and control without changing the persisted workflow model or runtime contracts. The builder now exposes the production-ready GPS geofence capability and the previously hidden unified connectivity and location-mode triggers, while retaining the security boundary that protects verified plugin events.
 
 ## Delivered changes
 
 | Area | Delivered behavior |
 |---|---|
-| Hotspot callback contract | Declares `ACCESS_NETWORK_STATE` in the `core:common` library manifest, the owning module for `TetheringManager.registerTetheringEventCallback()`. Android Lint now validates the public API contract without suppression or a baseline exception. |
+| GPS geofence trigger | Presents the existing location monitor as **GPS Geofence**, with enter/exit events, validated coordinates and radius, adaptive provider polling, lifecycle recovery, and explicit location permission handling. |
+| Complete trigger catalog | Exposes the unified `CONNECTIVITY` and `LOCATION_STATE` triggers in the grouped builder picker. `PLUGIN_EVENT` remains restricted to the verified plugin configuration path. |
 | Workflow branches | A thrown condition evaluation fails closed. NexaFlow records the diagnostic and executes neither the true nor false action path, preventing a condition-read error from being interpreted as a valid false state. |
 | Rollback evidence | A failed compensation attempt is retained in the workflow timeline beside the original action failure rather than being swallowed. |
 | Wait-until evidence | An expired `WaitUntil` node now includes the last condition-evaluation error, distinguishing an unavailable device state from a condition that remained unmet. |
@@ -28,18 +29,14 @@ No saved automation is migrated, deleted, or rewritten by this release. Precise 
 
 ## Verification
 
-The release candidate passed the complete GitHub Actions Android CI workflow: [run 33105036238](https://github.com/Alaa91H/NexaFlow/actions/runs/33105036238).
+The complete verification matrix is executed by GitHub Actions for the release tag. The final release entry will link the exact immutable workflow run after all gates complete.
 
 | Verification gate | Result |
 |---|---|
-| Android unit tests | Passed |
-| Detekt and Android Lint | Passed |
-| Debug and release APK builds | Passed |
-| Release AAB and bundletool validation | Passed |
-| Dependency-verification metadata | Passed |
-| APK signature and zipalign validation | Passed |
-| 16 KB page-alignment and native-library audit | Passed |
-| Resource quality and locale-parity gates | Passed |
+| Trigger catalog audit and whitespace check | Passed locally |
+| Focused Android unit tests | Pending CI: the local sandbox has no Android SDK |
+| Detekt, Android Lint, APK/AAB, and resource gates | Pending CI |
+| Release artifact, signature, alignment, and dependency gates | Pending CI |
 
 ## Upgrade guidance
 
