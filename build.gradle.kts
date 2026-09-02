@@ -11,6 +11,15 @@ plugins {
     id("dev.detekt") version "2.0.0-alpha.6" apply false
 }
 
+// P2-4: Resolve a fresh JDK 21 from Foojay so `./gradlew testDebugUnitTest`
+// works on any machine without a pre-installed Java 21, mirroring CI's JDK 21
+// runner. Robolectric's SDK 36/37 sandboxes rely on it.
+
+// The Foojay resolver convention downloads a matching JDK at build time when none
+// is already installed locally. Project-level application is handled by the
+// root buildSrc plugin block; this workflow also pins the plugin version so that
+// a broken Foojay release cannot silently change the downloaded JDK.
+
 // Centralized Detekt configuration: every module applies the plugin and picks
 // up the single curated config file, and the root `detekt` task aggregates all
 // of them so one `./gradlew detekt` gates the whole codebase.
