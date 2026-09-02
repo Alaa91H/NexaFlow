@@ -60,6 +60,8 @@ fun DurableExecutionStatus.canTransitionTo(next: DurableExecutionStatus): Boolea
 data class DurableExecutionCheckpoint(
     val runId: String,
     val automationId: String,
+    /** Immutable workflow schema revision captured at execution admission. */
+    val workflowVersion: Int = 1,
     val totalActions: Int,
     val nextActionIndex: Int,
     val completedActionIndexes: Set<Int> = emptySet(),
@@ -75,6 +77,7 @@ data class DurableExecutionCheckpoint(
     init {
         require(runId.isNotBlank()) { "runId must not be blank" }
         require(automationId.isNotBlank()) { "automationId must not be blank" }
+        require(workflowVersion > 0) { "workflowVersion must be positive" }
         require(totalActions >= 0) { "totalActions must not be negative" }
         require(nextActionIndex in 0..totalActions) { "nextActionIndex is outside action range" }
         require(completedActionIndexes.all { it in 0 until totalActions }) {

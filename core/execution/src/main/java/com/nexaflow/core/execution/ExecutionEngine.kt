@@ -236,6 +236,7 @@ class ExecutionEngine(
             DurableExecutionCheckpoint(
                 runId = payloadContext.runId,
                 automationId = automation.id,
+                workflowVersion = automation.workflowVersion,
                 totalActions = automation.actions.size,
                 nextActionIndex = 0,
                 status = DurableExecutionStatus.STARTED,

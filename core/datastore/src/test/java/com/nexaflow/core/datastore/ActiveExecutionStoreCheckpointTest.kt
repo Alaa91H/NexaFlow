@@ -27,6 +27,7 @@ class ActiveExecutionStoreCheckpointTest {
     private fun checkpoint(runId: String = "run-checkpoint") = DurableExecutionCheckpoint(
         runId = runId,
         automationId = "automation-a",
+        workflowVersion = 4,
         totalActions = 2,
         nextActionIndex = 0,
         status = DurableExecutionStatus.STARTED,
@@ -54,6 +55,7 @@ class ActiveExecutionStoreCheckpointTest {
     fun checkpoint_commitsSequentialActionsAndClaimsRecoveryOnce() = runBlocking {
         assertTrue(store.beginCheckpoint(checkpoint()))
         assertFalse(store.beginCheckpoint(checkpoint()))
+        assertEquals(4, store.checkpoint("run-checkpoint")?.workflowVersion)
 
         val started = store.markActionStarted("run-checkpoint", 0, "run-checkpoint:0:ACTION", 110L)
         assertEquals(DurableExecutionStatus.ACTION_STARTED, started?.status)
