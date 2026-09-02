@@ -93,6 +93,7 @@ class ActiveExecutionStoreCheckpointTest {
     @Test
     fun recoveryRequiredCheckpointIsNotClaimedAgainAutomatically() = runBlocking {
         assertTrue(store.beginCheckpoint(checkpoint("run-recovery-required")))
+        assertEquals(1, store.claimRecoveryCandidates(105L).size)
         store.markRecoveryRequired("run-recovery-required", "manual verification required", 110L)
 
         assertTrue(store.claimRecoveryCandidates(120L).isEmpty())
