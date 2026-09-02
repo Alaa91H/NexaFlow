@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -76,6 +77,18 @@ class ActiveExecutionStoreCheckpointTest {
         assertEquals(DurableExecutionStatus.RECOVERY_REQUIRED, store.checkpoint("run-checkpoint")?.status)
         assertTrue(store.completeCheckpoint("run-checkpoint"))
         assertEquals(null, store.checkpoint("run-checkpoint"))
+    }
+
+    @Test
+    fun duplicateIdempotencyKeyIsRejectedBeforeSecondSideEffect() = runBlocking {
+        assertTrue(store.beginCheckpoint(checkpoint("run-idempotency")))
+        store.markActionStarted("run-idempotency", 0, "run-idempotency:0:ACTION", 110L)
+
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking {
+                store.markActionStarted("run-idempotency", 0, "run-idempotency:0:ACTION", 120L)
+            }
+        }
     }
 
     @Test

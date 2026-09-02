@@ -87,6 +87,10 @@ class ActiveExecutionStore(private val context: Context) {
         require(actionIndex == checkpoint.nextActionIndex) {
             "Action checkpoint ordering mismatch for run $runId"
         }
+        require(idempotencyKey.isNotBlank()) { "idempotencyKey must not be blank" }
+        check(idempotencyKey !in checkpoint.idempotencyKeys) {
+            "Duplicate idempotency key for run $runId: $idempotencyKey"
+        }
         checkpoint.copy(
             status = DurableExecutionStatus.ACTION_STARTED,
             idempotencyKeys = checkpoint.idempotencyKeys + idempotencyKey,
