@@ -122,7 +122,7 @@ class WorkflowInterpreterFlowControlTest {
             WorkflowNode.WaitUntilNode(
                 id = "wait",
                 condition = WorkflowCondition {
-                    delay(0L),
+                    delay(0L)
                     ++checks == 3
                 },
                 timeoutMs = 1000L,
@@ -142,7 +142,7 @@ class WorkflowInterpreterFlowControlTest {
             WorkflowNode.WhileNode(
                 id = "while",
                 condition = WorkflowCondition {
-                    delay(0L),
+                    delay(0L)
                     error("while condition is unavailable")
                 },
                 body = WorkflowNode.ActionNode("tick", action("tick"))
@@ -161,7 +161,7 @@ class WorkflowInterpreterFlowControlTest {
             WorkflowNode.BranchNode(
                 id = "branch",
                 condition = WorkflowCondition {
-                    delay(0L),
+                    delay(0L)
                     error("branch condition is unavailable")
                 },
                 whenTrue = WorkflowNode.ActionNode("yes", action("yes")),
