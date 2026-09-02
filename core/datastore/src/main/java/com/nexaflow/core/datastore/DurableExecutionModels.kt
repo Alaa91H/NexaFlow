@@ -16,6 +16,43 @@ enum class DurableExecutionStatus {
 }
 
 /**
+ * Explicit transition contract for the durable checkpoint state machine.
+ * Recovery claims are intentionally one-way until the coordinator resolves
+ * the uncertain run; terminal completion cannot be reopened.
+ */
+fun DurableExecutionStatus.canTransitionTo(next: DurableExecutionStatus): Boolean = when (this) {
+    DurableExecutionStatus.STARTED -> next in setOf(
+        DurableExecutionStatus.ACTION_STARTED,
+        DurableExecutionStatus.EXIT_PENDING,
+        DurableExecutionStatus.RECOVERY_CLAIMED
+    )
+    DurableExecutionStatus.ACTION_STARTED -> next in setOf(
+        DurableExecutionStatus.ACTION_COMPLETED,
+        DurableExecutionStatus.ACTION_UNKNOWN,
+        DurableExecutionStatus.EXIT_PENDING,
+        DurableExecutionStatus.RECOVERY_CLAIMED
+    )
+    DurableExecutionStatus.ACTION_COMPLETED -> next in setOf(
+        DurableExecutionStatus.ACTION_STARTED,
+        DurableExecutionStatus.COMPLETED,
+        DurableExecutionStatus.EXIT_PENDING,
+        DurableExecutionStatus.RECOVERY_CLAIMED
+    )
+    DurableExecutionStatus.ACTION_UNKNOWN -> next in setOf(
+        DurableExecutionStatus.RECOVERY_CLAIMED,
+        DurableExecutionStatus.RECOVERY_REQUIRED
+    )
+    DurableExecutionStatus.EXIT_PENDING -> next in setOf(
+        DurableExecutionStatus.COMPLETED,
+        DurableExecutionStatus.RECOVERY_CLAIMED,
+        DurableExecutionStatus.RECOVERY_REQUIRED
+    )
+    DurableExecutionStatus.RECOVERY_CLAIMED -> next == DurableExecutionStatus.RECOVERY_REQUIRED
+    DurableExecutionStatus.RECOVERY_REQUIRED -> next == DurableExecutionStatus.RECOVERY_REQUIRED
+    DurableExecutionStatus.COMPLETED -> next == DurableExecutionStatus.COMPLETED
+}
+
+/**
  * Small, bounded checkpoint record. It stores metadata and idempotency markers,
  * never action payloads, plaintext secrets, Android objects or command output.
  */

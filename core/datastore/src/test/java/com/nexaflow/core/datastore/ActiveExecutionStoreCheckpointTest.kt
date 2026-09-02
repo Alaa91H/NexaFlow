@@ -35,6 +35,22 @@ class ActiveExecutionStoreCheckpointTest {
     )
 
     @Test
+    fun durableTransitionContract_allowsRecoveryAndTerminalPaths() {
+        assertTrue(DurableExecutionStatus.STARTED.canTransitionTo(DurableExecutionStatus.ACTION_STARTED))
+        assertTrue(DurableExecutionStatus.ACTION_STARTED.canTransitionTo(DurableExecutionStatus.ACTION_UNKNOWN))
+        assertTrue(DurableExecutionStatus.ACTION_UNKNOWN.canTransitionTo(DurableExecutionStatus.RECOVERY_REQUIRED))
+        assertTrue(DurableExecutionStatus.ACTION_COMPLETED.canTransitionTo(DurableExecutionStatus.COMPLETED))
+        assertTrue(DurableExecutionStatus.EXIT_PENDING.canTransitionTo(DurableExecutionStatus.RECOVERY_REQUIRED))
+    }
+
+    @Test
+    fun durableTransitionContract_rejectsTerminalRegression() {
+        assertFalse(DurableExecutionStatus.COMPLETED.canTransitionTo(DurableExecutionStatus.STARTED))
+        assertFalse(DurableExecutionStatus.RECOVERY_REQUIRED.canTransitionTo(DurableExecutionStatus.ACTION_STARTED))
+        assertFalse(DurableExecutionStatus.ACTION_UNKNOWN.canTransitionTo(DurableExecutionStatus.COMPLETED))
+    }
+
+    @Test
     fun checkpoint_commitsSequentialActionsAndClaimsRecoveryOnce() = runBlocking {
         assertTrue(store.beginCheckpoint(checkpoint()))
         assertFalse(store.beginCheckpoint(checkpoint()))

@@ -182,7 +182,13 @@ class ActiveExecutionStore(private val context: Context) {
         dataStore.edit { preferences ->
             val checkpoints = checkpoints(preferences)
             checkpoints.values.toList().forEach { checkpoint ->
-                if (!checkpoint.isTerminal && checkpoint.status != DurableExecutionStatus.RECOVERY_CLAIMED) {
+                if (!checkpoint.isTerminal &&
+                    checkpoint.status != DurableExecutionStatus.RECOVERY_CLAIMED &&
+                    checkpoint.status != DurableExecutionStatus.RECOVERY_REQUIRED
+                ) {
+                    check(checkpoint.status.canTransitionTo(DurableExecutionStatus.RECOVERY_CLAIMED)) {
+                        "Invalid recovery transition for ${checkpoint.runId}: ${checkpoint.status} -> ${DurableExecutionStatus.RECOVERY_CLAIMED}"
+                    }
                     val next = checkpoint.copy(
                         status = DurableExecutionStatus.RECOVERY_CLAIMED,
                         recoverySourceStatus = checkpoint.status,
@@ -229,7 +235,11 @@ class ActiveExecutionStore(private val context: Context) {
             val checkpoints = checkpoints(preferences)
             val current = checkpoints[runId] ?: return@edit
             updated = transform(current)
-            checkpoints[runId] = checkNotNull(updated)
+            val next = checkNotNull(updated)
+            check(current.status.canTransitionTo(next.status)) {
+                "Invalid durable transition for $runId: ${current.status} -> ${next.status}"
+            }
+            checkpoints[runId] = next
             writeCheckpoints(preferences, checkpoints)
         }
         return updated
