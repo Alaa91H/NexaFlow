@@ -91,6 +91,18 @@ class ActiveExecutionStoreCheckpointTest {
     }
 
     @Test
+    fun recoveryRequiredCheckpointIsNotClaimedAgainAutomatically() = runBlocking {
+        assertTrue(store.beginCheckpoint(checkpoint("run-recovery-required")))
+        store.markRecoveryRequired("run-recovery-required", "manual verification required", 110L)
+
+        assertTrue(store.claimRecoveryCandidates(120L).isEmpty())
+        assertEquals(
+            DurableExecutionStatus.RECOVERY_REQUIRED,
+            store.checkpoint("run-recovery-required")?.status
+        )
+    }
+
+    @Test
     fun interruptedActionIsExplicitlyUnknownRatherThanReplayable() = runBlocking {
         assertTrue(store.beginCheckpoint(checkpoint("run-unknown")))
         store.markActionStarted("run-unknown", 0, "run-unknown:0:ACTION", 110L)
