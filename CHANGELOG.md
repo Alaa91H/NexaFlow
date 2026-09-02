@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.56.0] - 2026-09-02
+
+### Added
+- Persisted the immutable `workflowVersion` captured from the Automation definition at durable execution admission.
+- Added regression coverage proving that the workflow revision survives checkpoint serialization and recovery reads.
+
+### Changed
+- Durable execution checkpoints now retain the workflow schema revision required to interpret an interrupted run safely.
+- Existing checkpoint constructors remain backward-compatible through a schema-safe default revision of `1`.
+
+### Quality assurance
+- Passed the repository resource gate, Android Lint, and the complete Android unit-test and production build workflow in GitHub Actions for commit `1590184c`.
+
 ## [v3.55.1] - 2026-09-02
 
 ### Fixed
