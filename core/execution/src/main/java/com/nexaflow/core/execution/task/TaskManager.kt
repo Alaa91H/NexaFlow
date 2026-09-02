@@ -216,10 +216,10 @@ class TaskManager(
     suspend fun awaitIdle(timeoutMs: Long = 5_000L): Boolean {
         val deadline = epochMillis.now() + timeoutMs
         while (epochMillis.now() < deadline) {
-            if (synchronized(lock) { queue.isEmpty() } && !isRunning) return true
+            if (synchronized(lock) { queue.isEmpty() && activeTaskId.get() == null }) return true
             delay(10)
         }
-        return synchronized(lock) { queue.isEmpty() } && !isRunning
+        return synchronized(lock) { queue.isEmpty() && activeTaskId.get() == null }
     }
 
     /** Stops the worker and records queued/running tasks as cancelled. */
