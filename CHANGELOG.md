@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.55.0] - 2026-09-02
+
+### Added
+- Added an explicit transition contract for durable execution checkpoints, covering action progress, uncertainty, exit reconciliation, recovery claims, recovery-required state, and terminal completion.
+- Added regression coverage for valid durable recovery paths and terminal-state immutability.
+
+### Fixed
+- Enforced durable lifecycle transitions inside the atomic `ActiveExecutionStore` update transaction instead of allowing arbitrary status replacement.
+- Prevented `RECOVERY_REQUIRED` checkpoints from being claimed again automatically, preserving the unresolved state for explicit operator or coordinator handling.
+- Preserved truthful recovery evidence by rejecting invalid checkpoint transitions immediately at the persistence boundary.
+
+### Quality assurance
+- Passed the repository resource gate, Android Lint, and the complete Android unit-test and production build workflow in GitHub Actions for commit `db70338a`.
+
 ## [v3.54.1] - 2026-09-01
 
 ### Fixed
