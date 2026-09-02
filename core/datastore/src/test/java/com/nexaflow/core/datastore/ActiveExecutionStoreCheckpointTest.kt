@@ -79,10 +79,12 @@ class ActiveExecutionStoreCheckpointTest {
     }
 
     @Test(expected = IllegalStateException::class)
-    fun duplicateIdempotencyKeyIsRejectedBeforeSecondSideEffect() = runBlocking {
-        assertTrue(store.beginCheckpoint(checkpoint("run-idempotency")))
-        store.markActionStarted("run-idempotency", 0, "run-idempotency:0:ACTION", 110L)
-        store.markActionStarted("run-idempotency", 0, "run-idempotency:0:ACTION", 120L)
+    fun duplicateIdempotencyKeyIsRejectedBeforeSecondSideEffect() {
+        runBlocking {
+            assertTrue(store.beginCheckpoint(checkpoint("run-idempotency")))
+            store.markActionStarted("run-idempotency", 0, "run-idempotency:0:ACTION", 110L)
+            store.markActionStarted("run-idempotency", 0, "run-idempotency:0:ACTION", 120L)
+        }
     }
 
     @Test
