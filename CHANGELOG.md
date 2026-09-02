@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.56.1] - 2026-09-02
+
+### Fixed
+- Made the `TaskManager.awaitIdle()` terminal barrier atomic by evaluating queue emptiness and active-task ownership under the same lock used by queue polling.
+- Prevented deadline and recovery tests from observing a transient empty-queue/idle-worker window while lifecycle status publication was still in progress.
+
+### Quality assurance
+- Diagnosed the v3.56.0 CI failure from the failing deadline test, applied the runtime race fix, and passed the complete Android Lint and production build/unit-test workflow for commit `920116cd`.
+
 ## [v3.56.0] - 2026-09-02
 
 ### Added
