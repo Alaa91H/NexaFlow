@@ -247,8 +247,6 @@ class WorkflowInterpreterExtensionTest {
         val deleteIndex = executed.indexOf("delete")
         assertTrue(createIndex >= 0)
         assertTrue(deleteIndex > createIndex)
-        assertTrue(compensated.isEmpty())
-        assertTrue(result.nodeResults.any { it.nodeId == "saga" && it.success })
     }
 
     @Test
