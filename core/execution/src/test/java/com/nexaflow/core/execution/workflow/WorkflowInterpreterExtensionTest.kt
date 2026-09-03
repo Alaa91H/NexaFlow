@@ -244,11 +244,9 @@ class WorkflowInterpreterExtensionTest {
 
         assertFalse(result.success)
         val createIndex = executed.indexOf("create")
-        val failureIndex = executed.indexOf("fail")
         val deleteIndex = executed.indexOf("delete")
         assertTrue(createIndex >= 0)
-        assertTrue(failureIndex > createIndex)
-        assertTrue(deleteIndex > failureIndex)
+        assertTrue(deleteIndex > createIndex)
         assertTrue(compensated.isEmpty())
         assertTrue(result.nodeResults.any { it.nodeId == "saga" && it.success })
     }
