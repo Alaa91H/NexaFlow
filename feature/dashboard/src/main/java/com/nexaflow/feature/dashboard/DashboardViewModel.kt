@@ -61,6 +61,10 @@ class DashboardViewModel @Inject constructor(
     fun toggleAutomation(automation: Automation, enabled: Boolean) {
         viewModelScope.launch {
             automationRepository.updateAutomationStatus(automation.id, enabled)
+            // Notify the monitors so an enabled task whose condition already
+            // holds runs immediately, and a disabled active task runs its end
+            // behavior right away instead of waiting for the next event.
+            executionEngine.notifyAutomationsChanged()
         }
     }
 

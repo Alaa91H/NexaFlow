@@ -3,6 +3,7 @@ package com.nexaflow.feature.builder
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexaflow.core.engine.BatteryMonitor
+import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.capability.CapabilityStateStore
 import com.nexaflow.core.execution.compat.WorkflowCapabilityValidator
 import com.nexaflow.domain.capability.CapabilitySnapshot
@@ -32,6 +33,7 @@ class AutomationBuilderViewModel @Inject constructor(
     private val variableRepository: VariableRepository,
     private val pluginRepository: PluginRepository,
     private val batteryMonitor: BatteryMonitor,
+    private val executionEngine: ExecutionEngine,
     private val capabilityStateStore: CapabilityStateStore
 ) : ViewModel() {
 
@@ -143,6 +145,11 @@ class AutomationBuilderViewModel @Inject constructor(
             // would wait for the battery to move again. Re-evaluate now so a
             // freshly saved low-battery task runs immediately when applicable.
             batteryMonitor.refresh()
+            // Tell every stateful monitor to re-evaluate the current device
+            // state too: a freshly saved (or re-enabled) task whose trigger
+            // condition already holds runs immediately, and editing a task
+            // that is currently active re-arms its end behavior.
+            executionEngine.notifyAutomationsChanged()
         }
     }
 

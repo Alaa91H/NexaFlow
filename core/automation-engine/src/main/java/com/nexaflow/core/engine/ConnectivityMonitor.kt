@@ -192,6 +192,23 @@ class ConnectivityMonitor @Inject constructor(
         }
     }
 
+    /**
+     * Full reconcile used on enable/disable toggles and after every
+     * automations-changed signal: re-arms the durable ledger (running the end
+     * behavior of tasks disabled while their connectivity condition still
+     * holds) and re-evaluates every enabled task against the current network
+     * state, so a freshly enabled task whose condition already holds fires
+     * immediately.
+     */
+    fun reconcileAutomations() {
+        if (!initialized) return
+        scope.launch {
+            if (!initialized) return@launch
+            rearmFromLedger()
+            handleChange()
+        }
+    }
+
     private companion object {
         const val SOURCE = "connectivity"
     }

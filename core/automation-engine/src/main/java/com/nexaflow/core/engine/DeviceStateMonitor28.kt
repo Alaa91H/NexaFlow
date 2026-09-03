@@ -31,6 +31,7 @@ import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -78,7 +79,7 @@ class DeviceStateMonitor28 @Inject constructor(
     private var registered = false
 
     /** Automations currently in their triggered state (to fire exit on the opposite side). */
-    private val activeStates = mutableMapOf<String, Boolean>()
+    private val activeStates = ConcurrentHashMap<String, Boolean>()
 
     @Volatile
     private var lastHdmiPlugged = false
@@ -188,7 +189,11 @@ class DeviceStateMonitor28 @Inject constructor(
         }
 
         scope.launch {
-            reconcileWithDeviceState()
+            // Evaluate every enabled task against the CURRENT device state so a
+            // freshly enabled task whose state condition already holds fires
+            // right away, and a task disabled while its condition still holds
+            // runs its exit behavior immediately.
+            reconcileAutomations()
         }
     }
 
@@ -271,22 +276,60 @@ class DeviceStateMonitor28 @Inject constructor(
         }
     }
 
-    private suspend fun reconcileWithDeviceState() {
-        val automations = repository.getAutomations().first()
-        automations
-            .filter { it.enabled && it.triggers.any { t -> t.type in STATE_TRIGGERS } }
-            .forEach { automation ->
-                val trigger = automation.triggers.first { it.type in STATE_TRIGGERS }
-                val satisfied = runCatching {
-                    isSatisfied(trigger.type, trigger.config)
-                }.getOrDefault(false)
-                val wasActive = activeStates[automation.id] ?: return@forEach
-                if (wasActive != satisfied) {
-                    activeStates.remove(automation.id)
-                    activeStore.clearAutomation(SOURCE, automation.id)
-                    executionEngine.runExit(automation)
+    /**
+     * Full re-evaluation of every state-triggered task against the current
+     * device state. Invoked on initialize and whenever automations change
+     * (enable/disable toggles, saves), so:
+     *  - a task enabled while its state condition already holds fires
+     *    immediately instead of waiting for the next observer/callback;
+     *  - a task disabled while its condition still holds stops being tracked
+     *    (its durable mark is pruned) instead of leaking until restart;
+     *  - a condition that ended while the process was down fires its missed
+     *    exit right away.
+     */
+    fun reconcileAutomations() {
+        scope.launch {
+            val automations = repository.getAutomations().first()
+            val byId = automations.associateBy { it.id }
+            // Restore durable active markers first so a task that fired before
+            // a process restart is never fired again while its condition still
+            // holds; run the end behavior of tasks disabled or deleted while
+            // the process was down.
+            // Disabling a task is an explicit abandonment of its lifecycle:
+            // the durable mark is pruned without firing a stale exit (the exit
+            // contract covers the condition ENDING while the task stays
+            // enabled, never a deliberate disable).
+            activeStore.activeKeys(SOURCE).forEach { id ->
+                val automation = byId[id]
+                when {
+                    automation?.enabled == true -> activeStates[id] = true
+                    else -> {
+                        activeStates.remove(id)
+                        activeStore.clearAutomation(SOURCE, id)
+                    }
                 }
             }
+            automations
+                .filter { it.enabled && it.triggers.any { t -> t.type in STATE_TRIGGERS } }
+                .forEach { automation ->
+                    val trigger = automation.triggers.first { it.type in STATE_TRIGGERS }
+                    val satisfied = runCatching {
+                        isSatisfied(trigger.type, trigger.config)
+                    }.getOrDefault(false)
+                    if (satisfied) {
+                        // Fire now when the condition holds and the task is not
+                        // already in its triggered state (once per enablement).
+                        if (activeStates.put(automation.id, true) == null) {
+                            activeStore.markActive(SOURCE, automation.id)
+                            executionEngine.runAutomation(automation)
+                        }
+                    } else if (activeStates.remove(automation.id) != null) {
+                        // The condition already ended: run the exit behavior.
+                        activeStore.clearAutomation(SOURCE, automation.id)
+                        executionEngine.runExit(automation)
+                    }
+                }
+        }
     }
 
     /** Evaluates a single state trigger against the live device state. */

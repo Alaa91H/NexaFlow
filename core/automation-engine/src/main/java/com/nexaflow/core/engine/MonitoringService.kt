@@ -5,8 +5,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
@@ -19,6 +21,7 @@ import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.SmsPreferences
+import com.nexaflow.core.execution.ACTION_AUTOMATIONS_CHANGED
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
@@ -120,11 +123,46 @@ class MonitoringService : Service() {
     private var monitorStartupJob: Job? = null
     private var smsConsentJob: Job? = null
 
+    /**
+     * Central automations-changed listener. The engine broadcasts this after
+     * every execution and the UI broadcasts it after every enable/disable
+     * toggle and save. Each stateful monitor re-evaluates against the CURRENT
+     * device state, so:
+     *  - a task enabled while its condition already holds fires immediately
+     *    instead of waiting for the next device broadcast;
+     *  - a task disabled or deleted while active stops being tracked at once
+     *    instead of leaking an active marker until the next restart;
+     *  - a condition that ended while tracking was down fires its end
+     *    behavior right away.
+     * SensorMonitor and WebhookServer already refresh themselves on this
+     * broadcast and are therefore not dispatched here.
+     */
+    private val automationChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(ctx: Context, intent: Intent) {
+            if (intent.action != ACTION_AUTOMATIONS_CHANGED) return
+            batteryMonitor.reconcileAutomations()
+            connectivityMonitor.reconcileAutomations()
+            airplaneModeMonitor.reconcileAutomations()
+            darkModeMonitor.reconcileAutomations()
+            ringerModeMonitor.reconcileAutomations()
+            deviceEventMonitor.reconcileAutomations()
+            deviceStateMonitor28.reconcileAutomations()
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         isRunning = true
         runCatching { startAsForeground() }
             .onFailure { Log.w(TAG, "startAsForeground failed", it) }
+        runCatching {
+            ContextCompat.registerReceiver(
+                this,
+                automationChangeReceiver,
+                IntentFilter(ACTION_AUTOMATIONS_CHANGED),
+                ContextCompat.RECEIVER_NOT_EXPORTED
+            )
+        }
         // Live binding: when the user toggles «Monitoring service» in
         // Settings > Notifications, the FGS notification is hidden (channel
         // drops to IMPORTANCE_NONE — no card anywhere, not even the shade)
@@ -216,6 +254,7 @@ class MonitoringService : Service() {
 
     override fun onDestroy() {
         isRunning = false
+        runCatching { unregisterReceiver(automationChangeReceiver) }
         cancelServiceJobs()
         stopMonitors()
         super.onDestroy()

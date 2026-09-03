@@ -197,6 +197,21 @@ class BatteryMonitor @Inject constructor(
         }
     }
 
+    /**
+     * Full reconcile used on enable/disable toggles and after every
+     * automations-changed signal: re-arms the durable ledger (running the end
+     * behavior of tasks disabled while their battery condition still holds)
+     * and re-evaluates every enabled battery task against the current sticky
+     * state, so a freshly enabled task whose threshold is already crossed
+     * fires immediately.
+     */
+    fun reconcileAutomations() {
+        scope.launch {
+            rearmFromLedger()
+            refresh()
+        }
+    }
+
     override fun stop() {
         if (!registered) return
         registered = false

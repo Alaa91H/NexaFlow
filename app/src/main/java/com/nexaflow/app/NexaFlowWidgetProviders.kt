@@ -79,6 +79,9 @@ class NexaFlowToggleWidgetProvider : AppWidgetProvider() {
                 dao.updateAutomationStatus(automation.id, enable)
             }
         }
+        // Notify the monitors so enabling fires tasks whose conditions already
+        // hold, and disabling runs the end behavior of active tasks.
+        context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
     }
 }
 

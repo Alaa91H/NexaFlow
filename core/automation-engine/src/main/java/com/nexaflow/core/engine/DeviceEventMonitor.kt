@@ -21,6 +21,7 @@ import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -49,9 +50,9 @@ class DeviceEventMonitor @Inject constructor(
     @Volatile
     private var registered = false
 
-    private val lastRunAt = mutableMapOf<String, Long>()
+    private val lastRunAt = ConcurrentHashMap<String, Long>()
     /** Automations currently in their triggered state (to fire exit on the opposite event). */
-    private val activeStates = mutableMapOf<String, String>()
+    private val activeStates = ConcurrentHashMap<String, String>()
 
     /** The event that ends the "active" phase of each device event. */
     private val oppositeEvent = mapOf(
@@ -112,72 +113,101 @@ class DeviceEventMonitor @Inject constructor(
                 return@launch
             }
             context.registerReceiver(receiver, receiverFilter)
-            // Re-arm the in-memory active set from the durable ledger BEFORE
-            // the next broadcast is evaluated: a task that was triggered before
-            // a process/service restart must still fire its exit behavior when
-            // the opposite event arrives.
-            rearmFromLedger()
-            // Fire the missed exit NOW for any task whose triggered condition
-            // already ended while the process was down (no broadcast will come
-            // until the state changes again, which may be long after the end).
-            reconcileWithDeviceState()
+            // Evaluate every enabled task against the CURRENT screen, power and
+            // headset state: a task enabled while its event already holds fires
+            // right away, a task disabled while its condition still holds runs
+            // its exit behavior, and a condition that ended while the process
+            // was down fires its missed exit now instead of waiting for the
+            // next broadcast (which may be long after the end).
+            reconcileAutomations()
         }
     }
 
     /**
-     * Restores the durable active keys into the in-memory map. Keys carry the
-     * triggered event (`id|SCREEN_ON`), so the restored entry matches the exit
-     * check exactly. Stale keys for deleted/disabled automations are pruned.
+     * Full re-evaluation of every DEVICE / HEADPHONE task against the current
+     * screen, power and headset state. Invoked on initialize and whenever
+     * automations change (enable/disable toggles, saves), so:
+     *  - a task enabled while its event condition already holds fires
+     *    immediately instead of waiting for the next broadcast;
+     *  - a task disabled while its condition still holds stops being tracked
+     *    (its durable mark is pruned) instead of leaking until restart;
+     *  - a condition that ended while the process was down fires its missed
+     *    exit right away.
      */
-    private suspend fun rearmFromLedger() {
-        val enabledIds = repository.getAutomations().first()
-            .filter { it.enabled }
-            .map { it.id }
-            .toSet()
-        activeStore.activeKeys(SOURCE).forEach { key ->
-            val id = key.substringBefore('|')
-            if (id in enabledIds) {
-                activeStates[id] = key.substringAfter('|', "SCREEN_ON")
-            } else {
-                activeStore.clearAutomation(SOURCE, id)
+    fun reconcileAutomations() {
+        scope.launch {
+            val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+            val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            val automations = repository.getAutomations().first()
+            val byId = automations.associateBy { it.id }
+            val now = System.currentTimeMillis()
+            // Restore durable active markers first so a task that fired before
+            // a process restart is never fired again while its condition still
+            // holds; run the end behavior of tasks disabled or deleted while
+            // the process was down.
+            // Disabling a task is an explicit abandonment of its lifecycle:
+            // the durable mark is pruned without firing a stale exit (the exit
+            // contract covers the condition ENDING while the task stays
+            // enabled, never a deliberate disable).
+            activeStore.activeKeys(SOURCE).forEach { key ->
+                val id = key.substringBefore('|')
+                val automation = byId[id]
+                when {
+                    automation?.enabled == true -> {
+                        activeStates[id] = key.substringAfter('|', "SCREEN_ON")
+                    }
+                    else -> {
+                        activeStates.remove(id)
+                        activeStore.clearAutomation(SOURCE, id)
+                    }
+                }
             }
+            automations
+                .filter { automation ->
+                    automation.enabled && automation.triggers.any {
+                        it.type == TriggerType.DEVICE || it.type == TriggerType.HEADPHONE
+                    }
+                }
+                .forEach { automation ->
+                    val trigger = automation.triggers.first {
+                        it.type == TriggerType.DEVICE || it.type == TriggerType.HEADPHONE
+                    }
+                    val triggerEvent = if (trigger.type == TriggerType.HEADPHONE) {
+                        when (trigger.config["event"] ?: "CONNECTED") {
+                            "DISCONNECTED" -> "HEADSET_DISCONNECTED"
+                            else -> "HEADSET_CONNECTED"
+                        }
+                    } else {
+                        trigger.config["event"] ?: "SCREEN_ON"
+                    }
+                    // Sample the current state of exactly the monitored event.
+                    val currentlyHolds = when (triggerEvent) {
+                        "SCREEN_ON" -> powerManager.isInteractive
+                        "SCREEN_OFF" -> !powerManager.isInteractive
+                        "POWER_CONNECTED" -> batteryManager.isCharging
+                        "POWER_DISCONNECTED" -> !batteryManager.isCharging
+                        "HEADSET_CONNECTED" -> audioManager.hasWiredOutputDevice()
+                        "HEADSET_DISCONNECTED" -> !audioManager.hasWiredOutputDevice()
+                        else -> false
+                    }
+                    if (currentlyHolds) {
+                        val last = lastRunAt[automation.id] ?: 0L
+                        if (activeStates[automation.id] != triggerEvent &&
+                            now - last > automation.cooldownMillis
+                        ) {
+                            lastRunAt[automation.id] = now
+                            activeStates[automation.id] = triggerEvent
+                            activeStore.markActive(SOURCE, "${automation.id}|$triggerEvent")
+                            executionEngine.runAutomation(automation)
+                        }
+                    } else if (activeStates.remove(automation.id) != null) {
+                        // The condition already ended: run the exit behavior.
+                        activeStore.clearAutomation(SOURCE, automation.id)
+                        executionEngine.runExit(automation)
+                    }
+                }
         }
-    }
-
-    /**
-     * Re-reads the CURRENT device state (screen, power, headset) and fires the
-     * exit behavior for any task whose triggered condition has already ended
-     * while the process was down. Broadcasts only fire on state *changes*, so
-     * without this pass a task whose condition ended during downtime would
-     * never run its exit until the state flipped again.
-     */
-    private suspend fun reconcileWithDeviceState() {
-        val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-        val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        val automations = repository.getAutomations().first()
-        automations
-            .filter {
-                it.enabled && it.triggers.any { t -> t.type == TriggerType.DEVICE || t.type == TriggerType.HEADPHONE }
-            }
-            .forEach { automation ->
-                val activeEvent = activeStates[automation.id] ?: return@forEach
-                // The opposite event has already happened while we were down.
-                val ended = when (activeEvent) {
-                    "SCREEN_ON" -> !powerManager.isInteractive
-                    "SCREEN_OFF" -> powerManager.isInteractive
-                    "POWER_CONNECTED" -> !batteryManager.isCharging
-                    "POWER_DISCONNECTED" -> batteryManager.isCharging
-                    "HEADSET_CONNECTED" -> !audioManager.hasWiredOutputDevice()
-                    "HEADSET_DISCONNECTED" -> audioManager.hasWiredOutputDevice()
-                    else -> false
-                }
-                if (ended) {
-                    activeStates.remove(automation.id)
-                    activeStore.clearAutomation(SOURCE, automation.id)
-                    executionEngine.runExit(automation)
-                }
-            }
     }
 
     /** Equivalent modern check for the deprecated wired-headset state flag. */

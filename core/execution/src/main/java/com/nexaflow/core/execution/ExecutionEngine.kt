@@ -671,6 +671,18 @@ class ExecutionEngine(
     }
 
     /**
+     * Broadcasts [ACTION_AUTOMATIONS_CHANGED] after the automation set or an
+     * enabled flag changed without an execution (dashboard/details toggles,
+     * saves). MonitoringService listens and re-evaluates every stateful
+     * monitor against the current device state, so a freshly enabled task
+     * whose condition already holds runs immediately and a task disabled
+     * while active runs its end behavior right away.
+     */
+    fun notifyAutomationsChanged() {
+        context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
+    }
+
+    /**
      * Config keys that carry structured data (JSON) rather than free text:
      * %variable substitution would corrupt them, so they are skipped.
      */
