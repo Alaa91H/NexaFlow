@@ -48,7 +48,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Catalog parity verified locally: 53 triggers (52 exposed, `PLUGIN_EVENT` restricted) and 157 actions each appear exactly once in the builder.
 - Tag-hygiene and release-notes scripts verified against existing release tags (`v3.56.2` passes; unknown tags fail closed).
 - Both new scripts are UTF-8-explicit and CRLF/LF line-ending agnostic, so Windows checkouts and Linux CI behave identically.
+## [v3.56.3] - 2026-09-03
 
+### Added
+- Added a simplified GPS location-mode workflow with explicit **ON** and **OFF** choices for easier device control.
+- Added quick timer presets for **1 minute**, **5 minutes**, **10 minutes**, and **24 hours**.
+- Added a custom timer duration field supporting values from **1 second through 24 hours**.
+
+### Changed
+- Expanded `SYSTEM_WAIT` runtime validation to support the complete 1–86,400 second range while keeping imported workflows bounded.
+- Kept the complete supported trigger catalog available in the builder, including connectivity and location-mode controls, while retaining the verified-plugin security boundary.
+
+### Quality assurance
+- Passed trigger-catalog, resource-parity, resource-hygiene, and diff-integrity checks locally.
+- GitHub Actions validation and release-artifact checks are executed for the `v3.56.3` tag.
 ## [v3.56.2] - 2026-09-02
 
 ### Added

@@ -1,18 +1,20 @@
-# NexaFlow v3.56.2 — Trigger Catalog and GPS Geofence Expansion
+# NexaFlow v3.56.3 — Simplified GPS Controls and Flexible Timers
 
-**Release date:** 2026-09-02
-**Release scope:** Expand the trigger catalog with a clearly labeled GPS geofence and complete the user-facing coverage of supported connectivity and location-state triggers.
+**Release date:** 2026-09-03
+**Release scope:** Simplify GPS location-mode control and introduce quick and custom timers from 1 second through 24 hours.
 
 ## Overview
 
-NexaFlow v3.56.2 improves automation discoverability and control without changing the persisted workflow model or runtime contracts. The builder now exposes the production-ready GPS geofence capability and the previously hidden unified connectivity and location-mode triggers, while retaining the security boundary that protects verified plugin events.
+NexaFlow v3.56.3 improves everyday device control through a simpler GPS switch workflow and a flexible bounded timer editor. The update preserves the existing persisted workflow model and runtime contracts while making common durations immediately selectable and allowing precise custom delays.
 
 ## Delivered changes
 
 | Area | Delivered behavior |
 |---|---|
-| GPS geofence trigger | Presents the existing location monitor as **GPS Geofence**, with enter/exit events, validated coordinates and radius, adaptive provider polling, lifecycle recovery, and explicit location permission handling. |
-| Complete trigger catalog | Exposes the unified `CONNECTIVITY` and `LOCATION_STATE` triggers in the grouped builder picker. `PLUGIN_EVENT` remains restricted to the verified plugin configuration path. |
+| GPS location mode | Presents explicit **ON** and **OFF** choices for controlling whether the device location mode should be active, alongside the existing GPS geofence workflow. |
+| Quick timers | Provides one-tap presets for 1 minute, 5 minutes, 10 minutes, and 24 hours. |
+| Custom timer | Accepts a bounded duration from 1 second through 24 hours and displays the stored duration clearly in the task summary. |
+| Runtime safety | Applies the same 1–86,400 second bounds during execution, including for imported workflows. |
 | Workflow branches | A thrown condition evaluation fails closed. NexaFlow records the diagnostic and executes neither the true nor false action path, preventing a condition-read error from being interpreted as a valid false state. |
 | Rollback evidence | A failed compensation attempt is retained in the workflow timeline beside the original action failure rather than being swallowed. |
 | Wait-until evidence | An expired `WaitUntil` node now includes the last condition-evaluation error, distinguishing an unavailable device state from a condition that remained unmet. |
@@ -29,14 +31,14 @@ No saved automation is migrated, deleted, or rewritten by this release. Precise 
 
 ## Verification
 
-The complete verification matrix is executed by GitHub Actions for the release tag. The final release entry will link the exact immutable workflow run after all gates complete.
+The complete verification matrix is executed by GitHub Actions for the release tag. The final release entry links the exact immutable workflow run after all gates complete.
 
 | Verification gate | Result |
 |---|---|
 | Trigger catalog audit and whitespace check | Passed locally |
-| Focused Android unit tests | Pending CI: the local sandbox has no Android SDK |
-| Detekt, Android Lint, APK/AAB, and resource gates | Pending CI |
-| Release artifact, signature, alignment, and dependency gates | Pending CI |
+| Resource parity, hygiene, and configuration gates | Passed locally |
+| Focused Android unit tests | Pending CI |
+| Detekt, Android Lint, APK/AAB, and release-artifact gates | Pending CI |
 
 ## Upgrade guidance
 

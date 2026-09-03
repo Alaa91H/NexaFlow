@@ -340,7 +340,7 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.DEVICE_LOCKED -> mapOf("state" to "LOCKED")
     TriggerType.WIFI_STATE -> mapOf("state" to "ON")
     TriggerType.NFC_STATE -> mapOf("state" to "ON")
-    TriggerType.LOCATION_STATE -> mapOf("mode" to "HIGH")
+    TriggerType.LOCATION_STATE -> mapOf("mode" to "ON")
     TriggerType.SCREEN_ROTATION_STATE -> mapOf("state" to "PORTRAIT")
     TriggerType.WIFI_SIGNAL_STRENGTH -> mapOf("threshold" to "3", "direction" to "ABOVE")
     TriggerType.CELL_SIGNAL_STRENGTH -> mapOf("threshold" to "3", "direction" to "ABOVE")
@@ -1206,11 +1206,10 @@ private fun triggerSummary(draft: TriggerDraft): String {
         TriggerType.DEVICE_LOCKED ->
             if ((c["state"] ?: "LOCKED") == "LOCKED") stringResource(R.string.device_locked)
             else stringResource(R.string.device_unlocked)
-        TriggerType.LOCATION_STATE -> when (c["mode"] ?: "HIGH") {
-            "OFF" -> stringResource(R.string.location_mode_off)
-            "SENSORS" -> stringResource(R.string.location_mode_sensors)
-            "BATTERY" -> stringResource(R.string.location_mode_battery)
-            else -> stringResource(R.string.location_mode_high)
+        TriggerType.LOCATION_STATE -> when ((c["mode"] ?: "ON").uppercase()) {
+            "OFF" -> stringResource(R.string.state_off)
+            "ON", "HIGH", "SENSORS", "BATTERY" -> stringResource(R.string.state_on)
+            else -> stringResource(R.string.state_on)
         }
         TriggerType.SCREEN_ROTATION_STATE ->
             if ((c["state"] ?: "PORTRAIT") == "PORTRAIT") stringResource(R.string.rotation_portrait)
@@ -2843,14 +2842,15 @@ fun TriggerEditorCard(
                 TriggerType.LOCATION_STATE -> {
                     Text(text = stringResource(R.string.trigger_location_mode), style = MaterialTheme.typography.titleSmall)
                     OptionChips(
-                        options = listOf("OFF", "SENSORS", "BATTERY", "HIGH"),
+                        options = listOf("ON", "OFF"),
                         labels = mapOf(
-                            "OFF" to stringResource(R.string.location_mode_off),
-                            "SENSORS" to stringResource(R.string.location_mode_sensors),
-                            "BATTERY" to stringResource(R.string.location_mode_battery),
-                            "HIGH" to stringResource(R.string.location_mode_high)
+                            "ON" to stringResource(R.string.state_on),
+                            "OFF" to stringResource(R.string.state_off)
                         ),
-                        selected = draft.config["mode"] ?: "HIGH",
+                        selected = when (draft.config["mode"]?.uppercase()) {
+                            "OFF" -> "OFF"
+                            else -> "ON"
+                        },
                         onSelect = { onConfigChange(draft.copy(config = draft.config + ("mode" to it))) }
                     )
                 }

@@ -7,6 +7,11 @@ import org.junit.Test
 
 class TriggerDefaultsTest {
     @Test
+    fun locationStateTrigger_defaultsToSimpleOnMode() {
+        assertEquals(mapOf("mode" to "ON"), defaultTriggerConfig(TriggerType.LOCATION_STATE))
+    }
+
+    @Test
     fun smsTrigger_defaultConfig_containsOnlyMatchingFilters() {
         val config = defaultTriggerConfig(TriggerType.SMS)
 

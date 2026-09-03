@@ -167,7 +167,10 @@ class SystemActionsHandler : ActionHandler {
             ActionType.SYSTEM_SEND_SMS ->
                 ctx.controller.sendSms(action.config["number"] ?: "", action.config["text"] ?: "")
             ActionType.SYSTEM_WAIT -> {
-                val seconds = action.config["seconds"]?.toIntOrNull()?.coerceIn(1, 3600) ?: 5
+                // The builder supports 1 second through 24 hours. Keep the
+                // runtime bounded as well so imported workflows cannot request
+                // an unbounded delay.
+                val seconds = action.config["seconds"]?.toLongOrNull()?.coerceIn(1L, 86_400L) ?: 5L
                 delay(seconds * 1000L)
                 SystemControlResult.ok("Waited ${seconds}s")
             }

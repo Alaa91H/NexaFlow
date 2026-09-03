@@ -25,6 +25,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -838,12 +840,43 @@ fun ActionConfigEditor(
             }
         }
         ActionType.SYSTEM_WAIT -> {
-            val seconds = config["seconds"]?.toIntOrNull() ?: 5
-            SliderRow(
-                label = stringResource(R.string.wait_counter_label, seconds),
-                value = seconds.toFloat(),
-                onValueChange = { onConfigChange(mapOf("seconds" to it.toInt().toString())) },
-                valueRange = 1f..300f
+            val maxWaitSeconds = 24L * 60L * 60L
+            val rawSeconds = config["seconds"].orEmpty()
+            val seconds = rawSeconds.toLongOrNull()?.coerceIn(1L, maxWaitSeconds) ?: 5L
+            Text(
+                text = "Quick timer",
+                style = MaterialTheme.typography.titleSmall
+            )
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                listOf(1L to "1 min", 5L to "5 min", 10L to "10 min", 24L * 60L to "24 h").forEach { (value, label) ->
+                    SelectChip(
+                        selected = seconds == value * 60L,
+                        onClick = { onConfigChange(mapOf("seconds" to (value * 60L).toString())) },
+                        label = label
+                    )
+                }
+            }
+            OutlinedTextField(
+                value = rawSeconds,
+                onValueChange = { value ->
+                    val digits = value.filter(Char::isDigit)
+                    val bounded = digits.toLongOrNull()?.coerceIn(1L, maxWaitSeconds)
+                    onConfigChange(mapOf("seconds" to (bounded?.toString() ?: digits)))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = "Custom duration (seconds)") },
+                supportingText = { Text(text = "1 second to 24 hours") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+            Text(
+                text = stringResource(R.string.wait_counter_label, seconds),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
             )
             Text(
                 text = stringResource(R.string.wait_hint),
