@@ -238,8 +238,14 @@ class TaskManager(
             cancelledIds.add(taskId)
             runningJobs[taskId]?.cancel()
         }
-        queueWakeups.close()
+        // Cancel the scope BEFORE closing the wake-up channel: an idle worker
+        // suspended on receive() must be released by cancellation (clean
+        // coroutine exit), never by the channel close (which would deliver a
+        // ClosedReceiveChannelException into a SupervisorJob scope with no
+        // handler -> unhandled crash). pollOrWait() is also close-tolerant via
+        // receiveCatching for any other close path.
         scope.cancel()
+        queueWakeups.close()
     }
 
     private suspend fun processQueue() {
@@ -253,6 +259,12 @@ class TaskManager(
      * Pops the next task, or waits for an enqueue signal when the queue is
      * empty. Marks the task active atomically with the poll so awaitIdle()
      * never sees an empty queue + idle worker while a task is about to start.
+     *
+     * The wake-up channel is closed by [shutdown] while an idle worker may be
+     * suspended here. [receiveCatching] converts that close into a benign
+     * null poll instead of a ClosedReceiveChannelException escaping the
+     * SupervisorJob scope (unhandled -> process crash); the worker then exits
+     * through its own isActive check once the scope is cancelled.
      */
     private suspend fun pollOrWait(): Envelope? {
         val polled = synchronized(lock) {
@@ -260,7 +272,7 @@ class TaskManager(
             if (head != null) activeTaskId.set(head.task.id)
             head
         }
-        if (polled == null) queueWakeups.receive()
+        if (polled == null) queueWakeups.receiveCatching()
         return polled
     }
 

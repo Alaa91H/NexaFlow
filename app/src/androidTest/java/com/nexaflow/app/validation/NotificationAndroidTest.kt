@@ -6,16 +6,17 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.service.notification.StatusBarNotification
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.nexaflow.core.execution.EXTRA_AUTOMATION_ID
 import com.nexaflow.core.execution.ReminderAlarmReceiver
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
@@ -68,22 +69,23 @@ class NotificationAndroidTest {
             Intent(ReminderAlarmReceiver.ACTION_SHOW_REMINDER)
                 .putExtra(ReminderAlarmReceiver.EXTRA_TITLE, title)
                 .putExtra(ReminderAlarmReceiver.EXTRA_TEXT, text)
-                .putExtra(ReminderAlarmReceiver.EXTRA_AUTOMATION_ID, automationId)
+                .putExtra(EXTRA_AUTOMATION_ID, automationId)
         )
 
-        val posted = withTimeout(5_000L) {
-            while (true) {
-                val current = manager.activeNotifications
+        val posted = withTimeout<StatusBarNotification?>(5_000L) {
+            var found: StatusBarNotification? = null
+            while (found == null) {
+                found = manager.activeNotifications
                     .firstOrNull { it.id == ReminderAlarmReceiver.NOTIFICATION_ID }
-                if (current != null) return@withTimeout current
-                delay(50L)
+                if (found == null) delay(50L)
             }
+            found
         }
+        val notification = requireNotNull(posted) { "Reminder notification was never posted" }.notification
 
-        assertNotNull(posted)
-        assertEquals(title, posted.notification.extras.getCharSequence(Notification.EXTRA_TITLE)?.toString())
-        assertEquals(text, posted.notification.extras.getCharSequence(Notification.EXTRA_TEXT)?.toString())
-        assertEquals(Notification.CATEGORY_REMINDER, posted.notification.category)
-        assertTrue("Task-bound reminder must expose Run now and Dismiss actions", posted.notification.actions.size >= 2)
+        assertEquals(title, notification.extras.getCharSequence(Notification.EXTRA_TITLE)?.toString())
+        assertEquals(text, notification.extras.getCharSequence(Notification.EXTRA_TEXT)?.toString())
+        assertEquals(Notification.CATEGORY_REMINDER, notification.category)
+        assertTrue("Task-bound reminder must expose Run now and Dismiss actions", notification.actions.size >= 2)
     }
 }

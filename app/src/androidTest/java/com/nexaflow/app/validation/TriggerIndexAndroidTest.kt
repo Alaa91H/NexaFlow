@@ -65,7 +65,7 @@ class TriggerIndexAndroidTest {
         category = "Test",
         priority = 0,
         enabled = enabled,
-        triggers = listOf(Trigger(type = TriggerType.PLUGIN_EVENT)),
+        triggers = listOf(Trigger(type = TriggerType.PLUGIN_EVENT, config = emptyMap())),
         actions = emptyList(),
         createdAt = 0L,
         updatedAt = 0L

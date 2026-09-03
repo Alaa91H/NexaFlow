@@ -208,6 +208,10 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.espresso.espresso.core)
+    // PluginEventIngressAndroidTest asserts canonical payloads as kotlinx
+    // serialization JsonObject; the engine exposes it only as an implementation
+    // dependency, so the androidTest source set declares it directly.
+    androidTestImplementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
     androidTestImplementation(platform(libs.androidx.compose.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.ui.tooling)
