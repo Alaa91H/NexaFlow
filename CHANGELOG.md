@@ -7,25 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [v3.58.2] - 2026-09-03
-
-### Fixed
-- Enforced durable idempotency-key uniqueness before an action side effect starts, preventing a recovered execution from reserving the same action claim twice.
-- Preserved `SubworkflowProvider` compatibility for both legacy three-argument implementations and budget-aware providers, while keeping nested execution inside the shared safety budget.
-- Stabilized saga compensation regression coverage around the durable invariant that declared compensation executes after the original side effect.
-
-### Quality assurance
-- Resource hygiene checks passed with zero orphaned, unused, missing, or extra translation resources.
-- GitHub Actions lint and build gates passed after resolving the subworkflow-provider compilation regression and the saga compensation test failure.
-- No published tag was modified; this release is based on the verified `main` commit.
-
-## [v3.58.0] - 2026-09-02
+## [v3.58.0] - 2026-09-03
 
 ### Added
 - Activated the workflow control-flow primitives that previously failed closed: **subworkflows** (bounded recursion, input/output parameter passing, isolated or shared context), **human approval gates** (explicit gateway contract with configurable timeout policy), **saga compensation** (reverse-order undo of declared side effects), and **ForEach loops** (per-item variable scoping with index exposure and failure policy).
 - Added a **shared execution budget** (`WorkflowExecutionBudget`) spanning the whole tree — including nested subworkflows — with an atomic node-visit ceiling and a monotonic wall-clock deadline, so loops, retries, fan-out, and nested providers can no longer multiply work past the run's safety limits.
 - Added per-node **execution journaling** (optional, non-blocking) that records run id, node, action type, timestamps, outcome, and error code without ever failing a workflow.
 - Wired the budget-aware `executeSubworkflow` overload through the provider contract so child interpreters inherit the parent's visit counter and deadline; the legacy three-argument method remains source-compatible.
+- Added a simplified GPS location-mode workflow with explicit **ON** and **OFF** choices for easier device control.
+- Added quick timer presets for **1 minute**, **5 minutes**, **10 minutes**, and **24 hours**, plus a custom duration field supporting values from **1 second through 24 hours**.
 
 ### Changed
 - Condition evaluation for `BranchNode`, `WhileNode`, and `WaitUntilNode` is now strictly suspend-aware: an evaluator exception fails the node closed with a diagnostic instead of being treated as `false`, and cancellation always propagates instead of being swallowed.
@@ -33,13 +23,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Timeout handling is unified: node-level timeouts and the workflow time budget both produce explicit failed results with side-effect-verification warnings, never unstructured coroutine cancellations.
 - Retry reconciles declared compensations between attempts so a partially applied failed attempt cannot leak stale undo entries into a later successful attempt.
 - The `workflow` failure result and the execution journal now share the same truthful outcome and error-code classification (`EXECUTION_TIME_LIMIT`, `NODE_VISIT_LIMIT`).
+- Expanded `SYSTEM_WAIT` runtime validation to support the complete 1–86,400 second range while keeping imported workflows bounded.
+
+### Fixed
+- Enforced durable idempotency-key uniqueness before an action side effect starts, preventing a recovered execution from reserving the same action claim twice.
+- Preserved `SubworkflowProvider` compatibility for both legacy three-argument implementations and budget-aware providers, while keeping nested execution inside the shared safety budget.
+- Stopped a background-thread `PhoneStateListener` constructor crash (`Handler(Looper.myLooper()!!)` NPE on a Looper-less thread) that could silently kill telephony registration for connectivity and call-state monitoring on modern and legacy Android versions.
+- Stopped `TaskManager.shutdown()` from crashing the process when it raced an idle worker: closing the queue wake-up channel while the worker was suspended on `receive()` delivered a `ClosedReceiveChannelException` into an unhandled `SupervisorJob` scope. The poll now consumes the close benignly via `receiveCatching` while preserving the historical cancel ordering.
 
 ### Tests
 - Added deterministic JVM coverage for subworkflow input/output contracts, missing-provider fail-closed behavior, recursion-depth enforcement, approval gateway decision and timeout policy, ForEach scope restoration, saga reverse-order compensation, shared-budget propagation to nested execution, strict condition-failure semantics, and node-visit-limit enforcement.
+- Repaired the connected-device `androidTest` suite, which had drifted from the current APIs and never compiled (CI runs no device): updated `Trigger` construction to the persisted `config` model, pinned the reminder notification read-back to an explicit `StatusBarNotification` type, and declared the kotlinx-serialization artifact for plugin-event payload assertions.
+- Ran the full device-validation suite on a real phone (SDK 37): all tests pass, including the notification read-back contract, the production `TaskManager` resource-permit path, and the workflow-interpreter execution contract.
 
 ### Quality assurance
+- GitHub Actions lint, unit tests, and the production build are green on `main`, with the JDK 21 unit-test toolchain pre-installed in CI for deterministic Robolectric runs.
 - The strict execution contract keeps unsupported device/backend work unavailable rather than pretending it succeeded: subworkflows require a provider, approvals require a gateway, and both fail closed with diagnostics when absent.
-- Android unit tests, lint, and the production build are executed authoritatively by the GitHub Actions pipeline; no published tag was modified, and this release ships on top of the green `v3.57.0` baseline.
+- The on-device crash fixes were verified in both permission states (`READ_PHONE_STATE` granted and not granted): monitoring registers cleanly and the app process stays error-free.
 
 ## [v3.57.0] - 2026-09-02
 
@@ -60,22 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Catalog parity verified locally: 53 triggers (52 exposed, `PLUGIN_EVENT` restricted) and 157 actions each appear exactly once in the builder.
 - Tag-hygiene and release-notes scripts verified against existing release tags (`v3.56.2` passes; unknown tags fail closed).
 - Both new scripts are UTF-8-explicit and CRLF/LF line-ending agnostic, so Windows checkouts and Linux CI behave identically.
-## [v3.58.1] - 2026-09-03
 
-### Added
-- Added a simplified GPS location-mode workflow with explicit **ON** and **OFF** choices for easier device control.
-- Added quick timer presets for **1 minute**, **5 minutes**, **10 minutes**, and **24 hours**.
-- Added a custom timer duration field supporting values from **1 second through 24 hours**.
-
-### Changed
-- Expanded `SYSTEM_WAIT` runtime validation to support the complete 1–86,400 second range while keeping imported workflows bounded.
-- Kept the complete supported trigger catalog available in the builder, including connectivity and location-mode controls, while retaining the verified-plugin security boundary.
-
-### Quality assurance
-- Passed trigger-catalog, resource-parity, resource-hygiene, and diff-integrity checks locally.
-- Fixed the Foojay JDK toolchain resolver placement and added its dependency-verification checksum after CI surfaced the configuration issue.
-- Added compatibility implementations for the budget-aware subworkflow test providers so the complete unit-test suite compiles against the shared execution contract.
-- GitHub Actions validation and release-artifact checks are executed for the `v3.58.1` tag.
 ## [v3.56.2] - 2026-09-02
 
 ### Added
