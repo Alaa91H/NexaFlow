@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.58.1] - 2026-09-03
+
+### Fixed
+- Stateful triggers now evaluate their condition **immediately when a task is enabled** instead of waiting for the next device-state broadcast. Enabling a battery task while the level is already below the threshold, an airplane-mode task while airplane mode is already on, a dark-mode task while the dark theme is active, a ringer task while the sound mode already matches, a screen/headset task while the condition already holds, or a DND/state-28 task whose state condition is already satisfied now fires the task right away — matching the long-standing sticky-battery behavior for freshly saved tasks.
+- Every enable/disable path now notifies the monitors instead of only writing to the database: dashboard toggle, routine-details toggle, the automation builder save, the home-screen widget **toggle all**, and the quick-settings task tiles all broadcast the automations-changed signal, and `MonitoringService` re-evaluates each stateful monitor against the **current** device state.
+- A task disabled or deleted while its condition still holds is now dropped from monitor tracking immediately (its durable mark is pruned) instead of leaking an active marker until the next process restart, and a condition that ended while tracking was down fires its missed end behavior on the next reconcile instead of waiting for the state to flip again.
+- Airplane-mode, dark-mode, ringer, device-event, and device-state monitors now reconcile and fire on **thread-safe** active sets (`ConcurrentHashMap`), since on-demand reconciles can now run concurrently with broadcast-driven evaluation; previously they used plain mutable maps that could race after a process/service restart.
+- Battery and connectivity monitors gained the same on-demand full reconcile through their existing durable occurrence ledger (re-arm + current-state evaluation), so the enable/disable behavior is uniform across every stateful trigger family.
+
+### Tests
+- The pinned exit-reconcile contracts continue to pass: a condition that ended during downtime fires its missed exit on restart, a task whose condition still holds after restart stays active, and a stale mark for a disabled task is pruned without firing a stale exit.
+- Full engine unit suite (141 tests) and the connected-device `androidTest` suite (16 tests) pass on a real SDK 37 phone, including the notification read-back, resource-permit, workflow-interpreter, recovery-coordinator, trigger-index, and reminder-alarm contracts.
+
+### Quality assurance
+- Compile, detekt, unit tests, and the connected-device suite are green locally; GitHub Actions lint, unit tests, and the production build are green on `main`.
+
 ## [v3.58.0] - 2026-09-03
 
 ### Added
