@@ -238,14 +238,13 @@ class TaskManager(
             cancelledIds.add(taskId)
             runningJobs[taskId]?.cancel()
         }
-        // Cancel the scope BEFORE closing the wake-up channel: an idle worker
-        // suspended on receive() must be released by cancellation (clean
-        // coroutine exit), never by the channel close (which would deliver a
-        // ClosedReceiveChannelException into a SupervisorJob scope with no
-        // handler -> unhandled crash). pollOrWait() is also close-tolerant via
-        // receiveCatching for any other close path.
-        scope.cancel()
+        // Close the wake-up channel first, then stop the scope: closing while
+        // the worker is suspended is safe because pollOrWait() consumes the
+        // close through receiveCatching (a benign null poll), and cancelling
+        // the scope first could interrupt processEnvelope mid-join and skip
+        // its post-join ledger cleanup.
         queueWakeups.close()
+        scope.cancel()
     }
 
     private suspend fun processQueue() {
