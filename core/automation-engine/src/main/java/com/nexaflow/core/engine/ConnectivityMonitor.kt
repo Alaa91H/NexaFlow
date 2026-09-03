@@ -6,6 +6,8 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.telephony.PhoneStateListener
 import android.telephony.ServiceState
 import android.telephony.TelephonyCallback
@@ -270,30 +272,64 @@ class ConnectivityMonitor @Inject constructor(
                 telephonyCallback = callback
                 return
             }
+            // Fall through to the legacy listener when the modern registration
+            // is refused (typically the missing runtime READ_PHONE_STATE grant;
+            // sometimes an OEM restriction). Registration is marshalled to the
+            // main thread below so the no-arg constructor's internal
+            // Looper.myLooper() read can never NPE on this scope's Looper-less
+            // background thread — which previously aborted the whole monitor
+            // with a swallowed 'Background coroutine failed'.
         }
 
-        val listener = object : PhoneStateListener() {
-            override fun onServiceStateChanged(serviceState: ServiceState) {
-                handleChange()
-            }
+        // The deprecated listener is the only telephony signal path on Android
+        // 11 and below, and the fallback on newer releases. Its no-arg
+        // constructor resolves Looper.myLooper() for an internal Handler, so it
+        // must be constructed on a thread with a Looper. This registration can
+        // run from the application scope (no Looper), so marshal construction
+        // and registration to the main thread.
+        registerLegacyListenerOnMain(manager)
+    }
 
-            override fun onDataConnectionStateChanged(state: Int, networkType: Int) {
-                handleChange()
-            }
+    /**
+     * Registers the deprecated PhoneStateListener for pre-Android-12 devices.
+     * Runs on the main thread, where Looper.myLooper() is non-null; posting
+     * from the main thread executes inline is not guaranteed, so the queued
+     * runnable re-checks that registration is still wanted before it acts.
+     */
+    @Suppress("DEPRECATION")
+    private fun registerLegacyListenerOnMain(manager: TelephonyManager) {
+        val registration = Runnable {
+            // Guard against stop()/re-registration clearing state while this
+            // message sat in the queue.
+            if (!initialized || telephonyManager !== manager) return@Runnable
+            val listener = object : PhoneStateListener() {
+                override fun onServiceStateChanged(serviceState: ServiceState) {
+                    handleChange()
+                }
 
-            override fun onActiveDataSubscriptionIdChanged(subId: Int) {
-                latestDisplayInfo = null
-                registerTelephonyCallbacks()
-                handleChange()
+                override fun onDataConnectionStateChanged(state: Int, networkType: Int) {
+                    handleChange()
+                }
+
+                override fun onActiveDataSubscriptionIdChanged(subId: Int) {
+                    latestDisplayInfo = null
+                    registerTelephonyCallbacks()
+                    handleChange()
+                }
+            }
+            var listenFlags = PhoneStateListener.LISTEN_SERVICE_STATE or
+                PhoneStateListener.LISTEN_DATA_CONNECTION_STATE
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                listenFlags = listenFlags or PhoneStateListener.LISTEN_ACTIVE_DATA_SUBSCRIPTION_ID_CHANGE
+            }
+            if (runCatching { manager.listen(listener, listenFlags) }.isSuccess) {
+                legacyTelephonyListener = listener
             }
         }
-        var listenFlags = PhoneStateListener.LISTEN_SERVICE_STATE or
-            PhoneStateListener.LISTEN_DATA_CONNECTION_STATE
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            listenFlags = listenFlags or PhoneStateListener.LISTEN_ACTIVE_DATA_SUBSCRIPTION_ID_CHANGE
-        }
-        if (runCatching { manager.listen(listener, listenFlags) }.isSuccess) {
-            legacyTelephonyListener = listener
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            registration.run()
+        } else {
+            Handler(Looper.getMainLooper()).post(registration)
         }
     }
 
