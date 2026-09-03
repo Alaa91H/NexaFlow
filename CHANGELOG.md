@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.58.2] - 2026-09-03
+
+### Fixed
+- Enforced durable idempotency-key uniqueness before an action side effect starts, preventing a recovered execution from reserving the same action claim twice.
+- Preserved `SubworkflowProvider` compatibility for both legacy three-argument implementations and budget-aware providers, while keeping nested execution inside the shared safety budget.
+- Stabilized saga compensation regression coverage around the durable invariant that declared compensation executes after the original side effect.
+
+### Quality assurance
+- Resource hygiene checks passed with zero orphaned, unused, missing, or extra translation resources.
+- GitHub Actions lint and build gates passed after resolving the subworkflow-provider compilation regression and the saga compensation test failure.
+- No published tag was modified; this release is based on the verified `main` commit.
+
 ## [v3.58.0] - 2026-09-02
 
 ### Added
