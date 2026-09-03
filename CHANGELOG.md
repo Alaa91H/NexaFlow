@@ -48,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Catalog parity verified locally: 53 triggers (52 exposed, `PLUGIN_EVENT` restricted) and 157 actions each appear exactly once in the builder.
 - Tag-hygiene and release-notes scripts verified against existing release tags (`v3.56.2` passes; unknown tags fail closed).
 - Both new scripts are UTF-8-explicit and CRLF/LF line-ending agnostic, so Windows checkouts and Linux CI behave identically.
-## [v3.56.3] - 2026-09-03
+## [v3.58.1] - 2026-09-03
 
 ### Added
 - Added a simplified GPS location-mode workflow with explicit **ON** and **OFF** choices for easier device control.
@@ -61,7 +61,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Quality assurance
 - Passed trigger-catalog, resource-parity, resource-hygiene, and diff-integrity checks locally.
-- GitHub Actions validation and release-artifact checks are executed for the `v3.56.3` tag.
+- Fixed the Foojay JDK toolchain resolver placement and added its dependency-verification checksum after CI surfaced the configuration issue.
+- Added compatibility implementations for the budget-aware subworkflow test providers so the complete unit-test suite compiles against the shared execution contract.
+- GitHub Actions validation and release-artifact checks are executed for the `v3.58.1` tag.
 ## [v3.56.2] - 2026-09-02
 
 ### Added

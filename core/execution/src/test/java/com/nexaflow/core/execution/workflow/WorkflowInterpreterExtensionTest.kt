@@ -23,6 +23,17 @@ class WorkflowInterpreterExtensionTest {
                 override suspend fun executeSubworkflow(
                     workflowId: String,
                     inputParameters: Map<String, String>,
+                    depth: Int
+                ): WorkflowExecutionResult = executeSubworkflow(
+                    workflowId,
+                    inputParameters,
+                    depth,
+                    WorkflowExecutionBudget.fromPolicy(WorkflowExecutionPolicy())
+                )
+
+                override suspend fun executeSubworkflow(
+                    workflowId: String,
+                    inputParameters: Map<String, String>,
                     depth: Int,
                     executionBudget: WorkflowExecutionBudget
                 ): WorkflowExecutionResult {
@@ -76,6 +87,17 @@ class WorkflowInterpreterExtensionTest {
             executor = ActionExecutor { SystemControlResult.ok("unused") },
             maxSubworkflowDepth = 1,
             subworkflowProvider = object : SubworkflowProvider {
+                override suspend fun executeSubworkflow(
+                    workflowId: String,
+                    inputParameters: Map<String, String>,
+                    depth: Int
+                ): WorkflowExecutionResult = executeSubworkflow(
+                    workflowId,
+                    inputParameters,
+                    depth,
+                    WorkflowExecutionBudget.fromPolicy(WorkflowExecutionPolicy())
+                )
+
                 override suspend fun executeSubworkflow(
                     workflowId: String,
                     inputParameters: Map<String, String>,
@@ -232,6 +254,17 @@ class WorkflowInterpreterExtensionTest {
         val interpreter = WorkflowInterpreter(
             executor = ActionExecutor { SystemControlResult.ok("unused") },
             subworkflowProvider = object : SubworkflowProvider {
+                override suspend fun executeSubworkflow(
+                    workflowId: String,
+                    inputParameters: Map<String, String>,
+                    depth: Int
+                ): WorkflowExecutionResult = executeSubworkflow(
+                    workflowId,
+                    inputParameters,
+                    depth,
+                    WorkflowExecutionBudget.fromPolicy(WorkflowExecutionPolicy())
+                )
+
                 override suspend fun executeSubworkflow(
                     workflowId: String,
                     inputParameters: Map<String, String>,

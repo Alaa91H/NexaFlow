@@ -1,11 +1,11 @@
-# NexaFlow v3.56.3 — Simplified GPS Controls and Flexible Timers
+# NexaFlow v3.58.1 — Simplified GPS Controls and Flexible Timers
 
 **Release date:** 2026-09-03
 **Release scope:** Simplify GPS location-mode control and introduce quick and custom timers from 1 second through 24 hours.
 
 ## Overview
 
-NexaFlow v3.56.3 improves everyday device control through a simpler GPS switch workflow and a flexible bounded timer editor. The update preserves the existing persisted workflow model and runtime contracts while making common durations immediately selectable and allowing precise custom delays.
+NexaFlow v3.58.1 improves everyday device control through a simpler GPS switch workflow and a flexible bounded timer editor. The update preserves the existing persisted workflow model and runtime contracts while making common durations immediately selectable and allowing precise custom delays.
 
 ## Delivered changes
 
