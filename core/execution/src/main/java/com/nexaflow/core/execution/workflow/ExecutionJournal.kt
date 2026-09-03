@@ -20,7 +20,9 @@ interface SubworkflowProvider {
         workflowId: String,
         inputParameters: Map<String, String>,
         depth: Int
-    ): WorkflowExecutionResult
+    ): WorkflowExecutionResult = error(
+        "SubworkflowProvider must implement a subworkflow execution method"
+    )
 
     /**
      * Executes a child within the parent's shared budget. The default delegates
