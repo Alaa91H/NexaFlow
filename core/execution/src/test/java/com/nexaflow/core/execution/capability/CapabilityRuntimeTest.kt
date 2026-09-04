@@ -288,7 +288,8 @@ class CapabilityRuntimeTest {
                     id = CapabilityId.PACKAGE_READ,
                     displayName = "Read packages",
                     description = "Reads package metadata",
-                    supportedBackends = listOf(CapabilityBackendId.PACKAGE_MANAGER)
+                    supportedBackends = listOf(CapabilityBackendId.PACKAGE_MANAGER),
+                    retrySafety = com.nexaflow.domain.capability.CapabilityRetrySafety.SAFE
                 )
             ),
             backends = listOf(backend)
