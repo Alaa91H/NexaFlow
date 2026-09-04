@@ -417,15 +417,6 @@ class TaskManager(
                 publishStatus(task, TaskLifecycleState.RETRY_WAIT, attempts)
                 delay(task.retryPolicy.backoffFor(attempts))
             }
-        } catch (e: CancellationException) {
-            // The child never publishes on cancellation: the worker's
-            // processEnvelope is the single publisher of the terminal Cancelled
-            // outcome. Publishing here AND there would duplicate the result, and
-            // publishing nowhere would lose it. Just unwind; join() returns (a
-            // cancelled child completes normally for the joining worker) and
-            // processEnvelope's post-join isCancelled check records the outcome
-            // exactly once.
-            throw e
         } finally {
             // processEnvelope clears activeTaskId only after it has removed this
             // task from the running and admission ledgers. That ordering makes

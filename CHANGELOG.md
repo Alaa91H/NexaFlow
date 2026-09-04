@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.58.4] - 2026-09-04
+
+### Fixed
+- Removed a redundant `CancellationException` rethrow from `TaskManager`, preserving structured cancellation while satisfying static-analysis correctness.
+- Restored newline-at-end-of-file compliance for automation and dashboard deletion regression tests.
+
+### Quality assurance
+- The affected Detekt targets pass locally: `:core:execution:detekt`, `:feature:automations:detekt`, and `:feature:dashboard:detekt`.
+- Resource hygiene, trigger-catalog parity, and whitespace checks remain clean.
+
+
 ## [v3.58.3] - 2026-09-04
 
 ### Added
