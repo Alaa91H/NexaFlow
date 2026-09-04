@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Looper
+import androidx.core.content.ContextCompat
 import androidx.paging.PagingSource
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
@@ -174,7 +175,12 @@ class ExecutionEngineDeleteLifecycleTest {
                 if (intent.action == ACTION_AUTOMATIONS_CHANGED) changeBroadcasts++
             }
         }
-        context.registerReceiver(receiver, IntentFilter(ACTION_AUTOMATIONS_CHANGED))
+        ContextCompat.registerReceiver(
+            context,
+            receiver,
+            IntentFilter(ACTION_AUTOMATIONS_CHANGED),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
         try {
             engine.onAutomationDeleted(automation.id)
             idleMainLooper()

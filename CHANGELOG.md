@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Removed a redundant `CancellationException` rethrow from `TaskManager`, preserving structured cancellation while satisfying static-analysis correctness.
 - Restored newline-at-end-of-file compliance for automation and dashboard deletion regression tests.
+- Declared `RECEIVER_NOT_EXPORTED` for the internal automation-change broadcast used by the deletion lifecycle regression test, satisfying Android's receiver security contract.
 
 ### Quality assurance
 - The affected Detekt targets pass locally: `:core:execution:detekt`, `:feature:automations:detekt`, and `:feature:dashboard:detekt`.
