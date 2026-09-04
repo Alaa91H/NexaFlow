@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.58.3] - 2026-09-04
+
+### Added
+- Introduced canonical workflow-run and node-visit execution states as a compatibility layer over the existing interpreter and durable lifecycle records.
+- Added strict transition contracts that keep terminal outcomes closed and require explicit recovery or compensation paths for uncertain and failed work.
+- Added truthful result adapters so failed and uncertain node outcomes cannot be reported as successful workflow completion.
+
+### Tests
+- Added deterministic contract coverage for forward-only transitions, terminal-state closure, explicit compensation, and success/failure/unknown result mapping.
+
 ## [v3.58.2] - 2026-09-04
 
 ### Fixed
