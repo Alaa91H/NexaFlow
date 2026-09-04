@@ -12,6 +12,7 @@
     <string name="delete_task_message">„%1$s“ wird dauerhaft gelöscht.</string>
     <string name="cancel">Abbrechen</string>
     <string name="task_deleted">Gelöscht: %1$s</string>
+    <string name="task_delete_failed">Löschen fehlgeschlagen: %1$s</string>
     <string name="section_routines">Geplante Aufgaben</string>
     <string name="new_routine">Neue Aufgabe</string>
     <string name="empty_automations_title">Noch keine Aufgaben</string>

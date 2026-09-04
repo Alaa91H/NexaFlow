@@ -461,4 +461,5 @@
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Atlanan yürütmeleri görüntüle</string>
+    <string name="task_delete_failed">Görev silinemedi</string>
 </resources>

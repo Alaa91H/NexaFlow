@@ -12,6 +12,7 @@
     <string name="delete_task_message">“%1$s” will be permanently deleted.</string>
     <string name="cancel">Cancel</string>
     <string name="task_deleted">Deleted: %1$s</string>
+    <string name="task_delete_failed">Couldn\'t delete: %1$s</string>
     <string name="section_routines">Scheduled tasks</string>
     <string name="new_routine">New task</string>
     <string name="empty_automations_title">No tasks yet</string>

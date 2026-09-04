@@ -12,6 +12,7 @@
     <string name="delete_task_message">“%1$s”将被永久删除。</string>
     <string name="cancel">取消</string>
     <string name="task_deleted">已删除：%1$s</string>
+    <string name="task_delete_failed">无法删除：%1$s</string>
     <string name="section_routines">计划任务</string>
     <string name="new_routine">新建任务</string>
     <string name="empty_automations_title">暂无任务</string>

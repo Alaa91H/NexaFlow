@@ -12,6 +12,7 @@
     <string name="delete_task_message">“%1$s” será excluída permanentemente.</string>
     <string name="cancel">Cancelar</string>
     <string name="task_deleted">Excluída: %1$s</string>
+    <string name="task_delete_failed">Não foi possível excluir: %1$s</string>
     <string name="section_routines">Tarefas agendadas</string>
     <string name="new_routine">Nova tarefa</string>
     <string name="empty_automations_title">Ainda não há tarefas</string>

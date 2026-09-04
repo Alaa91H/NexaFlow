@@ -12,6 +12,7 @@
     <string name="delete_task_message">سيتم حذف «%1$s» نهائياً.</string>
     <string name="cancel">إلغاء</string>
     <string name="task_deleted">تم الحذف: %1$s</string>
+    <string name="task_delete_failed">تعذر الحذف: %1$s</string>
     <string name="section_routines">المهام المجدولة</string>
     <string name="new_routine">مهمة جديدة</string>
     <string name="empty_automations_title">لا توجد مهام بعد</string>

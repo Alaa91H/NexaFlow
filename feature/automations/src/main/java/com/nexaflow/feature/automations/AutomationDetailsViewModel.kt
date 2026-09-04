@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -45,6 +46,9 @@ class AutomationDetailsViewModel @Inject constructor(
     private val _running = MutableStateFlow(false)
     val running: StateFlow<Boolean> = _running
 
+    /** Guards the delete entry point against double-invocation (double pop). */
+    private val _deleting = MutableStateFlow(false)
+
     private val _executionMessage = MutableStateFlow<String?>(null)
     val executionMessage: StateFlow<String?> = _executionMessage
 
@@ -59,12 +63,35 @@ class AutomationDetailsViewModel @Inject constructor(
     }
 
     fun delete(onDeleted: () -> Unit) {
+        // A second tap while the first delete is in flight would otherwise pop
+        // the details screen twice (the second pop removes the screen below it).
+        if (_deleting.value) return
+        _deleting.value = true
         viewModelScope.launch {
-            repository.getAutomationById(automationId)?.let { repository.deleteAutomation(it) }
-            // Single engine owner: clears captured state + durable run markers,
-            // then re-arms monitors so nothing lingers for the deleted task.
-            executionEngine.onAutomationDeleted(automationId)
-            onDeleted()
+            try {
+                repository.getAutomationById(automationId)?.let { repository.deleteAutomation(it) }
+                // The row is gone: no monitor can ever resolve this id again, so
+                // the engine ledger is unreachable. Cleanup is therefore
+                // best-effort — a storage failure must not strand the user on a
+                // screen for a task that no longer exists.
+                try {
+                    executionEngine.onAutomationDeleted(automationId)
+                } catch (cancellation: CancellationException) {
+                    throw cancellation
+                } catch (_: Exception) {
+                    // Best-effort; the durable marker is inert once the row is gone.
+                }
+                onDeleted()
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (_: Exception) {
+                // Room rolls the delete back on failure, so the task still exists
+                // and its engine state must stay intact. Surface the failure
+                // instead of crashing the app.
+                _executionMessage.value = appContext.getString(R.string.task_delete_failed)
+            } finally {
+                _deleting.value = false
+            }
         }
     }
 

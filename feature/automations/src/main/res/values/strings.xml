@@ -460,4 +460,5 @@
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">View skipped runs</string>
+    <string name="task_delete_failed">Couldn\'t delete the task</string>
 </resources>

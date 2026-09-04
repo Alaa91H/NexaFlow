@@ -12,6 +12,7 @@
     <string name="delete_task_message">«%1$s» будет удалена безвозвратно.</string>
     <string name="cancel">Отмена</string>
     <string name="task_deleted">Удалено: %1$s</string>
+    <string name="task_delete_failed">Не удалось удалить: %1$s</string>
     <string name="section_routines">Плановые задачи</string>
     <string name="new_routine">Новая задача</string>
     <string name="empty_automations_title">Пока нет задач</string>

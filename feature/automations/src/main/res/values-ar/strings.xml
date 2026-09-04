@@ -461,4 +461,5 @@
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">عرض التشغيلات المتخطاة</string>
+    <string name="task_delete_failed">تعذر حذف المهمة</string>
 </resources>

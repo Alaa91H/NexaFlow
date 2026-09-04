@@ -12,6 +12,7 @@
     <string name="delete_task_message">“%1$s” kalıcı olarak silinecek.</string>
     <string name="cancel">İptal</string>
     <string name="task_deleted">Silindi: %1$s</string>
+    <string name="task_delete_failed">Silinemedi: %1$s</string>
     <string name="section_routines">Zamanlanmış görevler</string>
     <string name="new_routine">Yeni görev</string>
     <string name="empty_automations_title">Henüz görev yok</string>

@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -71,11 +72,28 @@ class DashboardViewModel @Inject constructor(
     /** Deletes one routine after the dashboard confirmation dialog is accepted. */
     fun deleteAutomation(automation: Automation) {
         viewModelScope.launch {
-            automationRepository.deleteAutomation(automation)
-            // Single engine owner: clears captured state + durable run markers,
-            // then re-arms monitors so nothing lingers for the deleted task.
-            executionEngine.onAutomationDeleted(automation.id)
-            _executionMessage.value = appContext.getString(R.string.task_deleted, automation.name)
+            try {
+                automationRepository.deleteAutomation(automation)
+                // The row is gone: no monitor can ever resolve this id again, so
+                // the engine ledger is unreachable. Cleanup is therefore
+                // best-effort — a storage failure must not turn a successful
+                // delete into a failure report.
+                try {
+                    executionEngine.onAutomationDeleted(automation.id)
+                } catch (cancellation: CancellationException) {
+                    throw cancellation
+                } catch (_: Exception) {
+                    // Best-effort; the durable marker is inert once the row is gone.
+                }
+                _executionMessage.value = appContext.getString(R.string.task_deleted, automation.name)
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (_: Exception) {
+                // Room rolls the delete back on failure, so the task still exists
+                // and its engine state must stay intact. Surface the failure
+                // instead of crashing the app.
+                _executionMessage.value = appContext.getString(R.string.task_delete_failed, automation.name)
+            }
         }
     }
 
