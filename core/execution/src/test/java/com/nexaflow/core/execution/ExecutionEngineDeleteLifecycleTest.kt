@@ -204,7 +204,12 @@ class ExecutionEngineDeleteLifecycleTest {
                 if (intent.action == ACTION_AUTOMATIONS_CHANGED) secondDeleteBroadcasts++
             }
         }
-        context.registerReceiver(secondReceiver, IntentFilter(ACTION_AUTOMATIONS_CHANGED))
+        ContextCompat.registerReceiver(
+            context,
+            secondReceiver,
+            IntentFilter(ACTION_AUTOMATIONS_CHANGED),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
         try {
             engine.onAutomationDeleted(automation.id)
             idleMainLooper()
