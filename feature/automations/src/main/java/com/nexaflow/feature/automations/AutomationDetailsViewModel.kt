@@ -61,8 +61,9 @@ class AutomationDetailsViewModel @Inject constructor(
     fun delete(onDeleted: () -> Unit) {
         viewModelScope.launch {
             repository.getAutomationById(automationId)?.let { repository.deleteAutomation(it) }
-            // Drop any captured device state so a deleted task never restores it.
-            executionEngine.clearSnapshot(automationId)
+            // Single engine owner: clears captured state + durable run markers,
+            // then re-arms monitors so nothing lingers for the deleted task.
+            executionEngine.onAutomationDeleted(automationId)
             onDeleted()
         }
     }

@@ -178,9 +178,13 @@ class TaskManager(
                 return TaskAdmission.Rejected(task.id, racedReason)
             }
             knownTaskIds.add(task.id)
+            // Record QUEUED under the same lock that publishes the task to the
+            // worker: otherwise the worker can poll the envelope and publish
+            // RUNNING before this thread publishes QUEUED, and updateStatus
+            // rejects the illegal RUNNING -> QUEUED regression.
+            publishStatus(task, TaskLifecycleState.QUEUED)
             queue.add(Envelope(task, seqCounter.incrementAndGet()))
         }
-        publishStatus(task, TaskLifecycleState.QUEUED)
         // Non-blocking and conflated: a closed worker is shutting down, while
         // one signal wakes the idle consumer for any number of queued tasks.
         queueWakeups.trySend(Unit)
@@ -222,10 +226,25 @@ class TaskManager(
         return synchronized(lock) { queue.isEmpty() && activeTaskId.get() == null }
     }
 
-    /** Stops the worker and records queued/running tasks as cancelled. */
+    /**
+     * Stops the worker and records queued/running tasks as cancelled: no new
+     * submissions are admitted, tasks still waiting in the queue are abandoned
+     * (published Cancelled), running tasks are cancelled, and the worker scope
+     * is torn down.
+     *
+     * Ordering matters: the wake-up channel is closed before the scope is
+     * cancelled so an idle worker suspended in [pollOrWait] consumes the close
+     * through [receiveCatching] (a benign null poll) instead of racing a
+     * ClosedReceiveChannelException out of the SupervisorJob scope. Scope
+     * cancellation then guarantees the worker coroutine terminates even if a
+     * running task ignores cooperative cancellation. [processEnvelope]'s
+     * finally-ledger cleanup runs regardless of where that cancellation lands.
+     */
     fun shutdown() {
         if (shutDown) return
         shutDown = true
+        // Abandon queued work synchronously so shutdown() is terminal from the
+        // caller's perspective: nothing queued here executes after shutdown.
         val abandoned = synchronized(lock) {
             queue.toList().also { queue.clear() }
         }
@@ -234,6 +253,8 @@ class TaskManager(
             publish(TaskResult.Cancelled(envelope.task.id))
             publishStatus(envelope.task, TaskLifecycleState.CANCELLED)
         }
+        // Cancel running tasks so their jobs unwind (publishing Cancelled) and
+        // processEnvelope's finally runs for each.
         runningJobs.keys.forEach { taskId ->
             cancelledIds.add(taskId)
             runningJobs[taskId]?.cancel()
@@ -294,16 +315,42 @@ class TaskManager(
         val job = scope.launch(start = CoroutineStart.LAZY) { runWithRetry(envelope) }
         runningJobs[envelope.task.id] = job
         job.start()
-        job.join()
-        runningJobs.remove(envelope.task.id)
-        // A task that completed (or failed) normally is no longer cancellable;
-        // drop any stale cancellation marker to avoid an unbounded set and allow
-        // a later explicit re-submit with the same id. Keep activeTaskId set
-        // until this lifecycle cleanup commits: awaitIdle() must never report
-        // idle while cancel() can still observe the completed task as known.
-        cancelledIds.remove(envelope.task.id)
-        knownTaskIds.remove(envelope.task.id)
-        activeTaskId.compareAndSet(envelope.task.id, null)
+        try {
+            try {
+                job.join()
+            } catch (e: CancellationException) {
+                // Only the worker's OWN cancellation (scope teardown during
+                // shutdown) surfaces here: a child job's cancellation does not
+                // throw from join(), it completes normally. Record the child's
+                // cancelled outcome before deciding whether to propagate.
+                if (job.isCancelled) {
+                    publish(TaskResult.Cancelled(envelope.task.id))
+                    publishStatus(envelope.task, TaskLifecycleState.CANCELLED)
+                }
+                // shutdown() cancelled this worker coroutine while it was
+                // suspended in join(); propagate so the worker exits.
+                if (!currentCoroutineContext().isActive) throw e
+            }
+            // join() returned: the child completed, either normally (its own
+            // terminal publish already happened in runWithRetry) or cancelled by
+            // manager.cancel(taskId), which publishes nothing. This worker is the
+            // single publisher of the cancelled outcome so it can never be lost
+            // to a race between the child's unwind and the cancelledIds cleanup.
+            if (job.isCancelled) {
+                publish(TaskResult.Cancelled(envelope.task.id))
+                publishStatus(envelope.task, TaskLifecycleState.CANCELLED)
+            }
+        } finally {
+            // A task that completed (or failed) normally is no longer cancellable;
+            // drop any stale cancellation marker to avoid an unbounded set and allow
+            // a later explicit re-submit with the same id. Keep activeTaskId set
+            // until this lifecycle cleanup commits: awaitIdle() must never report
+            // idle while cancel() can still observe the completed task as known.
+            runningJobs.remove(envelope.task.id)
+            cancelledIds.remove(envelope.task.id)
+            knownTaskIds.remove(envelope.task.id)
+            activeTaskId.compareAndSet(envelope.task.id, null)
+        }
     }
 
     private suspend fun runWithRetry(envelope: Envelope) {
@@ -314,10 +361,11 @@ class TaskManager(
             while (true) {
                 currentCoroutineContext().ensureActive()
                 if (task.id in cancelledIds) {
-                    cancelledIds.remove(task.id)
-                    publish(TaskResult.Cancelled(task.id))
-                    publishStatus(task, TaskLifecycleState.CANCELLED, attempts)
-                    return
+                    // The child never publishes a terminal outcome: throwing
+                    // marks this job cancelled, so the worker's post-join
+                    // publish in processEnvelope records Cancelled exactly once
+                    // (whether or not job.cancel() ever reached this child).
+                    throw CancellationException("Task ${task.id} cancelled by manager")
                 }
                 if (deadlineElapsed(task)) {
                     publish(TaskResult.DeadlineExceeded(task.id, attempts))
@@ -327,14 +375,11 @@ class TaskManager(
                 attempts++
                 publishStatus(task, TaskLifecycleState.RUNNING, attempts)
                 val outcome = runAttempt(task)
-                // A cancellation that lands while the task is running (e.g. before
-                // the child job is registered in runningJobs) must still surface as
-                // Cancelled, not Success.
+                // A cancellation that lands while the attempt is in flight must
+                // still surface as Cancelled, not Success. Same single-publisher
+                // rule: throw, and processEnvelope records the outcome.
                 if (task.id in cancelledIds) {
-                    cancelledIds.remove(task.id)
-                    publish(TaskResult.Cancelled(task.id))
-                    publishStatus(task, TaskLifecycleState.CANCELLED, attempts)
-                    return
+                    throw CancellationException("Task ${task.id} cancelled by manager")
                 }
                 when (outcome) {
                     is Attempt.Result -> {
@@ -373,11 +418,13 @@ class TaskManager(
                 delay(task.retryPolicy.backoffFor(attempts))
             }
         } catch (e: CancellationException) {
-            if (task.id in cancelledIds) {
-                cancelledIds.remove(task.id)
-                publish(TaskResult.Cancelled(task.id))
-                publishStatus(task, TaskLifecycleState.CANCELLED, attempts)
-            }
+            // The child never publishes on cancellation: the worker's
+            // processEnvelope is the single publisher of the terminal Cancelled
+            // outcome. Publishing here AND there would duplicate the result, and
+            // publishing nowhere would lose it. Just unwind; join() returns (a
+            // cancelled child completes normally for the joining worker) and
+            // processEnvelope's post-join isCancelled check records the outcome
+            // exactly once.
             throw e
         } finally {
             // processEnvelope clears activeTaskId only after it has removed this

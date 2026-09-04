@@ -671,6 +671,20 @@ class ExecutionEngine(
     }
 
     /**
+     * Single owner of the engine-side half of deleting an automation. Call
+     * after the row has been removed from the repository: drops any captured
+     * device state and durable active-run marker for [automationId], then
+     * broadcasts [ACTION_AUTOMATIONS_CHANGED] so every stateful monitor prunes
+     * its markers immediately instead of leaking until the next restart. The
+     * snapshot is cleared BEFORE the broadcast so no monitor can reconcile a
+     * stale marker into an exit behavior for an automation that no longer exists.
+     */
+    suspend fun onAutomationDeleted(automationId: String) {
+        clearSnapshot(automationId)
+        notifyAutomationsChanged()
+    }
+
+    /**
      * Broadcasts [ACTION_AUTOMATIONS_CHANGED] after the automation set or an
      * enabled flag changed without an execution (dashboard/details toggles,
      * saves). MonitoringService listens and re-evaluates every stateful

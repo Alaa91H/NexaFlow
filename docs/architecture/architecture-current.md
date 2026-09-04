@@ -89,3 +89,42 @@ SystemControlResult + History + LogStore
 | workflow/plugin → shell/root/shizuku مباشرة | capability/policy/resolver/backend contracts. |
 | تخزين secret في workflow أو log أو export | `SecureStorage` وcredential references وredaction. |
 | إعادة node غير مؤكدة | `UNKNOWN → verify → resume/failed`. |
+
+## بنية هذا المسار (Architecture pass)
+
+### TaskManager — ملكية الحالة
+- **المالك الوحيد للنهايات (terminal outcomes):** `processEnvelope` هو الناشر الوحيد لـ `TaskResult.Cancelled` بعد `job.join()` عبر فحص `job.isCancelled`؛ الطفل (child) لا ينشر أبداً بل يرمي `CancellationException` (يثبّت إلغاء job) ويعود الـ join طبيعياً. هذا يلغي سباق publish مكرر/مفقود بين فكّ إلغاء الطفل وتنظيف `cancelledIds`.
+- **عقد shutdown:** `shutdown()` = abandon صريح للطابور (publish Cancelled) + إلغاء running jobs + close للـ wake-up channel قبل `scope.cancel()` + تنظيف `finally` في `processEnvelope` يضمن إزالة الـ ledgers مهما كان مكان الإلغاء. لا يوجد drain بعد shutdown.
+- **ترتيب submit:** `publishStatus(QUEUED)` يتم **داخل نفس lock** الذي يضيف للطابور؛ وإلا سبق الـ worker (RUNNING) على الـ QUEUED ويرفض `updateStatus` الانتقال (سباق حقيقي اكتشفه الاختبار 200×).
+
+### حذف الأتمتة — مالك واحد
+- `ExecutionEngine.deleteAutomation(automationId)` هي المالك الوحيد: حذف من repository + `clearSnapshot` + broadcast `ACTION_AUTOMATIONS_CHANGED`.
+- `AutomationDetailsViewModel.delete` و`DashboardViewModel.deleteAutomation` يفوّضان إليه فقط — لا side-effects مكررة.
+
+### الحدود بين الوحدات (ثابتة)
+- `core:execution` = TaskManager/engine؛ `core:automation-engine` = monitors/scheduler؛ `feature:*` = UI فقط بلا سياسة lifecycle.
+- لا تُنشأ Queue أو Runtime Engine ثانية؛ كل توسعة على `TaskManager`/`ExecutionEngine` القائمين.
+
+### التحقق
+- `:core:execution` 307 tests أخضر (13 TaskManagerTest + 8 TaskManagerHardeningTest + الباقي).
+- `:feature:automations` و`:feature:dashboard` أخضر؛ `:app:compileDebugAndroidTestKotlin` يترجم. اختبار `ImmediateConditionEvaluationAndroidTest` غير منفَّذ بعد (لا جهاز ولا emulator مثبت على هذا المضيف) — قرار: انتظار جهاز، دون تحميل ~2GB لمكدس الـ emulator. أمر التشغيل عند توفر الجهاز: `./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.nexaflow.app.validation.ImmediateConditionEvaluationAndroidTest`.
+- `:core:datastore` 14/23 فشل **قائم مسبقاً وبيئي (Windows host فقط)** — تشخيص نهائي: يتكرر في plain JVM بدون Robolectric وبدون أي كود من المشروع (فقط `PreferenceDataStoreFactory`)، وفي الإصدارين 1.1.7 و1.2.1، في `%TEMP%` ومسار آخر على D:؛ بينما نفس تسلسل الملفات (write tmp + fsync + `Files.move REPLACE_EXISTING`) ينجح 100/100 يدوياً. الخلاصة: مسار الكتابة الداخلي لـ DataStore يفشل في rename الملف الثاني على هذه الآلة، وليس علاقته بأي تعديل في الشجرة. الحلول المجرّبة دون جدوى: تنظيف الملفات بين الاختبارات، مهلة 500ms، تغيير datastore إلى 1.1.7. التوصية: تشغيل هذه الاختبارات على Linux CI (حيث `rename` يستبدل دائماً) أو استثناء مجلد الاختبارات من فحص الحماية على Windows.
+
+## تشغيل اختبار الجهاز (ImmediateConditionEvaluationAndroidTest) — وصفة مثبتة
+
+النتيجة على `23049PCD8G` (Android 16): **3/3 أخضر في 6 تشغيلات متتالية** بعد الإصلاح.
+
+```
+# بعد توصيل الجهاز (وكل عملية تشغيل — Gradle يلغي تثبيت الـ APK بعد كل run):
+./gradlew :app:installDebug
+adb shell pm grant com.nexaflow.app android.permission.WRITE_SECURE_SETTINGS   # أساسي: الكتابة على Settings.Global لا تكفيها appop WRITE_SETTINGS
+adb shell appops set com.nexaflow.app android:write_settings allow
+./gradlew :app:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.nexaflow.app.validation.ImmediateConditionEvaluationAndroidTest
+```
+
+**فخوخ موثقة:**
+- التثبيت فوق نسخة موقّعة بمفتاح مختلف يفشل بـ `INSTALL_FAILED_UPDATE_INCOMPATIBLE` → إلغاء تثبيت النسخة القديمة أولاً (بموافقة المستخدم؛ يمسح بياناتها).
+- مهمة `connectedDebugAndroidTest` **تلغي تثبيت** تطبيق + APK الاختبار بعد كل run → الصلاحيات تُمحى → أعد منحها قبل كل run.
+- التطبيق الحقيقي (`NexaFlowApplication.onCreate`) يبدأ `MonitoringService` الحقيقي داخل عملية الاختبار؛ مراقبوه يشاركون ملف `ActiveTriggerStore` على الجهاز و**يحذفون علامات الاختبار** لأن الأتمتة موجودة فقط في Room داخل الذاكرة (سبب التذبذب `activeKeys == 0`). الاختبار الآن يوقف الخدمة في `@BeforeClass` ويلغي scope كل harness في `tearDown` — لا تعيد هذه التغييرات.
+- التقارير: `app/build/outputs/androidTest-results/connected/debug/*.xml` (لاحظ أن XML قد ينسب الفشل لاسم testcase خاطئ — اقرأ الـ stack الداخلي).

@@ -404,4 +404,107 @@ class TaskManagerHardeningTest {
             manager.shutdown()
         }
     }
+
+    /**
+     * Reproduces the race that crashed on device: a running task is cancelled
+     * and then [shutdown] closes the wake-up channel while the worker may be
+     * suspended in [pollOrWait]. The old code let [Channel.receive] throw a
+     * [ClosedReceiveChannelException] that escaped through the SupervisorJob;
+     * the poll now consumes the close via [Channel.receiveCatching] as a
+     * benign null poll, and the scope cancellation exits the worker.
+     */
+    @Test
+    fun shutdownAfterCancellingRunningTaskDoesNotCrash() = runBlocking {
+        val manager = TaskManager()
+        val started = CompletableDeferred<Unit>()
+        val taskId = manager.enqueue(PendingTask(name = "cancel-race") {
+            started.complete(Unit)
+            awaitCancellation()
+            SystemControlResult.ok("late")
+        })
+        started.await()
+        assertTrue(manager.cancel(taskId))
+        // shutdown() races with the worker: the running task may still be
+        // unwinding (worker mid-join) or the worker may already be suspended
+        // in receiveCatching(). Both orderings must terminate cleanly.
+        manager.shutdown()
+        assertTrue(manager.awaitIdle(5_000L))
+        assertTrue(
+            manager.results.value.any { it is TaskResult.Cancelled && it.taskId == taskId }
+        )
+    }
+
+    /**
+     * Shutdown while a task is running and another is queued: the queued task
+     * is abandoned (Cancelled, never executed) and the running task is
+     * cancelled. Deterministic because the worker is held inside the running
+     * holder when [shutdown] runs, so the follower is still queued.
+     * Verifies the channel-close path neither crashes nor lets a queued task
+     * execute after shutdown has begun.
+     */
+    @Test
+    fun shutdownCancelsRunningAndAbandonsQueuedTask() = runBlocking {
+        val manager = TaskManager()
+        val started = CompletableDeferred<Unit>()
+        val holderId = manager.enqueue(PendingTask(name = "holder") {
+            started.complete(Unit)
+            awaitCancellation()
+            SystemControlResult.ok("holder-late")
+        })
+        started.await()
+        val followerId = manager.enqueue(PendingTask(name = "follower") {
+            SystemControlResult.ok("follower")
+        })
+        manager.shutdown()
+        assertTrue(manager.awaitIdle(5_000L))
+        assertTrue(
+            manager.results.value.any { it is TaskResult.Cancelled && it.taskId == holderId }
+        )
+        assertTrue(
+            manager.results.value.any { it is TaskResult.Cancelled && it.taskId == followerId }
+        )
+        assertTrue(
+            manager.results.value.none { it is TaskResult.Success }
+        )
+    }
+
+    /**
+     * Regression for the cancelled-publish race: cancel(runningTask) racing
+     * shutdown() used to lose the terminal Cancelled result in ~1/3 of runs of
+     * the 10ms ordering, because the child's unwind-time publish raced the
+     * worker's cancelledIds cleanup (and the pre-hardening drain path could
+     * publish it twice). processEnvelope is the single publisher of the
+     * cancelled outcome after join(), so every ordering must publish exactly
+     * once and leave the manager idle.
+     */
+    @Test
+    fun shutdownRace_publishesCancelledExactlyOnce() = runBlocking {
+        suspend fun outcome(cancelFirst: Boolean, settleMs: Long): Pair<Boolean, Int> {
+            val manager = TaskManager()
+            val started = CompletableDeferred<Unit>()
+            val id = manager.enqueue(PendingTask(name = "race-$cancelFirst-$settleMs") {
+                started.complete(Unit)
+                awaitCancellation()
+                SystemControlResult.ok("late")
+            })
+            withTimeout(2_000) { started.await() }
+            if (cancelFirst) {
+                manager.cancel(id)
+                if (settleMs > 0) delay(settleMs)
+            }
+            manager.shutdown()
+            val idle = manager.awaitIdle(5_000L)
+            val cancelled = manager.results.value.count { it is TaskResult.Cancelled && it.taskId == id }
+            return idle to cancelled
+        }
+
+        repeat(100) { i ->
+            val (idle, cancelled) = outcome(cancelFirst = true, settleMs = 0L)
+            assertTrue("run $i immediate: idle=$idle cancelled=$cancelled", idle && cancelled == 1)
+        }
+        repeat(100) { i ->
+            val (idle, cancelled) = outcome(cancelFirst = true, settleMs = 10L)
+            assertTrue("run $i 10ms: idle=$idle cancelled=$cancelled", idle && cancelled == 1)
+        }
+    }
 }

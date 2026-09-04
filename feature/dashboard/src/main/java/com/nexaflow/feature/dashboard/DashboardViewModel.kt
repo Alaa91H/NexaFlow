@@ -72,6 +72,9 @@ class DashboardViewModel @Inject constructor(
     fun deleteAutomation(automation: Automation) {
         viewModelScope.launch {
             automationRepository.deleteAutomation(automation)
+            // Single engine owner: clears captured state + durable run markers,
+            // then re-arms monitors so nothing lingers for the deleted task.
+            executionEngine.onAutomationDeleted(automation.id)
             _executionMessage.value = appContext.getString(R.string.task_deleted, automation.name)
         }
     }
