@@ -1,6 +1,8 @@
 package com.nexaflow.core.execution.capability
 
 import com.nexaflow.domain.capability.CapabilityDescriptor
+import com.nexaflow.domain.capability.CapabilityRetrySafety
+import com.nexaflow.domain.capability.VerificationMode
 import com.nexaflow.domain.capability.CapabilityParameterSpec
 import com.nexaflow.domain.capability.CapabilityParameterType
 import com.nexaflow.domain.capability.CapabilityRequest
@@ -21,7 +23,9 @@ enum class CapabilityValidationCode {
     CONTROL_CHARACTER,
     TYPE_MISMATCH,
     VALUE_NOT_ALLOWED,
-    INTEGER_OUT_OF_RANGE
+    INTEGER_OUT_OF_RANGE,
+    RETRY_NOT_SAFE,
+    VERIFICATION_REQUIRED
 }
 
 data class CapabilityValidationResult(val issues: List<CapabilityValidationIssue>) {
@@ -45,6 +49,20 @@ object CapabilityRequestValidator {
             )
         }
         val issues = mutableListOf<CapabilityValidationIssue>()
+        if (request.policy.retry.maxAttempts > 1 && descriptor.retrySafety != CapabilityRetrySafety.SAFE) {
+            issues += CapabilityValidationIssue(
+                null,
+                CapabilityValidationCode.RETRY_NOT_SAFE,
+                "Capability retry policy is not proven safe"
+            )
+        }
+        if (request.verification == VerificationMode.NONE && descriptor.verificationMode == VerificationMode.REQUIRED) {
+            issues += CapabilityValidationIssue(
+                null,
+                CapabilityValidationCode.VERIFICATION_REQUIRED,
+                "Capability requires post-condition verification"
+            )
+        }
         if (request.parameters.size > MAX_PARAMETERS) {
             issues += CapabilityValidationIssue(null, CapabilityValidationCode.TOO_MANY_PARAMETERS, "Too many capability parameters")
         }

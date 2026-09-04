@@ -100,6 +100,39 @@ enum class CapabilityRiskLevel {
     DESTRUCTIVE
 }
 
+/** Execution retry semantics declared by a capability descriptor. */
+@Serializable
+enum class CapabilityIdempotency {
+    IDEMPOTENT,
+    NON_IDEMPOTENT,
+    UNKNOWN
+}
+
+/** Whether retrying after an uncertain transport outcome is safe. */
+@Serializable
+enum class CapabilityRetrySafety {
+    SAFE,
+    UNSAFE,
+    UNKNOWN
+}
+
+/** Whether the runtime has a supported compensation contract. */
+@Serializable
+enum class CapabilityCompensationSupport {
+    SUPPORTED,
+    UNSUPPORTED,
+    UNKNOWN
+}
+
+/** Side-effect classification used by recovery and policy decisions. */
+@Serializable
+enum class CapabilitySideEffectLevel {
+    NONE,
+    REVERSIBLE,
+    IRREVERSIBLE,
+    UNKNOWN
+}
+
 /** Device-visible capability state for diagnostics and user interface. */
 @Serializable
 enum class CapabilityAvailability {
@@ -264,6 +297,12 @@ data class CapabilityDescriptor(
     val minimumPrivilege: PrivilegeLevel = PrivilegeLevel.NONE,
     val risk: CapabilityRiskLevel = CapabilityRiskLevel.LOW,
     val supportedBackends: List<CapabilityBackendId> = emptyList(),
+    /** Recovery metadata; conservative defaults never authorize blind retries. */
+    val idempotency: CapabilityIdempotency = CapabilityIdempotency.NON_IDEMPOTENT,
+    val retrySafety: CapabilityRetrySafety = CapabilityRetrySafety.UNSAFE,
+    val verificationMode: VerificationMode = VerificationMode.BEST_EFFORT,
+    val compensation: CapabilityCompensationSupport = CapabilityCompensationSupport.UNSUPPORTED,
+    val sideEffectLevel: CapabilitySideEffectLevel = CapabilitySideEffectLevel.NONE,
     /** Complete typed allowlist. Empty means this capability accepts no parameters. */
     val parameters: List<CapabilityParameterSpec> = emptyList()
 ) {

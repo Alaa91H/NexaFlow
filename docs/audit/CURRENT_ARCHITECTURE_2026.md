@@ -1,6 +1,6 @@
 # NexaFlow Current Architecture — 2026
 
-**Audit date:** 2026-09-01  
+**Audit date:** 2026-09-04
 **Repository:** `Alaa91H/NexaFlow`  
 **Evidence rule:** source code, build configuration, tests, CI definitions, and generated audit evidence are authoritative; prose documentation is corroborating evidence only.
 
@@ -8,7 +8,7 @@
 
 NexaFlow is a modular Android automation runtime rather than a single feature module. The repository contains a domain model, persistence layer, durable scheduler/runtime, execution and capability layers, ROM integration, plugin SDK, Android application shell, feature UIs, and CI/resource gates. The recent hardening work established a strict occurrence lifecycle around `ExitCoordinator`, alarm admission, delayed time-range delivery, fixed-location transitions, and DNS read/write verification.
 
-The architecture is **GREEN for the recently audited schedule/location/DNS paths**, **YELLOW for broader convergence toward a fully general durable workflow runtime**, and **GRAY for behavior that requires physical OEM/device validation**. No claim is made that every Android manufacturer, permission state, privileged backend, or process-death mode has been exercised on hardware.
+The architecture is **GREEN for the recently audited schedule/location/DNS paths and the canonical workflow/node state adapter**, **YELLOW for broader convergence toward a fully general durable workflow runtime**, and **GRAY for behavior that requires physical OEM/device validation**. No claim is made that every Android manufacturer, permission state, privileged backend, or process-death mode has been exercised on hardware.
 
 ## Module map
 
@@ -85,7 +85,7 @@ After process death or reboot, startup/recovery reads non-terminal runtime recor
 
 ## Workflow and action flow
 
-The builder persists automation definitions consumed by the domain validators and engine. The execution layer resolves action types and delegates system operations to `SystemController`, capability providers, ROM bridges, or public Android APIs. Action results are classified into success, failure, unknown, or unsupported outcomes according to the available postcondition evidence. The architecture already contains strict result handling in several paths, but a repository-wide durable `WorkflowExecution`/`NodeExecution` model with immutable workflow revisions is not yet proven by this audit and is therefore YELLOW.
+The builder persists automation definitions consumed by the domain validators and engine. The execution layer resolves action types and delegates system operations to `SystemController`, capability providers, ROM bridges, or public Android APIs. Action results are classified into success, failure, unknown, or unsupported outcomes according to the available postcondition evidence. The architecture now contains a canonical `WorkflowExecutionState`/`NodeExecutionState` compatibility adapter with strict transition tests (v3.58.3). It is deliberately not yet described as a persisted repository-wide `WorkflowExecution`/`NodeExecution` store: immutable workflow revisions, durable node-attempt records, and cross-store crash recovery remain YELLOW.
 
 ## Capability and backend flow
 
@@ -128,8 +128,8 @@ Command construction is centralized through `SafeCommandBuilder`, and privileged
 
 ## Current release evidence
 
-The repository has published `v3.53.0` for DNS support and `v3.53.1` for the Private DNS read-back correction. The v3.53.1 tagged CI workflow passed lint and production build/release validation. The working tree was clean at the end of the audit step. These results prove the configured CI gates, not universal physical-device behavior.
+The repository has published `v3.53.0` and `v3.53.1` for DNS support and read-back correction, followed by the hardened workflow releases through `v3.58.3`. The v3.58.3 tagged CI workflow passed resource gates, lint, unit tests, production build, signing, APK/AAB validation, and release publication. These results prove the configured CI gates, not universal physical-device behavior.
 
 ## Next audit priorities
 
-The next implementation tranche should prioritize one canonical durable execution state machine, explicit node-level idempotency/verification metadata, failure-injection coverage around checkpoint/side-effect boundaries, and architecture tests preventing direct privileged operations from domain/UI code. Each change must follow the repository contract → adapter → persistence → integration → test sequence and must preserve compatibility with existing plugin and automation APIs.
+The next implementation tranche should prioritize persistence of canonical execution identity and node attempts, explicit capability-level idempotency/verification metadata, failure-injection coverage around checkpoint/side-effect boundaries, and architecture tests preventing direct privileged operations from domain/UI code. Each change must follow the repository contract → adapter → persistence → integration → test sequence and must preserve compatibility with existing plugin and automation APIs. The machine-readable forensic inventory is `docs/audit/FORENSIC_INVENTORY_2026.txt`.

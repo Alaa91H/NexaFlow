@@ -1,6 +1,6 @@
 # NexaFlow Production Gap Analysis — 2026
 
-**Audit date:** 2026-09-01  
+**Audit date:** 2026-09-04
 **Method:** repository source, tests, Gradle modules, CI workflow, resource gates, and existing audit evidence were inspected before proposing implementation work.
 
 ## Decision summary
@@ -9,7 +9,7 @@ The prompt describes a target platform broader than the current codebase. NexaFl
 
 | Priority | Gap | Evidence | Status | Required next action |
 |---|---|---|---|---|
-| P0 | Universal durable execution state machine | Existing lifecycle/occurrence state is strong on audited paths, but a single repository-wide `WorkflowExecution`/`NodeExecution` contract is not proven | YELLOW | Inventory existing states, define compatibility adapter, then add transition validator and persistence tests |
+| P0 | Universal durable execution state machine | Existing lifecycle/occurrence state is strong on audited paths; v3.58.3 adds a canonical `WorkflowExecutionState`/`NodeExecutionState` compatibility adapter and transition tests, but persistence is not yet repository-wide | YELLOW | Persist canonical execution identity and node attempts, then add crash/recovery integration tests |
 | P0 | Unknown outcome and side-effect recovery | Strict unknown handling exists in parts of the runtime; full action-wide verification matrix is not proven | YELLOW | Require idempotency, verification, compensation, and irreversibility metadata per executable capability |
 | P0 | Cross-store atomicity | Room/DataStore/runtime stores coexist; failure behavior across boundaries needs explicit evidence | YELLOW | Add transaction boundary documentation and crash/failure-injection tests |
 | P1 | Capability/backend uniformity | ROM, public Android, privileged, and compatibility paths exist but are not uniformly expressed as one contract | YELLOW | Introduce/complete capability request and backend result adapters without duplicating registries |
@@ -35,4 +35,4 @@ First, define the canonical execution-state and node-state contracts as adapters
 
 ## Audit evidence locations
 
-The architecture map is [`CURRENT_ARCHITECTURE_2026.md`](CURRENT_ARCHITECTURE_2026.md). The existing lifecycle audit is [`../PRODUCTION_AUDIT.md`](../PRODUCTION_AUDIT.md). DNS platform boundaries are recorded in [`../dns-platform-findings.md`](../dns-platform-findings.md). CI and resource-gate definitions are in `.github/workflows/android-ci.yml` and `scripts/check_resources.py`.
+The architecture map is [`CURRENT_ARCHITECTURE_2026.md`](CURRENT_ARCHITECTURE_2026.md). The 2026-09-04 forensic inventory is [`FORENSIC_INVENTORY_2026.txt`](FORENSIC_INVENTORY_2026.txt). The existing lifecycle audit is [`../PRODUCTION_AUDIT.md`](../PRODUCTION_AUDIT.md). DNS platform boundaries are recorded in [`../dns-platform-findings.md`](../dns-platform-findings.md). CI and resource-gate definitions are in `.github/workflows/android-ci.yml` and `scripts/check_resources.py`.

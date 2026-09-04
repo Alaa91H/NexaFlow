@@ -1,0 +1,1238 @@
+=== GRADLE MODULES ===
+./app/build.gradle.kts
+./baseline-profile/build.gradle.kts
+./buildSrc/build.gradle.kts
+./core/automation-engine/build.gradle.kts
+./core/capability-manager/build.gradle.kts
+./core/common/build.gradle.kts
+./core/compatibility/build.gradle.kts
+./core/database/build.gradle.kts
+./core/datastore/build.gradle.kts
+./core/execution/build.gradle.kts
+./core/logging/build.gradle.kts
+./core/plugin-sdk/build.gradle.kts
+./core/rom-integration/build.gradle.kts
+./core/security/build.gradle.kts
+./core/ui-components/build.gradle.kts
+./data/build.gradle.kts
+./domain/build.gradle.kts
+./feature/automation-builder/build.gradle.kts
+./feature/automations/build.gradle.kts
+./feature/dashboard/build.gradle.kts
+./feature/history/build.gradle.kts
+./feature/icons/build.gradle.kts
+./feature/settings/build.gradle.kts
+./feature/themes/build.gradle.kts
+./feature/widgets/build.gradle.kts
+./macrobenchmark/build.gradle.kts
+./sample-plugins/nfc-toggle/build.gradle.kts
+./test-fixtures/locale-plugin-fixture/build.gradle.kts
+=== KOTLIN BY MODULE ===
+    358 core
+     89 feature
+     84 domain
+     28 app
+     16 data
+      8 sample-plugins
+      1 macrobenchmark
+      1 buildSrc
+      1 baseline-profile
+=== TESTS ===
+201
+11
+=== CORE CONTRACT FILES ===
+core/automation-engine/src/main/java/com/nexaflow/core/engine/AirplaneModeMonitor.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/AppTriggerAccessibilityService.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/AutomationScheduler.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/BatteryMonitor.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/BluetoothMonitor.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/CalendarMonitor.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/CallStateMonitor.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/ConnectivityMonitor.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/DarkModeMonitor.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/DeviceEventMonitor.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/DeviceStateMonitor28.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/LocationMonitor.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/MediaMonitor.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/MonitoringService.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/MonitoringTimeoutPolicy.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/NotificationTriggerMonitor.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/PackageMonitor.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/PluginEventIngress.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/PluginEventPayloadAdapter.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/PluginEventReceiver.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/PluginEventRouter.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/PluginEventSource.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/RingerModeMonitor.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/RomSettingMonitor.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/SensorMonitor.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/SensorTriggerMatcher.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/SettingsStateMonitor.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/SmsTriggerMatcher.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/TriggerIndex.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/VolumeMonitor.kt
+core/automation-engine/src/main/java/com/nexaflow/core/engine/WebhookTriggerMatcher.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/ActiveTriggerStoreTest.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/AutomationAlarmReceiverTimeRangeExecutionTest.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/AutomationSchedulerExactAlarmPolicyTest.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/BatteryMonitorExitReconcileTest.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/CalendarMonitorExitReconcileTest.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/ConnectivityMonitorExitReconcileTest.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/DeviceEventMonitorExitReconcileTest.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/MonitoringNotificationVisibilityTest.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/MonitoringTimeoutPolicyTest.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/PluginEventIngressTest.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/RingerModeMonitorExitReconcileTest.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/RomSettingMonitorLifecycleTest.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/RomSettingMonitorTest.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/SensorTriggerMatcherTest.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/SettingsStateMonitorLifecycleTest.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/SmsTriggerMatcherTest.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/TriggerIndexTest.kt
+core/automation-engine/src/test/java/com/nexaflow/core/engine/WebhookTriggerMatcherTest.kt
+core/capability-manager/src/main/java/com/nexaflow/core/capability/CapabilityCenterScreen.kt
+core/capability-manager/src/main/java/com/nexaflow/core/capability/CapabilityCenterViewModel.kt
+core/capability-manager/src/main/java/com/nexaflow/core/capability/CapabilityGrantHelper.kt
+core/capability-manager/src/main/java/com/nexaflow/core/capability/SmsCapabilityViewModel.kt
+core/compatibility/src/main/java/com/nexaflow/core/compat/ExecutionChannelSelector.kt
+core/compatibility/src/main/java/com/nexaflow/core/compat/ExecutionProvider.kt
+core/compatibility/src/main/java/com/nexaflow/core/compat/ProviderExecutionReport.kt
+core/compatibility/src/test/java/com/nexaflow/core/compat/ExecutionChannelSelectorTest.kt
+core/database/src/main/java/com/nexaflow/core/database/ExecutionDao.kt
+core/database/src/main/java/com/nexaflow/core/database/ExecutionRecordEntity.kt
+core/database/src/test/java/com/nexaflow/core/database/ExecutionDaoRetentionTest.kt
+core/datastore/src/main/java/com/nexaflow/core/datastore/ActiveExecutionStore.kt
+core/datastore/src/main/java/com/nexaflow/core/datastore/ActiveTriggerStore.kt
+core/datastore/src/main/java/com/nexaflow/core/datastore/DurableExecutionModels.kt
+core/datastore/src/test/java/com/nexaflow/core/datastore/ActiveExecutionStoreCheckpointTest.kt
+core/execution/src/main/java/com/nexaflow/core/execution/AudioStreams.kt
+core/execution/src/main/java/com/nexaflow/core/execution/AutomationIntents.kt
+core/execution/src/main/java/com/nexaflow/core/execution/ContextVariableResolver.kt
+core/execution/src/main/java/com/nexaflow/core/execution/DeviceStateSnapshot.kt
+core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt
+core/execution/src/main/java/com/nexaflow/core/execution/ExecutionResultPresentation.kt
+core/execution/src/main/java/com/nexaflow/core/execution/NotificationAccess.kt
+core/execution/src/main/java/com/nexaflow/core/execution/NotificationActionButtons.kt
+core/execution/src/main/java/com/nexaflow/core/execution/NotificationDismissReceiver.kt
+core/execution/src/main/java/com/nexaflow/core/execution/ReminderAlarmReceiver.kt
+core/execution/src/main/java/com/nexaflow/core/execution/TriggerStateEvaluator.kt
+core/execution/src/main/java/com/nexaflow/core/execution/WorkflowRunContext.kt
+core/execution/src/main/java/com/nexaflow/core/execution/capability/AccessibilityCapabilityBackend.kt
+core/execution/src/main/java/com/nexaflow/core/execution/capability/AndroidPublicCapabilityBackend.kt
+core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityActionMapper.kt
+core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityEnvironmentInspector.kt
+core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityRequestValidator.kt
+core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityResolverAdapter.kt
+core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityRuntime.kt
+core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityStateStore.kt
+core/execution/src/main/java/com/nexaflow/core/execution/capability/PluginCapabilityBackend.kt
+core/execution/src/main/java/com/nexaflow/core/execution/capability/PluginConditionBackend.kt
+core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt
+core/execution/src/main/java/com/nexaflow/core/execution/compat/AutomationWorkflowMapper.kt
+core/execution/src/main/java/com/nexaflow/core/execution/compat/AutomationWorkflowRunner.kt
+core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCatalog.kt
+core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCompatibilityEngine.kt
+core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandRequirementCatalog.kt
+core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandSpec.kt
+core/execution/src/main/java/com/nexaflow/core/execution/compat/EventSource.kt
+core/execution/src/main/java/com/nexaflow/core/execution/compat/WorkflowCapabilityValidator.kt
+core/execution/src/main/java/com/nexaflow/core/execution/constraints/AutomationConstraintGate.kt
+core/execution/src/main/java/com/nexaflow/core/execution/constraints/ConstraintStateReader.kt
+core/execution/src/main/java/com/nexaflow/core/execution/dryrun/DryRunExecutor.kt
+core/execution/src/main/java/com/nexaflow/core/execution/dryrun/WorkflowDryRunService.kt
+core/execution/src/main/java/com/nexaflow/core/execution/events/InMemoryNexaFlowEventBus.kt
+core/execution/src/main/java/com/nexaflow/core/execution/expression/ExpressionEngine.kt
+core/execution/src/main/java/com/nexaflow/core/execution/handler/ActionHandler.kt
+core/execution/src/main/java/com/nexaflow/core/execution/handler/ActionRegistry.kt
+core/execution/src/main/java/com/nexaflow/core/execution/handler/AdvancedActionsHandler.kt
+core/execution/src/main/java/com/nexaflow/core/execution/handler/AppActionsHandler.kt
+core/execution/src/main/java/com/nexaflow/core/execution/handler/ConnectivityActionsHandler.kt
+core/execution/src/main/java/com/nexaflow/core/execution/handler/DisplayActionsHandler.kt
+core/execution/src/main/java/com/nexaflow/core/execution/handler/HttpRequestHandler.kt
+core/execution/src/main/java/com/nexaflow/core/execution/handler/MediaActionsHandler.kt
+core/execution/src/main/java/com/nexaflow/core/execution/handler/NotificationActionsHandler.kt
+core/execution/src/main/java/com/nexaflow/core/execution/handler/PluginFireHandler.kt
+core/execution/src/main/java/com/nexaflow/core/execution/handler/ReminderScheduler.kt
+core/execution/src/main/java/com/nexaflow/core/execution/handler/SoundActionsHandler.kt
+core/execution/src/main/java/com/nexaflow/core/execution/handler/SystemActionsHandler.kt
+core/execution/src/main/java/com/nexaflow/core/execution/plugin/PluginConditionClient.kt
+core/execution/src/main/java/com/nexaflow/core/execution/plugin/PluginFireClient.kt
+core/execution/src/main/java/com/nexaflow/core/execution/plugin/PluginValueRuntimeAdapter.kt
+core/execution/src/main/java/com/nexaflow/core/execution/recovery/ExecutionRecoveryCoordinator.kt
+core/execution/src/main/java/com/nexaflow/core/execution/recovery/IdempotencyKey.kt
+core/execution/src/main/java/com/nexaflow/core/execution/security/SecretVaultAdapter.kt
+core/execution/src/main/java/com/nexaflow/core/execution/state/StateTransaction.kt
+core/execution/src/main/java/com/nexaflow/core/execution/state/StateTransactionStore.kt
+core/execution/src/main/java/com/nexaflow/core/execution/task/SchedulerContracts.kt
+core/execution/src/main/java/com/nexaflow/core/execution/task/TaskManager.kt
+core/execution/src/main/java/com/nexaflow/core/execution/task/TaskRuntimeModels.kt
+core/execution/src/main/java/com/nexaflow/core/execution/variables/BuiltinVariables.kt
+core/execution/src/main/java/com/nexaflow/core/execution/variables/ScopedDataRuntime.kt
+core/execution/src/main/java/com/nexaflow/core/execution/verification/VerificationEngine.kt
+core/execution/src/main/java/com/nexaflow/core/execution/workflow/ActionRegistryExecutor.kt
+core/execution/src/main/java/com/nexaflow/core/execution/workflow/ExecutionJournal.kt
+core/execution/src/main/java/com/nexaflow/core/execution/workflow/Workflow.kt
+core/execution/src/main/java/com/nexaflow/core/execution/workflow/WorkflowExecutionState.kt
+core/execution/src/main/java/com/nexaflow/core/execution/workflow/WorkflowInterpreter.kt
+core/execution/src/main/java/com/nexaflow/core/execution/workflow/WorkflowNodeExtensions.kt
+core/execution/src/test/java/com/nexaflow/core/execution/ActiveExecutionStoreTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/ContextVariableResolverTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/ExecutionEngineConstraintsTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/ExecutionEngineContextSelectorTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/ExecutionEngineExitBehaviorTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/ExecutionEngineRecoveryCheckpointTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/ExecutionEngineRunContextTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/ExecutionEngineVariableResolutionTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/ExecutionResultPresentationTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/NotificationActionButtonsTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/NotificationDismissReceiverTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/ReminderAlarmReceiverTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/TestPagingSources.kt
+core/execution/src/test/java/com/nexaflow/core/execution/WorkflowRunContextTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/capability/AccessibilityCapabilityBackendTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/capability/CapabilityActionMapperTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/capability/CapabilityEnvironmentInspectorTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/capability/CapabilityRuntimeTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/capability/CapabilityStateStoreTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/capability/PluginCapabilityBackendTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/capability/PluginConditionBackendTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackendsTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/compat/AutomationWorkflowMapperTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/compat/AutomationWorkflowRunnerTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/compat/CommandCompatibilityEngineTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/compat/CommandRequirementCatalogTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/compat/WorkflowCapabilityValidatorTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/constraints/AutomationConstraintGateTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/dryrun/DryRunExecutorTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/dryrun/WorkflowDryRunServiceTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/events/InMemoryNexaFlowEventBusTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/expression/ExpressionEngineTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/handler/ActionRegistryTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/handler/AdvancedActionsHandlerRoutingTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/handler/BatteryAlertActionsTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/handler/HttpRequestHandlerOutputTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/handler/HttpRequestHandlerRetryTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/handler/PluginFireHandlerTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/handler/SystemActionsHandlerExpansionTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/plugin/FakePluginConditionReceiverForTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/plugin/FakePluginReceiverForTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/plugin/PluginFireClientRoundTripTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/plugin/PluginFireClientTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/plugin/PluginValueRuntimeAdapterTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/recovery/ExecutionRecoveryCoordinatorTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/recovery/IdempotencyKeyTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/task/SchedulerContractsTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/task/TaskManagerTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/variables/ScopedDataRuntimeTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/verification/VerificationEngineTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/workflow/WorkflowExecutionStateTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/workflow/WorkflowInterpreterExtensionTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/workflow/WorkflowInterpreterFlowControlTest.kt
+core/execution/src/test/java/com/nexaflow/core/execution/workflow/WorkflowInterpreterTest.kt
+core/plugin-sdk/src/main/java/com/nexaflow/core/pluginsdk/LocaleContract.kt
+core/plugin-sdk/src/main/java/com/nexaflow/core/pluginsdk/PluginConfigParser.kt
+core/plugin-sdk/src/main/java/com/nexaflow/core/pluginsdk/PluginDiscoveryRegistry.kt
+core/plugin-sdk/src/main/java/com/nexaflow/core/pluginsdk/PluginEditActivity.kt
+core/plugin-sdk/src/main/java/com/nexaflow/core/pluginsdk/PluginFireReceiver.kt
+core/plugin-sdk/src/main/java/com/nexaflow/core/pluginsdk/PluginLifecycle.kt
+core/plugin-sdk/src/main/java/com/nexaflow/core/pluginsdk/PluginManifest.kt
+core/plugin-sdk/src/main/java/com/nexaflow/core/pluginsdk/PluginModels.kt
+core/plugin-sdk/src/main/java/com/nexaflow/core/pluginsdk/PluginResult.kt
+core/plugin-sdk/src/main/java/com/nexaflow/core/pluginsdk/PluginRiskPolicy.kt
+core/plugin-sdk/src/test/java/com/nexaflow/core/pluginsdk/LocaleContractTest.kt
+core/plugin-sdk/src/test/java/com/nexaflow/core/pluginsdk/PluginConfigParserTest.kt
+core/plugin-sdk/src/test/java/com/nexaflow/core/pluginsdk/PluginDiscoveryRegistryTest.kt
+core/plugin-sdk/src/test/java/com/nexaflow/core/pluginsdk/PluginEditActivityTest.kt
+core/plugin-sdk/src/test/java/com/nexaflow/core/pluginsdk/PluginFireReceiverTest.kt
+core/plugin-sdk/src/test/java/com/nexaflow/core/pluginsdk/PluginLifecycleTest.kt
+core/plugin-sdk/src/test/java/com/nexaflow/core/pluginsdk/PluginManifestTest.kt
+core/plugin-sdk/src/test/java/com/nexaflow/core/pluginsdk/PluginModelsTest.kt
+core/plugin-sdk/src/test/java/com/nexaflow/core/pluginsdk/PluginRiskPolicyTest.kt
+core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeCapabilities.kt
+core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModePolicy.kt
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivateDnsPolicy.kt
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RomCapabilityProvider.kt
+core/rom-integration/src/main/java/com/nexaflow/core/rom/model/RomCapability.kt
+core/rom-integration/src/test/java/com/nexaflow/core/rom/NetworkModePolicyTest.kt
+core/rom-integration/src/test/java/com/nexaflow/core/rom/PrivateDnsPolicyTest.kt
+core/security/src/main/java/com/nexaflow/core/security/InMemorySecureStorage.kt
+core/security/src/main/java/com/nexaflow/core/security/KeystoreSecureStorage.kt
+core/security/src/main/java/com/nexaflow/core/security/SafeCommandBuilder.kt
+core/security/src/main/java/com/nexaflow/core/security/SecretVault.kt
+core/security/src/main/java/com/nexaflow/core/security/SecureStorage.kt
+core/security/src/test/java/com/nexaflow/core/security/SafeCommandBuilderTest.kt
+core/security/src/test/java/com/nexaflow/core/security/SecretVaultTest.kt
+domain/src/main/java/com/nexaflow/domain/capability/CapabilityBackend.kt
+domain/src/main/java/com/nexaflow/domain/capability/CapabilityEnvironment.kt
+domain/src/main/java/com/nexaflow/domain/capability/CapabilityModels.kt
+domain/src/main/java/com/nexaflow/domain/capability/CapabilityRequirements.kt
+domain/src/main/java/com/nexaflow/domain/capability/CapabilityResolver.kt
+domain/src/main/java/com/nexaflow/domain/diagnostics/ExecutionTimeline.kt
+domain/src/main/java/com/nexaflow/domain/distributed/DistributedExecution.kt
+domain/src/main/java/com/nexaflow/domain/events/EventDeliveryPolicy.kt
+domain/src/main/java/com/nexaflow/domain/events/NexaFlowEvent.kt
+domain/src/main/java/com/nexaflow/domain/marketplace/WorkflowManifest.kt
+domain/src/main/java/com/nexaflow/domain/models/ExecutionOutcome.kt
+domain/src/main/java/com/nexaflow/domain/models/ExecutionRecord.kt
+domain/src/main/java/com/nexaflow/domain/models/ExecutionResultClassification.kt
+domain/src/main/java/com/nexaflow/domain/models/MaintenanceExecutionIdentity.kt
+domain/src/main/java/com/nexaflow/domain/models/PluginInfo.kt
+domain/src/main/java/com/nexaflow/domain/repositories/PluginRepository.kt
+domain/src/main/java/com/nexaflow/domain/risk/AiSecurityLayer.kt
+domain/src/main/java/com/nexaflow/domain/schedule/BatteryTriggerMatcher.kt
+domain/src/main/java/com/nexaflow/domain/schedule/TimeTriggerCalculator.kt
+domain/src/main/java/com/nexaflow/domain/usecases/GetExecutionByIdUseCase.kt
+domain/src/main/java/com/nexaflow/domain/usecases/GetExecutionHistoryUseCase.kt
+domain/src/main/java/com/nexaflow/domain/usecases/GetExecutionPagingUseCase.kt
+domain/src/main/java/com/nexaflow/domain/workflow/AutomationDependencyValidator.kt
+domain/src/main/java/com/nexaflow/domain/workflow/DagCompiler.kt
+domain/src/main/java/com/nexaflow/domain/workflow/DagNode.kt
+domain/src/main/java/com/nexaflow/domain/workflow/RetryExecutor.kt
+domain/src/main/java/com/nexaflow/domain/workflow/WorkflowValidator.kt
+domain/src/test/java/com/nexaflow/domain/capability/CapabilityRequirementResolverTest.kt
+domain/src/test/java/com/nexaflow/domain/models/AutomationTimeEndBehaviorPolicyTest.kt
+domain/src/test/java/com/nexaflow/domain/models/ExecutionOutcomeTest.kt
+domain/src/test/java/com/nexaflow/domain/models/ExecutionResultClassificationTest.kt
+domain/src/test/java/com/nexaflow/domain/models/MaintenanceExecutionIdentityTest.kt
+domain/src/test/java/com/nexaflow/domain/risk/AiSecurityLayerTest.kt
+domain/src/test/java/com/nexaflow/domain/schedule/BatteryTriggerMatcherTest.kt
+domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt
+domain/src/test/java/com/nexaflow/domain/workflow/AutomationDagCompilerTest.kt
+domain/src/test/java/com/nexaflow/domain/workflow/AutomationDependencyValidatorTest.kt
+domain/src/test/java/com/nexaflow/domain/workflow/KahnTopologicalSortTest.kt
+domain/src/test/java/com/nexaflow/domain/workflow/RetryExecutorTest.kt
+domain/src/test/java/com/nexaflow/domain/workflow/WorkflowValidatorTest.kt
+=== UNSAFE / DEBT MARKERS ===
+./test-fixtures/locale-plugin-fixture/build.gradle.kts:31:// must never be added as an implementation dependency of NexaFlow production modules.
+./domain/src/test/java/com/nexaflow/domain/workflow/KahnTopologicalSortTest.kt:43:        val index = order!!.withIndex().associate { it.value to it.index }
+./domain/src/test/java/com/nexaflow/domain/workflow/KahnTopologicalSortTest.kt:46:        assert(index["B"]!! < index["D"]!!)
+./domain/src/test/java/com/nexaflow/domain/workflow/KahnTopologicalSortTest.kt:47:        assert(index["C"]!! < index["D"]!!)
+./domain/src/test/java/com/nexaflow/domain/workflow/KahnTopologicalSortTest.kt:48:        assert(index["A"]!! < index["B"]!!)
+./domain/src/test/java/com/nexaflow/domain/workflow/KahnTopologicalSortTest.kt:49:        assert(index["A"]!! < index["C"]!!)
+./domain/src/test/java/com/nexaflow/domain/workflow/KahnTopologicalSortTest.kt:89:        assert(order!!.containsAll(listOf("A", "B", "C", "D")))
+./sample-plugins/nfc-toggle/src/test/java/com/nexaflow/sample/nfctoggle/PluginConfigTest.kt:49:        // The protocol keeps the bundle primitive-typed by wrapping config as a
+./domain/src/test/java/com/nexaflow/domain/workflow/AutomationDagCompilerTest.kt:45:        assertTrue((result as DagCompilationResult.Failure).reason.contains("no triggers"))
+./domain/src/test/java/com/nexaflow/domain/workflow/AutomationDagCompilerTest.kt:172:        assert(position["trigger-0"]!! < position["constraint-0"]!!)
+./domain/src/test/java/com/nexaflow/domain/workflow/AutomationDagCompilerTest.kt:173:        assert(position["trigger-1"]!! < position["constraint-0"]!!)
+./domain/src/test/java/com/nexaflow/domain/workflow/AutomationDagCompilerTest.kt:174:        assert(position["constraint-0"]!! < position["constraint-1"]!!)
+./domain/src/test/java/com/nexaflow/domain/workflow/AutomationDagCompilerTest.kt:175:        assert(position["constraint-1"]!! < position["action-0"]!!)
+./domain/src/test/java/com/nexaflow/domain/workflow/AutomationDagCompilerTest.kt:176:        assert(position["action-0"]!! < position["action-1"]!!)
+./domain/src/test/java/com/nexaflow/domain/workflow/AutomationDagCompilerTest.kt:177:        assert(position["action-1"]!! < position["exit-0"]!!)
+./app/build.gradle.kts:182:// composables skip recomposition and which classes are treated as unstable.
+./app/build.gradle.kts:211:    // PluginEventIngressAndroidTest asserts canonical payloads as kotlinx
+./app/build.gradle.kts:212:    // serialization JsonObject; the engine exposes it only as an implementation
+./domain/src/test/java/com/nexaflow/domain/variables/SecureVariableResolverTest.kt:38:        // The secret is "t0k%n", it should not be treated as a placeholder
+./app/src/test/java/com/nexaflow/app/MergedManifestNoSentryTest.kt:95:        return (0 until nodes.length).map { nodes.item(it) as Element }
+./app/src/test/java/com/nexaflow/app/MergedManifestNoSentryTest.kt:176:        //    initializer would surface here as a different marker or as a
+./app/src/test/java/com/nexaflow/app/MergedManifestNoSentryTest.kt:193:        //    is the same failure class as Sentry: it would init before the
+./app/src/test/java/com/nexaflow/app/LauncherIconRenderTest.kt:20: * cannot be inflated by the system) shows up as a fully transparent icon on
+./app/src/test/java/com/nexaflow/app/LauncherIconRenderTest.kt:33:        val icon = context.getDrawable(R.mipmap.ic_launcher)!!
+./app/src/test/java/com/nexaflow/app/LauncherIconRenderTest.kt:40:        val icon = context.getDrawable(R.mipmap.ic_launcher_round)!!
+./app/src/test/java/com/nexaflow/app/LauncherIconRenderTest.kt:75:        val bg = context.getDrawable(R.drawable.ic_launcher_background)!!
+./app/src/androidTest/java/com/nexaflow/app/validation/WorkflowRunContextAndroidTest.kt:45:        val firstSnapshot = context.snapshot() as Map<String, Any?>
+./app/src/androidTest/java/com/nexaflow/app/validation/WorkflowRunContextAndroidTest.kt:47:        val snapshotWeather = firstSnapshot.getValue("weather") as Map<String, Any?>
+./app/src/androidTest/java/com/nexaflow/app/validation/WorkflowRunContextAndroidTest.kt:52:        val secondSnapshot = context.snapshot() as Map<String, Any?>
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:41:        assertEquals(LocalDate.of(2026, 8, 6), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:50:        assertEquals(LocalDate.of(2026, 8, 5), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:61:        assertEquals(LocalDate.of(2026, 8, 11), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:84:        val zdt = Instant.ofEpochMilli(next!!).atZone(berlin)
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:101:        val zdt = Instant.ofEpochMilli(next!!).atZone(berlin)
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:116:        val zdt = Instant.ofEpochMilli(next!!).atZone(berlin)
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:134:        val zdt = Instant.ofEpochMilli(next!!).atZone(ny)
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:147:        assertEquals(LocalDate.of(2026, 8, 6), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:157:        assertEquals(LocalDate.of(2026, 8, 5), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:167:        assertEquals(LocalDate.of(2026, 8, 7), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:176:        assertEquals(LocalDate.of(2026, 8, 20), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:197:        assertEquals(LocalDate.of(2026, 8, 10), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:230:        assertEquals(LocalDate.of(2026, 8, 15), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:240:        assertEquals(LocalDate.of(2026, 9, 15), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:252:        assertEquals(LocalDate.of(2026, 3, 31), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:273:        assertEquals(LocalDate.of(2026, 9, 1), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:291:        assertEquals(LocalDate.of(2026, 8, 1), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:311:        assertEquals(LocalDate.of(2026, 10, 31), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:326:        assertEquals(LocalDate.of(2026, 8, 3), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:341:        assertEquals(LocalDate.of(2026, 8, 12), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:356:        assertEquals(LocalDate.of(2026, 8, 28), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:371:        assertEquals(LocalDate.of(2026, 9, 7), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:387:        assertEquals(LocalDate.of(2026, 9, 7), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:404:        assertEquals(LocalDate.of(2026, 8, 2), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:415:        assertEquals(LocalDate.of(2026, 8, 10), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:425:        assertEquals(LocalDate.of(2026, 8, 5), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:435:        assertEquals(LocalDate.of(2026, 8, 8), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:445:        assertEquals(LocalDate.of(2026, 8, 15), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:459:        assertEquals(LocalDate.of(2026, 8, 5), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:476:        assertEquals(LocalDate.of(2026, 8, 6), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:508:    fun `window end for zero-length range is treated as a full day`() {
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:509:        // end == start is treated as a full 24h window so the end alarm never
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:556:        assertEquals(LocalDate.of(2026, 8, 7), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:572:        assertEquals(LocalDate.of(2026, 8, 17), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:587:        assertEquals(LocalDate.of(2026, 3, 15), localDateOf(next!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/TimeTriggerCalculatorTest.kt:619:        assertEquals(LocalDate.of(2026, 8, 3), localDateOf(third!!))
+./domain/src/test/java/com/nexaflow/domain/schedule/IntervalScheduleTest.kt:32:        // from - 1 is inside the same 15-min slot as from, so both give the same boundary.
+./domain/src/main/java/com/nexaflow/domain/workflow/RetryExecutor.kt:8: * for workflow nodes, and classifies failures as retryable vs permanent.
+./app/src/androidTest/java/com/nexaflow/app/validation/ReminderSchedulerAndroidTest.kt:68:        val alarms = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+./domain/src/test/java/com/nexaflow/domain/schedule/CronScheduleTest.kt:38:        assertEquals((0..59).toSet(), cron!!.minutes)
+./domain/src/test/java/com/nexaflow/domain/schedule/CronScheduleTest.kt:46:        assertEquals(setOf(0, 15, 30, 45), cron!!.minutes)
+./domain/src/test/java/com/nexaflow/domain/schedule/CronScheduleTest.kt:54:        val cron = CronSchedule.parse("* * * * *")!!
+./domain/src/test/java/com/nexaflow/domain/schedule/CronScheduleTest.kt:61:        val cron = CronSchedule.parse("30 * * * *")!!
+./domain/src/test/java/com/nexaflow/domain/schedule/CronScheduleTest.kt:69:        val cron = CronSchedule.parse("0 9 * * MON-FRI")!!
+./domain/src/test/java/com/nexaflow/domain/schedule/CronScheduleTest.kt:77:        val cron = CronSchedule.parse("0 9 * * MON-FRI")!!
+./domain/src/test/java/com/nexaflow/domain/schedule/CronScheduleTest.kt:84:        val cron = CronSchedule.parse("0 8 * * 0")!! // Sunday 08:00
+./domain/src/test/java/com/nexaflow/domain/schedule/CronScheduleTest.kt:92:        val cron = CronSchedule.parse("0 8 * * 7")!!
+./domain/src/test/java/com/nexaflow/domain/schedule/CronScheduleTest.kt:100:        val cron = CronSchedule.parse("0 12 ? * MON")!!
+./domain/src/test/java/com/nexaflow/domain/schedule/CronScheduleTest.kt:107:        val cron = CronSchedule.parse("0 0 1 1 *")!!
+./domain/src/test/java/com/nexaflow/domain/schedule/CronScheduleTest.kt:115:        val cron = CronSchedule.parse("0 0 1 * 1")!!
+./domain/src/test/java/com/nexaflow/domain/schedule/CronScheduleTest.kt:123:        val cron = CronSchedule.parse("0 0 1 * 1")!!
+./domain/src/test/java/com/nexaflow/domain/schedule/CronScheduleTest.kt:136:        val cron = CronSchedule.parse("0 0 29 2 *")!!
+./domain/src/main/java/com/nexaflow/domain/workflow/DagNode.kt:53: *   relation). Every node must appear as a key, possibly with an empty set.
+./app/src/androidTest/java/com/nexaflow/app/validation/PluginEventIngressAndroidTest.kt:75:                (event.payload.getValue("pluginPackage") as JsonPrimitive).content
+./app/src/androidTest/java/com/nexaflow/app/validation/PluginEventIngressAndroidTest.kt:77:            assertEquals("on", ((event.payload.getValue("data") as JsonObject).getValue("state") as JsonPrimitive).content)
+./domain/src/main/java/com/nexaflow/domain/workflow/DagCompiler.kt:41:                val next = inDegree[successor]!! - 1
+./app/src/androidTest/java/com/nexaflow/app/validation/NotificationAndroidTest.kt:41:        manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+./buildSrc/src/main/java/com/nexaflow/build/GitVersion.kt:61:    // replacement and returns the captured output as a provider.
+./domain/src/main/java/com/nexaflow/domain/variables/VariableResolver.kt:6: * A placeholder is `%NAME` — a `%` followed by a name that starts with a
+./domain/src/main/java/com/nexaflow/domain/variables/VariableResolver.kt:9: * users often type them in lowercase), and any placeholder that has no match
+./domain/src/main/java/com/nexaflow/domain/variables/VariableResolver.kt:23:     * Replaces every known `%NAME` placeholder in [text] with its value from
+./domain/src/main/java/com/nexaflow/domain/variables/VariableResolver.kt:24:     * [variables]. Unknown placeholders and escaped `%%` are preserved.
+./domain/src/main/java/com/nexaflow/domain/variables/VariableResolver.kt:37:     * The distinct placeholder names referenced in [text], in order of first
+./domain/src/main/java/com/nexaflow/domain/variables/SecretStore.kt:37: * If a variable placeholder refers to a known secret (e.g., via a special naming
+./domain/src/main/java/com/nexaflow/domain/variables/SecretStore.kt:49:     * @param text The text containing placeholders (e.g., `%api_key`).
+./domain/src/main/java/com/nexaflow/domain/variables/SecretStore.kt:65:        for (placeholder in referencedPlaceholders) {
+./domain/src/main/java/com/nexaflow/domain/variables/SecretStore.kt:66:            val secretRef = secretVariables[placeholder] ?: secretVariables[placeholder.lowercase()]
+./domain/src/main/java/com/nexaflow/domain/variables/SecretStore.kt:70:                    // VariableResolver replaces placeholders in a single pass, so
+./domain/src/main/java/com/nexaflow/domain/variables/SecretStore.kt:72:                    fullyResolved = VariableResolver.resolve(fullyResolved, mapOf(placeholder to secretValue))
+./domain/src/test/java/com/nexaflow/domain/models/MaintenanceReadinessTest.kt:38:    fun `treats overnight window as belonging to its start day`() {
+./domain/src/test/java/com/nexaflow/domain/models/AutomationTimeEndBehaviorPolicyTest.kt:32:    fun `single time with leave as is has no end lifecycle requirement`() {
+./domain/src/test/java/com/nexaflow/domain/models/AutomationHealthReportTest.kt:9:    fun `skipped maintenance does not count as completed success`() {
+./sample-plugins/nfc-toggle/src/main/java/com/nexaflow/sample/nfctoggle/PluginConfig.kt:25:    /** Serializes [config] as a JSON object string (primitives/Strings only). */
+./sample-plugins/nfc-toggle/src/main/java/com/nexaflow/sample/nfctoggle/PluginConfig.kt:45:     * surfaces as its raw `JSONObject` rather than a nested [Map] — keep
+./domain/src/main/java/com/nexaflow/domain/updates/GooglePlayUpdateModels.kt:66: * Device Owner, or PackageInstaller as proof that this app can access Google
+./sample-plugins/nfc-toggle/src/main/java/com/nexaflow/sample/nfctoggle/NfcController.kt:35:            // failure: only treat a settled opposite state as blocked, otherwise
+./sample-plugins/nfc-toggle/src/main/java/com/nexaflow/sample/nfctoggle/LocaleProtocol.kt:56:    /** Structured config is serialized as a JSON string under this bundle key. */
+./domain/src/main/java/com/nexaflow/domain/schedule/CronSchedule.kt:16: * for months and weekdays. `?` is accepted anywhere as a synonym for `*`
+./domain/src/main/java/com/nexaflow/domain/risk/RiskEngine.kt:122:            // AI-generated actions are escalated by one level as a security guardrail.
+./domain/src/main/java/com/nexaflow/domain/schedule/BatteryTriggerMatcher.kt:56:     * status (charging or full counts as charging), NOT from the plug mask.
+./app/src/main/java/com/nexaflow/app/work/UpdateCheckWorker.kt:94:            // begin only after the chosen cadence, not as a surprise on enable.
+./app/src/main/java/com/nexaflow/app/work/UpdateCheckWorker.kt:120:        // Keep this check in the same method as notify so Android Lint can
+./app/src/main/java/com/nexaflow/app/work/LocationCheckWorker.kt:66:                // exit side of a geofence has a chance to evaluate as well.
+./domain/src/main/java/com/nexaflow/domain/models/GlobalVariable.kt:24:     * injected into action texts). Stored as ciphertext in the database;
+./domain/src/main/java/com/nexaflow/domain/models/ExecutionOutcome.kt:20: * reported as an error merely because an occurrence or condition was not ready.
+./domain/src/main/java/com/nexaflow/domain/models/EndBehavior.kt:10: * - [EndMode.LEAVE] — the change stays as the task left it.
+./domain/src/main/java/com/nexaflow/domain/models/EndBehavior.kt:37: * remaining actions can only be left as they are.
+./app/src/main/java/com/nexaflow/app/SaveBackupActivity.kt:15: * app listed as one of the targets («الحفظ محلياً»). Picking it lands here:
+./app/src/main/java/com/nexaflow/app/ui/theme/Theme.kt:63:            val window = (view.context as Activity).window
+./domain/src/main/java/com/nexaflow/domain/models/AutomationHealthReport.kt:5: * run is never counted as a completed maintenance success, and the model never
+./domain/src/main/java/com/nexaflow/domain/models/AutomationDescription.kt:6: * as soon as the app language changes, so presentation layers replace it with
+./app/src/main/java/com/nexaflow/app/NexaFlowApplication.kt:147:     * main-thread NETWORK — the same class of bug as the in-app update
+./app/src/main/java/com/nexaflow/app/MainActivity.kt:199:     * static splash background as fallback.
+./domain/src/main/java/com/nexaflow/domain/models/Automation.kt:7: * A user-defined task. Treated as immutable (Compose @Immutable contract):
+./domain/src/main/java/com/nexaflow/domain/models/Automation.kt:52:/** Cooldown as milliseconds for the monitors' event de-duplication. */
+./domain/src/main/java/com/nexaflow/domain/models/Automation.kt:58: * policy as a safe default so end actions are never stranded when a caller
+./domain/src/main/java/com/nexaflow/domain/models/Automation.kt:78: * must be configured as a TIME range with an explicit end time.
+./domain/src/main/java/com/nexaflow/domain/models/Automation.kt:256:    BATTERY_TEMPERATURE,
+./domain/src/main/java/com/nexaflow/domain/models/Automation.kt:328:    /** Per-action behavior applied when the task ends (null = leave as is). */
+./app/src/main/java/com/nexaflow/app/SentryReporter.kt:49:    /** Reactive entry point: initialize/close Sentry as the opt-in flips. */
+./core/ui-components/src/test/java/com/nexaflow/core/ui/NexaFlowMotionTest.kt:76:        assertFalse("animator scale defaults to 1 → reduced motion off", reduced!!)
+./core/ui-components/src/test/java/com/nexaflow/core/ui/NexaFlowMotionTest.kt:87:        assertTrue("ANIMATOR_DURATION_SCALE=0 must disable motion", reduced!!)
+./core/ui-components/src/test/java/com/nexaflow/core/ui/NexaFlowMotionTest.kt:101:        assertSameSpec(helper!!, direct!!)
+./core/ui-components/src/test/java/com/nexaflow/core/ui/NexaFlowMotionTest.kt:113:        assertSameSpec(helper!!, direct!!)
+./core/ui-components/src/test/java/com/nexaflow/core/ui/NexaFlowMotionTest.kt:125:        assertSameSpec(helper!!, direct!!)
+./core/ui-components/src/test/java/com/nexaflow/core/ui/NexaFlowMotionTest.kt:137:        assertSameSpec(helper!!, direct!!)
+./core/ui-components/src/test/java/com/nexaflow/core/ui/NexaFlowMotionTest.kt:149:        assertSameSpec(helper!!, direct!!)
+./core/ui-components/src/test/java/com/nexaflow/core/ui/NexaFlowMotionTest.kt:161:        assertSameSpec(helper!!, direct!!)
+./core/ui-components/src/test/java/com/nexaflow/core/ui/NexaFlowMotionTest.kt:183:            assertEquals("reduced-motion tween must be instant", 0, tween!!.durationMillis)
+./core/ui-components/src/test/java/com/nexaflow/core/ui/NexaFlowMotionTest.kt:211:    /** Asserts the helper returned the same spec type AND values as the scheme. */
+./core/ui-components/src/test/java/com/nexaflow/core/ui/NexaFlowMotionTest.kt:219:                val expected = direct as SpringSpec
+./core/ui-components/src/test/java/com/nexaflow/core/ui/NexaFlowMotionTest.kt:224:                val expected = direct as TweenSpec
+./feature/widgets/src/main/java/com/nexaflow/feature/widgets/WidgetsScreen.kt:200:    // Google 2026: selection tasks open as a full-height modal bottom sheet.
+./feature/widgets/src/main/java/com/nexaflow/feature/widgets/TileTargetResolver.kt:15:     * @param automations all tasks, ordered as stored.
+./core/ui-components/src/test/java/com/nexaflow/core/ui/DesignTokensTest.kt:39:        // Container must be a light tint — never the same as the foreground.
+./data/src/test/java/com/nexaflow/data/paging/MappedPagingSourceTest.kt:36:            placeholdersEnabled = false
+./data/src/test/java/com/nexaflow/data/paging/MappedPagingSourceTest.kt:44:        val page = result as PagingSource.LoadResult.Page<Int, Int>
+./data/src/test/java/com/nexaflow/data/paging/MappedPagingSourceTest.kt:55:        assertEquals("boom", (result as PagingSource.LoadResult.Error).throwable.message)
+./feature/widgets/src/main/java/com/nexaflow/feature/widgets/TaskTileService.kt:114:     * The task's chosen icon rendered as a tile icon. The icon name is mapped
+./feature/widgets/src/main/java/com/nexaflow/feature/widgets/TaskTileService.kt:116:     * bitmap — Quick Settings shows it as the tile's icon (the system tints
+./data/src/test/java/com/nexaflow/data/mapper/ExecutionRecordMapperTest.kt:78:        assertTrue(entity.resultsJson!!.contains("SYSTEM_BRIGHTNESS"))
+./data/src/test/java/com/nexaflow/data/mapper/ExecutionRecordMapperTest.kt:79:        assertTrue(entity.resultsJson!!.contains("\"durationMs\":42"))
+./data/src/test/java/com/nexaflow/data/mapper/ExecutionRecordMapperTest.kt:80:        assertTrue(entity.resultsJson!!.contains("\"success\":true"))
+./macrobenchmark/build.gradle.kts:37:    experimentalProperties["android.experimental.self-instrumenting"] = true
+./domain/build.gradle.kts:43:    // (feature modules) can treat these cross-module models as stable and skip
+./data/src/test/java/com/nexaflow/data/backup/BackupManagerTest.kt:353:        assertTrue((result as ImportResult.InvalidWorkflow).issues.any {
+./core/execution/src/test/java/com/nexaflow/core/execution/workflow/WorkflowInterpreterExtensionTest.kt:69:        assertTrue(receivedBudgetConsumed!! >= 1)
+./core/ui-components/src/main/java/com/nexaflow/core/ui/NexaFlowTopBar.kt:29: * itself is experimental). Lets screens wire the Google-style scroll tint
+./core/ui-components/src/main/java/com/nexaflow/core/ui/NexaFlowTopBar.kt:30: * without opting in to experimental APIs at every call site.
+./core/ui-components/src/main/java/com/nexaflow/core/ui/NexaFlowTopBar.kt:43: * container) as content scrolls under it — the Google 2026 pattern.
+./core/ui-components/src/main/java/com/nexaflow/core/ui/NexaFlowTopBar.kt:106:            // Google 2026: the bar tints to the surface container as content
+./data/src/main/java/com/nexaflow/data/repository/VariableRepositoryImpl.kt:17: * [GlobalVariable.sensitive] are stored as ciphertext (Keystore AES-GCM via
+./core/ui-components/src/main/java/com/nexaflow/core/ui/NexaFlowMotion.kt:36: * material3 1.4.0 shipped `MotionScheme` as an internal API, so we previously
+./core/ui-components/src/main/java/com/nexaflow/core/ui/NexaFlowMotion.kt:110: * or shrinks, preserving the same guarantee during motion as well.
+./core/execution/src/test/java/com/nexaflow/core/execution/variables/ScopedDataRuntimeTest.kt:55:        assertEquals("action", (runtime.resolve("mode", "node-a", "action-a")!!.value as RuntimeValue.StringValue).value)
+./core/execution/src/test/java/com/nexaflow/core/execution/variables/ScopedDataRuntimeTest.kt:56:        assertEquals("node", (runtime.resolve("mode", "node-a")!!.value as RuntimeValue.StringValue).value)
+./core/execution/src/test/java/com/nexaflow/core/execution/variables/ScopedDataRuntimeTest.kt:57:        assertEquals("execution", (runtime.resolve("mode")!!.value as RuntimeValue.StringValue).value)
+./core/execution/src/test/java/com/nexaflow/core/execution/variables/ScopedDataRuntimeTest.kt:59:        assertEquals("execution", (runtime.resolve("mode", "other")!!.value as RuntimeValue.StringValue).value)
+./core/execution/src/test/java/com/nexaflow/core/execution/variables/ScopedDataRuntimeTest.kt:72:        assertEquals(false, (runtime.resolve("enabled")!!.value as RuntimeValue.BooleanValue).value)
+./core/execution/src/test/java/com/nexaflow/core/execution/variables/ScopedDataRuntimeTest.kt:96:        val restored = runtime.resolve("threshold")!!.value as RuntimeValue.ObjectValue
+./core/execution/src/test/java/com/nexaflow/core/execution/variables/ScopedDataRuntimeTest.kt:97:        assertEquals(85, (restored.values.getValue("minimum") as RuntimeValue.IntValue).value)
+./core/ui-components/src/main/java/com/nexaflow/core/ui/NavigationStyle.kt:22: * details, pickers) never show persistent chrome. Kept as a pure function so
+./core/execution/src/test/java/com/nexaflow/core/execution/task/TaskManagerTest.kt:25:        assertTrue((null as TaskLifecycleState?).canStartTransitionTo(TaskLifecycleState.REJECTED))
+./core/ui-components/src/main/java/com/nexaflow/core/ui/LoadingState.kt:32: * (spinner over skeleton, per M3 guidance). Declared as a polite live region
+./core/execution/src/test/java/com/nexaflow/core/execution/ExecutionEngineRunContextTest.kt:31: * handler as the *same instance* (so handlers can read what earlier nodes wrote
+./core/execution/src/test/java/com/nexaflow/core/execution/ExecutionEngineRunContextTest.kt:113:        assertEquals("auto-ctx", first!!.automationId)
+./core/execution/src/test/java/com/nexaflow/core/execution/ExecutionEngineRunContextTest.kt:121:        assertTrue(second!!.runId.isNotBlank())
+./core/ui-components/src/main/java/com/nexaflow/core/ui/InstalledAppPresentation.kt:11: * available as a safe fallback, but a launcher label and icon are preferred
+./core/execution/src/test/java/com/nexaflow/core/execution/plugin/PluginValueRuntimeAdapterTest.kt:25:        val objectValue = conversion.value as RuntimeValue.ObjectValue
+./data/src/main/java/com/nexaflow/data/backup/BackupManager.kt:43: * Exports and imports all automations as a single pretty-printed JSON file,
+./data/src/main/java/com/nexaflow/data/backup/BackupManager.kt:142:        // review or saving, and never treat it as an authority for execution.
+./core/execution/src/test/java/com/nexaflow/core/execution/ExecutionEngineExitBehaviorTest.kt:167:    fun `failed whole snapshot restore is reported as a failed exit`() = runBlocking {
+./core/execution/src/test/java/com/nexaflow/core/execution/ExecutionEngineExitBehaviorTest.kt:180:        assertFalse("a rejected restore must not be reported as a successful exit", record.success)
+./core/ui-components/src/main/java/com/nexaflow/core/ui/CheckableRow.kt:30: * [Modifier.selectable], so screen readers announce it as a checked/unchecked
+./core/execution/src/test/java/com/nexaflow/core/execution/ExecutionEngineConstraintsTest.kt:44: * constraints, the run is skipped (recorded as blocked, no action executed)
+./core/execution/src/test/java/com/nexaflow/core/execution/ExecutionEngineConstraintsTest.kt:300:                "all remaining callbacks must be recorded as inactive exits",
+./core/execution/src/test/java/com/nexaflow/core/execution/handler/HttpRequestHandlerOutputTest.kt:106:        assertEquals(200, published!!["status"])
+./core/execution/src/test/java/com/nexaflow/core/execution/handler/HttpRequestHandlerOutputTest.kt:108:        // paths() emits leaf paths only — the published map appears as its keys.
+./core/execution/src/test/java/com/nexaflow/core/execution/handler/HttpRequestHandlerOutputTest.kt:127:        assertEquals(404, published!!["status"])
+./core/execution/src/test/java/com/nexaflow/core/execution/handler/HttpRequestHandlerOutputTest.kt:147:        assertEquals(longBody, published!!["body"])
+./core/execution/src/test/java/com/nexaflow/core/execution/handler/HttpRequestHandlerOutputTest.kt:182:        assertEquals(200, read!!["status"])
+./core/execution/src/test/java/com/nexaflow/core/execution/handler/HttpRequestHandlerOutputTest.kt:202:        assertEquals(200, published!!["status"])
+./feature/settings/src/test/java/com/nexaflow/feature/settings/UpdateCheckerTest.kt:30:        assertEquals("v3.7.0-alpha", info!!.version)
+./feature/settings/src/test/java/com/nexaflow/feature/settings/UpdateCheckerTest.kt:42:        assertNull(info!!.apkUrl)
+./feature/settings/src/test/java/com/nexaflow/feature/settings/UpdateCheckerTest.kt:64:        assertEquals("v3.15.0-alpha", UpdateChecker.parseRelease(chosen!!)!!.version)
+./feature/settings/src/test/java/com/nexaflow/feature/settings/UpdateCheckerTest.kt:76:        assertEquals("v3.15.0-alpha", UpdateChecker.parseRelease(chosen!!)!!.version)
+./feature/settings/src/test/java/com/nexaflow/feature/settings/UpdateCheckerTest.kt:98:        assertEquals("https://x/nexaflow-debug.apk", info!!.apkUrl)
+./core/execution/src/test/java/com/nexaflow/core/execution/handler/BatteryAlertActionsTest.kt:35:    private val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+./core/execution/src/test/java/com/nexaflow/core/execution/handler/BatteryAlertActionsTest.kt:70:        assertEquals(2, notification!!.actions.size)
+./core/execution/src/test/java/com/nexaflow/core/execution/handler/BatteryAlertActionsTest.kt:89:        assertEquals(1, notification!!.actions.size)
+./core/execution/src/test/java/com/nexaflow/core/execution/handler/BatteryAlertActionsTest.kt:99:        assertEquals(3, notification!!.actions.size)
+./feature/settings/src/test/java/com/nexaflow/feature/settings/PluginCatalogTest.kt:71:        // which is intentionally retained as a reviewed high-risk add-on.
+./core/execution/src/test/java/com/nexaflow/core/execution/expression/ExpressionEngineTest.kt:38:            (ExpressionEngine.evaluate("lower(name)", variables) as RuntimeValue.StringValue).value
+./core/execution/src/test/java/com/nexaflow/core/execution/expression/ExpressionEngineTest.kt:42:            (ExpressionEngine.evaluate("length(tags)", variables) as RuntimeValue.LongValue).value
+./core/security/src/main/java/com/nexaflow/core/security/KeystoreSecureStorage.kt:23: * key), so callers must treat this as session-scoped encryption — secrets are
+./core/security/src/main/java/com/nexaflow/core/security/KeystoreSecureStorage.kt:74:            .getKey(keyAlias, null)?.let { return it as SecretKey }
+./core/execution/src/test/java/com/nexaflow/core/execution/compat/CommandCompatibilityEngineTest.kt:126:        // Even with full elevation the duplicate entries are hidden as if
+./core/security/src/main/java/com/nexaflow/core/security/InMemorySecureStorage.kt:5:/** In-memory [SecureStorage] — used by unit tests and as a safe fallback. */
+./core/execution/src/test/java/com/nexaflow/core/execution/compat/AutomationWorkflowMapperTest.kt:54:        val children = (root as WorkflowNode.SequenceNode).children
+./core/execution/src/test/java/com/nexaflow/core/execution/compat/AutomationWorkflowMapperTest.kt:60:                (child as WorkflowNode.ActionNode).action.type
+./core/execution/src/test/java/com/nexaflow/core/execution/compat/AutomationWorkflowMapperTest.kt:70:        assertTrue((root as WorkflowNode.SequenceNode).children.isEmpty())
+./core/execution/src/test/java/com/nexaflow/core/execution/compat/AutomationWorkflowMapperTest.kt:79:        val root = mapped.exitWorkflow!!.root
+./core/execution/src/test/java/com/nexaflow/core/execution/compat/AutomationWorkflowMapperTest.kt:81:        val children = (root as WorkflowNode.SequenceNode).children
+./core/execution/src/test/java/com/nexaflow/core/execution/compat/AutomationWorkflowMapperTest.kt:85:            (children.first() as WorkflowNode.ActionNode).action.type
+./core/execution/src/test/java/com/nexaflow/core/execution/compat/AutomationWorkflowMapperTest.kt:133:        val ids = (mapped.runWorkflow.root as WorkflowNode.SequenceNode).children.map { it.id }
+./core/execution/src/test/java/com/nexaflow/core/execution/capability/CapabilityEnvironmentInspectorTest.kt:63:    fun `does not treat root binary presence as an available root environment`() {
+./core/execution/src/test/java/com/nexaflow/core/execution/WorkflowRunContextTest.kt:225:        val snap = ctx.snapshot() as Map<*, *>
+./core/execution/src/test/java/com/nexaflow/core/execution/WorkflowRunContextTest.kt:226:        (snap["weather"] as MutableMap<*, *>).clear()
+./core/execution/src/main/java/com/nexaflow/core/execution/workflow/WorkflowNodeExtensions.kt:52: * - REJECT: treats silence as rejection
+./core/execution/src/test/java/com/nexaflow/core/execution/ReminderAlarmReceiverTest.kt:27:    private val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+./core/execution/src/test/java/com/nexaflow/core/execution/ReminderAlarmReceiverTest.kt:52:        assertEquals(2, notification!!.actions.size)
+./core/execution/src/test/java/com/nexaflow/core/execution/ReminderAlarmReceiverTest.kt:71:        assertEquals(1, notification!!.actions.size)
+./feature/settings/src/main/java/com/nexaflow/feature/settings/UpdateViewModel.kt:87:                    info.apkUrl!!,
+./core/rom-integration/src/test/java/com/nexaflow/core/rom/ShizukuShellBridgeTest.kt:12: * binder is represented as a normal result by the production bridge.
+./core/rom-integration/src/test/java/com/nexaflow/core/rom/ShizukuShellBridgeTest.kt:135:    fun `network mode set wire preserves the confirmed bitmask as binary argv`() {
+./core/execution/src/test/java/com/nexaflow/core/execution/NotificationDismissReceiverTest.kt:27:    private val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+./core/execution/src/main/java/com/nexaflow/core/execution/workflow/WorkflowInterpreter.kt:569:        // A failed condition is not a false condition. Treating it as false used
+./core/execution/src/main/java/com/nexaflow/core/execution/workflow/Workflow.kt:81:            require(maxAttempts in 1..MAX_RETRY_ATTEMPTS) { "maxAttempts must be in 1..$MAX_RETRY_ATTEMPTS" }
+./core/execution/src/main/java/com/nexaflow/core/execution/workflow/Workflow.kt:133:        const val MAX_RETRY_ATTEMPTS = 100
+./core/execution/src/test/java/com/nexaflow/core/execution/NotificationActionButtonsTest.kt:239:        val runIntent = shadowOf(actions[0].actionIntent!!).savedIntent
+./core/execution/src/test/java/com/nexaflow/core/execution/NotificationActionButtonsTest.kt:244:        val dismissIntent = shadowOf(actions[1].actionIntent!!).savedIntent
+./core/execution/src/test/java/com/nexaflow/core/execution/NotificationActionButtonsTest.kt:295:        val revertIntent = shadowOf(reverted[1].actionIntent!!).savedIntent
+./feature/settings/src/main/java/com/nexaflow/feature/settings/UpdateDialog.kt:110:/** Formats a byte count as a short human-readable size (e.g. "3.7 MB"). */
+./core/rom-integration/src/test/java/com/nexaflow/core/rom/RootPermissionGranterTest.kt:359:        // report the permission as still missing even though the shell command
+./core/execution/src/main/java/com/nexaflow/core/execution/workflow/ActionRegistryExecutor.kt:10: * so the workflow engine runs the exact same handlers as the legacy
+./feature/dashboard/src/main/java/com/nexaflow/feature/dashboard/DashboardScreen.kt:70:import com.nexaflow.core.execution.R as ExecutionR
+./feature/dashboard/src/main/java/com/nexaflow/feature/dashboard/DashboardScreen.kt:724:    TriggerType.BATTERY_TEMPERATURE -> R.string.trigger_battery_temperature
+./feature/settings/src/main/java/com/nexaflow/feature/settings/UpdateChecker.kt:114:        val connection = URL(url).openConnection() as HttpURLConnection
+./feature/settings/src/main/java/com/nexaflow/feature/settings/UpdateChecker.kt:142:            val connection = URL(url).openConnection() as HttpURLConnection
+./feature/settings/src/main/java/com/nexaflow/feature/settings/UpdateChecker.kt:168:    /** SHA-256 of [file] as lowercase hex. */
+./feature/settings/src/main/java/com/nexaflow/feature/settings/UpdateChecker.kt:202:        val connection = URL(url).openConnection() as HttpURLConnection
+./core/execution/src/test/java/com/nexaflow/core/execution/ExecutionEngineVariableResolutionTest.kt:35: * config exactly as dispatched, so the assertion does not depend on any
+./core/execution/src/test/java/com/nexaflow/core/execution/ExecutionEngineVariableResolutionTest.kt:176:        // (no leftover placeholder) rather than pinning exact values.
+./core/rom-integration/src/test/java/com/nexaflow/core/rom/RomDetectorTest.kt:13: * be classified as EVOLUTION_X — never as LINEAGE_OS. This matters because
+./feature/settings/src/main/java/com/nexaflow/feature/settings/SettingsScreen.kt:150:    // share sheet with that file. The sheet includes this app as a target
+./feature/settings/src/main/java/com/nexaflow/feature/settings/SettingsScreen.kt:181:                // «Save locally» pinned as the first target of the share sheet.
+./feature/settings/src/main/java/com/nexaflow/feature/settings/SettingsScreen.kt:310:                        is UpdateUiState.Available -> updateDialogInfo = (updateState as UpdateUiState.Available).info
+./feature/settings/src/main/java/com/nexaflow/feature/settings/SettingsScreen.kt:782: * Custom intervals render as hours:minutes when >= 1 hour, else plain minutes.
+./core/execution/src/main/java/com/nexaflow/core/execution/verification/VerificationEngine.kt:26:     * as some system state changes take time to reflect.
+./feature/settings/src/main/java/com/nexaflow/feature/settings/PluginCatalog.kt:112:        PluginCatalogDefinition("com.urbandroid.sleep", "Sleep as Android", listOf(PluginCatalogCapability.SLEEP)),
+./core/execution/src/main/java/com/nexaflow/core/execution/task/TaskManager.kt:96: * the legacy sequential engine). Results are exposed as a [StateFlow].
+./core/execution/src/main/java/com/nexaflow/core/execution/task/TaskManager.kt:225:    /** Stops the worker and records queued/running tasks as cancelled. */
+./core/execution/src/main/java/com/nexaflow/core/execution/task/TaskManager.kt:303:        // idle while cancel() can still observe the completed task as known.
+./feature/settings/src/main/java/com/nexaflow/feature/settings/PermissionManagerScreen.kt:105:        // shown as granted after the app process itself can verify it.
+./feature/settings/src/main/java/com/nexaflow/feature/settings/PermissionManagerScreen.kt:225:                // Root/Shizuku commands run as an elevated shell, whereas
+./feature/settings/src/main/java/com/nexaflow/feature/settings/PermissionManagerScreen.kt:226:                // framework APIs run as NexaFlow's UID. `pm grant` bridges that
+./feature/settings/src/main/java/com/nexaflow/feature/settings/PermissionManagerScreen.kt:545:                val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+./feature/settings/src/main/java/com/nexaflow/feature/settings/PermissionManagerScreen.kt:557:                    val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+./feature/settings/src/main/java/com/nexaflow/feature/settings/PermissionManagerScreen.kt:571:                val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+./core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt:233:        // admission is recorded as a failed run instead of pretending actions
+./core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt:512:     * the configured exit actions. Records the run in history as well.
+./core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt:520:        // so the timeline and UI never report the outcome as a successful main run.
+./core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt:526:        // Consume both ledgers as one critical section. Without this per-task
+./core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt:604:                // is honored exactly as configured, before the custom exit actions.
+./core/execution/src/main/java/com/nexaflow/core/execution/ExecutionEngine.kt:692:     * Resolves %variable placeholders (built-ins + user globals) inside every
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/model/RomCapability.kt:61:        "Xiaomi system APIs exposed when running as a system component."
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/model/RomCapability.kt:65:        "OPPO/OnePlus system APIs exposed when running as a system component."
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/model/RomCapability.kt:69:        "Samsung system APIs exposed when running as a system component."
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/model/RomCapability.kt:73:        "Vendor system APIs (OriginOS, EMUI/HarmonyOS, ZenUI, Nothing OS, Motorola, Sony) exposed when running as a system component."
+./core/execution/src/main/java/com/nexaflow/core/execution/DeviceStateSnapshot.kt:106:     * types are filtered as explicit no-ops by [restore].
+./core/execution/src/main/java/com/nexaflow/core/execution/DeviceStateSnapshot.kt:279:            val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+./core/execution/src/main/java/com/nexaflow/core/execution/DeviceStateSnapshot.kt:357:                    val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+./core/execution/src/main/java/com/nexaflow/core/execution/plugin/PluginFireClient.kt:15: * Outcome of firing a plugin, as reported back through the ordered broadcast.
+./core/execution/src/main/java/com/nexaflow/core/execution/plugin/PluginFireClient.kt:32: * [LocaleContract.ACTION_FIRE_SETTING] broadcast, sends it as an **ordered**
+./core/execution/src/main/java/com/nexaflow/core/execution/plugin/PluginFireClient.kt:53:            // Wake force-stopped apps and mark the fire as background-initiated,
+./core/execution/src/main/java/com/nexaflow/core/execution/plugin/PluginFireClient.kt:96:     * Tasker documents action outputs as lower-case local variables.  Keep the
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/model/IntegrationLevel.kt:21:        "Installed as a system app in /system/app."
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/model/IntegrationLevel.kt:25:        "Installed as a privileged app in /system/priv-app with a granted whitelist."
+./core/execution/src/main/java/com/nexaflow/core/execution/ContextVariableResolver.kt:4: * Resolves `%CTX.<jsonpath>` reference placeholders against a
+./core/execution/src/main/java/com/nexaflow/core/execution/ContextVariableResolver.kt:26: * lists as compact JSON. Pure JVM (no Android imports) — atomically testable.
+./core/execution/src/main/java/com/nexaflow/core/execution/ContextVariableResolver.kt:44:     * value) keep the placeholder untouched.
+./feature/icons/src/main/java/com/nexaflow/feature/icons/IconPickerScreen.kt:51: * Ready-made accent palette (Google 2026 tones) shown as a fixed strip at the
+./feature/icons/src/main/java/com/nexaflow/feature/icons/IconPickerScreen.kt:145:                    placeholder = { Text(text = stringResource(R.string.search_icons)) },
+./core/execution/src/main/java/com/nexaflow/core/execution/plugin/PluginConditionClient.kt:27: * silently interpreted as an unsatisfied condition.
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/UserShellService.kt:12: * commands run as uid 0 / shell.
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/UserShellService.kt:51:     * then retains the fixed TelephonyShell argv as a compatibility fallback.
+./core/execution/src/main/java/com/nexaflow/core/execution/handler/SystemActionsHandler.kt:171:                // runtime bounded as well so imported workflows cannot request
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:234:            val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:307:            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:320:                (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager)
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:324:                context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:343:            val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:360:            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:503:        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:702:     * requires an elevated runtime. It is not presented as per-app DNS: that
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:726:        // Android/OEM settings providers may expose an empty specifier as either
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:808:            val dpm = policyManager as android.app.admin.DevicePolicyManager
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1008:     * execute local package operations, but neither is treated as evidence that
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1208:     * [actions] are attached as interactive action buttons (built upstream with
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1364:    /** Injects text as if typed (shell `input text`; %s is converted to a space). */
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1371:            // `input text` renders %s as a space, so real spaces must be sent
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1524:    /** Sets the battery saver trigger level as a percentage (0-100). */
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1777:                (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as android.os.VibratorManager).defaultVibrator
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1780:                context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1926:            val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:2043:            val wifi = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:117:        // Availability is admitted solely after `su` answers as uid=0; otherwise
+./core/execution/src/main/java/com/nexaflow/core/execution/handler/ReminderScheduler.kt:51:            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+./core/execution/src/main/java/com/nexaflow/core/execution/handler/PluginFireHandler.kt:37:        // OPAQUE keys); rebuild the protocol bundle exactly as saved. A corrupt
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppInstaller.kt:12: * Installs NexaFlow as a true privileged system app (/system/priv-app) using a
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppInstaller.kt:107:                "Module installed. Reboot the device to activate NexaFlow as a system app."
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppInstaller.kt:120:        description=Installs NexaFlow as a privileged system app with deep ROM integration.
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppInstaller.kt:131:                Granted only because the app is installed as a priv-app by the
+./core/execution/src/main/java/com/nexaflow/core/execution/handler/HttpRequestHandler.kt:194:            connection = (URL(url).openConnection() as HttpURLConnection).apply {
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:38:     * callback as authorization to execute.
+./core/execution/src/main/java/com/nexaflow/core/execution/handler/AdvancedActionsHandler.kt:44:     * it must never silently run a placeholder command with elevated privileges.
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:178:     * as a substitute for a successful app-permission verification.
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:474:                    // permission such as READ_PHONE_STATE.
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:508:                (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:514:                val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:526:            val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as android.app.AppOpsManager
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:579:        val pm = context.getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/RomDetectionMatrix.kt:22: *    a Samsung/Xiaomi device is classified as the custom ROM, never as the
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/RomDetectionMatrix.kt:29: *    OxygenOS/Realme build is never misread as plain ColorOS: the family is
+./core/datastore/src/test/java/com/nexaflow/core/datastore/AutomationRuntimeStoreTest.kt:61:        assertEquals(1, (first as ExitClaim.Claimed).state.exitAttempt)
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedTelephonyBridge.kt:9: * process runs as shell or root. OEM TelephonyShell implementations may omit
+./core/datastore/src/test/java/com/nexaflow/core/datastore/ActiveExecutionStoreCheckpointTest.kt:62:        assertTrue("run-checkpoint:0:ACTION" in started!!.idempotencyKeys)
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:116:     * for the user. Returns true once the shell answers as uid=0 (granted).
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivateDnsPolicy.kt:6: * it is deliberately not presented as a per-app DNS tunnel.
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/PermissionStatus.kt:14: * access. Both are stored as colon-separated component strings in
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/PermissionStatus.kt:18: * The app's own service component names are declared once as constants and
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/PermissionStatus.kt:62:            val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/PermissionStatus.kt:78:     * colon-separated list of enabled services as stored in Settings.Secure?
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/OemCompat.kt:38:     * Marks the guidance as delivered so the other channel stays silent:
+./core/execution/src/main/java/com/nexaflow/core/execution/constraints/ConstraintStateReader.kt:57:    @SuppressLint("MissingPermission") // guarded by the same normal permission as Wi-Fi capture
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModePolicy.kt:35:    /** Cellular RATs that make sense as a user-selectable preferred mode. */
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModePolicy.kt:141:     * used as evidence for this subscription.
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModePolicy.kt:143:     * This is only a modem-default capability hint. It is never treated as a
+./core/execution/src/main/java/com/nexaflow/core/execution/compat/EventSource.kt:83:            TriggerType.BATTERY_TEMPERATURE -> BATTERY
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeController.kt:15: * ignored on Android 10+ (the framework reads it once as a default only) and
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeController.kt:19: * holds MODIFY_PHONE_STATE / runs as a system app, falls back to a reviewed
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeController.kt:161:        //    passing a subId as a hidden extra argument is not Android's API
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeController.kt:226:                arrayOf(Int::class.javaPrimitiveType!!, Int::class.javaPrimitiveType!!),
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeController.kt:231:                    telephony, "getPreferredNetworkType", arrayOf(Int::class.javaPrimitiveType!!), subId
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeController.kt:300:     * surface as non-dispatched and move the ladder down. `getMethod` only
+./core/datastore/src/main/java/com/nexaflow/core/datastore/ThemePreferences.kt:35:     * the same experience as every Google app; the user can disable it in
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeCapabilities.kt:181:        // denial as unavailable capability rather than assuming a radio mask.
+./core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCompatibilityEngine.kt:93: *    no viable path, making them appear as if they did not exist.
+./core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCompatibilityEngine.kt:101:    // The catalog is held as a property for future per-ROM override tables;
+./core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCompatibilityEngine.kt:144:        // Unified duplicates are hidden as if they did not exist.
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:30:        // Shizuku 13.1.5 delivers the grant result as an int: PERMISSION_GRANTED
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:88:        val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+./core/datastore/src/main/java/com/nexaflow/core/datastore/AutomationRuntimeStore.kt:25: * deleted as though cleanup succeeded.
+./core/datastore/src/main/java/com/nexaflow/core/datastore/AutomationRuntimeStore.kt:90:                // do not execute an unrecognised state as though it were active.
+./core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCatalog.kt:242:        TriggerType.BATTERY_TEMPERATURE to CommandSpec.UNIVERSAL,
+./core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCatalog.kt:307:     * alias (hidden from the UI as if it did not exist); the value is the
+./core/rom-integration/src/main/java/com/nexaflow/core/rom/DnsSupport.kt:22:/** A provider profile that can be used as a Private DNS hostname request. */
+./core/execution/src/main/java/com/nexaflow/core/execution/compat/AutomationWorkflowRunner.kt:119:            val outcome = interpreter.execute(mapped.exitWorkflow!!.root)
+./feature/automations/src/main/java/com/nexaflow/feature/automations/AutomationDetailsScreen.kt:154:                    // P2-5: pin this task as a home-screen shortcut that runs it
+./feature/automations/src/main/java/com/nexaflow/feature/automations/AutomationDetailsScreen.kt:491:    config["value"] != null -> config["value"]!!
+./feature/automations/src/main/java/com/nexaflow/feature/automations/AutomationDetailsScreen.kt:492:    config["title"]?.isNotBlank() == true -> config["title"]!!
+./feature/automations/src/main/java/com/nexaflow/feature/automations/AutomationDetailsScreen.kt:493:    config["url"]?.isNotBlank() == true -> config["url"]!!
+./feature/automations/src/main/java/com/nexaflow/feature/automations/AutomationDetailsScreen.kt:496:    config["number"]?.isNotBlank() == true -> config["number"]!!
+./feature/automations/src/main/java/com/nexaflow/feature/automations/AutomationDetailsScreen.kt:497:    config["text"]?.isNotBlank() == true -> config["text"]!!.take(40)
+./feature/automations/src/main/java/com/nexaflow/feature/automations/AutomationDetailsScreen.kt:498:    config["command"]?.isNotBlank() == true -> config["command"]!!.take(40)
+./feature/automations/src/main/java/com/nexaflow/feature/automations/AutomationDetailsScreen.kt:500:    config["mode"]?.isNotBlank() == true -> config["mode"]!!
+./feature/automations/src/main/java/com/nexaflow/feature/automations/AutomationDetailsScreen.kt:506:    config["blurb"]?.isNotBlank() == true -> config["blurb"]!!.take(40)
+./feature/automations/src/main/java/com/nexaflow/feature/automations/AutomationDetailsScreen.kt:582:    TriggerType.BATTERY_TEMPERATURE -> Triple(R.string.trigger_battery_temperature, R.string.trigger_battery_temperature, Icons.Filled.DeviceThermostat)
+./feature/automations/src/main/java/com/nexaflow/feature/automations/AutomationDetailsScreen.kt:680:/** Localized per-action end-behavior label, or null when the action stays as is. */
+./core/execution/src/main/java/com/nexaflow/core/execution/compat/AutomationWorkflowMapper.kt:13: * - [entryTriggers]  — the triggers kept as entry metadata (the event sources
+./core/execution/src/main/java/com/nexaflow/core/execution/compat/AutomationWorkflowMapper.kt:14: *   that fire this task). The monitors gate on them exactly as before.
+./core/execution/src/main/java/com/nexaflow/core/execution/compat/AutomationWorkflowMapper.kt:16: *   action nodes (sequential, fail-fast — same as the legacy engine).
+./core/datastore/src/main/java/com/nexaflow/core/datastore/ActiveTriggerStore.kt:14:    // of throwing on every startup read (same guard as the other stores).
+./core/datastore/src/main/java/com/nexaflow/core/datastore/ActiveTriggerStore.kt:50:    /** Marks the automation (under this monitor's key) as currently triggered. */
+./core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt:139:    private fun unsupportedAvailability() = BackendAvailability(id, CapabilityAvailability.UNSUPPORTED, "Capability is not implemented by Shizuku backend")
+./core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt:151:        request.capability !in supportedCapabilities -> BackendAvailability(id, CapabilityAvailability.UNSUPPORTED, "Capability is not implemented by Root backend")
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/VariablesScreen.kt:286:                    placeholder = { Text(text = "HomeAddress") },
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/VariablesScreen.kt:300:                    placeholder = { Text(text = stringResource(R.string.variables_value_hint)) }
+./core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityResolverAdapter.kt:12:import com.nexaflow.domain.capability.CapabilityBackend as DomainCapabilityBackend
+./core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityResolverAdapter.kt:13:import com.nexaflow.domain.capability.CapabilityResolver as DomainCapabilityResolver
+./core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityRequestValidator.kt:38:    /** Non-secret backend handle such as a persisted plug-in instance id, never a Bundle or command. */
+./core/automation-engine/src/test/java/com/nexaflow/core/engine/TriggerIndexTest.kt:238:    fun `false is not treated as true for disabled rows with same id`() = runTest {
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:202:    TriggerType.BATTERY_TEMPERATURE to TriggerCategory.DEVICE,
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:264:    TriggerType.BATTERY_TEMPERATURE,
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:347:    TriggerType.BATTERY_TEMPERATURE -> mapOf("threshold" to "40", "direction" to "ABOVE")
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:404:    TriggerType.BATTERY_TEMPERATURE -> R.string.trigger_type_battery_temperature
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:460:    TriggerType.BATTERY_TEMPERATURE -> R.string.trigger_type_battery_temp_sub
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:516:    TriggerType.BATTERY_TEMPERATURE -> Icons.Filled.DeviceThermostat
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:698:                    placeholder = { Text(stringResource(R.string.repeat_interval_hint)) },
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:1233:        TriggerType.BATTERY_TEMPERATURE -> {
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:1815:                        // using the same real-5G detection as the runtime monitor.
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:1993:                            placeholder = { Text(text = stringResource(R.string.sms_from_hint)) },
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:2001:                            placeholder = { Text(text = stringResource(R.string.sms_contains_hint)) },
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:2062:                                    val audio = context.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:2182:                            placeholder = { Text(text = stringResource(R.string.calendar_contains_hint)) },
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:2372:                            placeholder = { Text(text = "/nexaflow") },
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:2400:                            placeholder = { Text(text = stringResource(R.string.webhook_token_hint)) },
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:2441:                            placeholder = { Text(text = "evo_…") },
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:2486:                            placeholder = { Text(text = "1") },
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:2496:                        // Google 2026: selection tasks open as a full-height modal bottom sheet.
+./feature/automation-builder/src/main/java/com/nexaflow/feature/builder/TriggerEditorCard.kt:2624:                            placeholder = { Text(text = stringResource(R.string.notification_contains_hint)) },
+=== DIRECT PRIVILEGED / SHELL REFERENCES ===
+app/src/test/java/com/nexaflow/app/MergedManifestNoSentryTest.kt:55:        // Shizuku IPC bind provider; no initialization code of its own, the
+app/src/test/java/com/nexaflow/app/MergedManifestNoSentryTest.kt:57:        "rikka.shizuku.ShizukuProvider",
+core/ui-components/src/test/java/com/nexaflow/core/ui/NexaFlowMotionTest.kt:60:        Settings.Global.putFloat(
+core/ui-components/src/test/java/com/nexaflow/core/ui/NexaFlowMotionTest.kt:62:            Settings.Global.ANIMATOR_DURATION_SCALE,
+app/src/main/java/com/nexaflow/app/work/LocationCheckWorker.kt:22: * through the elevated runtime (Shizuku / root / WRITE_SECURE_SETTINGS),
+app/src/main/java/com/nexaflow/app/di/AppModule.kt:41:import com.nexaflow.core.execution.capability.ShizukuCapabilityBackend
+app/src/main/java/com/nexaflow/app/di/AppModule.kt:269:                // resolver never falls through from Shizuku to Root or vice versa.
+app/src/main/java/com/nexaflow/app/di/AppModule.kt:270:                ShizukuCapabilityBackend(),
+core/ui-components/src/main/java/com/nexaflow/core/ui/NexaFlowMotion.kt:72:        Settings.Global.getFloat(
+core/ui-components/src/main/java/com/nexaflow/core/ui/NexaFlowMotion.kt:74:            Settings.Global.ANIMATOR_DURATION_SCALE,
+app/src/main/java/com/nexaflow/app/NexaFlowApplication.kt:21:import com.nexaflow.core.rom.ShizukuShellBridge
+app/src/main/java/com/nexaflow/app/NexaFlowApplication.kt:79:        // single piece (Shizuku bridge, Sentry, WorkManager, scheduler,
+app/src/main/java/com/nexaflow/app/NexaFlowApplication.kt:81:        runCatching { ShizukuShellBridge.initialize(this) }
+app/src/main/java/com/nexaflow/app/NexaFlowApplication.kt:82:            .onFailure { Log.e(TAG, "Shizuku init failed", it) }
+app/src/main/java/com/nexaflow/app/MainActivity.kt:157:     * On a rooted (or Shizuku-granted) device, grant every permission the app
+domain/src/main/java/com/nexaflow/domain/updates/GooglePlayUpdateModels.kt:65: * Produces a conservative execution decision. It never treats Root, Shizuku,
+domain/src/main/java/com/nexaflow/domain/models/PermissionRequirement.kt:11: *   notification listener, accessibility, Shizuku/root) that cannot be granted
+core/compatibility/src/test/java/com/nexaflow/core/compat/ProviderSelectorTest.kt:54:    fun shizukuDevice_prefersShizuku() {
+core/compatibility/src/test/java/com/nexaflow/core/compat/ProviderSelectorTest.kt:60:    fun rootOutranksShizukuWhenBothAvailable() {
+core/compatibility/src/test/java/com/nexaflow/core/compat/ProviderSelectorTest.kt:103:    fun capability_rootShell_onlyRootAndShizukuSatisfy() {
+core/compatibility/src/test/java/com/nexaflow/core/compat/ExecutionChannelSelectorTest.kt:145:        // Root rejects, Shizuku succeeds — the report names Shizuku and shows
+core/compatibility/src/test/java/com/nexaflow/core/compat/ChannelStatusMapperTest.kt:67:    fun shizukuDevice_mapsToShizukuElevated() {
+core/compatibility/src/test/java/com/nexaflow/core/compat/ChannelStatusMapperTest.kt:132:    fun rootOutranksShizuku_bothAvailable() {
+core/compatibility/src/test/java/com/nexaflow/core/compat/ChannelStatusMapperTest.kt:139:    fun customRomSystemApp_reportsShellAccess() {
+domain/src/main/java/com/nexaflow/domain/marketplace/WorkflowManifest.kt:27:     * if these capabilities require high privileges (e.g., Root or Shizuku).
+core/security/src/main/java/com/nexaflow/core/security/SecureStorage.kt:4: * Encrypted key-value storage for secrets (ADB pairing tokens, Shizuku state,
+core/compatibility/src/main/java/com/nexaflow/core/compat/ProviderSelector.kt:19: * successful result — the graceful-degradation path (Shizuku → root → ...).
+domain/src/main/java/com/nexaflow/domain/diagnostics/DiagnosticsSystem.kt:47:    /** User must take an action (e.g., grant permission, enable Shizuku). */
+core/compatibility/src/main/java/com/nexaflow/core/compat/ProviderExecutionReport.kt:11: * "ran via Shizuku", etc.
+core/compatibility/src/main/java/com/nexaflow/core/compat/ExecutionProvider.kt:17:        "AccessibilityService-driven control (UI automation, gesture input)."
+core/compatibility/src/main/java/com/nexaflow/core/compat/ExecutionProvider.kt:20:        "Shizuku",
+core/compatibility/src/main/java/com/nexaflow/core/compat/ExecutionProvider.kt:21:        "Elevated commands through the Shizuku service (ADB or root-backed)."
+core/compatibility/src/main/java/com/nexaflow/core/compat/ExecutionProvider.kt:29:        "Direct su shell (Magisk / KernelSU / APatch)."
+core/compatibility/src/main/java/com/nexaflow/core/compat/ExecutionProvider.kt:57:     * (Android, Accessibility) return false; shell channels (Shizuku, ADB,
+core/compatibility/src/main/java/com/nexaflow/core/compat/ExecutionProvider.kt:61:    val hasShellAccess: Boolean
+core/compatibility/src/main/java/com/nexaflow/core/compat/ExecutionProvider.kt:69:     * access (Android, Accessibility) return a clear failure. Root/Shizuku
+core/compatibility/src/main/java/com/nexaflow/core/compat/DeviceProfileDetector.kt:23:            shizukuGranted = PrivilegedRunner.isShizukuGranted(),
+core/compatibility/src/main/java/com/nexaflow/core/compat/DeviceProfileDetector.kt:30:    /** True when our AccessibilityService is among the enabled services. */
+core/compatibility/src/main/java/com/nexaflow/core/compat/DeviceProfileDetector.kt:32:        PermissionStatus.isAccessibilityServiceEnabled(context)
+core/compatibility/src/main/java/com/nexaflow/core/compat/DefaultProviders.kt:27:/** AccessibilityService-driven control — enabled when the service is running. */
+core/compatibility/src/main/java/com/nexaflow/core/compat/DefaultProviders.kt:42:/** Elevated commands through the Shizuku service. */
+core/compatibility/src/main/java/com/nexaflow/core/compat/DefaultProviders.kt:43:object ShizukuProvider : ExecutionProvider {
+core/compatibility/src/main/java/com/nexaflow/core/compat/DefaultProviders.kt:67:    override fun execute(command: String): SystemControlResult = PrivilegedRunner.runShizuku(command)
+core/compatibility/src/main/java/com/nexaflow/core/compat/DefaultProviders.kt:90:/** Direct root shell (su). */
+core/compatibility/src/main/java/com/nexaflow/core/compat/DefaultProviders.kt:144:    override fun execute(command: String): SystemControlResult = PrivilegedRunner.runShell(command)
+core/compatibility/src/main/java/com/nexaflow/core/compat/DefaultProviders.kt:152:    ShizukuProvider,
+core/compatibility/src/main/java/com/nexaflow/core/compat/ChannelStatus.kt:8:    /** Full elevated shell / platform power (Root, Shizuku, ADB, System app). */
+core/compatibility/src/main/java/com/nexaflow/core/compat/ChannelStatus.kt:68:            shellAccess = provider?.hasShellAccess == true,
+domain/src/main/java/com/nexaflow/domain/capability/CapabilityRequirements.kt:7: * workflow metadata. This model intentionally has no Android, Root or Shizuku
+domain/src/main/java/com/nexaflow/domain/capability/CapabilityModels.kt:10: * describes *what* is needed, never an implementation detail such as `su`.
+domain/src/main/java/com/nexaflow/domain/capability/CapabilityModels.kt:83:    /** Shell identity provided by a real, currently connected ADB channel. */
+domain/src/main/java/com/nexaflow/domain/capability/CapabilityModels.kt:280: * descriptor; typed Shizuku/Root/ADB operations require exactly one explicit
+domain/src/main/java/com/nexaflow/domain/capability/CapabilityModels.kt:294:    /** Explicit opt-in required before the resolver can choose Shizuku, Root or ADB. */
+domain/src/main/java/com/nexaflow/domain/capability/CapabilityBackend.kt:6: * Unified contract for all execution backends (Android API, Root, Shizuku, Shell, Accessibility, etc).
+core/rom-integration/src/test/java/com/nexaflow/core/rom/ShizukuShellBridgeTest.kt:14:class ShizukuShellBridgeTest {
+core/rom-integration/src/test/java/com/nexaflow/core/rom/ShizukuShellBridgeTest.kt:18:        ShizukuShellBridge.operationProbe = null
+core/rom-integration/src/test/java/com/nexaflow/core/rom/ShizukuShellBridgeTest.kt:19:        ShizukuShellBridge.legacyExecProbe = null
+core/rom-integration/src/test/java/com/nexaflow/core/rom/ShizukuShellBridgeTest.kt:24:        val result = ShizukuShellBridge.parseAidlResponse("0\nhello world", "settings.write")
+core/rom-integration/src/test/java/com/nexaflow/core/rom/ShizukuShellBridgeTest.kt:32:        val result = ShizukuShellBridge.parseAidlResponse("0\n", "package.force_stop")
+core/rom-integration/src/test/java/com/nexaflow/core/rom/ShizukuShellBridgeTest.kt:40:        val result = ShizukuShellBridge.parseAidlResponse("1\npermission denied", "package.force_stop")
+core/rom-integration/src/test/java/com/nexaflow/core/rom/ShizukuShellBridgeTest.kt:80:    fun `network mode read wire builds a fixed TelephonyShell argv`() {
+core/rom-integration/src/test/java/com/nexaflow/core/rom/ShizukuShellBridgeTest.kt:167:    fun `runShizuku rejects when not granted without touching legacy bridge`() {
+core/rom-integration/src/test/java/com/nexaflow/core/rom/ShizukuShellBridgeTest.kt:169:        ShizukuShellBridge.legacyExecProbe = {
+core/rom-integration/src/test/java/com/nexaflow/core/rom/ShizukuShellBridgeTest.kt:174:        val result = PrivilegedRunner.runShizuku("echo hi")
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootPermissionGranterTest.kt:14: * The real shell ([PrivilegedRunner.runShell]) and Android Context lookups are
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootPermissionGranterTest.kt:61:    // Gate: no root / Shizuku → nothing is attempted
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootPermissionGranterTest.kt:65:    fun `canAutoGrant false without root or Shizuku`() {
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootPermissionGranterTest.kt:82:    fun `runtime permission path requests root approval when su exists but app is not approved`() {
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootPermissionGranterTest.kt:86:                elevatedShellAvailable = false,
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootPermissionGranterTest.kt:93:                elevatedShellAvailable = true,
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootPermissionGranterTest.kt:100:                elevatedShellAvailable = false,
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootPermissionGranterTest.kt:423:        // No su prompt should be triggered — root is already granted.
+feature/settings/src/main/java/com/nexaflow/feature/settings/PluginCatalog.kt:234:            displayName = "ADB Shell [Tasker Plugin]",
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:14: * The real `su` process spawning is replaced by the internal test seams
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:18: * `su` on PATH; legacy SuperSU only at fixed paths; denial must not re-prompt).
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:40:    // isSuBinaryAvailable — where does the su binary live?
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:44:    fun `isSuBinaryAvailable true when su is on PATH (Magisk KernelSU APatch)`() {
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:51:        // Guards against a regression that drops one of the fixed su paths —
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:52:        // each root manager must stay detectable on devices where su is not
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:56:        assertTrue("KernelSU su path missing", paths.any { it.contains("ksu") })
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:57:        assertTrue("APatch su path missing", paths.any { it.contains("ap/bin/su") })
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:58:        assertTrue("legacy /system/bin/su missing", paths.contains("/system/bin/su"))
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:62:    fun `isSuBinaryAvailable false when no su anywhere`() {
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:72:    fun `isRootAvailable true when su answers uid=0 (granted)`() {
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:79:    fun `isRootAvailable false when su is present but denied`() {
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:109:    fun `triggerSuPrompt granted via bare su on PATH (Magisk)`() {
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:113:            if (cmd.contentEquals(arrayOf("su", "-c", "id"))) true else false
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:116:        assertEquals("bare su attempt must be tried first", 1, probeCalls.size)
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:120:    fun `triggerSuPrompt falls back to su 0 form (APatch)`() {
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:124:            // APatch builds may reject `su -c` but accept `su 0`.
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:125:            if (cmd.contentEquals(arrayOf("su", "-c", "id"))) null else true
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:128:        assertTrue(probeCalls.any { it.contentEquals(arrayOf("su", "0", "-c", "id")) })
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:132:    fun `triggerSuPrompt falls back to system bin su when not on PATH (legacy)`() {
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:134:        // via pathResolution=true), but the PATH-resolved `su` forms don't run
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:135:        // (null = not found) and only /system/bin/su works.
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:139:            if (cmd[0] == "/system/bin/su") true else null
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:143:            "must try bare su, su 0, then /system/bin/su",
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:144:            listOf("su", "su", "/system/bin/su"),
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:165:    fun `triggerSuPrompt returns false when no su binary exists`() {
+core/rom-integration/src/test/java/com/nexaflow/core/rom/RootGrantFlowTest.kt:172:        assertTrue("no su binary → no process may even be attempted", probeCalls.isEmpty())
+core/common/src/main/java/com/nexaflow/core/common/HotspotStateReader.kt:18: * old `Settings.Global.tether_on` key is not a public API and is absent or
+core/common/src/main/java/com/nexaflow/core/common/HotspotStateReader.kt:84:        when (Settings.Global.getString(context.contentResolver, LEGACY_TETHER_KEY)) {
+feature/settings/src/main/java/com/nexaflow/feature/settings/PermissionManagerScreen.kt:225:                // Root/Shizuku commands run as an elevated shell, whereas
+feature/settings/src/main/java/com/nexaflow/feature/settings/PermissionManagerScreen.kt:528:            isGranted = { PrivilegedRunner.isShizukuGranted() },
+feature/settings/src/main/java/com/nexaflow/feature/settings/PermissionManagerScreen.kt:529:            openAction = { context -> ElevatedAccessShortcuts.openShizuku(context) }
+feature/settings/src/main/java/com/nexaflow/feature/settings/PermissionManagerScreen.kt:580:    PermissionStatus.isAccessibilityServiceEnabled(context)
+core/rom-integration/src/test/java/com/nexaflow/core/rom/PermissionStatusTest.kt:8: * Guards the Settings.Secure enabled-services parsing that previously lived
+core/rom-integration/src/test/java/com/nexaflow/core/rom/PermissionStatusTest.kt:19:                "com.nexaflow.app/com.nexaflow.core.engine.AppTriggerAccessibilityService",
+core/rom-integration/src/test/java/com/nexaflow/core/rom/PermissionStatusTest.kt:20:                "com.nexaflow.app/com.nexaflow.core.engine.AppTriggerAccessibilityService"
+core/rom-integration/src/test/java/com/nexaflow/core/rom/PermissionStatusTest.kt:54:                "com.nexaflow.app/com.nexaflow.core.engine.AppTriggerAccessibilityService"
+core/rom-integration/src/test/java/com/nexaflow/core/rom/PermissionStatusTest.kt:82:        // the constant must exactly equal what Settings.Secure stores.
+core/automation-engine/src/test/java/com/nexaflow/core/engine/SettingsStateMonitorLifecycleTest.kt:45:            Settings.Global.putInt(context.contentResolver, "low_power", 0)
+feature/automation-builder/src/test/java/com/nexaflow/feature/builder/SpecialPermissionStatusRowTest.kt:23: * the real root/Shizuku/settings probes.
+feature/automation-builder/src/test/java/com/nexaflow/feature/builder/SpecialPermissionStatusRowTest.kt:87:        // AVAILABLE only ever occurs for the elevated trio (root/Shizuku/
+feature/automation-builder/src/test/java/com/nexaflow/feature/builder/ConstraintEditorCardLayoutTest.kt:48:        Settings.Global.putFloat(
+feature/automation-builder/src/test/java/com/nexaflow/feature/builder/ConstraintEditorCardLayoutTest.kt:50:            Settings.Global.ANIMATOR_DURATION_SCALE,
+core/rom-integration/src/main/java/com/nexaflow/core/rom/model/RomCapability.kt:13:        "Modify Settings.Secure and Settings.Global. Privileged-only on stock ROMs."
+core/rom-integration/src/main/java/com/nexaflow/core/rom/model/RomCapability.kt:77:        "Execute shell commands through su."
+core/rom-integration/src/main/java/com/nexaflow/core/rom/model/RomCapability.kt:80:        "Shizuku service",
+core/rom-integration/src/main/java/com/nexaflow/core/rom/model/RomCapability.kt:81:        "Execute elevated commands through the Shizuku service."
+feature/automation-builder/src/test/java/com/nexaflow/feature/builder/CategoryAccordionTest.kt:51:        Settings.Global.putFloat(
+feature/automation-builder/src/test/java/com/nexaflow/feature/builder/CategoryAccordionTest.kt:53:            Settings.Global.ANIMATOR_DURATION_SCALE,
+core/rom-integration/src/main/java/com/nexaflow/core/rom/model/IntegrationLevel.kt:13:        "su binary detected. Full control via a root shell is possible."
+core/rom-integration/src/main/java/com/nexaflow/core/rom/model/IntegrationLevel.kt:16:        "Shizuku active",
+core/rom-integration/src/main/java/com/nexaflow/core/rom/model/IntegrationLevel.kt:17:        "Shizuku server is running. Elevated commands are possible via ADB or root."
+core/rom-integration/src/main/java/com/nexaflow/core/rom/UserShellService.kt:9: * Shizuku UserService that executes `sh -c <command>` with elevated
+core/rom-integration/src/main/java/com/nexaflow/core/rom/UserShellService.kt:10: * privileges. Shizuku forks this component's process from its own server
+core/rom-integration/src/main/java/com/nexaflow/core/rom/UserShellService.kt:14: * A plain [Service] exposing the [IUserShellService] AIDL stub from [onBind] —
+core/rom-integration/src/main/java/com/nexaflow/core/rom/UserShellService.kt:15: * the pattern the Shizuku docs and sample apps have used since the API 13.1.5
+core/rom-integration/src/main/java/com/nexaflow/core/rom/UserShellService.kt:16: * deprecation of `Shizuku.newProcess`.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/UserShellService.kt:19: * match the [ShizukuShellBridge]'s `processNameSuffix`; otherwise the service
+core/rom-integration/src/main/java/com/nexaflow/core/rom/UserShellService.kt:21: * Shizuku-spawned one.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/UserShellService.kt:23:class UserShellService : Service() {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/UserShellService.kt:25:    private val binder = object : IUserShellService.Stub() {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/UserShellService.kt:51:     * then retains the fixed TelephonyShell argv as a compatibility fallback.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/UserShellService.kt:82:     * matching the legacy `ShizukuRemoteProcess` behaviour.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/UserShellService.kt:89:        val process = ProcessBuilder(argv)
+core/execution/src/test/java/com/nexaflow/core/execution/handler/AdvancedActionsHandlerRoutingTest.kt:71:    fun route_usesSelectedChannelWhenItHasShellAccess() {
+core/execution/src/test/java/com/nexaflow/core/execution/handler/AdvancedActionsHandlerRoutingTest.kt:83:    fun route_usesShizukuChannelForShizukuAction() {
+core/execution/src/test/java/com/nexaflow/core/execution/handler/AdvancedActionsHandlerRoutingTest.kt:106:    fun route_fallsBackWhenChannelHasNoShellAccess() {
+core/execution/src/test/java/com/nexaflow/core/execution/handler/AdvancedActionsHandlerRoutingTest.kt:121:        // A Shizuku-selected channel must NOT run a root action: auto-selection
+core/execution/src/test/java/com/nexaflow/core/execution/handler/AdvancedActionsHandlerRoutingTest.kt:136:    fun route_doesNotOverrideExplicitShizukuWithRootChannel() {
+core/execution/src/test/java/com/nexaflow/core/execution/expression/ExpressionEngineTest.kt:49:            ExpressionEngine.evaluate("java.lang.Runtime.getRuntime()", variables)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:113:            Settings.Secure.putString(context.contentResolver, name, value)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:257:            val written = Settings.Global.putInt(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:259:                Settings.Global.AIRPLANE_MODE_ON,
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:370:        val shell = PrivilegedRunner.runShell("cmd statusbar expand-notifications")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:377:        val shell = PrivilegedRunner.runShell("cmd statusbar expand-settings")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:526:        //    access. Root/Shizuku can ask the platform to grant this app-only
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:624:    /** Toggle Wi-Fi hotspot. Requires an elevated runtime (root/Shizuku/system). */
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:760:     * node name is guessed, and Shizuku is intentionally not used because a
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:782:                Settings.Global.WINDOW_ANIMATION_SCALE,
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:783:                Settings.Global.TRANSITION_ANIMATION_SCALE,
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:784:                Settings.Global.ANIMATOR_DURATION_SCALE
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:796:                Settings.Global.putFloat(context.contentResolver, it, scale)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:985:            val written = Settings.Secure.putInt(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:987:                Settings.Secure.LOCATION_MODE,
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:988:                if (enabled) Settings.Secure.LOCATION_MODE_HIGH_ACCURACY else Settings.Secure.LOCATION_MODE_OFF
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1007:     * UI, extract account data, or use internal APIs. Root and Shizuku may
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1025:            shizukuRunning = PrivilegedRunner.isShizukuRunning(),
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1026:            shizukuGranted = PrivilegedRunner.isShizukuGranted(),
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1180:            val written = Settings.Secure.putInt(context.contentResolver, name, value)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1281:        val result = PrivilegedRunner.runShell(command)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1311:        val result = PrivilegedRunner.runShell(SafeCommandBuilder.build("settings", "get", "global", key))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1338:            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("settings", "put", ns, key, value))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1350:            val shell = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1374:            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("input", "text", arg))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1386:            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("input", "keyevent", code.toString()))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1397:            val shell = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1411:            val shell = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1427:            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("am", "force-stop", pkg))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1438:            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("pm", "clear", pkg))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1457:            val secure = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1463:                    PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1477:            val shell = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1491:            val shell = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1504:            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("wm", "density", dpi.toString()))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1515:            val secure = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1528:            val shell = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1541:            val secure = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1553:            val shell = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1565:            val shell = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1577:            val shell = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1599:            val shell = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1612:            val shell = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1624:            val shell = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1636:            val shell = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1649:            val shell = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1661:            val shell = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1673:            val shell = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1730:        val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("pkill", "-f", "com.android.systemui"))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1733:        val fallback = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1803:            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("input", "keyevent", "279"))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1813:            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("input", "keyevent", "187"))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1843:            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("cmd", *args))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1854:            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("cmd", "wifi", "forget-network", ssid))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1882:            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("pm", "install", "-r", path))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1893:            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("pm", "uninstall", pkg))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1904:            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("pm", "disable-user", "--user", "0", pkg))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:1915:            val shell = PrivilegedRunner.runShell(SafeCommandBuilder.build("pm", "enable", pkg))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:2057:            val prop = PrivilegedRunner.runShell(SafeCommandBuilder.build("setprop", "persist.sys.timezone", zone))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemController.kt:2058:            val bcast = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:22:            isShizukuAvailable(context) -> IntegrationLevel.SHIZUKU
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:59:     * Modern root solutions (Magisk, KernelSU, APatch) do NOT install `su` at
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:62:     * granted root. We probe the same way Tasker/libsu/RootBeer do: resolve
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:63:     * `su` from PATH and actually execute it to confirm a uid=0 shell answers.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:90:     * Static `su` locations covering legacy SuperSU/OEM ROMs plus the modern
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:95:        "/system/bin/su",
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:96:        "/system/xbin/su",
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:97:        "/sbin/su",
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:98:        "/su/bin/su",
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:99:        "/vendor/bin/su",
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:100:        "/system/sbin/su",
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:102:        "/data/adb/ksu/bin/su",
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:103:        "/data/adb/ap/bin/su"
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:108:     * Magisk/KernelSU/APatch (su on PATH) without spawning real processes.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:117:        // Availability is admitted solely after `su` answers as uid=0; otherwise
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:123:     * True when a root manager's `su` binary is present, regardless of whether
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:124:     * this app has been granted yet. Resolves `su` from PATH with `command -v`
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:136:            val process = ProcessBuilder("sh", "-c", "command -v su")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:161:            val process = ProcessBuilder("sh", "-c", "su -c id || su 0 id || /system/bin/su -c id")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:177:            // su answered: the output of `id` contains "uid=0".
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppStatusDetector.kt:184:    fun isShizukuAvailable(context: Context): Boolean {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppInstaller.kt:36:    /** priv-app permissions whitelisted so the elevated paths work without su. */
+core/rom-integration/src/main/java/com/nexaflow/core/rom/SystemAppInstaller.kt:102:        val result = PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:8:import rikka.shizuku.Shizuku
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:12: * Elevated Shizuku transport backed exclusively by the public UserService AIDL
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:13: * lifecycle. It deliberately does not reflect into `Shizuku.newProcess`; when
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:17:object ShizukuShellBridge {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:21:    @Volatile private var boundShell: IUserShellService? = null
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:33:        get() = operationProbe != null || boundShell != null
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:36:     * Registers an observer for a real Shizuku lifecycle transition. Observers
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:49:    /** Idempotently stores context and arms sticky rebind after a Shizuku restart. */
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:61:                Shizuku.addBinderReceivedListenerSticky {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:65:                Shizuku.addBinderDeadListener {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:66:                    boundShell = null
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:79:     * Explicit user-requested recovery for a granted Shizuku server whose
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:86:            if (boundShell != null) return
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:94:        if (!PrivilegedRunner.isShizukuGranted() || boundShell != null || bindAttempted) return
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:96:            if (!PrivilegedRunner.isShizukuGranted() || boundShell != null || bindAttempted) return
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:100:                Shizuku.bindUserService(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:101:                    Shizuku.UserServiceArgs(ComponentName(context, UserShellService::class.java))
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:114:            boundShell = binder?.let { IUserShellService.Stub.asInterface(it) }
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:119:            boundShell = null
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:132:        if (!PrivilegedRunner.isShizukuGranted()) {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:133:            return SystemControlResult.fail("Shizuku is not granted. Open Shizuku and grant NexaFlow")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:136:            boundShell?.exec(command)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:138:            return SystemControlResult.fail("Shizuku UserService failed: ${t.message}")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:141:            ?: SystemControlResult.fail("Shizuku UserService is unavailable; reconnect Shizuku and retry")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:146:        if (!PrivilegedRunner.isShizukuGranted()) {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:147:            return SystemControlResult.fail("Shizuku is not granted. Open Shizuku and grant NexaFlow")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:151:            boundShell?.executeOperation(operation.wireId.wireValue, args[0], args[1], args[2])
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:153:            return SystemControlResult.fail("Shizuku UserService failed: ${t.message}")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:156:            ?: SystemControlResult.fail("Shizuku UserService is unavailable; reconnect Shizuku and retry")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ShizukuShellBridge.kt:159:    /** Parses the `exitCode\noutput` response produced by [UserShellService]. */
+core/automation-engine/src/main/java/com/nexaflow/core/engine/SettingsStateMonitor.kt:88:            Settings.Global.getUriFor("low_power"),
+core/automation-engine/src/main/java/com/nexaflow/core/engine/SettingsStateMonitor.kt:91:            Settings.Global.getUriFor("data_saver"),
+core/automation-engine/src/main/java/com/nexaflow/core/engine/SettingsStateMonitor.kt:329:                Settings.Global.getInt(context.contentResolver, "low_power") == 1
+core/automation-engine/src/main/java/com/nexaflow/core/engine/SettingsStateMonitor.kt:366:                Settings.Global.getInt(context.contentResolver, "data_saver") == 1
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:20: * (root, falling back to Shizuku when only that is granted).
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:32: * one-tap allow dialog (30s grant window, the same mechanism Tasker/libsu
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:77:    /** True when an elevated shell (root or Shizuku) is available. */
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:79:        PrivilegedRunner.isRootAvailable() || PrivilegedRunner.isShizukuGranted()
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:84:     * A root manager can expose `su` before it has approved NexaFlow. That is
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:95:        elevatedShellAvailable: Boolean,
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:98:        elevatedShellAvailable -> RuntimePermissionGrantPath.ELEVATED_SHELL
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:105:     * shell, or first requests the root manager's one-time approval when `su`
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:131:                    elevatedShellAvailable = canAutoGrant(),
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:205:            val outcome = runShell("pm grant $packageName $permission")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:221:     * Shizuku) is already available this runs [grantAll] immediately.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:238:        if (!PrivilegedRunner.isShizukuGranted() &&
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:249:     * Test seam: replaces [PrivilegedRunner.runShell] so unit tests can stub
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:250:     * shell responses without a real root/Shizuku environment.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:275:    private fun runShell(command: String): SystemControlResult =
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:276:        shellRunner?.invoke(command) ?: PrivilegedRunner.runShell(command)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:312:            val outcome = runShell("pm grant $packageName $permission")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:325:            val outcome = runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:349:            val outcome = runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:361:            val current = runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:367:            val set = runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:370:            val enable = runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:384:            val current = runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:390:            val set = runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RootPermissionGranter.kt:584:        PermissionStatus.isAccessibilityServiceEnabled(context)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/RomSettingSchema.kt:55:     * LineageOS-family custom keys live in `Settings.Secure` (the "Evolver"
+core/execution/src/test/java/com/nexaflow/core/execution/compat/CommandCompatibilityEngineTest.kt:30:        hasElevatedShell = elevated
+core/automation-engine/src/main/java/com/nexaflow/core/engine/LocationAccess.kt:26: * WRITE_SECURE_SETTINGS (granted via adb) or the Shizuku/root shell
+core/automation-engine/src/main/java/com/nexaflow/core/engine/LocationAccess.kt:113:        // Elevated runtime path (Shizuku or root): `settings put secure ...`.
+core/automation-engine/src/main/java/com/nexaflow/core/engine/LocationAccess.kt:114:        return PrivilegedRunner.runShell(
+core/automation-engine/src/main/java/com/nexaflow/core/engine/LocationAccess.kt:124:        Settings.Secure.getInt(context.contentResolver, Settings.Secure.LOCATION_MODE)
+core/automation-engine/src/main/java/com/nexaflow/core/engine/LocationAccess.kt:130:            Settings.Secure.putInt(context.contentResolver, Settings.Secure.LOCATION_MODE, mode)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedTelephonyBridge.kt:8: * Direct ITelephony fallback used exclusively inside [UserShellService], whose
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedTelephonyBridge.kt:9: * process runs as shell or root. OEM TelephonyShell implementations may omit
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedTelephonyBridge.kt:15: * null/false so the caller can fall back to the reviewed TelephonyShell argv
+core/automation-engine/src/main/java/com/nexaflow/core/engine/DeviceStateMonitor28.kt:137:            Settings.Global.getUriFor("zen_mode"),
+core/automation-engine/src/main/java/com/nexaflow/core/engine/DeviceStateMonitor28.kt:138:            Settings.Global.getUriFor("stay_on_while_plugged_in"),
+core/automation-engine/src/main/java/com/nexaflow/core/engine/DeviceStateMonitor28.kt:140:            Settings.Global.getUriFor("data_roaming"),
+core/automation-engine/src/main/java/com/nexaflow/core/engine/DeviceStateMonitor28.kt:340:                val zen = Settings.Global.getInt(context.contentResolver, "zen_mode", 0)
+core/automation-engine/src/main/java/com/nexaflow/core/engine/DeviceStateMonitor28.kt:344:                val stay = Settings.Global.getInt(
+core/automation-engine/src/main/java/com/nexaflow/core/engine/DeviceStateMonitor28.kt:356:                val roaming = Settings.Global.getInt(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:6:import rikka.shizuku.Shizuku
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:13:     * True when the Shizuku server is running AND the app was granted access.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:14:     * [Shizuku.checkSelfPermission] alone can report granted while the server
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:15:     * is dead (binder gone), so we require a live binder too. Pre-v11 Shizuku
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:18:    fun isShizukuGranted(): Boolean {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:20:            if (!Shizuku.pingBinder()) return false
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:21:            Shizuku.isPreV11() ||
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:22:                Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:29:     * True when Shizuku is installed and its server is running (regardless of
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:31:     * dialog instead of sending the user to the Shizuku app.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:33:    fun isShizukuRunning(): Boolean {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:35:            Shizuku.pingBinder()
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:43:    fun runShell(command: String): SystemControlResult {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:47:            isShizukuGranted() -> runShizuku(safe)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:49:            else -> SystemControlResult.fail("No elevated runtime available (Shizuku or root)")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:54:     * Compatibility-only command bridge through the bound Shizuku UserService.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:55:     * It never reflects into `Shizuku.newProcess`; new workflow capabilities
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:56:     * must use [runShizukuOperation] with a closed [PrivilegedOperation].
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:58:    fun runShizuku(command: String): SystemControlResult {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:59:        if (!isShizukuGranted()) {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:60:            return SystemControlResult.fail("Shizuku is not granted. Open the Shizuku app and grant NexaFlow")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:64:        return ShizukuShellBridge.execute(safe)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:73:        isShizukuGranted() && ShizukuShellBridge.isUserServiceBound -> runShizukuOperation(operation)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:75:        isShizukuGranted() -> SystemControlResult.fail(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:76:            "Shizuku permission is granted but its UserService is not connected; reconnect Shizuku and retry"
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:78:        else -> SystemControlResult.fail("No elevated runtime available (Shizuku or root)")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:81:    /** New typed path: Shizuku only, no Root fallback and no generic command input. */
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:82:    fun runShizukuOperation(operation: PrivilegedOperation): SystemControlResult {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:83:        if (!isShizukuGranted()) {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:84:            return SystemControlResult.fail("Shizuku is not granted. Open the Shizuku app and grant NexaFlow")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:86:        return ShizukuShellBridge.executeOperation(operation)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:89:    /** New typed path: Root only, no Shizuku/ADB fallback and no generic command input. */
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:97:                arrayOf("su", "-c", command),
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:98:                arrayOf("su", "0", "-c", command),
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:99:                arrayOf("/system/bin/su", "-c", command)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:114:     * Actually invokes `su` with a long timeout so the root manager
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:117:     * This is the same mechanism Tasker/libsu use to request root in one tap.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:119:     * Tries the same invocation forms as [runRoot]: bare `su` (PATH-resolved,
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:120:     * Magisk/KernelSU/APatch), `su 0` (some APatch builds) and the classic
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:121:     * `/system/bin/su` (legacy SuperSU/OEM ROMs where su is not on PATH). It
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:129:            arrayOf("su", "-c", "id"),
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:130:            arrayOf("su", "0", "-c", "id"),
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:131:            arrayOf("/system/bin/su", "-c", "id")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:145:     * spawning actual `su` processes on the host.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:150:     * Runs one su grant probe. Returns true (granted), false (denied or
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:156:            val process = ProcessBuilder(*cmd).redirectErrorStream(true).start()
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:189:            // Magisk and KernelSU both accept `su -c`; some APatch builds need
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:190:            // the explicit `su 0` form. Try in order and use the first that runs.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:192:                arrayOf("su", "-c", safe),
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:193:                arrayOf("su", "0", "-c", safe),
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:194:                arrayOf("/system/bin/su", "-c", safe)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:208:    /** Runs one su invocation with a hard timeout and merged output. */
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedRunner.kt:211:            val process = ProcessBuilder(*cmd).redirectErrorStream(true).start()
+core/automation-engine/src/main/java/com/nexaflow/core/engine/AppTriggerAccessibilityService.kt:3:import android.accessibilityservice.AccessibilityService
+core/automation-engine/src/main/java/com/nexaflow/core/engine/AppTriggerAccessibilityService.kt:32:class AppTriggerAccessibilityService : AccessibilityService() {
+core/execution/src/test/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackendsTest.kt:21:        val backend = ShizukuCapabilityBackend(
+core/execution/src/test/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackendsTest.kt:34:    fun selectedShizukuMapsPackageCapabilityToTypedOperation() = runBlocking {
+core/execution/src/test/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackendsTest.kt:36:        val backend = ShizukuCapabilityBackend(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedOperation.kt:16:    /** Direct argv executed by the Shizuku UserService (never `sh -c`). */
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedOperation.kt:19:    /** Internal, safely quoted representation required by `su -c` only. */
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedOperation.kt:70:     * slot. [subscriptionId] lets a Shizuku UserService use the direct
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedOperation.kt:71:     * ITelephony read fallback on ROMs that omit or alter TelephonyShell.
+core/automation-engine/src/main/java/com/nexaflow/core/engine/AirplaneModeMonitor.kt:109:            val on = Settings.Global.getInt(
+core/automation-engine/src/main/java/com/nexaflow/core/engine/AirplaneModeMonitor.kt:111:                Settings.Global.AIRPLANE_MODE_ON,
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PermissionStatus.kt:15: * [Settings.Secure]; centralising them here removes five duplicated
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PermissionStatus.kt:24:    /** AccessibilityService component name (must match the manifest entry). */
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PermissionStatus.kt:25:    const val ACCESSIBILITY_SERVICE_CLASS = "com.nexaflow.core.engine.AppTriggerAccessibilityService"
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PermissionStatus.kt:30:    /** True when our AccessibilityService is among the enabled services. */
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PermissionStatus.kt:31:    fun isAccessibilityServiceEnabled(context: Context): Boolean =
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PermissionStatus.kt:32:        isAccessibilityServiceEnabled(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PermissionStatus.kt:38:     * True when [component] (an AccessibilityService declared by this app) is
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PermissionStatus.kt:41:    fun isAccessibilityServiceEnabled(context: Context, component: ComponentName): Boolean {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PermissionStatus.kt:42:        val enabledServices = Settings.Secure.getString(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PermissionStatus.kt:44:            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PermissionStatus.kt:67:            val enabled = Settings.Secure.getString(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/PermissionStatus.kt:78:     * colon-separated list of enabled services as stored in Settings.Secure?
+core/execution/src/test/java/com/nexaflow/core/execution/capability/CapabilityStateStoreTest.kt:41:            registerShizukuStateListener = { listener ->
+core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandSpec.kt:14: * [ELEVATED]    — shell command that requires root or Shizuku.
+core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandSpec.kt:54:        /** A command that needs root or Shizuku and nothing else. */
+core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandRequirementCatalog.kt:14: * runner verifies Root, Shizuku or Android privilege at execution time. They
+core/execution/src/test/java/com/nexaflow/core/execution/capability/CapabilityEnvironmentInspectorTest.kt:11:    fun `reports Shizuku available only with live binder grant and UserService`() {
+core/execution/src/test/java/com/nexaflow/core/execution/capability/CapabilityEnvironmentInspectorTest.kt:23:    fun `reports Shizuku permission required before UserService readiness`() {
+core/execution/src/test/java/com/nexaflow/core/execution/capability/CapabilityEnvironmentInspectorTest.kt:35:    fun `reports Shizuku service unavailable after grant until UserService binds`() {
+core/execution/src/test/java/com/nexaflow/core/execution/capability/CapabilityEnvironmentInspectorTest.kt:47:    fun `distinguishes Shizuku not running from not installed`() {
+core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCompatibilityEngine.kt:20:    /** True when the app holds elevated shell access (root or Shizuku). */
+core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCompatibilityEngine.kt:21:    val hasElevatedShell: Boolean
+core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCompatibilityEngine.kt:44:                    hasElevatedShell = level == IntegrationLevel.ROOT || level == IntegrationLevel.SHIZUKU
+core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCompatibilityEngine.kt:53:                    hasElevatedShell = false
+core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCompatibilityEngine.kt:116:                if (profile.hasElevatedShell) ExecutionStrategy.ELEVATED
+core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCompatibilityEngine.kt:120:                if (spec.capabilities.isEmpty() || profile.hasElevatedShell || capabilitiesOk(spec, profile)) {
+core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCompatibilityEngine.kt:130:                } else if (profile.hasElevatedShell) {
+core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCompatibilityEngine.kt:178:            IntegrationLevel.ROOT -> profile.hasElevatedShell || profile.isSystemApp
+core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCompatibilityEngine.kt:180:                profile.hasElevatedShell
+core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeController.kt:20: * elevated `cmd phone` operation (Shizuku/root), then to the legacy per-sub
+core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeController.kt:106:        // same Root/Shizuku TelephonyShell fallback that made the selected
+core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeController.kt:187:        // 2) Elevated TelephonyShell command through a closed typed operation.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeController.kt:192:        if (PrivilegedRunner.isShizukuGranted() || PrivilegedRunner.isRootAvailable()) {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeController.kt:245:     * The physical slot variants to try for TelephonyShell. The AOSP `-s` form
+core/execution/src/main/java/com/nexaflow/core/execution/variables/BuiltinVariables.kt:112:            out["AIRPLANE"] = if (Settings.Global.getInt(
+core/execution/src/main/java/com/nexaflow/core/execution/variables/BuiltinVariables.kt:114:                    Settings.Global.AIRPLANE_MODE_ON,
+core/execution/src/main/java/com/nexaflow/core/execution/compat/CommandCatalog.kt:18: *   it needs root/Shizuku on stock ROMs.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeCapabilities.kt:187:     * Shizuku/Root operation. Both slot-scoped and default forms are tried
+core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeCapabilities.kt:188:     * because AOSP and OEM TelephonyShell implementations differ. A successful
+core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeCapabilities.kt:198:        if (!PrivilegedRunner.isShizukuGranted() && !PrivilegedRunner.isRootAvailable()) {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeCapabilities.kt:199:            return ElevatedMaskRead(mask = null, diagnostic = "No approved root or Shizuku session")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeCapabilities.kt:228:     * access the privileged framework API. Shizuku's UserService first invokes
+core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeCapabilities.kt:234:        if (!PrivilegedRunner.isShizukuGranted() && !PrivilegedRunner.isRootAvailable()) {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/NetworkModeCapabilities.kt:235:            return ElevatedMaskRead(mask = null, diagnostic = "No approved root or Shizuku session")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/DnsSupport.kt:129:                Settings.Global.getString(context.contentResolver, PrivateDnsPolicy.MODE_KEY)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/EvolutionXSettingsBridge.kt:12: * standard `Settings.System` / `Settings.Secure` providers under well-known
+core/rom-integration/src/main/java/com/nexaflow/core/rom/EvolutionXSettingsBridge.kt:20: * writing goes through [PrivilegedRunner] (root / Shizuku / system app) or
+core/rom-integration/src/main/java/com/nexaflow/core/rom/EvolutionXSettingsBridge.kt:40:            fun fromShell(name: String): Namespace? =
+core/rom-integration/src/main/java/com/nexaflow/core/rom/EvolutionXSettingsBridge.kt:79:            val raw = PrivilegedRunner.runShell("settings list ${namespace.shellName}")
+core/rom-integration/src/main/java/com/nexaflow/core/rom/EvolutionXSettingsBridge.kt:126:                Namespace.SECURE -> Settings.Secure.getString(context.contentResolver, key)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/EvolutionXSettingsBridge.kt:127:                Namespace.GLOBAL -> Settings.Global.getString(context.contentResolver, key)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/EvolutionXSettingsBridge.kt:137:     * to the elevated shell `settings put` (root / Shizuku / system app).
+core/rom-integration/src/main/java/com/nexaflow/core/rom/EvolutionXSettingsBridge.kt:151:                Namespace.SECURE -> Settings.Secure.putString(context.contentResolver, key, value)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/EvolutionXSettingsBridge.kt:152:                Namespace.GLOBAL -> Settings.Global.putString(context.contentResolver, key, value)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/EvolutionXSettingsBridge.kt:161:        return PrivilegedRunner.runShell(
+core/rom-integration/src/main/java/com/nexaflow/core/rom/EvolutionXSettingsBridge.kt:168:                    "Cannot write $namespace.key:$key — needs root, Shizuku or " +
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/PermissionCatalog.kt:17: * Shizuku/root, bluetooth) open their dedicated settings screen.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:11:import rikka.shizuku.Shizuku
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:16: * Shizuku access in-app. Used by both the permission manager (settings) and
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:24:     * Shizuku delivers the grant-dialog result through a listener registered
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:25:     * with [Shizuku.addRequestPermissionResultListener]. Without it the result
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:29:    private val shizukuResultListener = Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:30:        // Shizuku 13.1.5 delivers the grant result as an int: PERMISSION_GRANTED
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:37:            shizukuAppContext?.let { ShizukuShellBridge.initialize(it) }
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:47:    private fun ensureShizukuResultListener() {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:51:            Shizuku.addRequestPermissionResultListener(shizukuResultListener)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:59:     * (Magisk / KernelSU / APatch) is installed, executing `su -c id` makes it
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:63:     * Falls back to opening the root manager app when no `su` binary exists
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:110:    /** Opens the installed root manager, falling back to the Shizuku manager. */
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:116:            "me.weishu.kernelsu",
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:127:            openShizukuManager(context)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:132:     * Requests Shizuku access through the in-app grant dialog when the server is
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:133:     * running; falls back to opening the Shizuku manager app when it is not.
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:135:    fun openShizuku(context: Context) {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:137:            if (!Shizuku.pingBinder()) {
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:138:                openShizukuManager(context)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:141:            if (Shizuku.isPreV11() ||
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:142:                Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:146:                ShizukuShellBridge.initialize(context)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:150:            ensureShizukuResultListener()
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:151:            Shizuku.requestPermission(SHIZUKU_REQUEST_CODE)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:153:            openShizukuManager(context)
+core/rom-integration/src/main/java/com/nexaflow/core/rom/ElevatedAccessShortcuts.kt:157:    private fun openShizukuManager(context: Context) {
+core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt:5:import com.nexaflow.core.rom.ShizukuShellBridge
+core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt:111:class ShizukuCapabilityBackend(
+core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt:112:    private val running: () -> Boolean = PrivilegedRunner::isShizukuRunning,
+core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt:113:    private val granted: () -> Boolean = PrivilegedRunner::isShizukuGranted,
+core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt:114:    private val userServiceBound: () -> Boolean = { ShizukuShellBridge.isUserServiceBound },
+core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt:115:    private val executeOperation: (PrivilegedOperation) -> SystemControlResult = PrivilegedRunner::runShizukuOperation
+core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt:123:        !running() -> BackendAvailability(id, CapabilityAvailability.UNAVAILABLE, "Shizuku server is not running")
+core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt:124:        !granted() -> BackendAvailability(id, CapabilityAvailability.PERMISSION_REQUIRED, "Shizuku access was not granted")
+core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt:125:        !userServiceBound() -> BackendAvailability(id, CapabilityAvailability.UNAVAILABLE, "Shizuku UserService is not connected")
+core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt:133:        if (!running()) return unavailable(CapabilityErrorCode.SHIZUKU_UNAVAILABLE, "Shizuku server is not running")
+core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt:134:        if (!granted()) return unavailable(CapabilityErrorCode.SHIZUKU_DENIED, "Shizuku access was not granted")
+core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt:135:        if (!userServiceBound()) return unavailable(CapabilityErrorCode.SHIZUKU_UNAVAILABLE, "Shizuku UserService is not connected")
+core/execution/src/main/java/com/nexaflow/core/execution/capability/PrivilegedCapabilityBackends.kt:139:    private fun unsupportedAvailability() = BackendAvailability(id, CapabilityAvailability.UNSUPPORTED, "Capability is not implemented by Shizuku backend")
+core/execution/src/main/java/com/nexaflow/core/execution/handler/ConnectivityActionsHandler.kt:29:            // Root/Shizuku paths can wait for a process and framework calls can
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:180: * - [AVAILABLE]: grantable now — root/Shizuku present but not yet granted
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:210:        PrivilegedRunner.isShizukuRunning() -> SpecialStatus.AVAILABLE
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:217:            SystemAppStatusDetector.isSuBinaryAvailable() || PrivilegedRunner.isShizukuRunning() ->
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:233: * permission — root, Shizuku, elevated, write settings, DND access,
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:237: * after returning from the root manager, Shizuku grant dialog or a settings
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:541:                    // A detected `su` may merely be waiting for NexaFlow's first
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:593:            SpecialPermission.ACCESSIBILITY -> PermissionStatus.isAccessibilityServiceEnabled(context)
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:595:            // execution engine uses), so a previously granted Shizuku/root
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:597:            SpecialPermission.SHIZUKU -> PrivilegedRunner.isShizukuGranted()
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:600:                // Elevated covers root/Shizuku/system; grant is best-effort.
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:601:                PrivilegedRunner.isRootAvailable() || PrivilegedRunner.isShizukuGranted()
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:627:            // Shizuku: request the permission in-app when the server is already
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:628:            // running (one tap, no detour); otherwise open the Shizuku app.
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:629:            SpecialPermission.SHIZUKU -> ElevatedAccessShortcuts.openShizuku(context)
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:645:            // Elevated actions run through root, Shizuku, or a system app; prefer
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:646:            // an in-app Shizuku grant when available, otherwise the root dialog.
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:648:                if (PrivilegedRunner.isShizukuRunning()) {
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/BuilderComponents.kt:649:                    ElevatedAccessShortcuts.openShizuku(context)
+core/execution/src/main/java/com/nexaflow/core/execution/handler/AdvancedActionsHandler.kt:11:/** Raw shell actions executed through Shizuku or root. */
+core/execution/src/main/java/com/nexaflow/core/execution/handler/AdvancedActionsHandler.kt:20:            ActionType.ADVANCED_SHIZUKU -> PrivilegedRunner.runShizuku(command)
+core/execution/src/main/java/com/nexaflow/core/execution/handler/AdvancedActionsHandler.kt:42:     * validation regardless of whether execution eventually uses Root, Shizuku,
+core/execution/src/main/java/com/nexaflow/core/execution/handler/AdvancedActionsHandler.kt:54:     * requests (Shizuku actions via a Shizuku channel, root actions via a Root
+core/execution/src/main/java/com/nexaflow/core/execution/handler/AdvancedActionsHandler.kt:56:     * choice — on a device with both root and Shizuku, an ADVANCED_SHIZUKU
+core/execution/src/main/java/com/nexaflow/core/execution/handler/AdvancedActionsHandler.kt:57:     * action still runs via Shizuku. When no matching channel was selected,
+core/execution/src/main/java/com/nexaflow/core/execution/handler/AdvancedActionsHandler.kt:70:        if (channel != null && channel.hasShellAccess && channel.type == expected) {
+core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityStateStore.kt:3:import com.nexaflow.core.rom.ShizukuShellBridge
+core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityStateStore.kt:25: * adapter invalidates it after a verified platform event (for example Shizuku
+core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityStateStore.kt:33:    private val registerShizukuStateListener: ((() -> Unit) -> Unit) = ShizukuShellBridge::addStateListener
+core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityStateStore.kt:49:        registerShizukuStateListener(::invalidate)
+core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityStateStore.kt:75:     * backends correctly reject implicit Root/Shizuku fallback during execution.
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/AutomationBuilderScreen.kt:1322:    // Live elevated-permission status (root/Shizuku): re-probe the action
+feature/automation-builder/src/main/java/com/nexaflow/feature/builder/AutomationBuilderScreen.kt:1324:    // Magisk/KernelSU grant dialog or the Shizuku grant screen — so the
+core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityEnvironmentInspector.kt:6:import com.nexaflow.core.rom.ShizukuShellBridge
+core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityEnvironmentInspector.kt:100:                shizukuInstalled = { SystemAppStatusDetector.isShizukuAvailable(appContext) },
+core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityEnvironmentInspector.kt:101:                shizukuRunning = PrivilegedRunner::isShizukuRunning,
+core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityEnvironmentInspector.kt:102:                shizukuGranted = PrivilegedRunner::isShizukuGranted,
+core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityEnvironmentInspector.kt:103:                shizukuUserServiceBound = { ShizukuShellBridge.isUserServiceBound },
+core/execution/src/main/java/com/nexaflow/core/execution/DeviceStateSnapshot.kt:315:                darkMode = Settings.Secure.getInt(
+core/execution/src/main/java/com/nexaflow/core/execution/DeviceStateSnapshot.kt:320:                wifiEnabled = globalBool(context, Settings.Global.WIFI_ON),
+=== DATABASE / STORE ===
+./app/src/androidTest/java/com/nexaflow/app/validation/ActiveExecutionStoreAndroidTest.kt
+./core/automation-engine/src/test/java/com/nexaflow/core/engine/ActiveTriggerStoreTest.kt
+./core/database/src/main/java/com/nexaflow/core/database/AutomationDao.kt
+./core/database/src/main/java/com/nexaflow/core/database/AutomationEntity.kt
+./core/database/src/main/java/com/nexaflow/core/database/ExecutionDao.kt
+./core/database/src/main/java/com/nexaflow/core/database/ExecutionRecordEntity.kt
+./core/database/src/main/java/com/nexaflow/core/database/GlobalVariableEntity.kt
+./core/database/src/main/java/com/nexaflow/core/database/Migrations.kt
+./core/database/src/main/java/com/nexaflow/core/database/VariableDao.kt
+./core/database/src/test/java/com/nexaflow/core/database/ExecutionDaoRetentionTest.kt
+./core/database/src/test/java/com/nexaflow/core/database/MigrationTest.kt
+./core/datastore/src/main/java/com/nexaflow/core/datastore/ActiveExecutionStore.kt
+./core/datastore/src/main/java/com/nexaflow/core/datastore/ActiveTriggerStore.kt
+./core/datastore/src/main/java/com/nexaflow/core/datastore/AutomationRuntimeStore.kt
+./core/datastore/src/test/java/com/nexaflow/core/datastore/ActiveExecutionStoreCheckpointTest.kt
+./core/datastore/src/test/java/com/nexaflow/core/datastore/AutomationRuntimeStoreTest.kt
+./core/datastore/src/test/java/com/nexaflow/core/datastore/DataStoreCorruptionHandlerTest.kt
+./core/execution/src/main/java/com/nexaflow/core/execution/capability/CapabilityStateStore.kt
+./core/execution/src/main/java/com/nexaflow/core/execution/state/StateTransactionStore.kt
+./core/execution/src/test/java/com/nexaflow/core/execution/ActiveExecutionStoreTest.kt
+./core/execution/src/test/java/com/nexaflow/core/execution/capability/CapabilityStateStoreTest.kt
+./core/logging/src/main/java/com/nexaflow/core/logging/InMemoryLogStore.kt
+./core/logging/src/main/java/com/nexaflow/core/logging/LogStore.kt
+./core/logging/src/main/java/com/nexaflow/core/logging/RedactingLogStore.kt
+./core/logging/src/test/java/com/nexaflow/core/logging/InMemoryLogStoreTest.kt
+./core/logging/src/test/java/com/nexaflow/core/logging/RedactingLogStoreTest.kt
+./core/security/src/main/java/com/nexaflow/core/security/KeystoreSecureStorage.kt
+./domain/src/main/java/com/nexaflow/domain/models/MaintenanceExecutionIdentity.kt
+./domain/src/main/java/com/nexaflow/domain/variables/SecretStore.kt
+./domain/src/test/java/com/nexaflow/domain/models/MaintenanceExecutionIdentityTest.kt
+./feature/widgets/src/main/java/com/nexaflow/feature/widgets/TileBindingStore.kt

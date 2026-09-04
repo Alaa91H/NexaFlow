@@ -1,5 +1,5 @@
 {
-  "auditDate": "2026-09-01",
+  "auditDate": "2026-09-04",
   "repository": "Alaa91H/NexaFlow",
   "method": "Source, tests, Gradle modules, CI workflow, resource gates, and existing audit documents were inspected before implementation.",
   "statusDefinitions": {
@@ -23,8 +23,8 @@
       "priority": "P0",
       "area": "durable-execution",
       "status": "YELLOW",
-      "finding": "A repository-wide WorkflowExecution and NodeExecution state-machine contract is not yet proven, although audited occurrence lifecycles are strict.",
-      "nextAction": "Inventory existing states, define a compatibility adapter, add explicit transition validation, and persist transition tests."
+      "finding": "A canonical WorkflowExecutionState and NodeExecutionState compatibility adapter with strict transition tests was added in v3.58.3; repository-wide durable persistence and crash recovery are still not proven.",
+      "nextAction": "Persist canonical execution identity and node attempts, then add crash and recovery integration tests."
     },
     {
       "id": "P0-UNKNOWN-RECOVERY",
@@ -111,6 +111,11 @@
     "The repository is not claimed to have a complete arbitrary-workflow runtime yet.",
     "Irreversible operations are not claimed to be safely retryable without verification.",
     "Universal execution under OEM or Android capability denial is not claimed."
+  ],
+  "evidence": [
+    "docs/audit/FORENSIC_INVENTORY_2026.txt",
+    "core/execution/src/main/java/com/nexaflow/core/execution/workflow/WorkflowExecutionState.kt",
+    "core/execution/src/test/java/com/nexaflow/core/execution/workflow/WorkflowExecutionStateTest.kt"
   ],
   "nextTranche": [
     "canonical-execution-state-adapter",
