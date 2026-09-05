@@ -9,15 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v3.58.4] - 2026-09-04
 
+### Added
+- Added explicit capability safety metadata for idempotency, retry safety, verification mode, compensation support, and side-effect classification.
+- Added a conservative request boundary that rejects multi-attempt retries unless the capability declares retry safety, and rejects disabling verification when a capability requires post-condition proof.
+- Updated the forensic architecture and gap analysis with the current repository inventory and the remaining persistence, cross-store recovery, security-boundary, and OEM-validation gaps.
+
 ### Fixed
 - Removed a redundant `CancellationException` rethrow from `TaskManager`, preserving structured cancellation while satisfying static-analysis correctness.
 - Restored newline-at-end-of-file compliance for automation and dashboard deletion regression tests.
 - Declared `RECEIVER_NOT_EXPORTED` for the internal automation-change broadcast used by the deletion lifecycle regression test, satisfying Android's receiver security contract.
 
+### Tests
+- Added validator coverage for unsafe retry rejection and mandatory verification enforcement.
+- Updated the structured retry fixture to declare its safe-retry contract explicitly rather than relying on an implicit default.
+
 ### Quality assurance
+- Resource, translation, lint, unit-test, production-build, APK/AAB validation, signing, and release gates passed in GitHub Actions for commit `dbef833d`.
 - The affected Detekt targets pass locally: `:core:execution:detekt`, `:feature:automations:detekt`, and `:feature:dashboard:detekt`.
 - Resource hygiene, trigger-catalog parity, and whitespace checks remain clean.
-
 
 ## [v3.58.3] - 2026-09-04
 
