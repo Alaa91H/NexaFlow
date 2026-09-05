@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.58.5] - 2026-09-05
+
+### Added
+- Extended the existing durable checkpoint contract with stable workflow identity, workflow revision, parent/correlation/causation metadata, deadline, current-node cursor, and checkpoint version fields.
+- Added bounded durable node-attempt records containing attempt state, timestamps, selected backend, idempotency key, input/output hashes, verification state, and failure code.
+- Connected action-start, action-complete, and unknown-outcome checkpoints to node-attempt persistence without breaking existing callers.
+
+### Safety
+- Preserved the fail-closed unknown-outcome path: interrupted nodes remain `UNKNOWN` and require verification or compensation instead of being reported as successful.
+- Added a bounded node-attempt limit to prevent unbounded DataStore growth.
+
+### Tests
+- Added checkpoint assertions for node identity, backend, hashes, verification transitions, and explicit unknown-outcome persistence.
+
+### Documentation
+- Updated the architecture map and machine-readable gap analysis to distinguish the new durable foundation from the still-unproven repository-wide and cross-store recovery guarantees.
+
 ## [v3.58.4] - 2026-09-04
 
 ### Added

@@ -82,18 +82,40 @@ class ActiveExecutionStore(private val context: Context) {
         runId: String,
         actionIndex: Int,
         idempotencyKey: String,
-        updatedAt: Long
+        updatedAt: Long,
+        nodeId: String = "action:$actionIndex",
+        backend: String? = null,
+        inputHash: String? = null
     ): DurableExecutionCheckpoint? = updateCheckpoint(runId) { checkpoint ->
         require(actionIndex == checkpoint.nextActionIndex) {
             "Action checkpoint ordering mismatch for run $runId"
         }
         require(idempotencyKey.isNotBlank()) { "idempotencyKey must not be blank" }
+        require(nodeId.isNotBlank()) { "nodeId must not be blank" }
         check(idempotencyKey !in checkpoint.idempotencyKeys) {
             "Duplicate idempotency key for run $runId: $idempotencyKey"
         }
+        val attempt = checkpoint.nodeExecutions
+            .filter { it.nodeId == nodeId }
+            .maxOfOrNull { it.attempt }
+            ?.plus(1)
+            ?: 1
+        val node = DurableNodeExecution(
+            nodeId = nodeId,
+            attempt = attempt,
+            state = DurableNodeExecutionState.RUNNING,
+            startedAt = updatedAt,
+            backend = backend,
+            idempotencyKey = idempotencyKey,
+            inputHash = inputHash,
+            verificationState = DurableVerificationState.PENDING
+        )
         checkpoint.copy(
             status = DurableExecutionStatus.ACTION_STARTED,
+            currentNodeId = nodeId,
             idempotencyKeys = checkpoint.idempotencyKeys + idempotencyKey,
+            nodeExecutions = checkpoint.nodeExecutions + node,
+            verificationState = DurableVerificationState.PENDING,
             updatedAt = updatedAt,
             message = null
         )
@@ -103,15 +125,35 @@ class ActiveExecutionStore(private val context: Context) {
     suspend fun markActionCompleted(
         runId: String,
         actionIndex: Int,
-        updatedAt: Long
+        updatedAt: Long,
+        outputHash: String? = null,
+        verificationState: DurableVerificationState = DurableVerificationState.UNKNOWN
     ): DurableExecutionCheckpoint? = updateCheckpoint(runId) { checkpoint ->
         require(actionIndex == checkpoint.nextActionIndex) {
             "Action completion ordering mismatch for run $runId"
+        }
+        val nodeId = checkpoint.currentNodeId ?: "action:$actionIndex"
+        val activeNode = checkpoint.nodeExecutions.lastOrNull { it.nodeId == nodeId && it.state == DurableNodeExecutionState.RUNNING }
+        val nextNodes = if (activeNode == null) {
+            checkpoint.nodeExecutions
+        } else {
+            checkpoint.nodeExecutions.map { node ->
+                if (node === activeNode) {
+                    node.copy(
+                        state = DurableNodeExecutionState.SUCCEEDED,
+                        completedAt = updatedAt,
+                        outputHash = outputHash,
+                        verificationState = verificationState
+                    )
+                } else node
+            }
         }
         checkpoint.copy(
             status = DurableExecutionStatus.ACTION_COMPLETED,
             nextActionIndex = actionIndex + 1,
             completedActionIndexes = checkpoint.completedActionIndexes + actionIndex,
+            nodeExecutions = nextNodes,
+            verificationState = verificationState,
             updatedAt = updatedAt,
             message = null
         )
@@ -126,8 +168,21 @@ class ActiveExecutionStore(private val context: Context) {
         message: String,
         updatedAt: Long
     ): DurableExecutionCheckpoint? = updateCheckpoint(runId) { checkpoint ->
+        val nodeId = checkpoint.currentNodeId ?: "action:${checkpoint.nextActionIndex}"
+        val nextNodes = checkpoint.nodeExecutions.map { node ->
+            if (node.nodeId == nodeId && node.state == DurableNodeExecutionState.RUNNING) {
+                node.copy(
+                    state = DurableNodeExecutionState.UNKNOWN,
+                    completedAt = updatedAt,
+                    verificationState = DurableVerificationState.UNKNOWN,
+                    failureCode = "UNKNOWN_OUTCOME"
+                )
+            } else node
+        }
         checkpoint.copy(
             status = DurableExecutionStatus.ACTION_UNKNOWN,
+            nodeExecutions = nextNodes,
+            verificationState = DurableVerificationState.UNKNOWN,
             updatedAt = updatedAt,
             message = message.take(MAX_MESSAGE_LENGTH)
         )

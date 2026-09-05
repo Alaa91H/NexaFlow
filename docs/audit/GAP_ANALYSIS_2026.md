@@ -1,6 +1,6 @@
 # NexaFlow Production Gap Analysis — 2026
 
-**Audit date:** 2026-09-04
+**Audit date:** 2026-09-05
 **Method:** repository source, tests, Gradle modules, CI workflow, resource gates, and existing audit evidence were inspected before proposing implementation work.
 
 ## Decision summary
@@ -9,7 +9,7 @@ The prompt describes a target platform broader than the current codebase. NexaFl
 
 | Priority | Gap | Evidence | Status | Required next action |
 |---|---|---|---|---|
-| P0 | Universal durable execution state machine | Existing lifecycle/occurrence state is strong on audited paths; v3.58.3 adds a canonical `WorkflowExecutionState`/`NodeExecutionState` compatibility adapter and transition tests, but persistence is not yet repository-wide | YELLOW | Persist canonical execution identity and node attempts, then add crash/recovery integration tests |
+| P0 | Universal durable execution state machine | Existing lifecycle/occurrence state is strong on audited paths; v3.58.3 adds the canonical compatibility adapter, and the current checkpoint store now persists workflow identity, correlation/deadline metadata, node attempts, backend, hashes, idempotency keys, and verification state | YELLOW | Integrate all workflow runners with these fields and add cross-store crash/recovery tests |
 | P0 | Unknown outcome and side-effect recovery | Strict unknown handling exists in parts of the runtime; full action-wide verification matrix is not proven | YELLOW | Require idempotency, verification, compensation, and irreversibility metadata per executable capability |
 | P0 | Cross-store atomicity | Room/DataStore/runtime stores coexist; failure behavior across boundaries needs explicit evidence | YELLOW | Add transaction boundary documentation and crash/failure-injection tests |
 | P1 | Capability/backend uniformity | ROM, public Android, privileged, and compatibility paths exist but are not uniformly expressed as one contract | YELLOW | Introduce/complete capability request and backend result adapters without duplicating registries |
@@ -31,7 +31,7 @@ This audit does not claim a complete arbitrary workflow scheduler, universal bac
 
 ## Recommended execution order
 
-First, define the canonical execution-state and node-state contracts as adapters over existing lifecycle records. Second, add durable revision and checkpoint identity without breaking current automation APIs. Third, add capability metadata and verification outcomes to action execution. Fourth, test recovery, idempotency, concurrency, and database failure boundaries. Fifth, enforce architecture/security rules and expand plugin/import validation. Finally, run device-matrix acceptance tests and publish only the capabilities proven by evidence.
+The first tranche defined canonical execution-state and node-state contracts as adapters over existing lifecycle records. The second tranche now persists execution identity, workflow revision, node attempts, idempotency keys, hashes, deadlines, and verification state without breaking current automation APIs. The next step is to integrate every workflow runner with these fields and add capability metadata and verification outcomes to action execution. Fourth, test recovery, idempotency, concurrency, and database failure boundaries. Fifth, enforce architecture/security rules and expand plugin/import validation. Finally, run device-matrix acceptance tests and publish only the capabilities proven by evidence.
 
 ## Audit evidence locations
 

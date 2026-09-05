@@ -57,14 +57,35 @@ class ActiveExecutionStoreCheckpointTest {
         assertFalse(store.beginCheckpoint(checkpoint()))
         assertEquals(4, store.checkpoint("run-checkpoint")?.workflowVersion)
 
-        val started = store.markActionStarted("run-checkpoint", 0, "run-checkpoint:0:ACTION", 110L)
+        val started = store.markActionStarted(
+            runId = "run-checkpoint",
+            actionIndex = 0,
+            idempotencyKey = "run-checkpoint:0:ACTION",
+            updatedAt = 110L,
+            nodeId = "node-install",
+            backend = "PACKAGE_INSTALLER",
+            inputHash = "input-hash"
+        )
         assertEquals(DurableExecutionStatus.ACTION_STARTED, started?.status)
         assertTrue("run-checkpoint:0:ACTION" in started!!.idempotencyKeys)
+        assertEquals("node-install", started.currentNodeId)
+        assertEquals(DurableNodeExecutionState.RUNNING, started.nodeExecutions.single().state)
+        assertEquals(DurableVerificationState.PENDING, started.verificationState)
+        assertEquals("PACKAGE_INSTALLER", started.nodeExecutions.single().backend)
 
-        val completed = store.markActionCompleted("run-checkpoint", 0, 120L)
+        val completed = store.markActionCompleted(
+            runId = "run-checkpoint",
+            actionIndex = 0,
+            updatedAt = 120L,
+            outputHash = "output-hash",
+            verificationState = DurableVerificationState.VERIFIED
+        )
         assertEquals(DurableExecutionStatus.ACTION_COMPLETED, completed?.status)
         assertEquals(1, completed?.nextActionIndex)
         assertEquals(setOf(0), completed?.completedActionIndexes)
+        assertEquals(DurableVerificationState.VERIFIED, completed?.verificationState)
+        assertEquals(DurableNodeExecutionState.SUCCEEDED, completed?.nodeExecutions?.single()?.state)
+        assertEquals("output-hash", completed?.nodeExecutions?.single()?.outputHash)
 
         val firstClaim = store.claimRecoveryCandidates(130L)
         assertEquals(1, firstClaim.size)
@@ -99,6 +120,24 @@ class ActiveExecutionStoreCheckpointTest {
         val receipts = store.maintenanceReceiptsForTest().filter { it.occurrenceKey == key }
         assertEquals(1, receipts.size)
         assertEquals(2_000L, receipts.single().completedAt)
+    }
+
+    @Test
+    fun interruptedNodeIsPersistedAsUnknownAndNeverReportedAsSuccess() = runBlocking {
+        assertTrue(store.beginCheckpoint(checkpoint("run-node-unknown")))
+        store.markActionStarted(
+            runId = "run-node-unknown",
+            actionIndex = 0,
+            idempotencyKey = "run-node-unknown:0:ACTION",
+            updatedAt = 110L,
+            nodeId = "node-unknown"
+        )
+        val unknown = store.markActionUnknown("run-node-unknown", "process killed", 120L)
+
+        assertEquals(DurableExecutionStatus.ACTION_UNKNOWN, unknown?.status)
+        assertEquals(DurableVerificationState.UNKNOWN, unknown?.verificationState)
+        assertEquals(DurableNodeExecutionState.UNKNOWN, unknown?.nodeExecutions?.single()?.state)
+        assertEquals("UNKNOWN_OUTCOME", unknown?.nodeExecutions?.single()?.failureCode)
     }
 
     @Test

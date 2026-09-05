@@ -1,6 +1,6 @@
 # NexaFlow Current Architecture — 2026
 
-**Audit date:** 2026-09-04
+**Audit date:** 2026-09-05
 **Repository:** `Alaa91H/NexaFlow`  
 **Evidence rule:** source code, build configuration, tests, CI definitions, and generated audit evidence are authoritative; prose documentation is corroborating evidence only.
 
@@ -85,7 +85,7 @@ After process death or reboot, startup/recovery reads non-terminal runtime recor
 
 ## Workflow and action flow
 
-The builder persists automation definitions consumed by the domain validators and engine. The execution layer resolves action types and delegates system operations to `SystemController`, capability providers, ROM bridges, or public Android APIs. Action results are classified into success, failure, unknown, or unsupported outcomes according to the available postcondition evidence. The architecture now contains a canonical `WorkflowExecutionState`/`NodeExecutionState` compatibility adapter with strict transition tests (v3.58.3). It is deliberately not yet described as a persisted repository-wide `WorkflowExecution`/`NodeExecution` store: immutable workflow revisions, durable node-attempt records, and cross-store crash recovery remain YELLOW.
+The builder persists automation definitions consumed by the domain validators and engine. The execution layer resolves action types and delegates system operations to `SystemController`, capability providers, ROM bridges, or public Android APIs. Action results are classified into success, failure, unknown, or unsupported outcomes according to the available postcondition evidence. The architecture contains a canonical `WorkflowExecutionState`/`NodeExecutionState` compatibility adapter with strict transition tests (v3.58.3). The existing `ActiveExecutionStore` now persists workflow identity/revision, parent/correlation/causation metadata, deadlines, current node, bounded node-attempt records, backend and input/output hashes, idempotency keys, and verification state. This is a durable foundation rather than a claim of complete repository-wide workflow integration: immutable revision migration and cross-store crash recovery remain YELLOW.
 
 ## Capability and backend flow
 
@@ -128,8 +128,8 @@ Command construction is centralized through `SafeCommandBuilder`, and privileged
 
 ## Current release evidence
 
-The repository has published `v3.53.0` and `v3.53.1` for DNS support and read-back correction, followed by the hardened workflow releases through `v3.58.3`. The v3.58.3 tagged CI workflow passed resource gates, lint, unit tests, production build, signing, APK/AAB validation, and release publication. These results prove the configured CI gates, not universal physical-device behavior.
+The repository has published `v3.53.0` and `v3.53.1` for DNS support and read-back correction, followed by hardened workflow releases through `v3.58.4`. The v3.58.4 mainline CI run passed resource gates, lint, unit tests, production build, signing, APK/AAB validation, and the release was published with `app-release.apk`. These results prove the configured CI gates, not universal physical-device behavior.
 
 ## Next audit priorities
 
-The next implementation tranche should prioritize persistence of canonical execution identity and node attempts, explicit capability-level idempotency/verification metadata, failure-injection coverage around checkpoint/side-effect boundaries, and architecture tests preventing direct privileged operations from domain/UI code. Each change must follow the repository contract → adapter → persistence → integration → test sequence and must preserve compatibility with existing plugin and automation APIs. The machine-readable forensic inventory is `docs/audit/FORENSIC_INVENTORY_2026.txt`.
+The next implementation tranche should prioritize integrating all workflow runners with the persisted node-attempt contract, explicit capability-level idempotency/verification metadata, failure-injection coverage around checkpoint/side-effect boundaries, and architecture tests preventing direct privileged operations from domain/UI code. Each change must follow the repository contract → adapter → persistence → integration → test sequence and must preserve compatibility with existing plugin and automation APIs. The machine-readable forensic inventory is `docs/audit/FORENSIC_INVENTORY_2026.txt`.
