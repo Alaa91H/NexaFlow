@@ -461,5 +461,5 @@
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">छोड़े गए निष्पादन देखें</string>
-    <string name="task_delete_failed">कार्य हटाया नहीं जा सका</string>
+    <string name="task_delete_failed">कार्य हटाया नहीं जा सका: %1$s</string>
 </resources>

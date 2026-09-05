@@ -461,5 +461,5 @@
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">查看已跳过的执行</string>
-    <string name="task_delete_failed">无法删除任务</string>
+    <string name="task_delete_failed">无法删除任务：%1$s</string>
 </resources>

@@ -461,5 +461,5 @@
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Voir les exécutions ignorées</string>
-    <string name="task_delete_failed">Impossible de supprimer la tâche</string>
+    <string name="task_delete_failed">Impossible de supprimer la tâche : %1$s</string>
 </resources>

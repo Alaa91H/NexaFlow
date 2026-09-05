@@ -461,5 +461,5 @@
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Ver execuções ignoradas</string>
-    <string name="task_delete_failed">Não foi possível excluir a tarefa</string>
+    <string name="task_delete_failed">Não foi possível excluir a tarefa: %1$s</string>
 </resources>

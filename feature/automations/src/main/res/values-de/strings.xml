@@ -461,5 +461,5 @@
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Übersprungene Ausführungen anzeigen</string>
-    <string name="task_delete_failed">Aufgabe konnte nicht gelöscht werden</string>
+    <string name="task_delete_failed">Aufgabe konnte nicht gelöscht werden: %1$s</string>
 </resources>

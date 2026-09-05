@@ -461,5 +461,5 @@
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">スキップされた実行を表示</string>
-    <string name="task_delete_failed">タスクを削除できませんでした</string>
+    <string name="task_delete_failed">タスクを削除できませんでした: %1$s</string>
 </resources>
