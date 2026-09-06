@@ -2,7 +2,6 @@
 <resources>
     <string name="choose_icon_title">आइकन चुनें</string>
     <string name="done">हो गया</string>
-    <string name="search_icons">आइकन खोजें</string>
     <string name="category_all">सभी</string>
     <string name="category_general">सामान्य</string>
     <string name="category_connectivity">कनेक्टिविटी</string>
@@ -14,4 +13,6 @@
     <string name="category_time">समय</string>
     <string name="category_location">स्थान</string>
     <string name="icon_color">रंग</string>
+    <string name="category_apps">Apps</string>
+    <string name="category_security">Security</string>
 </resources>

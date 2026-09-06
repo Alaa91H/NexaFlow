@@ -516,10 +516,6 @@
     <string name="rom_setting_namespace_secure">Secure</string>
     <string name="rom_setting_namespace_global">Global</string>
     <string name="rom_setting_key">Setting key</string>
-    <string name="rom_setting_pick_from_rom">Pick a key from this ROM</string>
-    <string name="rom_setting_pick_title">ROM settings found on this device</string>
-    <string name="rom_setting_pick_empty">No Evolution X / LineageOS keys found. This feature needs root, Shizuku or a system install.</string>
-    <string name="rom_setting_current_value">Current: %1$s</string>
     <string name="rom_setting_operator">Condition</string>
     <string name="rom_setting_equals">Equals</string>
     <string name="rom_setting_not_equals">Not equals</string>
@@ -961,7 +957,6 @@
     <string name="trigger_type_boot_sub">Fires when device finishes booting</string>
     <string name="trigger_type_alarm_sub">Fires when an alarm is set or changed</string>    <string name="add_trigger">Add trigger</string>    <string name="add_action">Add action</string>
 
-    <string name="category_routines">Popular routines</string>
     <string name="action_timer">Start timer</string>
     <string name="action_timer_sub">Start a countdown in a compatible clock app</string>
     <string name="action_system_update">System update</string>
@@ -1012,8 +1007,6 @@
 
 
     <!-- Safe local starter-routine chooser. -->
-    <string name="starter_routines">Starter routines</string>
-    <string name="starter_routines_sub">Start with an editable routine. It will be saved off until you review and enable it.</string>
     <string name="starter_template_sleep">Sleep mode</string>
     <string name="starter_template_low_battery">Low battery saver</string>
     <string name="starter_template_charging">Charging connection</string>

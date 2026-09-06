@@ -462,4 +462,22 @@
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">عرض التشغيلات المتخطاة</string>
     <string name="task_delete_failed">تعذر حذف المهمة: %1$s</string>
+    <string name="action_evo_ambient_aod">الشاشة الدائمة</string>
+    <string name="action_evo_ambient_aod_sub">شاشة التشغيل الدائم والغفوة</string>
+    <string name="action_evo_batch">حزمة Evolver</string>
+    <string name="action_evo_batch_sub">تطبيق عدة مفاتيح Evolver معا</string>
+    <string name="action_evo_lockscreen">شاشة القفل</string>
+    <string name="action_evo_lockscreen_sub">الساعة والاختصارات والطقس والبصمة</string>
+    <string name="action_evo_navigation">التنقل</string>
+    <string name="action_evo_navigation_sub">الإيماءات / الأزرار الثلاثة / شريط التنقل</string>
+    <string name="action_evo_notifications">الإشعارات العائمة</string>
+    <string name="action_evo_notifications_sub">الإشعارات العائمة والمهلة</string>
+    <string name="action_evo_qs_tiles">بلاطات الإعدادات</string>
+    <string name="action_evo_qs_tiles_sub">ضبط بلاطات ولوحة الإعدادات السريعة</string>
+    <string name="action_evo_set_setting">إعداد مخصص</string>
+    <string name="action_evo_set_setting_sub">كتابة أي إعداد نظام مع منتقي - يعمل على أي روم</string>
+    <string name="action_evo_status_bar">شريط الحالة</string>
+    <string name="action_evo_status_bar_sub">الساعة والبطارية والأيقونات والحركة</string>
+    <string name="action_evo_theme">السمة والألوان</string>
+    <string name="action_evo_theme_sub">التمييز والألوان والأيقونات والخطوط</string>
 </resources>

@@ -2,7 +2,6 @@
 <resources>
     <string name="choose_icon_title">Choose Icon</string>
     <string name="done">Done</string>
-    <string name="search_icons">Search icons</string>
     <string name="category_all">All</string>
     <string name="category_general">General</string>
     <string name="category_connectivity">Connectivity</string>

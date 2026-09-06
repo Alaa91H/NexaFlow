@@ -2,7 +2,6 @@
 <resources>
     <string name="choose_icon_title">اختر أيقونة</string>
     <string name="done">تم</string>
-    <string name="search_icons">ابحث في الأيقونات</string>
     <string name="category_all">الكل</string>
     <string name="category_general">عام</string>
     <string name="category_connectivity">الاتصال</string>
@@ -14,4 +13,6 @@
     <string name="category_time">الوقت</string>
     <string name="category_location">الموقع</string>
     <string name="icon_color">اللون</string>
+    <string name="category_apps">التطبيقات</string>
+    <string name="category_security">الأمان</string>
 </resources>

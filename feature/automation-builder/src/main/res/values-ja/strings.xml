@@ -450,7 +450,6 @@
     <string name="webhook_token">トークン（任意）</string>
     <string name="webhook_token_hint">秘密のヘッダー値</string>
     <string name="webhook_url_hint">この端末から http://127.0.0.1:8765/path にHTTPリクエストを送信するとタスクが実行されます。</string>
-    <string name="rom_setting_current_value">現在: %1$s</string>
     <string name="rom_setting_equals">等しい</string>
     <string name="rom_setting_hint">実際のROM設定が一致したときに実行します。権限なしでデバイスから読み取ります。</string>
     <string name="rom_setting_key">設定キー</string>
@@ -460,9 +459,6 @@
     <string name="rom_setting_namespace_system">システム</string>
     <string name="rom_setting_not_equals">等しくない</string>
     <string name="rom_setting_operator">条件</string>
-    <string name="rom_setting_pick_empty">Evolution X / LineageOS のキーが見つかりません。この機能には root、Shizuku、またはシステムインストールが必要です。</string>
-    <string name="rom_setting_pick_from_rom">このROMからキーを選ぶ</string>
-    <string name="rom_setting_pick_title">このデバイスで見つかったROM設定</string>
     <string name="rom_setting_value">目標値</string>
     <string name="trigger_type_headphone">ヘッドホン</string>
     <string name="trigger_type_charger">充電器</string>
@@ -939,7 +935,6 @@
     <string name="trigger_type_wifi_signal_sub">Wi-Fi 電波強度がしきい値を超えたときに発火</string>
     <string name="trigger_type_wifi_state_sub">Wi-Fi が有効または無効になったときに発火</string>    <string name="add_trigger">トリガーを追加</string>    <string name="add_action">アクションを追加</string>
 
-    <string name="category_routines">よく使うルーティン</string>
     <string name="action_timer">タイマーを開始</string>
     <string name="action_timer_sub">対応する時計アプリでカウントダウンを開始します</string>
     <string name="action_system_update">システムアップデート</string>
@@ -990,12 +985,31 @@
 
 
     <!-- Safe local starter-routine chooser. -->
-    <string name="starter_routines">スタータールーチン</string>
-    <string name="starter_routines_sub">編集可能なルーチンから始めます。確認して有効にするまで無効のまま保存されます。</string>
     <string name="starter_template_sleep">睡眠モード</string>
     <string name="starter_template_low_battery">低バッテリー節約</string>
     <string name="starter_template_charging">充電器接続時</string>
     <string name="starter_template_daily_app_maintenance">毎日のアプリメンテナンス</string>
     <string name="starter_template_weekly_storage_cleanup">毎週のストレージ確認</string>
     <string name="starter_template_nightly_automation_sync">夜間自動化リマインダー</string>
+    <string name="action_evo_ambient_aod">Ambient &amp; AOD</string>
+    <string name="action_evo_ambient_aod_sub">Always-on display &amp; doze</string>
+    <string name="action_evo_batch">Evolver batch</string>
+    <string name="action_evo_batch_sub">Apply multiple Evolver keys at once</string>
+    <string name="action_evo_lockscreen">Lockscreen</string>
+    <string name="action_evo_lockscreen_sub">Clock, shortcuts, weather, UDFPS</string>
+    <string name="action_evo_navigation">Navigation</string>
+    <string name="action_evo_navigation_sub">Gesture / 3-button / navbar</string>
+    <string name="action_evo_notifications">Heads-up</string>
+    <string name="action_evo_notifications_sub">Heads-up, less boring, timeout</string>
+    <string name="action_evo_qs_tiles">QS Tiles</string>
+    <string name="action_evo_qs_tiles_sub">Configure Quick Settings tiles &amp; panel</string>
+    <string name="action_evo_set_setting">Custom Setting</string>
+    <string name="action_evo_set_setting_sub">Write any system setting with picker - works on any ROM</string>
+    <string name="action_evo_status_bar">Status bar</string>
+    <string name="action_evo_status_bar_sub">Clock, battery, icons, traffic</string>
+    <string name="action_evo_theme">Theme &amp; Monet</string>
+    <string name="action_evo_theme_sub">Accent, Monet, icons, fonts</string>
+    <string name="any_bluetooth_device">Any Bluetooth device</string>
+    <string name="any_bluetooth_device_hint">Fires when any paired device disconnects - no specific device needed</string>
+    <string name="any_device">Any device</string>
 </resources>

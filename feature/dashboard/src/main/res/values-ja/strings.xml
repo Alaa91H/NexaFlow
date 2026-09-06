@@ -98,8 +98,11 @@
     <string name="task_details_end_revert">元の状態に戻す</string>
     <string name="task_details_end_rerun">終了時に再実行</string>
     <string name="task_details_end_set_value">選択した値を設定</string>
-    <string name="task_details_end_action">%1$s — %2$s</string>
     <string name="task_details_enabled">オンにする</string>
     <string name="task_details_disabled">オフにする</string>
     <string name="task_details_configured_count">%1$d 件を設定</string>
+    <string name="toast_on_toggle_title">Show toast on toggle</string>
+    <string name="toast_on_toggle_sub">Show a message when this task is enabled or disabled</string>
+    <string name="task_enabled_toast">Enabled: %1$s</string>
+    <string name="task_disabled_toast">Disabled: %1$s</string>
 </resources>

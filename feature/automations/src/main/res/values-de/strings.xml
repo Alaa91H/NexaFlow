@@ -462,4 +462,22 @@
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Übersprungene Ausführungen anzeigen</string>
     <string name="task_delete_failed">Aufgabe konnte nicht gelöscht werden: %1$s</string>
+    <string name="action_evo_ambient_aod">Ambient &amp; AOD</string>
+    <string name="action_evo_ambient_aod_sub">Always-on display &amp; doze</string>
+    <string name="action_evo_batch">Evolver batch</string>
+    <string name="action_evo_batch_sub">Apply multiple Evolver keys at once</string>
+    <string name="action_evo_lockscreen">Lockscreen</string>
+    <string name="action_evo_lockscreen_sub">Clock, shortcuts, weather, UDFPS</string>
+    <string name="action_evo_navigation">Navigation</string>
+    <string name="action_evo_navigation_sub">Gesture / 3-button / navbar</string>
+    <string name="action_evo_notifications">Heads-up</string>
+    <string name="action_evo_notifications_sub">Heads-up, less boring, timeout</string>
+    <string name="action_evo_qs_tiles">QS Tiles</string>
+    <string name="action_evo_qs_tiles_sub">Configure Quick Settings tiles &amp; panel</string>
+    <string name="action_evo_set_setting">Custom Setting</string>
+    <string name="action_evo_set_setting_sub">Write any system setting with picker - works on any ROM</string>
+    <string name="action_evo_status_bar">Status bar</string>
+    <string name="action_evo_status_bar_sub">Clock, battery, icons, traffic</string>
+    <string name="action_evo_theme">Theme &amp; Monet</string>
+    <string name="action_evo_theme_sub">Accent, Monet, icons, fonts</string>
 </resources>

@@ -2,7 +2,6 @@
 <resources>
     <string name="choose_icon_title">Escolher ícone</string>
     <string name="done">Concluído</string>
-    <string name="search_icons">Pesquisar ícones</string>
     <string name="category_all">Tudo</string>
     <string name="category_general">Geral</string>
     <string name="category_connectivity">Conectividade</string>
@@ -14,4 +13,6 @@
     <string name="category_time">Tempo</string>
     <string name="category_location">Localização</string>
     <string name="icon_color">Cor</string>
+    <string name="category_apps">Apps</string>
+    <string name="category_security">Security</string>
 </resources>

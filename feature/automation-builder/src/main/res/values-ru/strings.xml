@@ -450,7 +450,6 @@
     <string name="webhook_token">Токен (необязательно)</string>
     <string name="webhook_token_hint">Секретное значение заголовка</string>
     <string name="webhook_url_hint">Отправьте HTTP-запрос на http://127.0.0.1:8765/path с этого устройства, чтобы запустить задачу.</string>
-    <string name="rom_setting_current_value">Текущее: %1$s</string>
     <string name="rom_setting_equals">Равно</string>
     <string name="rom_setting_hint">Срабатывает, когда реальная настройка ROM совпадает. Читается с устройства без разрешений.</string>
     <string name="rom_setting_key">Ключ настройки</string>
@@ -460,9 +459,6 @@
     <string name="rom_setting_namespace_system">Система</string>
     <string name="rom_setting_not_equals">Не равно</string>
     <string name="rom_setting_operator">Условие</string>
-    <string name="rom_setting_pick_empty">Ключи Evolution X / LineageOS не найдены. Эта функция требует root, Shizuku или установки в систему.</string>
-    <string name="rom_setting_pick_from_rom">Выбрать ключ из этой ROM</string>
-    <string name="rom_setting_pick_title">Настройки ROM, найденные на устройстве</string>
     <string name="rom_setting_value">Целевое значение</string>
     <string name="trigger_type_headphone">Наушники</string>
     <string name="trigger_type_charger">Зарядка</string>
@@ -939,7 +935,6 @@
     <string name="trigger_type_wifi_signal_sub">Срабатывает при пересечении порога уровня сигнала Wi-Fi</string>
     <string name="trigger_type_wifi_state_sub">Срабатывает при включении или выключении Wi-Fi</string>    <string name="add_trigger">Добавить триггер</string>    <string name="add_action">Добавить действие</string>
 
-    <string name="category_routines">Частые сценарии</string>
     <string name="action_timer">Запустить таймер</string>
     <string name="action_timer_sub">Запускает обратный отсчёт в совместимом приложении часов</string>
     <string name="action_system_update">Обновление системы</string>
@@ -990,12 +985,31 @@
 
 
     <!-- Safe local starter-routine chooser. -->
-    <string name="starter_routines">Стартовые сценарии</string>
-    <string name="starter_routines_sub">Начните с редактируемого сценария. Он будет сохранён отключённым, пока вы не проверите и не включите его.</string>
     <string name="starter_template_sleep">Режим сна</string>
     <string name="starter_template_low_battery">Экономия при низком заряде</string>
     <string name="starter_template_charging">При подключении зарядки</string>
     <string name="starter_template_daily_app_maintenance">Ежедневное обслуживание приложений</string>
     <string name="starter_template_weekly_storage_cleanup">Еженедельная проверка хранилища</string>
     <string name="starter_template_nightly_automation_sync">Ночное напоминание об автоматизации</string>
+    <string name="action_evo_ambient_aod">Ambient &amp; AOD</string>
+    <string name="action_evo_ambient_aod_sub">Always-on display &amp; doze</string>
+    <string name="action_evo_batch">Evolver batch</string>
+    <string name="action_evo_batch_sub">Apply multiple Evolver keys at once</string>
+    <string name="action_evo_lockscreen">Lockscreen</string>
+    <string name="action_evo_lockscreen_sub">Clock, shortcuts, weather, UDFPS</string>
+    <string name="action_evo_navigation">Navigation</string>
+    <string name="action_evo_navigation_sub">Gesture / 3-button / navbar</string>
+    <string name="action_evo_notifications">Heads-up</string>
+    <string name="action_evo_notifications_sub">Heads-up, less boring, timeout</string>
+    <string name="action_evo_qs_tiles">QS Tiles</string>
+    <string name="action_evo_qs_tiles_sub">Configure Quick Settings tiles &amp; panel</string>
+    <string name="action_evo_set_setting">Custom Setting</string>
+    <string name="action_evo_set_setting_sub">Write any system setting with picker - works on any ROM</string>
+    <string name="action_evo_status_bar">Status bar</string>
+    <string name="action_evo_status_bar_sub">Clock, battery, icons, traffic</string>
+    <string name="action_evo_theme">Theme &amp; Monet</string>
+    <string name="action_evo_theme_sub">Accent, Monet, icons, fonts</string>
+    <string name="any_bluetooth_device">Any Bluetooth device</string>
+    <string name="any_bluetooth_device_hint">Fires when any paired device disconnects - no specific device needed</string>
+    <string name="any_device">Any device</string>
 </resources>
