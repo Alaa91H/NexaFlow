@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.58.6] - 2026-09-06
+
+### Added
+- **Dynamic Evolver engine (Evolution X 17 / API 37):** `EvolverCatalog` with 60+ keys including OEM `sec_*`, `miui_*`, `oplus_*`; distributed `EVO_*` actions across `DISPLAY`, `SYSTEM`, `NOTIFICATIONS`, `STATUS_BAR`, `LOCKSCREEN`, `THEME`, `AMBIENT`, `NAVIGATION`, `BATCH` with hardware-gated builder pickers.
+- **`EvoActionHandler`, `CommandCatalog` shell passthrough (`EVOLUTION_X_SETTINGS`), `EvolverSettingPickerDialog` and `ActionRegistry` integration** for direct Evolver key execution.
+- **ROM priv-app integration package** `rom/` (`Android.bp` privileged+presigned, `NexaFlow.mk`, `privapp-permissions`, `sepolicy/nexaflow.te`, `install-rom-integration.ps1/.sh`) for baking NexaFlow into Evolution X vendor builds.
+- **Per-task toggle toast** — dark, message-sized, bottom-center (`40dp`, `Color(0xFF323232)`, `24dp` rounded) shown for 3 seconds when the per-task switch is enabled; visible for every task type (previously time-trigger only).
+- **Strict hardware adaptation** `HardwareProfile` / `DeviceProfile` live probes (`NFC`, `Telephony`, `Bluetooth`, `Flash`, `Proximity/Light/Step/Accel/Gyro`, `GPS`, `USB/Ethernet`) with `CommandCompatibilityEngine.hardwareOkForType()` and `isSensorAvailable()` filtering.
+
+### Changed
+- **Exit-behavior header icon unified:** builder `IconBadge` now `containerColor=White`, `contentColor=selectedIconColor` (previously solid color); dashboard exit rows use `automation.iconColor`.
+- **Icon picker categories de-duplicated and empty categories hidden** — `NexaFlowIcons.categories.distinct()` filtered by actual entries.
+- **Network mode resilience:** `NetworkModeCapabilities` 7-layer fallback reader with `SettingsFallbackReader`; `BluetoothMonitor.matchesDevice()` accepts `ANY` (`""`/`__ANY__`/`*`).
+- **Strict execution guarantees:** `AutomationScheduler` uses `setExactAndAllowWhileIdle` (no alarm-clock icon), `ExecutionEngine` 10-minute `WakeLock`, `ExitCoordinator.MAX_EXIT_ATTEMPTS` 2 → 5.
+- **Toast placement fixed:** moved from `Scaffold` content to outer `Box` sibling so `Alignment.BottomCenter` is honored; `delay(3000)` and `consumeExecutionMessage` ordering corrected.
+
+### Fixed
+- **Task execution restored after root grant:** `SystemAppStatusDetector` TTL 5s → 2s, `refreshAndProbe()`, explicit KSU/Magisk paths (`/data/adb/ksu/bin/su`), diagnostic `Log.d` for `su probe`; `ExecutionEngine.elevatedHint()` and `MonitoringService` startup log prevent silent `No elevated runtime available`.
+- **Internationalization parity:** added missing `action_evo_*`, `toast_on_toggle_*`, `task_*_toast`, `category_apps`/`category_security`, `any_device` keys to all 10 locales (`ar`, `de`, `es`, `fr`, `hi`, `ja`, `pt`, `ru`, `tr`, `zh-rCN`); removed 99 orphaned keys via `scripts/auto_fix.py`.
+- **Static analysis and tests:** removed unused `hardwareOk(spec, hardware)` stub (Detekt), suppressed `NetworkModeCapabilities.createFakeSubscriptionInfo` false positive, supplied `HardwareProfile` to `CommandCompatibilityEngineTest`, hoisted `hiltViewModel()` from `RoutineDetails` to `RoutineCard` (fixes `RoutineCardHeaderTest` Robolectric Hilt crash), updated `ExitCoordinatorTest` bound to 5 attempts.
+
+### Quality assurance
+- `scripts/check_strings_parity.py` → `PARITY_PROBLEMS: 0`; `scripts/auto_fix.py --check` → `OK`; `scripts/tests/test_check_resources.py` → `OK`.
+- `./gradlew detekt` and `./gradlew testDebugUnitTest` (excluding `core:datastore` Windows file-lock flake) pass locally; `lint` + `build` pass on `ubuntu-latest` CI (run `34031743262`).
+
 ## [v3.58.5] - 2026-09-05
 
 ### Added
