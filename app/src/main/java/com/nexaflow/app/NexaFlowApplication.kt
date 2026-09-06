@@ -88,7 +88,7 @@ class NexaFlowApplication : Application(), Configuration.Provider {
         // user's chosen interval so location-triggered tasks keep verifying
         // even while the system location switch is off.
         runCatching {
-            appScope.launch {
+            appScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                 LocationCheckScheduler.schedule(
                     this@NexaFlowApplication,
                     locationPreferences.checkIntervalMinutes.first()
@@ -115,8 +115,12 @@ class NexaFlowApplication : Application(), Configuration.Provider {
                 UpdateNotification.cancel(this@NexaFlowApplication)
             }
         }
-        runCatching { scheduler.initialize() }
-            .onFailure { Log.e(TAG, "Scheduler init failed", it) }
+        // Strict, atomic startup: scheduler, lifecycle and recovery are independent
+        // and can run in parallel on IO dispatcher to reduce cold-start blocking.
+        appScope.launch {
+            runCatching { scheduler.initialize() }
+                .onFailure { Log.e(TAG, "Scheduler init failed", it) }
+        }
         // Runtime exit recovery is separate from action-checkpoint recovery:
         // completed windows and a persisted failed exit can be reconciled from
         // lifecycle facts without replaying an uncertain main action.

@@ -48,6 +48,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -121,9 +122,11 @@ fun DashboardScreen(navController: NavController) {
         }
     }
 
-    val filteredRows = remember(rows, searchQuery) {
-        if (searchQuery.isBlank()) rows
-        else rows.filter { it.automation.name.contains(searchQuery, ignoreCase = true) }
+    val filteredRows by remember(rows, searchQuery) {
+        derivedStateOf {
+            if (searchQuery.isBlank()) rows
+            else rows.filter { it.automation.name.contains(searchQuery, ignoreCase = true) }
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -742,25 +745,28 @@ private fun RoutineMetaLine(
     )
 }
 
-/** "Next · today 8:00 PM" for enabled time triggers, null otherwise. */
+/** "Next · today 8:00 PM" for enabled time triggers, null otherwise — cached per automation to avoid per-frame recomputation. */
 @Composable
 private fun nextRunText(automation: Automation): String? {
     if (!automation.enabled) return null
     val trigger = automation.triggers.firstOrNull { it.type == TriggerType.TIME } ?: return null
-    val nowMillis = System.currentTimeMillis()
-    val next = TimeTriggerCalculator.nextFireTime(trigger.config, nowMillis) ?: return null
-    val zone = ZoneId.systemDefault()
-    val nextTime = Instant.ofEpochMilli(next).atZone(zone)
-    val now = Instant.ofEpochMilli(nowMillis).atZone(zone)
     val context = LocalContext.current
-    val timeText = android.text.format.DateFormat.getTimeFormat(context)
-        .format(java.util.Date(next))
-    val dayPrefix = when (nextTime.toLocalDate()) {
-        now.toLocalDate() -> stringResource(R.string.today)
-        now.toLocalDate().plusDays(1) -> stringResource(R.string.tomorrow)
-        else -> nextTime.format(DateTimeFormatter.ofPattern("MMM d"))
+    // Cache per trigger config; recomputes only when triggers change, not on every recomposition
+    return remember(automation.triggers, automation.enabled) {
+        val nowMillis = System.currentTimeMillis()
+        val next = TimeTriggerCalculator.nextFireTime(trigger.config, nowMillis) ?: return@remember null
+        val zone = ZoneId.systemDefault()
+        val nextTime = Instant.ofEpochMilli(next).atZone(zone)
+        val now = Instant.ofEpochMilli(nowMillis).atZone(zone)
+        val timeText = android.text.format.DateFormat.getTimeFormat(context)
+            .format(java.util.Date(next))
+        val dayPrefix = when (nextTime.toLocalDate()) {
+            now.toLocalDate() -> context.getString(R.string.today)
+            now.toLocalDate().plusDays(1) -> context.getString(R.string.tomorrow)
+            else -> nextTime.format(DateTimeFormatter.ofPattern("MMM d"))
+        }
+        context.getString(R.string.next_run_prefix, "$dayPrefix $timeText")
     }
-    return stringResource(R.string.next_run_prefix, "$dayPrefix $timeText")
 }
 
 /** Human-friendly relative time: "just now", "5 m ago", "2 h ago", "3 d ago". */
