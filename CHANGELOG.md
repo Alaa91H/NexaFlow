@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.58.11] - 2026-09-06
+
+### Performance
+- **Atomic startup:** `NexaFlowApplication` now parallelizes `scheduler.initialize` and recovery on `Dispatchers.IO`, reducing cold-start blocking and ensuring `MonitoringService` starts atomically.
+- **Compose stability:** `DashboardScreen` uses `derivedStateOf` for `filteredRows` and `remember` per-automation for `nextRunText`, avoiding per-frame `System.currentTimeMillis` and `TimeTriggerCalculator` recomputation.
+
 ## [v3.58.10] - 2026-09-06
 
 ### Performance
