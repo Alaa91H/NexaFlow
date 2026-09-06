@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.58.8] - 2026-09-06
+
+### Fixed
+- **Atomic bounded ledger:** `ActiveExecutionStore.beginCheckpoint` now atomically prunes the oldest `COMPLETED` checkpoint when `MAX_CHECKPOINTS=128` is reached, preventing silent drop of executions during trigger bursts.
+- **Precise location and connectivity:** `LocationMonitor` now requests updates on `Looper.getMainLooper()` (fixes `IllegalStateException` on `Dispatchers.Default`); `ConnectivityMonitor` only marks `initialized` after successful `registerDefaultNetworkCallback` and clears `HotspotStateReader` stale state on `stop`.
+- **Strict WakeLock and time handling:** `ExecutionEngine.acquireWakeLock` truncates tag to 60 chars; `TimeTriggerCalculator` validates DST gaps via `getValidOffsets` and uses `safeZonedDateTime` for `nextFireTime` and `windowEndMillis`.
+
 ## [v3.58.7] - 2026-09-06
 
 ### Fixed
