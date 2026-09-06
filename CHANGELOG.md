@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.58.9] - 2026-09-06
+
+### Performance
+- **Dashboard atomic load:** `HistoryRepository.getLatestExecutions()` now returns `O(automationCount)` via `SELECT MAX(executedAt) GROUP BY automationId` with composite index `(automationId, executedAt)`, instead of loading 1,000 rows and grouping in Kotlin. `DashboardViewModel` uses `distinctUntilChanged` to avoid redundant recompositions.
+- **Database stability:** `AppDatabase` 17→18, `MIGRATION_17_18` creates `index_execution_history_automationId_executedAt` and `index_automations_enabled`; composite index accelerates latest-per-automation and retention pruning.
+
 ## [v3.58.8] - 2026-09-06
 
 ### Fixed
