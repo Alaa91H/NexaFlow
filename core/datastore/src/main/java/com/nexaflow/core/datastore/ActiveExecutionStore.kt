@@ -65,11 +65,22 @@ class ActiveExecutionStore(private val context: Context) {
         var accepted = false
         dataStore.edit { preferences ->
             val checkpoints = checkpoints(preferences)
-            if (checkpoint.runId !in checkpoints && checkpoints.size < MAX_CHECKPOINTS) {
-                checkpoints[checkpoint.runId] = checkpoint
-                writeCheckpoints(preferences, checkpoints)
-                accepted = true
+            if (checkpoint.runId in checkpoints) return@edit
+            // Strict, precise, atomic bounded handling: when ledger is full (128),
+            // atomically prune the oldest terminal checkpoint (COMPLETED) before
+            // admitting the new run, so a burst of triggers never silently drops
+            // an execution. If no terminal entry exists, refuse atomically.
+            if (checkpoints.size >= MAX_CHECKPOINTS) {
+                val oldestTerminal = checkpoints.entries
+                    .filter { it.value.isTerminal }
+                    .minByOrNull { it.value.updatedAt }
+                    ?.key
+                    ?: return@edit
+                checkpoints.remove(oldestTerminal)
             }
+            checkpoints[checkpoint.runId] = checkpoint
+            writeCheckpoints(preferences, checkpoints)
+            accepted = true
         }
         return accepted
     }
