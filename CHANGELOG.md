@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.58.7] - 2026-09-06
+
+### Fixed
+- **Manual Run now executes unconditionally:** `DashboardViewModel.runNow` and `AutomationDetailsViewModel.runNow` now call `runAutomation` directly; previously they used `runWithConditionGate` which checked triggers and, for a `11:00` monthly trigger invoked at `14:54`, returned `Conditions not satisfied; no end behavior` without running the main action.
+- **Toast auto-dismiss exactly 3s:** split `LaunchedEffect(executionMessage)` (sets `toastText` and consumes) and `LaunchedEffect(toastText)` (delays 3000ms then clears); previously consuming the message cancelled the delay, leaving the dark bottom toast visible for >5s.
+
 ## [v3.58.6] - 2026-09-06
 
 ### Added
