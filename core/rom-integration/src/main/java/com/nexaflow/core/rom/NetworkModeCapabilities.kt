@@ -375,8 +375,9 @@ class NetworkModeCapabilities(private val context: Context) {
         } else emptyList()
     }
 
+    @Suppress("UNUSED_PARAMETER")
     @SuppressLint("PrivateApi")
-    private fun createFakeSubscriptionInfo(slotIndex: Int, subscriptionId: Int): android.telephony.SubscriptionInfo? {
+    private fun createFakeSubscriptionInfo(@Suppress("UNUSED_PARAMETER") slotIndex: Int, @Suppress("UNUSED_PARAMETER") subscriptionId: Int): android.telephony.SubscriptionInfo? {
         return try {
             val clazz = Class.forName("android.telephony.SubscriptionInfo")
             val constructor = clazz.declaredConstructors.firstOrNull { it.parameterCount >= 10 } ?: return null

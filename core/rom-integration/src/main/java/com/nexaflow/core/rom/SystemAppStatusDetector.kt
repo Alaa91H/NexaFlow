@@ -78,13 +78,25 @@ object SystemAppStatusDetector {
         rootProbeAt = 0L
     }
 
+    /**
+     * Clears the cache and probes again immediately — used when an execution
+     * just failed with "No elevated runtime" so a freshly granted root is seen
+     * without waiting for the TTL.
+     */
+    fun refreshAndProbe(): Boolean {
+        refreshRootAvailability()
+        return isRootAvailable()
+    }
+
     @Volatile
     private var rootProbeResult = false
     @Volatile
     private var rootProbeAt = 0L
     // Short TTL: a freshly granted root (via Magisk/KernelSU) must be picked up
     // quickly by the permission manager without re-spawning a process too often.
-    private const val ROOT_PROBE_TTL_MS = 5_000L
+    // Reduced from 5s to 2s after review — the previous window hid a new grant
+    // while the dashboard toast was still visible.
+    private const val ROOT_PROBE_TTL_MS = 2_000L
 
     /**
      * Static `su` locations covering legacy SuperSU/OEM ROMs plus the modern
@@ -158,7 +170,12 @@ object SystemAppStatusDetector {
     private fun suAnswersAsRoot(): Boolean {
         rootProbe?.let { return it() }
         return try {
-            val process = ProcessBuilder("sh", "-c", "su -c id || su 0 id || /system/bin/su -c id")
+            // KernelSU Next exposes su only inside a granted app's mount namespace,
+            // so probe the most reliable forms including the explicit KSU path.
+            val process = ProcessBuilder(
+                "sh", "-c",
+                "su -c id 2>&1 || su 0 -c id 2>&1 || /system/bin/su -c id 2>&1 || /data/adb/ksu/bin/su -c id 2>&1 || /data/adb/magisk/busybox su -c id 2>&1"
+            )
                 .redirectErrorStream(true)
                 .start()
             val output = StringBuilder()
@@ -175,7 +192,9 @@ object SystemAppStatusDetector {
             reader.join(1000)
             process.destroy()
             // su answered: the output of `id` contains "uid=0".
-            output.contains("uid=0")
+            val text = output.toString()
+            android.util.Log.d("SystemAppStatusDetector", "su probe: exit=${process.exitValue()} out=${text.trim().take(120)}")
+            text.contains("uid=0")
         } catch (_: Throwable) {
             false
         }

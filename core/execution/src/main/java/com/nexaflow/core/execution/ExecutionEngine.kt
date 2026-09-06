@@ -762,6 +762,17 @@ class ExecutionEngine(
         return builtins + globals.associate { it.name to RuntimeValueCodec.display(it.value) }
     }
 
+    /**
+     * Diagnoses elevated-runtime availability for logging without re-probing too often.
+     * Returns a short human-readable hint used when a privileged action fails.
+     */
+    private fun elevatedHint(): String {
+        val ksuGranted = try { com.nexaflow.core.rom.SystemAppStatusDetector.isRootAvailable() } catch (_: Throwable) { false }
+        val shizuku = try { com.nexaflow.core.rom.PrivilegedRunner.isShizukuGranted() } catch (_: Throwable) { false }
+        val suBin = try { com.nexaflow.core.rom.SystemAppStatusDetector.isSuBinaryAvailable() } catch (_: Throwable) { false }
+        return "elevated: rootAvailable=$ksuGranted shizuku=$shizuku suBin=$suBin"
+    }
+
     private suspend fun executeAction(
         action: Action,
         controller: SystemController,
@@ -795,7 +806,7 @@ class ExecutionEngine(
         val handler = actionRegistry.handlerFor(action.type)
             ?: return SystemControlResult.fail("No handler registered for ${action.type}")
         return try {
-            handler.execute(
+            val result = handler.execute(
                 action,
                 ActionExecutionContext(
                     appContext = context,
@@ -808,6 +819,12 @@ class ExecutionEngine(
                     dataRuntime = dataRuntime
                 )
             )
+            if (!result.success && result.message.contains("No elevated runtime")) {
+                // Refresh once so a just-granted root is seen immediately; log full hint for diagnosis.
+                try { com.nexaflow.core.rom.SystemAppStatusDetector.refreshRootAvailability() } catch (_: Throwable) {}
+                android.util.Log.w("ExecutionEngine", "elevated action ${action.type} failed: ${result.message} | ${elevatedHint()} | action=${action.type} config=${action.config}")
+            }
+            result
         } catch (cancellation: CancellationException) {
             // Cancellation is control flow, not an action failure. Preserve the
             // caller's structured-concurrency contract.

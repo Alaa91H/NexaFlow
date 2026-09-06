@@ -114,11 +114,10 @@ class CommandCompatibilityEngine(
     // The catalog is held as a property for future per-ROM override tables;
     // today the built-in singleton catalog covers every command.
 
-    /** Resolves the effective strategy for a command on this device — now hardware-aware. */
+    /** Resolves the effective strategy for a command on this device. Hardware is gated per type in [isSupported]. */
     fun resolve(spec: CommandSpec, profile: DeviceProfile): ExecutionStrategy {
         if (!versionOk(spec, profile.sdk)) return ExecutionStrategy.UNSUPPORTED
         if (!romOk(spec, profile.romFamily)) return ExecutionStrategy.UNSUPPORTED
-        if (!hardwareOk(spec, profile.hardware)) return ExecutionStrategy.UNSUPPORTED
         if (!integrationOk(spec, profile)) return ExecutionStrategy.UNSUPPORTED
         if (!permissionsOk(spec, profile)) return ExecutionStrategy.UNSUPPORTED
 
@@ -209,12 +208,6 @@ class CommandCompatibilityEngine(
     private fun permissionsOk(spec: CommandSpec, profile: DeviceProfile): Boolean {
         if (spec.permissions.isEmpty()) return true
         return spec.permissions.all { it in profile.grantedPermissions }
-    }
-
-    private fun hardwareOk(spec: CommandSpec, hardware: HardwareProfile): Boolean {
-        // Generic hardware gate is handled via type-based checks in isSupported;
-        // spec-level hardware is for future per-command hardware flags
-        return true
     }
 
     private fun hardwareOkForType(type: Any, hardware: HardwareProfile): Boolean {

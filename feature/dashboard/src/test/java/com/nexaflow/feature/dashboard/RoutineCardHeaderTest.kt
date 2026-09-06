@@ -62,6 +62,7 @@ class RoutineCardHeaderTest {
                     onEdit = {},
                     onDelete = {},
                     onToggle = {},
+                    onToggleToast = { _, _ -> },
                     onExpandedChange = { expanded = !expanded },
                     onLongClick = {},
                     onDismissMenu = {},

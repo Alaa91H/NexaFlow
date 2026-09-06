@@ -242,6 +242,7 @@ fun DashboardScreen(navController: NavController) {
                     onEdit = { navController.navigate("automation_builder?automationId=${row.automation.id}") },
                     onDelete = { deleteTarget = row.automation },
                     onToggle = { viewModel.toggleAutomation(row.automation, it) },
+                    onToggleToast = { target, show -> viewModel.setShowToastOnToggle(target, show) },
                     onExpandedChange = {
                         expandedAutomationId = nextExpandedAutomationId(
                             currentExpandedId = expandedAutomationId,
@@ -333,6 +334,7 @@ internal fun RoutineCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onToggle: (Boolean) -> Unit,
+    onToggleToast: (Automation, Boolean) -> Unit,
     onExpandedChange: () -> Unit,
     onLongClick: () -> Unit,
     onDismissMenu: () -> Unit,
@@ -396,7 +398,8 @@ internal fun RoutineCard(
                         row = row,
                         summary = summary,
                         nextRun = nextRun,
-                        isRunning = isRunning
+                        isRunning = isRunning,
+                        onToggleToast = { onToggleToast(row.automation, it) }
                     )
                 }
             }
@@ -436,10 +439,10 @@ private fun RoutineDetails(
     row: AutomationRow,
     summary: String,
     nextRun: String?,
-    isRunning: Boolean
+    isRunning: Boolean,
+    onToggleToast: (Boolean) -> Unit
 ) {
     val automation = row.automation
-    val viewModel: DashboardViewModel = hiltViewModel()
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -494,7 +497,7 @@ private fun RoutineDetails(
         }
         Switch(
             checked = automation.showToastOnToggle,
-            onCheckedChange = { viewModel.setShowToastOnToggle(automation, it) }
+            onCheckedChange = onToggleToast
         )
     }
 
@@ -874,6 +877,7 @@ private fun RoutineCardPreview() {
             onEdit = {},
             onDelete = {},
             onToggle = {},
+            onToggleToast = { _, _ -> },
             onExpandedChange = {},
             onLongClick = {},
             onDismissMenu = {},
