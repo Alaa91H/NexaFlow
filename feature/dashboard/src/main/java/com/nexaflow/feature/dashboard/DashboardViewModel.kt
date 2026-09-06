@@ -124,12 +124,21 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
-    /** Runs a routine immediately from the dashboard action menu. */
+    /** Runs a routine immediately from the dashboard action menu — bypasses trigger/condition gate. */
     fun runNow(automation: Automation) {
         if (automation.id in _runningIds.value) return
         viewModelScope.launch {
             _runningIds.value = _runningIds.value + automation.id
-            val record = executionEngine.runWithConditionGate(automation)
+            // Manual "Run now" must execute the main action chain unconditionally.
+            // The previous gated path checked triggers and, when outside the window
+            // (e.g. a 11:00 monthly trigger at 14:54), only ran exit behavior and
+            // appeared as "not executed".
+            val record = try {
+                executionEngine.runAutomation(automation)
+            } catch (_: Exception) {
+                // Fallback to gated path if direct run cannot be admitted (e.g. lifecycle conflict)
+                executionEngine.runWithConditionGate(automation)
+            }
             _executionMessage.value = formatExecutionMessage(record)
             _runningIds.value = _runningIds.value - automation.id
         }

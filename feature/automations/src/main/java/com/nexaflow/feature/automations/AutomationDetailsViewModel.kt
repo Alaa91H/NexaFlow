@@ -110,7 +110,11 @@ class AutomationDetailsViewModel @Inject constructor(
         if (_running.value) return
         viewModelScope.launch {
             _running.value = true
-            val record = executionEngine.runWithConditionGate(current)
+            val record = try {
+                executionEngine.runAutomation(current)
+            } catch (_: Exception) {
+                executionEngine.runWithConditionGate(current)
+            }
             _executionMessage.value = formatExecutionMessage(record)
             _running.value = false
         }
