@@ -189,7 +189,10 @@ class BluetoothMonitor @Inject constructor(
 
     private fun matchesDevice(config: Map<String, String>, address: String, deviceName: String): Boolean {
         val configuredName = config["deviceName"].orEmpty().trim()
-        if (configuredName.isEmpty()) return false
+        // Professional ANY support: empty, "*" or "__ANY__" means any device
+        if (configuredName.isEmpty() || configuredName == "__ANY__" || configuredName == "*" || configuredName.equals("ANY", ignoreCase = true)) {
+            return true
+        }
         // Match by name, or by the address stored together with the name.
         val storedAddress = config["deviceAddress"].orEmpty()
         return deviceName.equals(configuredName, ignoreCase = true) ||

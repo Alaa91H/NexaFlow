@@ -224,6 +224,13 @@ object Migrations {
         }
     }
 
+    /** v16 -> v17: adds showToastOnToggle for per-task enable/disable toast. */
+    val MIGRATION_16_17 = object : Migration(16, 17) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `automations` ADD COLUMN `showToastOnToggle` INTEGER NOT NULL DEFAULT 1")
+        }
+    }
+
     val ALL = listOf(
         MIGRATION_1_2,
         MIGRATION_2_3,
@@ -239,6 +246,7 @@ object Migrations {
         MIGRATION_12_13,
         MIGRATION_13_14,
         MIGRATION_14_15,
-        MIGRATION_15_16
+        MIGRATION_15_16,
+        MIGRATION_16_17
     )
 }

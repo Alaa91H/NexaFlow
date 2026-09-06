@@ -11,6 +11,8 @@
     <string name="category_media">Media</string>
     <string name="category_system">System</string>
     <string name="category_battery">Battery</string>
+    <string name="category_apps">Apps</string>
+    <string name="category_security">Security</string>
     <string name="category_time">Time</string>
     <string name="category_location">Location</string>
     <string name="icon_color">Color</string>

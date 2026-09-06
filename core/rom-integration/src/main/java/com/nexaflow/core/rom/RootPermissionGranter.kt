@@ -355,46 +355,94 @@ object RootPermissionGranter {
 
         // 4) Accessibility service — needs secure settings (root can write
         //    them via the `settings` binary even without WRITE_SECURE_SETTINGS).
+        //    Fixed: deduplicate to prevent 15x duplication on every launch.
         val accessibilityAlreadyEnabled = accessibilityChecker?.invoke()
             ?: context?.let { isAccessibilityEnabled(it) } ?: false
         if (!accessibilityAlreadyEnabled) {
             val current = runShell(
                 "settings get secure enabled_accessibility_services"
             ).message.trim().trimEnd(':', '\n')
-            val newValue = if (current.isNotBlank() && current != "null") {
-                "$current:$packageName/$ACCESSIBILITY_SERVICE"
-            } else "$packageName/$ACCESSIBILITY_SERVICE"
-            val set = runShell(
-                "settings put secure enabled_accessibility_services $newValue"
-            )
-            val enable = runShell(
-                "settings put secure accessibility_enabled 1"
-            )
-            if (set.success && enable.success) {
-                secureSettingsWritten += "enabled_accessibility_services"
+            val serviceComponent = "$packageName/$ACCESSIBILITY_SERVICE"
+            // Deduplicate existing duplicates (fixes 21x bug) before checking
+            val deduped = current.split(':').map { it.trim() }.filter { it.isNotBlank() && it != "null" }.distinct().joinToString(":")
+            val alreadyListed = deduped.split(':').any { it == serviceComponent }
+            val newValue = when {
+                alreadyListed -> deduped
+                deduped.isNotBlank() -> "$deduped:$serviceComponent"
+                else -> serviceComponent
+            }
+            // Write if deduped differs from current (cleanup) or not yet listed
+            if (newValue != current) {
+                val set = runShell(
+                    "settings put secure enabled_accessibility_services $newValue"
+                )
+                val enable = runShell(
+                    "settings put secure accessibility_enabled 1"
+                )
+                if (set.success && enable.success) {
+                    secureSettingsWritten += "enabled_accessibility_services"
+                } else {
+                    failures += "accessibility settings"
+                }
+            } else if (!alreadyListed) {
+                val set = runShell(
+                    "settings put secure enabled_accessibility_services $newValue"
+                )
+                val enable = runShell(
+                    "settings put secure accessibility_enabled 1"
+                )
+                if (set.success && enable.success) {
+                    secureSettingsWritten += "enabled_accessibility_services"
+                } else {
+                    failures += "accessibility settings"
+                }
             } else {
-                failures += "accessibility settings"
+                // Already correctly listed but accessibility not enabled according to checker — just enable
+                val enable = runShell("settings put secure accessibility_enabled 1")
+                if (enable.success) secureSettingsWritten += "enabled_accessibility_services"
+                else failures += "accessibility settings"
             }
         }
 
-        // 5) Notification listener access — same secure-settings mechanism.
+        // 5) Notification listener access — same secure-settings mechanism (deduplicated).
         val listenerAlreadyGranted = notificationListenerChecker?.invoke()
             ?: context?.let { isNotificationListenerGranted(it) } ?: false
         if (!listenerAlreadyGranted) {
             val current = runShell(
                 "settings get secure enabled_notification_listeners"
             ).message.trim().trimEnd(':', '\n')
-            val newValue = if (current.isNotBlank() && current != "null") {
-                "$current:$packageName/$NOTIFICATION_LISTENER"
-            } else "$packageName/$NOTIFICATION_LISTENER"
-            val set = runShell(
-                "settings put secure enabled_notification_listeners $newValue"
-            )
-            if (set.success) {
+            val serviceComponent = "$packageName/$NOTIFICATION_LISTENER"
+            val deduped = current.split(':').map { it.trim() }.filter { it.isNotBlank() && it != "null" }.distinct().joinToString(":")
+            val alreadyListed = deduped.split(':').any { it == serviceComponent }
+            val newValue = when {
+                alreadyListed -> deduped
+                deduped.isNotBlank() -> "$deduped:$serviceComponent"
+                else -> serviceComponent
+            }
+            if (newValue != current) {
+                val set = runShell(
+                    "settings put secure enabled_notification_listeners $newValue"
+                )
+                if (set.success) {
+                    notificationListenerGranted = true
+                    secureSettingsWritten += "enabled_notification_listeners"
+                } else {
+                    failures += "notification listener settings"
+                }
+            } else if (!alreadyListed) {
+                val set = runShell(
+                    "settings put secure enabled_notification_listeners $newValue"
+                )
+                if (set.success) {
+                    notificationListenerGranted = true
+                    secureSettingsWritten += "enabled_notification_listeners"
+                } else {
+                    failures += "notification listener settings"
+                }
+            } else {
+                // Already correctly listed but not yet granted per checker — still count as written
                 notificationListenerGranted = true
                 secureSettingsWritten += "enabled_notification_listeners"
-            } else {
-                failures += "notification listener settings"
             }
         }
 

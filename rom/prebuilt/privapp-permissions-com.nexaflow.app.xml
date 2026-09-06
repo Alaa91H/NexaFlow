@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    NexaFlow — Privileged permission whitelist for Evolution X (cnb / Android 17, API 37)
+    Install as a system/priv-app via Android.bp / NexaFlow.mk.
+
+    Path when baked into ROM:
+      /system/etc/permissions/privapp-permissions-com.nexaflow.app.xml
+      (or /product/etc/permissions/ for product partition)
+
+    These permissions are signature|privileged — only granted because the app
+    lives in /system/priv-app and is whitelisted here. Removing the module/ROM
+    entry revokes them. Keep in sync with core/rom-integration/SystemAppInstaller
+    and app/src/main/AndroidManifest.xml.
+
+    Android 17 (API 37) notes:
+      - ACCESS_LOCAL_NETWORK is new on 37 but is normal, not privileged — not listed.
+      - SCHEDULE_EXACT_ALARM, POST_NOTIFICATIONS etc. are runtime, not privileged.
+-->
+<permissions>
+    <privapp-permissions package="com.nexaflow.app">
+        <!-- Direct ROM settings control (Evolver keys) -->
+        <permission name="android.permission.WRITE_SECURE_SETTINGS" />
+        <permission name="android.permission.WRITE_SETTINGS" />
+        <!-- Status bar / notification control -->
+        <permission name="android.permission.STATUS_BAR" />
+        <permission name="android.permission.EXPAND_STATUS_BAR" />
+        <!-- Telephony / network control (network mode, preferred network type) -->
+        <permission name="android.permission.MODIFY_PHONE_STATE" />
+        <permission name="android.permission.CHANGE_NETWORK_STATE" />
+        <permission name="android.permission.CHANGE_WIFI_STATE" />
+        <!-- App / process control -->
+        <permission name="android.permission.FORCE_STOP_PACKAGES" />
+        <permission name="android.permission.KILL_BACKGROUND_PROCESSES" />
+        <!-- Audit / usage -->
+        <permission name="android.permission.PACKAGE_USAGE_STATS" />
+        <permission name="android.permission.READ_LOGS" />
+        <permission name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    </privapp-permissions>
+</permissions>

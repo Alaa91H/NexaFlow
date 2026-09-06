@@ -209,8 +209,8 @@ class ExitCoordinator(
     }
 
     private companion object {
-        /** Initial delivery plus one bounded automatic recovery attempt. */
-        const val MAX_EXIT_ATTEMPTS = 2
+        /** Strict mode: 5 attempts (initial + 4 recoveries) for forceful exit guarantee. */
+        const val MAX_EXIT_ATTEMPTS = 5
         const val TAG = "AutomationLifecycle"
     }
 }

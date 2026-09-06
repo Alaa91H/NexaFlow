@@ -1,0 +1,62 @@
+// NexaFlow — AOSP/ Evolution X prebuilt integration (cnb / Android 17, API 37)
+// Place this directory at one of:
+//   packages/apps/NexaFlow/        (AOSP canonical)
+//   vendor/nexaflow/prebuilt/      (vendor overlay, keeps device trees clean)
+//   vendor/evolution/prebuilt/     (if you prefer evolution vendor namespace)
+//
+// Drop the release APK built from this repo as NexaFlow.apk next to this file,
+// then include NexaFlow.mk from your device/product makefile.
+//
+// Two integration modes are supported — un-comment the one you want:
+
+// ---------------------------------------------------------------------------
+// Mode A — Prebuilt presigned APK (recommended, easiest)
+// Import the gradle-built APK as-is. The whitelist grants privileged
+// permissions without re-signing with the platform key.
+// ---------------------------------------------------------------------------
+android_app_import {
+    name: "NexaFlow",
+    apk: "prebuilt/NexaFlow.apk",
+    // NexaFlow is already signed with its own release key (presigned).
+    // keep presigned:true so the build system does NOT re-sign with
+    // the platform certificate. The privapp-permissions whitelist (below)
+    // grants the signature|privileged permissions to this package anyway.
+    presigned: true,
+    privileged: true,
+    dex_preopt: {
+        enabled: false,
+    },
+    // Do not dex-preopt for speed — the Play-signed/presigned APK is
+    // already optimized; letting soong re-opt can break presigned builds
+    // on some Evolution X device trees.
+    overrides: ["NexaFlow"],
+}
+
+// Whitelist — installs to /system/etc/permissions (or /product/etc/permissions
+// if you set `product_specific: true`).
+prebuilt_etc {
+    name: "privapp-permissions-com.nexaflow.app.xml",
+    src: "privapp-permissions-com.nexaflow.app.xml",
+    sub_dir: "permissions",
+    // For system partition (default for priv-app):
+    //   /system/etc/permissions/privapp-permissions-com.nexaflow.app.xml
+    // If your ROM expects it on product:
+    //   uncomment: product_specific: true,
+}
+
+// ---------------------------------------------------------------------------
+// Mode B — Platform-signed (optional, deeper integration)
+// Uncomment to have the build system re-sign the APK with the platform cert.
+// Requires removing `presigned: true` and using the platform key. Useful if
+// you want SystemAppStatusDetector.PLATFORM_SIGNED_SYSTEM_APP (the highest
+// integration level) and to avoid any OEM denylist of presigned priv-apps.
+// ---------------------------------------------------------------------------
+// android_app_import {
+//     name: "NexaFlow",
+//     apk: "prebuilt/NexaFlow.apk",
+//     certificate: "platform",
+//     privileged: true,
+//     dex_preopt: {
+//         enabled: true,
+//     },
+// }

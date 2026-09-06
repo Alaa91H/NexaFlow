@@ -4,6 +4,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Box
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,8 +42,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -56,11 +56,13 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -73,6 +75,7 @@ import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowFloatingActionButton
 import com.nexaflow.core.ui.SectionHeader
+import com.nexaflow.core.ui.SettingRow
 import com.nexaflow.core.ui.iconVector
 import com.nexaflow.core.ui.nexaFlowEntrance
 import com.nexaflow.core.ui.rememberInstalledAppPresentation
@@ -80,6 +83,7 @@ import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.EndBehaviorCatalog
 import com.nexaflow.domain.models.EndMode
+import com.nexaflow.feature.automations.actionPresentation
 import com.nexaflow.domain.models.hasUserAuthoredDescription
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
@@ -88,6 +92,7 @@ import com.nexaflow.domain.schedule.TimeTriggerCalculator
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.delay
 
 @Composable
 fun DashboardScreen(navController: NavController) {
@@ -95,7 +100,8 @@ fun DashboardScreen(navController: NavController) {
     val rows by viewModel.automations.collectAsStateWithLifecycle()
     val runningIds by viewModel.runningIds.collectAsStateWithLifecycle()
     val executionMessage by viewModel.executionMessage.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
+    // Compact dark toast: message-sized, centered near the bottom.
+    var toastText by remember { mutableStateOf<String?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var actionMenuTarget by remember { mutableStateOf<Automation?>(null) }
     var deleteTarget by remember { mutableStateOf<Automation?>(null) }
@@ -104,8 +110,10 @@ fun DashboardScreen(navController: NavController) {
 
     LaunchedEffect(executionMessage) {
         executionMessage?.let { message ->
-            snackbarHostState.showSnackbar(message)
             viewModel.consumeExecutionMessage()
+            toastText = message
+            delay(3000)
+            if (toastText == message) toastText = null
         }
     }
 
@@ -114,6 +122,7 @@ fun DashboardScreen(navController: NavController) {
         else rows.filter { it.automation.name.contains(searchQuery, ignoreCase = true) }
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
@@ -122,8 +131,7 @@ fun DashboardScreen(navController: NavController) {
                 icon = Icons.Filled.Add,
                 label = stringResource(R.string.new_routine)
             )
-        },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(innerPadding),
@@ -245,6 +253,29 @@ fun DashboardScreen(navController: NavController) {
                 )
             }
         }
+    }
+
+    // Compact dark toast: wraps the message, centered near the bottom.
+    // Sibling of Scaffold (direct child of the outer Box) so BottomCenter
+    // alignment applies — inside Scaffold content it would stick to the top.
+    toastText?.let { text ->
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(start = 32.dp, end = 32.dp, bottom = 40.dp)
+                .shadow(8.dp, RoundedCornerShape(24.dp))
+                .background(Color(0xFF323232), RoundedCornerShape(24.dp))
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
     }
 
     deleteTarget?.let { automation ->
@@ -408,6 +439,7 @@ private fun RoutineDetails(
     isRunning: Boolean
 ) {
     val automation = row.automation
+    val viewModel: DashboardViewModel = hiltViewModel()
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -442,6 +474,28 @@ private fun RoutineDetails(
         if (isRunning) {
             CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
         }
+    }
+    // Toast on toggle option — shown for every task in expanded view
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.toast_on_toggle_title),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = stringResource(R.string.toast_on_toggle_sub),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Switch(
+            checked = automation.showToastOnToggle,
+            onCheckedChange = { viewModel.setShowToastOnToggle(automation, it) }
+        )
     }
 
     if (automation.hasUserAuthoredDescription()) {
@@ -482,26 +536,72 @@ private fun RoutineDetails(
     }
     val exitActionCount = automation.exitBehaviorItemCount()
     if (automation.revertOnExit || exitActionCount > 0) {
-        DetailBlock(
-            title = stringResource(R.string.task_details_exit_actions, exitActionCount),
-            lines = when {
-                automation.revertOnExit -> listOf(stringResource(R.string.task_details_revert_on_exit))
-                else -> buildList {
-                    perActionEndBehaviors.forEach { action ->
-                        add(
-                            stringResource(
-                                R.string.task_details_end_action,
-                                actionDisplayText(action),
-                                taskEndBehaviorDetail(action)
-                            )
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = stringResource(R.string.task_details_exit_actions, exitActionCount),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            when {
+                automation.revertOnExit -> {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        IconBadge(
+                            icon = Icons.Filled.Security,
+                            containerColor = Color.White,
+                            contentColor = Color(automation.iconColor),
+                            size = 40
                         )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = stringResource(R.string.task_details_revert_on_exit), style = MaterialTheme.typography.bodyLarge)
+                        }
                     }
-                    automation.exitActions.forEach { action ->
-                        add(actionDisplayText(action))
+                }
+                else -> {
+                    perActionEndBehaviors.forEachIndexed { index, action ->
+                        val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            IconBadge(
+                                icon = icon,
+                                containerColor = Color.White,
+                                contentColor = Color(automation.iconColor),
+                                size = 40
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = stringResource(titleRes), style = MaterialTheme.typography.bodyLarge)
+                                Text(text = stringResource(subtitleRes), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                    automation.exitActions.forEachIndexed { index, action ->
+                        val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            IconBadge(
+                                icon = icon,
+                                containerColor = Color.White,
+                                contentColor = Color(automation.iconColor),
+                                size = 40
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = stringResource(titleRes), style = MaterialTheme.typography.bodyLarge)
+                                Text(text = stringResource(subtitleRes), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
                     }
                 }
             }
-        )
+        }
     }
 }
 

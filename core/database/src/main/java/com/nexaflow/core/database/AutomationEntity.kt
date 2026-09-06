@@ -14,6 +14,7 @@ data class AutomationEntity(
     val category: String,
     val priority: Int,
     val enabled: Boolean,
+    val showToastOnToggle: Boolean = true,
     val triggersJson: String, // Store as JSON string
     val actionsJson: String, // Store as JSON string
     val constraintsJson: String = "[]", // Gate checks that must all pass before running

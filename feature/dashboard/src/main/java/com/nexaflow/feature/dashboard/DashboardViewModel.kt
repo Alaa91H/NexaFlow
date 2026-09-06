@@ -58,14 +58,41 @@ class DashboardViewModel @Inject constructor(
     private val _executionMessage = MutableStateFlow<String?>(null)
     val executionMessage: StateFlow<String?> = _executionMessage
 
-    /** Toggles a single routine on/off straight from the home screen. */
+    /** Toggles a single routine on/off — strict: enable runs immediately if triggers match, disable runs exit. */
     fun toggleAutomation(automation: Automation, enabled: Boolean) {
         viewModelScope.launch {
             automationRepository.updateAutomationStatus(automation.id, enabled)
+            if (!enabled) {
+                // Strict: when disabling, immediately attempt to run "when task ends"
+                try {
+                    executionEngine.runExit(automation, forceConfiguredEnd = true)
+                } catch (_: Exception) {}
+            } else {
+                // Strict: when enabling, if triggers already match, run immediately
+                try {
+                    executionEngine.runWithConditionGate(automation)
+                } catch (_: Exception) {}
+            }
+            // Show toast if enabled for this task
+            if (automation.showToastOnToggle) {
+                val message = if (enabled) {
+                    appContext.getString(R.string.task_enabled_toast, automation.name)
+                } else {
+                    appContext.getString(R.string.task_disabled_toast, automation.name)
+                }
+                _executionMessage.value = message
+            }
             // Notify the monitors so an enabled task whose condition already
-            // holds runs immediately, and a disabled active task runs its end
-            // behavior right away instead of waiting for the next event.
+            // holds runs immediately (redundant with direct run, but ensures
+            // stateful monitors are armed), and for disable, ensure lifecycle reconciled
             executionEngine.notifyAutomationsChanged()
+        }
+    }
+
+    fun setShowToastOnToggle(automation: Automation, showToast: Boolean) {
+        viewModelScope.launch {
+            val updated = automation.copy(showToastOnToggle = showToast)
+            automationRepository.saveAutomation(updated)
         }
     }
 

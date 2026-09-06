@@ -290,16 +290,18 @@ class AutomationScheduler @Inject constructor(
 
     private fun setAlarm(triggerAt: Long, pendingIntent: PendingIntent): Boolean {
         return try {
-            if (!exactAlarmAllowed(
+            // Use exact alarm without AlarmClock to avoid showing alarm icon.
+            // setExactAndAllowWhileIdle bypasses Doze without visible alarm.
+            if (exactAlarmAllowed(
                     sdkInt = Build.VERSION.SDK_INT,
                     canScheduleExactAlarms = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
                         alarmManager.canScheduleExactAlarms()
                 )
             ) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
+            } else {
                 Log.w(TAG, "Exact alarm access missing; using inexact idle-safe fallback")
                 alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
-            } else {
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pendingIntent)
             }
             true
         } catch (security: SecurityException) {

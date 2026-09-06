@@ -54,10 +54,20 @@ class AutomationDetailsViewModel @Inject constructor(
 
     fun toggleEnabled(enabled: Boolean) {
         viewModelScope.launch {
+            val wasEnabled = automation.value?.enabled == true
             repository.updateAutomationStatus(automationId, enabled)
+            if (!enabled && wasEnabled) {
+                try {
+                    automation.value?.let { executionEngine.runExit(it, forceConfiguredEnd = true) }
+                } catch (_: Exception) {}
+            } else if (enabled && !wasEnabled) {
+                // Strict: enable → run immediately if triggers match
+                try {
+                    automation.value?.let { executionEngine.runWithConditionGate(it) }
+                } catch (_: Exception) {}
+            }
             // Notify the monitors so an enabled task whose condition already
-            // holds runs immediately, and a disabled active task runs its end
-            // behavior right away instead of waiting for the next event.
+            // holds runs immediately, and for disable, ensure lifecycle reconciled
             executionEngine.notifyAutomationsChanged()
         }
     }

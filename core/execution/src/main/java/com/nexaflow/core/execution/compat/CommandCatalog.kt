@@ -153,7 +153,10 @@ object CommandCatalog {
         ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_UPDATE_GOOGLE_PLAY_APPS to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_OPEN_PLAY_UPDATES to CommandSpec.UNIVERSAL,
-        ActionType.SYSTEM_OPEN_GALAXY_STORE to CommandSpec.UNIVERSAL,
+        ActionType.SYSTEM_OPEN_GALAXY_STORE to CommandSpec(
+            romFamilies = setOf(RomFamily.ONE_UI),
+            strategy = ExecutionStrategy.DIRECT
+        ),
 
         // INPUT / MEDIA / SYSTEM OPS
         ActionType.SYSTEM_INPUT_TEXT to elevated(),
@@ -179,6 +182,16 @@ object CommandCatalog {
         ActionType.SYSTEM_SET_ALARM to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_SET_TIMER to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_SET_SETTING to shell(setOf(RomCapability.WRITE_SETTINGS)),
+        // Evolution X — Evolver (typed, picker-driven) — all require Evolver bridge + elevated
+        ActionType.EVO_SET_SETTING to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
+        ActionType.EVO_QS_TILES to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
+        ActionType.EVO_STATUS_BAR to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
+        ActionType.EVO_LOCKSCREEN to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
+        ActionType.EVO_NAVIGATION to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
+        ActionType.EVO_THEME to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
+        ActionType.EVO_AMBIENT_AOD to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
+        ActionType.EVO_NOTIFICATIONS to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
+        ActionType.EVO_BATCH to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
         ActionType.SYSTEM_HTTP_REQUEST to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_WAIT to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_FLASHLIGHT to CommandSpec.UNIVERSAL,

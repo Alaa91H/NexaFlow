@@ -249,4 +249,13 @@ fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (
     ActionType.SYSTEM_BLUETOOTH_SCAN -> Triple(R.string.action_bluetooth_scan, R.string.action_bluetooth_scan_sub, Icons.Filled.Bluetooth)
     ActionType.SYSTEM_WIFI_SCAN_NOW -> Triple(R.string.action_wifi_scan_now, R.string.action_wifi_scan_now_sub, Icons.Filled.Wifi)
     ActionType.SYSTEM_SET_TIMEZONE -> Triple(R.string.action_set_timezone, R.string.action_set_timezone_sub, Icons.Filled.Schedule)
+    ActionType.EVO_SET_SETTING -> Triple(R.string.action_evo_set_setting, R.string.action_evo_set_setting_sub, Icons.Filled.Tune)
+    ActionType.EVO_QS_TILES -> Triple(R.string.action_evo_qs_tiles, R.string.action_evo_qs_tiles_sub, Icons.Filled.SettingsOverscan)
+    ActionType.EVO_STATUS_BAR -> Triple(R.string.action_evo_status_bar, R.string.action_evo_status_bar_sub, Icons.Filled.BarChart)
+    ActionType.EVO_LOCKSCREEN -> Triple(R.string.action_evo_lockscreen, R.string.action_evo_lockscreen_sub, Icons.Filled.Lock)
+    ActionType.EVO_NAVIGATION -> Triple(R.string.action_evo_navigation, R.string.action_evo_navigation_sub, Icons.Filled.TouchApp)
+    ActionType.EVO_THEME -> Triple(R.string.action_evo_theme, R.string.action_evo_theme_sub, Icons.Filled.Gradient)
+    ActionType.EVO_AMBIENT_AOD -> Triple(R.string.action_evo_ambient_aod, R.string.action_evo_ambient_aod_sub, Icons.Filled.WbSunny)
+    ActionType.EVO_NOTIFICATIONS -> Triple(R.string.action_evo_notifications, R.string.action_evo_notifications_sub, Icons.Filled.NotificationsActive)
+    ActionType.EVO_BATCH -> Triple(R.string.action_evo_batch, R.string.action_evo_batch_sub, Icons.Filled.Build)
 }

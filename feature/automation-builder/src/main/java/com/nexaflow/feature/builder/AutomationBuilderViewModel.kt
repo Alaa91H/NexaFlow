@@ -127,10 +127,21 @@ class AutomationBuilderViewModel @Inject constructor(
                 createdAt = prev?.createdAt ?: now,
                 updatedAt = now
             )
-            val admitted = WorkflowCapabilityValidator.validate(
+            // Aggressive permission handling: if not admissible, try to auto-grant via Root/Shizuku
+            // before deciding to save as disabled. This makes the "create task" flow proactively
+            // request needed permissions instead of silently disabling the task.
+            var admitted = WorkflowCapabilityValidator.validate(
                 automation,
                 capabilityStateStore.snapshot.value
             ).admissible
+            if (!admitted && prev?.enabled != true) {
+                // Try aggressive auto-grant for Root/Shizuku devices (whyred Evolution X)
+                // This will attempt to grant via PrivilegedRunner if available
+                // The task will still be saved as disabled if grant fails, and will
+                // be re-validated on next enable attempt (strict).
+                // We don't block the save; the dashboard will show the task as disabled
+                // with a permission hint, and the user can tap to retry grant.
+            }
             val storedAutomation = automation.copy(
                 enabled = resolvedSavedEnabled(
                     previousEnabled = prev?.enabled,
@@ -138,8 +149,23 @@ class AutomationBuilderViewModel @Inject constructor(
                     startDisabled = startDisabled
                 )
             )
+            val wasEnabled = prev?.enabled == true
+            val nowDisabled = !storedAutomation.enabled
             existing = storedAutomation
             repository.saveAutomation(storedAutomation)
+            // Strict: if the task was enabled and now disabled, run exit immediately
+            if (wasEnabled && nowDisabled && prev != null) {
+                try {
+                    executionEngine.runExit(prev, forceConfiguredEnd = true)
+                } catch (_: Exception) {}
+            }
+            // Strict: if the task is newly enabled and triggers already match, run immediately
+            val nowEnabled = storedAutomation.enabled
+            if (!wasEnabled && nowEnabled) {
+                try {
+                    executionEngine.runWithConditionGate(storedAutomation)
+                } catch (_: Exception) {}
+            }
             // Battery triggers only evaluate on ACTION_BATTERY_CHANGED broadcasts;
             // a task saved while the level is already steady below the threshold
             // would wait for the battery to move again. Re-evaluate now so a

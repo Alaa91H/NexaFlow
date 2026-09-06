@@ -193,6 +193,7 @@ import com.nexaflow.core.ui.nexaFlowEffectsSpec
 import com.nexaflow.core.ui.nexaFlowSpatialSpec
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
+import com.nexaflow.core.ui.SettingRow
 import com.nexaflow.core.ui.iconVector
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
@@ -215,7 +216,6 @@ import java.util.UUID
 private const val TAG = "AutomationBuilder"
 
 enum class ActionCategory(val headerRes: Int, val color: Color) {
-    ROUTINES(R.string.category_routines, Color(0xFF5F6368)),
     DISPLAY(R.string.category_display, Color(0xFF0B57D0)),
     SOUND(R.string.category_sound, Color(0xFF6750A4)),
     CONNECTIVITY(R.string.category_connectivity, Color(0xFF006A6C)),
@@ -245,6 +245,12 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_screen_timeout, R.string.action_screen_timeout_sub, Icons.Filled.Timelapse, ActionType.SYSTEM_SCREEN_TIMEOUT, ActionCategory.DISPLAY),
     ActionOption(R.string.action_stay_awake, R.string.action_stay_awake_sub, Icons.Filled.WbSunny, ActionType.SYSTEM_STAY_AWAKE, ActionCategory.DISPLAY),
     ActionOption(R.string.action_dark_mode, R.string.action_dark_mode_sub, Icons.Filled.DarkMode, ActionType.SYSTEM_DARK_MODE, ActionCategory.DISPLAY),
+    // Advanced System Tweaks — generic for all ROMs (Evolver, Lineage, OEM) — distributed to look native
+    ActionOption(R.string.action_evo_qs_tiles, R.string.action_evo_qs_tiles_sub, Icons.Filled.ViewCarousel, ActionType.EVO_QS_TILES, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_evo_status_bar, R.string.action_evo_status_bar_sub, Icons.Filled.BarChart, ActionType.EVO_STATUS_BAR, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_evo_lockscreen, R.string.action_evo_lockscreen_sub, Icons.Filled.Lock, ActionType.EVO_LOCKSCREEN, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_evo_theme, R.string.action_evo_theme_sub, Icons.Filled.Palette, ActionType.EVO_THEME, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_evo_ambient_aod, R.string.action_evo_ambient_aod_sub, Icons.Filled.WbSunny, ActionType.EVO_AMBIENT_AOD, ActionCategory.DISPLAY),
     // SOUND
     ActionOption(R.string.action_volume, R.string.action_volume_sub, Icons.AutoMirrored.Filled.VolumeUp, ActionType.SYSTEM_VOLUME, ActionCategory.SOUND),
     ActionOption(R.string.action_stream_volume, R.string.action_stream_volume_sub, Icons.Filled.GraphicEq, ActionType.SYSTEM_STREAM_VOLUME, ActionCategory.SOUND),
@@ -278,6 +284,7 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_open_notifications, R.string.action_open_notifications_sub, Icons.Filled.Notifications, ActionType.SYSTEM_OPEN_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_expand_bar, R.string.action_expand_bar_sub, Icons.Filled.ExpandLess, ActionType.SYSTEM_EXPAND_STATUS_BAR, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_collapse_bar, R.string.action_collapse_bar_sub, Icons.Filled.ExpandMore, ActionType.SYSTEM_COLLAPSE_STATUS_BAR, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_evo_notifications, R.string.action_evo_notifications_sub, Icons.Filled.NotificationsActive, ActionType.EVO_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
     // APPS
     ActionOption(R.string.action_open_apps, R.string.action_open_apps_sub, Icons.Filled.Apps, ActionType.SYSTEM_OPEN_APP, ActionCategory.APPS),
     ActionOption(R.string.action_open_recents, R.string.action_open_recents_sub, Icons.Filled.ViewCarousel, ActionType.SYSTEM_OPEN_RECENTS, ActionCategory.APPS),
@@ -304,6 +311,9 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_wake_screen, R.string.action_wake_screen_sub, Icons.Filled.WbSunny, ActionType.SYSTEM_WAKE_SCREEN, ActionCategory.DISPLAY),
     ActionOption(R.string.action_clipboard, R.string.action_clipboard_sub, Icons.Filled.ContentPaste, ActionType.SYSTEM_CLIPBOARD_SET, ActionCategory.SYSTEM),
     ActionOption(R.string.action_set_setting, R.string.action_set_setting_sub, Icons.Filled.Tune, ActionType.SYSTEM_SET_SETTING, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_evo_set_setting, R.string.action_evo_set_setting_sub, Icons.Filled.Tune, ActionType.EVO_SET_SETTING, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_evo_navigation, R.string.action_evo_navigation_sub, Icons.Filled.TouchApp, ActionType.EVO_NAVIGATION, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_evo_batch, R.string.action_evo_batch_sub, Icons.Filled.Build, ActionType.EVO_BATCH, ActionCategory.SYSTEM),
     ActionOption(R.string.action_screenshot, R.string.action_screenshot_sub, Icons.Filled.CameraAlt, ActionType.SYSTEM_SCREENSHOT, ActionCategory.SYSTEM),
     ActionOption(R.string.action_input_text, R.string.action_input_text_sub, Icons.AutoMirrored.Filled.Chat, ActionType.SYSTEM_INPUT_TEXT, ActionCategory.SYSTEM),
     ActionOption(R.string.action_key_event, R.string.action_key_event_sub, Icons.Filled.Build, ActionType.SYSTEM_KEY_EVENT, ActionCategory.SYSTEM),
@@ -416,18 +426,12 @@ internal val actionOptions = listOf(
 internal fun optionsForActionCategory(
     category: ActionCategory,
     options: List<ActionOption> = actionOptions
-): List<ActionOption> = if (category == ActionCategory.ROUTINES) {
-    AutomationOptionCatalog.recurringActionOrder
-        .mapNotNull { type -> options.firstOrNull { it.actionType == type } }
-} else {
-    options.filter { it.category == category }
-}
+): List<ActionOption> = options.filter { it.category == category }
 
 internal val actionCategories: List<ActionCategory> = ActionCategory.entries.toList()
 
 /** Representative icon per action category for the accordion chips. */
 internal fun ActionCategory.icon(): ImageVector = when (this) {
-    ActionCategory.ROUTINES -> Icons.Filled.Schedule
     ActionCategory.DISPLAY -> Icons.Filled.BrightnessHigh
     ActionCategory.SOUND -> Icons.AutoMirrored.Filled.VolumeUp
     ActionCategory.CONNECTIVITY -> Icons.Filled.Wifi
@@ -1559,18 +1563,8 @@ fun AutomationBuilderScreen(
                     // Walk through the guided creation flow before leaving it.
                     if (step > 0) step -= 1 else navController.popBackStack()
                 },
-                // A single primary action is kept at the bottom of each station.
-                // This avoids competing save actions while the routine is incomplete.
-                actions = {
-                    if (canChooseStarterRoutine) {
-                        IconButton(onClick = { showStarterRoutineChooser = true }) {
-                            Icon(
-                                imageVector = Icons.Filled.ViewCarousel,
-                                contentDescription = stringResource(R.string.starter_routines)
-                            )
-                        }
-                    }
-                }
+                // No starter routines — clean, professional builder without templates
+                actions = {}
             )
         },
         floatingActionButton = {
@@ -1592,33 +1586,32 @@ fun AutomationBuilderScreen(
                 .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 112.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // ── Wizard progress: numbered step bar (1/2) ─────────────
-            // Sits above the name card so the user always knows which step
-            // of the wizard they are on. The bar fills with the M3 spatial
-            // spring as they move between triggers and actions.
+            // ── Progress bar above tabs — visual feedback for task creation progress
             val stepProgress by animateFloatAsState(
                 targetValue = (step + 1) / 3f,
                 animationSpec = nexaFlowSpatialSpec()
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = "${step + 1} / 3",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                LinearProgressIndicator(
-                    progress = { stepProgress },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(6.dp)
-                        .clip(RoundedCornerShape(3.dp)),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                )
+            LinearProgressIndicator(
+                progress = { stepProgress },
+                modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+            )
+            // ── Top tabs: Triggers | Executions | When Task Ends ─────
+            // Professional, easy navigation between the three builder sections.
+            androidx.compose.material3.TabRow(selectedTabIndex = step, containerColor = MaterialTheme.colorScheme.surface) {
+                listOf(
+                    R.string.section_when to Icons.Filled.Schedule,
+                    R.string.section_actions to Icons.Filled.PlayArrow,
+                    R.string.section_exit_behavior to Icons.Filled.Restore
+                ).forEachIndexed { index, (titleRes, icon) ->
+                    androidx.compose.material3.Tab(
+                        selected = step == index,
+                        onClick = { step = index },
+                        text = { Text(stringResource(titleRes), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        icon = { Icon(icon, null) }
+                    )
+                }
             }
 
             // ── Name + icon belong to review, after the routine has meaning ─
@@ -1630,7 +1623,8 @@ fun AutomationBuilderScreen(
                 ) {
                     IconBadge(
                         icon = iconVector(NexaFlowIcons.all[selectedIconIndex].first),
-                        containerColor = Color(selectedIconColor),
+                        containerColor = Color.White,
+                        contentColor = Color(selectedIconColor),
                         size = 48,
                         modifier = Modifier.clickable {
                             // Preseed the picker with the current color so the
@@ -1930,55 +1924,103 @@ fun AutomationBuilderScreen(
                     }
                 }
             } else {
-                // ── Step 3: review before saving ─────────────────────
-                NexaFlowCard {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        SectionHeader(text = stringResource(R.string.save))
-                        Text(
-                            text = stringResource(R.string.section_when),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        triggers.forEach { draft ->
+                // ── Step 3: When task ends — strictly exit behavior with circular icons
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (actionDrafts.isEmpty()) {
+                        NexaFlowCard {
                             Text(
-                                text = stringResource(draft.type.labelRes()),
-                                style = MaterialTheme.typography.bodyLarge
+                                text = "أضف تنفيذات أولاً لتحديد ماذا يحدث عند انتهاء المهمة",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary
                             )
                         }
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        Text(
-                            text = stringResource(R.string.section_actions),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        actionDrafts.forEach { draft ->
-                            Text(
-                                text = actionSummary(draft.option, draft.config),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
+                    } else {
                         val actionsWithEndOptions = actionDrafts.filter { draft ->
                             draft.option.actionType in EndBehaviorCatalog.toggleActions ||
                                 draft.option.actionType in EndBehaviorCatalog.valueActions ||
                                 draft.option.actionType in EndBehaviorCatalog.revertOnlyActions
                         }
-                        if (actionsWithEndOptions.isNotEmpty()) {
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                            SectionHeader(text = stringResource(R.string.end_behavior_label))
-                            actionsWithEndOptions.forEach { draft ->
+                        if (actionsWithEndOptions.isEmpty()) {
+                            NexaFlowCard {
                                 Text(
-                                    text = stringResource(draft.option.titleRes),
-                                    style = MaterialTheme.typography.titleSmall
+                                    text = "لا يوجد إجراء يدعم سلوك الانتهاء — أضف إجراءً مثل Wi-Fi أو سطوع",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.secondary
                                 )
-                                EndBehaviorEditor(
-                                    actionType = draft.option.actionType,
-                                    behavior = draft.endBehavior,
-                                    onBehaviorChange = { behavior ->
-                                        val current = actionDrafts.indexOfFirst { it.id == draft.id }
-                                        if (current >= 0) actionDrafts[current] = actionDrafts[current].copy(endBehavior = behavior)
-                                    },
-                                    showLabel = false
-                                )
+                            }
+                        } else {
+                            actionsWithEndOptions.forEach { draft ->
+                                NexaFlowCard {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    ) {
+                                        IconBadge(
+                                            icon = draft.option.icon,
+                                            containerColor = Color.White,
+                                            contentColor = Color(selectedIconColor)
+                                        )
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = stringResource(draft.option.titleRes),
+                                                style = MaterialTheme.typography.titleSmall
+                                            )
+                                            Text(
+                                                text = stringResource(draft.option.subtitleRes),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.secondary
+                                            )
+                                        }
+                                    }
+                                    EndBehaviorEditor(
+                                        actionType = draft.option.actionType,
+                                        behavior = draft.endBehavior,
+                                        onBehaviorChange = { behavior ->
+                                            val current = actionDrafts.indexOfFirst { it.id == draft.id }
+                                            if (current >= 0) actionDrafts[current] = actionDrafts[current].copy(endBehavior = behavior)
+                                        },
+                                        showLabel = false
+                                    )
+                                }
+                            }
+                        }
+                        // Extra exit actions (custom when task ends)
+                        if (selectedExitActions.isNotEmpty() || actionsWithEndOptions.isNotEmpty()) {
+                            NexaFlowCard {
+                                SectionHeader(text = "إجراءات إضافية عند الانتهاء")
+                                if (selectedExitActions.isEmpty()) {
+                                    Text(
+                                        text = "اختياري — أضف إجراءات إضافية تنفذ عند انتهاء المهمة",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                } else {
+                                    selectedExitActions.forEach { option ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            IconBadge(
+                                                icon = option.icon,
+                                                containerColor = Color.White,
+                                                contentColor = Color(selectedIconColor)
+                                            )
+                                            Column(modifier = Modifier.weight(1f)) {
+                                                Text(
+                                                    text = stringResource(option.titleRes),
+                                                    style = MaterialTheme.typography.titleSmall
+                                                )
+                                                Text(
+                                                    text = stringResource(option.subtitleRes),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.secondary
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -2030,38 +2072,6 @@ fun AutomationBuilderScreen(
             }
             }
         }
-    }
-
-    if (showStarterRoutineChooser) {
-        AlertDialog(
-            onDismissRequest = { showStarterRoutineChooser = false },
-            title = { Text(stringResource(R.string.starter_routines)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = stringResource(R.string.starter_routines_sub),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    availableTemplates.forEach { template ->
-                        Button(
-                            onClick = {
-                                requestedTemplateId = template.id
-                                showStarterRoutineChooser = false
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(stringResource(starterRoutineTitleRes(template.id)))
-                        }
-                    }
-                }
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(onClick = { showStarterRoutineChooser = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
-        )
     }
 
     if (showConstraintPicker) {

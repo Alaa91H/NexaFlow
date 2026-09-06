@@ -29,6 +29,7 @@ class ActionRegistry private constructor(
                 NotificationActionsHandler(),
                 AppActionsHandler(),
                 SystemActionsHandler(),
+                EvoActionHandler(),
                 AdvancedActionsHandler(),
                 HttpRequestHandler(),
                 PluginFireHandler()

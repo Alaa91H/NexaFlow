@@ -20,6 +20,8 @@ data class Automation(
     val category: String,
     val priority: Int,
     val enabled: Boolean,
+    /** When true, show a toast when this task is toggled on/off from the dashboard. */
+    val showToastOnToggle: Boolean = true,
     val triggers: List<Trigger>,
     val actions: List<Action>,
     /**
@@ -611,6 +613,26 @@ enum class ActionType {
     /** Triggers an immediate Wi-Fi scan. */
     SYSTEM_WIFI_SCAN_NOW,
     /** Sets the system timezone. Config key: `zone` (IANA, e.g. Asia/Riyadh). */
-    SYSTEM_SET_TIMEZONE
+    SYSTEM_SET_TIMEZONE,
+
+    // === Evolution X — Professional Evolver control (typed, picker-driven) ===
+    /** Writes any Evolution X Evolver setting with live picker and category. Config keys: `namespace`, `key`, `value`. Professionally replaces SYSTEM_SET_SETTING for ROM work. */
+    EVO_SET_SETTING,
+    /** Configures QS tiles and panel. Config keys: `tiles` (csv), `columns`, `brightness_slider` (0/1), `footer_text`. */
+    EVO_QS_TILES,
+    /** Configures status bar (clock, battery, icons). Config keys: `clock_position`, `clock_seconds`, `battery_style`, `battery_percent`, `show_vpn` etc. as json. */
+    EVO_STATUS_BAR,
+    /** Configures lockscreen (clock, shortcuts, weather, UDFPS). Config keys: `clock_style`, `shortcuts`, `weather`, `media_art` etc. */
+    EVO_LOCKSCREEN,
+    /** Configures navigation mode. Config keys: `mode` (GESTURE/3BUTTON/2BUTTON), `back_height`, `navbar_height`. */
+    EVO_NAVIGATION,
+    /** Configures theming/monet. Config keys: `accent`, `monet`, `themed_icons`, `icon_pack`, `font`. */
+    EVO_THEME,
+    /** Configures ambient/AOD. Config keys: `aod_enabled`, `aod_schedule`, `doze_*`. */
+    EVO_AMBIENT_AOD,
+    /** Configures notifications/heads-up. Config keys: `heads_up`, `timeout`, `less_boring`. */
+    EVO_NOTIFICATIONS,
+    /** Batch Evolver apply — writes multiple Evolver keys atomically. Config key: `batch_json` (map of key->value). */
+    EVO_BATCH
 }
 

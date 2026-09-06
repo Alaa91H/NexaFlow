@@ -122,17 +122,20 @@ class ExecutionEngine(
         // one — callers may also pass their own to seed or inspect it.
         runContext: WorkflowRunContext? = null,
         /**
-         * One-shot event sources (SMS, a single scheduled time, webhook, etc.)
-         * have no later opposite state that can close the lifecycle. When true,
-         * execute the configured end behavior immediately after the main action
-         * chain finishes. State and time-range sources keep the default false
-         * and close only when their actual condition ends.
-         */
+          * One-shot event sources (SMS, a single scheduled time, webhook, etc.)
+          * have no later opposite state that can close the lifecycle. When true,
+          * execute the configured end behavior immediately after the main action
+          * chain finishes. State and time-range sources keep the default false
+          * and close only when their actual condition ends.
+          */
         completeExitOnFinish: Boolean = false,
         /** Present only for a stateful trigger occurrence owned by ExitCoordinator. */
         lifecycleContext: AutomationLifecycleContext? = null
     ): ExecutionRecord {
-        val startedAt = epochMillis.now()
+        // Strict mode: acquire wake lock for forceful execution (bypasses Doze, ensures CPU stays on)
+        val wakeLock = acquireWakeLock("NexaFlow:runAutomation:${automation.id}")
+        try {
+            val startedAt = epochMillis.now()
         if (automation.requiresTimeRangeForEndBehavior) {
             return rejectIncompleteTimeRange(automation, startedAt)
         }
@@ -440,6 +443,19 @@ class ExecutionEngine(
         recordTimeline(automation, "RUN", record, startedAt)
         context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
         return record
+        } finally {
+            try { wakeLock?.let { if (it.isHeld) it.release() } } catch (_: Throwable) {}
+        }
+    }
+
+    private fun acquireWakeLock(tag: String): android.os.PowerManager.WakeLock? {
+        return try {
+            val pm = context.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
+            pm?.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, tag)?.apply {
+                setReferenceCounted(false)
+                acquire(10 * 60 * 1000L) // 10 minutes max, strict
+            }
+        } catch (_: Throwable) { null }
     }
 
     /**
@@ -522,7 +538,9 @@ class ExecutionEngine(
         /** Durable local snapshot supplied by the occurrence coordinator after restart. */
         runtimeSnapshotJson: String? = null
     ): ExecutionRecord {
-        val startedAt = epochMillis.now()
+        val wakeLock = acquireWakeLock("NexaFlow:runExit:${automation.id}")
+        try {
+            val startedAt = epochMillis.now()
         // Consume both ledgers as one critical section. Without this per-task
         // lock, two concurrent monitor callbacks can each consume a different
         // ledger and both execute the same end behavior.
@@ -661,6 +679,9 @@ class ExecutionEngine(
         )
         context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
         return record
+        } finally {
+            try { wakeLock?.let { if (it.isHeld) it.release() } } catch (_: Throwable) {}
+        }
     }
 
     /** Discards any stored snapshot (e.g. when the automation is deleted). */

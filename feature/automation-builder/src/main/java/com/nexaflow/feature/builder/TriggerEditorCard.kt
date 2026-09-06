@@ -1084,7 +1084,11 @@ private fun triggerSummary(draft: TriggerDraft): String {
             else -> stringResource(R.string.ringer_normal)
         }
         TriggerType.BLUETOOTH_DEVICE -> {
-            val name = (c["deviceName"] ?: "").ifBlank { stringResource(R.string.no_bluetooth_device) }
+            val rawName = c["deviceName"] ?: ""
+            val name = when {
+                rawName.isBlank() || rawName == "__ANY__" || rawName == "*" || rawName.equals("ANY", ignoreCase = true) -> stringResource(R.string.any_bluetooth_device)
+                else -> rawName
+            }
             val state = if ((c["event"] ?: "CONNECTED") == "CONNECTED") {
                 stringResource(R.string.state_connected)
             } else {
@@ -2072,6 +2076,7 @@ fun TriggerEditorCard(
                 }
                 TriggerType.BLUETOOTH_DEVICE -> {
                     val deviceName = draft.config["deviceName"] ?: ""
+                    val isAny = deviceName.isBlank() || deviceName == "__ANY__" || deviceName == "*" || deviceName.equals("ANY", ignoreCase = true)
                     val event = draft.config["event"] ?: "CONNECTED"
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(
@@ -2090,8 +2095,8 @@ fun TriggerEditorCard(
                                     style = MaterialTheme.typography.titleSmall
                                 )
                                 Text(
-                                    text = if (deviceName.isBlank()) {
-                                        stringResource(R.string.no_bluetooth_device)
+                                    text = if (isAny) {
+                                        stringResource(R.string.any_bluetooth_device)
                                     } else {
                                         deviceName
                                     },
@@ -2100,14 +2105,29 @@ fun TriggerEditorCard(
                                 )
                             }
                         }
-                        OutlinedButton(
-                            onClick = onPickBluetooth,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(imageVector = Icons.Filled.Bluetooth, contentDescription = null)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(
+                                onClick = onPickBluetooth,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(imageVector = Icons.Filled.Bluetooth, contentDescription = null)
+                                Text(
+                                    text = stringResource(R.string.choose_bluetooth_device),
+                                    modifier = Modifier.padding(start = 6.dp)
+                                )
+                            }
+                            OutlinedButton(
+                                onClick = { onConfigChange(draft.copy(config = draft.config + mapOf("deviceName" to "__ANY__", "deviceAddress" to ""))) },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(text = stringResource(R.string.any_device))
+                            }
+                        }
+                        if (isAny) {
                             Text(
-                                text = stringResource(R.string.choose_bluetooth_device),
-                                modifier = Modifier.padding(start = 6.dp)
+                                text = stringResource(R.string.any_bluetooth_device_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondary
                             )
                         }
                         Text(text = stringResource(R.string.state), style = MaterialTheme.typography.titleSmall)
@@ -2412,11 +2432,10 @@ fun TriggerEditorCard(
                     val operator = draft.config["operator"] ?: "EQUALS"
                     val key = draft.config["key"] ?: ""
                     val value = draft.config["value"] ?: ""
-                    val scope = rememberCoroutineScope()
-                    var showKeyPicker by remember { mutableStateOf(false) }
-                    var liveKeys by remember { mutableStateOf<List<EvolutionXSettingsBridge.SettingEntry>>(emptyList()) }
-                    var keysLoading by remember { mutableStateOf(false) }
+                    var showEvolverPicker by remember { mutableStateOf(false) }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = "Evolution X — Trigger on Evolver change", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                        Text(text = "Fires when any Evolver key (QS, status bar, lockscreen…) changes to the target value. Pick from live device keys with categories.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
                         // ── Namespace (system / secure / global) ────────────
                         Text(
                             text = stringResource(R.string.rom_setting_namespace),
@@ -2432,36 +2451,33 @@ fun TriggerEditorCard(
                             selected = namespace,
                             onSelect = { onConfigChange(draft.copy(config = draft.config + ("namespace" to it))) }
                         )
-                        // ── Key: free text + live picker from the ROM ──────
+                        // ── Key: free text + professional Evolver picker ──────
                         OutlinedTextField(
                             value = key,
                             onValueChange = { onConfigChange(draft.copy(config = draft.config + ("key" to it))) },
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text(text = stringResource(R.string.rom_setting_key)) },
-                            placeholder = { Text(text = "evo_…") },
+                            placeholder = { Text(text = "evo_…  or sysui_qs_tiles") },
                             singleLine = true
                         )
+                        if (key.isNotBlank()) {
+                            val cat = com.nexaflow.core.rom.EvolverCatalog.categorize(key)
+                            Text("${cat.displayName} • ${cat.description}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                        }
                         OutlinedButton(
-                            onClick = {
-                                keysLoading = true
-                                scope.launch {
-                                    liveKeys = withContext(Dispatchers.IO) {
-                                        EvolutionXSettingsBridge.listCustomKeys(context)
-                                    }
-                                    keysLoading = false
-                                    showKeyPicker = true
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = !keysLoading
+                            onClick = { showEvolverPicker = true },
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Icon(
-                                imageVector = if (keysLoading) Icons.Filled.Refresh else Icons.Filled.Bolt,
-                                contentDescription = null
-                            )
-                            Text(
-                                text = stringResource(R.string.rom_setting_pick_from_rom),
-                                modifier = Modifier.padding(start = 6.dp)
+                            Icon(imageVector = Icons.Filled.Bolt, contentDescription = null)
+                            Text(text = "Pick Evolver key (categorized)…", modifier = Modifier.padding(start = 6.dp))
+                        }
+                        if (showEvolverPicker) {
+                            EvolverSettingPickerDialog(
+                                onPick = { entry ->
+                                    onConfigChange(draft.copy(config = draft.config + mapOf("namespace" to entry.namespace.name, "key" to entry.key, "value" to entry.value)))
+                                    showEvolverPicker = false
+                                },
+                                onDismiss = { showEvolverPicker = false }
                             )
                         }
                         // ── Operator + target value ─────────────────────────
@@ -2491,86 +2507,6 @@ fun TriggerEditorCard(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.secondary
                         )
-                    }
-                    if (showKeyPicker) {
-                        // Google 2026: selection tasks open as a full-height modal bottom sheet.
-                        ModalBottomSheet(
-                            onDismissRequest = { showKeyPicker = false },
-                            sheetState = rememberBottomSheetState(
-                                initialValue = SheetValue.Hidden,
-                                enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
-                            )
-                        ) {
-                        Text(
-                            text = stringResource(R.string.rom_setting_pick_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 8.dp)
-                        )
-                        if (liveKeys.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.rom_setting_pick_empty),
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(horizontal = 24.dp)
-                            )
-                        } else {
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f, fill = false)
-                                    .padding(horizontal = 24.dp)
-                            ) {
-                                items(liveKeys, key = { it.displayKey }) { entry ->
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clickable {
-                                                        onConfigChange(
-                                                            draft.copy(
-                                                                config = draft.config +
-                                                                    ("namespace" to entry.namespace.name) +
-                                                                    ("key" to entry.key)
-                                                            )
-                                                        )
-                                                        showKeyPicker = false
-                                                    }
-                                                    .padding(vertical = 12.dp, horizontal = 4.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Filled.Bolt,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.padding(end = 10.dp)
-                                                )
-                                                Column {
-                                                    Text(
-                                                        text = entry.displayKey,
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        fontWeight = FontWeight.Medium
-                                                    )
-                                                    Text(
-                                                        text = stringResource(
-                                                            R.string.rom_setting_current_value,
-                                                            entry.value
-                                                        ),
-                                                        style = MaterialTheme.typography.bodySmall,
-                                                        color = MaterialTheme.colorScheme.secondary
-                                                    )
-                                                }
-                                            }
-                                        }                                }
-                            }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 12.dp),
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            TextButton(onClick = { showKeyPicker = false }) {
-                                Text(text = stringResource(R.string.cancel))
-                            }
-                        }
-                        }
                     }
                 }
                 TriggerType.NOTIFICATION -> {
