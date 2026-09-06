@@ -105,9 +105,15 @@ class ExitCoordinatorTest {
         assertEquals(2, afterRetry.exitAttempt)
         assertEquals(AutomationRuntimeLifecycleState.EXIT_FAILED, afterRetry.lifecycleState)
 
+        // MAX_EXIT_ATTEMPTS is now 5 (strict mode) — verify bounded retries up to 5
+        repeat(3) {
+            val r = coordinator.reconcile(ExitReason.PROCESS_RECOVERY).single()
+            assertTrue(r is ExitCoordinatorResult.RecoveryRequired)
+        }
+        assertEquals(5, checkNotNull(store.current("exit-task")).exitAttempt)
         val limited = coordinator.reconcile(ExitReason.PROCESS_RECOVERY).single()
         assertTrue(limited is ExitCoordinatorResult.RecoveryRequired)
-        assertEquals(2, checkNotNull(store.current("exit-task")).exitAttempt)
+        assertEquals(5, checkNotNull(store.current("exit-task")).exitAttempt)
     }
 
     @Test
