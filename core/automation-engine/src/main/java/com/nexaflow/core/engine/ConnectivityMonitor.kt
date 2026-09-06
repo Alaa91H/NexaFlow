@@ -115,9 +115,15 @@ class ConnectivityMonitor @Inject constructor(
                     handleChange(DefaultNetworkSnapshot.Available(caps))
                 }
             }
-            callback = networkCallback
-            runCatching {
+            val registered = runCatching {
                 connectivityManager.registerDefaultNetworkCallback(networkCallback)
+            }.isSuccess
+            if (registered) {
+                callback = networkCallback
+                initialized = true
+            } else {
+                initialized = false
+                return@launch
             }
             registerTelephonyCallbacks()
             registerHotspotCallback()
@@ -224,6 +230,7 @@ class ConnectivityMonitor @Inject constructor(
         callback = null
         hotspotRegistration?.close()
         hotspotRegistration = null
+        com.nexaflow.core.common.HotspotStateReader.clear()
         unregisterTelephonyCallbacks()
         activeStates.clear()
         lastRunAt.clear()

@@ -154,7 +154,7 @@ class LocationMonitor @Inject constructor(
                 // provider below only fills the gaps while the screen is on.
                 if (locationManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER)) {
                     locationManager.requestLocationUpdates(
-                        LocationManager.PASSIVE_PROVIDER, 0L, 0f, listener
+                        LocationManager.PASSIVE_PROVIDER, 0L, 0f, listener, android.os.Looper.getMainLooper()
                     )
                 }
                 // Adaptive active polling: interval and distance scale with the
@@ -172,7 +172,7 @@ class LocationMonitor @Inject constructor(
                     else -> null
                 }
                 if (provider != null) {
-                    locationManager.requestLocationUpdates(provider, minTime, minDistance, listener)
+                    locationManager.requestLocationUpdates(provider, minTime, minDistance, listener, android.os.Looper.getMainLooper())
                 }
                 listening = true
             } catch (_: Throwable) {

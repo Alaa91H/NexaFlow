@@ -88,6 +88,10 @@ object HotspotStateReader {
         }
     }.getOrNull()
 
+    fun clear() {
+        callbackState = null
+    }
+
     private const val LEGACY_TETHER_KEY = "tether_on"
     private const val API_TETHERING_CALLBACK = 36
 }

@@ -70,7 +70,7 @@ object TimeTriggerCalculator {
         if (endDate != null && today.isAfter(endDate)) return null
 
         var daysChecked = 0
-        var candidate = ZonedDateTime.of(today, localTime, zone)
+        var candidate = safeZonedDateTime(today, localTime, zone) ?: ZonedDateTime.of(today, localTime, zone)
         while (daysChecked < MAX_SEARCH_DAYS) {
             val day = candidate.toLocalDate()
             if (startDate != null && day.isBefore(startDate)) {
@@ -114,7 +114,8 @@ object TimeTriggerCalculator {
         val endMinutes = endTime.hour * 60 + endTime.minute
         val overnight = endMinutes <= startMinutes
         val endDate = if (overnight) startZdt.toLocalDate().plusDays(1) else startZdt.toLocalDate()
-        return ZonedDateTime.of(endDate, endTime, zone).toInstant().toEpochMilli()
+        val endZdt = safeZonedDateTime(endDate, endTime, zone) ?: ZonedDateTime.of(endDate, endTime, zone)
+        return endZdt.toInstant().toEpochMilli()
     }
 
     /** True when the repeat mode fires on [day]. Date windows and end limits are handled by [nextFireTime]. */
@@ -224,5 +225,22 @@ object TimeTriggerCalculator {
         // scheduler's startup collect and the dashboard's next-run preview.
         return runCatching { LocalDate.parse(value) }.getOrNull()
             ?: runCatching { LocalDate.parse(value.replace('/', '-')) }.getOrNull()
+    }
+
+    /**
+     * Creates a ZonedDateTime for the given date/time/zone, handling DST gaps
+     * precisely. On spring-forward gap days (e.g. 02:30 missing), `of` would
+     * silently adjust to 03:30 (1h late). This validates via `getValidOffsets`
+     * and returns null for gap times, letting the caller skip to next valid day.
+     */
+    private fun safeZonedDateTime(date: java.time.LocalDate, time: LocalTime, zone: ZoneId): ZonedDateTime? {
+        val ldt = java.time.LocalDateTime.of(date, time)
+        val validOffsets = zone.rules.getValidOffsets(ldt)
+        return if (validOffsets.isEmpty()) {
+            // Gap — no valid offset, skip this day
+            null
+        } else {
+            ZonedDateTime.ofLocal(ldt, zone, null)
+        }
     }
 }

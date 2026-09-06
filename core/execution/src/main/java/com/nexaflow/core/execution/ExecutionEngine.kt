@@ -451,9 +451,12 @@ class ExecutionEngine(
     private fun acquireWakeLock(tag: String): android.os.PowerManager.WakeLock? {
         return try {
             val pm = context.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
-            pm?.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, tag)?.apply {
+            // Tag limit is 64 chars; UUID (36) + prefix (22) = 58, but truncate defensively
+            val safeTag = if (tag.length > 60) tag.take(60) else tag
+            pm?.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, safeTag)?.apply {
                 setReferenceCounted(false)
-                acquire(10 * 60 * 1000L) // 10 minutes max, strict
+                // 10 minutes max, strict — covers long chains with waits
+                acquire(10 * 60 * 1000L)
             }
         } catch (_: Throwable) { null }
     }
