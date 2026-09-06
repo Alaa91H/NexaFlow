@@ -231,6 +231,19 @@ object Migrations {
         }
     }
 
+    /** v17 -> v18: adds composite index for latest-per-automation and enabled filter. */
+    val MIGRATION_17_18 = object : Migration(17, 18) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_execution_history_automationId_executedAt` " +
+                    "ON `execution_history` (`automationId`, `executedAt`)"
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_automations_enabled` ON `automations` (`enabled`)"
+            )
+        }
+    }
+
     val ALL = listOf(
         MIGRATION_1_2,
         MIGRATION_2_3,
@@ -247,6 +260,7 @@ object Migrations {
         MIGRATION_13_14,
         MIGRATION_14_15,
         MIGRATION_15_16,
-        MIGRATION_16_17
+        MIGRATION_16_17,
+        MIGRATION_17_18
     )
 }

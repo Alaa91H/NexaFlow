@@ -8,6 +8,9 @@ import kotlinx.coroutines.flow.Flow
 interface HistoryRepository {
     fun getExecutionHistory(): Flow<List<ExecutionRecord>>
 
+    /** Latest execution per automation — O(automationCount) for dashboard, not O(historySize). */
+    fun getLatestExecutions(): Flow<List<ExecutionRecord>> = getExecutionHistory()
+
     /** Pageable history stream for the (potentially 1000-entry) history screen. */
     fun getExecutionPaging(): PagingSource<Int, ExecutionRecord>
 

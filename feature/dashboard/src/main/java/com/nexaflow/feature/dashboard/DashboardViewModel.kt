@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -29,12 +30,10 @@ class DashboardViewModel @Inject constructor(
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
-    /** automationId -> most recent durable execution, including its outcome. */
-    private val lastRunFlow = historyRepository.getExecutionHistory()
-        .map { history ->
-            history.groupBy { it.automationId }
-                .mapValues { (_, records) -> records.maxByOrNull { it.executedAt } }
-        }
+    /** automationId -> most recent durable execution — O(automationCount) via SQL, not O(historySize). */
+    private val lastRunFlow = historyRepository.getLatestExecutions()
+        .map { list -> list.associateBy { it.automationId } }
+        .distinctUntilChanged()
 
     private val automationsFlow = combine(
         automationRepository.getAutomations(),
