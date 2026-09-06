@@ -110,10 +110,14 @@ fun DashboardScreen(navController: NavController) {
 
     LaunchedEffect(executionMessage) {
         executionMessage?.let { message ->
-            viewModel.consumeExecutionMessage()
             toastText = message
+            viewModel.consumeExecutionMessage()
+        }
+    }
+    LaunchedEffect(toastText) {
+        if (toastText != null) {
             delay(3000)
-            if (toastText == message) toastText = null
+            toastText = null
         }
     }
 
