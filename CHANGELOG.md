@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.58.10] - 2026-09-06
+
+### Performance
+- **Sensor atomic debounce:** `SensorMonitor` now debounces 200ms per sensor, caches `candidatesBySensor` on refresh, and avoids coroutine storm on light flicker/shake.
+- **Battery precise threshold:** `BatteryMonitor` allows `level 0` and validates `threshold 0..100`; `BatteryTriggerMatcher` supports `threshold`/`above`/`below` keys with `coerceIn`.
+
 ## [v3.58.9] - 2026-09-06
 
 ### Performance
