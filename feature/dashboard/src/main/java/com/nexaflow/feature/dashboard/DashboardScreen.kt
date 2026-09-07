@@ -751,8 +751,12 @@ private fun nextRunText(automation: Automation): String? {
     if (!automation.enabled) return null
     val trigger = automation.triggers.firstOrNull { it.type == TriggerType.TIME } ?: return null
     val context = LocalContext.current
+    // Resolve localized labels through Compose so configuration changes invalidate this composable.
+    val todayLabel = stringResource(R.string.today)
+    val tomorrowLabel = stringResource(R.string.tomorrow)
+    val nextRunPrefixFormat = stringResource(R.string.next_run_prefix)
     // Cache per trigger config; recomputes only when triggers change, not on every recomposition
-    return remember(automation.triggers, automation.enabled) {
+    return remember(automation.triggers, automation.enabled, todayLabel, tomorrowLabel, nextRunPrefixFormat) {
         val nowMillis = System.currentTimeMillis()
         val next = TimeTriggerCalculator.nextFireTime(trigger.config, nowMillis) ?: return@remember null
         val zone = ZoneId.systemDefault()
@@ -761,11 +765,11 @@ private fun nextRunText(automation: Automation): String? {
         val timeText = android.text.format.DateFormat.getTimeFormat(context)
             .format(java.util.Date(next))
         val dayPrefix = when (nextTime.toLocalDate()) {
-            now.toLocalDate() -> context.getString(R.string.today)
-            now.toLocalDate().plusDays(1) -> context.getString(R.string.tomorrow)
+            now.toLocalDate() -> todayLabel
+            now.toLocalDate().plusDays(1) -> tomorrowLabel
             else -> nextTime.format(DateTimeFormatter.ofPattern("MMM d"))
         }
-        context.getString(R.string.next_run_prefix, "$dayPrefix $timeText")
+        String.format(nextRunPrefixFormat, "$dayPrefix $timeText")
     }
 }
 
