@@ -11,6 +11,12 @@ object WorkflowCapabilityValidator {
         automation: Automation,
         snapshot: CapabilitySnapshot
     ): WorkflowCapabilityValidationResult {
+        if (snapshot.neverObserved) {
+            // First capability scan hasn't completed yet (startup race): admit and let
+            // the real action handler make the live decision, instead of blocking on
+            // a snapshot that only looks unsupported because it is still empty.
+            return WorkflowCapabilityValidationResult(admissible = true, missingCapabilities = emptySet())
+        }
         val resolutions = buildList {
             automation.triggers.forEach { trigger ->
                 add(CapabilityRequirementResolver.resolve(CommandRequirementCatalog.requirementFor(trigger.type), snapshot))

@@ -43,6 +43,10 @@ data class CapabilitySnapshot(
     val reports: Map<CapabilityId, CapabilityAvailabilityReport> = emptyMap(),
     val observedAtMs: Long = 0L
 ) {
+    /** True until the first [refreshNow] completes; an empty snapshot is an unknown, not a refusal. */
+    val neverObserved: Boolean
+        get() = observedAtMs == 0L
+
     fun availabilityOf(id: CapabilityId): CapabilityAvailability =
         reports[id]?.availability ?: CapabilityAvailability.UNSUPPORTED
 }
