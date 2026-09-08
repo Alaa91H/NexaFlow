@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.58.14] - 2026-09-08
+
+### Fixed
+- **Corrupted `versionName` for releases with patch ≥ 10.** The version derived from git tags clamped the patch to 9 for the numeric `versionCode`, then split the tag with the *clamped* delimiter — so `v3.58.13` was reported as `v3.58.9v3.58.13` in the installed app (Settings > About, package manager). The suffix split now uses the unclamped patch, so the visible version name is the real tag (`v3.58.13`) while `versionCode` keeps its monotonic clamped scheme. This also affected the v3.58.10–v3.58.13 releases already published; install v3.58.14 to see the correct name.
+
+### Known limitations
+- `versionCode` intentionally clamps patch ≥ 10 to 9 (e.g. `v3.58.10`–`v3.58.19` share `358090`), which is fine for direct APK distribution but would need a monotonic scheme before Play Store publishing.
+
 ## [v3.58.13] - 2026-09-08
 
 ### Fixed
