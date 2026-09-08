@@ -44,9 +44,16 @@ fun Project.gitVersion(): GitVersionInfo {
     if (tagOnly != null) {
         val major = tagOnly.groupValues[1].toInt()
         val minor = tagOnly.groupValues[2].toInt()
-        val patch = tagOnly.groupValues[3].toInt().coerceAtMost(9)
+        val rawPatch = tagOnly.groupValues[3].toInt()
+        // versionCode must stay monotonic and fit the major/minor/patch scheme,
+        // so the patch is clamped for the numeric code only. The versionName
+        // keeps the real tag: the suffix delimiter must use the UNCLAMPED patch
+        // or `v3.58.13` would be split with `3.58.9` (not found → whole string
+        // returned) and produce the corrupted name `v3.58.9v3.58.13`.
+        val patch = rawPatch.coerceAtMost(9)
+        val suffix = tag.substringAfter("${major}.${minor}.${rawPatch}")
         return GitVersionInfo(
-            "v${major}.${minor}.${patch}" + (tag.substringAfter("${major}.${minor}.${patch}")),
+            "v${major}.${minor}.${rawPatch}$suffix",
             major * 100_000 + minor * 1_000 + patch * 10
         )
     }
