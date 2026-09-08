@@ -25,6 +25,8 @@ class RootPermissionGranterTest {
     fun setUp() {
         commands.clear()
         SystemAppStatusDetector.refreshRootAvailability()
+        // The storm-spacing guard must not hide grant-flow transitions in tests.
+        SystemAppStatusDetector.probeSpacingMs = 0L
         // Every shell command succeeds by default.
         RootPermissionGranter.shellRunner = { cmd ->
             commands += cmd
@@ -44,6 +46,7 @@ class RootPermissionGranterTest {
         RootPermissionGranter.notificationListenerChecker = null
         SystemAppStatusDetector.pathResolution = null
         SystemAppStatusDetector.rootProbe = null
+        SystemAppStatusDetector.probeSpacingMs = 2_000L
         SystemAppStatusDetector.refreshRootAvailability()
     }
 

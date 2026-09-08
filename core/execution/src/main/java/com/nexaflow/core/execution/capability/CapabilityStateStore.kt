@@ -1,7 +1,6 @@
 package com.nexaflow.core.execution.capability
 
 import com.nexaflow.core.rom.ShizukuShellBridge
-import com.nexaflow.core.rom.SystemAppStatusDetector
 import com.nexaflow.domain.capability.CapabilityAvailability
 import com.nexaflow.domain.capability.CapabilityAvailabilityReport
 import com.nexaflow.domain.capability.CapabilityBackendId
@@ -12,6 +11,7 @@ import com.nexaflow.domain.capability.CapabilitySnapshot
 import com.nexaflow.domain.capability.ExecutionPolicy
 import com.nexaflow.domain.capability.VerificationMode
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,12 +30,20 @@ class CapabilityStateStore(
     private val environmentInspector: CapabilityEnvironmentInspector,
     private val scope: CoroutineScope,
     private val nowMs: () -> Long = { System.currentTimeMillis() },
-    private val registerShizukuStateListener: ((() -> Unit) -> Unit) = ShizukuShellBridge::addStateListener
+    private val registerShizukuStateListener: ((() -> Unit) -> Unit) = ShizukuShellBridge::addStateListener,
+    private val minRefreshIntervalMs: Long = DEFAULT_MIN_REFRESH_INTERVAL_MS
 ) {
     private val diagnostics = CapabilityDiagnostics(registry)
     private val refreshMutex = Mutex()
     private val _snapshot = MutableStateFlow(CapabilitySnapshot())
     private val _environmentReports = MutableStateFlow<List<CapabilityEnvironmentReport>>(emptyList())
+
+    /** Guards [lastRefreshCompletedAtMs] and [trailingRefreshScheduled]. */
+    private val throttleLock = Any()
+    @Volatile
+    private var lastRefreshCompletedAtMs = Long.MIN_VALUE
+    @Volatile
+    private var trailingRefreshScheduled = false
 
     /** Immutable availability observation used by action, trigger, template and workflow filtering. */
     val snapshot: StateFlow<CapabilitySnapshot> = _snapshot.asStateFlow()
@@ -49,23 +57,55 @@ class CapabilityStateStore(
         registerShizukuStateListener(::invalidate)
     }
 
-    /** Queues a refresh after a real capability-state event; duplicate calls are serialized. */
+    /**
+     * Queues a refresh after a real capability-state event. A burst of
+     * invalidations (e.g. a flapping Shizuku listener) is throttled to one
+     * refresh per [minRefreshIntervalMs] plus a single coalesced trailing
+     * refresh, so an event storm can never translate into a probe flood — the
+     * binder storm that made ActivityManager kill the app for "Too many
+     * Binders sent to SYSTEM".
+     */
     fun invalidate() {
+        val now = nowMs()
+        val earliestAllowed = lastRefreshCompletedAtMs + minRefreshIntervalMs
+        if (now < earliestAllowed) {
+            scheduleTrailingRefresh(earliestAllowed - now)
+            return
+        }
         scope.launch { refreshNow() }
     }
 
     /** Explicit user- or lifecycle-initiated refresh. This is not a periodic probe. */
     fun refresh() = invalidate()
 
+    private fun scheduleTrailingRefresh(waitMs: Long) {
+        synchronized(throttleLock) {
+            if (trailingRefreshScheduled) return
+            trailingRefreshScheduled = true
+        }
+        scope.launch {
+            delay(waitMs)
+            synchronized(throttleLock) { trailingRefreshScheduled = false }
+            refreshNow()
+        }
+    }
+
     private suspend fun refreshNow() = refreshMutex.withLock {
-        // Root does not offer a normal-app callback; clear only its short-lived
-        // detector cache on an explicit/event-driven refresh before observing it.
-        SystemAppStatusDetector.refreshRootAvailability()
+        // Root freshness is governed by SystemAppStatusDetector's own 2s TTL;
+        // deliberately NOT invalidating its cache here. Every refresh used to
+        // drop the cache, so a repeated invalidate loop forced a fresh `su`
+        // process spawn on each pass — the flood behind the binder kill.
         val reports = registry.descriptors().associate { descriptor ->
             descriptor.id to diagnosticReportFor(descriptor.id)
         }
         _snapshot.value = CapabilitySnapshot(reports = reports, observedAtMs = nowMs())
         _environmentReports.value = environmentInspector.reports()
+        lastRefreshCompletedAtMs = nowMs()
+    }
+
+    companion object {
+        /** Capability state changes slowly; 10s between refreshes is plenty fresh. */
+        const val DEFAULT_MIN_REFRESH_INTERVAL_MS = 10_000L
     }
 
     /**

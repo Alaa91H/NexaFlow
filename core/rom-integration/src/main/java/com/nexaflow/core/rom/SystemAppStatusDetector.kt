@@ -63,14 +63,35 @@ object SystemAppStatusDetector {
      * `su` from PATH and actually execute it to confirm a uid=0 shell answers.
      */
     fun isRootAvailable(): Boolean {
+        val now = System.currentTimeMillis()
         val cached = rootProbeAt
-        if (cached > 0L && System.currentTimeMillis() - cached < ROOT_PROBE_TTL_MS) {
+        if (cached > 0L && now - cached < ROOT_PROBE_TTL_MS) {
             return rootProbeResult
         }
-        val result = probeRoot()
-        rootProbeResult = result
-        rootProbeAt = System.currentTimeMillis()
-        return result
+        synchronized(rootProbeLock) {
+            // Re-check under the lock: another caller may have completed the
+            // probe while we were waiting, so two concurrent requests never
+            // spawn two `su` processes for the same observation.
+            val nowUnderLock = System.currentTimeMillis()
+            val rechecked = rootProbeAt
+            if (rechecked > 0L && nowUnderLock - rechecked < ROOT_PROBE_TTL_MS) {
+                return rootProbeResult
+            }
+            // Storm guard: even when the cache was invalidated, a probe that
+            // finished less than probeSpacingMs ago is reused. A misbehaving
+            // invalidation loop (e.g. a flapping Shizuku listener) can no
+            // longer force a fresh `su` process spawn on every call — that
+            // flood is what made ActivityManager kill the app for
+            // "Too many Binders sent to SYSTEM".
+            if (lastProbeAtMs > 0L && nowUnderLock - lastProbeAtMs < probeSpacingMs) {
+                return rootProbeResult
+            }
+            val result = probeRoot()
+            rootProbeResult = result
+            rootProbeAt = nowUnderLock
+            lastProbeAtMs = nowUnderLock
+            return result
+        }
     }
 
     /** Drops the cached probe result so the next check re-probes the device. */
@@ -92,11 +113,24 @@ object SystemAppStatusDetector {
     private var rootProbeResult = false
     @Volatile
     private var rootProbeAt = 0L
+    // Wall-clock of the last actual probe; never cleared by refreshRootAvailability
+    // so the storm guard below can always see how recently a probe really ran.
+    @Volatile
+    private var lastProbeAtMs = 0L
+    private val rootProbeLock = Any()
     // Short TTL: a freshly granted root (via Magisk/KernelSU) must be picked up
     // quickly by the permission manager without re-spawning a process too often.
     // Reduced from 5s to 2s after review — the previous window hid a new grant
     // while the dashboard toast was still visible.
     private const val ROOT_PROBE_TTL_MS = 2_000L
+
+    /**
+     * Minimum wall-clock spacing between real `su` probes. Calls within this
+     * window reuse the last answer even if the cache was invalidated, so an
+     * event storm cannot translate into a process-spawn/binder flood.
+     * Internal so tests can disable it for deterministic grant flows.
+     */
+    internal var probeSpacingMs: Long = 2_000L
 
     /**
      * Static `su` locations covering legacy SuperSU/OEM ROMs plus the modern

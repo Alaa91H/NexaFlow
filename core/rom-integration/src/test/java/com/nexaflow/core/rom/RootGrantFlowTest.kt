@@ -26,10 +26,13 @@ class RootGrantFlowTest {
         probeCalls = mutableListOf()
         // The 5s probe TTL would otherwise leak a cached result between tests.
         SystemAppStatusDetector.refreshRootAvailability()
+        // The storm-spacing guard must not hide grant-flow transitions in tests.
+        SystemAppStatusDetector.probeSpacingMs = 0L
     }
 
     @After
     fun tearDown() {
+        SystemAppStatusDetector.probeSpacingMs = 2_000L
         SystemAppStatusDetector.pathResolution = null
         SystemAppStatusDetector.rootProbe = null
         PrivilegedRunner.suProbe = null
@@ -80,6 +83,34 @@ class RootGrantFlowTest {
         SystemAppStatusDetector.pathResolution = { true }
         SystemAppStatusDetector.rootProbe = { false }
         assertFalse(SystemAppStatusDetector.isRootAvailable())
+    }
+
+    @Test
+    fun `probe storm spacing reuses the last answer instead of spawning repeated su`() {
+        // Regression guard for the binder flood: a caller loop that keeps
+        // invalidating the cache must not spawn a fresh `su` process on every
+        // call. Within the spacing window the previous answer is reused.
+        // setUp disables the guard for the grant-flow tests, so re-enable it
+        // here — this test is specifically about the spacing behavior.
+        SystemAppStatusDetector.probeSpacingMs = 2_000L
+        var probeRuns = 0
+        SystemAppStatusDetector.pathResolution = { true }
+        SystemAppStatusDetector.rootProbe = {
+            probeRuns++
+            true
+        }
+
+        SystemAppStatusDetector.isRootAvailable()
+
+        repeat(50) { // simulated storm: invalidate then query repeatedly
+            SystemAppStatusDetector.refreshRootAvailability()
+            SystemAppStatusDetector.isRootAvailable()
+        }
+
+        assertTrue(
+            "50 invalidation+query pairs must not spawn 50 su processes",
+            probeRuns <= 2
+        )
     }
 
     @Test
