@@ -1040,4 +1040,7 @@
     <string name="call_match_any">أي رقم</string>
     <string name="call_mode_hint">يطابق رقم المتصل وليس نص الرسالة.</string>
     <string name="call_number_filter">رقم المتصل</string>
+    <string name="trigger_type_sms_sub">يُشغَّل عند استلام رسالة نصية</string>
+    <string name="key_event_custom">مفتاح مخصص (اسم أو رمز)</string>
+    <string name="battery_temp_hint">بالدرجات المئوية، مثال: 40</string>
 </resources>

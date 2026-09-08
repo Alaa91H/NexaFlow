@@ -483,7 +483,9 @@
     "schedule_start": "From (HH:mm)",
     "schedule_end": "To (HH:mm)",
     "starter_template_scheduled_sms": "Scheduled SMS",
-    "starter_template_nightly_call_silence": "Silence unknown callers at night"
+    "starter_template_nightly_call_silence": "Silence unknown callers at night",
+    "key_event_custom": "Custom key (name or code)",
+    "battery_temp_hint": "Degrees Celsius, e.g. 40"
   },
   "-ar": {
     "action_adaptive_battery": "البطارية التكيفية",
@@ -969,7 +971,9 @@
     "schedule_start": "من (HH:mm)",
     "schedule_end": "إلى (HH:mm)",
     "starter_template_scheduled_sms": "رسالة مجدولة",
-    "starter_template_nightly_call_silence": "كتم المتصلين المجهولين ليلاً"
+    "starter_template_nightly_call_silence": "كتم المتصلين المجهولين ليلاً",
+    "key_event_custom": "مفتاح مخصص (اسم أو رمز)",
+    "battery_temp_hint": "بالدرجات المئوية، مثال: 40"
   },
   "-de": {
     "action_adaptive_battery": "Adaptiver Akku",
@@ -1455,7 +1459,9 @@
     "schedule_start": "Von (HH:mm)",
     "schedule_end": "Bis (HH:mm)",
     "starter_template_scheduled_sms": "Geplante SMS",
-    "starter_template_nightly_call_silence": "Unbekannte Anrufer nachts stummschalten"
+    "starter_template_nightly_call_silence": "Unbekannte Anrufer nachts stummschalten",
+    "key_event_custom": "Custom key (name or code)",
+    "battery_temp_hint": "Degrees Celsius, e.g. 40"
   },
   "-es": {
     "action_adaptive_battery": "Batería adaptativa",
@@ -1941,7 +1947,9 @@
     "schedule_start": "Desde (HH:mm)",
     "schedule_end": "Hasta (HH:mm)",
     "starter_template_scheduled_sms": "SMS programado",
-    "starter_template_nightly_call_silence": "Silenciar desconocidos de noche"
+    "starter_template_nightly_call_silence": "Silenciar desconocidos de noche",
+    "key_event_custom": "Custom key (name or code)",
+    "battery_temp_hint": "Degrees Celsius, e.g. 40"
   },
   "-fr": {
     "action_adaptive_battery": "Batterie adaptative",
@@ -2427,7 +2435,9 @@
     "schedule_start": "De (HH:mm)",
     "schedule_end": "À (HH:mm)",
     "starter_template_scheduled_sms": "SMS programmé",
-    "starter_template_nightly_call_silence": "Silencier les inconnus la nuit"
+    "starter_template_nightly_call_silence": "Silencier les inconnus la nuit",
+    "key_event_custom": "Custom key (name or code)",
+    "battery_temp_hint": "Degrees Celsius, e.g. 40"
   },
   "-hi": {
     "action_adaptive_battery": "एडेप्टिव बैटरी",
@@ -2913,7 +2923,9 @@
     "schedule_start": "से (HH:mm)",
     "schedule_end": "तक (HH:mm)",
     "starter_template_scheduled_sms": "शेड्यूल किया गया SMS",
-    "starter_template_nightly_call_silence": "रात में अज्ञात कॉलर्स मौन करें"
+    "starter_template_nightly_call_silence": "रात में अज्ञात कॉलर्स मौन करें",
+    "key_event_custom": "Custom key (name or code)",
+    "battery_temp_hint": "Degrees Celsius, e.g. 40"
   },
   "-ja": {
     "action_adaptive_battery": "アダプティブバッテリー",
@@ -3399,7 +3411,9 @@
     "schedule_start": "開始 (HH:mm)",
     "schedule_end": "終了 (HH:mm)",
     "starter_template_scheduled_sms": "予約 SMS",
-    "starter_template_nightly_call_silence": "夜間は未知の発信者をサイレント"
+    "starter_template_nightly_call_silence": "夜間は未知の発信者をサイレント",
+    "key_event_custom": "Custom key (name or code)",
+    "battery_temp_hint": "Degrees Celsius, e.g. 40"
   },
   "-pt": {
     "action_adaptive_battery": "Bateria adaptativa",
@@ -3885,7 +3899,9 @@
     "schedule_start": "De (HH:mm)",
     "schedule_end": "Até (HH:mm)",
     "starter_template_scheduled_sms": "SMS agendado",
-    "starter_template_nightly_call_silence": "Silenciar desconhecidos à noite"
+    "starter_template_nightly_call_silence": "Silenciar desconhecidos à noite",
+    "key_event_custom": "Custom key (name or code)",
+    "battery_temp_hint": "Degrees Celsius, e.g. 40"
   },
   "-ru": {
     "action_adaptive_battery": "Адаптивная батарея",
@@ -4371,7 +4387,9 @@
     "schedule_start": "С (HH:mm)",
     "schedule_end": "До (HH:mm)",
     "starter_template_scheduled_sms": "SMS по расписанию",
-    "starter_template_nightly_call_silence": "Заглушать неизвестных ночью"
+    "starter_template_nightly_call_silence": "Заглушать неизвестных ночью",
+    "key_event_custom": "Custom key (name or code)",
+    "battery_temp_hint": "Degrees Celsius, e.g. 40"
   },
   "-tr": {
     "action_adaptive_battery": "Uyarlanabilir pil",
@@ -4857,7 +4875,9 @@
     "schedule_start": "Başlangıç (HH:mm)",
     "schedule_end": "Bitiş (HH:mm)",
     "starter_template_scheduled_sms": "Zamanlanmış SMS",
-    "starter_template_nightly_call_silence": "Geceleri bilinmeyenleri sessize al"
+    "starter_template_nightly_call_silence": "Geceleri bilinmeyenleri sessize al",
+    "key_event_custom": "Custom key (name or code)",
+    "battery_temp_hint": "Degrees Celsius, e.g. 40"
   },
   "-zh-rCN": {
     "action_adaptive_battery": "自适应电池",
@@ -5343,6 +5363,8 @@
     "schedule_start": "开始 (HH:mm)",
     "schedule_end": "结束 (HH:mm)",
     "starter_template_scheduled_sms": "定时短信",
-    "starter_template_nightly_call_silence": "夜间静音陌生来电"
+    "starter_template_nightly_call_silence": "夜间静音陌生来电",
+    "key_event_custom": "Custom key (name or code)",
+    "battery_temp_hint": "Degrees Celsius, e.g. 40"
   }
 }

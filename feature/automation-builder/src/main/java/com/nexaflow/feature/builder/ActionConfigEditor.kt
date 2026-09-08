@@ -557,7 +557,8 @@ fun ActionConfigEditor(
                     onValueChange = { onConfigChange(config + ("number" to it)) },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = stringResource(R.string.phone_number)) },
-                    singleLine = true
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
                 )
                 OutlinedTextField(
                     value = config["text"] ?: "",
@@ -610,17 +611,30 @@ fun ActionConfigEditor(
                 ) {
                     OutlinedTextField(
                         value = config["hour"] ?: "9",
-                        onValueChange = { onConfigChange(config + ("hour" to it)) },
+                        onValueChange = { input ->
+                            // Hour of day: digits only, clamped to 0–23 so the
+                            // scheduled reminder fires at the intended time.
+                            val clamped = input.filter(Char::isDigit).take(2)
+                                .toIntOrNull()?.coerceIn(0, 23)?.toString() ?: ""
+                            onConfigChange(config + ("hour" to clamped))
+                        },
                         modifier = Modifier.weight(1f),
                         label = { Text(text = stringResource(R.string.hour)) },
-                        singleLine = true
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                     OutlinedTextField(
                         value = config["minute"] ?: "0",
-                        onValueChange = { onConfigChange(config + ("minute" to it)) },
+                        onValueChange = { input ->
+                            // Minute: digits only, clamped to 0–59.
+                            val clamped = input.filter(Char::isDigit).take(2)
+                                .toIntOrNull()?.coerceIn(0, 59)?.toString() ?: ""
+                            onConfigChange(config + ("minute" to clamped))
+                        },
                         modifier = Modifier.weight(1f),
                         label = { Text(text = stringResource(R.string.minute)) },
-                        singleLine = true
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                 }
             }
@@ -720,17 +734,29 @@ fun ActionConfigEditor(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = config["hour"] ?: "7",
-                    onValueChange = { onConfigChange(config + ("hour" to it)) },
+                    onValueChange = { input ->
+                        // Hour of day: digits only, clamped to 0–23.
+                        val clamped = input.filter(Char::isDigit).take(2)
+                            .toIntOrNull()?.coerceIn(0, 23)?.toString() ?: ""
+                        onConfigChange(config + ("hour" to clamped))
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = stringResource(R.string.hour)) },
-                    singleLine = true
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
                 OutlinedTextField(
                     value = config["minute"] ?: "0",
-                    onValueChange = { onConfigChange(config + ("minute" to it)) },
+                    onValueChange = { input ->
+                        // Minute: digits only, clamped to 0–59.
+                        val clamped = input.filter(Char::isDigit).take(2)
+                            .toIntOrNull()?.coerceIn(0, 59)?.toString() ?: ""
+                        onConfigChange(config + ("minute" to clamped))
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = stringResource(R.string.minute)) },
-                    singleLine = true
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
             }
         }
@@ -738,10 +764,14 @@ fun ActionConfigEditor(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = config["seconds"] ?: "300",
-                    onValueChange = { onConfigChange(config + ("seconds" to it)) },
+                    onValueChange = { input ->
+                        // Timer duration: digits only (seconds).
+                        onConfigChange(config + ("seconds" to input.filter(Char::isDigit).take(6)))
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = stringResource(R.string.timer_duration_seconds)) },
-                    singleLine = true
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
                 OutlinedTextField(
                     value = config["message"] ?: "",
@@ -1424,17 +1454,37 @@ fun ActionConfigEditor(
         }
         ActionType.SYSTEM_KEY_EVENT -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // The engine accepts exactly these named keys (or a raw
+                // KEYCODE number). Offer the supported set as chips so the
+                // stored value always matches what the controller maps.
+                Text(text = stringResource(R.string.key_event_label), style = MaterialTheme.typography.titleSmall)
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    listOf(
+                        "POWER", "BACK", "HOME", "RECENTS", "MENU", "SEARCH",
+                        "NOTIFICATIONS", "VOLUME_UP", "VOLUME_DOWN", "MUTE",
+                        "MEDIA_PLAY_PAUSE", "MEDIA_NEXT", "MEDIA_PREVIOUS", "MEDIA_STOP",
+                        "BRIGHTNESS_UP", "BRIGHTNESS_DOWN", "ENTER", "DEL", "ESCAPE",
+                        "SCREENSHOT", "SLEEP", "WAKEUP", "CAMERA", "CALL", "ENDCALL"
+                    ).forEach { key ->
+                        SelectChip(
+                            selected = (config["key"] ?: "").equals(key, ignoreCase = true),
+                            onClick = { onConfigChange(mapOf("key" to key)) },
+                            label = key.replace('_', ' ').lowercase()
+                                .replaceFirstChar { it.uppercase() }
+                        )
+                    }
+                }
                 OutlinedTextField(
                     value = config["key"] ?: "",
-                    onValueChange = { onConfigChange(mapOf("key" to it)) },
+                    onValueChange = { onConfigChange(mapOf("key" to it.trim())) },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.key_event_label)) },
+                    label = { Text(text = stringResource(R.string.key_event_custom)) },
+                    supportingText = { Text(text = stringResource(R.string.key_event_hint)) },
                     singleLine = true
-                )
-                Text(
-                    text = stringResource(R.string.key_event_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.secondary
                 )
             }
         }

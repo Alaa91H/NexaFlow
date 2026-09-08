@@ -3013,10 +3013,18 @@ fun TriggerEditorCard(
                     Text(text = stringResource(R.string.trigger_temperature_threshold), style = MaterialTheme.typography.titleSmall)
                     OutlinedTextField(
                         value = draft.config["threshold"] ?: "40",
-                        onValueChange = { onConfigChange(draft.copy(config = draft.config + ("threshold" to it))) },
+                        onValueChange = { input ->
+                            // Temperature is a decimal number (°C): keep digits
+                            // and a single decimal separator only.
+                            val cleaned = input.filter { it.isDigit() || it == '.' }
+                                .let { if (it.count { c -> c == '.' } > 1) it.substringBeforeLast(".") + "." + it.substringAfterLast(".") else it }
+                            onConfigChange(draft.copy(config = draft.config + ("threshold" to cleaned)))
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        label = { Text(stringResource(R.string.trigger_temperature_threshold)) }
+                        label = { Text(stringResource(R.string.trigger_temperature_threshold)) },
+                        supportingText = { Text(stringResource(R.string.battery_temp_hint)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                     OptionChips(
                         options = listOf("ABOVE", "BELOW"),

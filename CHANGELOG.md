@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.59.5] - 2026-09-08
+
+### Fixed
+- **Option sets now match the nature of what they configure** across trigger, action, and end-behavior editors (no options were merged; every editor keeps its own option set):
+  - **Battery temperature trigger**: the threshold field accepted arbitrary text that the engine silently discarded; it now accepts digits with a single decimal separator only, uses a numeric keyboard, and shows a "Degrees Celsius" hint.
+  - **Send SMS action**: the phone-number field uses the phone keyboard instead of a generic text keyboard.
+  - **Reminder and Set alarm actions**: the hour/minute fields are numeric-only with 0–23 / 0–59 clamping (previously free text that the engine replaced with defaults when invalid).
+  - **Set timer action**: the duration field is digits-only.
+  - **Key event action**: the free-text key field frequently produced values the engine could not map (it accepts only ~30 named keys or a raw KEYCODE). The editor now offers the supported key set as chips plus an explicitly-labeled custom field for names/codes.
+  - Reviewed every other editor for the same class of mismatch — state triggers, Wi-Fi/cell signal, volume, brightness, storage, thresholds, webhook, HTTP, shell, and the end-behavior catalog (toggle → turn on/off, URI-type → revert-only, value-type → revert/set) already matched their semantics and were left untouched.
+- New localized strings added across all 11 locales.
+
 ## [v3.59.4] - 2026-09-08
 
 ### Fixed
