@@ -32,7 +32,7 @@ class RootGrantFlowTest {
 
     @After
     fun tearDown() {
-        SystemAppStatusDetector.probeSpacingMs = 2_000L
+        SystemAppStatusDetector.probeSpacingMs = 5_000L
         SystemAppStatusDetector.pathResolution = null
         SystemAppStatusDetector.rootProbe = null
         PrivilegedRunner.suProbe = null
@@ -92,7 +92,7 @@ class RootGrantFlowTest {
         // call. Within the spacing window the previous answer is reused.
         // setUp disables the guard for the grant-flow tests, so re-enable it
         // here — this test is specifically about the spacing behavior.
-        SystemAppStatusDetector.probeSpacingMs = 2_000L
+        SystemAppStatusDetector.probeSpacingMs = 5_000L
         var probeRuns = 0
         SystemAppStatusDetector.pathResolution = { true }
         SystemAppStatusDetector.rootProbe = {

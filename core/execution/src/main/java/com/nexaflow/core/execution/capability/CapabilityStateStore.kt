@@ -38,12 +38,12 @@ class CapabilityStateStore(
     private val _snapshot = MutableStateFlow(CapabilitySnapshot())
     private val _environmentReports = MutableStateFlow<List<CapabilityEnvironmentReport>>(emptyList())
 
-    /** Guards [lastRefreshCompletedAtMs] and [trailingRefreshScheduled]. */
-    private val throttleLock = Any()
+    /** Guards [workerJob], [refreshQueued] and [lastRefreshCompletedAtMs]. */
+    private val schedulerLock = Any()
+    private var workerJob: kotlinx.coroutines.Job? = null
+    private var refreshQueued = false
     @Volatile
     private var lastRefreshCompletedAtMs = Long.MIN_VALUE
-    @Volatile
-    private var trailingRefreshScheduled = false
 
     /** Immutable availability observation used by action, trigger, template and workflow filtering. */
     val snapshot: StateFlow<CapabilitySnapshot> = _snapshot.asStateFlow()
@@ -58,37 +58,42 @@ class CapabilityStateStore(
     }
 
     /**
-     * Queues a refresh after a real capability-state event. A burst of
-     * invalidations (e.g. a flapping Shizuku listener) is throttled to one
-     * refresh per [minRefreshIntervalMs] plus a single coalesced trailing
-     * refresh, so an event storm can never translate into a probe flood — the
-     * binder storm that made ActivityManager kill the app for "Too many
-     * Binders sent to SYSTEM".
+     * Queues a refresh after a real capability-state event. All invalidations
+     * coalesce through a single worker: at most one scan is ever in flight,
+     * a burst collapses into one pending request, and consecutive scans are
+     * spaced at least [minRefreshIntervalMs] apart. An event storm (e.g. a
+     * flapping Shizuku listener) can therefore never translate into a probe
+     * flood — the binder storm that made ActivityManager kill the app for
+     * "Too many Binders sent to SYSTEM".
      */
     fun invalidate() {
-        val now = nowMs()
-        val earliestAllowed = lastRefreshCompletedAtMs + minRefreshIntervalMs
-        if (now < earliestAllowed) {
-            scheduleTrailingRefresh(earliestAllowed - now)
-            return
+        synchronized(schedulerLock) {
+            refreshQueued = true
+            // Null-check, not isActive: a worker that already decided to exit
+            // (workerJob = null under this lock) may still be a moment from
+            // completing, and skipping the launch here would lose the queued
+            // refresh entirely (lost wakeup).
+            if (workerJob != null) return
+            workerJob = scope.launch {
+                while (true) {
+                    synchronized(schedulerLock) {
+                        if (!refreshQueued) {
+                            workerJob = null
+                            return@launch
+                        }
+                        refreshQueued = false
+                    }
+                    val wait = (lastRefreshCompletedAtMs + minRefreshIntervalMs - nowMs())
+                        .coerceAtLeast(0L)
+                    if (wait > 0) delay(wait)
+                    refreshNow()
+                }
+            }
         }
-        scope.launch { refreshNow() }
     }
 
     /** Explicit user- or lifecycle-initiated refresh. This is not a periodic probe. */
     fun refresh() = invalidate()
-
-    private fun scheduleTrailingRefresh(waitMs: Long) {
-        synchronized(throttleLock) {
-            if (trailingRefreshScheduled) return
-            trailingRefreshScheduled = true
-        }
-        scope.launch {
-            delay(waitMs)
-            synchronized(throttleLock) { trailingRefreshScheduled = false }
-            refreshNow()
-        }
-    }
 
     private suspend fun refreshNow() = refreshMutex.withLock {
         // Root freshness is governed by SystemAppStatusDetector's own 2s TTL;
@@ -104,8 +109,13 @@ class CapabilityStateStore(
     }
 
     companion object {
-        /** Capability state changes slowly; 10s between refreshes is plenty fresh. */
-        const val DEFAULT_MIN_REFRESH_INTERVAL_MS = 10_000L
+        /**
+         * Capability state changes slowly and every scan costs privileged
+         * probes; 30s between scans keeps even a continuous invalidation storm
+         * far below the binder-transaction rate that made ActivityManager kill
+         * the app. The first snapshot after startup is still immediate.
+         */
+        const val DEFAULT_MIN_REFRESH_INTERVAL_MS = 30_000L
     }
 
     /**

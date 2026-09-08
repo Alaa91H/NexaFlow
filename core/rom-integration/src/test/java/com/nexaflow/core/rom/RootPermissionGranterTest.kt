@@ -46,7 +46,7 @@ class RootPermissionGranterTest {
         RootPermissionGranter.notificationListenerChecker = null
         SystemAppStatusDetector.pathResolution = null
         SystemAppStatusDetector.rootProbe = null
-        SystemAppStatusDetector.probeSpacingMs = 2_000L
+        SystemAppStatusDetector.probeSpacingMs = 5_000L
         SystemAppStatusDetector.refreshRootAvailability()
     }
 

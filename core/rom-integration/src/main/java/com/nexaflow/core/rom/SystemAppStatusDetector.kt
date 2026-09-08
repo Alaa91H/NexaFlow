@@ -127,10 +127,12 @@ object SystemAppStatusDetector {
     /**
      * Minimum wall-clock spacing between real `su` probes. Calls within this
      * window reuse the last answer even if the cache was invalidated, so an
-     * event storm cannot translate into a process-spawn/binder flood.
-     * Internal so tests can disable it for deterministic grant flows.
+     * event storm cannot translate into a process-spawn/binder flood. Each
+     * spawn costs ~57 binder transactions on KernelSU (observed on device),
+     * so the spacing directly bounds the binder rate. Internal so tests can
+     * disable it for deterministic grant flows.
      */
-    internal var probeSpacingMs: Long = 2_000L
+    internal var probeSpacingMs: Long = 5_000L
 
     /**
      * Static `su` locations covering legacy SuperSU/OEM ROMs plus the modern
@@ -227,7 +229,11 @@ object SystemAppStatusDetector {
             process.destroy()
             // su answered: the output of `id` contains "uid=0".
             val text = output.toString()
-            android.util.Log.d("SystemAppStatusDetector", "su probe: exit=${process.exitValue()} out=${text.trim().take(120)}")
+            android.util.Log.d(
+                "SystemAppStatusDetector",
+                "su probe: exit=${process.exitValue()} out=${text.trim().take(120)} caller=" +
+                    Throwable().stackTrace.take(6).joinToString("<-") { "${it.className.substringAfterLast('.')}#${it.methodName}:${it.lineNumber}" }
+            )
             text.contains("uid=0")
         } catch (_: Throwable) {
             false
