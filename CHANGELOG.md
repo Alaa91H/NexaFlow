@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.58.13] - 2026-09-08
+
+### Fixed
+- **Stopped the process kill loop that silently ended task execution on device.** On-device evidence (`logcat` on a rooted Evolution X device) captured the system killing the app with `Too many Binders sent to SYSTEM` (5,750 binder transactions in ~25 seconds) minutes after every launch, which left scheduled alarms registered but no process alive to receive them — the direct cause of "tasks do not execute". The flood came from a repeating chain: a Shizuku binder lifecycle event invalidated `CapabilityStateStore`, each full scan dropped `SystemAppStatusDetector`'s root cache, and the scan's privileged capability probes each spawned a fresh `su` process — repeated every ~2 seconds without bound.
+- `CapabilityStateStore.invalidate()` is now throttled: bursts coalesce into one refresh per 10-second window plus a single trailing refresh, so an event storm can no longer multiply into a probe storm. `refreshNow()` also no longer drops the root-probe cache — root freshness is governed by the detector's own 2-second TTL.
+- `SystemAppStatusDetector.isRootAvailable()` is now single-flight under a lock (concurrent callers share one probe instead of spawning parallel `su` processes) and enforces a minimum 2-second wall-clock spacing between real probes even when the cache is invalidated, so a misbehaving invalidation loop can never translate into unbounded process spawning.
+
+### Tests
+- Added `probe storm spacing reuses the last answer instead of spawning repeated su`: 50 invalidate+query pairs spawn at most 2 probes.
+- Added `burst of invalidations coalesces into a single trailing refresh`: 5 invalidations inside one throttle window yield exactly one full capability scan.
+- Adjusted the root-grant flow tests to disable the new spacing guard explicitly (grant transitions must remain observable), resetting it in teardown.
+- `:core:execution` and `:core:rom-integration` unit suites pass.
+
+### Known limitations
+- Verified by unit tests and captured device evidence only; a follow-up on-device run (Phase 0 checklist: force-stop, reboot, Doze, cross-midnight range) must confirm the process survives past the previous kill window before the "tasks do not execute" report is closed.
+
 ## [v3.58.12] - 2026-09-08
 
 ### Fixed
