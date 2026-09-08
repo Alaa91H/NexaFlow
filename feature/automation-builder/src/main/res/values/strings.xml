@@ -917,7 +917,6 @@
     <string name="trigger_type_headset_sub">Fires when a headset is plugged in or removed</string>
     <string name="trigger_type_app_sub">Fires when an app is opened or closed</string>
     <string name="trigger_type_call_sub">Fires on incoming, outgoing, or missed calls</string>
-    <string name="trigger_type_sms_sub">Fires when an SMS is received</string>
     <string name="trigger_type_schedule_sub">Fires at a scheduled time</string>
     <string name="trigger_type_location_sub">Fires when entering or leaving a GPS geofence</string>
     <string name="trigger_type_nfc_sub">Fires when an NFC tag is scanned</string>
@@ -1020,11 +1019,6 @@
     <string name="starter_template_weekly_storage_cleanup">Weekly storage review</string>
     <string name="starter_template_nightly_automation_sync">Nightly automation reminder</string>
     <string name="search">Search</string>
-    <string name="trigger_type_battery_level_sub">Fires when battery reaches a level</string>
-    <string name="trigger_type_dynamic_sub">Fires on dynamic system events</string>
-    <string name="trigger_type_plugin_sub">Fires when a plugin sends an event</string>
-    <string name="trigger_type_screen_sub">Fires when the screen turns on or off</string>
-    <string name="trigger_type_wifi_sub">Fires when Wi-Fi connects or disconnects</string>
     <string name="sms_match_contains">Contains</string>
     <string name="sms_match_exact">Exact match</string>
     <string name="sms_match_any">Any text</string>

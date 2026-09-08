@@ -924,7 +924,6 @@
     <string name="trigger_type_screen_rotation_sub">Срабатывает при изменении поворота экрана</string>
     <string name="trigger_type_screen_timeout_sub">Срабатывает при изменении тайм-аута экрана</string>
     <string name="trigger_type_sensor_sub">Срабатывает при обнаружении активности датчиком устройства</string>
-    <string name="trigger_type_sms_sub">Срабатывает при получении SMS</string>
     <string name="trigger_type_stay_awake_sub">Срабатывает при переключении режима «Не выключать экран»</string>
     <string name="trigger_type_storage_sub">Срабатывает при падении хранилища ниже порога</string>
     <string name="trigger_type_timezone_sub">Срабатывает при изменении часового пояса устройства</string>
@@ -1012,11 +1011,6 @@
     <string name="any_bluetooth_device">Any Bluetooth device</string>
     <string name="any_bluetooth_device_hint">Fires when any paired device disconnects - no specific device needed</string>
     <string name="any_device">Any device</string>
-    <string name="trigger_type_battery_level_sub">Срабатывает при достижении уровня заряда</string>
-    <string name="trigger_type_dynamic_sub">Срабатывает при динамических системных событиях</string>
-    <string name="trigger_type_plugin_sub">Срабатывает при отправке события плагином</string>
-    <string name="trigger_type_screen_sub">Срабатывает при включении или выключении экрана</string>
-    <string name="trigger_type_wifi_sub">Срабатывает при подключении или отключении Wi-Fi</string>
     <string name="sms_match_contains">Содержит</string>
     <string name="sms_match_exact">Точное совпадение</string>
     <string name="sms_match_any">Любой текст</string>

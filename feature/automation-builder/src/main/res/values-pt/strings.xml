@@ -924,7 +924,6 @@
     <string name="trigger_type_screen_rotation_sub">É acionado quando a rotação da tela muda</string>
     <string name="trigger_type_screen_timeout_sub">É acionado quando o tempo limite da tela muda</string>
     <string name="trigger_type_sensor_sub">É acionado quando um sensor do dispositivo detecta atividade</string>
-    <string name="trigger_type_sms_sub">É acionado quando um SMS é recebido</string>
     <string name="trigger_type_stay_awake_sub">É acionado quando manter desperto muda</string>
     <string name="trigger_type_storage_sub">É acionado quando o armazenamento cai abaixo de um limite</string>
     <string name="trigger_type_timezone_sub">É acionado quando o fuso horário do dispositivo muda</string>
@@ -1012,11 +1011,6 @@
     <string name="any_bluetooth_device">Any Bluetooth device</string>
     <string name="any_bluetooth_device_hint">Fires when any paired device disconnects - no specific device needed</string>
     <string name="any_device">Any device</string>
-    <string name="trigger_type_battery_level_sub">É acionado quando a bateria atinge um nível</string>
-    <string name="trigger_type_dynamic_sub">É acionado em eventos dinâmicos do sistema</string>
-    <string name="trigger_type_plugin_sub">É acionado quando um plugin envia um evento</string>
-    <string name="trigger_type_screen_sub">É acionado quando a tela liga ou desliga</string>
-    <string name="trigger_type_wifi_sub">É acionado quando o Wi-Fi conecta ou desconecta</string>
     <string name="sms_match_contains">Contém</string>
     <string name="sms_match_exact">Correspondência exata</string>
     <string name="sms_match_any">Qualquer texto</string>

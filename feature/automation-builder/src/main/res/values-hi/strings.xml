@@ -924,7 +924,6 @@
     <string name="trigger_type_screen_rotation_sub">स्क्रीन रोटेशन बदलने पर ट्रिगर होता है</string>
     <string name="trigger_type_screen_timeout_sub">स्क्रीन टाइमआउट सेटिंग बदलने पर ट्रिगर होता है</string>
     <string name="trigger_type_sensor_sub">डिवाइस सेंसर गतिविधि पहचानने पर ट्रिगर होता है</string>
-    <string name="trigger_type_sms_sub">SMS प्राप्त होने पर ट्रिगर होता है</string>
     <string name="trigger_type_stay_awake_sub">स्टे-अवेक बदलने पर ट्रिगर होता है</string>
     <string name="trigger_type_storage_sub">स्टोरेज सीमा से नीचे जाने पर ट्रिगर होता है</string>
     <string name="trigger_type_timezone_sub">डिवाइस टाइमज़ोन बदलने पर ट्रिगर होता है</string>
@@ -1012,11 +1011,6 @@
     <string name="any_bluetooth_device">Any Bluetooth device</string>
     <string name="any_bluetooth_device_hint">Fires when any paired device disconnects - no specific device needed</string>
     <string name="any_device">Any device</string>
-    <string name="trigger_type_battery_level_sub">बैटरी एक स्तर पर पहुँचने पर ट्रिगर होता है</string>
-    <string name="trigger_type_dynamic_sub">डायनामिक सिस्टम इवेंट पर ट्रिगर होता है</string>
-    <string name="trigger_type_plugin_sub">प्लगइन इवेंट भेजने पर ट्रिगर होता है</string>
-    <string name="trigger_type_screen_sub">स्क्रीन चालू या बंद होने पर ट्रिगर होता है</string>
-    <string name="trigger_type_wifi_sub">Wi-Fi जुड़ने या अलग होने पर ट्रिगर होता है</string>
     <string name="sms_match_contains">शामिल है</string>
     <string name="sms_match_exact">सटीक मेल</string>
     <string name="sms_match_any">कोई भी पाठ</string>

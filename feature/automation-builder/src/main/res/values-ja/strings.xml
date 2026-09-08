@@ -924,7 +924,6 @@
     <string name="trigger_type_screen_rotation_sub">画面の向きが変わったときに発火</string>
     <string name="trigger_type_screen_timeout_sub">画面のタイムアウト設定が変わったときに発火</string>
     <string name="trigger_type_sensor_sub">端末センサーが動作を検知したときに発火</string>
-    <string name="trigger_type_sms_sub">SMS を受信したときに発火</string>
     <string name="trigger_type_stay_awake_sub">スリープ禁止が切り替わったときに発火</string>
     <string name="trigger_type_storage_sub">ストレージがしきい値を下回ったときに発火</string>
     <string name="trigger_type_timezone_sub">端末のタイムゾーンが変わったときに発火</string>
@@ -1012,11 +1011,6 @@
     <string name="any_bluetooth_device">Any Bluetooth device</string>
     <string name="any_bluetooth_device_hint">Fires when any paired device disconnects - no specific device needed</string>
     <string name="any_device">Any device</string>
-    <string name="trigger_type_battery_level_sub">バッテリーが特定の残量に達したときに発火</string>
-    <string name="trigger_type_dynamic_sub">動的なシステムイベントで発火</string>
-    <string name="trigger_type_plugin_sub">プラグインがイベントを送信したときに発火</string>
-    <string name="trigger_type_screen_sub">画面がオンまたはオフになったときに発火</string>
-    <string name="trigger_type_wifi_sub">Wi-Fi が接続または切断されたときに発火</string>
     <string name="sms_match_contains">含む</string>
     <string name="sms_match_exact">完全一致</string>
     <string name="sms_match_any">任意のテキスト</string>

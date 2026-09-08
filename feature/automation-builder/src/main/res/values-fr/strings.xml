@@ -924,7 +924,6 @@
     <string name="trigger_type_screen_rotation_sub">"Se déclenche lorsque la rotation de l'écran change"</string>
     <string name="trigger_type_screen_timeout_sub">"Se déclenche lorsque le délai d'extinction de l'écran change"</string>
     <string name="trigger_type_sensor_sub">"Se déclenche lorsqu'un capteur de l'appareil détecte une activité"</string>
-    <string name="trigger_type_sms_sub">"Se déclenche lorsqu'un SMS est reçu"</string>
     <string name="trigger_type_stay_awake_sub">Se déclenche lorsque le maintien éveillé est basculé</string>
     <string name="trigger_type_storage_sub">Se déclenche lorsque le stockage passe sous un seuil</string>
     <string name="trigger_type_timezone_sub">"Se déclenche lorsque le fuseau horaire de l'appareil change"</string>
@@ -1012,11 +1011,6 @@
     <string name="any_bluetooth_device">Any Bluetooth device</string>
     <string name="any_bluetooth_device_hint">Fires when any paired device disconnects - no specific device needed</string>
     <string name="any_device">Any device</string>
-    <string name="trigger_type_battery_level_sub">Se déclenche lorsque la batterie atteint un niveau</string>
-    <string name="trigger_type_dynamic_sub">"Se déclenche lors d'événements système dynamiques"</string>
-    <string name="trigger_type_plugin_sub">"Se déclenche lorsqu'un plugin envoie un événement"</string>
-    <string name="trigger_type_screen_sub">"Se déclenche lorsque l'écran s'allume ou s'éteint"</string>
-    <string name="trigger_type_wifi_sub">Se déclenche lorsque le Wi-Fi se connecte ou se déconnecte</string>
     <string name="sms_match_contains">Contient</string>
     <string name="sms_match_exact">Correspondance exacte</string>
     <string name="sms_match_any">N\'importe quel texte</string>

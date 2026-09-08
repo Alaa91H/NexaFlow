@@ -924,7 +924,6 @@
     <string name="trigger_type_screen_rotation_sub">Ekran döndürme değiştiğinde tetiklenir</string>
     <string name="trigger_type_screen_timeout_sub">Ekran zaman aşımı ayarı değiştiğinde tetiklenir</string>
     <string name="trigger_type_sensor_sub">Bir cihaz sensörü etkinlik algıladığında tetiklenir</string>
-    <string name="trigger_type_sms_sub">Bir SMS alındığında tetiklenir</string>
     <string name="trigger_type_stay_awake_sub">Uyanık tutma değiştiğinde tetiklenir</string>
     <string name="trigger_type_storage_sub">Depolama bir eşiğin altına düştüğünde tetiklenir</string>
     <string name="trigger_type_timezone_sub">Cihaz saat dilimi değiştiğinde tetiklenir</string>
@@ -1012,11 +1011,6 @@
     <string name="any_bluetooth_device">Any Bluetooth device</string>
     <string name="any_bluetooth_device_hint">Fires when any paired device disconnects - no specific device needed</string>
     <string name="any_device">Any device</string>
-    <string name="trigger_type_battery_level_sub">Pil bir seviyeye ulaştığında tetiklenir</string>
-    <string name="trigger_type_dynamic_sub">Dinamik sistem olaylarında tetiklenir</string>
-    <string name="trigger_type_plugin_sub">Bir eklenti olay gönderdiğinde tetiklenir</string>
-    <string name="trigger_type_screen_sub">Ekran açıldığında veya kapatıldığında tetiklenir</string>
-    <string name="trigger_type_wifi_sub">Wi-Fi bağlandığında veya bağlantısı kesildiğinde tetiklenir</string>
     <string name="sms_match_contains">İçerir</string>
     <string name="sms_match_exact">Tam eşleşme</string>
     <string name="sms_match_any">Herhangi bir metin</string>

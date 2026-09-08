@@ -924,7 +924,6 @@
     <string name="trigger_type_screen_rotation_sub">屏幕旋转变化时触发</string>
     <string name="trigger_type_screen_timeout_sub">屏幕超时设置变化时触发</string>
     <string name="trigger_type_sensor_sub">设备传感器检测到活动时触发</string>
-    <string name="trigger_type_sms_sub">收到短信时触发</string>
     <string name="trigger_type_stay_awake_sub">保持唤醒切换时触发</string>
     <string name="trigger_type_storage_sub">存储空间低于阈值时触发</string>
     <string name="trigger_type_timezone_sub">设备时区变化时触发</string>
@@ -1012,11 +1011,6 @@
     <string name="any_bluetooth_device">Any Bluetooth device</string>
     <string name="any_bluetooth_device_hint">Fires when any paired device disconnects - no specific device needed</string>
     <string name="any_device">Any device</string>
-    <string name="trigger_type_battery_level_sub">电池达到某个电量时触发</string>
-    <string name="trigger_type_dynamic_sub">动态系统事件时触发</string>
-    <string name="trigger_type_plugin_sub">插件发送事件时触发</string>
-    <string name="trigger_type_screen_sub">屏幕开启或关闭时触发</string>
-    <string name="trigger_type_wifi_sub">Wi-Fi 连接或断开时触发</string>
     <string name="sms_match_contains">包含</string>
     <string name="sms_match_exact">完全匹配</string>
     <string name="sms_match_any">任意文本</string>

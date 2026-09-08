@@ -923,7 +923,6 @@
     <string name="trigger_type_screen_rotation_sub">يُشغَّل عند تغير اتجاه الشاشة</string>
     <string name="trigger_type_screen_timeout_sub">يُشغَّل عند تغير مهلة إيقاف الشاشة</string>
     <string name="trigger_type_sensor_sub">يُشغَّل عند رصد مستشعر الجهاز لنشاط</string>
-    <string name="trigger_type_sms_sub">يُشغَّل عند استلام رسالة نصية</string>
     <string name="trigger_type_stay_awake_sub">يُشغَّل عند تبديل إبقاء الشاشة مستيقظة</string>
     <string name="trigger_type_storage_sub">يُشغَّل عند انخفاض مساحة التخزين عن حد</string>
     <string name="trigger_type_timezone_sub">يُشغَّل عند تغير المنطقة الزمنية للجهاز</string>
@@ -1011,11 +1010,6 @@
     <string name="any_bluetooth_device">أي جهاز بلوتوث</string>
     <string name="any_bluetooth_device_hint">يعمل عند انقطاع أي جهاز مقترن - لا حاجة لجهاز محدد</string>
     <string name="any_device">أي جهاز</string>
-    <string name="trigger_type_battery_level_sub">يُشغَّل عند وصول البطارية إلى مستوى معين</string>
-    <string name="trigger_type_dynamic_sub">يُشغَّل عند أحداث النظام الديناميكية</string>
-    <string name="trigger_type_plugin_sub">يُشغَّل عند إرسال إضافة لحدث</string>
-    <string name="trigger_type_screen_sub">يُشغَّل عند تشغيل الشاشة أو إيقافها</string>
-    <string name="trigger_type_wifi_sub">يُشغَّل عند اتصال واي فاي أو فصله</string>
     <string name="sms_match_contains">يحتوي على</string>
     <string name="sms_match_exact">مطابقة تامة</string>
     <string name="sms_match_any">أي نص</string>

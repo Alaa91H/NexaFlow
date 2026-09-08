@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.59.1] - 2026-09-08
+
+### Fixed
+- Resource-hygiene gate failure from v3.59.0's string injections: 66 orphaned or duplicate string entries across locale files (leftovers from earlier i18n batches that my prefix-filtered injections had reintroduced or kept alive). All entries removed via the repository's own `scripts/auto_fix.py`; `auto_fix.py --check`, string parity, and the unified resource gate now pass. No runtime behavior change.
+
 ## [v3.59.0] - 2026-09-08
 
 ### Added
