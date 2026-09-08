@@ -232,7 +232,7 @@ object SystemAppStatusDetector {
             android.util.Log.d(
                 "SystemAppStatusDetector",
                 "su probe: exit=${process.exitValue()} out=${text.trim().take(120)} caller=" +
-                    Throwable().stackTrace.take(6).joinToString("<-") { "${it.className.substringAfterLast('.')}#${it.methodName}:${it.lineNumber}" }
+                    Thread.currentThread().stackTrace.take(6).joinToString("<-") { "${it.className.substringAfterLast('.')}#${it.methodName}:${it.lineNumber}" }
             )
             text.contains("uid=0")
         } catch (_: Throwable) {

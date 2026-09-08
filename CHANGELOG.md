@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.58.16] - 2026-09-08
+
+### Fixed
+- Static analysis (Detekt) failure from v3.58.15's probe-diagnostics change: the caller-chain log built its stack frames through a bare `Throwable()` constructor, which Detekt rejects (`ThrowingExceptionsWithoutMessageOrCause`). The frames are now taken from `Thread.currentThread().stackTrace` — same diagnostic output, no exception object. No runtime behavior change; this release exists so the lint gate is green for the shipped probe-storm fix.
+
 ## [v3.58.15] - 2026-09-08
 
 ### Fixed
