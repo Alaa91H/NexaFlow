@@ -225,6 +225,8 @@ class CommandCompatibilityEngine(
             com.nexaflow.domain.models.TriggerType.NETWORK_MODE,
             com.nexaflow.domain.models.TriggerType.DATA_ROAMING_STATE,
             com.nexaflow.domain.models.TriggerType.CALL_STATE,
+            com.nexaflow.domain.models.TriggerType.INCOMING_CALL,
+            com.nexaflow.domain.models.ActionType.CALL_BLOCK,
             com.nexaflow.domain.models.TriggerType.SMS,
             com.nexaflow.domain.models.ActionType.SYSTEM_NETWORK_MODE,
             com.nexaflow.domain.models.ActionType.SYSTEM_DATA_ROAMING,

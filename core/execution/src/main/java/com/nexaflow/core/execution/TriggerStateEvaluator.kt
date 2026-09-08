@@ -400,7 +400,10 @@ object TriggerStateEvaluator {
         TriggerType.NFC_TAG_SCANNED,
         TriggerType.CLIPBOARD_CHANGED,
         TriggerType.SCREEN_TIMEOUT_CHANGED,
-        TriggerType.ALARM_SET_CHANGED
+        TriggerType.ALARM_SET_CHANGED,
+        // A manual tap cannot synthesize a live incoming call; the screening
+        // path is the only authority for this trigger.
+        TriggerType.INCOMING_CALL
     )
 
     private val MANUAL_DEFINITIVE_FALSE_TYPES = setOf(

@@ -105,4 +105,25 @@
     <string name="toast_on_toggle_sub">Show a message when this task is enabled or disabled</string>
     <string name="task_enabled_toast">Enabled: %1$s</string>
     <string name="task_disabled_toast">Disabled: %1$s</string>
+    <string name="call_ended">Sonlandı</string>
+    <string name="call_incoming">Gelen arama</string>
+    <string name="call_outgoing">Giden arama</string>
+    <string name="sms_match_contains">İçerir</string>
+    <string name="sms_match_exact">Tam eşleşme</string>
+    <string name="sms_match_any">Herhangi bir metin</string>
+    <string name="trigger_type_incoming_call">Gelen arama</string>
+    <string name="trigger_type_incoming_call_sub">Telefon çalmadan önce aramaları inceler</string>
+    <string name="call_from_hint">Numara veya bir kısmı (isteğe bağlı)</string>
+    <string name="call_category_any">Her arayan</string>
+    <string name="call_category_unknown">Bilinmeyen numaralar</string>
+    <string name="call_category_private">Gizli numaralar</string>
+    <string name="call_category_contact">Kişiler</string>
+    <string name="call_screening_hint">Çalmadan önce engellemek için sistem ayarlarında "Arayan kimliği ve spam filtresi" rolünü verin</string>
+    <string name="call_block_hint">Şu an çalan aramayı reddeder; filtreleme rolü veya bu izin gerekir</string>
+    <string name="call_silence_hint">Aramayı reddetmeden zil sesini kapatır</string>
+    <string name="schedule_days_label">Günler</string>
+    <string name="schedule_start">Başlangıç (HH:mm)</string>
+    <string name="schedule_end">Bitiş (HH:mm)</string>
+    <string name="starter_template_scheduled_sms">Zamanlanmış SMS</string>
+    <string name="starter_template_nightly_call_silence">Geceleri bilinmeyenleri sessize al</string>
 </resources>

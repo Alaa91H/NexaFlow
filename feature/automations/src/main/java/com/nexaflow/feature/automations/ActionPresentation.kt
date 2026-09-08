@@ -11,6 +11,8 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.PhoneMissed
+import androidx.compose.material.icons.filled.PhonePaused
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.PictureInPicture
@@ -144,6 +146,8 @@ fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (
     ActionType.SYSTEM_OPEN_NOTIFICATIONS -> Triple(R.string.action_open_notifications, R.string.action_open_notifications_sub, Icons.Filled.Notifications)
     ActionType.SYSTEM_OPEN_QUICK_SETTINGS -> Triple(R.string.action_open_quick_settings, R.string.action_open_quick_settings_sub, Icons.Filled.Settings)
     ActionType.SYSTEM_SEND_SMS -> Triple(R.string.action_send_sms, R.string.action_send_sms_sub, Icons.AutoMirrored.Filled.Message)
+    ActionType.CALL_BLOCK -> Triple(R.string.action_call_block, R.string.action_call_block_sub, Icons.Filled.PhoneMissed)
+    ActionType.CALL_SILENCE -> Triple(R.string.action_call_silence, R.string.action_call_silence_sub, Icons.Filled.PhonePaused)
     ActionType.SYSTEM_SEND_REMINDER -> Triple(R.string.action_reminder, R.string.action_reminder_sub, Icons.Filled.Schedule)
     ActionType.SYSTEM_OPEN_SETTINGS -> Triple(R.string.action_open_settings, R.string.action_open_settings_sub, Icons.Filled.Settings)
     ActionType.SYSTEM_WAIT -> Triple(R.string.action_wait, R.string.action_wait_sub, Icons.Filled.Schedule)

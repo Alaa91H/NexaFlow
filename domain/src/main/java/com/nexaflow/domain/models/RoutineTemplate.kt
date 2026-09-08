@@ -107,6 +107,30 @@ object RoutineTemplateCatalog {
                     deviceIdleRequired = true
                 )
             )
+        ),
+        RoutineTemplate(
+            // Scheduled message: the TIME trigger carries the full calendar
+            // (interval / specific date / selected days) and SYSTEM_SEND_SMS
+            // delivers the message. The user fills in number + text.
+            id = SCHEDULED_SMS,
+            triggers = listOf(
+                Trigger(TriggerType.TIME, mapOf("time" to "09:00", "repeat" to "DAILY"))
+            ),
+            actions = listOf(
+                Action(ActionType.SYSTEM_SEND_SMS, mapOf("number" to "", "text" to ""))
+            )
+        ),
+        RoutineTemplate(
+            // Nightly do-not-disturb for calls: silence unknown callers 22:00
+            // to 06:00 every day, following BlackList's schedule semantics.
+            id = NIGHTLY_CALL_SILENCE,
+            triggers = listOf(
+                Trigger(TriggerType.INCOMING_CALL, mapOf("from" to "", "matchMode" to "ANY", "category" to "UNKNOWN"))
+            ),
+            actions = listOf(
+                Action(ActionType.CALL_SILENCE, emptyMap())
+            ),
+            maintenanceProfile = null
         )
     )
 
@@ -135,4 +159,6 @@ object RoutineTemplateCatalog {
     const val DAILY_APP_MAINTENANCE = "daily_app_maintenance"
     const val WEEKLY_STORAGE_CLEANUP = "weekly_storage_cleanup"
     const val NIGHTLY_AUTOMATION_SYNC = "nightly_automation_sync"
+    const val SCHEDULED_SMS = "scheduled_sms"
+    const val NIGHTLY_CALL_SILENCE = "nightly_call_silence"
 }

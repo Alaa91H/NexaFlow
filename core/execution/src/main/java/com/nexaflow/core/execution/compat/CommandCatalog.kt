@@ -175,6 +175,11 @@ object CommandCatalog {
         ActionType.SYSTEM_OPEN_CAMERA to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_DIAL_NUMBER to direct(permissions = setOf("android.permission.CALL_PHONE")),
         ActionType.SYSTEM_SEND_SMS to direct(permissions = setOf("android.permission.SEND_SMS")),
+        // Call control rides the screening role (or ANSWER_PHONE_CALLS) that
+        // the screening service already holds; the runtime handler reports an
+        // honest failure when neither is granted.
+        ActionType.CALL_BLOCK to CommandSpec(minSdk = 29, strategy = ExecutionStrategy.DIRECT),
+        ActionType.CALL_SILENCE to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_SEND_EMAIL to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_OPEN_URL to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_OPEN_MAPS to CommandSpec.UNIVERSAL,
@@ -263,6 +268,7 @@ object CommandCatalog {
         TriggerType.AIRPLANE_MODE to CommandSpec.UNIVERSAL,
         TriggerType.DARK_MODE to CommandSpec.UNIVERSAL,
         TriggerType.CALL_STATE to direct(permissions = setOf("android.permission.READ_PHONE_STATE")),
+        TriggerType.INCOMING_CALL to CommandSpec(minSdk = 29, strategy = ExecutionStrategy.DIRECT),
         TriggerType.MEDIA_PLAYING to CommandSpec.UNIVERSAL,
         TriggerType.VOLUME_CHANGED to CommandSpec.UNIVERSAL,
         TriggerType.POWER_SAVER to CommandSpec.UNIVERSAL,

@@ -105,4 +105,25 @@
     <string name="toast_on_toggle_sub">Show a message when this task is enabled or disabled</string>
     <string name="task_enabled_toast">Enabled: %1$s</string>
     <string name="task_disabled_toast">Disabled: %1$s</string>
+    <string name="call_ended">Завершен</string>
+    <string name="call_incoming">Входящий</string>
+    <string name="call_outgoing">Исходящий</string>
+    <string name="sms_match_contains">Содержит</string>
+    <string name="sms_match_exact">Точное совпадение</string>
+    <string name="sms_match_any">Любой текст</string>
+    <string name="trigger_type_incoming_call">Входящий звонок</string>
+    <string name="trigger_type_incoming_call_sub">Проверяет звонки до того, как телефон зазвонит</string>
+    <string name="call_from_hint">Номер или его часть (необязательно)</string>
+    <string name="call_category_any">Любой звонящий</string>
+    <string name="call_category_unknown">Неизвестные номера</string>
+    <string name="call_category_private">Скрытые номера</string>
+    <string name="call_category_contact">Контакты</string>
+    <string name="call_screening_hint">Предоставьте роль «Определитель номера и защита от спама» в настройках системы, чтобы блокировать до звонка</string>
+    <string name="call_block_hint">Отклоняет текущий входящий звонок; нужна роль проверки или это разрешение</string>
+    <string name="call_silence_hint">Заглушает звонок, не отклоняя вызов</string>
+    <string name="schedule_days_label">Дни</string>
+    <string name="schedule_start">С (HH:mm)</string>
+    <string name="schedule_end">До (HH:mm)</string>
+    <string name="starter_template_scheduled_sms">SMS по расписанию</string>
+    <string name="starter_template_nightly_call_silence">Заглушать неизвестных ночью</string>
 </resources>

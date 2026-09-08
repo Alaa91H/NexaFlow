@@ -12,16 +12,31 @@ import com.nexaflow.domain.models.TriggerType
  */
 object SmsTriggerMatcher {
 
+    /** Body-match modes for the SMS trigger. */
+    const val MATCH_CONTAINS = "CONTAINS"
+    const val MATCH_EXACT = "EXACT"
+    const val MATCH_ANY = "ANY"
+
     /**
      * A trigger matches when its optional "from" filter is blank or contained
-     * in the sender, and its optional "contains" filter is blank or contained
-     * in the message body. Both filters are case-insensitive.
+     * in the sender, and its body filter passes per the "matchMode" config:
+     *  - CONTAINS (default, legacy): body must contain the text
+     *  - EXACT: body must equal the text (ignoring surrounding whitespace)
+     *  - ANY: body is ignored — every message from the sender matches
+     *
+     * All comparisons are case-insensitive. With no "matchMode" stored
+     * (legacy configs) the behavior stays the historical CONTAINS semantics.
      */
     fun matches(config: Map<String, String>, sender: String, body: String): Boolean {
         val from = config["from"].orEmpty().trim()
+        val mode = config["matchMode"].orEmpty().trim().uppercase().ifEmpty { MATCH_CONTAINS }
         val contains = config["contains"].orEmpty().trim()
         val fromMatch = from.isEmpty() || sender.contains(from, ignoreCase = true)
-        val textMatch = contains.isEmpty() || body.contains(contains, ignoreCase = true)
+        val textMatch = when (mode) {
+            MATCH_EXACT -> contains.isNotEmpty() && body.trim().equals(contains, ignoreCase = true)
+            MATCH_ANY -> true
+            else -> contains.isEmpty() || body.contains(contains, ignoreCase = true)
+        }
         return fromMatch && textMatch
     }
 

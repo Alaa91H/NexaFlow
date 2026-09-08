@@ -573,6 +573,16 @@ fun ActionConfigEditor(
                 )
             }
         }
+        ActionType.CALL_BLOCK -> {
+            // No config: rejects the currently ringing call. The runtime
+            // permission request is surfaced by PermissionCatalog's hint row;
+            // here we only explain the behavior.
+            Text(text = stringResource(R.string.call_block_hint))
+        }
+        ActionType.CALL_SILENCE -> {
+            // No config: silences the ring without rejecting the call.
+            Text(text = stringResource(R.string.call_silence_hint))
+        }
         ActionType.SYSTEM_SEND_REMINDER -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(

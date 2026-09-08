@@ -179,6 +179,20 @@ enum class TriggerType {
      */
     CALL_STATE,
     /**
+     * A call is ringing right now, screened pre-ring through the platform
+     * CallScreeningService (with fallback to the call-state listener when the
+     * screening role is not held). Config keys: `from` (number or part of it,
+     * optional), `matchMode` (CONTAINS/EXACT/ANY — EXACT compares the full
+     * dialed number, CONTAINS a substring, ANY ignores the number), and
+     * `category` (ANY/UNKNOWN/PRIVATE — UNKNOWN matches calls without a
+     * readable number, PRIVATE matches withheld callers). Call-control tasks
+     * may use the CALL_BLOCK and CALL_SILENCE actions; the screening decision
+     * itself is made synchronously from the same config (see
+     * CallPolicyEvaluator), while the remaining actions run through the
+     * normal engine path.
+     */
+    INCOMING_CALL,
+    /**
      * A package was installed, removed or updated. Config keys: `event`
      * (INSTALLED/REMOVED/UPDATED), optional `package` filter.
      */
@@ -614,6 +628,19 @@ enum class ActionType {
     SYSTEM_WIFI_SCAN_NOW,
     /** Sets the system timezone. Config key: `zone` (IANA, e.g. Asia/Riyadh). */
     SYSTEM_SET_TIMEZONE,
+    /**
+     * Rejects the currently ringing incoming call. Requires the screening
+     * role or ANSWER_PHONE_CALLS. When used inside a task with an
+     * INCOMING_CALL trigger, the synchronous screening pass applies the same
+     * decision pre-ring; the handler records the outcome for the run history.
+     */
+    CALL_BLOCK,
+    /**
+     * Silences the currently ringing incoming call without rejecting it —
+     * the call continues mutely. Applied pre-ring by the screening pass for
+     * INCOMING_CALL tasks and by the handler as a best-effort runtime action.
+     */
+    CALL_SILENCE,
 
     // === Evolution X — Professional Evolver control (typed, picker-driven) ===
     /** Writes any Evolution X Evolver setting with live picker and category. Config keys: `namespace`, `key`, `value`. Professionally replaces SYSTEM_SET_SETTING for ROM work. */

@@ -19,6 +19,10 @@
          Mirrors the app manifest so lint validates the calls here. -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_BASIC_PHONE_STATE" />
+    <!-- Pre-ring call screening (INCOMING_CALL trigger) and runtime CALL_BLOCK. -->
+    <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
+    <!-- Caller category for INCOMING_CALL rules (CONTACT vs UNKNOWN). -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <application>
         <service
@@ -29,6 +33,15 @@
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="automation-monitoring" />
+        </service>
+
+        <service
+            android:name=".NexaCallScreeningService"
+            android:exported="true"
+            android:permission="android.permission.BIND_SCREENING_SERVICE">
+            <intent-filter>
+                <action android:name="android.telecom.CallScreeningService" />
+            </intent-filter>
         </service>
 
         <service

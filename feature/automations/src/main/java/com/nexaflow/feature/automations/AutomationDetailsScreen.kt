@@ -4,6 +4,7 @@ import androidx.compose.material.icons.filled.BrightnessHigh
 import androidx.compose.material.icons.filled.DataUsage
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Nfc
+import androidx.compose.material.icons.filled.PhoneInTalk
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.Storage
 
@@ -467,6 +468,7 @@ private fun constraintPresentation(type: ConstraintType): Pair<Int, ImageVector>
     ConstraintType.AIRPLANE -> R.string.constraint_type_airplane to Icons.Filled.AirplanemodeActive
     ConstraintType.CHARGING -> R.string.constraint_type_charging to Icons.Filled.BatteryChargingFull
     ConstraintType.LOCATION -> R.string.constraint_type_location to Icons.Filled.MyLocation
+    ConstraintType.SCHEDULE -> R.string.constraint_type_schedule to Icons.Filled.Schedule
     ConstraintType.PLUGIN -> R.string.action_plugin to Icons.Filled.Extension
 }
 
@@ -563,6 +565,7 @@ private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector
     TriggerType.AIRPLANE_MODE -> Triple(R.string.trigger_airplane, R.string.trigger_airplane, Icons.Filled.AirplanemodeActive)
     TriggerType.DARK_MODE -> Triple(R.string.trigger_dark_mode, R.string.trigger_dark_mode, Icons.Filled.DarkMode)
     TriggerType.CALL_STATE -> Triple(R.string.trigger_call_state, R.string.trigger_call_state, Icons.Filled.PhoneAndroid)
+    TriggerType.INCOMING_CALL -> Triple(R.string.trigger_type_incoming_call, R.string.trigger_type_incoming_call_sub, Icons.Filled.PhoneInTalk)
     TriggerType.APP_INSTALLED -> Triple(R.string.trigger_app_installed, R.string.trigger_app_installed, Icons.Filled.Download)
     TriggerType.MEDIA_PLAYING -> Triple(R.string.trigger_media_playing, R.string.trigger_media_playing, Icons.Filled.MusicNote)
     TriggerType.VOLUME_CHANGED -> Triple(R.string.trigger_volume_changed, R.string.trigger_volume_changed, Icons.AutoMirrored.Filled.VolumeUp)

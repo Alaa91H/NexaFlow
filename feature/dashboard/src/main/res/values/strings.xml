@@ -105,4 +105,25 @@
     <string name="toast_on_toggle_sub">Show a message when this task is enabled or disabled</string>
     <string name="task_enabled_toast">Enabled: %1$s</string>
     <string name="task_disabled_toast">Disabled: %1$s</string>
+    <string name="call_ended">Ended</string>
+    <string name="call_incoming">Incoming</string>
+    <string name="call_outgoing">Outgoing</string>
+    <string name="sms_match_contains">Contains</string>
+    <string name="sms_match_exact">Exact match</string>
+    <string name="sms_match_any">Any text</string>
+    <string name="trigger_type_incoming_call">Incoming call</string>
+    <string name="trigger_type_incoming_call_sub">Screens calls before the phone rings</string>
+    <string name="call_from_hint">Number or part of it (optional)</string>
+    <string name="call_category_any">Any caller</string>
+    <string name="call_category_unknown">Unknown numbers</string>
+    <string name="call_category_private">Hidden numbers</string>
+    <string name="call_category_contact">Contacts</string>
+    <string name="call_screening_hint">Grant the Caller ID &amp; spam screening role in system settings for pre-ring blocking</string>
+    <string name="call_block_hint">Rejects the currently ringing call; needs the screening role or this permission</string>
+    <string name="call_silence_hint">Silences the ring without rejecting the call</string>
+    <string name="schedule_days_label">Days</string>
+    <string name="schedule_start">From (HH:mm)</string>
+    <string name="schedule_end">To (HH:mm)</string>
+    <string name="starter_template_scheduled_sms">Scheduled SMS</string>
+    <string name="starter_template_nightly_call_silence">Silence unknown callers at night</string>
 </resources>

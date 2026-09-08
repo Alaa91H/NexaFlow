@@ -105,4 +105,25 @@
     <string name="toast_on_toggle_sub">Show a message when this task is enabled or disabled</string>
     <string name="task_enabled_toast">Enabled: %1$s</string>
     <string name="task_disabled_toast">Disabled: %1$s</string>
+    <string name="call_ended">Encerrada</string>
+    <string name="call_incoming">Recebida</string>
+    <string name="call_outgoing">Enviada</string>
+    <string name="sms_match_contains">Contém</string>
+    <string name="sms_match_exact">Correspondência exata</string>
+    <string name="sms_match_any">Qualquer texto</string>
+    <string name="trigger_type_incoming_call">Chamada recebida</string>
+    <string name="trigger_type_incoming_call_sub">Examina chamadas antes do telefone tocar</string>
+    <string name="call_from_hint">Número ou parte dele (opcional)</string>
+    <string name="call_category_any">Qualquer chamador</string>
+    <string name="call_category_unknown">Números desconhecidos</string>
+    <string name="call_category_private">Números ocultos</string>
+    <string name="call_category_contact">Contatos</string>
+    <string name="call_screening_hint">Conceda a função de identificação e triagem de chamadas nas configurações do sistema para bloquear antes de tocar</string>
+    <string name="call_block_hint">Rejeita a chamada atual; precisa da função de triagem ou desta permissão</string>
+    <string name="call_silence_hint">Silencia o toque sem rejeitar a chamada</string>
+    <string name="schedule_days_label">Dias</string>
+    <string name="schedule_start">De (HH:mm)</string>
+    <string name="schedule_end">Até (HH:mm)</string>
+    <string name="starter_template_scheduled_sms">SMS agendado</string>
+    <string name="starter_template_nightly_call_silence">Silenciar desconhecidos à noite</string>
 </resources>

@@ -67,6 +67,48 @@ class SmsTriggerMatcherTest {
     }
 
     @Test
+    fun matches_defaultMode_containsSemantics() {
+        val config = mapOf("contains" to "OTP")
+        assertTrue(SmsTriggerMatcher.matches(config, "BANK", "your OTP here"))
+        assertFalse(SmsTriggerMatcher.matches(config, "BANK", "no code"))
+    }
+
+    @Test
+    fun matches_exactMode_requiresFullBodyEqualityIgnoringCaseAndWhitespace() {
+        val config = mapOf("matchMode" to "EXACT", "contains" to "STOP")
+        assertTrue(SmsTriggerMatcher.matches(config, "", "stop"))
+        assertTrue(SmsTriggerMatcher.matches(config, "", "  STOP  "))
+        assertFalse(SmsTriggerMatcher.matches(config, "", "please stop now"))
+        assertFalse(SmsTriggerMatcher.matches(config, "", "stopp"))
+    }
+
+    @Test
+    fun matches_exactMode_withEmptyFilter_neverMatches() {
+        val config = mapOf("matchMode" to "EXACT", "contains" to "")
+        assertFalse(SmsTriggerMatcher.matches(config, "", "anything"))
+    }
+
+    @Test
+    fun matches_anyMode_ignoresTheBody() {
+        val config = mapOf("matchMode" to "ANY", "contains" to "irrelevant")
+        assertTrue(SmsTriggerMatcher.matches(config, "SPAM", "anything at all"))
+        assertTrue(SmsTriggerMatcher.matches(config, "SPAM", ""))
+    }
+
+    @Test
+    fun matches_modeIsCaseInsensitiveAndTrimsWhitespace() {
+        val config = mapOf("matchMode" to "  exact ", "contains" to "STOP")
+        assertTrue(SmsTriggerMatcher.matches(config, "", "stop"))
+    }
+
+    @Test
+    fun matches_exactMode_stillRequiresFromFilterToPass() {
+        val config = mapOf("from" to "BANK", "matchMode" to "EXACT", "contains" to "STOP")
+        assertTrue(SmsTriggerMatcher.matches(config, "BANK", "stop"))
+        assertFalse(SmsTriggerMatcher.matches(config, "OTHER", "stop"))
+    }
+
+    @Test
     fun matchingAutomations_returnsOnlyEnabledMatching() {
         val match = automation(from = "BANK", contains = "otp")
         val disabled = automation(id = "a2", from = "BANK").copy(enabled = false)

@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.59.0] - 2026-09-08
+
+### Added
+
+#### Communication triggers (SMS + calls)
+- **SMS trigger match modes.** The SMS trigger's body filter now supports three modes: **Contains** (default, legacy behavior), **Exact** (the full message body must equal the text, ignoring case and surrounding whitespace), and **Any text** (every message from the sender matches). Legacy tasks without a stored mode keep the historical Contains semantics.
+- **Incoming-call trigger.** A new `INCOMING_CALL` trigger fires pre-ring via the Android call-screening role. Matching reuses the SMS contract (`from` + match mode) against the caller number, plus a caller **category** filter: any caller, unknown numbers, private/hidden numbers, or contacts only. Tasks without the screening role degrade gracefully to the existing post-ring `CALL_STATE` path.
+- **Call actions: Block and Silence.** Two new actions — `CALL_BLOCK` (reject the call pre-ring, skip the call log and notification) and `CALL_SILENCE` (let the call continue without ringing). The decision core enforces **emergency numbers are never screened**, a **disabled task never screens**, and **Block beats Silence** when several tasks match the same call. Tasks carrying neither action act as pure observers (log-only automations).
+- **Schedule constraint.** A new `SCHEDULE` constraint narrows any task to a day/time window: selected weekdays (or every day), a start/end time, with overnight windows (e.g. 22:00→06:00) supported. Corrupt window configs fail closed. The call-screening policy evaluates it per call, so a blocking rule can be confined to night hours.
+
+#### Scheduling and templates
+- **Scheduled messages made first-class.** The TIME trigger already supports interval, specific date, and weekday modes; combined with the `SYSTEM_SEND_SMS` action (plus the new `SCHEDULE` constraint for send windows) this composes into full message scheduling — send or reply at an interval, at a time/date, or on selected days. Two new starter templates surface it: a scheduled SMS send and a scheduled reply.
+
+#### Builder and platform integration
+- Builder UI for all of the above: match-mode selector in the SMS trigger editor, the incoming-call trigger editor with category picker, call-action config cards with permission hints, and the schedule-window editor (weekday chips + time fields) in the constraints card.
+- New trigger/action types are wired through the full platform stack: command catalog specs (version requirements, availability, hardware checks), event-source mapping, permission catalog, trigger-state manual gates, details/dashboard presentations, and 14-locale strings (English translated; other locales seeded with English until community translations land).
+- The existing `TaskTileService` covers BlackList's quick block-all toggle (pin any block-all-unknowns task to a Quick Settings tile), and blocked-call history falls out of the engine's execution log.
+
+### Adapted from BlackList
+- The [BlackList](https://github.com/Alaa91H/BlackList) call-control model (block/silence decisions, unknown/private/unknown caller categories, schedule windows, emergency-number protection) is merged into the engine as per-automation screening rules rather than a separate rule database — every task with an incoming-call trigger is one rule, evaluated under NexaFlow's existing constraint system.
+
 ## [v3.58.16] - 2026-09-08
 
 ### Fixed

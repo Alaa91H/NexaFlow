@@ -105,4 +105,25 @@
     <string name="toast_on_toggle_sub">Show a message when this task is enabled or disabled</string>
     <string name="task_enabled_toast">Enabled: %1$s</string>
     <string name="task_disabled_toast">Disabled: %1$s</string>
+    <string name="call_ended">終了</string>
+    <string name="call_incoming">着信</string>
+    <string name="call_outgoing">去信</string>
+    <string name="sms_match_contains">含む</string>
+    <string name="sms_match_exact">完全一致</string>
+    <string name="sms_match_any">任意のテキスト</string>
+    <string name="trigger_type_incoming_call">着信</string>
+    <string name="trigger_type_incoming_call_sub">着信音が鳴る前に通話を確認します</string>
+    <string name="call_from_hint">番号またはその一部（任意）</string>
+    <string name="call_category_any">すべての発信者</string>
+    <string name="call_category_unknown">未知の番号</string>
+    <string name="call_category_private">非通知番号</string>
+    <string name="call_category_contact">連絡先</string>
+    <string name="call_screening_hint">着信前にブロックするにはシステム設定で「発信者 ID とスパム対策」の役割を許可してください</string>
+    <string name="call_block_hint">現在着信中の通話を拒否します。確認役割またはこの権限が必要です</string>
+    <string name="call_silence_hint">拒否せずに着信音をサイレントにします</string>
+    <string name="schedule_days_label">曜日</string>
+    <string name="schedule_start">開始 (HH:mm)</string>
+    <string name="schedule_end">終了 (HH:mm)</string>
+    <string name="starter_template_scheduled_sms">予約 SMS</string>
+    <string name="starter_template_nightly_call_silence">夜間は未知の発信者をサイレント</string>
 </resources>

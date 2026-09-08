@@ -822,6 +822,7 @@ private fun triggerLabel(type: TriggerType): Int = when (type) {
     TriggerType.AIRPLANE_MODE -> R.string.trigger_airplane
     TriggerType.DARK_MODE -> R.string.trigger_dark_mode
     TriggerType.CALL_STATE -> R.string.trigger_call_state
+    TriggerType.INCOMING_CALL -> R.string.trigger_type_incoming_call
     TriggerType.APP_INSTALLED -> R.string.trigger_app_installed
     TriggerType.MEDIA_PLAYING -> R.string.trigger_media_playing
     TriggerType.VOLUME_CHANGED -> R.string.trigger_volume_changed

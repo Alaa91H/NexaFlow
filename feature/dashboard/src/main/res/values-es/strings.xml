@@ -105,4 +105,25 @@
     <string name="toast_on_toggle_sub">Show a message when this task is enabled or disabled</string>
     <string name="task_enabled_toast">Enabled: %1$s</string>
     <string name="task_disabled_toast">Disabled: %1$s</string>
+    <string name="call_ended">Finalizada</string>
+    <string name="call_incoming">Entrante</string>
+    <string name="call_outgoing">Saliente</string>
+    <string name="sms_match_contains">Contiene</string>
+    <string name="sms_match_exact">Coincidencia exacta</string>
+    <string name="sms_match_any">Cualquier texto</string>
+    <string name="trigger_type_incoming_call">Llamada entrante</string>
+    <string name="trigger_type_incoming_call_sub">Examina las llamadas antes de que suene el teléfono</string>
+    <string name="call_from_hint">Número o parte de él (opcional)</string>
+    <string name="call_category_any">Cualquier llamante</string>
+    <string name="call_category_unknown">Números desconocidos</string>
+    <string name="call_category_private">Números ocultos</string>
+    <string name="call_category_contact">Contactos</string>
+    <string name="call_screening_hint">Concede el rol de identificación y filtrado de llamadas en los ajustes del sistema para bloquear antes de sonar</string>
+    <string name="call_block_hint">Rechaza la llamada entrante actual; necesita el rol de filtrado o este permiso</string>
+    <string name="call_silence_hint">Silencia el tono sin rechazar la llamada</string>
+    <string name="schedule_days_label">Días</string>
+    <string name="schedule_start">Desde (HH:mm)</string>
+    <string name="schedule_end">Hasta (HH:mm)</string>
+    <string name="starter_template_scheduled_sms">SMS programado</string>
+    <string name="starter_template_nightly_call_silence">Silenciar desconocidos de noche</string>
 </resources>

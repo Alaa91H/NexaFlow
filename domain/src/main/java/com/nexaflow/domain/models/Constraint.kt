@@ -44,5 +44,14 @@ enum class ConstraintType {
      * stores only an opaque `pluginInstance` plus protocol metadata; the Android
      * Bundle is decoded inside the execution adapter.
      */
-    PLUGIN
+    PLUGIN,
+    /**
+     * The current day/time must fall inside a schedule window. Config keys:
+     * `days` (comma-separated ISO day numbers 1=Mon..7=Sun, empty = every day),
+     * `start` (HH:mm), `end` (HH:mm; overnight windows that cross midnight are
+     * supported, e.g. 22:00-06:00). Mirrors BlackList-style schedule rules so
+     * any task — including call screening — can be time-gated without a
+     * separate TIME trigger.
+     */
+    SCHEDULE
 }

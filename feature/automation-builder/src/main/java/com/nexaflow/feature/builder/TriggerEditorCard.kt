@@ -1,5 +1,6 @@
 package com.nexaflow.feature.builder
 
+import android.Manifest
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.PhoneInTalk
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Bluetooth
@@ -173,6 +175,7 @@ internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> = mapOf(
     TriggerType.LOCATION to TriggerCategory.LOCATION,
     TriggerType.APPLICATION to TriggerCategory.APPS,
     TriggerType.SMS to TriggerCategory.COMMUNICATION,
+    TriggerType.INCOMING_CALL to TriggerCategory.COMMUNICATION,
     TriggerType.SENSOR to TriggerCategory.DEVICE,
     TriggerType.ROM_SETTING to TriggerCategory.DEVICE,
     TriggerType.HEADPHONE to TriggerCategory.DEVICE,
@@ -260,6 +263,7 @@ val triggerTypeOptions = listOf(
     TriggerType.APP_INSTALLED,
     // COMMUNICATION
     TriggerType.SMS,
+    TriggerType.INCOMING_CALL,
     // DEVICE (v3.28)
     TriggerType.BATTERY_TEMPERATURE,
     TriggerType.USB_CONNECTED,
@@ -295,7 +299,7 @@ private val occurrenceOptions = listOf(
     "LAST" to R.string.occurrence_last
 )
 
-private val weekdayOptions = listOf(
+internal val weekdayOptions = listOf(
     1 to R.string.day_mon,
     2 to R.string.day_tue,
     3 to R.string.day_wed,
@@ -316,6 +320,7 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.NETWORK_MODE -> mapOf("state" to "4G")
     TriggerType.LOCATION -> mapOf("lat" to "", "lng" to "", "radius" to "100", "event" to "ENTER")
     TriggerType.SMS -> mapOf("from" to "", "contains" to "")
+    TriggerType.INCOMING_CALL -> mapOf("from" to "")
     TriggerType.BLUETOOTH_DEVICE -> mapOf("deviceName" to "", "deviceAddress" to "", "event" to "CONNECTED")
     TriggerType.RINGER_MODE -> mapOf("mode" to "NORMAL")
     TriggerType.NOTIFICATION -> mapOf("packages" to "", "contains" to "", "event" to "POSTED")
@@ -373,6 +378,7 @@ internal fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.NETWORK_MODE -> R.string.trigger_type_network_mode
     TriggerType.LOCATION -> R.string.trigger_type_location
     TriggerType.SMS -> R.string.trigger_type_sms
+    TriggerType.INCOMING_CALL -> R.string.trigger_type_incoming_call
     TriggerType.BLUETOOTH_DEVICE -> R.string.trigger_type_bluetooth
     TriggerType.RINGER_MODE -> R.string.trigger_type_ringer
     TriggerType.NOTIFICATION -> R.string.trigger_type_notification
@@ -428,7 +434,8 @@ internal fun TriggerType.descRes(): Int = when (this) {
     TriggerType.HOTSPOT -> R.string.action_hotspot_sub
     TriggerType.NETWORK_MODE -> R.string.trigger_type_network_mode_sub
     TriggerType.LOCATION -> R.string.trigger_type_location_sub
-    TriggerType.SMS -> R.string.trigger_type_sms_sub
+    TriggerType.SMS -> R.string.trigger_type_sms
+    TriggerType.INCOMING_CALL -> R.string.trigger_type_incoming_call_sub
     TriggerType.BLUETOOTH_DEVICE -> R.string.trigger_type_bluetooth_sub
     TriggerType.RINGER_MODE -> R.string.trigger_type_ringer_sub
     TriggerType.NOTIFICATION -> R.string.trigger_type_notification_sub
@@ -473,6 +480,7 @@ internal fun TriggerType.descRes(): Int = when (this) {
     TriggerType.NFC_TAG_SCANNED -> R.string.trigger_type_nfc_sub
     TriggerType.ALARM_SET_CHANGED -> R.string.trigger_type_alarm_sub
     TriggerType.PLUGIN_EVENT -> R.string.action_plugin_sub
+    TriggerType.INCOMING_CALL -> R.string.trigger_type_incoming_call_sub
 }
 
 internal fun TriggerType.icon(): ImageVector = when (this) {
@@ -497,6 +505,7 @@ internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.AIRPLANE_MODE -> Icons.Filled.AirplanemodeActive
     TriggerType.DARK_MODE -> Icons.Filled.DarkMode
     TriggerType.CALL_STATE -> Icons.Filled.PhoneAndroid
+    TriggerType.INCOMING_CALL -> Icons.Filled.PhoneInTalk
     TriggerType.APP_INSTALLED -> Icons.Filled.Download
     TriggerType.MEDIA_PLAYING -> Icons.Filled.MusicNote
     TriggerType.VOLUME_CHANGED -> Icons.AutoMirrored.Filled.VolumeUp
@@ -1072,10 +1081,24 @@ private fun triggerSummary(draft: TriggerDraft): String {
         TriggerType.SMS -> {
             val from = (c["from"] ?: "").trim()
             val contains = (c["contains"] ?: "").trim()
+            val mode = (c["matchMode"] ?: "CONTAINS").trim().uppercase()
             when {
                 from.isNotEmpty() -> "${stringResource(R.string.sms_from)}: $from"
+                contains.isNotEmpty() && mode == "EXACT" ->
+                    "${stringResource(R.string.sms_match_exact)}: $contains"
                 contains.isNotEmpty() -> "${stringResource(R.string.sms_contains)}: $contains"
                 else -> stringResource(R.string.trigger_type_sms)
+            }
+        }
+        TriggerType.INCOMING_CALL -> {
+            val from = (c["from"] ?: "").trim()
+            val category = (c["category"] ?: "ANY").trim().uppercase()
+            when {
+                from.isNotEmpty() -> "${stringResource(R.string.sms_from)}: $from"
+                category == "UNKNOWN" -> stringResource(R.string.call_category_unknown)
+                category == "PRIVATE" -> stringResource(R.string.call_category_private)
+                category == "CONTACT" -> stringResource(R.string.call_category_contact)
+                else -> stringResource(R.string.trigger_type_incoming_call)
             }
         }
         TriggerType.RINGER_MODE -> when (c["mode"] ?: "NORMAL") {
@@ -1997,20 +2020,149 @@ fun TriggerEditorCard(
                             placeholder = { Text(text = stringResource(R.string.sms_from_hint)) },
                             singleLine = true
                         )
-                        OutlinedTextField(
-                            value = draft.config["contains"] ?: "",
-                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("contains" to it))) },
+                        // Body-match mode: contains / exact / any text.
+                        val storedMode = (draft.config["matchMode"] ?: "CONTAINS").trim().uppercase()
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
-                            label = { Text(text = stringResource(R.string.sms_contains)) },
-                            placeholder = { Text(text = stringResource(R.string.sms_contains_hint)) },
-                            singleLine = true
-                        )
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            SelectChip(
+                                selected = storedMode == "CONTAINS",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("matchMode" to "CONTAINS")))
+                                },
+                                label = stringResource(R.string.sms_match_contains),
+                                modifier = Modifier.weight(1f)
+                            )
+                            SelectChip(
+                                selected = storedMode == "EXACT",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("matchMode" to "EXACT")))
+                                },
+                                label = stringResource(R.string.sms_match_exact),
+                                modifier = Modifier.weight(1f)
+                            )
+                            SelectChip(
+                                selected = storedMode == "ANY",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("matchMode" to "ANY")))
+                                },
+                                label = stringResource(R.string.sms_match_any),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        if (storedMode != "ANY") {
+                            OutlinedTextField(
+                                value = draft.config["contains"] ?: "",
+                                onValueChange = { onConfigChange(draft.copy(config = draft.config + ("contains" to it))) },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = {
+                                    Text(
+                                        text = if (storedMode == "EXACT") {
+                                            stringResource(R.string.sms_match_exact)
+                                        } else {
+                                            stringResource(R.string.sms_contains)
+                                        }
+                                    )
+                                },
+                                placeholder = { Text(text = stringResource(R.string.sms_contains_hint)) },
+                                singleLine = true
+                            )
+                        }
                         RuntimePermissionHint(
                             context = context,
                             permissions = listOf(android.Manifest.permission.RECEIVE_SMS),
                             text = stringResource(R.string.sms_permission_hint),
                             buttonLabel = stringResource(R.string.grant),
                             onRequest = { onRequestPermission(arrayOf(android.Manifest.permission.RECEIVE_SMS)) }
+                        )
+                    }
+                }
+                TriggerType.INCOMING_CALL -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedTextField(
+                            value = draft.config["from"] ?: "",
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("from" to it))) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(text = stringResource(R.string.sms_from)) },
+                            placeholder = { Text(text = stringResource(R.string.call_from_hint)) },
+                            singleLine = true
+                        )
+                        val storedMode = (draft.config["matchMode"] ?: "ANY").trim().uppercase()
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            SelectChip(
+                                selected = storedMode == "CONTAINS",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("matchMode" to "CONTAINS")))
+                                },
+                                label = stringResource(R.string.sms_match_contains),
+                                modifier = Modifier.weight(1f)
+                            )
+                            SelectChip(
+                                selected = storedMode == "EXACT",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("matchMode" to "EXACT")))
+                                },
+                                label = stringResource(R.string.sms_match_exact),
+                                modifier = Modifier.weight(1f)
+                            )
+                            SelectChip(
+                                selected = storedMode == "ANY",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("matchMode" to "ANY")))
+                                },
+                                label = stringResource(R.string.sms_match_any),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        // Caller category: any / unknown / private / contact.
+                        val storedCategory = (draft.config["category"] ?: "ANY").trim().uppercase()
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            SelectChip(
+                                selected = storedCategory == "ANY",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("category" to "ANY")))
+                                },
+                                label = stringResource(R.string.call_category_any),
+                                modifier = Modifier.weight(1f)
+                            )
+                            SelectChip(
+                                selected = storedCategory == "UNKNOWN",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("category" to "UNKNOWN")))
+                                },
+                                label = stringResource(R.string.call_category_unknown),
+                                modifier = Modifier.weight(1f)
+                            )
+                            SelectChip(
+                                selected = storedCategory == "PRIVATE",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("category" to "PRIVATE")))
+                                },
+                                label = stringResource(R.string.call_category_private),
+                                modifier = Modifier.weight(1f)
+                            )
+                            SelectChip(
+                                selected = storedCategory == "CONTACT",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("category" to "CONTACT")))
+                                },
+                                label = stringResource(R.string.call_category_contact),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        RuntimePermissionHint(
+                            context = context,
+                            permissions = listOf(Manifest.permission.READ_PHONE_STATE),
+                            text = stringResource(R.string.call_screening_hint),
+                            buttonLabel = stringResource(R.string.grant),
+                            onRequest = { onRequestPermission(arrayOf(Manifest.permission.READ_PHONE_STATE)) }
                         )
                     }
                 }

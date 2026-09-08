@@ -39,7 +39,9 @@ enum class TriggerSource(val sourceId: String) {
     SENSOR("sensor"),
     WEBHOOK("webhook"),
     /** Explicit external-plugin events after receiver authentication. */
-    PLUGIN("plugin");
+    PLUGIN("plugin"),
+    /** Pre-ring call screening (CallScreeningService-backed). */
+    INCOMING_CALL("call");
 
     companion object {
         fun forTrigger(type: TriggerType): TriggerSource = when (type) {
@@ -64,6 +66,7 @@ enum class TriggerSource(val sourceId: String) {
             TriggerType.AIRPLANE_MODE -> DEVICE
             TriggerType.DARK_MODE -> DEVICE
             TriggerType.CALL_STATE -> DEVICE
+            TriggerType.INCOMING_CALL -> INCOMING_CALL
             TriggerType.APP_INSTALLED -> APPLICATION
             TriggerType.MEDIA_PLAYING -> DEVICE
             TriggerType.VOLUME_CHANGED -> DEVICE

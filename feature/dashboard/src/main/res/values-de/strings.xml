@@ -105,4 +105,25 @@
     <string name="toast_on_toggle_sub">Show a message when this task is enabled or disabled</string>
     <string name="task_enabled_toast">Enabled: %1$s</string>
     <string name="task_disabled_toast">Disabled: %1$s</string>
+    <string name="call_ended">Beendet</string>
+    <string name="call_incoming">Eingehend</string>
+    <string name="call_outgoing">Ausgehend</string>
+    <string name="sms_match_contains">Enthält</string>
+    <string name="sms_match_exact">Exakte Übereinstimmung</string>
+    <string name="sms_match_any">Beliebiger Text</string>
+    <string name="trigger_type_incoming_call">Eingehender Anruf</string>
+    <string name="trigger_type_incoming_call_sub">Prüft Anrufe bevor das Telefon klingelt</string>
+    <string name="call_from_hint">Nummer oder Teil davon (optional)</string>
+    <string name="call_category_any">Jeder Anrufer</string>
+    <string name="call_category_unknown">Unbekannte Nummern</string>
+    <string name="call_category_private">Unterdrückte Nummern</string>
+    <string name="call_category_contact">Kontakte</string>
+    <string name="call_screening_hint">Gewähre die Rolle „Anrufer-ID &amp; Spam-Schutz“ in den Systemeinstellungen für Blockieren vor dem Klingeln</string>
+    <string name="call_block_hint">Lehnt den aktuell klingelnden Anruf ab; benötigt die Prüfrolle oder diese Berechtigung</string>
+    <string name="call_silence_hint">Stummschaltet den Klingelton, ohne den Anruf abzulehnen</string>
+    <string name="schedule_days_label">Tage</string>
+    <string name="schedule_start">Von (HH:mm)</string>
+    <string name="schedule_end">Bis (HH:mm)</string>
+    <string name="starter_template_scheduled_sms">Geplante SMS</string>
+    <string name="starter_template_nightly_call_silence">Unbekannte Anrufer nachts stummschalten</string>
 </resources>

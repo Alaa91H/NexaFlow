@@ -43,6 +43,8 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.AirplanemodeActive
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BatteryAlert
+import androidx.compose.material.icons.filled.PhoneMissed
+import androidx.compose.material.icons.filled.PhonePaused
 import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.BrightnessAuto
@@ -277,6 +279,8 @@ internal val actionOptions = listOf(
     // NOTIFICATIONS
     ActionOption(R.string.action_notification, R.string.action_notification_sub, Icons.Filled.Notifications, ActionType.SYSTEM_SEND_NOTIFICATION, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_send_sms, R.string.action_send_sms_sub, Icons.AutoMirrored.Filled.Message, ActionType.SYSTEM_SEND_SMS, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_call_block, R.string.action_call_block_sub, Icons.Filled.PhoneMissed, ActionType.CALL_BLOCK, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_call_silence, R.string.action_call_silence_sub, Icons.Filled.PhonePaused, ActionType.CALL_SILENCE, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_reminder, R.string.action_reminder_sub, Icons.Filled.NotificationsActive, ActionType.SYSTEM_SEND_REMINDER, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_block_notification, R.string.action_block_notification_sub, Icons.Filled.NotificationsOff, ActionType.SYSTEM_BLOCK_NOTIFICATION, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_clear_app_notifications, R.string.action_clear_app_notifications_sub, Icons.Filled.DeleteSweep, ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
@@ -2270,5 +2274,7 @@ internal fun starterRoutineTitleRes(templateId: String): Int = when (templateId)
     RoutineTemplateCatalog.DAILY_APP_MAINTENANCE -> R.string.starter_template_daily_app_maintenance
     RoutineTemplateCatalog.WEEKLY_STORAGE_CLEANUP -> R.string.starter_template_weekly_storage_cleanup
     RoutineTemplateCatalog.NIGHTLY_AUTOMATION_SYNC -> R.string.starter_template_nightly_automation_sync
+    RoutineTemplateCatalog.SCHEDULED_SMS -> R.string.starter_template_scheduled_sms
+    RoutineTemplateCatalog.NIGHTLY_CALL_SILENCE -> R.string.starter_template_nightly_call_silence
     else -> R.string.builder_title
 }

@@ -24,6 +24,10 @@ object PermissionCatalog {
     @SuppressLint("InlinedApi")
     fun runtimePermissionsFor(actionType: ActionType): List<String> = when (actionType) {
         ActionType.SYSTEM_SEND_SMS -> listOf(android.Manifest.permission.SEND_SMS)
+        // Screening-role call control; ANSWER_PHONE_CALLS is the runtime
+        // fallback for rejecting when the role is not held.
+        ActionType.CALL_BLOCK -> listOf(android.Manifest.permission.ANSWER_PHONE_CALLS)
+        ActionType.CALL_SILENCE -> emptyList()
         ActionType.SYSTEM_FLASHLIGHT -> listOf(android.Manifest.permission.CAMERA)
         ActionType.SYSTEM_SEND_NOTIFICATION,
         ActionType.SYSTEM_SEND_REMINDER,
@@ -79,6 +83,7 @@ object PermissionCatalog {
     fun runtimePermissionsFor(triggerType: TriggerType): List<String> = when (triggerType) {
         TriggerType.NETWORK_MODE -> listOf(android.Manifest.permission.READ_PHONE_STATE)
         TriggerType.SMS -> listOf(android.Manifest.permission.RECEIVE_SMS)
+        TriggerType.INCOMING_CALL -> listOf(android.Manifest.permission.READ_PHONE_STATE)
         TriggerType.LOCATION -> listOf(
             android.Manifest.permission.ACCESS_FINE_LOCATION,
             android.Manifest.permission.ACCESS_COARSE_LOCATION
