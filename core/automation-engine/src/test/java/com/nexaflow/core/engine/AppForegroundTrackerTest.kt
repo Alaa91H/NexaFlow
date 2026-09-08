@@ -167,4 +167,32 @@ class AppForegroundTrackerTest {
         )
         assertFalse(tracker.isActive("m"))
     }
+
+    @Test
+    fun `restored durable session exits on the next change without re-running`() {
+        // Simulates a process restart mid-session: the durable ledger says the
+        // task is active. Only the exit side is armed — the main chain must not
+        // re-run, and the next foreground change away fires exactly one Exit.
+        tracker.restoreActive("a")
+        val onMatchingApp = change("com.app.a", taskA)
+        assertTrue("restored session must not re-run on its own app", onMatchingApp.isEmpty())
+        val onOtherApp = change("com.app.b", taskA)
+        assertEquals(
+            listOf<AppForegroundTracker.Command>(AppForegroundTracker.Command.Exit("a")),
+            onOtherApp
+        )
+        assertFalse(tracker.isActive("a"))
+    }
+
+    @Test
+    fun `restored session whose task was deleted is reclaimed by the next run cycle`() {
+        tracker.restoreActive("a")
+        // The task no longer exists, so `matches` is false for it — the exit
+        // still fires so a stale durable occurrence cannot block a new one.
+        val commands = change("com.other.app", taskA)
+        assertEquals(
+            listOf<AppForegroundTracker.Command>(AppForegroundTracker.Command.Exit("a")),
+            commands
+        )
+    }
 }

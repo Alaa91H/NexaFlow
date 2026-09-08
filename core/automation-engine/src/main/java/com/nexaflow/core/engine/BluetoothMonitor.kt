@@ -9,6 +9,9 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationLifecycleContext
+import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
@@ -18,6 +21,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -38,6 +42,8 @@ class BluetoothMonitor @Inject constructor(
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
     private val activeStore: ActiveTriggerStore,
+    private val runtimeStore: AutomationRuntimeStore,
+    private val exitCoordinator: ExitCoordinator,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -102,6 +108,21 @@ class BluetoothMonitor @Inject constructor(
             .filter { it.enabled }
             .map { it.id }
             .toSet()
+        // The durable occurrence ledger is authoritative: a session that
+        // survived a process restart re-arms only its exit side, so the
+        // configured end behavior still runs exactly once on the opposite
+        // event. Legacy ActiveTriggerStore keys are honoured for pre-existing
+        // entries but no longer create exits on their own.
+        runtimeStore.activeStates()
+            .filter { it.source == SOURCE }
+            .forEach { state ->
+                if (state.automationId in enabledIds) {
+                    activeConnections[state.automationId] = state.sourceKey
+                        .substringAfter('|', state.sourceKey)
+                } else {
+                    runtimeStore.clear(state.automationId, state.occurrenceId)
+                }
+            }
         activeStore.activeKeys(SOURCE).forEach { key ->
             val id = key.substringBefore('|')
             if (id in enabledIds) {
@@ -146,13 +167,25 @@ class BluetoothMonitor @Inject constructor(
                                 lastRunAt[automation.id] = now
                                 activeConnections[automation.id] = address
                                 activeStore.markActive(SOURCE, "${automation.id}|$address")
-                                executionEngine.runAutomation(automation)
+                                // Strict durable admission: the run owns an
+                                // occurrence only when the runtime store accepts
+                                // it; the exit is coordinator-driven and
+                                // restart-safe.
+                                val occurrenceId = "bluetooth:${automation.id}:${UUID.randomUUID()}"
+                                executionEngine.runAutomation(
+                                    automation = automation,
+                                    lifecycleContext = AutomationLifecycleContext(
+                                        occurrenceId = occurrenceId,
+                                        source = SOURCE,
+                                        sourceKey = "${automation.id}|$address"
+                                    )
+                                )
                             }
                         } else if (firesOnDisconnect && activeConnections[automation.id] == address) {
                             // The device reconnected: the disconnect condition ended.
                             activeConnections.remove(automation.id)
                             activeStore.clearAutomation(SOURCE, automation.id)
-                            executionEngine.runExit(automation)
+                            exitCoordinator.requestExit(automation, ExitReason.TRIGGER_FALSE)
                         }
                     } else {
                         if (firesOnDisconnect) {
@@ -161,13 +194,22 @@ class BluetoothMonitor @Inject constructor(
                                 lastRunAt[automation.id] = now
                                 activeConnections[automation.id] = address
                                 activeStore.markActive(SOURCE, "${automation.id}|$address")
-                                executionEngine.runAutomation(automation)
+                                // Strict durable admission (disconnect-fired task).
+                                val occurrenceId = "bluetooth:${automation.id}:${UUID.randomUUID()}"
+                                executionEngine.runAutomation(
+                                    automation = automation,
+                                    lifecycleContext = AutomationLifecycleContext(
+                                        occurrenceId = occurrenceId,
+                                        source = SOURCE,
+                                        sourceKey = "${automation.id}|$address"
+                                    )
+                                )
                             }
                         } else if (firesOnConnect && activeConnections[automation.id] == address) {
                             // The device disconnected: the connect condition ended.
                             activeConnections.remove(automation.id)
                             activeStore.clearAutomation(SOURCE, automation.id)
-                            executionEngine.runExit(automation)
+                            exitCoordinator.requestExit(automation, ExitReason.TRIGGER_FALSE)
                         }
                     }
                 }

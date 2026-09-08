@@ -36,6 +36,16 @@ class AppForegroundTracker(
     fun isActive(taskId: String): Boolean = taskId in active
 
     /**
+     * Restores a durably-known active session after a process restart. The
+     * task did not just run again — only its exit side is armed, so the next
+     * real foreground change away from its app emits [Command.Exit] and the
+     * configured end behavior runs exactly once.
+     */
+    fun restoreActive(taskId: String) {
+        active += taskId
+    }
+
+    /**
      * Feeds one real foreground-package change. [matches] tells whether the new
      * package activates the task (per its trigger config). Returns the commands
      * to execute, in task order.

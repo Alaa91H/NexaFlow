@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.60.0] - 2026-09-08
+
+### Changed
+- **Strict paired-trigger lifecycle: the end behavior now runs even when the process restarts mid-session.** Every stateful trigger already ran its actions directly on the trigger event and its configured end behavior ("when the task ends") when the condition ended; with no end behavior configured the state is left untouched. Two trigger families kept that contract only in memory, so if the monitoring process died while a task was active, the later exit was skipped as "task was not active" and the end behavior never ran:
+  - **App open/close trigger** (`AppTriggerAccessibilityService`): a task that fires when its app opens now records a durable, occurrence-scoped lifecycle; when the app leaves the foreground, the exit goes through the same `ExitCoordinator` as the time-window triggers (exactly-once, restart-safe, recovery-capable). A session that survives a process restart re-arms only its exit side — the main chain never re-runs, and the end behavior still fires on the next real foreground change.
+  - **Bluetooth device connect/disconnect trigger** (`BluetoothMonitor`): same strict pattern — durable admission on the triggering event, coordinator-driven exit on the opposite event, and ledger restoration after restart so a connected session still ends correctly.
+  - **NFC tag, SMS, and other one-shot triggers** were already strict (`completeExitOnFinish`), and **location enter/exit** already used the durable coordinator; both are unchanged.
+- New unit tests pin the restored-session semantics: a restored session must not re-run its main chain and must emit exactly one exit on the next foreground change.
+
 ## [v3.59.6] - 2026-09-08
 
 ### Changed

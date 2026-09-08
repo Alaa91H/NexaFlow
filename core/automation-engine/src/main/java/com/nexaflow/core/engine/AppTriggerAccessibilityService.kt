@@ -2,6 +2,9 @@ package com.nexaflow.core.engine
 
 import android.accessibilityservice.AccessibilityService
 import android.view.accessibility.AccessibilityEvent
+import com.nexaflow.core.datastore.AutomationLifecycleContext
+import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.capability.AccessibilityInteractionBridge
@@ -14,6 +17,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.util.UUID
 import javax.inject.Inject
 
 /**
@@ -36,6 +40,12 @@ class AppTriggerAccessibilityService : AccessibilityService() {
 
     @Inject
     lateinit var executionEngine: ExecutionEngine
+
+    @Inject
+    lateinit var runtimeStore: AutomationRuntimeStore
+
+    @Inject
+    lateinit var exitCoordinator: ExitCoordinator
 
     @Inject
     lateinit var accessibilityBridge: AccessibilityInteractionBridge
@@ -82,6 +92,18 @@ class AppTriggerAccessibilityService : AccessibilityService() {
                 val tasks = automations
                     .filter { it.triggers.any { trigger -> trigger.type == TriggerType.APPLICATION } }
                     .map { AppForegroundTracker.Task(it.id, it.cooldownMillis) }
+                // The durable occurrence ledger is authoritative across process
+                // restarts: a session that survived a restart re-arms only its
+                // exit side, so the end behavior still runs exactly once.
+                runtimeStore.activeStates()
+                    .filter { it.source == SOURCE }
+                    .forEach { state ->
+                        if (state.automationId in byId.keys) {
+                            tracker.restoreActive(state.automationId)
+                        } else {
+                            runtimeStore.clear(state.automationId, state.occurrenceId)
+                        }
+                    }
                 tracker.onForegroundChange(packageName, tasks) { taskId, pkg ->
                     byId[taskId]?.let { it.enabled && it.triggers.any { t -> t.matchesPackage(pkg) } }
                         ?: false
@@ -92,8 +114,22 @@ class AppTriggerAccessibilityService : AccessibilityService() {
                     }
                     val automation = byId[taskId] ?: return@forEach
                     when (command) {
-                        is AppForegroundTracker.Command.Run -> executionEngine.runAutomation(automation)
-                        is AppForegroundTracker.Command.Exit -> executionEngine.runExit(automation)
+                        is AppForegroundTracker.Command.Run -> {
+                            // Strict durable admission: the run owns an occurrence
+                            // only when the runtime store accepts it. The exit is
+                            // then coordinator-driven and restart-safe.
+                            val occurrenceId = "app:$taskId:${UUID.randomUUID()}"
+                            executionEngine.runAutomation(
+                                automation = automation,
+                                lifecycleContext = AutomationLifecycleContext(
+                                    occurrenceId = occurrenceId,
+                                    source = SOURCE,
+                                    sourceKey = taskId
+                                )
+                            )
+                        }
+                        is AppForegroundTracker.Command.Exit ->
+                            exitCoordinator.requestExit(automation, ExitReason.TRIGGER_FALSE)
                     }
                 }
             }
@@ -101,6 +137,10 @@ class AppTriggerAccessibilityService : AccessibilityService() {
     }
 
     override fun onInterrupt() = Unit
+
+    private companion object {
+        const val SOURCE = "app-foreground"
+    }
 }
 
 /** True when the app trigger's config lists [packageName] (single or multi-select). */
