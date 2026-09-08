@@ -15,12 +15,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -90,6 +92,9 @@ fun AppPickerDialog(
             onPickSingle(selected.first())
         }
     }
+
+    // Cancel always discards the current selection and closes the sheet
+    // without applying anything; OK applies exactly what is checked.
 
     // Google 2026: selection tasks open as a full-height modal bottom sheet.
     ModalBottomSheet(
@@ -209,23 +214,33 @@ fun AppPickerDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 12.dp),
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            TextButton(onClick = onDismiss) {
+            // Cancel: discard the selection and go back — nothing is applied.
+            OutlinedButton(
+                onClick = onDismiss,
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(text = stringResource(R.string.cancel))
             }
-            TextButton(onClick = {
-                if (multiSelect) {
-                    confirm()
-                } else {
-                    if (selected.isNotEmpty()) onPickSingle(selected.first()) else onDismiss()
-                }
-            }) {
+            // OK: confirm the checked apps. Disabled while nothing is selected
+            // so the pair always reads as apply/discard, never as navigation.
+            Button(
+                onClick = {
+                    if (multiSelect) {
+                        confirm()
+                    } else {
+                        if (selected.isNotEmpty()) onPickSingle(selected.first()) else onDismiss()
+                    }
+                },
+                enabled = selected.isNotEmpty(),
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
                     text = if (multiSelect) {
                         "${stringResource(R.string.ok)} (${selected.size})"
                     } else {
-                        stringResource(R.string.select)
+                        stringResource(R.string.ok)
                     }
                 )
             }

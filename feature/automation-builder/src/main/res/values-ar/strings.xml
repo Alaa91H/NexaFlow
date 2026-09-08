@@ -150,7 +150,6 @@
     <string name="search_apps">ابحث في التطبيقات…</string>
     <string name="show_system_apps">إظهار تطبيقات النظام</string>
     <string name="app_count">%1$d تطبيق</string>
-    <string name="select">تحديد</string>
     <string name="category_display">الشاشة</string>
     <string name="category_sound">الصوت</string>
     <string name="category_connectivity">الاتصال</string>
@@ -457,7 +456,6 @@
     <string name="rom_setting_namespace_system">النظام</string>
     <string name="rom_setting_not_equals">لا يساوي</string>
     <string name="rom_setting_operator">الشرط</string>
-    <string name="rom_setting_value">القيمة المستهدفة</string>
     <string name="trigger_type_headphone">سماعات</string>
     <string name="trigger_type_charger">الشاحن</string>
     <string name="trigger_type_airplane">وضع الطيران</string>
@@ -1042,4 +1040,24 @@
     <string name="call_number_filter">رقم المتصل</string>
     <string name="key_event_custom">مفتاح مخصص (اسم أو رمز)</string>
     <string name="battery_temp_hint">بالدرجات المئوية، مثال: 40</string>
+    <string name="map_picker_title">Choose location</string>
+    <string name="map_selected_location">Selected location</string>
+    <string name="map_picker_hint">Open your installed maps app to search or select a place, then copy its coordinates and paste them here.</string>
+    <string name="map_open_maps_app">Open maps app</string>
+    <string name="map_no_maps_app">No compatible maps application is installed. Enter coordinates manually.</string>
+    <string name="map_paste_coordinates">Paste coordinates</string>
+    <string name="map_copy_coordinates">Copy coordinates</string>
+    <string name="map_copied_feedback">Coordinates copied to clipboard</string>
+    <string name="map_paste_failed">No coordinates found in the clipboard. Copy a place or a lat,lng pair first.</string>
+    <string name="map_latitude">Latitude</string>
+    <string name="map_longitude">Longitude</string>
+    <string name="map_radius_meters">Radius (meters)</string>
+    <string name="map_radius_range">Allowed range: %1$d to %2$d meters</string>
+    <string name="map_error_coordinates">Enter a valid latitude (-90 to 90) and longitude (-180 to 180).</string>
+    <string name="map_error_radius">Radius must be between 50 and 2000 meters.</string>
+    <string name="map_save_location">Save location</string>
+    <string name="rom_setting_trigger_title">ROM setting change</string>
+    <string name="rom_setting_trigger_hint">Fires when a system (Evolver) key changes to the target value. Pick a key from your device — no typing needed.</string>
+    <string name="rom_setting_pick_key">Pick a setting key (categorized)</string>
+    <string name="rom_setting_key_category">%1$s • %2$s</string>
 </resources>

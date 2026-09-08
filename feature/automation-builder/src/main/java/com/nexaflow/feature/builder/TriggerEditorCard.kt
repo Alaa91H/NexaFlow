@@ -2607,8 +2607,8 @@ fun TriggerEditorCard(
                     val value = draft.config["value"] ?: ""
                     var showEvolverPicker by remember { mutableStateOf(false) }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(text = "Evolution X — Trigger on Evolver change", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                        Text(text = "Fires when any Evolver key (QS, status bar, lockscreen…) changes to the target value. Pick from live device keys with categories.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                        Text(text = stringResource(R.string.rom_setting_trigger_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                        Text(text = stringResource(R.string.rom_setting_trigger_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
                         // ── Namespace (system / secure / global) ────────────
                         Text(
                             text = stringResource(R.string.rom_setting_namespace),
@@ -2624,25 +2624,37 @@ fun TriggerEditorCard(
                             selected = namespace,
                             onSelect = { onConfigChange(draft.copy(config = draft.config + ("namespace" to it))) }
                         )
-                        // ── Key: free text + professional Evolver picker ──────
-                        OutlinedTextField(
-                            value = key,
-                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("key" to it))) },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(text = stringResource(R.string.rom_setting_key)) },
-                            placeholder = { Text(text = "evo_…  or sysui_qs_tiles") },
-                            singleLine = true
-                        )
-                        if (key.isNotBlank()) {
-                            val cat = com.nexaflow.core.rom.EvolverCatalog.categorize(key)
-                            Text("${cat.displayName} • ${cat.description}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
-                        }
+                        // ── Key: professional Evolver picker (chip-driven) ───
+                        // The key is chosen from the live device keys or the
+                        // curated catalog — never typed by hand — so the stored
+                        // key always matches a real ROM key.
+                        val selectedKeyCategory = if (key.isNotBlank()) {
+                            com.nexaflow.core.rom.EvolverCatalog.categorize(key)
+                        } else null
                         OutlinedButton(
                             onClick = { showEvolverPicker = true },
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Icon(imageVector = Icons.Filled.Bolt, contentDescription = null)
-                            Text(text = "Pick Evolver key (categorized)…", modifier = Modifier.padding(start = 6.dp))
+                            Text(
+                                text = if (key.isNotBlank()) {
+                                    key
+                                } else {
+                                    stringResource(R.string.rom_setting_pick_key)
+                                },
+                                modifier = Modifier.padding(start = 6.dp)
+                            )
+                        }
+                        if (selectedKeyCategory != null) {
+                            Text(
+                                stringResource(
+                                    R.string.rom_setting_key_category,
+                                    selectedKeyCategory.displayName,
+                                    selectedKeyCategory.description
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
                         }
                         if (showEvolverPicker) {
                             EvolverSettingPickerDialog(
@@ -2653,7 +2665,7 @@ fun TriggerEditorCard(
                                 onDismiss = { showEvolverPicker = false }
                             )
                         }
-                        // ── Operator + target value ─────────────────────────
+                        // ── Operator + target value (chips, no free text) ───
                         Text(
                             text = stringResource(R.string.rom_setting_operator),
                             style = MaterialTheme.typography.titleSmall
@@ -2667,13 +2679,22 @@ fun TriggerEditorCard(
                             selected = operator,
                             onSelect = { onConfigChange(draft.copy(config = draft.config + ("operator" to it))) }
                         )
-                        OutlinedTextField(
-                            value = value,
-                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("value" to it))) },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(text = stringResource(R.string.rom_setting_value)) },
-                            placeholder = { Text(text = "1") },
-                            singleLine = true
+                        // Value chips follow the selected key's value type from
+                        // the catalog: booleans get on/off, enums get their fixed
+                        // option set, everything else gets the common values.
+                        val keyMeta = if (key.isNotBlank()) {
+                            com.nexaflow.core.rom.EvolverCatalog.metaFor(key)
+                        } else null
+                        val valueChoices: List<String> = when (keyMeta?.valueType) {
+                            com.nexaflow.core.rom.EvolverCatalog.ValueType.BOOLEAN -> listOf("1", "0")
+                            com.nexaflow.core.rom.EvolverCatalog.ValueType.ENUM -> keyMeta.options.ifEmpty { listOf("0", "1", "2") }
+                            com.nexaflow.core.rom.EvolverCatalog.ValueType.INTEGER -> listOf("0", "1", "2", "5", "10", "48")
+                            else -> listOf("1", "0", "true", "false", "on", "off")
+                        }
+                        OptionChips(
+                            options = valueChoices,
+                            selected = if (valueChoices.contains(value)) value else "",
+                            onSelect = { onConfigChange(draft.copy(config = draft.config + ("value" to it))) }
                         )
                         Text(
                             text = stringResource(R.string.rom_setting_hint),

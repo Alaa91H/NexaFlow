@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.61.0] - 2026-09-09
+
+### Fixed
+- **Location picker now completes the maps round-trip.** "Choose on map" opened the installed maps app but offered no way to bring coordinates back. The picker gained **Paste coordinates** (reads lat,lng from the clipboard — supports plain pairs, Google Maps share text and place-link URL formats) and **Copy coordinates** (writes the current fields back to the clipboard), alongside the existing manual entry; the round-trip is now: open maps app → copy the place → paste → save. All picker text is localized instead of hard-coded English.
+- **App picker got explicit OK/Cancel buttons.** Selecting one or more apps now confirms with **OK (count)** — disabled until something is selected — and **Cancel** discards the selection and closes the sheet, replacing the ambiguous back-button-only flow.
+- **Quick Settings tiles now toggle tasks exactly like the app UI.** Tapping a task's tile previously only flipped the stored enabled flag. It now matches the in-app toggle semantics: disabling persists the flag and immediately runs the task's configured end behavior (restore state / exit actions); enabling runs the main chain only when the triggers and conditions currently match.
+
+### Changed
+- **ROM setting trigger editor is now chip-driven and fully localized.** The key is chosen from the categorized live-device/catalog picker (shown on the button, with its category summary below) instead of being typed by hand, and the target value is selected from chips that follow the chosen key's value type (on/off for booleans, the key's fixed option set for enums, common values otherwise) — no free-text entry remains. All previously hard-coded English editor strings (map picker, ROM editor, app picker) are now localized across all 11 supported languages, with real Arabic translations and two removed orphaned keys.
+
 ## [v3.60.0] - 2026-09-08
 
 ### Changed
