@@ -1,9 +1,13 @@
 package com.nexaflow.core.execution.handler
 
+import android.Manifest
 import android.content.ComponentName
 import android.content.Context
+import android.content.pm.PackageManager
 import android.media.AudioManager
+import android.os.Build
 import android.telecom.TelecomManager
+import android.annotation.SuppressLint
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
@@ -24,22 +28,37 @@ class CallActionsHandler : ActionHandler {
         ActionType.CALL_SILENCE
     )
 
+    // ANSWER_PHONE_CALLS is checked explicitly below (lint cannot follow the
+    // boolean gate), and the screening-role path is validated at runtime by
+    // TelecomManager itself, so the suppress is scoped to this handler only.
+    @SuppressLint("MissingPermission")
     override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult {
         val telecom = ctx.appContext.getSystemService(Context.TELECOM_SERVICE) as? TelecomManager
         return when (action.type) {
             ActionType.CALL_BLOCK -> {
-                // Rejects the current incoming call. Without the screening
-                // role this throws SecurityException on newer APIs — report
-                // the real outcome instead of pretending success.
-                val result = runCatching {
-                    telecom?.endCall() == true
-                }.getOrDefault(false)
-                if (result) {
-                    SystemControlResult.ok("Call rejected")
+                // TelecomManager.endCall exists only from API 28; on older
+                // APIs there is no supported non-deprecated rejection path.
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                    SystemControlResult.fail("Call rejection requires Android 9 (API 28) or newer")
                 } else {
-                    SystemControlResult.fail(
-                        "Call rejection unavailable (screening role or ANSWER_PHONE_CALLS required)"
-                    )
+                    // Explicit permission gate: without ANSWER_PHONE_CALLS
+                    // (or the screening role) endCall throws — fail honestly
+                    // with the actionable reason instead.
+                    val granted = ctx.appContext.checkSelfPermission(
+                        Manifest.permission.ANSWER_PHONE_CALLS
+                    ) == PackageManager.PERMISSION_GRANTED
+                    val result = if (granted) {
+                        runCatching { telecom?.endCall() == true }.getOrDefault(false)
+                    } else {
+                        false
+                    }
+                    if (result) {
+                        SystemControlResult.ok("Call rejected")
+                    } else {
+                        SystemControlResult.fail(
+                            "Call rejection unavailable (ANSWER_PHONE_CALLS or screening role required)"
+                        )
+                    }
                 }
             }
             ActionType.CALL_SILENCE -> {

@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import android.provider.ContactsContract
 import android.telecom.Call
 import android.telecom.CallScreeningService
@@ -98,14 +99,20 @@ class NexaCallScreeningService : CallScreeningService() {
     private fun respondSafely(details: Call.Details, verdict: CallPolicyEvaluator.Verdict) {
         runCatching {
             val block = verdict == CallPolicyEvaluator.Verdict.BLOCK
-            val response = CallResponse.Builder()
+            val builder = CallResponse.Builder()
                 .setDisallowCall(block)
                 .setRejectCall(block)
                 .setSkipCallLog(block)
                 .setSkipNotification(block)
-                .setSilenceCall(verdict == CallPolicyEvaluator.Verdict.SILENCE)
-                .build()
-            respondToCall(details, response)
+            // setSilenceCall exists only from API 29; on API 26-28 a SILENCE
+            // verdict degrades to ringing normally — the task still runs
+            // through the engine, so observers/notifications are unaffected.
+            if (verdict == CallPolicyEvaluator.Verdict.SILENCE &&
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+            ) {
+                builder.setSilenceCall(true)
+            }
+            respondToCall(details, builder.build())
         }.onFailure {
             Log.w(TAG, "screening response failed", it)
         }

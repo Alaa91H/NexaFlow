@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.59.2] - 2026-09-08
+
+### Fixed
+- Android Lint errors blocking CI from v3.59.0's call-control code:
+  - `NexaCallScreeningService` called `CallResponse.Builder.setSilenceCall` (API 29+) unguarded. It is now gated on `Build.VERSION.SDK_INT >= Q`; on API 26-28 a SILENCE verdict lets the phone ring normally while the task still executes through the engine.
+  - `CallActionsHandler` called `TelecomManager.endCall` (API 28+, `ANSWER_PHONE_CALLS`) without a version or permission gate. It now fails honestly on pre-API-28 devices, checks `ANSWER_PHONE_CALLS` explicitly before calling, and returns an actionable failure reason when the permission is missing.
+- No behavior change for BLOCK pre-ring screening, which already ran through the call-screening role.
+
 ## [v3.59.1] - 2026-09-08
 
 ### Fixed
