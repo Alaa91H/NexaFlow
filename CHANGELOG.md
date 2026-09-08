@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.58.12] - 2026-09-08
+
+### Fixed
+- **Capability gate no longer blocks executions during the startup race.** When the process is woken from a kill by an alarm or broadcast, `WorkflowCapabilityValidator` could evaluate against a `CapabilitySnapshot` whose first scan had not completed yet (empty `reports`, `observedAtMs = 0`), which made every capability look `UNSUPPORTED` and rejected automations containing `SYSTEM_OPEN_URL` or `SYSTEM_OPEN_SETTINGS` with `Blocked: required capability is unavailable` before any handler ran. The validator now treats a never-observed snapshot as *undecided* and admits the workflow, leaving the live permission decision to the actual action handler — the same principle already applied to DIRECT/SHELL/ELEVATED commands. Snapshots from a completed scan keep their exact previous semantics: an observed-absent capability still blocks, with the same diagnostics.
+
+### Tests
+- Added `admits workflow when first capability scan has not completed yet` covering the admission path for a never-observed snapshot (`observedAtMs = 0`), and tightened the existing block test to use an *observed* empty snapshot so the two states can no longer be confused.
+- `:core:execution` and `:domain` unit suites pass against the refreshed `main` baseline (post-v3.58.11).
+
+### Known limitations
+- **On-device evidence is still pending.** This fix is verified by unit tests only; the Phase-0 checklist from the task-execution investigation (force-stop, reboot, Doze, OEM autostart scenarios with saved `logcat`/`dumpsys` artifacts) has not been executed on real hardware yet and remains the gate for closing the "tasks do not execute" report.
+
 ## [v3.58.11] - 2026-09-06
 
 ### Performance
