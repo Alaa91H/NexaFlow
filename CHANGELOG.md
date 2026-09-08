@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.58.15] - 2026-09-08
+
+### Fixed
+- **Completed the capability probe-storm fix that v3.58.13/v3.58.14 only partially applied.** On-device verification with root granted still showed the system killing the process (`Too many Binders sent to SYSTEM`): invalidations arriving *while a capability scan was running* bypassed the throttle and each queued a full scan (the mutex serialized them but never coalesced them), and every scan re-probed privileged capabilities.
+- `CapabilityStateStore` now routes every refresh through a single worker: at most one scan is ever in flight, a burst of any size collapses into one pending request, and consecutive scans are spaced at least 30 seconds apart (the first snapshot after startup remains immediate). Worst-case privileged-probe rate drops from ~12/min (kill territory) to ≤1 per 5 seconds.
+- `SystemAppStatusDetector` `su`-probe spacing raised from 2s to 5s — each KernelSU spawn costs ~57 binder transactions (measured on device), so probe spacing directly bounds the binder rate.
+
+### Diagnostics
+- The `su probe` log line now carries the six-frame caller chain, so any future probe storm identifies its exact driver immediately (this is how the one-shot `RootPermissionGranter.requestAndGrantAll` path was ruled out on device).
+
+### Verification (real device, KernelSU root granted)
+- Process survives 4+ minutes with the same PID after launch — previously killed within ~25 seconds.
+- 1 `su` probe in a 4-minute window — previously 65 probes in 3 minutes ending in a binder kill.
+- Zero `Too many Binders` events; scheduled alarms remain registered and the monitoring foreground service stays up.
+
 ## [v3.58.14] - 2026-09-08
 
 ### Fixed
