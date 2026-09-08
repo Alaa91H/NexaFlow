@@ -1041,7 +1041,6 @@
     <string name="call_match_any">Any number</string>
     <string name="call_mode_hint">Matches the caller number, not a message text.</string>
     <string name="call_number_filter">Caller number</string>
-    <string name="trigger_type_sms_sub">Срабатывает при получении SMS</string>
     <string name="key_event_custom">Custom key (name or code)</string>
     <string name="battery_temp_hint">Degrees Celsius, e.g. 40</string>
 </resources>

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.59.6] - 2026-09-08
+
+### Changed
+- Resource-hygiene cleanup: removed the unreferenced `trigger_type_sms_sub` string (left behind when the SMS trigger's picker summary was reworked in earlier releases) from all 11 locales, and dropped it from the i18n catalog so the string generator cannot resurrect it. CI's auto-fix gate had correctly flagged the commit as not auto-fix-clean; this commit is the sanctioned `auto_fix.py` output.
+
 ## [v3.59.5] - 2026-09-08
 
 ### Fixed
