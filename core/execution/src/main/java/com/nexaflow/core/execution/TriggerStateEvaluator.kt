@@ -107,6 +107,10 @@ object TriggerStateEvaluator {
                     CellularNetworkReader.read(context)
                 )
             TriggerType.CONNECTIVITY -> connectivitySatisfied(context, c)
+            TriggerType.WIFI_CONNECTED ->
+                connectivitySatisfied(context, c + ("network" to "WIFI"))
+            TriggerType.MOBILE_DATA_CONNECTED ->
+                connectivitySatisfied(context, c + ("network" to "MOBILE"))
             TriggerType.HOTSPOT -> connectivitySatisfied(context, c + ("network" to "HOTSPOT"))
             TriggerType.TIME -> timeTriggerSatisfied(c)
             TriggerType.RINGER_MODE -> ringerModeSatisfied(context, c)

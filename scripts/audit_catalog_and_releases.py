@@ -41,6 +41,10 @@ RESTRICTED_TRIGGERS = {
     # PLUGIN_EVENT is created only through the verified plugin configuration
     # flow; it must never appear in the generic trigger picker.
     "PLUGIN_EVENT",
+    # Legacy combined Wi-Fi/mobile network trigger. Kept in the enum for saved
+    # tasks, but new tasks must use the dedicated WIFI_CONNECTED and
+    # MOBILE_DATA_CONNECTED triggers instead.
+    "CONNECTIVITY",
 }
 
 VERSIONED_TAG = re.compile(r"^v\d+\.\d+\.\d+(?:[-.][0-9A-Za-z]+)*$")

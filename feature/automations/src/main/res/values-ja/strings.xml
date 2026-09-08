@@ -507,4 +507,8 @@
     <string name="action_call_silence_sub">現在の着信音をサイレント</string>
     <string name="constraint_type_schedule">時間帯</string>
     <string name="constraint_type_schedule_sub">選択した日の時間帯内でのみ有効</string>
+    <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
+    <string name="trigger_type_wifi_connected_sub">Runs when the device connects to Wi-Fi (or disconnects)</string>
+    <string name="trigger_type_mobile_data">Mobile data connected</string>
+    <string name="trigger_type_mobile_data_sub">Runs when mobile data is the active network (or not)</string>
 </resources>

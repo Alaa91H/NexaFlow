@@ -126,4 +126,6 @@
     <string name="schedule_end">終了 (HH:mm)</string>
     <string name="starter_template_scheduled_sms">予約 SMS</string>
     <string name="starter_template_nightly_call_silence">夜間は未知の発信者をサイレント</string>
+    <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
+    <string name="trigger_type_mobile_data">Mobile data connected</string>
 </resources>

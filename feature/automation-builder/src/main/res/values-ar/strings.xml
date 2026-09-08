@@ -24,7 +24,6 @@
     <string name="choose_from_installed">اختيار من التطبيقات المثبتة</string>
     <string name="app_detection_hint">يتطلب اكتشاف التطبيقات خدمة إمكانية الوصول</string>
     <string name="enable">تفعيل</string>
-    <string name="network">الشبكة</string>
     <string name="state">الحالة</string>
 
     
@@ -1034,4 +1033,11 @@
     <string name="schedule_end">إلى (HH:mm)</string>
     <string name="starter_template_scheduled_sms">رسالة مجدولة</string>
     <string name="starter_template_nightly_call_silence">كتم المتصلين المجهولين ليلاً</string>
+    <string name="trigger_type_wifi_connected">اتصال الواي فاي</string>
+    <string name="trigger_type_wifi_connected_sub">يعمل عند اتصال الجهاز بشبكة الواي فاي أو فصله عنها</string>
+    <string name="trigger_type_mobile_data">اتصال بيانات الجوال</string>
+    <string name="trigger_type_mobile_data_sub">يعمل عندما تكون بيانات الجوال هي الشبكة النشطة أو العكس</string>
+    <string name="call_match_any">أي رقم</string>
+    <string name="call_mode_hint">يطابق رقم المتصل وليس نص الرسالة.</string>
+    <string name="call_number_filter">رقم المتصل</string>
 </resources>

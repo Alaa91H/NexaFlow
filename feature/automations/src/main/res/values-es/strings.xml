@@ -507,4 +507,8 @@
     <string name="action_call_silence_sub">Silenciar el tono actual</string>
     <string name="constraint_type_schedule">Franja horaria</string>
     <string name="constraint_type_schedule_sub">Activo solo los días seleccionados dentro de la franja</string>
+    <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
+    <string name="trigger_type_wifi_connected_sub">Runs when the device connects to Wi-Fi (or disconnects)</string>
+    <string name="trigger_type_mobile_data">Mobile data connected</string>
+    <string name="trigger_type_mobile_data_sub">Runs when mobile data is the active network (or not)</string>
 </resources>

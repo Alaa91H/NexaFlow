@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.59.3] - 2026-09-08
+
+### Changed
+- **Split the combined network trigger into separate Wi-Fi and mobile-data triggers.** The Connection section previously offered a single "Connectivity" option that covered both Wi-Fi and mobile data through a secondary selector. New tasks now choose **Wi-Fi connected** or **Mobile data connected** directly — each with its own connected/disconnected state, label, and icon. The combined trigger remains in the engine for saved tasks (it no longer appears in the picker), and its editor no longer allows changing the saved network choice.
+
+### Fixed
+- **Incoming-call trigger showed SMS matching labels.** The number-mode chips reused the SMS trigger's "Any text" option, which is meaningless for phone numbers. The call editor now shows "Any number", hides the number field when that mode is selected (matching the SMS editor's behavior for "Any text"), labels the filter "Caller number" instead of the SMS-sender label, and adds an explicit hint that matching applies to the caller number, not a message text.
+
 ## [v3.59.2] - 2026-09-08
 
 ### Fixed

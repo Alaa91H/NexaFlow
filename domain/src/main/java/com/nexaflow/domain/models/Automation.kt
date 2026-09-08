@@ -117,7 +117,16 @@ enum class TriggerType {
      * for saved automations but is not offered to new tasks because its former
      * sub-options duplicated dedicated connectivity triggers.
      */
+    /**
+     * Legacy combined network trigger (Wi-Fi or mobile data, config-selected).
+     * Hidden from the trigger picker; kept in the enum so saved tasks keep
+     * evaluating. New tasks use [WIFI_CONNECTED] or [MOBILE_DATA_CONNECTED].
+     */
     CONNECTIVITY,
+    /** Default-network transport is Wi-Fi (or not, per `state`). */
+    WIFI_CONNECTED,
+    /** Default-network transport is cellular, i.e. mobile data (or not). */
+    MOBILE_DATA_CONNECTED,
     /**
      * Wi-Fi tethering state. Config key: `state` (ON/OFF). This is a dedicated
      * trigger so new tasks do not need the legacy combined connectivity menu.

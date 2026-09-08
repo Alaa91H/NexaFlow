@@ -126,4 +126,6 @@
     <string name="schedule_end">तक (HH:mm)</string>
     <string name="starter_template_scheduled_sms">शेड्यूल किया गया SMS</string>
     <string name="starter_template_nightly_call_silence">रात में अज्ञात कॉलर्स मौन करें</string>
+    <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
+    <string name="trigger_type_mobile_data">Mobile data connected</string>
 </resources>

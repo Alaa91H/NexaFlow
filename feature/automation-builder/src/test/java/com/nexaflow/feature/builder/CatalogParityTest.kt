@@ -11,7 +11,8 @@ import org.junit.Test
  *
  * Invariants proven here, independent of any device state:
  * - every `TriggerType` value appears exactly once in the picker, except the
- *   documented restricted set (`PLUGIN_EVENT`), which must not appear at all;
+ *   documented restricted set (`PLUGIN_EVENT`, legacy `CONNECTIVITY`), which
+ *   must not appear at all;
  * - every `ActionType` value appears exactly once in the action catalog;
  * - the compatibility gate never *adds* options — filtering can only shrink
  *   the canonical catalog, so unsupported entries disappear per device but
@@ -26,6 +27,11 @@ class CatalogParityTest {
             if (type == TriggerType.PLUGIN_EVENT) {
                 assertTrue(
                     "PLUGIN_EVENT must stay restricted to verified plugin configuration",
+                    type !in triggerTypeOptions
+                )
+            } else if (type == TriggerType.CONNECTIVITY) {
+                assertTrue(
+                    "legacy CONNECTIVITY must stay hidden; use WIFI_CONNECTED/MOBILE_DATA_CONNECTED",
                     type !in triggerTypeOptions
                 )
             } else {

@@ -392,21 +392,27 @@ class ConnectivityMonitor @Inject constructor(
                 .filter { automation ->
                     automation.enabled && automation.triggers.any {
                         it.type == TriggerType.CONNECTIVITY ||
+                            it.type == TriggerType.WIFI_CONNECTED ||
+                            it.type == TriggerType.MOBILE_DATA_CONNECTED ||
                             it.type == TriggerType.HOTSPOT ||
                             it.type == TriggerType.NETWORK_MODE
                     }
                 }
                 .forEach { automation ->
                     // Saved tasks can keep the legacy combined CONNECTIVITY type;
-                    // newly created hotspot tasks use the dedicated HOTSPOT type.
+                    // new tasks use the dedicated per-network types.
                     val trigger = automation.triggers.firstOrNull {
                         it.type == TriggerType.CONNECTIVITY ||
+                            it.type == TriggerType.WIFI_CONNECTED ||
+                            it.type == TriggerType.MOBILE_DATA_CONNECTED ||
                             it.type == TriggerType.HOTSPOT ||
                             it.type == TriggerType.NETWORK_MODE
                     } ?: return@forEach
                     val network = trigger.config["network"] ?: when (trigger.type) {
                         TriggerType.HOTSPOT -> "HOTSPOT"
                         TriggerType.NETWORK_MODE -> "NETWORK_MODE"
+                        TriggerType.WIFI_CONNECTED -> "WIFI"
+                        TriggerType.MOBILE_DATA_CONNECTED -> "MOBILE"
                         else -> "WIFI"
                     }
                     val desiredState = trigger.config["state"]

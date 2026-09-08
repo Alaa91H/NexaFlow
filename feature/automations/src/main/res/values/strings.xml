@@ -506,4 +506,8 @@
     <string name="action_call_silence_sub">Silence the current ring</string>
     <string name="constraint_type_schedule">Schedule window</string>
     <string name="constraint_type_schedule_sub">Active only on the selected days inside the time window</string>
+    <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
+    <string name="trigger_type_wifi_connected_sub">Runs when the device connects to Wi-Fi (or disconnects)</string>
+    <string name="trigger_type_mobile_data">Mobile data connected</string>
+    <string name="trigger_type_mobile_data_sub">Runs when mobile data is the active network (or not)</string>
 </resources>

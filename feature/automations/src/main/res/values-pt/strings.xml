@@ -507,4 +507,8 @@
     <string name="action_call_silence_sub">Silenciar o toque atual</string>
     <string name="constraint_type_schedule">Faixa de horário</string>
     <string name="constraint_type_schedule_sub">Ativo apenas nos dias selecionados dentro da faixa</string>
+    <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
+    <string name="trigger_type_wifi_connected_sub">Runs when the device connects to Wi-Fi (or disconnects)</string>
+    <string name="trigger_type_mobile_data">Mobile data connected</string>
+    <string name="trigger_type_mobile_data_sub">Runs when mobile data is the active network (or not)</string>
 </resources>

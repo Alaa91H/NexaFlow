@@ -50,6 +50,8 @@ enum class TriggerSource(val sourceId: String) {
             TriggerType.APPLICATION -> APPLICATION
             TriggerType.DEVICE -> DEVICE
             TriggerType.CONNECTIVITY,
+            TriggerType.WIFI_CONNECTED,
+            TriggerType.MOBILE_DATA_CONNECTED,
             TriggerType.HOTSPOT -> CONNECTIVITY
             TriggerType.LOCATION -> LOCATION
             TriggerType.SMS -> SMS

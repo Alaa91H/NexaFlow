@@ -24,7 +24,6 @@
     <string name="choose_from_installed">Elegir entre las apps instaladas</string>
     <string name="app_detection_hint">La detección de apps necesita el servicio de accesibilidad</string>
     <string name="enable">Activar</string>
-    <string name="network">Red</string>
     <string name="state">Estado</string>
 
     
@@ -1035,4 +1034,11 @@
     <string name="schedule_end">Hasta (HH:mm)</string>
     <string name="starter_template_scheduled_sms">SMS programado</string>
     <string name="starter_template_nightly_call_silence">Silenciar desconocidos de noche</string>
+    <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
+    <string name="trigger_type_wifi_connected_sub">Runs when the device connects to Wi-Fi (or disconnects)</string>
+    <string name="trigger_type_mobile_data">Mobile data connected</string>
+    <string name="trigger_type_mobile_data_sub">Runs when mobile data is the active network (or not)</string>
+    <string name="call_match_any">Any number</string>
+    <string name="call_mode_hint">Matches the caller number, not a message text.</string>
+    <string name="call_number_filter">Caller number</string>
 </resources>

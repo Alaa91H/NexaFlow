@@ -507,4 +507,8 @@
     <string name="action_call_silence_sub">كتم الرنين الحالي</string>
     <string name="constraint_type_schedule">نافذة زمنية</string>
     <string name="constraint_type_schedule_sub">تعمل فقط في الأيام المحددة ضمن النطاق الزمني</string>
+    <string name="trigger_type_wifi_connected">اتصال الواي فاي</string>
+    <string name="trigger_type_wifi_connected_sub">يعمل عند اتصال الجهاز بشبكة الواي فاي أو فصله عنها</string>
+    <string name="trigger_type_mobile_data">اتصال بيانات الجوال</string>
+    <string name="trigger_type_mobile_data_sub">يعمل عندما تكون بيانات الجوال هي الشبكة النشطة أو العكس</string>
 </resources>

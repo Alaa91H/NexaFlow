@@ -126,4 +126,6 @@
     <string name="schedule_end">إلى (HH:mm)</string>
     <string name="starter_template_scheduled_sms">رسالة مجدولة</string>
     <string name="starter_template_nightly_call_silence">كتم المتصلين المجهولين ليلاً</string>
+    <string name="trigger_type_wifi_connected">اتصال الواي فاي</string>
+    <string name="trigger_type_mobile_data">اتصال بيانات الجوال</string>
 </resources>

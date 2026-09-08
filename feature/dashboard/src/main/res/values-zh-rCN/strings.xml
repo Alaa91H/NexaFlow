@@ -126,4 +126,6 @@
     <string name="schedule_end">结束 (HH:mm)</string>
     <string name="starter_template_scheduled_sms">定时短信</string>
     <string name="starter_template_nightly_call_silence">夜间静音陌生来电</string>
+    <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
+    <string name="trigger_type_mobile_data">Mobile data connected</string>
 </resources>

@@ -24,7 +24,6 @@
     <string name="choose_from_installed">इंस्टॉल किए गए ऐप्स से चुनें</string>
     <string name="app_detection_hint">ऐप पहचान के लिए एक्सेसिबिलिटी सेवा आवश्यक है</string>
     <string name="enable">सक्षम करें</string>
-    <string name="network">नेटवर्क</string>
     <string name="state">स्थिति</string>
 
     
@@ -1035,4 +1034,11 @@
     <string name="schedule_end">तक (HH:mm)</string>
     <string name="starter_template_scheduled_sms">शेड्यूल किया गया SMS</string>
     <string name="starter_template_nightly_call_silence">रात में अज्ञात कॉलर्स मौन करें</string>
+    <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
+    <string name="trigger_type_wifi_connected_sub">Runs when the device connects to Wi-Fi (or disconnects)</string>
+    <string name="trigger_type_mobile_data">Mobile data connected</string>
+    <string name="trigger_type_mobile_data_sub">Runs when mobile data is the active network (or not)</string>
+    <string name="call_match_any">Any number</string>
+    <string name="call_mode_hint">Matches the caller number, not a message text.</string>
+    <string name="call_number_filter">Caller number</string>
 </resources>

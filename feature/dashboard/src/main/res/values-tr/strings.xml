@@ -126,4 +126,6 @@
     <string name="schedule_end">Bitiş (HH:mm)</string>
     <string name="starter_template_scheduled_sms">Zamanlanmış SMS</string>
     <string name="starter_template_nightly_call_silence">Geceleri bilinmeyenleri sessize al</string>
+    <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
+    <string name="trigger_type_mobile_data">Mobile data connected</string>
 </resources>

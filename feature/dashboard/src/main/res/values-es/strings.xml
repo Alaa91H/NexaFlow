@@ -126,4 +126,6 @@
     <string name="schedule_end">Hasta (HH:mm)</string>
     <string name="starter_template_scheduled_sms">SMS programado</string>
     <string name="starter_template_nightly_call_silence">Silenciar desconocidos de noche</string>
+    <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
+    <string name="trigger_type_mobile_data">Mobile data connected</string>
 </resources>
