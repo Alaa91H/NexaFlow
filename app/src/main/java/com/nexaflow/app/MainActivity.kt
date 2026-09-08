@@ -142,7 +142,11 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val automation = automationRepository.getAutomationById(id)
             if (automation != null) {
-                val record = executionEngine.runAutomation(automation)
+                // Manual invocation via deep link obeys the same admission
+                // policy as the in-app Run now: the task's triggers and
+                // constraints must match, otherwise only the end behavior
+                // runs (or the mismatch is reported explicitly).
+                val record = executionEngine.runWithConditionGate(automation)
                 Toast.makeText(
                     this@MainActivity,
                     getString(R.string.deep_link_run_toast, automation.name) + " — " +

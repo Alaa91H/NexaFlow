@@ -128,16 +128,13 @@ class DashboardViewModel @Inject constructor(
         if (automation.id in _runningIds.value) return
         viewModelScope.launch {
             _runningIds.value = _runningIds.value + automation.id
-            // Manual "Run now" must execute the main action chain unconditionally.
-            // The previous gated path checked triggers and, when outside the window
-            // (e.g. a 11:00 monthly trigger at 14:54), only ran exit behavior and
-            // appeared as "not executed".
-            val record = try {
-                executionEngine.runAutomation(automation)
-            } catch (_: Exception) {
-                // Fallback to gated path if direct run cannot be admitted (e.g. lifecycle conflict)
-                executionEngine.runWithConditionGate(automation)
-            }
+            // Manual "Run now" must obey the task's triggers and constraints:
+            // satisfied → run the main chain; unsatisfied → run the configured
+            // end behavior ("when the task ends"), or record an explicit
+            // conditions-not-satisfied outcome when none is configured. This is
+            // the single manual-admission policy, shared with the details
+            // screen, the enable toggle, and the builder save path.
+            val record = executionEngine.runWithConditionGate(automation)
             _executionMessage.value = formatExecutionMessage(record)
             _runningIds.value = _runningIds.value - automation.id
         }

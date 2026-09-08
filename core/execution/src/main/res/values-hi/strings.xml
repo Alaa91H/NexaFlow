@@ -9,9 +9,9 @@
     <string name="execution_task_completed">कार्य सफलतापूर्वक पूरा हुआ।</string>
     <string name="execution_task_failed">कार्य पूरा नहीं किया जा सका।</string>
     <string name="execution_task_skipped">कार्य छोड़ दिया गया।</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_completed">शर्तें पूरी नहीं हुईं। समाप्ति व्यवहार पूरा हो गया।</string>
-    <string name="execution_conditions_not_satisfied_no_end_behavior">शर्तें पूरी नहीं हुईं। कोई समाप्ति व्यवहार कॉन्फ़िगर नहीं है।</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_failed">शर्तें पूरी नहीं हुईं। समाप्ति व्यवहार पूरा नहीं किया जा सका।</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">Triggers or conditions are not satisfied. Only the end behavior (when the task ends) was completed.</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">Triggers or conditions of the task are not satisfied, so it cannot run now. No end behavior is configured.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">Triggers or conditions of the task are not satisfied, so it cannot run now. The end behavior could not be completed.</string>
     <string name="execution_action_completed">कार्रवाई सफलतापूर्वक पूरी हुई।</string>
     <string name="execution_action_failed">कार्रवाई पूरी नहीं की जा सकी।</string>
     <string name="execution_end_action_completed">समाप्ति कार्रवाई सफलतापूर्वक पूरी हुई।</string>

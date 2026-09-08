@@ -110,11 +110,11 @@ class AutomationDetailsViewModel @Inject constructor(
         if (_running.value) return
         viewModelScope.launch {
             _running.value = true
-            val record = try {
-                executionEngine.runAutomation(current)
-            } catch (_: Exception) {
-                executionEngine.runWithConditionGate(current)
-            }
+            // Strict manual admission: triggers and constraints must match
+            // before the main chain runs. A mismatch runs the configured end
+            // behavior, or is reported explicitly when none is configured —
+            // a manual tap never bypasses the task's own conditions.
+            val record = executionEngine.runWithConditionGate(current)
             _executionMessage.value = formatExecutionMessage(record)
             _running.value = false
         }

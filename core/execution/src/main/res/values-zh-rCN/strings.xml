@@ -9,9 +9,9 @@
     <string name="execution_task_completed">任务已成功完成。</string>
     <string name="execution_task_failed">无法完成任务。</string>
     <string name="execution_task_skipped">已跳过任务。</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_completed">条件不满足。已完成结束行为。</string>
-    <string name="execution_conditions_not_satisfied_no_end_behavior">条件不满足。未配置结束行为。</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_failed">条件不满足。无法完成结束行为。</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">Triggers or conditions are not satisfied. Only the end behavior (when the task ends) was completed.</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">Triggers or conditions of the task are not satisfied, so it cannot run now. No end behavior is configured.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">Triggers or conditions of the task are not satisfied, so it cannot run now. The end behavior could not be completed.</string>
     <string name="execution_action_completed">操作已成功完成。</string>
     <string name="execution_action_failed">无法完成操作。</string>
     <string name="execution_end_action_completed">结束操作已成功完成。</string>

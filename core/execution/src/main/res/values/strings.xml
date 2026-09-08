@@ -9,9 +9,9 @@
     <string name="execution_task_completed">Task completed successfully.</string>
     <string name="execution_task_failed">Task could not be completed.</string>
     <string name="execution_task_skipped">Task was skipped.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_completed">Conditions were not satisfied. The end behavior was completed.</string>
-    <string name="execution_conditions_not_satisfied_no_end_behavior">Conditions were not satisfied. No end behavior is configured.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_failed">Conditions were not satisfied. The end behavior could not be completed.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">Triggers or conditions are not satisfied. Only the end behavior (when the task ends) was completed.</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">Triggers or conditions of the task are not satisfied, so it cannot run now. No end behavior is configured.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">Triggers or conditions of the task are not satisfied, so it cannot run now. The end behavior could not be completed.</string>
     <string name="execution_action_completed">Action completed successfully.</string>
     <string name="execution_action_failed">Action could not be completed.</string>
     <string name="execution_end_action_completed">End action completed successfully.</string>

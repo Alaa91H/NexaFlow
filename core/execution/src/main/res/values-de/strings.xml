@@ -8,9 +8,9 @@
     <string name="execution_task_completed">Aufgabe wurde erfolgreich abgeschlossen.</string>
     <string name="execution_task_failed">Aufgabe konnte nicht abgeschlossen werden.</string>
     <string name="execution_task_skipped">Aufgabe wurde übersprungen.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_completed">Die Bedingungen waren nicht erfüllt. Das Endverhalten wurde ausgeführt.</string>
-    <string name="execution_conditions_not_satisfied_no_end_behavior">Die Bedingungen waren nicht erfüllt. Es ist kein Endverhalten eingerichtet.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_failed">Die Bedingungen waren nicht erfüllt. Das Endverhalten konnte nicht ausgeführt werden.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">Triggers or conditions are not satisfied. Only the end behavior (when the task ends) was completed.</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">Triggers or conditions of the task are not satisfied, so it cannot run now. No end behavior is configured.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">Triggers or conditions of the task are not satisfied, so it cannot run now. The end behavior could not be completed.</string>
     <string name="execution_action_completed">Aktion wurde erfolgreich abgeschlossen.</string>
     <string name="execution_action_failed">Aktion konnte nicht abgeschlossen werden.</string>
     <string name="execution_end_action_completed">Endaktion wurde erfolgreich abgeschlossen.</string>

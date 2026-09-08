@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.59.4] - 2026-09-08
+
+### Fixed
+- **"Run now" no longer bypasses the task's triggers and conditions.** A manual run (dashboard card, task details screen, or the `nexaflow://run-task` deep link) executed the main action chain unconditionally, even when the trigger window did not match (e.g. an 11:00 scheduled task tapped at 15:40). Manual admission is now strict and follows one policy shared by every manual entry point:
+  - Triggers and constraints **satisfied** → the main action chain runs as before.
+  - **Not satisfied** → only the configured end behavior ("when the task ends") runs; if no end behavior is configured, nothing is executed and an explicit **"Triggers or conditions of the task are not satisfied, so it cannot run now"** outcome is recorded in history and shown in the UI.
+  - When an end behavior runs because of a mismatch, its completion message now says so explicitly.
+- The engine's condition-gated path (previously used only by the enable toggle and builder save) is now the single manual-admission policy; the duplicate unconditional path was removed. Event-driven monitors (time alarms, SMS, sensors, …) are unchanged — they fire on their own triggers by design.
+- Conditions-not-satisfied messages rewritten across all 11 locales to name triggers/conditions explicitly (real Arabic translations; English fallback elsewhere).
+
 ## [v3.59.3] - 2026-09-08
 
 ### Changed

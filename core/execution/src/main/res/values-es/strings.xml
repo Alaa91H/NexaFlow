@@ -9,9 +9,9 @@
     <string name="execution_task_completed">La tarea se completó correctamente.</string>
     <string name="execution_task_failed">No se pudo completar la tarea.</string>
     <string name="execution_task_skipped">Se omitió la tarea.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_completed">No se cumplieron las condiciones. Se completó el comportamiento de finalización.</string>
-    <string name="execution_conditions_not_satisfied_no_end_behavior">No se cumplieron las condiciones. No hay ningún comportamiento de finalización configurado.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_failed">No se cumplieron las condiciones. No se pudo completar el comportamiento de finalización.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">Triggers or conditions are not satisfied. Only the end behavior (when the task ends) was completed.</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">Triggers or conditions of the task are not satisfied, so it cannot run now. No end behavior is configured.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">Triggers or conditions of the task are not satisfied, so it cannot run now. The end behavior could not be completed.</string>
     <string name="execution_action_completed">La acción se completó correctamente.</string>
     <string name="execution_action_failed">No se pudo completar la acción.</string>
     <string name="execution_end_action_completed">La acción de finalización se completó correctamente.</string>
