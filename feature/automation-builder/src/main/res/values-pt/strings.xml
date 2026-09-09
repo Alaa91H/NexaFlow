@@ -1201,4 +1201,9 @@
     <string name="clamp_range">O valor deve estar entre %1$s — foi ajustado</string>
     <string name="clamp_range_unit">O valor deve estar entre %1$s %2$s — foi ajustado</string>
     <string name="wait_unit_seconds">segundos</string>
+    <string name="http_retry_timing_label">Tempo entre tentativas</string>
+    <string name="http_retry_base_ms">Base: %1$d ms</string>
+    <string name="http_retry_cap_ms">Limite: %1$d ms</string>
+    <string name="pointer_speed_range">A velocidade do ponteiro vai de -7 (mais lenta) a 7 (mais rápida); 0 é o padrão do sistema.</string>
+    <string name="screensaver_minutes_chip">%1$d min</string>
 </resources>

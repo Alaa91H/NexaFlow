@@ -1201,4 +1201,9 @@
     <string name="clamp_range">Değer %1$s arasında olmalı — sığacak şekilde ayarlandı</string>
     <string name="clamp_range_unit">Değer %1$s %2$s arasında olmalı — sığacak şekilde ayarlandı</string>
     <string name="wait_unit_seconds">saniye</string>
+    <string name="http_retry_timing_label">Yeniden deneme zamanlaması</string>
+    <string name="http_retry_base_ms">Temel: %1$d ms</string>
+    <string name="http_retry_cap_ms">Üst sınır: %1$d ms</string>
+    <string name="pointer_speed_range">İşaretçi hızı -7 (en yavaş) ile 7 (en hızlı) arasındadır; 0 sistem varsayılanıdır.</string>
+    <string name="screensaver_minutes_chip">%1$d dk</string>
 </resources>

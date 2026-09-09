@@ -1201,4 +1201,9 @@
     <string name="clamp_range">数值必须在 %1$s 之间 — 已自动调整</string>
     <string name="clamp_range_unit">数值必须在 %1$s %2$s 之间 — 已自动调整</string>
     <string name="wait_unit_seconds">秒</string>
+    <string name="http_retry_timing_label">重试间隔</string>
+    <string name="http_retry_base_ms">基础：%1$d 毫秒</string>
+    <string name="http_retry_cap_ms">上限：%1$d 毫秒</string>
+    <string name="pointer_speed_range">指针速度范围为 -7（最慢）到 7（最快）；0 为系统默认值。</string>
+    <string name="screensaver_minutes_chip">%1$d 分钟</string>
 </resources>

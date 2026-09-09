@@ -1201,4 +1201,9 @@
     <string name="clamp_range">Der Wert muss zwischen %1$s liegen — er wurde angepasst</string>
     <string name="clamp_range_unit">Der Wert muss zwischen %1$s %2$s liegen — er wurde angepasst</string>
     <string name="wait_unit_seconds">Sekunden</string>
+    <string name="http_retry_timing_label">Zeitplan der Wiederholungen</string>
+    <string name="http_retry_base_ms">Basis: %1$d ms</string>
+    <string name="http_retry_cap_ms">Obergrenze: %1$d ms</string>
+    <string name="pointer_speed_range">Die Zeigergeschwindigkeit reicht von -7 (langsamste) bis 7 (schnellste); 0 ist der Systemstandard.</string>
+    <string name="screensaver_minutes_chip">%1$d Min.</string>
 </resources>

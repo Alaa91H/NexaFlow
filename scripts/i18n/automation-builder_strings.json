@@ -620,7 +620,12 @@
     "migrate_banner_message": "Some tasks still use the old combined connection trigger. Migrate them to the dedicated Wi-Fi and mobile data triggers.",
     "migrate_banner_button": "Migrate now",
     "migrate_done": "Tasks migrated",
-    "migrate_none": "Nothing to migrate"
+    "migrate_none": "Nothing to migrate",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "-ar": {
     "action_adaptive_battery": "البطارية التكيفية",
@@ -1224,7 +1229,12 @@
     "evolver_picker_loading": "Loading system keys…",
     "evolver_picker_empty": "No keys match the search",
     "end_behavior_add_first": "Add actions first to choose what happens when the task ends",
-    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness"
+    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness",
+    "http_retry_timing_label": "توقيت إعادة المحاولة",
+    "http_retry_base_ms": "الأساس: %1$d مللي ثانية",
+    "http_retry_cap_ms": "الحد الأقصى: %1$d مللي ثانية",
+    "pointer_speed_range": "تمتد سرعة المؤشر من -7 (الأبطأ) إلى 7 (الأسرع)؛ 0 هو الافتراضي للنظام.",
+    "screensaver_minutes_chip": "%1$d دقيقة"
   },
   "-de": {
     "action_adaptive_battery": "Adaptiver Akku",
@@ -1828,7 +1838,12 @@
     "evolver_picker_loading": "Loading system keys…",
     "evolver_picker_empty": "No keys match the search",
     "end_behavior_add_first": "Add actions first to choose what happens when the task ends",
-    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness"
+    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness",
+    "http_retry_timing_label": "Zeitplan der Wiederholungen",
+    "http_retry_base_ms": "Basis: %1$d ms",
+    "http_retry_cap_ms": "Obergrenze: %1$d ms",
+    "pointer_speed_range": "Die Zeigergeschwindigkeit reicht von -7 (langsamste) bis 7 (schnellste); 0 ist der Systemstandard.",
+    "screensaver_minutes_chip": "%1$d Min."
   },
   "-es": {
     "action_adaptive_battery": "Batería adaptativa",
@@ -2432,7 +2447,12 @@
     "evolver_picker_loading": "Loading system keys…",
     "evolver_picker_empty": "No keys match the search",
     "end_behavior_add_first": "Add actions first to choose what happens when the task ends",
-    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness"
+    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness",
+    "http_retry_timing_label": "Tiempo entre reintentos",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Límite: %1$d ms",
+    "pointer_speed_range": "La velocidad del puntero va de -7 (la más lenta) a 7 (la más rápida); 0 es el valor del sistema.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "-fr": {
     "action_adaptive_battery": "Batterie adaptative",
@@ -3036,7 +3056,12 @@
     "evolver_picker_loading": "Loading system keys…",
     "evolver_picker_empty": "No keys match the search",
     "end_behavior_add_first": "Add actions first to choose what happens when the task ends",
-    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness"
+    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness",
+    "http_retry_timing_label": "Minuterie des tentatives",
+    "http_retry_base_ms": "Base : %1$d ms",
+    "http_retry_cap_ms": "Plafond : %1$d ms",
+    "pointer_speed_range": "La vitesse du pointeur va de -7 (la plus lente) à 7 (la plus rapide) ; 0 est la valeur par défaut du système.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "-hi": {
     "action_adaptive_battery": "एडेप्टिव बैटरी",
@@ -3640,7 +3665,12 @@
     "evolver_picker_loading": "Loading system keys…",
     "evolver_picker_empty": "No keys match the search",
     "end_behavior_add_first": "Add actions first to choose what happens when the task ends",
-    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness"
+    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness",
+    "http_retry_timing_label": "पुनः प्रयास समय",
+    "http_retry_base_ms": "आधार: %1$d ms",
+    "http_retry_cap_ms": "सीमा: %1$d ms",
+    "pointer_speed_range": "पॉइंटर गति -7 (सबसे धीमी) से 7 (सबसे तेज़) तक है; 0 सिस्टम डिफ़ॉल्ट है।",
+    "screensaver_minutes_chip": "%1$d मिनट"
   },
   "-ja": {
     "action_adaptive_battery": "アダプティブバッテリー",
@@ -4244,7 +4274,12 @@
     "evolver_picker_loading": "Loading system keys…",
     "evolver_picker_empty": "No keys match the search",
     "end_behavior_add_first": "Add actions first to choose what happens when the task ends",
-    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness"
+    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness",
+    "http_retry_timing_label": "リトライ間隔",
+    "http_retry_base_ms": "基本: %1$d ms",
+    "http_retry_cap_ms": "上限: %1$d ms",
+    "pointer_speed_range": "ポインター速度は -7（最も遅い）から 7（最も速い）です。0 はシステムのデフォルトです。",
+    "screensaver_minutes_chip": "%1$d分"
   },
   "-pt": {
     "action_adaptive_battery": "Bateria adaptativa",
@@ -4848,7 +4883,12 @@
     "evolver_picker_loading": "Loading system keys…",
     "evolver_picker_empty": "No keys match the search",
     "end_behavior_add_first": "Add actions first to choose what happens when the task ends",
-    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness"
+    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness",
+    "http_retry_timing_label": "Tempo entre tentativas",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Limite: %1$d ms",
+    "pointer_speed_range": "A velocidade do ponteiro vai de -7 (mais lenta) a 7 (mais rápida); 0 é o padrão do sistema.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "-ru": {
     "action_adaptive_battery": "Адаптивная батарея",
@@ -5452,7 +5492,12 @@
     "evolver_picker_loading": "Loading system keys…",
     "evolver_picker_empty": "No keys match the search",
     "end_behavior_add_first": "Add actions first to choose what happens when the task ends",
-    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness"
+    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness",
+    "http_retry_timing_label": "Интервал повторов",
+    "http_retry_base_ms": "База: %1$d мс",
+    "http_retry_cap_ms": "Потолок: %1$d мс",
+    "pointer_speed_range": "Скорость указателя от -7 (самая медленная) до 7 (самая быстрая); 0 — системное значение по умолчанию.",
+    "screensaver_minutes_chip": "%1$d мин"
   },
   "-tr": {
     "action_adaptive_battery": "Uyarlanabilir pil",
@@ -6056,7 +6101,12 @@
     "evolver_picker_loading": "Loading system keys…",
     "evolver_picker_empty": "No keys match the search",
     "end_behavior_add_first": "Add actions first to choose what happens when the task ends",
-    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness"
+    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness",
+    "http_retry_timing_label": "Yeniden deneme zamanlaması",
+    "http_retry_base_ms": "Temel: %1$d ms",
+    "http_retry_cap_ms": "Üst sınır: %1$d ms",
+    "pointer_speed_range": "İşaretçi hızı -7 (en yavaş) ile 7 (en hızlı) arasındadır; 0 sistem varsayılanıdır.",
+    "screensaver_minutes_chip": "%1$d dk"
   },
   "-zh-rCN": {
     "action_adaptive_battery": "自适应电池",
@@ -6660,7 +6710,12 @@
     "evolver_picker_loading": "Loading system keys…",
     "evolver_picker_empty": "No keys match the search",
     "end_behavior_add_first": "Add actions first to choose what happens when the task ends",
-    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness"
+    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness",
+    "http_retry_timing_label": "重试间隔",
+    "http_retry_base_ms": "基础：%1$d 毫秒",
+    "http_retry_cap_ms": "上限：%1$d 毫秒",
+    "pointer_speed_range": "指针速度范围为 -7（最慢）到 7（最快）；0 为系统默认值。",
+    "screensaver_minutes_chip": "%1$d 分钟"
   },
   "values-ar": {
     "selected_count": "المحدد: %1$d",
@@ -6883,7 +6938,12 @@
     "values-pt": "Configurações do sistema",
     "values-ru": "Настройки системы",
     "values-tr": "Sistem ayarları",
-    "values-zh-rCN": "系统设置"
+    "values-zh-rCN": "系统设置",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_picker_subtitle_evo": {
     "": "Evolution X • %1$d keys • works on any ROM",
@@ -6896,7 +6956,12 @@
     "values-pt": "Evolution X • %1$d chaves • funciona em qualquer ROM",
     "values-ru": "Evolution X • ключей: %1$d • работает на любой ROM",
     "values-tr": "Evolution X • %1$d anahtar • her ROMda çalışır",
-    "values-zh-rCN": "Evolution X • %1$d 个键 • 适用于任何 ROM"
+    "values-zh-rCN": "Evolution X • %1$d 个键 • 适用于任何 ROM",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_picker_subtitle_any": {
     "": "System settings • %1$d keys • works on any ROM",
@@ -6909,7 +6974,12 @@
     "values-pt": "Configurações do sistema • %1$d chaves • funciona em qualquer ROM",
     "values-ru": "Настройки системы • ключей: %1$d • работает на любой ROM",
     "values-tr": "Sistem ayarları • %1$d anahtar • her ROMda çalışır",
-    "values-zh-rCN": "系统设置 • %1$d 个键 • 适用于任何 ROM"
+    "values-zh-rCN": "系统设置 • %1$d 个键 • 适用于任何 ROM",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_picker_search": {
     "": "Search QS, status bar, lockscreen…",
@@ -6922,7 +6992,12 @@
     "values-pt": "Pesquisar ajustes rápidos, barra de status, tela de bloqueio…",
     "values-ru": "Поиск: быстрые настройки, строка состояния, экран блокировки…",
     "values-tr": "Hızlı ayarlar, durum çubuğu, kilit ekranı ara…",
-    "values-zh-rCN": "搜索快速设置、状态栏、锁屏…"
+    "values-zh-rCN": "搜索快速设置、状态栏、锁屏…",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_picker_loading": {
     "": "Loading settings keys…",
@@ -6935,7 +7010,12 @@
     "values-pt": "Carregando chaves de configurações…",
     "values-ru": "Загрузка ключей настроек…",
     "values-tr": "Ayar anahtarları yükleniyor…",
-    "values-zh-rCN": "正在加载设置键…"
+    "values-zh-rCN": "正在加载设置键…",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_picker_empty": {
     "": "No settings keys match the search",
@@ -6948,7 +7028,12 @@
     "values-pt": "Nenhuma chave corresponde à pesquisa",
     "values-ru": "Ключи, соответствующие поиску, не найдены",
     "values-tr": "Aramayla eşleşen ayar anahtarı yok",
-    "values-zh-rCN": "没有与搜索匹配的设置键"
+    "values-zh-rCN": "没有与搜索匹配的设置键",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_qs": {
     "": "Quick Settings",
@@ -6961,7 +7046,12 @@
     "values-pt": "Ajustes rápidos",
     "values-ru": "Быстрые настройки",
     "values-tr": "Hızlı ayarlar",
-    "values-zh-rCN": "快速设置"
+    "values-zh-rCN": "快速设置",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_qs_desc": {
     "": "QS tiles, panel, brightness slider, footer",
@@ -6974,7 +7064,12 @@
     "values-pt": "Botões rápidos, painel, controle de brilho, rodapé",
     "values-ru": "Плитки QS, панель, ползунок яркости, подвал",
     "values-tr": "Hızlı ayar kutuları, panel, parlaklık kaydırıcısı, alt bilgi",
-    "values-zh-rCN": "快速设置磁贴、面板、亮度滑块、页脚"
+    "values-zh-rCN": "快速设置磁贴、面板、亮度滑块、页脚",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_status": {
     "": "Status Bar",
@@ -6987,7 +7082,12 @@
     "values-pt": "Barra de status",
     "values-ru": "Строка состояния",
     "values-tr": "Durum çubuğu",
-    "values-zh-rCN": "状态栏"
+    "values-zh-rCN": "状态栏",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_status_desc": {
     "": "Clock, battery, icons, network indicators",
@@ -7000,7 +7100,12 @@
     "values-pt": "Relógio, bateria, ícones, indicadores de rede",
     "values-ru": "Часы, батарея, значки, сетевые индикаторы",
     "values-tr": "Saat, pil, simgeler, ağ göstergeleri",
-    "values-zh-rCN": "时钟、电池、图标、网络指示"
+    "values-zh-rCN": "时钟、电池、图标、网络指示",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_lock": {
     "": "Lockscreen",
@@ -7013,7 +7118,12 @@
     "values-pt": "Tela de bloqueio",
     "values-ru": "Экран блокировки",
     "values-tr": "Kilit ekranı",
-    "values-zh-rCN": "锁屏"
+    "values-zh-rCN": "锁屏",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_lock_desc": {
     "": "Clock, shortcuts, weather, media art, fingerprint",
@@ -7026,7 +7136,12 @@
     "values-pt": "Relógio, atalhos, clima, arte de mídia, impressão digital",
     "values-ru": "Часы, ярлыки, погода, медиа, отпечаток",
     "values-tr": "Saat, kısayollar, hava durumu, medya, parmak izi",
-    "values-zh-rCN": "时钟、快捷方式、天气、媒体封面、指纹"
+    "values-zh-rCN": "时钟、快捷方式、天气、媒体封面、指纹",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_notif": {
     "": "Notifications",
@@ -7039,7 +7154,12 @@
     "values-pt": "Notificações",
     "values-ru": "Уведомления",
     "values-tr": "Bildirimler",
-    "values-zh-rCN": "通知"
+    "values-zh-rCN": "通知",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_notif_desc": {
     "": "Heads-up, vibration, ticker behavior",
@@ -7052,7 +7172,12 @@
     "values-pt": "Aviso flutuante, vibração, comportamento do ticker",
     "values-ru": "Всплывающие, вибрация, поведение тикера",
     "values-tr": "Kayan bildirim, titreşim, kayan yazı davranışı",
-    "values-zh-rCN": "悬浮通知、振动、滚动文字行为"
+    "values-zh-rCN": "悬浮通知、振动、滚动文字行为",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_nav": {
     "": "Navigation",
@@ -7065,7 +7190,12 @@
     "values-pt": "Navegação",
     "values-ru": "Навигация",
     "values-tr": "Gezinme",
-    "values-zh-rCN": "导航"
+    "values-zh-rCN": "导航",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_nav_desc": {
     "": "Gestures, 3-button, navbar, swipe actions",
@@ -7078,7 +7208,12 @@
     "values-pt": "Gestos, 3 botões, barra de navegação, ações de deslize",
     "values-ru": "Жесты, 3 кнопки, панель навигации, действия свайпа",
     "values-tr": "Jestler, 3 düğme, gezinme çubuğu, kaydırma eylemleri",
-    "values-zh-rCN": "手势、三键、导航栏、滑动操作"
+    "values-zh-rCN": "手势、三键、导航栏、滑动操作",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_theming": {
     "": "Theming",
@@ -7091,7 +7226,12 @@
     "values-pt": "Temas",
     "values-ru": "Темы",
     "values-tr": "Tema",
-    "values-zh-rCN": "主题"
+    "values-zh-rCN": "主题",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_theming_desc": {
     "": "Accent, themed icons, fonts, shapes",
@@ -7104,7 +7244,12 @@
     "values-pt": "Cor de destaque, ícones temáticos, fontes, formas",
     "values-ru": "Акцент, тематические значки, шрифты, формы",
     "values-tr": "Vurgu, temalı simgeler, yazı tipleri, şekiller",
-    "values-zh-rCN": "强调色、主题图标、字体、形状"
+    "values-zh-rCN": "强调色、主题图标、字体、形状",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_aod": {
     "": "Ambient and AOD",
@@ -7117,7 +7262,12 @@
     "values-pt": "Ambiente e AOD",
     "values-ru": "Ambient и AOD",
     "values-tr": "Ortam ve AOD",
-    "values-zh-rCN": "环境显示与AOD"
+    "values-zh-rCN": "环境显示与AOD",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_aod_desc": {
     "": "Always-on display, ambient ticker, pulse",
@@ -7130,7 +7280,12 @@
     "values-pt": "Tela sempre ativa, ticker ambiente, pulso",
     "values-ru": "Всегда включённый экран, ambient-тикер, пульс",
     "values-tr": "Her zaman açık ekran, ortam kayanı, nabız",
-    "values-zh-rCN": "常亮显示、环境滚动文字、脉冲"
+    "values-zh-rCN": "常亮显示、环境滚动文字、脉冲",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_buttons": {
     "": "Buttons and Haptics",
@@ -7143,7 +7298,12 @@
     "values-pt": "Botões e háptica",
     "values-ru": "Кнопки и тактильность",
     "values-tr": "Düğmeler ve dokunsal",
-    "values-zh-rCN": "按钮与触感"
+    "values-zh-rCN": "按钮与触感",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_buttons_desc": {
     "": "Button remap, haptics, back gesture",
@@ -7156,7 +7316,12 @@
     "values-pt": "Remapeamento de botões, háptica, gesto de voltar",
     "values-ru": "Переназначение кнопок, тактильность, жест назад",
     "values-tr": "Düğme yeniden atama, dokunsal, geri jesti",
-    "values-zh-rCN": "按钮重映射、触感、返回手势"
+    "values-zh-rCN": "按钮重映射、触感、返回手势",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_netbat": {
     "": "Network and Battery",
@@ -7169,7 +7334,12 @@
     "values-pt": "Rede e bateria",
     "values-ru": "Сеть и батарея",
     "values-tr": "Ağ ve pil",
-    "values-zh-rCN": "网络与电池"
+    "values-zh-rCN": "网络与电池",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_netbat_desc": {
     "": "Smart charging, traffic, battery light",
@@ -7182,7 +7352,12 @@
     "values-pt": "Carregamento inteligente, tráfego, luz da bateria",
     "values-ru": "Умная зарядка, трафик, индикатор батареи",
     "values-tr": "Akıllı şarj, trafik, pil ışığı",
-    "values-zh-rCN": "智能充电、流量、电池灯"
+    "values-zh-rCN": "智能充电、流量、电池灯",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_sysui": {
     "": "System UI",
@@ -7195,7 +7370,12 @@
     "values-pt": "Interface do sistema",
     "values-ru": "Системный интерфейс",
     "values-tr": "Sistem arayüzü",
-    "values-zh-rCN": "系统界面"
+    "values-zh-rCN": "系统界面",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_sysui_desc": {
     "": "Animations, blur, extra dim, display tweaks",
@@ -7208,7 +7388,12 @@
     "values-pt": "Animações, desfoque, escurecimento extra, ajustes de tela",
     "values-ru": "Анимации, размытие, доп. затемнение, настройки экрана",
     "values-tr": "Animasyonlar, bulanıklık, ekstra karartma, ekran ince ayarları",
-    "values-zh-rCN": "动画、模糊、额外调暗、显示调整"
+    "values-zh-rCN": "动画、模糊、额外调暗、显示调整",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_dex": {
     "": "DEX and Windowing",
@@ -7221,7 +7406,12 @@
     "values-pt": "DEX e janelas",
     "values-ru": "DEX и окна",
     "values-tr": "DEX ve pencereleme",
-    "values-zh-rCN": "DEX与窗口"
+    "values-zh-rCN": "DEX与窗口",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_dex_desc": {
     "": "Desktop mode, freeform, multi-window",
@@ -7234,7 +7424,12 @@
     "values-pt": "Modo desktop, forma livre, multi-janela",
     "values-ru": "Режим ПК, свободные окна, мультиокна",
     "values-tr": "Masaüstü modu, serbest biçim, çoklu pencere",
-    "values-zh-rCN": "桌面模式、自由窗口、多窗口"
+    "values-zh-rCN": "桌面模式、自由窗口、多窗口",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_other": {
     "": "Other settings",
@@ -7247,7 +7442,12 @@
     "values-pt": "Outras configurações",
     "values-ru": "Другие настройки",
     "values-tr": "Diğer ayarlar",
-    "values-zh-rCN": "其他设置"
+    "values-zh-rCN": "其他设置",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "evolver_cat_other_desc": {
     "": "Misc system customizations",
@@ -7260,7 +7460,12 @@
     "values-pt": "Personalizações diversas do sistema",
     "values-ru": "Прочие настройки системы",
     "values-tr": "Çeşitli sistem özelleştirmeleri",
-    "values-zh-rCN": "杂项系统自定义"
+    "values-zh-rCN": "杂项系统自定义",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "clamp_range": {
     "": "Value must be between %1$s — it was adjusted to fit",
@@ -7273,7 +7478,12 @@
     "values-pt": "O valor deve estar entre %1$s — foi ajustado",
     "values-ru": "Значение должно быть между %1$s — оно было скорректировано",
     "values-tr": "Değer %1$s arasında olmalı — sığacak şekilde ayarlandı",
-    "values-zh-rCN": "数值必须在 %1$s 之间 — 已自动调整"
+    "values-zh-rCN": "数值必须在 %1$s 之间 — 已自动调整",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "clamp_range_unit": {
     "": "Value must be between %1$s %2$s — it was adjusted to fit",
@@ -7286,7 +7496,12 @@
     "values-pt": "O valor deve estar entre %1$s %2$s — foi ajustado",
     "values-ru": "Значение должно быть между %1$s %2$s — оно было скорректировано",
     "values-tr": "Değer %1$s %2$s arasında olmalı — sığacak şekilde ayarlandı",
-    "values-zh-rCN": "数值必须在 %1$s %2$s 之间 — 已自动调整"
+    "values-zh-rCN": "数值必须在 %1$s %2$s 之间 — 已自动调整",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   },
   "wait_unit_seconds": {
     "": "seconds",
@@ -7299,6 +7514,11 @@
     "values-pt": "segundos",
     "values-ru": "секунд",
     "values-tr": "saniye",
-    "values-zh-rCN": "秒"
+    "values-zh-rCN": "秒",
+    "http_retry_timing_label": "Retry timing",
+    "http_retry_base_ms": "Base: %1$d ms",
+    "http_retry_cap_ms": "Cap: %1$d ms",
+    "pointer_speed_range": "Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.",
+    "screensaver_minutes_chip": "%1$d min"
   }
 }

@@ -1201,4 +1201,9 @@
     <string name="clamp_range">値は %1$s の範囲内である必要があります — 調整しました</string>
     <string name="clamp_range_unit">値は %1$s %2$s の範囲内である必要があります — 調整しました</string>
     <string name="wait_unit_seconds">秒</string>
+    <string name="http_retry_timing_label">リトライ間隔</string>
+    <string name="http_retry_base_ms">基本: %1$d ms</string>
+    <string name="http_retry_cap_ms">上限: %1$d ms</string>
+    <string name="pointer_speed_range">ポインター速度は -7（最も遅い）から 7（最も速い）です。0 はシステムのデフォルトです。</string>
+    <string name="screensaver_minutes_chip">%1$d分</string>
 </resources>

@@ -1011,6 +1011,29 @@ fun ActionConfigEditor(
                         )
                     }
                 }
+                // Retry timing: base delay and backoff cap, matching the
+                // handler's `retryBaseDelayMs` / `retryCapMs` knobs.
+                Text(text = stringResource(R.string.http_retry_timing_label), style = MaterialTheme.typography.titleSmall)
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    listOf("250", "500", "1000", "2000").forEach { ms ->
+                        SelectChip(
+                            selected = (config["retryBaseDelayMs"] ?: "1000") == ms,
+                            onClick = { onConfigChange(config + ("retryBaseDelayMs" to ms)) },
+                            label = stringResource(R.string.http_retry_base_ms, ms.toLong())
+                        )
+                    }
+                    listOf("5000", "10000", "30000", "60000").forEach { ms ->
+                        SelectChip(
+                            selected = (config["retryCapMs"] ?: "60000") == ms,
+                            onClick = { onConfigChange(config + ("retryCapMs" to ms)) },
+                            label = stringResource(R.string.http_retry_cap_ms, ms.toLong())
+                        )
+                    }
+                }
                 // Optional: publish the response under a context path so later
                 // actions can branch on it via %CTX selectors.
                 OutlinedTextField(
@@ -1919,10 +1942,15 @@ fun ActionConfigEditor(
         }
         ActionType.SYSTEM_POINTER_SPEED -> {
             OutlinedTextField(
-                value = config["speed"] ?: "1.0",
-                onValueChange = { onConfigChange(config + ("speed" to it)) },
+                value = config["speed"] ?: "0",
+                onValueChange = { raw ->
+                    // Engine parses an int (default 0); filtering here keeps
+                    // the stored config consistent with what the engine reads.
+                    onConfigChange(config + ("speed" to raw.filter { it.isDigit() || it == '-' }))
+                },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = stringResource(R.string.pointer_speed_label)) },
+                supportingText = { Text(text = stringResource(R.string.pointer_speed_range)) },
                 singleLine = true
             )
         }

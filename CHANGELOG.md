@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.64.0] - 2026-09-09
+
+### Added
+- **HTTP request action: retry timing (Android):** the editor now also exposes the engine's `retryBaseDelayMs` and `retryCapMs` knobs as chip presets (base 250–2000 ms, cap 5–60 s, defaults matching `RetryPolicy`), completing the retry customization surface started in v3.62.0.
+
+### Changed
+- **Pointer speed (Android):** the action editor now filters input to the integer format the engine actually parses (the previous decimal fallback silently executed as speed 0), shows the −7…7 range inline, and the end-behavior "end with value" editor gained chips (−3…3) plus the raw field instead of an empty editor.
+- **Screensaver timeout end value (Android):** "end with value" now offers minute presets (1/5/10/30) and a numeric field, mirroring the action editor — previously it rendered an empty editor and applied no end value.
+
+### Tests
+- New end-behavior coverage tripwire: every action listed as a value action must have a default end value and an editor branch, and every toggle action must support revert (flashlight exempt) — future value actions without full end-value support fail the build instead of silently rendering an empty editor.
+
 ## [v3.63.0] - 2026-09-09
 
 ### Added

@@ -1209,4 +1209,9 @@
     <string name="clamp_range">Value must be between %1$s — it was adjusted to fit</string>
     <string name="clamp_range_unit">Value must be between %1$s %2$s — it was adjusted to fit</string>
     <string name="wait_unit_seconds">seconds</string>
+    <string name="http_retry_timing_label">Retry timing</string>
+    <string name="http_retry_base_ms">Base: %1$d ms</string>
+    <string name="http_retry_cap_ms">Cap: %1$d ms</string>
+    <string name="pointer_speed_range">Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.</string>
+    <string name="screensaver_minutes_chip">%1$d min</string>
 </resources>

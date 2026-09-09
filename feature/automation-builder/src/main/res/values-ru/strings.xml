@@ -1201,4 +1201,9 @@
     <string name="clamp_range">Значение должно быть между %1$s — оно было скорректировано</string>
     <string name="clamp_range_unit">Значение должно быть между %1$s %2$s — оно было скорректировано</string>
     <string name="wait_unit_seconds">секунд</string>
+    <string name="http_retry_timing_label">Интервал повторов</string>
+    <string name="http_retry_base_ms">База: %1$d мс</string>
+    <string name="http_retry_cap_ms">Потолок: %1$d мс</string>
+    <string name="pointer_speed_range">Скорость указателя от -7 (самая медленная) до 7 (самая быстрая); 0 — системное значение по умолчанию.</string>
+    <string name="screensaver_minutes_chip">%1$d мин</string>
 </resources>

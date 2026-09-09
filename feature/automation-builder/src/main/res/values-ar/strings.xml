@@ -1200,4 +1200,9 @@
     <string name="clamp_range">يجب أن تكون القيمة بين %1$s — تم تعديلها لتلائم</string>
     <string name="clamp_range_unit">يجب أن تكون القيمة بين %1$s %2$s — تم تعديلها لتلائم</string>
     <string name="wait_unit_seconds">ثانية</string>
+    <string name="http_retry_timing_label">توقيت إعادة المحاولة</string>
+    <string name="http_retry_base_ms">الأساس: %1$d مللي ثانية</string>
+    <string name="http_retry_cap_ms">الحد الأقصى: %1$d مللي ثانية</string>
+    <string name="pointer_speed_range">تمتد سرعة المؤشر من -7 (الأبطأ) إلى 7 (الأسرع)؛ 0 هو الافتراضي للنظام.</string>
+    <string name="screensaver_minutes_chip">%1$d دقيقة</string>
 </resources>

@@ -1201,4 +1201,9 @@
     <string name="clamp_range">मान %1$s के बीच होना चाहिए — इसे समायोजित किया गया</string>
     <string name="clamp_range_unit">मान %1$s %2$s के बीच होना चाहिए — इसे समायोजित किया गया</string>
     <string name="wait_unit_seconds">सेकंड</string>
+    <string name="http_retry_timing_label">पुनः प्रयास समय</string>
+    <string name="http_retry_base_ms">आधार: %1$d ms</string>
+    <string name="http_retry_cap_ms">सीमा: %1$d ms</string>
+    <string name="pointer_speed_range">पॉइंटर गति -7 (सबसे धीमी) से 7 (सबसे तेज़) तक है; 0 सिस्टम डिफ़ॉल्ट है।</string>
+    <string name="screensaver_minutes_chip">%1$d मिनट</string>
 </resources>
