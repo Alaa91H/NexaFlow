@@ -22,4 +22,8 @@
     <string name="update_notification_text">NexaFlow %1$s が利用できます</string>
     <string name="update_notification_channel">アプリの更新</string>
     <string name="update_notification_channel_sub">新しい NexaFlow バージョンが利用可能になった際の通知</string>
+    <string name="deep_link_force_message">強制実行は %1$s のトリガーと条件のチェックをスキップし、今すぐ実行します。</string>
+    <string name="run_force_title">強制実行しますか？</string>
+    <string name="run_force_confirm">強制実行</string>
+    <string name="cancel">キャンセル</string>
 </resources>

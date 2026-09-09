@@ -51,4 +51,18 @@
     <string name="blocked_calls_title">已拦截的来电</string>
     <string name="blocked_calls_empty">暂无已拦截的来电</string>
     <string name="blocked_calls_filter_all">所有规则</string>
+    <string name="blocked_calls_number_label">号码：%1$s</string>
+    <string name="blocked_calls_details_title">通话详情</string>
+    <string name="blocked_calls_details_number">号码</string>
+    <string name="blocked_calls_details_category">来电者类别</string>
+    <string name="blocked_calls_details_rules">匹配的规则</string>
+    <string name="blocked_calls_details_time">时间</string>
+    <string name="blocked_calls_details_actions">规则执行的操作</string>
+    <string name="blocked_calls_details_no_actions">该规则尚未执行任何操作</string>
+    <string name="blocked_calls_details_open_rule">打开规则</string>
+    <string name="blocked_calls_details_unknown">未知</string>
+    <string name="block_category_any">任何来电者</string>
+    <string name="block_category_unknown">未知号码</string>
+    <string name="block_category_private">隐藏号码</string>
+    <string name="block_category_contact">联系人</string>
 </resources>

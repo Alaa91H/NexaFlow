@@ -51,4 +51,18 @@
     <string name="blocked_calls_title">المكالمات المحجوبة</string>
     <string name="blocked_calls_empty">لا توجد مكالمات محجوبة بعد</string>
     <string name="blocked_calls_filter_all">كل القواعد</string>
+    <string name="blocked_calls_number_label">الرقم: %1$s</string>
+    <string name="blocked_calls_details_title">تفاصيل المكالمة</string>
+    <string name="blocked_calls_details_number">الرقم</string>
+    <string name="blocked_calls_details_category">فئة المتصل</string>
+    <string name="blocked_calls_details_rules">القواعد المطابقة</string>
+    <string name="blocked_calls_details_time">الوقت</string>
+    <string name="blocked_calls_details_actions">الإجراءات التي نفذتها القاعدة</string>
+    <string name="blocked_calls_details_no_actions">لم تنفذ هذه القاعدة أي إجراءات بعد</string>
+    <string name="blocked_calls_details_open_rule">فتح القاعدة</string>
+    <string name="blocked_calls_details_unknown">غير معروف</string>
+    <string name="block_category_any">أي متصل</string>
+    <string name="block_category_unknown">رقم غير معروف</string>
+    <string name="block_category_private">رقم مخفي</string>
+    <string name="block_category_contact">جهة اتصال</string>
 </resources>

@@ -22,4 +22,8 @@
     <string name="update_notification_text">Доступен NexaFlow %1$s</string>
     <string name="update_notification_channel">Обновления приложения</string>
     <string name="update_notification_channel_sub">Уведомления о доступности более новой версии NexaFlow</string>
+    <string name="deep_link_force_message">Принудительный запуск пропускает проверки триггеров и условий для %1$s и запускает её сейчас.</string>
+    <string name="run_force_title">Запустить принудительно?</string>
+    <string name="run_force_confirm">Запустить принудительно</string>
+    <string name="cancel">Отмена</string>
 </resources>

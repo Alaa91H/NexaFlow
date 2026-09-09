@@ -51,4 +51,18 @@
     <string name="blocked_calls_title">Engellenen aramalar</string>
     <string name="blocked_calls_empty">Henüz engellenen arama yok</string>
     <string name="blocked_calls_filter_all">Tüm kurallar</string>
+    <string name="blocked_calls_number_label">Numara: %1$s</string>
+    <string name="blocked_calls_details_title">Arama ayrıntıları</string>
+    <string name="blocked_calls_details_number">Numara</string>
+    <string name="blocked_calls_details_category">Arayan kategorisi</string>
+    <string name="blocked_calls_details_rules">Eşleşen kurallar</string>
+    <string name="blocked_calls_details_time">Zaman</string>
+    <string name="blocked_calls_details_actions">Kuralın çalıştırdığı eylemler</string>
+    <string name="blocked_calls_details_no_actions">Bu kural henüz herhangi bir eylem çalıştırmadı</string>
+    <string name="blocked_calls_details_open_rule">Kuralı aç</string>
+    <string name="blocked_calls_details_unknown">Bilinmiyor</string>
+    <string name="block_category_any">Herhangi bir arayan</string>
+    <string name="block_category_unknown">Bilinmeyen numara</string>
+    <string name="block_category_private">Gizli numara</string>
+    <string name="block_category_contact">Kişi</string>
 </resources>

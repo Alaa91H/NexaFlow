@@ -25,4 +25,8 @@
     <string name="update_notification_text">NexaFlow %1$s is available</string>
     <string name="update_notification_channel">App updates</string>
     <string name="update_notification_channel_sub">Notifications when a newer NexaFlow version is available</string>
+    <string name="deep_link_force_message">Force run skips the trigger and condition checks for %1$s and runs it now.</string>
+    <string name="run_force_title">Force run?</string>
+    <string name="run_force_confirm">Force run</string>
+    <string name="cancel">Cancel</string>
 </resources>

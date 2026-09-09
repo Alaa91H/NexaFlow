@@ -89,7 +89,7 @@ class NexaCallScreeningService : CallScreeningService() {
                         CallPolicyEvaluator.verdictOf(task, number, category, isEmergency) ==
                             CallPolicyEvaluator.Verdict.BLOCK
                     }
-                val ruleNames = blockingTasks.joinToString { it.name }.ifBlank { "NexaFlow" }
+                val ruleNames = blockingTasks.joinToString(separator = ";") { it.name }.ifBlank { "NexaFlow" }
                 runCatching {
                     historyRepository.recordExecution(
                         com.nexaflow.domain.models.ExecutionRecord(
@@ -97,7 +97,14 @@ class NexaCallScreeningService : CallScreeningService() {
                             automationId = blockingTasks.firstOrNull()?.id ?: "call_screening",
                             automationName = ruleNames,
                             success = true,
-                            message = "Call blocked: ${number.takeLast(4).padStart(number.length, '*')}",
+                            // Parseable log format consumed by the blocked-calls
+                            // screen: "Call blocked: <masked>|<category>|<rules>".
+                            // The caller category and matching rules surface in
+                            // the entry's details sheet.
+                            message = "Call blocked: " +
+                                number.takeLast(4).padStart(number.length, '*') + "|" +
+                                category + "|" +
+                                ruleNames,
                             executedAt = System.currentTimeMillis()
                         )
                     )

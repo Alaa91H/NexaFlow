@@ -22,4 +22,8 @@
     <string name="update_notification_text">NexaFlow %1$s उपलब्ध है</string>
     <string name="update_notification_channel">ऐप अपडेट</string>
     <string name="update_notification_channel_sub">NexaFlow का नया संस्करण उपलब्ध होने पर सूचनाएँ</string>
+    <string name="deep_link_force_message">बलपूर्वक चलाना %1$s के लिए ट्रिगर और शर्त जाँचों को छोड़ देता है और उसे अभी चलाता है।</string>
+    <string name="run_force_title">बलपूर्वक चलाएँ?</string>
+    <string name="run_force_confirm">बलपूर्वक चलाएँ</string>
+    <string name="cancel">रद्द करें</string>
 </resources>

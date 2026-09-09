@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.65.0] - 2026-09-09
+
+### Added
+- **Blocked-calls details sheet (Android):** tapping a blocked-call entry opens a bottom sheet showing the masked number, the caller category (any/unknown/hidden/contact, localized), the matching rule(s) that blocked the call, the timestamp, and the actions the blocking rule ran at its latest engine execution (per-action type and message, with a fallback to the run summary). An "Open rule" button jumps straight into the blocking task in the builder. Call screening now persists the caller category and all matching rule names in a parseable record format; legacy entries fall back to the task name.
+- **Deep-link force-run confirmation (Android):** `nexaflow://run-task/{id}?force=1` now shows the same force-run confirmation dialog as the in-app path instead of silently running the end behavior; confirming executes the full chain (durably logged as a force run) and dismissing runs nothing. Plain deep links (without `force=1`) keep the strict admission gate. The URI parser is extracted and covered by contract tests (scheme/host validation, `force` value strictness, trailing slashes, blank ids).
+
+### Tests
+- **Data module coverage raised 65.1% → gate-passing:** new `RepositoryImplTest` exercises the variable repository (plain/sensitive/typed round-trips, SecureStorage encryption routing, delete-side secret cleanup, legacy sensitive rows, missing-secret degradation), the automation repository (persistence round-trip, status forwarding, unknown-id nullability), and the history repository (record round-trip, stream mapping, skipped/failed/unfiltered outcome paging branches) against in-memory DAO fakes; the `:data:coverageGate` passes at the 80% threshold.
+
 ## [v3.64.0] - 2026-09-09
 
 ### Added

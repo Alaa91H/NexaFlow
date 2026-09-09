@@ -51,4 +51,18 @@
     <string name="blocked_calls_title">अवरोधित कॉल</string>
     <string name="blocked_calls_empty">अभी कोई अवरोधित कॉल नहीं</string>
     <string name="blocked_calls_filter_all">सभी नियम</string>
+    <string name="blocked_calls_number_label">नंबर: %1$s</string>
+    <string name="blocked_calls_details_title">कॉल विवरण</string>
+    <string name="blocked_calls_details_number">नंबर</string>
+    <string name="blocked_calls_details_category">कॉलर श्रेणी</string>
+    <string name="blocked_calls_details_rules">मेल खाते नियम</string>
+    <string name="blocked_calls_details_time">समय</string>
+    <string name="blocked_calls_details_actions">नियम द्वारा चलाई गई कार्रवाइयाँ</string>
+    <string name="blocked_calls_details_no_actions">इस नियम ने अभी तक कोई कार्रवाई नहीं चलाई है</string>
+    <string name="blocked_calls_details_open_rule">नियम खोलें</string>
+    <string name="blocked_calls_details_unknown">अज्ञात</string>
+    <string name="block_category_any">कोई भी कॉलर</string>
+    <string name="block_category_unknown">अज्ञात नंबर</string>
+    <string name="block_category_private">छिपा हुआ नंबर</string>
+    <string name="block_category_contact">संपर्क</string>
 </resources>

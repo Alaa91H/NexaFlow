@@ -51,4 +51,18 @@
     <string name="blocked_calls_title">ブロックした着信</string>
     <string name="blocked_calls_empty">ブロックした着信はまだありません</string>
     <string name="blocked_calls_filter_all">すべてのルール</string>
+    <string name="blocked_calls_number_label">番号: %1$s</string>
+    <string name="blocked_calls_details_title">通話の詳細</string>
+    <string name="blocked_calls_details_number">番号</string>
+    <string name="blocked_calls_details_category">発信者のカテゴリ</string>
+    <string name="blocked_calls_details_rules">一致したルール</string>
+    <string name="blocked_calls_details_time">時刻</string>
+    <string name="blocked_calls_details_actions">ルールが実行したアクション</string>
+    <string name="blocked_calls_details_no_actions">このルールはまだアクションを実行していません</string>
+    <string name="blocked_calls_details_open_rule">ルールを開く</string>
+    <string name="blocked_calls_details_unknown">不明</string>
+    <string name="block_category_any">すべての発信者</string>
+    <string name="block_category_unknown">不明な番号</string>
+    <string name="block_category_private">非通知の番号</string>
+    <string name="block_category_contact">連絡先</string>
 </resources>

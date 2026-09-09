@@ -22,4 +22,8 @@
     <string name="update_notification_text">NexaFlow %1$s est disponible</string>
     <string name="update_notification_channel">Mises à jour de l’application</string>
     <string name="update_notification_channel_sub">Notifications lorsqu’une version plus récente de NexaFlow est disponible</string>
+    <string name="deep_link_force_message">L’exécution forcée ignore les vérifications de déclencheurs et de conditions pour %1$s et la lance maintenant.</string>
+    <string name="run_force_title">Forcer l’exécution ?</string>
+    <string name="run_force_confirm">Forcer</string>
+    <string name="cancel">Annuler</string>
 </resources>

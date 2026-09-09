@@ -22,4 +22,8 @@
     <string name="update_notification_text">NexaFlow %1$s kullanılabilir</string>
     <string name="update_notification_channel">Uygulama güncellemeleri</string>
     <string name="update_notification_channel_sub">Daha yeni bir NexaFlow sürümü olduğunda bildirimler</string>
+    <string name="deep_link_force_message">Zorunlu çalıştırma, %1$s için tetikleyici ve koşul kontrollerini atlar ve şimdi çalıştırır.</string>
+    <string name="run_force_title">Zorla çalıştırılsın mı?</string>
+    <string name="run_force_confirm">Zorla çalıştır</string>
+    <string name="cancel">İptal</string>
 </resources>

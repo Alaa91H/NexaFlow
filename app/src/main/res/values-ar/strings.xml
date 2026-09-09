@@ -22,4 +22,8 @@
     <string name="update_notification_text">يتوفر NexaFlow %1$s</string>
     <string name="update_notification_channel">تحديثات التطبيق</string>
     <string name="update_notification_channel_sub">إشعارات عند توفر إصدار أحدث من NexaFlow</string>
+    <string name="deep_link_force_message">يتخطى التشغيل الإجباري فحوصات المحفزات والشروط للمهمة %1$s ويشغلها الآن.</string>
+    <string name="run_force_title">تشغيل قسري؟</string>
+    <string name="run_force_confirm">تشغيل قسري</string>
+    <string name="cancel">إلغاء</string>
 </resources>

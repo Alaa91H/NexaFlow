@@ -22,4 +22,8 @@
     <string name="update_notification_text">NexaFlow %1$s ist verfügbar</string>
     <string name="update_notification_channel">App-Updates</string>
     <string name="update_notification_channel_sub">Benachrichtigungen bei einer neueren NexaFlow-Version</string>
+    <string name="deep_link_force_message">Erzwungenes Ausführen überspringt die Auslöser- und Bedingungsprüfungen für %1$s und startet es jetzt.</string>
+    <string name="run_force_title">Erzwingen?</string>
+    <string name="run_force_confirm">Erzwingen</string>
+    <string name="cancel">Abbrechen</string>
 </resources>

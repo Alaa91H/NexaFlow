@@ -51,4 +51,18 @@
     <string name="blocked_calls_title">Chamadas bloqueadas</string>
     <string name="blocked_calls_empty">Ainda não há chamadas bloqueadas</string>
     <string name="blocked_calls_filter_all">Todas as regras</string>
+    <string name="blocked_calls_number_label">Número: %1$s</string>
+    <string name="blocked_calls_details_title">Detalhes da chamada</string>
+    <string name="blocked_calls_details_number">Número</string>
+    <string name="blocked_calls_details_category">Categoria do chamador</string>
+    <string name="blocked_calls_details_rules">Regras correspondentes</string>
+    <string name="blocked_calls_details_time">Hora</string>
+    <string name="blocked_calls_details_actions">Ações executadas pela regra</string>
+    <string name="blocked_calls_details_no_actions">Esta regra ainda não executou nenhuma ação</string>
+    <string name="blocked_calls_details_open_rule">Abrir regra</string>
+    <string name="blocked_calls_details_unknown">Desconhecida</string>
+    <string name="block_category_any">Qualquer chamador</string>
+    <string name="block_category_unknown">Número desconhecido</string>
+    <string name="block_category_private">Número oculto</string>
+    <string name="block_category_contact">Contato</string>
 </resources>

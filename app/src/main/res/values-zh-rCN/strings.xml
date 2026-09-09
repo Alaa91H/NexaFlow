@@ -22,4 +22,8 @@
     <string name="update_notification_text">NexaFlow %1$s 已可用</string>
     <string name="update_notification_channel">应用更新</string>
     <string name="update_notification_channel_sub">有较新 NexaFlow 版本时的通知</string>
+    <string name="deep_link_force_message">强制运行将跳过 %1$s 的触发器和条件检查并立即运行。</string>
+    <string name="run_force_title">强制运行？</string>
+    <string name="run_force_confirm">强制运行</string>
+    <string name="cancel">取消</string>
 </resources>

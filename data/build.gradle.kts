@@ -47,4 +47,5 @@ dependencies {
     implementation(project(":core:security"))
     implementation(project(":core:plugin-sdk"))
     testImplementation(libs.junit.junit)
+    testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test)
 }

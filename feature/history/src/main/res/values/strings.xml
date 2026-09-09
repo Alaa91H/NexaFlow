@@ -51,4 +51,18 @@
     <string name="blocked_calls_title">Blocked calls</string>
     <string name="blocked_calls_empty">No blocked calls yet</string>
     <string name="blocked_calls_filter_all">All rules</string>
+    <string name="blocked_calls_number_label">Number: %1$s</string>
+    <string name="blocked_calls_details_title">Call details</string>
+    <string name="blocked_calls_details_number">Number</string>
+    <string name="blocked_calls_details_category">Caller category</string>
+    <string name="blocked_calls_details_rules">Matching rules</string>
+    <string name="blocked_calls_details_time">Time</string>
+    <string name="blocked_calls_details_actions">Actions run by the rule</string>
+    <string name="blocked_calls_details_no_actions">This rule has not run any actions yet</string>
+    <string name="blocked_calls_details_open_rule">Open rule</string>
+    <string name="blocked_calls_details_unknown">Unknown</string>
+    <string name="block_category_any">Any caller</string>
+    <string name="block_category_unknown">Unknown number</string>
+    <string name="block_category_private">Hidden number</string>
+    <string name="block_category_contact">Contact</string>
 </resources>
