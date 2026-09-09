@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [3.63.0] - 2026-09-09
+## [v3.63.0] - 2026-09-09
 
 ### Added
 - **App picker (Android):** explicit search scope chips — by app name or by package name — with package subtitles shown while searching, plus a "Recently used in tasks" section listing packages referenced by other saved tasks so cross-task reuse needs no re-searching.
