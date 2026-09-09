@@ -145,7 +145,19 @@ fun AppPickerDialog(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary
             )
-            LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f, fill = false)) {
+        }
+        // The list is the only weighted child of the sheet's ColumnScope: it
+        // shrinks to the space left after the header, the selection preview,
+        // and the OK/Cancel bar are measured. Weighting it anywhere nested
+        // (or leaving it unweighted) lets a long app list consume the whole
+        // sheet and push the confirm bar off-screen — the bug where OK/Cancel
+        // were never visible on real devices.
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = true)
+                .padding(horizontal = 24.dp)
+        ) {
                 items(filtered, key = { it.packageName }) { app ->
                     val isSelected = app in selected
                     Row(
@@ -213,7 +225,6 @@ fun AppPickerDialog(
                     }
                 }
             }
-        }
         // Live preview of exactly what OK will apply: each checked app shows
         // its icon with a remove (×) affordance; tapping it deselects in place.
         if (selected.isNotEmpty()) {

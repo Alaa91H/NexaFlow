@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **App picker (Android):** the OK/Cancel confirmation bar is now always visible when one or more apps are selected. The app list was measured as an unbounded sibling of the confirm bar, so with a full launcher list the bar was laid out off the bottom of the sheet and never appeared on real devices; the list is now the single weighted child of the picker sheet, pinning the live selection preview and OK/Cancel bar on screen at every list size.
+
 ## [v3.62.1] - 2026-09-09
 
 ### Added
