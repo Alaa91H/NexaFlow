@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.62.1] - 2026-09-09
+
+### Added
+- **Live selection preview in the app picker.** A preview row now appears above the OK/Cancel bar as soon as any app is checked: each selected app shows its launcher icon, label, and a remove (×) control that deselects it in place, with a live "Selected: N" counter. Users see exactly what OK will apply before confirming, in every supported language.
+
 ## [v3.62.0] - 2026-09-09
 
 ### Added

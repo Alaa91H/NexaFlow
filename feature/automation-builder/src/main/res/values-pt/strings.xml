@@ -1152,4 +1152,6 @@
     <string name="evo_custom_value_placeholder">or type any value…</string>
     <string name="end_behavior_add_first">Add actions first to choose what happens when the task ends</string>
     <string name="end_behavior_none_supported">No action supports end behavior — add one like Wi-Fi or brightness</string>
+    <string name="selected_count">Selecionados: %1$d</string>
+    <string name="remove">Remover</string>
 </resources>

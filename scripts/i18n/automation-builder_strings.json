@@ -601,7 +601,9 @@
     "evolver_picker_loading": "Loading system keys…",
     "evolver_picker_empty": "No keys match the search",
     "end_behavior_add_first": "Add actions first to choose what happens when the task ends",
-    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness"
+    "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness",
+    "selected_count": "Selected: %1$d",
+    "remove": "Remove"
   },
   "-ar": {
     "action_adaptive_battery": "البطارية التكيفية",
@@ -6642,5 +6644,45 @@
     "evolver_picker_empty": "No keys match the search",
     "end_behavior_add_first": "Add actions first to choose what happens when the task ends",
     "end_behavior_none_supported": "No action supports end behavior — add one like Wi-Fi or brightness"
+  },
+  "values-ar": {
+    "selected_count": "المحدد: %1$d",
+    "remove": "إزالة"
+  },
+  "values-de": {
+    "selected_count": "Ausgewählt: %1$d",
+    "remove": "Entfernen"
+  },
+  "values-es": {
+    "selected_count": "Seleccionadas: %1$d",
+    "remove": "Quitar"
+  },
+  "values-fr": {
+    "selected_count": "Sélection : %1$d",
+    "remove": "Retirer"
+  },
+  "values-hi": {
+    "selected_count": "चयनित: %1$d",
+    "remove": "हटाएँ"
+  },
+  "values-ja": {
+    "selected_count": "選択済み: %1$d",
+    "remove": "削除"
+  },
+  "values-pt": {
+    "selected_count": "Selecionados: %1$d",
+    "remove": "Remover"
+  },
+  "values-ru": {
+    "selected_count": "Выбрано: %1$d",
+    "remove": "Убрать"
+  },
+  "values-tr": {
+    "selected_count": "Seçilen: %1$d",
+    "remove": "Kaldır"
+  },
+  "values-zh-rCN": {
+    "selected_count": "已选择：%1$d",
+    "remove": "移除"
   }
 }
