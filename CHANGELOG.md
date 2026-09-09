@@ -5,7 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [v3.67.0] - 2026-09-09
+
+### Fixed
+
+- **Evolver actions now honor every editor-exposed setting.** A rebuilt per-action
+  config-key diff (`scripts/diff_action_keys.py`, brace-aware, string-literal safe) proved
+  the EVO_STATUS_BAR, EVO_LOCKSCREEN and EVO_THEME fallback readers dropped seven keys
+  the builder UI exposes: `clock_seconds`, `battery_percent`, `weather`, `shortcuts`,
+  `media_art`, `monet` and `themed_icons` were accepted and silently ignored. Each now
+  writes its catalog-correct bridge key (e.g. `evo_status_bar_show_battery_percent`,
+  `lockscreen_weather_enabled`, `evolution_monet_enabled`).
+- The diff parser itself: arm headers in brace-on-next-line style `when` blocks and URL
+  literals like `"https://…"` (whose `//` was previously stripped as a comment, unbalancing
+  brace depth) no longer break the scan.
+
+### Changed
+
+- `docs/options-audit.md` regenerated: 56 triggers / 168 actions with engine keys and
+  end-behavior classifications; localization status unchanged (616 keys, complete in
+  all 11 locales).
+- End-behavior catalog cross-checked against the engine: all 31 toggle actions read
+  `enabled` (so end-of-task on/off/revert behave exactly as configured), value actions
+  and toggle sets are disjoint.
 
 ## [v3.66.0] - 2026-09-09
 

@@ -232,10 +232,10 @@ The trigger editor is defaults-driven (a default-config map per trigger plus a g
 | `CALL_SILENCE` | static | — |
 | `EVO_SET_SETTING` | chips + text field(s) | `key`, `namespace`, `value` |
 | `EVO_QS_TILES` | chips + toggle + text field(s) | `brightness_slider`, `columns`, `footer_text`, `tiles` |
-| `EVO_STATUS_BAR` | chips + toggle | `battery_style`, `clock_position`, `config_json` |
-| `EVO_LOCKSCREEN` | chips + toggle | `clock_style`, `config_json` |
+| `EVO_STATUS_BAR` | chips + toggle | `battery_percent`, `battery_style`, `clock_position`, `clock_seconds`, `config_json` |
+| `EVO_LOCKSCREEN` | chips + toggle | `clock_style`, `config_json`, `media_art`, `shortcuts`, `weather` |
 | `EVO_NAVIGATION` | static | `back_height`, `mode` |
-| `EVO_THEME` | chips + toggle | `accent`, `config_json` |
+| `EVO_THEME` | chips + toggle | `accent`, `config_json`, `monet`, `themed_icons` |
 | `EVO_AMBIENT_AOD` | chips + toggle | `enabled`, `schedule` |
 | `EVO_NOTIFICATIONS` | chips + toggle | `heads_up`, `less_boring`, `timeout` |
 | `EVO_BATCH` | chips + text field(s) | `batch_json` |

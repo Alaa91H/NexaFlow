@@ -64,9 +64,13 @@ class EvoActionHandler : ActionHandler {
                     // Fallback to individual keys for backward compat
                     val clockPos = action.config["clock_position"]
                     val batteryStyle = action.config["battery_style"]
+                    val clockSeconds = action.config["clock_seconds"]
+                    val batteryPercent = action.config["battery_percent"]
                     val results = mutableListOf<SystemControlResult>()
                     if (!clockPos.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "evo_status_bar_clock_position", clockPos)
                     if (!batteryStyle.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "evo_status_bar_battery_style", batteryStyle)
+                    if (!clockSeconds.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "evo_clock_seconds", clockSeconds)
+                    if (!batteryPercent.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "evo_status_bar_show_battery_percent", batteryPercent)
                     return combine(results, "Status bar")
                 }
                 batchWrite(ctx, json, "Status bar")
@@ -76,8 +80,14 @@ class EvoActionHandler : ActionHandler {
                 val json = action.config["config_json"]?.trim().orEmpty()
                 if (json.isBlank()) {
                     val clockStyle = action.config["clock_style"]
+                    val weather = action.config["weather"]
+                    val shortcuts = action.config["shortcuts"]
+                    val mediaArt = action.config["media_art"]
                     val results = mutableListOf<SystemControlResult>()
                     if (!clockStyle.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "lockscreen_clock_style", clockStyle)
+                    if (!weather.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "lockscreen_weather_enabled", weather)
+                    if (!shortcuts.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "lockscreen_shortcuts", shortcuts)
+                    if (!mediaArt.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "lockscreen_media_art", mediaArt)
                     return combine(results, "Lockscreen")
                 }
                 batchWrite(ctx, json, "Lockscreen")
@@ -101,8 +111,12 @@ class EvoActionHandler : ActionHandler {
                 val json = action.config["config_json"]?.trim().orEmpty()
                 if (json.isBlank()) {
                     val accent = action.config["accent"]?.trim()
+                    val monet = action.config["monet"]?.trim()
+                    val themedIcons = action.config["themed_icons"]?.trim()
                     val results = mutableListOf<SystemControlResult>()
                     if (!accent.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "evo_theme_accent", accent)
+                    if (!monet.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "evolution_monet_enabled", monet)
+                    if (!themedIcons.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "themed_icons", themedIcons)
                     return combine(results, "Theme")
                 }
                 batchWrite(ctx, json, "Theme")
