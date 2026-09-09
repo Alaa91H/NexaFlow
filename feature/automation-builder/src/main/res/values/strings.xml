@@ -1214,4 +1214,7 @@
     <string name="http_retry_cap_ms">Cap: %1$d ms</string>
     <string name="pointer_speed_range">Pointer speed spans -7 (slowest) to 7 (fastest); 0 is the system default.</string>
     <string name="screensaver_minutes_chip">%1$d min</string>
+    <string name="density_range_hint">LCD density: 120 to 1000 dpi (engine rejects values outside this range)</string>
+    <string name="bt_discoverable_range_hint">0 (never) to 3600 seconds; the engine clamps values to this range</string>
+    <string name="screensaver_range_hint">1 to 1440 minutes (24 hours); the engine clamps values to this range</string>
 </resources>

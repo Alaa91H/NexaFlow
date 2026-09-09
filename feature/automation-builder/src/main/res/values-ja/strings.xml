@@ -1206,4 +1206,7 @@
     <string name="http_retry_cap_ms">上限: %1$d ms</string>
     <string name="pointer_speed_range">ポインター速度は -7（最も遅い）から 7（最も速い）です。0 はシステムのデフォルトです。</string>
     <string name="screensaver_minutes_chip">%1$d分</string>
+    <string name="density_range_hint">画面密度：120〜1000 dpi（範囲外の値はエンジンに拒否されます）</string>
+    <string name="bt_discoverable_range_hint">0（無効）〜3600秒。範囲外の値はエンジンが調整します</string>
+    <string name="screensaver_range_hint">1〜1440分（24時間）。範囲外の値はエンジンが調整します</string>
 </resources>

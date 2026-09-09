@@ -65,4 +65,6 @@
     <string name="block_category_unknown">Неизвестный номер</string>
     <string name="block_category_private">Скрытый номер</string>
     <string name="block_category_contact">Контакт</string>
+    <string name="diagnostics_end_behavior_label">Проблемы конечного поведения</string>
+    <string name="diagnostics_action_config_label">Проблемы конфигурации действий</string>
 </resources>

@@ -1206,4 +1206,7 @@
     <string name="http_retry_cap_ms">Потолок: %1$d мс</string>
     <string name="pointer_speed_range">Скорость указателя от -7 (самая медленная) до 7 (самая быстрая); 0 — системное значение по умолчанию.</string>
     <string name="screensaver_minutes_chip">%1$d мин</string>
+    <string name="density_range_hint">Плотность экрана: от 120 до 1000 dpi (движок отклоняет значения вне диапазона)</string>
+    <string name="bt_discoverable_range_hint">0 (никогда) до 3600 секунд; движок ограничивает значения этим диапазоном</string>
+    <string name="screensaver_range_hint">От 1 до 1440 минут (24 часа); движок ограничивает значения этим диапазоном</string>
 </resources>

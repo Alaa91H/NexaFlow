@@ -1206,4 +1206,7 @@
     <string name="http_retry_cap_ms">上限：%1$d 毫秒</string>
     <string name="pointer_speed_range">指针速度范围为 -7（最慢）到 7（最快）；0 为系统默认值。</string>
     <string name="screensaver_minutes_chip">%1$d 分钟</string>
+    <string name="density_range_hint">屏幕密度：120 到 1000 dpi（引擎会拒绝超出此范围的值）</string>
+    <string name="bt_discoverable_range_hint">0（从不）到 3600 秒；引擎会将值限制在此范围内</string>
+    <string name="screensaver_range_hint">1 到 1440 分钟（24 小时）；引擎会将值限制在此范围内</string>
 </resources>

@@ -1206,4 +1206,7 @@
     <string name="http_retry_cap_ms">Plafond : %1$d ms</string>
     <string name="pointer_speed_range">La vitesse du pointeur va de -7 (la plus lente) à 7 (la plus rapide) ; 0 est la valeur par défaut du système.</string>
     <string name="screensaver_minutes_chip">%1$d min</string>
+    <string name="density_range_hint">Densité d’affichage : 120 à 1000 dpi (le moteur refuse les valeurs hors de cette plage)</string>
+    <string name="bt_discoverable_range_hint">0 (jamais) à 3600 secondes ; le moteur limite les valeurs à cette plage</string>
+    <string name="screensaver_range_hint">1 à 1440 minutes (24 heures) ; le moteur limite les valeurs à cette plage</string>
 </resources>

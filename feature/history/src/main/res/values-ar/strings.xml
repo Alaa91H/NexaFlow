@@ -65,4 +65,6 @@
     <string name="block_category_unknown">رقم غير معروف</string>
     <string name="block_category_private">رقم مخفي</string>
     <string name="block_category_contact">جهة اتصال</string>
+    <string name="diagnostics_end_behavior_label">مشاكل سلوك النهاية</string>
+    <string name="diagnostics_action_config_label">مشاكل إعداد الإجراءات</string>
 </resources>

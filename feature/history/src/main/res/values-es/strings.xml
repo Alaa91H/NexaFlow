@@ -65,4 +65,6 @@
     <string name="block_category_unknown">Número desconocido</string>
     <string name="block_category_private">Número oculto</string>
     <string name="block_category_contact">Contacto</string>
+    <string name="diagnostics_end_behavior_label">Problemas del comportamiento final</string>
+    <string name="diagnostics_action_config_label">Problemas de configuración de acciones</string>
 </resources>

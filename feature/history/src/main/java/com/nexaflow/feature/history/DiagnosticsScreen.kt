@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -109,6 +110,33 @@ fun DiagnosticsScreen(navController: NavController) {
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.SemiBold
                                 )
+                                if (finding.endBehaviorFailures.isNotEmpty()) {
+                                    Text(
+                                        text = stringResource(R.string.diagnostics_end_behavior_label),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.tertiary
+                                    )
+                                }
+                                finding.endBehaviorFailures.take(3).forEach { failure ->
+                                    Text(
+                                        text = failure,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.tertiary
+                                    )
+                                }
+                                if (finding.failures.isNotEmpty() && finding.endBehaviorFailures.isNotEmpty()) {
+                                    HorizontalDivider(
+                                        color = MaterialTheme.colorScheme.outlineVariant,
+                                        modifier = Modifier.padding(vertical = 2.dp)
+                                    )
+                                }
+                                if (finding.failures.isNotEmpty() && finding.endBehaviorFailures.isNotEmpty()) {
+                                    Text(
+                                        text = stringResource(R.string.diagnostics_action_config_label),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
                                 finding.failures.take(3).forEach { failure ->
                                     Text(
                                         text = failure,

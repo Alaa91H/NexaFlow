@@ -65,4 +65,6 @@
     <string name="block_category_unknown">Unbekannte Nummer</string>
     <string name="block_category_private">Unterdrückte Nummer</string>
     <string name="block_category_contact">Kontakt</string>
+    <string name="diagnostics_end_behavior_label">Probleme mit dem Endverhalten</string>
+    <string name="diagnostics_action_config_label">Probleme mit der Aktionskonfiguration</string>
 </resources>

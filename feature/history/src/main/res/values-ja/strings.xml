@@ -65,4 +65,6 @@
     <string name="block_category_unknown">不明な番号</string>
     <string name="block_category_private">非通知の番号</string>
     <string name="block_category_contact">連絡先</string>
+    <string name="diagnostics_end_behavior_label">終了動作の問題</string>
+    <string name="diagnostics_action_config_label">アクション設定の問題</string>
 </resources>

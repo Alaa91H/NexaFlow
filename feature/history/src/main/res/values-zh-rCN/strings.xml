@@ -65,4 +65,6 @@
     <string name="block_category_unknown">未知号码</string>
     <string name="block_category_private">隐藏号码</string>
     <string name="block_category_contact">联系人</string>
+    <string name="diagnostics_end_behavior_label">结束行为问题</string>
+    <string name="diagnostics_action_config_label">操作配置问题</string>
 </resources>

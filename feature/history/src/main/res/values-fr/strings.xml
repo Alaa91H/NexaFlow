@@ -65,4 +65,6 @@
     <string name="block_category_unknown">Numéro inconnu</string>
     <string name="block_category_private">Numéro masqué</string>
     <string name="block_category_contact">Contact</string>
+    <string name="diagnostics_end_behavior_label">Problèmes de comportement de fin</string>
+    <string name="diagnostics_action_config_label">Problèmes de configuration des actions</string>
 </resources>

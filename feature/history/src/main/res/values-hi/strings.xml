@@ -65,4 +65,6 @@
     <string name="block_category_unknown">अज्ञात नंबर</string>
     <string name="block_category_private">छिपा हुआ नंबर</string>
     <string name="block_category_contact">संपर्क</string>
+    <string name="diagnostics_end_behavior_label">अंत व्यवहार की समस्याएँ</string>
+    <string name="diagnostics_action_config_label">कार्रवाई कॉन्फ़िगरेशन समस्याएँ</string>
 </resources>

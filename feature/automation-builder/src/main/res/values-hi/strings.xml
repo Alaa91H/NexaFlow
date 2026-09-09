@@ -1206,4 +1206,7 @@
     <string name="http_retry_cap_ms">सीमा: %1$d ms</string>
     <string name="pointer_speed_range">पॉइंटर गति -7 (सबसे धीमी) से 7 (सबसे तेज़) तक है; 0 सिस्टम डिफ़ॉल्ट है।</string>
     <string name="screensaver_minutes_chip">%1$d मिनट</string>
+    <string name="density_range_hint">डिस्प्ले घनत्व: 120 से 1000 dpi (इंजन इस सीमा से बाहर के मान अस्वीकार करता है)</string>
+    <string name="bt_discoverable_range_hint">0 (कभी नहीं) से 3600 सेकंड; इंजन मानों को इस सीमा में रखता है</string>
+    <string name="screensaver_range_hint">1 से 1440 मिनट (24 घंटे); इंजन मानों को इस सीमा में रखता है</string>
 </resources>

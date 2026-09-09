@@ -65,4 +65,6 @@
     <string name="block_category_unknown">Bilinmeyen numara</string>
     <string name="block_category_private">Gizli numara</string>
     <string name="block_category_contact">Kişi</string>
+    <string name="diagnostics_end_behavior_label">Bitiş davranışı sorunları</string>
+    <string name="diagnostics_action_config_label">Eylem yapılandırma sorunları</string>
 </resources>

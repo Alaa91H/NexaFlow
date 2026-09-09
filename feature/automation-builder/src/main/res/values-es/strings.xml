@@ -1206,4 +1206,7 @@
     <string name="http_retry_cap_ms">Límite: %1$d ms</string>
     <string name="pointer_speed_range">La velocidad del puntero va de -7 (la más lenta) a 7 (la más rápida); 0 es el valor del sistema.</string>
     <string name="screensaver_minutes_chip">%1$d min</string>
+    <string name="density_range_hint">Densidad de pantalla: 120 a 1000 ppp (el motor rechaza valores fuera de este rango)</string>
+    <string name="bt_discoverable_range_hint">0 (nunca) a 3600 segundos; el motor ajusta los valores a este rango</string>
+    <string name="screensaver_range_hint">1 a 1440 minutos (24 horas); el motor ajusta los valores a este rango</string>
 </resources>

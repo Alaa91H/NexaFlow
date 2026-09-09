@@ -1205,4 +1205,7 @@
     <string name="http_retry_cap_ms">الحد الأقصى: %1$d مللي ثانية</string>
     <string name="pointer_speed_range">تمتد سرعة المؤشر من -7 (الأبطأ) إلى 7 (الأسرع)؛ 0 هو الافتراضي للنظام.</string>
     <string name="screensaver_minutes_chip">%1$d دقيقة</string>
+    <string name="density_range_hint">كثافة الشاشة: من 120 إلى 1000 نقطة/بوصة (يرفض المحرك القيم خارج هذا النطاق)</string>
+    <string name="bt_discoverable_range_hint">من 0 (أبدًا) إلى 3600 ثانية؛ يقيد المحرك القيم لهذا النطاق</string>
+    <string name="screensaver_range_hint">من 1 إلى 1440 دقيقة (24 ساعة)؛ يقيد المحرك القيم لهذا النطاق</string>
 </resources>

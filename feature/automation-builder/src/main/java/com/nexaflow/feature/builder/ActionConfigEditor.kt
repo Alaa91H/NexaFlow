@@ -739,16 +739,14 @@ fun ActionConfigEditor(
         }
         ActionType.SYSTEM_SET_TIMER -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
+                // The engine clamps the timer to 1 s..24 h; the bounded field
+                // surfaces that clamp inline instead of silently truncating.
+                BoundedNumberField(
                     value = config["seconds"] ?: "300",
-                    onValueChange = { input ->
-                        // Timer duration: digits only (seconds).
-                        onConfigChange(config + ("seconds" to input.filter(Char::isDigit).take(6)))
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.timer_duration_seconds)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    onValueChange = { onConfigChange(config + ("seconds" to it)) },
+                    min = 1,
+                    max = 86_400,
+                    label = stringResource(R.string.timer_duration_seconds)
                 )
                 OutlinedTextField(
                     value = config["message"] ?: "",
@@ -1757,6 +1755,7 @@ fun ActionConfigEditor(
                 onValueChange = { v -> onConfigChange(mapOf("dpi" to v.filter { it.isDigit() })) },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = stringResource(R.string.display_density)) },
+                supportingText = { Text(text = stringResource(R.string.density_range_hint)) },
                 singleLine = true,
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
             )
@@ -1834,6 +1833,7 @@ fun ActionConfigEditor(
                 onValueChange = { v -> onConfigChange(mapOf("timeoutSeconds" to v.filter { it.isDigit() })) },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = stringResource(R.string.bluetooth_discoverable_timeout)) },
+                supportingText = { Text(text = stringResource(R.string.bt_discoverable_range_hint)) },
                 singleLine = true,
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
             )
@@ -1933,9 +1933,10 @@ fun ActionConfigEditor(
         ActionType.SYSTEM_SCREENSAVER_TIMEOUT -> {
             OutlinedTextField(
                 value = config["minutes"] ?: "30",
-                onValueChange = { onConfigChange(config + ("minutes" to it)) },
+                onValueChange = { onConfigChange(config + ("minutes" to it.filter { it2 -> it2.isDigit() })) },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = stringResource(R.string.screensaver_timeout_label)) },
+                supportingText = { Text(text = stringResource(R.string.screensaver_range_hint)) },
                 singleLine = true,
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
             )
