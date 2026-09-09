@@ -43,4 +43,12 @@
     <string name="history_filter_skipped">Пропущенные</string>
     <string name="no_skipped_runs_title">Нет пропущенных запусков</string>
     <string name="no_skipped_runs_subtitle">Нет пропущенных запусков, соответствующих этому фильтру.</string>
+    <string name="diagnostics_title">Проблемы конфигурации</string>
+    <string name="diagnostics_intro">Задачи, чьи действия завершились ошибкой из-за недопустимых значений конфигурации</string>
+    <string name="diagnostics_empty">Проблем конфигурации не найдено</string>
+    <string name="diagnostics_open_task">Открыть задачу</string>
+    <string name="back">Назад</string>
+    <string name="blocked_calls_title">Заблокированные вызовы</string>
+    <string name="blocked_calls_empty">Заблокированных вызовов пока нет</string>
+    <string name="blocked_calls_filter_all">Все правила</string>
 </resources>

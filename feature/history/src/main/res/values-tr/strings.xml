@@ -43,4 +43,12 @@
     <string name="history_filter_skipped">Atlananlar</string>
     <string name="no_skipped_runs_title">Atlanan yürütme yok</string>
     <string name="no_skipped_runs_subtitle">Bu filtreyle eşleşen atlanan yürütme yok.</string>
+    <string name="diagnostics_title">Yapılandırma sorunları</string>
+    <string name="diagnostics_intro">Eylemleri geçersiz yapılandırma değerleri nedeniyle çalışma zamanında başarısız olan görevler</string>
+    <string name="diagnostics_empty">Yapılandırma sorunu bulunamadı</string>
+    <string name="diagnostics_open_task">Görevi aç</string>
+    <string name="back">Geri</string>
+    <string name="blocked_calls_title">Engellenen aramalar</string>
+    <string name="blocked_calls_empty">Henüz engellenen arama yok</string>
+    <string name="blocked_calls_filter_all">Tüm kurallar</string>
 </resources>

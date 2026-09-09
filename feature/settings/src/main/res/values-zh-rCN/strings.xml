@@ -235,4 +235,10 @@
     <string name="update_notification_channel_sub">有较新 NexaFlow 版本时的通知</string>
     <string name="phone_state_permission">手机状态和网络模式</string>
     <string name="phone_state_permission_sub">读取活跃 SIM 卡及此设备实际支持的网络模式。更改模式还需要 root、Shizuku 或系统应用访问权限。</string>
+    <string name="blocked_calls_subtitle">拦截来电的任务的通话记录</string>
+    <string name="diagnostics_title">配置问题</string>
+    <string name="diagnostics_intro">因配置值无效导致操作在运行时失败的任务</string>
+    <string name="blocked_calls_title">已拦截的来电</string>
+    <string name="blocked_calls_empty">暂无已拦截的来电</string>
+    <string name="blocked_calls_filter_all">所有规则</string>
 </resources>

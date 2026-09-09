@@ -43,4 +43,12 @@
     <string name="history_filter_skipped">Omitidas</string>
     <string name="no_skipped_runs_title">No hay ejecuciones omitidas</string>
     <string name="no_skipped_runs_subtitle">Ninguna ejecución omitida coincide con este filtro.</string>
+    <string name="diagnostics_title">Problemas de configuración</string>
+    <string name="diagnostics_intro">Tareas cuyas acciones fallaron en tiempo de ejecución por valores de configuración no válidos</string>
+    <string name="diagnostics_empty">No se encontraron problemas de configuración</string>
+    <string name="diagnostics_open_task">Abrir tarea</string>
+    <string name="back">Atrás</string>
+    <string name="blocked_calls_title">Llamadas bloqueadas</string>
+    <string name="blocked_calls_empty">Aún no hay llamadas bloqueadas</string>
+    <string name="blocked_calls_filter_all">Todas las reglas</string>
 </resources>

@@ -6,56 +6,39 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * Security contract for command construction handed to elevated runtimes:
+ * arguments are always single-quoted POSIX-style, control characters and
+ * oversized commands are rejected, and user-supplied commands are validated
+ * before execution.
+ */
 class SafeCommandBuilderTest {
 
     @Test
-    fun quote_wrapsInSingleQuotes() {
-        assertEquals("'hello'", SafeCommandBuilder.quote("hello"))
-    }
-
-    @Test
-    fun quote_escapesEmbeddedSingleQuote() {
+    fun `arguments are single quoted with embedded quotes escaped`() {
+        assertEquals("'rm -rf'", SafeCommandBuilder.quote("rm -rf"))
         assertEquals("'it'\\''s'", SafeCommandBuilder.quote("it's"))
     }
 
     @Test
-    fun build_joinsQuotedArgs() {
-        val cmd = SafeCommandBuilder.build("settings", "put", "system", "screen_off_timeout", "30000")
-        assertEquals("'settings' 'put' 'system' 'screen_off_timeout' '30000'", cmd)
+    fun `build quotes the program and every argument`() {
+        assertEquals("'settings' 'put' 'system' 'a b'", SafeCommandBuilder.build("settings", "put", "system", "a b"))
     }
 
     @Test
-    fun build_escapesInjectingArg() {
-        val cmd = SafeCommandBuilder.build("sh", "-c", "id; rm -rf /")
-        // The whole payload stays a single quoted argument — no command break-out.
-        assertEquals("'sh' '-c' 'id; rm -rf /'", cmd)
+    fun `control characters make a command unsafe`() {
+        assertTrue(SafeCommandBuilder.isSafeCommand("settings put system a"))
+        assertFalse(SafeCommandBuilder.isSafeCommand("settings\u0000 put"))
+        assertFalse(SafeCommandBuilder.isSafeCommand("settings\u0007 put"))
+        assertFalse(SafeCommandBuilder.isSafeCommand("x".repeat(8193)))
+        // Whitespace is legitimate.
+        assertTrue(SafeCommandBuilder.isSafeCommand("echo\ttab\ncrlf"))
     }
 
     @Test
-    fun isSafeCommand_rejectsNulByte() {
-        assertFalse(SafeCommandBuilder.isSafeCommand("echo a\u0000b"))
-    }
-
-    @Test
-    fun isSafeCommand_rejectsControlChars() {
-        assertFalse(SafeCommandBuilder.isSafeCommand("echo a\u0001b"))
-    }
-
-    @Test
-    fun isSafeCommand_acceptsNormalText() {
-        assertTrue(SafeCommandBuilder.isSafeCommand("echo hello world"))
-    }
-
-    @Test
-    fun isSafeCommand_rejectsOverlongCommand() {
-        val long = "a".repeat(SafeCommandBuilder.MAX_COMMAND_LENGTH + 1)
-        assertFalse(SafeCommandBuilder.isSafeCommand(long))
-    }
-
-    @Test
-    fun validateUserCommand_allowsValidAndRejectsInvalid() {
-        assertEquals("echo ok", SafeCommandBuilder.validateUserCommand("echo ok"))
-        assertNull(SafeCommandBuilder.validateUserCommand("echo a\u0000b"))
+    fun `validateUserCommand returns null for blank or unsafe input`() {
         assertNull(SafeCommandBuilder.validateUserCommand("   "))
+        assertNull(SafeCommandBuilder.validateUserCommand("bad\u0000cmd"))
+        assertEquals("wm density 440", SafeCommandBuilder.validateUserCommand("wm density 440"))
     }
 }

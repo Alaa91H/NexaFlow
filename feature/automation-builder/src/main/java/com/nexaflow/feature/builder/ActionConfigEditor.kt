@@ -609,32 +609,21 @@ fun ActionConfigEditor(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    OutlinedTextField(
+                    BoundedNumberField(
                         value = config["hour"] ?: "9",
-                        onValueChange = { input ->
-                            // Hour of day: digits only, clamped to 0–23 so the
-                            // scheduled reminder fires at the intended time.
-                            val clamped = input.filter(Char::isDigit).take(2)
-                                .toIntOrNull()?.coerceIn(0, 23)?.toString() ?: ""
-                            onConfigChange(config + ("hour" to clamped))
-                        },
-                        modifier = Modifier.weight(1f),
-                        label = { Text(text = stringResource(R.string.hour)) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        onValueChange = { onConfigChange(config + ("hour" to it)) },
+                        min = 0,
+                        max = 23,
+                        label = stringResource(R.string.hour),
+                        modifier = Modifier.weight(1f)
                     )
-                    OutlinedTextField(
+                    BoundedNumberField(
                         value = config["minute"] ?: "0",
-                        onValueChange = { input ->
-                            // Minute: digits only, clamped to 0–59.
-                            val clamped = input.filter(Char::isDigit).take(2)
-                                .toIntOrNull()?.coerceIn(0, 59)?.toString() ?: ""
-                            onConfigChange(config + ("minute" to clamped))
-                        },
-                        modifier = Modifier.weight(1f),
-                        label = { Text(text = stringResource(R.string.minute)) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                        onValueChange = { onConfigChange(config + ("minute" to it)) },
+                        min = 0,
+                        max = 59,
+                        label = stringResource(R.string.minute),
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -732,31 +721,19 @@ fun ActionConfigEditor(
         }
         ActionType.SYSTEM_SET_ALARM -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
+                BoundedNumberField(
                     value = config["hour"] ?: "7",
-                    onValueChange = { input ->
-                        // Hour of day: digits only, clamped to 0–23.
-                        val clamped = input.filter(Char::isDigit).take(2)
-                            .toIntOrNull()?.coerceIn(0, 23)?.toString() ?: ""
-                        onConfigChange(config + ("hour" to clamped))
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.hour)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    onValueChange = { onConfigChange(config + ("hour" to it)) },
+                    min = 0,
+                    max = 23,
+                    label = stringResource(R.string.hour)
                 )
-                OutlinedTextField(
+                BoundedNumberField(
                     value = config["minute"] ?: "0",
-                    onValueChange = { input ->
-                        // Minute: digits only, clamped to 0–59.
-                        val clamped = input.filter(Char::isDigit).take(2)
-                            .toIntOrNull()?.coerceIn(0, 59)?.toString() ?: ""
-                        onConfigChange(config + ("minute" to clamped))
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(text = stringResource(R.string.minute)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    onValueChange = { onConfigChange(config + ("minute" to it)) },
+                    min = 0,
+                    max = 59,
+                    label = stringResource(R.string.minute)
                 )
             }
         }
@@ -901,18 +878,13 @@ fun ActionConfigEditor(
                     )
                 }
             }
-            OutlinedTextField(
+            BoundedNumberField(
                 value = rawSeconds,
-                onValueChange = { value ->
-                    val digits = value.filter(Char::isDigit)
-                    val bounded = digits.toLongOrNull()?.coerceIn(1L, maxWaitSeconds)
-                    onConfigChange(mapOf("seconds" to (bounded?.toString() ?: digits)))
-                },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = stringResource(R.string.wait_custom_duration)) },
-                supportingText = { Text(text = stringResource(R.string.wait_range_hint)) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                onValueChange = { stored -> onConfigChange(mapOf("seconds" to stored)) },
+                min = 1,
+                max = maxWaitSeconds,
+                label = stringResource(R.string.wait_custom_duration),
+                unitHint = stringResource(R.string.wait_unit_seconds)
             )
             Text(
                 text = stringResource(R.string.wait_counter_label, seconds),
@@ -1306,7 +1278,7 @@ fun ActionConfigEditor(
                 OutlinedTextField(value = config["key"] ?: "", onValueChange = { onConfigChange(config + ("key" to it)) }, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.evo_custom_key_label)) }, singleLine = true)
                 if (config["key"]?.isNotBlank() == true) {
                     val cat = com.nexaflow.core.rom.EvolverCatalog.categorize(config["key"]!!)
-                    Text("${cat.displayName} • ${cat.description}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                    Text("${categoryLabel(cat)} • ${categoryDescription(cat)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
                 }
                 Text(text = stringResource(R.string.evo_custom_value_label), style = MaterialTheme.typography.titleSmall)
                 // Chips for common boolean/enum values — easy customization without typing

@@ -511,4 +511,16 @@
     <string name="trigger_type_wifi_connected_sub">Runs when the device connects to Wi-Fi (or disconnects)</string>
     <string name="trigger_type_mobile_data">Mobile data connected</string>
     <string name="trigger_type_mobile_data_sub">Runs when mobile data is the active network (or not)</string>
+    <string name="run_gate_title">यह कार्य अभी क्यों नहीं चल सकता?</string>
+    <string name="run_reason_task">कार्य: %1$s</string>
+    <string name="run_reason_trigger">ट्रिगर पूरा नहीं: %1$s</string>
+    <string name="run_reason_constraint">शर्त पूरी नहीं: %1$s</string>
+    <string name="run_reason_unknown">कुछ ट्रिगर सत्यापित नहीं हो सके</string>
+    <string name="run_reason_no_exit">कोई समाप्ति व्यवहार कॉन्फ़िगर नहीं</string>
+    <string name="run_reason_run_end">समाप्ति व्यवहार चलाएँ</string>
+    <string name="run_force_short">बल</string>
+    <string name="run_force_title">बलपूर्वक चलाएँ?</string>
+    <string name="run_force_message">बलपूर्वक चलाना ट्रिगर और शर्त जाँच छोड़ देता है और कार्य अभी चलाता है। समाप्ति व्यवहार लागू रहेगा।</string>
+    <string name="run_force_confirm">बलपूर्वक चलाएँ</string>
+    <string name="cancel">रद्द करें</string>
 </resources>

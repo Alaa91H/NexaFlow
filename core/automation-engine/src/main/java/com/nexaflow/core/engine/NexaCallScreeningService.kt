@@ -48,6 +48,9 @@ class NexaCallScreeningService : CallScreeningService() {
     @Inject
     lateinit var executionEngine: ExecutionEngine
 
+    @Inject
+    lateinit var historyRepository: com.nexaflow.domain.repositories.HistoryRepository
+
     override fun onScreenCall(callDetails: Call.Details) {
         val number = callDetails.handle?.schemeSpecificPart.orEmpty()
         val isEmergency = number.isNotEmpty() && PhoneNumberUtils.isEmergencyNumber(number)
@@ -78,6 +81,28 @@ class NexaCallScreeningService : CallScreeningService() {
                 isEmergency = isEmergency
             )
             respondSafely(callDetails, verdict)
+            // Durable blocked-call log entry (BlackList-style call log).
+            // Success=true: blocking is the requested behavior, not a failure.
+            if (verdict == CallPolicyEvaluator.Verdict.BLOCK) {
+                val blockingTasks = screeningTasks
+                    .filter { task ->
+                        CallPolicyEvaluator.verdictOf(task, number, category, isEmergency) ==
+                            CallPolicyEvaluator.Verdict.BLOCK
+                    }
+                val ruleNames = blockingTasks.joinToString { it.name }.ifBlank { "NexaFlow" }
+                runCatching {
+                    historyRepository.recordExecution(
+                        com.nexaflow.domain.models.ExecutionRecord(
+                            id = java.util.UUID.randomUUID().toString(),
+                            automationId = blockingTasks.firstOrNull()?.id ?: "call_screening",
+                            automationName = ruleNames,
+                            success = true,
+                            message = "Call blocked: ${number.takeLast(4).padStart(number.length, '*')}",
+                            executedAt = System.currentTimeMillis()
+                        )
+                    )
+                }
+            }
 
             // Dispatch every task that matched this call (observers included)
             // through the normal engine path so the full workflow executes.

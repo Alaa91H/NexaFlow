@@ -95,6 +95,32 @@ class ExecutionEngine(
     companion object {
         /** Prefix used by UI callers to present a manual condition rejection accurately. */
         const val MANUAL_CONDITION_NOT_MET_PREFIX = "Conditions not satisfied; "
+
+        /** Prefix logged on user-forced runs so history shows the bypass. */
+        const val MANUAL_FORCE_PREFIX = "Force run; "
+    }
+
+    /** Why the manual admission gate refused a run; [ManualBlockKind.NONE] when it did not. */
+    data class ManualBlockReason(
+        val kind: ManualBlockKind,
+        /** Human-readable labels of the triggers that failed or were unverifiable. */
+        val failedTriggerLabels: List<String>,
+        /** Constraint type names that failed (plugin constraints carry their own message). */
+        val failedConstraintLabels: List<String>
+    )
+
+    /** Coarse classification for [ManualBlockReason]. */
+    enum class ManualBlockKind {
+        /** The gate did not block; the run is admissible. */
+        NONE,
+        /** At least one state trigger is confirmed false right now. */
+        TRIGGERS_NOT_MET,
+        /** Trigger state could not be verified (event-only or unreadable). */
+        TRIGGERS_UNKNOWN,
+        /** All triggers passed but a device constraint refused. */
+        CONSTRAINTS_NOT_MET,
+        /** A point-in-time task configured an end behavior without a time range. */
+        INVALID_TIME_RANGE
     }
 
     /**
@@ -480,12 +506,13 @@ class ExecutionEngine(
             return rejectIncompleteTimeRange(automation, startedAt)
         }
         val triggerResult = TriggerStateEvaluator.evaluateAsync(context, automation.triggers)
+        val constraintState = if (automation.constraints.isEmpty()) null else
+            constraintStateProvider?.invoke()
+                ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
         val constraintResult = if (automation.constraints.isEmpty()) {
             ConditionResult.Satisfied
         } else {
-            val state = constraintStateProvider?.invoke()
-                ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
-            AutomationConstraintGate(capabilityExecutionService).evaluate(automation, state)
+            AutomationConstraintGate(capabilityExecutionService).evaluate(automation, constraintState)
         }
         return if (
             triggerResult == ConditionResult.Satisfied &&
@@ -499,6 +526,70 @@ class ExecutionEngine(
                 manualConditionRejected = true
             )
         }
+    }
+
+    /**
+     * Typed, UI-presentable explanation of why a manual run was rejected by
+     * the admission gate. Evaluates the same checks as [runWithConditionGate]
+     * and returns at most one primary reason plus every trigger-level detail:
+     * an explicit user question ("why can this not run?") deserves the full
+     * picture rather than the first failure alone.
+     */
+    suspend fun describeManualBlock(automation: Automation): ManualBlockReason {
+        if (automation.requiresTimeRangeForEndBehavior) {
+            return ManualBlockReason(
+                kind = ManualBlockKind.INVALID_TIME_RANGE,
+                failedTriggerLabels = emptyList(),
+                failedConstraintLabels = emptyList()
+            )
+        }
+        val triggerResult = TriggerStateEvaluator.evaluateAsync(context, automation.triggers)
+        val failedTriggers = if (triggerResult == ConditionResult.Satisfied) {
+            emptyList()
+        } else {
+            automation.triggers.filter { trigger ->
+                TriggerStateEvaluator.evaluateAsync(context, listOf(trigger)) != ConditionResult.Satisfied
+            }.map { TriggerStateEvaluator.triggerLabel(it) }
+        }
+        var failedConstraints: List<String> = emptyList()
+        var constraintSatisfied = true
+        if (automation.constraints.isNotEmpty()) {
+            val state = constraintStateProvider?.invoke()
+                ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
+            val gate = AutomationConstraintGate(capabilityExecutionService)
+            val result = gate.evaluate(automation, state)
+            constraintSatisfied = result == ConditionResult.Satisfied
+            if (!constraintSatisfied) {
+                failedConstraints = automation.constraints.map { it.type.name }
+            }
+        }
+        return if (failedTriggers.isEmpty() && constraintSatisfied) {
+            ManualBlockReason(kind = ManualBlockKind.NONE, failedTriggerLabels = emptyList(), failedConstraintLabels = emptyList())
+        } else {
+            ManualBlockReason(
+                kind = when {
+                    failedTriggers.isNotEmpty() && triggerResult == ConditionResult.Unknown -> ManualBlockKind.TRIGGERS_UNKNOWN
+                    failedTriggers.isNotEmpty() -> ManualBlockKind.TRIGGERS_NOT_MET
+                    else -> ManualBlockKind.CONSTRAINTS_NOT_MET
+                },
+                failedTriggerLabels = failedTriggers,
+                failedConstraintLabels = failedConstraints
+            )
+        }
+    }
+
+    /**
+     * Explicit user override of the manual admission gate: skips trigger and
+     * constraint checks entirely and runs the main chain. Only reachable from
+     * an explicit confirmation dialog. The decision is durably logged so the
+     * history shows the run was user-forced, not trigger-driven.
+     */
+    suspend fun forceRun(automation: Automation): ExecutionRecord {
+        val record = runAutomation(automation)
+        historyRepository.recordExecution(
+            record.copy(message = "$MANUAL_FORCE_PREFIX${record.message}".take(500))
+        )
+        return record
     }
 
     /**

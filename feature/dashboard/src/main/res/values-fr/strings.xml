@@ -128,4 +128,18 @@
     <string name="starter_template_nightly_call_silence">Silencier les inconnus la nuit</string>
     <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
     <string name="trigger_type_mobile_data">Mobile data connected</string>
+    <string name="run_reason_trigger">Déclencheur non réuni : %1$s</string>
+    <string name="run_reason_constraint">Condition non remplie : %1$s</string>
+    <string name="run_reason_unknown">Certains déclencheurs n’ont pas pu être vérifiés</string>
+    <string name="run_reason_no_exit">Aucun comportement de fin configuré</string>
+    <string name="run_force_title">Forcer l’exécution ?</string>
+    <string name="run_force_message">L’exécution forcée ignore la vérification des déclencheurs et des conditions et lance la tâche maintenant. Le comportement de fin reste appliqué.</string>
+    <string name="run_force_confirm">Forcer</string>
+    <string name="run_gate_title">Pourquoi cette tâche ne peut-elle pas s’exécuter maintenant ?</string>
+    <string name="run_reason_task">Tâche : %1$s</string>
+    <string name="run_reason_run_end">Exécuter le comportement de fin</string>
+    <string name="run_force_short">Forcer</string>
+    <string name="migrate_banner_title">Mettre à jour les tâches de connectivité</string>
+    <string name="migrate_banner_message">Des tâches utilisent encore l’ancien déclencheur de connexion combiné. Migrez-les vers les déclencheurs dédiés Wi-Fi et données mobiles.</string>
+    <string name="migrate_banner_button">Migrer maintenant</string>
 </resources>

@@ -106,9 +106,9 @@ fun EvolverSettingPickerDialog(
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Icon(imageVector = Icons.Filled.Tune, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = "System Settings", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(R.string.evolver_picker_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Text(
-                        text = if (isEvolutionX) "Evolution X • ${allKeys.size} keys • works on any ROM" else "System settings • ${allKeys.size} keys • works on any ROM",
+                        text = if (isEvolutionX) stringResource(R.string.evolver_picker_subtitle_evo, allKeys.size) else stringResource(R.string.evolver_picker_subtitle_any, allKeys.size),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary
                     )
@@ -118,22 +118,22 @@ fun EvolverSettingPickerDialog(
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
-                placeholder = { Text("Search QS, status bar, lockscreen…") },
+                placeholder = { Text(stringResource(R.string.evolver_picker_search)) },
                 leadingIcon = { Icon(Icons.Filled.Search, null) },
                 modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
                 singleLine = true
             )
 
             if (loading) {
-                Text("Loading Evolver keys…", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary, modifier = Modifier.padding(vertical = 16.dp))
+                Text(stringResource(R.string.evolver_picker_loading), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary, modifier = Modifier.padding(vertical = 16.dp))
             } else if (filtered.isEmpty()) {
-                Text("No Evolver keys match \"$query\"", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary, modifier = Modifier.padding(vertical = 16.dp))
+                Text(stringResource(R.string.evolver_picker_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary, modifier = Modifier.padding(vertical = 16.dp))
             } else {
                 LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f, fill = false)) {
                     grouped.forEach { (category, keys) ->
                         item(key = "header_${category.name}") {
                             Text(
-                                text = "${category.displayName} • ${keys.size}",
+                                text = "${categoryLabel(category)} • ${keys.size}",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary,
@@ -175,3 +175,39 @@ fun EvolverSettingPickerDialog(
         }
     }
 }
+
+/** Localized display name for an [com.nexaflow.core.rom.EvolverCatalog.Category]. */
+@Composable
+internal fun categoryLabel(category: com.nexaflow.core.rom.EvolverCatalog.Category): String =
+    when (category) {
+        com.nexaflow.core.rom.EvolverCatalog.Category.QUICK_SETTINGS -> stringResource(R.string.evolver_cat_qs)
+        com.nexaflow.core.rom.EvolverCatalog.Category.STATUS_BAR -> stringResource(R.string.evolver_cat_status)
+        com.nexaflow.core.rom.EvolverCatalog.Category.LOCKSCREEN -> stringResource(R.string.evolver_cat_lock)
+        com.nexaflow.core.rom.EvolverCatalog.Category.NOTIFICATIONS -> stringResource(R.string.evolver_cat_notif)
+        com.nexaflow.core.rom.EvolverCatalog.Category.NAVIGATION -> stringResource(R.string.evolver_cat_nav)
+        com.nexaflow.core.rom.EvolverCatalog.Category.THEMING -> stringResource(R.string.evolver_cat_theming)
+        com.nexaflow.core.rom.EvolverCatalog.Category.AMBIENT_AOD -> stringResource(R.string.evolver_cat_aod)
+        com.nexaflow.core.rom.EvolverCatalog.Category.BUTTONS -> stringResource(R.string.evolver_cat_buttons)
+        com.nexaflow.core.rom.EvolverCatalog.Category.NETWORK_BATTERY -> stringResource(R.string.evolver_cat_netbat)
+        com.nexaflow.core.rom.EvolverCatalog.Category.SYSTEM_UI -> stringResource(R.string.evolver_cat_sysui)
+        com.nexaflow.core.rom.EvolverCatalog.Category.DEX -> stringResource(R.string.evolver_cat_dex)
+        com.nexaflow.core.rom.EvolverCatalog.Category.OTHER -> stringResource(R.string.evolver_cat_other)
+    }
+
+/** Localized one-line description for an [com.nexaflow.core.rom.EvolverCatalog.Category]. */
+@Composable
+internal fun categoryDescription(category: com.nexaflow.core.rom.EvolverCatalog.Category): String =
+    when (category) {
+        com.nexaflow.core.rom.EvolverCatalog.Category.QUICK_SETTINGS -> stringResource(R.string.evolver_cat_qs_desc)
+        com.nexaflow.core.rom.EvolverCatalog.Category.STATUS_BAR -> stringResource(R.string.evolver_cat_status_desc)
+        com.nexaflow.core.rom.EvolverCatalog.Category.LOCKSCREEN -> stringResource(R.string.evolver_cat_lock_desc)
+        com.nexaflow.core.rom.EvolverCatalog.Category.NOTIFICATIONS -> stringResource(R.string.evolver_cat_notif_desc)
+        com.nexaflow.core.rom.EvolverCatalog.Category.NAVIGATION -> stringResource(R.string.evolver_cat_nav_desc)
+        com.nexaflow.core.rom.EvolverCatalog.Category.THEMING -> stringResource(R.string.evolver_cat_theming_desc)
+        com.nexaflow.core.rom.EvolverCatalog.Category.AMBIENT_AOD -> stringResource(R.string.evolver_cat_aod_desc)
+        com.nexaflow.core.rom.EvolverCatalog.Category.BUTTONS -> stringResource(R.string.evolver_cat_buttons_desc)
+        com.nexaflow.core.rom.EvolverCatalog.Category.NETWORK_BATTERY -> stringResource(R.string.evolver_cat_netbat_desc)
+        com.nexaflow.core.rom.EvolverCatalog.Category.SYSTEM_UI -> stringResource(R.string.evolver_cat_sysui_desc)
+        com.nexaflow.core.rom.EvolverCatalog.Category.DEX -> stringResource(R.string.evolver_cat_dex_desc)
+        com.nexaflow.core.rom.EvolverCatalog.Category.OTHER -> stringResource(R.string.evolver_cat_other_desc)
+    }

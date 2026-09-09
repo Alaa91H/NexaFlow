@@ -43,4 +43,12 @@
     <string name="history_filter_skipped">المتخطاة</string>
     <string name="no_skipped_runs_title">لا توجد تشغيلات متخطاة</string>
     <string name="no_skipped_runs_subtitle">لا توجد عمليات تنفيذ متخطاة تطابق هذا الفلتر.</string>
+    <string name="diagnostics_title">مشاكل الإعداد</string>
+    <string name="diagnostics_intro">مهام فشلت إجراءاتها وقت التنفيذ بسبب قيم إعداد غير صالحة</string>
+    <string name="diagnostics_empty">لا توجد مشاكل إعداد</string>
+    <string name="diagnostics_open_task">فتح المهمة</string>
+    <string name="back">رجوع</string>
+    <string name="blocked_calls_title">المكالمات المحجوبة</string>
+    <string name="blocked_calls_empty">لا توجد مكالمات محجوبة بعد</string>
+    <string name="blocked_calls_filter_all">كل القواعد</string>
 </resources>

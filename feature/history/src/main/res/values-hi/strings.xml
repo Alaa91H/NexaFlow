@@ -43,4 +43,12 @@
     <string name="history_filter_skipped">छोड़े गए</string>
     <string name="no_skipped_runs_title">कोई छोड़ा गया निष्पादन नहीं</string>
     <string name="no_skipped_runs_subtitle">कोई छोड़ा गया निष्पादन इस फ़िल्टर से मेल नहीं खाता।</string>
+    <string name="diagnostics_title">कॉन्फ़िगरेशन समस्याएँ</string>
+    <string name="diagnostics_intro">ऐसे कार्य जिनकी क्रियाएँ अमान्य कॉन्फ़िगरेशन मानों से चलने में विफल रहीं</string>
+    <string name="diagnostics_empty">कोई कॉन्फ़िगरेशन समस्या नहीं मिली</string>
+    <string name="diagnostics_open_task">कार्य खोलें</string>
+    <string name="back">वापस</string>
+    <string name="blocked_calls_title">अवरोधित कॉल</string>
+    <string name="blocked_calls_empty">अभी कोई अवरोधित कॉल नहीं</string>
+    <string name="blocked_calls_filter_all">सभी नियम</string>
 </resources>

@@ -43,4 +43,12 @@
     <string name="history_filter_skipped">スキップ</string>
     <string name="no_skipped_runs_title">スキップされた実行はありません</string>
     <string name="no_skipped_runs_subtitle">このフィルターに一致するスキップされた実行はありません。</string>
+    <string name="diagnostics_title">設定の問題</string>
+    <string name="diagnostics_intro">無効な設定値により実行時にアクションが失敗したタスク</string>
+    <string name="diagnostics_empty">設定の問題は見つかりませんでした</string>
+    <string name="diagnostics_open_task">タスクを開く</string>
+    <string name="back">戻る</string>
+    <string name="blocked_calls_title">ブロックした着信</string>
+    <string name="blocked_calls_empty">ブロックした着信はまだありません</string>
+    <string name="blocked_calls_filter_all">すべてのルール</string>
 </resources>

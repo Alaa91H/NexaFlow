@@ -120,6 +120,28 @@ class AutomationDetailsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Typed mismatch explanation for the Run-now dialog; null when admissible.
+     * Same policy source as the dashboard and deep-link paths.
+     */
+    suspend fun describeManualBlock(): ExecutionEngine.ManualBlockReason? {
+        val current = automation.value ?: return null
+        val reason = executionEngine.describeManualBlock(current)
+        return if (reason.kind == ExecutionEngine.ManualBlockKind.NONE) null else reason
+    }
+
+    /** Explicit user override after the force-run confirmation dialog. */
+    fun forceRun() {
+        val current = automation.value ?: return
+        if (_running.value) return
+        viewModelScope.launch {
+            _running.value = true
+            val record = executionEngine.forceRun(current)
+            _executionMessage.value = formatExecutionMessage(record)
+            _running.value = false
+        }
+    }
+
     private fun formatExecutionMessage(record: ExecutionRecord): String =
         ExecutionResultPresentation.summary(appContext, record)
 

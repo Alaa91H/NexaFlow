@@ -510,4 +510,16 @@
     <string name="trigger_type_wifi_connected_sub">Runs when the device connects to Wi-Fi (or disconnects)</string>
     <string name="trigger_type_mobile_data">Mobile data connected</string>
     <string name="trigger_type_mobile_data_sub">Runs when mobile data is the active network (or not)</string>
+    <string name="run_gate_title">Why can this task not run now?</string>
+    <string name="run_reason_task">Task: %1$s</string>
+    <string name="run_reason_trigger">Trigger not met: %1$s</string>
+    <string name="run_reason_constraint">Constraint not met: %1$s</string>
+    <string name="run_reason_unknown">Some triggers could not be verified</string>
+    <string name="run_reason_no_exit">No end behavior configured</string>
+    <string name="run_reason_run_end">Run end behavior</string>
+    <string name="run_force_short">Force</string>
+    <string name="run_force_title">Force run?</string>
+    <string name="run_force_message">Force run skips the trigger and condition checks and runs the task now. End behavior still applies.</string>
+    <string name="run_force_confirm">Force run</string>
+    <string name="cancel">Cancel</string>
 </resources>

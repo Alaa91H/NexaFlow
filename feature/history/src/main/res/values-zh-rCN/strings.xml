@@ -43,4 +43,12 @@
     <string name="history_filter_skipped">已跳过</string>
     <string name="no_skipped_runs_title">没有已跳过的执行</string>
     <string name="no_skipped_runs_subtitle">没有与此筛选条件匹配的已跳过执行。</string>
+    <string name="diagnostics_title">配置问题</string>
+    <string name="diagnostics_intro">因配置值无效导致操作在运行时失败的任务</string>
+    <string name="diagnostics_empty">未发现配置问题</string>
+    <string name="diagnostics_open_task">打开任务</string>
+    <string name="back">返回</string>
+    <string name="blocked_calls_title">已拦截的来电</string>
+    <string name="blocked_calls_empty">暂无已拦截的来电</string>
+    <string name="blocked_calls_filter_all">所有规则</string>
 </resources>

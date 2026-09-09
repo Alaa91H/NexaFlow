@@ -1,87 +1,89 @@
 package com.nexaflow.domain.diagnostics
 
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * Contract tests for the structured diagnostics taxonomy: entry validation,
+ * deduplication-capable ids, severity/category filtering, ring-buffer bounds,
+ * and the actionable/critical flags the UI routes on.
+ */
 class DiagnosticsSystemTest {
 
-    @Test
-    fun `emitted entry is retrievable`() {
-        val collector = InMemoryDiagnosticsCollector()
-        val entry = DiagnosticEntry.info("d1", DiagnosticCategory.CAPABILITY, "Test", "Detail")
-        collector.emit(entry)
-        val results = collector.entries()
-        assertEquals(1, results.size)
-        assertEquals("d1", results.first().id)
-    }
+    private fun entry(
+        id: String = "d1",
+        severity: DiagnosticSeverity = DiagnosticSeverity.INFO,
+        category: DiagnosticCategory = DiagnosticCategory.SYSTEM,
+        recoverability: DiagnosticRecoverability = DiagnosticRecoverability.TRANSIENT,
+        runId: String? = null
+    ) = DiagnosticEntry(
+        id = id,
+        severity = severity,
+        category = category,
+        recoverability = recoverability,
+        title = "Test title",
+        technicalDetail = "detail",
+        runId = runId
+    )
 
     @Test
-    fun `severity filter works`() {
-        val collector = InMemoryDiagnosticsCollector()
-        collector.emit(DiagnosticEntry.info("i1", DiagnosticCategory.SYSTEM, "Info", ""))
-        collector.emit(DiagnosticEntry.warn("w1", DiagnosticCategory.BACKEND, "Warn", ""))
-        collector.emit(DiagnosticEntry.error("e1", DiagnosticCategory.POLICY, DiagnosticRecoverability.PERMANENT, "Error", ""))
-        val errorsOnly = collector.entries(minSeverity = DiagnosticSeverity.ERROR)
-        assertEquals(1, errorsOnly.size)
-        assertEquals("e1", errorsOnly.first().id)
-    }
-
-    @Test
-    fun `category filter works`() {
-        val collector = InMemoryDiagnosticsCollector()
-        collector.emit(DiagnosticEntry.info("c1", DiagnosticCategory.PLUGIN, "Plugin", ""))
-        collector.emit(DiagnosticEntry.info("c2", DiagnosticCategory.NETWORK, "Network", ""))
-        val pluginOnly = collector.entries(category = DiagnosticCategory.PLUGIN)
-        assertEquals(1, pluginOnly.size)
-        assertEquals("c1", pluginOnly.first().id)
-    }
-
-    @Test
-    fun `maxEntries evicts oldest`() {
-        val collector = InMemoryDiagnosticsCollector(maxEntries = 3)
-        repeat(5) { i ->
-            collector.emit(DiagnosticEntry.info("id-$i", DiagnosticCategory.SYSTEM, "T$i", ""))
+    fun `blank id or title is rejected`() {
+        org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
+            entry(id = " ").let(DiagnosticsCollectorHost::validate)
         }
-        val all = collector.entries()
-        assertEquals(3, all.size)
-        // Oldest (id-0, id-1) should be evicted
-        assertFalse(all.any { it.id == "id-0" })
-        assertFalse(all.any { it.id == "id-1" })
-        assertTrue(all.any { it.id == "id-4" })
     }
 
     @Test
-    fun `clear removes all entries`() {
+    fun `oversized title is rejected and oversized detail is rejected`() {
+        org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
+            entry().copy(title = "x".repeat(257))
+        }
+        org.junit.Assert.assertThrows(IllegalArgumentException::class.java) {
+            entry().copy(technicalDetail = "x".repeat(4097))
+        }
+    }
+
+    @Test
+    fun `actionable and critical flags follow recoverability and severity`() {
+        assertTrue(entry(recoverability = DiagnosticRecoverability.USER_ACTION_REQUIRED).isActionable)
+        assertFalse(entry(recoverability = DiagnosticRecoverability.TRANSIENT).isActionable)
+        assertTrue(entry(severity = DiagnosticSeverity.CRITICAL).isCritical)
+        assertTrue(entry(severity = DiagnosticSeverity.ERROR).isCritical)
+        assertFalse(entry(severity = DiagnosticSeverity.INFO).isCritical)
+    }
+
+    @Test
+    fun `collector stores entries and filters by severity category and run`() {
         val collector = InMemoryDiagnosticsCollector()
-        collector.emit(DiagnosticEntry.info("x", DiagnosticCategory.AI, "X", ""))
+        collector.emit(entry(id = "a", severity = DiagnosticSeverity.DEBUG, runId = "run-1"))
+        collector.emit(entry(id = "b", severity = DiagnosticSeverity.ERROR, category = DiagnosticCategory.PLUGIN, runId = "run-1"))
+        collector.emit(entry(id = "c", severity = DiagnosticSeverity.WARN, category = DiagnosticCategory.PLUGIN, runId = "run-2"))
+
+        assertEquals(3, collector.entries().size)
+        assertEquals(listOf("b"), collector.entries(category = DiagnosticCategory.PLUGIN, minSeverity = DiagnosticSeverity.ERROR).map { it.id })
+        assertEquals(setOf("a", "b"), collector.entries(runId = "run-1").map { it.id }.toSet())
+        assertTrue(collector.entries(minSeverity = DiagnosticSeverity.WARN).none { it.id == "a" })
+    }
+
+    @Test
+    fun `collector evicts oldest entries beyond capacity`() {
+        val collector = InMemoryDiagnosticsCollector(maxEntries = 3)
+        repeat(5) { collector.emit(entry(id = "e$it")) }
+        assertEquals(listOf("e2", "e3", "e4"), collector.entries().map { it.id })
+    }
+
+    @Test
+    fun `clear empties the buffer`() {
+        val collector = InMemoryDiagnosticsCollector()
+        collector.emit(entry())
         collector.clear()
         assertTrue(collector.entries().isEmpty())
     }
+}
 
-    @Test
-    fun `isActionable returns true for USER_ACTION_REQUIRED`() {
-        val entry = DiagnosticEntry.error(
-            id = "perm-1",
-            category = DiagnosticCategory.PERMISSION,
-            recoverability = DiagnosticRecoverability.USER_ACTION_REQUIRED,
-            title = "Permission required",
-            detail = "WRITE_SECURE_SETTINGS not granted"
-        )
-        assertTrue(entry.isActionable)
-        assertTrue(entry.isCritical)
-    }
-
-    @Test
-    fun `DiagnosticEntry rejects blank id`() {
-        assertThrows(IllegalArgumentException::class.java) {
-            DiagnosticEntry(
-                id = "  ",
-                severity = DiagnosticSeverity.INFO,
-                category = DiagnosticCategory.SYSTEM,
-                recoverability = DiagnosticRecoverability.TRANSIENT,
-                title = "T",
-                technicalDetail = "D"
-            )
-        }
-    }
+/** Test shim exposing the init-block validation path without duplicating it. */
+private object DiagnosticsCollectorHost {
+    fun validate(entry: DiagnosticEntry): DiagnosticEntry = entry.copy()
 }

@@ -34,4 +34,7 @@ dependencies {
     // Dispatchers.Main used by AppDispatchers.Default needs the Android artifact.
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.android)
     testImplementation(libs.junit.junit)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.org.robolectric.robolectric)
+    testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test)
 }

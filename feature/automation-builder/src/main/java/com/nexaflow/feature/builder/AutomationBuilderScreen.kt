@@ -2129,7 +2129,8 @@ fun AutomationBuilderScreen(
                     )
                     bluetoothPickerTarget = null
                 },
-                onDismiss = { bluetoothPickerTarget = null }
+                onDismiss = { bluetoothPickerTarget = null },
+                preSelectedAddress = triggers[index].config["deviceAddress"]
             )
         } else {
             bluetoothPickerTarget = null
@@ -2150,7 +2151,8 @@ fun AutomationBuilderScreen(
                     )
                     calendarPickerTarget = null
                 },
-                onDismiss = { calendarPickerTarget = null }
+                onDismiss = { calendarPickerTarget = null },
+                preSelectedName = triggers[index].config["calendar"]
             )
         } else {
             calendarPickerTarget = null
@@ -2180,6 +2182,7 @@ fun AutomationBuilderScreen(
                 },
                 multiSelect = true,
                 preSelectedPackages = triggerPackages,
+                recentPackages = packagesUsedByOtherTasks(viewModel, excludeAutomationId = automationId),
                 onDismiss = { appPickerTarget = null }
             )
         } else {
@@ -2224,6 +2227,7 @@ fun AutomationBuilderScreen(
                             },
                             multiSelect = true,
                             preSelectedPackages = pre,
+                            recentPackages = packagesUsedByOtherTasks(viewModel, excludeAutomationId = automationId),
                             onDismiss = { appPickerTarget = null }
                         )
                     }
@@ -2264,6 +2268,7 @@ fun AutomationBuilderScreen(
                             },
                             multiSelect = true,
                             preSelectedPackages = pre,
+                            recentPackages = packagesUsedByOtherTasks(viewModel, excludeAutomationId = automationId),
                             onDismiss = { appPickerTarget = null }
                         )
                     }
@@ -2307,4 +2312,25 @@ internal fun starterRoutineTitleRes(templateId: String): Int = when (templateId)
     RoutineTemplateCatalog.SCHEDULED_SMS -> R.string.starter_template_scheduled_sms
     RoutineTemplateCatalog.NIGHTLY_CALL_SILENCE -> R.string.starter_template_nightly_call_silence
     else -> R.string.builder_title
+}
+
+/**
+ * Packages referenced by other saved tasks (triggers and actions), most
+ * recently saved first. Feeds the app picker's recents section; the task
+ * being edited is excluded so the section shows cross-task history only.
+ */
+private fun packagesUsedByOtherTasks(
+    viewModel: com.nexaflow.feature.builder.AutomationBuilderViewModel,
+    excludeAutomationId: String?
+): List<String> {
+    return viewModel.automations.value
+        .filter { it.id != excludeAutomationId }
+        .flatMap { automation ->
+            automation.triggers.mapNotNull { it.config["packages"] ?: it.config["package"] } +
+                automation.actions.mapNotNull { it.config["packages"] ?: it.config["package"] }
+        }
+        .flatMap { it.split(',') }
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .distinct()
 }

@@ -232,4 +232,10 @@
     <string name="update_notification_text">NexaFlow %1$s is available</string>
     <string name="update_notification_channel">App updates</string>
     <string name="update_notification_channel_sub">Notifications when a newer NexaFlow version is available</string>
+    <string name="blocked_calls_subtitle">Call log of tasks that block callers</string>
+    <string name="diagnostics_title">Configuration problems</string>
+    <string name="diagnostics_intro">Tasks whose actions failed at runtime because of invalid configuration values</string>
+    <string name="blocked_calls_title">Blocked calls</string>
+    <string name="blocked_calls_empty">No blocked calls yet</string>
+    <string name="blocked_calls_filter_all">All rules</string>
 </resources>

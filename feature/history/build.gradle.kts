@@ -66,6 +66,7 @@ dependencies {
     implementation(project(":core:ui-components"))
     implementation(project(":feature:automations"))
     testImplementation(libs.junit.junit)
+    testImplementation(libs.androidx.paging.paging.testing)
     // Compose UI tests via Robolectric (project pattern: see
     // SpecialPermissionStatusRowTest in :feature:automation-builder).
     testImplementation(libs.androidx.compose.ui.ui.test.junit4)

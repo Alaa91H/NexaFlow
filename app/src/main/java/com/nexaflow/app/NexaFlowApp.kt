@@ -19,6 +19,8 @@ import com.nexaflow.feature.automations.AutomationDetailsScreen
 import com.nexaflow.feature.builder.AutomationBuilderScreen
 import com.nexaflow.feature.builder.MapPickerScreen
 import com.nexaflow.feature.dashboard.DashboardScreen
+import com.nexaflow.feature.history.BlockedCallsScreen
+import com.nexaflow.feature.history.DiagnosticsScreen
 import com.nexaflow.feature.history.ExecutionDetailsScreen
 import com.nexaflow.feature.history.HistoryScreen
 import com.nexaflow.feature.icons.IconPickerScreen
@@ -148,6 +150,12 @@ fun NexaFlowApp() {
             }
             composable("execution_details/{recordId}") {
                 ExecutionDetailsScreen(navController = navController)
+            }
+            composable("diagnostics") {
+                DiagnosticsScreen(navController = navController)
+            }
+            composable("blocked_calls") {
+                BlockedCallsScreen(navController = navController)
             }
             composable("icon_picker") {
                 IconPickerScreen(navController = navController)

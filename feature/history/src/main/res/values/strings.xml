@@ -43,4 +43,12 @@
     <string name="history_filter_skipped">Skipped runs</string>
     <string name="no_skipped_runs_title">No skipped runs</string>
     <string name="no_skipped_runs_subtitle">No skipped executions match this filter.</string>
+    <string name="diagnostics_title">Configuration problems</string>
+    <string name="diagnostics_intro">Tasks whose actions failed at runtime because of invalid configuration values</string>
+    <string name="diagnostics_empty">No configuration problems found</string>
+    <string name="diagnostics_open_task">Open task</string>
+    <string name="back">Back</string>
+    <string name="blocked_calls_title">Blocked calls</string>
+    <string name="blocked_calls_empty">No blocked calls yet</string>
+    <string name="blocked_calls_filter_all">All rules</string>
 </resources>

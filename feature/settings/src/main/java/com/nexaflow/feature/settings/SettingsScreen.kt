@@ -48,6 +48,8 @@ import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.CallEnd
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.core.content.FileProvider
@@ -270,6 +272,18 @@ fun SettingsScreen(navController: NavController) {
                     title = stringResource(R.string.execution_history),
                     subtitle = stringResource(R.string.execution_history_sub),
                     onClick = { navController.navigate(SettingsDestination.EXECUTION_HISTORY_ROUTE) }
+                )
+                SettingRow(
+                    icon = Icons.Filled.BugReport,
+                    title = stringResource(R.string.diagnostics_title),
+                    subtitle = stringResource(R.string.diagnostics_intro),
+                    onClick = { navController.navigate("diagnostics") }
+                )
+                SettingRow(
+                    icon = Icons.Filled.CallEnd,
+                    title = stringResource(R.string.blocked_calls_title),
+                    subtitle = stringResource(R.string.blocked_calls_subtitle),
+                    onClick = { navController.navigate("blocked_calls") }
                 )
                 }
             }

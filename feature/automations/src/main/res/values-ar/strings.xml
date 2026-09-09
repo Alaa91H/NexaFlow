@@ -511,4 +511,16 @@
     <string name="trigger_type_wifi_connected_sub">يعمل عند اتصال الجهاز بشبكة الواي فاي أو فصله عنها</string>
     <string name="trigger_type_mobile_data">اتصال بيانات الجوال</string>
     <string name="trigger_type_mobile_data_sub">يعمل عندما تكون بيانات الجوال هي الشبكة النشطة أو العكس</string>
+    <string name="run_gate_title">لماذا لا يمكن تشغيل المهمة الآن؟</string>
+    <string name="run_reason_task">المهمة: %1$s</string>
+    <string name="run_reason_trigger">المحفز غير متوفر: %1$s</string>
+    <string name="run_reason_constraint">الشرط غير متوفر: %1$s</string>
+    <string name="run_reason_unknown">تعذر التحقق من بعض المحفزات</string>
+    <string name="run_reason_no_exit">لا يوجد سلوك عند الانتهاء</string>
+    <string name="run_reason_run_end">تنفيذ سلوك الانتهاء</string>
+    <string name="run_force_short">قسري</string>
+    <string name="run_force_title">تشغيل قسري؟</string>
+    <string name="run_force_message">التشغيل القسري يتجاوز فحص المحفزات والشروط وينفذ المهمة الآن. يبقى سلوك الانتهاء ساريًا.</string>
+    <string name="run_force_confirm">تشغيل قسري</string>
+    <string name="cancel">إلغاء</string>
 </resources>

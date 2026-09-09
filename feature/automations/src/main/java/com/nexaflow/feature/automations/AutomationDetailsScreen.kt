@@ -100,8 +100,11 @@ import androidx.core.graphics.drawable.IconCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.ui.EmptyState
 import kotlinx.coroutines.launch
+import androidx.compose.material3.AlertDialog
+import androidx.compose.runtime.produceState
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.alternatingSurfaceColor
@@ -137,6 +140,9 @@ fun AutomationDetailsScreen(navController: NavController) {
     var constraintsExpanded by remember { mutableStateOf(false) }
     var actionsExpanded by remember { mutableStateOf(false) }
     var exitBehaviorExpanded by remember { mutableStateOf(false) }
+    // Run-now gate dialogs: mismatch reason, then force-run confirmation.
+    var runBlockDialog by remember { mutableStateOf(false) }
+    var forceRunDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(executionMessage) {
         executionMessage?.let { message ->
@@ -405,7 +411,18 @@ fun AutomationDetailsScreen(navController: NavController) {
                     }
                 }
                 Button(
-                    onClick = { viewModel.runNow() },
+                    onClick = {
+                        // Same gate-first contract as the dashboard: admissible
+                        // runs execute, mismatches surface the typed reason dialog.
+                        coroutineScope.launch {
+                            val block = viewModel.describeManualBlock()
+                            if (block == null) {
+                                viewModel.runNow()
+                            } else {
+                                runBlockDialog = true
+                            }
+                        }
+                    },
                     enabled = !running,
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -417,6 +434,85 @@ fun AutomationDetailsScreen(navController: NavController) {
                 }
             }
         }
+    }
+
+    // Typed mismatch dialog: same contract as the dashboard — names what
+    // failed and offers the honest exit path or the force-run override.
+    if (runBlockDialog) {
+        val block = produceState<ExecutionEngine.ManualBlockReason?>(
+            initialValue = null
+        ) { value = viewModel.describeManualBlock() }.value
+        AlertDialog(
+            onDismissRequest = { runBlockDialog = false },
+            title = { Text(stringResource(R.string.run_gate_title)) },
+            text = {
+                Column {
+                    automation?.let { Text(text = stringResource(R.string.run_reason_task, it.name)) }
+                    when (block?.kind) {
+                        ExecutionEngine.ManualBlockKind.TRIGGERS_NOT_MET ->
+                            block.failedTriggerLabels.forEach { label ->
+                                Text(
+                                    text = stringResource(R.string.run_reason_trigger, label),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        ExecutionEngine.ManualBlockKind.TRIGGERS_UNKNOWN -> {
+                            Text(text = stringResource(R.string.run_reason_unknown))
+                            block.failedTriggerLabels.forEach { label ->
+                                Text(
+                                    text = stringResource(R.string.run_reason_trigger, label),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+                        ExecutionEngine.ManualBlockKind.CONSTRAINTS_NOT_MET ->
+                            block.failedConstraintLabels.forEach { label ->
+                                Text(
+                                    text = stringResource(R.string.run_reason_constraint, label),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        ExecutionEngine.ManualBlockKind.INVALID_TIME_RANGE ->
+                            Text(text = stringResource(R.string.run_reason_no_exit))
+                        else -> Unit
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { runBlockDialog = false; viewModel.runNow() }) {
+                    Text(stringResource(R.string.run_reason_run_end))
+                }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = { runBlockDialog = false }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                    TextButton(onClick = { runBlockDialog = false; forceRunDialog = true }) {
+                        Text(stringResource(R.string.run_force_short))
+                    }
+                }
+            }
+        )
+    }
+
+    // Separate confirmation step: the bypass is never one accidental tap away.
+    if (forceRunDialog) {
+        AlertDialog(
+            onDismissRequest = { forceRunDialog = false },
+            title = { Text(stringResource(R.string.run_force_title)) },
+            text = { Text(stringResource(R.string.run_force_message)) },
+            confirmButton = {
+                TextButton(onClick = { forceRunDialog = false; viewModel.forceRun() }) {
+                    Text(stringResource(R.string.run_force_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { forceRunDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 }
 

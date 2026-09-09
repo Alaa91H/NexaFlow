@@ -511,4 +511,16 @@
     <string name="trigger_type_wifi_connected_sub">Runs when the device connects to Wi-Fi (or disconnects)</string>
     <string name="trigger_type_mobile_data">Mobile data connected</string>
     <string name="trigger_type_mobile_data_sub">Runs when mobile data is the active network (or not)</string>
+    <string name="run_gate_title">¿Por qué no puede ejecutarse esta tarea ahora?</string>
+    <string name="run_reason_task">Tarea: %1$s</string>
+    <string name="run_reason_trigger">Activador no cumplido: %1$s</string>
+    <string name="run_reason_constraint">Condición no cumplida: %1$s</string>
+    <string name="run_reason_unknown">No se pudieron verificar algunos activadores</string>
+    <string name="run_reason_no_exit">Sin comportamiento al finalizar</string>
+    <string name="run_reason_run_end">Ejecutar comportamiento final</string>
+    <string name="run_force_short">Forzar</string>
+    <string name="run_force_title">¿Forzar ejecución?</string>
+    <string name="run_force_message">Forzar ejecución omite la comprobación de activadores y condiciones y ejecuta la tarea ahora. El comportamiento al finalizar sigue aplicándose.</string>
+    <string name="run_force_confirm">Forzar</string>
+    <string name="cancel">Cancelar</string>
 </resources>

@@ -7,8 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.63.0] - 2026-09-09
+
+### Added
+- **App picker (Android):** explicit search scope chips — by app name or by package name — with package subtitles shown while searching, plus a "Recently used in tasks" section listing packages referenced by other saved tasks so cross-task reuse needs no re-searching.
+- **Bluetooth device and calendar pickers (Android):** the same explicit OK/Cancel confirmation bar as the app picker. Tapping now only marks a selection (pre-marked when reopening); OK applies it, Cancel discards and closes without changing anything.
+- **Manual run mismatch dialog (Android):** Run now first asks the admission gate. When the task's triggers or constraints do not match, a typed dialog names exactly which trigger or constraint failed (e.g. "Trigger not met: DARK_MODE ON") and offers three honest paths: run the configured end behavior, cancel, or force.
+- **Force run (Android):** an explicit user override of the manual admission gate behind its own confirmation dialog. The bypass is durably logged in history with a "Force run;" prefix so forced executions are always distinguishable from trigger-driven runs. Available from the dashboard, task details, and deep-link paths.
+- **Configuration problems screen (Android):** a new diagnostics destination (Settings → Automation) listing tasks whose actions failed at runtime because of invalid configuration values, grouped per task with the failing action messages and a direct jump into the task editor — silent engine fallbacks become visible.
+- **Blocked calls screen (Android):** a BlackList-style call log fed by the engine's execution log. Call screening now writes a durable "Call blocked" record per verdict, and the screen offers per-rule (per-task) filter chips, entries with masked numbers, and timestamps.
+- **Connectivity trigger migration (Android):** a dashboard banner appears when saved tasks still use the legacy combined connection trigger; one tap converts each to the dedicated Wi-Fi / mobile data triggers preserving network selection and state. Non-splittable selections (hotspot, ethernet, VPN) are left untouched.
+- **Clamp feedback in editors (Android):** bounded numeric fields (reminder/alarm hour and minute, wait duration) now show inline "value must be between …" feedback when an entry hits its clamp limit instead of silently truncating.
+
+### Changed
+- **Localization (Android):** 104 previously English-fallback strings (Evolver editor, map picker, HTTP request editor, wait durations, ROM-setting trigger, end-behavior hints) translated into all 10 non-English locales. Remaining identical-across-locales strings are technical literals (NFC, USB, VPN, JSON syntax) by design. Turkish apostrophe escaping fixed so all locales compile.
+
 ### Fixed
 - **App picker (Android):** the OK/Cancel confirmation bar is now always visible when one or more apps are selected. The app list was measured as an unbounded sibling of the confirm bar, so with a full launcher list the bar was laid out off the bottom of the sheet and never appeared on real devices; the list is now the single weighted child of the picker sheet, pinning the live selection preview and OK/Cancel bar on screen at every list size.
+
+### Tests
+- New Robolectric suite covering the strict manual admission policy end to end: dashboard Run now rejection, typed mismatch reasons, admissible-task pass-through, force-run logging, and the deep-link policy contract through the real engine and its durable ledger.
 
 ## [v3.62.1] - 2026-09-09
 

@@ -29,7 +29,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -51,10 +53,19 @@ data class PairedDevice(
 @Composable
 fun BluetoothDevicePickerDialog(
     onPick: (PairedDevice) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    /** Currently configured device address, pre-marked when the picker reopens. */
+    preSelectedAddress: String? = null
 ) {
     val context = LocalContext.current
     val devices = remember { loadPairedDevices(context) }
+    // Selection model matches the app picker: tapping marks the device, OK
+    // confirms it, Cancel discards. No tap applies anything by itself.
+    var selectedAddress by remember {
+        androidx.compose.runtime.mutableStateOf(
+            devices.firstOrNull { it.address == preSelectedAddress }?.address
+        )
+    }
 
     // Google 2026: selection tasks open as a full-height modal bottom sheet.
     ModalBottomSheet(
@@ -80,14 +91,15 @@ fun BluetoothDevicePickerDialog(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f, fill = false)
+                    .weight(1f, fill = true)
                     .padding(horizontal = 24.dp)
             ) {
                 items(devices, key = { it.address }) { device ->
+                    val isSelected = device.address == selectedAddress
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onPick(device) }
+                            .clickable { selectedAddress = device.address }
                             .padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -102,7 +114,7 @@ fun BluetoothDevicePickerDialog(
                             Text(
                                 text = device.name,
                                 style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
                             )
                             Text(
                                 text = device.address,
@@ -110,23 +122,39 @@ fun BluetoothDevicePickerDialog(
                                 color = MaterialTheme.colorScheme.secondary
                             )
                         }
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
             }
         }
+        // Same confirm/discard contract as the app picker: OK applies the
+        // marked device (disabled until one is marked), Cancel discards.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 12.dp),
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            TextButton(onClick = onDismiss) {
+            androidx.compose.material3.OutlinedButton(
+                onClick = onDismiss,
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(text = stringResource(R.string.cancel))
+            }
+            androidx.compose.material3.Button(
+                onClick = {
+                    devices.firstOrNull { it.address == selectedAddress }?.let(onPick)
+                },
+                enabled = selectedAddress != null,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(text = stringResource(R.string.bt_pick_ok))
             }
         }
     }

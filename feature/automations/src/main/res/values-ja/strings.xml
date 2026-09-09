@@ -511,4 +511,16 @@
     <string name="trigger_type_wifi_connected_sub">Runs when the device connects to Wi-Fi (or disconnects)</string>
     <string name="trigger_type_mobile_data">Mobile data connected</string>
     <string name="trigger_type_mobile_data_sub">Runs when mobile data is the active network (or not)</string>
+    <string name="run_gate_title">このタスクが今実行できない理由</string>
+    <string name="run_reason_task">タスク: %1$s</string>
+    <string name="run_reason_trigger">トリガー未達成: %1$s</string>
+    <string name="run_reason_constraint">条件未達成: %1$s</string>
+    <string name="run_reason_unknown">一部のトリガーを検証できませんでした</string>
+    <string name="run_reason_no_exit">終了動作が設定されていません</string>
+    <string name="run_reason_run_end">終了動作を実行</string>
+    <string name="run_force_short">強制</string>
+    <string name="run_force_title">強制実行しますか？</string>
+    <string name="run_force_message">強制実行はトリガーと条件のチェックを省略して今すぐタスクを実行します。終了動作は適用されます。</string>
+    <string name="run_force_confirm">強制実行</string>
+    <string name="cancel">キャンセル</string>
 </resources>

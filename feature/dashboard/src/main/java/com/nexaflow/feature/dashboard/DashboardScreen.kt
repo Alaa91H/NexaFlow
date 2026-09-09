@@ -45,6 +45,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.Card
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -53,6 +54,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.produceState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,6 +72,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.R as ExecutionR
 import com.nexaflow.core.ui.EmptyState
 import com.nexaflow.core.ui.IconBadge
@@ -94,6 +97,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun DashboardScreen(navController: NavController) {
@@ -106,6 +110,11 @@ fun DashboardScreen(navController: NavController) {
     var searchQuery by remember { mutableStateOf("") }
     var actionMenuTarget by remember { mutableStateOf<Automation?>(null) }
     var deleteTarget by remember { mutableStateOf<Automation?>(null) }
+    // Task tapped for Run-now whose gate check failed: hosts the mismatch dialog.
+    var runBlockDialogTarget by remember { mutableStateOf<Automation?>(null) }
+    var forceRunConfirmTarget by remember { mutableStateOf<Automation?>(null) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val legacyConnectivityTasks by viewModel.legacyConnectivityTasks.collectAsStateWithLifecycle()
     // Keep one task expanded at a time so the dashboard remains scannable.
     var expandedAutomationId by remember { mutableStateOf<String?>(null) }
 
@@ -209,6 +218,44 @@ fun DashboardScreen(navController: NavController) {
                 }
             }
 
+            // ---- Legacy connectivity migration banner ----
+            if (legacyConnectivityTasks.isNotEmpty()) {
+                item(key = "migrate_banner") {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = androidx.compose.material3.CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        )
+                    ) {
+                        androidx.compose.foundation.layout.Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.migrate_banner_title),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                            )
+                            Text(
+                                text = stringResource(R.string.migrate_banner_message),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                TextButton(onClick = { viewModel.migrateLegacyConnectivityTriggers() }) {
+                                    Text(text = stringResource(R.string.migrate_banner_button))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // ---- Routines ----
             item {
                 SectionHeader(text = stringResource(R.string.section_routines))
@@ -245,7 +292,18 @@ fun DashboardScreen(navController: NavController) {
                     modifier = Modifier.nexaFlowEntrance(
                         delayMillis = minOf(index * 40, 400)
                     ),
-                    onRun = { viewModel.runNow(row.automation) },
+                    onRun = {
+                        // Ask the gate first: admissible → run; rejected →
+                        // show the typed mismatch dialog with a force-run path.
+                        scope.launch {
+                            val block = viewModel.describeManualBlock(row.automation)
+                            if (block == null) {
+                                viewModel.runNow(row.automation)
+                            } else {
+                                runBlockDialogTarget = row.automation
+                            }
+                        }
+                    },
                     onEdit = { navController.navigate("automation_builder?automationId=${row.automation.id}") },
                     onDelete = { deleteTarget = row.automation },
                     onToggle = { viewModel.toggleAutomation(row.automation, it) },
@@ -303,6 +361,103 @@ fun DashboardScreen(navController: NavController) {
             },
             dismissButton = {
                 TextButton(onClick = { deleteTarget = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    // Typed mismatch dialog: names the trigger/constraint that failed and
+    // offers either the honest exit path (OK = run the end behavior) or the
+    // explicit force-run override.
+    runBlockDialogTarget?.let { automation ->
+        val block = produceState<ExecutionEngine.ManualBlockReason?>(
+            initialValue = null,
+            key1 = automation.id
+        ) { value = viewModel.describeManualBlock(automation) }.value
+        AlertDialog(
+            onDismissRequest = { runBlockDialogTarget = null },
+            title = { Text(stringResource(R.string.run_gate_title)) },
+            text = {
+                Column {
+                    Text(text = stringResource(R.string.run_reason_task, automation.name))
+                    when (block?.kind) {
+                        ExecutionEngine.ManualBlockKind.TRIGGERS_NOT_MET ->
+                            block.failedTriggerLabels.forEach { label ->
+                                Text(
+                                    text = stringResource(R.string.run_reason_trigger, label),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        ExecutionEngine.ManualBlockKind.TRIGGERS_UNKNOWN -> {
+                            Text(text = stringResource(R.string.run_reason_unknown))
+                            block.failedTriggerLabels.forEach { label ->
+                                Text(
+                                    text = stringResource(R.string.run_reason_trigger, label),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+                        ExecutionEngine.ManualBlockKind.CONSTRAINTS_NOT_MET ->
+                            block.failedConstraintLabels.forEach { label ->
+                                Text(
+                                    text = stringResource(R.string.run_reason_constraint, label),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        ExecutionEngine.ManualBlockKind.INVALID_TIME_RANGE ->
+                            Text(text = stringResource(R.string.run_reason_no_exit))
+                        else -> Unit
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        runBlockDialogTarget = null
+                        viewModel.runNow(automation)
+                    }
+                ) {
+                    Text(stringResource(R.string.run_reason_run_end))
+                }
+            },
+            dismissButton = {
+                androidx.compose.foundation.layout.Row {
+                    TextButton(onClick = { runBlockDialogTarget = null }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                    TextButton(
+                        onClick = {
+                            runBlockDialogTarget = null
+                            forceRunConfirmTarget = automation
+                        }
+                    ) {
+                        Text(stringResource(R.string.run_force_short))
+                    }
+                }
+            }
+        )
+    }
+
+    // Separate confirmation step for the force-run override: the bypass must
+    // never be one accidental tap away from the mismatch dialog.
+    forceRunConfirmTarget?.let { automation ->
+        AlertDialog(
+            onDismissRequest = { forceRunConfirmTarget = null },
+            title = { Text(stringResource(R.string.run_force_title)) },
+            text = { Text(stringResource(R.string.run_force_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        forceRunConfirmTarget = null
+                        viewModel.forceRun(automation)
+                    }
+                ) {
+                    Text(stringResource(R.string.run_force_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { forceRunConfirmTarget = null }) {
                     Text(stringResource(R.string.cancel))
                 }
             }

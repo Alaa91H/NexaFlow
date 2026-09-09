@@ -128,4 +128,18 @@
     <string name="starter_template_nightly_call_silence">Unbekannte Anrufer nachts stummschalten</string>
     <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
     <string name="trigger_type_mobile_data">Mobile data connected</string>
+    <string name="run_reason_trigger">Auslöser nicht erfüllt: %1$s</string>
+    <string name="run_reason_constraint">Bedingung nicht erfüllt: %1$s</string>
+    <string name="run_reason_unknown">Einige Auslöser konnten nicht geprüft werden</string>
+    <string name="run_reason_no_exit">Kein Endverhalten konfiguriert</string>
+    <string name="run_force_title">Erzwingen?</string>
+    <string name="run_force_message">Erzwungenes Ausführen überspringt die Prüfung von Auslösern und Bedingungen und startet die Aufgabe jetzt. Das Endverhalten bleibt wirksam.</string>
+    <string name="run_force_confirm">Erzwingen</string>
+    <string name="run_gate_title">Warum kann diese Aufgabe jetzt nicht laufen?</string>
+    <string name="run_reason_task">Aufgabe: %1$s</string>
+    <string name="run_reason_run_end">Endverhalten ausführen</string>
+    <string name="run_force_short">Erzwingen</string>
+    <string name="migrate_banner_title">Konnektivitäts-Aufgaben aktualisieren</string>
+    <string name="migrate_banner_message">Einige Aufgaben verwenden noch den alten kombinierten Verbindungs-Auslöser. Migriere sie zu den dedizierten WLAN- und Mobilfunk-Auslösern.</string>
+    <string name="migrate_banner_button">Jetzt migrieren</string>
 </resources>

@@ -123,7 +123,7 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
-    /** Runs a routine immediately from the dashboard action menu — bypasses trigger/condition gate. */
+    /** Runs a routine immediately from the dashboard action menu — obeys the trigger/condition gate. */
     fun runNow(automation: Automation) {
         if (automation.id in _runningIds.value) return
         viewModelScope.launch {
@@ -135,6 +135,80 @@ class DashboardViewModel @Inject constructor(
             // the single manual-admission policy, shared with the details
             // screen, the enable toggle, and the builder save path.
             val record = executionEngine.runWithConditionGate(automation)
+            _executionMessage.value = formatExecutionMessage(record)
+            _runningIds.value = _runningIds.value - automation.id
+        }
+    }
+
+    /**
+     * Typed explanation of why a manual run would be rejected right now.
+     * The UI shows it on the Run-now mismatch dialog; null means admissible.
+     */
+    suspend fun describeManualBlock(automation: Automation): ExecutionEngine.ManualBlockReason? {
+        val reason = executionEngine.describeManualBlock(automation)
+        return if (reason.kind == ExecutionEngine.ManualBlockKind.NONE) null else reason
+    }
+
+    /** Saved tasks still carrying the legacy combined CONNECTIVITY trigger. */
+    val legacyConnectivityTasks: StateFlow<List<Automation>> = automationRepository.getAutomations()
+        .map { list ->
+            list.filter { automation ->
+                automation.triggers.any { it.type == com.nexaflow.domain.models.TriggerType.CONNECTIVITY }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /**
+     * One-tap migration: replaces each legacy combined CONNECTIVITY trigger
+     * with dedicated WIFI_CONNECTED / MOBILE_DATA_CONNECTED triggers that
+     * preserve the original network selection and state. Non-migratable
+     * selections (HOTSPOT/ETHERNET/VPN) are left untouched.
+     */
+    fun migrateLegacyConnectivityTriggers() {
+        viewModelScope.launch {
+            legacyConnectivityTasks.value.forEach { automation ->
+                val newTriggers = mutableListOf<com.nexaflow.domain.models.Trigger>()
+                var changed = false
+                automation.triggers.forEach { trigger ->
+                    if (trigger.type != com.nexaflow.domain.models.TriggerType.CONNECTIVITY) {
+                        newTriggers += trigger
+                        return@forEach
+                    }
+                    val network = (trigger.config["network"] ?: "WIFI").uppercase()
+                    val state = trigger.config["state"] ?: "CONNECTED"
+                    when (network) {
+                        "WIFI" -> newTriggers += com.nexaflow.domain.models.Trigger(
+                            com.nexaflow.domain.models.TriggerType.WIFI_CONNECTED,
+                            mapOf("state" to state)
+                        )
+                        "MOBILE" -> newTriggers += com.nexaflow.domain.models.Trigger(
+                            com.nexaflow.domain.models.TriggerType.MOBILE_DATA_CONNECTED,
+                            mapOf("state" to state)
+                        )
+                        else -> {
+                            // HOTSPOT has its own dedicated trigger; ETHERNET/VPN
+                            // have no split equivalent yet and must keep working.
+                            newTriggers += trigger
+                            return@forEach
+                        }
+                    }
+                    changed = true
+                }
+                if (changed) {
+                    automationRepository.saveAutomation(
+                        automation.copy(triggers = newTriggers, updatedAt = System.currentTimeMillis())
+                    )
+                }
+            }
+        }
+    }
+
+    /** Explicit user override after the force-run confirmation dialog. */
+    fun forceRun(automation: Automation) {
+        if (automation.id in _runningIds.value) return
+        viewModelScope.launch {
+            _runningIds.value = _runningIds.value + automation.id
+            val record = executionEngine.forceRun(automation)
             _executionMessage.value = formatExecutionMessage(record)
             _runningIds.value = _runningIds.value - automation.id
         }

@@ -511,4 +511,16 @@
     <string name="trigger_type_wifi_connected_sub">Runs when the device connects to Wi-Fi (or disconnects)</string>
     <string name="trigger_type_mobile_data">Mobile data connected</string>
     <string name="trigger_type_mobile_data_sub">Runs when mobile data is the active network (or not)</string>
+    <string name="run_gate_title">Por que esta tarefa não pode ser executada agora?</string>
+    <string name="run_reason_task">Tarefa: %1$s</string>
+    <string name="run_reason_trigger">Gatilho não atendido: %1$s</string>
+    <string name="run_reason_constraint">Condição não atendida: %1$s</string>
+    <string name="run_reason_unknown">Alguns gatilhos não puderam ser verificados</string>
+    <string name="run_reason_no_exit">Nenhum comportamento final configurado</string>
+    <string name="run_reason_run_end">Executar comportamento final</string>
+    <string name="run_force_short">Forçar</string>
+    <string name="run_force_title">Forçar execução?</string>
+    <string name="run_force_message">Forçar execução ignora a verificação de gatilhos e condições e executa a tarefa agora. O comportamento final continua valendo.</string>
+    <string name="run_force_confirm">Forçar</string>
+    <string name="cancel">Cancelar</string>
 </resources>

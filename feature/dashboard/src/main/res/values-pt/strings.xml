@@ -128,4 +128,18 @@
     <string name="starter_template_nightly_call_silence">Silenciar desconhecidos à noite</string>
     <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
     <string name="trigger_type_mobile_data">Mobile data connected</string>
+    <string name="run_reason_trigger">Gatilho não atendido: %1$s</string>
+    <string name="run_reason_constraint">Condição não atendida: %1$s</string>
+    <string name="run_reason_unknown">Alguns gatilhos não puderam ser verificados</string>
+    <string name="run_reason_no_exit">Nenhum comportamento final configurado</string>
+    <string name="run_force_title">Forçar execução?</string>
+    <string name="run_force_message">Forçar execução ignora a verificação de gatilhos e condições e executa a tarefa agora. O comportamento final continua valendo.</string>
+    <string name="run_force_confirm">Forçar</string>
+    <string name="run_gate_title">Por que esta tarefa não pode ser executada agora?</string>
+    <string name="run_reason_task">Tarefa: %1$s</string>
+    <string name="run_reason_run_end">Executar comportamento final</string>
+    <string name="run_force_short">Forçar</string>
+    <string name="migrate_banner_title">Atualizar tarefas de conectividade</string>
+    <string name="migrate_banner_message">Algumas tarefas ainda usam o antigo gatilho de conexão combinada. Migre-as para os gatilhos dedicados de Wi-Fi e dados móveis.</string>
+    <string name="migrate_banner_button">Migrar agora</string>
 </resources>

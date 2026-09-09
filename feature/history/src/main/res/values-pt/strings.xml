@@ -43,4 +43,12 @@
     <string name="history_filter_skipped">Ignoradas</string>
     <string name="no_skipped_runs_title">Nenhuma execução ignorada</string>
     <string name="no_skipped_runs_subtitle">Nenhuma execução ignorada corresponde a este filtro.</string>
+    <string name="diagnostics_title">Problemas de configuração</string>
+    <string name="diagnostics_intro">Tarefas cujas ações falharam em tempo de execução por valores de configuração inválidos</string>
+    <string name="diagnostics_empty">Nenhum problema de configuração encontrado</string>
+    <string name="diagnostics_open_task">Abrir tarefa</string>
+    <string name="back">Voltar</string>
+    <string name="blocked_calls_title">Chamadas bloqueadas</string>
+    <string name="blocked_calls_empty">Ainda não há chamadas bloqueadas</string>
+    <string name="blocked_calls_filter_all">Todas as regras</string>
 </resources>

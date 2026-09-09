@@ -128,4 +128,18 @@
     <string name="starter_template_nightly_call_silence">Geceleri bilinmeyenleri sessize al</string>
     <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
     <string name="trigger_type_mobile_data">Mobile data connected</string>
+    <string name="run_reason_trigger">Tetikleyici sağlanmadı: %1$s</string>
+    <string name="run_reason_constraint">Koşul sağlanmadı: %1$s</string>
+    <string name="run_reason_unknown">Bazı tetikleyiciler doğrulanamadı</string>
+    <string name="run_reason_no_exit">Bitiş davranışı yapılandırılmamış</string>
+    <string name="run_force_title">Zorla çalıştırılsın mı?</string>
+    <string name="run_force_message">Zorla çalıştırma tetikleyici ve koşul kontrollerini atlar ve görevi şimdi çalıştırır. Bitiş davranışı geçerli kalır.</string>
+    <string name="run_force_confirm">Zorla çalıştır</string>
+    <string name="run_gate_title">Bu görev şu anda neden çalışamıyor?</string>
+    <string name="run_reason_task">Görev: %1$s</string>
+    <string name="run_reason_run_end">Bitiş davranışını çalıştır</string>
+    <string name="run_force_short">Zorla</string>
+    <string name="migrate_banner_title">Bağlantı görevlerini güncelle</string>
+    <string name="migrate_banner_message">Bazı görevler hâlâ eski birleşik bağlantı tetikleyicisini kullanıyor. Bunları özel Wi-Fi ve mobil veri tetikleyicilerine taşıyın.</string>
+    <string name="migrate_banner_button">Şimdi taşı</string>
 </resources>

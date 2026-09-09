@@ -511,4 +511,16 @@
     <string name="trigger_type_wifi_connected_sub">Runs when the device connects to Wi-Fi (or disconnects)</string>
     <string name="trigger_type_mobile_data">Mobile data connected</string>
     <string name="trigger_type_mobile_data_sub">Runs when mobile data is the active network (or not)</string>
+    <string name="run_gate_title">为什么此任务现在无法运行？</string>
+    <string name="run_reason_task">任务：%1$s</string>
+    <string name="run_reason_trigger">触发条件未满足：%1$s</string>
+    <string name="run_reason_constraint">约束未满足：%1$s</string>
+    <string name="run_reason_unknown">部分触发条件无法验证</string>
+    <string name="run_reason_no_exit">未配置结束行为</string>
+    <string name="run_reason_run_end">执行结束行为</string>
+    <string name="run_force_short">强制</string>
+    <string name="run_force_title">强制运行？</string>
+    <string name="run_force_message">强制运行会跳过触发条件和约束检查并立即执行任务。结束行为仍然生效。</string>
+    <string name="run_force_confirm">强制运行</string>
+    <string name="cancel">取消</string>
 </resources>

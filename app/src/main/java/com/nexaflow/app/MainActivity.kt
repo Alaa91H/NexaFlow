@@ -145,12 +145,26 @@ class MainActivity : AppCompatActivity() {
                 // Manual invocation via deep link obeys the same admission
                 // policy as the in-app Run now: the task's triggers and
                 // constraints must match, otherwise only the end behavior
-                // runs (or the mismatch is reported explicitly).
+                // runs (or the mismatch is reported explicitly). The reason
+                // for a rejection is included in the toast so a deep-link
+                // invocation is never a silent no-op.
                 val record = executionEngine.runWithConditionGate(automation)
+                val reason = executionEngine.describeManualBlock(automation)
+                val reasonText = if (reason != null && reason.kind != ExecutionEngine.ManualBlockKind.NONE) {
+                    when (reason.kind) {
+                        ExecutionEngine.ManualBlockKind.TRIGGERS_NOT_MET ->
+                            reason.failedTriggerLabels.joinToString().ifEmpty { null }
+                        ExecutionEngine.ManualBlockKind.TRIGGERS_UNKNOWN ->
+                            reason.failedTriggerLabels.joinToString().ifEmpty { null }
+                        ExecutionEngine.ManualBlockKind.CONSTRAINTS_NOT_MET ->
+                            reason.failedConstraintLabels.joinToString().ifEmpty { null }
+                        else -> null
+                    }?.let { " — $it" } ?: ""
+                } else ""
                 Toast.makeText(
                     this@MainActivity,
                     getString(R.string.deep_link_run_toast, automation.name) + " — " +
-                        ExecutionResultPresentation.summary(this@MainActivity, record),
+                        ExecutionResultPresentation.summary(this@MainActivity, record) + reasonText,
                     Toast.LENGTH_LONG
                 ).show()
             }

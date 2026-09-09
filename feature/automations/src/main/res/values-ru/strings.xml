@@ -511,4 +511,16 @@
     <string name="trigger_type_wifi_connected_sub">Runs when the device connects to Wi-Fi (or disconnects)</string>
     <string name="trigger_type_mobile_data">Mobile data connected</string>
     <string name="trigger_type_mobile_data_sub">Runs when mobile data is the active network (or not)</string>
+    <string name="run_gate_title">Почему задача не может выполниться сейчас?</string>
+    <string name="run_reason_task">Задача: %1$s</string>
+    <string name="run_reason_trigger">Триггер не выполнен: %1$s</string>
+    <string name="run_reason_constraint">Условие не выполнено: %1$s</string>
+    <string name="run_reason_unknown">Некоторые триггеры не удалось проверить</string>
+    <string name="run_reason_no_exit">Поведение завершения не настроено</string>
+    <string name="run_reason_run_end">Выполнить поведение завершения</string>
+    <string name="run_force_short">Принудительно</string>
+    <string name="run_force_title">Запустить принудительно?</string>
+    <string name="run_force_message">Принудительный запуск пропускает проверку триггеров и условий и выполняет задачу сейчас. Поведение завершения сохраняется.</string>
+    <string name="run_force_confirm">Запустить принудительно</string>
+    <string name="cancel">Отмена</string>
 </resources>

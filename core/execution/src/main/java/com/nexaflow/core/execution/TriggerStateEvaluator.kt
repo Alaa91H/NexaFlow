@@ -76,6 +76,49 @@ object TriggerStateEvaluator {
         return if (unknown) ConditionResult.Unknown else ConditionResult.Satisfied
     }
 
+    /**
+     * First failing trigger for the manual-gate reason surfacing. Returns the
+     * trigger whose state blocked a manual run: the first confirmed-unsatisfied
+     * trigger wins, otherwise the first unverifiable one. Null when every
+     * trigger is satisfied (or none is configured).
+     */
+    suspend fun firstUnsatisfiedTrigger(context: Context, triggers: List<Trigger>): Trigger? {
+        if (triggers.isEmpty()) return null
+        var unknownTrigger: Trigger? = null
+        triggers.forEach { trigger ->
+            when (withContext(Dispatchers.IO) { evaluateTriggerForManualGate(context, trigger) }) {
+                ConditionResult.Satisfied -> Unit
+                ConditionResult.Unsatisfied -> return trigger
+                else -> if (unknownTrigger == null) unknownTrigger = trigger
+            }
+        }
+        return unknownTrigger
+    }
+
+    /**
+     * Stable, non-localized trigger label for diagnostics and gate reasons:
+     * "TIME 08:00", "WIFI_CONNECTED CONNECTED", "SMS from x containing y".
+     * The UI localizes the frame text around it, never the value itself.
+     */
+    fun triggerLabel(trigger: Trigger): String {
+        val c = trigger.config
+        val base = trigger.type.name
+        return when (trigger.type) {
+            TriggerType.TIME -> "$base ${c["time"] ?: ""}".trim()
+            TriggerType.SMS -> buildString {
+                append(base)
+                c["from"]?.takeIf { it.isNotBlank() }?.let { append(" from ").append(it) }
+                c["contains"]?.takeIf { it.isNotBlank() }?.let { append(" containing ").append(it) }
+            }
+            TriggerType.APPLICATION,
+            TriggerType.NOTIFICATION -> "$base ${c["packages"] ?: c["package"] ?: ""}".trim()
+            TriggerType.LOCATION -> "$base ${c["lat"] ?: ""},${c["lng"] ?: ""}".trim()
+            else -> c.entries.firstOrNull { it.value.isNotBlank() }
+                ?.let { "$base ${it.key}=${it.value}" }
+                ?: base
+        }
+    }
+
     private fun evaluateTriggerForManualGate(context: Context, trigger: Trigger): ConditionResult {
         if (trigger.type in MANUAL_EVENT_ONLY_TYPES) return ConditionResult.Unknown
         val satisfied = runCatching { triggerSatisfied(context, trigger) }.getOrNull()

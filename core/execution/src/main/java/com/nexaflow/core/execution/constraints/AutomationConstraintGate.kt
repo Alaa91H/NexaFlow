@@ -53,6 +53,22 @@ class AutomationConstraintGate(
         return ConditionResult.Satisfied
     }
 
+    /**
+     * First unsatisfied local constraint for the manual-gate reason surfacing.
+     * Plugin constraints resolve to a typed reason already carried by the
+     * caller; only the pure domain set is inspected here. Null when every
+     * constraint is satisfied (or none is configured).
+     */
+    fun firstUnsatisfiedConstraint(
+        automation: Automation,
+        state: ConstraintSnapshot?
+    ): com.nexaflow.domain.models.Constraint? {
+        val localConstraints = automation.constraints.filter { it.type != ConstraintType.PLUGIN }
+        if (localConstraints.isEmpty()) return null
+        val snapshot = state ?: return localConstraints.first()
+        return localConstraints.firstOrNull { !ConstraintEvaluator.isSatisfied(it, snapshot) }
+    }
+
     companion object {
         const val ACTION_ID_CONSTRAINT = "PLUGIN_CONDITION"
         private const val KEY_INSTANCE = "pluginInstance"
