@@ -1933,7 +1933,7 @@ fun AutomationBuilderScreen(
                     if (actionDrafts.isEmpty()) {
                         NexaFlowCard {
                             Text(
-                                text = "أضف تنفيذات أولاً لتحديد ماذا يحدث عند انتهاء المهمة",
+                                text = stringResource(R.string.end_behavior_add_first),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.secondary
                             )
@@ -1947,7 +1947,7 @@ fun AutomationBuilderScreen(
                         if (actionsWithEndOptions.isEmpty()) {
                             NexaFlowCard {
                                 Text(
-                                    text = "لا يوجد إجراء يدعم سلوك الانتهاء — أضف إجراءً مثل Wi-Fi أو سطوع",
+                                    text = stringResource(R.string.end_behavior_none_supported),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.secondary
                                 )
@@ -2192,7 +2192,9 @@ fun AutomationBuilderScreen(
                 val isOpenApp = draft.option.actionType == ActionType.SYSTEM_OPEN_APP
                 val isSinglePickAction = draft.option.actionType in setOf(
                     ActionType.APPLICATION_CLOSE_APP,
-                    ActionType.APPLICATION_OPEN_APP_SETTINGS,
+                    ActionType.APPLICATION_OPEN_APP_SETTINGS
+                )
+                val isMultiPickAction = draft.option.actionType in setOf(
                     ActionType.SYSTEM_BLOCK_NOTIFICATION,
                     ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS
                 )
@@ -2237,6 +2239,34 @@ fun AutomationBuilderScreen(
                         },
                         onDismiss = { appPickerTarget = null }
                     )
+                    isMultiPickAction -> {
+                        val pre = (draft.config["packages"] ?: draft.config["package"] ?: "")
+                            .split(',').map { it.trim() }.filter { it.isNotEmpty() }
+                        AppPickerDialog(
+                            onPickSingle = { app ->
+                                val merged = (pre + app.packageName).distinct()
+                                val current = actionDrafts.getOrNull(actionIndex)
+                                if (current?.id == actionId) {
+                                    actionDrafts[actionIndex] = current.copy(
+                                        config = current.config + ("packages" to merged.joinToString(","))
+                                    )
+                                }
+                                appPickerTarget = null
+                            },
+                            onPickMultiple = { apps ->
+                                val current = actionDrafts.getOrNull(actionIndex)
+                                if (current?.id == actionId) {
+                                    actionDrafts[actionIndex] = current.copy(
+                                        config = current.config + ("packages" to apps.joinToString(",") { it.packageName })
+                                    )
+                                }
+                                appPickerTarget = null
+                            },
+                            multiSelect = true,
+                            preSelectedPackages = pre,
+                            onDismiss = { appPickerTarget = null }
+                        )
+                    }
                     else -> appPickerTarget = null
                 }
             }

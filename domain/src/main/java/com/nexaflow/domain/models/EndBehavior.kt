@@ -85,7 +85,9 @@ object EndBehaviorCatalog {
         ActionType.SYSTEM_SCREEN_ROTATION,
         ActionType.SYSTEM_NETWORK_MODE,
         ActionType.SYSTEM_POINTER_SPEED,
-        ActionType.SYSTEM_SCREENSAVER_TIMEOUT
+        ActionType.SYSTEM_SCREENSAVER_TIMEOUT,
+        ActionType.SYSTEM_FONT_SCALE,
+        ActionType.SYSTEM_DISPLAY_DENSITY
     )
 
     /**

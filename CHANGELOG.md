@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.62.0] - 2026-09-09
+
+### Added
+- **HTTP request action: full professional customization.** The editor now exposes the connection **timeout** (seconds, with hint), the **retry policy** (attempt count, matching the engine's existing retry/backoff knobs), and an optional **response output path** so later actions can read the response body via context selectors — all knobs the handler already supported but the builder never surfaced.
+- **Evolver navigation: back-gesture height.** The EVO_NAVIGATION editor now offers chip presets for the gesture bar height instead of leaving the engine-only `back_height` key unreachable from the UI.
+- **Block / clear notifications: multi-app selection.** Both notification actions accept multiple packages at the engine level; the editor now uses the multi-select app picker (with OK (count) / Cancel confirmation) instead of a single free-text package field.
+- **Font scale and display density gained end behavior.** These two display-scaling actions were the only settings with no "when the task ends" option. The device snapshot now captures the original font scale and forced display density, restore-original writes them back (density via `wm density`), the end-behavior catalog lists both as value actions, and their end-value editor offers practical preset chips plus a validated numeric field.
+
+### Fixed
+- **Package picker fields no longer wipe sibling action settings.** Editing an action's package field rebuilt the whole config map with only the package key, silently clearing other keys (e.g. the enabled toggle of "block notifications"). Editing now preserves every other configured key and clears only the opposite single/multi package key.
+- **End-behavior section strings are localized.** Two hard-coded Arabic strings ("add actions first", "no action supports end behavior") in the builder now use the existing string resources, so they render correctly in all 11 languages.
+- **XML validity: `Heads-up & Notifications`** contained a bare ampersand that broke resource packaging in all 11 locale files; the JSON catalog was corrected too so the generator cannot reintroduce it.
+
 ## [v3.61.0] - 2026-09-09
 
 ### Fixed
