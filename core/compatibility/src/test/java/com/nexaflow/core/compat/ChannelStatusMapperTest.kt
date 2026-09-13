@@ -129,9 +129,9 @@ class ChannelStatusMapperTest {
     }
 
     @Test
-    fun rootOutranksShizuku_bothAvailable() {
+    fun shizukuOutranksRoot_bothAvailable() {
         val status = map(profile(root = true, shizuku = true))
-        assertEquals(ExecutionProviderType.ROOT, status.provider)
+        assertEquals(ExecutionProviderType.SHIZUKU, status.provider)
         assertEquals(ChannelTier.ELEVATED, status.tier)
     }
 
