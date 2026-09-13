@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.69.0] - 2026-09-13
+
+### Changed
+
+- **Privileged capability execution now selects the best authorized channel adaptively.**
+  Capability requests that explicitly opt in to privileged execution no longer need to pin
+  exactly one backend. NexaFlow now prefers Shizuku for capabilities supported by both
+  Shizuku and Root, then falls back to Root when Shizuku is unavailable. Requests can still
+  restrict execution with `allowedBackends` or override priority with `preferredBackends`.
+- **Shizuku is now the preferred compatibility provider for shared elevated capabilities.**
+  The legacy compatibility selector follows the same least-privilege ordering as the modern
+  capability resolver, while Root remains exclusive for `ROOT_SHELL`.
+
+### Fixed
+
+- **Privileged backend availability no longer reports false permission requirements when
+  adaptive execution is explicitly authorized.** `allowPrivilegedBackends=true` is now the
+  explicit authorization boundary; backend pinning remains optional rather than mandatory.
+- **Shizuku/Root failures now map to more precise structured capability errors.**
+  Shizuku connection loss and unavailable UserService states are reported as
+  `SHIZUKU_UNAVAILABLE`, while unavailable Root execution is reported as `ROOT_UNAVAILABLE`.
+- **Compatibility channel diagnostics now reflect Shizuku-first precedence.**
+  The channel-status regression test was updated so devices exposing both Shizuku and Root
+  report the same preferred elevated channel as the production selector.
+
+### Tests
+
+- Added adaptive-resolution coverage for Shizuku-first selection, Root fallback,
+  explicit Root preference, backend pinning, and privileged-execution opt-in.
+- Updated compatibility-provider coverage to keep `ROOT_SHELL` constrained to Root.
+
 ## [v3.68.0] - 2026-09-13
 
 ### Fixed
@@ -866,4 +897,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Functional Capability Center with real permission status pills and deep-link Grant/Settings actions.
 - Unit tests for `ConditionEvaluator`, `AutomationMapper`, `ProfileMapper`, and `ExecutionRecordMapper`; CI now runs `testDebugUnitTest`.
 - Removed empty `core/common`, `core/permissions`, and `core/security` modules; disabled Jetifier; `allowBackup=false`; monochrome launcher icon.
-
