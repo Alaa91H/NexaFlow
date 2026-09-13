@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: release-after-green-main
@@ -75,3 +76,16 @@ jobs:
           git tag -a "$VERSION" "$GREEN_SHA" -m "NexaFlow $VERSION"
           git push origin "refs/tags/$VERSION"
           echo "Created $VERSION at verified main commit $GREEN_SHA."
+
+      - name: Dispatch signed tag build and GitHub Release
+        if: steps.version.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          # GitHub intentionally suppresses ordinary workflow triggers caused
+          # by GITHUB_TOKEN pushes. workflow_dispatch is the supported explicit
+          # exception, so dispatch the Android CI workflow at the new tag.
+          gh workflow run android-ci.yml --ref "$VERSION"
+          echo "Dispatched Android CI for $VERSION; the tag build owns production signing and release publication."
