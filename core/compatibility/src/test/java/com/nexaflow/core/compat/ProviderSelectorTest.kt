@@ -57,9 +57,9 @@ class ProviderSelectorTest {
     }
 
     @Test
-    fun rootOutranksShizukuWhenBothAvailable() {
+    fun shizukuOutranksRootWhenBothCanSatisfyTheRequest() {
         val best = selector.bestFor(profile(shizuku = true, root = true))
-        assertEquals(ExecutionProviderType.ROOT, best?.type)
+        assertEquals(ExecutionProviderType.SHIZUKU, best?.type)
     }
 
     @Test
@@ -100,7 +100,7 @@ class ProviderSelectorTest {
     // ---- Capability filtering ----
 
     @Test
-    fun capability_rootShell_onlyRootAndShizukuSatisfy() {
+    fun capability_rootShell_onlyRootSatisfies() {
         val best = selector.bestFor(
             profile(root = true, shizuku = true),
             capability = RomCapability.ROOT_SHELL
@@ -192,7 +192,7 @@ class ProviderSelectorTest {
 
     @Test
     fun executeWithFallback_triesProvidersInOrder() {
-        // Root and shizuku both "available" but neither can actually run in this
+        // Shizuku and Root both "available" but neither can actually run in this
         // JVM test — the chain still completes without throwing and returns a
         // terminal failure rather than crashing.
         val result = selector.executeWithFallback(
