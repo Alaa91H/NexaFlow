@@ -17,6 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Shizuku is now the preferred compatibility provider for shared elevated capabilities.**
   The legacy compatibility selector follows the same least-privilege ordering as the modern
   capability resolver, while Root remains exclusive for `ROOT_SHELL`.
+- **Builder capability discovery now keeps grantable features visible without making them executable.**
+  The trigger and action catalogues distinguish ready, permission-required, temporarily unavailable,
+  and unsupported capabilities from the same live snapshot. Grantable rows stay discoverable with an
+  explicit locked state and route into the existing permission flow; unsupported rows remain hidden.
+- **Release automation now gates version tags on the latest green `main` commit.**
+  A changelog-backed release candidate is tagged only after Android CI succeeds for the current head,
+  then the tag build is dispatched explicitly so production-signing, certificate, APK/AAB, alignment,
+  and release checks cannot be skipped by GitHub token recursion protections.
 
 ### Fixed
 

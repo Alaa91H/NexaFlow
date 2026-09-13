@@ -400,10 +400,12 @@ fun CategoryAccordion(
 }
 
 @Composable
-fun ActionOptionRow(
+internal fun ActionOptionRow(
     option: ActionOption,
     checked: Boolean,
     onToggle: () -> Unit,
+    availability: BuilderOptionAvailability = BuilderOptionAvailability.READY,
+    onBlockedClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     alternatingIndex: Int? = null
 ) {
@@ -414,6 +416,8 @@ fun ActionOptionRow(
         color = option.color,
         checked = checked,
         onToggle = onToggle,
+        availability = availability,
+        onBlockedClick = onBlockedClick,
         modifier = modifier,
         alternatingIndex = alternatingIndex
     )
@@ -426,10 +430,12 @@ fun ActionOptionRow(
  * using the shared row keeps its compact RTL geometry identical to execution.
  */
 @Composable
-fun TriggerOptionRow(
+internal fun TriggerOptionRow(
     type: TriggerType,
     checked: Boolean,
     onSelect: () -> Unit,
+    availability: BuilderOptionAvailability = BuilderOptionAvailability.READY,
+    onBlockedClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     alternatingIndex: Int? = null
 ) {
@@ -441,6 +447,8 @@ fun TriggerOptionRow(
         color = categoryColor,
         checked = checked,
         onToggle = onSelect,
+        availability = availability,
+        onBlockedClick = onBlockedClick,
         modifier = modifier,
         alternatingIndex = alternatingIndex
     )
@@ -454,10 +462,20 @@ private fun CatalogOptionRow(
     color: Color,
     checked: Boolean,
     onToggle: () -> Unit,
+    availability: BuilderOptionAvailability,
+    onBlockedClick: () -> Unit,
     modifier: Modifier,
     alternatingIndex: Int?
 ) {
     val rowSurface = alternatingIndex?.let { alternatingSurfaceColor(it) }
+    val isReady = availability == BuilderOptionAvailability.READY
+    val isGrantable = availability == BuilderOptionAvailability.PERMISSION_REQUIRED
+    val lockedMessage = when (availability) {
+        BuilderOptionAvailability.READY -> null
+        BuilderOptionAvailability.PERMISSION_REQUIRED -> stringResource(R.string.permission_denied_hint)
+        BuilderOptionAvailability.UNAVAILABLE,
+        BuilderOptionAvailability.UNSUPPORTED -> stringResource(R.string.elevated_status_unavailable)
+    }
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -471,7 +489,10 @@ private fun CatalogOptionRow(
                     Modifier
                 }
             )
-            .clickable(onClick = onToggle)
+            .clickable(
+                enabled = isReady || isGrantable,
+                onClick = if (isReady) onToggle else onBlockedClick
+            )
             .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -491,11 +512,36 @@ private fun CatalogOptionRow(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary
             )
+            lockedMessage?.let { message ->
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (isGrantable) NexaFlowTheme.colors.warning else MaterialTheme.colorScheme.secondary
+                )
+            }
         }
-        Checkbox(
-            checked = checked,
-            onCheckedChange = { onToggle() }
-        )
+        if (isReady) {
+            Checkbox(
+                checked = checked,
+                onCheckedChange = { onToggle() }
+            )
+        } else {
+            StatusPill(
+                text = stringResource(
+                    if (isGrantable) R.string.elevated_status_available else R.string.elevated_status_unavailable
+                ),
+                background = if (isGrantable) {
+                    NexaFlowTheme.colors.warningContainer
+                } else {
+                    MaterialTheme.colorScheme.surfaceContainerHighest
+                },
+                contentColor = if (isGrantable) {
+                    NexaFlowTheme.colors.warning
+                } else {
+                    MaterialTheme.colorScheme.secondary
+                }
+            )
+        }
     }
 }
 

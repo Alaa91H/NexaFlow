@@ -898,15 +898,25 @@ fun AutomationBuilderScreen(
     val configurationContext = remember(context, configuration) {
         context.createConfigurationContext(configuration)
     }
-    // One reactive capability-engine snapshot is composed with Android/ROM
-    // compatibility. Options with no executable backend are not rendered in
-    // picker, browse, common or search paths.
+    // Compose one live capability snapshot with Android/ROM compatibility.
+    // Unsupported entries stay hidden, while grantable or temporarily unavailable
+    // entries remain discoverable and are rendered as locked rows below.
     val capabilitySnapshot by viewModel.capabilitySnapshot.collectAsStateWithLifecycle()
-    val supportedActions = remember(context, capabilitySnapshot) {
-        CompatibilityGate.supportedActionOptions(context, capabilitySnapshot)
+    val actionOptionStates = remember(context, capabilitySnapshot) {
+        CompatibilityGate.actionOptionStates(context, capabilitySnapshot)
+            .filter { it.availability != BuilderOptionAvailability.UNSUPPORTED }
     }
-    val supportedTriggers = remember(context, capabilitySnapshot) {
-        CompatibilityGate.supportedTriggerOptions(context, capabilitySnapshot)
+    val triggerOptionStates = remember(context, capabilitySnapshot) {
+        CompatibilityGate.triggerOptionStates(context, capabilitySnapshot)
+            .filter { it.availability != BuilderOptionAvailability.UNSUPPORTED }
+    }
+    val supportedActions = remember(actionOptionStates) { actionOptionStates.map { it.option } }
+    val actionAvailabilityByType = remember(actionOptionStates) {
+        actionOptionStates.associate { it.option.actionType to it.availability }
+    }
+    val supportedTriggers = remember(triggerOptionStates) { triggerOptionStates.map { it.type } }
+    val triggerAvailabilityByType = remember(triggerOptionStates) {
+        triggerOptionStates.associate { it.type to it.availability }
     }
     val availableTemplates = remember(capabilitySnapshot) {
         RoutineTemplateCatalog.availableTemplates(
@@ -936,6 +946,7 @@ fun AutomationBuilderScreen(
     val stringSavedSuccessfully = stringResource(R.string.saved_successfully)
     val stringDefaultTaskName = stringResource(R.string.builder_title)
     val stringLocationFixFailed = stringResource(R.string.location_fix_failed)
+    val stringPermissionRequired = stringResource(R.string.permission_denied_hint)
     // P2-11: the editable draft survives rotation AND process death via
     // rememberSaveable (custom savers serialize the immutable drafts to Bundle).
     var name by rememberSaveable { mutableStateOf("") }
@@ -1559,6 +1570,26 @@ fun AutomationBuilderScreen(
         }
     }
 
+    fun requestGrantForAction(type: ActionType) {
+        val runtime = PermissionCatalog.runtimePermissionsFor(type)
+        val special = PermissionCatalog.specialPermissionFor(type)
+        when {
+            runtime.isNotEmpty() -> requestPermissions(runtime.toTypedArray())
+            special != null -> explainSpecialPermission(special)
+            else -> scope.launch { snackbarHostState.showSnackbar(stringPermissionRequired) }
+        }
+    }
+
+    fun requestGrantForTrigger(type: TriggerType) {
+        val runtime = PermissionCatalog.runtimePermissionsFor(type)
+        val special = PermissionCatalog.specialPermissionFor(type)
+        when {
+            runtime.isNotEmpty() -> requestPermissions(runtime.toTypedArray())
+            special != null -> explainSpecialPermission(special)
+            else -> scope.launch { snackbarHostState.showSnackbar(stringPermissionRequired) }
+        }
+    }
+
     Scaffold(
         topBar = {
             NexaFlowTopBar(
@@ -1701,6 +1732,8 @@ fun AutomationBuilderScreen(
                                     type = type,
                                     checked = type in selectedTriggerTypes,
                                     alternatingIndex = optionIndex,
+                                    availability = triggerAvailabilityByType[type] ?: BuilderOptionAvailability.READY,
+                                    onBlockedClick = { requestGrantForTrigger(type) },
                                     onSelect = {
                                         if (type in selectedTriggerTypes) selectedTriggerTypes.remove(type)
                                         else selectedTriggerTypes.add(type)
@@ -1724,6 +1757,8 @@ fun AutomationBuilderScreen(
                                         type = type,
                                         checked = type in selectedTriggerTypes,
                                         alternatingIndex = optionIndex,
+                                        availability = triggerAvailabilityByType[type] ?: BuilderOptionAvailability.READY,
+                                        onBlockedClick = { requestGrantForTrigger(type) },
                                         onSelect = {
                                             if (type in selectedTriggerTypes) selectedTriggerTypes.remove(type)
                                             else selectedTriggerTypes.add(type)
@@ -1824,6 +1859,8 @@ fun AutomationBuilderScreen(
                                         option = option,
                                         checked = option.actionType in selectedActionTypes,
                                         alternatingIndex = optionIndex,
+                                        availability = actionAvailabilityByType[option.actionType] ?: BuilderOptionAvailability.READY,
+                                        onBlockedClick = { requestGrantForAction(option.actionType) },
                                         onToggle = {
                                             if (option.actionType in selectedActionTypes) selectedActionTypes.remove(option.actionType)
                                             else selectedActionTypes.add(option.actionType)
@@ -1846,6 +1883,8 @@ fun AutomationBuilderScreen(
                                             option = option,
                                             checked = option.actionType in selectedActionTypes,
                                             alternatingIndex = optionIndex,
+                                            availability = actionAvailabilityByType[option.actionType] ?: BuilderOptionAvailability.READY,
+                                            onBlockedClick = { requestGrantForAction(option.actionType) },
                                             onToggle = {
                                                 if (option.actionType in selectedActionTypes) selectedActionTypes.remove(option.actionType)
                                                 else selectedActionTypes.add(option.actionType)
