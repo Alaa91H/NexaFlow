@@ -58,10 +58,6 @@ class CapabilityStateStoreTest {
 
     @Test
     fun `burst of invalidations coalesces into a single trailing refresh`() = runTest {
-        // Regression guard for the binder flood: a listener storm (e.g. a
-        // flapping Shizuku binder) must not trigger one full capability scan
-        // per event — the scan is throttled to one refresh per window plus a
-        // single coalesced trailing refresh.
         val backend = CountingBackend(MutableAvailabilityBackend(CapabilityAvailability.AVAILABLE))
         val registry = CapabilityRegistry.of(
             descriptors = listOf(
@@ -98,6 +94,45 @@ class CapabilityStateStoreTest {
         )
     }
 
+    @Test
+    fun `probe failure does not block a later capability refresh`() = runTest {
+        val backend = FailOnceBackend()
+        val registry = CapabilityRegistry.of(
+            descriptors = listOf(
+                CapabilityDescriptor(
+                    id = CapabilityId.DEVICE_STATE_READ,
+                    displayName = "Device state",
+                    description = "Test descriptor",
+                    supportedBackends = listOf(CapabilityBackendId.ANDROID_API)
+                )
+            ),
+            backends = listOf(backend)
+        )
+        var eventListener: (() -> Unit)? = null
+        var now = 1_000L
+        val store = CapabilityStateStore(
+            registry = registry,
+            environmentInspector = inspector(),
+            scope = this,
+            nowMs = { now++ },
+            registerShizukuStateListener = { listener ->
+                eventListener = listener
+                listener()
+            },
+            minRefreshIntervalMs = 0L
+        )
+
+        advanceUntilIdle()
+        checkNotNull(eventListener).invoke()
+        advanceUntilIdle()
+
+        assertEquals(
+            CapabilityAvailability.AVAILABLE,
+            store.snapshot.value.availabilityOf(CapabilityId.DEVICE_STATE_READ)
+        )
+        assertEquals(2, backend.availabilityCalls)
+    }
+
     private fun inspector() = CapabilityEnvironmentInspector(
         shizukuInstalled = { false },
         shizukuRunning = { false },
@@ -117,6 +152,24 @@ class CapabilityStateStoreTest {
             availabilityCalls++
             return delegate.availability(request)
         }
+    }
+
+    private class FailOnceBackend : CapabilityBackend {
+        override val id: CapabilityBackendId = CapabilityBackendId.ANDROID_API
+        override val supportedCapabilities: Set<CapabilityId> = setOf(CapabilityId.DEVICE_STATE_READ)
+        var availabilityCalls = 0
+
+        override suspend fun availability(request: CapabilityRequest): BackendAvailability {
+            availabilityCalls++
+            if (availabilityCalls == 1) error("transient capability probe failure")
+            return BackendAvailability(
+                backend = id,
+                availability = CapabilityAvailability.AVAILABLE
+            )
+        }
+
+        override suspend fun execute(request: CapabilityRequest): CapabilityResult =
+            CapabilityResult.unsupported("Not used by state-store test")
     }
 
     private class MutableAvailabilityBackend(
