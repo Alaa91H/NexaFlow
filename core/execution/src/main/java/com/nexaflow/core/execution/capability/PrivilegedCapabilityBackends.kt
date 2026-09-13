@@ -142,7 +142,11 @@ class ShizukuCapabilityBackend(
         if (!running()) return unavailable(CapabilityErrorCode.SHIZUKU_UNAVAILABLE, "Shizuku server is not running", id)
         if (!granted()) return unavailable(CapabilityErrorCode.SHIZUKU_DENIED, "Shizuku access was not granted", id)
         if (!userServiceBound()) return unavailable(CapabilityErrorCode.SHIZUKU_UNAVAILABLE, "Shizuku UserService is not connected", id)
-        return executeOperation(operation).toCapabilityResult(id, operation)
+        return executeOperation(operation).toCapabilityResult(
+            backend = id,
+            operation = operation,
+            denialCode = CapabilityErrorCode.SHIZUKU_DENIED
+        )
     }
 
     private fun unsupportedAvailability() = BackendAvailability(id, CapabilityAvailability.UNSUPPORTED, "Capability is not implemented by Shizuku backend")
