@@ -109,7 +109,7 @@ object CompatibilityGate {
      * Full capability-aware state for every Android/ROM-compatible action.
      * Device-incompatible actions are omitted before capability classification.
      */
-    fun actionOptionStates(
+    internal fun actionOptionStates(
         context: Context,
         snapshot: CapabilitySnapshot
     ): List<BuilderActionOptionState> {
@@ -146,7 +146,7 @@ object CompatibilityGate {
     }
 
     /** Full capability-aware state for every Android/ROM-compatible trigger. */
-    fun triggerOptionStates(
+    internal fun triggerOptionStates(
         context: Context,
         snapshot: CapabilitySnapshot
     ): List<BuilderTriggerOptionState> {
