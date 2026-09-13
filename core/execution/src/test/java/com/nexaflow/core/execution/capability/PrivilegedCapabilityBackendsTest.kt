@@ -17,7 +17,7 @@ import org.junit.Test
 class PrivilegedCapabilityBackendsTest {
 
     @Test
-    fun shizukuRequiresAnExplicitSingleChannelSelection() = runBlocking {
+    fun shizukuIsAvailableAfterExplicitPrivilegedOptInWithoutPinningAChannel() = runBlocking {
         val backend = ShizukuCapabilityBackend(
             running = { true },
             granted = { true },
@@ -26,12 +26,30 @@ class PrivilegedCapabilityBackendsTest {
 
         val availability = backend.availability(forceStopRequest())
 
-        assertEquals(CapabilityAvailability.PERMISSION_REQUIRED, availability.availability)
-        assertTrue(availability.reason.orEmpty().contains("Select exactly one"))
+        assertEquals(CapabilityAvailability.AVAILABLE, availability.availability)
     }
 
     @Test
-    fun selectedShizukuMapsPackageCapabilityToTypedOperation() = runBlocking {
+    fun privilegedBackendStillRejectsRequestsWithoutExplicitOptIn() = runBlocking {
+        val backend = ShizukuCapabilityBackend(
+            running = { true },
+            granted = { true },
+            userServiceBound = { true }
+        )
+        val request = CapabilityRequest(
+            capability = CapabilityId.PACKAGE_FORCE_STOP,
+            parameters = mapOf("packageName" to "com.example.app")
+        )
+
+        val availability = backend.availability(request)
+        val result = backend.execute(request)
+
+        assertEquals(CapabilityAvailability.PERMISSION_REQUIRED, availability.availability)
+        assertEquals(CapabilityErrorCode.POLICY_NOT_SATISFIED, result.errorCode)
+    }
+
+    @Test
+    fun adaptiveShizukuMapsPackageCapabilityToTypedOperation() = runBlocking {
         var executed: PrivilegedOperation? = null
         val backend = ShizukuCapabilityBackend(
             running = { true },
@@ -43,11 +61,29 @@ class PrivilegedCapabilityBackendsTest {
             }
         )
 
-        val result = backend.execute(forceStopRequest(CapabilityBackendId.SHIZUKU))
+        val result = backend.execute(forceStopRequest())
 
         assertTrue(result.isSuccess)
         assertEquals(CapabilityBackendId.SHIZUKU, result.backend)
         assertEquals("package.force_stop", result.metadata["operation"])
+        assertEquals(PrivilegedOperation.ForceStopPackage("com.example.app"), executed)
+    }
+
+    @Test
+    fun explicitRootSelectionStillWorks() = runBlocking {
+        var executed: PrivilegedOperation? = null
+        val backend = RootCapabilityBackend(
+            rootAvailable = { true },
+            executeOperation = { operation ->
+                executed = operation
+                SystemControlResult.ok("stopped")
+            }
+        )
+
+        val result = backend.execute(forceStopRequest(CapabilityBackendId.ROOT))
+
+        assertTrue(result.isSuccess)
+        assertEquals(CapabilityBackendId.ROOT, result.backend)
         assertEquals(PrivilegedOperation.ForceStopPackage("com.example.app"), executed)
     }
 
