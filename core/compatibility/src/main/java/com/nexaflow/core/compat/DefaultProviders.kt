@@ -42,7 +42,9 @@ object AccessibilityProvider : ExecutionProvider {
 /** Elevated commands through the Shizuku service. */
 object ShizukuProvider : ExecutionProvider {
     override val type = ExecutionProviderType.SHIZUKU
-    override val baseScore = 70
+    // Prefer shell-identity Shizuku over full root whenever both satisfy the
+    // same capability. Root remains available for ROOT_SHELL and fallback.
+    override val baseScore = 80
 
     // Mirrors RomCapabilityProvider.isElevated(): ROOT and SHIZUKU both satisfy
     // the ROM-specific hidden-API capabilities on their matching ROM families.
@@ -90,7 +92,10 @@ object AdbProvider : ExecutionProvider {
 /** Direct root shell (su). */
 object RootProvider : ExecutionProvider {
     override val type = ExecutionProviderType.ROOT
-    override val baseScore = 80
+    // Keep root below Shizuku for overlapping capabilities: root crosses a
+    // broader trust boundary and should be used only when its extra power is
+    // required or the Shizuku channel is unavailable.
+    override val baseScore = 70
 
     // Mirrors RomCapabilityProvider.isElevated(): ROOT satisfies the ROM-specific
     // hidden-API capabilities on their matching ROM families.
