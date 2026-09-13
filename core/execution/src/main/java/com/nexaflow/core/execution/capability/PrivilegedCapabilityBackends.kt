@@ -20,15 +20,17 @@ import com.nexaflow.domain.capability.PrivilegeLevel
 
 /**
  * Static declarations for the small reviewed subset of elevated operations.
- * A request must explicitly select ROOT or SHIZUKU in its execution policy;
- * leaving backend selection empty never creates an automatic privilege fallback.
+ * Privileged execution still requires [com.nexaflow.domain.capability.ExecutionPolicy.allowPrivilegedBackends]
+ * to be explicitly enabled. Once enabled, the resolver may adaptively choose
+ * Shizuku first and Root as a fallback unless the request narrows or reorders
+ * those channels through allowedBackends/preferredBackends.
  */
 object PrivilegedCapabilityCatalog {
     fun descriptors(): List<CapabilityDescriptor> = listOf(
         CapabilityDescriptor(
             id = CapabilityId.PACKAGE_FORCE_STOP,
             displayName = "Force stop installed package",
-            description = "Stops one validated package through a user-selected elevated backend",
+            description = "Stops one validated package through the best authorized elevated backend",
             risk = CapabilityRiskLevel.HIGH,
             minimumPrivilege = PrivilegeLevel.NONE,
             supportedBackends = TYPED_BACKENDS,
@@ -39,7 +41,7 @@ object PrivilegedCapabilityCatalog {
         CapabilityDescriptor(
             id = CapabilityId.PACKAGE_SET_ENABLED,
             displayName = "Enable or disable package",
-            description = "Changes enabled state for one validated package through a user-selected elevated backend",
+            description = "Changes enabled state for one validated package through the best authorized elevated backend",
             risk = CapabilityRiskLevel.HIGH,
             minimumPrivilege = PrivilegeLevel.NONE,
             supportedBackends = TYPED_BACKENDS,
@@ -70,7 +72,7 @@ object PrivilegedCapabilityCatalog {
         CapabilityDescriptor(
             id = CapabilityId.FILE_COPY,
             displayName = "Copy controlled NexaFlow file",
-            description = "Copies a file only under /sdcard/NexaFlow/ through a user-selected elevated backend",
+            description = "Copies a file only under /sdcard/NexaFlow/ through the best authorized elevated backend",
             risk = CapabilityRiskLevel.HIGH,
             minimumPrivilege = PrivilegeLevel.NONE,
             supportedBackends = TYPED_BACKENDS,
@@ -119,7 +121,11 @@ class ShizukuCapabilityBackend(
 
     override suspend fun availability(request: CapabilityRequest): BackendAvailability = when {
         request.capability !in supportedCapabilities -> unsupportedAvailability()
-        !explicitlySelected(request) -> BackendAvailability(id, CapabilityAvailability.PERMISSION_REQUIRED, EXPLICIT_SELECTION_REQUIRED)
+        !request.policy.allowPrivilegedBackends -> BackendAvailability(
+            id,
+            CapabilityAvailability.PERMISSION_REQUIRED,
+            PRIVILEGED_OPT_IN_REQUIRED
+        )
         !running() -> BackendAvailability(id, CapabilityAvailability.UNAVAILABLE, "Shizuku server is not running")
         !granted() -> BackendAvailability(id, CapabilityAvailability.PERMISSION_REQUIRED, "Shizuku access was not granted")
         !userServiceBound() -> BackendAvailability(id, CapabilityAvailability.UNAVAILABLE, "Shizuku UserService is not connected")
@@ -127,17 +133,19 @@ class ShizukuCapabilityBackend(
     }
 
     override suspend fun execute(request: CapabilityRequest): CapabilityResult {
+        if (!request.policy.allowPrivilegedBackends) {
+            return policyDenied(id)
+        }
         val operation = runCatching { PrivilegedOperationRequestMapper.map(request) }.getOrElse { error ->
             return CapabilityResult.failed(CapabilityErrorCode.INVALID_CONFIGURATION, error.message ?: "Invalid privileged request", id)
         }
-        if (!running()) return unavailable(CapabilityErrorCode.SHIZUKU_UNAVAILABLE, "Shizuku server is not running")
-        if (!granted()) return unavailable(CapabilityErrorCode.SHIZUKU_DENIED, "Shizuku access was not granted")
-        if (!userServiceBound()) return unavailable(CapabilityErrorCode.SHIZUKU_UNAVAILABLE, "Shizuku UserService is not connected")
+        if (!running()) return unavailable(CapabilityErrorCode.SHIZUKU_UNAVAILABLE, "Shizuku server is not running", id)
+        if (!granted()) return unavailable(CapabilityErrorCode.SHIZUKU_DENIED, "Shizuku access was not granted", id)
+        if (!userServiceBound()) return unavailable(CapabilityErrorCode.SHIZUKU_UNAVAILABLE, "Shizuku UserService is not connected", id)
         return executeOperation(operation).toCapabilityResult(id, operation)
     }
 
     private fun unsupportedAvailability() = BackendAvailability(id, CapabilityAvailability.UNSUPPORTED, "Capability is not implemented by Shizuku backend")
-
 }
 
 class RootCapabilityBackend(
@@ -149,16 +157,23 @@ class RootCapabilityBackend(
 
     override suspend fun availability(request: CapabilityRequest): BackendAvailability = when {
         request.capability !in supportedCapabilities -> BackendAvailability(id, CapabilityAvailability.UNSUPPORTED, "Capability is not implemented by Root backend")
-        !explicitlySelected(request) -> BackendAvailability(id, CapabilityAvailability.PERMISSION_REQUIRED, EXPLICIT_SELECTION_REQUIRED)
+        !request.policy.allowPrivilegedBackends -> BackendAvailability(
+            id,
+            CapabilityAvailability.PERMISSION_REQUIRED,
+            PRIVILEGED_OPT_IN_REQUIRED
+        )
         !rootAvailable() -> BackendAvailability(id, CapabilityAvailability.UNAVAILABLE, "Root access is not available")
         else -> BackendAvailability(id, CapabilityAvailability.AVAILABLE)
     }
 
     override suspend fun execute(request: CapabilityRequest): CapabilityResult {
+        if (!request.policy.allowPrivilegedBackends) {
+            return policyDenied(id)
+        }
         val operation = runCatching { PrivilegedOperationRequestMapper.map(request) }.getOrElse { error ->
             return CapabilityResult.failed(CapabilityErrorCode.INVALID_CONFIGURATION, error.message ?: "Invalid privileged request", id)
         }
-        if (!rootAvailable()) return unavailable(CapabilityErrorCode.ROOT_UNAVAILABLE, "Root access is not available")
+        if (!rootAvailable()) return unavailable(CapabilityErrorCode.ROOT_UNAVAILABLE, "Root access is not available", id)
         return executeOperation(operation).toCapabilityResult(id, operation, CapabilityErrorCode.ROOT_DENIED)
     }
 }
@@ -191,17 +206,19 @@ private val TYPED_CAPABILITIES = setOf(
     CapabilityId.SYSTEM_SETTING_WRITE,
     CapabilityId.FILE_COPY
 )
-private const val EXPLICIT_SELECTION_REQUIRED = "Select exactly one privileged backend in execution policy"
+private const val PRIVILEGED_OPT_IN_REQUIRED = "Privileged backend use requires explicit execution-policy opt-in"
 
-private fun explicitlySelected(request: CapabilityRequest, backend: CapabilityBackendId? = null): Boolean {
-    val selected = request.policy.allowedBackends
-    return selected.isNotEmpty() && (backend == null || selected.size == 1 && selected.single() == backend)
-}
+private fun policyDenied(backend: CapabilityBackendId): CapabilityResult = CapabilityResult.failed(
+    CapabilityErrorCode.POLICY_NOT_SATISFIED,
+    PRIVILEGED_OPT_IN_REQUIRED,
+    backend
+)
 
-private fun CapabilityBackend.explicitlySelected(request: CapabilityRequest): Boolean =
-    explicitlySelected(request, id)
-
-private fun unavailable(code: CapabilityErrorCode, message: String): CapabilityResult = CapabilityResult.failed(code, message)
+private fun unavailable(
+    code: CapabilityErrorCode,
+    message: String,
+    backend: CapabilityBackendId? = null
+): CapabilityResult = CapabilityResult.failed(code, message, backend)
 
 private fun SystemControlResult.toCapabilityResult(
     backend: CapabilityBackendId,
@@ -217,6 +234,11 @@ private fun SystemControlResult.toCapabilityResult(
 } else {
     val code = when {
         message.contains("exit 124") || message.contains("timed out", ignoreCase = true) -> CapabilityErrorCode.TIMEOUT
+        backend == CapabilityBackendId.SHIZUKU &&
+            (message.contains("not connected", ignoreCase = true) ||
+                message.contains("unavailable", ignoreCase = true)) -> CapabilityErrorCode.SHIZUKU_UNAVAILABLE
+        backend == CapabilityBackendId.ROOT && message.contains("not available", ignoreCase = true) ->
+            CapabilityErrorCode.ROOT_UNAVAILABLE
         message.contains("denied", ignoreCase = true) -> denialCode
         else -> CapabilityErrorCode.UNKNOWN_ERROR
     }
