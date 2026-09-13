@@ -300,6 +300,8 @@
     <string name="choose_bluetooth_device">Bluetooth cihazı seç</string>
     <string name="no_bluetooth_device">Cihaz seçilmedi</string>
     <string name="no_paired_devices">Eşleştirilmiş Bluetooth cihazı bulunamadı</string>
+    <string name="bluetooth_turned_off_title">Bluetooth kapalı</string>
+    <string name="bluetooth_turned_off_body">Eşleştirilmiş cihazlarınızı görmek ve bu görev için birini seçmek için Bluetooth özelliğini açın.</string>
     <string name="bluetooth_permission_hint">"Eşleştirilmiş cihazları algılamak için Bluetooth\'u açın"</string>
     <string name="stream_label">Ses kanalı</string>
     <string name="stream_volume_label">Ses %1$d</string>

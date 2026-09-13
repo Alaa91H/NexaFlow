@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.68.0] - 2026-09-13
+
+### Fixed
+
+- **Bluetooth device picker is now a complete, self-healing flow (Android).** When a
+  task's trigger is tied to a Bluetooth device and the radio is off, the picker no
+  longer dead-ends with "No paired Bluetooth devices found" — the only state the
+  logcat session reproduced (`BluetoothAdapter is not enabled` on a HyperOS 17
+  device with a paired headset). The sheet now explains that Bluetooth is off and
+  offers a single **Turn on** tap that raises the system `ACTION_REQUEST_ENABLE`
+  dialog — the only user-visible, launcher-approved way to enable Bluetooth since
+  `BluetoothAdapter.enable()` is unavailable to third-party apps — with a graceful
+  fallback to the Bluetooth settings screen when a build ships no handler for the
+  request. When the `BLUETOOTH_CONNECT` runtime grant is missing, the same sheet
+  offers the runtime request inline. The bonded-device list is re-probed on every
+  resume (lifecycle-aware `refreshTick`), so returning from the system dialog or
+  Settings repopulates the list in place without closing the sheet; adapters
+  without hardware keep the established empty message.
+- **Saving a Bluetooth task no longer detours into a settings screen that cannot
+  grant anything.** `PermissionCatalog` mapped the `BLUETOOTH_DEVICE` trigger to the
+  special-permission channel, so the aggressive post-save flow opened Bluetooth
+  *settings* — a screen structurally incapable of issuing the `BLUETOOTH_CONNECT`
+  runtime permission the trigger actually needs. The requirement now travels the
+  runtime channel (explain screen + system dialog), and the merged `DEVICE` trigger
+  configured with `BLUETOOTH_CONNECTED`/`BLUETOOTH_DISCONNECTED` events — previously
+  mapped to *no* permission at all — now requests the same grant. Regression tests
+  pin the runtime-only contract for both trigger shapes.
+
+### Added
+
+- Localized Bluetooth-off empty-state strings (`bluetooth_turned_off_title` /
+  `bluetooth_turned_off_body`) in all 11 locales, registered in the i18n catalog.
+
+### Changed
+
+- The Bluetooth explain-entry in `specialPermissionExplainInfo` and the
+  `SpecialPermissionStatusRow` wiring remain available for the manual hint row,
+  but the catalog no longer auto-routes Bluetooth triggers to it on save.
+
 ## [v3.67.0] - 2026-09-09
 
 ### Fixed

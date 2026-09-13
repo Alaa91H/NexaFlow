@@ -299,6 +299,8 @@
     <string name="choose_bluetooth_device">اختر جهاز بلوتوث</string>
     <string name="no_bluetooth_device">لم يتم اختيار جهاز</string>
     <string name="no_paired_devices">لا توجد أجهزة بلوتوث مقترنة</string>
+    <string name="bluetooth_turned_off_title">البلوتوث غير مُفعّل</string>
+    <string name="bluetooth_turned_off_body">فعّل البلوتوث لعرض الأجهزة المقترنة واختيار جهاز لهذه المهمة.</string>
     <string name="bluetooth_permission_hint">فعّل البلوتوث لاكتشاف الأجهزة المقترنة</string>
     <string name="stream_label">قناة الصوت</string>
     <string name="stream_volume_label">الصوت %1$d</string>

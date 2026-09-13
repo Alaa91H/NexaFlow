@@ -313,6 +313,8 @@
     <string name="any_device">Any device</string>
     <string name="any_bluetooth_device_hint">Fires when any paired device disconnects — no specific device needed</string>
     <string name="no_paired_devices">No paired Bluetooth devices found</string>
+    <string name="bluetooth_turned_off_title">Bluetooth is turned off</string>
+    <string name="bluetooth_turned_off_body">Turn on Bluetooth to see your paired devices and pick one for this task.</string>
     <string name="bluetooth_permission_hint">Turn on Bluetooth to detect paired devices</string>
     <string name="stream_label">Sound channel</string>
     <string name="ringtone_label">Default ringtone</string>

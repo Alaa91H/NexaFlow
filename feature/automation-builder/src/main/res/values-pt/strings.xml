@@ -300,6 +300,8 @@
     <string name="choose_bluetooth_device">Escolher dispositivo Bluetooth</string>
     <string name="no_bluetooth_device">Nenhum dispositivo selecionado</string>
     <string name="no_paired_devices">Nenhum dispositivo Bluetooth pareado encontrado</string>
+    <string name="bluetooth_turned_off_title">O Bluetooth está desativado</string>
+    <string name="bluetooth_turned_off_body">Ative o Bluetooth para ver seus dispositivos pareados e escolher um para esta tarefa.</string>
     <string name="bluetooth_permission_hint">Ative o Bluetooth para detectar dispositivos pareados</string>
     <string name="stream_label">Canal de som</string>
     <string name="stream_volume_label">Volume %1$d</string>

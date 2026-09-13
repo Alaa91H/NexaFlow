@@ -300,6 +300,8 @@
     <string name="choose_bluetooth_device">ब्लूटूथ डिवाइस चुनें</string>
     <string name="no_bluetooth_device">कोई डिवाइस चयनित नहीं</string>
     <string name="no_paired_devices">कोई पेयर किया हुआ ब्लूटूथ डिवाइस नहीं मिला</string>
+    <string name="bluetooth_turned_off_title">ब्लूटूथ बंद है</string>
+    <string name="bluetooth_turned_off_body">अपने पेयर किए गए डिवाइस देखने और इस कार्य के लिए एक चुनने के लिए ब्लूटूथ चालू करें।</string>
     <string name="bluetooth_permission_hint">पेयर किए गए डिवाइस का पता लगाने के लिए ब्लूटूथ चालू करें</string>
     <string name="stream_label">ध्वनि चैनल</string>
     <string name="stream_volume_label">वॉल्यूम %1$d</string>

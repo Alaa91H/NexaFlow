@@ -300,6 +300,8 @@
     <string name="choose_bluetooth_device">Bluetooth デバイスを選択</string>
     <string name="no_bluetooth_device">デバイス未選択</string>
     <string name="no_paired_devices">ペアリング済みの Bluetooth デバイスが見つかりません</string>
+    <string name="bluetooth_turned_off_title">Bluetooth がオフです</string>
+    <string name="bluetooth_turned_off_body">ペアリング済みデバイスを表示してタスクに選択するには、Bluetooth をオンにしてください。</string>
     <string name="bluetooth_permission_hint">ペアリング済みデバイスを検出するには Bluetooth をオンにします</string>
     <string name="stream_label">サウンドチャンネル</string>
     <string name="stream_volume_label">音量 %1$d</string>

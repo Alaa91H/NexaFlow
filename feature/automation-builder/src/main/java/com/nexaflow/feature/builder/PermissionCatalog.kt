@@ -104,10 +104,25 @@ object PermissionCatalog {
         trigger.type == TriggerType.CONNECTIVITY &&
             trigger.config["network"] == "NETWORK_MODE" ->
             listOf(android.Manifest.permission.READ_PHONE_STATE)
+        // Merged DEVICE trigger configured for Bluetooth connect/disconnect:
+        // the engine reads the device name from ACL broadcasts, which needs
+        // the same runtime grant the legacy BLUETOOTH_DEVICE trigger asks for.
+        trigger.type == TriggerType.DEVICE &&
+            trigger.config["event"].orEmpty().startsWith("BLUETOOTH") ->
+            listOf(android.Manifest.permission.BLUETOOTH_CONNECT)
         else -> runtimePermissionsFor(trigger.type)
     }
 
-    /** Special permission required by a trigger, if any. */
+    /**
+     * Special (settings-screen) permission required by a trigger, if any.
+     *
+     * Bluetooth is deliberately absent: a device-connect trigger needs the
+     * BLUETOOTH_CONNECT *runtime* permission, which the Bluetooth settings
+     * screen cannot grant. Routing the requirement here sent users to a
+     * settings screen that changed nothing and left the task unable to see
+     * paired devices. The runtime grant is requested through the system dialog
+     * (with the Samsung-style explain screen) via [runtimePermissionsFor].
+     */
     fun specialPermissionFor(triggerType: TriggerType): SpecialPermission? = when (triggerType) {
         // Android 12+ denies exact alarms by default on many fresh installs.
         // A task set for a user-selected wall-clock time must request this
@@ -116,7 +131,6 @@ object PermissionCatalog {
         TriggerType.TIME -> SpecialPermission.EXACT_ALARM
         TriggerType.NOTIFICATION -> SpecialPermission.NOTIFICATION_ACCESS
         TriggerType.APPLICATION -> SpecialPermission.ACCESSIBILITY
-        TriggerType.BLUETOOTH_DEVICE -> SpecialPermission.BLUETOOTH
         else -> null
     }
 

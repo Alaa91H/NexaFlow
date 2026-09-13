@@ -300,6 +300,8 @@
     <string name="choose_bluetooth_device">Bluetooth-Gerät auswählen</string>
     <string name="no_bluetooth_device">Kein Gerät ausgewählt</string>
     <string name="no_paired_devices">Keine gekoppelten Bluetooth-Geräte gefunden</string>
+    <string name="bluetooth_turned_off_title">Bluetooth ist ausgeschaltet</string>
+    <string name="bluetooth_turned_off_body">Aktiviere Bluetooth, um deine gekoppelten Geräte zu sehen und eines für diese Aufgabe zu wählen.</string>
     <string name="bluetooth_permission_hint">Bluetooth aktivieren, um gekoppelte Geräte zu erkennen</string>
     <string name="stream_label">Tonkanal</string>
     <string name="stream_volume_label">Lautstärke %1$d</string>

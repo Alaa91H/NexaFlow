@@ -300,6 +300,8 @@
     <string name="choose_bluetooth_device">Выбрать устройство Bluetooth</string>
     <string name="no_bluetooth_device">Устройство не выбрано</string>
     <string name="no_paired_devices">Сопряжённые устройства Bluetooth не найдены</string>
+    <string name="bluetooth_turned_off_title">Bluetooth выключен</string>
+    <string name="bluetooth_turned_off_body">Включите Bluetooth, чтобы увидеть сопряжённые устройства и выбрать одно из них для этой задачи.</string>
     <string name="bluetooth_permission_hint">Включите Bluetooth для обнаружения сопряжённых устройств</string>
     <string name="stream_label">Звуковой канал</string>
     <string name="stream_volume_label">Громкость %1$d</string>
