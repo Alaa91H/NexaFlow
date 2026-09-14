@@ -9,6 +9,7 @@ import com.nexaflow.domain.capability.CapabilityRequest
 import com.nexaflow.domain.capability.CapabilityResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -45,6 +46,7 @@ class CapabilityStateStoreTest {
         )
 
         advanceUntilIdle()
+        assertEquals("the first capability refresh must never be throttled", 0L, currentTime)
         assertEquals(CapabilityAvailability.AVAILABLE, store.snapshot.value.availabilityOf(CapabilityId.DEVICE_STATE_READ))
         assertTrue(store.snapshot.value.observedAtMs > 0L)
 

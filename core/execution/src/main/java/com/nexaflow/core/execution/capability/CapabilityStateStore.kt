@@ -53,7 +53,7 @@ class CapabilityStateStore(
                             if (!refreshQueued) return@launch
                             refreshQueued = false
                         }
-                        val wait = (lastRefreshCompletedAtMs + minRefreshIntervalMs - nowMs()).coerceAtLeast(0L)
+                        val wait = refreshDelayMs(nowMs())
                         if (wait > 0) delay(wait)
                         try {
                             refreshNow()
@@ -73,6 +73,12 @@ class CapabilityStateStore(
     }
 
     fun refresh() = invalidate()
+
+    private fun refreshDelayMs(now: Long): Long {
+        if (lastRefreshCompletedAtMs == Long.MIN_VALUE) return 0L
+        val elapsed = (now - lastRefreshCompletedAtMs).coerceAtLeast(0L)
+        return (minRefreshIntervalMs - elapsed).coerceAtLeast(0L)
+    }
 
     private suspend fun refreshNow() = refreshMutex.withLock {
         val reports = registry.descriptors().associate { descriptor ->
