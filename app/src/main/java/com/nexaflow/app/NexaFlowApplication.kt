@@ -1,6 +1,8 @@
 package com.nexaflow.app
 
+import android.app.Activity
 import android.app.Application
+import android.os.Bundle
 import android.os.StrictMode
 import android.util.Log
 import androidx.hilt.work.HiltWorkerFactory
@@ -75,6 +77,7 @@ class NexaFlowApplication : Application(), Configuration.Provider {
         if (BuildConfig.DEBUG) {
             enableStrictMode()
         }
+        registerCapabilityRefreshCallbacks()
         // Everything below is best-effort startup wiring: a failure in any
         // single piece (Shizuku bridge, Sentry, WorkManager, scheduler,
         // monitoring service) must never prevent the app from opening.
@@ -143,6 +146,31 @@ class NexaFlowApplication : Application(), Configuration.Provider {
             // instead; the receiver starts monitoring from the alarm context.
             MonitoringService.scheduleStart(this)
         }
+    }
+
+    /**
+     * Runtime grants and special permissions can change while NexaFlow is behind a
+     * system dialog or Settings screen. Refresh the centralized capability snapshot
+     * whenever an activity becomes interactive again so builder/diagnostic surfaces
+     * never keep a stale grant after the user returns. CapabilityStateStore coalesces
+     * resume bursts and enforces its minimum refresh interval, which keeps privileged
+     * Root/Shizuku probes bounded.
+     */
+    private fun registerCapabilityRefreshCallbacks() {
+        registerActivityLifecycleCallbacks(
+            object : ActivityLifecycleCallbacks {
+                override fun onActivityResumed(activity: Activity) {
+                    capabilityStateStore.invalidate()
+                }
+
+                override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
+                override fun onActivityStarted(activity: Activity) = Unit
+                override fun onActivityPaused(activity: Activity) = Unit
+                override fun onActivityStopped(activity: Activity) = Unit
+                override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
+                override fun onActivityDestroyed(activity: Activity) = Unit
+            }
+        )
     }
 
     /**
