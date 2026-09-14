@@ -84,9 +84,12 @@ class CapabilityStateStore(
         val reports = registry.descriptors().associate { descriptor ->
             descriptor.id to diagnosticReportFor(descriptor.id)
         }
-        _snapshot.value = CapabilitySnapshot(reports = reports, observedAtMs = nowMs())
-        _environmentReports.value = environmentInspector.reports()
-        lastRefreshCompletedAtMs = nowMs()
+        val environmentReports = environmentInspector.reports()
+        val observedAtMs = nowMs()
+
+        _snapshot.value = CapabilitySnapshot(reports = reports, observedAtMs = observedAtMs)
+        _environmentReports.value = environmentReports
+        lastRefreshCompletedAtMs = observedAtMs
     }
 
     companion object { const val DEFAULT_MIN_REFRESH_INTERVAL_MS = 30_000L }
