@@ -41,57 +41,119 @@ class CapabilityEnvironmentInspector(
         detailCode = "ANDROID_PUBLIC_APIS"
     )
 
-    private fun shizukuReport(): CapabilityEnvironmentReport = when {
-        shizukuRunning() && shizukuGranted() && shizukuUserServiceBound() -> CapabilityEnvironmentReport(
-            CapabilityEnvironmentId.SHIZUKU,
-            CapabilityEnvironmentState.AVAILABLE,
-            "SHIZUKU_USER_SERVICE_READY"
-        )
-        shizukuRunning() && !shizukuGranted() -> CapabilityEnvironmentReport(
-            CapabilityEnvironmentId.SHIZUKU,
-            CapabilityEnvironmentState.PERMISSION_REQUIRED,
-            "SHIZUKU_PERMISSION_REQUIRED"
-        )
-        shizukuRunning() -> CapabilityEnvironmentReport(
-            CapabilityEnvironmentId.SHIZUKU,
-            CapabilityEnvironmentState.SERVICE_UNAVAILABLE,
-            "SHIZUKU_USER_SERVICE_UNAVAILABLE"
-        )
-        shizukuInstalled() -> CapabilityEnvironmentReport(
-            CapabilityEnvironmentId.SHIZUKU,
-            CapabilityEnvironmentState.NOT_RUNNING,
-            "SHIZUKU_SERVER_NOT_RUNNING"
-        )
-        else -> CapabilityEnvironmentReport(
-            CapabilityEnvironmentId.SHIZUKU,
-            CapabilityEnvironmentState.NOT_INSTALLED,
-            "SHIZUKU_NOT_INSTALLED"
+    private fun shizukuReport(): CapabilityEnvironmentReport {
+        val running = probe(shizukuRunning)
+        if (running == null) {
+            return CapabilityEnvironmentReport(
+                CapabilityEnvironmentId.SHIZUKU,
+                CapabilityEnvironmentState.SERVICE_UNAVAILABLE,
+                "SHIZUKU_STATE_PROBE_FAILED"
+            )
+        }
+        if (running) {
+            val granted = probe(shizukuGranted)
+            if (granted == null) {
+                return CapabilityEnvironmentReport(
+                    CapabilityEnvironmentId.SHIZUKU,
+                    CapabilityEnvironmentState.SERVICE_UNAVAILABLE,
+                    "SHIZUKU_PERMISSION_PROBE_FAILED"
+                )
+            }
+            if (!granted) {
+                return CapabilityEnvironmentReport(
+                    CapabilityEnvironmentId.SHIZUKU,
+                    CapabilityEnvironmentState.PERMISSION_REQUIRED,
+                    "SHIZUKU_PERMISSION_REQUIRED"
+                )
+            }
+            val userServiceBound = probe(shizukuUserServiceBound)
+            if (userServiceBound == null) {
+                return CapabilityEnvironmentReport(
+                    CapabilityEnvironmentId.SHIZUKU,
+                    CapabilityEnvironmentState.SERVICE_UNAVAILABLE,
+                    "SHIZUKU_USER_SERVICE_PROBE_FAILED"
+                )
+            }
+            return CapabilityEnvironmentReport(
+                CapabilityEnvironmentId.SHIZUKU,
+                if (userServiceBound) CapabilityEnvironmentState.AVAILABLE else CapabilityEnvironmentState.SERVICE_UNAVAILABLE,
+                if (userServiceBound) "SHIZUKU_USER_SERVICE_READY" else "SHIZUKU_USER_SERVICE_UNAVAILABLE"
+            )
+        }
+
+        return when (probe(shizukuInstalled)) {
+            true -> CapabilityEnvironmentReport(
+                CapabilityEnvironmentId.SHIZUKU,
+                CapabilityEnvironmentState.NOT_RUNNING,
+                "SHIZUKU_SERVER_NOT_RUNNING"
+            )
+            false -> CapabilityEnvironmentReport(
+                CapabilityEnvironmentId.SHIZUKU,
+                CapabilityEnvironmentState.NOT_INSTALLED,
+                "SHIZUKU_NOT_INSTALLED"
+            )
+            null -> CapabilityEnvironmentReport(
+                CapabilityEnvironmentId.SHIZUKU,
+                CapabilityEnvironmentState.UNAVAILABLE,
+                "SHIZUKU_INSTALLATION_PROBE_FAILED"
+            )
+        }
+    }
+
+    private fun rootReport(): CapabilityEnvironmentReport {
+        return when (probe(rootAvailable)) {
+            true -> CapabilityEnvironmentReport(
+                CapabilityEnvironmentId.ROOT,
+                CapabilityEnvironmentState.AVAILABLE,
+                "ROOT_UID_ZERO_VERIFIED"
+            )
+            null -> CapabilityEnvironmentReport(
+                CapabilityEnvironmentId.ROOT,
+                CapabilityEnvironmentState.UNAVAILABLE,
+                "ROOT_STATE_PROBE_FAILED"
+            )
+            false -> when (probe(suBinaryPresent)) {
+                true -> CapabilityEnvironmentReport(
+                    CapabilityEnvironmentId.ROOT,
+                    CapabilityEnvironmentState.PERMISSION_REQUIRED,
+                    "ROOT_GRANT_REQUIRED_OR_DENIED"
+                )
+                false -> CapabilityEnvironmentReport(
+                    CapabilityEnvironmentId.ROOT,
+                    CapabilityEnvironmentState.NOT_INSTALLED,
+                    "ROOT_BINARY_NOT_FOUND"
+                )
+                null -> CapabilityEnvironmentReport(
+                    CapabilityEnvironmentId.ROOT,
+                    CapabilityEnvironmentState.UNAVAILABLE,
+                    "ROOT_BINARY_PROBE_FAILED"
+                )
+            }
+        }
+    }
+
+    private fun managedDeviceReport(): CapabilityEnvironmentReport {
+        val owner = probe(deviceOwner)
+        return CapabilityEnvironmentReport(
+            environment = CapabilityEnvironmentId.MANAGED_DEVICE,
+            state = when (owner) {
+                true -> CapabilityEnvironmentState.AVAILABLE
+                false -> CapabilityEnvironmentState.UNAVAILABLE
+                null -> CapabilityEnvironmentState.UNAVAILABLE
+            },
+            detailCode = when (owner) {
+                true -> "DEVICE_OWNER_ACTIVE"
+                false -> "DEVICE_OWNER_REQUIRED"
+                null -> "DEVICE_OWNER_PROBE_FAILED"
+            }
         )
     }
 
-    private fun rootReport(): CapabilityEnvironmentReport = when {
-        rootAvailable() -> CapabilityEnvironmentReport(
-            CapabilityEnvironmentId.ROOT,
-            CapabilityEnvironmentState.AVAILABLE,
-            "ROOT_UID_ZERO_VERIFIED"
-        )
-        suBinaryPresent() -> CapabilityEnvironmentReport(
-            CapabilityEnvironmentId.ROOT,
-            CapabilityEnvironmentState.PERMISSION_REQUIRED,
-            "ROOT_GRANT_REQUIRED_OR_DENIED"
-        )
-        else -> CapabilityEnvironmentReport(
-            CapabilityEnvironmentId.ROOT,
-            CapabilityEnvironmentState.NOT_INSTALLED,
-            "ROOT_BINARY_NOT_FOUND"
-        )
+    private fun probe(block: () -> Boolean): Boolean? = try {
+        block()
+    } catch (_: Exception) {
+        null
     }
-
-    private fun managedDeviceReport(): CapabilityEnvironmentReport = CapabilityEnvironmentReport(
-        environment = CapabilityEnvironmentId.MANAGED_DEVICE,
-        state = if (deviceOwner()) CapabilityEnvironmentState.AVAILABLE else CapabilityEnvironmentState.UNAVAILABLE,
-        detailCode = if (deviceOwner()) "DEVICE_OWNER_ACTIVE" else "DEVICE_OWNER_REQUIRED"
-    )
 
     companion object {
         fun forContext(context: Context): CapabilityEnvironmentInspector {

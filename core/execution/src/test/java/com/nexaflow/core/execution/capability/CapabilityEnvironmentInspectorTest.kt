@@ -75,6 +75,60 @@ class CapabilityEnvironmentInspectorTest {
         assertReport(inspector, CapabilityEnvironmentId.ADB, CapabilityEnvironmentState.UNSUPPORTED, "ADB_NOT_EXPOSED_TO_NORMAL_APP")
     }
 
+    @Test
+    fun `each environment probe is sampled at most once per report snapshot`() {
+        var runningCalls = 0
+        var grantedCalls = 0
+        var serviceCalls = 0
+        var rootCalls = 0
+        var ownerCalls = 0
+        var installedCalls = 0
+        var suBinaryCalls = 0
+        val inspector = CapabilityEnvironmentInspector(
+            shizukuInstalled = { installedCalls++; true },
+            shizukuRunning = { runningCalls++; true },
+            shizukuGranted = { grantedCalls++; true },
+            shizukuUserServiceBound = { serviceCalls++; true },
+            suBinaryPresent = { suBinaryCalls++; true },
+            rootAvailable = { rootCalls++; true },
+            deviceOwner = { ownerCalls++; true }
+        )
+
+        inspector.reports()
+
+        assertEquals(1, runningCalls)
+        assertEquals(1, grantedCalls)
+        assertEquals(1, serviceCalls)
+        assertEquals(1, rootCalls)
+        assertEquals(1, ownerCalls)
+        assertEquals(0, installedCalls)
+        assertEquals(0, suBinaryCalls)
+    }
+
+    @Test
+    fun `probe failures fail closed without aborting other environment reports`() {
+        val inspector = CapabilityEnvironmentInspector(
+            shizukuInstalled = { true },
+            shizukuRunning = { error("binder disappeared") },
+            shizukuGranted = { true },
+            shizukuUserServiceBound = { true },
+            suBinaryPresent = { true },
+            rootAvailable = { throw IllegalStateException("su probe failed") },
+            deviceOwner = { true }
+        )
+
+        val reports = inspector.reports()
+
+        val shizuku = reports.first { it.environment == CapabilityEnvironmentId.SHIZUKU }
+        assertEquals(CapabilityEnvironmentState.SERVICE_UNAVAILABLE, shizuku.state)
+        assertEquals("SHIZUKU_STATE_PROBE_FAILED", shizuku.detailCode)
+        val root = reports.first { it.environment == CapabilityEnvironmentId.ROOT }
+        assertEquals(CapabilityEnvironmentState.UNAVAILABLE, root.state)
+        assertEquals("ROOT_STATE_PROBE_FAILED", root.detailCode)
+        val managed = reports.first { it.environment == CapabilityEnvironmentId.MANAGED_DEVICE }
+        assertEquals(CapabilityEnvironmentState.AVAILABLE, managed.state)
+    }
+
     private fun inspector(
         shizukuInstalled: Boolean = false,
         shizukuRunning: Boolean = false,
