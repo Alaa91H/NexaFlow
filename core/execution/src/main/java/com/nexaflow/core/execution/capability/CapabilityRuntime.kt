@@ -329,12 +329,7 @@ class CapabilityExecutionService(
                 backend = backend.id
             )
     } catch (cancelled: CancellationException) {
-        CapabilityResult(
-            status = CapabilityStatus.CANCELLED,
-            backend = backend.id,
-            errorCode = CapabilityErrorCode.CANCELLED,
-            message = "Capability execution was cancelled"
-        )
+        throw cancelled
     } catch (throwable: Throwable) {
         CapabilityResult.failed(
             errorCode = CapabilityErrorCode.UNKNOWN_ERROR,
