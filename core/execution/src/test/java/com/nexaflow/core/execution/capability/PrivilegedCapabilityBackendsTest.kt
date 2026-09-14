@@ -99,6 +99,46 @@ class PrivilegedCapabilityBackendsTest {
     }
 
     @Test
+    fun shizukuProbeFailureFailsClosedWithoutExecuting() = runBlocking {
+        var executed = false
+        val backend = ShizukuCapabilityBackend(
+            running = { throw IllegalStateException("binder disappeared") },
+            granted = { true },
+            userServiceBound = { true },
+            executeOperation = {
+                executed = true
+                SystemControlResult.ok("unexpected")
+            }
+        )
+
+        val availability = backend.availability(forceStopRequest())
+        val result = backend.execute(forceStopRequest())
+
+        assertEquals(CapabilityAvailability.UNAVAILABLE, availability.availability)
+        assertEquals(CapabilityErrorCode.SHIZUKU_UNAVAILABLE, result.errorCode)
+        assertFalse(executed)
+    }
+
+    @Test
+    fun rootProbeFailureFailsClosedWithoutExecuting() = runBlocking {
+        var executed = false
+        val backend = RootCapabilityBackend(
+            rootAvailable = { throw IllegalStateException("su probe failed") },
+            executeOperation = {
+                executed = true
+                SystemControlResult.ok("unexpected")
+            }
+        )
+
+        val availability = backend.availability(forceStopRequest(CapabilityBackendId.ROOT))
+        val result = backend.execute(forceStopRequest(CapabilityBackendId.ROOT))
+
+        assertEquals(CapabilityAvailability.UNAVAILABLE, availability.availability)
+        assertEquals(CapabilityErrorCode.ROOT_UNAVAILABLE, result.errorCode)
+        assertFalse(executed)
+    }
+
+    @Test
     fun unallowlistedSettingCannotBecomeAnOperation() = runBlocking {
         val backend = RootCapabilityBackend(rootAvailable = { true })
         val request = CapabilityRequest(
