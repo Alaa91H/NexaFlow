@@ -69,11 +69,16 @@ object ElevatedAccessShortcuts {
      */
     fun requestRootAccess(context: Context, onResult: (Boolean) -> Unit = {}) {
         val appContext = context.applicationContext
+        val mainHandler = Handler(Looper.getMainLooper())
         val suBinaryAvailable = runCatching {
             SystemAppStatusDetector.isSuBinaryAvailable()
         }.getOrDefault(false)
         if (!suBinaryAvailable) {
             openRootManager(appContext)
+            // Opening a manager is only a navigation fallback, not a successful
+            // grant. Always terminate the request so callers can clear loading
+            // state and offer their normal Android/manual fallback immediately.
+            mainHandler.post { onResult(false) }
             return
         }
         Thread {
@@ -84,7 +89,7 @@ object ElevatedAccessShortcuts {
             // immediately instead of within the TTL window. Refresh failures
             // must not suppress delivery of the actual root-manager result.
             runCatching { SystemAppStatusDetector.refreshRootAvailability() }
-            Handler(Looper.getMainLooper()).post { onResult(granted) }
+            mainHandler.post { onResult(granted) }
         }.start()
     }
 
