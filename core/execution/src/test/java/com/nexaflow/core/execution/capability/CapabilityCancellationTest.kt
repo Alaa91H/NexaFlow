@@ -39,6 +39,20 @@ class CapabilityCancellationTest {
     }
 
     @Test
+    fun `execution service preserves cancellation from backend execution`() = runBlocking {
+        val backend = CancellingBackend(cancelExecution = true)
+        val registry = registry(backend)
+        val service = CapabilityExecutionService(
+            resolver = CapabilityResolver(registry),
+            deviceStateProvider = { deviceState() }
+        )
+
+        expectCancellation {
+            service.execute(request())
+        }
+    }
+
+    @Test
     fun `execution service preserves cancellation from post condition verification`() = runBlocking {
         val backend = CancellingBackend(cancelVerification = true)
         val registry = registry(backend)
@@ -85,6 +99,7 @@ class CapabilityCancellationTest {
 
     private class CancellingBackend(
         private val cancelAvailability: Boolean = false,
+        private val cancelExecution: Boolean = false,
         private val cancelVerification: Boolean = false
     ) : CapabilityBackend {
         override val id = CapabilityBackendId.PACKAGE_MANAGER
@@ -95,8 +110,10 @@ class CapabilityCancellationTest {
             return BackendAvailability(id, CapabilityAvailability.AVAILABLE)
         }
 
-        override suspend fun execute(request: CapabilityRequest): CapabilityResult =
-            CapabilityResult(status = CapabilityStatus.SUCCESS, backend = id, message = "read")
+        override suspend fun execute(request: CapabilityRequest): CapabilityResult {
+            if (cancelExecution) throw CancellationException("execution cancelled")
+            return CapabilityResult(status = CapabilityStatus.SUCCESS, backend = id, message = "read")
+        }
 
         override suspend fun verify(
             request: CapabilityRequest,
