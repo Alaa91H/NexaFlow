@@ -20,23 +20,8 @@ object ElevatedAccessShortcuts {
 
     private const val SHIZUKU_REQUEST_CODE = 0x4E58
 
-    /**
-     * Shizuku delivers the grant-dialog result through a listener registered
-     * with [Shizuku.addRequestPermissionResultListener]. Without it the result
-     * is silently dropped and the app never observes the grant, so the
-     * permission manager would keep asking forever. Registered lazily once.
-     */
-    private val shizukuResultListener = Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
-        // Shizuku 13.1.5 delivers the grant result as an int: PERMISSION_GRANTED
-        // (0) when granted, PERMISSION_DENIED (-1) otherwise.
-        if (requestCode == SHIZUKU_REQUEST_CODE &&
-            grantResult == PackageManager.PERMISSION_GRANTED
-        ) {
-            // Grant landed: arm the elevated shell channel immediately so the
-            // next elevated command runs through the AIDL UserService.
-            shizukuAppContext?.let { ShizukuShellBridge.initialize(it) }
-        }
-    }
+    private val shizukuRequestLock = Any()
+    private var shizukuPermissionRequestInFlight = false
 
     @Volatile
     private var shizukuAppContext: Context? = null
@@ -44,18 +29,64 @@ object ElevatedAccessShortcuts {
     @Volatile
     private var shizukuListenerRegistered = false
 
+    /**
+     * Shizuku delivers the grant-dialog result through a listener registered
+     * with [Shizuku.addRequestPermissionResultListener]. Without it the result
+     * is silently dropped and the app never observes the grant, so the
+     * permission manager would keep asking forever. Registered lazily once.
+     */
+    private val shizukuResultListener = Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
+        if (requestCode == SHIZUKU_REQUEST_CODE) {
+            val appContext = synchronized(shizukuRequestLock) {
+                shizukuPermissionRequestInFlight = false
+                shizukuAppContext.also { shizukuAppContext = null }
+            }
+            // Shizuku 13.1.5 delivers the grant result as an int:
+            // PERMISSION_GRANTED (0) when granted, PERMISSION_DENIED (-1)
+            // otherwise. A denial still completes the in-flight request so a
+            // later user action can retry instead of being suppressed forever.
+            if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                // Grant landed: arm the elevated shell channel immediately so
+                // the next elevated command runs through the AIDL UserService.
+                appContext?.let { context ->
+                    runCatching { ShizukuShellBridge.initialize(context) }
+                }
+            }
+        }
+    }
+
     private val rootRequestLock = Any()
     private val pendingRootCallbacks = mutableListOf<(Boolean) -> Unit>()
     private var rootRequestInFlight = false
 
     @Synchronized
-    private fun ensureShizukuResultListener() {
-        if (shizukuListenerRegistered) return
-        shizukuListenerRegistered = true
-        try {
+    private fun ensureShizukuResultListener(): Boolean {
+        if (shizukuListenerRegistered) return true
+        return try {
             Shizuku.addRequestPermissionResultListener(shizukuResultListener)
+            shizukuListenerRegistered = true
+            true
         } catch (_: Throwable) {
             shizukuListenerRegistered = false
+            false
+        }
+    }
+
+    private fun beginShizukuPermissionRequest(context: Context): Boolean =
+        synchronized(shizukuRequestLock) {
+            if (shizukuPermissionRequestInFlight) {
+                false
+            } else {
+                shizukuPermissionRequestInFlight = true
+                shizukuAppContext = context.applicationContext
+                true
+            }
+        }
+
+    private fun clearShizukuPermissionRequest() {
+        synchronized(shizukuRequestLock) {
+            shizukuPermissionRequestInFlight = false
+            shizukuAppContext = null
         }
     }
 
@@ -176,26 +207,36 @@ object ElevatedAccessShortcuts {
     /**
      * Requests Shizuku access through the in-app grant dialog when the server is
      * running; falls back to opening the Shizuku manager app when it is not.
+     * Concurrent requests share the single in-flight system prompt. Listener or
+     * binder failures clear that state so the user can retry safely.
      */
     fun openShizuku(context: Context) {
+        val appContext = context.applicationContext
         try {
             if (!Shizuku.pingBinder()) {
-                openShizukuManager(context)
+                clearShizukuPermissionRequest()
+                openShizukuManager(appContext)
                 return
             }
             if (Shizuku.isPreV11() ||
                 Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
             ) {
+                clearShizukuPermissionRequest()
                 // Already granted: (re)arm the UserService bind so elevated
                 // commands use the AIDL channel instead of the legacy path.
-                ShizukuShellBridge.initialize(context)
+                runCatching { ShizukuShellBridge.initialize(appContext) }
                 return
             }
-            shizukuAppContext = context.applicationContext
-            ensureShizukuResultListener()
+            if (!beginShizukuPermissionRequest(appContext)) return
+            if (!ensureShizukuResultListener()) {
+                clearShizukuPermissionRequest()
+                openShizukuManager(appContext)
+                return
+            }
             Shizuku.requestPermission(SHIZUKU_REQUEST_CODE)
         } catch (_: Throwable) {
-            openShizukuManager(context)
+            clearShizukuPermissionRequest()
+            openShizukuManager(appContext)
         }
     }
 
