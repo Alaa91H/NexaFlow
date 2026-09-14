@@ -17,6 +17,7 @@ import com.nexaflow.domain.capability.NetworkRequirement
 import com.nexaflow.domain.capability.PolicyBlockReason
 import com.nexaflow.domain.capability.PolicyEvaluation
 import com.nexaflow.domain.capability.ThermalState
+import kotlinx.coroutines.CancellationException
 
 /**
  * One concrete, independently health-checked implementation of a capability.
@@ -196,13 +197,7 @@ class CapabilityResolver(
         }
 
         val liveCandidates = permittedBackends.map { backend ->
-            backend to runCatching { backend.availability(request) }.getOrElse { throwable ->
-                BackendAvailability(
-                    backend = backend.id,
-                    availability = CapabilityAvailability.UNAVAILABLE,
-                    reason = throwable.message ?: "Backend availability check failed"
-                )
-            }
+            backend to backend.availabilityPreservingCancellation(request)
         }
         val ordered = liveCandidates.sortedWith(
             compareBy<Pair<CapabilityBackend, BackendAvailability>> {
@@ -333,7 +328,7 @@ class CapabilityExecutionService(
                 message = "Capability execution timed out",
                 backend = backend.id
             )
-    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+    } catch (cancelled: CancellationException) {
         CapabilityResult(
             status = CapabilityStatus.CANCELLED,
             backend = backend.id,
@@ -356,7 +351,11 @@ class CapabilityExecutionService(
         if (outcome.status != CapabilityStatus.SUCCESS || request.verification == com.nexaflow.domain.capability.VerificationMode.NONE) {
             return outcome
         }
-        val verification = runCatching { backend.verify(request, outcome) }.getOrElse { error ->
+        val verification = try {
+            backend.verify(request, outcome)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Throwable) {
             VerificationResult(false, false, error.message ?: "Verification failed")
         }
         if (request.verification == com.nexaflow.domain.capability.VerificationMode.REQUIRED && !verification.verified) {
@@ -389,15 +388,7 @@ class CapabilityDiagnostics(private val registry: CapabilityRegistry) {
             )
         val candidates = registry.backendsFor(descriptor)
             .filter { request.capability in it.supportedCapabilities }
-            .map { backend ->
-                runCatching { backend.availability(request) }.getOrElse { throwable ->
-                    BackendAvailability(
-                        backend = backend.id,
-                        availability = CapabilityAvailability.UNAVAILABLE,
-                        reason = throwable.message ?: "Backend availability check failed"
-                    )
-                }
-            }
+            .map { backend -> backend.availabilityPreservingCancellation(request) }
         val aggregate = when {
             candidates.any { it.availability == CapabilityAvailability.AVAILABLE } ->
                 CapabilityAvailability.AVAILABLE
@@ -415,4 +406,18 @@ class CapabilityDiagnostics(private val registry: CapabilityRegistry) {
             reason = candidates.firstOrNull { it.reason != null }?.reason
         )
     }
+}
+
+private suspend fun CapabilityBackend.availabilityPreservingCancellation(
+    request: CapabilityRequest
+): BackendAvailability = try {
+    availability(request)
+} catch (cancelled: CancellationException) {
+    throw cancelled
+} catch (throwable: Throwable) {
+    BackendAvailability(
+        backend = id,
+        availability = CapabilityAvailability.UNAVAILABLE,
+        reason = throwable.message ?: "Backend availability check failed"
+    )
 }
