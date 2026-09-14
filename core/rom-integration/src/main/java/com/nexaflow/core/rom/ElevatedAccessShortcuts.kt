@@ -44,6 +44,10 @@ object ElevatedAccessShortcuts {
     @Volatile
     private var shizukuListenerRegistered = false
 
+    private val rootRequestLock = Any()
+    private val pendingRootCallbacks = mutableListOf<(Boolean) -> Unit>()
+    private var rootRequestInFlight = false
+
     @Synchronized
     private fun ensureShizukuResultListener() {
         if (shizukuListenerRegistered) return
@@ -52,6 +56,18 @@ object ElevatedAccessShortcuts {
             Shizuku.addRequestPermissionResultListener(shizukuResultListener)
         } catch (_: Throwable) {
             shizukuListenerRegistered = false
+        }
+    }
+
+    private fun completeRootRequest(granted: Boolean, mainHandler: Handler) {
+        val callbacks = synchronized(rootRequestLock) {
+            rootRequestInFlight = false
+            pendingRootCallbacks.toList().also { pendingRootCallbacks.clear() }
+        }
+        mainHandler.post {
+            callbacks.forEach { callback ->
+                runCatching { callback(granted) }
+            }
         }
     }
 
@@ -65,11 +81,24 @@ object ElevatedAccessShortcuts {
      * yet (device not rooted). Runs off the main thread so the dialog prompt
      * never blocks the UI; [onResult] reports whether root was granted.
      * Probe failures fail closed instead of crashing the caller or leaving the
-     * permission flow stuck without a result.
+     * permission flow stuck without a result. Concurrent requests are coalesced
+     * into one root-manager prompt so rapid taps or multiple feature requests
+     * cannot spam overlapping superuser dialogs.
      */
     fun requestRootAccess(context: Context, onResult: (Boolean) -> Unit = {}) {
         val appContext = context.applicationContext
         val mainHandler = Handler(Looper.getMainLooper())
+        val shouldStartRequest = synchronized(rootRequestLock) {
+            pendingRootCallbacks += onResult
+            if (rootRequestInFlight) {
+                false
+            } else {
+                rootRequestInFlight = true
+                true
+            }
+        }
+        if (!shouldStartRequest) return
+
         val suBinaryAvailable = runCatching {
             SystemAppStatusDetector.isSuBinaryAvailable()
         }.getOrDefault(false)
@@ -78,10 +107,10 @@ object ElevatedAccessShortcuts {
             // Opening a manager is only a navigation fallback, not a successful
             // grant. Always terminate the request so callers can clear loading
             // state and offer their normal Android/manual fallback immediately.
-            mainHandler.post { onResult(false) }
+            completeRootRequest(false, mainHandler)
             return
         }
-        Thread {
+        val requestThread = Thread {
             val granted = runCatching {
                 PrivilegedRunner.triggerSuPrompt()
             }.getOrDefault(false)
@@ -89,8 +118,10 @@ object ElevatedAccessShortcuts {
             // immediately instead of within the TTL window. Refresh failures
             // must not suppress delivery of the actual root-manager result.
             runCatching { SystemAppStatusDetector.refreshRootAvailability() }
-            mainHandler.post { onResult(granted) }
-        }.start()
+            completeRootRequest(granted, mainHandler)
+        }
+        runCatching { requestThread.start() }
+            .onFailure { completeRootRequest(false, mainHandler) }
     }
 
     /**
