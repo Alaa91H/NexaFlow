@@ -5,6 +5,60 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.70.0] - 2026-09-14
+
+### Added
+
+- **Live Update run-progress cards.** A running task now shows a silent, low-priority notification that
+  advances with the action chain: one colored segment per action on Android 16+ (green = success, red =
+  failed, blue = running), a standard progress bar below. The card honors the existing execution-notification
+  preference, appears only after all admission gates pass, and disappears when the run finishes. Blocked or
+  skipped runs never flash a card.
+- **Single-task sharing (.nexaflow files).** Share any task to other apps from its dashboard menu; opening
+  a received `.nexaflow` file imports it through the same validated pipeline as full-backup imports —
+  structural preflight, workflow validation, ID-collision re-keying, and review-before-enable (imports land
+  disabled). A full backup shared into the single-task importer is rejected with a clear message instead of
+  importing "just the first task". Share/import result strings are fully localized.
+- **Bond-loss diagnostics** for Bluetooth tasks, including the platform's bond-loss reason, recorded in the
+  engine log when a pairing is removed.
+
+### Changed
+
+- **Material 3 Expressive progress surfaces.** List/screen loading states and the update-download dialog now
+  use the expressive morphing `LoadingIndicator`, and the task-builder step bar uses the expressive wavy
+  linear progress indicator — matching the 2026 Google-app motion language (the theme already runs the
+  expressive `MotionScheme`).
+- **Android 17 RemoteViews memory budget enforced for tile icons.** Every dynamically rendered Quick Settings
+  tile icon is now verified against the platform's Bitmap+Icon payload limit (1.5 × screen frame, new fatal
+  `IllegalArgumentException` on API 37) and downscaled when needed, eliminating a new crash class on
+  small-display devices.
+
+### Fixed
+
+- **Background volume and ringer changes no longer report false success (Android 16/17).** Android 17's
+  background-audio hardening silently discards volume writes from apps the user cannot see, so history
+  could claim a task had changed a stream the system left untouched. `SYSTEM_RING_VOLUME` now reads the
+  stream back after writing (matching the existing `SYSTEM_VOLUME` and `SYSTEM_RINGER_MODE` behavior), and
+  every audio path returns an explicit failure naming the platform restriction instead of a fabricated
+  success. Ringtone actions keep the `USAGE_ALARM`-eligible streams as the one exception the platform
+  still honors.
+- **App launches, URL opens, and app-settings jumps from background triggers now report platform denials.**
+  Android 16/17 harden Background Activity Launch: a cold trigger context (alarm, broadcast, monitor) can be
+  denied silently. The three launch paths in the system controller now classify the denial explicitly
+  (SecurityException from the platform's background-activity policy) and record an honest failure with
+  remediation guidance, instead of logging a launch the user never saw. Notification-tap and widget-tap
+  entry points keep their explicit-user-intent privilege and are unaffected.
+- **An unpaired Bluetooth device no longer leaves connect-condition tasks stuck active.** When Android
+  reports a removed bond (key missing, encryption failure — previously vendor-log noise), tasks waiting for
+  the device to disconnect now close immediately and record a bond-loss diagnostic with the platform's loss
+  reason. Previously these tasks stayed durably "active" until the device returned.
+
+### Tests
+
+- Added RemoteViews memory-budget coverage (platform limit formula, per-configuration byte
+  sizes, downscale behavior) and single-task export/import coverage (round-trip, collision
+  re-keying, full-backup rejection), with Robolectric enabled for the widgets module.
+
 ## [v3.69.0] - 2026-09-13
 
 ### Changed

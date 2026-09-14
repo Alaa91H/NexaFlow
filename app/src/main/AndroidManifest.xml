@@ -136,6 +136,21 @@
                     android:host="run-task"
                     android:pathPrefix="/" />
             </intent-filter>
+            <!--
+                Single-task sharing: opening a shared .nexaflow file from any
+                app (messenger, file manager) imports the task on launch.
+                Handled in MainActivity (singleTop + onNewIntent); the import
+                rides the validated single-task pipeline and stays disabled
+                until the user reviews it.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data
+                    android:mimeType="application/json" />
+            </intent-filter>
         </activity>
 
         <receiver

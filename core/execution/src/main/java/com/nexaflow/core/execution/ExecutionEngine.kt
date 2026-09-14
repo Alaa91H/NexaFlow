@@ -141,6 +141,10 @@ class ExecutionEngine(
     /** Serializes the paired in-memory and durable exit-ledger consumption per task. */
     private val exitConsumptionLocks = java.util.concurrent.ConcurrentHashMap<String, Mutex>()
 
+    /** Live Update run-progress cards for executing tasks (user-gated). */
+    private val runProgressNotifier: TaskRunProgressNotifier =
+        TaskRunProgressNotifier(context, notificationPreferences)
+
     suspend fun runAutomation(
         automation: Automation,
         // Phase-2 payload context (JSON Merge Patch delta, 256KB budget). When
@@ -352,6 +356,12 @@ class ExecutionEngine(
         // then apply pure string substitution per action.
         val variables = runCatching { resolveVariables() }.getOrDefault(emptyMap())
         var inProgressActionIndex: Int? = null
+        // Live Update card for this run: a silent IMPORTANCE_MIN notification
+        // that advances per action and disappears when the run ends. Shown
+        // only after every admission gate passed, so blocked/skipped runs
+        // never flash a card.
+        val progressOutcomes = mutableListOf<Boolean>()
+        runCatching { runProgressNotifier.start(automation, automation.actions.size) }
         // A checkpoint is removed only after a fully known action chain. Once
         // an action starts and the coroutine is interrupted, its side effect
         // may have happened; startup recovery must be able to claim that
@@ -370,6 +380,11 @@ class ExecutionEngine(
                     idempotencyKey = idempotencyKey,
                     updatedAt = actionStartedAt
                 ) ?: error("Missing durable checkpoint for run ${payloadContext.runId}")
+                // Advance the Live Update card: this step becomes active and
+                // earlier steps are colored by their recorded outcomes.
+                runCatching {
+                    runProgressNotifier.update(automation, automation.actions.size, actionIndex, progressOutcomes)
+                }
                 // Actions run sequentially and each handler may publish to the
                 // shared context (Step 4), so %CTX selectors are resolved here —
                 // after the previous node ran, before this node dispatches.
@@ -389,6 +404,7 @@ class ExecutionEngine(
                     actionIndex = actionIndex,
                     updatedAt = epochMillis.now()
                 ) ?: error("Unable to commit durable checkpoint for run ${payloadContext.runId}")
+                progressOutcomes.add(result.success)
                 inProgressActionIndex = null
                 ActionExecutionResult(
                     actionType = action.type.name,
@@ -430,6 +446,8 @@ class ExecutionEngine(
             }
             throw failure
         } finally {
+            // The run-progress card never outlives the run attempt.
+            runCatching { runProgressNotifier.finish(automation.id) }
             if (!checkpointRequiresRecovery) {
                 activeExecutionStore.completeCheckpoint(payloadContext.runId)
             }

@@ -395,8 +395,7 @@ class SystemController(
         return try {
             val intent = Intent(Intent.ACTION_VIEW, url.toUri())
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(intent)
-            SystemControlResult.ok("Opened URL")
+            startActivityFromTaskContext(intent, "URL")
         } catch (t: Throwable) {
             SystemControlResult.fail("Failed to open URL: ${t.message}")
         }
@@ -906,7 +905,16 @@ class SystemController(
             val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_RING)
             val clamped = value.coerceIn(0, max)
             audioManager.setStreamVolume(AudioManager.STREAM_RING, clamped, 0)
-            SystemControlResult.ok("Ring volume set to $clamped")
+            // Android 17 background-audio hardening can silently discard volume
+            // writes. Read the stream back before reporting success so history
+            // never claims a ringer change the framework ignored.
+            if (audioManager.getStreamVolume(AudioManager.STREAM_RING) == clamped) {
+                SystemControlResult.ok("Ring volume set to $clamped")
+            } else {
+                SystemControlResult.fail(
+                    "Android rejected the background ring-volume change; keep NexaFlow visible or use a valid foreground service"
+                )
+            }
         } catch (t: Throwable) {
             SystemControlResult.fail("Failed to set ring volume: ${t.message}")
         }
@@ -1146,8 +1154,7 @@ class SystemController(
                 Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                 "package:$packageName".toUri()
             ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(intent)
-            SystemControlResult.ok("Opened settings for $packageName")
+            startActivityFromTaskContext(intent, "settings for $packageName")
         } catch (t: Throwable) {
             SystemControlResult.fail("Failed to open app settings: ${t.message}")
         }
@@ -1190,10 +1197,41 @@ class SystemController(
             val intent = context.packageManager.getLaunchIntentForPackage(packageName)
                 ?: return SystemControlResult.fail("No launch intent for $packageName")
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(intent)
-            SystemControlResult.ok("Launched $packageName")
+            startActivityFromTaskContext(intent, "launch $packageName")
         } catch (t: Throwable) {
             SystemControlResult.fail("Failed to launch $packageName: ${t.message}")
+        }
+    }
+
+    /**
+     * Starts an activity for an automation-triggered intent and reports the
+     * outcome honestly.
+     *
+     * Android 16/17 harden Background Activity Launch: an app whose process
+     * is invisible to the user may be denied the launch silently, or receive
+     * a `BackgroundActivityStartException` on API 37. History previously
+     * recorded such launches as successful — the automation claimed to have
+     * opened an app the system never showed. This helper classifies the
+     * failure modes explicitly so the run result matches what the user can
+     * actually see.
+     *
+     * Notification-tap and widget-tap entry points keep their explicit
+     * user-intent privilege and are unaffected; only cold trigger contexts
+     * (alarm, broadcast, monitor) can be denied.
+     */
+    private fun startActivityFromTaskContext(intent: Intent, what: String): SystemControlResult {
+        return try {
+            context.startActivity(intent)
+            SystemControlResult.ok("Launched $what")
+        } catch (denied: SecurityException) {
+            // Android 16/17 background-activity denials surface here (the
+            // platform's dedicated exception is not public SDK surface).
+            SystemControlResult.fail(
+                "Android blocked $what while NexaFlow runs in the background " +
+                    "(background-activity policy); run the task manually or attach it to a user-visible trigger"
+            )
+        } catch (t: Throwable) {
+            SystemControlResult.fail("Failed to $what: ${t.message}")
         }
     }
 

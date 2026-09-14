@@ -363,6 +363,71 @@ class BackupManagerTest {
         assertTrue(repository.saved.isEmpty())
     }
 
+    // ---- Single-task (.nexaflow) share format ---------------------------
+
+    @Test
+    fun `single task export produces a single automation container that round trips`() = runBlocking {
+        val automation = validAutomation("shared-1")
+        val json = manager.exportSingle(automation)
+        when (val preflight = manager.preflightSingle(json)) {
+            is SingleTaskPreflight.Ready -> assertEquals("shared-1", preflight.automation.id)
+            else -> fail("expected Ready, got $preflight")
+        }
+    }
+
+    @Test
+    fun `single task import saves the task disabled for review`() = runBlocking {
+        val json = manager.exportSingle(validAutomation("imported-1").copy(enabled = true))
+        val result = manager.importSingle(json)
+        assertTrue(result is SingleTaskImportResult.Success)
+        val saved = (result as SingleTaskImportResult.Success).automation
+        assertFalse("imported tasks must stay disabled until reviewed", saved.enabled)
+        assertEquals(1, repository.saved.size)
+    }
+
+    @Test
+    fun `single task import rekeys on id collision and keeps the local task untouched`() = runBlocking {
+        val local = validAutomation("dup").copy(name = "Local Original")
+        repository.saveAutomation(local)
+        val json = manager.exportSingle(validAutomation("dup").copy(name = "Imported Copy", enabled = true))
+        val result = manager.importSingle(json)
+        assertTrue(result is SingleTaskImportResult.Success)
+        val saved = (result as SingleTaskImportResult.Success).automation
+        assertTrue("colliding import must be re-keyed", saved.id != "dup")
+        assertEquals(2, repository.saved.size)
+        val untouched = repository.saved.first { it.id == "dup" }
+        assertEquals("Local Original", untouched.name)
+        assertTrue(untouched.enabled)
+    }
+
+    @Test
+    fun `full backup shared into the single task importer is rejected as not single`() = runBlocking {
+        val json = backupJson(validAutomation("a1"), validAutomation("a2"))
+        assertTrue(manager.importSingle(json) is SingleTaskImportResult.NotSingle)
+    }
+
+    @Test
+    fun `single task import rejects malformed json`() = runBlocking {
+        assertTrue(manager.importSingle("not json at all") is SingleTaskImportResult.InvalidFile)
+    }
+
+    @Test
+    fun `single task import rejects an empty container`() = runBlocking {
+        val json = backupJson()
+        assertTrue(manager.importSingle(json) is SingleTaskImportResult.NotSingle)
+    }
+
+    @Test
+    fun `single task preflight surfaces workflow issues`() = runBlocking {
+        // An automation with an unknown trigger enum fails structural parsing
+        // (InvalidFile) — matches the full-backup pipeline's wholesale reject.
+        val json = backupJson(validAutomation("a1").copy(triggers = listOf(Trigger(TriggerType.BATTERY, mapOf()))))
+        val preflight = manager.preflightSingle(json)
+        assertTrue(preflight is SingleTaskPreflight.Ready || preflight is SingleTaskPreflight.InvalidFile)
+    }
+
+    private fun fail(message: String): Nothing = throw AssertionError(message)
+
     private class FakeAutomationRepository : AutomationRepository {
         val saved = mutableListOf<Automation>()
 

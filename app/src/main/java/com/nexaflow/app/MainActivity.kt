@@ -32,8 +32,10 @@ import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.ExecutionResultPresentation
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /** Parsed `nexaflow://run-task/{id}[?force=1]` target. */
@@ -68,6 +70,9 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var automationRepository: AutomationRepository
 
+    @Inject
+    lateinit var backupManager: com.nexaflow.data.backup.BackupManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // Branded splash (core-splashscreen): keep it up until the theme is
         // resolved so the background matches the actual Material You surface
@@ -97,6 +102,9 @@ class MainActivity : AppCompatActivity() {
         // feature flows that need them, keeping startup least-privileged.
         // Deep link (P2-5): nexaflow://run-task/{id} runs the task directly.
         handleDeepLink(intent)
+        // Single-task share target: a .nexaflow file opened from another app
+        // (messenger, file manager, AirDrop-equivalent) imports on launch.
+        handleSharedTask(intent)
         setContent {
             val theme by themePreferences.theme.collectAsStateWithLifecycle(initialValue = ThemeSettings())
             NexaFlowTheme(
@@ -126,6 +134,41 @@ class MainActivity : AppCompatActivity() {
         setIntent(intent)
         // singleTop: a second deep link while the activity is alive arrives here.
         handleDeepLink(intent)
+        handleSharedTask(intent)
+    }
+
+    /**
+     * Imports a shared single-task (.nexaflow) file opened via ACTION_VIEW.
+     * The import rides the same validated pipeline as full-backup imports
+     * (structural preflight, workflow validation, ID-collision re-keying,
+     * review-before-enable), and every outcome is surfaced as a toast so a
+     * failed share is never a silent no-op.
+     */
+    private fun handleSharedTask(intent: Intent?) {
+        if (intent?.action != Intent.ACTION_VIEW) return
+        val uri = intent.data ?: return
+        lifecycleScope.launch {
+            val json = withContext(Dispatchers.IO) {
+                runCatching {
+                    contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText()
+                    }
+                }.getOrNull()
+            }
+            val message = when {
+                json == null -> getString(R.string.task_import_invalid_file)
+                else -> when (val result = backupManager.importSingle(json)) {
+                    is com.nexaflow.data.backup.SingleTaskImportResult.Success ->
+                        getString(R.string.task_import_success, result.automation.name)
+                    is com.nexaflow.data.backup.SingleTaskImportResult.InvalidWorkflow ->
+                        getString(R.string.task_import_invalid_workflow)
+                    com.nexaflow.data.backup.SingleTaskImportResult.NotSingle ->
+                        getString(R.string.task_import_not_single)
+                    com.nexaflow.data.backup.SingleTaskImportResult.InvalidFile ->
+                        getString(R.string.task_import_invalid_file)
+                }
+            }
+            Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+        }
     }
 
     override fun onStart() {

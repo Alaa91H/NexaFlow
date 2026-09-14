@@ -1,23 +1,27 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="notification_action_revert">Orijinal durumu geri yükle</string>
-    <string name="notification_action_run_now">Görevi şimdi çalıştır</string>
-    <string name="notification_action_reply_label">Yanıtla</string>
-    <string name="notification_action_dismiss">Kapat</string>
-
-    <!-- Localized execution-result presentation. -->
-    <string name="execution_task_completed">Görev başarıyla tamamlandı.</string>
-    <string name="execution_task_failed">Görev tamamlanamadı.</string>
-    <string name="execution_task_skipped">Görev atlandı.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_completed">Triggers or conditions are not satisfied. Only the end behavior (when the task ends) was completed.</string>
-    <string name="execution_conditions_not_satisfied_no_end_behavior">Triggers or conditions of the task are not satisfied, so it cannot run now. No end behavior is configured.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_failed">Triggers or conditions of the task are not satisfied, so it cannot run now. The end behavior could not be completed.</string>
-    <string name="execution_action_completed">İşlem başarıyla tamamlandı.</string>
-    <string name="execution_action_failed">İşlem tamamlanamadı.</string>
-    <string name="execution_end_action_completed">Bitiş işlemi başarıyla tamamlandı.</string>
-    <string name="execution_end_action_failed">Bitiş işlemi tamamlanamadı.</string>
-    <string name="execution_original_state_restored">Cihazın özgün durumu geri yüklendi.</string>
-    <string name="execution_original_state_restore_failed">Cihazın özgün durumu geri yüklenemedi.</string>
-    <string name="execution_google_play_updates_unavailable">Google Play bu cihazda NexaFlow için güncelleme keşfi veya indirme sunmadığından uygulamalar güncellenmedi.</string>
-    <string name="execution_google_play_managed_policy_required">Kurumsal olarak yönetilen bir cihazda yönetilen Google Play politikası gerektiğinden uygulamalar güncellenmedi.</string>
-</resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_action_revert">Orijinal durumu geri yükle</string>
+    <string name="notification_action_run_now">Görevi şimdi çalıştır</string>
+    <string name="notification_action_reply_label">Yanıtla</string>
+    <string name="notification_action_dismiss">Kapat</string>
+
+    <!-- Localized execution-result presentation. -->
+    <string name="execution_task_completed">Görev başarıyla tamamlandı.</string>
+    <string name="execution_task_failed">Görev tamamlanamadı.</string>
+    <string name="execution_task_skipped">Görev atlandı.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">Triggers or conditions are not satisfied. Only the end behavior (when the task ends) was completed.</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">Triggers or conditions of the task are not satisfied, so it cannot run now. No end behavior is configured.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">Triggers or conditions of the task are not satisfied, so it cannot run now. The end behavior could not be completed.</string>
+    <string name="execution_action_completed">İşlem başarıyla tamamlandı.</string>
+    <string name="execution_action_failed">İşlem tamamlanamadı.</string>
+    <string name="execution_end_action_completed">Bitiş işlemi başarıyla tamamlandı.</string>
+    <string name="execution_end_action_failed">Bitiş işlemi tamamlanamadı.</string>
+    <string name="execution_original_state_restored">Cihazın özgün durumu geri yüklendi.</string>
+    <string name="execution_original_state_restore_failed">Cihazın özgün durumu geri yüklenemedi.</string>
+    <string name="execution_google_play_updates_unavailable">Google Play bu cihazda NexaFlow için güncelleme keşfi veya indirme sunmadığından uygulamalar güncellenmedi.</string>
+    <string name="execution_google_play_managed_policy_required">Kurumsal olarak yönetilen bir cihazda yönetilen Google Play politikası gerektiğinden uygulamalar güncellenmedi.</string>
+    <string name="run_progress_channel_name">Görev çalıştırma ilerlemesi</string>
+    <string name="run_progress_starting">Başlatılıyor…</string>
+    <string name="run_progress_step">Adım %1$d / %2$d</string>
+    <string name="run_progress_channel_desc">Çalışan görevin hangi eylemi yürüttüğünü gösterir</string>
+</resources>

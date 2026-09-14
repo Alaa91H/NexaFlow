@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.core.content.ContextCompat
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.datastore.AutomationLifecycleContext
@@ -55,6 +56,10 @@ class BluetoothMonitor @Inject constructor(
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(receiverContext: Context, intent: Intent) {
+            if (intent.action == BluetoothDevice.ACTION_BOND_STATE_CHANGED) {
+                handleBondStateChanged(intent)
+                return
+            }
             val device = if (android.os.Build.VERSION.SDK_INT >= 33) {
                 intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
             } else {
@@ -81,12 +86,61 @@ class BluetoothMonitor @Inject constructor(
         }
     }
 
+    /**
+     * Android 16+ surfaces bond losses (key missing, encryption change
+     * failures) that previously arrived only as vendor-log noise. A removed
+     * bond must immediately close every connect-condition task bound to that
+     * device even when no ACL_DISCONNECT follows — a device that is powered
+     * off or out of range never broadcasts one, which used to leave such
+     * tasks durably "active" until the device returned.
+     *
+     * The reason extra is a hidden platform constant
+     * (android.bluetooth.device.extra.REASON); it is read defensively and is
+     * diagnostic-only — the lifecycle cleanup never depends on it.
+     */
+    private fun handleBondStateChanged(intent: Intent) {
+        val device = if (android.os.Build.VERSION.SDK_INT >= 33) {
+            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+        } ?: return
+        val newState = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR)
+        val previousState = intent.getIntExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE, BluetoothDevice.ERROR)
+        if (newState != BluetoothDevice.BOND_NONE) return
+        if (previousState != BluetoothDevice.BOND_BONDED && previousState != BluetoothDevice.BOND_BONDING) return
+        val address = device.address ?: return
+        val reason = intent.getIntExtra(EXTRA_BOND_LOSS_REASON, Int.MIN_VALUE)
+        Log.w(
+            TAG,
+            "Bluetooth bond lost for $address (previous=$previousState, reason=$reason); " +
+                "closing connect-condition tasks bound to this device"
+        )
+        scope.launch {
+            val automations = repository.getAutomations().first()
+            automations
+                .filter { it.enabled && activeConnections[it.id] == address }
+                .forEach { automation ->
+                    val hasConnectCondition = automation.triggers.any { trigger ->
+                        isBluetoothTrigger(trigger.type) && wantsEvent(trigger.config, "CONNECTED")
+                    }
+                    if (!hasConnectCondition) return@forEach
+                    activeConnections.remove(automation.id)
+                    activeStore.clearAutomation(SOURCE, automation.id)
+                    exitCoordinator.requestExit(automation, ExitReason.TRIGGER_FALSE)
+                }
+        }
+    }
+
     fun initialize() {
         if (registered) return
         registered = true
         val filter = IntentFilter().apply {
             addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
             addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+            // Bond-loss diagnostics + immediate connect-condition cleanup
+            // (key missing / unpair while the device is unreachable).
+            addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
         }
         context.registerReceiver(receiver, filter)
         scope.launch {
@@ -243,5 +297,9 @@ class BluetoothMonitor @Inject constructor(
 
     private companion object {
         const val SOURCE = "bluetooth"
+        const val TAG = "BluetoothMonitor"
+
+        /** Hidden platform extra (android.bluetooth.device.extra.REASON). */
+        const val EXTRA_BOND_LOSS_REASON = "android.bluetooth.device.extra.REASON"
     }
 }

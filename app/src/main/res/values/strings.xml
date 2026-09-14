@@ -1,32 +1,36 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">Scheduled Tasks</string>
-    <string name="backup_saved">Backup saved</string>
-    <string name="backup_save_failed">Could not save the backup file</string>
-    <string name="save_locally_label">Save locally</string>
-    <string name="accessibility_service_description">Detects when configured apps are opened to run automations with an App trigger. Only the top-most app is observed; nothing is read from the screen.</string>
-
-    <!-- Widgets -->
-    <string name="widget_status_title">Active automations</string>
-    <string name="widget_status_count">0 / 0</string>
-    <string name="widget_status_last">Last run: —</string>
-    <string name="widget_subtitle">Automations</string>
-    <string name="widget_action">Enable all</string>
-
-    <!-- Bottom navigation -->
-    <string name="widget_no_automations">No automations</string>
-    <string name="widget_active_count">%1$s of %2$s active</string>
-    <string name="widget_enable_all">Enable all</string>
-    <string name="widget_disable_all">Disable all</string>
-    <string name="widget_status_count_format">%1$d / %2$d</string>
-    <string name="widget_last_run_format">Last run: %1$s</string>
-    <string name="deep_link_run_toast">Ran %1$s</string>
-    <string name="update_notification_title">Update available</string>
-    <string name="update_notification_text">NexaFlow %1$s is available</string>
-    <string name="update_notification_channel">App updates</string>
-    <string name="update_notification_channel_sub">Notifications when a newer NexaFlow version is available</string>
-    <string name="deep_link_force_message">Force run skips the trigger and condition checks for %1$s and runs it now.</string>
-    <string name="run_force_title">Force run?</string>
-    <string name="run_force_confirm">Force run</string>
-    <string name="cancel">Cancel</string>
-</resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Scheduled Tasks</string>
+    <string name="backup_saved">Backup saved</string>
+    <string name="backup_save_failed">Could not save the backup file</string>
+    <string name="save_locally_label">Save locally</string>
+    <string name="accessibility_service_description">Detects when configured apps are opened to run automations with an App trigger. Only the top-most app is observed; nothing is read from the screen.</string>
+
+    <!-- Widgets -->
+    <string name="widget_status_title">Active automations</string>
+    <string name="widget_status_count">0 / 0</string>
+    <string name="widget_status_last">Last run: —</string>
+    <string name="widget_subtitle">Automations</string>
+    <string name="widget_action">Enable all</string>
+
+    <!-- Bottom navigation -->
+    <string name="widget_no_automations">No automations</string>
+    <string name="widget_active_count">%1$s of %2$s active</string>
+    <string name="widget_enable_all">Enable all</string>
+    <string name="widget_disable_all">Disable all</string>
+    <string name="widget_status_count_format">%1$d / %2$d</string>
+    <string name="widget_last_run_format">Last run: %1$s</string>
+    <string name="deep_link_run_toast">Ran %1$s</string>
+    <string name="update_notification_title">Update available</string>
+    <string name="update_notification_text">NexaFlow %1$s is available</string>
+    <string name="update_notification_channel">App updates</string>
+    <string name="update_notification_channel_sub">Notifications when a newer NexaFlow version is available</string>
+    <string name="deep_link_force_message">Force run skips the trigger and condition checks for %1$s and runs it now.</string>
+    <string name="run_force_title">Force run?</string>
+    <string name="run_force_confirm">Force run</string>
+    <string name="cancel">Cancel</string>
+    <string name="task_import_success">Task imported: %1$s (review and enable it)</string>
+    <string name="task_import_invalid_workflow">Task not imported: it contains unsupported steps for this version</string>
+    <string name="task_import_not_single">File not imported: choose a single-task (.nexaflow) file, not a full backup</string>
+    <string name="task_import_invalid_file">File not imported: it is not a valid NexaFlow task file</string>
+</resources>

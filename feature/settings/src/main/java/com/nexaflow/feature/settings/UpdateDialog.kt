@@ -12,7 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,6 +30,7 @@ import java.util.Locale
  * immediately when tapped. While the APK is downloading the button turns into
  * a progress indicator and stays disabled.
  */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun UpdateDialog(
     info: UpdateInfo,
@@ -81,9 +82,9 @@ fun UpdateDialog(
         confirmButton = {
             if (downloading) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.width(20.dp),
-                        strokeWidth = 2.dp
+                    // M3 Expressive loading indicator (morphing polygon).
+                    androidx.compose.material3.LoadingIndicator(
+                        modifier = Modifier.width(24.dp),
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(

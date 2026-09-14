@@ -10,6 +10,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,11 +29,13 @@ import com.nexaflow.core.ui.Dimens.Space6
 import com.nexaflow.core.ui.Dimens.Space8
 
 /**
- * Shared full-width loading state. A compact progress indicator centered in
- * the available space — used for list/screen loads where the task is quick
- * (spinner over skeleton, per M3 guidance). Declared as a polite live region
- * so screen readers announce the load without stealing focus.
+ * Shared full-width loading state. The M3 Expressive loading indicator
+ * (morphing polygon) centered in the available space — used for list/screen
+ * loads where the task is quick (indicator over skeleton, per M3 guidance).
+ * Declared as a polite live region so screen readers announce the load
+ * without stealing focus.
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LoadingState(
     modifier: Modifier = Modifier,
@@ -49,7 +53,7 @@ fun LoadingState(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        CircularProgressIndicator(modifier = Modifier.size(Dimens.Space6))
+        LoadingIndicator(modifier = Modifier.size(Dimens.Space6))
     }
 }
 

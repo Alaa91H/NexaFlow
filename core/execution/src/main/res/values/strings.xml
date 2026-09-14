@@ -1,23 +1,27 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="notification_action_revert">Restore original state</string>
-    <string name="notification_action_run_now">Run task now</string>
-    <string name="notification_action_reply_label">Reply</string>
-    <string name="notification_action_dismiss">Dismiss</string>
-
-    <!-- Localized execution-result presentation. Backend diagnostics remain in logs only. -->
-    <string name="execution_task_completed">Task completed successfully.</string>
-    <string name="execution_task_failed">Task could not be completed.</string>
-    <string name="execution_task_skipped">Task was skipped.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_completed">Triggers or conditions are not satisfied. Only the end behavior (when the task ends) was completed.</string>
-    <string name="execution_conditions_not_satisfied_no_end_behavior">Triggers or conditions of the task are not satisfied, so it cannot run now. No end behavior is configured.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_failed">Triggers or conditions of the task are not satisfied, so it cannot run now. The end behavior could not be completed.</string>
-    <string name="execution_action_completed">Action completed successfully.</string>
-    <string name="execution_action_failed">Action could not be completed.</string>
-    <string name="execution_end_action_completed">End action completed successfully.</string>
-    <string name="execution_end_action_failed">End action could not be completed.</string>
-    <string name="execution_original_state_restored">Original device state was restored.</string>
-    <string name="execution_original_state_restore_failed">Original device state could not be restored.</string>
-    <string name="execution_google_play_updates_unavailable">Apps were not updated because Google Play does not expose update discovery or downloads to NexaFlow on this device.</string>
-    <string name="execution_google_play_managed_policy_required">Apps were not updated because a managed Google Play policy is required on an enterprise-managed device.</string>
-</resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_action_revert">Restore original state</string>
+    <string name="notification_action_run_now">Run task now</string>
+    <string name="notification_action_reply_label">Reply</string>
+    <string name="notification_action_dismiss">Dismiss</string>
+
+    <!-- Localized execution-result presentation. Backend diagnostics remain in logs only. -->
+    <string name="execution_task_completed">Task completed successfully.</string>
+    <string name="execution_task_failed">Task could not be completed.</string>
+    <string name="execution_task_skipped">Task was skipped.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">Triggers or conditions are not satisfied. Only the end behavior (when the task ends) was completed.</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">Triggers or conditions of the task are not satisfied, so it cannot run now. No end behavior is configured.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">Triggers or conditions of the task are not satisfied, so it cannot run now. The end behavior could not be completed.</string>
+    <string name="execution_action_completed">Action completed successfully.</string>
+    <string name="execution_action_failed">Action could not be completed.</string>
+    <string name="execution_end_action_completed">End action completed successfully.</string>
+    <string name="execution_end_action_failed">End action could not be completed.</string>
+    <string name="execution_original_state_restored">Original device state was restored.</string>
+    <string name="execution_original_state_restore_failed">Original device state could not be restored.</string>
+    <string name="execution_google_play_updates_unavailable">Apps were not updated because Google Play does not expose update discovery or downloads to NexaFlow on this device.</string>
+    <string name="execution_google_play_managed_policy_required">Apps were not updated because a managed Google Play policy is required on an enterprise-managed device.</string>
+    <string name="run_progress_channel_name">Task run progress</string>
+    <string name="run_progress_channel_desc">Shows which action a running task is executing</string>
+    <string name="run_progress_starting">Starting…</string>
+    <string name="run_progress_step">Step %1$d of %2$d</string>
+</resources>

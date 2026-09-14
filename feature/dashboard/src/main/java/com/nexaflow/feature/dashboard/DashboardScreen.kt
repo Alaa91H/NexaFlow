@@ -98,6 +98,10 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.core.content.FileProvider
+import android.content.Intent
+import java.io.File
 
 @Composable
 fun DashboardScreen(navController: NavController) {
@@ -107,13 +111,18 @@ fun DashboardScreen(navController: NavController) {
     val executionMessage by viewModel.executionMessage.collectAsStateWithLifecycle()
     // Compact dark toast: message-sized, centered near the bottom.
     var toastText by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    // Single-task share (.nexaflow) localized strings, captured once per
+    // composition so the coroutine and intents hold stable values.
+    val shareTaskTitle = stringResource(R.string.share_task_title)
+    val shareTaskFailure = stringResource(R.string.share_task_failed)
     var searchQuery by remember { mutableStateOf("") }
     var actionMenuTarget by remember { mutableStateOf<Automation?>(null) }
     var deleteTarget by remember { mutableStateOf<Automation?>(null) }
     // Task tapped for Run-now whose gate check failed: hosts the mismatch dialog.
     var runBlockDialogTarget by remember { mutableStateOf<Automation?>(null) }
     var forceRunConfirmTarget by remember { mutableStateOf<Automation?>(null) }
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
     val legacyConnectivityTasks by viewModel.legacyConnectivityTasks.collectAsStateWithLifecycle()
     // Keep one task expanded at a time so the dashboard remains scannable.
     var expandedAutomationId by remember { mutableStateOf<String?>(null) }
@@ -306,6 +315,35 @@ fun DashboardScreen(navController: NavController) {
                     },
                     onEdit = { navController.navigate("automation_builder?automationId=${row.automation.id}") },
                     onDelete = { deleteTarget = row.automation },
+                    onShare = {
+                        scope.launch {
+                            val json = viewModel.exportTaskJson(row.automation.id)
+                            if (json == null) {
+                                toastText = shareTaskFailure
+                                return@launch
+                        }
+                            val file = runCatching {
+                                val dir = File(context.cacheDir, "backup").apply { mkdirs() }
+                                File(dir, taskFileName(row.automation.name)).apply { writeText(json) }
+                            }.getOrNull()
+                            val uri = file?.let {
+                                FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", it)
+                            }
+                            if (uri == null) {
+                                toastText = shareTaskFailure
+                                return@launch
+                            }
+                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "application/json"
+                                putExtra(Intent.EXTRA_STREAM, uri)
+                                putExtra(Intent.EXTRA_SUBJECT, shareTaskTitle)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            runCatching {
+                                context.startActivity(Intent.createChooser(sendIntent, shareTaskTitle))
+                            }.onFailure { toastText = shareTaskFailure }
+                        }
+                    },
                     onToggle = { viewModel.toggleAutomation(row.automation, it) },
                     onToggleToast = { target, show -> viewModel.setShowToastOnToggle(target, show) },
                     onExpandedChange = {
@@ -470,6 +508,21 @@ internal fun nextExpandedAutomationId(
     tappedAutomationId: String
 ): String? = if (currentExpandedId == tappedAutomationId) null else tappedAutomationId
 
+/**
+ * File name for a shared single-task (.nexaflow) file: the task name,
+ * stripped to filesystem-safe characters and truncated defensively so a
+ * pathological task name cannot break the share flow.
+ */
+internal fun taskFileName(taskName: String): String {
+    val sanitized = taskName
+        .replace(Regex("[\\\\/:*?\"<>|]"), "_")
+        .replace(Regex("\\s+"), " ")
+        .trim()
+        .take(60)
+        .ifBlank { "task" }
+    return "$sanitized.nexaflow"
+}
+
 /** Stable semantics used by the dashboard Compose contract test. */
 internal object RoutineCardTestTags {
     const val HeaderIcon = "routine_card_header_icon"
@@ -495,6 +548,7 @@ internal fun RoutineCard(
     onRun: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    onShare: () -> Unit,
     onToggle: (Boolean) -> Unit,
     onToggleToast: (Automation, Boolean) -> Unit,
     onExpandedChange: () -> Unit,
@@ -589,6 +643,13 @@ internal fun RoutineCard(
                     onClick = {
                         onDismissMenu()
                         onDelete()
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.share_task)) },
+                    onClick = {
+                        onDismissMenu()
+                        onShare()
                     }
                 )
             }
@@ -1048,6 +1109,7 @@ private fun RoutineCardPreview() {
             onRun = {},
             onEdit = {},
             onDelete = {},
+            onShare = {},
             onToggle = {},
             onToggleToast = { _, _ -> },
             onExpandedChange = {},

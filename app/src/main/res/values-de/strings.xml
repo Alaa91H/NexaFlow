@@ -1,29 +1,33 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">Geplante Aufgaben</string>
-    <string name="backup_saved">Backup gespeichert</string>
-    <string name="backup_save_failed">Backup konnte nicht gespeichert werden</string>
-    <string name="save_locally_label">Lokal speichern</string>    <string name="accessibility_service_description">Erkennt, wann konfigurierte Apps geöffnet werden, um Automatisierungen mit App-Trigger auszuführen. Nur die oberste App wird beobachtet; vom Bildschirm wird nichts gelesen.</string>
-    <string name="widget_status_title">Aktive Automatisierungen</string>
-    <string name="widget_status_count">0 / 0</string>
-    <string name="widget_status_last">Letzte Ausführung: —</string>
-    <string name="widget_subtitle">Automatisierungen</string>
-    <string name="widget_action">Alle aktivieren</string>
-
-    <!-- Bottom navigation -->
-    <string name="widget_no_automations">Keine Automatisierungen</string>
-    <string name="widget_active_count">%1$s von %2$s aktiv</string>
-    <string name="widget_enable_all">Alle aktivieren</string>
-    <string name="widget_disable_all">Alle deaktivieren</string>
-    <string name="widget_status_count_format">%1$d / %2$d</string>
-    <string name="widget_last_run_format">Letzte Ausführung: %1$s</string>
-    <string name="deep_link_run_toast">%1$s ausgeführt</string>
-    <string name="update_notification_title">Update verfügbar</string>
-    <string name="update_notification_text">NexaFlow %1$s ist verfügbar</string>
-    <string name="update_notification_channel">App-Updates</string>
-    <string name="update_notification_channel_sub">Benachrichtigungen bei einer neueren NexaFlow-Version</string>
-    <string name="deep_link_force_message">Erzwungenes Ausführen überspringt die Auslöser- und Bedingungsprüfungen für %1$s und startet es jetzt.</string>
-    <string name="run_force_title">Erzwingen?</string>
-    <string name="run_force_confirm">Erzwingen</string>
-    <string name="cancel">Abbrechen</string>
-</resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Geplante Aufgaben</string>
+    <string name="backup_saved">Backup gespeichert</string>
+    <string name="backup_save_failed">Backup konnte nicht gespeichert werden</string>
+    <string name="save_locally_label">Lokal speichern</string>    <string name="accessibility_service_description">Erkennt, wann konfigurierte Apps geöffnet werden, um Automatisierungen mit App-Trigger auszuführen. Nur die oberste App wird beobachtet; vom Bildschirm wird nichts gelesen.</string>
+    <string name="widget_status_title">Aktive Automatisierungen</string>
+    <string name="widget_status_count">0 / 0</string>
+    <string name="widget_status_last">Letzte Ausführung: —</string>
+    <string name="widget_subtitle">Automatisierungen</string>
+    <string name="widget_action">Alle aktivieren</string>
+
+    <!-- Bottom navigation -->
+    <string name="widget_no_automations">Keine Automatisierungen</string>
+    <string name="widget_active_count">%1$s von %2$s aktiv</string>
+    <string name="widget_enable_all">Alle aktivieren</string>
+    <string name="widget_disable_all">Alle deaktivieren</string>
+    <string name="widget_status_count_format">%1$d / %2$d</string>
+    <string name="widget_last_run_format">Letzte Ausführung: %1$s</string>
+    <string name="deep_link_run_toast">%1$s ausgeführt</string>
+    <string name="update_notification_title">Update verfügbar</string>
+    <string name="update_notification_text">NexaFlow %1$s ist verfügbar</string>
+    <string name="update_notification_channel">App-Updates</string>
+    <string name="update_notification_channel_sub">Benachrichtigungen bei einer neueren NexaFlow-Version</string>
+    <string name="deep_link_force_message">Erzwungenes Ausführen überspringt die Auslöser- und Bedingungsprüfungen für %1$s und startet es jetzt.</string>
+    <string name="run_force_title">Erzwingen?</string>
+    <string name="run_force_confirm">Erzwingen</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="task_import_success">Aufgabe importiert: %1$s (prüfen und aktivieren)</string>
+    <string name="task_import_invalid_workflow">Aufgabe nicht importiert: Sie enthält nicht unterstützte Schritte für diese Version</string>
+    <string name="task_import_not_single">Datei nicht importiert: Wählen Sie eine Einzelaufgaben-Datei (.nexaflow), kein vollständiges Backup</string>
+    <string name="task_import_invalid_file">Datei nicht importiert: Sie ist keine gültige NexaFlow-Aufgabendatei</string>
+</resources>

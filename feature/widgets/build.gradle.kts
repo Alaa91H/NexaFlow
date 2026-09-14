@@ -57,4 +57,5 @@ dependencies {
     implementation(project(":core:execution"))
     implementation(project(":core:ui-components"))
     testImplementation(libs.junit.junit)
+    testImplementation(libs.org.robolectric.robolectric)
 }

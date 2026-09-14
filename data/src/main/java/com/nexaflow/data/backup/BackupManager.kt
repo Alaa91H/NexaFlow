@@ -32,6 +32,27 @@ sealed interface ImportResult {
     data object InvalidFile : ImportResult
 }
 
+/** Preflight result for a single-task (.nexaflow) import — see [BackupManager.preflightSingle]. */
+sealed interface SingleTaskPreflight {
+    data class Ready(val automation: Automation) : SingleTaskPreflight
+    data class InvalidWorkflow(val automationId: String, val issues: List<WorkflowValidationIssue>) : SingleTaskPreflight
+
+    /** A valid backup container, but not a single-task file (0 or 2+ automations). */
+    data object NotSingle : SingleTaskPreflight
+    data object InvalidFile : SingleTaskPreflight
+}
+
+/** Import result for a single-task (.nexaflow) import — see [BackupManager.importSingle]. */
+sealed interface SingleTaskImportResult {
+    /** Carries the saved automation with its final (possibly re-keyed) local id. */
+    data class Success(val automation: Automation) : SingleTaskImportResult
+    data class InvalidWorkflow(val automationId: String, val issues: List<WorkflowValidationIssue>) : SingleTaskImportResult
+
+    /** A valid backup container, but not a single-task file (0 or 2+ automations). */
+    data object NotSingle : SingleTaskImportResult
+    data object InvalidFile : SingleTaskImportResult
+}
+
 /** Non-mutating import preflight used by UI review before calling [BackupManager.import]. */
 sealed interface BackupPreflight {
     data class Ready(val backup: BackupFile) : BackupPreflight
@@ -108,6 +129,73 @@ class BackupManager(
             automationRepository.saveAutomation(automation)
         }
         return ImportResult.Success(importedAutomations.size, disabledCount)
+    }
+
+    /**
+     * Single-task sharing format (.nexaflow files): the proven, validated
+     * full-backup container with exactly one automation. Reusing it means
+     * imports ride the same version gate, structural preflight, workflow
+     * validation, ID-collision re-keying and review-before-enable policy as
+     * full backups — no second, weaker parsing path exists.
+     */
+    fun exportSingle(automation: Automation): String {
+        val single = BackupFile(
+            version = BACKUP_VERSION,
+            exportedAt = System.currentTimeMillis(),
+            automations = listOf(automation),
+            pluginDependencies = PluginDependencyScanner.scan(listOf(automation))
+        )
+        return json.encodeToString(single)
+    }
+
+    /**
+     * Single-task import preflight: a thin wrapper over [preflight] that also
+     * rejects multi-automation files so a full backup shared into the
+     * single-task importer cannot quietly import "just the first task".
+     * Returns the same shapes as [preflight] (Ready carries the reviewed,
+     * dependency-rebuilt backup) plus [SingleTaskPreflight.NotSingle].
+     */
+    fun preflightSingle(jsonText: String): SingleTaskPreflight =
+        when (val preflight = preflight(jsonText)) {
+            is BackupPreflight.Ready ->
+                if (preflight.backup.automations.size == 1) {
+                    SingleTaskPreflight.Ready(preflight.backup.automations.first())
+                } else {
+                    SingleTaskPreflight.NotSingle
+                }
+            is BackupPreflight.InvalidWorkflow ->
+                SingleTaskPreflight.InvalidWorkflow(preflight.automationId, preflight.issues)
+            BackupPreflight.InvalidFile -> SingleTaskPreflight.InvalidFile
+        }
+
+    /**
+     * Single-task import: parses through [preflightSingle], then applies the
+     * exact [import] persistence policy for one automation (unique-ID
+     * re-keying on collision, review-before-enable). Returns the saved
+     * automation (with its final local id) on success so the UI can offer
+     * "open in builder" directly.
+     */
+    suspend fun importSingle(jsonText: String): SingleTaskImportResult {
+        val automation = when (val preflight = preflightSingle(jsonText)) {
+            is SingleTaskPreflight.Ready -> preflight.automation
+            is SingleTaskPreflight.InvalidWorkflow ->
+                return SingleTaskImportResult.InvalidWorkflow(preflight.automationId, preflight.issues)
+            SingleTaskPreflight.NotSingle -> return SingleTaskImportResult.NotSingle
+            SingleTaskPreflight.InvalidFile -> return SingleTaskImportResult.InvalidFile
+        }
+        val existingIds = automationRepository.getAutomations().first().map { it.id }.toSet()
+        // Both branches persist AND return the disabled copy: the result must
+        // describe exactly what was stored, never the pre-review payload.
+        val saved = if (automation.id in existingIds) {
+            val rekeyed = automation.copy(id = UUID.randomUUID().toString(), enabled = false)
+            automationRepository.saveAutomation(rekeyed)
+            rekeyed
+        } else {
+            val disabled = automation.copy(enabled = false)
+            automationRepository.saveAutomation(disabled)
+            disabled
+        }
+        return SingleTaskImportResult.Success(saved)
     }
 
     fun preflight(jsonText: String): BackupPreflight {

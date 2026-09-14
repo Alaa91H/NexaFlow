@@ -1,22 +1,26 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="notification_action_revert">استرجاع الحالة الأصلية</string>
-    <string name="notification_action_run_now">تشغيل المهمة الآن</string>
-    <string name="notification_action_reply_label">رد</string>
-    <string name="notification_action_dismiss">تجاهل</string>
-
-    <string name="execution_task_completed">اكتملت المهمة بنجاح.</string>
-    <string name="execution_task_failed">تعذر إكمال المهمة.</string>
-    <string name="execution_task_skipped">تم تخطي المهمة.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_completed">المحفزات أو الشروط غير متطابقة. تم تنفيذ سلوك النهاية فقط (عند انتهاء المهمة).</string>
-    <string name="execution_conditions_not_satisfied_no_end_behavior">محفزات المهمة أو شروطها غير متطابقة، لذلك لا يمكن تشغيلها الآن. لم يتم تكوين سلوك نهاية.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_failed">محفزات المهمة أو شروطها غير متطابقة، لذلك لا يمكن تشغيلها الآن. تعذر إكمال سلوك النهاية.</string>
-    <string name="execution_action_completed">اكتمل الإجراء بنجاح.</string>
-    <string name="execution_action_failed">تعذر إكمال الإجراء.</string>
-    <string name="execution_end_action_completed">اكتمل إجراء الإنهاء بنجاح.</string>
-    <string name="execution_end_action_failed">تعذر إكمال إجراء الإنهاء.</string>
-    <string name="execution_original_state_restored">تمت استعادة حالة الجهاز الأصلية.</string>
-    <string name="execution_original_state_restore_failed">تعذر استعادة حالة الجهاز الأصلية.</string>
-    <string name="execution_google_play_updates_unavailable">لم يتم تحديث التطبيقات لأن Google Play لا يتيح لـ NexaFlow اكتشاف التحديثات أو تنزيلها على هذا الجهاز.</string>
-    <string name="execution_google_play_managed_policy_required">لم يتم تحديث التطبيقات لأن سياسة Google Play المُدارة مطلوبة على جهاز مُدار للمؤسسات.</string>
-</resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_action_revert">استرجاع الحالة الأصلية</string>
+    <string name="notification_action_run_now">تشغيل المهمة الآن</string>
+    <string name="notification_action_reply_label">رد</string>
+    <string name="notification_action_dismiss">تجاهل</string>
+
+    <string name="execution_task_completed">اكتملت المهمة بنجاح.</string>
+    <string name="execution_task_failed">تعذر إكمال المهمة.</string>
+    <string name="execution_task_skipped">تم تخطي المهمة.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">المحفزات أو الشروط غير متطابقة. تم تنفيذ سلوك النهاية فقط (عند انتهاء المهمة).</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">محفزات المهمة أو شروطها غير متطابقة، لذلك لا يمكن تشغيلها الآن. لم يتم تكوين سلوك نهاية.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">محفزات المهمة أو شروطها غير متطابقة، لذلك لا يمكن تشغيلها الآن. تعذر إكمال سلوك النهاية.</string>
+    <string name="execution_action_completed">اكتمل الإجراء بنجاح.</string>
+    <string name="execution_action_failed">تعذر إكمال الإجراء.</string>
+    <string name="execution_end_action_completed">اكتمل إجراء الإنهاء بنجاح.</string>
+    <string name="execution_end_action_failed">تعذر إكمال إجراء الإنهاء.</string>
+    <string name="execution_original_state_restored">تمت استعادة حالة الجهاز الأصلية.</string>
+    <string name="execution_original_state_restore_failed">تعذر استعادة حالة الجهاز الأصلية.</string>
+    <string name="execution_google_play_updates_unavailable">لم يتم تحديث التطبيقات لأن Google Play لا يتيح لـ NexaFlow اكتشاف التحديثات أو تنزيلها على هذا الجهاز.</string>
+    <string name="execution_google_play_managed_policy_required">لم يتم تحديث التطبيقات لأن سياسة Google Play المُدارة مطلوبة على جهاز مُدار للمؤسسات.</string>
+    <string name="run_progress_channel_name">تقدم تنفيذ المهمة</string>
+    <string name="run_progress_starting">جارٍ البدء…</string>
+    <string name="run_progress_step">الخطوة %1$d من %2$d</string>
+    <string name="run_progress_channel_desc">يعرض الإجراء الذي تنفذه المهمة الجارية</string>
+</resources>

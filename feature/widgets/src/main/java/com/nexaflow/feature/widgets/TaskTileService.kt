@@ -132,6 +132,11 @@ abstract class TaskTileService : TileService() {
      * bitmap — Quick Settings shows it as the tile's icon (the system tints
      * it by state, matching every other tile). Falls back to null (the
      * manifest-provided static icon) on any rendering hiccup, never crashes.
+     *
+     * The rendered bitmap passes through [WidgetMemoryBudget.guard] before it
+     * leaves this method: Android 17 turns an over-budget RemoteViews
+     * Bitmap+Icon payload into a fatal IllegalArgumentException, so the icon
+     * is downscaled against the device's real display budget when needed.
      */
     private fun taskIcon(target: Automation): android.graphics.drawable.Icon? = runCatching {
         val vector = iconVector(target.icon)
@@ -144,7 +149,9 @@ abstract class TaskTileService : TileService() {
         canvas.scale(96f / vector.viewportWidth, 96f / vector.viewportHeight)
         renderVectorNode(canvas, paint, vector.root)
         canvas.restore()
-        android.graphics.drawable.Icon.createWithBitmap(bitmap)
+        val metrics = applicationContext.resources.displayMetrics
+        val guarded = WidgetMemoryBudget.guard(bitmap, metrics.widthPixels, metrics.heightPixels)
+        android.graphics.drawable.Icon.createWithBitmap(guarded)
     }.getOrNull()
 
     /** Draws a vector node tree (groups with transforms, filled/stroked paths). */

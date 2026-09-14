@@ -61,6 +61,7 @@ class RoutineCardHeaderTest {
                     onRun = {},
                     onEdit = {},
                     onDelete = {},
+                    onShare = {},
                     onToggle = {},
                     onToggleToast = { _, _ -> },
                     onExpandedChange = { expanded = !expanded },

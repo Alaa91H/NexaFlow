@@ -1,29 +1,33 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">अनुसूचित कार्य</string>
-    <string name="backup_saved">बैकअप सहेज गया</string>
-    <string name="backup_save_failed">बैकअप फ़ाइल सहेजी नहीं जा सकी</string>
-    <string name="save_locally_label">स्थानीय रूप से सहेजें</string>    <string name="accessibility_service_description">कॉन्फ़िगर किए गए ऐप खुलने पर ऐप ट्रिगर वाली ऑटोमेशन चलाने का पता लगाता है। केवल सबसे ऊपर वाला ऐप देखा जाता है; स्क्रीन से कुछ भी नहीं पढ़ा जाता।</string>
-    <string name="widget_status_title">सक्रिय ऑटोमेशन</string>
-    <string name="widget_status_count">0 / 0</string>
-    <string name="widget_status_last">अंतिम रन: —</string>
-    <string name="widget_subtitle">ऑटोमेशन</string>
-    <string name="widget_action">सभी सक्षम करें</string>
-
-    <!-- Bottom navigation -->
-    <string name="widget_no_automations">कोई ऑटोमेशन नहीं</string>
-    <string name="widget_active_count">%1$s में से %2$s सक्रिय</string>
-    <string name="widget_enable_all">सभी सक्षम करें</string>
-    <string name="widget_disable_all">सभी अक्षम करें</string>
-    <string name="widget_status_count_format">%1$d / %2$d</string>
-    <string name="widget_last_run_format">अंतिम रन: %1$s</string>
-    <string name="deep_link_run_toast">%1$s चलाया गया</string>
-    <string name="update_notification_title">अपडेट उपलब्ध है</string>
-    <string name="update_notification_text">NexaFlow %1$s उपलब्ध है</string>
-    <string name="update_notification_channel">ऐप अपडेट</string>
-    <string name="update_notification_channel_sub">NexaFlow का नया संस्करण उपलब्ध होने पर सूचनाएँ</string>
-    <string name="deep_link_force_message">बलपूर्वक चलाना %1$s के लिए ट्रिगर और शर्त जाँचों को छोड़ देता है और उसे अभी चलाता है।</string>
-    <string name="run_force_title">बलपूर्वक चलाएँ?</string>
-    <string name="run_force_confirm">बलपूर्वक चलाएँ</string>
-    <string name="cancel">रद्द करें</string>
-</resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">अनुसूचित कार्य</string>
+    <string name="backup_saved">बैकअप सहेज गया</string>
+    <string name="backup_save_failed">बैकअप फ़ाइल सहेजी नहीं जा सकी</string>
+    <string name="save_locally_label">स्थानीय रूप से सहेजें</string>    <string name="accessibility_service_description">कॉन्फ़िगर किए गए ऐप खुलने पर ऐप ट्रिगर वाली ऑटोमेशन चलाने का पता लगाता है। केवल सबसे ऊपर वाला ऐप देखा जाता है; स्क्रीन से कुछ भी नहीं पढ़ा जाता।</string>
+    <string name="widget_status_title">सक्रिय ऑटोमेशन</string>
+    <string name="widget_status_count">0 / 0</string>
+    <string name="widget_status_last">अंतिम रन: —</string>
+    <string name="widget_subtitle">ऑटोमेशन</string>
+    <string name="widget_action">सभी सक्षम करें</string>
+
+    <!-- Bottom navigation -->
+    <string name="widget_no_automations">कोई ऑटोमेशन नहीं</string>
+    <string name="widget_active_count">%1$s में से %2$s सक्रिय</string>
+    <string name="widget_enable_all">सभी सक्षम करें</string>
+    <string name="widget_disable_all">सभी अक्षम करें</string>
+    <string name="widget_status_count_format">%1$d / %2$d</string>
+    <string name="widget_last_run_format">अंतिम रन: %1$s</string>
+    <string name="deep_link_run_toast">%1$s चलाया गया</string>
+    <string name="update_notification_title">अपडेट उपलब्ध है</string>
+    <string name="update_notification_text">NexaFlow %1$s उपलब्ध है</string>
+    <string name="update_notification_channel">ऐप अपडेट</string>
+    <string name="update_notification_channel_sub">NexaFlow का नया संस्करण उपलब्ध होने पर सूचनाएँ</string>
+    <string name="deep_link_force_message">बलपूर्वक चलाना %1$s के लिए ट्रिगर और शर्त जाँचों को छोड़ देता है और उसे अभी चलाता है।</string>
+    <string name="run_force_title">बलपूर्वक चलाएँ?</string>
+    <string name="run_force_confirm">बलपूर्वक चलाएँ</string>
+    <string name="cancel">रद्द करें</string>
+    <string name="task_import_success">कार्य आयातित: %1$s (समीक्षा करें और सक्षम करें)</string>
+    <string name="task_import_invalid_workflow">कार्य आयातित नहीं हुआ: इसमें इस संस्करण के लिए असमर्थित चरण हैं</string>
+    <string name="task_import_not_single">फ़ाइल आयातित नहीं हुई: पूर्ण बैकअप नहीं, एकल-कार्य (.nexaflow) फ़ाइल चुनें</string>
+    <string name="task_import_invalid_file">फ़ाइल आयातित नहीं हुई: यह मान्य NexaFlow कार्य फ़ाइल नहीं है</string>
+</resources>

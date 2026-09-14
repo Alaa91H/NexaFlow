@@ -133,6 +133,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -1621,14 +1622,15 @@ fun AutomationBuilderScreen(
                 .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 112.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // ── Progress bar above tabs — visual feedback for task creation progress
+            // ── Progress bar above tabs — visual feedback for task creation progress.
+            // M3 Expressive wavy linear bar: the 2026 determinate-progress language.
             val stepProgress by animateFloatAsState(
                 targetValue = (step + 1) / 3f,
                 animationSpec = nexaFlowSpatialSpec()
             )
-            LinearProgressIndicator(
+            LinearWavyProgressIndicator(
                 progress = { stepProgress },
-                modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
+                modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
             )

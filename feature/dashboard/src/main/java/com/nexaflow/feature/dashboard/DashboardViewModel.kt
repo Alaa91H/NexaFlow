@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.data.backup.BackupManager
 import com.nexaflow.core.execution.ExecutionResultPresentation
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.ExecutionRecord
@@ -56,6 +57,12 @@ class DashboardViewModel @Inject constructor(
 
     private val _executionMessage = MutableStateFlow<String?>(null)
     val executionMessage: StateFlow<String?> = _executionMessage
+
+    /** Serializes one task to the single-task (.nexaflow) share format; null when unavailable. */
+    suspend fun exportTaskJson(automationId: String): String? {
+        val automation = automationRepository.getAutomationById(automationId) ?: return null
+        return runCatching { BackupManager(automationRepository).exportSingle(automation) }.getOrNull()
+    }
 
     /** Toggles a single routine on/off — strict: enable runs immediately if triggers match, disable runs exit. */
     fun toggleAutomation(automation: Automation, enabled: Boolean) {
