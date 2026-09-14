@@ -44,6 +44,7 @@ object ElevatedAccessShortcuts {
     @Volatile
     private var shizukuListenerRegistered = false
 
+    @Synchronized
     private fun ensureShizukuResultListener() {
         if (shizukuListenerRegistered) return
         shizukuListenerRegistered = true
@@ -63,18 +64,26 @@ object ElevatedAccessShortcuts {
      * Falls back to opening the root manager app when no `su` binary exists
      * yet (device not rooted). Runs off the main thread so the dialog prompt
      * never blocks the UI; [onResult] reports whether root was granted.
+     * Probe failures fail closed instead of crashing the caller or leaving the
+     * permission flow stuck without a result.
      */
     fun requestRootAccess(context: Context, onResult: (Boolean) -> Unit = {}) {
         val appContext = context.applicationContext
-        if (!SystemAppStatusDetector.isSuBinaryAvailable()) {
+        val suBinaryAvailable = runCatching {
+            SystemAppStatusDetector.isSuBinaryAvailable()
+        }.getOrDefault(false)
+        if (!suBinaryAvailable) {
             openRootManager(appContext)
             return
         }
         Thread {
-            val granted = PrivilegedRunner.triggerSuPrompt()
+            val granted = runCatching {
+                PrivilegedRunner.triggerSuPrompt()
+            }.getOrDefault(false)
             // Drop the cached probe so permission checks pick up the new grant
-            // immediately instead of within the TTL window.
-            SystemAppStatusDetector.refreshRootAvailability()
+            // immediately instead of within the TTL window. Refresh failures
+            // must not suppress delivery of the actual root-manager result.
+            runCatching { SystemAppStatusDetector.refreshRootAvailability() }
             Handler(Looper.getMainLooper()).post { onResult(granted) }
         }.start()
     }
