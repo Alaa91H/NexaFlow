@@ -119,17 +119,18 @@ class ShizukuCapabilityBackend(
     override val id: CapabilityBackendId = CapabilityBackendId.SHIZUKU
     override val supportedCapabilities: Set<CapabilityId> = TYPED_CAPABILITIES
 
-    override suspend fun availability(request: CapabilityRequest): BackendAvailability = when {
-        request.capability !in supportedCapabilities -> unsupportedAvailability()
-        !request.policy.allowPrivilegedBackends -> BackendAvailability(
-            id,
-            CapabilityAvailability.PERMISSION_REQUIRED,
-            PRIVILEGED_OPT_IN_REQUIRED
-        )
-        !running() -> BackendAvailability(id, CapabilityAvailability.UNAVAILABLE, "Shizuku server is not running")
-        !granted() -> BackendAvailability(id, CapabilityAvailability.PERMISSION_REQUIRED, "Shizuku access was not granted")
-        !userServiceBound() -> BackendAvailability(id, CapabilityAvailability.UNAVAILABLE, "Shizuku UserService is not connected")
-        else -> BackendAvailability(id, CapabilityAvailability.AVAILABLE)
+    override suspend fun availability(request: CapabilityRequest): BackendAvailability {
+        if (request.capability !in supportedCapabilities) return unsupportedAvailability()
+        if (!request.policy.allowPrivilegedBackends) {
+            return BackendAvailability(id, CapabilityAvailability.PERMISSION_REQUIRED, PRIVILEGED_OPT_IN_REQUIRED)
+        }
+        val state = probeState()
+        return when {
+            !state.running -> BackendAvailability(id, CapabilityAvailability.UNAVAILABLE, "Shizuku server is not running")
+            !state.granted -> BackendAvailability(id, CapabilityAvailability.PERMISSION_REQUIRED, "Shizuku access was not granted")
+            !state.userServiceBound -> BackendAvailability(id, CapabilityAvailability.UNAVAILABLE, "Shizuku UserService is not connected")
+            else -> BackendAvailability(id, CapabilityAvailability.AVAILABLE)
+        }
     }
 
     override suspend fun execute(request: CapabilityRequest): CapabilityResult {
@@ -139,9 +140,10 @@ class ShizukuCapabilityBackend(
         val operation = runCatching { PrivilegedOperationRequestMapper.map(request) }.getOrElse { error ->
             return CapabilityResult.failed(CapabilityErrorCode.INVALID_CONFIGURATION, error.message ?: "Invalid privileged request", id)
         }
-        if (!running()) return unavailable(CapabilityErrorCode.SHIZUKU_UNAVAILABLE, "Shizuku server is not running", id)
-        if (!granted()) return unavailable(CapabilityErrorCode.SHIZUKU_DENIED, "Shizuku access was not granted", id)
-        if (!userServiceBound()) return unavailable(CapabilityErrorCode.SHIZUKU_UNAVAILABLE, "Shizuku UserService is not connected", id)
+        val state = probeState()
+        if (!state.running) return unavailable(CapabilityErrorCode.SHIZUKU_UNAVAILABLE, "Shizuku server is not running", id)
+        if (!state.granted) return unavailable(CapabilityErrorCode.SHIZUKU_DENIED, "Shizuku access was not granted", id)
+        if (!state.userServiceBound) return unavailable(CapabilityErrorCode.SHIZUKU_UNAVAILABLE, "Shizuku UserService is not connected", id)
         return executeOperation(operation).toCapabilityResult(
             backend = id,
             operation = operation,
@@ -149,7 +151,25 @@ class ShizukuCapabilityBackend(
         )
     }
 
+    private fun probeState(): ShizukuState {
+        val isRunning = runCatching(running).getOrDefault(false)
+        if (!isRunning) return ShizukuState(running = false, granted = false, userServiceBound = false)
+        val isGranted = runCatching(granted).getOrDefault(false)
+        if (!isGranted) return ShizukuState(running = true, granted = false, userServiceBound = false)
+        return ShizukuState(
+            running = true,
+            granted = true,
+            userServiceBound = runCatching(userServiceBound).getOrDefault(false)
+        )
+    }
+
     private fun unsupportedAvailability() = BackendAvailability(id, CapabilityAvailability.UNSUPPORTED, "Capability is not implemented by Shizuku backend")
+
+    private data class ShizukuState(
+        val running: Boolean,
+        val granted: Boolean,
+        val userServiceBound: Boolean
+    )
 }
 
 class RootCapabilityBackend(
@@ -166,7 +186,7 @@ class RootCapabilityBackend(
             CapabilityAvailability.PERMISSION_REQUIRED,
             PRIVILEGED_OPT_IN_REQUIRED
         )
-        !rootAvailable() -> BackendAvailability(id, CapabilityAvailability.UNAVAILABLE, "Root access is not available")
+        !isRootAvailableSafely() -> BackendAvailability(id, CapabilityAvailability.UNAVAILABLE, "Root access is not available")
         else -> BackendAvailability(id, CapabilityAvailability.AVAILABLE)
     }
 
@@ -177,9 +197,11 @@ class RootCapabilityBackend(
         val operation = runCatching { PrivilegedOperationRequestMapper.map(request) }.getOrElse { error ->
             return CapabilityResult.failed(CapabilityErrorCode.INVALID_CONFIGURATION, error.message ?: "Invalid privileged request", id)
         }
-        if (!rootAvailable()) return unavailable(CapabilityErrorCode.ROOT_UNAVAILABLE, "Root access is not available", id)
+        if (!isRootAvailableSafely()) return unavailable(CapabilityErrorCode.ROOT_UNAVAILABLE, "Root access is not available", id)
         return executeOperation(operation).toCapabilityResult(id, operation, CapabilityErrorCode.ROOT_DENIED)
     }
+
+    private fun isRootAvailableSafely(): Boolean = runCatching(rootAvailable).getOrDefault(false)
 }
 
 /**
