@@ -27,7 +27,10 @@ object ElevatedAccessShortcuts {
     private var shizukuAppContext: Context? = null
 
     @Volatile
-    private var shizukuListenerRegistered = false
+    private var shizukuResultListenerRegistered = false
+
+    @Volatile
+    private var shizukuBinderDeadListenerRegistered = false
 
     /**
      * Shizuku delivers the grant-dialog result through a listener registered
@@ -60,16 +63,30 @@ object ElevatedAccessShortcuts {
     private var rootRequestInFlight = false
 
     @Synchronized
-    private fun ensureShizukuResultListener(): Boolean {
-        if (shizukuListenerRegistered) return true
-        return try {
-            Shizuku.addRequestPermissionResultListener(shizukuResultListener)
-            shizukuListenerRegistered = true
-            true
-        } catch (_: Throwable) {
-            shizukuListenerRegistered = false
-            false
+    private fun ensureShizukuLifecycleListeners(): Boolean {
+        if (!shizukuResultListenerRegistered) {
+            try {
+                Shizuku.addRequestPermissionResultListener(shizukuResultListener)
+                shizukuResultListenerRegistered = true
+            } catch (_: Throwable) {
+                return false
+            }
         }
+        if (!shizukuBinderDeadListenerRegistered) {
+            try {
+                // A Shizuku restart can kill the binder while its permission
+                // dialog is in flight. The permission-result callback may then
+                // never arrive; clear the request gate immediately so a later
+                // user action can reconnect instead of being suppressed forever.
+                Shizuku.addBinderDeadListener {
+                    clearShizukuPermissionRequest()
+                }
+                shizukuBinderDeadListenerRegistered = true
+            } catch (_: Throwable) {
+                return false
+            }
+        }
+        return true
     }
 
     private fun beginShizukuPermissionRequest(context: Context): Boolean =
@@ -208,7 +225,8 @@ object ElevatedAccessShortcuts {
      * Requests Shizuku access through the in-app grant dialog when the server is
      * running; falls back to opening the Shizuku manager app when it is not.
      * Concurrent requests share the single in-flight system prompt. Listener or
-     * binder failures clear that state so the user can retry safely.
+     * binder failures clear that state so the user can retry safely, including a
+     * Shizuku service restart while the grant dialog is visible.
      */
     fun openShizuku(context: Context) {
         val appContext = context.applicationContext
@@ -228,7 +246,7 @@ object ElevatedAccessShortcuts {
                 return
             }
             if (!beginShizukuPermissionRequest(appContext)) return
-            if (!ensureShizukuResultListener()) {
+            if (!ensureShizukuLifecycleListeners()) {
                 clearShizukuPermissionRequest()
                 openShizukuManager(appContext)
                 return
