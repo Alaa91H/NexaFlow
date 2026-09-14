@@ -2,6 +2,7 @@ package com.nexaflow.app
 
 import android.app.Activity
 import android.app.Application
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.StrictMode
 import android.util.Log
@@ -60,6 +61,12 @@ class NexaFlowApplication : Application(), Configuration.Provider {
     @Inject
     @ApplicationScope
     lateinit var appScope: CoroutineScope
+
+    private val permissionsChangedListener = PackageManager.OnPermissionsChangedListener { uid ->
+        if (uid == applicationInfo.uid) {
+            capabilityStateStore.invalidate()
+        }
+    }
 
     /**
      * WorkManager must construct MaintenanceWorker through Hilt (it has an
@@ -150,13 +157,17 @@ class NexaFlowApplication : Application(), Configuration.Provider {
 
     /**
      * Runtime grants and special permissions can change while NexaFlow is behind a
-     * system dialog or Settings screen. Refresh the centralized capability snapshot
-     * whenever an activity becomes interactive again so builder/diagnostic surfaces
-     * never keep a stale grant after the user returns. CapabilityStateStore coalesces
-     * resume bursts and enforces its minimum refresh interval, which keeps privileged
-     * Root/Shizuku probes bounded.
+     * system dialog or Settings screen. Listen for this process' runtime permission
+     * changes directly, and also refresh whenever an activity becomes interactive
+     * again so special permissions that do not emit PackageManager callbacks are
+     * re-evaluated. CapabilityStateStore coalesces bursts and bounds privileged
+     * Root/Shizuku probes.
      */
     private fun registerCapabilityRefreshCallbacks() {
+        runCatching {
+            packageManager.addOnPermissionsChangeListener(permissionsChangedListener)
+        }.onFailure { Log.w(TAG, "Permission change listener registration failed", it) }
+
         registerActivityLifecycleCallbacks(
             object : ActivityLifecycleCallbacks {
                 override fun onActivityResumed(activity: Activity) {
