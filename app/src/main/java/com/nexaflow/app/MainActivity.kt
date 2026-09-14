@@ -30,13 +30,10 @@ import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.datastore.ThemeSettings
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.ExecutionResultPresentation
-import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /** Parsed `nexaflow://run-task/{id}[?force=1]` target. */
@@ -95,10 +92,9 @@ class MainActivity : AppCompatActivity() {
         // explicitly so every API level draws behind the system bars
         // uniformly (status/nav bars stay transparent, Scaffolds handle insets).
         enableEdgeToEdge()
-        // On a rooted device, set up privileged capabilities when the user has
-        // already authorized root. Runtime notification access is requested
-        // later from the user action that needs it, not on first launch.
-        autoGrantPermissionsWithRoot()
+        // Privileged access is never used as a launch-time permission escalator.
+        // Root/Shizuku and Android permissions are requested only from explicit
+        // feature flows that need them, keeping startup least-privileged.
         // Deep link (P2-5): nexaflow://run-task/{id} runs the task directly.
         handleDeepLink(intent)
         setContent {
@@ -219,45 +215,6 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
-    }
-
-    /**
-     * On a rooted (or Shizuku-granted) device, grant every permission the app
-     * needs automatically — no dialogs, no system screens. When a root manager
-     * is installed but root was never granted yet, [requestAndGrantAll] first
-     * pops the manager's one-tap allow dialog and waits for the user, so a
-     * fresh install ends up fully granted instead of silently skipping. Runs
-     * once on launch, off the main thread. Notification permission is handled
-     * only by the user-visible feature that needs to post a notification.
-     */
-    private fun autoGrantPermissionsWithRoot() {
-        lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                runCatching {
-                    RootPermissionGranter.requestAndGrantAll(applicationContext)
-                }.onSuccess { result ->
-                    if (result.anyGranted) {
-                        Log.i(
-                            TAG,
-                            "Auto-granted via root: " +
-                                "runtime=${result.runtimeGranted.size}, " +
-                                "appOps=${result.appOpsGranted.size}, " +
-                                "secure=${result.secureSettingsWritten.size}, " +
-                                "batteryExempt=${result.batteryExempted}, " +
-                                "listener=${result.notificationListenerGranted}"
-                        )
-                    }
-                    if (result.remaining.isNotEmpty()) {
-                        Log.w(
-                            TAG,
-                            "Still missing after auto-grant: ${result.remaining}"
-                        )
-                    }
-                }.onFailure { t ->
-                    Log.w(TAG, "Auto-grant skipped", t)
-                }
-            }
-        }
     }
 
     /**
