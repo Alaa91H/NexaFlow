@@ -1,50 +1,44 @@
 package com.nexaflow.core.rom
 
-import android.app.Service
-import android.content.Intent
-import android.os.IBinder
 import java.util.concurrent.TimeUnit
 
 /**
- * Shizuku UserService that executes `sh -c <command>` with elevated
- * privileges. Shizuku forks this component's process from its own server
- * process (root on rooted devices, shell over wireless debugging), so the
- * commands run as uid 0 / shell.
+ * Shizuku UserService that executes typed privileged operations (and a
+ * compatibility `sh -c` path) with elevated privileges. Shizuku forks a
+ * process from its own server (root on rooted devices, shell over wireless
+ * debugging), instantiates this class reflectively inside that process and
+ * uses the instance itself as the binder — so this class MUST extend
+ * [IUserShellService.Stub] directly.
  *
- * A plain [Service] exposing the [IUserShellService] AIDL stub from [onBind] —
- * the pattern the Shizuku docs and sample apps have used since the API 13.1.5
- * deprecation of `Shizuku.newProcess`.
- *
- * The process name (set in this module's AndroidManifest.xml as `:shell`) must
- * match the [ShizukuShellBridge]'s `processNameSuffix`; otherwise the service
- * would run in the app's own unprivileged process instead of the
- * Shizuku-spawned one.
+ * Extending [android.app.Service] and returning the stub from `onBind` does
+ * NOT work for the UserService lifecycle: Shizuku's ServiceStarter casts the
+ * constructed instance to `android.os.IBinder` and a `Service` is not one
+ * (`ClassCastException: ... cannot be cast to android.os.IBinder` in the
+ * starter logs), the bind silently fails and every elevated operation
+ * reports "Shizuku UserService is unavailable". The component is therefore
+ * also deliberately absent from the manifest — the Shizuku server starts it
+ * by class name; a regular platform-service declaration is meaningless here.
  */
-class UserShellService : Service() {
+class UserShellService : IUserShellService.Stub() {
 
-    private val binder = object : IUserShellService.Stub() {
-        /** Compatibility-only path for legacy SystemController callers. */
-        override fun exec(command: String): String = try {
-            runCommand(command)
-        } catch (t: Throwable) {
-            "$INTERNAL_ERROR_EXIT\n${t.message ?: "internal error"}"
-        }
-
-        override fun executeOperation(
-            operationId: String,
-            first: String,
-            second: String,
-            third: String
-        ): String = try {
-            val operation = PrivilegedOperation.fromWire(operationId, first, second, third)
-                ?: return "$INTERNAL_ERROR_EXIT\nUnsupported or invalid privileged operation"
-            runTypedOperation(operation)
-        } catch (t: Throwable) {
-            "$INTERNAL_ERROR_EXIT\n${t.message ?: "internal error"}"
-        }
+    override fun exec(command: String): String = try {
+        runCommand(command)
+    } catch (t: Throwable) {
+        "$INTERNAL_ERROR_EXIT\n${t.message ?: "internal error"}"
     }
 
-    override fun onBind(intent: Intent): IBinder = binder
+    override fun executeOperation(
+        operationId: String,
+        first: String,
+        second: String,
+        third: String
+    ): String = try {
+        val operation = PrivilegedOperation.fromWire(operationId, first, second, third)
+            ?: return "$INTERNAL_ERROR_EXIT\nUnsupported or invalid privileged operation"
+        runTypedOperation(operation)
+    } catch (t: Throwable) {
+        "$INTERNAL_ERROR_EXIT\n${t.message ?: "internal error"}"
+    }
 
     /**
      * Uses a direct ITelephony read/write when its reflected signature exists,

@@ -17,6 +17,14 @@ import java.util.concurrent.CopyOnWriteArraySet
 object ShizukuShellBridge {
     private const val PROCESS_NAME_SUFFIX = "shell"
 
+    /**
+     * Bump when the UserService class or its AIDL contract changes: with
+     * daemon(true) Shizuku keeps a daemon process alive across app updates,
+     * and without a version bump it would keep serving the stale class from
+     * an older APK after an upgrade.
+     */
+    private const val USER_SERVICE_VERSION = 2
+
     @Volatile private var appContext: Context? = null
     @Volatile private var boundShell: IUserShellService? = null
     @Volatile private var bindAttempted = false
@@ -99,6 +107,7 @@ object ShizukuShellBridge {
             try {
                 Shizuku.bindUserService(
                     Shizuku.UserServiceArgs(ComponentName(context, UserShellService::class.java))
+                        .version(USER_SERVICE_VERSION)
                         .daemon(true)
                         .processNameSuffix(PROCESS_NAME_SUFFIX),
                     connection

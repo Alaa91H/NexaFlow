@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.72.0] - 2026-09-15
+
+### Fixed
+
+- **Shizuku elevated execution is now actually wired.** The Shizuku UserService was written as an Android
+  `Service` returning the AIDL stub from `onBind` — but Shizuku's service starter reflectively instantiates
+  the class inside its own privileged process and casts the instance itself to `IBinder`, so every bind
+  failed with `ClassCastException: UserShellService cannot be cast to android.os.IBinder` and every elevated
+  operation reported "Shizuku UserService is unavailable" even with the permission granted. The class now
+  extends `IUserShellService.Stub` directly (the correct UserService contract), the meaningless manifest
+  service declaration is removed, and the bridge pins a UserService `version` so the daemon restarts and
+  serves fresh code after app updates instead of a stale cached instance. Verified on-device: service
+  record registered (`version=2, daemon=true`), binder delivered, and a dedicated `:shell`-uid process held
+  by the Shizuku server.
+
 ## [v3.71.0] - 2026-09-15
 
 ### Fixed

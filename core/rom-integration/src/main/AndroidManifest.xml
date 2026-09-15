@@ -15,16 +15,12 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <!--
-        Shizuku UserService: Shizuku starts this component in a process forked
-        from its own server (root / shell uid), giving exec() elevated power.
-        android:process MUST match ShizukuShellBridge's processNameSuffix
-        (":shell") so the service runs in the Shizuku-spawned process instead
-        of the app's own unprivileged process.
+        Shizuku UserService: the Shizuku server forks a process from its own
+        (root / shell uid), reflectively instantiates the class named in
+        ShizukuShellBridge.bindUserService and uses the instance itself as the
+        binder. It is NOT an Android platform service — it must not be
+        declared here (a manifest <service> would only matter for a normal
+        context bind, which the UserService lifecycle never performs), and
+        the class extends IUserShellService.Stub directly.
     -->
-    <application>
-        <service
-            android:name=".UserShellService"
-            android:exported="false"
-            android:process=":shell" />
-    </application>
 </manifest>
