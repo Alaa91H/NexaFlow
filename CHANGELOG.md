@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.71.0] - 2026-09-15
+
+### Fixed
+
+- **"Run now" no longer reports "could not verify" for device and app triggers.** The manual-run admission
+  gate previously failed closed for `DEVICE` (Bluetooth events), `BLUETOOTH_DEVICE`, and `APPLICATION`
+  triggers: without a dedicated evaluator these conditions fell through to the catch-all, so tapping run on a
+  task waiting for a Bluetooth headset to disconnect — or for a specific app to be in the foreground — was
+  always blocked with "some triggers could not be verified" even when the platform state was fully readable.
+  All three trigger types now evaluate current, verifiable state with the same semantics as the live
+  monitors: Bluetooth by bonded-device link state (with radio-off treated as an immediate disconnection,
+  exactly like `BluetoothMonitor`; ANY-device matching supported; GATT read plus a classic-profile fallback
+  for audio-only devices), and app triggers through the accessibility tracker's live foreground package with
+  a usage-stats fallback. Unreadable state (missing `BLUETOOTH_CONNECT`, no usage access, dead service)
+  still reports Unknown — a manual run is never authorized by a guess — but verified false now blocks with a
+  precise trigger label instead of an unverifiable one.
+- **Volume and ringer actions keep working after a reboot on Android 17.** Background-audio hardening
+  silently discards volume and ringer writes unless the calling foreground service holds while-in-use (WIU)
+  capability, and WIU is only granted when the service is started while the app is visible — a monitoring
+  service started from the boot alarm never has it, so every scheduled volume/ringer change would fail
+  after a reboot until the phone was reconnected to a fresh app process. Opening the app now refreshes the
+  running monitoring service (stop + immediate restart from a visible context), granting WIU for the
+  service's remaining lifetime. The refresh is idle when the service is not running or the platform
+  predates the hardening, so the common open/close cycle costs nothing.
+
+### Tests
+
+- Added evaluator coverage for the merged device-event decision, the Bluetooth link-state decision table
+  (mirroring `BluetoothMonitor` semantics for both event polarities), the app-foreground decision, and the
+  manual-gate classification (radio-off connect-wait → Unsatisfied, radio-off disconnect-wait → Satisfied,
+  missing bonded device → Unsatisfied, unreadable foreground → Unknown).
+
 ## [v3.70.0] - 2026-09-14
 
 ### Added

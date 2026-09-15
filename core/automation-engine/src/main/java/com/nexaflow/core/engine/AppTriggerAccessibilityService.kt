@@ -7,6 +7,7 @@ import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerStateEvaluator
 import com.nexaflow.core.execution.capability.AccessibilityInteractionBridge
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
@@ -54,6 +55,7 @@ class AppTriggerAccessibilityService : AccessibilityService() {
     @ApplicationScope
     lateinit var scope: CoroutineScope
 
+    @Volatile
     private var lastPackage: String? = null
 
     private val tracker = AppForegroundTracker()
@@ -66,10 +68,16 @@ class AppTriggerAccessibilityService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         accessibilityBridge.attach(this)
+        // Authoritative live foreground value for the manual-run gate's
+        // APPLICATION trigger evaluation (TriggerStateEvaluator).
+        TriggerStateEvaluator.appForegroundProvider = { lastPackage }
     }
 
     override fun onDestroy() {
         accessibilityBridge.detach(this)
+        if (TriggerStateEvaluator.appForegroundProvider === lastPackageProvider) {
+            TriggerStateEvaluator.appForegroundProvider = null
+        }
         super.onDestroy()
     }
 
@@ -137,6 +145,8 @@ class AppTriggerAccessibilityService : AccessibilityService() {
     }
 
     override fun onInterrupt() = Unit
+
+    private val lastPackageProvider: () -> String? = { lastPackage }
 
     private companion object {
         const val SOURCE = "app-foreground"

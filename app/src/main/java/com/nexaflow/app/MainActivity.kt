@@ -182,6 +182,32 @@ class MainActivity : AppCompatActivity() {
                 Log.e(TAG, "Widget refresh failed", t)
             }
         }
+        refreshMonitoringServiceLifecycle()
+    }
+
+    /**
+     * Android 17 background-audio hardening: volume and ringer writes are
+     * silently discarded unless the calling app holds a foreground service
+     * with while-in-use (WIU) capability. WIU is granted only when the FGS is
+     * started while the app is visible — a service started from the boot
+     * alarm never has it, so every scheduled volume/ringer action would fail
+     * until the service is restarted from a visible context. Restarting the
+     * running service on app open (a visibility event by definition) grants
+     * WIU for the service's remaining lifetime. Idle when the service is not
+     * running or the platform predates the hardening (pre-API 34 guard is
+     * conservative and free), so the common open/close cycle costs nothing.
+     */
+    private fun refreshMonitoringServiceLifecycle() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return
+        if (!com.nexaflow.core.engine.MonitoringService.isRunning) return
+        try {
+            com.nexaflow.core.engine.MonitoringService.stop(this)
+            com.nexaflow.core.engine.MonitoringService.start(this)
+        } catch (t: Throwable) {
+            // A refused restart must never break app open; monitors re-arm
+            // through their own recovery paths.
+            Log.w(TAG, "Monitoring service refresh failed", t)
+        }
     }
 
     /**

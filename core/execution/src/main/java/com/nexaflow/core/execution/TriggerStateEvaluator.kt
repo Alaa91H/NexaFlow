@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.media.AudioDeviceInfo
 import android.content.res.Configuration
 import android.media.AudioManager
 import android.os.BatteryManager
@@ -35,7 +36,23 @@ import kotlinx.coroutines.withContext
  * ...) report "not satisfied". A manual tap must never execute main actions
  * without proof that every configured condition is currently true.
  */
+@Suppress("TooManyFunctions") // One cohesive manual-gate surface; each adapter mirrors one live monitor's semantics.
 object TriggerStateEvaluator {
+
+    /** Live Bluetooth link state of one configured device. */
+    internal enum class BluetoothDeviceState {
+        CONNECTED,
+        BONDING_OR_ONLINE,
+        GONE_OR_RADIO_OFF
+    }
+
+    /**
+     * Seam for the accessibility tracker's live foreground value. The engine
+     * module owns the service; core:execution stays engine-free and reads the
+     * value through this provider when the platform service is running.
+     */
+    @Volatile
+    var appForegroundProvider: (() -> String?)? = null
 
     /**
      * True only when every configured trigger is currently and verifiably
@@ -112,6 +129,12 @@ object TriggerStateEvaluator {
             }
             TriggerType.APPLICATION,
             TriggerType.NOTIFICATION -> "$base ${c["packages"] ?: c["package"] ?: ""}".trim()
+            TriggerType.DEVICE -> "$base event=${c["event"] ?: "SCREEN_ON"}".trim()
+            TriggerType.BLUETOOTH_DEVICE -> buildString {
+                append(base)
+                append(" ").append(c["event"] ?: "CONNECTED")
+                c["deviceName"]?.takeIf { it.isNotBlank() }?.let { append(" ").append(it) }
+            }
             TriggerType.LOCATION -> "$base ${c["lat"] ?: ""},${c["lng"] ?: ""}".trim()
             else -> c.entries.firstOrNull { it.value.isNotBlank() }
                 ?.let { "$base ${it.key}=${it.value}" }
@@ -329,6 +352,53 @@ object TriggerStateEvaluator {
                 val plugged = intent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0
                 ((c["state"] ?: "ON") == "ON") == (plugged == BatteryManager.BATTERY_PLUGGED_USB)
             }
+            // Merged device-event trigger (v3.28): every event maps to a
+            // current, readable device state — screen, power, headset, or a
+            // bonded Bluetooth device's live connection state. An unreadable
+            // state (missing grant, dead service) throws so the manual gate
+            // reports "could not verify" instead of a fabricated false.
+            TriggerType.DEVICE -> {
+                val event = c["event"] ?: "SCREEN_ON"
+                if (event == "BLUETOOTH_CONNECTED" || event == "BLUETOOTH_DISCONNECTED") {
+                    evaluateBluetoothCondition(
+                        context,
+                        deviceAddress = c["deviceAddress"].orEmpty().trim(),
+                        deviceName = c["deviceName"].orEmpty().trim(),
+                        wantConnected = event == "BLUETOOTH_CONNECTED"
+                    )
+                } else {
+                    deviceEventSatisfied(
+                        event = event,
+                        screenOn = powerManager(context)?.isInteractive
+                            ?: throw IllegalStateException("PowerManager unavailable"),
+                        charging = batteryManager(context)?.isCharging
+                            ?: throw IllegalStateException("BatteryManager unavailable"),
+                        wiredHeadset = audioManager(context)?.let { it.hasWiredOutputDevice() }
+                            ?: throw IllegalStateException("AudioManager unavailable")
+                    )
+                }
+            }
+            TriggerType.BLUETOOTH_DEVICE -> evaluateBluetoothCondition(
+                context,
+                deviceAddress = c["deviceAddress"].orEmpty().trim(),
+                deviceName = c["deviceName"].orEmpty().trim(),
+                wantConnected = when (c["event"]) {
+                    "DISCONNECTED", "BLUETOOTH_DISCONNECTED" -> false
+                    else -> true
+                }
+            )
+            // App-foreground trigger: a manual run is authorized only while a
+            // configured package (or any app, when none configured) currently
+            // holds the foreground. Without usage access the state cannot be
+            // read — report Unknown instead of guessing.
+            TriggerType.APPLICATION -> applicationEventSatisfied(
+                configured = c["packages"].orEmpty().split(',')
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .toSet(),
+                foregroundPackage = currentForegroundPackage(context)
+                    ?: throw IllegalStateException("Foreground app is unreadable")
+            )
             TriggerType.HDMI_CONNECTED -> {
                 // No public read API exposes the current HDMI state. It can
                 // only be authorized by the live broadcast monitor, never by
@@ -440,6 +510,216 @@ object TriggerStateEvaluator {
         return wanted == actual
     }
 
+    // ---- Merged DEVICE trigger adapters (v3.28) ----
+
+    /** Pure DEVICE-event decision, mirroring DeviceEventMonitor's live semantics. */
+    internal fun deviceEventSatisfied(
+        event: String,
+        screenOn: Boolean,
+        charging: Boolean,
+        wiredHeadset: Boolean
+    ): Boolean = when (event) {
+        "SCREEN_ON" -> screenOn
+        "SCREEN_OFF" -> !screenOn
+        "POWER_CONNECTED" -> charging
+        "POWER_DISCONNECTED" -> !charging
+        "HEADSET_CONNECTED" -> wiredHeadset
+        "HEADSET_DISCONNECTED" -> !wiredHeadset
+        else -> false
+    }
+
+    /**
+     * Pure Bluetooth device decision. A DISCONNECTED condition is satisfied
+     * both while the device is merely unlinked and while the whole radio is
+     * off (it cannot be connected while off), mirroring how BluetoothMonitor
+     * treats radio-off as immediate disconnection.
+     */
+    internal fun bluetoothEventSatisfied(wantConnected: Boolean, state: BluetoothDeviceState): Boolean =
+        when (state) {
+            BluetoothDeviceState.CONNECTED -> wantConnected
+            BluetoothDeviceState.BONDING_OR_ONLINE -> !wantConnected
+            BluetoothDeviceState.GONE_OR_RADIO_OFF -> !wantConnected
+        }
+
+    /**
+     * Live Bluetooth condition for the manual gate. Mirrors BluetoothMonitor's
+     * matching semantics exactly (per-device by address/name, or ANY) and
+     * treats unreadable platform state as an error — the gate then reports
+     * "could not verify" instead of a fabricated false. Radio-off resolves
+     * through [bluetoothDeviceState] to GONE_OR_RADIO_OFF, so a
+     * DISCONNECTED-wait condition is satisfied while Bluetooth is off (the
+     * live monitor treats radio-off as an immediate disconnect).
+     */
+    @SuppressLint("MissingPermission") // canReadBluetoothState guards the API 31+ reads below.
+    private fun evaluateBluetoothCondition(
+        context: Context,
+        deviceAddress: String,
+        deviceName: String,
+        wantConnected: Boolean
+    ): Boolean {
+        val manager = context.getSystemService(android.bluetooth.BluetoothManager::class.java)
+            ?: throw IllegalStateException("BluetoothManager unavailable")
+        val adapter = manager.adapter
+            ?: throw IllegalStateException("BluetoothAdapter unavailable")
+        // The radio state itself needs no runtime permission: radio-off is a
+        // definitive GONE_OR_RADIO_OFF even without BLUETOOTH_CONNECT (a
+        // disconnected condition is satisfied while the radio is off).
+        if (adapter.state != android.bluetooth.BluetoothAdapter.STATE_ON) {
+            return bluetoothEventSatisfied(wantConnected, BluetoothDeviceState.GONE_OR_RADIO_OFF)
+        }
+        if (!canReadBluetoothState(context)) {
+            // With the radio on, both the bonded set and any connection-state
+            // read require BLUETOOTH_CONNECT (API 31+) — never guess.
+            throw IllegalStateException("BLUETOOTH_CONNECT not granted")
+        }
+        val state = bluetoothDeviceState(manager, adapter, deviceAddress, deviceName)
+            ?: throw IllegalStateException("Bonded devices unreadable")
+        return bluetoothEventSatisfied(wantConnected, state)
+    }
+
+    /** ANY-device sentinel shared with BluetoothMonitor.matchesDevice. */
+    private fun isAnyDevice(deviceName: String): Boolean =
+        deviceName.isEmpty() || deviceName == "*" || deviceName == "__ANY__" ||
+            deviceName.equals("ANY", ignoreCase = true)
+
+    /**
+     * Live, permission-aware connection state of one bonded Bluetooth device
+     * (or of the whole bonded set for ANY triggers). Radio-off callers never
+     * reach this — [evaluateBluetoothCondition] resolves that case earlier.
+     */
+    @SuppressLint("MissingPermission") // evaluateBluetoothCondition checks BLUETOOTH_CONNECT before calling.
+    private fun bluetoothDeviceState(
+        manager: android.bluetooth.BluetoothManager,
+        adapter: android.bluetooth.BluetoothAdapter,
+        deviceAddress: String,
+        deviceName: String
+    ): BluetoothDeviceState? {
+        val bonded = runCatching { adapter.bondedDevices.orEmpty() }.getOrNull()
+            ?: return null
+        val gattConnected = connectedAddresses(manager)
+        val connected: Boolean = when {
+            isAnyDevice(deviceName) && deviceAddress.isEmpty() ->
+                bonded.any { device -> device.isConnectedOn(gattConnected) }
+            else -> {
+                val target = when {
+                    deviceAddress.isNotEmpty() -> bonded.firstOrNull { it.address == deviceAddress }
+                    else -> bonded.firstOrNull {
+                        it.name?.equals(deviceName, ignoreCase = true) == true
+                    }
+                } ?: return BluetoothDeviceState.GONE_OR_RADIO_OFF
+                target.isConnectedOn(gattConnected)
+            }
+        }
+        return if (connected) {
+            BluetoothDeviceState.CONNECTED
+        } else {
+            BluetoothDeviceState.BONDING_OR_ONLINE
+        }
+    }
+
+    /**
+     * Connection check for one device: the public synchronous GATT list
+     * first (covers most modern dual-mode devices), then the classic-profile
+     * hidden-state probe as a fallback for audio-only devices.
+     */
+    private fun android.bluetooth.BluetoothDevice.isConnectedOn(gattConnected: Set<String>): Boolean {
+        address?.let { if (it in gattConnected) return true }
+        return runCatching {
+            javaClass.getMethod("isConnected").invoke(this) == true
+        }.getOrDefault(false)
+    }
+
+    /** Public synchronous per-device connected list (GATT profile). */
+    @SuppressLint("MissingPermission") // evaluateBluetoothCondition checks BLUETOOTH_CONNECT before calling.
+    private fun connectedAddresses(manager: android.bluetooth.BluetoothManager): Set<String> =
+        runCatching {
+            manager.getConnectedDevices(android.bluetooth.BluetoothProfile.GATT)
+                .mapNotNull { it.address }
+                .toSet()
+        }.getOrDefault(emptySet())
+
+    // ---- APPLICATION trigger adapter ----
+
+    /** Pure app-foreground decision over the configured package set. */
+    internal fun applicationEventSatisfied(configured: Set<String>, foregroundPackage: String): Boolean =
+        configured.isEmpty() || foregroundPackage in configured
+
+    /**
+     * Current foreground package. The accessibility tracker's live value is
+     * authoritative while its service runs; the package-usage stat serves as
+     * the fallback ( PACKAGE_USAGE_STATS is declared). Null = unreadable.
+     */
+    @SuppressLint("MissingPermission") // isPackageUsageStatsGranted guards the queryEvents call below.
+    private fun currentForegroundPackage(context: Context): String? {
+        readAccessibilityForegroundPackage()?.let { return it }
+        return runCatching {
+            // UsageEvents.Event (and ACTIVITY_RESUMED) exist since API 29;
+            // below that the accessibility tracker remains the only source.
+            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) {
+                return@runCatching null
+            }
+            val usage = context.getSystemService(android.app.usage.UsageStatsManager::class.java)
+                ?: return@runCatching null
+            if (!isPackageUsageStatsGranted(context, context.packageName)) return@runCatching null
+            val now = System.currentTimeMillis()
+            val events = usage.queryEvents(now - FOREGROUND_LOOKBACK_MS, now)
+            val probe = android.app.usage.UsageEvents.Event()
+            var lastPackage: String? = null
+            while (events.getNextEvent(probe)) {
+                if (probe.eventType == android.app.usage.UsageEvents.Event.ACTIVITY_RESUMED) {
+                    lastPackage = probe.packageName
+                }
+            }
+            lastPackage
+        }.getOrNull()
+    }
+
+    /**
+     * Live foreground value from the accessibility tracker, when its service
+     * is enabled and has seen a real foreground app.
+     */
+    private fun readAccessibilityForegroundPackage(): String? =
+        appForegroundProvider?.invoke()
+
+    private fun isPackageUsageStatsGranted(context: Context, packageName: String): Boolean =
+        runCatching {
+            context.checkSelfPermission(android.Manifest.permission.PACKAGE_USAGE_STATS) ==
+                PackageManager.PERMISSION_GRANTED ||
+                context.getSystemService(android.app.AppOpsManager::class.java)
+                    ?.checkOpNoThrow(
+                        android.app.AppOpsManager.OPSTR_GET_USAGE_STATS,
+                        android.os.Process.myUid(),
+                        packageName
+                    ) == android.app.AppOpsManager.MODE_ALLOWED
+        }.getOrDefault(false)
+
+    private fun canReadBluetoothState(context: Context): Boolean {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) return true
+        return context.checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) ==
+            PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun powerManager(context: Context) =
+        context.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
+
+    private fun batteryManager(context: Context) =
+        context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+
+    private fun audioManager(context: Context) =
+        context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+
+    private fun AudioManager.hasWiredOutputDevice(): Boolean = runCatching {
+        getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { it.type in WIRED_OUTPUT_DEVICE_TYPES }
+    }.getOrDefault(false)
+
+    private val WIRED_OUTPUT_DEVICE_TYPES = setOf(
+        AudioDeviceInfo.TYPE_WIRED_HEADSET,
+        AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
+        AudioDeviceInfo.TYPE_USB_HEADSET
+    )
+
+    private const val FOREGROUND_LOOKBACK_MS = 60_000L
+
     private val MANUAL_EVENT_ONLY_TYPES = setOf(
         TriggerType.APP_INSTALLED,
         TriggerType.TIMEZONE_CHANGED,
@@ -456,7 +736,12 @@ object TriggerStateEvaluator {
     private val MANUAL_DEFINITIVE_FALSE_TYPES = setOf(
         TriggerType.TIME,
         TriggerType.DARK_MODE,
-        TriggerType.SCREEN_ROTATION_STATE
+        TriggerType.SCREEN_ROTATION_STATE,
+        // These adapters return precise booleans: false is a verified current
+        // state, and an unreadable state throws (→ Unknown) instead.
+        TriggerType.DEVICE,
+        TriggerType.BLUETOOTH_DEVICE,
+        TriggerType.APPLICATION
     )
 
     private fun batterySatisfied(context: Context, config: Map<String, String>): Boolean {
