@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -424,6 +425,74 @@ class BackupManagerTest {
         val json = backupJson(validAutomation("a1").copy(triggers = listOf(Trigger(TriggerType.BATTERY, mapOf()))))
         val preflight = manager.preflightSingle(json)
         assertTrue(preflight is SingleTaskPreflight.Ready || preflight is SingleTaskPreflight.InvalidFile)
+    }
+
+    // ---- P0.3: bounded import — byte cap + per-file resource quotas ----
+
+    @Test
+    fun `oversized payload is rejected before parsing`() {
+        val oversize = "x".repeat(ImportLimits.MAX_IMPORT_BYTES + 1)
+        assertTrue(manager.preflight(oversize) is BackupPreflight.InvalidFile)
+    }
+
+    @Test
+    fun `too many automations in one file are rejected`() = runBlocking {
+        val many = Array(ImportLimits.MAX_AUTOMATIONS_PER_FILE + 1) { i ->
+            validAutomation(id = "bulk-$i")
+        }
+        val json = backupJson(*many)
+        assertTrue(manager.preflight(json) is BackupPreflight.InvalidFile)
+    }
+
+    @Test
+    fun `automation exceeding action quota is rejected`() {
+        val flood = List(ImportLimits.MAX_ACTIONS_PER_AUTOMATION + 1) {
+            Action(ActionType.SYSTEM_BRIGHTNESS, mapOf("level" to "60"))
+        }
+        val json = backupJson(validAutomation("a1").copy(actions = flood))
+        assertTrue(manager.preflight(json) is BackupPreflight.InvalidFile)
+    }
+
+    @Test
+    fun `automation exceeding trigger quota is rejected`() {
+        val flood = List(ImportLimits.MAX_TRIGGERS_PER_AUTOMATION + 1) {
+            Trigger(TriggerType.TIME, mapOf("time" to "08:00"))
+        }
+        val json = backupJson(validAutomation("a1").copy(triggers = flood))
+        assertTrue(manager.preflight(json) is BackupPreflight.InvalidFile)
+    }
+
+    @Test
+    fun `config entry over length quota is rejected`() {
+        val longValue = "v".repeat(ImportLimits.MAX_CONFIG_VALUE_LENGTH + 1)
+        val json = backupJson(
+            validAutomation("a1").copy(
+                actions = listOf(Action(ActionType.SYSTEM_BRIGHTNESS, mapOf("note" to longValue)))
+            )
+        )
+        assertTrue(manager.preflight(json) is BackupPreflight.InvalidFile)
+    }
+
+    @Test
+    fun `imported deep link tokens are always stripped`() = runBlocking {
+        val json = backupJson(validAutomation("a1").copy(deepLinkToken = "stolen-capability"))
+        val result = manager.import(json)
+        assertTrue(result is ImportResult.Success)
+        val saved = repository.saved.first { it.id == "a1" }
+        assertEquals(null, saved.deepLinkToken)
+    }
+
+    @Test
+    fun `bounded read rejects streams larger than the cap`() {
+        val big = java.io.ByteArrayInputStream(ByteArray(ImportLimits.MAX_IMPORT_BYTES + 1))
+        assertNull(ImportLimits.readBoundedText(big))
+    }
+
+    @Test
+    fun `bounded read decodes a small utf8 stream`() {
+        val payload = "{\"hello\":\"world\"}"
+        val stream = java.io.ByteArrayInputStream(payload.toByteArray(Charsets.UTF_8))
+        assertEquals(payload, ImportLimits.readBoundedText(stream))
     }
 
     private fun fail(message: String): Nothing = throw AssertionError(message)

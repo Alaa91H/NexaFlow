@@ -28,6 +28,13 @@ data class AutomationEntity(
     val workflowVersion: Int = 1, // Persisted workflow schema revision
     /** Optional typed recurring-maintenance metadata, stored with its automation. */
     val maintenanceJson: String? = null,
+    /**
+     * P0.2 deep-link capability token. Null = external `nexaflow://` execution
+     * disabled for this task (default for every pre-existing row). Minted only
+     * by explicit per-task user opt-in; the automation id alone is not an
+     * authorization.
+     */
+    val deepLinkToken: String? = null,
     val createdAt: Long,
     val updatedAt: Long
 )

@@ -26,7 +26,8 @@ fun AutomationEntity.toDomain(): Automation {
         createdAt = createdAt,
         updatedAt = updatedAt,
         workflowVersion = workflowVersion,
-        maintenanceProfile = converters.toMaintenanceProfile(maintenanceJson)
+        maintenanceProfile = converters.toMaintenanceProfile(maintenanceJson),
+        deepLinkToken = deepLinkToken
     )
 }
 
@@ -51,6 +52,7 @@ fun Automation.toEntity(): AutomationEntity {
         cooldownSeconds = cooldownSeconds,
         workflowVersion = workflowVersion,
         maintenanceJson = converters.fromMaintenanceProfile(maintenanceProfile),
+        deepLinkToken = deepLinkToken,
         createdAt = createdAt,
         updatedAt = updatedAt
     )

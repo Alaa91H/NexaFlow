@@ -244,6 +244,18 @@ object Migrations {
         }
     }
 
+    /**
+     * v18 -> v19: adds the per-task deep-link capability token (P0.2). Null
+     * keeps external execution disabled for every existing task — the token is
+     * only minted through an explicit user opt-in, so the upgrade is
+     * fail-closed by design.
+     */
+    val MIGRATION_18_19 = object : Migration(18, 19) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `automations` ADD COLUMN `deepLinkToken` TEXT")
+        }
+    }
+
     val ALL = listOf(
         MIGRATION_1_2,
         MIGRATION_2_3,
@@ -261,6 +273,7 @@ object Migrations {
         MIGRATION_14_15,
         MIGRATION_15_16,
         MIGRATION_16_17,
-        MIGRATION_17_18
+        MIGRATION_17_18,
+        MIGRATION_18_19
     )
 }

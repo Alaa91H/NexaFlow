@@ -40,7 +40,15 @@ data class Automation(
     /** Persisted workflow schema version; older definitions are migrated at the boundary. */
     val workflowVersion: Int = CURRENT_WORKFLOW_VERSION,
     /** Optional recurring-maintenance metadata; null preserves ordinary automations unchanged. */
-    val maintenanceProfile: MaintenanceProfile? = null
+    val maintenanceProfile: MaintenanceProfile? = null,
+    /**
+     * P0.2 deep-link capability token (base64url, 128-bit entropy). Null means
+     * external deep-link execution is disabled for this task: a `nexaflow://`
+     * link only opens the app for review, it never runs anything. Set by an
+     * explicit per-task user opt-in; rotatable and revocable. The automation ID
+     * alone is deliberately NOT an authorization.
+     */
+    val deepLinkToken: String? = null
 ) {
     init {
         require(workflowVersion in 1..CURRENT_WORKFLOW_VERSION) { "Unsupported workflow version" }

@@ -5,6 +5,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.73.0] - 2026-09-16
+
+### Security
+
+- **Elevated-action failures no longer leak task configuration into logcat.** The engine logged the raw
+  `action.config` map (commands, package names, and any secret-bearing values) on elevated execution
+  failures, bypassing the app-wide redacting log layer. Failures now log only the action type, error
+  class, capability backend, and execution id; a dedicated diagnostics helper captures config *key
+  names* (never values) when troubleshooting needs them, and a regression test injects a fake secret
+  and asserts it never appears in any log sink.
+- **Deep links can no longer run tasks by guessing an id.** `nexaflow://run-task/{id}` was registered
+  browsable and executed the task directly — any app on the device could fire a task without consent
+  because the scheme is not ownership-verified. External deep links now require a per-task opt-in:
+  run-by-link is off by default, enabling it mints a 128-bit cryptographically random capability token
+  (rotatable and revocable per task), and execution proceeds only on a constant-time token match.
+  Without the token the link opens the task instead of running it. Tokens are stripped from imported
+  backups so a shared file cannot silently grant execution rights.
+- **Webhook server hardened against local denial-of-service and token leakage.** The token is now
+  mandatory and accepted only in a header (query-string tokens are rejected — they leak into logs and
+  diagnostics), compared in constant time. Request parsing enforces a maximum request line and header
+  size/count, sockets get a read timeout, concurrent clients are capped by a semaphore, only the
+  intended method is accepted, and the URL path is percent-decoded and canonicalized before matching.
+  Rejections are counted by category (auth, oversize, timeout, rate limit) without ever logging the
+  token itself.
+- **HTTP actions are gated against SSRF and memory abuse.** A destination policy allows only
+  `http`/`https`, rejects embedded credentials in URLs, classifies the target (public / loopback /
+  link-local / private-LAN / multicast / any-local), and denies multicast, any-local, and — unless the
+  task explicitly opts in — private destinations. Redirects are followed manually with a cap of five
+  hops and the same policy re-applied to every target, POST→GET downgrade semantics respected.
+  Response bodies are capped by an enforced byte limit before entering the workflow context, so a
+  hostile server can no longer balloon memory.
+- **`ACCESS_LOCAL_NETWORK` is now requested only when the URL actually needs it.** The Android 17
+  local-network runtime permission was required for every HTTP action regardless of destination.
+  The requirement is now inferred from the configured URL: public destinations need no permission,
+  private/loopback destinations require it, and templated (`{variable}`) or host-name URLs are
+  surfaced as conditional with the runtime re-checking the resolved destination before the request
+  fires. This shrinks the permission surface and the Play declaration scope.
+
+### Added
+
+- **Exported-components threat-model audit.** A CI test enumerates every `exported="true"` component
+  across all manifests and fails the build unless each one is protected by a system permission gate or
+  listed in a reviewed allowlist with a documented justification — and stale allowlist entries (a
+  component no longer exported) also fail. Bind-permission gates for SMS, screening, Shizuku, and
+  QuickSettings components are asserted explicitly.
+
+### Tests
+
+- Webhook request guard: 12 tests (query-token rejection, size/line bounds, method policy,
+  constant-time comparison, canonicalization).
+- HTTP destination policy: 14 tests (scheme/credential/classification rules, redirect resolution and
+  downgrade semantics, private-network opt-in, unresolvable-host modes).
+- Conditional LAN requirement: 11 tests (literal/templated/host-name classification, runtime re-check,
+  fail-closed behavior) plus 5 builder-side requirement-inference tests.
+- Exported-components audit: 2 tests (allowlist + permission gates).
+- Deep-link authorization: token match, rotation, and rejection cases.
+- Import quotas: oversize config and element-count rejection.
+- Config-logging redaction regression for elevated failures.
+
 ## [v3.72.0] - 2026-09-15
 
 ### Fixed

@@ -45,6 +45,7 @@ class HttpRequestHandlerOutputTest {
             body: String,
             timeoutMs: Int,
             headers: Map<String, String>,
+            allowPrivateNetwork: Boolean,
         ): HttpAttempt {
             attempts += headers
             return HttpAttempt(code, this.body)

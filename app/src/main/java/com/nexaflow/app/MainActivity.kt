@@ -38,20 +38,28 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-/** Parsed `nexaflow://run-task/{id}[?force=1]` target. */
-internal data class RunTaskDeepLink(val automationId: String, val force: Boolean)
+/** Parsed `nexaflow://run-task/{id}[?token=...&force=1]` target. */
+internal data class RunTaskDeepLink(val automationId: String, val token: String?, val force: Boolean)
 
 /**
  * Pure parser for run-task deep links so the admission/force policy contract
  * is unit-testable without activity scaffolding. Any other scheme, host, or a
  * blank id yields null — the app then just opens normally.
+ *
+ * P0.2: the automation id alone is NOT an authorization — custom schemes are
+ * not verifiable ownership, so any app can craft `nexaflow://run-task/...`.
+ * External execution requires a per-task opt-in `token` minted by the user.
  */
 internal fun parseRunTaskDeepLink(uri: android.net.Uri?): RunTaskDeepLink? {
     if (uri == null) return null
     if (uri.scheme != "nexaflow" || uri.host != "run-task") return null
     val id = uri.path?.trim('/').orEmpty()
     if (id.isBlank()) return null
-    return RunTaskDeepLink(automationId = id, force = uri.getQueryParameter("force") == "1")
+    return RunTaskDeepLink(
+        automationId = id,
+        token = uri.getQueryParameter("token")?.trim()?.ifBlank { null },
+        force = uri.getQueryParameter("force") == "1"
+    )
 }
 
 @AndroidEntryPoint
@@ -148,10 +156,11 @@ class MainActivity : AppCompatActivity() {
         if (intent?.action != Intent.ACTION_VIEW) return
         val uri = intent.data ?: return
         lifecycleScope.launch {
+            // P0.3: bounded read — a hostile provider can no longer exhaust
+            // memory through an unbounded content stream.
             val json = withContext(Dispatchers.IO) {
                 runCatching {
-                    contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText()
-                    }
+                    contentResolver.openInputStream(uri)?.use { com.nexaflow.data.backup.ImportLimits.readBoundedText(it) }
                 }.getOrNull()
             }
             val message = when {
@@ -212,16 +221,21 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Runs the task targeted by a `nexaflow://run-task/{automationId}` deep
-     * link. An optional `?force=1` query parameter routes through an explicit
-     * force-run confirmation dialog instead of the admission gate, so a
-     * bypass is always a deliberate user action — never a silent one.
-     * Missing/unknown ids are ignored silently so the app just opens
-     * normally for any other launch.
+     * link. External execution is P0.2 fail-closed: without a valid per-task
+     * opt-in token the link only opens the app (review surface) — nothing
+     * runs. With a valid token, `?force=1` still routes through the explicit
+     * force-run confirmation so a bypass is always a deliberate user action.
+     * Missing/unknown ids are ignored silently so the app just opens normally
+     * for any other launch.
      */
     private fun handleDeepLink(intent: Intent?) {
         val link = parseRunTaskDeepLink(intent?.data) ?: return
         lifecycleScope.launch {
             val automation = automationRepository.getAutomationById(link.automationId) ?: return@launch
+            if (!deepLinkTokenAuthorized(link.token, automation.deepLinkToken)) {
+                // Tokenless or mismatched link: review-only. Never execute.
+                return@launch
+            }
             if (link.force) {
                 showForceRunConfirmation(automation)
             } else {
@@ -229,6 +243,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
 
     /**
      * Manual invocation via deep link obeys the same admission policy as the

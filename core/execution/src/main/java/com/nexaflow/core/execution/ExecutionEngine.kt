@@ -934,7 +934,15 @@ class ExecutionEngine(
             if (!result.success && result.message.contains("No elevated runtime")) {
                 // Refresh once so a just-granted root is seen immediately; log full hint for diagnosis.
                 try { com.nexaflow.core.rom.SystemAppStatusDetector.refreshRootAvailability() } catch (_: Throwable) {}
-                android.util.Log.w("ExecutionEngine", "elevated action ${action.type} failed: ${result.message} | ${elevatedHint()} | action=${action.type} config=${action.config}")
+                // P0.1 trust boundary: NEVER log action.config values — they may
+                // carry commands, tokens, or package data. ElevatedDiagnostics emits
+                // type + config KEY NAMES only; the redacting log store handles
+                // credential shapes everywhere else.
+                android.util.Log.w(
+                    "ExecutionEngine",
+                    "elevated action ${action.type} failed: ${result.message} | ${elevatedHint()} | " +
+                        ElevatedDiagnostics.failureLine(action, result.message)
+                )
             }
             result
         } catch (cancellation: CancellationException) {

@@ -61,6 +61,47 @@ sealed interface BackupPreflight {
 }
 
 /**
+ * P0.3 input-acceptance contract: every external ingress is bounded. A
+ * malicious or corrupt content provider must not be able to exhaust memory
+ * (unbounded `readText`) or CPU (unbounded quotas) through the import path.
+ */
+object ImportLimits {
+    /** Max bytes accepted from an import stream (5 MiB — far above any real backup). */
+    const val MAX_IMPORT_BYTES: Int = 5 * 1024 * 1024
+
+    /** Per-file quotas enforced on parsed content, before any persistence. */
+    const val MAX_AUTOMATIONS_PER_FILE = 2_000
+    const val MAX_TRIGGERS_PER_AUTOMATION = 100
+    const val MAX_ACTIONS_PER_AUTOMATION = 500
+    const val MAX_CONFIG_ENTRIES_PER_ELEMENT = 50
+    const val MAX_CONFIG_VALUE_LENGTH = 10_000
+
+    /**
+     * Bounded text read: decodes at most [MAX_IMPORT_BYTES] bytes from an
+     * input stream and rejects anything larger BEFORE decoding. This bounds
+     * both the allocation and the parse cost from a hostile provider.
+     */
+    fun readBoundedText(stream: java.io.InputStream): String? {
+        val bounded = java.io.SequenceInputStream(stream, java.io.InputStream.nullInputStream())
+        val buffer = java.io.ByteArrayOutputStream(MAX_IMPORT_BYTES.coerceAtMost(64 * 1024))
+        val chunk = ByteArray(16 * 1024)
+        var total = 0
+        return try {
+            while (true) {
+                val read = bounded.read(chunk)
+                if (read < 0) break
+                total += read
+                if (total > MAX_IMPORT_BYTES) return null
+                buffer.write(chunk, 0, read)
+            }
+            buffer.toString("UTF-8")
+        } catch (_: java.io.IOException) {
+            null
+        }
+    }
+}
+
+/**
  * Exports and imports all automations as a single pretty-printed JSON file,
  * so users can back up, restore, or share their automations between devices.
  *
@@ -121,7 +162,12 @@ class BackupManager(
                 enabled = false,
                 maintenanceProfile = automation.maintenanceProfile?.copy(
                     dependencyAutomationIds = remappedDependencies.orEmpty()
-                )
+                ),
+                // P0.2: an incoming token is data from outside this
+                // installation. Stripping it here is what makes "ID alone is
+                // not an authorization" hold — a shared or copied backup can
+                // never carry someone else's run capability across.
+                deepLinkToken = null
             )
         }
         val disabledCount = backup.automations.count { it.enabled }
@@ -186,12 +232,14 @@ class BackupManager(
         val existingIds = automationRepository.getAutomations().first().map { it.id }.toSet()
         // Both branches persist AND return the disabled copy: the result must
         // describe exactly what was stored, never the pre-review payload.
+        // Incoming deep-link tokens are stripped (same policy as bulk import):
+        // a shared file never carries another installation's run capability.
         val saved = if (automation.id in existingIds) {
-            val rekeyed = automation.copy(id = UUID.randomUUID().toString(), enabled = false)
+            val rekeyed = automation.copy(id = UUID.randomUUID().toString(), enabled = false, deepLinkToken = null)
             automationRepository.saveAutomation(rekeyed)
             rekeyed
         } else {
-            val disabled = automation.copy(enabled = false)
+            val disabled = automation.copy(enabled = false, deepLinkToken = null)
             automationRepository.saveAutomation(disabled)
             disabled
         }
@@ -199,6 +247,10 @@ class BackupManager(
     }
 
     fun preflight(jsonText: String): BackupPreflight {
+        // P0.3: reject oversize payloads before parsing so a pathological file
+        // cannot drive decoder memory or CPU. Parsing is still bounded below
+        // by per-file quotas even for payloads under the byte cap.
+        if (jsonText.length > ImportLimits.MAX_IMPORT_BYTES) return BackupPreflight.InvalidFile
         val backup = try {
             json.decodeFromString<BackupFile>(jsonText)
         } catch (_: Exception) {
@@ -215,7 +267,8 @@ class BackupManager(
         if (
             backup.version !in 1..BACKUP_VERSION ||
             backup.automations.any { !it.isWellFormed() } ||
-            hasDuplicateAutomationIds
+            hasDuplicateAutomationIds ||
+            !withinQuotas(backup.automations)
         ) {
             return BackupPreflight.InvalidFile
         }
@@ -249,6 +302,29 @@ class BackupManager(
     private fun Trigger.isWellFormed(): Boolean = type.name.isNotBlank() && config.keys.all { it.isNotBlank() }
 
     private fun Action.isWellFormed(): Boolean = type.name.isNotBlank() && config.keys.all { it.isNotBlank() }
+
+    /**
+     * P0.3 resource quotas: bounds the graph shape of an imported backup so a
+     * hostile file cannot generate unbounded engine work. Well-formedness and
+     * quotas are checked before any persistence takes place.
+     */
+    private fun withinQuotas(automations: List<Automation>): Boolean {
+        if (automations.size > ImportLimits.MAX_AUTOMATIONS_PER_FILE) return false
+        return automations.all { automation ->
+            automation.triggers.size <= ImportLimits.MAX_TRIGGERS_PER_AUTOMATION &&
+                automation.actions.size <= ImportLimits.MAX_ACTIONS_PER_AUTOMATION &&
+                automation.exitActions.size <= ImportLimits.MAX_ACTIONS_PER_AUTOMATION &&
+                run {
+                    val configs = automation.triggers.map { it.config } +
+                        automation.actions.map { it.config } +
+                        automation.exitActions.map { it.config }
+                    configs.all { config ->
+                        config.size <= ImportLimits.MAX_CONFIG_ENTRIES_PER_ELEMENT &&
+                            config.values.all { it.length <= ImportLimits.MAX_CONFIG_VALUE_LENGTH }
+                    }
+                }
+        }
+    }
 
     companion object {
         const val BACKUP_VERSION = 1

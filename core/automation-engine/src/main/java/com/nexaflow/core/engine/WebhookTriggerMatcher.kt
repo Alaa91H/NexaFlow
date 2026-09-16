@@ -18,7 +18,14 @@ object WebhookTriggerMatcher {
         val wantToken = config["token"].orEmpty()
         val pathMatch = path == wantPath
         val methodMatch = wantMethod == "ANY" || wantMethod == method.uppercase()
-        val tokenMatch = wantToken.isEmpty() || wantToken == token
+        // Blank configured token = no auth required. Non-blank = a header
+        // token MUST be presented and match in constant time; query-string
+        // tokens are never accepted (see WebhookRequestGuard).
+        val tokenMatch = if (wantToken.isBlank()) {
+            true
+        } else {
+            WebhookRequestGuard.constantTimeEquals(token, wantToken)
+        }
         return pathMatch && methodMatch && tokenMatch
     }
 

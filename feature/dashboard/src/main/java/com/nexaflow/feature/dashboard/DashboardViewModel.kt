@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.security.SecureRandom
+import java.util.Base64
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,6 +32,10 @@ class DashboardViewModel @Inject constructor(
     historyRepository: HistoryRepository,
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
+
+    /** Recently minted deep-link token, surfaced once for the user to copy/share. */
+    private val _deepLinkToken = MutableStateFlow<String?>(null)
+    val deepLinkToken: StateFlow<String?> = _deepLinkToken
 
     /** automationId -> most recent durable execution — O(automationCount) via SQL, not O(historySize). */
     private val lastRunFlow = historyRepository.getLatestExecutions()
@@ -99,6 +105,28 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch {
             val updated = automation.copy(showToastOnToggle = showToast)
             automationRepository.saveAutomation(updated)
+        }
+    }
+
+    /**
+     * P0.2 deep-link opt-in: mints a fresh 128-bit base64url capability token
+     * for [automation] (or rotates the existing one). Callers expose the full
+     * `nexaflow://run-task/{id}?token=...` link to the user — sharing it
+     * grants run access, which the UI must state explicitly.
+     */
+    fun grantDeepLinkAccess(automation: Automation) {
+        viewModelScope.launch {
+            val token = newDeepLinkToken()
+            automationRepository.saveAutomation(automation.copy(deepLinkToken = token))
+            _deepLinkToken.value = token
+        }
+    }
+
+    /** P0.2: revokes external deep-link execution for [automation]. */
+    fun revokeDeepLinkAccess(automation: Automation) {
+        viewModelScope.launch {
+            automationRepository.saveAutomation(automation.copy(deepLinkToken = null))
+            _deepLinkToken.value = null
         }
     }
 
@@ -226,6 +254,17 @@ class DashboardViewModel @Inject constructor(
 
     fun consumeExecutionMessage() {
         _executionMessage.value = null
+    }
+
+    private companion object {
+        /** P0.2 token entropy: 128 bits, base64url — ~22 chars, unguessable. */
+        const val TOKEN_BYTES = 16
+
+        fun newDeepLinkToken(): String {
+            val bytes = ByteArray(TOKEN_BYTES)
+            SecureRandom().nextBytes(bytes)
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+        }
     }
 }
 

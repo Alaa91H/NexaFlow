@@ -15,6 +15,7 @@ import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Semaphore
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
@@ -35,13 +36,23 @@ import androidx.core.content.ContextCompat
  * [ServerSocket] listens on 127.0.0.1:[port]; an HTTP request whose path (and
  * optional method/token) matches a trigger fires that task through the engine.
  *
- * The server is deliberately loopback-only: no external device can reach it,
- * and the optional token guards against other local apps. The automation set
- * is refreshed on ACTION_AUTOMATIONS_CHANGED, so disabling the last webhook
- * task stops the socket immediately.
+ * The server is deliberately loopback-only: no external device can reach it.
+ * The optional per-trigger token guards against other local apps and is only
+ * accepted via the [WebhookRequestGuard.TOKEN_HEADER] header — never the
+ * query string, which leaks into logs and diagnostics.
+ *
+ * Hardening (all enforced before any matching runs):
+ *  - bounded request line / header count / header sizes / body drain;
+ *  - [Socket.soTimeout] so slow-loris style clients cannot hold sockets;
+ *  - a concurrency [Semaphore] capping simultaneous client handlers;
+ *  - an allow-list of HTTP methods (anything else gets 405);
+ *  - constant-time secret comparison.
+ *
+ * The automation set is refreshed on ACTION_AUTOMATIONS_CHANGED, so disabling
+ * the last webhook task stops the socket immediately.
  *
  * Trigger config keys: `path` (default "/"), `method` (POST/GET/ANY),
- * `token` (optional shared-secret header `X-NexaFlow-Token` or ?token= query).
+ * `token` (optional shared secret sent as the `X-NexaFlow-Token` header).
  */
 @Singleton
 class WebhookServer @Inject constructor(
@@ -59,8 +70,16 @@ class WebhookServer @Inject constructor(
 
     private val lastRunAt = ConcurrentHashMap<String, Long>()
 
+    /** Diagnostics counters — never include tokens or paths. */
+    val rejectedAuth = java.util.concurrent.atomic.AtomicLong()
+    val rejectedOversize = java.util.concurrent.atomic.AtomicLong()
+    val rejectedMethod = java.util.concurrent.atomic.AtomicLong()
+
     private var serverJob: Job? = null
     private var serverSocket: ServerSocket? = null
+
+    /** Caps concurrent client handlers; extra connections are closed immediately. */
+    private val clientSlots = Semaphore(MAX_CONCURRENT_CLIENTS)
 
     private val changeReceiver = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context, intent: Intent) {
@@ -123,7 +142,16 @@ class WebhookServer @Inject constructor(
         try {
             while (isActive()) {
                 val client = runCatching { socket.accept() }.getOrNull() ?: break
-                scope.launch(Dispatchers.IO) { handleClient(client) }
+                when {
+                    clientSlots.tryAcquire() -> scope.launch(Dispatchers.IO) {
+                        try {
+                            handleClient(client)
+                        } finally {
+                            clientSlots.release()
+                        }
+                    }
+                    else -> runCatching { respond(client, 503, "Busy") }.also { runCatching { client.close() } }
+                }
             }
         } catch (_: Throwable) {
             // Socket closed on shutdown — expected.
@@ -137,45 +165,43 @@ class WebhookServer @Inject constructor(
 
     private suspend fun handleClient(client: Socket) {
         try {
+            client.soTimeout = READ_TIMEOUT_MS
             val reader = BufferedReader(InputStreamReader(client.getInputStream()))
-            val requestLine = runCatching { reader.readLine() }.getOrNull() ?: return
-            val parts = requestLine.split(" ")
-            if (parts.size < 2) {
-                respond(client, 400, "Bad request")
-                return
-            }
-            val method = parts[0].uppercase()
-            var path = parts[1]
-            var token: String? = null
-            val queryIdx = path.indexOf('?')
-            if (queryIdx >= 0) {
-                val query = path.substring(queryIdx + 1)
-                path = path.substring(0, queryIdx)
-                token = query.split('&')
-                    .firstOrNull { it.startsWith("token=") }
-                    ?.substringAfter("=")
-            }
-            // Read headers (and honor a possible token header); the blank line
-            // after the header block ends the loop.
-            var headerToken: String? = null
-            var headerLine = runCatching { reader.readLine() }.getOrNull()
-            while (headerLine != null && headerLine.isNotBlank()) {
-                if (headerLine.startsWith("X-NexaFlow-Token:", ignoreCase = true)) {
-                    headerToken = headerLine.substringAfter(":").trim()
-                }
-                headerLine = runCatching { reader.readLine() }.getOrNull()
-            }
-            val effectiveToken = headerToken ?: token
-            // Drain the body so the client sees a complete exchange.
-            runCatching { while (reader.ready()) reader.read() }
 
-            val fired = dispatch(method, path, effectiveToken)
-            respond(client, if (fired) 200 else 404, if (fired) "OK" else "Not found")
+            val requestLine = runCatching { reader.readLine() }.getOrNull()
+            val headerLines = readHeaderLines(reader)
+
+            when (val parsed = WebhookRequestGuard.parse(requestLine, headerLines)) {
+                is WebhookRequestGuard.Parsed.Rejected -> {
+                    when {
+                        parsed.code == 405 -> rejectedMethod.incrementAndGet()
+                        parsed.code == 431 -> rejectedOversize.incrementAndGet()
+                    }
+                    respond(client, parsed.code, parsed.reason)
+                }
+                is WebhookRequestGuard.Parsed.Request -> {
+                    val fired = dispatch(parsed.method, parsed.path, parsed.headerToken)
+                    respond(client, if (fired) 200 else 404, if (fired) "OK" else "Not found")
+                }
+            }
         } catch (_: Throwable) {
             runCatching { respond(client, 500, "Internal error") }
         } finally {
             runCatching { client.close() }
         }
+    }
+
+    /** Reads at most [WebhookRequestGuard.MAX_HEADER_LINES] header lines. */
+    private fun readHeaderLines(reader: BufferedReader): List<String> {
+        val lines = ArrayList<String>(WebhookRequestGuard.MAX_HEADER_LINES)
+        while (lines.size < WebhookRequestGuard.MAX_HEADER_LINES + 1) {
+            val line = runCatching { reader.readLine() }.getOrNull() ?: break
+            if (line.isBlank()) break
+            lines.add(line)
+            // Guard the drain: an oversized header block stops here; the
+            // guard still rejects on count/size before any matching.
+        }
+        return lines
     }
 
     private suspend fun dispatch(method: String, path: String, token: String?): Boolean {
@@ -217,5 +243,11 @@ class WebhookServer @Inject constructor(
         @Volatile
         var currentPort: Int = 0
             private set
+
+        /** Per-client read timeout — slow-loris clients are cut off. */
+        const val READ_TIMEOUT_MS: Int = 10_000
+
+        /** Max simultaneous client handlers; excess connections get 503. */
+        const val MAX_CONCURRENT_CLIENTS: Int = 8
     }
 }

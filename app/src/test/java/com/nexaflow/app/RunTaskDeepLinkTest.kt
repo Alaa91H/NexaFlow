@@ -54,4 +54,51 @@ class RunTaskDeepLinkTest {
         assertNull(parseRunTaskDeepLink(Uri.parse("nexaflow://run-task")))
         assertNull(parseRunTaskDeepLink(null))
     }
+
+    // ---- P0.2: token parameter + authorization contract ----
+
+    @Test
+    fun `token query parameter is captured`() {
+        val link = parseRunTaskDeepLink(Uri.parse("nexaflow://run-task/abc?token=abcDEF123-_"))
+        assertEquals("abcDEF123-_", link?.token)
+    }
+
+    @Test
+    fun `blank token is normalized to null`() {
+        assertNull(parseRunTaskDeepLink(Uri.parse("nexaflow://run-task/abc?token="))?.token)
+        assertNull(parseRunTaskDeepLink(Uri.parse("nexaflow://run-task/abc?token=%20%20"))?.token)
+    }
+
+    @Test
+    fun `missing token parameter yields null token`() {
+        assertNull(parseRunTaskDeepLink(Uri.parse("nexaflow://run-task/abc"))?.token)
+    }
+
+    @Test
+    fun `authorization fails closed when stored token is absent`() {
+        assertFalse(deepLinkTokenAuthorized("anything", null))
+        assertFalse(deepLinkTokenAuthorized("anything", ""))
+    }
+
+    @Test
+    fun `authorization fails closed when presented token is absent`() {
+        assertFalse(deepLinkTokenAuthorized(null, "stored-token"))
+        assertFalse(deepLinkTokenAuthorized("", "stored-token"))
+    }
+
+    @Test
+    fun `matching token authorizes and mismatch does not`() {
+        assertTrue(deepLinkTokenAuthorized("s3cret-token", "s3cret-token"))
+        assertFalse(deepLinkTokenAuthorized("s3cret-token", "other-token"))
+        // Case matters: base64url alphabets are case-sensitive.
+        assertFalse(deepLinkTokenAuthorized("S3CRET-TOKEN", "s3cret-token"))
+    }
+
+    @Test
+    fun `ids that look like traversal or huge payloads are still just ids`() {
+        // The parser keeps the raw path; authorization and routing treat an
+        // unknown id as "no such task" — nothing executes for a wrong id.
+        val link = parseRunTaskDeepLink(Uri.parse("nexaflow://run-task/../../etc"))
+        assertEquals("../../etc", link?.automationId)
+    }
 }

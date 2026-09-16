@@ -136,8 +136,11 @@ fun SettingsScreen(navController: NavController) {
     ) { uri ->
         if (uri != null) {
             scope.launch {
+                // P0.3: bounded read — oversized/hostile providers are rejected
+                // before decoding instead of exhausting memory.
                 val json = runCatching {
-                    context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+                    context.contentResolver.openInputStream(uri)
+                        ?.use { com.nexaflow.data.backup.ImportLimits.readBoundedText(it) }
                 }.getOrNull()
                 if (json.isNullOrBlank()) {
                     snackbarHostState.showSnackbar(stringBackupImportFailed)

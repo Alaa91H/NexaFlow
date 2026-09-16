@@ -62,6 +62,9 @@ class HttpRequestHandler(
             "User-Agent" to "NexaFlow/1.0",
             "Idempotency-Key" to idempotencyKey
         )
+        // P0.5/P0.6: destination policy is enforced per hop; private-network
+        // (LAN/loopback) targets require the explicit per-task opt-in.
+        val allowPrivateNetwork = action.config["allowPrivateNetwork"]?.toBoolean() ?: false
         return withContext(Dispatchers.IO) {
             // A single transport call drives both the retry loop and the
             // published outcome, so the final code/body are known here.
@@ -73,7 +76,8 @@ class HttpRequestHandler(
                 body = body,
                 timeoutMs = timeoutMs.toInt(),
                 headers = headers,
-                policy = policy
+                policy = policy,
+                allowPrivateNetwork = allowPrivateNetwork
             ) { code, snippet ->
                 finalCode = code
                 finalBody = snippet
@@ -95,10 +99,11 @@ class HttpRequestHandler(
         timeoutMs: Int,
         headers: Map<String, String>,
         policy: RetryPolicy,
+        allowPrivateNetwork: Boolean,
         onAttempt: (code: Int, body: String) -> Unit,
     ): SystemControlResult {
         for (attempt in 1..policy.maxAttempts) {
-            val result = transport.execute(url, method, body, timeoutMs, headers)
+            val result = transport.execute(url, method, body, timeoutMs, headers, allowPrivateNetwork)
             onAttempt(result.code, result.snippet)
             val code = result.code
             if (code in 200..299) {
@@ -176,10 +181,22 @@ fun interface HttpTransport {
         body: String,
         timeoutMs: Int,
         headers: Map<String, String>,
+        allowPrivateNetwork: Boolean,
     ): HttpAttempt
 }
 
-/** Production transport backed by [HttpURLConnection]. */
+/**
+ * Production transport backed by [HttpURLConnection] with the SSRF gate:
+ *
+ *  - every hop (initial URL and each redirect) is re-inspected by
+ *    [HttpUrlPolicy] before a connection is opened;
+ *  - redirects are followed manually with a hard cap of
+ *    [HttpUrlPolicy.MAX_REDIRECTS] and cross-scheme downgrades are rejected
+ *    (https → http is refused so a redirect cannot strip TLS);
+ *  - the response body is read with a hard [MAX_RESPONSE_BYTES] cap using a
+ *    bounded chunked read — a hostile or misbehaving server can no longer
+ *    stream unbounded data into the workflow context.
+ */
 private class HttpURLConnectionTransport : HttpTransport {
 
     override fun execute(
@@ -188,44 +205,97 @@ private class HttpURLConnectionTransport : HttpTransport {
         body: String,
         timeoutMs: Int,
         headers: Map<String, String>,
+        allowPrivateNetwork: Boolean,
     ): HttpAttempt {
-        var connection: HttpURLConnection? = null
-        return try {
-            connection = (URL(url).openConnection() as HttpURLConnection).apply {
-                requestMethod = method
-                connectTimeout = timeoutMs
-                readTimeout = timeoutMs
-                headers.forEach { (key, value) -> setRequestProperty(key, value) }
-                if (body.isNotEmpty() && method in BODY_METHODS) {
-                    doOutput = true
+        var currentUrl = url
+        var currentMethod = method
+        var currentBody = body
+
+        repeat(HttpUrlPolicy.MAX_REDIRECTS + 1) {
+            // Re-apply the destination policy on EVERY hop.
+            when (val verdict = HttpUrlPolicy.inspect(currentUrl, allowPrivateNetwork = allowPrivateNetwork)) {
+                is HttpUrlPolicy.Verdict.Denied -> return HttpAttempt(-1, verdict.reason)
+                is HttpUrlPolicy.Verdict.Allowed -> Unit
+            }
+
+            var connection: HttpURLConnection? = null
+            val result = try {
+                connection = (URL(currentUrl).openConnection() as HttpURLConnection).apply {
+                    instanceFollowRedirects = false
+                    requestMethod = currentMethod
+                    connectTimeout = timeoutMs
+                    readTimeout = timeoutMs
+                    headers.forEach { (key, value) -> setRequestProperty(key, value) }
+                    if (currentBody.isNotEmpty() && currentMethod in BODY_METHODS) {
+                        doOutput = true
+                    }
                 }
+                if (connection.doOutput) {
+                    connection.outputStream.use { it.write(currentBody.toByteArray(Charsets.UTF_8)) }
+                }
+                val code = connection.responseCode
+                if (HttpUrlPolicy.isRedirect(code)) {
+                    val location = connection.getHeaderField("Location")
+                    val next = location?.let { HttpUrlPolicy.resolveRedirect(currentUrl, it) }
+                    if (next.isNullOrBlank()) {
+                        return HttpAttempt(code, "Redirect without a usable Location")
+                    }
+                    // Never let a redirect strip TLS.
+                    if (currentUrl.startsWith("https://") && next.startsWith("http://")) {
+                        return HttpAttempt(-1, "Redirect downgrades https to http")
+                    }
+                    // 303 (and 301/302 on POST) switch to GET and drop the body.
+                    if (HttpUrlPolicy.downgradesToGet(code, currentMethod)) {
+                        currentMethod = "GET"
+                        currentBody = ""
+                    }
+                    currentUrl = next
+                    null // continue to the next hop
+                } else {
+                    // Error responses (4xx/5xx) stream via errorStream on some
+                    // implementations; fall back so failures still report the code.
+                    val responseText = try {
+                        readBounded(connection.inputStream)
+                    } catch (_: IOException) {
+                        readBounded(connection.errorStream)
+                    }
+                    HttpAttempt(code, responseText.trim().ifBlank { "" })
+                }
+            } catch (e: Exception) {
+                HttpAttempt(0, e.message ?: e.javaClass.simpleName)
+            } finally {
+                connection?.disconnect()
             }
-            if (connection.doOutput) {
-                connection.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
-            }
-            val code = connection.responseCode
-            // Error responses (4xx/5xx) stream via errorStream on some
-            // implementations; fall back so failures still report the code.
-            val response = try {
-                connection.inputStream
-                    ?.bufferedReader(Charsets.UTF_8)
-                    ?.use { it.readText() }
-                    .orEmpty()
-            } catch (_: IOException) {
-                connection.errorStream
-                    ?.bufferedReader(Charsets.UTF_8)
-                    ?.use { it.readText() }
-                    .orEmpty()
-            }
-            HttpAttempt(code, response.trim().ifBlank { "" })
-        } catch (e: Exception) {
-            HttpAttempt(0, e.message ?: e.javaClass.simpleName)
-        } finally {
-            connection?.disconnect()
+            if (result != null) return result
         }
+        return HttpAttempt(-1, "Too many redirects")
+    }
+
+    /** Reads at most [MAX_RESPONSE_BYTES] bytes (post-decompression). */
+    private fun readBounded(stream: java.io.InputStream?): String {
+        if (stream == null) return ""
+        val buffer = ByteArray(8 * 1024)
+        val out = java.io.ByteArrayOutputStream()
+        var total = 0
+        stream.use { input ->
+            while (true) {
+                val chunk = input.read(buffer)
+                if (chunk < 0) break
+                total += chunk
+                if (total > MAX_RESPONSE_BYTES) {
+                    out.write(buffer, 0, chunk - (total - MAX_RESPONSE_BYTES))
+                    break
+                }
+                out.write(buffer, 0, chunk)
+            }
+        }
+        return out.toString("UTF-8")
     }
 
     private companion object {
         val BODY_METHODS = setOf("POST", "PUT", "PATCH", "DELETE")
+
+        /** Hard cap on response bytes entering the workflow context. */
+        const val MAX_RESPONSE_BYTES: Int = 512 * 1024
     }
 }
