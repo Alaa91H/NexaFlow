@@ -1,7 +1,6 @@
 package com.nexaflow.core.execution.capability
 
 import com.nexaflow.core.rom.ShizukuShellBridge
-import com.nexaflow.core.rom.SystemAppStatusDetector
 import com.nexaflow.domain.capability.CapabilityAvailability
 import com.nexaflow.domain.capability.CapabilityAvailabilityReport
 import com.nexaflow.domain.capability.CapabilityBackendId
@@ -12,6 +11,7 @@ import com.nexaflow.domain.capability.CapabilitySnapshot
 import com.nexaflow.domain.capability.ExecutionPolicy
 import com.nexaflow.domain.capability.VerificationMode
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,12 +30,20 @@ class CapabilityStateStore(
     private val environmentInspector: CapabilityEnvironmentInspector,
     private val scope: CoroutineScope,
     private val nowMs: () -> Long = { System.currentTimeMillis() },
-    private val registerShizukuStateListener: ((() -> Unit) -> Unit) = ShizukuShellBridge::addStateListener
+    private val registerShizukuStateListener: ((() -> Unit) -> Unit) = ShizukuShellBridge::addStateListener,
+    private val minRefreshIntervalMs: Long = DEFAULT_MIN_REFRESH_INTERVAL_MS
 ) {
     private val diagnostics = CapabilityDiagnostics(registry)
     private val refreshMutex = Mutex()
     private val _snapshot = MutableStateFlow(CapabilitySnapshot())
     private val _environmentReports = MutableStateFlow<List<CapabilityEnvironmentReport>>(emptyList())
+
+    /** Guards [workerJob], [refreshQueued] and [lastRefreshCompletedAtMs]. */
+    private val schedulerLock = Any()
+    private var workerJob: kotlinx.coroutines.Job? = null
+    private var refreshQueued = false
+    @Volatile
+    private var lastRefreshCompletedAtMs = Long.MIN_VALUE
 
     /** Immutable availability observation used by action, trigger, template and workflow filtering. */
     val snapshot: StateFlow<CapabilitySnapshot> = _snapshot.asStateFlow()
@@ -49,23 +57,65 @@ class CapabilityStateStore(
         registerShizukuStateListener(::invalidate)
     }
 
-    /** Queues a refresh after a real capability-state event; duplicate calls are serialized. */
+    /**
+     * Queues a refresh after a real capability-state event. All invalidations
+     * coalesce through a single worker: at most one scan is ever in flight,
+     * a burst collapses into one pending request, and consecutive scans are
+     * spaced at least [minRefreshIntervalMs] apart. An event storm (e.g. a
+     * flapping Shizuku listener) can therefore never translate into a probe
+     * flood — the binder storm that made ActivityManager kill the app for
+     * "Too many Binders sent to SYSTEM".
+     */
     fun invalidate() {
-        scope.launch { refreshNow() }
+        synchronized(schedulerLock) {
+            refreshQueued = true
+            // Null-check, not isActive: a worker that already decided to exit
+            // (workerJob = null under this lock) may still be a moment from
+            // completing, and skipping the launch here would lose the queued
+            // refresh entirely (lost wakeup).
+            if (workerJob != null) return
+            workerJob = scope.launch {
+                while (true) {
+                    synchronized(schedulerLock) {
+                        if (!refreshQueued) {
+                            workerJob = null
+                            return@launch
+                        }
+                        refreshQueued = false
+                    }
+                    val wait = (lastRefreshCompletedAtMs + minRefreshIntervalMs - nowMs())
+                        .coerceAtLeast(0L)
+                    if (wait > 0) delay(wait)
+                    refreshNow()
+                }
+            }
+        }
     }
 
     /** Explicit user- or lifecycle-initiated refresh. This is not a periodic probe. */
     fun refresh() = invalidate()
 
     private suspend fun refreshNow() = refreshMutex.withLock {
-        // Root does not offer a normal-app callback; clear only its short-lived
-        // detector cache on an explicit/event-driven refresh before observing it.
-        SystemAppStatusDetector.refreshRootAvailability()
+        // Root freshness is governed by SystemAppStatusDetector's own 2s TTL;
+        // deliberately NOT invalidating its cache here. Every refresh used to
+        // drop the cache, so a repeated invalidate loop forced a fresh `su`
+        // process spawn on each pass — the flood behind the binder kill.
         val reports = registry.descriptors().associate { descriptor ->
             descriptor.id to diagnosticReportFor(descriptor.id)
         }
         _snapshot.value = CapabilitySnapshot(reports = reports, observedAtMs = nowMs())
         _environmentReports.value = environmentInspector.reports()
+        lastRefreshCompletedAtMs = nowMs()
+    }
+
+    companion object {
+        /**
+         * Capability state changes slowly and every scan costs privileged
+         * probes; 30s between scans keeps even a continuous invalidation storm
+         * far below the binder-transaction rate that made ActivityManager kill
+         * the app. The first snapshot after startup is still immediate.
+         */
+        const val DEFAULT_MIN_REFRESH_INTERVAL_MS = 30_000L
     }
 
     /**

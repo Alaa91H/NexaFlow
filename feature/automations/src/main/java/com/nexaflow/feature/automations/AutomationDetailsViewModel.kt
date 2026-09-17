@@ -52,12 +52,44 @@ class AutomationDetailsViewModel @Inject constructor(
     private val _executionMessage = MutableStateFlow<String?>(null)
     val executionMessage: StateFlow<String?> = _executionMessage
 
+    fun setDeepLinkAccess(enabled: Boolean) {
+        viewModelScope.launch {
+            val current = repository.getAutomationById(automationId) ?: return@launch
+            repository.saveAutomation(current.copy(
+                deepLinkToken = if (enabled) com.nexaflow.domain.security.ExternalAccessPolicy.newToken() else null,
+                updatedAt = System.currentTimeMillis()
+            ))
+        }
+    }
+
+    fun repairWebhookTokens() {
+        viewModelScope.launch {
+            val current = repository.getAutomationById(automationId) ?: return@launch
+            repository.saveAutomation(current.copy(triggers = current.triggers.map {
+                if (it.type == com.nexaflow.domain.models.TriggerType.WEBHOOK && it.config["token"].isNullOrBlank())
+                    it.copy(config = it.config + ("token" to com.nexaflow.domain.security.ExternalAccessPolicy.newToken()))
+                else it
+            }))
+            executionEngine.notifyAutomationsChanged()
+        }
+    }
+
     fun toggleEnabled(enabled: Boolean) {
         viewModelScope.launch {
+            val wasEnabled = automation.value?.enabled == true
             repository.updateAutomationStatus(automationId, enabled)
+            if (!enabled && wasEnabled) {
+                try {
+                    automation.value?.let { executionEngine.runExit(it, forceConfiguredEnd = true) }
+                } catch (_: Exception) {}
+            } else if (enabled && !wasEnabled) {
+                // Strict: enable → run immediately if triggers match
+                try {
+                    automation.value?.let { executionEngine.runWithConditionGate(it) }
+                } catch (_: Exception) {}
+            }
             // Notify the monitors so an enabled task whose condition already
-            // holds runs immediately, and a disabled active task runs its end
-            // behavior right away instead of waiting for the next event.
+            // holds runs immediately, and for disable, ensure lifecycle reconciled
             executionEngine.notifyAutomationsChanged()
         }
     }
@@ -100,7 +132,33 @@ class AutomationDetailsViewModel @Inject constructor(
         if (_running.value) return
         viewModelScope.launch {
             _running.value = true
+            // Strict manual admission: triggers and constraints must match
+            // before the main chain runs. A mismatch runs the configured end
+            // behavior, or is reported explicitly when none is configured —
+            // a manual tap never bypasses the task's own conditions.
             val record = executionEngine.runWithConditionGate(current)
+            _executionMessage.value = formatExecutionMessage(record)
+            _running.value = false
+        }
+    }
+
+    /**
+     * Typed mismatch explanation for the Run-now dialog; null when admissible.
+     * Same policy source as the dashboard and deep-link paths.
+     */
+    suspend fun describeManualBlock(): ExecutionEngine.ManualBlockReason? {
+        val current = automation.value ?: return null
+        val reason = executionEngine.describeManualBlock(current)
+        return if (reason.kind == ExecutionEngine.ManualBlockKind.NONE) null else reason
+    }
+
+    /** Explicit user override after the force-run confirmation dialog. */
+    fun forceRun() {
+        val current = automation.value ?: return
+        if (_running.value) return
+        viewModelScope.launch {
+            _running.value = true
+            val record = executionEngine.forceRun(current)
             _executionMessage.value = formatExecutionMessage(record)
             _running.value = false
         }

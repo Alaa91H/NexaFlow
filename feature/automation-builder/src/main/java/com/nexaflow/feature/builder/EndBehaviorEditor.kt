@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -148,7 +149,7 @@ fun EndBehaviorEditor(
     }
 }
 
-private fun defaultEndValue(type: ActionType): Map<String, String> = when (type) {
+internal fun defaultEndValue(type: ActionType): Map<String, String> = when (type) {
     ActionType.SYSTEM_BRIGHTNESS -> mapOf("value" to "128")
     ActionType.SYSTEM_VOLUME,
     ActionType.SYSTEM_RING_VOLUME -> mapOf("value" to "50")
@@ -157,6 +158,10 @@ private fun defaultEndValue(type: ActionType): Map<String, String> = when (type)
     ActionType.SYSTEM_SCREEN_TIMEOUT -> mapOf("seconds" to "60")
     ActionType.SYSTEM_SCREEN_ROTATION -> mapOf("autoRotate" to "true")
     ActionType.SYSTEM_NETWORK_MODE -> mapOf("mode" to "AUTO")
+    ActionType.SYSTEM_POINTER_SPEED -> mapOf("speed" to "0")
+    ActionType.SYSTEM_SCREENSAVER_TIMEOUT -> mapOf("minutes" to "10")
+    ActionType.SYSTEM_FONT_SCALE -> mapOf("scale" to "1.0")
+    ActionType.SYSTEM_DISPLAY_DENSITY -> mapOf("dpi" to "440")
     else -> emptyMap()
 }
 
@@ -266,6 +271,102 @@ private fun EndValueEditor(
         }
         ActionType.SYSTEM_NETWORK_MODE -> {
             NetworkModeSelector(config = config, onConfigChange = onConfigChange)
+        }
+        ActionType.SYSTEM_POINTER_SPEED -> {
+            // Android's pointer speed spans -7..7; chips for the common stops
+            // plus the raw field mirror the action editor's controls.
+            val value = config["speed"]?.toIntOrNull() ?: 0
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    listOf(-3, -2, -1, 0, 1, 2, 3).forEach { preset ->
+                        SelectChip(
+                            selected = value == preset,
+                            onClick = { onConfigChange(config + ("speed" to preset.toString())) },
+                            label = preset.toString()
+                        )
+                    }
+                }
+                OutlinedTextField(
+                    value = config["speed"] ?: "",
+                    onValueChange = { raw ->
+                        val filtered = raw.filter { it.isDigit() || it == '-' }
+                        onConfigChange(config + ("speed" to filtered))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.pointer_speed_label)) },
+                    supportingText = { Text(stringResource(R.string.pointer_speed_range)) },
+                    singleLine = true
+                )
+            }
+        }
+        ActionType.SYSTEM_SCREENSAVER_TIMEOUT -> {
+            val minutes = config["minutes"]?.toIntOrNull() ?: 10
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    listOf(1, 5, 10, 30).forEach { preset ->
+                        SelectChip(
+                            selected = minutes == preset,
+                            onClick = { onConfigChange(config + ("minutes" to preset.toString())) },
+                            label = stringResource(R.string.screensaver_minutes_chip, preset)
+                        )
+                    }
+                }
+                OutlinedTextField(
+                    value = config["minutes"] ?: "",
+                    onValueChange = { raw -> onConfigChange(config + ("minutes" to raw.filter { it.isDigit() })) },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.screensaver_timeout_label)) },
+                    singleLine = true
+                )
+            }
+        }
+        ActionType.SYSTEM_FONT_SCALE, ActionType.SYSTEM_DISPLAY_DENSITY -> {
+            // Display-scaling end values: chips for the practical presets plus
+            // the raw field, mirroring the action editor's controls so "end
+            // with value" never feels weaker than the action itself.
+            val isDensity = actionType == ActionType.SYSTEM_DISPLAY_DENSITY
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    (if (isDensity) listOf("360", "440", "480", "560") else listOf("0.85", "1.0", "1.2", "1.4"))
+                        .forEach { preset ->
+                            SelectChip(
+                                selected = (if (isDensity) config["dpi"] else config["scale"]) == preset,
+                                onClick = {
+                                    onConfigChange(
+                                        if (isDensity) config + ("dpi" to preset)
+                                        else config + ("scale" to preset)
+                                    )
+                                },
+                                label = preset
+                            )
+                        }
+                }
+                OutlinedTextField(
+                    value = if (isDensity) config["dpi"] ?: "" else config["scale"] ?: "",
+                    onValueChange = { raw ->
+                        val filtered = if (isDensity) raw.filter { it.isDigit() } else raw.filter { it.isDigit() || it == '.' }
+                        onConfigChange(
+                            if (isDensity) config + ("dpi" to filtered)
+                            else config + ("scale" to filtered)
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(if (isDensity) R.string.display_density else R.string.font_scale)) },
+                    singleLine = true
+                )
+            }
         }
         else -> Unit
     }

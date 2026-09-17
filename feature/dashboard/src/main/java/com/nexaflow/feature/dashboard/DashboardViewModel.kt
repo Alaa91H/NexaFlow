@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -29,12 +30,10 @@ class DashboardViewModel @Inject constructor(
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
-    /** automationId -> most recent durable execution, including its outcome. */
-    private val lastRunFlow = historyRepository.getExecutionHistory()
-        .map { history ->
-            history.groupBy { it.automationId }
-                .mapValues { (_, records) -> records.maxByOrNull { it.executedAt } }
-        }
+    /** automationId -> most recent durable execution — O(automationCount) via SQL, not O(historySize). */
+    private val lastRunFlow = historyRepository.getLatestExecutions()
+        .map { list -> list.associateBy { it.automationId } }
+        .distinctUntilChanged()
 
     private val automationsFlow = combine(
         automationRepository.getAutomations(),
@@ -58,14 +57,41 @@ class DashboardViewModel @Inject constructor(
     private val _executionMessage = MutableStateFlow<String?>(null)
     val executionMessage: StateFlow<String?> = _executionMessage
 
-    /** Toggles a single routine on/off straight from the home screen. */
+    /** Toggles a single routine on/off — strict: enable runs immediately if triggers match, disable runs exit. */
     fun toggleAutomation(automation: Automation, enabled: Boolean) {
         viewModelScope.launch {
             automationRepository.updateAutomationStatus(automation.id, enabled)
+            if (!enabled) {
+                // Strict: when disabling, immediately attempt to run "when task ends"
+                try {
+                    executionEngine.runExit(automation, forceConfiguredEnd = true)
+                } catch (_: Exception) {}
+            } else {
+                // Strict: when enabling, if triggers already match, run immediately
+                try {
+                    executionEngine.runWithConditionGate(automation)
+                } catch (_: Exception) {}
+            }
+            // Show toast if enabled for this task
+            if (automation.showToastOnToggle) {
+                val message = if (enabled) {
+                    appContext.getString(R.string.task_enabled_toast, automation.name)
+                } else {
+                    appContext.getString(R.string.task_disabled_toast, automation.name)
+                }
+                _executionMessage.value = message
+            }
             // Notify the monitors so an enabled task whose condition already
-            // holds runs immediately, and a disabled active task runs its end
-            // behavior right away instead of waiting for the next event.
+            // holds runs immediately (redundant with direct run, but ensures
+            // stateful monitors are armed), and for disable, ensure lifecycle reconciled
             executionEngine.notifyAutomationsChanged()
+        }
+    }
+
+    fun setShowToastOnToggle(automation: Automation, showToast: Boolean) {
+        viewModelScope.launch {
+            val updated = automation.copy(showToastOnToggle = showToast)
+            automationRepository.saveAutomation(updated)
         }
     }
 
@@ -97,12 +123,92 @@ class DashboardViewModel @Inject constructor(
         }
     }
 
-    /** Runs a routine immediately from the dashboard action menu. */
+    /** Runs a routine immediately from the dashboard action menu — obeys the trigger/condition gate. */
     fun runNow(automation: Automation) {
         if (automation.id in _runningIds.value) return
         viewModelScope.launch {
             _runningIds.value = _runningIds.value + automation.id
+            // Manual "Run now" must obey the task's triggers and constraints:
+            // satisfied → run the main chain; unsatisfied → run the configured
+            // end behavior ("when the task ends"), or record an explicit
+            // conditions-not-satisfied outcome when none is configured. This is
+            // the single manual-admission policy, shared with the details
+            // screen, the enable toggle, and the builder save path.
             val record = executionEngine.runWithConditionGate(automation)
+            _executionMessage.value = formatExecutionMessage(record)
+            _runningIds.value = _runningIds.value - automation.id
+        }
+    }
+
+    /**
+     * Typed explanation of why a manual run would be rejected right now.
+     * The UI shows it on the Run-now mismatch dialog; null means admissible.
+     */
+    suspend fun describeManualBlock(automation: Automation): ExecutionEngine.ManualBlockReason? {
+        val reason = executionEngine.describeManualBlock(automation)
+        return if (reason.kind == ExecutionEngine.ManualBlockKind.NONE) null else reason
+    }
+
+    /** Saved tasks still carrying the legacy combined CONNECTIVITY trigger. */
+    val legacyConnectivityTasks: StateFlow<List<Automation>> = automationRepository.getAutomations()
+        .map { list ->
+            list.filter { automation ->
+                automation.triggers.any { it.type == com.nexaflow.domain.models.TriggerType.CONNECTIVITY }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /**
+     * One-tap migration: replaces each legacy combined CONNECTIVITY trigger
+     * with dedicated WIFI_CONNECTED / MOBILE_DATA_CONNECTED triggers that
+     * preserve the original network selection and state. Non-migratable
+     * selections (HOTSPOT/ETHERNET/VPN) are left untouched.
+     */
+    fun migrateLegacyConnectivityTriggers() {
+        viewModelScope.launch {
+            legacyConnectivityTasks.value.forEach { automation ->
+                val newTriggers = mutableListOf<com.nexaflow.domain.models.Trigger>()
+                var changed = false
+                automation.triggers.forEach { trigger ->
+                    if (trigger.type != com.nexaflow.domain.models.TriggerType.CONNECTIVITY) {
+                        newTriggers += trigger
+                        return@forEach
+                    }
+                    val network = (trigger.config["network"] ?: "WIFI").uppercase()
+                    val state = trigger.config["state"] ?: "CONNECTED"
+                    when (network) {
+                        "WIFI" -> newTriggers += com.nexaflow.domain.models.Trigger(
+                            com.nexaflow.domain.models.TriggerType.WIFI_CONNECTED,
+                            mapOf("state" to state)
+                        )
+                        "MOBILE" -> newTriggers += com.nexaflow.domain.models.Trigger(
+                            com.nexaflow.domain.models.TriggerType.MOBILE_DATA_CONNECTED,
+                            mapOf("state" to state)
+                        )
+                        else -> {
+                            // HOTSPOT has its own dedicated trigger; ETHERNET/VPN
+                            // have no split equivalent yet and must keep working.
+                            newTriggers += trigger
+                            return@forEach
+                        }
+                    }
+                    changed = true
+                }
+                if (changed) {
+                    automationRepository.saveAutomation(
+                        automation.copy(triggers = newTriggers, updatedAt = System.currentTimeMillis())
+                    )
+                }
+            }
+        }
+    }
+
+    /** Explicit user override after the force-run confirmation dialog. */
+    fun forceRun(automation: Automation) {
+        if (automation.id in _runningIds.value) return
+        viewModelScope.launch {
+            _runningIds.value = _runningIds.value + automation.id
+            val record = executionEngine.forceRun(automation)
             _executionMessage.value = formatExecutionMessage(record)
             _runningIds.value = _runningIds.value - automation.id
         }

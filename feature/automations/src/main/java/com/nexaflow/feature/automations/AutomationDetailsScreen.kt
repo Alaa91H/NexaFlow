@@ -4,6 +4,7 @@ import androidx.compose.material.icons.filled.BrightnessHigh
 import androidx.compose.material.icons.filled.DataUsage
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Nfc
+import androidx.compose.material.icons.filled.PhoneInTalk
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.Storage
 
@@ -99,8 +100,11 @@ import androidx.core.graphics.drawable.IconCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.ui.EmptyState
 import kotlinx.coroutines.launch
+import androidx.compose.material3.AlertDialog
+import androidx.compose.runtime.produceState
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.alternatingSurfaceColor
@@ -136,6 +140,9 @@ fun AutomationDetailsScreen(navController: NavController) {
     var constraintsExpanded by remember { mutableStateOf(false) }
     var actionsExpanded by remember { mutableStateOf(false) }
     var exitBehaviorExpanded by remember { mutableStateOf(false) }
+    // Run-now gate dialogs: mismatch reason, then force-run confirmation.
+    var runBlockDialog by remember { mutableStateOf(false) }
+    var forceRunDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(executionMessage) {
         executionMessage?.let { message ->
@@ -195,6 +202,30 @@ fun AutomationDetailsScreen(navController: NavController) {
                     .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                NexaFlowCard {
+                    Text(stringResource(R.string.deep_link_access_title), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.deep_link_access_warning))
+                    Row {
+                        TextButton(onClick = { viewModel.setDeepLinkAccess(true) }) {
+                            Text(stringResource(if (current.deepLinkToken == null) R.string.deep_link_enable else R.string.deep_link_rotate))
+                        }
+                        if (current.deepLinkToken != null) {
+                            TextButton(onClick = { viewModel.setDeepLinkAccess(false) }) { Text(stringResource(R.string.deep_link_revoke)) }
+                            TextButton(onClick = {
+                                context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, taskDeepLink(current).toString())
+                                }, null))
+                            }) { Text(stringResource(R.string.deep_link_share)) }
+                        }
+                    }
+                }
+                if (current.triggers.any { it.type == TriggerType.WEBHOOK && it.config["token"].isNullOrBlank() }) {
+                    NexaFlowCard {
+                        Text(stringResource(R.string.webhook_review_required))
+                        TextButton(onClick = { viewModel.repairWebhookTokens() }) { Text(stringResource(R.string.webhook_secure)) }
+                    }
+                }
                 NexaFlowCard {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -404,7 +435,18 @@ fun AutomationDetailsScreen(navController: NavController) {
                     }
                 }
                 Button(
-                    onClick = { viewModel.runNow() },
+                    onClick = {
+                        // Same gate-first contract as the dashboard: admissible
+                        // runs execute, mismatches surface the typed reason dialog.
+                        coroutineScope.launch {
+                            val block = viewModel.describeManualBlock()
+                            if (block == null) {
+                                viewModel.runNow()
+                            } else {
+                                runBlockDialog = true
+                            }
+                        }
+                    },
                     enabled = !running,
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -416,6 +458,85 @@ fun AutomationDetailsScreen(navController: NavController) {
                 }
             }
         }
+    }
+
+    // Typed mismatch dialog: same contract as the dashboard — names what
+    // failed and offers the honest exit path or the force-run override.
+    if (runBlockDialog) {
+        val block = produceState<ExecutionEngine.ManualBlockReason?>(
+            initialValue = null
+        ) { value = viewModel.describeManualBlock() }.value
+        AlertDialog(
+            onDismissRequest = { runBlockDialog = false },
+            title = { Text(stringResource(R.string.run_gate_title)) },
+            text = {
+                Column {
+                    automation?.let { Text(text = stringResource(R.string.run_reason_task, it.name)) }
+                    when (block?.kind) {
+                        ExecutionEngine.ManualBlockKind.TRIGGERS_NOT_MET ->
+                            block.failedTriggerLabels.forEach { label ->
+                                Text(
+                                    text = stringResource(R.string.run_reason_trigger, label),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        ExecutionEngine.ManualBlockKind.TRIGGERS_UNKNOWN -> {
+                            Text(text = stringResource(R.string.run_reason_unknown))
+                            block.failedTriggerLabels.forEach { label ->
+                                Text(
+                                    text = stringResource(R.string.run_reason_trigger, label),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+                        ExecutionEngine.ManualBlockKind.CONSTRAINTS_NOT_MET ->
+                            block.failedConstraintLabels.forEach { label ->
+                                Text(
+                                    text = stringResource(R.string.run_reason_constraint, label),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        ExecutionEngine.ManualBlockKind.INVALID_TIME_RANGE ->
+                            Text(text = stringResource(R.string.run_reason_no_exit))
+                        else -> Unit
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { runBlockDialog = false; viewModel.runNow() }) {
+                    Text(stringResource(R.string.run_reason_run_end))
+                }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = { runBlockDialog = false }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                    TextButton(onClick = { runBlockDialog = false; forceRunDialog = true }) {
+                        Text(stringResource(R.string.run_force_short))
+                    }
+                }
+            }
+        )
+    }
+
+    // Separate confirmation step: the bypass is never one accidental tap away.
+    if (forceRunDialog) {
+        AlertDialog(
+            onDismissRequest = { forceRunDialog = false },
+            title = { Text(stringResource(R.string.run_force_title)) },
+            text = { Text(stringResource(R.string.run_force_message)) },
+            confirmButton = {
+                TextButton(onClick = { forceRunDialog = false; viewModel.forceRun() }) {
+                    Text(stringResource(R.string.run_force_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { forceRunDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 }
 
@@ -467,6 +588,7 @@ private fun constraintPresentation(type: ConstraintType): Pair<Int, ImageVector>
     ConstraintType.AIRPLANE -> R.string.constraint_type_airplane to Icons.Filled.AirplanemodeActive
     ConstraintType.CHARGING -> R.string.constraint_type_charging to Icons.Filled.BatteryChargingFull
     ConstraintType.LOCATION -> R.string.constraint_type_location to Icons.Filled.MyLocation
+    ConstraintType.SCHEDULE -> R.string.constraint_type_schedule to Icons.Filled.Schedule
     ConstraintType.PLUGIN -> R.string.action_plugin to Icons.Filled.Extension
 }
 
@@ -516,7 +638,7 @@ private fun actionDetail(config: Map<String, String>): String {
  * `nexaflow://run-task/{id}` deep link handled by MainActivity.
  */
 private fun createTaskShortcut(context: android.content.Context, automation: Automation) {
-    val uri = Uri.parse("nexaflow://run-task/${automation.id}")
+    val uri = taskDeepLink(automation)
     val intent = Intent(Intent.ACTION_VIEW, uri)
     val shortcut = ShortcutInfoCompat.Builder(context, "task_" + automation.id)
         .setShortLabel(automation.name.take(10))
@@ -547,6 +669,8 @@ private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector
     TriggerType.APPLICATION -> Triple(R.string.trigger_app, R.string.trigger_app_sub, Icons.Filled.Add)
     TriggerType.DEVICE -> Triple(R.string.trigger_device, R.string.trigger_device_sub, Icons.Filled.Bolt)
     TriggerType.CONNECTIVITY -> Triple(R.string.trigger_connectivity, R.string.trigger_connectivity_sub, Icons.Filled.Wifi)
+    TriggerType.WIFI_CONNECTED -> Triple(R.string.trigger_type_wifi_connected, R.string.trigger_type_wifi_connected_sub, Icons.Filled.Wifi)
+    TriggerType.MOBILE_DATA_CONNECTED -> Triple(R.string.trigger_type_mobile_data, R.string.trigger_type_mobile_data_sub, Icons.Filled.SignalCellularAlt)
     TriggerType.HOTSPOT -> Triple(R.string.action_hotspot, R.string.action_hotspot, Icons.Filled.Wifi)
     TriggerType.LOCATION -> Triple(R.string.trigger_location, R.string.trigger_location_sub, Icons.Filled.Place)
     TriggerType.SMS -> Triple(R.string.trigger_sms, R.string.trigger_sms_sub, Icons.Filled.NotificationImportant)
@@ -563,6 +687,7 @@ private fun triggerPresentation(type: TriggerType): Triple<Int, Int, ImageVector
     TriggerType.AIRPLANE_MODE -> Triple(R.string.trigger_airplane, R.string.trigger_airplane, Icons.Filled.AirplanemodeActive)
     TriggerType.DARK_MODE -> Triple(R.string.trigger_dark_mode, R.string.trigger_dark_mode, Icons.Filled.DarkMode)
     TriggerType.CALL_STATE -> Triple(R.string.trigger_call_state, R.string.trigger_call_state, Icons.Filled.PhoneAndroid)
+    TriggerType.INCOMING_CALL -> Triple(R.string.trigger_type_incoming_call, R.string.trigger_type_incoming_call_sub, Icons.Filled.PhoneInTalk)
     TriggerType.APP_INSTALLED -> Triple(R.string.trigger_app_installed, R.string.trigger_app_installed, Icons.Filled.Download)
     TriggerType.MEDIA_PLAYING -> Triple(R.string.trigger_media_playing, R.string.trigger_media_playing, Icons.Filled.MusicNote)
     TriggerType.VOLUME_CHANGED -> Triple(R.string.trigger_volume_changed, R.string.trigger_volume_changed, Icons.AutoMirrored.Filled.VolumeUp)
@@ -891,3 +1016,7 @@ internal fun routineHistoryRoute(
     val outcomeParameter = outcome?.let { "&outcome=${it.routeValue}" }.orEmpty()
     return "history?automationId=$encodedId$outcomeParameter"
 }
+
+internal fun taskDeepLink(automation: Automation): Uri = Uri.Builder()
+    .scheme("nexaflow").authority("run-task").appendPath(automation.id)
+    .apply { automation.deepLinkToken?.let { appendQueryParameter("token", it) } }.build()

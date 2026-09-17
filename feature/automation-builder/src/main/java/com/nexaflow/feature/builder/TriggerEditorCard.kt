@@ -1,5 +1,6 @@
 package com.nexaflow.feature.builder
 
+import android.Manifest
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.PhoneInTalk
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Bluetooth
@@ -166,6 +168,8 @@ internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> = mapOf(
     TriggerType.RINGER_MODE to TriggerCategory.DEVICE,
     TriggerType.NOTIFICATION to TriggerCategory.DEVICE,
     TriggerType.CONNECTIVITY to TriggerCategory.CONNECTIVITY,
+    TriggerType.WIFI_CONNECTED to TriggerCategory.CONNECTIVITY,
+    TriggerType.MOBILE_DATA_CONNECTED to TriggerCategory.CONNECTIVITY,
     TriggerType.HOTSPOT to TriggerCategory.CONNECTIVITY,
     TriggerType.NETWORK_MODE to TriggerCategory.CONNECTIVITY,
     TriggerType.BLUETOOTH_DEVICE to TriggerCategory.CONNECTIVITY,
@@ -173,6 +177,7 @@ internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> = mapOf(
     TriggerType.LOCATION to TriggerCategory.LOCATION,
     TriggerType.APPLICATION to TriggerCategory.APPS,
     TriggerType.SMS to TriggerCategory.COMMUNICATION,
+    TriggerType.INCOMING_CALL to TriggerCategory.COMMUNICATION,
     TriggerType.SENSOR to TriggerCategory.DEVICE,
     TriggerType.ROM_SETTING to TriggerCategory.DEVICE,
     TriggerType.HEADPHONE to TriggerCategory.DEVICE,
@@ -195,6 +200,8 @@ internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> = mapOf(
     // Legacy combined connectivity remains supported for imported automations and
     // is now also available to new users who need one unified network condition.
     TriggerType.CONNECTIVITY to TriggerCategory.CONNECTIVITY,
+    TriggerType.WIFI_CONNECTED to TriggerCategory.CONNECTIVITY,
+    TriggerType.MOBILE_DATA_CONNECTED to TriggerCategory.CONNECTIVITY,
     TriggerType.LOCATION_STATE to TriggerCategory.LOCATION,
     TriggerType.SCREEN_ROTATION_STATE to TriggerCategory.DEVICE,
     TriggerType.WIFI_SIGNAL_STRENGTH to TriggerCategory.CONNECTIVITY,
@@ -241,9 +248,11 @@ val triggerTypeOptions = listOf(
     TriggerType.AUTO_ROTATE,
     TriggerType.DEVICE_LOCKED,
     TriggerType.SCREEN_ROTATION_STATE,
-    // CONNECTIVITY — unified Wi-Fi/mobile condition for users who prefer one
-    // network trigger instead of separate radio-specific triggers.
-    TriggerType.CONNECTIVITY,
+    // CONNECTIVITY is intentionally not offered: Wi-Fi and mobile data are
+    // separate triggers (WIFI_CONNECTED / MOBILE_DATA_CONNECTED). The legacy
+    // combined type remains available for saved tasks.
+    TriggerType.WIFI_CONNECTED,
+    TriggerType.MOBILE_DATA_CONNECTED,
     TriggerType.HOTSPOT,
     TriggerType.NETWORK_MODE,
     TriggerType.BLUETOOTH_DEVICE,
@@ -260,6 +269,7 @@ val triggerTypeOptions = listOf(
     TriggerType.APP_INSTALLED,
     // COMMUNICATION
     TriggerType.SMS,
+    TriggerType.INCOMING_CALL,
     // DEVICE (v3.28)
     TriggerType.BATTERY_TEMPERATURE,
     TriggerType.USB_CONNECTED,
@@ -295,7 +305,7 @@ private val occurrenceOptions = listOf(
     "LAST" to R.string.occurrence_last
 )
 
-private val weekdayOptions = listOf(
+internal val weekdayOptions = listOf(
     1 to R.string.day_mon,
     2 to R.string.day_tue,
     3 to R.string.day_wed,
@@ -312,16 +322,19 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.APPLICATION -> mapOf("packages" to "")
     TriggerType.DEVICE -> mapOf("event" to "SCREEN_ON")
     TriggerType.CONNECTIVITY -> mapOf("network" to "WIFI", "state" to "CONNECTED")
+    TriggerType.WIFI_CONNECTED -> mapOf("state" to "CONNECTED")
+    TriggerType.MOBILE_DATA_CONNECTED -> mapOf("state" to "CONNECTED")
     TriggerType.HOTSPOT -> mapOf("state" to "ON")
     TriggerType.NETWORK_MODE -> mapOf("state" to "4G")
     TriggerType.LOCATION -> mapOf("lat" to "", "lng" to "", "radius" to "100", "event" to "ENTER")
     TriggerType.SMS -> mapOf("from" to "", "contains" to "")
+    TriggerType.INCOMING_CALL -> mapOf("from" to "")
     TriggerType.BLUETOOTH_DEVICE -> mapOf("deviceName" to "", "deviceAddress" to "", "event" to "CONNECTED")
     TriggerType.RINGER_MODE -> mapOf("mode" to "NORMAL")
     TriggerType.NOTIFICATION -> mapOf("packages" to "", "contains" to "", "event" to "POSTED")
     TriggerType.CALENDAR -> mapOf("calendar" to "", "contains" to "", "event" to "EVENT_START", "beforeMinutes" to "0")
     TriggerType.SENSOR -> mapOf("sensor" to "PROXIMITY", "event" to "COVERED", "threshold" to "200", "sensitivity" to "14")
-    TriggerType.WEBHOOK -> mapOf("path" to "/nexaflow", "method" to "POST", "token" to "")
+    TriggerType.WEBHOOK -> mapOf("path" to "/nexaflow", "method" to "POST", "token" to com.nexaflow.domain.security.ExternalAccessPolicy.newToken())
     TriggerType.ROM_SETTING -> mapOf("namespace" to "SYSTEM", "key" to "", "operator" to "EQUALS", "value" to "")
     TriggerType.HEADPHONE -> mapOf("event" to "CONNECTED")
     TriggerType.CHARGER -> mapOf("event" to "CONNECTED")
@@ -369,10 +382,13 @@ internal fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.APPLICATION -> R.string.trigger_type_app
     TriggerType.DEVICE -> R.string.trigger_type_device
     TriggerType.CONNECTIVITY -> R.string.trigger_type_connectivity
+    TriggerType.WIFI_CONNECTED -> R.string.trigger_type_wifi_connected
+    TriggerType.MOBILE_DATA_CONNECTED -> R.string.trigger_type_mobile_data
     TriggerType.HOTSPOT -> R.string.action_hotspot
     TriggerType.NETWORK_MODE -> R.string.trigger_type_network_mode
     TriggerType.LOCATION -> R.string.trigger_type_location
     TriggerType.SMS -> R.string.trigger_type_sms
+    TriggerType.INCOMING_CALL -> R.string.trigger_type_incoming_call
     TriggerType.BLUETOOTH_DEVICE -> R.string.trigger_type_bluetooth
     TriggerType.RINGER_MODE -> R.string.trigger_type_ringer
     TriggerType.NOTIFICATION -> R.string.trigger_type_notification
@@ -425,10 +441,13 @@ internal fun TriggerType.descRes(): Int = when (this) {
     TriggerType.APPLICATION -> R.string.trigger_type_app_sub
     TriggerType.DEVICE -> R.string.trigger_type_device_sub
     TriggerType.CONNECTIVITY -> R.string.trigger_type_connectivity_sub
+    TriggerType.WIFI_CONNECTED -> R.string.trigger_type_wifi_connected_sub
+    TriggerType.MOBILE_DATA_CONNECTED -> R.string.trigger_type_mobile_data_sub
     TriggerType.HOTSPOT -> R.string.action_hotspot_sub
     TriggerType.NETWORK_MODE -> R.string.trigger_type_network_mode_sub
     TriggerType.LOCATION -> R.string.trigger_type_location_sub
-    TriggerType.SMS -> R.string.trigger_type_sms_sub
+    TriggerType.SMS -> R.string.trigger_type_sms
+    TriggerType.INCOMING_CALL -> R.string.trigger_type_incoming_call_sub
     TriggerType.BLUETOOTH_DEVICE -> R.string.trigger_type_bluetooth_sub
     TriggerType.RINGER_MODE -> R.string.trigger_type_ringer_sub
     TriggerType.NOTIFICATION -> R.string.trigger_type_notification_sub
@@ -473,6 +492,7 @@ internal fun TriggerType.descRes(): Int = when (this) {
     TriggerType.NFC_TAG_SCANNED -> R.string.trigger_type_nfc_sub
     TriggerType.ALARM_SET_CHANGED -> R.string.trigger_type_alarm_sub
     TriggerType.PLUGIN_EVENT -> R.string.action_plugin_sub
+    TriggerType.INCOMING_CALL -> R.string.trigger_type_incoming_call_sub
 }
 
 internal fun TriggerType.icon(): ImageVector = when (this) {
@@ -481,6 +501,8 @@ internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.APPLICATION -> Icons.Filled.Apps
     TriggerType.DEVICE -> Icons.Filled.Bolt
     TriggerType.CONNECTIVITY -> Icons.Filled.Wifi
+    TriggerType.WIFI_CONNECTED -> Icons.Filled.Wifi
+    TriggerType.MOBILE_DATA_CONNECTED -> Icons.Filled.SignalCellularAlt
     TriggerType.HOTSPOT -> Icons.Filled.Router
     TriggerType.NETWORK_MODE -> Icons.Filled.SignalCellularAlt
     TriggerType.LOCATION -> Icons.Filled.Place
@@ -497,6 +519,7 @@ internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.AIRPLANE_MODE -> Icons.Filled.AirplanemodeActive
     TriggerType.DARK_MODE -> Icons.Filled.DarkMode
     TriggerType.CALL_STATE -> Icons.Filled.PhoneAndroid
+    TriggerType.INCOMING_CALL -> Icons.Filled.PhoneInTalk
     TriggerType.APP_INSTALLED -> Icons.Filled.Download
     TriggerType.MEDIA_PLAYING -> Icons.Filled.MusicNote
     TriggerType.VOLUME_CHANGED -> Icons.AutoMirrored.Filled.VolumeUp
@@ -1015,8 +1038,11 @@ private fun triggerSummary(draft: TriggerDraft): String {
             "BLUETOOTH_DISCONNECTED" -> stringResource(R.string.device_bluetooth)
             else -> stringResource(R.string.device_screen_on)
         }
-        TriggerType.CONNECTIVITY -> {
-            val network = c["network"] ?: "WIFI"
+        TriggerType.WIFI_CONNECTED, TriggerType.MOBILE_DATA_CONNECTED, TriggerType.CONNECTIVITY -> {
+            val network = c["network"] ?: when (draft.type) {
+                TriggerType.MOBILE_DATA_CONNECTED -> "MOBILE"
+                else -> "WIFI"
+            }
             val networkLabel = when (network) {
                 "MOBILE" -> stringResource(R.string.network_mobile)
                 "HOTSPOT" -> stringResource(R.string.network_hotspot)
@@ -1072,10 +1098,24 @@ private fun triggerSummary(draft: TriggerDraft): String {
         TriggerType.SMS -> {
             val from = (c["from"] ?: "").trim()
             val contains = (c["contains"] ?: "").trim()
+            val mode = (c["matchMode"] ?: "CONTAINS").trim().uppercase()
             when {
                 from.isNotEmpty() -> "${stringResource(R.string.sms_from)}: $from"
+                contains.isNotEmpty() && mode == "EXACT" ->
+                    "${stringResource(R.string.sms_match_exact)}: $contains"
                 contains.isNotEmpty() -> "${stringResource(R.string.sms_contains)}: $contains"
                 else -> stringResource(R.string.trigger_type_sms)
+            }
+        }
+        TriggerType.INCOMING_CALL -> {
+            val from = (c["from"] ?: "").trim()
+            val category = (c["category"] ?: "ANY").trim().uppercase()
+            when {
+                from.isNotEmpty() -> "${stringResource(R.string.sms_from)}: $from"
+                category == "UNKNOWN" -> stringResource(R.string.call_category_unknown)
+                category == "PRIVATE" -> stringResource(R.string.call_category_private)
+                category == "CONTACT" -> stringResource(R.string.call_category_contact)
+                else -> stringResource(R.string.trigger_type_incoming_call)
             }
         }
         TriggerType.RINGER_MODE -> when (c["mode"] ?: "NORMAL") {
@@ -1084,7 +1124,11 @@ private fun triggerSummary(draft: TriggerDraft): String {
             else -> stringResource(R.string.ringer_normal)
         }
         TriggerType.BLUETOOTH_DEVICE -> {
-            val name = (c["deviceName"] ?: "").ifBlank { stringResource(R.string.no_bluetooth_device) }
+            val rawName = c["deviceName"] ?: ""
+            val name = when {
+                rawName.isBlank() || rawName == "__ANY__" || rawName == "*" || rawName.equals("ANY", ignoreCase = true) -> stringResource(R.string.any_bluetooth_device)
+                else -> rawName
+            }
             val state = if ((c["event"] ?: "CONNECTED") == "CONNECTED") {
                 stringResource(R.string.state_connected)
             } else {
@@ -1716,9 +1760,16 @@ fun TriggerEditorCard(
                             RuntimePermissionHint(
                                 context = context,
                                 permissions = listOf(android.Manifest.permission.BLUETOOTH_CONNECT),
-                                text = stringResource(R.string.bluetooth_permission_hint),
-                                buttonLabel = stringResource(R.string.enable),
+                                text = stringResource(R.string.permission_bluetooth_body),
+                                buttonLabel = stringResource(R.string.grant),
                                 onRequest = { onRequestPermission(arrayOf(android.Manifest.permission.BLUETOOTH_CONNECT)) }
+                            )
+                            BluetoothEnabledHint(
+                                context = context,
+                                hintText = stringResource(R.string.bluetooth_permission_hint),
+                                buttonLabel = stringResource(R.string.enable),
+                                refreshKey = refreshKey,
+                                onRequest = { onExplainSpecial(SpecialPermission.BLUETOOTH) }
                             )
                         }
                     }
@@ -1737,33 +1788,26 @@ fun TriggerEditorCard(
                         )
                     }
                 }
+                TriggerType.WIFI_CONNECTED,
+                TriggerType.MOBILE_DATA_CONNECTED -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = stringResource(R.string.state), style = MaterialTheme.typography.titleSmall)
+                        OptionChips(
+                            options = listOf("CONNECTED", "DISCONNECTED"),
+                            labels = mapOf(
+                                "CONNECTED" to stringResource(R.string.state_connected),
+                                "DISCONNECTED" to stringResource(R.string.state_disconnected)
+                            ),
+                            selected = draft.config["state"] ?: "CONNECTED",
+                            onSelect = { onConfigChange(draft.copy(config = draft.config + ("state" to it))) }
+                        )
+                    }
+                }
                 TriggerType.CONNECTIVITY -> {
                     val network = draft.config["network"] ?: "WIFI"
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(text = stringResource(R.string.network), style = MaterialTheme.typography.titleSmall)
-                        // Legacy tasks retain their existing configuration, but
-                        // new choices are limited to Wi-Fi/mobile. Hotspot and
-                        // network mode are first-class trigger types.
-                        OptionChips(
-                            options = listOf("WIFI", "MOBILE"),
-                            labels = mapOf(
-                                "WIFI" to stringResource(R.string.network_wifi),
-                                "MOBILE" to stringResource(R.string.network_mobile)
-                            ),
-                            selected = network,
-                            onSelect = {
-                                onConfigChange(
-                                    draft.copy(
-                                        config = draft.config + ("network" to it) +
-                                            ("state" to when (it) {
-                                                "HOTSPOT" -> "ON"
-                                                "NETWORK_MODE" -> "4G"
-                                                else -> "CONNECTED"
-                                            })
-                                    )
-                                )
-                            }
-                        )
+                        // Legacy combined trigger (saved tasks only): the network
+                        // choice stays as saved; only the state is editable.
                         Text(text = stringResource(R.string.state), style = MaterialTheme.typography.titleSmall)
                         when (network) {
                             "HOTSPOT" -> OptionChips(
@@ -1993,20 +2037,160 @@ fun TriggerEditorCard(
                             placeholder = { Text(text = stringResource(R.string.sms_from_hint)) },
                             singleLine = true
                         )
-                        OutlinedTextField(
-                            value = draft.config["contains"] ?: "",
-                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("contains" to it))) },
+                        // Body-match mode: contains / exact / any text.
+                        val storedMode = (draft.config["matchMode"] ?: "CONTAINS").trim().uppercase()
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
-                            label = { Text(text = stringResource(R.string.sms_contains)) },
-                            placeholder = { Text(text = stringResource(R.string.sms_contains_hint)) },
-                            singleLine = true
-                        )
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            SelectChip(
+                                selected = storedMode == "CONTAINS",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("matchMode" to "CONTAINS")))
+                                },
+                                label = stringResource(R.string.sms_match_contains),
+                                modifier = Modifier.weight(1f)
+                            )
+                            SelectChip(
+                                selected = storedMode == "EXACT",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("matchMode" to "EXACT")))
+                                },
+                                label = stringResource(R.string.sms_match_exact),
+                                modifier = Modifier.weight(1f)
+                            )
+                            SelectChip(
+                                selected = storedMode == "ANY",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("matchMode" to "ANY")))
+                                },
+                                label = stringResource(R.string.sms_match_any),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        if (storedMode != "ANY") {
+                            OutlinedTextField(
+                                value = draft.config["contains"] ?: "",
+                                onValueChange = { onConfigChange(draft.copy(config = draft.config + ("contains" to it))) },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = {
+                                    Text(
+                                        text = if (storedMode == "EXACT") {
+                                            stringResource(R.string.sms_match_exact)
+                                        } else {
+                                            stringResource(R.string.sms_contains)
+                                        }
+                                    )
+                                },
+                                placeholder = { Text(text = stringResource(R.string.sms_contains_hint)) },
+                                singleLine = true
+                            )
+                        }
                         RuntimePermissionHint(
                             context = context,
                             permissions = listOf(android.Manifest.permission.RECEIVE_SMS),
                             text = stringResource(R.string.sms_permission_hint),
                             buttonLabel = stringResource(R.string.grant),
                             onRequest = { onRequestPermission(arrayOf(android.Manifest.permission.RECEIVE_SMS)) }
+                        )
+                    }
+                }
+                TriggerType.INCOMING_CALL -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        val storedModeForNumber = (draft.config["matchMode"] ?: "ANY").trim().uppercase()
+                        if (storedModeForNumber != "ANY") {
+                            OutlinedTextField(
+                                value = draft.config["from"] ?: "",
+                                onValueChange = { onConfigChange(draft.copy(config = draft.config + ("from" to it))) },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text(text = stringResource(R.string.call_number_filter)) },
+                                placeholder = { Text(text = stringResource(R.string.call_from_hint)) },
+                                singleLine = true
+                            )
+                        }
+                        val storedMode = (draft.config["matchMode"] ?: "ANY").trim().uppercase()
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            SelectChip(
+                                selected = storedMode == "CONTAINS",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("matchMode" to "CONTAINS")))
+                                },
+                                label = stringResource(R.string.sms_match_contains),
+                                modifier = Modifier.weight(1f)
+                            )
+                            SelectChip(
+                                selected = storedMode == "EXACT",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("matchMode" to "EXACT")))
+                                },
+                                label = stringResource(R.string.sms_match_exact),
+                                modifier = Modifier.weight(1f)
+                            )
+                            SelectChip(
+                                selected = storedMode == "ANY",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("matchMode" to "ANY")))
+                                },
+                                label = stringResource(R.string.call_match_any),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        // The number filter applies to the caller number, not a
+                        // message body — keep the hint explicit so the modes are
+                        // not confused with the SMS trigger's text matching.
+                        Text(
+                            text = stringResource(R.string.call_mode_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        // Caller category: any / unknown / private / contact.
+                        val storedCategory = (draft.config["category"] ?: "ANY").trim().uppercase()
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            SelectChip(
+                                selected = storedCategory == "ANY",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("category" to "ANY")))
+                                },
+                                label = stringResource(R.string.call_category_any),
+                                modifier = Modifier.weight(1f)
+                            )
+                            SelectChip(
+                                selected = storedCategory == "UNKNOWN",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("category" to "UNKNOWN")))
+                                },
+                                label = stringResource(R.string.call_category_unknown),
+                                modifier = Modifier.weight(1f)
+                            )
+                            SelectChip(
+                                selected = storedCategory == "PRIVATE",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("category" to "PRIVATE")))
+                                },
+                                label = stringResource(R.string.call_category_private),
+                                modifier = Modifier.weight(1f)
+                            )
+                            SelectChip(
+                                selected = storedCategory == "CONTACT",
+                                onClick = {
+                                    onConfigChange(draft.copy(config = draft.config + ("category" to "CONTACT")))
+                                },
+                                label = stringResource(R.string.call_category_contact),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        RuntimePermissionHint(
+                            context = context,
+                            permissions = listOf(Manifest.permission.READ_PHONE_STATE),
+                            text = stringResource(R.string.call_screening_hint),
+                            buttonLabel = stringResource(R.string.grant),
+                            onRequest = { onRequestPermission(arrayOf(Manifest.permission.READ_PHONE_STATE)) }
                         )
                     }
                 }
@@ -2072,6 +2256,7 @@ fun TriggerEditorCard(
                 }
                 TriggerType.BLUETOOTH_DEVICE -> {
                     val deviceName = draft.config["deviceName"] ?: ""
+                    val isAny = deviceName.isBlank() || deviceName == "__ANY__" || deviceName == "*" || deviceName.equals("ANY", ignoreCase = true)
                     val event = draft.config["event"] ?: "CONNECTED"
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(
@@ -2090,8 +2275,8 @@ fun TriggerEditorCard(
                                     style = MaterialTheme.typography.titleSmall
                                 )
                                 Text(
-                                    text = if (deviceName.isBlank()) {
-                                        stringResource(R.string.no_bluetooth_device)
+                                    text = if (isAny) {
+                                        stringResource(R.string.any_bluetooth_device)
                                     } else {
                                         deviceName
                                     },
@@ -2100,14 +2285,29 @@ fun TriggerEditorCard(
                                 )
                             }
                         }
-                        OutlinedButton(
-                            onClick = onPickBluetooth,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(imageVector = Icons.Filled.Bluetooth, contentDescription = null)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(
+                                onClick = onPickBluetooth,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(imageVector = Icons.Filled.Bluetooth, contentDescription = null)
+                                Text(
+                                    text = stringResource(R.string.choose_bluetooth_device),
+                                    modifier = Modifier.padding(start = 6.dp)
+                                )
+                            }
+                            OutlinedButton(
+                                onClick = { onConfigChange(draft.copy(config = draft.config + mapOf("deviceName" to "__ANY__", "deviceAddress" to ""))) },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(text = stringResource(R.string.any_device))
+                            }
+                        }
+                        if (isAny) {
                             Text(
-                                text = stringResource(R.string.choose_bluetooth_device),
-                                modifier = Modifier.padding(start = 6.dp)
+                                text = stringResource(R.string.any_bluetooth_device_hint),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondary
                             )
                         }
                         Text(text = stringResource(R.string.state), style = MaterialTheme.typography.titleSmall)
@@ -2116,20 +2316,31 @@ fun TriggerEditorCard(
                             selected = event,
                             onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
                         )
-                        // Live badge for the BLUETOOTH_CONNECT runtime permission:
-                        // tapping requests it through the system dialog (after the
-                        // explain screen) instead of the Bluetooth settings screen,
-                        // which cannot grant a runtime permission.
-                        SpecialPermissionStatusRow(
-                            hintText = stringResource(R.string.bluetooth_permission_hint),
-                            special = SpecialPermission.BLUETOOTH,
+                        // Two independent, self-hiding rows — never a permanent prompt:
+                        // 1) BLUETOOTH_CONNECT runtime permission (system dialog).
+                        //    The Bluetooth settings screen cannot grant it, so it
+                        //    must go through onRequestPermission, not openSpecial.
+                        // 2) Adapter OFF advisory (settings screen via the special
+                        //    explain flow). Hidden when the permission is missing
+                        //    (row 1 owns that case) or when Bluetooth is already
+                        //    ON — so a healthy device shows no prompt at all.
+                        RuntimePermissionHint(
                             context = context,
-                            refreshKey = refreshKey,
+                            permissions = listOf(android.Manifest.permission.BLUETOOTH_CONNECT),
+                            text = stringResource(R.string.permission_bluetooth_body),
+                            buttonLabel = stringResource(R.string.grant),
                             onRequest = {
                                 onRequestPermission(
                                     arrayOf(android.Manifest.permission.BLUETOOTH_CONNECT)
                                 )
                             }
+                        )
+                        BluetoothEnabledHint(
+                            context = context,
+                            hintText = stringResource(R.string.bluetooth_permission_hint),
+                            buttonLabel = stringResource(R.string.enable),
+                            refreshKey = refreshKey,
+                            onRequest = { onExplainSpecial(SpecialPermission.BLUETOOTH) }
                         )
                     }
                 }
@@ -2412,11 +2623,10 @@ fun TriggerEditorCard(
                     val operator = draft.config["operator"] ?: "EQUALS"
                     val key = draft.config["key"] ?: ""
                     val value = draft.config["value"] ?: ""
-                    val scope = rememberCoroutineScope()
-                    var showKeyPicker by remember { mutableStateOf(false) }
-                    var liveKeys by remember { mutableStateOf<List<EvolutionXSettingsBridge.SettingEntry>>(emptyList()) }
-                    var keysLoading by remember { mutableStateOf(false) }
+                    var showEvolverPicker by remember { mutableStateOf(false) }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = stringResource(R.string.rom_setting_trigger_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                        Text(text = stringResource(R.string.rom_setting_trigger_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
                         // ── Namespace (system / secure / global) ────────────
                         Text(
                             text = stringResource(R.string.rom_setting_namespace),
@@ -2432,39 +2642,48 @@ fun TriggerEditorCard(
                             selected = namespace,
                             onSelect = { onConfigChange(draft.copy(config = draft.config + ("namespace" to it))) }
                         )
-                        // ── Key: free text + live picker from the ROM ──────
-                        OutlinedTextField(
-                            value = key,
-                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("key" to it))) },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(text = stringResource(R.string.rom_setting_key)) },
-                            placeholder = { Text(text = "evo_…") },
-                            singleLine = true
-                        )
+                        // ── Key: professional Evolver picker (chip-driven) ───
+                        // The key is chosen from the live device keys or the
+                        // curated catalog — never typed by hand — so the stored
+                        // key always matches a real ROM key.
+                        val selectedKeyCategory = if (key.isNotBlank()) {
+                            com.nexaflow.core.rom.EvolverCatalog.categorize(key)
+                        } else null
                         OutlinedButton(
-                            onClick = {
-                                keysLoading = true
-                                scope.launch {
-                                    liveKeys = withContext(Dispatchers.IO) {
-                                        EvolutionXSettingsBridge.listCustomKeys(context)
-                                    }
-                                    keysLoading = false
-                                    showKeyPicker = true
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = !keysLoading
+                            onClick = { showEvolverPicker = true },
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Icon(
-                                imageVector = if (keysLoading) Icons.Filled.Refresh else Icons.Filled.Bolt,
-                                contentDescription = null
-                            )
+                            Icon(imageVector = Icons.Filled.Bolt, contentDescription = null)
                             Text(
-                                text = stringResource(R.string.rom_setting_pick_from_rom),
+                                text = if (key.isNotBlank()) {
+                                    key
+                                } else {
+                                    stringResource(R.string.rom_setting_pick_key)
+                                },
                                 modifier = Modifier.padding(start = 6.dp)
                             )
                         }
-                        // ── Operator + target value ─────────────────────────
+                        if (selectedKeyCategory != null) {
+                            Text(
+                                stringResource(
+                                    R.string.rom_setting_key_category,
+                                    selectedKeyCategory.displayName,
+                                    selectedKeyCategory.description
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                        if (showEvolverPicker) {
+                            EvolverSettingPickerDialog(
+                                onPick = { entry ->
+                                    onConfigChange(draft.copy(config = draft.config + mapOf("namespace" to entry.namespace.name, "key" to entry.key, "value" to entry.value)))
+                                    showEvolverPicker = false
+                                },
+                                onDismiss = { showEvolverPicker = false }
+                            )
+                        }
+                        // ── Operator + target value (chips, no free text) ───
                         Text(
                             text = stringResource(R.string.rom_setting_operator),
                             style = MaterialTheme.typography.titleSmall
@@ -2478,99 +2697,28 @@ fun TriggerEditorCard(
                             selected = operator,
                             onSelect = { onConfigChange(draft.copy(config = draft.config + ("operator" to it))) }
                         )
-                        OutlinedTextField(
-                            value = value,
-                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("value" to it))) },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text(text = stringResource(R.string.rom_setting_value)) },
-                            placeholder = { Text(text = "1") },
-                            singleLine = true
+                        // Value chips follow the selected key's value type from
+                        // the catalog: booleans get on/off, enums get their fixed
+                        // option set, everything else gets the common values.
+                        val keyMeta = if (key.isNotBlank()) {
+                            com.nexaflow.core.rom.EvolverCatalog.metaFor(key)
+                        } else null
+                        val valueChoices: List<String> = when (keyMeta?.valueType) {
+                            com.nexaflow.core.rom.EvolverCatalog.ValueType.BOOLEAN -> listOf("1", "0")
+                            com.nexaflow.core.rom.EvolverCatalog.ValueType.ENUM -> keyMeta.options.ifEmpty { listOf("0", "1", "2") }
+                            com.nexaflow.core.rom.EvolverCatalog.ValueType.INTEGER -> listOf("0", "1", "2", "5", "10", "48")
+                            else -> listOf("1", "0", "true", "false", "on", "off")
+                        }
+                        OptionChips(
+                            options = valueChoices,
+                            selected = if (valueChoices.contains(value)) value else "",
+                            onSelect = { onConfigChange(draft.copy(config = draft.config + ("value" to it))) }
                         )
                         Text(
                             text = stringResource(R.string.rom_setting_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.secondary
                         )
-                    }
-                    if (showKeyPicker) {
-                        // Google 2026: selection tasks open as a full-height modal bottom sheet.
-                        ModalBottomSheet(
-                            onDismissRequest = { showKeyPicker = false },
-                            sheetState = rememberBottomSheetState(
-                                initialValue = SheetValue.Hidden,
-                                enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
-                            )
-                        ) {
-                        Text(
-                            text = stringResource(R.string.rom_setting_pick_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 8.dp)
-                        )
-                        if (liveKeys.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.rom_setting_pick_empty),
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(horizontal = 24.dp)
-                            )
-                        } else {
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f, fill = false)
-                                    .padding(horizontal = 24.dp)
-                            ) {
-                                items(liveKeys, key = { it.displayKey }) { entry ->
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .clickable {
-                                                        onConfigChange(
-                                                            draft.copy(
-                                                                config = draft.config +
-                                                                    ("namespace" to entry.namespace.name) +
-                                                                    ("key" to entry.key)
-                                                            )
-                                                        )
-                                                        showKeyPicker = false
-                                                    }
-                                                    .padding(vertical = 12.dp, horizontal = 4.dp),
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Filled.Bolt,
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.padding(end = 10.dp)
-                                                )
-                                                Column {
-                                                    Text(
-                                                        text = entry.displayKey,
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        fontWeight = FontWeight.Medium
-                                                    )
-                                                    Text(
-                                                        text = stringResource(
-                                                            R.string.rom_setting_current_value,
-                                                            entry.value
-                                                        ),
-                                                        style = MaterialTheme.typography.bodySmall,
-                                                        color = MaterialTheme.colorScheme.secondary
-                                                    )
-                                                }
-                                            }
-                                        }                                }
-                            }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 12.dp),
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            TextButton(onClick = { showKeyPicker = false }) {
-                                Text(text = stringResource(R.string.cancel))
-                            }
-                        }
-                        }
                     }
                 }
                 TriggerType.NOTIFICATION -> {
@@ -2904,10 +3052,18 @@ fun TriggerEditorCard(
                     Text(text = stringResource(R.string.trigger_temperature_threshold), style = MaterialTheme.typography.titleSmall)
                     OutlinedTextField(
                         value = draft.config["threshold"] ?: "40",
-                        onValueChange = { onConfigChange(draft.copy(config = draft.config + ("threshold" to it))) },
+                        onValueChange = { input ->
+                            // Temperature is a decimal number (°C): keep digits
+                            // and a single decimal separator only.
+                            val cleaned = input.filter { it.isDigit() || it == '.' }
+                                .let { if (it.count { c -> c == '.' } > 1) it.substringBeforeLast(".") + "." + it.substringAfterLast(".") else it }
+                            onConfigChange(draft.copy(config = draft.config + ("threshold" to cleaned)))
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        label = { Text(stringResource(R.string.trigger_temperature_threshold)) }
+                        label = { Text(stringResource(R.string.trigger_temperature_threshold)) },
+                        supportingText = { Text(stringResource(R.string.battery_temp_hint)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                     OptionChips(
                         options = listOf("ABOVE", "BELOW"),

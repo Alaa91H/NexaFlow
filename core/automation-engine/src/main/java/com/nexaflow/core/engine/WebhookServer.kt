@@ -9,8 +9,6 @@ import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
@@ -33,15 +31,15 @@ import androidx.core.content.ContextCompat
  * Lightweight loopback HTTP webhook (Tasker-webhook style). While monitoring
  * is active AND at least one enabled automation uses a WEBHOOK trigger, a
  * [ServerSocket] listens on 127.0.0.1:[port]; an HTTP request whose path (and
- * optional method/token) matches a trigger fires that task through the engine.
+ * method and mandatory token) matches a trigger fires that task through the engine.
  *
  * The server is deliberately loopback-only: no external device can reach it,
- * and the optional token guards against other local apps. The automation set
+ * and the mandatory token guards against other local apps. The automation set
  * is refreshed on ACTION_AUTOMATIONS_CHANGED, so disabling the last webhook
  * task stops the socket immediately.
  *
  * Trigger config keys: `path` (default "/"), `method` (POST/GET/ANY),
- * `token` (optional shared-secret header `X-NexaFlow-Token` or ?token= query).
+ * `token` (mandatory shared-secret header `X-NexaFlow-Token` or ?token= query).
  */
 @Singleton
 class WebhookServer @Inject constructor(
@@ -56,6 +54,19 @@ class WebhookServer @Inject constructor(
 
     @Volatile
     private var automations: List<Automation> = emptyList()
+
+    private val handlers = java.util.concurrent.Semaphore(8)
+    val rejectedAuth = java.util.concurrent.atomic.AtomicLong()
+    val rejectedOversize = java.util.concurrent.atomic.AtomicLong()
+    val rejectedTimeout = java.util.concurrent.atomic.AtomicLong()
+    val rejectedRateLimit = java.util.concurrent.atomic.AtomicLong()
+    private var windowStart = 0L
+    private var windowRequests = 0
+    @Synchronized private fun admit(): Boolean {
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (now - windowStart >= 60_000) { windowStart = now; windowRequests = 0 }
+        return ++windowRequests <= 120
+    }
 
     private val lastRunAt = ConcurrentHashMap<String, Long>()
 
@@ -123,7 +134,15 @@ class WebhookServer @Inject constructor(
         try {
             while (isActive()) {
                 val client = runCatching { socket.accept() }.getOrNull() ?: break
-                scope.launch(Dispatchers.IO) { handleClient(client) }
+                if (!admit() || !handlers.tryAcquire()) {
+                    rejectedRateLimit.incrementAndGet()
+                    client.close()
+                    continue
+                }
+                client.soTimeout = 3_000
+                scope.launch(Dispatchers.IO) {
+                    try { handleClient(client) } finally { handlers.release() }
+                }
             }
         } catch (_: Throwable) {
             // Socket closed on shutdown — expected.
@@ -137,42 +156,26 @@ class WebhookServer @Inject constructor(
 
     private suspend fun handleClient(client: Socket) {
         try {
-            val reader = BufferedReader(InputStreamReader(client.getInputStream()))
-            val requestLine = runCatching { reader.readLine() }.getOrNull() ?: return
-            val parts = requestLine.split(" ")
-            if (parts.size < 2) {
-                respond(client, 400, "Bad request")
-                return
-            }
-            val method = parts[0].uppercase()
-            var path = parts[1]
-            var token: String? = null
-            val queryIdx = path.indexOf('?')
-            if (queryIdx >= 0) {
-                val query = path.substring(queryIdx + 1)
-                path = path.substring(0, queryIdx)
-                token = query.split('&')
-                    .firstOrNull { it.startsWith("token=") }
-                    ?.substringAfter("=")
-            }
-            // Read headers (and honor a possible token header); the blank line
-            // after the header block ends the loop.
-            var headerToken: String? = null
-            var headerLine = runCatching { reader.readLine() }.getOrNull()
-            while (headerLine != null && headerLine.isNotBlank()) {
-                if (headerLine.startsWith("X-NexaFlow-Token:", ignoreCase = true)) {
-                    headerToken = headerLine.substringAfter(":").trim()
+            val deadline = System.nanoTime() + 3_000_000_000L
+            val input = object : java.io.FilterInputStream(client.getInputStream()) {
+                override fun read(): Int {
+                    val remaining = (deadline - System.nanoTime()) / 1_000_000
+                    if (remaining <= 0) throw java.net.SocketTimeoutException()
+                    client.soTimeout = remaining.coerceAtLeast(1).toInt()
+                    return super.read()
                 }
-                headerLine = runCatching { reader.readLine() }.getOrNull()
             }
-            val effectiveToken = headerToken ?: token
-            // Drain the body so the client sees a complete exchange.
-            runCatching { while (reader.ready()) reader.read() }
-
-            val fired = dispatch(method, path, effectiveToken)
+            val request = WebhookRequestGuard.readRequest(input)
+            val fired = dispatch(request.method, request.path, request.token)
             respond(client, if (fired) 200 else 404, if (fired) "OK" else "Not found")
-        } catch (_: Throwable) {
-            runCatching { respond(client, 500, "Internal error") }
+        } catch (_: WebhookRequestGuard.OversizedRequest) {
+            rejectedOversize.incrementAndGet()
+            respond(client, 413, "Request too large")
+        } catch (_: java.net.SocketTimeoutException) {
+            rejectedTimeout.incrementAndGet()
+            respond(client, 408, "Request timeout")
+        } catch (_: Exception) {
+            respond(client, 400, "Bad request")
         } finally {
             runCatching { client.close() }
         }
@@ -183,20 +186,25 @@ class WebhookServer @Inject constructor(
         if (snapshot.isEmpty()) return false
         val now = System.currentTimeMillis()
         var anyFired = false
+        var authenticated = false
         WebhookTriggerMatcher.webhookAutomations(snapshot).forEach { automation ->
             val matches = automation.triggers
                 .filter { it.type == TriggerType.WEBHOOK }
                 .any { WebhookTriggerMatcher.matches(it.config, method, path, token) }
             if (matches) {
-                val last = lastRunAt[automation.id] ?: 0L
-                if (now - last > automation.cooldownMillis) {
-                    lastRunAt[automation.id] = now
+                authenticated = true
+                var admitted = false
+                lastRunAt.compute(automation.id) { _, last ->
+                    if (last == null || now - last > automation.cooldownMillis) { admitted = true; now } else last
+                }
+                if (admitted) {
                     anyFired = true
                     // A webhook is a one-shot event with no opposite callback.
                     executionEngine.runAutomation(automation, completeExitOnFinish = true)
                 }
             }
         }
+        if (!authenticated) rejectedAuth.incrementAndGet()
         return anyFired
     }
 

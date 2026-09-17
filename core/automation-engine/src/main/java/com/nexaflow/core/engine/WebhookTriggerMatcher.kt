@@ -8,7 +8,7 @@ import com.nexaflow.domain.models.TriggerType
  * socket. [WebhookServer] feeds the parsed request line into [matches].
  *
  * Config keys: `path` (default "/"), `method` (POST/GET/ANY, default ANY),
- * `token` (optional shared secret — must equal the request token/header).
+ * `token` (mandatory shared secret — must equal the request token/header).
  */
 object WebhookTriggerMatcher {
 
@@ -16,9 +16,9 @@ object WebhookTriggerMatcher {
         val wantPath = config["path"]?.takeIf { it.isNotBlank() } ?: "/"
         val wantMethod = (config["method"] ?: "ANY").uppercase()
         val wantToken = config["token"].orEmpty()
-        val pathMatch = path == wantPath
+        val pathMatch = runCatching { WebhookRequestGuard.canonicalPath(path) == WebhookRequestGuard.canonicalPath(wantPath) }.getOrDefault(false)
         val methodMatch = wantMethod == "ANY" || wantMethod == method.uppercase()
-        val tokenMatch = wantToken.isEmpty() || wantToken == token
+        val tokenMatch = com.nexaflow.domain.security.ExternalAccessPolicy.authorized(wantToken, token)
         return pathMatch && methodMatch && tokenMatch
     }
 

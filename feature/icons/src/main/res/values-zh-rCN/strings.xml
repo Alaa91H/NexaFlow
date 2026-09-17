@@ -2,7 +2,6 @@
 <resources>
     <string name="choose_icon_title">选择图标</string>
     <string name="done">完成</string>
-    <string name="search_icons">搜索图标</string>
     <string name="category_all">全部</string>
     <string name="category_general">通用</string>
     <string name="category_connectivity">连接</string>
@@ -14,4 +13,6 @@
     <string name="category_time">时间</string>
     <string name="category_location">位置</string>
     <string name="icon_color">颜色</string>
+    <string name="category_apps">Apps</string>
+    <string name="category_security">Security</string>
 </resources>

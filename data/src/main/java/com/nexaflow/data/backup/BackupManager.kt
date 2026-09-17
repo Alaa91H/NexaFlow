@@ -60,7 +60,7 @@ class BackupManager(
     }
 
     suspend fun export(): BackupFile {
-        val automations = automationRepository.getAutomations().first()
+        val automations = automationRepository.getAutomations().first().map { it.portable() }
         return BackupFile(
             version = BACKUP_VERSION,
             exportedAt = System.currentTimeMillis(),
@@ -69,7 +69,11 @@ class BackupManager(
         )
     }
 
-    fun toJson(backup: BackupFile): String = json.encodeToString(backup)
+    fun toJson(backup: BackupFile): String = json.encodeToString(backup.copy(automations = backup.automations.map { it.portable() }))
+
+    private fun Automation.portable(): Automation = copy(deepLinkToken = null, triggers = triggers.map {
+        if (it.type == com.nexaflow.domain.models.TriggerType.WEBHOOK) it.copy(config = it.config - "token") else it
+    })
 
     suspend fun import(jsonText: String): ImportResult {
         val backup = when (val preflight = preflight(jsonText)) {
@@ -98,6 +102,11 @@ class BackupManager(
             automation.copy(
                 id = importedIdMap.getValue(automation.id),
                 enabled = false,
+                deepLinkToken = null,
+                triggers = automation.triggers.map { trigger ->
+                    if (trigger.type == com.nexaflow.domain.models.TriggerType.WEBHOOK)
+                        trigger.copy(config = trigger.config + ("token" to "")) else trigger
+                },
                 maintenanceProfile = automation.maintenanceProfile?.copy(
                     dependencyAutomationIds = remappedDependencies.orEmpty()
                 )
@@ -111,6 +120,7 @@ class BackupManager(
     }
 
     fun preflight(jsonText: String): BackupPreflight {
+        if (!BackupLimits.accepts(jsonText)) return BackupPreflight.InvalidFile
         val backup = try {
             json.decodeFromString<BackupFile>(jsonText)
         } catch (_: Exception) {
@@ -125,6 +135,7 @@ class BackupManager(
             .toSet()
             .size != backup.automations.size
         if (
+            backup.automations.size > 500 ||
             backup.version !in 1..BACKUP_VERSION ||
             backup.automations.any { !it.isWellFormed() } ||
             hasDuplicateAutomationIds
@@ -151,16 +162,24 @@ class BackupManager(
      * with blank identifiers/names that would break routing or the UI.
      */
     private fun Automation.isWellFormed(): Boolean =
-        id.isNotBlank() &&
-            name.isNotBlank() &&
+        id.isNotBlank() && id.length <= 256 &&
+            name.isNotBlank() && name.length <= 512 && description.length <= 16384 &&
+            icon.length <= 256 && category.length <= 256 &&
+            triggers.size <= 100 && actions.size <= 500 && exitActions.size <= 500 && constraints.size <= 100 &&
+            (maintenanceProfile?.dependencyAutomationIds.orEmpty().let { ids -> ids.size <= 100 && ids.all { it.length <= 256 } }) &&
             triggers.all { it.isWellFormed() } &&
             actions.all { it.isWellFormed() } &&
             exitActions.all { it.isWellFormed() } &&
-            constraints.all { it.type.name.isNotBlank() }
+            constraints.all { it.config.isBounded() }
 
-    private fun Trigger.isWellFormed(): Boolean = type.name.isNotBlank() && config.keys.all { it.isNotBlank() }
+    private fun Trigger.isWellFormed(): Boolean = type.name.isNotBlank() && config.isBounded()
 
-    private fun Action.isWellFormed(): Boolean = type.name.isNotBlank() && config.keys.all { it.isNotBlank() }
+    private fun Action.isWellFormed(): Boolean = type.name.isNotBlank() && config.isBounded() &&
+        (endBehavior?.config?.isBounded() != false)
+
+    private fun Map<String, String>.isBounded(): Boolean = size <= 100 && all { (key, value) ->
+        key.isNotBlank() && key.length <= 128 && key.none { it.isISOControl() } && value.length <= 16384
+    }
 
     companion object {
         const val BACKUP_VERSION = 1

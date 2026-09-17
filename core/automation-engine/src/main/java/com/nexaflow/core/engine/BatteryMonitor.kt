@@ -289,7 +289,7 @@ class BatteryMonitor @Inject constructor(
     }
 
     private fun handleBatteryChange(level: Int, status: Int, plugged: Int) {
-        if (level <= 0) return
+        if (level < 0 || level > 100) return
         // Record the state we evaluated so the safety-net loop can skip no-op
         // ticks (identical state = no broadcast missed = nothing to catch).
         lastHandledLevel = level

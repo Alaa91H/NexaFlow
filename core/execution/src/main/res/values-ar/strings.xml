@@ -8,9 +8,9 @@
     <string name="execution_task_completed">اكتملت المهمة بنجاح.</string>
     <string name="execution_task_failed">تعذر إكمال المهمة.</string>
     <string name="execution_task_skipped">تم تخطي المهمة.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_completed">لم تتحقق الشروط. تم تنفيذ إجراء الإنهاء.</string>
-    <string name="execution_conditions_not_satisfied_no_end_behavior">لم تتحقق الشروط. لم يتم تعيين إجراء إنهاء.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_failed">لم تتحقق الشروط. تعذر تنفيذ إجراء الإنهاء.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">المحفزات أو الشروط غير متطابقة. تم تنفيذ سلوك النهاية فقط (عند انتهاء المهمة).</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">محفزات المهمة أو شروطها غير متطابقة، لذلك لا يمكن تشغيلها الآن. لم يتم تكوين سلوك نهاية.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">محفزات المهمة أو شروطها غير متطابقة، لذلك لا يمكن تشغيلها الآن. تعذر إكمال سلوك النهاية.</string>
     <string name="execution_action_completed">اكتمل الإجراء بنجاح.</string>
     <string name="execution_action_failed">تعذر إكمال الإجراء.</string>
     <string name="execution_end_action_completed">اكتمل إجراء الإنهاء بنجاح.</string>

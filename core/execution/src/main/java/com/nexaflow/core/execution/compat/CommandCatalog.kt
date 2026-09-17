@@ -153,7 +153,10 @@ object CommandCatalog {
         ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_UPDATE_GOOGLE_PLAY_APPS to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_OPEN_PLAY_UPDATES to CommandSpec.UNIVERSAL,
-        ActionType.SYSTEM_OPEN_GALAXY_STORE to CommandSpec.UNIVERSAL,
+        ActionType.SYSTEM_OPEN_GALAXY_STORE to CommandSpec(
+            romFamilies = setOf(RomFamily.ONE_UI),
+            strategy = ExecutionStrategy.DIRECT
+        ),
 
         // INPUT / MEDIA / SYSTEM OPS
         ActionType.SYSTEM_INPUT_TEXT to elevated(),
@@ -172,6 +175,11 @@ object CommandCatalog {
         ActionType.SYSTEM_OPEN_CAMERA to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_DIAL_NUMBER to direct(permissions = setOf("android.permission.CALL_PHONE")),
         ActionType.SYSTEM_SEND_SMS to direct(permissions = setOf("android.permission.SEND_SMS")),
+        // Call control rides the screening role (or ANSWER_PHONE_CALLS) that
+        // the screening service already holds; the runtime handler reports an
+        // honest failure when neither is granted.
+        ActionType.CALL_BLOCK to CommandSpec(minSdk = 29, strategy = ExecutionStrategy.DIRECT),
+        ActionType.CALL_SILENCE to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_SEND_EMAIL to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_OPEN_URL to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_OPEN_MAPS to CommandSpec.UNIVERSAL,
@@ -179,6 +187,16 @@ object CommandCatalog {
         ActionType.SYSTEM_SET_ALARM to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_SET_TIMER to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_SET_SETTING to shell(setOf(RomCapability.WRITE_SETTINGS)),
+        // Evolution X — Evolver (typed, picker-driven) — all require Evolver bridge + elevated
+        ActionType.EVO_SET_SETTING to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
+        ActionType.EVO_QS_TILES to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
+        ActionType.EVO_STATUS_BAR to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
+        ActionType.EVO_LOCKSCREEN to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
+        ActionType.EVO_NAVIGATION to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
+        ActionType.EVO_THEME to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
+        ActionType.EVO_AMBIENT_AOD to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
+        ActionType.EVO_NOTIFICATIONS to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
+        ActionType.EVO_BATCH to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
         ActionType.SYSTEM_HTTP_REQUEST to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_WAIT to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_FLASHLIGHT to CommandSpec.UNIVERSAL,
@@ -250,6 +268,7 @@ object CommandCatalog {
         TriggerType.AIRPLANE_MODE to CommandSpec.UNIVERSAL,
         TriggerType.DARK_MODE to CommandSpec.UNIVERSAL,
         TriggerType.CALL_STATE to direct(permissions = setOf("android.permission.READ_PHONE_STATE")),
+        TriggerType.INCOMING_CALL to CommandSpec(minSdk = 29, strategy = ExecutionStrategy.DIRECT),
         TriggerType.MEDIA_PLAYING to CommandSpec.UNIVERSAL,
         TriggerType.VOLUME_CHANGED to CommandSpec.UNIVERSAL,
         TriggerType.POWER_SAVER to CommandSpec.UNIVERSAL,
@@ -259,6 +278,8 @@ object CommandCatalog {
         TriggerType.DEVICE_LOCKED to CommandSpec.UNIVERSAL,
         TriggerType.SCREEN_ROTATION_STATE to CommandSpec.UNIVERSAL,
         TriggerType.CONNECTIVITY to CommandSpec.UNIVERSAL,
+        TriggerType.WIFI_CONNECTED to CommandSpec.UNIVERSAL,
+        TriggerType.MOBILE_DATA_CONNECTED to CommandSpec.UNIVERSAL,
         TriggerType.HOTSPOT to CommandSpec.UNIVERSAL,
         TriggerType.NETWORK_MODE to CommandSpec.UNIVERSAL,
         TriggerType.WIFI_STATE to CommandSpec.UNIVERSAL,

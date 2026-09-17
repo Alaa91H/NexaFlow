@@ -6,10 +6,12 @@ import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "execution_history",
-    // Indexed: the history list is ORDER BY executedAt DESC and the retention
-    // pruner filters on the same column, so this keeps both fast as the table
-    // approaches the 1,000-record ceiling (added in v12).
-    indices = [Index(value = ["executedAt"])]
+    // Indexed: history list is ORDER BY executedAt DESC, retention pruner filters on it,
+    // and dashboard needs latest per automation (GROUP BY automationId, MAX(executedAt)).
+    indices = [
+        Index(value = ["executedAt"]),
+        Index(value = ["automationId", "executedAt"])
+    ]
 )
 data class ExecutionRecordEntity(
     @PrimaryKey val id: String,

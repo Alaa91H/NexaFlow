@@ -23,6 +23,12 @@ class HistoryRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun getLatestExecutions(): Flow<List<ExecutionRecord>> {
+        return executionDao.getLatestExecutions().map { list ->
+            list.map { it.toDomain() }
+        }
+    }
+
     override fun getExecutionPaging(): PagingSource<Int, ExecutionRecord> {
         return MappedPagingSource(executionDao.getExecutionsPaged()) { it.toDomain() }
     }

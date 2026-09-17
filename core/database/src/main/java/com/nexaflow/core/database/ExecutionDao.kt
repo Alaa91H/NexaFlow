@@ -13,6 +13,10 @@ interface ExecutionDao {
     @Query("SELECT * FROM execution_history ORDER BY executedAt DESC")
     fun getAllExecutions(): Flow<List<ExecutionRecordEntity>>
 
+    /** Latest execution per automation — used by dashboard for O(automationCount) instead of O(historySize). */
+    @Query("SELECT * FROM execution_history WHERE executedAt IN (SELECT MAX(executedAt) FROM execution_history GROUP BY automationId)")
+    fun getLatestExecutions(): Flow<List<ExecutionRecordEntity>>
+
     /**
      * Pageable view of the same table — the history screen streams pages of
      * [PAGE_SIZE] instead of materializing the whole table on every change.

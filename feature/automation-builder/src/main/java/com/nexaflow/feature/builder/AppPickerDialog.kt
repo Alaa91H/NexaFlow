@@ -11,16 +11,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -62,12 +69,17 @@ fun AppPickerDialog(
     onDismiss: () -> Unit,
     onPickMultiple: ((List<InstalledApp>) -> Unit)? = null,
     multiSelect: Boolean = false,
-    preSelectedPackages: List<String> = emptyList()
+    preSelectedPackages: List<String> = emptyList(),
+    /** Packages already used by other saved tasks; shown first as a recents section. */
+    recentPackages: List<String> = emptyList()
 ) {
     val context = LocalContext.current
     val allApps = remember { loadAllApps(context) }
     var query by remember { mutableStateOf("") }
     var showSystem by remember { mutableStateOf(true) }
+    // Explicit search scope: by app label or by package name, so users can
+    // target a package id (com.example.app) without label noise.
+    var searchByPackage by remember { mutableStateOf(false) }
     // Pre-check packages that are already selected so returning to the picker
     // keeps the checkbox marked and lets the user add even more apps.
     val selected = remember(allApps) {
@@ -79,9 +91,22 @@ fun AppPickerDialog(
     val filtered = allApps.filter { app ->
         (showSystem || !app.isSystemApp) &&
             (query.isBlank() ||
-                app.label.contains(query, ignoreCase = true) ||
-                app.packageName.contains(query, ignoreCase = true))
+                if (searchByPackage) {
+                    app.packageName.contains(query, ignoreCase = true)
+                } else {
+                    app.label.contains(query, ignoreCase = true) ||
+                        app.packageName.contains(query, ignoreCase = true)
+                })
     }
+    // Recents: other tasks' apps, in most-recently-saved order, filtered to
+    // installed ones and shown as the leading section while not searching.
+    val recentApps = if (query.isBlank()) {
+        recentPackages.mapNotNull { pkg -> allApps.firstOrNull { it.packageName == pkg } }
+            .distinctBy { it.packageName }
+            .take(RECENTS_LIMIT)    } else {
+        emptyList()
+    }
+    val listApps = filtered.filter { app -> recentApps.none { it.packageName == app.packageName } }
 
     fun confirm() {
         if (multiSelect && selected.isNotEmpty()) {
@@ -90,6 +115,9 @@ fun AppPickerDialog(
             onPickSingle(selected.first())
         }
     }
+
+    // Cancel always discards the current selection and closes the sheet
+    // without applying anything; OK applies exactly what is checked.
 
     // Google 2026: selection tasks open as a full-height modal bottom sheet.
     ModalBottomSheet(
@@ -114,9 +142,32 @@ fun AppPickerDialog(
                 value = query,
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(text = stringResource(R.string.search_apps)) },
+                placeholder = {
+                    Text(
+                        text = if (searchByPackage) {
+                            stringResource(R.string.search_by_package)
+                        } else {
+                            stringResource(R.string.search_apps)
+                        }
+                    )
+                },
                 singleLine = true
             )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = !searchByPackage,
+                    onClick = { searchByPackage = false },
+                    label = { Text(text = stringResource(R.string.search_by_name)) }
+                )
+                FilterChip(
+                    selected = searchByPackage,
+                    onClick = { searchByPackage = true },
+                    label = { Text(text = stringResource(R.string.search_by_package)) }
+                )
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -136,69 +187,128 @@ fun AppPickerDialog(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.secondary
             )
-            LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f, fill = false)) {
-                items(filtered, key = { it.packageName }) { app ->
-                    val isSelected = app in selected
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                if (multiSelect) {
-                                    if (isSelected) selected.remove(app) else selected.add(app)
-                                } else {
-                                    selected.clear()
-                                    selected.add(app)
-                                }
+        }
+        // The list is the only weighted child of the sheet's ColumnScope: it
+        // shrinks to the space left after the header, the selection preview,
+        // and the OK/Cancel bar are measured. Weighting it anywhere nested
+        // (or leaving it unweighted) lets a long app list consume the whole
+        // sheet and push the confirm bar off-screen — the bug where OK/Cancel
+        // were never visible on real devices.
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f, fill = true)
+                .padding(horizontal = 24.dp)
+        ) {
+                if (recentApps.isNotEmpty()) {
+                    item(key = "recents_header") {
+                        Text(
+                            text = stringResource(R.string.recently_used_apps),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
+                        )
+                    }
+                    items(recentApps, key = { "recent_${it.packageName}" }) { app ->
+                        AppPickerRow(
+                            app = app,
+                            context = context,
+                            multiSelect = multiSelect,
+                            isSelected = app in selected,
+                            showPackageName = searchByPackage || query.isNotBlank(),
+                            onToggle = {
+                                if (app in selected) selected.remove(app) else selected.add(app)
                             }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (multiSelect) {
-                            Checkbox(
-                                checked = isSelected,
-                                onCheckedChange = {
-                                    if (isSelected) selected.remove(app) else selected.add(app)
-                                }
-                            )
+                        )
+                    }
+                }
+                items(listApps, key = { it.packageName }) { app ->
+                    AppPickerRow(
+                        app = app,
+                        context = context,
+                        multiSelect = multiSelect,
+                        isSelected = app in selected,
+                        showPackageName = searchByPackage || query.isNotBlank(),
+                        onToggle = {
+                            if (multiSelect) {
+                                if (app in selected) selected.remove(app) else selected.add(app)
+                            } else {
+                                selected.clear()
+                                selected.add(app)
+                            }
                         }
-                        // Lazy icon render: only items actually composed pay
-                        // the bitmap cost, keyed by package so it is stable
-                        // across recompositions of the same row.
-                        val iconBitmap = remember(app.packageName) {
+                    )
+                }
+            }
+        // Live preview of exactly what OK will apply: each checked app shows
+        // its icon with a remove (×) affordance; tapping it deselects in place.
+        if (selected.isNotEmpty()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Info,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp)
+                )
+                Text(
+                    text = if (multiSelect) {
+                        "${stringResource(R.string.selected_count, selected.size)} — ${stringResource(R.string.ok)}"
+                    } else {
+                        stringResource(R.string.selected_count, selected.size)
+                    },
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 6.dp)
+                )
+            }
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 6.dp)
+            ) {
+                items(selected, key = { it.packageName }) { app ->
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(top = 2.dp)
+                    ) {
+                        val previewBitmap = remember(app.packageName) {
                             loadAppIcon(context, app.packageName)
                         }
-                        if (iconBitmap != null) {
+                        if (previewBitmap != null) {
                             androidx.compose.foundation.Image(
-                                bitmap = iconBitmap,
-                                contentDescription = null,
+                                bitmap = previewBitmap,
+                                contentDescription = app.label,
                                 modifier = Modifier
-                                    .size(40.dp)
+                                    .size(44.dp)
                                     .clip(MaterialTheme.shapes.small)
                             )
                         } else {
                             Icon(
                                 imageVector = Icons.Filled.Android,
-                                contentDescription = null,
-                                modifier = Modifier.size(40.dp),
+                                contentDescription = app.label,
+                                modifier = Modifier.size(44.dp),
                                 tint = MaterialTheme.colorScheme.surfaceContainerHighest
                             )
                         }
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(start = 12.dp)
+                        Text(
+                            text = app.label,
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(top = 2.dp, start = 2.dp, end = 2.dp)
+                        )
+                        IconButton(
+                            onClick = { selected.remove(app) },
+                            modifier = Modifier.size(26.dp)
                         ) {
-                            Text(
-                                text = app.label,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-                            )
-                        }
-                        if (!multiSelect && isSelected) {
                             Icon(
-                                imageVector = Icons.Filled.Check,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = stringResource(R.string.remove),
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(16.dp)
                             )
                         }
                     }
@@ -209,23 +319,33 @@ fun AppPickerDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 12.dp),
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            TextButton(onClick = onDismiss) {
+            // Cancel: discard the selection and go back — nothing is applied.
+            OutlinedButton(
+                onClick = onDismiss,
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(text = stringResource(R.string.cancel))
             }
-            TextButton(onClick = {
-                if (multiSelect) {
-                    confirm()
-                } else {
-                    if (selected.isNotEmpty()) onPickSingle(selected.first()) else onDismiss()
-                }
-            }) {
+            // OK: confirm the checked apps. Disabled while nothing is selected
+            // so the pair always reads as apply/discard, never as navigation.
+            Button(
+                onClick = {
+                    if (multiSelect) {
+                        confirm()
+                    } else {
+                        if (selected.isNotEmpty()) onPickSingle(selected.first()) else onDismiss()
+                    }
+                },
+                enabled = selected.isNotEmpty(),
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
                     text = if (multiSelect) {
                         "${stringResource(R.string.ok)} (${selected.size})"
                     } else {
-                        stringResource(R.string.select)
+                        stringResource(R.string.ok)
                     }
                 )
             }
@@ -247,6 +367,80 @@ private fun loadAppIcon(context: Context, packageName: String): ImageBitmap? = r
     drawable.draw(canvas)
     bitmap.asImageBitmap()
 }.getOrNull()
+
+/**
+ * One app row shared by the main list and the recents section, so selection,
+ * icon rendering and package subtitles stay identical everywhere.
+ */@Composable
+private fun AppPickerRow(
+    app: InstalledApp,
+    context: Context,
+    multiSelect: Boolean,
+    isSelected: Boolean,
+    showPackageName: Boolean,
+    onToggle: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggle)
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (multiSelect) {
+            Checkbox(
+                checked = isSelected,
+                onCheckedChange = { onToggle() }
+            )
+        }
+        // Lazy icon render: only items actually composed pay the bitmap cost,
+        // keyed by package so it is stable across recompositions of the same row.
+        val iconBitmap = remember(app.packageName) { loadAppIcon(context, app.packageName) }
+        if (iconBitmap != null) {
+            androidx.compose.foundation.Image(
+                bitmap = iconBitmap,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(MaterialTheme.shapes.small)
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Filled.Android,
+                contentDescription = null,
+                modifier = Modifier.size(40.dp),
+                tint = MaterialTheme.colorScheme.surfaceContainerHighest
+            )
+        }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 12.dp)
+        ) {
+            Text(
+                text = app.label,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+            )
+            if (showPackageName) {
+                Text(
+                    text = app.packageName,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                )
+            }
+        }
+        if (!multiSelect && isSelected) {
+            Icon(
+                imageVector = Icons.Filled.Check,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
 
 private fun loadAllApps(context: Context): List<InstalledApp> {
     return try {
@@ -272,3 +466,6 @@ private fun loadAllApps(context: Context): List<InstalledApp> {
         emptyList()
     }
 }
+
+/** Recents section caps at this many entries so the list stays readable. */
+private const val RECENTS_LIMIT = 6

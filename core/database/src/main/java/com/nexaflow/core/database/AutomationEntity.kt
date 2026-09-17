@@ -1,9 +1,13 @@
 package com.nexaflow.core.database
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "automations")
+@Entity(
+    tableName = "automations",
+    indices = [Index(value = ["enabled"])]
+)
 data class AutomationEntity(
     @PrimaryKey val id: String,
     val name: String,
@@ -14,6 +18,7 @@ data class AutomationEntity(
     val category: String,
     val priority: Int,
     val enabled: Boolean,
+    val showToastOnToggle: Boolean = true,
     val triggersJson: String, // Store as JSON string
     val actionsJson: String, // Store as JSON string
     val constraintsJson: String = "[]", // Gate checks that must all pass before running
@@ -23,6 +28,7 @@ data class AutomationEntity(
     val workflowVersion: Int = 1, // Persisted workflow schema revision
     /** Optional typed recurring-maintenance metadata, stored with its automation. */
     val maintenanceJson: String? = null,
+    val deepLinkToken: String? = null,
     val createdAt: Long,
     val updatedAt: Long
 )

@@ -235,4 +235,10 @@
     <string name="update_notification_channel_sub">NexaFlow का नया संस्करण उपलब्ध होने पर सूचनाएँ</string>
     <string name="phone_state_permission">फ़ोन स्थिति और नेटवर्क मोड</string>
     <string name="phone_state_permission_sub">सक्रिय SIM और इस डिवाइस द्वारा समर्थित नेटवर्क मोड पढ़ता है। मोड बदलने के लिए root, Shizuku या सिस्टम-ऐप एक्सेस भी आवश्यक है।</string>
+    <string name="blocked_calls_subtitle">कॉलर को अवरोधित करने वाले कार्यों का कॉल लॉग</string>
+    <string name="diagnostics_title">कॉन्फ़िगरेशन समस्याएँ</string>
+    <string name="diagnostics_intro">ऐसे कार्य जिनकी क्रियाएँ अमान्य कॉन्फ़िगरेशन मानों से चलने में विफल रहीं</string>
+    <string name="blocked_calls_title">अवरोधित कॉल</string>
+    <string name="blocked_calls_empty">अभी कोई अवरोधित कॉल नहीं</string>
+    <string name="blocked_calls_filter_all">सभी नियम</string>
 </resources>

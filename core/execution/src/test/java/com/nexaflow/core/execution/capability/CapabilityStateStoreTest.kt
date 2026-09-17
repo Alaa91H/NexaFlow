@@ -56,6 +56,48 @@ class CapabilityStateStoreTest {
         assertTrue(store.environmentReports.value.isNotEmpty())
     }
 
+    @Test
+    fun `burst of invalidations coalesces into a single trailing refresh`() = runTest {
+        // Regression guard for the binder flood: a listener storm (e.g. a
+        // flapping Shizuku binder) must not trigger one full capability scan
+        // per event — the scan is throttled to one refresh per window plus a
+        // single coalesced trailing refresh.
+        val backend = CountingBackend(MutableAvailabilityBackend(CapabilityAvailability.AVAILABLE))
+        val registry = CapabilityRegistry.of(
+            descriptors = listOf(
+                CapabilityDescriptor(
+                    id = CapabilityId.DEVICE_STATE_READ,
+                    displayName = "Device state",
+                    description = "Test descriptor",
+                    supportedBackends = listOf(CapabilityBackendId.ANDROID_API)
+                )
+            ),
+            backends = listOf(backend)
+        )
+        var now = 1_000L
+        val store = CapabilityStateStore(
+            registry = registry,
+            environmentInspector = inspector(),
+            scope = this,
+            nowMs = { now += 1_000L; now },
+            registerShizukuStateListener = { listener -> listener() },
+            minRefreshIntervalMs = 10_000L
+        )
+
+        advanceUntilIdle()
+        val afterInitial = backend.availabilityCalls
+        assertEquals(1, afterInitial)
+
+        repeat(5) { store.invalidate() }
+        advanceUntilIdle()
+
+        assertEquals(
+            "5 invalidations inside one window must yield exactly one trailing refresh",
+            afterInitial + 1,
+            backend.availabilityCalls
+        )
+    }
+
     private fun inspector() = CapabilityEnvironmentInspector(
         shizukuInstalled = { false },
         shizukuRunning = { false },
@@ -65,6 +107,17 @@ class CapabilityStateStoreTest {
         rootAvailable = { false },
         deviceOwner = { false }
     )
+
+    private class CountingBackend(
+        private val delegate: MutableAvailabilityBackend
+    ) : CapabilityBackend by delegate {
+        var availabilityCalls = 0
+
+        override suspend fun availability(request: CapabilityRequest): BackendAvailability {
+            availabilityCalls++
+            return delegate.availability(request)
+        }
+    }
 
     private class MutableAvailabilityBackend(
         var availability: CapabilityAvailability

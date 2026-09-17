@@ -95,6 +95,32 @@ class ExecutionEngine(
     companion object {
         /** Prefix used by UI callers to present a manual condition rejection accurately. */
         const val MANUAL_CONDITION_NOT_MET_PREFIX = "Conditions not satisfied; "
+
+        /** Prefix logged on user-forced runs so history shows the bypass. */
+        const val MANUAL_FORCE_PREFIX = "Force run; "
+    }
+
+    /** Why the manual admission gate refused a run; [ManualBlockKind.NONE] when it did not. */
+    data class ManualBlockReason(
+        val kind: ManualBlockKind,
+        /** Human-readable labels of the triggers that failed or were unverifiable. */
+        val failedTriggerLabels: List<String>,
+        /** Constraint type names that failed (plugin constraints carry their own message). */
+        val failedConstraintLabels: List<String>
+    )
+
+    /** Coarse classification for [ManualBlockReason]. */
+    enum class ManualBlockKind {
+        /** The gate did not block; the run is admissible. */
+        NONE,
+        /** At least one state trigger is confirmed false right now. */
+        TRIGGERS_NOT_MET,
+        /** Trigger state could not be verified (event-only or unreadable). */
+        TRIGGERS_UNKNOWN,
+        /** All triggers passed but a device constraint refused. */
+        CONSTRAINTS_NOT_MET,
+        /** A point-in-time task configured an end behavior without a time range. */
+        INVALID_TIME_RANGE
     }
 
     /**
@@ -122,17 +148,20 @@ class ExecutionEngine(
         // one — callers may also pass their own to seed or inspect it.
         runContext: WorkflowRunContext? = null,
         /**
-         * One-shot event sources (SMS, a single scheduled time, webhook, etc.)
-         * have no later opposite state that can close the lifecycle. When true,
-         * execute the configured end behavior immediately after the main action
-         * chain finishes. State and time-range sources keep the default false
-         * and close only when their actual condition ends.
-         */
+          * One-shot event sources (SMS, a single scheduled time, webhook, etc.)
+          * have no later opposite state that can close the lifecycle. When true,
+          * execute the configured end behavior immediately after the main action
+          * chain finishes. State and time-range sources keep the default false
+          * and close only when their actual condition ends.
+          */
         completeExitOnFinish: Boolean = false,
         /** Present only for a stateful trigger occurrence owned by ExitCoordinator. */
         lifecycleContext: AutomationLifecycleContext? = null
     ): ExecutionRecord {
-        val startedAt = epochMillis.now()
+        // Strict mode: acquire wake lock for forceful execution (bypasses Doze, ensures CPU stays on)
+        val wakeLock = acquireWakeLock("NexaFlow:runAutomation:${automation.id}")
+        try {
+            val startedAt = epochMillis.now()
         if (automation.requiresTimeRangeForEndBehavior) {
             return rejectIncompleteTimeRange(automation, startedAt)
         }
@@ -440,6 +469,22 @@ class ExecutionEngine(
         recordTimeline(automation, "RUN", record, startedAt)
         context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
         return record
+        } finally {
+            try { wakeLock?.let { if (it.isHeld) it.release() } } catch (_: Throwable) {}
+        }
+    }
+
+    private fun acquireWakeLock(tag: String): android.os.PowerManager.WakeLock? {
+        return try {
+            val pm = context.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
+            // Tag limit is 64 chars; UUID (36) + prefix (22) = 58, but truncate defensively
+            val safeTag = if (tag.length > 60) tag.take(60) else tag
+            pm?.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, safeTag)?.apply {
+                setReferenceCounted(false)
+                // 10 minutes max, strict — covers long chains with waits
+                acquire(10 * 60 * 1000L)
+            }
+        } catch (_: Throwable) { null }
     }
 
     /**
@@ -461,12 +506,13 @@ class ExecutionEngine(
             return rejectIncompleteTimeRange(automation, startedAt)
         }
         val triggerResult = TriggerStateEvaluator.evaluateAsync(context, automation.triggers)
+        val constraintState = if (automation.constraints.isEmpty()) null else
+            constraintStateProvider?.invoke()
+                ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
         val constraintResult = if (automation.constraints.isEmpty()) {
             ConditionResult.Satisfied
         } else {
-            val state = constraintStateProvider?.invoke()
-                ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
-            AutomationConstraintGate(capabilityExecutionService).evaluate(automation, state)
+            AutomationConstraintGate(capabilityExecutionService).evaluate(automation, constraintState)
         }
         return if (
             triggerResult == ConditionResult.Satisfied &&
@@ -480,6 +526,70 @@ class ExecutionEngine(
                 manualConditionRejected = true
             )
         }
+    }
+
+    /**
+     * Typed, UI-presentable explanation of why a manual run was rejected by
+     * the admission gate. Evaluates the same checks as [runWithConditionGate]
+     * and returns at most one primary reason plus every trigger-level detail:
+     * an explicit user question ("why can this not run?") deserves the full
+     * picture rather than the first failure alone.
+     */
+    suspend fun describeManualBlock(automation: Automation): ManualBlockReason {
+        if (automation.requiresTimeRangeForEndBehavior) {
+            return ManualBlockReason(
+                kind = ManualBlockKind.INVALID_TIME_RANGE,
+                failedTriggerLabels = emptyList(),
+                failedConstraintLabels = emptyList()
+            )
+        }
+        val triggerResult = TriggerStateEvaluator.evaluateAsync(context, automation.triggers)
+        val failedTriggers = if (triggerResult == ConditionResult.Satisfied) {
+            emptyList()
+        } else {
+            automation.triggers.filter { trigger ->
+                TriggerStateEvaluator.evaluateAsync(context, listOf(trigger)) != ConditionResult.Satisfied
+            }.map { TriggerStateEvaluator.triggerLabel(it) }
+        }
+        var failedConstraints: List<String> = emptyList()
+        var constraintSatisfied = true
+        if (automation.constraints.isNotEmpty()) {
+            val state = constraintStateProvider?.invoke()
+                ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
+            val gate = AutomationConstraintGate(capabilityExecutionService)
+            val result = gate.evaluate(automation, state)
+            constraintSatisfied = result == ConditionResult.Satisfied
+            if (!constraintSatisfied) {
+                failedConstraints = automation.constraints.map { it.type.name }
+            }
+        }
+        return if (failedTriggers.isEmpty() && constraintSatisfied) {
+            ManualBlockReason(kind = ManualBlockKind.NONE, failedTriggerLabels = emptyList(), failedConstraintLabels = emptyList())
+        } else {
+            ManualBlockReason(
+                kind = when {
+                    failedTriggers.isNotEmpty() && triggerResult == ConditionResult.Unknown -> ManualBlockKind.TRIGGERS_UNKNOWN
+                    failedTriggers.isNotEmpty() -> ManualBlockKind.TRIGGERS_NOT_MET
+                    else -> ManualBlockKind.CONSTRAINTS_NOT_MET
+                },
+                failedTriggerLabels = failedTriggers,
+                failedConstraintLabels = failedConstraints
+            )
+        }
+    }
+
+    /**
+     * Explicit user override of the manual admission gate: skips trigger and
+     * constraint checks entirely and runs the main chain. Only reachable from
+     * an explicit confirmation dialog. The decision is durably logged so the
+     * history shows the run was user-forced, not trigger-driven.
+     */
+    suspend fun forceRun(automation: Automation): ExecutionRecord {
+        val record = runAutomation(automation)
+        historyRepository.recordExecution(
+            record.copy(message = "$MANUAL_FORCE_PREFIX${record.message}".take(500))
+        )
+        return record
     }
 
     /**
@@ -522,7 +632,9 @@ class ExecutionEngine(
         /** Durable local snapshot supplied by the occurrence coordinator after restart. */
         runtimeSnapshotJson: String? = null
     ): ExecutionRecord {
-        val startedAt = epochMillis.now()
+        val wakeLock = acquireWakeLock("NexaFlow:runExit:${automation.id}")
+        try {
+            val startedAt = epochMillis.now()
         // Consume both ledgers as one critical section. Without this per-task
         // lock, two concurrent monitor callbacks can each consume a different
         // ledger and both execute the same end behavior.
@@ -661,6 +773,9 @@ class ExecutionEngine(
         )
         context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
         return record
+        } finally {
+            try { wakeLock?.let { if (it.isHeld) it.release() } } catch (_: Throwable) {}
+        }
     }
 
     /** Discards any stored snapshot (e.g. when the automation is deleted). */
@@ -741,6 +856,17 @@ class ExecutionEngine(
         return builtins + globals.associate { it.name to RuntimeValueCodec.display(it.value) }
     }
 
+    /**
+     * Diagnoses elevated-runtime availability for logging without re-probing too often.
+     * Returns a short human-readable hint used when a privileged action fails.
+     */
+    private fun elevatedHint(): String {
+        val ksuGranted = try { com.nexaflow.core.rom.SystemAppStatusDetector.isRootAvailable() } catch (_: Throwable) { false }
+        val shizuku = try { com.nexaflow.core.rom.PrivilegedRunner.isShizukuGranted() } catch (_: Throwable) { false }
+        val suBin = try { com.nexaflow.core.rom.SystemAppStatusDetector.isSuBinaryAvailable() } catch (_: Throwable) { false }
+        return "elevated: rootAvailable=$ksuGranted shizuku=$shizuku suBin=$suBin"
+    }
+
     private suspend fun executeAction(
         action: Action,
         controller: SystemController,
@@ -774,7 +900,7 @@ class ExecutionEngine(
         val handler = actionRegistry.handlerFor(action.type)
             ?: return SystemControlResult.fail("No handler registered for ${action.type}")
         return try {
-            handler.execute(
+            val result = handler.execute(
                 action,
                 ActionExecutionContext(
                     appContext = context,
@@ -787,6 +913,12 @@ class ExecutionEngine(
                     dataRuntime = dataRuntime
                 )
             )
+            if (!result.success && result.message.contains("No elevated runtime")) {
+                // Refresh once so a just-granted root is seen immediately; log full hint for diagnosis.
+                try { com.nexaflow.core.rom.SystemAppStatusDetector.refreshRootAvailability() } catch (_: Throwable) {}
+                android.util.Log.w("ExecutionEngine", "elevated action failed type=${action.type}")
+            }
+            result
         } catch (cancellation: CancellationException) {
             // Cancellation is control flow, not an action failure. Preserve the
             // caller's structured-concurrency contract.

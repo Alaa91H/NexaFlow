@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.graphics.vector.VectorGroup
 import androidx.compose.ui.graphics.vector.VectorNode
 import androidx.compose.ui.graphics.vector.VectorPath
+import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.ui.iconVector
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.repositories.AutomationRepository
@@ -37,6 +38,7 @@ import kotlinx.coroutines.withContext
 @InstallIn(SingletonComponent::class)
 interface TileEntryPoint {
     fun automationRepository(): AutomationRepository
+    fun executionEngine(): ExecutionEngine
 }
 
 /**
@@ -77,7 +79,21 @@ abstract class TaskTileService : TileService() {
                 boundId = TileBindingStore.bindingFor(this@TaskTileService, slot)
             )
             if (target != null) {
+                // Match the in-app toggle exactly: persist the new state, then
+                // disable → run the task's configured end behavior (restore
+                // state / exit actions); enable → run the main chain only when
+                // the triggers and conditions currently match.
                 repository.updateAutomationStatus(target.id, !target.enabled)
+                try {
+                    if (target.enabled) {
+                        entryPoint().executionEngine().runExit(target, forceConfiguredEnd = true)
+                    } else {
+                        entryPoint().executionEngine().runWithConditionGate(target)
+                    }
+                } catch (_: Exception) {
+                    // The tile must never crash on an execution hiccup; the DB
+                    // state is already persisted and the monitors reconcile.
+                }
             }
             withContext(Dispatchers.Main) {
                 refreshTile()

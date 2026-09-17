@@ -180,6 +180,13 @@ class MonitoringService : Service() {
         // The whole init sequence lives in one coroutine so the purge commits
         // before the first re-arm read — no race between the two.
         monitorStartupJob = scope.launch {
+            // Diagnostic: log elevated/runtime state at startup so a missing root grant is obvious in logcat.
+            try {
+                val rootAvail = com.nexaflow.core.rom.SystemAppStatusDetector.isRootAvailable()
+                val suBin = com.nexaflow.core.rom.SystemAppStatusDetector.isSuBinaryAvailable()
+                val shizuku = com.nexaflow.core.rom.PrivilegedRunner.isShizukuGranted()
+                Log.i(TAG, "startup elevated check: rootAvailable=$rootAvail suBin=$suBin shizukuGranted=$shizuku sdk=${android.os.Build.VERSION.SDK_INT}")
+            } catch (_: Throwable) {}
             activeTriggerStore.purgeExpired()
             // A process/service restart can occur after a range end or after a
             // failed exit. Reconcile durable lifecycle state before callbacks

@@ -235,4 +235,10 @@
     <string name="update_notification_channel_sub">Notificações quando houver uma versão mais recente do NexaFlow</string>
     <string name="phone_state_permission">Estado do telefone e modo de rede</string>
     <string name="phone_state_permission_sub">Lê os SIMs ativos e os modos de rede compatíveis com este dispositivo. Alterar um modo também requer acesso root, Shizuku ou de app do sistema.</string>
+    <string name="blocked_calls_subtitle">Registro de chamadas das tarefas que bloqueiam chamadas</string>
+    <string name="diagnostics_title">Problemas de configuração</string>
+    <string name="diagnostics_intro">Tarefas cujas ações falharam em tempo de execução por valores de configuração inválidos</string>
+    <string name="blocked_calls_title">Chamadas bloqueadas</string>
+    <string name="blocked_calls_empty">Ainda não há chamadas bloqueadas</string>
+    <string name="blocked_calls_filter_all">Todas as regras</string>
 </resources>

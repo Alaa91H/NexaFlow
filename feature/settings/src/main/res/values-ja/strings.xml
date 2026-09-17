@@ -235,4 +235,10 @@
     <string name="update_notification_channel_sub">新しい NexaFlow バージョンが利用可能になった際の通知</string>
     <string name="phone_state_permission">電話の状態とネットワークモード</string>
     <string name="phone_state_permission_sub">有効な SIM とこの端末で実際に対応するネットワークモードを読み取ります。モードの変更には root、Shizuku、またはシステムアプリのアクセスも必要です。</string>
+    <string name="blocked_calls_subtitle">発信者をブロックするタスクの通話ログ</string>
+    <string name="diagnostics_title">設定の問題</string>
+    <string name="diagnostics_intro">無効な設定値により実行時にアクションが失敗したタスク</string>
+    <string name="blocked_calls_title">ブロックした着信</string>
+    <string name="blocked_calls_empty">ブロックした着信はまだありません</string>
+    <string name="blocked_calls_filter_all">すべてのルール</string>
 </resources>

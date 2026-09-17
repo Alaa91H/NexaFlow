@@ -65,6 +65,7 @@ androidx-profileinstaller-profileinstaller = { module = "androidx.profileinstall
 androidx-room-room-compiler = { module = "androidx.room:room-compiler", version.ref = "v2_8_4" }
 androidx-room-room-ktx = { module = "androidx.room:room-ktx", version.ref = "v2_8_4" }
 androidx-paging-paging-common = { module = "androidx.paging:paging-common", version.ref = "v3_5_1" }
+androidx-paging-paging-testing = { module = "androidx.paging:paging-testing", version.ref = "v3_5_1" }
 androidx-paging-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "v3_5_1" }
 androidx-paging-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "v3_5_1" }
 androidx-room-room-paging = { module = "androidx.room:room-paging", version.ref = "v2_8_4" }

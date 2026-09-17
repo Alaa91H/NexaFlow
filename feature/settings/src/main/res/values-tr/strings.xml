@@ -235,4 +235,10 @@
     <string name="update_notification_channel_sub">Daha yeni bir NexaFlow sürümü olduğunda bildirimler</string>
     <string name="phone_state_permission">Telefon durumu ve ağ modu</string>
     <string name="phone_state_permission_sub">Etkin SIM kartları ve bu cihazın gerçekten desteklediği ağ modlarını okur. Bir modu değiştirmek için root, Shizuku veya sistem uygulaması erişimi de gerekir.</string>
+    <string name="blocked_calls_subtitle">Arayanları engelleyen görevlerin çağrı günlüğü</string>
+    <string name="diagnostics_title">Yapılandırma sorunları</string>
+    <string name="diagnostics_intro">Eylemleri geçersiz yapılandırma değerleri nedeniyle çalışma zamanında başarısız olan görevler</string>
+    <string name="blocked_calls_title">Engellenen aramalar</string>
+    <string name="blocked_calls_empty">Henüz engellenen arama yok</string>
+    <string name="blocked_calls_filter_all">Tüm kurallar</string>
 </resources>

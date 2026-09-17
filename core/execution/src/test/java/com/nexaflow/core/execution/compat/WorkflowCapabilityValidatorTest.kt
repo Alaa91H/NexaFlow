@@ -29,11 +29,26 @@ class WorkflowCapabilityValidatorTest {
     }
 
     @Test
-    fun `blocks workflow when documented public capability is absent`() {
-        val result = WorkflowCapabilityValidator.validate(automation(ActionType.SYSTEM_OPEN_URL), CapabilitySnapshot())
+    fun `blocks workflow when documented public capability is observed absent`() {
+        val result = WorkflowCapabilityValidator.validate(
+            automation(ActionType.SYSTEM_OPEN_URL),
+            CapabilitySnapshot(observedAtMs = 1L)
+        )
 
         assertFalse(result.admissible)
         assertTrue(CapabilityId.INTENT_LAUNCH in result.missingCapabilities)
+    }
+
+    @Test
+    fun `admits workflow when first capability scan has not completed yet`() {
+        val snapshot = CapabilitySnapshot()
+
+        assertTrue(snapshot.neverObserved)
+
+        val result = WorkflowCapabilityValidator.validate(automation(ActionType.SYSTEM_OPEN_URL), snapshot)
+
+        assertTrue(result.admissible)
+        assertTrue(result.missingCapabilities.isEmpty())
     }
 
     @Test

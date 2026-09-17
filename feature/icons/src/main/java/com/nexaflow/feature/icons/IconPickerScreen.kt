@@ -15,9 +15,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -69,7 +71,6 @@ val IconPickerPalette: List<Color> = listOf(
 @Composable
 fun IconPickerScreen(navController: NavController) {
     var selectedIndex by remember { mutableStateOf(0) }
-    var query by remember { mutableStateOf("") }
     var category by remember { mutableStateOf<String?>(null) }
 
     // Preseed the palette with the task's current color when the builder set
@@ -86,13 +87,20 @@ fun IconPickerScreen(navController: NavController) {
 
     // Resolve the persisted selection back to the canonical list index so the
     // "Done" button keeps returning the same name the builder persists.
-    val filtered = remember(query, category) {
-        NexaFlowIcons.search(query, category)
+    val filtered = remember(category) {
+        NexaFlowIcons.search("", category)
     }
     val selected = remember(filtered, selectedIndex) {
         // Keep the selection stable when filtering changes: fall back to the
         // first visible icon instead of pointing at a hidden one.
         filtered.getOrNull(selectedIndex) ?: filtered.firstOrNull()
+    }
+
+    // Only show categories that actually contain icons (hides empty ones).
+    val availableCategories = remember {
+        NexaFlowIcons.categories
+            .distinct()
+            .filter { cat -> NexaFlowIcons.entries.any { it.category == cat } }
     }
 
     Scaffold(
@@ -131,20 +139,13 @@ fun IconPickerScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // ── Fixed header (never scrolls away): search, color palette, categories ──
+            // ── Fixed header (never scrolls away): color palette, categories ──
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(text = stringResource(R.string.search_icons)) },
-                    singleLine = true
-                )
                 Text(
                     text = stringResource(R.string.icon_color),
                     style = MaterialTheme.typography.labelMedium,
@@ -187,17 +188,19 @@ fun IconPickerScreen(navController: NavController) {
                         }
                     }
                 }
-                FlowRow(
+                androidx.compose.foundation.lazy.LazyRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    SelectChip(
-                        selected = category == null,
-                        onClick = { category = null },
-                        label = stringResource(R.string.category_all)
-                    )
-                    NexaFlowIcons.categories.forEach { cat ->
+                    item {
+                        SelectChip(
+                            selected = category == null,
+                            onClick = { category = null },
+                            label = stringResource(R.string.category_all)
+                        )
+                    }
+                    items(availableCategories.size) { index ->
+                        val cat = availableCategories[index]
                         val isSelected = category == cat
                         SelectChip(
                             selected = isSelected,
@@ -209,7 +212,7 @@ fun IconPickerScreen(navController: NavController) {
             }
 
             LazyVerticalGrid(
-                columns = GridCells.Adaptive(56.dp),
+                columns = GridCells.Adaptive(72.dp),
                 modifier = Modifier
                     .fillMaxSize()
                     .weight(1f),
@@ -219,30 +222,43 @@ fun IconPickerScreen(navController: NavController) {
             ) {
                 items(filtered, key = { it.name }) { entry ->
                     val isSelected = entry.name == selected?.name
-                    // Google-style tonal circle: fully filled when selected,
-                    // soft tinted when idle — the chosen color personalizes it.
+                    // Perfect circle: outer cell centers a fixed 56dp white circle.
+                    // Icon tint always follows the chosen palette color.
                     Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (isSelected) selectedColor
-                                else selectedColor.copy(alpha = 0.12f)
-                            )
-                            .border(
-                                width = if (isSelected) 2.dp else 0.dp,
-                                color = selectedColor,
-                                shape = CircleShape
-                            )
-                            .clickable { selectedIndex = filtered.indexOfFirst { it.name == entry.name } },
+                        modifier = Modifier.fillMaxWidth(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = entry.icon,
-                            contentDescription = entry.name,
-                            tint = if (isSelected) Color.White else selectedColor,
-                            modifier = Modifier.size(26.dp)
-                        )
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .background(Color.White, CircleShape)
+                                .clickable { selectedIndex = filtered.indexOfFirst { it.name == entry.name } },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = entry.icon,
+                                contentDescription = entry.name,
+                                tint = selectedColor,
+                                modifier = Modifier.size(26.dp)
+                            )
+                            if (isSelected) {
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .size(18.dp)
+                                        .clip(CircleShape)
+                                        .background(selectedColor, CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Check,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -257,6 +273,8 @@ private fun categoryLabelRes(category: String): Int = when (category) {
     NexaFlowIcons.CATEGORY_MEDIA -> R.string.category_media
     NexaFlowIcons.CATEGORY_SYSTEM -> R.string.category_system
     NexaFlowIcons.CATEGORY_BATTERY -> R.string.category_battery
+    NexaFlowIcons.CATEGORY_APPS -> R.string.category_apps
+    NexaFlowIcons.CATEGORY_SECURITY -> R.string.category_security
     NexaFlowIcons.CATEGORY_TIME -> R.string.category_time
     NexaFlowIcons.CATEGORY_LOCATION -> R.string.category_location
     else -> R.string.category_general

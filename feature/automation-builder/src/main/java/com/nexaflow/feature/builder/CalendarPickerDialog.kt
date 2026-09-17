@@ -22,10 +22,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -49,10 +50,17 @@ data class CalendarOption(
 @Composable
 fun CalendarPickerDialog(
     onPick: (CalendarOption) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    /** Currently configured calendar name, pre-marked when the picker reopens. */
+    preSelectedName: String? = null
 ) {
     val context = LocalContext.current
     val calendars = remember { loadCalendars(context) }
+    // Selection model matches the app picker: tap marks, OK confirms,
+    // Cancel discards. The "any calendar" option counts as a selection.
+    var selectedName by remember {
+        androidx.compose.runtime.mutableStateOf(preSelectedName ?: "")
+    }
 
     // Google 2026: selection tasks open as a full-height modal bottom sheet.
     ModalBottomSheet(
@@ -78,16 +86,15 @@ fun CalendarPickerDialog(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f, fill = false)
+                    .weight(1f, fill = true)
                     .padding(horizontal = 24.dp)
             ) {
                 item(key = "any") {
+                    val anySelected = selectedName.isEmpty()
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
-                                onPick(CalendarOption(name = "", color = 0))
-                            }
+                            .clickable { selectedName = "" }
                             .padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -102,20 +109,23 @@ fun CalendarPickerDialog(
                             text = stringResource(R.string.any_calendar),
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = if (anySelected) FontWeight.SemiBold else FontWeight.Medium
                         )
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                        if (anySelected) {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
                 items(calendars, key = { it.name }) { calendar ->
+                    val isSelected = calendar.name == selectedName
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onPick(calendar) }
+                            .clickable { selectedName = calendar.name }
                             .padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -130,26 +140,45 @@ fun CalendarPickerDialog(
                             Text(
                                 text = calendar.name,
                                 style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
                             )
                         }
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
             }
         }
+        // Same confirm/discard contract as the app picker: OK applies the
+        // marked calendar ("any calendar" pre-marked by default), Cancel discards.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 12.dp),
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            TextButton(onClick = onDismiss) {
+            androidx.compose.material3.OutlinedButton(
+                onClick = onDismiss,
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(text = stringResource(R.string.cancel))
+            }
+            androidx.compose.material3.Button(
+                onClick = {
+                    if (selectedName.isEmpty()) {
+                        onPick(CalendarOption(name = "", color = 0))
+                    } else {
+                        calendars.firstOrNull { it.name == selectedName }?.let(onPick)
+                    }
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(text = stringResource(R.string.calendar_pick_ok))
             }
         }
     }

@@ -233,4 +233,10 @@
     <string name="update_notification_channel_sub">Benachrichtigungen bei einer neueren NexaFlow-Version</string>
     <string name="phone_state_permission">Telefonstatus und Netzwerkmodus</string>
     <string name="phone_state_permission_sub">Liest aktive SIM-Karten und die von diesem Gerät unterstützten Netzwerkmodi. Das Ändern eines Modus erfordert zusätzlich Root, Shizuku oder System-App-Zugriff.</string>
+    <string name="blocked_calls_subtitle">Anrufliste der Aufgaben, die Anrufer blockieren</string>
+    <string name="diagnostics_title">Konfigurationsprobleme</string>
+    <string name="diagnostics_intro">Aufgaben, deren Aktionen wegen ungültiger Konfigurationswerte fehlschlugen</string>
+    <string name="blocked_calls_title">Blockierte Anrufe</string>
+    <string name="blocked_calls_empty">Noch keine blockierten Anrufe</string>
+    <string name="blocked_calls_filter_all">Alle Regeln</string>
 </resources>

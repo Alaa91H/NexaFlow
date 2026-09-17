@@ -1,5 +1,5 @@
 {
-  "auditDate": "2026-09-04",
+  "auditDate": "2026-09-05",
   "repository": "Alaa91H/NexaFlow",
   "method": "Source, tests, Gradle modules, CI workflow, resource gates, and existing audit documents were inspected before implementation.",
   "statusDefinitions": {
@@ -23,8 +23,8 @@
       "priority": "P0",
       "area": "durable-execution",
       "status": "YELLOW",
-      "finding": "A canonical WorkflowExecutionState and NodeExecutionState compatibility adapter with strict transition tests was added in v3.58.3; repository-wide durable persistence and crash recovery are still not proven.",
-      "nextAction": "Persist canonical execution identity and node attempts, then add crash and recovery integration tests."
+      "finding": "A canonical WorkflowExecutionState and NodeExecutionState compatibility adapter with strict transition tests was added in v3.58.3; ActiveExecutionStore now persists execution identity, workflow revision, bounded node attempts, hashes, idempotency keys, and verification state, while repository-wide integration and cross-store crash recovery remain unproven.",
+      "nextAction": "Integrate all workflow runners with the persisted node-attempt contract, then add cross-store crash and recovery integration tests."
     },
     {
       "id": "P0-UNKNOWN-RECOVERY",
@@ -115,7 +115,9 @@
   "evidence": [
     "docs/audit/FORENSIC_INVENTORY_2026.txt",
     "core/execution/src/main/java/com/nexaflow/core/execution/workflow/WorkflowExecutionState.kt",
-    "core/execution/src/test/java/com/nexaflow/core/execution/workflow/WorkflowExecutionStateTest.kt"
+    "core/execution/src/test/java/com/nexaflow/core/execution/workflow/WorkflowExecutionStateTest.kt",
+    "core/datastore/src/main/java/com/nexaflow/core/datastore/DurableExecutionModels.kt",
+    "core/datastore/src/test/java/com/nexaflow/core/datastore/ActiveExecutionStoreCheckpointTest.kt"
   ],
   "nextTranche": [
     "canonical-execution-state-adapter",

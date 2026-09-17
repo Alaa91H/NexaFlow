@@ -3,6 +3,8 @@ package com.nexaflow.domain.constraints
 import com.nexaflow.domain.models.Constraint
 import com.nexaflow.domain.models.ConstraintSnapshot
 import com.nexaflow.domain.models.ConstraintType
+import java.time.LocalDate
+import java.time.LocalTime
 
 /**
  * Pure gate evaluation for [Constraint]s against a [ConstraintSnapshot].
@@ -12,7 +14,12 @@ import com.nexaflow.domain.models.ConstraintType
 object ConstraintEvaluator {
 
     /** True when a single constraint is satisfied by the given device state. */
-    fun isSatisfied(constraint: Constraint, state: ConstraintSnapshot): Boolean = when (constraint.type) {
+    fun isSatisfied(
+        constraint: Constraint,
+        state: ConstraintSnapshot,
+        nowTime: java.time.LocalTime = java.time.LocalTime.now(),
+        today: java.time.LocalDate = java.time.LocalDate.now()
+    ): Boolean = when (constraint.type) {
         ConstraintType.WIFI -> state.wifiConnected
         ConstraintType.SCREEN_LOCKED -> state.screenLocked
         ConstraintType.HEADSET -> state.headsetConnected
@@ -52,9 +59,39 @@ object ConstraintEvaluator {
         // adapter or availability information, so it safely rejects rather than
         // coercing an unknown external state to true.
         ConstraintType.PLUGIN -> false
+        ConstraintType.SCHEDULE -> scheduleSatisfied(constraint.config, nowTime, today)
     }
 
     /** True when every constraint passes (empty constraint list → true). */
     fun allSatisfied(constraints: List<Constraint>, state: ConstraintSnapshot): Boolean =
         constraints.all { isSatisfied(it, state) }
+
+    /**
+     * SCHEDULE gate: the current day/time must fall inside the configured
+     * window. `days` is a comma-separated list of ISO day numbers (1=Mon..
+     * 7=Sun); empty or absent means every day. `start`/`end` are HH:mm; a
+     * window whose end is not after its start spans midnight (e.g. 22:00 to
+     * 06:00 is active overnight). Unparseable bounds fail closed so a corrupt
+     * config can never widen the gate.
+     */
+    fun scheduleSatisfied(
+        config: Map<String, String>,
+        nowTime: LocalTime = LocalTime.now(),
+        today: LocalDate = LocalDate.now()
+    ): Boolean {
+        val days = config["days"].orEmpty()
+            .split(',')
+            .mapNotNull { it.trim().toIntOrNull() }
+            .filter { it in 1..7 }
+            .toSet()
+        if (days.isNotEmpty() && today.dayOfWeek.value !in days) return false
+        val start = runCatching { LocalTime.parse(config["start"]) }.getOrNull() ?: return false
+        val end = runCatching { LocalTime.parse(config["end"]) }.getOrNull() ?: return false
+        return if (end.isAfter(start)) {
+            !nowTime.isBefore(start) && nowTime.isBefore(end)
+        } else {
+            // Overnight window (e.g. 22:00 -> 06:00).
+            !nowTime.isBefore(start) || nowTime.isBefore(end)
+        }
+    }
 }

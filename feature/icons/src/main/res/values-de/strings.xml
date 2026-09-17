@@ -2,7 +2,6 @@
 <resources>
     <string name="choose_icon_title">Symbol wählen</string>
     <string name="done">Fertig</string>
-    <string name="search_icons">Symbole suchen</string>
     <string name="category_all">Alle</string>
     <string name="category_general">Allgemein</string>
     <string name="category_connectivity">Konnektivität</string>
@@ -14,4 +13,6 @@
     <string name="category_time">Zeit</string>
     <string name="category_location">Standort</string>
     <string name="icon_color">Farbe</string>
+    <string name="category_apps">Apps</string>
+    <string name="category_security">Security</string>
 </resources>

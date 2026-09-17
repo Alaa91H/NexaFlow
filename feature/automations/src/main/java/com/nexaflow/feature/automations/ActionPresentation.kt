@@ -11,6 +11,8 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.PhoneMissed
+import androidx.compose.material.icons.filled.PhonePaused
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.PictureInPicture
@@ -144,6 +146,8 @@ fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (
     ActionType.SYSTEM_OPEN_NOTIFICATIONS -> Triple(R.string.action_open_notifications, R.string.action_open_notifications_sub, Icons.Filled.Notifications)
     ActionType.SYSTEM_OPEN_QUICK_SETTINGS -> Triple(R.string.action_open_quick_settings, R.string.action_open_quick_settings_sub, Icons.Filled.Settings)
     ActionType.SYSTEM_SEND_SMS -> Triple(R.string.action_send_sms, R.string.action_send_sms_sub, Icons.AutoMirrored.Filled.Message)
+    ActionType.CALL_BLOCK -> Triple(R.string.action_call_block, R.string.action_call_block_sub, Icons.Filled.PhoneMissed)
+    ActionType.CALL_SILENCE -> Triple(R.string.action_call_silence, R.string.action_call_silence_sub, Icons.Filled.PhonePaused)
     ActionType.SYSTEM_SEND_REMINDER -> Triple(R.string.action_reminder, R.string.action_reminder_sub, Icons.Filled.Schedule)
     ActionType.SYSTEM_OPEN_SETTINGS -> Triple(R.string.action_open_settings, R.string.action_open_settings_sub, Icons.Filled.Settings)
     ActionType.SYSTEM_WAIT -> Triple(R.string.action_wait, R.string.action_wait_sub, Icons.Filled.Schedule)
@@ -249,4 +253,13 @@ fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (
     ActionType.SYSTEM_BLUETOOTH_SCAN -> Triple(R.string.action_bluetooth_scan, R.string.action_bluetooth_scan_sub, Icons.Filled.Bluetooth)
     ActionType.SYSTEM_WIFI_SCAN_NOW -> Triple(R.string.action_wifi_scan_now, R.string.action_wifi_scan_now_sub, Icons.Filled.Wifi)
     ActionType.SYSTEM_SET_TIMEZONE -> Triple(R.string.action_set_timezone, R.string.action_set_timezone_sub, Icons.Filled.Schedule)
+    ActionType.EVO_SET_SETTING -> Triple(R.string.action_evo_set_setting, R.string.action_evo_set_setting_sub, Icons.Filled.Tune)
+    ActionType.EVO_QS_TILES -> Triple(R.string.action_evo_qs_tiles, R.string.action_evo_qs_tiles_sub, Icons.Filled.SettingsOverscan)
+    ActionType.EVO_STATUS_BAR -> Triple(R.string.action_evo_status_bar, R.string.action_evo_status_bar_sub, Icons.Filled.BarChart)
+    ActionType.EVO_LOCKSCREEN -> Triple(R.string.action_evo_lockscreen, R.string.action_evo_lockscreen_sub, Icons.Filled.Lock)
+    ActionType.EVO_NAVIGATION -> Triple(R.string.action_evo_navigation, R.string.action_evo_navigation_sub, Icons.Filled.TouchApp)
+    ActionType.EVO_THEME -> Triple(R.string.action_evo_theme, R.string.action_evo_theme_sub, Icons.Filled.Gradient)
+    ActionType.EVO_AMBIENT_AOD -> Triple(R.string.action_evo_ambient_aod, R.string.action_evo_ambient_aod_sub, Icons.Filled.WbSunny)
+    ActionType.EVO_NOTIFICATIONS -> Triple(R.string.action_evo_notifications, R.string.action_evo_notifications_sub, Icons.Filled.NotificationsActive)
+    ActionType.EVO_BATCH -> Triple(R.string.action_evo_batch, R.string.action_evo_batch_sub, Icons.Filled.Build)
 }

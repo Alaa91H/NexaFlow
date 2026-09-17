@@ -32,4 +32,7 @@ kotlin {
 dependencies {
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
     testImplementation(libs.junit.junit)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.org.robolectric.robolectric)
+    testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test)
 }

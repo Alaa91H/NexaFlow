@@ -43,7 +43,8 @@ object BatteryTriggerMatcher {
 
     /** True when the battery level satisfies the configured direction + threshold. */
     fun levelCrossed(config: Map<String, String>, level: Int): Boolean {
-        val threshold = config["above"]?.toIntOrNull() ?: 80
+        val raw = config["threshold"] ?: config["above"] ?: config["below"] ?: "80"
+        val threshold = raw.toIntOrNull()?.coerceIn(0, 100) ?: 80
         val direction = config["direction"] ?: "ABOVE"
         return if (direction == "BELOW") level <= threshold else level >= threshold
     }

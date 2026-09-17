@@ -1,0 +1,13 @@
+# NexaFlow — SELinux policy snippet (optional, usually not needed)
+# Place under device/<oem>/<codename>/sepolicy/vendor/ or system/sepolicy
+# only if your Evolution X device tree denies priv-app access to settings provider.
+#
+# Most Evolution X trees already allow priv-apps to write Settings.Secure /
+# Settings.System via the `priv_app` domain. This file is a no-op placeholder
+# that documents the minimal allowances NexaFlow would need if your tree strips them.
+#
+# type nexaflow_app, domain;
+# app_domain(nexaflow_app)
+# priv_app_domain(nexaflow_app)
+# allow nexaflow_app settings_provider:dir search;
+# allow nexaflow_app settings_provider:file { read write open };

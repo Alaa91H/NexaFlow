@@ -4,6 +4,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.Box
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,39 +42,44 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.Card
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.produceState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.R as ExecutionR
 import com.nexaflow.core.ui.EmptyState
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowFloatingActionButton
 import com.nexaflow.core.ui.SectionHeader
+import com.nexaflow.core.ui.SettingRow
 import com.nexaflow.core.ui.iconVector
 import com.nexaflow.core.ui.nexaFlowEntrance
 import com.nexaflow.core.ui.rememberInstalledAppPresentation
@@ -80,6 +87,7 @@ import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.EndBehaviorCatalog
 import com.nexaflow.domain.models.EndMode
+import com.nexaflow.feature.automations.actionPresentation
 import com.nexaflow.domain.models.hasUserAuthoredDescription
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
@@ -88,6 +96,8 @@ import com.nexaflow.domain.schedule.TimeTriggerCalculator
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun DashboardScreen(navController: NavController) {
@@ -95,25 +105,40 @@ fun DashboardScreen(navController: NavController) {
     val rows by viewModel.automations.collectAsStateWithLifecycle()
     val runningIds by viewModel.runningIds.collectAsStateWithLifecycle()
     val executionMessage by viewModel.executionMessage.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
+    // Compact dark toast: message-sized, centered near the bottom.
+    var toastText by remember { mutableStateOf<String?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var actionMenuTarget by remember { mutableStateOf<Automation?>(null) }
     var deleteTarget by remember { mutableStateOf<Automation?>(null) }
+    // Task tapped for Run-now whose gate check failed: hosts the mismatch dialog.
+    var runBlockDialogTarget by remember { mutableStateOf<Automation?>(null) }
+    var forceRunConfirmTarget by remember { mutableStateOf<Automation?>(null) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val legacyConnectivityTasks by viewModel.legacyConnectivityTasks.collectAsStateWithLifecycle()
     // Keep one task expanded at a time so the dashboard remains scannable.
     var expandedAutomationId by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(executionMessage) {
         executionMessage?.let { message ->
-            snackbarHostState.showSnackbar(message)
+            toastText = message
             viewModel.consumeExecutionMessage()
         }
     }
-
-    val filteredRows = remember(rows, searchQuery) {
-        if (searchQuery.isBlank()) rows
-        else rows.filter { it.automation.name.contains(searchQuery, ignoreCase = true) }
+    LaunchedEffect(toastText) {
+        if (toastText != null) {
+            delay(3000)
+            toastText = null
+        }
     }
 
+    val filteredRows by remember(rows, searchQuery) {
+        derivedStateOf {
+            if (searchQuery.isBlank()) rows
+            else rows.filter { it.automation.name.contains(searchQuery, ignoreCase = true) }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
@@ -122,8 +147,7 @@ fun DashboardScreen(navController: NavController) {
                 icon = Icons.Filled.Add,
                 label = stringResource(R.string.new_routine)
             )
-        },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(innerPadding),
@@ -194,6 +218,44 @@ fun DashboardScreen(navController: NavController) {
                 }
             }
 
+            // ---- Legacy connectivity migration banner ----
+            if (legacyConnectivityTasks.isNotEmpty()) {
+                item(key = "migrate_banner") {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = androidx.compose.material3.CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        )
+                    ) {
+                        androidx.compose.foundation.layout.Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.migrate_banner_title),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                            )
+                            Text(
+                                text = stringResource(R.string.migrate_banner_message),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                TextButton(onClick = { viewModel.migrateLegacyConnectivityTriggers() }) {
+                                    Text(text = stringResource(R.string.migrate_banner_button))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // ---- Routines ----
             item {
                 SectionHeader(text = stringResource(R.string.section_routines))
@@ -230,10 +292,23 @@ fun DashboardScreen(navController: NavController) {
                     modifier = Modifier.nexaFlowEntrance(
                         delayMillis = minOf(index * 40, 400)
                     ),
-                    onRun = { viewModel.runNow(row.automation) },
+                    onRun = {
+                        // Ask the gate first: admissible → run; rejected →
+                        // show the typed mismatch dialog with a force-run path.
+                        scope.launch {
+                            val block = viewModel.describeManualBlock(row.automation)
+                            if (block == null) {
+                                viewModel.runNow(row.automation)
+                            } else {
+                                runBlockDialogTarget = row.automation
+                            }
+                        }
+                    },
                     onEdit = { navController.navigate("automation_builder?automationId=${row.automation.id}") },
+                    onDetails = { navController.navigate("automation_details/${android.net.Uri.encode(row.automation.id)}") },
                     onDelete = { deleteTarget = row.automation },
                     onToggle = { viewModel.toggleAutomation(row.automation, it) },
+                    onToggleToast = { target, show -> viewModel.setShowToastOnToggle(target, show) },
                     onExpandedChange = {
                         expandedAutomationId = nextExpandedAutomationId(
                             currentExpandedId = expandedAutomationId,
@@ -245,6 +320,29 @@ fun DashboardScreen(navController: NavController) {
                 )
             }
         }
+    }
+
+    // Compact dark toast: wraps the message, centered near the bottom.
+    // Sibling of Scaffold (direct child of the outer Box) so BottomCenter
+    // alignment applies — inside Scaffold content it would stick to the top.
+    toastText?.let { text ->
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(start = 32.dp, end = 32.dp, bottom = 40.dp)
+                .shadow(8.dp, RoundedCornerShape(24.dp))
+                .background(Color(0xFF323232), RoundedCornerShape(24.dp))
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
     }
 
     deleteTarget?.let { automation ->
@@ -264,6 +362,103 @@ fun DashboardScreen(navController: NavController) {
             },
             dismissButton = {
                 TextButton(onClick = { deleteTarget = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    // Typed mismatch dialog: names the trigger/constraint that failed and
+    // offers either the honest exit path (OK = run the end behavior) or the
+    // explicit force-run override.
+    runBlockDialogTarget?.let { automation ->
+        val block = produceState<ExecutionEngine.ManualBlockReason?>(
+            initialValue = null,
+            key1 = automation.id
+        ) { value = viewModel.describeManualBlock(automation) }.value
+        AlertDialog(
+            onDismissRequest = { runBlockDialogTarget = null },
+            title = { Text(stringResource(R.string.run_gate_title)) },
+            text = {
+                Column {
+                    Text(text = stringResource(R.string.run_reason_task, automation.name))
+                    when (block?.kind) {
+                        ExecutionEngine.ManualBlockKind.TRIGGERS_NOT_MET ->
+                            block.failedTriggerLabels.forEach { label ->
+                                Text(
+                                    text = stringResource(R.string.run_reason_trigger, label),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        ExecutionEngine.ManualBlockKind.TRIGGERS_UNKNOWN -> {
+                            Text(text = stringResource(R.string.run_reason_unknown))
+                            block.failedTriggerLabels.forEach { label ->
+                                Text(
+                                    text = stringResource(R.string.run_reason_trigger, label),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+                        ExecutionEngine.ManualBlockKind.CONSTRAINTS_NOT_MET ->
+                            block.failedConstraintLabels.forEach { label ->
+                                Text(
+                                    text = stringResource(R.string.run_reason_constraint, label),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        ExecutionEngine.ManualBlockKind.INVALID_TIME_RANGE ->
+                            Text(text = stringResource(R.string.run_reason_no_exit))
+                        else -> Unit
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        runBlockDialogTarget = null
+                        viewModel.runNow(automation)
+                    }
+                ) {
+                    Text(stringResource(R.string.run_reason_run_end))
+                }
+            },
+            dismissButton = {
+                androidx.compose.foundation.layout.Row {
+                    TextButton(onClick = { runBlockDialogTarget = null }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                    TextButton(
+                        onClick = {
+                            runBlockDialogTarget = null
+                            forceRunConfirmTarget = automation
+                        }
+                    ) {
+                        Text(stringResource(R.string.run_force_short))
+                    }
+                }
+            }
+        )
+    }
+
+    // Separate confirmation step for the force-run override: the bypass must
+    // never be one accidental tap away from the mismatch dialog.
+    forceRunConfirmTarget?.let { automation ->
+        AlertDialog(
+            onDismissRequest = { forceRunConfirmTarget = null },
+            title = { Text(stringResource(R.string.run_force_title)) },
+            text = { Text(stringResource(R.string.run_force_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        forceRunConfirmTarget = null
+                        viewModel.forceRun(automation)
+                    }
+                ) {
+                    Text(stringResource(R.string.run_force_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { forceRunConfirmTarget = null }) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -302,9 +497,11 @@ internal fun RoutineCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onToggle: (Boolean) -> Unit,
+    onToggleToast: (Automation, Boolean) -> Unit,
     onExpandedChange: () -> Unit,
     onLongClick: () -> Unit,
     onDismissMenu: () -> Unit,
+    onDetails: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     NexaFlowCard(
@@ -361,11 +558,13 @@ internal fun RoutineCard(
                 }
 
                 if (expanded) {
+                    TextButton(onClick = onDetails) { Text(stringResource(R.string.task_access_details)) }
                     RoutineDetails(
                         row = row,
                         summary = summary,
                         nextRun = nextRun,
-                        isRunning = isRunning
+                        isRunning = isRunning,
+                        onToggleToast = { onToggleToast(row.automation, it) }
                     )
                 }
             }
@@ -380,6 +579,10 @@ internal fun RoutineCard(
                         onRun()
                     },
                     enabled = !isRunning
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.task_access_details)) },
+                    onClick = { onDismissMenu(); onDetails() }
                 )
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.edit_task)) },
@@ -405,7 +608,8 @@ private fun RoutineDetails(
     row: AutomationRow,
     summary: String,
     nextRun: String?,
-    isRunning: Boolean
+    isRunning: Boolean,
+    onToggleToast: (Boolean) -> Unit
 ) {
     val automation = row.automation
     Row(
@@ -442,6 +646,28 @@ private fun RoutineDetails(
         if (isRunning) {
             CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
         }
+    }
+    // Toast on toggle option — shown for every task in expanded view
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.toast_on_toggle_title),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = stringResource(R.string.toast_on_toggle_sub),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Switch(
+            checked = automation.showToastOnToggle,
+            onCheckedChange = onToggleToast
+        )
     }
 
     if (automation.hasUserAuthoredDescription()) {
@@ -482,26 +708,72 @@ private fun RoutineDetails(
     }
     val exitActionCount = automation.exitBehaviorItemCount()
     if (automation.revertOnExit || exitActionCount > 0) {
-        DetailBlock(
-            title = stringResource(R.string.task_details_exit_actions, exitActionCount),
-            lines = when {
-                automation.revertOnExit -> listOf(stringResource(R.string.task_details_revert_on_exit))
-                else -> buildList {
-                    perActionEndBehaviors.forEach { action ->
-                        add(
-                            stringResource(
-                                R.string.task_details_end_action,
-                                actionDisplayText(action),
-                                taskEndBehaviorDetail(action)
-                            )
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = stringResource(R.string.task_details_exit_actions, exitActionCount),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            when {
+                automation.revertOnExit -> {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        IconBadge(
+                            icon = Icons.Filled.Security,
+                            containerColor = Color.White,
+                            contentColor = Color(automation.iconColor),
+                            size = 40
                         )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = stringResource(R.string.task_details_revert_on_exit), style = MaterialTheme.typography.bodyLarge)
+                        }
                     }
-                    automation.exitActions.forEach { action ->
-                        add(actionDisplayText(action))
+                }
+                else -> {
+                    perActionEndBehaviors.forEachIndexed { index, action ->
+                        val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            IconBadge(
+                                icon = icon,
+                                containerColor = Color.White,
+                                contentColor = Color(automation.iconColor),
+                                size = 40
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = stringResource(titleRes), style = MaterialTheme.typography.bodyLarge)
+                                Text(text = stringResource(subtitleRes), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                    automation.exitActions.forEachIndexed { index, action ->
+                        val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            IconBadge(
+                                icon = icon,
+                                containerColor = Color.White,
+                                contentColor = Color(automation.iconColor),
+                                size = 40
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = stringResource(titleRes), style = MaterialTheme.typography.bodyLarge)
+                                Text(text = stringResource(subtitleRes), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
                     }
                 }
             }
-        )
+        }
     }
 }
 
@@ -635,25 +907,32 @@ private fun RoutineMetaLine(
     )
 }
 
-/** "Next · today 8:00 PM" for enabled time triggers, null otherwise. */
+/** "Next · today 8:00 PM" for enabled time triggers, null otherwise — cached per automation to avoid per-frame recomputation. */
 @Composable
 private fun nextRunText(automation: Automation): String? {
     if (!automation.enabled) return null
     val trigger = automation.triggers.firstOrNull { it.type == TriggerType.TIME } ?: return null
-    val nowMillis = System.currentTimeMillis()
-    val next = TimeTriggerCalculator.nextFireTime(trigger.config, nowMillis) ?: return null
-    val zone = ZoneId.systemDefault()
-    val nextTime = Instant.ofEpochMilli(next).atZone(zone)
-    val now = Instant.ofEpochMilli(nowMillis).atZone(zone)
     val context = LocalContext.current
-    val timeText = android.text.format.DateFormat.getTimeFormat(context)
-        .format(java.util.Date(next))
-    val dayPrefix = when (nextTime.toLocalDate()) {
-        now.toLocalDate() -> stringResource(R.string.today)
-        now.toLocalDate().plusDays(1) -> stringResource(R.string.tomorrow)
-        else -> nextTime.format(DateTimeFormatter.ofPattern("MMM d"))
+    // Resolve localized labels through Compose so configuration changes invalidate this composable.
+    val todayLabel = stringResource(R.string.today)
+    val tomorrowLabel = stringResource(R.string.tomorrow)
+    val nextRunPrefixFormat = stringResource(R.string.next_run_prefix)
+    // Cache per trigger config; recomputes only when triggers change, not on every recomposition
+    return remember(automation.triggers, automation.enabled, todayLabel, tomorrowLabel, nextRunPrefixFormat) {
+        val nowMillis = System.currentTimeMillis()
+        val next = TimeTriggerCalculator.nextFireTime(trigger.config, nowMillis) ?: return@remember null
+        val zone = ZoneId.systemDefault()
+        val nextTime = Instant.ofEpochMilli(next).atZone(zone)
+        val now = Instant.ofEpochMilli(nowMillis).atZone(zone)
+        val timeText = android.text.format.DateFormat.getTimeFormat(context)
+            .format(java.util.Date(next))
+        val dayPrefix = when (nextTime.toLocalDate()) {
+            now.toLocalDate() -> todayLabel
+            now.toLocalDate().plusDays(1) -> tomorrowLabel
+            else -> nextTime.format(DateTimeFormatter.ofPattern("MMM d"))
+        }
+        String.format(nextRunPrefixFormat, "$dayPrefix $timeText")
     }
-    return stringResource(R.string.next_run_prefix, "$dayPrefix $timeText")
 }
 
 /** Human-friendly relative time: "just now", "5 m ago", "2 h ago", "3 d ago". */
@@ -689,6 +968,8 @@ private fun triggerLabel(type: TriggerType): Int = when (type) {
     TriggerType.APPLICATION -> R.string.trigger_app
     TriggerType.DEVICE -> R.string.trigger_device
     TriggerType.CONNECTIVITY -> R.string.trigger_connectivity
+    TriggerType.WIFI_CONNECTED -> R.string.trigger_type_wifi_connected
+    TriggerType.MOBILE_DATA_CONNECTED -> R.string.trigger_type_mobile_data
     TriggerType.HOTSPOT -> R.string.trigger_hotspot
     TriggerType.LOCATION -> R.string.trigger_location
     TriggerType.SMS -> R.string.trigger_sms
@@ -705,6 +986,7 @@ private fun triggerLabel(type: TriggerType): Int = when (type) {
     TriggerType.AIRPLANE_MODE -> R.string.trigger_airplane
     TriggerType.DARK_MODE -> R.string.trigger_dark_mode
     TriggerType.CALL_STATE -> R.string.trigger_call_state
+    TriggerType.INCOMING_CALL -> R.string.trigger_type_incoming_call
     TriggerType.APP_INSTALLED -> R.string.trigger_app_installed
     TriggerType.MEDIA_PLAYING -> R.string.trigger_media_playing
     TriggerType.VOLUME_CHANGED -> R.string.trigger_volume_changed
@@ -774,6 +1056,7 @@ private fun RoutineCardPreview() {
             onEdit = {},
             onDelete = {},
             onToggle = {},
+            onToggleToast = { _, _ -> },
             onExpandedChange = {},
             onLongClick = {},
             onDismissMenu = {},

@@ -39,6 +39,24 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/** Parsed `nexaflow://run-task/{id}[?force=1]` target. */
+internal data class RunTaskDeepLink(val automationId: String, val force: Boolean, val token: String? = null)
+
+/**
+ * Pure parser for run-task deep links so the admission/force policy contract
+ * is unit-testable without activity scaffolding. Any other scheme, host, or a
+ * blank id yields null — the app then just opens normally.
+ */
+internal fun parseRunTaskDeepLink(uri: android.net.Uri?): RunTaskDeepLink? {
+    if (uri == null || uri.toString().length > 8192 || uri.isOpaque || uri.userInfo != null || uri.port != -1 || uri.fragment != null) return null
+    if (uri.scheme != "nexaflow" || uri.host != "run-task") return null
+    if (uri.pathSegments.size != 1 || uri.queryParameterNames.any { it !in setOf("token", "force") }) return null
+    if (uri.getQueryParameters("token").size > 1 || uri.getQueryParameters("force").size > 1) return null
+    val id = uri.pathSegments.single()
+    if (id.isBlank() || id.length > 256 || id.any { it == '/' || it.isISOControl() }) return null
+    return RunTaskDeepLink(automationId = id, force = uri.getQueryParameter("force") == "1", token = uri.getQueryParameter("token"))
+}
+
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
@@ -54,6 +72,8 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var automationRepository: AutomationRepository
+
+    private val reviewAutomationId = androidx.compose.runtime.mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Branded splash (core-splashscreen): keep it up until the theme is
@@ -83,8 +103,8 @@ class MainActivity : AppCompatActivity() {
         // already authorized root. Runtime notification access is requested
         // later from the user action that needs it, not on first launch.
         autoGrantPermissionsWithRoot()
-        // Deep link (P2-5): nexaflow://run-task/{id} runs the task directly.
-        handleDeepLink(intent)
+        // External links open task review; authorized links require explicit confirmation.
+        if (savedInstanceState == null) handleDeepLink(intent)
         setContent {
             val theme by themePreferences.theme.collectAsStateWithLifecycle(initialValue = ThemeSettings())
             NexaFlowTheme(
@@ -96,7 +116,7 @@ class MainActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    NexaFlowApp()
+                    NexaFlowApp(reviewAutomationId.value) { reviewAutomationId.value = null }
                 }
             }
             // Report time-to-full-display once the first frame is actually
@@ -131,25 +151,64 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Runs the task targeted by a `nexaflow://run-task/{automationId}` deep
-     * link. Missing/unknown ids are ignored silently so the app just opens
+     * link. An optional `?force=1` query parameter routes through an explicit
+     * force-run confirmation dialog instead of the admission gate, so a
+     * bypass is always a deliberate user action — never a silent one.
+     * Missing/unknown ids are ignored silently so the app just opens
      * normally for any other launch.
      */
     private fun handleDeepLink(intent: Intent?) {
-        val uri = intent?.data ?: return
-        if (uri.scheme != "nexaflow" || uri.host != "run-task") return
-        val id = uri.path?.trim('/') ?: return
-        if (id.isBlank()) return
+        if (intent?.action != Intent.ACTION_VIEW) return
+        val dispatcher = DeepLinkDispatcher(automationRepository)
         lifecycleScope.launch {
-            val automation = automationRepository.getAutomationById(id)
-            if (automation != null) {
-                val record = executionEngine.runAutomation(automation)
-                Toast.makeText(
-                    this@MainActivity,
-                    getString(R.string.deep_link_run_toast, automation.name) + " — " +
-                        ExecutionResultPresentation.summary(this@MainActivity, record),
-                    Toast.LENGTH_LONG
-                ).show()
+            dispatcher.open(intent.data, review = { reviewAutomationId.value = it.id }) { automation, link ->
+                // Custom schemes are interceptable; confirmation is mandatory, including force links.
+                androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
+                    .setTitle(if (link.force) R.string.run_force_title else R.string.deep_link_confirm_title)
+                    .setMessage(getString(if (link.force) R.string.deep_link_force_message else R.string.deep_link_confirm_message, automation.name))
+                    .setPositiveButton(R.string.deep_link_confirm_run) { _, _ ->
+                        lifecycleScope.launch {
+                            dispatcher.runConfirmed(link) { latest ->
+                                if (link.force) {
+                                    val record = executionEngine.forceRun(latest)
+                                    Toast.makeText(this@MainActivity, ExecutionResultPresentation.summary(this@MainActivity, record), Toast.LENGTH_LONG).show()
+                                } else runThroughAdmissionGate(latest)
+                            }
+                        }
+                    }
+                    .setNegativeButton(R.string.cancel, null).show()
             }
+        }
+    }
+
+    /**
+     * Manual invocation via deep link obeys the same admission policy as the
+     * in-app Run now: the task's triggers and constraints must match,
+     * otherwise only the end behavior runs (or the mismatch is reported
+     * explicitly). The reason for a rejection is included in the toast so a
+     * deep-link invocation is never a silent no-op.
+     */
+    private fun runThroughAdmissionGate(automation: com.nexaflow.domain.models.Automation) {
+        lifecycleScope.launch {
+            val record = executionEngine.runWithConditionGate(automation)
+            val reason = executionEngine.describeManualBlock(automation)
+            val reasonText = if (reason != null && reason.kind != ExecutionEngine.ManualBlockKind.NONE) {
+                when (reason.kind) {
+                    ExecutionEngine.ManualBlockKind.TRIGGERS_NOT_MET ->
+                        reason.failedTriggerLabels.joinToString().ifEmpty { null }
+                    ExecutionEngine.ManualBlockKind.TRIGGERS_UNKNOWN ->
+                        reason.failedTriggerLabels.joinToString().ifEmpty { null }
+                    ExecutionEngine.ManualBlockKind.CONSTRAINTS_NOT_MET ->
+                        reason.failedConstraintLabels.joinToString().ifEmpty { null }
+                    else -> null
+                }?.let { " — $it" } ?: ""
+            } else ""
+            Toast.makeText(
+                this@MainActivity,
+                getString(R.string.deep_link_run_toast, automation.name) + " — " +
+                    ExecutionResultPresentation.summary(this@MainActivity, record) + reasonText,
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 

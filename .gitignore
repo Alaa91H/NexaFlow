@@ -27,3 +27,4 @@ preview/
 /keystore/*.keystore
 /keystore/keystore.properties
 __pycache__
+device-evidence/

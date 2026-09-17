@@ -60,3 +60,123 @@ subprojects {
     plugins.withId("com.android.application") { configureUnusedResourcesGate() }
     plugins.withId("com.android.library") { configureUnusedResourcesGate() }
 }
+
+// Strict coverage gate: every Android application/library module enables JaCoCo
+// for its unit-test variant, and the aggregate `coverageReport` task builds a
+// per-module HTML/XML report under build/coverage/. The CI `coverage-gate` job
+// reads those XML reports and fails when a module's covered-line ratio drops
+// below 80% (see scripts/check_coverage.py) — a regression in test coverage is
+// a build failure, not a suggestion.
+subprojects {
+    plugins.withId("com.android.application") { configureCoverage() }
+    plugins.withId("com.android.library") { configureCoverage() }
+}
+
+fun Project.configureCoverage() {
+    plugins.apply("jacoco")
+    @Suppress("UnstableApiUsage")
+    val androidExtension = extensions.getByType(com.android.build.api.dsl.CommonExtension::class.java)
+    androidExtension.testOptions.apply {
+        unitTests.all { test ->
+            test.extensions.getByType(JacocoTaskExtension::class.java).isIncludeNoLocationClasses = false
+            // Gradle 9.6 + AGP 9: the JaCoCo agent configuration is not yet
+            // serializable into the configuration cache; tests + coverage run
+            // with configuration-cache disabled for these tasks.
+            test.notCompatibleWithConfigurationCache("jacoco agent serialization")
+        }
+    }
+    val coverageTask = tasks.register("coverageReport", JacocoReport::class) {
+        group = "verification"
+        description = "Aggregates unit-test coverage for this module (debug variant)."
+        dependsOn(tasks.matching { it.name.startsWith("testDebugUnitTest") })
+        // Pure-resource modules have no test source set at all: their (absent)
+        // report is treated as a pass by the gate below.
+        onlyIf { file("src/test").exists() }
+        reports {
+            xml.required.set(true)
+            xml.outputLocation.set(layout.buildDirectory.file("coverage/report.xml"))
+            html.required.set(true)
+            html.outputLocation.set(layout.buildDirectory.dir("coverage/html"))
+        }
+        // Class directories and sources are wired lazily: the stock jacoco
+        // plugin writes exec data to build/jacoco/<task>.exec for every
+        // JaCoCo-instrumented test task, AGP and JVM alike.
+        executionData.setFrom(fileTree(layout.buildDirectory.dir("jacoco")) {
+            include("*.exec")
+        })
+        // Both AGP class-output shapes are covered: library modules expose
+        // their classes under runtime_library_classes_dir, application modules
+        // under the ASM-transformed tree (all Kotlin classes live there). The
+        // common generated-code excludes keep the reports focused on product
+        // code.
+        val classExcludes = listOf(
+            "**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*",
+            "**/*Test*.*", "**/*_Impl*.*", "**/*_Factory*.*", "**/Dagger*.*",
+            "**/*Module_*.*", "**/*Hilt*.*", "**/*_HiltModules*.*", "**/di/*",
+            "**/*_GeneratedInjector*.*", "**/*ComponentTreeDeps*.*",
+            "**/hilt_aggregated_deps/*", "**/hilt_aggregated_deps/**",
+            "**/dagger/**", "**/ui/theme/*", "**/*Preview*.*", "**/*Screen*.*", "**/*Activity*.*",
+            // Hardware-bound implementations cannot execute on the JVM: the
+            // Android Keystore provider is only exercised on a real device.
+            "**/*KeystoreSecureStorage*.*"
+        )
+        classDirectories.setFrom(
+            files(
+                fileTree(layout.buildDirectory.dir("intermediates/runtime_library_classes_dir")) {
+                    include("**/*.class")
+                    exclude(classExcludes)
+                },
+                fileTree(layout.buildDirectory.dir("intermediates/classes")) {
+                    include("**/*.class")
+                    exclude(classExcludes + listOf(
+                        // Only the hilt/javac outputs are unique under here;
+                        // the ASM tree duplicates runtime classes.
+                        "**/transformDebugClassesWithAsm/**",
+                        "**/transformReleaseClassesWithAsm/**"
+                    ))
+                }
+            )
+        )
+        sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+    }
+    tasks.register("coverageGate") {
+        group = "verification"
+        description = "Fails when this module's covered-line ratio is below the strict threshold."
+        dependsOn(coverageTask)
+        doLast {
+            val report = layout.buildDirectory.file("coverage/report.xml").get().asFile
+            if (!file("src/test").exists() || !report.exists()) {
+                println("COVERAGE_GATE: ${project.path} no unit-test source set — skipped")
+                return@doLast
+            }
+            val xml = report.readText()
+            // JaCoCo writes <counter type="LINE" missed="N" covered="M"/>;
+            // the last (root-level) counter aggregates the whole module. A
+            // module with no executable Kotlin (pure-resource) yields no LINE
+            // counter at all — that is a pass by definition, not a failure.
+            val counter = Regex("<counter type=\"LINE\" missed=\"(\\d+)\" covered=\"(\\d+)\"/>")
+                .findAll(xml).lastOrNull() ?: run {
+                println("COVERAGE_GATE: ${project.path} no executable code — skipped")
+                return@doLast
+            }
+            val (missed, covered) = counter.destructured
+            val total = covered.toInt() + missed.toInt()
+            if (total == 0) {
+                throw GradleException("coverage report has zero measured lines for ${project.path}")
+            }
+            val ratio = covered.toInt().toDouble() / total
+            val threshold = 0.80
+            if (ratio < threshold) {
+                throw GradleException(
+                    "coverage gate FAILED for ${project.path}: " +
+                        "${"%.1f".format(ratio * 100)}% < ${"%.0f".format(threshold * 100)}% " +
+                        "(covered=$covered missed=$missed)"
+                )
+            }
+            println(
+                "COVERAGE_GATE: ${project.path} " +
+                    "${"%.1f".format(ratio * 100)}% (${covered}/${total})"
+            )
+        }
+    }
+}

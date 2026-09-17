@@ -2,7 +2,6 @@
 <resources>
     <string name="choose_icon_title">Simge Seç</string>
     <string name="done">Bitti</string>
-    <string name="search_icons">Simgeleri ara</string>
     <string name="category_all">Tümü</string>
     <string name="category_general">Genel</string>
     <string name="category_connectivity">Bağlantı</string>
@@ -14,4 +13,6 @@
     <string name="category_time">Zaman</string>
     <string name="category_location">Konum</string>
     <string name="icon_color">Renk</string>
+    <string name="category_apps">Apps</string>
+    <string name="category_security">Security</string>
 </resources>

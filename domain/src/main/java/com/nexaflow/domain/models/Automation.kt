@@ -20,6 +20,8 @@ data class Automation(
     val category: String,
     val priority: Int,
     val enabled: Boolean,
+    /** When true, show a toast when this task is toggled on/off from the dashboard. */
+    val showToastOnToggle: Boolean = true,
     val triggers: List<Trigger>,
     val actions: List<Action>,
     /**
@@ -38,7 +40,9 @@ data class Automation(
     /** Persisted workflow schema version; older definitions are migrated at the boundary. */
     val workflowVersion: Int = CURRENT_WORKFLOW_VERSION,
     /** Optional recurring-maintenance metadata; null preserves ordinary automations unchanged. */
-    val maintenanceProfile: MaintenanceProfile? = null
+    val maintenanceProfile: MaintenanceProfile? = null,
+    /** Installation-local capability; never part of portable serialization. */
+    @kotlinx.serialization.Transient val deepLinkToken: String? = null
 ) {
     init {
         require(workflowVersion in 1..CURRENT_WORKFLOW_VERSION) { "Unsupported workflow version" }
@@ -115,7 +119,16 @@ enum class TriggerType {
      * for saved automations but is not offered to new tasks because its former
      * sub-options duplicated dedicated connectivity triggers.
      */
+    /**
+     * Legacy combined network trigger (Wi-Fi or mobile data, config-selected).
+     * Hidden from the trigger picker; kept in the enum so saved tasks keep
+     * evaluating. New tasks use [WIFI_CONNECTED] or [MOBILE_DATA_CONNECTED].
+     */
     CONNECTIVITY,
+    /** Default-network transport is Wi-Fi (or not, per `state`). */
+    WIFI_CONNECTED,
+    /** Default-network transport is cellular, i.e. mobile data (or not). */
+    MOBILE_DATA_CONNECTED,
     /**
      * Wi-Fi tethering state. Config key: `state` (ON/OFF). This is a dedicated
      * trigger so new tasks do not need the legacy combined connectivity menu.
@@ -176,6 +189,20 @@ enum class TriggerType {
      * (INCOMING/OUTGOING/ENDED). Driven by a PhoneStateListener.
      */
     CALL_STATE,
+    /**
+     * A call is ringing right now, screened pre-ring through the platform
+     * CallScreeningService (with fallback to the call-state listener when the
+     * screening role is not held). Config keys: `from` (number or part of it,
+     * optional), `matchMode` (CONTAINS/EXACT/ANY — EXACT compares the full
+     * dialed number, CONTAINS a substring, ANY ignores the number), and
+     * `category` (ANY/UNKNOWN/PRIVATE — UNKNOWN matches calls without a
+     * readable number, PRIVATE matches withheld callers). Call-control tasks
+     * may use the CALL_BLOCK and CALL_SILENCE actions; the screening decision
+     * itself is made synchronously from the same config (see
+     * CallPolicyEvaluator), while the remaining actions run through the
+     * normal engine path.
+     */
+    INCOMING_CALL,
     /**
      * A package was installed, removed or updated. Config keys: `event`
      * (INSTALLED/REMOVED/UPDATED), optional `package` filter.
@@ -611,6 +638,39 @@ enum class ActionType {
     /** Triggers an immediate Wi-Fi scan. */
     SYSTEM_WIFI_SCAN_NOW,
     /** Sets the system timezone. Config key: `zone` (IANA, e.g. Asia/Riyadh). */
-    SYSTEM_SET_TIMEZONE
+    SYSTEM_SET_TIMEZONE,
+    /**
+     * Rejects the currently ringing incoming call. Requires the screening
+     * role or ANSWER_PHONE_CALLS. When used inside a task with an
+     * INCOMING_CALL trigger, the synchronous screening pass applies the same
+     * decision pre-ring; the handler records the outcome for the run history.
+     */
+    CALL_BLOCK,
+    /**
+     * Silences the currently ringing incoming call without rejecting it —
+     * the call continues mutely. Applied pre-ring by the screening pass for
+     * INCOMING_CALL tasks and by the handler as a best-effort runtime action.
+     */
+    CALL_SILENCE,
+
+    // === Evolution X — Professional Evolver control (typed, picker-driven) ===
+    /** Writes any Evolution X Evolver setting with live picker and category. Config keys: `namespace`, `key`, `value`. Professionally replaces SYSTEM_SET_SETTING for ROM work. */
+    EVO_SET_SETTING,
+    /** Configures QS tiles and panel. Config keys: `tiles` (csv), `columns`, `brightness_slider` (0/1), `footer_text`. */
+    EVO_QS_TILES,
+    /** Configures status bar (clock, battery, icons). Config keys: `clock_position`, `clock_seconds`, `battery_style`, `battery_percent`, `show_vpn` etc. as json. */
+    EVO_STATUS_BAR,
+    /** Configures lockscreen (clock, shortcuts, weather, UDFPS). Config keys: `clock_style`, `shortcuts`, `weather`, `media_art` etc. */
+    EVO_LOCKSCREEN,
+    /** Configures navigation mode. Config keys: `mode` (GESTURE/3BUTTON/2BUTTON), `back_height`, `navbar_height`. */
+    EVO_NAVIGATION,
+    /** Configures theming/monet. Config keys: `accent`, `monet`, `themed_icons`, `icon_pack`, `font`. */
+    EVO_THEME,
+    /** Configures ambient/AOD. Config keys: `aod_enabled`, `aod_schedule`, `doze_*`. */
+    EVO_AMBIENT_AOD,
+    /** Configures notifications/heads-up. Config keys: `heads_up`, `timeout`, `less_boring`. */
+    EVO_NOTIFICATIONS,
+    /** Batch Evolver apply — writes multiple Evolver keys atomically. Config key: `batch_json` (map of key->value). */
+    EVO_BATCH
 }
 

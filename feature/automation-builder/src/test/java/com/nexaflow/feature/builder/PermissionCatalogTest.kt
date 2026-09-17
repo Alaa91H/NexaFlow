@@ -2,8 +2,10 @@ package com.nexaflow.feature.builder
 
 import android.Manifest
 import com.nexaflow.domain.models.ActionType
+import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class PermissionCatalogTest {
@@ -44,5 +46,35 @@ class PermissionCatalogTest {
     @Test
     fun `charging limit requires root because shell cannot write sysfs power nodes`() {
         assertEquals(SpecialPermission.ROOT, PermissionCatalog.specialPermissionFor(ActionType.SYSTEM_CHARGING_LIMIT))
+    }
+
+    @Test
+    fun `bluetooth device trigger needs connect runtime but no save-time settings detour`() {
+        // Regression: the old BLUETOOTH special forced the Bluetooth settings
+        // screen on every save (its isGranted could never return true), even
+        // with Bluetooth ON and BLUETOOTH_CONNECT granted.
+        assertEquals(
+            listOf(Manifest.permission.BLUETOOTH_CONNECT),
+            PermissionCatalog.runtimePermissionsFor(TriggerType.BLUETOOTH_DEVICE)
+        )
+        assertNull(PermissionCatalog.specialPermissionFor(TriggerType.BLUETOOTH_DEVICE))
+    }
+
+    @Test
+    fun `legacy device trigger with bluetooth event needs connect runtime`() {
+        listOf("BLUETOOTH_CONNECTED", "BLUETOOTH_DISCONNECTED").forEach { event ->
+            assertEquals(
+                listOf(Manifest.permission.BLUETOOTH_CONNECT),
+                PermissionCatalog.runtimePermissionsFor(
+                    Trigger(type = TriggerType.DEVICE, config = mapOf("event" to event))
+                )
+            )
+        }
+        assertEquals(
+            emptyList<String>(),
+            PermissionCatalog.runtimePermissionsFor(
+                Trigger(type = TriggerType.DEVICE, config = mapOf("event" to "SCREEN_ON"))
+            )
+        )
     }
 }

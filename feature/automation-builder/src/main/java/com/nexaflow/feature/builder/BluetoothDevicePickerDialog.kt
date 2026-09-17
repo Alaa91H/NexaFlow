@@ -29,7 +29,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -51,10 +53,20 @@ data class PairedDevice(
 @Composable
 fun BluetoothDevicePickerDialog(
     onPick: (PairedDevice) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    /** Currently configured device address, pre-marked when the picker reopens. */
+    preSelectedAddress: String? = null
 ) {
     val context = LocalContext.current
-    val devices = remember { loadPairedDevices(context) }
+    val pickerState = remember { loadPickerState(context) }
+    val devices = pickerState.devices
+    // Selection model matches the app picker: tapping marks the device, OK
+    // confirms it, Cancel discards. No tap applies anything by itself.
+    var selectedAddress by remember {
+        androidx.compose.runtime.mutableStateOf(
+            devices.firstOrNull { it.address == preSelectedAddress }?.address
+        )
+    }
 
     // Google 2026: selection tasks open as a full-height modal bottom sheet.
     ModalBottomSheet(
@@ -71,7 +83,16 @@ fun BluetoothDevicePickerDialog(
         )
         if (devices.isEmpty()) {
             Text(
-                text = stringResource(R.string.no_paired_devices),
+                // A distinct message per cause — never "turn on Bluetooth"
+                // when the real problem is a missing permission or simply
+                // having nothing paired yet.
+                text = stringResource(
+                    when (pickerState.reason) {
+                        PickerEmptyReason.PERMISSION_MISSING -> R.string.permission_bluetooth_body
+                        PickerEmptyReason.BLUETOOTH_OFF -> R.string.bluetooth_permission_hint
+                        PickerEmptyReason.NO_DEVICES -> R.string.no_paired_devices
+                    }
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(horizontal = 24.dp)
@@ -80,14 +101,15 @@ fun BluetoothDevicePickerDialog(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f, fill = false)
+                    .weight(1f, fill = true)
                     .padding(horizontal = 24.dp)
             ) {
                 items(devices, key = { it.address }) { device ->
+                    val isSelected = device.address == selectedAddress
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onPick(device) }
+                            .clickable { selectedAddress = device.address }
                             .padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -102,7 +124,7 @@ fun BluetoothDevicePickerDialog(
                             Text(
                                 text = device.name,
                                 style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
                             )
                             Text(
                                 text = device.address,
@@ -110,47 +132,92 @@ fun BluetoothDevicePickerDialog(
                                 color = MaterialTheme.colorScheme.secondary
                             )
                         }
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
             }
         }
+        // Same confirm/discard contract as the app picker: OK applies the
+        // marked device (disabled until one is marked), Cancel discards.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 12.dp),
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            TextButton(onClick = onDismiss) {
+            androidx.compose.material3.OutlinedButton(
+                onClick = onDismiss,
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(text = stringResource(R.string.cancel))
+            }
+            androidx.compose.material3.Button(
+                onClick = {
+                    devices.firstOrNull { it.address == selectedAddress }?.let(onPick)
+                },
+                enabled = selectedAddress != null,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(text = stringResource(R.string.bt_pick_ok))
             }
         }
     }
 }
 
-// BLUETOOTH_CONNECT is checked at runtime above the runCatching block below;
-// lint's dataflow cannot follow the guard through the try/catch boundary, so the
-// suppression is scoped to this loader only.
-@SuppressLint("MissingPermission")
-private fun loadPairedDevices(context: Context): List<PairedDevice> {
-    if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-        return emptyList()
+/** Why the picker has nothing to show — drives the exact empty-state message. */
+internal enum class PickerEmptyReason { PERMISSION_MISSING, BLUETOOTH_OFF, NO_DEVICES }
+
+/** Devices plus the precise empty reason when the list is empty. */
+internal data class PickerState(
+    val devices: List<PairedDevice>,
+    val reason: PickerEmptyReason = PickerEmptyReason.NO_DEVICES
+)
+
+/**
+ * Loads bonded Classic/Dual devices that can fire the ACL connect/disconnect
+ * trigger. LE-only devices are excluded on purpose: the runtime
+ * [BluetoothMonitor] listens to ACL broadcasts, which LE-only peripherals
+ * never produce, so offering them would create tasks that can never fire.
+ */
+internal fun loadPickerState(context: Context): PickerState {
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S &&
+        ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) !=
+        PackageManager.PERMISSION_GRANTED
+    ) {
+        return PickerState(emptyList(), PickerEmptyReason.PERMISSION_MISSING)
     }
-    val adapter = context.getSystemService(BluetoothManager::class.java)?.adapter ?: return emptyList()
-    if (!adapter.isEnabled) return emptyList()
-    return runCatching {
-        adapter.bondedDevices
+    val adapter = runCatching {
+        context.getSystemService(BluetoothManager::class.java)?.adapter
+    }.getOrNull() ?: return PickerState(emptyList(), PickerEmptyReason.BLUETOOTH_OFF)
+    if (runCatching { adapter.isEnabled }.getOrDefault(false).not()) {
+        return PickerState(emptyList(), PickerEmptyReason.BLUETOOTH_OFF)
+    }
+    val devices = runCatching {
+        // BLUETOOTH_CONNECT is checked above; lint cannot follow the guard
+        // through the runCatching boundary, so the suppression stays scoped here.
+        @SuppressLint("MissingPermission")
+        val bonded = adapter.bondedDevices
+        bonded
             .filter { it.type != BluetoothDevice.DEVICE_TYPE_LE }
             .mapNotNull { device ->
+                val address = runCatching { device.address }.getOrNull().orEmpty()
+                if (address.isBlank()) return@mapNotNull null
                 val name = runCatching { device.name }.getOrNull()
                     ?.takeIf { it.isNotBlank() }
-                    ?: return@mapNotNull null
-                PairedDevice(name = name, address = device.address)
+                    ?: address
+                PairedDevice(name = name, address = address)
             }
             .sortedBy { it.name.lowercase() }
     }.getOrElse { emptyList() }
+    return PickerState(devices, PickerEmptyReason.NO_DEVICES)
 }
+
+// Kept for existing callers/tests: the device list without the empty reason.
+private fun loadPairedDevices(context: Context): List<PairedDevice> =
+    loadPickerState(context).devices

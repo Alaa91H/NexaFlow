@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.DoNotDisturbOn
 import androidx.compose.material.icons.filled.AirplanemodeActive
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -31,6 +32,7 @@ import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -95,12 +97,14 @@ internal val constraintTypeOptions = listOf(
     ConstraintType.DND,
     ConstraintType.AIRPLANE,
     ConstraintType.CHARGING,
-    ConstraintType.LOCATION
+    ConstraintType.LOCATION,
+    ConstraintType.SCHEDULE
 )
 
 /** Sensible default config for a freshly added constraint. */
 internal fun defaultConstraintConfig(type: ConstraintType): Map<String, String> = when (type) {
     ConstraintType.BATTERY -> mapOf("direction" to "BELOW", "level" to "20")
+    ConstraintType.SCHEDULE -> mapOf("days" to "", "start" to "22:00", "end" to "06:00")
     ConstraintType.BLUETOOTH -> mapOf("state" to "ON")
     ConstraintType.DND -> mapOf("state" to "ON")
     ConstraintType.AIRPLANE -> mapOf("state" to "ON")
@@ -119,6 +123,7 @@ internal fun ConstraintType.labelRes(): Int = when (this) {
     ConstraintType.AIRPLANE -> R.string.constraint_type_airplane
     ConstraintType.CHARGING -> R.string.constraint_type_charging
     ConstraintType.LOCATION -> R.string.constraint_type_location
+    ConstraintType.SCHEDULE -> R.string.constraint_type_schedule
     // Plugin conditions are created only by the verified plugin configuration
     // flow; a persisted/imported instance remains visible but is not selectable
     // from the generic constraint picker.
@@ -135,6 +140,7 @@ internal fun ConstraintType.subtitleRes(): Int = when (this) {
     ConstraintType.AIRPLANE -> R.string.constraint_type_airplane_sub
     ConstraintType.CHARGING -> R.string.constraint_type_charging_sub
     ConstraintType.LOCATION -> R.string.constraint_type_location_sub
+    ConstraintType.SCHEDULE -> R.string.constraint_type_schedule_sub
     ConstraintType.PLUGIN -> R.string.plugin_no_edit
 }
 
@@ -148,6 +154,7 @@ internal fun ConstraintType.icon(): ImageVector = when (this) {
     ConstraintType.AIRPLANE -> Icons.Filled.AirplanemodeActive
     ConstraintType.CHARGING -> Icons.Filled.BatteryChargingFull
     ConstraintType.LOCATION -> Icons.Filled.MyLocation
+    ConstraintType.SCHEDULE -> Icons.Filled.Schedule
     ConstraintType.PLUGIN -> Icons.Filled.Extension
 }
 
@@ -428,6 +435,59 @@ fun ConstraintEditorCard(
                             onClick = { onConfigChange(draft.copy(config = draft.config + ("state" to "NOT_CHARGING"))) },
                             label = stringResource(R.string.charging_no),
                             modifier = Modifier.testTag("constraint_charging_no")
+                        )
+                    }
+                }
+                ConstraintType.SCHEDULE -> {
+                    // Day-of-week bitmask + time window, mirroring BlackList
+                    // schedule rules (overnight windows supported).
+                    val selectedDays = draft.config["days"].orEmpty()
+                        .split(',')
+                        .mapNotNull { it.trim().toIntOrNull() }
+                        .filter { it in 1..7 }
+                        .toSet()
+                    Text(
+                        text = stringResource(R.string.schedule_days_label),
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        weekdayOptions.forEach { (day, label) ->
+                            SelectChip(
+                                selected = day in selectedDays,
+                                onClick = {
+                                    val next = if (day in selectedDays) {
+                                        selectedDays - day
+                                    } else {
+                                        selectedDays + day
+                                    }
+                                    val stored = next.sorted().joinToString(",")
+                                    onConfigChange(draft.copy(config = draft.config + ("days" to stored)))
+                                },
+                                label = stringResource(label)
+                            )
+                        }
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = draft.config["start"] ?: "22:00",
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("start" to it))) },
+                            modifier = Modifier.weight(1f),
+                            label = { Text(text = stringResource(R.string.schedule_start)) },
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = draft.config["end"] ?: "06:00",
+                            onValueChange = { onConfigChange(draft.copy(config = draft.config + ("end" to it))) },
+                            modifier = Modifier.weight(1f),
+                            label = { Text(text = stringResource(R.string.schedule_end)) },
+                            singleLine = true
                         )
                     }
                 }

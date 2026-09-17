@@ -54,8 +54,12 @@ class SensorMonitor @Inject constructor(
     private var automations: List<Automation> = emptyList()
 
     private val lastRunAt = ConcurrentHashMap<String, Long>()
-    /** Automations currently in their triggered state (fires exit on end). */
+    /** Automations currently in their triggered state (fires exit on the opposite event). */
     private val activeStates = ConcurrentHashMap<String, Boolean>()
+    /** Debounce per sensor to avoid coroutine storm on rapid flicker (200ms). */
+    private val lastSensorEventAt = ConcurrentHashMap<String, Long>()
+    /** Cached candidates per sensor — rebuilt only on refresh, not per reading. */
+    private var candidatesBySensor: Map<String, List<Automation>> = emptyMap()
 
     private val sensorManager by lazy {
         context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -137,6 +141,12 @@ class SensorMonitor @Inject constructor(
     private suspend fun refresh() {
         val fresh = runCatching { repository.getAutomations().first() }.getOrDefault(emptyList())
         automations = fresh
+        candidatesBySensor = mapOf(
+            "PROXIMITY" to SensorTriggerMatcher.automationsFor(fresh, "PROXIMITY"),
+            "LIGHT" to SensorTriggerMatcher.automationsFor(fresh, "LIGHT"),
+            "SHAKE" to SensorTriggerMatcher.automationsFor(fresh, "SHAKE"),
+            "STEP" to SensorTriggerMatcher.automationsFor(fresh, "STEP")
+        )
         // Re-arm the durable active set before the first reading reconciles:
         // stateful sensors (proximity/light) deliver readings continuously, so
         // a task whose condition already ended while the process was down
@@ -204,10 +214,14 @@ class SensorMonitor @Inject constructor(
         stepDelta: Int = 0,
         maxRangeCm: Float = 0f
     ) {
+        // Debounce: 200ms per sensor to avoid storm on rapid light flicker / shake
+        val now = System.currentTimeMillis()
+        val last = lastSensorEventAt[sensor] ?: 0L
+        if (now - last < 200) return
+        lastSensorEventAt[sensor] = now
         val snapshot = automations
         if (snapshot.isEmpty()) return
-        val now = System.currentTimeMillis()
-        val candidates = SensorTriggerMatcher.automationsFor(snapshot, sensor)
+        val candidates = candidatesBySensor[sensor] ?: SensorTriggerMatcher.automationsFor(snapshot, sensor)
         if (candidates.isEmpty()) return
 
         scope.launch {

@@ -25,6 +25,26 @@ import java.io.File
 @RunWith(RobolectricTestRunner::class)
 class MigrationTest {
 
+    @Test fun migrate18To19AddsRevokedCapabilityAndPreservesTask() {
+        helper.createDatabase(18).apply {
+            execSQL("INSERT INTO automations (id,name,description,icon,iconColor,backgroundColor,category,priority,enabled,showToastOnToggle,triggersJson,actionsJson,constraintsJson,exitActionsJson,revertOnExit,cooldownSeconds,workflowVersion,createdAt,updatedAt) VALUES ('a','Task','','bolt',1,2,'general',1,1,1,'[]','[]','[]','[]',0,10,1,1,2)")
+            close()
+        }
+        val migrated = helper.runMigrationsAndValidate(19, listOf(Migrations.MIGRATION_18_19))
+        migrated.prepare("SELECT name, deepLinkToken FROM automations WHERE id='a'").use {
+            assertTrue(it.step()); assertEquals("Task", it.getText(0)); assertTrue(it.isNull(1))
+        }
+        migrated.close()
+    }
+
+    @Test fun historicalChainsReach19() {
+        for (version in listOf(1, 12, 16, 18)) {
+            helper.createDatabase(version).close()
+            helper.runMigrationsAndValidate(19, Migrations.ALL).close()
+            dbFile.delete()
+        }
+    }
+
     @get:Rule
     val temporaryFolder = TemporaryFolder()
 

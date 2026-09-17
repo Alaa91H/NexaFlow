@@ -233,4 +233,10 @@
     <string name="update_notification_channel_sub">إشعارات عند توفر إصدار أحدث من NexaFlow</string>
     <string name="phone_state_permission">حالة الهاتف ووضع الشبكة</string>
     <string name="phone_state_permission_sub">قراءة الشرائح النشطة وأوضاع الشبكة التي يدعمها الجهاز فعلياً. يتطلب تغيير الوضع أيضاً روت أو Shizuku أو صلاحية تطبيق نظام.</string>
+    <string name="blocked_calls_subtitle">سجل مكالمات المهام التي تحجب المتصلين</string>
+    <string name="diagnostics_title">مشاكل الإعداد</string>
+    <string name="diagnostics_intro">مهام فشلت إجراءاتها وقت التنفيذ بسبب قيم إعداد غير صالحة</string>
+    <string name="blocked_calls_title">المكالمات المحجوبة</string>
+    <string name="blocked_calls_empty">لا توجد مكالمات محجوبة بعد</string>
+    <string name="blocked_calls_filter_all">كل القواعد</string>
 </resources>

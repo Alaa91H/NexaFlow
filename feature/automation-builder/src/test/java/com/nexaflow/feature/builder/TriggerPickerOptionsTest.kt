@@ -14,9 +14,12 @@ class TriggerPickerOptionsTest {
     }
 
     @Test
-    fun unifiedConnectivityTriggerIsAddable() {
-        assertTrue(TriggerType.CONNECTIVITY in triggerTypeOptions)
+    fun wifiAndMobileDataTriggersAreSeparateOptions() {
+        assertTrue(TriggerType.WIFI_CONNECTED in triggerTypeOptions)
+        assertTrue(TriggerType.MOBILE_DATA_CONNECTED in triggerTypeOptions)
         assertTrue(TriggerType.HOTSPOT in triggerTypeOptions)
+        // The legacy combined network trigger is no longer offered.
+        assertFalse(TriggerType.CONNECTIVITY in triggerTypeOptions)
     }
 
     @Test

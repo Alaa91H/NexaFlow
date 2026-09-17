@@ -1,5 +1,6 @@
 package com.nexaflow.core.execution.compat
 
+import com.nexaflow.core.execution.compat.HardwareProfile
 import com.nexaflow.core.rom.model.IntegrationLevel
 import com.nexaflow.core.rom.model.RomCapability
 import com.nexaflow.core.rom.model.RomFamily
@@ -14,20 +15,31 @@ class CommandCompatibilityEngineTest {
 
     private val engine = CommandCompatibilityEngine()
 
+    private val defaultHardware = HardwareProfile(
+        hasNfc = true, hasTelephony = true, hasBluetooth = true,
+        hasCameraFlash = true, hasProximitySensor = true,
+        hasLightSensor = true, hasStepCounter = true,
+        hasAccelerometer = true, hasGyroscope = true,
+        hasLocationGps = true, hasUsbAccessory = true,
+        hasEthernet = true, hasHdmi = true, isWatch = false
+    )
+
     private fun profile(
         sdk: Int = 36,
         family: RomFamily = RomFamily.AOSP,
         level: IntegrationLevel = IntegrationLevel.NORMAL,
         caps: Set<RomCapability> = emptySet(),
         perms: Set<String> = emptySet(),
-        elevated: Boolean = false
+        elevated: Boolean = false,
+        hardware: HardwareProfile = defaultHardware
     ) = DeviceProfile(
         sdk = sdk,
         romFamily = family,
         integrationLevel = level,
         capabilities = caps,
         grantedPermissions = perms,
-        hasElevatedShell = elevated
+        hasElevatedShell = elevated,
+        hardware = hardware
     )
 
     // ── Universal commands work everywhere ────────────────────────────────

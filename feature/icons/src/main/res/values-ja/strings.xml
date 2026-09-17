@@ -2,7 +2,6 @@
 <resources>
     <string name="choose_icon_title">アイコンを選択</string>
     <string name="done">完了</string>
-    <string name="search_icons">アイコンを検索</string>
     <string name="category_all">すべて</string>
     <string name="category_general">一般</string>
     <string name="category_connectivity">接続</string>
@@ -14,4 +13,6 @@
     <string name="category_time">時間</string>
     <string name="category_location">場所</string>
     <string name="icon_color">色</string>
+    <string name="category_apps">Apps</string>
+    <string name="category_security">Security</string>
 </resources>

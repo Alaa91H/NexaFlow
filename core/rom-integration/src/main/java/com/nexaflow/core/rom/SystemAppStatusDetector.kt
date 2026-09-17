@@ -63,14 +63,35 @@ object SystemAppStatusDetector {
      * `su` from PATH and actually execute it to confirm a uid=0 shell answers.
      */
     fun isRootAvailable(): Boolean {
+        val now = System.currentTimeMillis()
         val cached = rootProbeAt
-        if (cached > 0L && System.currentTimeMillis() - cached < ROOT_PROBE_TTL_MS) {
+        if (cached > 0L && now - cached < ROOT_PROBE_TTL_MS) {
             return rootProbeResult
         }
-        val result = probeRoot()
-        rootProbeResult = result
-        rootProbeAt = System.currentTimeMillis()
-        return result
+        synchronized(rootProbeLock) {
+            // Re-check under the lock: another caller may have completed the
+            // probe while we were waiting, so two concurrent requests never
+            // spawn two `su` processes for the same observation.
+            val nowUnderLock = System.currentTimeMillis()
+            val rechecked = rootProbeAt
+            if (rechecked > 0L && nowUnderLock - rechecked < ROOT_PROBE_TTL_MS) {
+                return rootProbeResult
+            }
+            // Storm guard: even when the cache was invalidated, a probe that
+            // finished less than probeSpacingMs ago is reused. A misbehaving
+            // invalidation loop (e.g. a flapping Shizuku listener) can no
+            // longer force a fresh `su` process spawn on every call — that
+            // flood is what made ActivityManager kill the app for
+            // "Too many Binders sent to SYSTEM".
+            if (lastProbeAtMs > 0L && nowUnderLock - lastProbeAtMs < probeSpacingMs) {
+                return rootProbeResult
+            }
+            val result = probeRoot()
+            rootProbeResult = result
+            rootProbeAt = nowUnderLock
+            lastProbeAtMs = nowUnderLock
+            return result
+        }
     }
 
     /** Drops the cached probe result so the next check re-probes the device. */
@@ -78,13 +99,40 @@ object SystemAppStatusDetector {
         rootProbeAt = 0L
     }
 
+    /**
+     * Clears the cache and probes again immediately — used when an execution
+     * just failed with "No elevated runtime" so a freshly granted root is seen
+     * without waiting for the TTL.
+     */
+    fun refreshAndProbe(): Boolean {
+        refreshRootAvailability()
+        return isRootAvailable()
+    }
+
     @Volatile
     private var rootProbeResult = false
     @Volatile
     private var rootProbeAt = 0L
+    // Wall-clock of the last actual probe; never cleared by refreshRootAvailability
+    // so the storm guard below can always see how recently a probe really ran.
+    @Volatile
+    private var lastProbeAtMs = 0L
+    private val rootProbeLock = Any()
     // Short TTL: a freshly granted root (via Magisk/KernelSU) must be picked up
     // quickly by the permission manager without re-spawning a process too often.
-    private const val ROOT_PROBE_TTL_MS = 5_000L
+    // Reduced from 5s to 2s after review — the previous window hid a new grant
+    // while the dashboard toast was still visible.
+    private const val ROOT_PROBE_TTL_MS = 2_000L
+
+    /**
+     * Minimum wall-clock spacing between real `su` probes. Calls within this
+     * window reuse the last answer even if the cache was invalidated, so an
+     * event storm cannot translate into a process-spawn/binder flood. Each
+     * spawn costs ~57 binder transactions on KernelSU (observed on device),
+     * so the spacing directly bounds the binder rate. Internal so tests can
+     * disable it for deterministic grant flows.
+     */
+    internal var probeSpacingMs: Long = 5_000L
 
     /**
      * Static `su` locations covering legacy SuperSU/OEM ROMs plus the modern
@@ -158,7 +206,12 @@ object SystemAppStatusDetector {
     private fun suAnswersAsRoot(): Boolean {
         rootProbe?.let { return it() }
         return try {
-            val process = ProcessBuilder("sh", "-c", "su -c id || su 0 id || /system/bin/su -c id")
+            // KernelSU Next exposes su only inside a granted app's mount namespace,
+            // so probe the most reliable forms including the explicit KSU path.
+            val process = ProcessBuilder(
+                "sh", "-c",
+                "su -c id 2>&1 || su 0 -c id 2>&1 || /system/bin/su -c id 2>&1 || /data/adb/ksu/bin/su -c id 2>&1 || /data/adb/magisk/busybox su -c id 2>&1"
+            )
                 .redirectErrorStream(true)
                 .start()
             val output = StringBuilder()
@@ -175,7 +228,13 @@ object SystemAppStatusDetector {
             reader.join(1000)
             process.destroy()
             // su answered: the output of `id` contains "uid=0".
-            output.contains("uid=0")
+            val text = output.toString()
+            android.util.Log.d(
+                "SystemAppStatusDetector",
+                "su probe: exit=${process.exitValue()} out=${text.trim().take(120)} caller=" +
+                    Thread.currentThread().stackTrace.take(6).joinToString("<-") { "${it.className.substringAfterLast('.')}#${it.methodName}:${it.lineNumber}" }
+            )
+            text.contains("uid=0")
         } catch (_: Throwable) {
             false
         }

@@ -143,6 +143,8 @@ jobs:
         # distributed APK so the map works for all users, not just local builds.
         NEXAFLOW_MAPS_API_KEY: ${{ secrets.NEXAFLOW_MAPS_API_KEY }}
       run: ./gradlew assembleDebug assembleRelease
+    - name: Audit merged release exported components
+      run: python3 scripts/audit_exported_components.py --merged app/build/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml
     - name: Verify release APK signing certificate
       if: ${{ env.KEYSTORE_B64 != '' }}
       run: |

@@ -27,6 +27,20 @@ import org.junit.Test
  */
 class BackupManagerTest {
 
+    @Test fun portableJsonNeverContainsCapability() {
+        val text = backupJson(validAutomation().copy(deepLinkToken = "LIVE_CAPABILITY_DO_NOT_EXPORT"))
+        assertFalse(text.contains("LIVE_CAPABILITY_DO_NOT_EXPORT"))
+        assertFalse(text.contains("deepLinkToken"))
+    }
+
+    @Test fun parserQuotasRejectDeepAndLargeInputs() {
+        assertEquals(BackupPreflight.InvalidFile, manager.preflight("[".repeat(33) + "]".repeat(33)))
+        assertEquals(BackupPreflight.InvalidFile, manager.preflight(" ".repeat(BackupLimits.MAX_BYTES + 1)))
+        assertEquals(BackupPreflight.InvalidFile, manager.preflight(backupJson(validAutomation().copy(name = "x".repeat(513)))))
+        assertEquals(BackupPreflight.InvalidFile, manager.preflight(backupJson(validAutomation().copy(
+            constraints = List(101) { Constraint(ConstraintType.WIFI, emptyMap()) }))))
+    }
+
     private val repository = FakeAutomationRepository()
     private val manager = BackupManager(repository)
 

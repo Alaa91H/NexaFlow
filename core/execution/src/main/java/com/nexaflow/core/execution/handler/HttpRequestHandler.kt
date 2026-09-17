@@ -5,9 +5,7 @@ import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.workflow.RetryExecutor
 import com.nexaflow.domain.workflow.RetryPolicy
-import java.io.IOException
-import java.net.HttpURLConnection
-import java.net.URL
+import okhttp3.RequestBody.Companion.toRequestBody
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -27,19 +25,18 @@ import kotlinx.coroutines.withContext
  *   automationId | action | method | url | body) so a server honoring the
  *   header de-duplicates a replayed request.
  *
- * The transport is injectable for atomic tests; [HttpURLConnectionTransport] is
+ * The transport is injectable for atomic tests; [SecureHttpTransport] is
  * the production default.
  *
  * Step 4 (Appendix A.4.1): when the action configures `outputPath` (a JSONPath
  * into the shared [WorkflowRunContext]), the terminal outcome is published at
- * that path as `{status, body}` — on success **and** failure — so a downstream
+ * that path as `{status, body, truncated, contentType, finalUrl, bytesRead}` — on success **and** failure — so a downstream
  * node can read it via `WorkflowRunContext.get(outputPath)` and branch on
- * `status`. The body in the context is the **full** response body; only the
- * status message is display-truncated.
+ * `status`. Oversized responses fail with an empty body and truncated=true.
  */
 class HttpRequestHandler(
     private val retryExecutor: RetryExecutor = RetryExecutor(),
-    private val transport: HttpTransport = HttpURLConnectionTransport(),
+    private val transport: HttpTransport? = null,
 ) : ActionHandler {
 
     override val supportedTypes: Set<ActionType> = setOf(ActionType.SYSTEM_HTTP_REQUEST)
@@ -47,6 +44,10 @@ class HttpRequestHandler(
     override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult {
         val url = action.config["url"].orEmpty().trim()
         if (url.isEmpty()) return SystemControlResult.fail("No URL configured")
+        val required = com.nexaflow.domain.security.HttpAccessPolicy.runtimePermissions(action.config, android.os.Build.VERSION.SDK_INT)
+        if (required.any { ctx.appContext.checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED })
+            return SystemControlResult.fail("LOCAL_NETWORK_PERMISSION_REQUIRED")
+        val requestTransport = transport ?: SecureHttpTransport(action.config["allowPrivateNetwork"] == "true")
         val method = action.config["method"].orEmpty().uppercase().ifBlank { "GET" }
         val body = action.config["body"].orEmpty()
         val timeoutMs = (action.config["timeoutMs"]?.toLongOrNull() ?: 10_000L).coerceIn(1_000L, 60_000L)
@@ -67,18 +68,21 @@ class HttpRequestHandler(
             // published outcome, so the final code/body are known here.
             var finalCode = 0
             var finalBody = ""
+            var finalAttempt = HttpAttempt(0, "")
             val outcome: SystemControlResult = runRetryLoop(
                 url = url,
                 method = method,
                 body = body,
                 timeoutMs = timeoutMs.toInt(),
                 headers = headers,
-                policy = policy
-            ) { code, snippet ->
-                finalCode = code
-                finalBody = snippet
+                policy = policy,
+                requestTransport = requestTransport
+            ) { result ->
+                finalCode = result.code
+                finalBody = result.snippet
+                finalAttempt = result
             }
-            publishOutput(ctx, outputPath, finalCode, finalBody)
+            publishOutput(ctx, outputPath, finalCode, finalBody, finalAttempt)
             outcome
         }
     }
@@ -95,11 +99,13 @@ class HttpRequestHandler(
         timeoutMs: Int,
         headers: Map<String, String>,
         policy: RetryPolicy,
-        onAttempt: (code: Int, body: String) -> Unit,
+        requestTransport: HttpTransport,
+        onAttempt: (HttpAttempt) -> Unit,
     ): SystemControlResult {
         for (attempt in 1..policy.maxAttempts) {
-            val result = transport.execute(url, method, body, timeoutMs, headers)
-            onAttempt(result.code, result.snippet)
+            val result = requestTransport.execute(url, method, body, timeoutMs, headers)
+            onAttempt(result)
+            if (result.truncated) return SystemControlResult.fail("HTTP_RESPONSE_TOO_LARGE")
             val code = result.code
             if (code in 200..299) {
                 return SystemControlResult.ok(formatResult(code, result.snippet))
@@ -131,10 +137,12 @@ class HttpRequestHandler(
         outputPath: String,
         code: Int,
         body: String,
+        attempt: HttpAttempt,
     ) {
         if (outputPath.isBlank()) return
         val runContext = ctx.runContext ?: return
-        runCatching { runContext.put(outputPath, mapOf("status" to code, "body" to body)) }
+        runCatching { runContext.put(outputPath, mapOf("status" to code, "body" to body, "truncated" to attempt.truncated,
+            "contentType" to attempt.contentType, "finalUrl" to attempt.finalUrl, "bytesRead" to attempt.bytesRead)) }
     }
 
     /**
@@ -145,7 +153,7 @@ class HttpRequestHandler(
     private fun retryPolicy(config: Map<String, String>): RetryPolicy {
         val defaults = RetryPolicy()
         return RetryPolicy(
-            maxAttempts = config["retryAttempts"]?.toIntOrNull()?.coerceAtLeast(1) ?: defaults.maxAttempts,
+            maxAttempts = config["retryAttempts"]?.toIntOrNull()?.coerceIn(1, 5) ?: defaults.maxAttempts,
             baseDelayMs = config["retryBaseDelayMs"]?.toLongOrNull()?.coerceAtLeast(0) ?: defaults.baseDelayMs,
             capMs = config["retryCapMs"]?.toLongOrNull()?.coerceAtLeast(0) ?: defaults.capMs,
             jitter = defaults.jitter
@@ -166,6 +174,10 @@ data class HttpAttempt(
     val code: Int,
     /** Trimmed response body snippet (empty when there is none). */
     val snippet: String,
+    val truncated: Boolean = false,
+    val contentType: String = "",
+    val finalUrl: String = "",
+    val bytesRead: Int = 0,
 )
 
 /** One request attempt — injectable so retry behavior is atomically testable. */
@@ -179,53 +191,76 @@ fun interface HttpTransport {
     ): HttpAttempt
 }
 
-/** Production transport backed by [HttpURLConnection]. */
-private class HttpURLConnectionTransport : HttpTransport {
-
-    override fun execute(
-        url: String,
-        method: String,
-        body: String,
-        timeoutMs: Int,
-        headers: Map<String, String>,
-    ): HttpAttempt {
-        var connection: HttpURLConnection? = null
+/** A fresh per-hop client pins validated DNS results, with proxies and implicit redirects disabled. */
+internal class SecureHttpTransport(
+    private val allowPrivateNetwork: Boolean,
+    private val resolve: (String) -> List<java.net.InetAddress> = { java.net.InetAddress.getAllByName(it).toList() },
+    private val clientBuilder: () -> okhttp3.OkHttpClient.Builder = { okhttp3.OkHttpClient.Builder() }
+) : HttpTransport {
+    override fun execute(url: String, method: String, body: String, timeoutMs: Int,
+        headers: Map<String, String>): HttpAttempt {
+        var current = url
+        var requestMethod = method
+        var requestBody = body
         return try {
-            connection = (URL(url).openConnection() as HttpURLConnection).apply {
-                requestMethod = method
-                connectTimeout = timeoutMs
-                readTimeout = timeoutMs
-                headers.forEach { (key, value) -> setRequestProperty(key, value) }
-                if (body.isNotEmpty() && method in BODY_METHODS) {
-                    doOutput = true
+            repeat(6) { hop ->
+                val destination = HttpUrlPolicy.inspect(current, allowPrivateNetwork, resolve)
+                val client = clientBuilder()
+                    .proxy(java.net.Proxy.NO_PROXY)
+                    .dns(object : okhttp3.Dns {
+                        override fun lookup(hostname: String): List<java.net.InetAddress> {
+                            require(hostname.equals(destination.uri.host.removeSurrounding("[", "]"), true))
+                            return destination.addresses
+                        }
+                    })
+                    .followRedirects(false).followSslRedirects(false).retryOnConnectionFailure(false)
+                    .connectTimeout(timeoutMs.toLong(), java.util.concurrent.TimeUnit.MILLISECONDS)
+                    .readTimeout(timeoutMs.toLong(), java.util.concurrent.TimeUnit.MILLISECONDS)
+                    .callTimeout(timeoutMs.toLong(), java.util.concurrent.TimeUnit.MILLISECONDS)
+                    .build()
+                try {
+                    val payload = if (requestMethod in setOf("POST", "PUT", "PATCH", "DELETE"))
+                        requestBody.toRequestBody(null) else null
+                    val request = okhttp3.Request.Builder().url(current).method(requestMethod, payload)
+                        .apply { headers.forEach { (key, value) -> header(key, value) } }.build()
+                    client.newCall(request).execute().use { response ->
+                        if (response.code in setOf(301, 302, 303, 307, 308)) {
+                            require(hop < 5) { "REDIRECT_LIMIT" }
+                            val location = response.header("Location") ?: error("INVALID_REDIRECT")
+                            val next = destination.uri.resolve(location)
+                            require(next.scheme.equals("https", true)) { "HTTPS_REQUIRED" }
+                            current = next.toString()
+                            if (response.code == 303 || response.code in setOf(301, 302) && requestMethod == "POST") {
+                                requestMethod = "GET"; requestBody = ""
+                            }
+                        } else {
+                            val bytes = java.io.ByteArrayOutputStream()
+                            response.body?.byteStream()?.use { input ->
+                                val buffer = ByteArray(8192)
+                                while (bytes.size() <= MAX_RESPONSE_BYTES) {
+                                    val n = input.read(buffer, 0, minOf(buffer.size, MAX_RESPONSE_BYTES + 1 - bytes.size()))
+                                    if (n < 0) break
+                                    bytes.write(buffer, 0, n)
+                                }
+                            }
+                            val truncated = bytes.size() > MAX_RESPONSE_BYTES
+                            return HttpAttempt(response.code, if (truncated) "" else bytes.toString("UTF-8"),
+                                truncated, response.header("Content-Type").orEmpty(), current, bytes.size())
+                        }
+                    }
+                } finally {
+                    client.connectionPool.evictAll()
+                    client.dispatcher.executorService.shutdown()
                 }
             }
-            if (connection.doOutput) {
-                connection.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
-            }
-            val code = connection.responseCode
-            // Error responses (4xx/5xx) stream via errorStream on some
-            // implementations; fall back so failures still report the code.
-            val response = try {
-                connection.inputStream
-                    ?.bufferedReader(Charsets.UTF_8)
-                    ?.use { it.readText() }
-                    .orEmpty()
-            } catch (_: IOException) {
-                connection.errorStream
-                    ?.bufferedReader(Charsets.UTF_8)
-                    ?.use { it.readText() }
-                    .orEmpty()
-            }
-            HttpAttempt(code, response.trim().ifBlank { "" })
-        } catch (e: Exception) {
-            HttpAttempt(0, e.message ?: e.javaClass.simpleName)
-        } finally {
-            connection?.disconnect()
+            HttpAttempt(-1, "REDIRECT_LIMIT")
+        } catch (_: IllegalArgumentException) {
+            HttpAttempt(-1, "HTTP_POLICY_REJECTED")
+        } catch (_: java.net.UnknownHostException) {
+            HttpAttempt(-1, "DNS_UNRESOLVED")
+        } catch (_: Exception) {
+            HttpAttempt(0, "HTTP_CONNECTION_FAILED")
         }
     }
-
-    private companion object {
-        val BODY_METHODS = setOf("POST", "PUT", "PATCH", "DELETE")
-    }
+    companion object { const val MAX_RESPONSE_BYTES = 128 * 1024 }
 }

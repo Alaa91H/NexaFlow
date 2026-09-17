@@ -70,7 +70,11 @@ class DeviceStateSnapshot private constructor(
     private val dataRoaming: Boolean?,
     private val callVibration: Boolean?,
     private val pointerSpeed: String?,
-    private val screensaverTimeout: String?
+    private val screensaverTimeout: String?,
+    // Display scaling: best-effort so unreadable/never-overridden values skip
+    // restore instead of failing an otherwise complete revert.
+    private val fontScale: String?,
+    private val displayDensity: String?
 ) {
 
     /**
@@ -178,6 +182,15 @@ class DeviceStateSnapshot private constructor(
                 restoreRawSetting(controller, "SYSTEM", "pointer_speed", pointerSpeed)
             ActionType.SYSTEM_SCREENSAVER_TIMEOUT ->
                 restoreRawSetting(controller, "SECURE", "screensaver_timeout", screensaverTimeout)
+            ActionType.SYSTEM_FONT_SCALE ->
+                restoreRawSetting(controller, "SYSTEM", "font_scale", fontScale)
+            ActionType.SYSTEM_DISPLAY_DENSITY -> {
+                val dpi = displayDensity?.toIntOrNull()
+                    ?: return SystemControlResult.ok("Nothing to restore")
+                runCatching { controller.setDisplayDensity(dpi) }.getOrElse {
+                    SystemControlResult.fail(it.message ?: "restore failed")
+                }
+            }
             ActionType.SYSTEM_SCREEN_ROTATION -> restoreToggle(controller::setScreenRotation, autoRotate)
             ActionType.SYSTEM_BRIGHTNESS ->
                 runCatching { controller.setBrightness(brightness) }.getOrElse { SystemControlResult.fail(it.message ?: "restore failed") }
@@ -350,6 +363,12 @@ class DeviceStateSnapshot private constructor(
                 }.getOrNull(),
                 screensaverTimeout = runCatching {
                     Settings.Secure.getInt(context.contentResolver, "screensaver_timeout", 600000).toString()
+                }.getOrNull(),
+                fontScale = runCatching {
+                    Settings.System.getFloat(context.contentResolver, "font_scale", 1f).toString()
+                }.getOrNull(),
+                displayDensity = runCatching {
+                    Settings.Global.getString(context.contentResolver, "display_density_forced")
                 }.getOrNull(),
                 hotspotEnabled = globalBool(context, "tether_on"),
                 airplaneModeEnabled = globalBool(context, Settings.Global.AIRPLANE_MODE_ON),
