@@ -1,5 +1,15 @@
 # Changelog
 
+## [v3.74.2] - 2026-09-17
+
+### Fixed
+
+- Root and Shizuku availability are now evaluated independently in the ROM capability provider. On devices where both are approved, the builder can expose both elevated execution routes instead of hiding Root because Shizuku was detected first.
+
+### Changed
+
+- Expanded the configuration and installation documentation to describe capability-aware discovery, locked grantable options, and the difference between a catalog entry, backend availability, and verified execution.
+
 ## [v3.74.1] - 2026-09-17
 
 ### Fixed

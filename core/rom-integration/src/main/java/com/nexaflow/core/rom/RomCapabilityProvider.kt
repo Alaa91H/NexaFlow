@@ -58,8 +58,13 @@ class RomCapabilityProvider(
                 romFamily == RomFamily.ONE_UI && isElevated()
             RomCapability.OEM_HIDDEN_API ->
                 isGenericOemFamily(romFamily) && isElevated()
-            RomCapability.ROOT_SHELL -> integrationLevel == IntegrationLevel.ROOT
-            RomCapability.SHIZUKU -> integrationLevel == IntegrationLevel.SHIZUKU
+            // IntegrationLevel is a single display classification. A rooted
+            // device may also have a granted Shizuku session, in which case
+            // detection intentionally reports Shizuku first. Probe each
+            // backend independently so the builder can surface every route
+            // that is actually usable instead of hiding Root behind Shizuku.
+            RomCapability.ROOT_SHELL -> PrivilegedRunner.isRootAvailable()
+            RomCapability.SHIZUKU -> PrivilegedRunner.isShizukuGranted()
         }
     }
 

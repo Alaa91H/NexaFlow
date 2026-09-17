@@ -53,3 +53,7 @@ Manage external task access in task details: enable, rotate, revoke, then share 
 Webhooks listen on loopback, require a token and configured path/method, and are not an internet-facing service. New triggers generate tokens; use task details to repair legacy empty-token configurations. Rate/concurrency/header/deadline limits can reject bursts.
 
 Backups and `.nexaflow` single-task files use the same preflight limits. Imports are disabled for review and cannot replace existing IDs silently. Deep-link and webhook tokens are excluded/cleared. Other configuration values may contain secrets and must be reviewed before sharing.
+
+## Root and Shizuku availability
+
+The builder classifies each option from the live device profile and capability snapshot. Unsupported functions are hidden; functions that can become usable after a user grant remain visible as locked rows. Root and Shizuku are checked independently, so a device with both approved backends exposes both routes instead of treating one as a substitute for the other. A capability shown in the catalog is still subject to the Android version, OEM implementation and a verified runtime result; the app does not report success merely because an elevated backend exists.
