@@ -1,3 +1,5 @@
+> **Historical / topic reference.** Retained for provenance; version-specific counts, completion claims and test results below have not been revalidated for v3.74. See the [current documentation index](README.md) for the supported project overview and current validation status.
+
 # 🚀 تقرير معمارية تنفيذي متكامل (نسخة مجهرية) — منصة أتمتة المهام (Automation & iPaaS)
 
 > **النطاق:** تفكيك معماري مجهري لمشروع NexaFlow («المهام المجدولة») — محرك الأتمتة على الجهاز

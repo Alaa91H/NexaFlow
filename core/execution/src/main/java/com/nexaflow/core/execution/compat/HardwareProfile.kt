@@ -12,7 +12,7 @@ import android.hardware.SensorManager
  * This is what makes the engine truly adaptive and strict: a whyred without
  * NFC will never show NFC triggers, a tablet without telephony will hide
  * network-mode, etc. Pure live probes, no hard-coded device lists.
- * Covers all 53 triggers and 168 actions comprehensively.
+ * Sensor availability is based on the same default-sensor lookup used by the monitor.
  */
 data class HardwareProfile(
     val hasNfc: Boolean,
@@ -28,7 +28,8 @@ data class HardwareProfile(
     val hasUsbAccessory: Boolean,
     val hasEthernet: Boolean,
     val hasHdmi: Boolean,
-    val isWatch: Boolean
+    val isWatch: Boolean,
+    val sensorTypes: Set<Int> = emptySet()
 ) {
     companion object {
         fun probe(context: Context): HardwareProfile {
@@ -48,7 +49,9 @@ data class HardwareProfile(
                 hasUsbAccessory = pm.hasSystemFeature(PackageManager.FEATURE_USB_ACCESSORY) || pm.hasSystemFeature(PackageManager.FEATURE_USB_HOST),
                 hasEthernet = pm.hasSystemFeature(PackageManager.FEATURE_ETHERNET),
                 hasHdmi = false,
-                isWatch = pm.hasSystemFeature(PackageManager.FEATURE_WATCH)
+                isWatch = pm.hasSystemFeature(PackageManager.FEATURE_WATCH),
+                sensorTypes = sensorManager?.let { manager -> manager.getSensorList(Sensor.TYPE_ALL).map { it.type }
+                    .filter { manager.getDefaultSensor(it) != null }.toSet() }.orEmpty()
             )
         }
     }

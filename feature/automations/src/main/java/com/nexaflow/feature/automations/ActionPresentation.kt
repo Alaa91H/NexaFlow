@@ -261,5 +261,13 @@ fun actionPresentation(type: ActionType): Triple<Int, Int, ImageVector> = when (
     ActionType.EVO_THEME -> Triple(R.string.action_evo_theme, R.string.action_evo_theme_sub, Icons.Filled.Gradient)
     ActionType.EVO_AMBIENT_AOD -> Triple(R.string.action_evo_ambient_aod, R.string.action_evo_ambient_aod_sub, Icons.Filled.WbSunny)
     ActionType.EVO_NOTIFICATIONS -> Triple(R.string.action_evo_notifications, R.string.action_evo_notifications_sub, Icons.Filled.NotificationsActive)
+    ActionType.DATA_TEXT -> Triple(R.string.action_data_text, R.string.action_data_text_sub, Icons.Filled.Tune)
+    ActionType.DATA_ENCODING -> Triple(R.string.action_data_encoding, R.string.action_data_encoding_sub, Icons.Filled.Tune)
+    ActionType.DATA_HASH -> Triple(R.string.action_data_hash, R.string.action_data_hash_sub, Icons.Filled.Tune)
+    ActionType.DATA_RANDOM -> Triple(R.string.action_data_random, R.string.action_data_random_sub, Icons.Filled.Tune)
+    ActionType.DATA_MATH -> Triple(R.string.action_data_math, R.string.action_data_math_sub, Icons.Filled.Tune)
+    ActionType.DATA_DATE_TIME -> Triple(R.string.action_data_date_time, R.string.action_data_date_time_sub, Icons.Filled.Tune)
+    ActionType.DATA_JSON -> Triple(R.string.action_data_json, R.string.action_data_json_sub, Icons.Filled.Tune)
+    ActionType.DATA_ARRAY -> Triple(R.string.action_data_array, R.string.action_data_array_sub, Icons.Filled.Tune)
     ActionType.EVO_BATCH -> Triple(R.string.action_evo_batch, R.string.action_evo_batch_sub, Icons.Filled.Build)
 }

@@ -1,3 +1,5 @@
+> **Historical / topic reference.** Retained for provenance; version-specific counts, completion claims and test results below have not been revalidated for v3.74. See the [current documentation index](../docs/README.md) for the supported project overview and current validation status.
+
 # NexaFlow — Evolution X Integration (cnb / Android 17, API 37)
 
 هذا المجلد يجعل NexaFlow جزءاً من نظام Evolution X نفسه (**system/priv-app**) بدلاً من كونه تطبيق عادي. النتيجة: لا حاجة لـ Shizuku أو Root لكل أمر محمي، وكل إمكانيات الروم (Evolver keys مثل `evo_*` و `lineage_*`) تعمل مباشرة.

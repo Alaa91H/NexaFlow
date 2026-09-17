@@ -20,9 +20,10 @@ private val Context.activeExecutionDataStore by preferencesDataStore(
  * runs. It remains intentionally separate from [ActiveTriggerStore]: a trigger
  * may be active while constraints block a task, which must never arm its exit.
  */
-class ActiveExecutionStore(private val context: Context) {
-
-    private val dataStore = context.activeExecutionDataStore
+class ActiveExecutionStore internal constructor(
+    private val dataStore: androidx.datastore.core.DataStore<androidx.datastore.preferences.core.Preferences>
+) {
+    constructor(context: Context) : this(context.activeExecutionDataStore)
     private val json = Json { ignoreUnknownKeys = false; encodeDefaults = true }
 
     /** Records that [automationId] entered the executable task lifecycle. */

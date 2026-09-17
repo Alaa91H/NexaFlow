@@ -1,6 +1,8 @@
 package com.nexaflow.core.execution.task
 
+import com.nexaflow.core.common.EpochMillis
 import com.nexaflow.core.rom.model.SystemControlResult
+import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
@@ -310,7 +312,8 @@ class TaskManagerHardeningTest {
 
     @Test
     fun deadlineThatExpiresWhileQueuedNeverExecutes() = runBlocking {
-        val manager = TaskManager()
+        val clock = AtomicLong(1_000L)
+        val manager = TaskManager(epochMillis = EpochMillis { clock.get() })
         val started = CompletableDeferred<Unit>()
         val release = CompletableDeferred<Unit>()
         try {
@@ -324,13 +327,13 @@ class TaskManagerHardeningTest {
             val deadlineTask = manager.enqueue(
                 PendingTask(
                     name = "deadline",
-                    deadlineAtMs = System.currentTimeMillis() + 30L
+                    deadlineAtMs = 1_030L
                 ) {
                     executed = true
                     SystemControlResult.ok("should-not-run")
                 }
             )
-            delay(60)
+            clock.set(1_060L)
             release.complete(Unit)
             assertTrue(manager.awaitIdle(5_000L))
 

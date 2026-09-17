@@ -6,7 +6,6 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.IntentCompat
-import java.io.File
 
 /**
  * The «Save locally» entry inside the backup share sheet.
@@ -18,17 +17,14 @@ import java.io.File
  */
 class SaveBackupActivity : ComponentActivity() {
 
-    companion object {
-        const val ACTION_SAVE_BACKUP = "com.nexaflow.app.action.SAVE_BACKUP"
-        const val EXTRA_FILE_PATH = "extra_file_path"
-    }
-
     private val createDocument =
         registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
             if (uri != null) {
                 val ok = runCatching {
-                    contentResolver.openOutputStream(uri)?.use { out ->
-                        openBackupSource()?.use { it.copyTo(out) }
+                    requireNotNull(contentResolver.openOutputStream(uri)).use { out ->
+                        requireNotNull(openBackupSource()).use { input ->
+                            out.write(com.nexaflow.data.backup.BackupLimits.read(input).toByteArray(Charsets.UTF_8))
+                        }
                     }
                 }.isSuccess
                 Toast.makeText(
@@ -52,15 +48,11 @@ class SaveBackupActivity : ComponentActivity() {
      * shared stream itself.
      */
     private fun openBackupSource(): java.io.InputStream? {
-        val filePath = intent?.getStringExtra(EXTRA_FILE_PATH)
-        if (filePath != null) {
-            val file = File(filePath)
-            if (file.exists()) return file.inputStream()
-        }
         val streamUri = intent?.let {
             IntentCompat.getParcelableExtra(it, Intent.EXTRA_STREAM, android.net.Uri::class.java)
         }
-        if (streamUri != null) {
+        if (intent?.action == Intent.ACTION_SEND && streamUri?.scheme == "content" &&
+            intent?.type in setOf("application/json", "application/octet-stream")) {
             return runCatching { contentResolver.openInputStream(streamUri) }.getOrNull()
         }
         return null

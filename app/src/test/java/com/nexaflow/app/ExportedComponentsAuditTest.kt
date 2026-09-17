@@ -74,12 +74,6 @@ class ExportedComponentsAuditTest {
         // Launcher entry + the documented deep-link surface (P0.2 token-gated).
         "com.nexaflow.app.MainActivity" to
             "Launcher + nexaflow:// deep link; execution is token-gated (P0.2)",
-        // Widget providers: the system launcher must reach them; custom actions
-        // are package-internal (no third-party execution path).
-        "com.nexaflow.app.NexaFlowToggleWidgetProvider" to
-            "AppWidget provider; APPWIDGET_UPDATE + package-internal toggle actions",
-        "com.nexaflow.app.NexaFlowStatusWidgetProvider" to
-            "AppWidget provider; APPWIDGET_UPDATE + BOOT_COMPLETED + internal refresh",
         // Share-sheet target: opens SAF picker only; receives ACTION_SEND.
         "com.nexaflow.app.SaveBackupActivity" to
             "Share-sheet «Save locally» target; only opens the SAF write picker",

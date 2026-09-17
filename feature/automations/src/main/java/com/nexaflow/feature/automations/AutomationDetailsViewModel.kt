@@ -52,6 +52,28 @@ class AutomationDetailsViewModel @Inject constructor(
     private val _executionMessage = MutableStateFlow<String?>(null)
     val executionMessage: StateFlow<String?> = _executionMessage
 
+    fun setDeepLinkAccess(enabled: Boolean) {
+        viewModelScope.launch {
+            val current = repository.getAutomationById(automationId) ?: return@launch
+            repository.saveAutomation(current.copy(
+                deepLinkToken = if (enabled) com.nexaflow.domain.security.ExternalAccessPolicy.newToken() else null,
+                updatedAt = System.currentTimeMillis()
+            ))
+        }
+    }
+
+    fun repairWebhookTokens() {
+        viewModelScope.launch {
+            val current = repository.getAutomationById(automationId) ?: return@launch
+            repository.saveAutomation(current.copy(triggers = current.triggers.map {
+                if (it.type == com.nexaflow.domain.models.TriggerType.WEBHOOK && it.config["token"].isNullOrBlank())
+                    it.copy(config = it.config + ("token" to com.nexaflow.domain.security.ExternalAccessPolicy.newToken()))
+                else it
+            }))
+            executionEngine.notifyAutomationsChanged()
+        }
+    }
+
     fun toggleEnabled(enabled: Boolean) {
         viewModelScope.launch {
             val wasEnabled = automation.value?.enabled == true

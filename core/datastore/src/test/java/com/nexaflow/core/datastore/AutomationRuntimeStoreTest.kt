@@ -16,6 +16,7 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class AutomationRuntimeStoreTest {
+    @get:org.junit.Rule val fixture = PreferenceStoreFixture()
 
     private lateinit var context: Context
     private lateinit var store: AutomationRuntimeStore
@@ -24,7 +25,7 @@ class AutomationRuntimeStoreTest {
     fun setUp() {
         runBlocking {
             context = ApplicationProvider.getApplicationContext()
-            store = AutomationRuntimeStore(context)
+            store = AutomationRuntimeStore(fixture.store)
             store.clear("automation-a")
             store.clearSchedule("automation-a")
         }

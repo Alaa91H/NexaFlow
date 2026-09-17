@@ -303,6 +303,14 @@ internal val actionOptions = listOf(
     // SYSTEM
     ActionOption(R.string.action_flashlight, R.string.action_flashlight_sub, Icons.Filled.FlashlightOn, ActionType.SYSTEM_FLASHLIGHT, ActionCategory.SYSTEM),
     ActionOption(R.string.action_open_url, R.string.action_open_url_sub, Icons.Filled.Link, ActionType.SYSTEM_OPEN_URL, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_data_text, R.string.action_data_text_sub, Icons.Filled.Tune, ActionType.DATA_TEXT, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_data_encoding, R.string.action_data_encoding_sub, Icons.Filled.Tune, ActionType.DATA_ENCODING, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_data_hash, R.string.action_data_hash_sub, Icons.Filled.Tune, ActionType.DATA_HASH, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_data_random, R.string.action_data_random_sub, Icons.Filled.Tune, ActionType.DATA_RANDOM, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_data_math, R.string.action_data_math_sub, Icons.Filled.Tune, ActionType.DATA_MATH, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_data_date_time, R.string.action_data_date_time_sub, Icons.Filled.Tune, ActionType.DATA_DATE_TIME, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_data_json, R.string.action_data_json_sub, Icons.Filled.Tune, ActionType.DATA_JSON, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_data_array, R.string.action_data_array_sub, Icons.Filled.Tune, ActionType.DATA_ARRAY, ActionCategory.SYSTEM),
     ActionOption(R.string.action_http_request, R.string.action_http_request_sub, Icons.Filled.Public, ActionType.SYSTEM_HTTP_REQUEST, ActionCategory.SYSTEM),
     ActionOption(R.string.action_power_saver, R.string.action_power_saver_sub, Icons.Filled.EnergySavingsLeaf, ActionType.SYSTEM_POWER_SAVER, ActionCategory.SYSTEM),
     ActionOption(R.string.action_animations, R.string.action_animations_sub, Icons.Filled.Palette, ActionType.SYSTEM_ANIMATIONS, ActionCategory.SYSTEM),
@@ -874,6 +882,7 @@ private fun SelectedActionCard(
             )
             PermissionHintForAction(
                 actionType = option.actionType,
+                actionConfig = config,
                 context = context,
                 refreshKey = refreshKey,
                 onRequestPermission = onRequestPermission,

@@ -1,33 +1,35 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">Zamanlanmış Görevler</string>
-    <string name="backup_saved">Yedek kaydedildi</string>
-    <string name="backup_save_failed">Yedek dosyası kaydedilemedi</string>
-    <string name="save_locally_label">Yerel olarak kaydet</string>    <string name="accessibility_service_description">Yapılandırılan uygulamaların, uygulama tetikleyicili otomasyonları çalıştırmak için açıldığını algılar. Yalnızca en üstteki uygulama izlenir; ekrandan hiçbir şey okunmaz.</string>
-    <string name="widget_status_title">Etkin otomasyonlar</string>
-    <string name="widget_status_count">0 / 0</string>
-    <string name="widget_status_last">Son çalıştırma: —</string>
-    <string name="widget_subtitle">Otomasyonlar</string>
-    <string name="widget_action">Tümünü etkinleştir</string>
-
-    <!-- Bottom navigation -->
-    <string name="widget_no_automations">Otomasyon yok</string>
-    <string name="widget_active_count">%1$s / %2$s aktif</string>
-    <string name="widget_enable_all">Tümünü etkinleştir</string>
-    <string name="widget_disable_all">Tümünü devre dışı bırak</string>
-    <string name="widget_status_count_format">%1$d / %2$d</string>
-    <string name="widget_last_run_format">Son çalıştırma: %1$s</string>
-    <string name="deep_link_run_toast">Çalıştırıldı: %1$s</string>
-    <string name="update_notification_title">Güncelleme mevcut</string>
-    <string name="update_notification_text">NexaFlow %1$s kullanılabilir</string>
-    <string name="update_notification_channel">Uygulama güncellemeleri</string>
-    <string name="update_notification_channel_sub">Daha yeni bir NexaFlow sürümü olduğunda bildirimler</string>
-    <string name="deep_link_force_message">Zorunlu çalıştırma, %1$s için tetikleyici ve koşul kontrollerini atlar ve şimdi çalıştırır.</string>
-    <string name="run_force_title">Zorla çalıştırılsın mı?</string>
-    <string name="run_force_confirm">Zorla çalıştır</string>
-    <string name="cancel">İptal</string>
-    <string name="task_import_success">Görev içe aktarıldı: %1$s (gözden geçirin ve etkinleştirin)</string>
-    <string name="task_import_invalid_workflow">Görev içe aktarılmadı: bu sürümde desteklenmeyen adımlar içeriyor</string>
-    <string name="task_import_not_single">Dosya içe aktarılmadı: tam yedek değil, tek görev (.nexaflow) dosyası seçin</string>
-    <string name="task_import_invalid_file">Dosya içe aktarılmadı: geçerli bir NexaFlow görev dosyası değil</string>
-</resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Zamanlanmış Görevler</string>
+    <string name="backup_saved">Yedek kaydedildi</string>
+    <string name="backup_save_failed">Yedek dosyası kaydedilemedi</string>
+    <string name="save_locally_label">Yerel olarak kaydet</string>    <string name="accessibility_service_description">Yapılandırılan uygulamaların, uygulama tetikleyicili otomasyonları çalıştırmak için açıldığını algılar. Yalnızca en üstteki uygulama izlenir; ekrandan hiçbir şey okunmaz.</string>
+    <string name="widget_status_title">Etkin otomasyonlar</string>
+    <string name="widget_status_count">0 / 0</string>
+    <string name="widget_status_last">Son çalıştırma: —</string>
+    <string name="widget_subtitle">Otomasyonlar</string>
+    <string name="widget_action">Tümünü etkinleştir</string>
+
+    <!-- Bottom navigation -->
+    <string name="widget_no_automations">Otomasyon yok</string>
+    <string name="widget_active_count">%1$s / %2$s aktif</string>
+    <string name="widget_enable_all">Tümünü etkinleştir</string>
+    <string name="widget_disable_all">Tümünü devre dışı bırak</string>
+    <string name="widget_status_count_format">%1$d / %2$d</string>
+    <string name="widget_last_run_format">Son çalıştırma: %1$s</string>
+    <string name="deep_link_run_toast">Çalıştırıldı: %1$s</string>
+    <string name="update_notification_title">Güncelleme mevcut</string>
+    <string name="update_notification_text">NexaFlow %1$s kullanılabilir</string>
+    <string name="update_notification_channel">Uygulama güncellemeleri</string>
+    <string name="update_notification_channel_sub">Daha yeni bir NexaFlow sürümü olduğunda bildirimler</string>
+    <string name="deep_link_force_message">Zorunlu çalıştırma, %1$s için tetikleyici ve koşul kontrollerini atlar ve şimdi çalıştırır.</string>
+    <string name="run_force_title">Zorla çalıştırılsın mı?</string>
+    <string name="cancel">İptal</string>
+    <string name="task_import_success">Görev içe aktarıldı: %1$s (gözden geçirin ve etkinleştirin)</string>
+    <string name="task_import_invalid_workflow">Görev içe aktarılmadı: bu sürümde desteklenmeyen adımlar içeriyor</string>
+    <string name="task_import_not_single">Dosya içe aktarılmadı: tam yedek değil, tek görev (.nexaflow) dosyası seçin</string>
+    <string name="task_import_invalid_file">Dosya içe aktarılmadı: geçerli bir NexaFlow görev dosyası değil</string>
+    <string name="deep_link_confirm_title">Run linked task?</string>
+    <string name="deep_link_confirm_message">An external link requests running %1$s. Review the task before confirming.</string>
+    <string name="deep_link_confirm_run">Run</string>
+</resources>

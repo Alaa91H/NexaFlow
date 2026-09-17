@@ -10,12 +10,15 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ACTION_AUTOMATIONS_CHANGED
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.NumericSensors
+import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -23,15 +26,24 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.sqrt
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
  * Fires automations with a SENSOR trigger from live device sensors: proximity
  * (covered/uncovered), light (above/below a lux threshold), shake (linear
- * acceleration magnitude) and step counter. Stateful sensors (proximity/light)
- * also fire the task's exit behavior when the condition ends.
+ * acceleration magnitude), step counter and the numeric modes in [NumericSensors].
+ * Stateful sensors retain independent activations. Exit runs after the final
+ * active sensor condition for the task ends.
  *
  * Battery-friendly: listeners are registered ONLY for sensor kinds that at
  * least one enabled automation watches, and the automation set is refreshed on
@@ -55,8 +67,11 @@ class SensorMonitor @Inject constructor(
 
     private val lastRunAt = ConcurrentHashMap<String, Long>()
     /** Automations currently in their triggered state (fires exit on the opposite event). */
-    private val activeStates = ConcurrentHashMap<String, Boolean>()
-    /** Debounce per sensor to avoid coroutine storm on rapid flicker (200ms). */
+    private val activeStates = SensorActivationState()
+    private val stateMutex = Mutex()
+    @Volatile private var monitorScope: CoroutineScope? = null
+    private val registeredListeners = mutableSetOf<SensorEventListener>()
+    /** Transient events are throttled; state changes must never be dropped. */
     private val lastSensorEventAt = ConcurrentHashMap<String, Long>()
     /** Cached candidates per sensor — rebuilt only on refresh, not per reading. */
     private var candidatesBySensor: Map<String, List<Automation>> = emptyMap()
@@ -103,7 +118,7 @@ class SensorMonitor @Inject constructor(
     }
 
     private val stepListener = object : SensorEventListener {
-        private var lastSteps: Int = -1
+        var lastSteps: Int = -1
 
         override fun onSensorChanged(event: SensorEvent) {
             if (event.values.isEmpty()) return
@@ -116,37 +131,64 @@ class SensorMonitor @Inject constructor(
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
     }
 
+    private val numericListeners = NumericSensors.specs.mapValues { (kind, _) ->
+        object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent) {
+                val value = NumericSensors.reading(kind, event.values) ?: return
+                handleReading(kind, value = value)
+            }
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+        }
+    }
+
     // ---- lifecycle --------------------------------------------------------
 
     fun initialize() {
         if (registered) return
         registered = true
+        val runningScope = CoroutineScope(scope.coroutineContext + SupervisorJob(scope.coroutineContext[Job]) + Dispatchers.Main.immediate)
+        monitorScope = runningScope
         val filter = IntentFilter(ACTION_AUTOMATIONS_CHANGED)
         // Internal app broadcast (AUTOMATIONS_CHANGED) — never exported.
         runCatching {
             ContextCompat.registerReceiver(context, changeReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
         }
-        scope.launch { refresh() }
+        runningScope.launch { stateMutex.withLock { refresh() } }
     }
 
     fun stop() {
         if (!registered) return
         registered = false
+        monitorScope?.cancel()
+        monitorScope = null
         runCatching { context.unregisterReceiver(changeReceiver) }
         unregisterAll()
         activeStates.clear()
+        automations = emptyList()
+        candidatesBySensor = emptyMap()
+        lastSensorEventAt.clear()
+        lastRunAt.clear()
+        stepListener.lastSteps = -1
     }
 
     /** Reloads the automation set and (un)registers sensors to match it. */
     private suspend fun refresh() {
-        val fresh = runCatching { repository.getAutomations().first() }.getOrDefault(emptyList())
+        if (!registered) return
+        val fresh = try {
+            repository.getAutomations().first()
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            return // Keep the last known registration set on a transient repository failure.
+        }
+        if (!registered || monitorScope?.isActive != true) return
         automations = fresh
         candidatesBySensor = mapOf(
             "PROXIMITY" to SensorTriggerMatcher.automationsFor(fresh, "PROXIMITY"),
             "LIGHT" to SensorTriggerMatcher.automationsFor(fresh, "LIGHT"),
             "SHAKE" to SensorTriggerMatcher.automationsFor(fresh, "SHAKE"),
             "STEP" to SensorTriggerMatcher.automationsFor(fresh, "STEP")
-        )
+        ) + NumericSensors.specs.keys.associateWith { SensorTriggerMatcher.automationsFor(fresh, it) }
         // Re-arm the durable active set before the first reading reconciles:
         // stateful sensors (proximity/light) deliver readings continuously, so
         // a task whose condition already ended while the process was down
@@ -160,13 +202,34 @@ class SensorMonitor @Inject constructor(
      * deleted/disabled automations are pruned.
      */
     private suspend fun rearmFromLedger(fresh: List<Automation>) {
-        val enabledIds = fresh.filter { it.enabled }.map { it.id }.toSet()
+        val allowed = fresh.filter { it.enabled }.associate { automation ->
+            automation.id to automation.triggers.filter { it.type == TriggerType.SENSOR }
+                .map { SensorTriggerMatcher.sensorOf(it.config) }.filter { kind ->
+                    val type = when (kind) {
+                        "PROXIMITY" -> SENSOR_PROXIMITY
+                        "LIGHT" -> SENSOR_LIGHT
+                        else -> NumericSensors.specs[kind]?.type
+                    }
+                    SensorTriggerMatcher.isStateful(kind) && type != null && sensorManager.getDefaultSensor(type) != null
+                }.toSet()
+        }
+        activeStates.retain(allowed)
         activeStore.activeKeys(SOURCE).forEach { key ->
             val id = key.substringBefore('|')
-            if (id in enabledIds) {
-                activeStates[id] = true
-            } else {
-                activeStore.clearAutomation(SOURCE, id)
+            val sensor = key.substringAfter('|', "")
+            val kinds = allowed[id].orEmpty()
+            when {
+                sensor.isNotEmpty() && sensor in kinds -> activeStates.add(id, sensor)
+                sensor.isEmpty() && kinds.isNotEmpty() -> {
+                    // Earlier versions stored only the automation id. Reconcile each
+                    // configured stateful sensor before deciding its missed exit.
+                    kinds.forEach { kind ->
+                        activeStates.add(id, kind)
+                        activeStore.markActive(SOURCE, "$id|$kind")
+                    }
+                    activeStore.clearActive(SOURCE, key)
+                }
+                else -> activeStore.clearActive(SOURCE, key)
             }
         }
     }
@@ -177,6 +240,9 @@ class SensorMonitor @Inject constructor(
         setRegistration(SENSOR_LIGHT, lightListener, wantedBy("LIGHT", automations))
         setRegistration(SENSOR_SHAKE, shakeListener, wantedBy("SHAKE", automations))
         setRegistration(SENSOR_STEP, stepListener, wantedBy("STEP", automations))
+        numericListeners.forEach { (kind, listener) ->
+            setRegistration(NumericSensors.specs.getValue(kind).type, listener, wantedBy(kind, automations))
+        }
     }
 
     private fun wantedBy(sensor: String, automations: List<Automation>): Boolean =
@@ -187,21 +253,21 @@ class SensorMonitor @Inject constructor(
         listener: SensorEventListener,
         wanted: Boolean
     ) {
+        if (!wanted) {
+            if (registeredListeners.remove(listener)) runCatching { sensorManager.unregisterListener(listener) }
+            if (listener === stepListener) stepListener.lastSteps = -1
+            return
+        }
+        if (listener in registeredListeners) return
         val sensor = sensorManager.getDefaultSensor(sensorType) ?: return
-        if (wanted) {
-            runCatching {
-                sensorManager.registerListener(listener, sensor, SENSOR_DELAY, handler)
-            }
-        } else {
-            runCatching { sensorManager.unregisterListener(listener) }
+        if (runCatching { sensorManager.registerListener(listener, sensor, SENSOR_DELAY, handler) }.getOrDefault(false)) {
+            registeredListeners.add(listener)
         }
     }
 
     private fun unregisterAll() {
-        runCatching { sensorManager.unregisterListener(proximityListener) }
-        runCatching { sensorManager.unregisterListener(lightListener) }
-        runCatching { sensorManager.unregisterListener(shakeListener) }
-        runCatching { sensorManager.unregisterListener(stepListener) }
+        registeredListeners.toList().forEach { listener -> runCatching { sensorManager.unregisterListener(listener) } }
+        registeredListeners.clear()
     }
 
     // ---- event handling ---------------------------------------------------
@@ -212,61 +278,67 @@ class SensorMonitor @Inject constructor(
         lux: Float = 0f,
         shakeG: Float = 0f,
         stepDelta: Int = 0,
-        maxRangeCm: Float = 0f
+        maxRangeCm: Float = 0f,
+        value: Float = 0f
     ) {
-        // Debounce: 200ms per sensor to avoid storm on rapid light flicker / shake
-        val now = System.currentTimeMillis()
-        val last = lastSensorEventAt[sensor] ?: 0L
-        if (now - last < 200) return
-        lastSensorEventAt[sensor] = now
-        val snapshot = automations
-        if (snapshot.isEmpty()) return
-        val candidates = candidatesBySensor[sensor] ?: SensorTriggerMatcher.automationsFor(snapshot, sensor)
-        if (candidates.isEmpty()) return
-
-        scope.launch {
-            candidates.forEach { automation ->
-                val triggers = automation.triggers.filter {
-                    it.type == com.nexaflow.domain.models.TriggerType.SENSOR &&
-                        SensorTriggerMatcher.sensorOf(it.config) == sensor
-                }
-                val fired = triggers.any {
-                    SensorTriggerMatcher.matches(
-                        it.config, sensor, distanceCm, lux, shakeG, stepDelta, maxRangeCm
-                    )
-                }
-                if (fired) {
-                    val last = lastRunAt[automation.id] ?: 0L
-                    if (now - last > automation.cooldownMillis) {
-                        lastRunAt[automation.id] = now
-                        val stateful = SensorTriggerMatcher.isStateful(sensor)
-                        if (stateful) {
-                            activeStates[automation.id] = true
-                            activeStore.markActive(SOURCE, automation.id)
-                        }
-                        // Shake and step events have no inverse transition;
-                        // close them after their action chain. Light/proximity
-                        // conditions stay armed until their state changes.
-                        executionEngine.runAutomation(
-                            automation = automation,
-                            completeExitOnFinish = !stateful
-                        )
+        val runningScope = monitorScope?.takeIf { registered && it.isActive } ?: return
+        val readingValid = when (sensor) {
+            "PROXIMITY" -> distanceCm.isFinite() && maxRangeCm.isFinite()
+            "LIGHT" -> lux.isFinite()
+            "SHAKE" -> shakeG.isFinite()
+            "STEP" -> stepDelta > 0
+            else -> value.isFinite()
+        }
+        if (!readingValid) return
+        val now = SystemClock.elapsedRealtime()
+        if (!SensorTriggerMatcher.isStateful(sensor)) {
+            val last = lastSensorEventAt[sensor]
+            if (last != null && now - last < 200) return
+            lastSensorEventAt[sensor] = now
+        }
+        runningScope.launch {
+            val operations = stateMutex.withLock {
+                if (!registered || !runningScope.isActive) return@withLock emptyList<Pair<Automation, Boolean>>()
+                val candidates = candidatesBySensor[sensor].orEmpty()
+                val pending = mutableListOf<Pair<Automation, Boolean>>()
+                candidates.forEach { automation ->
+                    val triggers = automation.triggers.filter {
+                        it.type == TriggerType.SENSOR && SensorTriggerMatcher.sensorOf(it.config) == sensor
                     }
-                } else if (SensorTriggerMatcher.isStateful(sensor) &&
-                    activeStates.remove(automation.id) != null
-                ) {
-                    // The condition ended (e.g. light dropped below threshold):
-                    // fire the task's exit behavior.
-                    activeStore.clearAutomation(SOURCE, automation.id)
-                    executionEngine.runExit(automation)
+                    val fired = triggers.any {
+                        SensorTriggerMatcher.matches(it.config, sensor, distanceCm, lux, shakeG, stepDelta, maxRangeCm, value)
+                    }
+                    val stateful = SensorTriggerMatcher.isStateful(sensor)
+                    if (fired) {
+                        val last = lastRunAt[automation.id]
+                        val canRun = last == null || now - last >= automation.cooldownMillis
+                        if (stateful && (canRun || activeStates.isActive(automation.id))) {
+                            val entered = activeStates.add(automation.id, sensor)
+                            if (entered || canRun) activeStore.markActive(SOURCE, "${automation.id}|$sensor")
+                        }
+                        if (canRun) {
+                            lastRunAt[automation.id] = now
+                            pending += automation to true
+                        }
+                    } else if (stateful && activeStates.contains(automation.id, sensor)) {
+                        val ended = activeStates.remove(automation.id, sensor)
+                        activeStore.clearActive(SOURCE, "${automation.id}|$sensor")
+                        if (ended) pending += automation to false
+                    }
                 }
+                pending
+            }
+            operations.forEach { (automation, enter) ->
+                if (enter) executionEngine.runAutomation(automation = automation,
+                    completeExitOnFinish = !SensorTriggerMatcher.isStateful(sensor))
+                else executionEngine.runExit(automation)
             }
         }
     }
 
     private val changeReceiver = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context, intent: Intent) {
-            scope.launch { refresh() }
+            monitorScope?.launch { stateMutex.withLock { refresh() } }
         }
     }
 

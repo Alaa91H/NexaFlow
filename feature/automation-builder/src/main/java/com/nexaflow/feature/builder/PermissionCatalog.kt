@@ -17,10 +17,14 @@ import com.nexaflow.domain.models.TriggerType
  * Shizuku/root, bluetooth) open their dedicated settings screen.
  */
 object PermissionCatalog {
+    fun runtimePermissionsFor(action: Action): List<String> =
+        if (action.type == ActionType.SYSTEM_HTTP_REQUEST)
+            com.nexaflow.domain.security.HttpAccessPolicy.runtimePermissions(action.config, android.os.Build.VERSION.SDK_INT)
+        else runtimePermissionsFor(action.type)
+
 
     /** Runtime (system-dialog) permissions required by an action. */
-    // ACCESS_LOCAL_NETWORK is an API 37 constant; requesting it on older
-    // devices is a safe no-op, so the InlinedApi warning is suppressed here.
+    // Type-only callers cannot opt in to local network access.
     @SuppressLint("InlinedApi")
     fun runtimePermissionsFor(actionType: ActionType): List<String> = when (actionType) {
         ActionType.SYSTEM_SEND_SMS -> listOf(android.Manifest.permission.SEND_SMS)
@@ -40,11 +44,8 @@ object PermissionCatalog {
         // SubscriptionManager requires this dangerous runtime permission to
         // enumerate active SIMs and read confirmed per-SIM network capability.
         ActionType.SYSTEM_NETWORK_MODE -> listOf(android.Manifest.permission.READ_PHONE_STATE)
-        // Android 17 (API 37) makes ACCESS_LOCAL_NETWORK mandatory to reach
-        // LAN devices (home-assistant hubs, NAS, smart plugs). HTTP requests
-        // to private IPs / mDNS names need it; public URLs do not, but the
-        // permission is harmless to request up-front for the HTTP action.
-        ActionType.SYSTEM_HTTP_REQUEST -> listOf(android.Manifest.permission.ACCESS_LOCAL_NETWORK)
+        // Config-aware HTTP resolution is handled by the Action overload.
+        ActionType.SYSTEM_HTTP_REQUEST -> emptyList()
         else -> emptyList()
     }
 
@@ -156,8 +157,11 @@ object PermissionCatalog {
                 )
             }
         }
-        (actions + exitActions).forEach { action ->
-            val runtime = runtimePermissionsFor(action.type)
+        (actions + exitActions + (actions + exitActions).mapNotNull { action ->
+            action.endBehavior?.takeIf { it.mode == com.nexaflow.domain.models.EndMode.SET_VALUE }
+                ?.let { action.withConfig(it.config) }
+        }).forEach { action ->
+            val runtime = runtimePermissionsFor(action)
             val special = specialPermissionFor(action.type)
             if (runtime.isNotEmpty() || special != null) {
                 result += PermissionRequirement(

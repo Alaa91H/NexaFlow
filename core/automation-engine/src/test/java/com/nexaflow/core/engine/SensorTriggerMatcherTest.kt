@@ -142,4 +142,34 @@ class SensorTriggerMatcherTest {
         assertEquals("PROXIMITY", SensorTriggerMatcher.sensorOf(mapOf("sensor" to "proximity")))
         assertEquals("", SensorTriggerMatcher.sensorOf(emptyMap()))
     }
+
+    @Test
+    fun everyNumericSensorHasStatefulEntryAndExit() {
+        com.nexaflow.domain.models.NumericSensors.specs.keys.forEach { sensor ->
+            val config = mapOf("sensor" to sensor, "event" to "BETWEEN", "threshold" to "10", "upperThreshold" to "20")
+            assertTrue(SensorTriggerMatcher.isStateful(sensor))
+            assertTrue(SensorTriggerMatcher.matches(config, sensor, 0f, 0f, 0f, 0, 0f, 15f))
+            assertFalse(SensorTriggerMatcher.ended(config, sensor, 0f, 0f, 0f, 0, 0f, 15f))
+            assertTrue(SensorTriggerMatcher.ended(config, sensor, 0f, 0f, 0f, 0, 0f, 21f))
+            assertFalse(SensorTriggerMatcher.ended(config, sensor, 0f, 0f, 0f, 0, 0f, Float.NaN))
+        }
+    }
+
+    @Test
+    fun invalidPhysicalSamplesDoNotCauseEntryOrExit() {
+        val config = mapOf("event" to "UNCOVERED")
+        assertFalse(SensorTriggerMatcher.matches(config, "PROXIMITY", Float.NaN, 0f, 0f, 0, 5f))
+        assertFalse(SensorTriggerMatcher.ended(config, "PROXIMITY", Float.NaN, 0f, 0f, 0, 5f))
+    }
+
+    @Test
+    fun sensorNamesUseStableCaseUnderTurkishLocale() {
+        val old = java.util.Locale.getDefault()
+        try {
+            java.util.Locale.setDefault(java.util.Locale.forLanguageTag("tr"))
+            assertEquals("MAGNETIC", SensorTriggerMatcher.sensorOf(mapOf("sensor" to "magnetic")))
+        } finally {
+            java.util.Locale.setDefault(old)
+        }
+    }
 }

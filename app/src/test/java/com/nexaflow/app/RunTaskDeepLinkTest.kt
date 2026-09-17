@@ -46,6 +46,9 @@ class RunTaskDeepLinkTest {
         assertNull(parseRunTaskDeepLink(Uri.parse("https://run-task/abc")))
         assertNull(parseRunTaskDeepLink(Uri.parse("nexaflow://other-host/abc")))
         assertNull(parseRunTaskDeepLink(Uri.parse("nexaflow://run-task/abc?force=1")!!.buildUpon().scheme("http").build()))
+        assertNull(parseRunTaskDeepLink(Uri.parse("nexaflow://run-task:invalid/abc")))
+        assertNull(parseRunTaskDeepLink(Uri.parse("nexaflow://run-task:80/abc")))
+        assertNull(parseRunTaskDeepLink(Uri.parse("nexaflow://user@run-task/abc")))
     }
 
     @Test
@@ -95,10 +98,10 @@ class RunTaskDeepLinkTest {
     }
 
     @Test
-    fun `ids that look like traversal or huge payloads are still just ids`() {
-        // The parser keeps the raw path; authorization and routing treat an
-        // unknown id as "no such task" — nothing executes for a wrong id.
-        val link = parseRunTaskDeepLink(Uri.parse("nexaflow://run-task/../../etc"))
-        assertEquals("../../etc", link?.automationId)
+    fun `traversal oversized ids and ambiguous parameters are rejected`() {
+        for (suffix in listOf("../../etc", ".", "..", "%2e%2e", "a%2Fb", "a%5Cb", "a%00b",
+            "a".repeat(257), "a?token=one&token=two", "a?token=one&%74oken=two", "a?force=1&%66orce=0")) {
+            assertNull(suffix.take(40), parseRunTaskDeepLink(Uri.parse("nexaflow://run-task/$suffix")))
+        }
     }
 }

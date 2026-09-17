@@ -49,6 +49,14 @@ object CommandCatalog {
 
     // ── Actions ──────────────────────────────────────────────────────────
     private val actions: Map<ActionType, CommandSpec> = mapOf(
+        ActionType.DATA_TEXT to direct(),
+        ActionType.DATA_ENCODING to direct(),
+        ActionType.DATA_HASH to direct(),
+        ActionType.DATA_RANDOM to direct(),
+        ActionType.DATA_MATH to direct(),
+        ActionType.DATA_DATE_TIME to direct(),
+        ActionType.DATA_JSON to direct(),
+        ActionType.DATA_ARRAY to direct(),
         // DISPLAY
         ActionType.SYSTEM_BRIGHTNESS to shell(setOf(RomCapability.WRITE_SETTINGS)),
         ActionType.SYSTEM_AUTO_BRIGHTNESS to shell(setOf(RomCapability.WRITE_SECURE_SETTINGS)),

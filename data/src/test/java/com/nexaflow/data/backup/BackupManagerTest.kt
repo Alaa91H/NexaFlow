@@ -28,6 +28,59 @@ import org.junit.Test
  */
 class BackupManagerTest {
 
+    @Test fun portableJsonNeverContainsCapability() {
+        val text = backupJson(validAutomation().copy(deepLinkToken = "LIVE_CAPABILITY_DO_NOT_EXPORT"))
+        assertFalse(text.contains("LIVE_CAPABILITY_DO_NOT_EXPORT"))
+        assertFalse(text.contains("deepLinkToken"))
+    }
+
+    @Test fun everyExportStripsWebhookAndDeepLinkCapabilities() = runBlocking {
+        val automation = validAutomation().copy(deepLinkToken = "LIVE_DEEP_LINK",
+            triggers = listOf(Trigger(TriggerType.WEBHOOK, mapOf("path" to "/run", "token" to "LIVE_WEBHOOK"))))
+        repository.saveAutomation(automation)
+        val exported = manager.export()
+        assertNull(exported.automations.single().deepLinkToken)
+        assertNull(exported.automations.single().triggers.single().config["token"])
+        for (text in listOf(manager.toJson(exported), manager.exportSingle(automation), backupJson(automation))) {
+            assertFalse(text.contains("LIVE_DEEP_LINK"))
+            assertFalse(text.contains("LIVE_WEBHOOK"))
+        }
+    }
+
+    @Test fun forgedIncomingCapabilitiesAreStrippedByBothImportRoutes() = runBlocking {
+        val automation = validAutomation().copy(triggers = listOf(Trigger(TriggerType.WEBHOOK,
+            mapOf("path" to "/run", "token" to "INCOMING_WEBHOOK"))))
+        // Bypass the safe exporter deliberately to model an attacker-controlled file.
+        val payload = kotlinx.serialization.json.Json.encodeToString(BackupFile(1, 0, listOf(automation)))
+            .replaceFirst("\"id\":", "\"deepLinkToken\":\"INCOMING_DEEP_LINK\",\"id\":")
+        assertTrue(payload.contains("INCOMING_DEEP_LINK"))
+        assertTrue(payload.contains("INCOMING_WEBHOOK"))
+        assertTrue(manager.import(payload) is ImportResult.Success)
+        assertTrue(manager.importSingle(payload) is SingleTaskImportResult.Success)
+        assertEquals(2, repository.saved.size)
+        for (saved in repository.saved) {
+            assertFalse(saved.enabled)
+            assertNull(saved.deepLinkToken)
+            assertTrue(saved.triggers.single().config["token"].isNullOrEmpty())
+        }
+    }
+
+    @Test fun faultyStreamCannotBusyLoopWithoutMakingProgress() {
+        val stream = object : java.io.InputStream() {
+            override fun read() = 0
+            override fun read(buffer: ByteArray, offset: Int, length: Int) = 0
+        }
+        assertNull(ImportLimits.readBoundedText(stream))
+    }
+
+    @Test fun parserQuotasRejectDeepAndLargeInputs() {
+        assertEquals(BackupPreflight.InvalidFile, manager.preflight("[".repeat(33) + "]".repeat(33)))
+        assertEquals(BackupPreflight.InvalidFile, manager.preflight(" ".repeat(BackupLimits.MAX_BYTES + 1)))
+        assertEquals(BackupPreflight.InvalidFile, manager.preflight(backupJson(validAutomation().copy(name = "x".repeat(513)))))
+        assertEquals(BackupPreflight.InvalidFile, manager.preflight(backupJson(validAutomation().copy(
+            constraints = List(101) { Constraint(ConstraintType.WIFI, emptyMap()) }))))
+    }
+
     private val repository = FakeAutomationRepository()
     private val manager = BackupManager(repository)
 

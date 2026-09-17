@@ -188,8 +188,11 @@ fun SettingsScreen(navController: NavController) {
                 // app module, and the explicit component needs no import.
                 val saveLocallyIntent = Intent().apply {
                     setClassName(context, "com.nexaflow.app.SaveBackupActivity")
-                    action = "com.nexaflow.app.action.SAVE_BACKUP"
-                    putExtra("extra_file_path", file.absolutePath)
+                    action = Intent.ACTION_SEND
+                    type = "application/json"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    clipData = android.content.ClipData.newRawUri("backup", uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
                 runCatching {
                     context.startActivity(

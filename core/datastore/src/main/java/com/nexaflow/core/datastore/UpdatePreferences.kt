@@ -37,9 +37,10 @@ data class UpdateSettings(
     val frequency: UpdateCheckFrequency = UpdateCheckFrequency.MONTHLY
 )
 
-class UpdatePreferences(private val context: Context) {
-
-    private val dataStore = context.updateDataStore
+class UpdatePreferences internal constructor(
+    private val dataStore: androidx.datastore.core.DataStore<androidx.datastore.preferences.core.Preferences>
+) {
+    constructor(context: Context) : this(context.updateDataStore)
 
     val settings: Flow<UpdateSettings> = dataStore.data.map { preferences ->
         UpdateSettings(

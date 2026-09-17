@@ -89,7 +89,7 @@ fun BluetoothDevicePickerDialog(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    val devices = remember(refreshTick) { loadPairedDevices(context) }
+    val devices = remember(refreshTick) { loadPickerState(context).devices }
     val adapterAvailable = remember(refreshTick) {
         context.getSystemService(BluetoothManager::class.java)?.adapter != null
     }
@@ -286,27 +286,51 @@ fun BluetoothDevicePickerDialog(
     }
 }
 
-// BLUETOOTH_CONNECT is checked at runtime above the runCatching block below;
-// lint's dataflow cannot follow the guard through the try/catch boundary, so the
-// suppression is scoped to this loader only.
+/** Why the picker has nothing to show — drives the exact empty-state message. */
+internal enum class PickerEmptyReason { PERMISSION_MISSING, BLUETOOTH_OFF, NO_DEVICES }
+
+/** Devices plus the precise empty reason when the list is empty. */
+internal data class PickerState(
+    val devices: List<PairedDevice>,
+    val reason: PickerEmptyReason = PickerEmptyReason.NO_DEVICES
+)
+
+/**
+ * Loads bonded Classic/Dual devices that can fire the ACL connect/disconnect
+ * trigger. LE-only devices are excluded on purpose: the runtime
+ * [BluetoothMonitor] listens to ACL broadcasts, which LE-only peripherals
+ * never produce, so offering them would create tasks that can never fire.
+ */
 @SuppressLint("MissingPermission")
-private fun loadPairedDevices(context: Context): List<PairedDevice> {
-    if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-        return emptyList()
+internal fun loadPickerState(context: Context): PickerState {
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S &&
+        ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) !=
+        PackageManager.PERMISSION_GRANTED
+    ) {
+        return PickerState(emptyList(), PickerEmptyReason.PERMISSION_MISSING)
     }
-    val adapter = context.getSystemService(BluetoothManager::class.java)?.adapter ?: return emptyList()
-    if (!adapter.isEnabled) return emptyList()
-    return runCatching {
-        adapter.bondedDevices
+    val adapter = runCatching {
+        context.getSystemService(BluetoothManager::class.java)?.adapter
+    }.getOrNull() ?: return PickerState(emptyList(), PickerEmptyReason.BLUETOOTH_OFF)
+    if (runCatching { adapter.isEnabled }.getOrDefault(false).not()) {
+        return PickerState(emptyList(), PickerEmptyReason.BLUETOOTH_OFF)
+    }
+    val devices = runCatching {
+        // BLUETOOTH_CONNECT is checked above before any BluetoothDevice read.
+        val bonded = adapter.bondedDevices
+        bonded
             .filter { it.type != BluetoothDevice.DEVICE_TYPE_LE }
             .mapNotNull { device ->
+                val address = runCatching { device.address }.getOrNull().orEmpty()
+                if (address.isBlank()) return@mapNotNull null
                 val name = runCatching { device.name }.getOrNull()
                     ?.takeIf { it.isNotBlank() }
-                    ?: return@mapNotNull null
-                PairedDevice(name = name, address = device.address)
+                    ?: address
+                PairedDevice(name = name, address = address)
             }
             .sortedBy { it.name.lowercase() }
     }.getOrElse { emptyList() }
+    return PickerState(devices, PickerEmptyReason.NO_DEVICES)
 }
 
 /** True when the adapter exists and is currently on (permission-safe probe). */

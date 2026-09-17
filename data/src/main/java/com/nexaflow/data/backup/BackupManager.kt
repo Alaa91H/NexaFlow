@@ -66,39 +66,24 @@ sealed interface BackupPreflight {
  * (unbounded `readText`) or CPU (unbounded quotas) through the import path.
  */
 object ImportLimits {
-    /** Max bytes accepted from an import stream (5 MiB — far above any real backup). */
-    const val MAX_IMPORT_BYTES: Int = 5 * 1024 * 1024
+    /** Max bytes accepted from an import stream (4 MiB). */
+    const val MAX_IMPORT_BYTES: Int = BackupLimits.MAX_BYTES
 
     /** Per-file quotas enforced on parsed content, before any persistence. */
-    const val MAX_AUTOMATIONS_PER_FILE = 2_000
+    const val MAX_AUTOMATIONS_PER_FILE = 500
     const val MAX_TRIGGERS_PER_AUTOMATION = 100
     const val MAX_ACTIONS_PER_AUTOMATION = 500
-    const val MAX_CONFIG_ENTRIES_PER_ELEMENT = 50
-    const val MAX_CONFIG_VALUE_LENGTH = 10_000
+    const val MAX_CONFIG_ENTRIES_PER_ELEMENT = 100
+    const val MAX_CONFIG_VALUE_LENGTH = 16_384
 
     /**
      * Bounded text read: decodes at most [MAX_IMPORT_BYTES] bytes from an
      * input stream and rejects anything larger BEFORE decoding. This bounds
      * both the allocation and the parse cost from a hostile provider.
      */
-    fun readBoundedText(stream: java.io.InputStream): String? {
-        val bounded = java.io.SequenceInputStream(stream, java.io.InputStream.nullInputStream())
-        val buffer = java.io.ByteArrayOutputStream(MAX_IMPORT_BYTES.coerceAtMost(64 * 1024))
-        val chunk = ByteArray(16 * 1024)
-        var total = 0
-        return try {
-            while (true) {
-                val read = bounded.read(chunk)
-                if (read < 0) break
-                total += read
-                if (total > MAX_IMPORT_BYTES) return null
-                buffer.write(chunk, 0, read)
-            }
-            buffer.toString("UTF-8")
-        } catch (_: java.io.IOException) {
-            null
-        }
-    }
+    fun readBoundedText(stream: java.io.InputStream): String? =
+        runCatching { BackupLimits.read(stream) }.getOrNull()
+
 }
 
 /**
@@ -122,7 +107,7 @@ class BackupManager(
     }
 
     suspend fun export(): BackupFile {
-        val automations = automationRepository.getAutomations().first()
+        val automations = automationRepository.getAutomations().first().map { it.portable() }
         return BackupFile(
             version = BACKUP_VERSION,
             exportedAt = System.currentTimeMillis(),
@@ -131,7 +116,11 @@ class BackupManager(
         )
     }
 
-    fun toJson(backup: BackupFile): String = json.encodeToString(backup)
+    fun toJson(backup: BackupFile): String = json.encodeToString(backup.copy(automations = backup.automations.map { it.portable() }))
+
+    private fun Automation.portable(): Automation = copy(deepLinkToken = null, triggers = triggers.map {
+        if (it.type == com.nexaflow.domain.models.TriggerType.WEBHOOK) it.copy(config = it.config - "token") else it
+    })
 
     suspend fun import(jsonText: String): ImportResult {
         val backup = when (val preflight = preflight(jsonText)) {
@@ -160,14 +149,15 @@ class BackupManager(
             automation.copy(
                 id = importedIdMap.getValue(automation.id),
                 enabled = false,
+                deepLinkToken = null,
+                triggers = automation.triggers.map { trigger ->
+                    if (trigger.type == com.nexaflow.domain.models.TriggerType.WEBHOOK)
+                        trigger.copy(config = trigger.config + ("token" to "")) else trigger
+                },
                 maintenanceProfile = automation.maintenanceProfile?.copy(
                     dependencyAutomationIds = remappedDependencies.orEmpty()
-                ),
-                // P0.2: an incoming token is data from outside this
-                // installation. Stripping it here is what makes "ID alone is
-                // not an authorization" hold — a shared or copied backup can
-                // never carry someone else's run capability across.
-                deepLinkToken = null
+                )
+
             )
         }
         val disabledCount = backup.automations.count { it.enabled }
@@ -191,7 +181,7 @@ class BackupManager(
             automations = listOf(automation),
             pluginDependencies = PluginDependencyScanner.scan(listOf(automation))
         )
-        return json.encodeToString(single)
+        return toJson(single)
     }
 
     /**
@@ -235,11 +225,11 @@ class BackupManager(
         // Incoming deep-link tokens are stripped (same policy as bulk import):
         // a shared file never carries another installation's run capability.
         val saved = if (automation.id in existingIds) {
-            val rekeyed = automation.copy(id = UUID.randomUUID().toString(), enabled = false, deepLinkToken = null)
+            val rekeyed = automation.portable().copy(id = UUID.randomUUID().toString(), enabled = false, deepLinkToken = null)
             automationRepository.saveAutomation(rekeyed)
             rekeyed
         } else {
-            val disabled = automation.copy(enabled = false, deepLinkToken = null)
+            val disabled = automation.portable().copy(enabled = false, deepLinkToken = null)
             automationRepository.saveAutomation(disabled)
             disabled
         }
@@ -250,7 +240,7 @@ class BackupManager(
         // P0.3: reject oversize payloads before parsing so a pathological file
         // cannot drive decoder memory or CPU. Parsing is still bounded below
         // by per-file quotas even for payloads under the byte cap.
-        if (jsonText.length > ImportLimits.MAX_IMPORT_BYTES) return BackupPreflight.InvalidFile
+        if (!BackupLimits.accepts(jsonText)) return BackupPreflight.InvalidFile
         val backup = try {
             json.decodeFromString<BackupFile>(jsonText)
         } catch (_: Exception) {
@@ -265,6 +255,7 @@ class BackupManager(
             .toSet()
             .size != backup.automations.size
         if (
+            backup.automations.size > 500 ||
             backup.version !in 1..BACKUP_VERSION ||
             backup.automations.any { !it.isWellFormed() } ||
             hasDuplicateAutomationIds ||
@@ -292,16 +283,24 @@ class BackupManager(
      * with blank identifiers/names that would break routing or the UI.
      */
     private fun Automation.isWellFormed(): Boolean =
-        id.isNotBlank() &&
-            name.isNotBlank() &&
+        id.isNotBlank() && id.length <= 256 &&
+            name.isNotBlank() && name.length <= 512 && description.length <= 16384 &&
+            icon.length <= 256 && category.length <= 256 &&
+            triggers.size <= 100 && actions.size <= 500 && exitActions.size <= 500 && constraints.size <= 100 &&
+            (maintenanceProfile?.dependencyAutomationIds.orEmpty().let { ids -> ids.size <= 100 && ids.all { it.length <= 256 } }) &&
             triggers.all { it.isWellFormed() } &&
             actions.all { it.isWellFormed() } &&
             exitActions.all { it.isWellFormed() } &&
-            constraints.all { it.type.name.isNotBlank() }
+            constraints.all { it.config.isBounded() }
 
-    private fun Trigger.isWellFormed(): Boolean = type.name.isNotBlank() && config.keys.all { it.isNotBlank() }
+    private fun Trigger.isWellFormed(): Boolean = type.name.isNotBlank() && config.isBounded()
 
-    private fun Action.isWellFormed(): Boolean = type.name.isNotBlank() && config.keys.all { it.isNotBlank() }
+    private fun Action.isWellFormed(): Boolean = type.name.isNotBlank() && config.isBounded() &&
+        (endBehavior?.config?.isBounded() != false)
+
+    private fun Map<String, String>.isBounded(): Boolean = size <= 100 && all { (key, value) ->
+        key.isNotBlank() && key.length <= 128 && key.none { it.isISOControl() } && value.length <= 16384
+    }
 
     /**
      * P0.3 resource quotas: bounds the graph shape of an imported backup so a

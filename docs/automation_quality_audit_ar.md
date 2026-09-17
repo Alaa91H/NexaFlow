@@ -1,3 +1,5 @@
+> **Historical / topic reference.** Retained for provenance; version-specific counts, completion claims and test results below have not been revalidated for v3.74. See the [current documentation index](README.md) for the supported project overview and current validation status.
+
 # تقرير تدقيق جودة محرك NexaFlow للأتمتة
 
 **الإصدار المدقق:** `5ad3191` على الفرع `main`  

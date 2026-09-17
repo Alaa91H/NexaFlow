@@ -1,3 +1,5 @@
+> **Historical / topic reference.** Retained for provenance; version-specific counts, completion claims and test results below have not been revalidated for v3.74. See the [current documentation index](../README.md) for the supported project overview and current validation status.
+
 # NexaFlow — Incremental Architecture Migration
 
 **القاعدة:** كل خطوة تضيف contract ثم adapter ثم persistence ثم integration ثم test. لا تُستبدل المكونات القائمة دفعة واحدة، ولا تنقل بيانات المستخدم destructively قبل نجاح migration والتحقق.

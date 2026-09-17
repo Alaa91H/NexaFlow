@@ -1,3 +1,5 @@
+> **Historical / topic reference.** Retained for provenance; version-specific counts, completion claims and test results below have not been revalidated for v3.74. See the [current documentation index](../README.md) for the supported project overview and current validation status.
+
 # تقرير المرحلة 2 — Typed Data Runtime والتعبيرات الآمنة
 
 **الحالة:** مكتملة ومتحقق منها باختبارات معزولة.  

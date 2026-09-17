@@ -1,6 +1,8 @@
 package com.nexaflow.core.engine
 
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.NumericSensors
+import java.util.Locale
 import com.nexaflow.domain.models.TriggerType
 
 /**
@@ -11,7 +13,7 @@ import com.nexaflow.domain.models.TriggerType
  * fire the task's exit behavior).
  *
  * Config keys (see [TriggerType.SENSOR]):
- *  - `sensor`: PROXIMITY | SHAKE | LIGHT | STEP
+ *  - `sensor`: PROXIMITY | SHAKE | LIGHT | STEP | numeric modes from [NumericSensors]
  *  - `event`: COVERED/UNCOVERED (proximity), ABOVE/BELOW (light)
  *  - `threshold`: lux value for LIGHT (int)
  *  - `sensitivity`: shake g-force threshold (default 14)
@@ -20,7 +22,7 @@ object SensorTriggerMatcher {
 
     /** The sensor kind a trigger watches, or null for unknown config. */
     fun sensorOf(config: Map<String, String>): String =
-        config["sensor"].orEmpty().uppercase()
+        config["sensor"].orEmpty().uppercase(Locale.ROOT)
 
     /**
      * Returns true when a fresh reading satisfies the trigger's condition.
@@ -37,8 +39,9 @@ object SensorTriggerMatcher {
         lux: Float,
         shakeG: Float,
         stepDelta: Int,
-        maxRangeCm: Float
-    ): Boolean = when (sensor) {
+        maxRangeCm: Float,
+        value: Float = 0f
+    ): Boolean = validReading(sensor, distanceCm, lux, shakeG, maxRangeCm, value) && when (sensor) {
         "PROXIMITY" -> {
             val event = config["event"] ?: "COVERED"
             val covered = if (maxRangeCm <= 0f) distanceCm < 1f else distanceCm < maxRangeCm * 0.5f
@@ -54,11 +57,11 @@ object SensorTriggerMatcher {
             shakeG > sensitivity
         }
         "STEP" -> stepDelta > 0
-        else -> false
+        else -> sensor in NumericSensors.specs && NumericSensors.matches(config, value)
     }
 
     /** Whether the trigger's condition can *end* (drives exit behavior). */
-    fun isStateful(sensor: String): Boolean = sensor == "PROXIMITY" || sensor == "LIGHT"
+    fun isStateful(sensor: String): Boolean = sensor == "PROXIMITY" || sensor == "LIGHT" || sensor in NumericSensors.specs
 
     /**
      * Returns true when the condition that [config] watches has ended, i.e.
@@ -72,10 +75,20 @@ object SensorTriggerMatcher {
         lux: Float,
         shakeG: Float,
         stepDelta: Int,
-        maxRangeCm: Float
-    ): Boolean = isStateful(sensor) && !matches(
-        config, sensor, distanceCm, lux, shakeG, stepDelta, maxRangeCm
+        maxRangeCm: Float,
+        value: Float = 0f
+    ): Boolean = isStateful(sensor) && validReading(sensor, distanceCm, lux, shakeG, maxRangeCm, value) && !matches(
+        config, sensor, distanceCm, lux, shakeG, stepDelta, maxRangeCm, value
     )
+
+    private fun validReading(sensor: String, distanceCm: Float, lux: Float, shakeG: Float, maxRangeCm: Float, value: Float): Boolean =
+        when (sensor) {
+            "PROXIMITY" -> distanceCm.isFinite() && maxRangeCm.isFinite()
+            "LIGHT" -> lux.isFinite()
+            "SHAKE" -> shakeG.isFinite()
+            "STEP" -> true
+            else -> value.isFinite()
+        }
 
     /** Automations (enabled) with at least one SENSOR trigger of [sensor]. */
     fun automationsFor(

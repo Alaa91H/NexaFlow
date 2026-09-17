@@ -14,13 +14,14 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class ActiveExecutionStoreCheckpointTest {
+    @get:org.junit.Rule val fixture = PreferenceStoreFixture()
 
     private lateinit var store: ActiveExecutionStore
 
     @Before
     fun setUp() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        store = ActiveExecutionStore(context)
+        store = ActiveExecutionStore(fixture.store)
         store.checkpointsForTest().forEach { store.clearCheckpoint(it.runId) }
     }
 

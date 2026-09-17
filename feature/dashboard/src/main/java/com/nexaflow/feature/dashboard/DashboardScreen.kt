@@ -314,6 +314,7 @@ fun DashboardScreen(navController: NavController) {
                         }
                     },
                     onEdit = { navController.navigate("automation_builder?automationId=${row.automation.id}") },
+                    onDetails = { navController.navigate("automation_details/${android.net.Uri.encode(row.automation.id)}") },
                     onDelete = { deleteTarget = row.automation },
                     onShare = {
                         scope.launch {
@@ -554,6 +555,7 @@ internal fun RoutineCard(
     onExpandedChange: () -> Unit,
     onLongClick: () -> Unit,
     onDismissMenu: () -> Unit,
+    onDetails: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     NexaFlowCard(
@@ -610,6 +612,7 @@ internal fun RoutineCard(
                 }
 
                 if (expanded) {
+                    TextButton(onClick = onDetails) { Text(stringResource(R.string.task_access_details)) }
                     RoutineDetails(
                         row = row,
                         summary = summary,
@@ -630,6 +633,10 @@ internal fun RoutineCard(
                         onRun()
                     },
                     enabled = !isRunning
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.task_access_details)) },
+                    onClick = { onDismissMenu(); onDetails() }
                 )
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.edit_task)) },

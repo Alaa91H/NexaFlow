@@ -1,33 +1,35 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">Tâches planifiées</string>
-    <string name="backup_saved">Sauvegarde enregistrée</string>
-    <string name="backup_save_failed">Impossible d’enregistrer la sauvegarde</string>
-    <string name="save_locally_label">Enregistrer localement</string>    <string name="accessibility_service_description">Détecte l\u2019ouverture des applications configurées pour exécuter les automatisations déclenchées par une application. Seule l\u2019application au premier plan est observée ; rien n\u2019est lu à l\u2019écran.</string>
-    <string name="widget_status_title">Automatisations actives</string>
-    <string name="widget_status_count">0 / 0</string>
-    <string name="widget_status_last">Dernière exécution : —</string>
-    <string name="widget_subtitle">Automatisations</string>
-    <string name="widget_action">Tout activer</string>
-
-    <!-- Bottom navigation -->
-    <string name="widget_no_automations">Aucune automatisation</string>
-    <string name="widget_active_count">%1$s sur %2$s actives</string>
-    <string name="widget_enable_all">Tout activer</string>
-    <string name="widget_disable_all">Tout désactiver</string>
-    <string name="widget_status_count_format">%1$d / %2$d</string>
-    <string name="widget_last_run_format">Dernière exécution : %1$s</string>
-    <string name="deep_link_run_toast">Exécuté : %1$s</string>
-    <string name="update_notification_title">Mise à jour disponible</string>
-    <string name="update_notification_text">NexaFlow %1$s est disponible</string>
-    <string name="update_notification_channel">Mises à jour de l’application</string>
-    <string name="update_notification_channel_sub">Notifications lorsqu’une version plus récente de NexaFlow est disponible</string>
-    <string name="deep_link_force_message">L’exécution forcée ignore les vérifications de déclencheurs et de conditions pour %1$s et la lance maintenant.</string>
-    <string name="run_force_title">Forcer l’exécution ?</string>
-    <string name="run_force_confirm">Forcer</string>
-    <string name="cancel">Annuler</string>
-    <string name="task_import_success">Tâche importée : %1$s (vérifiez-la et activez-la)</string>
-    <string name="task_import_invalid_workflow">Tâche non importée : elle contient des étapes non prises en charge par cette version</string>
-    <string name="task_import_not_single">Fichier non importé : choisissez un fichier de tâche unique (.nexaflow), pas une sauvegarde complète</string>
-    <string name="task_import_invalid_file">Fichier non importé : fichier de tâche NexaFlow non valide</string>
-</resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Tâches planifiées</string>
+    <string name="backup_saved">Sauvegarde enregistrée</string>
+    <string name="backup_save_failed">Impossible d’enregistrer la sauvegarde</string>
+    <string name="save_locally_label">Enregistrer localement</string>    <string name="accessibility_service_description">Détecte l\u2019ouverture des applications configurées pour exécuter les automatisations déclenchées par une application. Seule l\u2019application au premier plan est observée ; rien n\u2019est lu à l\u2019écran.</string>
+    <string name="widget_status_title">Automatisations actives</string>
+    <string name="widget_status_count">0 / 0</string>
+    <string name="widget_status_last">Dernière exécution : —</string>
+    <string name="widget_subtitle">Automatisations</string>
+    <string name="widget_action">Tout activer</string>
+
+    <!-- Bottom navigation -->
+    <string name="widget_no_automations">Aucune automatisation</string>
+    <string name="widget_active_count">%1$s sur %2$s actives</string>
+    <string name="widget_enable_all">Tout activer</string>
+    <string name="widget_disable_all">Tout désactiver</string>
+    <string name="widget_status_count_format">%1$d / %2$d</string>
+    <string name="widget_last_run_format">Dernière exécution : %1$s</string>
+    <string name="deep_link_run_toast">Exécuté : %1$s</string>
+    <string name="update_notification_title">Mise à jour disponible</string>
+    <string name="update_notification_text">NexaFlow %1$s est disponible</string>
+    <string name="update_notification_channel">Mises à jour de l’application</string>
+    <string name="update_notification_channel_sub">Notifications lorsqu’une version plus récente de NexaFlow est disponible</string>
+    <string name="deep_link_force_message">L’exécution forcée ignore les vérifications de déclencheurs et de conditions pour %1$s et la lance maintenant.</string>
+    <string name="run_force_title">Forcer l’exécution ?</string>
+    <string name="cancel">Annuler</string>
+    <string name="task_import_success">Tâche importée : %1$s (vérifiez-la et activez-la)</string>
+    <string name="task_import_invalid_workflow">Tâche non importée : elle contient des étapes non prises en charge par cette version</string>
+    <string name="task_import_not_single">Fichier non importé : choisissez un fichier de tâche unique (.nexaflow), pas une sauvegarde complète</string>
+    <string name="task_import_invalid_file">Fichier non importé : fichier de tâche NexaFlow non valide</string>
+    <string name="deep_link_confirm_title">Run linked task?</string>
+    <string name="deep_link_confirm_message">An external link requests running %1$s. Review the task before confirming.</string>
+    <string name="deep_link_confirm_run">Run</string>
+</resources>

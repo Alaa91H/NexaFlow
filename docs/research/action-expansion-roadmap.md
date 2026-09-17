@@ -1,3 +1,5 @@
+> **Historical / topic reference.** Retained for provenance; version-specific counts, completion claims and test results below have not been revalidated for v3.74. See the [current documentation index](../README.md) for the supported project overview and current validation status.
+
 # خارطة توسعة تنفيذات NexaFlow: روتينات متكررة وقدرات مقيدة
 
 > **الحكم الهندسي:** لا يحتاج NexaFlow إلى محرك جديد أو EventBus أو Queue جديد لهذه التوسعة. نموذج `Automation.actions: List<Action>`، المجدول الزمني، كتالوج التوافق، وطبقات الـhandler القائمة تدعم التنفيذات المتعددة بالفعل. الفجوة الأساسية هي **الترتيب، إظهار القدرة الصحيحة، وإضافة عدد صغير من Intent-backed actions الآمنة**.

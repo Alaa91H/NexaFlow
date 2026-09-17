@@ -48,15 +48,7 @@ object HttpLanAccessRequirements {
             ?: return Requirement.Conditional
 
         val address = literalAddress(host) ?: return Requirement.Conditional
-        return when (HttpUrlPolicy.classify(address)) {
-            HttpUrlPolicy.DestinationClass.PUBLIC -> Requirement.NotRequired
-            // These can never be a legitimate public destination: always required.
-            HttpUrlPolicy.DestinationClass.LOOPBACK,
-            HttpUrlPolicy.DestinationClass.LINK_LOCAL,
-            HttpUrlPolicy.DestinationClass.PRIVATE_LAN,
-            HttpUrlPolicy.DestinationClass.MULTICAST,
-            HttpUrlPolicy.DestinationClass.ANY_LOCAL -> Requirement.Required
-        }
+        return if (HttpUrlPolicy.isLocal(address)) Requirement.Required else Requirement.NotRequired
     }
 
     /** Runtime re-check from the fully-resolved URL (post variable expansion). */
@@ -67,7 +59,7 @@ object HttpLanAccessRequirements {
             // Host name: cannot prove it is public without DNS — treat as LAN
             // for requirement purposes (fail-closed on the permission).
             ?: return true
-        return HttpUrlPolicy.classify(address) != HttpUrlPolicy.DestinationClass.PUBLIC
+        return HttpUrlPolicy.isLocal(address)
     }
 
     /**

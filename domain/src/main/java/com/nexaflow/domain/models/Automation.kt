@@ -42,12 +42,13 @@ data class Automation(
     /** Optional recurring-maintenance metadata; null preserves ordinary automations unchanged. */
     val maintenanceProfile: MaintenanceProfile? = null,
     /**
-     * P0.2 deep-link capability token (base64url, 128-bit entropy). Null means
+     * Deep-link capability token (base64url, 256-bit entropy). Null means
      * external deep-link execution is disabled for this task: a `nexaflow://`
      * link only opens the app for review, it never runs anything. Set by an
      * explicit per-task user opt-in; rotatable and revocable. The automation ID
      * alone is deliberately NOT an authorization.
      */
+    @kotlinx.serialization.Transient
     val deepLinkToken: String? = null
 ) {
     init {
@@ -160,8 +161,8 @@ enum class TriggerType {
      */
     SENSOR,
     /**
-     * Local HTTP webhook: a loopback server accepts requests on `path` (and
-     * optionally `method` + `token`) and fires the task, Tasker-webhook style.
+     * Local HTTP webhook: a loopback server accepts requests on `path`, an
+     * optional `method`, and a mandatory `token` before firing the task.
      */
     WEBHOOK,
     /**
@@ -677,6 +678,14 @@ enum class ActionType {
     /** Configures notifications/heads-up. Config keys: `heads_up`, `timeout`, `less_boring`. */
     EVO_NOTIFICATIONS,
     /** Batch Evolver apply — writes multiple Evolver keys atomically. Config key: `batch_json` (map of key->value). */
-    EVO_BATCH
+    EVO_BATCH,
+    DATA_TEXT,
+    DATA_ENCODING,
+    DATA_HASH,
+    DATA_RANDOM,
+    DATA_MATH,
+    DATA_DATE_TIME,
+    DATA_JSON,
+    DATA_ARRAY
 }
 

@@ -39,8 +39,14 @@ import com.nexaflow.feature.widgets.WidgetsScreen
  * so there is no bottom navigation bar / rail taking up screen space.
  */
 @Composable
-fun NexaFlowApp() {
+fun NexaFlowApp(reviewAutomationId: String? = null, onReviewOpened: () -> Unit = {}) {
     val navController = rememberNavController()
+    androidx.compose.runtime.LaunchedEffect(reviewAutomationId) {
+        reviewAutomationId?.let {
+            navController.navigate("automation_details/${android.net.Uri.encode(it)}") { launchSingleTop = true }
+            onReviewOpened()
+        }
+    }
     // Google 2026: directional spring navigation. Reduce-motion is hoisted
     // here (it is @Composable, the NavHost transition lambdas are not) and
     // degrades to a plain crossfade when the user disables animations.

@@ -265,12 +265,12 @@ class CommandCompatibilityEngine(
      * Strict sensor-specific check for SENSOR trigger with config.
      * Returns true if the specific sensor type is available on this device.
      */
-    fun isSensorAvailable(sensorType: String, hardware: HardwareProfile): Boolean = when (sensorType.uppercase()) {
+    fun isSensorAvailable(sensorType: String, hardware: HardwareProfile): Boolean = when (sensorType.uppercase(java.util.Locale.ROOT)) {
         "PROXIMITY" -> hardware.hasProximitySensor
         "LIGHT" -> hardware.hasLightSensor
         "STEP", "STEP_COUNTER" -> hardware.hasStepCounter
-        "SHAKE" -> hardware.hasAccelerometer
-        else -> true
+        "SHAKE" -> 10 in hardware.sensorTypes
+        else -> com.nexaflow.domain.models.NumericSensors.specs[sensorType.uppercase(java.util.Locale.ROOT)]?.let { it.type in hardware.sensorTypes } ?: false
     }
 
 }

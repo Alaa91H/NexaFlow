@@ -33,6 +33,7 @@ class ActionRegistry private constructor(
                 EvoActionHandler(),
                 AdvancedActionsHandler(),
                 HttpRequestHandler(),
+                DataActionsHandler(),
                 PluginFireHandler()
             )
         )

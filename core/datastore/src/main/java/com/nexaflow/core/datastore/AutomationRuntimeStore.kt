@@ -24,9 +24,10 @@ private val Context.automationRuntimeDataStore by preferencesDataStore(
  * logical exit. A failed exit remains durable and observable instead of being
  * deleted as though cleanup succeeded.
  */
-class AutomationRuntimeStore(private val context: Context) {
-
-    private val dataStore = context.automationRuntimeDataStore
+class AutomationRuntimeStore internal constructor(
+    private val dataStore: androidx.datastore.core.DataStore<androidx.datastore.preferences.core.Preferences>
+) {
+    constructor(context: Context) : this(context.automationRuntimeDataStore)
     private val json = Json { ignoreUnknownKeys = false; encodeDefaults = true }
 
     /**

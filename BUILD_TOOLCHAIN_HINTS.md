@@ -1,27 +1,7 @@
-# Build toolchain hints
+# Build toolchain
 
-## Why JDK 21 is needed for unit tests
+Use the Gradle wrapper, Android SDK platform 37 and Java 17 or newer for the build. Recent Robolectric sandboxes require Java 21; app, execution and builder test tasks select that toolchain and the required Java module access flags. See the actual Gradle configuration and [required checks](docs/REQUIRED_CHECKS.md).
 
-The `:core:execution` and `:app` unit tests use Robolectric 4.17 with SDK 36/37
-sandboxes, which require a Java 21 JVM. Both modules pin
-`JavaLanguageVersion.of(21)` on their test tasks so CI and local machines get
-consistent results.
+CI installs Java 17 and Java 21. Locally, install Java 21 or allow the configured Foojay resolver to provision it. Set `ANDROID_HOME` or an ignored `local.properties` SDK path. Toolchain availability is required for the test gate; skipping tests is not an equivalent validation result.
 
-## How JDK 21 is provided
-
-- **CI**: `actions/setup-java` pre-installs JDK 21 (plus JDK 17 as the build
-  JVM) in both the `lint` and `build` jobs, so toolchain detection is
-  deterministic and the Foojay resolver has nothing to download.
-- **Local / any machine**: the Foojay resolver convention
-  (`org.gradle.toolchains.foojay-resolver-convention` in `settings.gradle.kts`)
-  auto-provisions JDK 21 when it is not installed. The
-  `init.d/foojay-trust-sealed.gradle` init script keeps Gradle's dependency
-  verification happy with Foojay's self-referencing sealed POM.
-
-## If a local build fails to find JDK 21
-
-Either:
-
-1. Install a JDK 21 (Temurin, Liberica, etc.) and point `JAVA_HOME` at it, or
-2. Rely on the Foojay resolver (it downloads a JDK 21 on demand), or
-3. Skip `testDebugUnitTest` and run `detekt` + `lintDebug` only.
+Keep checksum verification enabled. When adding a dependency, review its provenance and regenerate the required verification metadata; do not globally disable verification to fix resolution errors. Repository-local signing files and secrets stay out of Git.

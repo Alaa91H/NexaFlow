@@ -1,32 +1,25 @@
-# Required Status Checks
+# Required checks
 
-Branch protection for `main` should require **all** of the following check names
-from the `Android CI` workflow (`.github/workflows/android-ci.yml`) before a
-merge is allowed, and before a tag push is considered valid for release.
+The workflow is `.github/workflows/android-ci.yml`. Its `lint` job gates its `build` job. A successful tag publication must correspond to the exact intended commit.
 
-## Jobs
+## Source and unit gates
 
-| Check name | What it proves |
-|---|---|
-| `lint` | Resource hygiene (orphan/banned resources), string parity across all 11 locales, **catalog parity** (every trigger/action enum value appears exactly once in the builder picker), **tag hygiene on version tags** (tag ↔ `CHANGELOG.md` entry), resource-gate unit tests + pytest suite, Detekt static analysis, zero-tolerance Android Lint, unified resource gate. |
-| `build` | Full unit-test suite, production-signing gate on version tags, debug + release APK and AAB builds, APK signature verification (v2/v3 + certificate-fingerprint match on tags), phone-permission manifest check, Gradle dependency verification freshness, 16 KB page-size alignment, zipalign verification, bundletool bundle validation + size report, native-library audit, artifact uploads, and — on version tags — the GitHub Release publication with generated release notes. |
+```text
+python scripts/auto_fix.py --check
+python scripts/check_strings_parity.py
+python scripts/audit_catalog_and_releases.py catalog
+python -m unittest discover -s scripts/tests -p test_exported_components.py
+./gradlew detekt lintDebug testDebugUnitTest
+```
 
-## Setup (repository owner)
+CI also runs resource-gate self-tests and `check_resources.py`. Version tags must match the newest changelog heading. New data/sensor/header tests cover outcomes, malformed inputs and chained output behavior.
 
-1. **Settings → Branches → Add branch protection rule** for `main`:
-   - Require a pull request before merging *(optional, owner's choice)*.
-   - **Require status checks to pass before merging** → select `Android CI / lint`
-     and `Android CI / build` (exact names as reported by the checks API).
-   - Require branches to be up to date before merging *(recommended)*.
-2. **Settings → Environments (optional)**: gate tag-triggered runs behind a
-   `release` environment for manual approval of production releases.
-3. Keep `NEXAFLOW_KEYSTORE_BASE64`, `NEXAFLOW_KEYSTORE_PASSWORD`,
-   `NEXAFLOW_KEY_ALIAS`, and `NEXAFLOW_KEY_PASSWORD` configured as Actions
-   secrets — version tags **fail by design** without them (release builds must
-   be production-signed).
+## Build and package gates
 
-## Nightly schedule
+Build debug/release APKs and the release AAB. Audit the merged release manifest with `scripts/audit_exported_components.py --merged app/build/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml`. CI verifies permissions, dependency metadata, APK signatures, production certificate identity for tags, native alignment, zipalign and bundletool validity.
 
-The workflow also runs on a nightly cron (`0 6 * * *`) against `main` to catch
-dependency rot and flaky tests between releases. Nightly failures do not block
-development but must be triaged within the next release cycle.
+## Separate device evidence
+
+Run instrumentation tests, including `FrameworkPermissionGatesTest`, on an emulator/device. Hardware sensors, OEM restrictions, background operation and restoration need real-device checks. A passing unit suite does not imply these were performed. The [validation record](VALIDATION.md) must state which checks actually ran.
+
+Repository branch protection is a server setting; this document does not assert that it is configured. Maintain required GitHub checks separately from workflow code.

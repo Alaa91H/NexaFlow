@@ -124,6 +124,7 @@ class AutomationBuilderViewModel @Inject constructor(
                 revertOnExit = revertOnExit,
                 cooldownSeconds = cooldownSeconds,
                 maintenanceProfile = maintenanceProfile ?: prev?.maintenanceProfile,
+                deepLinkToken = prev?.id?.let { repository.getAutomationById(it)?.deepLinkToken },
                 createdAt = prev?.createdAt ?: now,
                 updatedAt = now
             )

@@ -1,3 +1,5 @@
+> **Historical / topic reference.** Retained for provenance; version-specific counts, completion claims and test results below have not been revalidated for v3.74. See the [current documentation index](../README.md) for the supported project overview and current validation status.
+
 # المرحلة 10 — الاستيراد والتصدير وتبعيات الإضافات
 
 أضيف `PluginDependencyScanner` إلى طبقة backup. يستخرج من `PLUGIN_FIRE` فقط metadata مراجعة غير سرية: workflow وpackage وreceiver وedit activity والبروتوكول ومصدر action، إضافةً إلى مؤشر `requiresReconfiguration` للإدخالات التراثية التي لا تملك `pluginInstance` وموافقة صريحة.

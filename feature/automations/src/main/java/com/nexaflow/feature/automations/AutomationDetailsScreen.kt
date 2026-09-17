@@ -203,6 +203,30 @@ fun AutomationDetailsScreen(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 NexaFlowCard {
+                    Text(stringResource(R.string.deep_link_access_title), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.deep_link_access_warning))
+                    Row {
+                        TextButton(onClick = { viewModel.setDeepLinkAccess(true) }) {
+                            Text(stringResource(if (current.deepLinkToken == null) R.string.deep_link_enable else R.string.deep_link_rotate))
+                        }
+                        if (current.deepLinkToken != null) {
+                            TextButton(onClick = { viewModel.setDeepLinkAccess(false) }) { Text(stringResource(R.string.deep_link_revoke)) }
+                            TextButton(onClick = {
+                                context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, taskDeepLink(current).toString())
+                                }, null))
+                            }) { Text(stringResource(R.string.deep_link_share)) }
+                        }
+                    }
+                }
+                if (current.triggers.any { it.type == TriggerType.WEBHOOK && it.config["token"].isNullOrBlank() }) {
+                    NexaFlowCard {
+                        Text(stringResource(R.string.webhook_review_required))
+                        TextButton(onClick = { viewModel.repairWebhookTokens() }) { Text(stringResource(R.string.webhook_secure)) }
+                    }
+                }
+                NexaFlowCard {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -614,7 +638,7 @@ private fun actionDetail(config: Map<String, String>): String {
  * `nexaflow://run-task/{id}` deep link handled by MainActivity.
  */
 private fun createTaskShortcut(context: android.content.Context, automation: Automation) {
-    val uri = Uri.parse("nexaflow://run-task/${automation.id}")
+    val uri = taskDeepLink(automation)
     val intent = Intent(Intent.ACTION_VIEW, uri)
     val shortcut = ShortcutInfoCompat.Builder(context, "task_" + automation.id)
         .setShortLabel(automation.name.take(10))
@@ -992,3 +1016,7 @@ internal fun routineHistoryRoute(
     val outcomeParameter = outcome?.let { "&outcome=${it.routeValue}" }.orEmpty()
     return "history?automationId=$encodedId$outcomeParameter"
 }
+
+internal fun taskDeepLink(automation: Automation): Uri = Uri.Builder()
+    .scheme("nexaflow").authority("run-task").appendPath(automation.id)
+    .apply { automation.deepLinkToken?.let { appendQueryParameter("token", it) } }.build()

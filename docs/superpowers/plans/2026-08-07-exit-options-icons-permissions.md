@@ -1,3 +1,5 @@
+> **Historical / topic reference.** Retained for provenance; version-specific counts, completion claims and test results below have not been revalidated for v3.74. See the [current documentation index](../../README.md) for the supported project overview and current validation status.
+
 # NexaFlow — خطة التوسع المتقدم: نهاية المهمة التكيفية، 100+ أيقونة، الموثوقية، ومدير الأذونات العدواني
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

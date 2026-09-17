@@ -154,4 +154,15 @@ class CommandCompatibilityEngineTest {
         assertTrue("Missing action specs: $missingActions", missingActions.isEmpty())
         assertTrue("Missing trigger specs: $missingTriggers", missingTriggers.isEmpty())
     }
+
+    @Test
+    fun `numeric sensors require the exact default sensor type`() {
+        com.nexaflow.domain.models.NumericSensors.specs.forEach { (kind, spec) ->
+            assertFalse(engine.isSensorAvailable(kind, defaultHardware))
+            assertTrue(engine.isSensorAvailable(kind, defaultHardware.copy(sensorTypes = setOf(spec.type))))
+            assertFalse(engine.isSensorAvailable(kind, defaultHardware.copy(sensorTypes = setOf(999))))
+        }
+        assertFalse(engine.isSensorAvailable("SHAKE", defaultHardware))
+        assertTrue(engine.isSensorAvailable("SHAKE", defaultHardware.copy(sensorTypes = setOf(10))))
+    }
 }

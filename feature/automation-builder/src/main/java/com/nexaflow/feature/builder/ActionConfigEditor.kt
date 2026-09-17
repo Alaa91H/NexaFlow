@@ -919,8 +919,43 @@ fun ActionConfigEditor(
                 )
             }
         }
+        ActionType.DATA_TEXT, ActionType.DATA_ENCODING, ActionType.DATA_HASH, ActionType.DATA_RANDOM, ActionType.DATA_MATH, ActionType.DATA_DATE_TIME, ActionType.DATA_JSON, ActionType.DATA_ARRAY -> {
+            val operations = com.nexaflow.domain.workflow.DataTransforms.operations.getValue(option.actionType)
+            val selected = config["operation"]?.takeIf { it.isNotBlank() } ?: operations.first()
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                operations.forEach { operation ->
+                    SelectChip(selected = selected == operation,
+                        onClick = { onConfigChange(config + ("operation" to operation)) }, label = operation)
+                }
+            }
+            Text(stringResource(R.string.data_transform_help), style = MaterialTheme.typography.bodySmall)
+            val fields = (if (option.actionType == ActionType.DATA_RANDOM || selected == "NOW") emptyList()
+                else listOf("input" to R.string.data_input, "inputPath" to R.string.data_input_path)) +
+                listOf("outputPath" to R.string.data_output_path) + when (selected) {
+                "REPLACE" -> listOf("argument" to R.string.data_argument, "replacement" to R.string.data_replacement)
+                "SUBSTRING" -> listOf("start" to R.string.data_start, "end" to R.string.data_end)
+                "INTEGER" -> listOf("min" to R.string.data_min, "max" to R.string.data_max)
+                "FORMAT" -> listOf("argument" to R.string.data_pattern, "zone" to R.string.data_zone)
+                "SPLIT", "JOIN", "POINTER", "TOKEN", "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "MIN", "MAX", "ROUND", "ADD_SECONDS" ->
+                    listOf("argument" to R.string.data_argument)
+                else -> emptyList()
+            }
+            fields.forEach { (key, label) ->
+                val path = key == "inputPath" || key == "outputPath"
+                OutlinedTextField(value = config[key] ?: com.nexaflow.domain.workflow.DataTransforms.defaultField(option.actionType, selected, key),
+                    onValueChange = { value -> if (value.length <= if (path) 512 else 16384) onConfigChange(config + (key to value)) },
+                    label = { Text(stringResource(label)) }, modifier = Modifier.fillMaxWidth(), maxLines = 5)
+            }
+        }
         ActionType.SYSTEM_HTTP_REQUEST -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.http_allow_private), modifier = Modifier.weight(1f))
+                    Switch(checked = config["allowPrivateNetwork"] == "true",
+                        onCheckedChange = { onConfigChange(config + ("allowPrivateNetwork" to it.toString())) })
+                }
+                Text(stringResource(R.string.http_private_warning), style = MaterialTheme.typography.bodySmall)
+
                 OutlinedTextField(
                     value = config["url"] ?: "",
                     onValueChange = { onConfigChange(config + ("url" to it)) },
@@ -939,9 +974,14 @@ fun ActionConfigEditor(
                     onValueChange = { onConfigChange(config + ("url" to it)) }
                 )
                 Text(text = stringResource(R.string.http_method), style = MaterialTheme.typography.titleSmall)
-                val methods = listOf("GET", "POST", "PUT", "PATCH", "DELETE")
+                val methods = listOf("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                OutlinedTextField(value = config["headers"].orEmpty(),
+                    onValueChange = { if (it.length <= 8192) onConfigChange(config + ("headers" to it)) },
+                    label = { Text(stringResource(R.string.http_custom_headers)) },
+                    supportingText = { Text(stringResource(R.string.http_custom_headers_help)) },
+                    modifier = Modifier.fillMaxWidth(), minLines = 2, maxLines = 6)
                 val selectedMethod = config["method"] ?: "GET"
-                val showBody = selectedMethod !in listOf("GET", "DELETE")
+                val showBody = selectedMethod in listOf("POST", "PUT", "PATCH", "DELETE")
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),

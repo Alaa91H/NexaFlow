@@ -1,27 +1,27 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="notification_action_revert">मूल स्थिति पुनर्स्थापित करें</string>
-    <string name="notification_action_run_now">अभी कार्य चलाएँ</string>
-    <string name="notification_action_reply_label">जवाब</string>
-    <string name="notification_action_dismiss">खारिज करें</string>
-
-    <!-- Localized execution-result presentation. -->
-    <string name="execution_task_completed">कार्य सफलतापूर्वक पूरा हुआ।</string>
-    <string name="execution_task_failed">कार्य पूरा नहीं किया जा सका।</string>
-    <string name="execution_task_skipped">कार्य छोड़ दिया गया।</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_completed">Triggers or conditions are not satisfied. Only the end behavior (when the task ends) was completed.</string>
-    <string name="execution_conditions_not_satisfied_no_end_behavior">Triggers or conditions of the task are not satisfied, so it cannot run now. No end behavior is configured.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_failed">Triggers or conditions of the task are not satisfied, so it cannot run now. The end behavior could not be completed.</string>
-    <string name="execution_action_completed">कार्रवाई सफलतापूर्वक पूरी हुई।</string>
-    <string name="execution_action_failed">कार्रवाई पूरी नहीं की जा सकी।</string>
-    <string name="execution_end_action_completed">समाप्ति कार्रवाई सफलतापूर्वक पूरी हुई।</string>
-    <string name="execution_end_action_failed">समाप्ति कार्रवाई पूरी नहीं की जा सकी।</string>
-    <string name="execution_original_state_restored">डिवाइस की मूल स्थिति पुनर्स्थापित कर दी गई।</string>
-    <string name="execution_original_state_restore_failed">डिवाइस की मूल स्थिति पुनर्स्थापित नहीं की जा सकी।</string>
-    <string name="execution_google_play_updates_unavailable">ऐप्स अपडेट नहीं किए गए, क्योंकि Google Play इस डिवाइस पर NexaFlow को अपडेट खोजने या डाउनलोड करने की अनुमति नहीं देता है।</string>
-    <string name="execution_google_play_managed_policy_required">ऐप्स अपडेट नहीं किए गए, क्योंकि एंटरप्राइज़-प्रबंधित डिवाइस पर प्रबंधित Google Play नीति आवश्यक है।</string>
-    <string name="run_progress_channel_name">कार्य रन प्रगति</string>
-    <string name="run_progress_starting">शुरू हो रहा है…</string>
-    <string name="run_progress_step">चरण %1$d / %2$d</string>
-    <string name="run_progress_channel_desc">दिखाता है कि चल रहा कार्य कौन सी क्रिया निष्पादित कर रहा है</string>
-</resources>
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_action_revert">मूल स्थिति पुनर्स्थापित करें</string>
+    <string name="notification_action_run_now">अभी कार्य चलाएँ</string>
+    <string name="notification_action_reply_label">जवाब</string>
+    <string name="notification_action_dismiss">खारिज करें</string>
+
+    <!-- Localized execution-result presentation. -->
+    <string name="execution_task_completed">कार्य सफलतापूर्वक पूरा हुआ।</string>
+    <string name="execution_task_failed">कार्य पूरा नहीं किया जा सका।</string>
+    <string name="execution_task_skipped">कार्य छोड़ दिया गया।</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">Triggers or conditions are not satisfied. Only the end behavior (when the task ends) was completed.</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">Triggers or conditions of the task are not satisfied, so it cannot run now. No end behavior is configured.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">Triggers or conditions of the task are not satisfied, so it cannot run now. The end behavior could not be completed.</string>
+    <string name="execution_action_completed">कार्रवाई सफलतापूर्वक पूरी हुई।</string>
+    <string name="execution_action_failed">कार्रवाई पूरी नहीं की जा सकी।</string>
+    <string name="execution_end_action_completed">समाप्ति कार्रवाई सफलतापूर्वक पूरी हुई।</string>
+    <string name="execution_end_action_failed">समाप्ति कार्रवाई पूरी नहीं की जा सकी।</string>
+    <string name="execution_original_state_restored">डिवाइस की मूल स्थिति पुनर्स्थापित कर दी गई।</string>
+    <string name="execution_original_state_restore_failed">डिवाइस की मूल स्थिति पुनर्स्थापित नहीं की जा सकी।</string>
+    <string name="execution_google_play_updates_unavailable">ऐप्स अपडेट नहीं किए गए, क्योंकि Google Play इस डिवाइस पर NexaFlow को अपडेट खोजने या डाउनलोड करने की अनुमति नहीं देता है।</string>
+    <string name="execution_google_play_managed_policy_required">ऐप्स अपडेट नहीं किए गए, क्योंकि एंटरप्राइज़-प्रबंधित डिवाइस पर प्रबंधित Google Play नीति आवश्यक है।</string>
+    <string name="run_progress_channel_name">कार्य रन प्रगति</string>
+    <string name="run_progress_starting">शुरू हो रहा है…</string>
+    <string name="run_progress_step">चरण %1$d / %2$d</string>
+    <string name="run_progress_channel_desc">दिखाता है कि चल रहा कार्य कौन सी क्रिया निष्पादित कर रहा है</string>
+</resources>

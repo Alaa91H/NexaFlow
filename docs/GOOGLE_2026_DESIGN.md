@@ -1,3 +1,5 @@
+> **Historical / topic reference.** Retained for provenance; version-specific counts, completion claims and test results below have not been revalidated for v3.74. See the [current documentation index](README.md) for the supported project overview and current validation status.
+
 # إعادة هيكلة التصميم — نمط جوجل 2026 (M3 Expressive)
 
 > **Goal:** Make the whole app — every screen, list, option, and feature — look,

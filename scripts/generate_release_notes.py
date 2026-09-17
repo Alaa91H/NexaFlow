@@ -25,7 +25,7 @@ GITHUB_BASE = f"https://github.com/{REPO}"
 QUALITY_TABLE = """
 ## Quality evidence
 
-Every release candidate passes the complete CI gate before publication:
+The tag workflow gates publication on the following automated checks. Consult the exact tag run and validation record for results; these checks do not establish physical-device coverage:
 
 - Android Lint (zero-tolerance: UnusedResources, MissingTranslation, ExtraTranslation,
   UnusedIds, CheckResult, HardcodedText, TypographyDashes) and Detekt static analysis.
@@ -43,15 +43,15 @@ Every release candidate passes the complete CI gate before publication:
 ## Install
 
 - Download `NexaFlow-<version>.apk` from the assets below and install it.
-- Updates install over the existing app without data loss when both builds share the
-  same signing certificate (production releases do).
+- Android updates require a compatible version code and the same signing certificate.
+  Back up important tasks before upgrading.
 - Pre-release tags (`alpha` / `beta` / `rc`) are marked as pre-releases automatically.
 
 ## Documentation
 
 - [Architecture](https://github.com/{repo}/blob/main/docs/ARCHITECTURE.md)
-- [Master plan 2026](https://github.com/{repo}/blob/main/docs/ROADMAP_2026.md)
-- [Strict task lifecycle](https://github.com/{repo}/blob/main/docs/STRICT_TASK_LIFECYCLE.md)
+- [Current roadmap](https://github.com/{repo}/blob/main/docs/ROADMAP_2026.md)
+- [Validation record](https://github.com/{repo}/blob/main/docs/VALIDATION.md)
 - [Plugin SDK](https://github.com/{repo}/blob/main/docs/PLUGIN_SDK.md)
 """.format(repo=REPO)
 
@@ -66,8 +66,12 @@ def extract_section(changelog: str, tag: str) -> str:
     if match is None:
         return ""
     start = match.end()
-    next_section = re.search(r"^##\s+", changelog[start:], re.M)
-    end = start + next_section.start() if next_section else len(changelog)
+    tail = changelog[start:]
+    boundaries = [m.start() for m in re.finditer(r"^##\s+", tail, re.M)]
+    preamble = re.search(r"^All notable changes to this project will be documented in this file\.", tail, re.M)
+    if preamble:
+        boundaries.append(preamble.start())
+    end = start + min(boundaries) if boundaries else len(changelog)
     return changelog[start:end].strip()
 
 

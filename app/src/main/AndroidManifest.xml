@@ -89,6 +89,7 @@
     <application
         android:name=".NexaFlowApplication"
         android:allowBackup="false"
+        android:usesCleartextTraffic="false"
         android:enableOnBackInvokedCallback="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -230,7 +231,7 @@
 
         <receiver
             android:name=".NexaFlowToggleWidgetProvider"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.nexaflow.app.action.TOGGLE_ALL" />
@@ -243,7 +244,7 @@
 
         <receiver
             android:name=".NexaFlowStatusWidgetProvider"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

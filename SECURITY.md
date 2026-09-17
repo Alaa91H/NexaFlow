@@ -1,34 +1,7 @@
-# Security Policy
+# Security policy
 
-## Reporting a Vulnerability
+The current implementation and its limitations are documented in [docs/SECURITY.md](docs/SECURITY.md). Use the latest published release and check its validation record. This repository does not promise a fixed response SLA or a security-support lifetime for older releases.
 
-We take the security of NexaFlow seriously. If you discover a security vulnerability, please report it to us as soon as possible.
+For a vulnerability, use GitHub private vulnerability reporting if it is enabled on this repository, or a verified private contact published by the repository owner. No verified security mailbox is currently specified here; the former placeholder address has been removed. Do not send secrets to an unverified address or expose live tokens in a public issue.
 
-**Please DO NOT open a public GitHub issue for security vulnerabilities.**
-
-Instead, please send an email to [security@nexaflow.com](mailto:security@nexaflow.com) (this is a placeholder email, replace with actual security contact).
-
-In your report, please include:
-
--   A clear description of the vulnerability.
--   Steps to reproduce the vulnerability.
--   The potential impact of the vulnerability.
--   Any suggested mitigations or fixes.
-
-We will acknowledge your report within 48 hours and provide a more detailed response within 7 days. We will keep you informed of our progress in addressing the vulnerability.
-
-## Supported Versions
-
-The following versions of NexaFlow are currently supported with security updates:
-
-| Version | Supported          |
-| :------ | :----------------- |
-| 1.x.x   | :white_check_mark: |
-
-## Security Best Practices
-
--   Keep your Android device and NexaFlow application updated to the latest versions.
--   Be cautious about granting permissions to applications.
--   Only install applications from trusted sources.
-
-Thank you for helping to keep NexaFlow secure!
+Include the affected version/commit, a minimal reproduction, expected and actual behavior, Android/device details and potential impact. Redact private data. Reports and proposed fixes should distinguish reproduced vulnerabilities from unverified hypotheses.

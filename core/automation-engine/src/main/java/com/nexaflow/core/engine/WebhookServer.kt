@@ -9,13 +9,10 @@ import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Semaphore
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
@@ -34,25 +31,15 @@ import androidx.core.content.ContextCompat
  * Lightweight loopback HTTP webhook (Tasker-webhook style). While monitoring
  * is active AND at least one enabled automation uses a WEBHOOK trigger, a
  * [ServerSocket] listens on 127.0.0.1:[port]; an HTTP request whose path (and
- * optional method/token) matches a trigger fires that task through the engine.
+ * method and mandatory token) matches a trigger fires that task through the engine.
  *
- * The server is deliberately loopback-only: no external device can reach it.
- * The optional per-trigger token guards against other local apps and is only
- * accepted via the [WebhookRequestGuard.TOKEN_HEADER] header — never the
- * query string, which leaks into logs and diagnostics.
- *
- * Hardening (all enforced before any matching runs):
- *  - bounded request line / header count / header sizes / body drain;
- *  - [Socket.soTimeout] so slow-loris style clients cannot hold sockets;
- *  - a concurrency [Semaphore] capping simultaneous client handlers;
- *  - an allow-list of HTTP methods (anything else gets 405);
- *  - constant-time secret comparison.
- *
- * The automation set is refreshed on ACTION_AUTOMATIONS_CHANGED, so disabling
- * the last webhook task stops the socket immediately.
+ * The server is deliberately loopback-only: no external device can reach it,
+ * and the mandatory token guards against other local apps. The automation set
+ * is refreshed on ACTION_AUTOMATIONS_CHANGED, so disabling the last webhook
+ * task stops the socket immediately.
  *
  * Trigger config keys: `path` (default "/"), `method` (POST/GET/ANY),
- * `token` (optional shared secret sent as the `X-NexaFlow-Token` header).
+ * `token` (mandatory shared-secret header `X-NexaFlow-Token` or ?token= query).
  */
 @Singleton
 class WebhookServer @Inject constructor(
@@ -68,18 +55,23 @@ class WebhookServer @Inject constructor(
     @Volatile
     private var automations: List<Automation> = emptyList()
 
-    private val lastRunAt = ConcurrentHashMap<String, Long>()
-
-    /** Diagnostics counters — never include tokens or paths. */
+    private val handlers = java.util.concurrent.Semaphore(8)
     val rejectedAuth = java.util.concurrent.atomic.AtomicLong()
     val rejectedOversize = java.util.concurrent.atomic.AtomicLong()
-    val rejectedMethod = java.util.concurrent.atomic.AtomicLong()
+    val rejectedTimeout = java.util.concurrent.atomic.AtomicLong()
+    val rejectedRateLimit = java.util.concurrent.atomic.AtomicLong()
+    private var windowStart = 0L
+    private var windowRequests = 0
+    @Synchronized private fun admit(): Boolean {
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (now - windowStart >= 60_000) { windowStart = now; windowRequests = 0 }
+        return ++windowRequests <= 120
+    }
+
+    private val lastRunAt = ConcurrentHashMap<String, Long>()
 
     private var serverJob: Job? = null
     private var serverSocket: ServerSocket? = null
-
-    /** Caps concurrent client handlers; extra connections are closed immediately. */
-    private val clientSlots = Semaphore(MAX_CONCURRENT_CLIENTS)
 
     private val changeReceiver = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context, intent: Intent) {
@@ -142,15 +134,14 @@ class WebhookServer @Inject constructor(
         try {
             while (isActive()) {
                 val client = runCatching { socket.accept() }.getOrNull() ?: break
-                when {
-                    clientSlots.tryAcquire() -> scope.launch(Dispatchers.IO) {
-                        try {
-                            handleClient(client)
-                        } finally {
-                            clientSlots.release()
-                        }
-                    }
-                    else -> runCatching { respond(client, 503, "Busy") }.also { runCatching { client.close() } }
+                if (!admit() || !handlers.tryAcquire()) {
+                    rejectedRateLimit.incrementAndGet()
+                    client.close()
+                    continue
+                }
+                client.soTimeout = 3_000
+                scope.launch(Dispatchers.IO) {
+                    try { handleClient(client) } finally { handlers.release() }
                 }
             }
         } catch (_: Throwable) {
@@ -165,43 +156,29 @@ class WebhookServer @Inject constructor(
 
     private suspend fun handleClient(client: Socket) {
         try {
-            client.soTimeout = READ_TIMEOUT_MS
-            val reader = BufferedReader(InputStreamReader(client.getInputStream()))
-
-            val requestLine = runCatching { reader.readLine() }.getOrNull()
-            val headerLines = readHeaderLines(reader)
-
-            when (val parsed = WebhookRequestGuard.parse(requestLine, headerLines)) {
-                is WebhookRequestGuard.Parsed.Rejected -> {
-                    when {
-                        parsed.code == 405 -> rejectedMethod.incrementAndGet()
-                        parsed.code == 431 -> rejectedOversize.incrementAndGet()
-                    }
-                    respond(client, parsed.code, parsed.reason)
-                }
-                is WebhookRequestGuard.Parsed.Request -> {
-                    val fired = dispatch(parsed.method, parsed.path, parsed.headerToken)
-                    respond(client, if (fired) 200 else 404, if (fired) "OK" else "Not found")
+            val deadline = System.nanoTime() + 3_000_000_000L
+            val input = object : java.io.FilterInputStream(client.getInputStream()) {
+                override fun read(): Int {
+                    val remaining = (deadline - System.nanoTime()) / 1_000_000
+                    if (remaining <= 0) throw java.net.SocketTimeoutException()
+                    client.soTimeout = remaining.coerceAtLeast(1).toInt()
+                    return super.read()
                 }
             }
-        } catch (_: Throwable) {
-            runCatching { respond(client, 500, "Internal error") }
+            val request = WebhookRequestGuard.readRequest(input)
+            val fired = dispatch(request.method, request.path, request.token)
+            respond(client, if (fired) 200 else 404, if (fired) "OK" else "Not found")
+        } catch (_: WebhookRequestGuard.OversizedRequest) {
+            rejectedOversize.incrementAndGet()
+            respond(client, 413, "Request too large")
+        } catch (_: java.net.SocketTimeoutException) {
+            rejectedTimeout.incrementAndGet()
+            respond(client, 408, "Request timeout")
+        } catch (_: Exception) {
+            respond(client, 400, "Bad request")
         } finally {
             runCatching { client.close() }
         }
-    }
-
-    /** Reads at most [WebhookRequestGuard.MAX_HEADER_LINES] header lines. */
-    private fun readHeaderLines(reader: BufferedReader): List<String> {
-        val lines = ArrayList<String>(WebhookRequestGuard.MAX_HEADER_LINES)
-        while (lines.size < WebhookRequestGuard.MAX_HEADER_LINES + 1) {
-            val line = runCatching { reader.readLine() }.getOrNull() ?: break
-            if (line.isBlank()) break
-            lines.add(line)
-            // Guard the drain: an oversized header block stops here; the
-            // guard still rejects on count/size before any matching.
-        }
-        return lines
     }
 
     private suspend fun dispatch(method: String, path: String, token: String?): Boolean {
@@ -209,20 +186,25 @@ class WebhookServer @Inject constructor(
         if (snapshot.isEmpty()) return false
         val now = System.currentTimeMillis()
         var anyFired = false
+        var authenticated = false
         WebhookTriggerMatcher.webhookAutomations(snapshot).forEach { automation ->
             val matches = automation.triggers
                 .filter { it.type == TriggerType.WEBHOOK }
                 .any { WebhookTriggerMatcher.matches(it.config, method, path, token) }
             if (matches) {
-                val last = lastRunAt[automation.id] ?: 0L
-                if (now - last > automation.cooldownMillis) {
-                    lastRunAt[automation.id] = now
+                authenticated = true
+                var admitted = false
+                lastRunAt.compute(automation.id) { _, last ->
+                    if (last == null || now - last > automation.cooldownMillis) { admitted = true; now } else last
+                }
+                if (admitted) {
                     anyFired = true
                     // A webhook is a one-shot event with no opposite callback.
                     executionEngine.runAutomation(automation, completeExitOnFinish = true)
                 }
             }
         }
+        if (!authenticated) rejectedAuth.incrementAndGet()
         return anyFired
     }
 
@@ -243,11 +225,5 @@ class WebhookServer @Inject constructor(
         @Volatile
         var currentPort: Int = 0
             private set
-
-        /** Per-client read timeout — slow-loris clients are cut off. */
-        const val READ_TIMEOUT_MS: Int = 10_000
-
-        /** Max simultaneous client handlers; excess connections get 503. */
-        const val MAX_CONCURRENT_CLIENTS: Int = 8
     }
 }

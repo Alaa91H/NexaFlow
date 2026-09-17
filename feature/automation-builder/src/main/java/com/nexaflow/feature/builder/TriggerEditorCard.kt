@@ -334,7 +334,7 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.NOTIFICATION -> mapOf("packages" to "", "contains" to "", "event" to "POSTED")
     TriggerType.CALENDAR -> mapOf("calendar" to "", "contains" to "", "event" to "EVENT_START", "beforeMinutes" to "0")
     TriggerType.SENSOR -> mapOf("sensor" to "PROXIMITY", "event" to "COVERED", "threshold" to "200", "sensitivity" to "14")
-    TriggerType.WEBHOOK -> mapOf("path" to "/nexaflow", "method" to "POST", "token" to "")
+    TriggerType.WEBHOOK -> mapOf("path" to "/nexaflow", "method" to "POST", "token" to com.nexaflow.domain.security.ExternalAccessPolicy.newToken())
     TriggerType.ROM_SETTING -> mapOf("namespace" to "SYSTEM", "key" to "", "operator" to "EQUALS", "value" to "")
     TriggerType.HEADPHONE -> mapOf("event" to "CONNECTED")
     TriggerType.CHARGER -> mapOf("event" to "CONNECTED")
@@ -492,7 +492,6 @@ internal fun TriggerType.descRes(): Int = when (this) {
     TriggerType.NFC_TAG_SCANNED -> R.string.trigger_type_nfc_sub
     TriggerType.ALARM_SET_CHANGED -> R.string.trigger_type_alarm_sub
     TriggerType.PLUGIN_EVENT -> R.string.action_plugin_sub
-    TriggerType.INCOMING_CALL -> R.string.trigger_type_incoming_call_sub
 }
 
 internal fun TriggerType.icon(): ImageVector = when (this) {
@@ -1760,9 +1759,16 @@ fun TriggerEditorCard(
                             RuntimePermissionHint(
                                 context = context,
                                 permissions = listOf(android.Manifest.permission.BLUETOOTH_CONNECT),
-                                text = stringResource(R.string.bluetooth_permission_hint),
-                                buttonLabel = stringResource(R.string.enable),
+                                text = stringResource(R.string.permission_bluetooth_body),
+                                buttonLabel = stringResource(R.string.grant),
                                 onRequest = { onRequestPermission(arrayOf(android.Manifest.permission.BLUETOOTH_CONNECT)) }
+                            )
+                            BluetoothEnabledHint(
+                                context = context,
+                                hintText = stringResource(R.string.bluetooth_permission_hint),
+                                buttonLabel = stringResource(R.string.enable),
+                                refreshKey = refreshKey,
+                                onRequest = { onExplainSpecial(SpecialPermission.BLUETOOTH) }
                             )
                         }
                     }
@@ -2309,20 +2315,31 @@ fun TriggerEditorCard(
                             selected = event,
                             onSelect = { onConfigChange(draft.copy(config = draft.config + ("event" to it))) }
                         )
-                        // Live badge for the BLUETOOTH_CONNECT runtime permission:
-                        // tapping requests it through the system dialog (after the
-                        // explain screen) instead of the Bluetooth settings screen,
-                        // which cannot grant a runtime permission.
-                        SpecialPermissionStatusRow(
-                            hintText = stringResource(R.string.bluetooth_permission_hint),
-                            special = SpecialPermission.BLUETOOTH,
+                        // Two independent, self-hiding rows — never a permanent prompt:
+                        // 1) BLUETOOTH_CONNECT runtime permission (system dialog).
+                        //    The Bluetooth settings screen cannot grant it, so it
+                        //    must go through onRequestPermission, not openSpecial.
+                        // 2) Adapter OFF advisory (settings screen via the special
+                        //    explain flow). Hidden when the permission is missing
+                        //    (row 1 owns that case) or when Bluetooth is already
+                        //    ON — so a healthy device shows no prompt at all.
+                        RuntimePermissionHint(
                             context = context,
-                            refreshKey = refreshKey,
+                            permissions = listOf(android.Manifest.permission.BLUETOOTH_CONNECT),
+                            text = stringResource(R.string.permission_bluetooth_body),
+                            buttonLabel = stringResource(R.string.grant),
                             onRequest = {
                                 onRequestPermission(
                                     arrayOf(android.Manifest.permission.BLUETOOTH_CONNECT)
                                 )
                             }
+                        )
+                        BluetoothEnabledHint(
+                            context = context,
+                            hintText = stringResource(R.string.bluetooth_permission_hint),
+                            buttonLabel = stringResource(R.string.enable),
+                            refreshKey = refreshKey,
+                            onRequest = { onExplainSpecial(SpecialPermission.BLUETOOTH) }
                         )
                     }
                 }
@@ -2420,7 +2437,9 @@ fun TriggerEditorCard(
                     }
                 }
                 TriggerType.SENSOR -> {
-                    val sensor = draft.config["sensor"] ?: "PROXIMITY"
+                    val sensor = (draft.config["sensor"] ?: "PROXIMITY").uppercase(java.util.Locale.ROOT)
+                    val sensorHardware = remember(context) { com.nexaflow.core.execution.compat.HardwareProfile.probe(context) }
+                    val sensorCompatibility = remember { com.nexaflow.core.execution.compat.CommandCompatibilityEngine() }
                     val event = draft.config["event"] ?: "COVERED"
                     val threshold = (draft.config["threshold"] ?: "200").toIntOrNull() ?: 200
                     val sensitivity = (draft.config["sensitivity"] ?: "14").toIntOrNull() ?: 14
@@ -2438,18 +2457,56 @@ fun TriggerEditorCard(
                                 "PROXIMITY" to R.string.sensor_proximity,
                                 "SHAKE" to R.string.sensor_shake,
                                 "LIGHT" to R.string.sensor_light,
-                                "STEP" to R.string.sensor_step
+                                "STEP" to R.string.sensor_step,
+                                "PRESSURE" to R.string.sensor_numeric_pressure,
+                                "TEMPERATURE" to R.string.sensor_numeric_temperature,
+                                "HUMIDITY" to R.string.sensor_numeric_humidity,
+                                "MAGNETIC" to R.string.sensor_numeric_magnetic,
+                                "ACCELERATION" to R.string.sensor_numeric_acceleration,
+                                "GYROSCOPE" to R.string.sensor_numeric_gyroscope,
+                                "GRAVITY" to R.string.sensor_numeric_gravity,
+                                "HINGE" to R.string.sensor_numeric_hinge
                             )
                             kinds.forEach { (value, labelRes) ->
                                 SelectChip(
                                     selected = sensor == value,
                                     onClick = {
                                         onConfigChange(
-                                            draft.copy(config = draft.config + ("sensor" to value))
+                                            draft.copy(config = com.nexaflow.domain.models.NumericSensors.configurationFor(value, draft.config))
                                         )
                                     },
                                     label = stringResource(labelRes)
                                 )
+                            }
+                        }
+                        if (!sensorCompatibility.isSensorAvailable(sensor, sensorHardware)) {
+                            Text(stringResource(R.string.sensor_unavailable), color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall)
+                        }
+                        val numeric = com.nexaflow.domain.models.NumericSensors.specs[sensor]
+                        if (numeric != null) {
+                            Text(stringResource(R.string.sensor_numeric_help), style = MaterialTheme.typography.bodySmall)
+                            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                listOf("ABOVE" to R.string.sensor_event_above, "BELOW" to R.string.sensor_event_below,
+                                    "AT_LEAST" to R.string.sensor_event_at_least, "AT_MOST" to R.string.sensor_event_at_most,
+                                    "BETWEEN" to R.string.sensor_event_between).forEach { (comparison, label) ->
+                                    SelectChip(selected = (draft.config["event"] ?: "ABOVE") == comparison,
+                                        onClick = { onConfigChange(draft.copy(config = draft.config + ("event" to comparison))) },
+                                        label = stringResource(label))
+                                }
+                            }
+                            val fields = if (draft.config["event"] == "BETWEEN") listOf("threshold", "upperThreshold") else listOf("threshold")
+                            val lower = draft.config["threshold"]?.toFloatOrNull()?.takeIf { it.isFinite() }
+                            fields.forEach { key ->
+                                val parsed = draft.config[key]?.toFloatOrNull()?.takeIf { it.isFinite() }
+                                val invalidRange = key == "upperThreshold" && parsed != null && lower != null && parsed < lower
+                                val invalid = parsed == null || invalidRange
+                                OutlinedTextField(value = draft.config[key].orEmpty(),
+                                    onValueChange = { onConfigChange(draft.copy(config = draft.config + (key to it))) },
+                                    label = { Text(stringResource(if (key == "threshold") R.string.sensor_numeric_lower else R.string.sensor_numeric_upper, numeric.unit)) },
+                                    isError = invalid,
+                                    supportingText = { if (invalid) Text(stringResource(if (invalidRange) R.string.sensor_invalid_range else R.string.sensor_invalid_threshold)) },
+                                    modifier = Modifier.fillMaxWidth(), singleLine = true)
                             }
                         }
                         when (sensor) {

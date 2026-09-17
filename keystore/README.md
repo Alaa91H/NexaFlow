@@ -1,3 +1,5 @@
+> **Historical / topic reference.** Retained for provenance; version-specific counts, completion claims and test results below have not been revalidated for v3.74. See the [current documentation index](../docs/README.md) for the supported project overview and current validation status.
+
 # توقيع إصدار NexaFlow
 
 يعتمد Android في تحديث تطبيق مثبت على تطابق **شهادة التوقيع** بين الحزمة الحالية والحزمة الجديدة. لذلك، فإن إصدار NexaFlow الذي يراد تثبيته فوق نسخة موجودة يجب أن يوقّع بالمفتاح نفسه الذي وقّع النسخة المثبتة. لا تضع المفتاح أو كلمات المرور في Git؛ كلاهما مستثنى صراحةً من المستودع.

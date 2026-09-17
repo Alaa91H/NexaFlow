@@ -13,12 +13,13 @@ import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class UpdatePreferencesTest {
+    @get:org.junit.Rule val fixture = PreferenceStoreFixture()
 
     private val context: Context = ApplicationProvider.getApplicationContext()
 
     @Test
     fun disabledChecksNeverReserveAnUpdateNotification() = runBlocking {
-        val preferences = UpdatePreferences(context)
+        val preferences = UpdatePreferences(fixture.store)
         preferences.setAutomaticChecksEnabled(false)
 
         assertFalse(preferences.claimNotification("3.38.8-test-disabled"))
@@ -27,7 +28,7 @@ class UpdatePreferencesTest {
 
     @Test
     fun notificationClaimIsAtomicPerVersionAndNewVersionsMayNotify() = runBlocking {
-        val preferences = UpdatePreferences(context)
+        val preferences = UpdatePreferences(fixture.store)
         preferences.setAutomaticChecksEnabled(true)
         val firstVersion = "3.38.8-test-${System.nanoTime()}"
         val secondVersion = "3.38.9-test-${System.nanoTime()}"
@@ -42,7 +43,7 @@ class UpdatePreferencesTest {
 
     @Test
     fun installedMatchingReleaseClearsOnlyItsOwnNotificationReservation() = runBlocking {
-        val preferences = UpdatePreferences(context)
+        val preferences = UpdatePreferences(fixture.store)
         val installed = "3.39.1-test-${System.nanoTime()}"
         val newer = "3.39.2-test-${System.nanoTime()}"
         try {
@@ -59,7 +60,7 @@ class UpdatePreferencesTest {
 
     @Test
     fun frequencyPersistsOnlySupportedCadences() = runBlocking {
-        val preferences = UpdatePreferences(context)
+        val preferences = UpdatePreferences(fixture.store)
         try {
             UpdateCheckFrequency.entries.forEach { frequency ->
                 preferences.setFrequency(frequency)

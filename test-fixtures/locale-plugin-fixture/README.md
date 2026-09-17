@@ -1,3 +1,5 @@
+> **Historical / topic reference.** Retained for provenance; version-specific counts, completion claims and test results below have not been revalidated for v3.74. See the [current documentation index](../../docs/README.md) for the supported project overview and current validation status.
+
 # Locale Plugin Test Fixture
 
 هذه وحدة اختبار فقط تنتج APK خارجيًا بالحزمة `com.nexaflow.testfixture.locale`. وهي غير مرتبطة بوحدة `:app` ولا يجوز إضافتها كاعتماد إنتاجي. الغرض الوحيد منها هو توفير مكونات Locale متوافقة وحتمية لاختبار الاكتشاف والاستدعاء وحالات النتيجة وcondition protocol على Android فعلي.

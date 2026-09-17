@@ -174,6 +174,39 @@ fun RuntimePermissionHint(
 }
 
 /**
+ * Advisory row shown only when the BLUETOOTH_CONNECT permission is already
+ * granted but the adapter itself is OFF. It never blocks saving — a task can
+ * be created while Bluetooth is off and will fire once the chosen device
+ * connects. Tapping opens the Bluetooth settings screen (via the explain
+ * flow owned by the caller).
+ *
+ * The row hides itself when the permission is missing (the [RuntimePermissionHint]
+ * above owns that case) or when the adapter is already ON, so a healthy
+ * device like the reporter's (BT ON + permission granted) shows no prompt at all.
+ */
+@Composable
+fun BluetoothEnabledHint(
+    context: Context,
+    hintText: String,
+    buttonLabel: String,
+    refreshKey: Int = 0,
+    onRequest: () -> Unit
+) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+        context.checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) !=
+        android.content.pm.PackageManager.PERMISSION_GRANTED
+    ) {
+        return
+    }
+    var enabled by remember { mutableStateOf<Boolean?>(null) }
+    LaunchedEffect(refreshKey) {
+        enabled = withContext(Dispatchers.IO) { PermissionShortcuts.isBluetoothEnabled(context) }
+    }
+    if (enabled == null || enabled == true) return
+    PermissionHint(text = hintText, buttonLabel = buttonLabel, onClick = onRequest)
+}
+
+/**
  * Live state of a special permission shown in an action card.
  *
  * - [GRANTED]: the permission is currently granted (green pill).
@@ -560,6 +593,7 @@ internal fun permissionHintTextForAction(actionType: ActionType): Int = when (ac
 @Composable
 fun PermissionHintForAction(
     actionType: ActionType,
+    actionConfig: Map<String, String> = emptyMap(),
     context: Context,
     refreshKey: Int = 0,
     onRequestPermission: (Array<String>) -> Unit = {},
@@ -567,7 +601,7 @@ fun PermissionHintForAction(
     // site that forgets to wire the explain screen never gets a dead button.
     onExplainSpecial: (SpecialPermission) -> Unit = { PermissionShortcuts.openSpecial(context, it) }
 ) {
-    val runtimePermissions = PermissionCatalog.runtimePermissionsFor(actionType)
+    val runtimePermissions = PermissionCatalog.runtimePermissionsFor(com.nexaflow.domain.models.Action(actionType, actionConfig))
     if (runtimePermissions.isNotEmpty()) {
         var grantRevision by remember { mutableStateOf(0) }
         // The revision is deliberately read while computing the state so the
@@ -646,19 +680,58 @@ object PermissionShortcuts {
                 // Elevated covers root/Shizuku/system; grant is best-effort.
                 PrivilegedRunner.isRootAvailable() || PrivilegedRunner.isShizukuGranted()
             }
-            SpecialPermission.BLUETOOTH -> {
-                android.Manifest.permission.BLUETOOTH_CONNECT in context.packageManager
-                    .getPackageInfo(context.packageName, 0)
-                    .requestedPermissions.orEmpty() &&
-                    context.checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) ==
-                    android.content.pm.PackageManager.PERMISSION_GRANTED
-            }
+            SpecialPermission.BLUETOOTH -> isBluetoothReady(context)
             SpecialPermission.EXACT_ALARM -> {
                 Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
                     (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager)
                         .canScheduleExactAlarms()
             }
         }
+    } catch (_: Throwable) {
+        false
+    }
+
+    /**
+     * True when a Bluetooth-device task can actually list and monitor devices:
+     * the BLUETOOTH_CONNECT runtime permission is granted (API 31+) AND the
+     * adapter is enabled. Below API 31 there is no runtime permission, so only
+     * the adapter state matters.
+     *
+     * The old implementation checked
+     * `getPackageInfo(packageName, 0).requestedPermissions`, which returns null
+     * on API 33+ without the GET_PERMISSIONS flag — so it reported "not
+     * granted" forever, forced the save flow into the Bluetooth settings
+     * screen even with Bluetooth ON and the permission granted, and produced
+     * exactly the reported "asks to turn on Bluetooth" bug.
+     */
+    fun isBluetoothReady(context: Context): Boolean {
+        if (!hasBluetoothConnectPermission(context)) return false
+        return isBluetoothEnabled(context)
+    }
+
+    /** BLUETOOTH_CONNECT is a runtime permission only on API 31+. */
+    fun hasBluetoothConnectPermission(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return true
+        return try {
+            context.checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    /**
+     * True when the Bluetooth adapter is ON. Returns false when the adapter is
+     * missing, off, or unreadable (e.g. permission revoked mid-check) — never
+     * throws, so status rows can probe it safely off the main thread.
+     */
+    fun isBluetoothEnabled(context: Context): Boolean = try {
+        val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? android.bluetooth.BluetoothManager
+            ?: context.getSystemService(android.bluetooth.BluetoothManager::class.java)
+        val adapter = manager?.adapter ?: return false
+        runCatching { adapter.isEnabled }.getOrDefault(false)
+    } catch (_: SecurityException) {
+        false
     } catch (_: Throwable) {
         false
     }
@@ -730,9 +803,13 @@ object PermissionShortcuts {
 
     fun openBluetoothSettings(context: Context) {
         try {
-            context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+            context.startActivity(
+                Intent(Settings.ACTION_BLUETOOTH_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
         } catch (_: Throwable) {
-            context.startActivity(Intent(Settings.ACTION_SETTINGS))
+            runCatching {
+                context.startActivity(Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }
         }
     }
 

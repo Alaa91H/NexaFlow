@@ -51,15 +51,27 @@ internal data class RunTaskDeepLink(val automationId: String, val token: String?
  * External execution requires a per-task opt-in `token` minted by the user.
  */
 internal fun parseRunTaskDeepLink(uri: android.net.Uri?): RunTaskDeepLink? {
-    if (uri == null) return null
-    if (uri.scheme != "nexaflow" || uri.host != "run-task") return null
-    val id = uri.path?.trim('/').orEmpty()
-    if (id.isBlank()) return null
-    return RunTaskDeepLink(
-        automationId = id,
-        token = uri.getQueryParameter("token")?.trim()?.ifBlank { null },
-        force = uri.getQueryParameter("force") == "1"
-    )
+    if (uri == null || uri.toString().length > 8192 || uri.isOpaque || uri.userInfo != null || uri.port != -1 || uri.fragment != null) return null
+    if (uri.scheme != "nexaflow" || uri.encodedAuthority != "run-task") return null
+    if (uri.pathSegments.size != 1) return null
+    // Decode names before counting: token=one&%74oken=two is ambiguous too.
+    val parameters = uri.encodedQuery?.split('&').orEmpty().map {
+        android.net.Uri.decode(it.substringBefore('=')) to android.net.Uri.decode(it.substringAfter('=', ""))
+    }
+    if (parameters.any { it.first !in setOf("token", "force") } || parameters.map { it.first }.distinct().size != parameters.size) return null
+    val id = uri.pathSegments.single()
+    if (id.isBlank() || id.length > 256 || id in setOf(".", "..") || id.any { it == '/' || it == '\\' || it.isISOControl() }) return null
+    return RunTaskDeepLink(automationId = id, force = parameters.firstOrNull { it.first == "force" }?.second == "1",
+        token = parameters.firstOrNull { it.first == "token" }?.second?.ifBlank { null })
+}
+
+internal fun isTaskImportIntent(intent: Intent?): Boolean {
+    if (intent?.action != Intent.ACTION_VIEW) return false
+    val uri = intent.data ?: return false
+    if (uri.scheme !in setOf("content", "file")) return false
+    return intent.type == "application/json" || uri.lastPathSegment.orEmpty().let {
+        it.endsWith(".nexaflow", ignoreCase = true) || it.endsWith(".json", ignoreCase = true)
+    }
 }
 
 @AndroidEntryPoint
@@ -80,6 +92,8 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var backupManager: com.nexaflow.data.backup.BackupManager
+
+    private val reviewAutomationId = androidx.compose.runtime.mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Branded splash (core-splashscreen): keep it up until the theme is
@@ -108,11 +122,11 @@ class MainActivity : AppCompatActivity() {
         // Privileged access is never used as a launch-time permission escalator.
         // Root/Shizuku and Android permissions are requested only from explicit
         // feature flows that need them, keeping startup least-privileged.
-        // Deep link (P2-5): nexaflow://run-task/{id} runs the task directly.
-        handleDeepLink(intent)
+        // Deep links open task review; authorized links also offer explicit confirmation.
+        if (savedInstanceState == null) handleDeepLink(intent)
         // Single-task share target: a .nexaflow file opened from another app
         // (messenger, file manager, AirDrop-equivalent) imports on launch.
-        handleSharedTask(intent)
+        if (savedInstanceState == null) handleSharedTask(intent)
         setContent {
             val theme by themePreferences.theme.collectAsStateWithLifecycle(initialValue = ThemeSettings())
             NexaFlowTheme(
@@ -124,7 +138,7 @@ class MainActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    NexaFlowApp()
+                    NexaFlowApp(reviewAutomationId.value) { reviewAutomationId.value = null }
                 }
             }
             // Report time-to-full-display once the first frame is actually
@@ -153,8 +167,8 @@ class MainActivity : AppCompatActivity() {
      * failed share is never a silent no-op.
      */
     private fun handleSharedTask(intent: Intent?) {
-        if (intent?.action != Intent.ACTION_VIEW) return
-        val uri = intent.data ?: return
+        if (!isTaskImportIntent(intent)) return
+        val uri = intent?.data ?: return
         lifecycleScope.launch {
             // P0.3: bounded read — a hostile provider can no longer exhaust
             // memory through an unbounded content stream.
@@ -223,27 +237,34 @@ class MainActivity : AppCompatActivity() {
      * Runs the task targeted by a `nexaflow://run-task/{automationId}` deep
      * link. External execution is P0.2 fail-closed: without a valid per-task
      * opt-in token the link only opens the app (review surface) — nothing
-     * runs. With a valid token, `?force=1` still routes through the explicit
-     * force-run confirmation so a bypass is always a deliberate user action.
+     * runs. Every authorized link requires confirmation; `?force=1` uses the
+     * force-run explanation so bypassing conditions is a deliberate user action.
      * Missing/unknown ids are ignored silently so the app just opens normally
      * for any other launch.
      */
     private fun handleDeepLink(intent: Intent?) {
-        val link = parseRunTaskDeepLink(intent?.data) ?: return
+        if (intent?.action != Intent.ACTION_VIEW) return
+        val dispatcher = DeepLinkDispatcher(automationRepository)
         lifecycleScope.launch {
-            val automation = automationRepository.getAutomationById(link.automationId) ?: return@launch
-            if (!deepLinkTokenAuthorized(link.token, automation.deepLinkToken)) {
-                // Tokenless or mismatched link: review-only. Never execute.
-                return@launch
-            }
-            if (link.force) {
-                showForceRunConfirmation(automation)
-            } else {
-                runThroughAdmissionGate(automation)
+            dispatcher.open(intent.data, review = { reviewAutomationId.value = it.id }) { automation, link ->
+                // Custom schemes are interceptable; confirmation is mandatory, including force links.
+                androidx.appcompat.app.AlertDialog.Builder(this@MainActivity)
+                    .setTitle(if (link.force) R.string.run_force_title else R.string.deep_link_confirm_title)
+                    .setMessage(getString(if (link.force) R.string.deep_link_force_message else R.string.deep_link_confirm_message, automation.name))
+                    .setPositiveButton(R.string.deep_link_confirm_run) { _, _ ->
+                        lifecycleScope.launch {
+                            dispatcher.runConfirmed(link) { latest ->
+                                if (link.force) {
+                                    val record = executionEngine.forceRun(latest)
+                                    Toast.makeText(this@MainActivity, ExecutionResultPresentation.summary(this@MainActivity, record), Toast.LENGTH_LONG).show()
+                                } else runThroughAdmissionGate(latest)
+                            }
+                        }
+                    }
+                    .setNegativeButton(R.string.cancel, null).show()
             }
         }
     }
-
 
     /**
      * Manual invocation via deep link obeys the same admission policy as the
@@ -256,7 +277,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val record = executionEngine.runWithConditionGate(automation)
             val reason = executionEngine.describeManualBlock(automation)
-            val reasonText = if (reason != null && reason.kind != ExecutionEngine.ManualBlockKind.NONE) {
+            val reasonText = if (reason.kind != ExecutionEngine.ManualBlockKind.NONE) {
                 when (reason.kind) {
                     ExecutionEngine.ManualBlockKind.TRIGGERS_NOT_MET ->
                         reason.failedTriggerLabels.joinToString().ifEmpty { null }
@@ -274,31 +295,6 @@ class MainActivity : AppCompatActivity() {
                 Toast.LENGTH_LONG
             ).show()
         }
-    }
-
-    /**
-     * The `force=1` path: mirrors the dashboard's force-run confirmation so
-     * the bypass is never one accidental tap away. Confirming executes the
-     * full action chain (the engine durably logs the bypass); dismissing
-     * simply closes the dialog without running anything.
-     */
-    private fun showForceRunConfirmation(automation: com.nexaflow.domain.models.Automation) {
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle(R.string.run_force_title)
-            .setMessage(getString(R.string.deep_link_force_message, automation.name))
-            .setPositiveButton(R.string.run_force_confirm) { _, _ ->
-                lifecycleScope.launch {
-                    val record = executionEngine.forceRun(automation)
-                    Toast.makeText(
-                        this@MainActivity,
-                        getString(R.string.deep_link_run_toast, automation.name) + " — " +
-                            ExecutionResultPresentation.summary(this@MainActivity, record),
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
     }
 
     /**
