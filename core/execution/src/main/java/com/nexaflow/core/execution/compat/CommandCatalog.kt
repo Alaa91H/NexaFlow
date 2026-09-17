@@ -250,10 +250,11 @@ object CommandCatalog {
         ActionType.SYSTEM_OPEN_NOTIFICATION_SETTINGS to CommandSpec.UNIVERSAL,
 
         // ADVANCED / PLUGINS
-        ActionType.ADVANCED_ROOT to elevated(),
+        ActionType.ADVANCED_ROOT to elevated().copy(requiredBackend = RomCapability.ROOT_SHELL),
         ActionType.ADVANCED_SHIZUKU to CommandSpec(
             requiresIntegration = IntegrationLevel.SHIZUKU,
-            strategy = ExecutionStrategy.ELEVATED
+            strategy = ExecutionStrategy.ELEVATED,
+            requiredBackend = RomCapability.SHIZUKU
         ),
         ActionType.PLUGIN_FIRE to CommandSpec.UNIVERSAL
     )

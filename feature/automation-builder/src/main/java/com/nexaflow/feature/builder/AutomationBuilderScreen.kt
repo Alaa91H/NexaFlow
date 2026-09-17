@@ -912,11 +912,12 @@ fun AutomationBuilderScreen(
     // Unsupported entries stay hidden, while grantable or temporarily unavailable
     // entries remain discoverable and are rendered as locked rows below.
     val capabilitySnapshot by viewModel.capabilitySnapshot.collectAsStateWithLifecycle()
-    val actionOptionStates = remember(context, capabilitySnapshot) {
+    var permissionRefreshTick by remember { mutableStateOf(0) }
+    val actionOptionStates = remember(context, capabilitySnapshot, permissionRefreshTick) {
         CompatibilityGate.actionOptionStates(context, capabilitySnapshot)
             .filter { it.availability != BuilderOptionAvailability.UNSUPPORTED }
     }
-    val triggerOptionStates = remember(context, capabilitySnapshot) {
+    val triggerOptionStates = remember(context, capabilitySnapshot, permissionRefreshTick) {
         CompatibilityGate.triggerOptionStates(context, capabilitySnapshot)
             .filter { it.availability != BuilderOptionAvailability.UNSUPPORTED }
     }
@@ -1354,7 +1355,6 @@ fun AutomationBuilderScreen(
     // colour-coded badge reflects the freshly granted state without leaving
     // and re-opening the task.
     val lifecycleOwner = LocalLifecycleOwner.current
-    var permissionRefreshTick by remember { mutableStateOf(0) }
     DisposableEffect(lifecycleOwner, stableSavedStateHandle) {
         val handle = stableSavedStateHandle
         val observer = LifecycleEventObserver { _, event ->

@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Backend-specific Root and Shizuku commands now require their exact backend; a generic elevated shell no longer enables the other provider's command.
+- Device compatibility capture re-reads capabilities and requires a connected Shizuku UserService before advertising an executable Shizuku route. Builder discovery refreshes on resume after permission changes.
+- Devices exposing only supported numeric sensors, such as pressure, retain the sensor trigger in discovery.
+
+### Documentation
+
+- Added an implementation plan with staged acceptance gates and explicit outstanding work. This increment does not complete the competitive expansion roadmap.
+
 ## [v3.74.2] - 2026-09-17
 
 ### Fixed

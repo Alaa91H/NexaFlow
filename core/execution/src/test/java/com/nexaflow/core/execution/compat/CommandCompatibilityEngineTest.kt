@@ -15,6 +15,32 @@ class CommandCompatibilityEngineTest {
 
     private val engine = CommandCompatibilityEngine()
 
+    @Test
+    fun `backend-specific commands never substitute root for Shizuku or vice versa`() {
+        val root = profile(elevated = true, caps = setOf(RomCapability.ROOT_SHELL))
+        val shizuku = profile(elevated = true, caps = setOf(RomCapability.SHIZUKU))
+        val both = profile(elevated = true, caps = setOf(RomCapability.ROOT_SHELL, RomCapability.SHIZUKU))
+        assertTrue(engine.isSupported(ActionType.ADVANCED_ROOT, root))
+        assertFalse(engine.isSupported(ActionType.ADVANCED_SHIZUKU, root))
+        assertFalse(engine.isSupported(ActionType.ADVANCED_ROOT, shizuku))
+        assertTrue(engine.isSupported(ActionType.ADVANCED_SHIZUKU, shizuku))
+        assertTrue(engine.isSupported(ActionType.ADVANCED_ROOT, both))
+        assertTrue(engine.isSupported(ActionType.ADVANCED_SHIZUKU, both))
+        val disconnected = both.copy(capabilities = emptySet())
+        assertFalse(engine.isSupported(ActionType.ADVANCED_ROOT, disconnected))
+        assertFalse(engine.isSupported(ActionType.ADVANCED_SHIZUKU, disconnected))
+    }
+
+    @Test
+    fun `numeric-only sensor hardware keeps sensor trigger discoverable`() {
+        val pressureOnly = defaultHardware.copy(
+            hasProximitySensor = false, hasLightSensor = false, hasStepCounter = false,
+            hasAccelerometer = false, hasGyroscope = false, sensorTypes = setOf(6)
+        )
+        assertTrue(engine.isSupported(TriggerType.SENSOR, profile(hardware = pressureOnly)))
+        assertFalse(engine.isSupported(TriggerType.SENSOR, profile(hardware = pressureOnly.copy(sensorTypes = emptySet()))))
+    }
+
     private val defaultHardware = HardwareProfile(
         hasNfc = true, hasTelephony = true, hasBluetooth = true,
         hasCameraFlash = true, hasProximitySensor = true,

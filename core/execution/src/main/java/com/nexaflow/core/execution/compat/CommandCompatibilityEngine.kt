@@ -37,7 +37,11 @@ data class DeviceProfile(
             return try {
                 val info = RomIntegrationManager.buildInfo(context)
                 val level = RomIntegrationManager.integrationLevel(context)
-                val caps = RomIntegrationManager.availableCapabilities(context)
+                val caps = com.nexaflow.core.rom.RomCapabilityProvider(context, level, info.family)
+                    .availableCapabilities().filter { capability ->
+                        capability != RomCapability.SHIZUKU ||
+                            com.nexaflow.core.rom.ShizukuShellBridge.isUserServiceBound
+                    }
                 val hw = HardwareProfile.probe(context)
                 DeviceProfile(
                     sdk = info.androidSdk.takeIf { it > 0 } ?: android.os.Build.VERSION.SDK_INT,
@@ -45,7 +49,7 @@ data class DeviceProfile(
                     integrationLevel = level,
                     capabilities = caps.toSet(),
                     grantedPermissions = emptySet(), // filled below via provider when possible
-                    hasElevatedShell = level == IntegrationLevel.ROOT || level == IntegrationLevel.SHIZUKU,
+                    hasElevatedShell = RomCapability.ROOT_SHELL in caps || RomCapability.SHIZUKU in caps,
                     hardware = hw
                 ).withPermissions(context)
             } catch (_: Throwable) {
@@ -116,6 +120,9 @@ class CommandCompatibilityEngine(
 
     /** Resolves the effective strategy for a command on this device. Hardware is gated per type in [isSupported]. */
     fun resolve(spec: CommandSpec, profile: DeviceProfile): ExecutionStrategy {
+        if (spec.requiredBackend != null && spec.requiredBackend !in profile.capabilities) {
+            return ExecutionStrategy.UNSUPPORTED
+        }
         if (!versionOk(spec, profile.sdk)) return ExecutionStrategy.UNSUPPORTED
         if (!romOk(spec, profile.romFamily)) return ExecutionStrategy.UNSUPPORTED
         if (!integrationOk(spec, profile)) return ExecutionStrategy.UNSUPPORTED
@@ -242,7 +249,10 @@ class CommandCompatibilityEngine(
             com.nexaflow.domain.models.ActionType.SYSTEM_BLUETOOTH_SCAN -> hardware.hasBluetooth
             // Sensors — strict per-sensor checks
             com.nexaflow.domain.models.TriggerType.SENSOR -> {
-                hardware.hasProximitySensor || hardware.hasLightSensor || hardware.hasAccelerometer || hardware.hasStepCounter || hardware.hasGyroscope
+                hardware.hasProximitySensor || hardware.hasLightSensor || hardware.hasStepCounter ||
+                    10 in hardware.sensorTypes || com.nexaflow.domain.models.NumericSensors.specs.values.any {
+                        it.type in hardware.sensorTypes
+                    }
             }
             // Location
             com.nexaflow.domain.models.TriggerType.LOCATION,

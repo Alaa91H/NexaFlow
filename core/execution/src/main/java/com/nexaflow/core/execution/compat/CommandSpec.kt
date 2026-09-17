@@ -45,7 +45,9 @@ data class CommandSpec(
     val romFamilies: Set<RomFamily> = emptySet(),
     val deniedFamilies: Set<RomFamily> = emptySet(),
     val strategy: ExecutionStrategy = ExecutionStrategy.DIRECT,
-    val permissions: Set<String> = emptySet()
+    val permissions: Set<String> = emptySet(),
+    /** Exact backend requirement; another elevated channel cannot substitute. */
+    val requiredBackend: RomCapability? = null
 ) {
     companion object {
         /** A command that always works on every ROM/version (e.g. toast, clipboard). */

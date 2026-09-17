@@ -21,7 +21,7 @@ See the [generated catalog](docs/CAPABILITY_CATALOG.md), [configuration referenc
 
 - Android 8.0 / API 26 minimum; compile and target SDK 37.
 - Download artifacts from [GitHub Releases](https://github.com/Alaa91H/NexaFlow/releases). Retain the same signing identity when upgrading an existing installation.
-- Grant permissions from the feature that needs them. Root and Shizuku are optional capability providers, not universal requirements. Their availability is evaluated independently: a device with both approved routes exposes both, while unavailable elevated options remain locked rather than selectable.
+- Grant permissions from the feature that needs them. Root and Shizuku are optional capability providers. Backend-specific commands require their exact provider; Shizuku execution also requires its UserService connection. Some legacy options are hidden when permissions are missing; consistent locked-row discovery is still being implemented.
 - Exact alarms, background restrictions and OEM power management can affect delivery. A foreground service does not guarantee uninterrupted execution.
 - Sensor features require the corresponding hardware. Pressure, humidity, ambient temperature and hinge sensors are uncommon on many phones.
 
