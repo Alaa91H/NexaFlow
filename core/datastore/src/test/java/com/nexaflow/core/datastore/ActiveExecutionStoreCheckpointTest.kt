@@ -100,6 +100,22 @@ class ActiveExecutionStoreCheckpointTest {
         assertEquals(null, store.checkpoint("run-checkpoint"))
     }
 
+    @Test
+    fun duplicateAdmission_reportsCollisionWithoutReplacingTheOriginalCheckpoint() = runBlocking {
+        val original = checkpoint("run-admission")
+        assertEquals(
+            ActiveExecutionStore.CheckpointAdmission.ACCEPTED,
+            store.admitCheckpoint(original)
+        )
+
+        val duplicate = original.copy(updatedAt = 200L)
+        assertEquals(
+            ActiveExecutionStore.CheckpointAdmission.DUPLICATE_RUN_ID,
+            store.admitCheckpoint(duplicate)
+        )
+        assertEquals(100L, store.checkpoint("run-admission")?.updatedAt)
+    }
+
     @Test(expected = IllegalStateException::class)
     fun duplicateIdempotencyKeyIsRejectedBeforeSecondSideEffect() {
         runBlocking {

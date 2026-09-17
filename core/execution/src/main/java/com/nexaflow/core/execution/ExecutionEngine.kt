@@ -265,7 +265,7 @@ class ExecutionEngine(
         // Checkpoint must exist before any side effect. A rejected durable
         // admission is recorded as a failed run instead of pretending actions
         // were safely started without an idempotency/recovery record.
-        val checkpointAccepted = activeExecutionStore.beginCheckpoint(
+        val checkpointAdmission = activeExecutionStore.admitCheckpoint(
             DurableExecutionCheckpoint(
                 runId = payloadContext.runId,
                 automationId = automation.id,
@@ -277,13 +277,20 @@ class ExecutionEngine(
                 updatedAt = startedAt
             )
         )
-        if (!checkpointAccepted) {
+        if (checkpointAdmission != ActiveExecutionStore.CheckpointAdmission.ACCEPTED) {
+            val admissionMessage = when (checkpointAdmission) {
+                ActiveExecutionStore.CheckpointAdmission.DUPLICATE_RUN_ID ->
+                    "Skipped: this event was already admitted and is still being processed"
+                ActiveExecutionStore.CheckpointAdmission.CAPACITY_RESERVED_FOR_RECOVERY ->
+                    "Deferred: recovery queue is full; resolve interrupted runs before retrying"
+                ActiveExecutionStore.CheckpointAdmission.ACCEPTED -> error("Unreachable checkpoint admission")
+            }
             val record = ExecutionRecord(
                 id = UUID.randomUUID().toString(),
                 automationId = automation.id,
                 automationName = automation.name,
                 success = false,
-                message = "Unable to create durable execution checkpoint",
+                message = admissionMessage,
                 executedAt = startedAt,
                 channel = channel?.type?.name
             )

@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.SystemClock
 import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import com.nexaflow.core.rom.model.SystemControlResult
@@ -200,13 +201,7 @@ class NetworkModeController(
                     )
                 )
                 if (set.success && !shellReportedFailure(set.message)) {
-                    val readBack = PrivilegedRunner.runElevatedOperation(
-                        PrivilegedOperation.ReadAllowedNetworkTypes(
-                            slotIndex = slot,
-                            subscriptionId = subId
-                        )
-                    ).message
-                    if (NetworkModePolicy.coversReadBack(readBack, request)) {
+                    if (confirmElevatedNetworkMask(slot, subId, request)) {
                         return true to "$label via cmd phone"
                     }
                     notes += "$label via cmd phone (write ok, read-back unconfirmed)"
@@ -240,6 +235,29 @@ class NetworkModeController(
         }
 
         return false to (notes.firstOrNull() ?: "$label rejected by the radio")
+    }
+
+    /**
+     * A telephony-shell write can complete before the modem publishes its new
+     * user mask. Confirm with a short bounded backoff, but never report success
+     * unless a read-back proves the requested mask was applied.
+     */
+    private fun confirmElevatedNetworkMask(
+        slot: Int,
+        subscriptionId: Int,
+        request: NetworkModePolicy.Request
+    ): Boolean {
+        repeat(READ_BACK_ATTEMPTS) { attempt ->
+            val readBack = PrivilegedRunner.runElevatedOperation(
+                PrivilegedOperation.ReadAllowedNetworkTypes(
+                    slotIndex = slot,
+                    subscriptionId = subscriptionId
+                )
+            ).message
+            if (NetworkModePolicy.coversReadBack(readBack, request)) return true
+            if (attempt < READ_BACK_ATTEMPTS - 1) SystemClock.sleep(READ_BACK_DELAY_MS)
+        }
+        return false
     }
     /**
      * The physical slot variants to try for TelephonyShell. The AOSP `-s` form
@@ -313,5 +331,10 @@ class NetworkModeController(
         } catch (_: Throwable) {
             ReflectCall(false, null)
         }
+    }
+
+    private companion object {
+        const val READ_BACK_ATTEMPTS = 3
+        const val READ_BACK_DELAY_MS = 250L
     }
 }

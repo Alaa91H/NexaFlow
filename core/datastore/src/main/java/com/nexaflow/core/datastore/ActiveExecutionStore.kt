@@ -26,6 +26,13 @@ class ActiveExecutionStore internal constructor(
     constructor(context: Context) : this(context.activeExecutionDataStore)
     private val json = Json { ignoreUnknownKeys = false; encodeDefaults = true }
 
+    /** A stable, user-safe reason when a durable run cannot be admitted. */
+    enum class CheckpointAdmission {
+        ACCEPTED,
+        DUPLICATE_RUN_ID,
+        CAPACITY_RESERVED_FOR_RECOVERY
+    }
+
     /** Records that [automationId] entered the executable task lifecycle. */
     suspend fun markStarted(automationId: String) {
         dataStore.edit { preferences ->
@@ -63,10 +70,21 @@ class ActiveExecutionStore internal constructor(
      * for a non-durable run when this returns false.
      */
     suspend fun beginCheckpoint(checkpoint: DurableExecutionCheckpoint): Boolean {
-        var accepted = false
+        return admitCheckpoint(checkpoint) == CheckpointAdmission.ACCEPTED
+    }
+
+    /**
+     * Atomically admits a checkpoint. Terminal entries may be pruned; uncertain
+     * work remains available for recovery instead of being silently discarded.
+     */
+    suspend fun admitCheckpoint(checkpoint: DurableExecutionCheckpoint): CheckpointAdmission {
+        var admission = CheckpointAdmission.CAPACITY_RESERVED_FOR_RECOVERY
         dataStore.edit { preferences ->
             val checkpoints = checkpoints(preferences)
-            if (checkpoint.runId in checkpoints) return@edit
+            if (checkpoint.runId in checkpoints) {
+                admission = CheckpointAdmission.DUPLICATE_RUN_ID
+                return@edit
+            }
             // Strict, precise, atomic bounded handling: when ledger is full (128),
             // atomically prune the oldest terminal checkpoint (COMPLETED) before
             // admitting the new run, so a burst of triggers never silently drops
@@ -81,9 +99,9 @@ class ActiveExecutionStore internal constructor(
             }
             checkpoints[checkpoint.runId] = checkpoint
             writeCheckpoints(preferences, checkpoints)
-            accepted = true
+            admission = CheckpointAdmission.ACCEPTED
         }
-        return accepted
+        return admission
     }
 
     suspend fun checkpoint(runId: String): DurableExecutionCheckpoint? =

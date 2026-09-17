@@ -1,5 +1,16 @@
 # Changelog
 
+## [v3.74.1] - 2026-09-17
+
+### Fixed
+
+- Network-mode changes through Root or Shizuku now use a bounded read-back retry. Some modem implementations acknowledge the `cmd phone` write before exposing the new allowed-network-types mask; NexaFlow waits briefly and confirms the final state before recording a failure.
+- Durable execution admission now records a precise, actionable outcome. Duplicate event delivery is identified as an already-admitted run, while a full recovery ledger is reported as a deferred run that requires recovery resolution. Interrupted work is never silently evicted to make room.
+
+### Validation
+
+- Added a regression test proving that duplicate durable admissions preserve the original checkpoint and expose the collision reason.
+
 ## [v3.74.0] - 2026-09-17
 
 ### Added
