@@ -24,6 +24,12 @@ object ExecutionOutcomeClassifier {
     /** Legacy diagnostic emitted before durable admission deferrals became skips. */
     const val LEGACY_RECOVERY_QUEUE_FULL_PREFIX = "Deferred: recovery queue is full;"
 
+    const val RECOVERY_QUEUE_AWAITS_REVIEW_PREFIX = "Skipped: recovery queue awaits review"
+
+    fun awaitsRecoveryReview(message: String): Boolean =
+        message.startsWith(LEGACY_RECOVERY_QUEUE_FULL_PREFIX) ||
+            message.startsWith(RECOVERY_QUEUE_AWAITS_REVIEW_PREFIX)
+
     fun isSkipped(record: ExecutionRecord): Boolean =
         (record.success && record.message.startsWith(SKIPPED_MESSAGE_PREFIX)) ||
             record.message.startsWith(LEGACY_RECOVERY_QUEUE_FULL_PREFIX)

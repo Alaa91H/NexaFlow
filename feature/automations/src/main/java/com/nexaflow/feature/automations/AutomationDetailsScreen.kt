@@ -948,7 +948,11 @@ private fun ExecutionHealthCard(
                     style = MaterialTheme.typography.titleSmall
                 )
                 Text(
-                    text = stringResource(executionHealthSubtitleRes(status)),
+                    text = stringResource(
+                        if (report.recoveryReviewPending) {
+                            com.nexaflow.core.execution.R.string.execution_recovery_queue_awaits_review
+                        } else executionHealthSubtitleRes(status)
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.secondary
                 )

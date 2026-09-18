@@ -52,7 +52,22 @@ class AutomationHealthReportTest {
         assertEquals(0, report.failedRuns)
         assertEquals(0, report.consecutiveFailures)
         assertEquals(null, report.latestFailureMessage)
-        assertEquals(AutomationHealthStatus.HEALTHY, report.status)
+        assertEquals(true, report.recoveryReviewPending)
+        assertEquals(AutomationHealthStatus.NEEDS_ATTENTION, report.status)
+    }
+
+    @Test
+    fun `ordinary skip does not hide recovery but admitted run clears warning`() {
+        val blocked = record(true, "Skipped: recovery queue awaits review before this routine can run", 1L)
+        val skipped = record(true, "Skipped: constraint not met", 2L)
+        val pending = AutomationHealthAnalyzer.analyze("maintenance", listOf(skipped, blocked))
+        assertEquals(true, pending.recoveryReviewPending)
+        assertEquals(0, pending.failedRuns)
+        val resolved = AutomationHealthAnalyzer.analyze(
+            "maintenance", listOf(record(true, "Completed", 3L), skipped, blocked)
+        )
+        assertEquals(false, resolved.recoveryReviewPending)
+        assertEquals(AutomationHealthStatus.HEALTHY, resolved.status)
     }
 
     @Test

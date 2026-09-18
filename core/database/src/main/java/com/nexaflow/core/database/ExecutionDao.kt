@@ -35,7 +35,7 @@ interface ExecutionDao {
     @Query(
         "SELECT * FROM execution_history " +
             "WHERE (:automationId IS NULL OR automationId = :automationId) " +
-            "AND (:success IS NULL OR success = :success) " +
+            "AND (:success IS NULL OR (CASE WHEN message GLOB 'Deferred: recovery queue is full;*' THEN 1 ELSE success END) = :success) " +
             "ORDER BY executedAt DESC"
     )
     fun getExecutionsPagedFiltered(
@@ -50,8 +50,8 @@ interface ExecutionDao {
     @Query(
         "SELECT * FROM execution_history " +
             "WHERE (:automationId IS NULL OR automationId = :automationId) " +
-            "AND success = 1 " +
-            "AND message LIKE :skipMessageLike " +
+            "AND ((success = 1 AND message LIKE :skipMessageLike) " +
+            "OR message GLOB 'Deferred: recovery queue is full;*') " +
             "ORDER BY executedAt DESC"
     )
     fun getExecutionsPagedSkipped(

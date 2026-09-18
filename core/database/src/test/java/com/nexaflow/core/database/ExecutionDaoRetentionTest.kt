@@ -107,6 +107,13 @@ class ExecutionDaoRetentionTest {
             entity("other-failed", 40L, automationId = "routine-b").copy(success = false, message = "other")
         )
 
+        dao.insertExecution(
+            entity("legacy-deferral", 70L, automationId = "routine-a").copy(
+                success = false,
+                message = "Deferred: recovery queue is full; resolve interrupted runs before retrying"
+            )
+        )
+
         val result = dao.getExecutionsPagedFiltered("routine-a", false).load(
             PagingSource.LoadParams.Refresh(
                 key = null,
@@ -139,6 +146,13 @@ class ExecutionDaoRetentionTest {
                 .copy(message = "Skipped: other routine")
         )
 
+        dao.insertExecution(
+            entity("legacy-deferral", 70L, automationId = "routine-a").copy(
+                success = false,
+                message = "Deferred: recovery queue is full; resolve interrupted runs before retrying"
+            )
+        )
+
         val result = dao.getExecutionsPagedSkipped("routine-a", "Skipped:%").load(
             PagingSource.LoadParams.Refresh(
                 key = null,
@@ -148,7 +162,7 @@ class ExecutionDaoRetentionTest {
         )
 
         val page = result as PagingSource.LoadResult.Page<Int, ExecutionRecordEntity>
-        assertEquals(listOf("a-new-skip", "a-old-skip"), page.data.map { it.id })
+        assertEquals(listOf("legacy-deferral", "a-new-skip", "a-old-skip"), page.data.map { it.id })
     }
 
     @Test

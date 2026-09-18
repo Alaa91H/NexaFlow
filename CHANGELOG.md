@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Recovery admission deferrals retain an attention warning without inflating failure counts. Ordinary skipped runs no longer hide a pending recovery warning; later admitted execution supersedes it.
+- History paging consistently places legacy recovery-capacity deferrals in the skipped filter and excludes them from failure filtering.
+- History cards use localized execution summaries and correctly label legacy recovery deferrals as skipped.
+
+### Validation
+
+- Passed domain unit tests, execution-history database regression tests, and Kotlin compilation for automation details and history. Physical-device diagnosis remains in progress.
+
 ### Changed
 
 - Removed the post-CI automatic release workflow. Tags and GitHub releases are now initiated explicitly, while tag builds retain their signing and package verification gates.

@@ -231,13 +231,13 @@ private fun HistoryCard(
         ) {
             IconBadge(
                 icon = Icons.Filled.Bolt,
-                containerColor = if (entry.success) NexaFlowTheme.colors.successContainer else MaterialTheme.colorScheme.errorContainer,
-                contentColor = if (entry.success) NexaFlowTheme.colors.success else MaterialTheme.colorScheme.error
+                containerColor = if (entry.success || ExecutionOutcomeClassifier.isSkipped(entry)) NexaFlowTheme.colors.successContainer else MaterialTheme.colorScheme.errorContainer,
+                contentColor = if (entry.success || ExecutionOutcomeClassifier.isSkipped(entry)) NexaFlowTheme.colors.success else MaterialTheme.colorScheme.error
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = entry.automationName, style = MaterialTheme.typography.titleSmall)
                 Text(
-                    text = entry.message,
+                    text = stringResource(com.nexaflow.core.execution.ExecutionResultPresentation.summaryRes(entry)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.secondary,
                     maxLines = 1
@@ -263,13 +263,13 @@ private fun HistoryCard(
             StatusPill(
                 text = stringResource(
                     when {
-                        !entry.success -> R.string.status_failed
                         ExecutionOutcomeClassifier.isSkipped(entry) -> R.string.status_skipped
+                        !entry.success -> R.string.status_failed
                         else -> R.string.status_success
                     }
                 ),
-                background = if (entry.success) NexaFlowTheme.colors.successContainer else MaterialTheme.colorScheme.errorContainer,
-                contentColor = if (entry.success) NexaFlowTheme.colors.success else MaterialTheme.colorScheme.error
+                background = if (entry.success || ExecutionOutcomeClassifier.isSkipped(entry)) NexaFlowTheme.colors.successContainer else MaterialTheme.colorScheme.errorContainer,
+                contentColor = if (entry.success || ExecutionOutcomeClassifier.isSkipped(entry)) NexaFlowTheme.colors.success else MaterialTheme.colorScheme.error
             )
         }
     }

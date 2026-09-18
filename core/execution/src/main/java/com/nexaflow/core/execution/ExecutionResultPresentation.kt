@@ -33,8 +33,7 @@ object ExecutionResultPresentation {
         ExecutionResultClassification.MANAGED_GOOGLE_PLAY_POLICY_REQUIRED ->
             R.string.execution_google_play_managed_policy_required
         null -> when {
-            record.message.startsWith(ExecutionOutcomeClassifier.LEGACY_RECOVERY_QUEUE_FULL_PREFIX) ||
-                record.message.startsWith(RECOVERY_QUEUE_AWAITS_REVIEW_PREFIX) ->
+            ExecutionOutcomeClassifier.awaitsRecoveryReview(record.message) ->
                 R.string.execution_recovery_queue_awaits_review
             record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX) -> when {
                 record.actionResults.isEmpty() ->
@@ -71,5 +70,4 @@ object ExecutionResultPresentation {
 
     private const val STATE_RESTORE = "STATE_RESTORE"
     private const val END_ACTION_SUFFIX = "_END"
-    private const val RECOVERY_QUEUE_AWAITS_REVIEW_PREFIX = "Skipped: recovery queue awaits review"
 }
