@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [v3.74.6] - 2026-09-18
+
+### Fixed
+
+- Restored the module boundary for the recovery-backlog reset by exposing the operation through `ExecutionEngine`. This removes the direct UI-to-DataStore dependency that prevented the v3.74.5 Android build from compiling.
+
+### Validation
+
+- Re-ran the affected Kotlin compilation path after the dependency-boundary repair.
+
 ## [v3.74.5] - 2026-09-18
 
 ### Fixed

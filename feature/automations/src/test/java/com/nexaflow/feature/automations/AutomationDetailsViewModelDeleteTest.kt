@@ -123,7 +123,6 @@ class AutomationDetailsViewModelDeleteTest {
             repository = repo,
             healthRepository = FakeHealth(),
             executionEngine = engine,
-            activeExecutionStore = ActiveExecutionStore(context),
             savedStateHandle = SavedStateHandle(mapOf("automationId" to id)),
             appContext = context
         )

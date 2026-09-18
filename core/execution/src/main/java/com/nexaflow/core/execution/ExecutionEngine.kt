@@ -822,6 +822,13 @@ class ExecutionEngine(
     }
 
     /**
+     * Discards recovery records that the user explicitly acknowledged for one
+     * automation. This does not retry uncertain work or mark it successful.
+     */
+    suspend fun clearRecoveryBacklog(automationId: String): Int =
+        activeExecutionStore.clearRecoveryRequiredForAutomation(automationId)
+
+    /**
      * Single owner of the engine-side half of deleting an automation. Call
      * after the row has been removed from the repository: drops any captured
      * device state and durable active-run marker for [automationId], then
