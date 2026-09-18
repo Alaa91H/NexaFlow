@@ -20,7 +20,8 @@ concurrency:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    # Pin the runner image so the Ubuntu 26 migration cannot change CI behavior unexpectedly.
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v7
     - name: set up JDK 17
@@ -80,7 +81,8 @@ jobs:
 
   build:
     needs: lint
-    runs-on: ubuntu-latest
+    # Keep lint and packaging on the same reviewed runner baseline.
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
