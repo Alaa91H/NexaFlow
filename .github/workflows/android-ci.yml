@@ -20,8 +20,8 @@ concurrency:
 
 jobs:
   lint:
-    # Pin the runner image so the Ubuntu 26 migration cannot change CI behavior unexpectedly.
-    runs-on: ubuntu-24.04
+    # Exercise the newest GitHub-hosted Ubuntu LTS image explicitly.
+    runs-on: ubuntu-26.04
     steps:
     - uses: actions/checkout@v7
     - name: set up JDK 17
@@ -82,7 +82,7 @@ jobs:
   build:
     needs: lint
     # Keep lint and packaging on the same reviewed runner baseline.
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: write
     steps:
