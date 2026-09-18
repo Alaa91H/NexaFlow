@@ -2,7 +2,11 @@
 
 ## [Unreleased]
 
+## [v3.74.4] - 2026-09-18
+
 ### Fixed
+
+- Prevent repeated active-data-subscription notifications from recursively re-registering telephony listeners. Late Binder deliveries after executor shutdown no longer throw rejected-execution exceptions.
 
 - Recovery admission deferrals retain an attention warning without inflating failure counts. Ordinary skipped runs no longer hide a pending recovery warning; later admitted execution supersedes it.
 - History paging consistently places legacy recovery-capacity deferrals in the skipped filter and excludes them from failure filtering.

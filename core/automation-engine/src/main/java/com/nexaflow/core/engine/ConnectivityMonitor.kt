@@ -36,7 +36,9 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 import java.util.UUID
-import java.util.concurrent.Executors
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -62,6 +64,7 @@ class ConnectivityMonitor @Inject constructor(
     // Telephony callbacks are delivered off the main thread. Their callbacks
     // only schedule a full condition read on the application scope.
     private var telephonyExecutor: ExecutorService = newTelephonyExecutor()
+    private val subscriptionChanges = SubscriptionChangeGate()
     private var telephonyManager: TelephonyManager? = null
     private var telephonyCallback: TelephonyCallback? = null
     private var hotspotRegistration: AutoCloseable? = null
@@ -235,12 +238,19 @@ class ConnectivityMonitor @Inject constructor(
         activeStates.clear()
         lastRunAt.clear()
         telephonyExecutor.shutdownNow()
+        subscriptionChanges.reset()
     }
 
     private fun newTelephonyExecutor(): ExecutorService =
-        Executors.newSingleThreadExecutor { runnable ->
-            Thread(runnable, "NexaFlow-telephony").apply { isDaemon = true }
-        }
+        ThreadPoolExecutor(
+            1, 1, 0L, TimeUnit.MILLISECONDS, LinkedBlockingQueue(),
+            { runnable -> Thread(runnable, "NexaFlow-telephony").apply { isDaemon = true } },
+            { task, executor ->
+                // Binder may deliver callbacks already in flight after unregister.
+                // Ignore only shutdown races, never rejection on a live executor.
+                if (!executor.isShutdown) ThreadPoolExecutor.AbortPolicy().rejectedExecution(task, executor)
+            }
+        )
 
     /**
      * Android 16/API 36 and Android 17/API 37 expose an app-facing tethering
@@ -284,6 +294,7 @@ class ConnectivityMonitor @Inject constructor(
                 }
 
                 override fun onActiveDataSubscriptionIdChanged(subId: Int) {
+                    if (!initialized || !subscriptionChanges.changed(subId)) return
                     latestDisplayInfo = null
                     registerTelephonyCallbacks()
                     handleChange()
@@ -336,6 +347,7 @@ class ConnectivityMonitor @Inject constructor(
                 }
 
                 override fun onActiveDataSubscriptionIdChanged(subId: Int) {
+                    if (!initialized || !subscriptionChanges.changed(subId)) return
                     latestDisplayInfo = null
                     registerTelephonyCallbacks()
                     handleChange()
