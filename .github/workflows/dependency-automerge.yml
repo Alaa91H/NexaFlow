@@ -1,0 +1,30 @@
+name: Merge Verified Dependency Updates
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  merge-dependabot-update:
+    # Do not check out or execute code from the pull request. This workflow
+    # only asks GitHub to watch its required checks and merge the PR after they
+    # pass, so it retains pull_request_target permissions safely.
+    if: >-
+      github.actor == 'dependabot[bot]' &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Wait for all pull-request checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr checks "$PR_URL" --watch --fail-fast
+      - name: Enable squash auto-merge after verified checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge "$PR_URL" --auto --squash --delete-branch

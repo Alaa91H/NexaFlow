@@ -5,6 +5,7 @@
 ### Changed
 
 - Removed the post-CI automatic release workflow. Tags and GitHub releases are now initiated explicitly, while tag builds retain their signing and package verification gates.
+- Dependency checks for Gradle libraries and GitHub Actions now run daily. Verified Dependabot pull requests are squash-merged automatically after every pull-request check succeeds.
 
 ## [v3.74.3] - 2026-09-18
 

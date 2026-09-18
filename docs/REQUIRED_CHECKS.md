@@ -23,3 +23,7 @@ Build debug/release APKs and the release AAB. Audit the merged release manifest 
 Run instrumentation tests, including `FrameworkPermissionGatesTest`, on an emulator/device. Hardware sensors, OEM restrictions, background operation and restoration need real-device checks. A passing unit suite does not imply these were performed. The [validation record](VALIDATION.md) must state which checks actually ran.
 
 Repository branch protection is a server setting; this document does not assert that it is configured. Maintain required GitHub checks separately from workflow code.
+
+## Automated dependency currency
+
+Dependabot checks Gradle libraries and GitHub Actions daily. Its pull requests are watched by the `Merge Verified Dependency Updates` workflow and are squash-merged only after all GitHub pull-request checks pass. Versions remain pinned in the catalog and workflow files so each accepted update is reproducible and covered by dependency verification; dynamic Gradle version selectors are intentionally not used.
