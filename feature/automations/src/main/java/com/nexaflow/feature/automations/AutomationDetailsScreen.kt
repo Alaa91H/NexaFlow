@@ -143,6 +143,7 @@ fun AutomationDetailsScreen(navController: NavController) {
     // Run-now gate dialogs: mismatch reason, then force-run confirmation.
     var runBlockDialog by remember { mutableStateOf(false) }
     var forceRunDialog by remember { mutableStateOf(false) }
+    var clearRecoveryDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(executionMessage) {
         executionMessage?.let { message ->
@@ -278,7 +279,8 @@ fun AutomationDetailsScreen(navController: NavController) {
                         navController.navigate(
                             routineHistoryRoute(current.id, outcome = ExecutionHistoryOutcome.SKIPPED)
                         )
-                    }
+                    },
+                    onClearRecoveryBacklog = { clearRecoveryDialog = true }
                 )
                 AutomationDetailsSectionCard(
                     index = 0,
@@ -534,6 +536,25 @@ fun AutomationDetailsScreen(navController: NavController) {
             dismissButton = {
                 TextButton(onClick = { forceRunDialog = false }) {
                     Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    if (clearRecoveryDialog) {
+        AlertDialog(
+            onDismissRequest = { clearRecoveryDialog = false },
+            title = { Text(stringResource(R.string.clear_recovery_backlog_title)) },
+            text = { Text(stringResource(R.string.clear_recovery_backlog_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    clearRecoveryDialog = false
+                    viewModel.clearRecoveryBacklog()
+                }) { Text(stringResource(R.string.clear_recovery_backlog_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { clearRecoveryDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
                 }
             }
         )
@@ -904,7 +925,8 @@ private fun ExecutionHealthCard(
     report: AutomationHealthReport,
     onOpenHistory: () -> Unit,
     onOpenFailures: () -> Unit,
-    onOpenSkips: () -> Unit
+    onOpenSkips: () -> Unit,
+    onClearRecoveryBacklog: () -> Unit
 ) {
     val status = report.status
     val attention = status == AutomationHealthStatus.NEEDS_ATTENTION
@@ -981,6 +1003,11 @@ private fun ExecutionHealthCard(
                     }
                 TextButton(onClick = onOpenHistory) {
                     Text(stringResource(R.string.view_routine_history))
+                }
+                if (report.recoveryReviewPending) {
+                    TextButton(onClick = onClearRecoveryBacklog) {
+                        Text(stringResource(R.string.clear_recovery_backlog))
+                    }
                 }
                 if (report.failedRuns > 0) {
                     TextButton(onClick = onOpenFailures) {

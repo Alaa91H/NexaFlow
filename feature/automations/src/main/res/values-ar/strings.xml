@@ -458,6 +458,11 @@
 
     <!-- Local execution-history outcome filtering. -->
     <string name="view_failures">عرض الإخفاقات</string>
+    <string name="clear_recovery_backlog">مسح سجل الاسترداد العالق</string>
+    <string name="clear_recovery_backlog_title">مسح سجل التنفيذات المتقطعة؟</string>
+    <string name="clear_recovery_backlog_message">سيحذف هذا سجلات الاسترداد غير المحسومة لهذا الروتين فقط. لن يعيد تنفيذ الإجراءات ولن يعتبر إجراءً غير محسوم ناجحاً.</string>
+    <string name="clear_recovery_backlog_confirm">مسح السجل</string>
+    <string name="recovery_backlog_cleared">تم مسح %1$d من سجلات الاسترداد. يمكن قبول التنفيذات المجدولة القادمة.</string>
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">عرض التشغيلات المتخطاة</string>

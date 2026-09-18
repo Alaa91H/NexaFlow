@@ -458,6 +458,11 @@
 
     <!-- Local execution-history outcome filtering. -->
     <string name="view_failures">Ver falhas</string>
+    <string name="clear_recovery_backlog">Limpar pendências de recuperação</string>
+    <string name="clear_recovery_backlog_title">Limpar execuções interrompidas?</string>
+    <string name="clear_recovery_backlog_message">Remove apenas registros de recuperação não resolvidos desta rotina. Não repete ações nem marca uma ação incerta como bem-sucedida.</string>
+    <string name="clear_recovery_backlog_confirm">Limpar pendências</string>
+    <string name="recovery_backlog_cleared">%1$d registros de recuperação foram removidos. Futuros agendamentos podem ser admitidos.</string>
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Ver execuções ignoradas</string>

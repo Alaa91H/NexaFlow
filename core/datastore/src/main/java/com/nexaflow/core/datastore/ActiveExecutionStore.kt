@@ -235,6 +235,32 @@ class ActiveExecutionStore internal constructor(
     /** Removes an unrecoverable checkpoint after an explicit user/system reset. */
     suspend fun clearCheckpoint(runId: String): Boolean = completeCheckpoint(runId)
 
+    /**
+     * Discards only checkpoints that have already been classified as requiring
+     * manual recovery for one automation. This is deliberately an explicit
+     * user-driven reset: no uncertain side effect is replayed or silently
+     * treated as successful. It lets a stale legacy recovery backlog stop
+     * blocking later scheduled occurrences of the same routine.
+     */
+    suspend fun clearRecoveryRequiredForAutomation(automationId: String): Int {
+        var removedCount = 0
+        dataStore.edit { preferences ->
+            val checkpoints = checkpoints(preferences)
+            val removableIds = checkpoints.values
+                .filter {
+                    it.automationId == automationId &&
+                        it.status == DurableExecutionStatus.RECOVERY_REQUIRED
+                }
+                .map { it.runId }
+            removableIds.forEach { checkpoints.remove(it) }
+            if (removableIds.isNotEmpty()) {
+                writeCheckpoints(preferences, checkpoints)
+                removedCount = removableIds.size
+            }
+        }
+        return removedCount
+    }
+
     /** True when a recurring-maintenance occurrence already completed successfully. */
     suspend fun hasCompletedMaintenanceOccurrence(occurrenceKey: String): Boolean =
         maintenanceReceipts(dataStore.data.first()).any { it.occurrenceKey == occurrenceKey }

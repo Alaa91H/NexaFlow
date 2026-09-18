@@ -458,6 +458,11 @@
 
     <!-- Local execution-history outcome filtering. -->
     <string name="view_failures">失敗を表示</string>
+    <string name="clear_recovery_backlog">復旧バックログを消去</string>
+    <string name="clear_recovery_backlog_title">中断した実行を消去しますか？</string>
+    <string name="clear_recovery_backlog_message">このルーチンの未解決の復旧記録だけを削除します。操作を再実行したり、不確実な操作を成功として扱ったりしません。</string>
+    <string name="clear_recovery_backlog_confirm">バックログを消去</string>
+    <string name="recovery_backlog_cleared">%1$d 件の復旧記録を消去しました。今後の予定実行を受け付けられます。</string>
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">スキップされた実行を表示</string>

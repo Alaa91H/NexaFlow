@@ -458,6 +458,11 @@
 
     <!-- Local execution-history outcome filtering. -->
     <string name="view_failures">Ver fallos</string>
+    <string name="clear_recovery_backlog">Borrar cola de recuperación</string>
+    <string name="clear_recovery_backlog_title">¿Borrar ejecuciones interrumpidas?</string>
+    <string name="clear_recovery_backlog_message">Solo elimina registros de recuperación sin resolver de esta rutina. No vuelve a ejecutar acciones ni marca una acción incierta como correcta.</string>
+    <string name="clear_recovery_backlog_confirm">Borrar cola</string>
+    <string name="recovery_backlog_cleared">Se borraron %1$d registros de recuperación. Se pueden admitir futuras ejecuciones programadas.</string>
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Ver ejecuciones omitidas</string>

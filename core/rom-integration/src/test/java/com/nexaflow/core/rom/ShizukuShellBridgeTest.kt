@@ -164,6 +164,18 @@ class ShizukuShellBridgeTest {
     }
 
     @Test
+    fun `hotspot wire uses the modern WifiShell commands`() {
+        assertEquals(
+            listOf("cmd", "wifi", "start-softap"),
+            PrivilegedOperation.SetHotspot(true).argv()
+        )
+        assertEquals(
+            PrivilegedOperation.SetHotspot(false),
+            PrivilegedOperation.fromWire("hotspot.set", "false", "", "")
+        )
+    }
+
+    @Test
     fun `runShizuku rejects when not granted without touching legacy bridge`() {
         var bridgeCalled = false
         ShizukuShellBridge.legacyExecProbe = {

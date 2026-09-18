@@ -458,6 +458,11 @@
 
     <!-- Local execution-history outcome filtering. -->
     <string name="view_failures">查看失败项</string>
+    <string name="clear_recovery_backlog">清除恢复积压</string>
+    <string name="clear_recovery_backlog_title">清除已中断的执行？</string>
+    <string name="clear_recovery_backlog_message">这只会移除此例程未解决的恢复记录。不会重新执行操作，也不会把不确定的操作标记为成功。</string>
+    <string name="clear_recovery_backlog_confirm">清除积压</string>
+    <string name="recovery_backlog_cleared">已清除 %1$d 条恢复记录。后续计划执行可以被接受。</string>
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">查看已跳过的执行</string>

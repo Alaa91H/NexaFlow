@@ -458,6 +458,11 @@
 
     <!-- Local execution-history outcome filtering. -->
     <string name="view_failures">विफलताएँ देखें</string>
+    <string name="clear_recovery_backlog">रिकवरी बैकलॉग साफ़ करें</string>
+    <string name="clear_recovery_backlog_title">बाधित निष्पादन साफ़ करें?</string>
+    <string name="clear_recovery_backlog_message">यह केवल इस रूटीन के अनसुलझे रिकवरी रिकॉर्ड हटाता है। यह कार्रवाई दोबारा नहीं चलाता और अनिश्चित कार्रवाई को सफल नहीं मानता।</string>
+    <string name="clear_recovery_backlog_confirm">बैकलॉग साफ़ करें</string>
+    <string name="recovery_backlog_cleared">%1$d रिकवरी रिकॉर्ड साफ़ किए गए। भविष्य के शेड्यूल किए गए निष्पादन स्वीकार किए जा सकते हैं।</string>
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">छोड़े गए निष्पादन देखें</string>

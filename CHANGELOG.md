@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [v3.74.5] - 2026-09-18
+
+### Fixed
+
+- Replaced the removed hidden `WifiManager#setWifiApEnabled` reflection path with a reviewed, typed WifiShell Soft AP operation. Shizuku and Root now use `cmd wifi start-softap` or `cmd wifi stop-softap`, so modern Android devices no longer fail before an elevated hotspot request is attempted.
+- Added an explicit, per-routine recovery-backlog reset. It removes only recovery records already marked as requiring manual review after a user confirmation; it never replays an uncertain action or marks it successful. A stale backlog can no longer permanently prevent later scheduled runs of that routine from being admitted.
+
+### Validation
+
+- Added durable-store coverage proving a per-routine recovery reset preserves other routines and non-recovery checkpoints.
+- Added privileged-operation coverage for the typed hotspot wire format and modern WifiShell argv.
+
 ## [v3.74.4] - 2026-09-18
 
 ### Fixed

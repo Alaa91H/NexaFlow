@@ -475,6 +475,11 @@
 
     <!-- Local execution-history outcome filtering. -->
     <string name="view_failures">View failures</string>
+    <string name="clear_recovery_backlog">Clear recovery backlog</string>
+    <string name="clear_recovery_backlog_title">Clear interrupted-run backlog?</string>
+    <string name="clear_recovery_backlog_message">This removes only unresolved recovery records for this routine. It does not rerun actions or mark an uncertain action as successful.</string>
+    <string name="clear_recovery_backlog_confirm">Clear backlog</string>
+    <string name="recovery_backlog_cleared">Cleared %1$d recovery records. Future scheduled runs can be admitted.</string>
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">View skipped runs</string>

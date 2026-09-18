@@ -620,35 +620,13 @@ class SystemController(
         }
     }
 
-    /** Toggle Wi-Fi hotspot. Requires an elevated runtime (root/Shizuku/system). */
+    /** Toggle Wi-Fi hotspot through the reviewed elevated WifiShell operation. */
     fun setHotspot(enabled: Boolean): SystemControlResult {
-        return try {
-            val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
-            if (wifiManager == null) {
-                return tryPrivileged(
-                    command = "cmd connectivity set-softap ${if (enabled) "enable" else "disable"}",
-                    successMessage = if (enabled) "Hotspot enabled" else "Hotspot disabled"
-                )
-            }
-            val method = wifiManager.javaClass.getMethod(
-                "setWifiApEnabled",
-                android.net.wifi.WifiConfiguration::class.java,
-                Boolean::class.javaPrimitiveType
-            )
-            val success = method.invoke(wifiManager, null, enabled) as? Boolean ?: false
-            if (success) {
-                SystemControlResult.ok(if (enabled) "Hotspot enabled" else "Hotspot disabled")
-            } else {
-                tryPrivileged(
-                    command = "cmd connectivity set-softap ${if (enabled) "enable" else "disable"}",
-                    successMessage = if (enabled) "Hotspot enabled" else "Hotspot disabled"
-                )
-            }
-        } catch (t: Throwable) {
-            tryPrivileged(
-                command = "cmd connectivity set-softap ${if (enabled) "enable" else "disable"}",
-                successMessage = if (enabled) "Hotspot enabled" else "Hotspot disabled"
-            ).takeIf { it.success } ?: SystemControlResult.fail("Failed to toggle hotspot: ${t.message}")
+        val result = PrivilegedRunner.runElevatedOperation(PrivilegedOperation.SetHotspot(enabled))
+        return if (result.success) {
+            SystemControlResult.ok(if (enabled) "Hotspot enabled" else "Hotspot disabled")
+        } else {
+            SystemControlResult.fail("Failed to toggle hotspot: ${result.message}")
         }
     }
 

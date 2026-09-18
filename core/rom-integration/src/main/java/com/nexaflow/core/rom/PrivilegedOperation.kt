@@ -114,6 +114,21 @@ sealed interface PrivilegedOperation {
         override fun argv(): List<String> = listOf("cmd", "notification", "allow_dnd", packageName)
     }
 
+    /**
+     * Starts or stops the device Soft AP through the reviewed WifiShell command.
+     * The old hidden WifiManager#setWifiApEnabled reflection disappeared from
+     * modern Android releases and must never be the primary Shizuku path.
+     */
+    data class SetHotspot(val enabled: Boolean) : PrivilegedOperation {
+        override val wireId: PrivilegedOperationId = PrivilegedOperationId.HOTSPOT_SET
+        override fun wireArguments(): List<String> = listOf(enabled.toString())
+        override fun argv(): List<String> = if (enabled) {
+            listOf("cmd", "wifi", "start-softap")
+        } else {
+            listOf("cmd", "wifi", "stop-softap")
+        }
+    }
+
     /** Applies one confirmed allowed-network-types mask for one physical SIM slot. */
     data class SetAllowedNetworkTypes(
         val slotIndex: Int,
@@ -178,6 +193,7 @@ sealed interface PrivilegedOperation {
                 PrivilegedOperationId.NOTIFICATION_POLICY_ACCESS_GRANT -> GrantNotificationPolicyAccess(
                     packageName = first
                 )
+                PrivilegedOperationId.HOTSPOT_SET -> SetHotspot(first.toBooleanStrict())
                 PrivilegedOperationId.NETWORK_MODE_SET -> SetAllowedNetworkTypes(
                     slotIndex = first.toInt(),
                     subscriptionId = second.toInt(),
@@ -224,5 +240,6 @@ enum class PrivilegedOperationId(val wireValue: String) {
     NETWORK_MODE_READ("network.mode.read"),
     NETWORK_DEFAULT_PROFILE_READ("network.default_profile.read"),
     NETWORK_MODE_SET("network.mode.set"),
-    NOTIFICATION_POLICY_ACCESS_GRANT("notification.policy_access.grant")
+    NOTIFICATION_POLICY_ACCESS_GRANT("notification.policy_access.grant"),
+    HOTSPOT_SET("hotspot.set")
 }

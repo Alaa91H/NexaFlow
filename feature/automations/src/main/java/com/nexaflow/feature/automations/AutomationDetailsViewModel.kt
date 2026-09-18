@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.ExecutionResultPresentation
 import com.nexaflow.domain.models.Automation
@@ -28,6 +29,7 @@ class AutomationDetailsViewModel @Inject constructor(
     private val repository: AutomationRepository,
     private val healthRepository: HealthRepository,
     private val executionEngine: ExecutionEngine,
+    private val activeExecutionStore: ActiveExecutionStore,
     savedStateHandle: SavedStateHandle,
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
@@ -139,6 +141,17 @@ class AutomationDetailsViewModel @Inject constructor(
             val record = executionEngine.runWithConditionGate(current)
             _executionMessage.value = formatExecutionMessage(record)
             _running.value = false
+        }
+    }
+
+    /** Explicitly acknowledges unresolved legacy recovery records for this routine. */
+    fun clearRecoveryBacklog() {
+        viewModelScope.launch {
+            val cleared = activeExecutionStore.clearRecoveryRequiredForAutomation(automationId)
+            _executionMessage.value = appContext.getString(
+                R.string.recovery_backlog_cleared,
+                cleared
+            )
         }
     }
 

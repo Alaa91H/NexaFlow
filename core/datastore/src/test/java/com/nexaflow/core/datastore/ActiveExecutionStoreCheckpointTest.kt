@@ -171,6 +171,24 @@ class ActiveExecutionStoreCheckpointTest {
     }
 
     @Test
+    fun explicitRecoveryResetRemovesOnlyTheSelectedAutomationsRecoveryRecords() = runBlocking {
+        val own = checkpoint("run-own").copy(status = DurableExecutionStatus.RECOVERY_REQUIRED)
+        val other = checkpoint("run-other").copy(
+            automationId = "automation-b",
+            status = DurableExecutionStatus.RECOVERY_REQUIRED
+        )
+        val active = checkpoint("run-active")
+        assertTrue(store.beginCheckpoint(own))
+        assertTrue(store.beginCheckpoint(other))
+        assertTrue(store.beginCheckpoint(active))
+
+        assertEquals(1, store.clearRecoveryRequiredForAutomation("automation-a"))
+        assertEquals(null, store.checkpoint("run-own"))
+        assertNotNull(store.checkpoint("run-other"))
+        assertNotNull(store.checkpoint("run-active"))
+    }
+
+    @Test
     fun interruptedActionIsExplicitlyUnknownRatherThanReplayable() = runBlocking {
         assertTrue(store.beginCheckpoint(checkpoint("run-unknown")))
         store.markActionStarted("run-unknown", 0, "run-unknown:0:ACTION", 110L)

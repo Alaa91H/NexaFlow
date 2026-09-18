@@ -458,6 +458,11 @@
 
     <!-- Local execution-history outcome filtering. -->
     <string name="view_failures">Voir les échecs</string>
+    <string name="clear_recovery_backlog">Effacer l’arriéré de récupération</string>
+    <string name="clear_recovery_backlog_title">Effacer les exécutions interrompues ?</string>
+    <string name="clear_recovery_backlog_message">Supprime uniquement les enregistrements de récupération non résolus de cette routine. Aucune action n’est rejouée ni marquée comme réussie.</string>
+    <string name="clear_recovery_backlog_confirm">Effacer l’arriéré</string>
+    <string name="recovery_backlog_cleared">%1$d enregistrements de récupération supprimés. Les futures exécutions planifiées peuvent être admises.</string>
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Voir les exécutions ignorées</string>

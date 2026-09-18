@@ -458,6 +458,11 @@
 
     <!-- Local execution-history outcome filtering. -->
     <string name="view_failures">Hataları görüntüle</string>
+    <string name="clear_recovery_backlog">Kurtarma birikimini temizle</string>
+    <string name="clear_recovery_backlog_title">Kesintiye uğrayan çalıştırmalar temizlensin mi?</string>
+    <string name="clear_recovery_backlog_message">Yalnızca bu rutinin çözülmemiş kurtarma kayıtları kaldırılır. Eylemler yeniden çalıştırılmaz ve belirsiz bir eylem başarılı sayılmaz.</string>
+    <string name="clear_recovery_backlog_confirm">Birikimi temizle</string>
+    <string name="recovery_backlog_cleared">%1$d kurtarma kaydı temizlendi. Gelecekteki planlı çalıştırmalar kabul edilebilir.</string>
 
     <!-- Routine health navigation to skipped executions. -->
     <string name="view_skipped_runs">Atlanan yürütmeleri görüntüle</string>
