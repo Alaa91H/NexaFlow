@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [v3.74.3] - 2026-09-18
+
 ### Fixed
 
 - Recovery-queue admission deferrals are now safe skipped runs rather than failures. Repeated state-trigger evaluations emit at most one diagnostic per routine and admission reason every five minutes, preventing history floods while preserving interrupted checkpoints for review.
