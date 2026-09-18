@@ -9,6 +9,7 @@
     <string name="execution_task_completed">任务已成功完成。</string>
     <string name="execution_task_failed">无法完成任务。</string>
     <string name="execution_task_skipped">已跳过任务。</string>
+    <string name="execution_recovery_queue_awaits_review">任务已暂停，正在审查中断的执行。</string>
     <string name="execution_conditions_not_satisfied_end_behavior_completed">Triggers or conditions are not satisfied. Only the end behavior (when the task ends) was completed.</string>
     <string name="execution_conditions_not_satisfied_no_end_behavior">Triggers or conditions of the task are not satisfied, so it cannot run now. No end behavior is configured.</string>
     <string name="execution_conditions_not_satisfied_end_behavior_failed">Triggers or conditions of the task are not satisfied, so it cannot run now. The end behavior could not be completed.</string>

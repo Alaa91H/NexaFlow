@@ -21,13 +21,16 @@ enum class ExecutionHistoryOutcome(val routeValue: String) {
  */
 object ExecutionOutcomeClassifier {
     const val SKIPPED_MESSAGE_PREFIX = "Skipped:"
+    /** Legacy diagnostic emitted before durable admission deferrals became skips. */
+    const val LEGACY_RECOVERY_QUEUE_FULL_PREFIX = "Deferred: recovery queue is full;"
 
     fun isSkipped(record: ExecutionRecord): Boolean =
-        record.success && record.message.startsWith(SKIPPED_MESSAGE_PREFIX)
+        (record.success && record.message.startsWith(SKIPPED_MESSAGE_PREFIX)) ||
+            record.message.startsWith(LEGACY_RECOVERY_QUEUE_FULL_PREFIX)
 
     fun classify(record: ExecutionRecord): ExecutionHistoryOutcome? = when {
-        !record.success -> ExecutionHistoryOutcome.FAILED
         isSkipped(record) -> ExecutionHistoryOutcome.SKIPPED
+        !record.success -> ExecutionHistoryOutcome.FAILED
         else -> null
     }
 }

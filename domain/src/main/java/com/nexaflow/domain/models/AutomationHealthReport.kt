@@ -34,8 +34,12 @@ object AutomationHealthAnalyzer {
         val skipped = relevant.count(ExecutionOutcomeClassifier::isSkipped)
         val failed = relevant.count { ExecutionOutcomeClassifier.classify(it) == ExecutionHistoryOutcome.FAILED }
         val completed = relevant.count { it.success && !ExecutionOutcomeClassifier.isSkipped(it) }
-        val consecutiveFailures = relevant.takeWhile { !it.success }.size
-        val latestFailure = relevant.firstOrNull { !it.success }?.message
+        val consecutiveFailures = relevant.takeWhile {
+            ExecutionOutcomeClassifier.classify(it) == ExecutionHistoryOutcome.FAILED
+        }.size
+        val latestFailure = relevant.firstOrNull {
+            ExecutionOutcomeClassifier.classify(it) == ExecutionHistoryOutcome.FAILED
+        }?.message
         return AutomationHealthReport(
             automationId = automationId,
             lastExecutionAt = relevant.firstOrNull()?.executedAt,

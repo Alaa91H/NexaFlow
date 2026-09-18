@@ -36,6 +36,26 @@ class AutomationHealthReportTest {
     }
 
     @Test
+    fun `legacy recovery queue deferrals are repaired to skipped outcomes`() {
+        val report = AutomationHealthAnalyzer.analyze(
+            automationId = "maintenance",
+            records = List(3) { index ->
+                record(
+                    success = false,
+                    message = "Deferred: recovery queue is full; resolve interrupted runs before retrying",
+                    at = (3 - index).toLong()
+                )
+            }
+        )
+
+        assertEquals(3, report.skippedRuns)
+        assertEquals(0, report.failedRuns)
+        assertEquals(0, report.consecutiveFailures)
+        assertEquals(null, report.latestFailureMessage)
+        assertEquals(AutomationHealthStatus.HEALTHY, report.status)
+    }
+
+    @Test
     fun `no history reports no executions`() {
         assertEquals(
             AutomationHealthStatus.NO_EXECUTIONS,

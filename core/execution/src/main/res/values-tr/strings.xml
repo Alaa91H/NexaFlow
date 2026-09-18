@@ -9,6 +9,7 @@
     <string name="execution_task_completed">Görev başarıyla tamamlandı.</string>
     <string name="execution_task_failed">Görev tamamlanamadı.</string>
     <string name="execution_task_skipped">Görev atlandı.</string>
+    <string name="execution_recovery_queue_awaits_review">Kesintiye uğrayan çalıştırmalar incelenirken görev duraklatıldı.</string>
     <string name="execution_conditions_not_satisfied_end_behavior_completed">Triggers or conditions are not satisfied. Only the end behavior (when the task ends) was completed.</string>
     <string name="execution_conditions_not_satisfied_no_end_behavior">Triggers or conditions of the task are not satisfied, so it cannot run now. No end behavior is configured.</string>
     <string name="execution_conditions_not_satisfied_end_behavior_failed">Triggers or conditions of the task are not satisfied, so it cannot run now. The end behavior could not be completed.</string>

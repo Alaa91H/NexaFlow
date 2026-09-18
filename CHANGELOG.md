@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Recovery-queue admission deferrals are now safe skipped runs rather than failures. Repeated state-trigger evaluations emit at most one diagnostic per routine and admission reason every five minutes, preventing history floods while preserving interrupted checkpoints for review.
+- Existing persisted "recovery queue is full" entries are reclassified as skipped when health is calculated, so affected routines no longer remain stuck at a false failure count after upgrading. The recovery status is presented through localized UI text.
 - Backend-specific Root and Shizuku commands now require their exact backend; a generic elevated shell no longer enables the other provider's command.
 - Device compatibility capture re-reads capabilities and requires a connected Shizuku UserService before advertising an executable Shizuku route. Builder discovery refreshes on resume after permission changes.
 - Devices exposing only supported numeric sensors, such as pressure, retain the sensor trigger in discovery.

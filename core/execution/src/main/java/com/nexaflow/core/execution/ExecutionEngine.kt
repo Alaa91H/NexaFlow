@@ -89,7 +89,10 @@ class ExecutionEngine(
     private val snapshotRestorer: (DeviceStateSnapshot?, List<Action>) -> SystemControlResult =
         { snapshot, changedActions ->
             snapshot?.restore(context, changedActions) ?: SystemControlResult.ok("Nothing to restore")
-        }
+        },
+    /** Suppresses repeated durable-admission diagnostics from high-frequency triggers. */
+    private val checkpointAdmissionReportThrottle: CheckpointAdmissionReportThrottle =
+        CheckpointAdmissionReportThrottle()
 ) {
 
     companion object {
@@ -263,8 +266,9 @@ class ExecutionEngine(
             return record
         }
         // Checkpoint must exist before any side effect. A rejected durable
-        // admission is recorded as a failed run instead of pretending actions
-        // were safely started without an idempotency/recovery record.
+        // admission performs no work and is an intentional skip, never a
+        // failed automation. The unresolved checkpoint remains preserved for
+        // recovery rather than being silently discarded to make room.
         val checkpointAdmission = activeExecutionStore.admitCheckpoint(
             DurableExecutionCheckpoint(
                 runId = payloadContext.runId,
@@ -282,20 +286,27 @@ class ExecutionEngine(
                 ActiveExecutionStore.CheckpointAdmission.DUPLICATE_RUN_ID ->
                     "Skipped: this event was already admitted and is still being processed"
                 ActiveExecutionStore.CheckpointAdmission.CAPACITY_RESERVED_FOR_RECOVERY ->
-                    "Deferred: recovery queue is full; resolve interrupted runs before retrying"
+                    "Skipped: recovery queue awaits review before this routine can run"
                 ActiveExecutionStore.CheckpointAdmission.ACCEPTED -> error("Unreachable checkpoint admission")
             }
             val record = ExecutionRecord(
                 id = UUID.randomUUID().toString(),
                 automationId = automation.id,
                 automationName = automation.name,
-                success = false,
+                success = true,
                 message = admissionMessage,
                 executedAt = startedAt,
                 channel = channel?.type?.name
             )
-            historyRepository.recordExecution(record)
-            recordTimeline(automation, "CHECKPOINT_REJECTED", record, startedAt)
+            if (checkpointAdmissionReportThrottle.shouldReport(
+                    automationId = automation.id,
+                    admission = checkpointAdmission,
+                    now = startedAt
+                )
+            ) {
+                historyRepository.recordExecution(record)
+                recordTimeline(automation, "CHECKPOINT_REJECTED", record, startedAt)
+            }
             return record
         }
         // The constraint gate accepted this run, so it owns a lifecycle exit if

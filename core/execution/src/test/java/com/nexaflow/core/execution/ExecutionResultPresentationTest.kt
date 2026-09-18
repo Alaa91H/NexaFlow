@@ -35,6 +35,19 @@ class ExecutionResultPresentationTest {
     }
 
     @Test
+    fun recoveryQueueDeferral_usesDedicatedLocalizedSummary() {
+        val record = record(
+            success = false,
+            message = "Deferred: recovery queue is full; resolve interrupted runs before retrying"
+        )
+
+        assertEquals(
+            R.string.execution_recovery_queue_awaits_review,
+            ExecutionResultPresentation.summaryRes(record)
+        )
+    }
+
+    @Test
     fun actionAndEndAction_selectLocalizedOutcomeResources() {
         assertEquals(
             R.string.execution_action_completed,
