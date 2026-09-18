@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Removed the post-CI automatic release workflow. Tags and GitHub releases are now initiated explicitly, while tag builds retain their signing and package verification gates.
+
 ## [v3.74.3] - 2026-09-18
 
 ### Fixed
