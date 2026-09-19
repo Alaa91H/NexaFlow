@@ -149,6 +149,35 @@ class CommandCompatibilityEngineTest {
         assertEquals(listOf(ActionType.SYSTEM_TOAST, ActionType.SYSTEM_OPEN_URL), kept)
     }
 
+    // ── User-grantable capabilities stay discoverable (issue #5) ─────────
+    @Test
+    fun `write-settings actions stay discoverable without the grant`() {
+        val p = profile()
+        assertTrue(engine.isSupported(ActionType.SYSTEM_SCREEN_ROTATION, p))
+        assertTrue(engine.isSupported(ActionType.SYSTEM_BRIGHTNESS, p))
+        assertTrue(engine.isSupported(ActionType.SYSTEM_RINGER_MODE, p))
+    }
+
+    @Test
+    fun `dnd action stays discoverable without notification policy access`() {
+        val p = profile()
+        assertTrue(engine.isSupported(ActionType.SYSTEM_DND, p))
+    }
+
+    @Test
+    fun `signature and privileged capabilities keep hiding commands`() {
+        val p = profile()
+        assertFalse(engine.isSupported(ActionType.SYSTEM_AIRPLANE_MODE, p))
+        assertFalse(engine.isSupported(ActionType.SYSTEM_EXPAND_STATUS_BAR, p))
+    }
+
+    @Test
+    fun `elevated shell still satisfies grantable-capability commands`() {
+        val p = profile(elevated = true)
+        assertEquals(ExecutionStrategy.SHELL, engine.resolve(CommandCatalog.specFor(ActionType.SYSTEM_DND)!!, p))
+        assertTrue(engine.isSupported(ActionType.SYSTEM_DND, p))
+    }
+
     // ── Strategy resolution ──────────────────────────────────────────────
     @Test
     fun `strategy resolves to elevated for root-only commands`() {

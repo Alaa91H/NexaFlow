@@ -1153,6 +1153,8 @@
     <string name="evo_custom_value_placeholder">o escribe cualquier valor…</string>
     <string name="end_behavior_add_first">Añade acciones primero para elegir qué ocurre al terminar la tarea</string>
     <string name="end_behavior_none_supported">Ninguna acción admite comportamiento final — añade una como Wi-Fi o brillo</string>
+    <string name="exit_extra_section">Acciones extra al terminar la tarea</string>
+    <string name="exit_extra_sub">Opcional — añade acciones extra que se ejecutan al terminar la tarea</string>
     <string name="selected_count">Seleccionadas: %1$d</string>
     <string name="remove">Quitar</string>
     <string name="evolver_picker_title">Ajustes del sistema</string>

@@ -99,77 +99,73 @@ object CompatibilityGate {
     /** Live device profile, cached per capture call (cheap; ROM detection is memoized). */
     fun profile(context: Context): DeviceProfile = DeviceProfile.capture(context)
 
-    /** Action options that can run on this device (duplicates + unsupported hidden). */
-    fun supportedActionOptions(context: Context): List<ActionOption> {
-        val p = profile(context)
-        return actionOptions.filter { engine.isSupported(it.actionType, p) }
-    }
-
     /**
-     * Full capability-aware state for every Android/ROM-compatible action.
-     * Device-incompatible actions are omitted before capability classification.
+     * Discoverable action options for this device.
+     *
+     * Device-unsupported commands (ROM denials, elevated-only without a
+     * shell, missing signature permissions, absent hardware) are hidden.
+     * Commands whose only obstacle is a user-grantable permission (write
+     * settings, DND access) stay discoverable: the UI renders them as
+     * locked rows with the grant flow instead of pretending the option
+     * does not exist (GitHub issue #5 — "Many options are missing on my
+     * phone": the tablet had the grant, the phone did not).
      */
+    fun supportedActionOptions(context: Context): List<ActionOption> =
+        discoverableActionOptions(context).map { it.first }
+
+    /** Capability-aware state for every discoverable action option. */
     internal fun actionOptionStates(
         context: Context,
         snapshot: CapabilitySnapshot
-    ): List<BuilderActionOptionState> {
+    ): List<BuilderActionOptionState> = discoverableActionOptions(context).map { (option, requirement) ->
+        val resolution = CapabilityRequirementResolver.resolve(requirement, snapshot)
+        BuilderActionOptionState(
+            option = option,
+            availability = classifyBuilderRequirement(requirement, snapshot),
+            missingCapabilities = resolution.missingCapabilities
+        )
+    }
+
+    private fun discoverableActionOptions(
+        context: Context
+    ): List<Pair<ActionOption, CapabilityRequirement>> {
         val p = profile(context)
         return actionOptions.mapNotNull { option ->
             if (!engine.isSupported(option.actionType, p)) return@mapNotNull null
-            val requirement = CommandRequirementCatalog.requirementFor(option.actionType)
-            val resolution = CapabilityRequirementResolver.resolve(requirement, snapshot)
-            BuilderActionOptionState(
-                option = option,
-                availability = classifyBuilderRequirement(requirement, snapshot),
-                missingCapabilities = resolution.missingCapabilities
-            )
+            option to CommandRequirementCatalog.requirementFor(option.actionType)
         }
     }
 
     /**
-     * Snapshot-aware executable actions. Permission-gated and unavailable items
-     * stay out of the selectable list until the UI explicitly renders them as
-     * locked rows; this prevents accidentally making a non-executable option
-     * selectable while permission-aware discovery is rolled out.
+     * Discoverable trigger options for this device. Same contract as
+     * [supportedActionOptions]: grantable-permission items stay visible as
+     * locked rows; truly unsupported items are hidden.
      */
-    fun supportedActionOptions(
-        context: Context,
-        snapshot: CapabilitySnapshot
-    ): List<ActionOption> = actionOptionStates(context, snapshot)
-        .filter { it.availability == BuilderOptionAvailability.READY }
-        .map { it.option }
+    fun supportedTriggerOptions(context: Context): List<TriggerType> =
+        discoverableTriggerOptions(context).map { it.first }
 
-    /** Trigger options that can run on this device. */
-    fun supportedTriggerOptions(context: Context): List<TriggerType> {
-        val p = profile(context)
-        return triggerTypeOptions.filter { engine.isSupported(it, p) }
-    }
-
-    /** Full capability-aware state for every Android/ROM-compatible trigger. */
+    /** Capability-aware state for every discoverable trigger option. */
     internal fun triggerOptionStates(
         context: Context,
         snapshot: CapabilitySnapshot
-    ): List<BuilderTriggerOptionState> {
+    ): List<BuilderTriggerOptionState> = discoverableTriggerOptions(context).map { (type, requirement) ->
+        val resolution = CapabilityRequirementResolver.resolve(requirement, snapshot)
+        BuilderTriggerOptionState(
+            type = type,
+            availability = classifyBuilderRequirement(requirement, snapshot),
+            missingCapabilities = resolution.missingCapabilities
+        )
+    }
+
+    private fun discoverableTriggerOptions(
+        context: Context
+    ): List<Pair<TriggerType, CapabilityRequirement>> {
         val p = profile(context)
         return triggerTypeOptions.mapNotNull { type ->
             if (!engine.isSupported(type, p)) return@mapNotNull null
-            val requirement = CommandRequirementCatalog.requirementFor(type)
-            val resolution = CapabilityRequirementResolver.resolve(requirement, snapshot)
-            BuilderTriggerOptionState(
-                type = type,
-                availability = classifyBuilderRequirement(requirement, snapshot),
-                missingCapabilities = resolution.missingCapabilities
-            )
+            type to CommandRequirementCatalog.requirementFor(type)
         }
     }
-
-    /** Snapshot-aware executable triggers; non-ready entries remain non-selectable. */
-    fun supportedTriggerOptions(
-        context: Context,
-        snapshot: CapabilitySnapshot
-    ): List<TriggerType> = triggerOptionStates(context, snapshot)
-        .filter { it.availability == BuilderOptionAvailability.READY }
-        .map { it.type }
 
     /** True when [type] is a unified duplicate hidden from the pickers. */
     fun isHiddenDuplicate(type: ActionType): Boolean = CommandCatalog.isUnifiedAlias(type)

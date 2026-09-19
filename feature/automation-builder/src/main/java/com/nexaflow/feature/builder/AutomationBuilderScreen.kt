@@ -1360,6 +1360,12 @@ fun AutomationBuilderScreen(
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 permissionRefreshTick++
+                // Re-probe grantable capabilities (write settings, DND access)
+                // and the memoized ROM/integration snapshot so a permission
+                // granted in the system screen unlocks its locked builder row
+                // immediately on return instead of after a process restart.
+                com.nexaflow.core.rom.RomIntegrationManager.refresh(context)
+                viewModel.refreshCapabilities()
                 // Coming back from the picker: re-read the latest value from
                 // the builder entry whenever a stable handle is available.
                 handle?.get<Int>("selected_icon")?.let {
@@ -2042,10 +2048,10 @@ fun AutomationBuilderScreen(
                         // Extra exit actions (custom when task ends)
                         if (selectedExitActions.isNotEmpty() || actionsWithEndOptions.isNotEmpty()) {
                             NexaFlowCard {
-                                SectionHeader(text = "إجراءات إضافية عند الانتهاء")
+                                SectionHeader(text = stringResource(R.string.exit_extra_section))
                                 if (selectedExitActions.isEmpty()) {
                                     Text(
-                                        text = "اختياري — أضف إجراءات إضافية تنفذ عند انتهاء المهمة",
+                                        text = stringResource(R.string.exit_extra_sub),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.secondary
                                     )

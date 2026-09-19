@@ -1153,6 +1153,8 @@
     <string name="evo_custom_value_placeholder">または任意の値を入力…</string>
     <string name="end_behavior_add_first">終了時の動作を選ぶには、先にアクションを追加してください</string>
     <string name="end_behavior_none_supported">終了動作に対応するアクションがありません — Wi-Fi や明るさなどを追加してください</string>
+    <string name="exit_extra_section">タスク終了時の追加アクション</string>
+    <string name="exit_extra_sub">省略可能 — タスク終了時に実行される追加アクションを追加します</string>
     <string name="selected_count">選択済み: %1$d</string>
     <string name="remove">削除</string>
     <string name="evolver_picker_title">システム設定</string>

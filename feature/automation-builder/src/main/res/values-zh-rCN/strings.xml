@@ -1153,6 +1153,8 @@
     <string name="evo_custom_value_placeholder">或输入任意值…</string>
     <string name="end_behavior_add_first">请先添加操作，再选择任务结束时的行为</string>
     <string name="end_behavior_none_supported">没有操作支持结束行为 — 请添加如 Wi-Fi 或亮度之类的操作</string>
+    <string name="exit_extra_section">任务结束时的额外操作</string>
+    <string name="exit_extra_sub">可选 — 添加任务结束时执行的额外操作</string>
     <string name="selected_count">已选择：%1$d</string>
     <string name="remove">移除</string>
     <string name="evolver_picker_title">系统设置</string>

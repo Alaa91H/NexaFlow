@@ -50,6 +50,20 @@ object RomIntegrationManager {
         return buildInfo
     }
 
+    /**
+     * Re-runs ROM detection, the integration level and the capability probes.
+     * First detection is memoized for process lifetime, but permissions the
+     * user grants from the in-app flows (write settings, DND access) or a
+     * freshly granted root must become visible without a process restart —
+     * the builder calls this on every ON_RESUME before re-reading options.
+     */
+    fun refresh(context: Context) {
+        synchronized(lock) {
+            initialized = false
+        }
+        ensureInitialized(context)
+    }
+
     fun integrationLevel(context: Context): IntegrationLevel {
         ensureInitialized(context)
         return integrationLevel

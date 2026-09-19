@@ -16,6 +16,7 @@ object PrivilegedRunner {
      * has no per-app permission system: a running server is already "granted".
      */
     fun isShizukuGranted(): Boolean {
+        shizukuGrantProbe?.let { return runCatching(it).getOrDefault(false) }
         return try {
             if (!Shizuku.pingBinder()) return false
             Shizuku.isPreV11() ||
@@ -38,16 +39,35 @@ object PrivilegedRunner {
         }
     }
 
-    fun isRootAvailable(): Boolean = SystemAppStatusDetector.isRootAvailable()
+    fun isRootAvailable(): Boolean {
+        rootProbeOverride?.let { return runCatching(it).getOrDefault(false) }
+        return SystemAppStatusDetector.isRootAvailable()
+    }
 
+    /**
+     * Runs an untrusted-command shell request through the best currently
+     * granted elevated channel. Shizuku is preferred when it is granted and
+     * its UserService is connected; Root — which is an absolute grant — is
+     * always tried when the Shizuku transport is not usable, and vice versa.
+     * A failing transport never hides the other granted runtime (the old
+     * behavior surfaced "reconnect Shizuku" on root-granted devices).
+     */
     fun runShell(command: String): SystemControlResult {
         val safe = SafeCommandBuilder.validateUserCommand(command)
             ?: return SystemControlResult.fail("Command rejected: unsafe characters or too long")
-        return when {
-            isShizukuGranted() -> runShizuku(safe)
-            isRootAvailable() -> runRoot(safe)
-            else -> SystemControlResult.fail("No elevated runtime available (Shizuku or root)")
+        shellRouteProbe?.let { probe -> return resolveShellRoute(probe(safe)) }
+        var lastFailure: SystemControlResult? = null
+        if (isShizukuGranted()) {
+            val viaShizuku = runShizuku(safe)
+            if (viaShizuku.success) return viaShizuku
+            lastFailure = viaShizuku
         }
+        if (isRootAvailable()) {
+            val viaRoot = runRoot(safe)
+            if (viaRoot.success) return viaRoot
+            lastFailure = viaRoot
+        }
+        return lastFailure ?: SystemControlResult.fail(NO_ELEVATED_RUNTIME)
     }
 
     /**
@@ -68,14 +88,28 @@ object PrivilegedRunner {
      * Executes one reviewed typed operation through the best currently granted
      * elevated channel. The operation itself has a closed argv shape, so this
      * fallback never turns workflow input into a shell expression.
+     *
+     * Root is an absolute privilege: whenever the Shizuku transport is granted
+     * but its UserService cannot execute (server restarted, bind dropped), the
+     * very same operation is retried through the granted root shell instead of
+     * failing with a Shizuku reconnect demand — and the reverse holds on
+     * Shizuku-only devices. Only a failure from BOTH granted transports (or no
+     * granted transport at all) surfaces as an error.
      */
-    fun runElevatedOperation(operation: PrivilegedOperation): SystemControlResult = when {
-        isShizukuGranted() && ShizukuShellBridge.isUserServiceBound -> runShizukuOperation(operation)
-        isRootAvailable() -> runRootOperation(operation)
-        isShizukuGranted() -> SystemControlResult.fail(
-            "Shizuku permission is granted but its UserService is not connected; reconnect Shizuku and retry"
-        )
-        else -> SystemControlResult.fail("No elevated runtime available (Shizuku or root)")
+    fun runElevatedOperation(operation: PrivilegedOperation): SystemControlResult {
+        operationRouteProbe?.let { probe -> return resolveOperationRoute(probe(operation)) }
+        var lastFailure: SystemControlResult? = null
+        if (isShizukuGranted()) {
+            val viaShizuku = runShizukuOperation(operation)
+            if (viaShizuku.success) return viaShizuku
+            lastFailure = viaShizuku
+        }
+        if (isRootAvailable()) {
+            val viaRoot = runRootOperation(operation)
+            if (viaRoot.success) return viaRoot
+            lastFailure = viaRoot
+        }
+        return lastFailure ?: SystemControlResult.fail(NO_ELEVATED_RUNTIME)
     }
 
     /** New typed path: Shizuku only, no Root fallback and no generic command input. */
@@ -207,6 +241,7 @@ object PrivilegedRunner {
 
     /** Runs one su invocation with a hard timeout and merged output. */
     private fun runSu(cmd: Array<String>): SystemControlResult {
+        suRunnerProbe?.let { return it(cmd) }
         return try {
             val process = ProcessBuilder(*cmd).redirectErrorStream(true).start()
             val output = StringBuilder()
@@ -235,4 +270,42 @@ object PrivilegedRunner {
 
     private const val ROOT_TIMEOUT_MS = 10_000L
     private const val SU_GRANT_TIMEOUT_MS = 30_000L
+
+    /** Stable failure text used by engines that detect a missing elevated runtime. */
+    internal const val NO_ELEVATED_RUNTIME = "No elevated runtime available (Shizuku or root)"
+
+    /**
+     * Test seam: forces a deterministic route ("shizuku" or "root") through
+     * [runShell] without a Shizuku server or a real su binary. Returns the
+     * chosen route plus the command to execute on that route.
+     */
+    internal var shellRouteProbe: ((String) -> Pair<String, String>)? = null
+
+    /** Test seam for [runElevatedOperation]: route plus the operation to dispatch. */
+    internal var operationRouteProbe: ((PrivilegedOperation) -> Pair<String, PrivilegedOperation>)? = null
+
+    /**
+     * Test seam: overrides the Shizuku grant answer (normally a live binder
+     * + permission check) so multi-route behavior is testable on the JVM.
+     */
+    internal var shizukuGrantProbe: (() -> Boolean)? = null
+
+    /** Test seam: overrides the root-availability answer. */
+    internal var rootProbeOverride: (() -> Boolean)? = null
+
+    /** Test seam: replaces the real `su` invocation for the root command route. */
+    internal var suRunnerProbe: ((Array<String>) -> SystemControlResult)? = null
+
+    private fun resolveShellRoute(pair: Pair<String, String>): SystemControlResult = when (pair.first) {
+        "shizuku" -> runShizuku(pair.second)
+        "root" -> runRoot(pair.second)
+        else -> SystemControlResult.fail(NO_ELEVATED_RUNTIME)
+    }
+
+    private fun resolveOperationRoute(pair: Pair<String, PrivilegedOperation>): SystemControlResult =
+        when (pair.first) {
+            "shizuku" -> runShizukuOperation(pair.second)
+            "root" -> runRootOperation(pair.second)
+            else -> SystemControlResult.fail(NO_ELEVATED_RUNTIME)
+        }
 }

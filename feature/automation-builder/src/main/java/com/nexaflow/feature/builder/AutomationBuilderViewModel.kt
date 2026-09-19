@@ -40,6 +40,13 @@ class AutomationBuilderViewModel @Inject constructor(
     /** One capability-engine snapshot for all builder visibility decisions. */
     val capabilitySnapshot: StateFlow<CapabilitySnapshot> = capabilityStateStore.snapshot
 
+    /**
+     * Re-probes capability availability. Called on ON_RESUME so rows locked
+     * behind a permission unlock immediately after the user returns from the
+     * grant screen instead of waiting for the next periodic refresh.
+     */
+    fun refreshCapabilities() = capabilityStateStore.refresh()
+
     /** User-defined global variables, so the editor can offer %VAR insertion. */
     val variables: StateFlow<List<GlobalVariable>> = variableRepository.getVariables()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())

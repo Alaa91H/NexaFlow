@@ -1153,6 +1153,8 @@
     <string name="evo_custom_value_placeholder">या कोई भी मान लिखें…</string>
     <string name="end_behavior_add_first">कार्य समाप्त होने पर क्या होगा चुनने के लिए पहले क्रियाएँ जोड़ें</string>
     <string name="end_behavior_none_supported">कोई क्रिया समाप्ति व्यवहार का समर्थन नहीं करती — Wi-Fi या ब्राइटनेस जैसी जोड़ें</string>
+    <string name="exit_extra_section">कार्य समाप्त होने पर अतिरिक्त क्रियाएँ</string>
+    <string name="exit_extra_sub">वैकल्पिक — कार्य समाप्त होने पर चलने वाली अतिरिक्त क्रियाएँ जोड़ें</string>
     <string name="selected_count">चयनित: %1$d</string>
     <string name="remove">हटाएँ</string>
     <string name="evolver_picker_title">सिस्टम सेटिंग्स</string>

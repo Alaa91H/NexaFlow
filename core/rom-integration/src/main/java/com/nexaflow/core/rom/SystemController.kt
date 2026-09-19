@@ -77,8 +77,10 @@ class SystemController(
     fun setDoNotDisturb(enabled: Boolean): SystemControlResult {
         if (!capabilityProvider.isAvailable(RomCapability.DND_ACCESS)) {
             return tryPrivileged(
-                command = "cmd notification set_interruption_filter " +
-                    if (enabled) "none" else "all",
+                // AOSP NotificationShellCmd exposes set_dnd with on|off (none|all
+                // are aliases); there is no set_interruption_filter subcommand.
+                command = "cmd notification set_dnd " +
+                    if (enabled) "on" else "off",
                 successMessage = if (enabled) "Do Not Disturb enabled" else "Do Not Disturb disabled"
             )
         }
@@ -98,8 +100,9 @@ class SystemController(
             SystemControlResult.ok(if (enabled) "Do Not Disturb enabled" else "Do Not Disturb disabled")
         } catch (t: Throwable) {
             tryPrivileged(
-                command = "cmd notification set_interruption_filter " +
-                    if (enabled) "none" else "all",
+                // AOSP set_dnd: on|off (see NotificationShellCmd.java).
+                command = "cmd notification set_dnd " +
+                    if (enabled) "on" else "off",
                 successMessage = if (enabled) "Do Not Disturb enabled" else "Do Not Disturb disabled"
             ).takeIf { it.success } ?: SystemControlResult.fail("Failed to change Do Not Disturb: ${t.message}")
         }

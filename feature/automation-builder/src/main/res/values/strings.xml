@@ -1161,6 +1161,8 @@
     <string name="evo_custom_value_placeholder">or type any value…</string>
     <string name="end_behavior_add_first">Add actions first to choose what happens when the task ends</string>
     <string name="end_behavior_none_supported">No action supports end behavior — add one like Wi-Fi or brightness</string>
+    <string name="exit_extra_section">Extra actions when the task ends</string>
+    <string name="exit_extra_sub">Optional — add extra actions that run when the task ends</string>
     <string name="selected_count">Selected: %1$d</string>
     <string name="remove">Remove</string>
     <string name="evolver_picker_title">System Settings</string>

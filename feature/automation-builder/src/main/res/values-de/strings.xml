@@ -1153,6 +1153,8 @@
     <string name="evo_custom_value_placeholder">oder beliebigen Wert eingeben…</string>
     <string name="end_behavior_add_first">Füge zuerst Aktionen hinzu, um das Endverhalten zu wählen</string>
     <string name="end_behavior_none_supported">Keine Aktion unterstützt ein Endverhalten — füge z. B. WLAN oder Helligkeit hinzu</string>
+    <string name="exit_extra_section">Zusätzliche Aktionen beim Ende der Aufgabe</string>
+    <string name="exit_extra_sub">Optional — füge zusätzliche Aktionen hinzu, die beim Ende der Aufgabe ausgeführt werden</string>
     <string name="selected_count">Ausgewählt: %1$d</string>
     <string name="remove">Entfernen</string>
     <string name="evolver_picker_title">Systemeinstellungen</string>

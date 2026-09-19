@@ -1153,6 +1153,8 @@
     <string name="evo_custom_value_placeholder">veya herhangi bir değer yazın…</string>
     <string name="end_behavior_add_first">Görev bittiğinde ne olacağını seçmek için önce eylem ekleyin</string>
     <string name="end_behavior_none_supported">Hiçbir eylem bitiş davranışını desteklemiyor — Wi-Fi veya parlaklık gibi bir tane ekleyin</string>
+    <string name="exit_extra_section">Görev sonunda ek eylemler</string>
+    <string name="exit_extra_sub">İsteğe bağlı — görev sonunda çalışan ek eylemler ekleyin</string>
     <string name="selected_count">Seçilen: %1$d</string>
     <string name="remove">Kaldır</string>
     <string name="evolver_picker_title">Sistem ayarları</string>

@@ -118,6 +118,29 @@ class CommandCompatibilityEngine(
     // The catalog is held as a property for future per-ROM override tables;
     // today the built-in singleton catalog covers every command.
 
+    /**
+     * Capabilities the user can grant from inside the app through a system
+     * settings screen (write-settings toggle, DND access). A missing
+     * capability from this set is a *pending permission*, not an unsupported
+     * device, so the command must stay discoverable and render as a locked
+     * row with the grant flow. Signature/privileged capabilities
+     * (WRITE_SECURE_SETTINGS, MODIFY_PHONE_STATE, ...) and backend
+     * capabilities (ROOT_SHELL, SHIZUKU) keep fail-closed hiding because no
+     * in-app grant path exists for them (GitHub issue #5).
+     */
+    private val userGrantableCapabilities: Set<RomCapability> =
+        setOf(RomCapability.WRITE_SETTINGS, RomCapability.DND_ACCESS)
+
+    /**
+     * True when every missing capability can be granted by the user inside
+     * the app and no elevated shell could satisfy them instead. Such a
+     * command is never unsupported — at worst its permission is pending.
+     */
+    private fun missingOnlyUserGrantable(spec: CommandSpec, profile: DeviceProfile): Boolean =
+        spec.capabilities.isNotEmpty() &&
+            !profile.hasElevatedShell &&
+            spec.capabilities.all { it in userGrantableCapabilities }
+
     /** Resolves the effective strategy for a command on this device. Hardware is gated per type in [isSupported]. */
     fun resolve(spec: CommandSpec, profile: DeviceProfile): ExecutionStrategy {
         if (spec.requiredBackend != null && spec.requiredBackend !in profile.capabilities) {
@@ -139,6 +162,12 @@ class CommandCompatibilityEngine(
             ExecutionStrategy.SHELL ->
                 if (spec.capabilities.isEmpty() || profile.hasElevatedShell || capabilitiesOk(spec, profile)) {
                     ExecutionStrategy.SHELL
+                } else if (missingOnlyUserGrantable(spec, profile)) {
+                    // Pending user grant — keep the option discoverable as a
+                    // locked row; the runner re-verifies the permission at
+                    // execution time and the row walks the user to the grant
+                    // screen instead of pretending the option does not exist.
+                    ExecutionStrategy.SHELL
                 } else {
                     ExecutionStrategy.UNSUPPORTED
                 }
@@ -146,6 +175,8 @@ class CommandCompatibilityEngine(
             ExecutionStrategy.DIRECT,
             ExecutionStrategy.BRIDGE -> {
                 if (spec.capabilities.isEmpty() || capabilitiesOk(spec, profile)) {
+                    spec.strategy
+                } else if (missingOnlyUserGrantable(spec, profile)) {
                     spec.strategy
                 } else if (profile.hasElevatedShell) {
                     // The bridge path can often still work elevated.

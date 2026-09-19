@@ -1152,6 +1152,8 @@
     <string name="evo_custom_value_placeholder">أو اكتب أي قيمة…</string>
     <string name="end_behavior_add_first">أضف إجراءات أولًا لاختيار ما يحدث عند انتهاء المهمة</string>
     <string name="end_behavior_none_supported">لا يوجد إجراء يدعم سلوك الانتهاء — أضف إجراءً مثل الواي فاي أو السطوع</string>
+    <string name="exit_extra_section">إجراءات إضافية عند انتهاء المهمة</string>
+    <string name="exit_extra_sub">اختياري — أضف إجراءات إضافية تنفذ عند انتهاء المهمة</string>
     <string name="selected_count">المحدد: %1$d</string>
     <string name="remove">إزالة</string>
     <string name="evolver_picker_title">إعدادات النظام</string>

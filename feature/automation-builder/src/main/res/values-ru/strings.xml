@@ -1153,6 +1153,8 @@
     <string name="evo_custom_value_placeholder">или введите любое значение…</string>
     <string name="end_behavior_add_first">Сначала добавьте действия, чтобы выбрать поведение при завершении</string>
     <string name="end_behavior_none_supported">Ни одно действие не поддерживает поведение завершения — добавьте, например, Wi-Fi или яркость</string>
+    <string name="exit_extra_section">Дополнительные действия при завершении задачи</string>
+    <string name="exit_extra_sub">Необязательно — добавьте дополнительные действия, выполняемые при завершении задачи</string>
     <string name="selected_count">Выбрано: %1$d</string>
     <string name="remove">Убрать</string>
     <string name="evolver_picker_title">Настройки системы</string>
