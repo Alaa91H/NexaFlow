@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+## [v3.74.7] - 2026-09-19
+
+### Fixed
+
+- Builder options missing on phones (issue #5): options whose only blocker is a user-grantable capability (Do-not-disturb access, Write settings) no longer disappear from the trigger and action pickers. The compatibility engine now distinguishes "permission required" from "unsupported" for grantable capabilities, and the builder renders those rows as locked entries that route into the existing grant flow instead of hiding them.
+- Locked rows unlock immediately after granting. ROM capability probing is no longer frozen at process start: the integration manager re-reads integration level and permission state on every resume, so returning from the system settings screen flips a granted row to ready without restarting the app.
+- Two builder strings ("extra actions when done" section and its description) were hardcoded Arabic regardless of locale. They now use localized string resources added to all 11 locales (issue #4).
+- Elevated execution no longer dead-ends on a broken Shizuku transport when Root is granted. The multi-route runner tries every granted transport in order (Shizuku first, Root fallback); a transport-level failure (service dropped, UserService gone) retries the next channel, while genuine command failures still surface unchanged. This removes the class of silently skipped privileged operations on rooted devices without a working Shizuku.
+- The Root path for the Do-not-disturb action used a `cmd notification set_interruption_filter` subcommand that does not exist in AOSP, so DND via Root failed every time. Both elevated paths now use the real `cmd notification set_dnd on|off` wire format.
+
+### Changed
+
+- The ad-hoc Arabic-in-Kotlin scanner used to find the issue #4 strings is now a permanent CI gate (`scripts/check_hardcoded_text.py`): it strips comments and fails the lint job when Arabic script survives in any shipped Kotlin/Java source. Legitimate occurrences (the native language name in the settings picker) live in a reviewed, anchor-verified allow-list that fails when it drifts. A self-test re-injects the exact v3.74.6 leak strings, and a dedicated unit-test suite pins the scanner, comment handling, allow-list rotation and wire format.
+
+### Tests
+
+- New Robolectric Compose UI suite (`CatalogOptionRowAvailabilityTest`) pins the three picker row states — ready (toggles the option), permission-required (locked, "Tap to grant", routes to the grant flow, never toggles), and unsupported (visible, unavailable message, not grantable) — for both the action and trigger pickers, so the issue #5 discovery regression cannot silently return.
+- New `PrivilegedRunnerRoutesTest` regression suite pins the granted-channel matrix: Root-only execution, Shizuku-transport failure falling back to Root, Shizuku-first preference on healthy transports, real-failure passthrough, and the stable no-transport message the engine classifies.
+- Compatibility-engine tests extended to cover the grantable-capability pending-permission mapping.
+
+### Validation
+
+- Unit tests for the execution, builder and ROM-integration modules pass; Detekt and Android Lint pass; string-parity and auto-fix resource gates pass.
+
 ## [v3.74.6] - 2026-09-18
 
 ### Fixed
