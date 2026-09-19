@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+## [v3.75.0] - 2026-09-20
+
+### Added
+
+- Truthful capability execution architecture: introduced a dedicated `VerificationEngine` with exponential retry backoff (configurable up to 1,500ms max elapsed time) to strictly confirm actual device state transitions before marking actions successful.
+- Live settings read-back verification: implemented namespace/key read-back via `settings get <namespace> <key>` in both Shizuku and Root backends to verify that system setting writes take effect on the device.
+- Process lifecycle postcondition verification: implemented running process state inspection (`isPackageRunning`) for app force-stop capabilities to verify that processes actually terminate after execution.
+- Privileged package clear data capability: added `ClearPackageData` (`PACKAGE_CLEAR_DATA` / `pm clear <package>`) to the privileged operation algebra, wire format serializer, and capability catalog.
+- Action-to-capability execution bridge: expanded `CapabilityActionMapper` and connected `AppActionsHandler` and `SystemActionsHandler` to seamlessly dispatch `SYSTEM_FORCE_STOP_APP`, `APPLICATION_CLOSE_APP`, `SYSTEM_CLEAR_APP_DATA`, `SYSTEM_SET_SETTING`, and system settings shortcuts (`WIFI`, `BLUETOOTH`, `LOCATION`, `SOUND`, `DISPLAY`, `BATTERY`) through `CapabilityExecutionService` with `VerificationMode.REQUIRED`.
+
+### Fixed
+
+- Modern Compose UI testing deprecation: migrated `RoutineCardHeaderTest` from deprecated `createComposeRule` to `androidx.compose.ui.test.junit4.v2.createComposeRule` avoiding compiler warnings under `-Werror`.
+- Fixed timing race condition in `TaskManagerTest`'s deadline expiration queue test using atomic clock progression.
+- Eliminated unused expression warning in `ActiveExecutionStore.kt`.
+
+### Tests
+
+- Added comprehensive test suites: `VerificationEngineTest` (covering immediate match, retry backoff convergence, mismatch failure retention, and timeout), `CapabilityActionMapperTest` (covering all new mappings, parameters, and verification requirements), `PrivilegedCapabilityBackendsTest` (covering postcondition verification for settings and force-stop), and `CapabilityRuntimeTest` (covering end-to-end execution and verification pipeline).
+
+### Validation
+
+- Full 18-module unit test suite clean pass (`./gradlew testDebugUnitTest`).
+- Catalog parity (`scripts/audit_catalog_and_releases.py catalog`) verified with 0 problems.
+- String parity across all 11 locales verified with 0 missing/orphaned keys.
+- CI hardcoded-text scanner (`scripts/check_hardcoded_text.py`) verified clean.
+
 ## [v3.74.7] - 2026-09-19
 
 ### Fixed
