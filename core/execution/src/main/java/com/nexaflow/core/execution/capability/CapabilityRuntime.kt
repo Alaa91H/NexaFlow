@@ -17,6 +17,7 @@ import com.nexaflow.domain.capability.NetworkRequirement
 import com.nexaflow.domain.capability.PolicyBlockReason
 import com.nexaflow.domain.capability.PolicyEvaluation
 import com.nexaflow.domain.capability.ThermalState
+import com.nexaflow.core.execution.verification.VerificationEngine
 import kotlinx.coroutines.CancellationException
 
 /**
@@ -275,7 +276,8 @@ class CapabilityResolver(
 class CapabilityExecutionService(
     private val resolver: CapabilityResolver,
     private val deviceStateProvider: suspend () -> CapabilityDeviceState,
-    private val nowMs: () -> Long = { System.currentTimeMillis() }
+    private val nowMs: () -> Long = { System.currentTimeMillis() },
+    private val verificationEngine: VerificationEngine? = null
 ) {
     suspend fun execute(request: CapabilityRequest): CapabilityResult {
         val startedAt = nowMs()
@@ -346,12 +348,16 @@ class CapabilityExecutionService(
         if (outcome.status != CapabilityStatus.SUCCESS || request.verification == com.nexaflow.domain.capability.VerificationMode.NONE) {
             return outcome
         }
-        val verification = try {
-            backend.verify(request, outcome)
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (error: Throwable) {
-            VerificationResult(false, false, error.message ?: "Verification failed")
+        val verification = if (verificationEngine != null) {
+            verificationEngine.verify(request, outcome)
+        } else {
+            try {
+                backend.verify(request, outcome)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Throwable) {
+                VerificationResult(false, false, error.message ?: "Verification failed")
+            }
         }
         if (request.verification == com.nexaflow.domain.capability.VerificationMode.REQUIRED && !verification.verified) {
             return CapabilityResult.failed(

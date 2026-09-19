@@ -58,6 +58,7 @@ object CellularNetworkReader {
             TelephonyManager.NETWORK_TYPE_UNKNOWN
         }
         generationOf(dataType)?.let { return it }
+        @Suppress("DEPRECATION")
         generationOf(runCatching { telephony.networkType }
             .getOrDefault(TelephonyManager.NETWORK_TYPE_UNKNOWN))?.let { return it }
 
@@ -121,6 +122,7 @@ object CellularNetworkReader {
     fun generationOf(displayInfo: TelephonyDisplayInfo): String? {
         // TelephonyDisplayInfo only exists on API 30+.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return null
+        @Suppress("DEPRECATION")
         return when (displayInfo.overrideNetworkType) {
             TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_ADVANCED,
             TelephonyDisplayInfo.OVERRIDE_NETWORK_TYPE_NR_NSA,

@@ -953,7 +953,8 @@ class ExecutionEngine(
                     automationId = automationId,
                     revertOnExit = revertOnExit,
                     runContext = runContext,
-                    dataRuntime = dataRuntime
+                    dataRuntime = dataRuntime,
+                    capabilityService = capabilityExecutionService
                 )
             )
             if (!result.success && result.message.contains("No elevated runtime")) {

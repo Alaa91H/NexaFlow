@@ -29,6 +29,13 @@ sealed interface PrivilegedOperation {
         override fun argv(): List<String> = listOf("am", "force-stop", packageName)
     }
 
+    data class ClearPackageData(val packageName: String) : PrivilegedOperation {
+        override val wireId: PrivilegedOperationId = PrivilegedOperationId.PACKAGE_CLEAR_DATA
+        init { require(packageName.isPackageName()) }
+        override fun wireArguments(): List<String> = listOf(packageName)
+        override fun argv(): List<String> = listOf("pm", "clear", packageName)
+    }
+
     data class SetPackageEnabled(val packageName: String, val enabled: Boolean) : PrivilegedOperation {
         override val wireId: PrivilegedOperationId = PrivilegedOperationId.PACKAGE_SET_ENABLED
         init { require(packageName.isPackageName()) }
@@ -176,6 +183,7 @@ sealed interface PrivilegedOperation {
         ): PrivilegedOperation? = runCatching {
             when (PrivilegedOperationId.entries.firstOrNull { it.wireValue == wireId }) {
                 PrivilegedOperationId.PACKAGE_FORCE_STOP -> ForceStopPackage(first)
+                PrivilegedOperationId.PACKAGE_CLEAR_DATA -> ClearPackageData(first)
                 PrivilegedOperationId.PACKAGE_SET_ENABLED -> SetPackageEnabled(first, second.toBooleanStrict())
                 PrivilegedOperationId.SYSTEM_SETTING_WRITE -> WriteSetting(
                     namespace = SettingNamespace.parse(first) ?: return null,
@@ -234,6 +242,7 @@ sealed interface PrivilegedOperation {
 
 enum class PrivilegedOperationId(val wireValue: String) {
     PACKAGE_FORCE_STOP("package.force_stop"),
+    PACKAGE_CLEAR_DATA("package.clear_data"),
     PACKAGE_SET_ENABLED("package.set_enabled"),
     SYSTEM_SETTING_WRITE("settings.write"),
     FILE_COPY("file.copy"),

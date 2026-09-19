@@ -53,6 +53,7 @@ class NexaCallScreeningService : CallScreeningService() {
 
     override fun onScreenCall(callDetails: Call.Details) {
         val number = callDetails.handle?.schemeSpecificPart.orEmpty()
+        @Suppress("DEPRECATION")
         val isEmergency = number.isNotEmpty() && PhoneNumberUtils.isEmergencyNumber(number)
 
         scope.launch {

@@ -17,6 +17,7 @@ import com.nexaflow.domain.capability.CapabilityResult
 import com.nexaflow.domain.capability.CapabilityRiskLevel
 import com.nexaflow.domain.capability.CapabilityStatus
 import com.nexaflow.domain.capability.PrivilegeLevel
+import com.nexaflow.domain.capability.VerificationResult
 
 /**
  * Static declarations for the small reviewed subset of elevated operations.
@@ -32,6 +33,17 @@ object PrivilegedCapabilityCatalog {
             displayName = "Force stop installed package",
             description = "Stops one validated package through the best authorized elevated backend",
             risk = CapabilityRiskLevel.HIGH,
+            minimumPrivilege = PrivilegeLevel.NONE,
+            supportedBackends = TYPED_BACKENDS,
+            parameters = listOf(
+                CapabilityParameterSpec("packageName", CapabilityParameterType.PACKAGE_NAME, required = true)
+            )
+        ),
+        CapabilityDescriptor(
+            id = CapabilityId.PACKAGE_CLEAR_DATA,
+            displayName = "Clear installed package data",
+            description = "Clears data for one validated package through a user-selected elevated backend",
+            risk = CapabilityRiskLevel.DESTRUCTIVE,
             minimumPrivilege = PrivilegeLevel.NONE,
             supportedBackends = TYPED_BACKENDS,
             parameters = listOf(
@@ -92,6 +104,9 @@ internal object PrivilegedOperationRequestMapper {
         CapabilityId.PACKAGE_FORCE_STOP -> PrivilegedOperation.ForceStopPackage(
             checkNotNull(request.parameters["packageName"])
         )
+        CapabilityId.PACKAGE_CLEAR_DATA -> PrivilegedOperation.ClearPackageData(
+            checkNotNull(request.parameters["packageName"])
+        )
         CapabilityId.PACKAGE_SET_ENABLED -> PrivilegedOperation.SetPackageEnabled(
             packageName = checkNotNull(request.parameters["packageName"]),
             enabled = checkNotNull(request.parameters["enabled"]).toBooleanStrict()
@@ -114,7 +129,13 @@ class ShizukuCapabilityBackend(
     private val running: () -> Boolean = PrivilegedRunner::isShizukuRunning,
     private val granted: () -> Boolean = PrivilegedRunner::isShizukuGranted,
     private val userServiceBound: () -> Boolean = { ShizukuShellBridge.isUserServiceBound },
-    private val executeOperation: (PrivilegedOperation) -> SystemControlResult = PrivilegedRunner::runShizukuOperation
+    private val executeOperation: (PrivilegedOperation) -> SystemControlResult = PrivilegedRunner::runShizukuOperation,
+    private val readSetting: (namespace: String, key: String) -> String? = { ns, k ->
+        val cmd = com.nexaflow.core.security.SafeCommandBuilder.build("settings", "get", ns.lowercase(), k)
+        val res = PrivilegedRunner.runShizuku(cmd)
+        res.message.trim().takeIf { res.success && it != "null" }
+    },
+    private val isPackageRunning: ((packageName: String) -> Boolean?)? = null
 ) : CapabilityBackend {
     override val id: CapabilityBackendId = CapabilityBackendId.SHIZUKU
     override val supportedCapabilities: Set<CapabilityId> = TYPED_CAPABILITIES
@@ -163,6 +184,9 @@ class ShizukuCapabilityBackend(
         )
     }
 
+    override suspend fun verify(request: CapabilityRequest, result: CapabilityResult): VerificationResult =
+        verifyPrivilegedPostcondition(request, result, readSetting, isPackageRunning)
+
     private fun unsupportedAvailability() = BackendAvailability(id, CapabilityAvailability.UNSUPPORTED, "Capability is not implemented by Shizuku backend")
 
     private data class ShizukuState(
@@ -174,7 +198,13 @@ class ShizukuCapabilityBackend(
 
 class RootCapabilityBackend(
     private val rootAvailable: () -> Boolean = PrivilegedRunner::isRootAvailable,
-    private val executeOperation: (PrivilegedOperation) -> SystemControlResult = PrivilegedRunner::runRootOperation
+    private val executeOperation: (PrivilegedOperation) -> SystemControlResult = PrivilegedRunner::runRootOperation,
+    private val readSetting: (namespace: String, key: String) -> String? = { ns, k ->
+        val cmd = com.nexaflow.core.security.SafeCommandBuilder.build("settings", "get", ns.lowercase(), k)
+        val res = PrivilegedRunner.runRoot(cmd)
+        res.message.trim().takeIf { res.success && it != "null" }
+    },
+    private val isPackageRunning: ((packageName: String) -> Boolean?)? = null
 ) : CapabilityBackend {
     override val id: CapabilityBackendId = CapabilityBackendId.ROOT
     override val supportedCapabilities: Set<CapabilityId> = TYPED_CAPABILITIES
@@ -200,6 +230,9 @@ class RootCapabilityBackend(
         if (!isRootAvailableSafely()) return unavailable(CapabilityErrorCode.ROOT_UNAVAILABLE, "Root access is not available", id)
         return executeOperation(operation).toCapabilityResult(id, operation, CapabilityErrorCode.ROOT_DENIED)
     }
+
+    override suspend fun verify(request: CapabilityRequest, result: CapabilityResult): VerificationResult =
+        verifyPrivilegedPostcondition(request, result, readSetting, isPackageRunning)
 
     private fun isRootAvailableSafely(): Boolean = runCatching(rootAvailable).getOrDefault(false)
 }
@@ -228,6 +261,7 @@ class AdbCapabilityBackend : CapabilityBackend {
 
 private val TYPED_CAPABILITIES = setOf(
     CapabilityId.PACKAGE_FORCE_STOP,
+    CapabilityId.PACKAGE_CLEAR_DATA,
     CapabilityId.PACKAGE_SET_ENABLED,
     CapabilityId.SYSTEM_SETTING_WRITE,
     CapabilityId.FILE_COPY
@@ -270,3 +304,92 @@ private fun SystemControlResult.toCapabilityResult(
     }
     CapabilityResult.failed(code, message, backend).copy(metadata = mapOf("operation" to operation.wireId.wireValue))
 }
+
+internal fun verifyPrivilegedPostcondition(
+    request: CapabilityRequest,
+    result: CapabilityResult,
+    readSetting: (namespace: String, key: String) -> String?,
+    isPackageRunning: ((packageName: String) -> Boolean?)?
+): VerificationResult = when (request.capability) {
+    CapabilityId.SYSTEM_SETTING_WRITE -> {
+        val ns = request.parameters["namespace"]
+        val key = request.parameters["key"]
+        val expected = request.parameters["value"]
+        if (ns != null && key != null && expected != null) {
+            val actual = readSetting(ns, key)
+            if (actual == expected) {
+                VerificationResult(
+                    attempted = true,
+                    verified = true,
+                    message = "Setting $ns/$key verified: $actual",
+                    metadata = mapOf("namespace" to ns, "key" to key, "value" to actual)
+                )
+            } else {
+                VerificationResult(
+                    attempted = true,
+                    verified = false,
+                    message = "Setting $ns/$key mismatch: expected '$expected' but found '${actual ?: "null"}'",
+                    metadata = mapOf(
+                        "namespace" to ns,
+                        "key" to key,
+                        "expected" to expected,
+                        "actual" to (actual ?: "null")
+                    )
+                )
+            }
+        } else {
+            VerificationResult(
+                attempted = false,
+                verified = false,
+                message = "Missing parameters for setting verification"
+            )
+        }
+    }
+    CapabilityId.PACKAGE_FORCE_STOP -> {
+        val pkg = request.parameters["packageName"]
+        if (pkg != null) {
+            val running = isPackageRunning?.invoke(pkg)
+            if (running != null) {
+                if (!running) {
+                    VerificationResult(
+                        attempted = true,
+                        verified = true,
+                        message = "Package $pkg is stopped",
+                        metadata = mapOf("packageName" to pkg)
+                    )
+                } else {
+                    VerificationResult(
+                        attempted = true,
+                        verified = false,
+                        message = "Package $pkg is still running",
+                        metadata = mapOf("packageName" to pkg)
+                    )
+                }
+            } else {
+                VerificationResult(
+                    attempted = true,
+                    verified = result.isSuccess,
+                    message = if (result.isSuccess) "Force stop completed for $pkg" else "Force stop failed for $pkg",
+                    metadata = mapOf("packageName" to pkg)
+                )
+            }
+        } else {
+            VerificationResult(false, false, "Missing packageName")
+        }
+    }
+    CapabilityId.PACKAGE_CLEAR_DATA -> {
+        val pkg = request.parameters["packageName"]
+        VerificationResult(
+            attempted = true,
+            verified = result.isSuccess,
+            message = if (result.isSuccess) "Package $pkg data cleared" else "Failed to clear package data for $pkg",
+            metadata = pkg?.let { mapOf("packageName" to it) } ?: emptyMap()
+        )
+    }
+    else -> VerificationResult(
+        attempted = false,
+        verified = false,
+        message = "Backend does not provide post-condition verification"
+    )
+}
+

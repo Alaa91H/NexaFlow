@@ -157,6 +157,107 @@ class PrivilegedCapabilityBackendsTest {
         assertEquals(CapabilityErrorCode.INVALID_CONFIGURATION, result.errorCode)
     }
 
+    @Test
+    fun selectedShizukuMapsClearDataToTypedOperation() = runBlocking {
+        var executed: PrivilegedOperation? = null
+        val backend = ShizukuCapabilityBackend(
+            running = { true },
+            granted = { true },
+            userServiceBound = { true },
+            executeOperation = { operation ->
+                executed = operation
+                SystemControlResult.ok("cleared")
+            }
+        )
+
+        val request = CapabilityRequest(
+            capability = CapabilityId.PACKAGE_CLEAR_DATA,
+            parameters = mapOf("packageName" to "com.example.app"),
+            policy = explicitPolicy(CapabilityBackendId.SHIZUKU)
+        )
+
+        val result = backend.execute(request)
+        assertTrue(result.isSuccess)
+        assertEquals(PrivilegedOperation.ClearPackageData("com.example.app"), executed)
+
+        val verification = backend.verify(request, result)
+        assertTrue(verification.verified)
+        assertTrue(verification.attempted)
+    }
+
+    @Test
+    fun settingWriteVerificationSucceedsWhenActualMatchesExpected() = runBlocking {
+        val backend = ShizukuCapabilityBackend(
+            readSetting = { ns, key -> if (ns == "GLOBAL" && key == "airplane_mode_on") "1" else null }
+        )
+        val request = CapabilityRequest(
+            capability = CapabilityId.SYSTEM_SETTING_WRITE,
+            parameters = mapOf("namespace" to "GLOBAL", "key" to "airplane_mode_on", "value" to "1"),
+            policy = explicitPolicy(CapabilityBackendId.SHIZUKU)
+        )
+        val result = com.nexaflow.domain.capability.CapabilityResult(
+            status = com.nexaflow.domain.capability.CapabilityStatus.SUCCESS,
+            backend = CapabilityBackendId.SHIZUKU,
+            message = "ok"
+        )
+
+        val verification = backend.verify(request, result)
+        assertTrue(verification.attempted)
+        assertTrue(verification.verified)
+        assertTrue(verification.message.contains("verified: 1"))
+    }
+
+    @Test
+    fun settingWriteVerificationFailsWhenActualDiffersFromExpected() = runBlocking {
+        val backend = RootCapabilityBackend(
+            readSetting = { ns, key -> if (ns == "GLOBAL" && key == "airplane_mode_on") "0" else null }
+        )
+        val request = CapabilityRequest(
+            capability = CapabilityId.SYSTEM_SETTING_WRITE,
+            parameters = mapOf("namespace" to "GLOBAL", "key" to "airplane_mode_on", "value" to "1"),
+            policy = explicitPolicy(CapabilityBackendId.ROOT)
+        )
+        val result = com.nexaflow.domain.capability.CapabilityResult(
+            status = com.nexaflow.domain.capability.CapabilityStatus.SUCCESS,
+            backend = CapabilityBackendId.ROOT,
+            message = "ok"
+        )
+
+        val verification = backend.verify(request, result)
+        assertTrue(verification.attempted)
+        assertFalse(verification.verified)
+        assertTrue(verification.message.contains("mismatch"))
+    }
+
+    @Test
+    fun packageForceStopVerificationChecksProcessState() = runBlocking {
+        var isRunning = true
+        val backend = ShizukuCapabilityBackend(
+            isPackageRunning = { isRunning }
+        )
+        val request = CapabilityRequest(
+            capability = CapabilityId.PACKAGE_FORCE_STOP,
+            parameters = mapOf("packageName" to "com.example.app"),
+            policy = explicitPolicy(CapabilityBackendId.SHIZUKU)
+        )
+        val result = com.nexaflow.domain.capability.CapabilityResult(
+            status = com.nexaflow.domain.capability.CapabilityStatus.SUCCESS,
+            backend = CapabilityBackendId.SHIZUKU,
+            message = "ok"
+        )
+
+        // Still running -> verification fails
+        val vFail = backend.verify(request, result)
+        assertTrue(vFail.attempted)
+        assertFalse(vFail.verified)
+
+        // Stopped -> verification passes
+        isRunning = false
+        val vPass = backend.verify(request, result)
+        assertTrue(vPass.attempted)
+        assertTrue(vPass.verified)
+    }
+
     private fun forceStopRequest(backend: CapabilityBackendId? = null): CapabilityRequest = CapabilityRequest(
         capability = CapabilityId.PACKAGE_FORCE_STOP,
         parameters = mapOf("packageName" to "com.example.app"),

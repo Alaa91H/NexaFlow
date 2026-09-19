@@ -35,6 +35,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 
 @RunWith(RobolectricTestRunner::class)
+@Suppress("DEPRECATION")
 class PluginConditionBackendTest {
 
     private val context: Context = ApplicationProvider.getApplicationContext()

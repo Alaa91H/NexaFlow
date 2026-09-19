@@ -19,6 +19,7 @@ import com.nexaflow.domain.capability.PolicyBlockReason
 import com.nexaflow.domain.capability.PrivilegeLevel
 import com.nexaflow.domain.capability.VerificationMode
 import com.nexaflow.domain.capability.VerificationResult
+import com.nexaflow.core.execution.verification.VerificationEngine
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -344,5 +345,82 @@ class CapabilityRuntimeTest {
         assertEquals(CapabilityBackendId.PACKAGE_MANAGER, result.backend)
         assertTrue(result.durationMs > 0L)
         assertEquals(1, backend.executionCalls)
+    }
+
+    @Test
+    fun `execution service with verification engine converts unverified REQUIRED write into VERIFICATION_FAILED`() = runBlocking {
+        val backend = FakeBackend(
+            id = CapabilityBackendId.ANDROID_API,
+            supportedCapabilities = setOf(CapabilityId.PACKAGE_READ),
+            result = CapabilityResult(status = CapabilityStatus.SUCCESS, message = "written"),
+            verification = VerificationResult(attempted = true, verified = false, message = "Value mismatch")
+        )
+        val registry = CapabilityRegistry.of(
+            descriptors = listOf(
+                CapabilityDescriptor(
+                    id = CapabilityId.PACKAGE_READ,
+                    displayName = "Read packages",
+                    description = "Reads package metadata",
+                    supportedBackends = listOf(CapabilityBackendId.ANDROID_API)
+                )
+            ),
+            backends = listOf(backend)
+        )
+        val engine = VerificationEngine(registry, defaultMaxRetries = 2, defaultBackoffMs = 5L)
+        val service = CapabilityExecutionService(
+            resolver = CapabilityResolver(registry),
+            deviceStateProvider = { state() },
+            verificationEngine = engine
+        )
+
+        val result = service.execute(
+            CapabilityRequest(
+                capability = CapabilityId.PACKAGE_READ,
+                verification = VerificationMode.REQUIRED
+            )
+        )
+
+        assertEquals(CapabilityStatus.FAILED, result.status)
+        assertEquals(CapabilityErrorCode.VERIFICATION_FAILED, result.errorCode)
+        assertEquals("Value mismatch", result.message)
+        assertFalse(result.verification?.verified ?: true)
+    }
+
+    @Test
+    fun `execution service with verification engine succeeds when verification is verified`() = runBlocking {
+        val backend = FakeBackend(
+            id = CapabilityBackendId.ANDROID_API,
+            supportedCapabilities = setOf(CapabilityId.PACKAGE_READ),
+            result = CapabilityResult(status = CapabilityStatus.SUCCESS, message = "written"),
+            verification = VerificationResult(attempted = true, verified = true, message = "Verified ok")
+        )
+        val registry = CapabilityRegistry.of(
+            descriptors = listOf(
+                CapabilityDescriptor(
+                    id = CapabilityId.PACKAGE_READ,
+                    displayName = "Read packages",
+                    description = "Reads package metadata",
+                    supportedBackends = listOf(CapabilityBackendId.ANDROID_API)
+                )
+            ),
+            backends = listOf(backend)
+        )
+        val engine = VerificationEngine(registry, defaultMaxRetries = 2, defaultBackoffMs = 5L)
+        val service = CapabilityExecutionService(
+            resolver = CapabilityResolver(registry),
+            deviceStateProvider = { state() },
+            verificationEngine = engine
+        )
+
+        val result = service.execute(
+            CapabilityRequest(
+                capability = CapabilityId.PACKAGE_READ,
+                verification = VerificationMode.REQUIRED
+            )
+        )
+
+        assertEquals(CapabilityStatus.SUCCESS, result.status)
+        assertTrue(result.verification?.verified ?: false)
+        assertEquals("Verified ok", result.verification?.message)
     }
 }

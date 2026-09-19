@@ -130,6 +130,20 @@ class SystemActionsHandler : ActionHandler {
     )
 
     override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult {
+        val capabilityRequest = com.nexaflow.core.execution.capability.CapabilityActionMapper.requestFor(
+            action, ctx.automationId, ctx.runContext?.runId
+        )
+        if (capabilityRequest != null && ctx.capabilityService != null) {
+            val res = ctx.capabilityService.execute(capabilityRequest)
+            return if (res.status == com.nexaflow.domain.capability.CapabilityStatus.SUCCESS ||
+                res.status == com.nexaflow.domain.capability.CapabilityStatus.PENDING_USER_ACTION
+            ) {
+                SystemControlResult.ok(res.message)
+            } else {
+                SystemControlResult.fail(res.message)
+            }
+        }
+
         return when (action.type) {
             ActionType.SYSTEM_FLASHLIGHT ->
                 ctx.controller.setFlashlight(action.config["enabled"]?.toBoolean() ?: true)

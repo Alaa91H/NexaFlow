@@ -284,8 +284,8 @@ private fun AccessibilityNodeInfo.findBounded(selector: AccessibilitySelector): 
     return null
 }
 
-private fun AccessibilityNodeInfo.obtainCopy(): AccessibilityNodeInfo = AccessibilityNodeInfo.obtain(this)
-private fun AccessibilityNodeInfo.recycleSafely() = runCatching { recycle() }
+private fun AccessibilityNodeInfo.obtainCopy(): AccessibilityNodeInfo = @Suppress("DEPRECATION") AccessibilityNodeInfo.obtain(this)
+private fun AccessibilityNodeInfo.recycleSafely() = runCatching { @Suppress("DEPRECATION") recycle() }
 private const val MAX_NODE_INSPECTION = 2_000
 private val ACCESSIBILITY_CAPABILITIES = setOf(
     CapabilityId.ACCESSIBILITY_FIND_NODE,

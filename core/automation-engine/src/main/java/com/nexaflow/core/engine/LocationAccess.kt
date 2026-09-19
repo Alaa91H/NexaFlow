@@ -120,6 +120,7 @@ object LocationAccess {
     private fun legacyLocationMode(context: Context): Int =
         legacyLocationModeOrNull(context) ?: MODE_OFF
 
+    @Suppress("DEPRECATION")
     private fun legacyLocationModeOrNull(context: Context): Int? = runCatching {
         Settings.Secure.getInt(context.contentResolver, Settings.Secure.LOCATION_MODE)
     }.getOrNull()

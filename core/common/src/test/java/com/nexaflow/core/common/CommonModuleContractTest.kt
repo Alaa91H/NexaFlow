@@ -30,7 +30,7 @@ class CommonModuleContractTest {
         assertEquals(3, success.getOrNull())
         assertNull(failure.getOrNull())
         assertEquals("nope", (failure as Outcome.Failure).message)
-        assertTrue((failure as Outcome.Failure).cause is IllegalStateException)
+        assertTrue(failure.cause is IllegalStateException)
     }
 
     @Test

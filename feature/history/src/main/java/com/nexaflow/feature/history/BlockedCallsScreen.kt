@@ -158,6 +158,7 @@ fun BlockedCallsScreen(navController: NavController) {
     }
 
     detailsTarget?.let { entry ->
+        @Suppress("DEPRECATION")
         val sheetState = rememberModalBottomSheetState()
         var ruleResults by remember(entry.id) { mutableStateOf<List<String>>(emptyList()) }
         var ruleTaskId by remember(entry.id) { mutableStateOf<String?>(null) }

@@ -28,3 +28,5 @@ preview/
 /keystore/keystore.properties
 __pycache__
 device-evidence/
+*.log
+

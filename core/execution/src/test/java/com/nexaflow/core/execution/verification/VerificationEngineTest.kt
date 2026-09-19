@@ -86,6 +86,7 @@ class VerificationEngineTest {
         assertTrue(vr.attempted)
         assertFalse(vr.verified)
         assertEquals(2, attempts) // Exhausted retries
+        assertEquals("Failed", vr.message)
     }
 
     @Test

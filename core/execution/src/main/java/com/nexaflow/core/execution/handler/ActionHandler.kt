@@ -41,7 +41,9 @@ data class ActionExecutionContext(
      */
     val runContext: WorkflowRunContext? = null,
     /** Typed, scope-aware variables for this run; null in legacy/exit paths. */
-    val dataRuntime: ScopedDataRuntime? = null
+    val dataRuntime: ScopedDataRuntime? = null,
+    /** Optional capability execution seam for truthful execution and verification. */
+    val capabilityService: com.nexaflow.core.execution.capability.CapabilityExecutionService? = null
 )
 
 /**

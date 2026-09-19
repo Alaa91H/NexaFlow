@@ -81,6 +81,7 @@ object PrivilegedRunner {
         }
         val safe = SafeCommandBuilder.validateUserCommand(command)
             ?: return SystemControlResult.fail("Command rejected: unsafe characters or too long")
+        @Suppress("DEPRECATION")
         return ShizukuShellBridge.execute(safe)
     }
 

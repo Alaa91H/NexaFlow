@@ -99,6 +99,7 @@ class PluginFireClient(
      */
     private fun boundedOutputVariables(bundle: Bundle?): Map<String, String> {
         if (bundle == null) return emptyMap()
+        @Suppress("DEPRECATION")
         return bundle.keySet()
             .asSequence()
             .filter { it.matches(TASKER_OUTPUT_VARIABLE_NAME) }

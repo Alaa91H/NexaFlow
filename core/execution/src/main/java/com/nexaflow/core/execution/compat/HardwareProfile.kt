@@ -76,5 +76,6 @@ data class HardwareProfile(
         if (isEmpty()) append("none")
     }
 
+    @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
     private fun StringBuilder.isEmpty(): Boolean = length <= 10 // "Hardware: ".length
 }

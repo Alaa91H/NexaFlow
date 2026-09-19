@@ -48,7 +48,8 @@ class CallActionsHandler : ActionHandler {
                         Manifest.permission.ANSWER_PHONE_CALLS
                     ) == PackageManager.PERMISSION_GRANTED
                     val result = if (granted) {
-                        runCatching { telecom?.endCall() == true }.getOrDefault(false)
+                        @Suppress("DEPRECATION")
+        runCatching { telecom?.endCall() == true }.getOrDefault(false)
                     } else {
                         false
                     }

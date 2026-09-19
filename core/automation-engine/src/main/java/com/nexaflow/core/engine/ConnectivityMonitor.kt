@@ -68,7 +68,7 @@ class ConnectivityMonitor @Inject constructor(
     private var telephonyManager: TelephonyManager? = null
     private var telephonyCallback: TelephonyCallback? = null
     private var hotspotRegistration: AutoCloseable? = null
-    private var legacyTelephonyListener: PhoneStateListener? = null
+    private var legacyTelephonyListener: @Suppress("DEPRECATION") PhoneStateListener? = null
 
     @Volatile
     private var latestDisplayInfo: TelephonyDisplayInfo? = null
@@ -337,6 +337,7 @@ class ConnectivityMonitor @Inject constructor(
             // Guard against stop()/re-registration clearing state while this
             // message sat in the queue.
             if (!initialized || telephonyManager !== manager) return@Runnable
+            @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
             val listener = object : PhoneStateListener() {
                 override fun onServiceStateChanged(serviceState: ServiceState) {
                     handleChange()

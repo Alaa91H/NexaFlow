@@ -51,6 +51,7 @@ class VerificationEngine(
                 message = "Backend ${backendId.name} not found in registry"
             )
 
+        var lastVerification: VerificationResult? = null
         var currentBackoff = backoffMs
         for (attempt in 1..maxRetries) {
             val verification = runCatching { backend.verify(request, result) }.getOrElse { e ->
@@ -60,6 +61,7 @@ class VerificationEngine(
                     message = "Verification threw an exception: ${e.message}"
                 )
             }
+            lastVerification = verification
 
             if (verification.verified || !verification.attempted) {
                 // If verified, or if the backend doesn't support verification, we stop polling.
@@ -72,7 +74,7 @@ class VerificationEngine(
             }
         }
 
-        return VerificationResult(
+        return lastVerification ?: VerificationResult(
             attempted = true,
             verified = false,
             message = "Verification failed after $maxRetries attempts"

@@ -76,7 +76,6 @@ class HistoryViewModelFilterTest {
         }.flow
         val snapshot = flow.asSnapshot()
         assertEquals(listOf("b", "c"), snapshot.map { it.automationId })
-        Unit
     }
 
     @Test

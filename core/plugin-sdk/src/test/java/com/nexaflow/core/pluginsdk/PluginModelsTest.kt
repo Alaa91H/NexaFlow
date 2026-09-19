@@ -50,8 +50,11 @@ class PluginModelsTest {
         )
 
         assertEquals(LocaleContract.MAX_BUNDLE_BYTES, policy.maximumPayloadBytes)
+        @Suppress("DEPRECATION")
         assertEquals(5_000L, policy.timeoutMs)
+        @Suppress("DEPRECATION")
         assertFalse(policy.allowOutputVariables)
+        @Suppress("DEPRECATION")
         assertTrue(policy.requireUserApproval)
     }
 

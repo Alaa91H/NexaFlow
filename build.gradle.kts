@@ -32,6 +32,15 @@ subprojects {
         ignoreFailures.set(false)
         parallel.set(true)
     }
+    // Zero-tolerance for compiler warnings: any new deprecation, condition-is-
+    // always-true, duplicate-branch or unused-import warning fails the build.
+    // This prevents the exact regressions fixed in this changeset from
+    // silently returning.
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        compilerOptions {
+            allWarningsAsErrors.set(true)
+        }
+    }
 }
 
 tasks.register("detekt") {

@@ -356,6 +356,7 @@ class NetworkModeCapabilities(private val context: Context) {
         // subscriptionId = -1 - slotIndex. The read() method already handles
         // subscriptionId == -1 for fallback modes.
         val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+        @Suppress("DEPRECATION")
         val phoneCount = runCatching { telephony?.phoneCount ?: 1 }.getOrDefault(1).coerceIn(1, 4)
         // Check if Settings have any preferred_network_mode keys to infer actual SIM presence
         val hasAnySettings = (0 until phoneCount).any { slot ->

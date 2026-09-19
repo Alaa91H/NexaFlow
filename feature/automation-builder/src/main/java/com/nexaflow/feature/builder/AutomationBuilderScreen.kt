@@ -43,7 +43,7 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.AirplanemodeActive
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.BatteryAlert
-import androidx.compose.material.icons.filled.PhoneMissed
+import androidx.compose.material.icons.automirrored.filled.PhoneMissed
 import androidx.compose.material.icons.filled.PhonePaused
 import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.Bluetooth
@@ -280,7 +280,7 @@ internal val actionOptions = listOf(
     // NOTIFICATIONS
     ActionOption(R.string.action_notification, R.string.action_notification_sub, Icons.Filled.Notifications, ActionType.SYSTEM_SEND_NOTIFICATION, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_send_sms, R.string.action_send_sms_sub, Icons.AutoMirrored.Filled.Message, ActionType.SYSTEM_SEND_SMS, ActionCategory.NOTIFICATIONS),
-    ActionOption(R.string.action_call_block, R.string.action_call_block_sub, Icons.Filled.PhoneMissed, ActionType.CALL_BLOCK, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_call_block, R.string.action_call_block_sub, Icons.AutoMirrored.Filled.PhoneMissed, ActionType.CALL_BLOCK, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_call_silence, R.string.action_call_silence_sub, Icons.Filled.PhonePaused, ActionType.CALL_SILENCE, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_reminder, R.string.action_reminder_sub, Icons.Filled.NotificationsActive, ActionType.SYSTEM_SEND_REMINDER, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_block_notification, R.string.action_block_notification_sub, Icons.Filled.NotificationsOff, ActionType.SYSTEM_BLOCK_NOTIFICATION, ActionCategory.NOTIFICATIONS),
@@ -1651,7 +1651,7 @@ fun AutomationBuilderScreen(
             )
             // ── Top tabs: Triggers | Executions | When Task Ends ─────
             // Professional, easy navigation between the three builder sections.
-            androidx.compose.material3.TabRow(selectedTabIndex = step, containerColor = MaterialTheme.colorScheme.surface) {
+            androidx.compose.material3.PrimaryTabRow(selectedTabIndex = step, containerColor = MaterialTheme.colorScheme.surface) {
                 listOf(
                     R.string.section_when to Icons.Filled.Schedule,
                     R.string.section_actions to Icons.Filled.PlayArrow,

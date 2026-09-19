@@ -42,6 +42,7 @@ import com.nexaflow.core.execution.capability.ShizukuCapabilityBackend
 import com.nexaflow.core.execution.compat.AutomationWorkflowRunner
 import com.nexaflow.core.execution.dryrun.WorkflowDryRunService
 import com.nexaflow.core.execution.recovery.ExecutionRecoveryCoordinator
+import com.nexaflow.core.execution.verification.VerificationEngine
 import com.nexaflow.core.logging.InMemoryLogStore
 import com.nexaflow.core.logging.LogStore
 import com.nexaflow.core.logging.RedactingLogStore
@@ -292,14 +293,21 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideVerificationEngine(registry: CapabilityRegistry): VerificationEngine =
+        VerificationEngine(registry)
+
+    @Provides
+    @Singleton
     fun provideCapabilityExecutionService(
         resolver: CapabilityResolver,
+        verificationEngine: VerificationEngine,
         @ApplicationContext context: Context
     ): CapabilityExecutionService = CapabilityExecutionService(
         resolver = resolver,
         deviceStateProvider = {
             AndroidCapabilityDeviceStateReader(context).capture(System.currentTimeMillis())
-        }
+        },
+        verificationEngine = verificationEngine
     )
 
     @Provides

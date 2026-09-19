@@ -37,6 +37,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 
 @RunWith(RobolectricTestRunner::class)
+@Suppress("DEPRECATION")
 class PluginCapabilityBackendTest {
 
     private val context: Context = ApplicationProvider.getApplicationContext()
@@ -178,7 +179,7 @@ class PluginCapabilityBackendTest {
         // CapabilityResolver reports an unavailable backend with its normalized
         // code, while preserving the actionable high-risk approval reason.
         assertEquals(CapabilityErrorCode.BACKEND_UNAVAILABLE, result.errorCode)
-        assertTrue(result.message?.contains("High-risk plugin action") == true)
+        assertTrue(result.message.contains("High-risk plugin action") == true)
         assertEquals(null, FakePluginReceiverForTest.lastConfig)
     }
 

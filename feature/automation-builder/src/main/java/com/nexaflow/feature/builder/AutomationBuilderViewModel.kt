@@ -162,7 +162,7 @@ class AutomationBuilderViewModel @Inject constructor(
             existing = storedAutomation
             repository.saveAutomation(storedAutomation)
             // Strict: if the task was enabled and now disabled, run exit immediately
-            if (wasEnabled && nowDisabled && prev != null) {
+            if (wasEnabled && nowDisabled) {
                 try {
                     executionEngine.runExit(prev, forceConfiguredEnd = true)
                 } catch (_: Exception) {}
