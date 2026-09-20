@@ -29,7 +29,7 @@
     <string name="task_import_invalid_workflow">任务未导入：包含此版本不支持的步骤</string>
     <string name="task_import_not_single">文件未导入：请选择单个任务（.nexaflow）文件，而不是完整备份</string>
     <string name="task_import_invalid_file">文件未导入：这不是有效的 NexaFlow 任务文件</string>
-    <string name="deep_link_confirm_title">Run linked task?</string>
-    <string name="deep_link_confirm_message">An external link requests running %1$s. Review the task before confirming.</string>
-    <string name="deep_link_confirm_run">Run</string>
+    <string name="deep_link_confirm_title">运行关联的任务？</string>
+    <string name="deep_link_confirm_message">外部链接请求运行 %1$s。确认前请先检查该任务。</string>
+    <string name="deep_link_confirm_run">运行</string>
 </resources>

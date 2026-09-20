@@ -30,7 +30,7 @@
     <string name="hours_ago">hace %1$d h</string>
     <string name="days_ago">hace %1$d d</string>
     <string name="trigger_time">Hora</string>
-    <string name="trigger_app">App</string>
+    <string name="trigger_app">Aplicación</string>
     <string name="trigger_device">Dispositivo</string>
     <string name="trigger_connectivity">Conectividad</string>
     <string name="trigger_hotspot">Zona Wi-Fi</string>
@@ -101,10 +101,10 @@
     <string name="task_details_enabled">Activar</string>
     <string name="task_details_disabled">Desactivar</string>
     <string name="task_details_configured_count">%1$d configurado(s)</string>
-    <string name="toast_on_toggle_title">Show toast on toggle</string>
-    <string name="toast_on_toggle_sub">Show a message when this task is enabled or disabled</string>
-    <string name="task_enabled_toast">Enabled: %1$s</string>
-    <string name="task_disabled_toast">Disabled: %1$s</string>
+    <string name="toast_on_toggle_title">Mostrar toast al alternar</string>
+    <string name="toast_on_toggle_sub">Mostrar un mensaje cuando esta tarea se activa o desactiva</string>
+    <string name="task_enabled_toast">Activada: %1$s</string>
+    <string name="task_disabled_toast">Desactivada: %1$s</string>
     <string name="call_ended">Finalizada</string>
     <string name="call_incoming">Entrante</string>
     <string name="call_outgoing">Saliente</string>
@@ -126,8 +126,8 @@
     <string name="schedule_end">Hasta (HH:mm)</string>
     <string name="starter_template_scheduled_sms">SMS programado</string>
     <string name="starter_template_nightly_call_silence">Silenciar desconocidos de noche</string>
-    <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
-    <string name="trigger_type_mobile_data">Mobile data connected</string>
+    <string name="trigger_type_wifi_connected">Wi-Fi conectado</string>
+    <string name="trigger_type_mobile_data">Datos móviles conectados</string>
     <string name="run_reason_trigger">Activador no cumplido: %1$s</string>
     <string name="run_reason_constraint">Condición no cumplida: %1$s</string>
     <string name="run_reason_unknown">No se pudieron verificar algunos activadores</string>
@@ -145,5 +145,5 @@
     <string name="share_task">Compartir tarea</string>
     <string name="share_task_title">Compartir tarea (.nexaflow)</string>
     <string name="share_task_failed">No se pudo compartir esta tarea</string>
-    <string name="task_access_details">Task details and access links</string>
+    <string name="task_access_details">Detalles de la tarea y enlaces de acceso</string>
 </resources>

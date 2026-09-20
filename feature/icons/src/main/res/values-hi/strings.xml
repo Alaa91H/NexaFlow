@@ -13,6 +13,6 @@
     <string name="category_time">समय</string>
     <string name="category_location">स्थान</string>
     <string name="icon_color">रंग</string>
-    <string name="category_apps">Apps</string>
-    <string name="category_security">Security</string>
+    <string name="category_apps">ऐप्स</string>
+    <string name="category_security">सुरक्षा</string>
 </resources>

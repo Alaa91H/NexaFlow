@@ -10,9 +10,9 @@
     <string name="execution_task_failed">कार्य पूरा नहीं किया जा सका।</string>
     <string name="execution_task_skipped">कार्य छोड़ दिया गया।</string>
     <string name="execution_recovery_queue_awaits_review">बाधित निष्पादनों की समीक्षा के दौरान कार्य रोका गया है।</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_completed">Triggers or conditions are not satisfied. Only the end behavior (when the task ends) was completed.</string>
-    <string name="execution_conditions_not_satisfied_no_end_behavior">Triggers or conditions of the task are not satisfied, so it cannot run now. No end behavior is configured.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_failed">Triggers or conditions of the task are not satisfied, so it cannot run now. The end behavior could not be completed.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">ट्रिगर या शर्तें पूरी नहीं हुईं। केवल अंतिम व्यवहार (कार्य समाप्त होने पर) पूरा हुआ।</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">कार्य के ट्रिगर या शर्तें पूरी नहीं हुईं, इसलिए यह अभी नहीं चल सकता। कोई अंतिम व्यवहार कॉन्फ़िगर नहीं है।</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">कार्य के ट्रिगर या शर्तें पूरी नहीं हुईं, इसलिए यह अभी नहीं चल सकता। अंतिम व्यवहार पूरा नहीं हो सका।</string>
     <string name="execution_action_completed">कार्रवाई सफलतापूर्वक पूरी हुई।</string>
     <string name="execution_action_failed">कार्रवाई पूरी नहीं की जा सकी।</string>
     <string name="execution_end_action_completed">समाप्ति कार्रवाई सफलतापूर्वक पूरी हुई।</string>

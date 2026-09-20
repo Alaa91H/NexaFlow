@@ -101,10 +101,10 @@
     <string name="task_details_enabled">चालू करें</string>
     <string name="task_details_disabled">बंद करें</string>
     <string name="task_details_configured_count">%1$d कॉन्फ़िगर किया गया</string>
-    <string name="toast_on_toggle_title">Show toast on toggle</string>
-    <string name="toast_on_toggle_sub">Show a message when this task is enabled or disabled</string>
-    <string name="task_enabled_toast">Enabled: %1$s</string>
-    <string name="task_disabled_toast">Disabled: %1$s</string>
+    <string name="toast_on_toggle_title">टॉगल पर टोस्ट दिखाएँ</string>
+    <string name="toast_on_toggle_sub">इस कार्य के सक्षम या अक्षम होने पर संदेश दिखाएँ</string>
+    <string name="task_enabled_toast">सक्षम: %1$s</string>
+    <string name="task_disabled_toast">अक्षम: %1$s</string>
     <string name="call_ended">समाप्त</string>
     <string name="call_incoming">इनकमिंग</string>
     <string name="call_outgoing">आउटगोइंग</string>
@@ -126,8 +126,8 @@
     <string name="schedule_end">तक (HH:mm)</string>
     <string name="starter_template_scheduled_sms">शेड्यूल किया गया SMS</string>
     <string name="starter_template_nightly_call_silence">रात में अज्ञात कॉलर्स मौन करें</string>
-    <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
-    <string name="trigger_type_mobile_data">Mobile data connected</string>
+    <string name="trigger_type_wifi_connected">Wi-Fi कनेक्टेड</string>
+    <string name="trigger_type_mobile_data">मोबाइल डेटा कनेक्टेड</string>
     <string name="run_reason_trigger">ट्रिगर पूरा नहीं: %1$s</string>
     <string name="run_reason_constraint">शर्त पूरी नहीं: %1$s</string>
     <string name="run_reason_unknown">कुछ ट्रिगर सत्यापित नहीं हो सके</string>
@@ -145,5 +145,5 @@
     <string name="share_task">कार्य साझा करें</string>
     <string name="share_task_title">कार्य साझा करें (.nexaflow)</string>
     <string name="share_task_failed">इस कार्य को साझा नहीं किया जा सका</string>
-    <string name="task_access_details">Task details and access links</string>
+    <string name="task_access_details">कार्य विवरण और एक्सेस लिंक</string>
 </resources>

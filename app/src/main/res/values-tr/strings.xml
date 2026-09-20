@@ -29,7 +29,7 @@
     <string name="task_import_invalid_workflow">Görev içe aktarılmadı: bu sürümde desteklenmeyen adımlar içeriyor</string>
     <string name="task_import_not_single">Dosya içe aktarılmadı: tam yedek değil, tek görev (.nexaflow) dosyası seçin</string>
     <string name="task_import_invalid_file">Dosya içe aktarılmadı: geçerli bir NexaFlow görev dosyası değil</string>
-    <string name="deep_link_confirm_title">Run linked task?</string>
-    <string name="deep_link_confirm_message">An external link requests running %1$s. Review the task before confirming.</string>
-    <string name="deep_link_confirm_run">Run</string>
+    <string name="deep_link_confirm_title">Bağlantılı görev çalıştırılsın mı?</string>
+    <string name="deep_link_confirm_message">Harici bir bağlantı %1$s çalıştırmayı istiyor. Onaylamadan önce görevi inceleyin.</string>
+    <string name="deep_link_confirm_run">Çalıştır</string>
 </resources>

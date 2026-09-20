@@ -101,10 +101,10 @@
     <string name="task_details_enabled">开启</string>
     <string name="task_details_disabled">关闭</string>
     <string name="task_details_configured_count">已配置 %1$d 项</string>
-    <string name="toast_on_toggle_title">Show toast on toggle</string>
-    <string name="toast_on_toggle_sub">Show a message when this task is enabled or disabled</string>
-    <string name="task_enabled_toast">Enabled: %1$s</string>
-    <string name="task_disabled_toast">Disabled: %1$s</string>
+    <string name="toast_on_toggle_title">切换时显示提示</string>
+    <string name="toast_on_toggle_sub">此任务启用或禁用时显示消息</string>
+    <string name="task_enabled_toast">已启用：%1$s</string>
+    <string name="task_disabled_toast">已禁用：%1$s</string>
     <string name="call_ended">已结束</string>
     <string name="call_incoming">来电</string>
     <string name="call_outgoing">去电</string>
@@ -126,8 +126,8 @@
     <string name="schedule_end">结束 (HH:mm)</string>
     <string name="starter_template_scheduled_sms">定时短信</string>
     <string name="starter_template_nightly_call_silence">夜间静音陌生来电</string>
-    <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
-    <string name="trigger_type_mobile_data">Mobile data connected</string>
+    <string name="trigger_type_wifi_connected">Wi-Fi 已连接</string>
+    <string name="trigger_type_mobile_data">移动数据已连接</string>
     <string name="run_reason_trigger">触发条件未满足：%1$s</string>
     <string name="run_reason_constraint">约束未满足：%1$s</string>
     <string name="run_reason_unknown">部分触发条件无法验证</string>
@@ -145,5 +145,5 @@
     <string name="share_task">分享任务</string>
     <string name="share_task_title">分享任务（.nexaflow）</string>
     <string name="share_task_failed">无法分享此任务</string>
-    <string name="task_access_details">Task details and access links</string>
+    <string name="task_access_details">任务详情和访问链接</string>
 </resources>

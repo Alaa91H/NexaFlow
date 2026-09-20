@@ -10,9 +10,9 @@
     <string name="execution_task_failed">无法完成任务。</string>
     <string name="execution_task_skipped">已跳过任务。</string>
     <string name="execution_recovery_queue_awaits_review">任务已暂停，正在审查中断的执行。</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_completed">Triggers or conditions are not satisfied. Only the end behavior (when the task ends) was completed.</string>
-    <string name="execution_conditions_not_satisfied_no_end_behavior">Triggers or conditions of the task are not satisfied, so it cannot run now. No end behavior is configured.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_failed">Triggers or conditions of the task are not satisfied, so it cannot run now. The end behavior could not be completed.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">触发器或条件未满足。仅执行了结束行为（任务结束时）。</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">任务的触发器或条件未满足，因此现在无法运行。未配置结束行为。</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">任务的触发器或条件未满足，因此现在无法运行。结束行为未能完成。</string>
     <string name="execution_action_completed">操作已成功完成。</string>
     <string name="execution_action_failed">无法完成操作。</string>
     <string name="execution_end_action_completed">结束操作已成功完成。</string>

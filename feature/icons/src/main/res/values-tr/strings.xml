@@ -13,6 +13,6 @@
     <string name="category_time">Zaman</string>
     <string name="category_location">Konum</string>
     <string name="icon_color">Renk</string>
-    <string name="category_apps">Apps</string>
-    <string name="category_security">Security</string>
+    <string name="category_apps">Uygulamalar</string>
+    <string name="category_security">Güvenlik</string>
 </resources>

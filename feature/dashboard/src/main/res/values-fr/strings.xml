@@ -101,10 +101,10 @@
     <string name="task_details_enabled">Activer</string>
     <string name="task_details_disabled">Désactiver</string>
     <string name="task_details_configured_count">%1$d configuré(s)</string>
-    <string name="toast_on_toggle_title">Show toast on toggle</string>
-    <string name="toast_on_toggle_sub">Show a message when this task is enabled or disabled</string>
-    <string name="task_enabled_toast">Enabled: %1$s</string>
-    <string name="task_disabled_toast">Disabled: %1$s</string>
+    <string name="toast_on_toggle_title">Afficher un toast lors du basculement</string>
+    <string name="toast_on_toggle_sub">Afficher un message quand cette tâche est activée ou désactivée</string>
+    <string name="task_enabled_toast">Activée : %1$s</string>
+    <string name="task_disabled_toast">Désactivée : %1$s</string>
     <string name="call_ended">Terminé</string>
     <string name="call_incoming">Entrant</string>
     <string name="call_outgoing">Sortant</string>
@@ -126,8 +126,8 @@
     <string name="schedule_end">À (HH:mm)</string>
     <string name="starter_template_scheduled_sms">SMS programmé</string>
     <string name="starter_template_nightly_call_silence">Silencier les inconnus la nuit</string>
-    <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
-    <string name="trigger_type_mobile_data">Mobile data connected</string>
+    <string name="trigger_type_wifi_connected">Wi-Fi connecté</string>
+    <string name="trigger_type_mobile_data">Données mobiles connectées</string>
     <string name="run_reason_trigger">Déclencheur non réuni : %1$s</string>
     <string name="run_reason_constraint">Condition non remplie : %1$s</string>
     <string name="run_reason_unknown">Certains déclencheurs n’ont pas pu être vérifiés</string>
@@ -145,5 +145,5 @@
     <string name="share_task">Partager la tâche</string>
     <string name="share_task_title">Partager la tâche (.nexaflow)</string>
     <string name="share_task_failed">Impossible de partager cette tâche</string>
-    <string name="task_access_details">Task details and access links</string>
+    <string name="task_access_details">Détails de la tâche et liens d\'accès</string>
 </resources>

@@ -10,9 +10,9 @@
     <string name="execution_task_failed">タスクを完了できませんでした。</string>
     <string name="execution_task_skipped">タスクはスキップされました。</string>
     <string name="execution_recovery_queue_awaits_review">中断された実行を確認している間、タスクは一時停止されています。</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_completed">Triggers or conditions are not satisfied. Only the end behavior (when the task ends) was completed.</string>
-    <string name="execution_conditions_not_satisfied_no_end_behavior">Triggers or conditions of the task are not satisfied, so it cannot run now. No end behavior is configured.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_failed">Triggers or conditions of the task are not satisfied, so it cannot run now. The end behavior could not be completed.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">トリガーまたは条件が満たされませんでした。終了動作（タスク終了時）のみ実行されました。</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">タスクのトリガーまたは条件が満たされず、現在実行できません。終了動作は設定されていません。</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">タスクのトリガーまたは条件が満たされず、現在実行できません。終了動作を完了できませんでした。</string>
     <string name="execution_action_completed">アクションが正常に完了しました。</string>
     <string name="execution_action_failed">アクションを完了できませんでした。</string>
     <string name="execution_end_action_completed">終了アクションが正常に完了しました。</string>

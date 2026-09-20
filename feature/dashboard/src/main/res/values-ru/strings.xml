@@ -101,10 +101,10 @@
     <string name="task_details_enabled">Включить</string>
     <string name="task_details_disabled">Выключить</string>
     <string name="task_details_configured_count">Настроено: %1$d</string>
-    <string name="toast_on_toggle_title">Show toast on toggle</string>
-    <string name="toast_on_toggle_sub">Show a message when this task is enabled or disabled</string>
-    <string name="task_enabled_toast">Enabled: %1$s</string>
-    <string name="task_disabled_toast">Disabled: %1$s</string>
+    <string name="toast_on_toggle_title">Показывать toast при переключении</string>
+    <string name="toast_on_toggle_sub">Показывать сообщение при включении или отключении этой задачи</string>
+    <string name="task_enabled_toast">Включено: %1$s</string>
+    <string name="task_disabled_toast">Отключено: %1$s</string>
     <string name="call_ended">Завершен</string>
     <string name="call_incoming">Входящий</string>
     <string name="call_outgoing">Исходящий</string>
@@ -126,8 +126,8 @@
     <string name="schedule_end">До (HH:mm)</string>
     <string name="starter_template_scheduled_sms">SMS по расписанию</string>
     <string name="starter_template_nightly_call_silence">Заглушать неизвестных ночью</string>
-    <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
-    <string name="trigger_type_mobile_data">Mobile data connected</string>
+    <string name="trigger_type_wifi_connected">Wi-Fi подключён</string>
+    <string name="trigger_type_mobile_data">Мобильные данные подключены</string>
     <string name="run_reason_trigger">Триггер не выполнен: %1$s</string>
     <string name="run_reason_constraint">Условие не выполнено: %1$s</string>
     <string name="run_reason_unknown">Некоторые триггеры не удалось проверить</string>
@@ -145,5 +145,5 @@
     <string name="share_task">Поделиться задачей</string>
     <string name="share_task_title">Поделиться задачей (.nexaflow)</string>
     <string name="share_task_failed">Не удалось поделиться этой задачей</string>
-    <string name="task_access_details">Task details and access links</string>
+    <string name="task_access_details">Сведения о задаче и ссылки доступа</string>
 </resources>

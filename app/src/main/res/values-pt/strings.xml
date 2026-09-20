@@ -29,7 +29,7 @@
     <string name="task_import_invalid_workflow">Tarefa não importada: contém etapas não compatíveis com esta versão</string>
     <string name="task_import_not_single">Arquivo não importado: escolha um arquivo de tarefa única (.nexaflow), não um backup completo</string>
     <string name="task_import_invalid_file">Arquivo não importado: não é um arquivo de tarefa NexaFlow válido</string>
-    <string name="deep_link_confirm_title">Run linked task?</string>
-    <string name="deep_link_confirm_message">An external link requests running %1$s. Review the task before confirming.</string>
-    <string name="deep_link_confirm_run">Run</string>
+    <string name="deep_link_confirm_title">Executar a tarefa vinculada?</string>
+    <string name="deep_link_confirm_message">Um link externo solicita executar %1$s. Revise a tarefa antes de confirmar.</string>
+    <string name="deep_link_confirm_run">Executar</string>
 </resources>

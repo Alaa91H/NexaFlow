@@ -13,6 +13,6 @@
     <string name="category_time">Tempo</string>
     <string name="category_location">Localização</string>
     <string name="icon_color">Cor</string>
-    <string name="category_apps">Apps</string>
-    <string name="category_security">Security</string>
+    <string name="category_apps">Aplicativos</string>
+    <string name="category_security">Segurança</string>
 </resources>

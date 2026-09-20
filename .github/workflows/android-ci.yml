@@ -44,6 +44,13 @@ jobs:
       run: python3 scripts/auto_fix.py --check
     - name: Verify string parity across all locales
       run: python3 scripts/check_strings_parity.py
+    - name: Translation completeness gate (micro-audit)
+      # Every locale value must be a real translation: flags untranslated
+      # English copies, foreign-script leakage, placeholder mismatches and
+      # empty values across all modules and locales.
+      run: |
+        python3 scripts/audit_translation_completeness.py --self-test
+        python3 scripts/audit_translation_completeness.py
     - name: Hardcoded-text gate (no Arabic script in shipped Kotlin/Java)
       # Keeps issue #4 (Arabic strings hardcoded in the builder UI) from ever
       # shipping again; legitimate occurrences live in the reviewed ALLOWLIST.

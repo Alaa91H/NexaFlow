@@ -13,6 +13,6 @@
     <string name="category_time">時間</string>
     <string name="category_location">場所</string>
     <string name="icon_color">色</string>
-    <string name="category_apps">Apps</string>
-    <string name="category_security">Security</string>
+    <string name="category_apps">アプリ</string>
+    <string name="category_security">セキュリティ</string>
 </resources>

@@ -13,6 +13,6 @@
     <string name="category_time">Время</string>
     <string name="category_location">Местоположение</string>
     <string name="icon_color">Цвет</string>
-    <string name="category_apps">Apps</string>
-    <string name="category_security">Security</string>
+    <string name="category_apps">Приложения</string>
+    <string name="category_security">Безопасность</string>
 </resources>

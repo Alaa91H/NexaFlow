@@ -101,10 +101,10 @@
     <string name="task_details_enabled">Aç</string>
     <string name="task_details_disabled">Kapat</string>
     <string name="task_details_configured_count">%1$d ayarlandı</string>
-    <string name="toast_on_toggle_title">Show toast on toggle</string>
-    <string name="toast_on_toggle_sub">Show a message when this task is enabled or disabled</string>
-    <string name="task_enabled_toast">Enabled: %1$s</string>
-    <string name="task_disabled_toast">Disabled: %1$s</string>
+    <string name="toast_on_toggle_title">Değişimde toast göster</string>
+    <string name="toast_on_toggle_sub">Bu görev etkinleştirildiğinde veya devre dışı bırakıldığında mesaj göster</string>
+    <string name="task_enabled_toast">Etkin: %1$s</string>
+    <string name="task_disabled_toast">Devre dışı: %1$s</string>
     <string name="call_ended">Sonlandı</string>
     <string name="call_incoming">Gelen arama</string>
     <string name="call_outgoing">Giden arama</string>
@@ -126,8 +126,8 @@
     <string name="schedule_end">Bitiş (HH:mm)</string>
     <string name="starter_template_scheduled_sms">Zamanlanmış SMS</string>
     <string name="starter_template_nightly_call_silence">Geceleri bilinmeyenleri sessize al</string>
-    <string name="trigger_type_wifi_connected">Wi-Fi connected</string>
-    <string name="trigger_type_mobile_data">Mobile data connected</string>
+    <string name="trigger_type_wifi_connected">Wi-Fi bağlı</string>
+    <string name="trigger_type_mobile_data">Mobil veri bağlı</string>
     <string name="run_reason_trigger">Tetikleyici sağlanmadı: %1$s</string>
     <string name="run_reason_constraint">Koşul sağlanmadı: %1$s</string>
     <string name="run_reason_unknown">Bazı tetikleyiciler doğrulanamadı</string>
@@ -145,5 +145,5 @@
     <string name="share_task">Görevi paylaş</string>
     <string name="share_task_title">Görevi paylaş (.nexaflow)</string>
     <string name="share_task_failed">Bu görev paylaşılamadı</string>
-    <string name="task_access_details">Task details and access links</string>
+    <string name="task_access_details">Görev ayrıntıları ve erişim bağlantıları</string>
 </resources>

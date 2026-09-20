@@ -29,7 +29,7 @@
     <string name="task_import_invalid_workflow">Задача не импортирована: она содержит шаги, не поддерживаемые этой версией</string>
     <string name="task_import_not_single">Файл не импортирован: выберите файл одной задачи (.nexaflow), а не полную резервную копию</string>
     <string name="task_import_invalid_file">Файл не импортирован: это не допустимый файл задачи NexaFlow</string>
-    <string name="deep_link_confirm_title">Run linked task?</string>
-    <string name="deep_link_confirm_message">An external link requests running %1$s. Review the task before confirming.</string>
-    <string name="deep_link_confirm_run">Run</string>
+    <string name="deep_link_confirm_title">Запустить связанную задачу?</string>
+    <string name="deep_link_confirm_message">Внешняя ссылка запрашивает запуск %1$s. Проверьте задачу перед подтверждением.</string>
+    <string name="deep_link_confirm_run">Запустить</string>
 </resources>

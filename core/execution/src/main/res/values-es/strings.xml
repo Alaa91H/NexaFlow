@@ -10,9 +10,9 @@
     <string name="execution_task_failed">No se pudo completar la tarea.</string>
     <string name="execution_task_skipped">Se omitió la tarea.</string>
     <string name="execution_recovery_queue_awaits_review">La tarea está en pausa mientras se revisan las ejecuciones interrumpidas.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_completed">Triggers or conditions are not satisfied. Only the end behavior (when the task ends) was completed.</string>
-    <string name="execution_conditions_not_satisfied_no_end_behavior">Triggers or conditions of the task are not satisfied, so it cannot run now. No end behavior is configured.</string>
-    <string name="execution_conditions_not_satisfied_end_behavior_failed">Triggers or conditions of the task are not satisfied, so it cannot run now. The end behavior could not be completed.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_completed">Los iniciadores o condiciones no se cumplieron. Solo se ejecutó el comportamiento final (al terminar la tarea).</string>
+    <string name="execution_conditions_not_satisfied_no_end_behavior">Los iniciadores o condiciones de la tarea no se cumplieron, así que no puede ejecutarse ahora. No hay comportamiento final configurado.</string>
+    <string name="execution_conditions_not_satisfied_end_behavior_failed">Los iniciadores o condiciones de la tarea no se cumplieron, así que no puede ejecutarse ahora. No se pudo completar el comportamiento final.</string>
     <string name="execution_action_completed">La acción se completó correctamente.</string>
     <string name="execution_action_failed">No se pudo completar la acción.</string>
     <string name="execution_end_action_completed">La acción de finalización se completó correctamente.</string>

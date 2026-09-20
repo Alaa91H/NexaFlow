@@ -29,7 +29,7 @@
     <string name="task_import_invalid_workflow">कार्य आयातित नहीं हुआ: इसमें इस संस्करण के लिए असमर्थित चरण हैं</string>
     <string name="task_import_not_single">फ़ाइल आयातित नहीं हुई: पूर्ण बैकअप नहीं, एकल-कार्य (.nexaflow) फ़ाइल चुनें</string>
     <string name="task_import_invalid_file">फ़ाइल आयातित नहीं हुई: यह मान्य NexaFlow कार्य फ़ाइल नहीं है</string>
-    <string name="deep_link_confirm_title">Run linked task?</string>
-    <string name="deep_link_confirm_message">An external link requests running %1$s. Review the task before confirming.</string>
-    <string name="deep_link_confirm_run">Run</string>
+    <string name="deep_link_confirm_title">लिंक किया कार्य चलाएँ?</string>
+    <string name="deep_link_confirm_message">एक बाहरी लिंक %1$s चलाने का अनुरोध करता है। पुष्टि करने से पहले कार्य की समीक्षा करें।</string>
+    <string name="deep_link_confirm_run">चलाएँ</string>
 </resources>

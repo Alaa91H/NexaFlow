@@ -29,7 +29,7 @@
     <string name="task_import_invalid_workflow">タスクをインポートしませんでした：このバージョンで未対応のステップが含まれています</string>
     <string name="task_import_not_single">ファイルをインポートしませんでした：完全バックアップではなく、単一タスク（.nexaflow）ファイルを選択してください</string>
     <string name="task_import_invalid_file">ファイルをインポートしませんでした：有効なNexaFlowタスクファイルではありません</string>
-    <string name="deep_link_confirm_title">Run linked task?</string>
-    <string name="deep_link_confirm_message">An external link requests running %1$s. Review the task before confirming.</string>
-    <string name="deep_link_confirm_run">Run</string>
+    <string name="deep_link_confirm_title">リンクされたタスクを実行しますか？</string>
+    <string name="deep_link_confirm_message">外部リンクが %1$s の実行を要求しています。確認する前にタスクを見直してください。</string>
+    <string name="deep_link_confirm_run">実行</string>
 </resources>
