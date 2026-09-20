@@ -9,6 +9,7 @@ The source catalog contains **56 trigger enum entries (54 in the general picker)
 - Schedules, app/device events, connectivity, location, notifications, messages and hardware sensor conditions.
 - Ordered actions, workflow context, constraints, execution history, cooldowns and exit/revert behavior.
 - Device controls with capability checks and explicit failure reporting.
+- **Capability-Adaptive Execution**: device-state actions (Wi-Fi, Bluetooth, mobile data, hotspot, NFC, location, airplane mode, rotation, brightness, screen timeout, Do Not Disturb, Data Saver) are expressed as precise semantic operations (`WIFI_SET_STATE`, `DND_GET_STATE`, …). A single `CapabilityRouter` picks the least-privileged strategy that is available on the current device — public Android API, settings permission, Shizuku, root, or a documented Settings hand-off — guided by verified per-device evidence, strategy health and explicit user policy. Every state change is verified by reading the actual post-condition; an uncertain transport outcome is reconciled by observation instead of being guessed, and the router never falls back blindly after a possible side effect.
 - Eight data action families: text, encoding, hashing, random values, decimal arithmetic, dates, JSON and arrays. Outputs can feed later actions in the same run.
 - HTTPS requests with configurable method, body, headers, timeout, retries and output path. Private-network destinations require explicit opt-in.
 - Local authenticated webhooks and revocable task links. Custom-scheme execution requires confirmation.

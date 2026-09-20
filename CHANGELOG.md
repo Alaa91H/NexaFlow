@@ -2,6 +2,81 @@
 
 ## [Unreleased]
 
+## [v3.77.0] - 2026-09-20
+
+### Added
+
+- **Capability-Adaptive Execution layer (Phase A)** — a single semantic decision
+  point for device-state operations, replacing per-handler privilege guessing:
+  `OperationRegistry` declares typed `OperationSpec` contracts and
+  `CapabilityRouter` selects the best available strategy per device.
+  - **24 paired semantic operations** across connectivity, display and audio
+    interruption (`WIFI_GET_STATE`/`WIFI_SET_STATE`, `BLUETOOTH_*`,
+    `MOBILE_DATA_*`, `HOTSPOT_*`, `NFC_*`, `LOCATION_*`, `AIRPLANE_MODE_*`,
+    `ROTATION_*`, `BRIGHTNESS_GET`/`BRIGHTNESS_SET`, `SCREEN_TIMEOUT_*`,
+    `DND_*`, `DATA_SAVER_*`), each with typed parameter schemas, risk,
+    idempotency, retry-safety, verification and compensation contracts.
+  - **`CapabilityRouter`** picks the least-privileged available strategy using
+    explainable candidates — live availability, verified per-device evidence,
+    strategy health with bounded cooldowns, and explicit user policy — rather
+    than static privilege scores. Root is never chosen merely because it is
+    available.
+  - **`CapabilityEvidenceStore`** and **`StrategyHealthTracker`** record
+    verified successes, failures, latency and cooldowns per (operation,
+    strategy, device fingerprint). `EnvironmentInvalidator` applies targeted
+    invalidation from environment events: a Shizuku binder death invalidates
+    only Shizuku evidence, never a full rescan.
+  - **Honest `UNKNOWN` outcome**: a transport timeout after a possible side
+    effect is reconciled by reading the actual device state through the
+    operation's paired GET instead of being reported as a definite failure or
+    retried blindly. Exactly one execution, then observation.
+  - **Strategies shipped**: `AndroidApiStateStrategy` (public framework APIs
+    only, with correct API-level guards), `RootTypedStrategy` (exclusively
+    through two new closed `PrivilegedOperation` shapes, `SetServiceState` and
+    `ReadSettingState` — no workflow-supplied shell text), and
+    `SettingsUserActionStrategy` (truthful `PENDING_USER_ACTION`, never fake
+    success). Shizuku typed, device-owner and OEM strategies are declared in
+    the contract but not selected until implemented.
+  - **Routing migration**: `SYSTEM_WIFI`, `SYSTEM_BLUETOOTH`, `SYSTEM_LOCATION`,
+    `SYSTEM_AIRPLANE_MODE`, `SYSTEM_SCREEN_ROTATION`, `SYSTEM_BRIGHTNESS`,
+    `SYSTEM_SCREEN_TIMEOUT`, `SYSTEM_DND`, `SYSTEM_NFC`, `SYSTEM_HOTSPOT`,
+    `SYSTEM_MOBILE_DATA` and `SYSTEM_DATA_SAVER` now route through the unified
+    path first and fall back to their reviewed legacy handlers when the
+    operation is unsupported, so existing automations keep working unchanged.
+  - **Registry parity gates**: every operation must name at least one shipped
+    strategy, every write operation must have a readable counterpart, writes
+    require verification, and no operation may be reachable only through
+    privileged strategies.
+- **Typed `PrivilegedOperation` additions** (append-only wire contract):
+  `SetServiceState` (closed `svc` radio services) and `ReadSettingState`
+  (allowlisted reconciliation reads) keep the AIDL boundary free of free-form
+  shell input.
+- **Documentation**: new [capability-adaptive-execution](
+  docs/architecture/capability-adaptive-execution.md) contract; README,
+  ARCHITECTURE and CAPABILITY_CATALOG updated to describe the unified decision
+  path truthfully.
+
+### Tests
+
+- `CapabilityRouterTest` (11 cases): least-privilege preference, privileged
+  opt-in gating, transport-only fallback, `UNKNOWN` reconciliation for both
+  matching and contradicting read-back, evidence recording, health-cooldown
+  deprioritization, unregistered-operation and missing-parameter rejection.
+- `SemanticActionMapperTest` (7 cases): strict typed parsing — legacy toggles
+  keep their documented default only for pre-`configVersion` automations,
+  unparseable booleans are rejected instead of defaulted, and every migrated
+  action type maps to its semantic operation.
+- `OperationRegistryParityTest` (5 cases): the registry gates listed above.
+- Full module suites pass: 807 unit tests across `domain`, `core:execution`
+  and `core:rom-integration` with zero failures; Detekt, Lint and
+  `assembleDebug` are green.
+
+### Changed
+
+- `CapabilityActionMapper` privileged-backend resolution and the legacy
+  handler paths remain in place for unmigrated actions; `SystemController` is
+  no longer on the execution path of migrated device-state operations.
+
 ## [v3.76.0] - 2026-09-20
 
 ### Added

@@ -6,6 +6,9 @@ import com.nexaflow.domain.models.ActionType
 
 /** Brightness, rotation, timeout, stay-awake, auto-brightness, dark mode, animations. */
 class DisplayActionsHandler : ActionHandler {
+    /** Semantic router for migrated state operations; null keeps legacy path. */
+    var semanticRouter: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter? = null
+
     override val supportedTypes: Set<ActionType> = setOf(
         ActionType.SYSTEM_BRIGHTNESS,
         ActionType.SYSTEM_SCREEN_ROTATION,
@@ -17,6 +20,9 @@ class DisplayActionsHandler : ActionHandler {
     )
 
     override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult {
+        semanticRouter?.let { router ->
+            router.routeIfSupported(action, ctx.automationId, ctx.runContext?.runId)?.let { return it }
+        }
         return when (action.type) {
             ActionType.SYSTEM_BRIGHTNESS ->
                 ctx.controller.setBrightness(action.config["value"]?.toIntOrNull() ?: 128)

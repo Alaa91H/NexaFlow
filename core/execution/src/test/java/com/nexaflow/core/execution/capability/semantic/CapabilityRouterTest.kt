@@ -1,0 +1,257 @@
+package com.nexaflow.core.execution.capability.semantic
+
+import com.nexaflow.domain.capability.operation.SemanticOperationId
+import com.nexaflow.domain.capability.operation.StrategyId
+import com.nexaflow.core.rom.model.RomFamily
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/**
+ * Pure JVM tests pinning the router contract: least privilege, policy gating,
+ * transport-only fallback, UNKNOWN reconciliation, evidence and health wiring.
+ */
+class CapabilityRouterTest {
+
+    private val fingerprint = DeviceFingerprint(
+        manufacturer = "Google",
+        model = "Pixel 8",
+        device = "shiba",
+        androidApi = 35,
+        securityPatch = "2026-01-01",
+        romFamily = RomFamily.PIXEL
+    )
+
+    private class FakeStrategy(
+        override val id: StrategyId,
+        override val supportedOperations: Set<SemanticOperationId>,
+        private val available: Boolean = true,
+        private val outcome: OperationOutcome? = null,
+        private val readValue: Boolean? = null,
+        private val failTimes: Int = 0
+    ) : CapabilityStrategy {
+        var executions = 0
+            private set
+
+        override suspend fun availability(
+            request: TypedOperationRequest,
+            operation: SemanticOperationId
+        ): StrategyAvailability =
+            if (available) StrategyAvailability(true)
+            else StrategyAvailability(false, "unavailable in test")
+
+        override suspend fun execute(
+            request: TypedOperationRequest,
+            operation: SemanticOperationId
+        ): OperationOutcome {
+            executions++
+            return outcome ?: OperationOutcome(
+                operation = operation,
+                status = OperationOutcomeStatus.SUCCESS,
+                strategy = id,
+                message = "ok",
+                metadata = mapOf("requestedEnabled" to (request.parameters["enabled"] ?: "true"))
+            )
+        }
+
+        override suspend fun readState(
+            request: TypedOperationRequest,
+            operation: SemanticOperationId
+        ): Boolean? = readValue
+    }
+
+    private fun registry() = OperationRegistry.default()
+
+    private fun router(
+        vararg strategies: CapabilityStrategy,
+        evidence: CapabilityEvidenceStore = CapabilityEvidenceStore(),
+        health: StrategyHealthTracker = StrategyHealthTracker()
+    ) = CapabilityRouter(
+        registry = registry(),
+        strategies = strategies.toList(),
+        evidenceStore = evidence,
+        healthTracker = health,
+        fingerprint = fingerprint
+    )
+
+    private fun request(op: SemanticOperationId, privileged: Boolean = false) =
+        TypedOperationRequest(
+            operation = op,
+            parameters = mapOf("enabled" to "true"),
+            allowPrivilegedStrategies = privileged
+        )
+
+    @Test
+    fun prefersLeastPrivilegedAvailableStrategy() = runTest {
+        val androidApi = FakeStrategy(StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE))
+        val root = FakeStrategy(StrategyId.ROOT_SHELL, setOf(SemanticOperationId.WIFI_SET_STATE))
+        val outcome = router(androidApi, root).execute(request(SemanticOperationId.WIFI_SET_STATE, privileged = true))
+        assertEquals(OperationOutcomeStatus.SUCCESS, outcome.status)
+        assertEquals(StrategyId.ANDROID_PUBLIC_API, outcome.strategy)
+        assertEquals(1, androidApi.executions)
+        assertEquals(0, root.executions)
+    }
+
+    @Test
+    fun privilegedStrategiesAreBlockedWithoutExplicitOptIn() = runTest {
+        val root = FakeStrategy(StrategyId.ROOT_SHELL, setOf(SemanticOperationId.WIFI_SET_STATE))
+        val outcome = router(root).execute(request(SemanticOperationId.WIFI_SET_STATE, privileged = false))
+        assertEquals(OperationOutcomeStatus.PENDING_USER_ACTION, outcome.status)
+        assertEquals(0, root.executions)
+    }
+
+    @Test
+    fun transportFailureAdvancesToNextCandidate() = runTest {
+        val androidApi = FakeStrategy(
+            StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE),
+            outcome = OperationOutcome.failed(
+                SemanticOperationId.WIFI_SET_STATE,
+                com.nexaflow.domain.capability.CapabilityErrorCode.BACKEND_UNAVAILABLE,
+                "public toggle rejected",
+                strategy = StrategyId.ANDROID_PUBLIC_API,
+                transportFailure = true
+            )
+        )
+        val root = FakeStrategy(StrategyId.ROOT_SHELL, setOf(SemanticOperationId.WIFI_SET_STATE))
+        val outcome = router(androidApi, root).execute(request(SemanticOperationId.WIFI_SET_STATE, privileged = true))
+        assertEquals(OperationOutcomeStatus.SUCCESS, outcome.status)
+        assertEquals(StrategyId.ROOT_SHELL, outcome.strategy)
+        assertEquals(1, androidApi.executions)
+        assertEquals(1, root.executions)
+    }
+
+    @Test
+    fun postconditionFailureDoesNotBlindlyFallbackForIdempotentSafeSet() = runTest {
+        // WIFI_SET_STATE is idempotent+safe, so a definite failure (not
+        // transport) MAY advance — pin that it advanced and succeeded.
+        val androidApi = FakeStrategy(
+            StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE),
+            outcome = OperationOutcome.failed(
+                SemanticOperationId.WIFI_SET_STATE,
+                com.nexaflow.domain.capability.CapabilityErrorCode.PERMISSION_DENIED,
+                "write rejected",
+                strategy = StrategyId.ANDROID_PUBLIC_API
+            )
+        )
+        val root = FakeStrategy(StrategyId.ROOT_SHELL, setOf(SemanticOperationId.WIFI_SET_STATE))
+        val outcome = router(androidApi, root).execute(request(SemanticOperationId.WIFI_SET_STATE, privileged = true))
+        assertEquals(StrategyId.ROOT_SHELL, outcome.strategy)
+    }
+
+    @Test
+    fun unknownOutcomeIsReconciledThroughReadBack() = runTest {
+        val root = FakeStrategy(
+            StrategyId.ROOT_SHELL, setOf(SemanticOperationId.WIFI_SET_STATE),
+            outcome = OperationOutcome(
+                operation = SemanticOperationId.WIFI_SET_STATE,
+                status = OperationOutcomeStatus.UNKNOWN,
+                strategy = StrategyId.ROOT_SHELL,
+                message = "root timed out after side effect"
+            ),
+            readValue = true
+        )
+        val evidence = CapabilityEvidenceStore()
+        val outcome = router(root, evidence = evidence)
+            .execute(request(SemanticOperationId.WIFI_SET_STATE, privileged = true))
+        assertEquals(OperationOutcomeStatus.SUCCESS, outcome.status)
+        assertTrue(outcome.verification?.verified == true)
+        assertEquals(1, root.executions) // exactly one execution, no blind retry
+    }
+
+    @Test
+    fun unknownOutcomeWithMismatchedReadFailsHonestly() = runTest {
+        val root = FakeStrategy(
+            StrategyId.ROOT_SHELL, setOf(SemanticOperationId.WIFI_SET_STATE),
+            outcome = OperationOutcome(
+                operation = SemanticOperationId.WIFI_SET_STATE,
+                status = OperationOutcomeStatus.UNKNOWN,
+                strategy = StrategyId.ROOT_SHELL,
+                message = "root timed out"
+            ),
+            readValue = false // requested ON, observed OFF
+        )
+        val outcome = router(root).execute(request(SemanticOperationId.WIFI_SET_STATE, privileged = true))
+        assertEquals(OperationOutcomeStatus.FAILED, outcome.status)
+        assertEquals(1, root.executions)
+    }
+
+    @Test
+    fun evidenceIsRecordedForVerifiedSuccess() = runTest {
+        val androidApi = FakeStrategy(
+            StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE),
+            outcome = OperationOutcome(
+                operation = SemanticOperationId.WIFI_SET_STATE,
+                status = OperationOutcomeStatus.SUCCESS,
+                strategy = StrategyId.ANDROID_PUBLIC_API,
+                verification = com.nexaflow.domain.capability.VerificationResult(true, true, "verified"),
+                message = "ok",
+                metadata = mapOf("requestedEnabled" to "true")
+            )
+        )
+        val evidence = CapabilityEvidenceStore()
+        router(androidApi, evidence = evidence).execute(request(SemanticOperationId.WIFI_SET_STATE))
+        val record = evidence.evidenceFor(
+            SemanticOperationId.WIFI_SET_STATE, StrategyId.ANDROID_PUBLIC_API, fingerprint.deviceKey
+        )
+        assertEquals(1L, record.verifiedSuccesses)
+        assertNotNull(record.lastVerifiedSuccessAtMs)
+    }
+
+    @Test
+    fun coolingStrategyIsDeprioritizedAgainstHealthyPeer() = runTest {
+        val health = StrategyHealthTracker()
+        val androidApi = FakeStrategy(StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE))
+        val root = FakeStrategy(StrategyId.ROOT_SHELL, setOf(SemanticOperationId.WIFI_SET_STATE))
+        // Cool the public-API strategy down for this device.
+        health.recordFailure(StrategyId.ANDROID_PUBLIC_API, fingerprint.deviceKey)
+        health.recordFailure(StrategyId.ANDROID_PUBLIC_API, fingerprint.deviceKey)
+        assertTrue(health.isCoolingDown(StrategyId.ANDROID_PUBLIC_API, fingerprint.deviceKey))
+        val router = CapabilityRouter(
+            registry = registry(),
+            strategies = listOf(androidApi, root),
+            evidenceStore = CapabilityEvidenceStore(),
+            healthTracker = health,
+            fingerprint = fingerprint
+        )
+        val outcome = router.execute(request(SemanticOperationId.WIFI_SET_STATE, privileged = true))
+        // Degraded confidence pushes the healthy root candidate ahead.
+        assertEquals(StrategyId.ROOT_SHELL, outcome.strategy)
+    }
+
+    @Test
+    fun unregisteredOperationIsUnsupported() = runTest {
+        val strategy = FakeStrategy(StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE))
+        val outcome = router(strategy).execute(
+            TypedOperationRequest(operation = SemanticOperationId.BLUETOOTH_SET_STATE, parameters = mapOf("enabled" to "true"))
+        )
+        assertEquals(OperationOutcomeStatus.UNSUPPORTED, outcome.status)
+    }
+
+    @Test
+    fun missingRequiredParameterIsRejectedBeforeExecution() = runTest {
+        val strategy = FakeStrategy(StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE))
+        val outcome = router(strategy).execute(
+            TypedOperationRequest(operation = SemanticOperationId.WIFI_SET_STATE, parameters = emptyMap())
+        )
+        assertEquals(OperationOutcomeStatus.FAILED, outcome.status)
+        assertEquals(
+            com.nexaflow.domain.capability.CapabilityErrorCode.INVALID_CONFIGURATION,
+            outcome.errorCode
+        )
+        assertEquals(0, strategy.executions)
+    }
+
+    @Test
+    fun counterpartPairsReadAndWriteOperations() {
+        assertEquals(
+            SemanticOperationId.WIFI_SET_STATE,
+            SemanticOperationId.counterpartOf(SemanticOperationId.WIFI_GET_STATE)
+        )
+        assertEquals(
+            SemanticOperationId.WIFI_GET_STATE,
+            SemanticOperationId.counterpartOf(SemanticOperationId.WIFI_SET_STATE)
+        )
+    }
+}

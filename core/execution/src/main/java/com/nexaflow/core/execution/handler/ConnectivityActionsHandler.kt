@@ -9,6 +9,12 @@ import kotlinx.coroutines.withContext
 
 /** Wi-Fi, Bluetooth, mobile data, hotspot, NFC, airplane mode, location. */
 class ConnectivityActionsHandler : ActionHandler {
+    /**
+     * Semantic router for migrated state operations; null keeps the legacy
+     * SystemController path (legacy construction, tests, dry-run parity).
+     */
+    var semanticRouter: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter? = null
+
     override val supportedTypes: Set<ActionType> = setOf(
         ActionType.SYSTEM_WIFI,
         ActionType.SYSTEM_BLUETOOTH,
@@ -21,6 +27,11 @@ class ConnectivityActionsHandler : ActionHandler {
     )
 
     override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult {
+        // Migrated operations go through the semantic router first; the legacy
+        // path remains for everything else and for router-less construction.
+        semanticRouter?.let { router ->
+            router.routeIfSupported(action, ctx.automationId, ctx.runContext?.runId)?.let { return it }
+        }
         val enabled = action.config["enabled"]?.toBoolean() ?: true
         return when (action.type) {
             ActionType.SYSTEM_WIFI -> ctx.controller.setWifi(enabled)

@@ -136,6 +136,31 @@ sealed interface PrivilegedOperation {
         }
     }
 
+    /**
+     * Toggles one radio service through the AOSP `svc` utility (wifi, bluetooth,
+     * nfc, data). The service name is constrained to a closed set, never a
+     * workflow string, and the enabled flag is boolean — the operation carries
+     * no free-form shell input.
+     */
+    data class SetServiceState(val service: ServiceName, val enabled: Boolean) : PrivilegedOperation {
+        override val wireId: PrivilegedOperationId = PrivilegedOperationId.SERVICE_STATE_SET
+        override fun wireArguments(): List<String> = listOf(service.wireValue, enabled.toString())
+        override fun argv(): List<String> = listOf("svc", service.wireValue, if (enabled) "enable" else "disable")
+    }
+
+    /**
+     * Reads one allowlisted settings key through `settings get`. The key set is
+     * the reviewed state-read allowlist; the namespace is a closed enum. This
+     * gives reconciliation/verification a bounded read-back without exposing a
+     * generic settings reader to callers.
+     */
+    data class ReadSettingState(val namespace: SettingNamespace, val key: String) : PrivilegedOperation {
+        override val wireId: PrivilegedOperationId = PrivilegedOperationId.SETTING_STATE_READ
+        init { require(key in READABLE_SETTING_KEYS) { "Setting key is not readable" } }
+        override fun wireArguments(): List<String> = listOf(namespace.name, key)
+        override fun argv(): List<String> = listOf("settings", "get", namespace.commandValue, key)
+    }
+
     /** Applies one confirmed allowed-network-types mask for one physical SIM slot. */
     data class SetAllowedNetworkTypes(
         val slotIndex: Int,
@@ -202,6 +227,14 @@ sealed interface PrivilegedOperation {
                     packageName = first
                 )
                 PrivilegedOperationId.HOTSPOT_SET -> SetHotspot(first.toBooleanStrict())
+                PrivilegedOperationId.SERVICE_STATE_SET -> SetServiceState(
+                    service = ServiceName.fromWire(first) ?: return null,
+                    enabled = second.toBooleanStrict()
+                )
+                PrivilegedOperationId.SETTING_STATE_READ -> ReadSettingState(
+                    namespace = SettingNamespace.parse(first) ?: return null,
+                    key = second
+                )
                 PrivilegedOperationId.NETWORK_MODE_SET -> SetAllowedNetworkTypes(
                     slotIndex = first.toInt(),
                     subscriptionId = second.toInt(),
@@ -222,6 +255,28 @@ sealed interface PrivilegedOperation {
             "zen_mode",
             "location_mode"
         )
+
+        /** Conservative read allowlist for reconciliation state reads. */
+        val READABLE_SETTING_KEYS: Set<String> = setOf(
+            "wifi_on",
+            "bluetooth_on",
+            "airplane_mode_on",
+            "zen_mode",
+            "mobile_data"
+        )
+
+        /** Radio services addressable through `svc`; closed by review. */
+        enum class ServiceName(val wireValue: String) {
+            WIFI("wifi"),
+            BLUETOOTH("bluetooth"),
+            NFC("nfc"),
+            DATA("data");
+
+            companion object {
+                fun fromWire(value: String): ServiceName? =
+                    entries.firstOrNull { it.wireValue == value }
+            }
+        }
 
         private val PACKAGE = Regex("[A-Za-z][A-Za-z0-9_]*(?:\\.[A-Za-z][A-Za-z0-9_]*)+")
         private const val CONTROLLED_FILE_ROOT = "/sdcard/NexaFlow/"
@@ -250,5 +305,7 @@ enum class PrivilegedOperationId(val wireValue: String) {
     NETWORK_DEFAULT_PROFILE_READ("network.default_profile.read"),
     NETWORK_MODE_SET("network.mode.set"),
     NOTIFICATION_POLICY_ACCESS_GRANT("notification.policy_access.grant"),
-    HOTSPOT_SET("hotspot.set")
+    HOTSPOT_SET("hotspot.set"),
+    SERVICE_STATE_SET("service.state.set"),
+    SETTING_STATE_READ("setting.state.read")
 }

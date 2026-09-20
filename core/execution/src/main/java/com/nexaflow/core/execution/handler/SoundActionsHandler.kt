@@ -8,6 +8,9 @@ import com.nexaflow.domain.models.ActionType
 
 /** Volume streams, ringer mode, ring volume and Do Not Disturb. */
 class SoundActionsHandler : ActionHandler {
+    /** Semantic router for migrated state operations; null keeps legacy path. */
+    var semanticRouter: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter? = null
+
     override val supportedTypes: Set<ActionType> = setOf(
         ActionType.SYSTEM_VOLUME,
         ActionType.SYSTEM_STREAM_VOLUME,
@@ -18,6 +21,9 @@ class SoundActionsHandler : ActionHandler {
     )
 
     override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult {
+        semanticRouter?.let { router ->
+            router.routeIfSupported(action, ctx.automationId, ctx.runContext?.runId)?.let { return it }
+        }
         return when (action.type) {
             ActionType.SYSTEM_VOLUME ->
                 ctx.controller.setVolume(AudioManager.STREAM_MUSIC, action.config["value"]?.toIntOrNull() ?: 50)

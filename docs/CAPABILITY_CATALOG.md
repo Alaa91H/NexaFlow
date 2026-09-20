@@ -4,6 +4,10 @@ Generated from source by `python scripts/generate_capability_catalog.py`. This i
 
 **56 trigger entries; 176 action entries.** Two triggers have restricted creation paths. The SENSOR entry has 12 configuration modes; the eight DATA actions each offer several operations. See [configuration](CONFIGURATION.md) and [validation](VALIDATION.md).
 
+## Semantic operations (Capability-Adaptive Execution)
+
+Twelve device-state action types are additionally expressed as 24 paired semantic operations in `OperationRegistry` (`WIFI_GET_STATE`/`WIFI_SET_STATE`, `BLUETOOTH_*`, `MOBILE_DATA_*`, `HOTSPOT_*`, `NFC_*`, `LOCATION_*`, `AIRPLANE_MODE_*`, `ROTATION_*`, `BRIGHTNESS_GET/SET`, `SCREEN_TIMEOUT_*`, `DND_*`, `DATA_SAVER_*`). For each, the router advertises only the strategies that really ship: public Android API, root typed operations, and an explicit Settings hand-off. Strategies marked in the specs but not yet implemented (Shizuku typed operations, device owner, OEM-specific) are never selected; unsupported is reported honestly. See the [execution contract](architecture/capability-adaptive-execution.md).
+
 ## Triggers
 
 | Enum | Creation path |

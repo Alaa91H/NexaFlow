@@ -38,6 +38,31 @@ class ActionRegistry private constructor(
             )
         )
 
+        /**
+         * The built-in handlers with the semantic capability router attached
+         * to migrated state operations. Unrouted actions fall through to the
+         * exact legacy handler behavior, so construction is always safe.
+         */
+        fun withSemanticRouter(
+            router: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter
+        ): ActionRegistry = from(
+            listOf(
+                DisplayActionsHandler().apply { semanticRouter = router },
+                SoundActionsHandler().apply { semanticRouter = router },
+                ConnectivityActionsHandler().apply { semanticRouter = router },
+                MediaActionsHandler(),
+                NotificationActionsHandler(),
+                AppActionsHandler(),
+                SystemActionsHandler(),
+                CallActionsHandler(),
+                EvoActionHandler(),
+                AdvancedActionsHandler(),
+                HttpRequestHandler(),
+                DataActionsHandler(),
+                PluginFireHandler()
+            )
+        )
+
         /** Builds a registry from a handler list, failing fast on conflicts. */
         fun from(handlers: List<ActionHandler>): ActionRegistry {
             val map = mutableMapOf<ActionType, ActionHandler>()

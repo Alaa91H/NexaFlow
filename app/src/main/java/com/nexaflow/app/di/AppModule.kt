@@ -39,6 +39,7 @@ import com.nexaflow.core.execution.capability.PluginConditionCapabilityCatalog
 import com.nexaflow.core.execution.capability.PrivilegedCapabilityCatalog
 import com.nexaflow.core.execution.capability.RootCapabilityBackend
 import com.nexaflow.core.execution.capability.ShizukuCapabilityBackend
+import com.nexaflow.core.execution.handler.ActionRegistry
 import com.nexaflow.core.execution.compat.AutomationWorkflowRunner
 import com.nexaflow.core.execution.dryrun.WorkflowDryRunService
 import com.nexaflow.core.execution.recovery.ExecutionRecoveryCoordinator
@@ -332,17 +333,52 @@ object AppModule {
         variableRepository: VariableRepository,
         capabilityExecutionService: CapabilityExecutionService,
         capabilityStateStore: CapabilityStateStore,
-        automationRuntimeStore: AutomationRuntimeStore
+        automationRuntimeStore: AutomationRuntimeStore,
+        semanticActionRouter: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter
     ): ExecutionEngine {
         return ExecutionEngine(
             context,
             historyRepository,
             notificationPreferences,
+            actionRegistry = ActionRegistry.withSemanticRouter(semanticActionRouter),
             logStore = logStore,
             variableRepository = variableRepository,
             automationRuntimeStore = automationRuntimeStore,
             capabilityExecutionService = capabilityExecutionService,
             capabilitySnapshotProvider = { capabilityStateStore.snapshot.value }
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideSemanticActionRouter(
+        @ApplicationContext context: Context
+    ): com.nexaflow.core.execution.capability.semantic.SemanticActionRouter {
+        val fingerprint = com.nexaflow.core.execution.capability.semantic.DeviceFingerprint.capture()
+        val evidenceStore = com.nexaflow.core.execution.capability.semantic.CapabilityEvidenceStore()
+        val healthTracker = com.nexaflow.core.execution.capability.semantic.StrategyHealthTracker()
+        val registry = com.nexaflow.core.execution.capability.semantic.OperationRegistry.default()
+        val strategies = listOf(
+            com.nexaflow.core.execution.capability.semantic.strategies.AndroidApiStateStrategy(context),
+            com.nexaflow.core.execution.capability.semantic.strategies.RootTypedStrategy(),
+            com.nexaflow.core.execution.capability.semantic.strategies.SettingsUserActionStrategy(context)
+        )
+        val router = com.nexaflow.core.execution.capability.semantic.CapabilityRouter(
+            registry = registry,
+            strategies = strategies,
+            evidenceStore = evidenceStore,
+            healthTracker = healthTracker,
+            fingerprint = fingerprint
+        )
+        return com.nexaflow.core.execution.capability.semantic.SemanticActionRouter(
+            router = router,
+            // Privileged strategies require the same explicit user policy that
+            // guards the capability layer; the persisted preference is read
+            // lazily so a grant change applies without a process restart.
+            privilegedPolicyEnabled = {
+                com.nexaflow.core.rom.PrivilegedRunner.isShizukuGranted() ||
+                    com.nexaflow.core.rom.PrivilegedRunner.isRootAvailable()
+            }
         )
     }
 
