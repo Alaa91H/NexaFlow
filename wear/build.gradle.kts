@@ -1,4 +1,34 @@
+import com.nexaflow.build.gitVersion
+import java.util.Properties
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+
+val gitVer = gitVersion()
+
+// Release signing — exact :app contract: CI env vars first, then the
+// gitignored keystore/keystore.properties, else debug signing so ad-hoc
+// watch builds stay installable. The production tag build must end up on
+// the same key as the phone APK.
+val wearKeystoreProps = Properties().apply {
+    val f = rootProject.file("keystore/keystore.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+val wearStorePath = providers.environmentVariable("NEXAFLOW_KEYSTORE_FILE")
+    .orNull?.takeIf { it.isNotBlank() }
+    ?: wearKeystoreProps.getProperty("storeFile")?.takeIf { it.isNotBlank() }
+val wearStoreFile = wearStorePath?.let { rootProject.file(it) }
+val wearStorePassword = providers.environmentVariable("NEXAFLOW_KEYSTORE_PASSWORD")
+    .orNull?.takeIf { it.isNotBlank() }
+    ?: wearKeystoreProps.getProperty("storePassword")
+val wearKeyAlias = providers.environmentVariable("NEXAFLOW_KEY_ALIAS")
+    .orNull?.takeIf { it.isNotBlank() }
+    ?: wearKeystoreProps.getProperty("keyAlias")
+val wearKeyPassword = providers.environmentVariable("NEXAFLOW_KEY_PASSWORD")
+    .orNull?.takeIf { it.isNotBlank() }
+    ?: wearKeystoreProps.getProperty("keyPassword")
+val wearSigningConfigured = wearStoreFile?.isFile == true &&
+    !wearStorePassword.isNullOrBlank() &&
+    !wearKeyAlias.isNullOrBlank() &&
+    !wearKeyPassword.isNullOrBlank()
 
 plugins {
     alias(libs.plugins.android.application)
@@ -22,8 +52,22 @@ android {
         // because they lack the Compose runtime required by the companion UI.
         minSdk = 30
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        // Ride the phone release train: on the version-tag commit both apps
+        // build from the same tree — the watch gets the phone's git-derived
+        // versionCode plus 1 so paired-device ordering stays unambiguous.
+        versionCode = gitVer.versionCode + 1
+        versionName = gitVer.versionName
+    }
+
+    signingConfigs {
+        create("release") {
+            if (wearSigningConfigured) {
+                storeFile = wearStoreFile
+                storePassword = wearStorePassword
+                keyAlias = wearKeyAlias
+                keyPassword = wearKeyPassword
+            }
+        }
     }
 
     buildTypes {
@@ -33,6 +77,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Sign with the project keystore when configured; otherwise fall
+            // back to the debug keystore (mirrors :app).
+            signingConfig = signingConfigs.findByName("release")?.takeIf {
+                it.storeFile?.exists() == true
+            } ?: signingConfigs.getByName("debug")
         }
     }
 
