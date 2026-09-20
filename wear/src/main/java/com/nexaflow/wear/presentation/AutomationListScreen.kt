@@ -1,5 +1,6 @@
 package com.nexaflow.wear.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,8 +21,8 @@ import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.CircularProgressIndicator
 import androidx.wear.compose.material3.MaterialTheme
+import androidx.wear.compose.material3.SwitchButton
 import androidx.wear.compose.material3.Text
-import androidx.wear.compose.material3.ToggleButton
 import com.nexaflow.wear.R
 import com.nexaflow.wear.data.WearAutomationDto
 
@@ -105,6 +106,9 @@ private fun AutomationCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            // Tapping the card opens the automation detail screen; the
+            // toggle/run controls below keep their own click handling.
+            .clickable(onClick = onOpenDetail)
             .padding(horizontal = 4.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -118,7 +122,7 @@ private fun AutomationCard(
         )
 
         // Enable / disable toggle
-        ToggleButton(
+        SwitchButton(
             checked = automation.enabled,
             onCheckedChange = onToggle,
             modifier = Modifier.fillMaxWidth(),

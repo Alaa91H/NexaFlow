@@ -19,7 +19,7 @@ class WearAutomationDtoSerializationTest {
 
         repository.handleIncomingPayload(json)
 
-        val automations = repository.automations.value
+        val automations = repository.automations.value.orEmpty()
         assertEquals(1, automations.size)
         val dto = automations[0]
         assertEquals("a1", dto.id)
@@ -40,7 +40,7 @@ class WearAutomationDtoSerializationTest {
 
         repository.handleIncomingPayload(json)
 
-        val dto = repository.automations.value[0]
+        val dto = repository.automations.value!![0]
         assertEquals("b2", dto.id)
         assertNull(dto.lastRunAt)
         assertNull(dto.lastRunSuccess)
@@ -56,22 +56,22 @@ class WearAutomationDtoSerializationTest {
 
         repository.handleIncomingPayload(json)
 
-        assertEquals(1, repository.automations.value.size)
-        assertEquals("c3", repository.automations.value[0].id)
+        assertEquals(1, repository.automations.value!!.size)
+        assertEquals("c3", repository.automations.value!![0].id)
     }
 
     @Test
     fun `handleIncomingPayload returns empty list for malformed JSON`() {
         repository.handleIncomingPayload("{not valid json}")
 
-        assertTrue(repository.automations.value.isEmpty())
+        assertTrue(repository.automations.value!!.isEmpty())
     }
 
     @Test
     fun `handleIncomingPayload returns empty list for empty array`() {
         repository.handleIncomingPayload("[]")
 
-        assertTrue(repository.automations.value.isEmpty())
+        assertTrue(repository.automations.value!!.isEmpty())
     }
 
     @Test
@@ -80,12 +80,12 @@ class WearAutomationDtoSerializationTest {
         val secondPayload = """[{"id":"y","name":"Second","icon":"Icon","iconColor":0,"enabled":false}]"""
 
         repository.handleIncomingPayload(firstPayload)
-        assertEquals(1, repository.automations.value.size)
-        assertEquals("x", repository.automations.value[0].id)
+        assertEquals(1, repository.automations.value!!.size)
+        assertEquals("x", repository.automations.value!![0].id)
 
         repository.handleIncomingPayload(secondPayload)
-        assertEquals(1, repository.automations.value.size)
-        assertEquals("y", repository.automations.value[0].id)
+        assertEquals(1, repository.automations.value!!.size)
+        assertEquals("y", repository.automations.value!![0].id)
     }
 
     @Test
@@ -100,9 +100,9 @@ class WearAutomationDtoSerializationTest {
 
         repository.handleIncomingPayload(json)
 
-        assertEquals(3, repository.automations.value.size)
-        assertEquals("1", repository.automations.value[0].id)
-        assertEquals("2", repository.automations.value[1].id)
-        assertEquals("3", repository.automations.value[2].id)
+        assertEquals(3, repository.automations.value!!.size)
+        assertEquals("1", repository.automations.value!![0].id)
+        assertEquals("2", repository.automations.value!![1].id)
+        assertEquals("3", repository.automations.value!![2].id)
     }
 }

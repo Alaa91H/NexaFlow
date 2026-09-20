@@ -35,7 +35,9 @@ pv2_4_10 = "2.4.10"
 pv2_60_1 = "2.60.1"
 pv9_3_1 = "9.3.1"
 vPlayServicesWearable = "19.0.0"
-vWearCompose = "1.5.0-alpha26"
+# Stable release of androidx.wear.compose (verified against Google Maven:
+# 1.5.0-alpha26 does not exist - the 1.5.0 line has no alphas for material3).
+vWearCompose = "1.5.6"
 vMockitoKotlin = "5.4.0"
 vTurbine = "1.2.0"
 
@@ -94,6 +96,9 @@ junit-junit = { module = "junit:junit", version.ref = "v4_13_2" }
 org-jetbrains-kotlinx-kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "v1_11_0" }
 org-jetbrains-kotlinx-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "v1_11_0" }
 org-jetbrains-kotlinx-kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "v1_11_0" }
+# await() extensions for Play Services (com.google.android.gms.tasks) — used
+# by the wear module's Data Layer client.
+org-jetbrains-kotlinx-kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "v1_11_0" }
 org-jetbrains-kotlinx-kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "v1_9_0" }
 org-jetbrains-kotlinx-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "v1_9_0" }
 org-json-json = { module = "org.json:json", version.ref = "v20260814" }

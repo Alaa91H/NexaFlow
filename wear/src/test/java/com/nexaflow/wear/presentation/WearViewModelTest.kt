@@ -48,26 +48,30 @@ class WearViewModelTest {
 
     @Test
     fun `state transitions to Loaded after automations received`() = runTest {
-        val payload = """[{"id":"1","name":"Test","icon":"I","iconColor":0,"enabled":true}]"""
-        syncRepository.handleIncomingPayload(payload)
-        testDispatcher.scheduler.advanceUntilIdle()
+        viewModel.uiState.test {
+            assertEquals(WearUiState.Connecting, awaitItem())
 
-        val state = viewModel.uiState.value
-        assertTrue("Expected Loaded but got $state", state is WearUiState.Loaded)
-        assertEquals(1, (state as WearUiState.Loaded).automations.size)
+            val payload = """[{"id":"1","name":"Test","icon":"I","iconColor":0,"enabled":true}]"""
+            syncRepository.handleIncomingPayload(payload)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            val state = awaitItem()
+            assertTrue("Expected Loaded but got $state", state is WearUiState.Loaded)
+            assertEquals(1, (state as WearUiState.Loaded).automations.size)
+        }
     }
 
     @Test
     fun `state is Empty when phone pushes an empty automation list`() = runTest {
-        // First push a real list so state is no longer Connecting
-        val payload = """[{"id":"1","name":"Test","icon":"I","iconColor":0,"enabled":true}]"""
-        syncRepository.handleIncomingPayload(payload)
-        testDispatcher.scheduler.advanceUntilIdle()
-        // Then push empty list
-        syncRepository.handleIncomingPayload("[]")
-        testDispatcher.scheduler.advanceUntilIdle()
+        viewModel.uiState.test {
+            assertEquals(WearUiState.Connecting, awaitItem())
 
-        assertEquals(WearUiState.Empty, viewModel.uiState.value)
+            // An explicit empty list must surface as Empty, not Connecting.
+            syncRepository.handleIncomingPayload("[]")
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals(WearUiState.Empty, awaitItem())
+        }
     }
 
     @Test

@@ -9,7 +9,13 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 
 ANDROID = "{http://schemas.android.com/apk/res/android}"
-PUBLIC = {"com.nexaflow.app.MainActivity", "com.nexaflow.app.SaveBackupActivity"}
+# Launcher / share-sheet UI entry points. WearMainActivity is the watch
+# companion launcher (android.hardware.type.watch devices only).
+PUBLIC = {
+    "com.nexaflow.app.MainActivity",
+    "com.nexaflow.app.SaveBackupActivity",
+    "com.nexaflow.wear.WearMainActivity",
+}
 GATES = {
     "com.nexaflow.core.engine.SmsReceiver": "android.permission.BROADCAST_SMS",
     "com.nexaflow.core.engine.SmsConsentReceiver": "android.permission.BROADCAST_SMS",
@@ -23,6 +29,15 @@ GATES = {
 }
 GATES.update({f"com.nexaflow.feature.widgets.TaskTile{i}Service": "android.permission.BIND_QUICK_SETTINGS_TILE" for i in range(1, 9)})
 
+# Wear Data Layer listeners: Play Services delivers MESSAGE_RECEIVED/DATA_CHANGED
+# to these by contract, only for the same signed package on paired devices.
+# No platform permission exists for this surface; a custom permission would
+# block GMS delivery entirely. Commands are namespaced under /nexaflow/ and
+# processed by the owning app's own automation engine.
+REVIEWED_NO_PERMISSION = {
+    "com.nexaflow.app.wear.WearCommandListenerService",
+    "com.nexaflow.wear.data.WearDataListenerService",
+}
 
 def audit(path, namespace=None):
     root = ET.parse(path).getroot()
@@ -47,6 +62,8 @@ def audit(path, namespace=None):
         permission = node.get(ANDROID + "permission", app.get(ANDROID + "permission"))
         if name in PUBLIC and node.tag == "activity":
             continue
+        if name in REVIEWED_NO_PERMISSION and node.tag == "service" and permission is None:
+            continue
         provider_override = node.tag == "provider" and any(
             node.get(ANDROID + key, permission) != GATES.get(name)
             for key in ("readPermission", "writePermission")
@@ -63,7 +80,7 @@ def main():
     repo = Path(__file__).resolve().parents[1]
     errors = []
     manifests = []
-    for module in (repo / "app", repo / "core", repo / "feature"):
+    for module in (repo / "app", repo / "core", repo / "feature", repo / "wear"):
         for path in module.rglob("AndroidManifest.xml"):
             relative = path.relative_to(repo)
             if "build" in relative.parts or "src" not in relative.parts:

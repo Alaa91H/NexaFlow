@@ -265,8 +265,13 @@ dependencies {
     implementation(project(":feature:widgets"))
     implementation(project(":feature:settings"))
 
-    // Wear OS companion — bundled inside the phone APK for Play Store delivery
-    wearApp(project(":wear"))
+    // Wear OS companion app: :wear is a standalone application module. AGP 9
+    // removed phone-APK wear embedding (the wearApp configuration no longer
+    // exists), and Play distributes the companion as its own linked listing -
+    // so the watch APK ships separately, while the phone app talks to it
+    // through the Wearable Data Layer below.
     implementation(libs.com.google.android.gms.play.services.wearable)
+    // await() bridging for Play Services Task APIs used by WearSyncManager.
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.play.services)
     implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
 }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Launcher foreground — Google 2026 recipe: bold Google-blue checkmark
+    ("المهام المجدولة / Scheduled Tasks") on the white canvas. No clock —
+    pure checkmark like Google Tasks. Language-neutral; works in LTR and RTL
+    launchers. Solid fill only, 100% launcher-safe.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Bold Google-blue checkmark (single path, rounded joins). -->
+    <path
+        android:pathData="M33,54L46,67L75,38"
+        android:fillColor="#00000000"
+        android:strokeColor="#FF4285F4"
+        android:strokeWidth="12"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

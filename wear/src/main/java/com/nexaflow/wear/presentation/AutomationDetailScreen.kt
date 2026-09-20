@@ -16,10 +16,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.material3.Button
-import androidx.wear.compose.material3.Chip
 import androidx.wear.compose.material3.MaterialTheme
+import androidx.wear.compose.material3.SwitchButton
 import androidx.wear.compose.material3.Text
-import androidx.wear.compose.material3.ToggleButton
 import com.nexaflow.wear.R
 import com.nexaflow.wear.data.WearAutomationDto
 import java.text.DateFormat
@@ -75,7 +74,7 @@ fun AutomationDetailScreen(
 
         // Enable / disable toggle
         item {
-            ToggleButton(
+            SwitchButton(
                 checked = automation.enabled,
                 onCheckedChange = onToggle,
                 modifier = Modifier.fillMaxWidth(),
@@ -121,26 +120,25 @@ private fun LastRunChip(
     }
     val timeString = DateFormat.getTimeInstance(DateFormat.SHORT)
         .format(Date(runAt))
-    Chip(
+    Button(
         onClick = {},
-        label = {
-            Column {
-                Text(text = label, style = MaterialTheme.typography.labelSmall)
-                Text(
-                    text = timeString,
-                    style = MaterialTheme.typography.bodyExtraSmall,
-                    maxLines = 1,
-                )
-                message?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodyExtraSmall,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-        },
         modifier = modifier.fillMaxWidth(),
-    )
+    ) {
+        Column {
+            Text(text = label, style = MaterialTheme.typography.labelSmall)
+            Text(
+                text = timeString,
+                style = MaterialTheme.typography.bodyExtraSmall,
+                maxLines = 1,
+            )
+            message?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyExtraSmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+    }
 }

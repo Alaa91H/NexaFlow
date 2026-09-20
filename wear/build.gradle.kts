@@ -2,7 +2,9 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    // AGP 9 provides built-in Kotlin support; applying
+    // org.jetbrains.kotlin.android on top of it is an error (and the legacy
+    // wearApp embedding configuration no longer exists either).
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt.android)
@@ -103,6 +105,8 @@ dependencies {
 
     // Coroutines
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.android)
+    // await() bridging for Play Services Task APIs used by the Data Layer.
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.play.services)
 
     // Debug
     debugImplementation(libs.androidx.compose.ui.ui.tooling)

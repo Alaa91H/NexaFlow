@@ -14,6 +14,7 @@ import com.nexaflow.domain.repositories.HistoryRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.combine
@@ -53,6 +54,9 @@ class WearSyncManager @Inject constructor(
     }
 
     /** Start observing repositories and pushing updates to the watch. */
+    // debounce() is FlowPreview: intentional and stable-enough for this
+    // throttling use case; opted in locally rather than project-wide.
+    @OptIn(FlowPreview::class)
     fun start() {
         syncScope.launch {
             combine(

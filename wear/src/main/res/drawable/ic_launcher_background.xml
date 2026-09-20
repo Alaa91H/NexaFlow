@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Launcher background — solid white, Google 2026 icon style: white
+    canvas with a single vivid glyph (Google Tasks / Gemini checkmark look).
+    Plain <shape> so every launcher/system icon loader renders it reliably.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#FFFFFFFF" />
+</shape>

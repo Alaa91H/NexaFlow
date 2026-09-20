@@ -34,7 +34,9 @@ class WearViewModel @Inject constructor(
     val uiState: StateFlow<WearUiState> =
         combine(syncRepository.automations, _runningId) { automations, runningId ->
             when {
-                automations.isEmpty() && runningId == null -> WearUiState.Connecting
+                // Null = nothing received from the phone yet. An explicit
+                // empty list must surface as Empty, not spin forever here.
+                automations == null -> WearUiState.Connecting
                 automations.isEmpty() -> WearUiState.Empty
                 runningId != null -> WearUiState.Running(automations, runningId)
                 else -> WearUiState.Loaded(automations)

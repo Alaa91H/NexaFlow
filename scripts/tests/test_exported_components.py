@@ -28,5 +28,23 @@ class ExportAuditTest(unittest.TestCase):
         self.assertTrue(self.check('<receiver android:name="Unknown"><intent-filter/></receiver>'))
         self.assertTrue(self.check('<activity-alias android:name=".MainActivity" android:exported="true"/>'))
 
+    def test_reviewed_wear_listener_requires_no_permission(self):
+        self.assertFalse(self.check(
+            '<service android:name="com.nexaflow.app.wear.WearCommandListenerService" android:exported="true">'
+            '<intent-filter><action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED"/></intent-filter>'
+            '</service>'))
+        self.assertFalse(self.check(
+            '<service android:name="com.nexaflow.wear.data.WearDataListenerService" android:exported="true">'
+            '<intent-filter><action android:name="com.google.android.gms.wearable.DATA_CHANGED"/></intent-filter>'
+            '</service>'))
+
+    def test_reviewed_wear_listener_with_added_permission_is_flagged(self):
+        self.assertTrue(self.check(
+            '<service android:name="com.nexaflow.app.wear.WearCommandListenerService" android:exported="true" '
+            'android:permission="android.permission.INTERNET"/>'))
+
+    def test_unknown_permissionless_service_is_still_flagged(self):
+        self.assertTrue(self.check('<service android:name="com.example.Free" android:exported="true"/>'))
+
 if __name__ == "__main__":
     unittest.main()

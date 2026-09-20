@@ -20,10 +20,18 @@ class WearSyncRepository @Inject constructor() {
 
     private val json: Json = Json { ignoreUnknownKeys = true }
 
-    private val _automations = MutableStateFlow<List<WearAutomationDto>>(emptyList())
+    // null = no payload has ever been received from the phone ("Connecting");
+    // an empty list = the phone explicitly pushed an empty automation set.
+    // The ViewModel relies on this distinction: without it, a user with zero
+    // automations would see the Connecting spinner forever.
+    private val _automations = MutableStateFlow<List<WearAutomationDto>?>(null)
 
-    /** Observable stream of the latest automation list from the phone. */
-    val automations: StateFlow<List<WearAutomationDto>> = _automations.asStateFlow()
+    /**
+     * Observable stream of the latest automation list from the phone.
+     * Null until the first payload arrives; never null afterwards (a
+     * malformed payload decodes to an empty list).
+     */
+    val automations: StateFlow<List<WearAutomationDto>?> = _automations.asStateFlow()
 
     /**
      * Parses [payload] (a JSON array of [WearAutomationDto]) and updates the
