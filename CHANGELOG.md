@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+## [v3.75.1] - 2026-09-20
+
+### Added
+
+- Seamless multi-tier capability failover: extended `CapabilityRuntime` with `candidateBackends` in `CapabilityResolution` and automatic backend failover in `CapabilityExecutionService`. If the primary selected backend encounters an operational or transport failure (`SHIZUKU_UNAVAILABLE`, `ROOT_UNAVAILABLE`, `BACKEND_UNAVAILABLE`, or execution `TIMEOUT`), the execution pipeline automatically promotes execution to the next available candidate tier (such as Root or Android Framework fallback) instead of aborting the routine.
+- Deterministic boolean condition expression evaluator: introduced `ConditionExpressionEvaluator` providing safe, bounded expression evaluation for dynamic workflow routing. Supports logical operators (`&&`, `||`, `!`, `AND`, `OR`, `NOT`), value comparisons (`==`, `!=`, `<`, `<=`, `>`, `>=`), text pattern matching (`contains`, `startsWith`, `endsWith`, `matches`), and inspection helpers (`isEmpty`, `isNotEmpty`) with strict syntax validation and recursion depth limits.
+- Per-action flow control and resilience in `ExecutionEngine`: added conditional action gating via the `"condition"` configuration parameter, automatic retries with configurable `"retryCount"` and `"retryDelayMs"` to gracefully absorb transient failures, and granular failure handling policies via `"onError"` (`"ABORT"` or `"CONTINUE"`).
+
+### Tests
+
+- Comprehensive unit tests in `ConditionExpressionEvaluatorTest` covering arithmetic comparisons, string operators, nested boolean expressions, malformed expressions, and safety bounds.
+- New test suite in `ExecutionEngineControlFlowTest` verifying conditional execution gating, retry backoff convergence, retry exhaustion handling, and error abort vs. continue policy enforcement.
+- End-to-end failover test in `CapabilityRuntimeTest` validating runtime promotion from Shizuku to Root upon transport disruption.
+
+### Validation
+
+- Full unit test verification across all modules (`:domain:testDebugUnitTest`, `:core:execution:testDebugUnitTest`).
+- Strict resource hygiene verified clean via `auto_fix.py --check`.
+- Zero missing or orphaned localization keys across all 11 locales via `check_strings_parity.py`.
+- Zero hardcoded Arabic script in shipped code via `check_hardcoded_text.py --self-test`.
+- Builder catalog parity verified with 0 problems via `audit_catalog_and_releases.py catalog`.
+
 ## [v3.75.0] - 2026-09-20
 
 ### Added
