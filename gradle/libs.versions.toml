@@ -34,6 +34,10 @@ pv2_3_11 = "2.3.11"
 pv2_4_10 = "2.4.10"
 pv2_60_1 = "2.60.1"
 pv9_3_1 = "9.3.1"
+vPlayServicesWearable = "19.0.0"
+vWearCompose = "1.5.0-alpha26"
+vMockitoKotlin = "5.4.0"
+vTurbine = "1.2.0"
 
 [libraries]
 androidx-activity-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "v1_13_0" }
@@ -94,6 +98,12 @@ org-jetbrains-kotlinx-kotlinx-serialization-core = { module = "org.jetbrains.kot
 org-jetbrains-kotlinx-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "v1_9_0" }
 org-json-json = { module = "org.json:json", version.ref = "v20260814" }
 org-robolectric-robolectric = { module = "org.robolectric:robolectric", version.ref = "v4_17_beta2" }
+com-google-android-gms-play-services-wearable = { module = "com.google.android.gms:play-services-wearable", version.ref = "vPlayServicesWearable" }
+androidx-wear-compose-material3 = { module = "androidx.wear.compose:compose-material3", version.ref = "vWearCompose" }
+androidx-wear-compose-foundation = { module = "androidx.wear.compose:compose-foundation", version.ref = "vWearCompose" }
+androidx-wear-compose-navigation = { module = "androidx.wear.compose:compose-navigation", version.ref = "vWearCompose" }
+org-mockito-kotlin-mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "vMockitoKotlin" }
+app-cash-turbine-turbine = { module = "app.cash.turbine:turbine", version.ref = "vTurbine" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "pv9_3_1" }

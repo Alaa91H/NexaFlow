@@ -348,6 +348,25 @@
             android:name="io.sentry.android.core.SentryPerformanceProvider"
             android:authorities="${applicationId}.SentryPerformanceProvider"
             tools:node="remove" />
+
+        <!--
+            Phone-side Wear OS bridge: receives run and toggle commands from the
+            companion watch app. The MESSAGE_RECEIVED filter is scoped to the
+            /nexaflow/ path prefix so only NexaFlow watch messages are dispatched
+            here. The service is exported so the Wearable platform can reach it
+            from its own process.
+        -->
+        <service
+            android:name=".wear.WearCommandListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/nexaflow/" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

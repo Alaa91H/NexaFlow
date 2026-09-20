@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wear_app_name">NexaFlow</string>
+    <string name="wear_automations_title">自動化</string>
+    <string name="wear_run_now">今すぐ実行</string>
+    <string name="wear_enabled">有効</string>
+    <string name="wear_disabled">無効</string>
+    <string name="wear_last_run_success">✓ 前回の実行が成功しました</string>
+    <string name="wear_last_run_failed">✗ 前回の実行が失敗しました</string>
+    <string name="wear_no_automations">自動化が見つかりません。\n追加するにはスマートフォンでNexaFlowを開いてください。</string>
+    <string name="wear_connecting">スマートフォンに接続中…</string>
+    <string name="wear_never_run">未実行</string>
+</resources>

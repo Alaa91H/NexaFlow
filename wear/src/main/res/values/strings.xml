@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wear_app_name">NexaFlow</string>
+    <string name="wear_automations_title">Automations</string>
+    <string name="wear_run_now">Run Now</string>
+    <string name="wear_enabled">Enabled</string>
+    <string name="wear_disabled">Disabled</string>
+    <string name="wear_last_run_success">✓ Last run succeeded</string>
+    <string name="wear_last_run_failed">✗ Last run failed</string>
+    <string name="wear_no_automations">No automations found.\nOpen NexaFlow on your phone to add some.</string>
+    <string name="wear_connecting">Connecting to phone…</string>
+    <string name="wear_never_run">Never run</string>
+</resources>

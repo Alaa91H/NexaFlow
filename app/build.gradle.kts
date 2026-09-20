@@ -6,6 +6,7 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
@@ -263,4 +264,9 @@ dependencies {
     implementation(project(":feature:themes"))
     implementation(project(":feature:widgets"))
     implementation(project(":feature:settings"))
+
+    // Wear OS companion — bundled inside the phone APK for Play Store delivery
+    wearApp(project(":wear"))
+    implementation(libs.com.google.android.gms.play.services.wearable)
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
 }

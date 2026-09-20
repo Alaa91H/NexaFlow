@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wear_app_name">NexaFlow</string>
+    <string name="wear_automations_title">स्वचालन</string>
+    <string name="wear_run_now">अभी चलाएँ</string>
+    <string name="wear_enabled">सक्षम</string>
+    <string name="wear_disabled">अक्षम</string>
+    <string name="wear_last_run_success">✓ पिछला रन सफल रहा</string>
+    <string name="wear_last_run_failed">✗ पिछला रन विफल रहा</string>
+    <string name="wear_no_automations">कोई स्वचालन नहीं मिला।\nकुछ जोड़ने के लिए अपने फ़ोन पर NexaFlow खोलें।</string>
+    <string name="wear_connecting">फ़ोन से कनेक्ट हो रहा है…</string>
+    <string name="wear_never_run">कभी नहीं चला</string>
+</resources>

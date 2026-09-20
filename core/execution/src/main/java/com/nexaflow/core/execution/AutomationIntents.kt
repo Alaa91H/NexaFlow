@@ -45,8 +45,32 @@ const val EXTRA_REPLY_VARIABLE = "com.nexaflow.core.execution.extra.REPLY_VARIAB
  */
 const val REMOTE_INPUT_REPLY_KEY = "com.nexaflow.core.execution.remote_input.reply"
 
-/**
- * Port the loopback webhook server listens on (see WebhookServer). Shared with
- * the builder UI so the URL hint stays in sync with the engine.
- */
 const val WEBHOOK_DEFAULT_PORT = 8765
+
+// ── Wearable Data Layer protocol ─────────────────────────────────────────────
+// These path strings and DataMap keys are shared between the phone-side bridge
+// (WearSyncManager / WearCommandListenerService) and the watch app's WearProtocol
+// object.  Any change here must be reflected in
+// wear/src/main/java/com/nexaflow/wear/data/WearProtocol.kt.
+
+/** DataItem path: phone pushes the serialized automation list to the watch here. */
+const val WEAR_PATH_AUTOMATIONS = "/nexaflow/automations"
+
+/** MessageClient path: the watch sends a manual force-run request for one automation. */
+const val WEAR_PATH_RUN_COMMAND = "/nexaflow/run"
+
+/** MessageClient path: the watch sends an enable/disable toggle for one automation. */
+const val WEAR_PATH_TOGGLE_COMMAND = "/nexaflow/toggle"
+
+/** DataMap key carrying the JSON payload (automation list body). */
+const val WEAR_KEY_PAYLOAD = "payload"
+
+/**
+ * DataMap key: monotonic epoch-millis timestamp that forces the Data Layer to
+ * deliver a DATA_CHANGED event even when the JSON payload is identical to the
+ * previous push. Without this, the platform de-duplicates identical DataItems.
+ */
+const val WEAR_KEY_UPDATED_AT = "updatedAt"
+
+/** Separator between automationId and enabled-flag in a toggle message payload. */
+const val WEAR_TOGGLE_SEPARATOR = ":"

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wear_app_name">NexaFlow</string>
+    <string name="wear_automations_title">المهام</string>
+    <string name="wear_run_now">تشغيل الآن</string>
+    <string name="wear_enabled">مفعّل</string>
+    <string name="wear_disabled">معطّل</string>
+    <string name="wear_last_run_success">✓ نجح آخر تشغيل</string>
+    <string name="wear_last_run_failed">✗ فشل آخر تشغيل</string>
+    <string name="wear_no_automations">لا توجد مهام.\nافتح NexaFlow على هاتفك لإضافة مهام.</string>
+    <string name="wear_connecting">جارٍ الاتصال بالهاتف…</string>
+    <string name="wear_never_run">لم يُشغَّل قط</string>
+</resources>

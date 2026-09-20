@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wear_app_name">NexaFlow</string>
+    <string name="wear_automations_title">Otomasyonlar</string>
+    <string name="wear_run_now">Şimdi çalıştır</string>
+    <string name="wear_enabled">Etkin</string>
+    <string name="wear_disabled">Devre dışı</string>
+    <string name="wear_last_run_success">✓ Son çalıştırma başarılı</string>
+    <string name="wear_last_run_failed">✗ Son çalıştırma başarısız</string>
+    <string name="wear_no_automations">Otomasyon bulunamadı.\nEklemek için telefonunuzda NexaFlow\'u açın.</string>
+    <string name="wear_connecting">Telefona bağlanıyor…</string>
+    <string name="wear_never_run">Hiç çalıştırılmadı</string>
+</resources>

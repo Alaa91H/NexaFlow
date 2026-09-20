@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Wearable Data Layer communication over BT/Wi-Fi -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- Identifies this APK as a Wear OS watch app; required for Play delivery -->
+    <uses-feature android:name="android.hardware.type.watch" />
+
+    <application
+        android:name=".WearApplication"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/wear_app_name"
+        android:theme="@android:style/Theme.DeviceDefault"
+        android:supportsRtl="true">
+
+        <!-- Standalone value: false = companion app, requires the phone app -->
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="false" />
+
+        <activity
+            android:name=".WearMainActivity"
+            android:exported="true"
+            android:label="@string/wear_app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+            Listens for automation list DataItem updates pushed from the phone.
+            The DATA_CHANGED filter and /nexaflow/ path prefix restrict delivery
+            to our own data items only.
+        -->
+        <service
+            android:name=".data.WearDataListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/nexaflow/" />
+            </intent-filter>
+        </service>
+
+    </application>
+
+</manifest>
