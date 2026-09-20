@@ -143,7 +143,7 @@ class AutomationBuilderViewModel @Inject constructor(
                 capabilityStateStore.snapshot.value
             ).admissible
             if (!admitted && prev?.enabled != true) {
-                // Try aggressive auto-grant for Root/Shizuku devices (whyred Evolution X)
+                // Try aggressive auto-grant for Root/Shizuku devices
                 // This will attempt to grant via PrivilegedRunner if available
                 // The task will still be saved as disabled if grant fails, and will
                 // be re-validated on next enable attempt (strict).

@@ -134,8 +134,8 @@ fun PermissionManagerScreen(navController: NavController) {
         grantedStates.putAll(computed)
     }
 
-    // OEM background-restriction guidance (MIUI/HyperOS, One UI, ColorOS,
-    // OxygenOS): delivered through ONE channel per install. If the engine
+    // Vendor background-restriction guidance: delivered through ONE channel
+    // per install. If the engine
     // notification already claimed the shared flag (OemCompat.isHintDelivered)
     // the card stays hidden; dismissing or acting on the card claims the flag
     // so the notification never fires later — the user is never alerted twice.

@@ -10,72 +10,70 @@ import org.junit.Test
 class RomSettingSchemaTest {
 
     @Test
-    fun `lineage derived families share the lineage prefixes plus their fork prefix`() {
-        assertTrue("evo_" in RomSettingSchema.prefixes(RomFamily.EVOLUTION_X))
-        assertTrue("lineage_" in RomSettingSchema.prefixes(RomFamily.EVOLUTION_X))
-        assertTrue("lineage_" in RomSettingSchema.prefixes(RomFamily.LINEAGE_OS))
-        assertTrue("lineage_" in RomSettingSchema.prefixes(RomFamily.CR_DROID))
-        assertTrue("lineage_" in RomSettingSchema.prefixes(RomFamily.ARROW_OS))
-        assertTrue("lineage_" in RomSettingSchema.prefixes(RomFamily.PIXEL_OS))
+    fun `privileged community tier shares base and fork prefixes`() {
+        val prefixes = RomSettingSchema.prefixes(RomFamily.CUSTOM_ROM_PRIVILEGED)
+        assertTrue("lineage_" in prefixes)
+        assertTrue("evo_" in prefixes)
+        assertTrue("sysui_" in prefixes)
     }
 
     @Test
     fun `oem skins use their vendor prefixes`() {
-        assertTrue("miui_" in RomSettingSchema.prefixes(RomFamily.MIUI))
-        assertTrue("hyper_" in RomSettingSchema.prefixes(RomFamily.HYPER_OS))
-        assertTrue("sec_" in RomSettingSchema.prefixes(RomFamily.ONE_UI))
-        assertTrue("oplus_" in RomSettingSchema.prefixes(RomFamily.COLOR_OS))
-        assertTrue("oplus_" in RomSettingSchema.prefixes(RomFamily.OXYGEN_OS))
-        assertTrue("vivo_" in RomSettingSchema.prefixes(RomFamily.VIVO_ORIGIN_OS))
-        assertTrue("hw_" in RomSettingSchema.prefixes(RomFamily.EMUI))
-        assertTrue("nothing_" in RomSettingSchema.prefixes(RomFamily.NOTHING_OS))
+        assertTrue("miui_" in RomSettingSchema.prefixes(RomFamily.OEM_SKIN_PRIVILEGED))
+        assertTrue("hyper_" in RomSettingSchema.prefixes(RomFamily.OEM_SKIN_PRIVILEGED))
+        assertTrue("sec_" in RomSettingSchema.prefixes(RomFamily.OEM_SKIN_PRIVILEGED))
+        assertTrue("oplus_" in RomSettingSchema.prefixes(RomFamily.OEM_SKIN_PRIVILEGED))
+        assertTrue("oplus_" in RomSettingSchema.prefixes(RomFamily.OEM_SKIN_PRIVILEGED))
+        assertTrue("vivo_" in RomSettingSchema.prefixes(RomFamily.OEM_SKIN))
+        assertTrue("hw_" in RomSettingSchema.prefixes(RomFamily.OEM_SKIN))
+        assertTrue("nothing_" in RomSettingSchema.prefixes(RomFamily.OEM_SKIN))
     }
 
     @Test
     fun `aosp and other have no rom prefixes`() {
         assertTrue(RomSettingSchema.prefixes(RomFamily.AOSP).isEmpty())
-        assertTrue(RomSettingSchema.prefixes(RomFamily.PIXEL).isEmpty())
-        assertTrue(RomSettingSchema.prefixes(RomFamily.MOTOROLA).isEmpty())
+        assertTrue(RomSettingSchema.prefixes(RomFamily.STOCK_GOOGLE).isEmpty())
+        assertTrue(RomSettingSchema.prefixes(RomFamily.OEM_STOCK).isEmpty())
         assertTrue(RomSettingSchema.prefixes(RomFamily.OTHER).isEmpty())
     }
 
     @Test
     fun `lineage derived families default to the secure namespace`() {
-        assertEquals("secure", RomSettingSchema.defaultNamespaceName(RomFamily.EVOLUTION_X))
-        assertEquals("secure", RomSettingSchema.defaultNamespaceName(RomFamily.LINEAGE_OS))
-        assertEquals("secure", RomSettingSchema.defaultNamespaceName(RomFamily.CR_DROID))
-        assertEquals("secure", RomSettingSchema.defaultNamespaceName(RomFamily.PIXEL_OS))
+        assertEquals("secure", RomSettingSchema.defaultNamespaceName(RomFamily.CUSTOM_ROM_PRIVILEGED))
+        assertEquals("secure", RomSettingSchema.defaultNamespaceName(RomFamily.CUSTOM_ROM_PRIVILEGED))
+        assertEquals("secure", RomSettingSchema.defaultNamespaceName(RomFamily.CUSTOM_ROM_PRIVILEGED))
+        assertEquals("secure", RomSettingSchema.defaultNamespaceName(RomFamily.CUSTOM_ROM_PRIVILEGED))
     }
 
     @Test
     fun `oem skins default to the system namespace`() {
-        assertEquals("system", RomSettingSchema.defaultNamespaceName(RomFamily.ONE_UI))
-        assertEquals("system", RomSettingSchema.defaultNamespaceName(RomFamily.MIUI))
-        assertEquals("system", RomSettingSchema.defaultNamespaceName(RomFamily.COLOR_OS))
-        assertEquals("system", RomSettingSchema.defaultNamespaceName(RomFamily.EMUI))
+        assertEquals("system", RomSettingSchema.defaultNamespaceName(RomFamily.OEM_SKIN_PRIVILEGED))
+        assertEquals("system", RomSettingSchema.defaultNamespaceName(RomFamily.OEM_SKIN_PRIVILEGED))
+        assertEquals("system", RomSettingSchema.defaultNamespaceName(RomFamily.OEM_SKIN_PRIVILEGED))
+        assertEquals("system", RomSettingSchema.defaultNamespaceName(RomFamily.OEM_SKIN))
     }
 
     @Test
     fun `lineage derived classification covers the fork set`() {
-        assertTrue(RomSettingSchema.isLineageDerived(RomFamily.EVOLUTION_X))
-        assertTrue(RomSettingSchema.isLineageDerived(RomFamily.CR_DROID))
-        assertTrue(RomSettingSchema.isLineageDerived(RomFamily.ARROW_OS))
-        assertTrue(RomSettingSchema.isLineageDerived(RomFamily.SUPERIOR_OS))
-        assertFalse(RomSettingSchema.isLineageDerived(RomFamily.ONE_UI))
+        assertTrue(RomSettingSchema.isLineageDerived(RomFamily.CUSTOM_ROM_PRIVILEGED))
+        assertTrue(RomSettingSchema.isLineageDerived(RomFamily.CUSTOM_ROM_PRIVILEGED))
+        assertTrue(RomSettingSchema.isLineageDerived(RomFamily.CUSTOM_ROM_PRIVILEGED))
+        assertTrue(RomSettingSchema.isLineageDerived(RomFamily.CUSTOM_ROM_PRIVILEGED))
+        assertFalse(RomSettingSchema.isLineageDerived(RomFamily.OEM_SKIN_PRIVILEGED))
         assertFalse(RomSettingSchema.isLineageDerived(RomFamily.AOSP))
     }
 
     @Test
     fun `supported and oem classification`() {
-        assertTrue(RomSettingSchema.isSupported(RomFamily.ONE_UI))
-        assertTrue(RomSettingSchema.isSupported(RomFamily.EVOLUTION_X))
+        assertTrue(RomSettingSchema.isSupported(RomFamily.OEM_SKIN_PRIVILEGED))
+        assertTrue(RomSettingSchema.isSupported(RomFamily.CUSTOM_ROM_PRIVILEGED))
         assertFalse(RomSettingSchema.isSupported(RomFamily.AOSP))
         assertFalse(RomSettingSchema.isSupported(RomFamily.OTHER))
 
-        assertTrue(RomSettingSchema.isOemSkin(RomFamily.MIUI))
-        assertTrue(RomSettingSchema.isOemSkin(RomFamily.NOTHING_OS))
-        assertTrue(RomSettingSchema.isOemSkin(RomFamily.HARMONY_OS))
-        assertFalse(RomSettingSchema.isOemSkin(RomFamily.LINEAGE_OS))
-        assertFalse(RomSettingSchema.isOemSkin(RomFamily.PIXEL))
+        assertTrue(RomSettingSchema.isOemSkin(RomFamily.OEM_SKIN_PRIVILEGED))
+        assertTrue(RomSettingSchema.isOemSkin(RomFamily.OEM_SKIN))
+        assertTrue(RomSettingSchema.isOemSkin(RomFamily.OEM_SKIN))
+        assertFalse(RomSettingSchema.isOemSkin(RomFamily.CUSTOM_ROM_PRIVILEGED))
+        assertFalse(RomSettingSchema.isOemSkin(RomFamily.STOCK_GOOGLE))
     }
 }

@@ -55,6 +55,10 @@ jobs:
       # Keeps issue #4 (Arabic strings hardcoded in the builder UI) from ever
       # shipping again; legitimate occurrences live in the reviewed ALLOWLIST.
       run: python3 scripts/check_hardcoded_text.py --self-test
+    - name: Vendor-neutrality gate (no commercial ROM/device names outside protocol files)
+      # The engine reasons about neutral capability tiers (RomFamily), never
+      # products; detection evidence stays in the protocol allowlist only.
+      run: python3 scripts/check_vendor_neutrality.py --self-test && python3 scripts/check_vendor_neutrality.py
     - name: Test the hardcoded-text gate
       run: python3 -m unittest discover -s scripts/tests -p test_check_hardcoded_text.py
     - name: Catalog parity (trigger/action enum ↔ builder picker)

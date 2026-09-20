@@ -63,7 +63,7 @@ app  (theme, Hilt graph, navigation, MainActivity)          [compileSdk 37 / min
 ├── core/capability-manager  CapabilityCenterScreen + CapabilityGrantHelper (deep-link grants)
 ├── core/database            Room: AutomationEntity, ExecutionRecordEntity, DAOs, Migrations 1→5
 ├── core/datastore           ThemePreferences, NotificationPreferences (DataStore)
-└── core/ui-components       Samsung-style shared Compose components + previews
+└── core/ui-components       Shared Compose components + previews
 ```
 
 **Engine data model (today):** `Automation(triggers: List<Trigger>, actions: List<Action>,
@@ -139,7 +139,7 @@ testing █
 | **Providers** | Shizuku + Root (via `PrivilegedRunner`) | Provider-selector engine (Android/Accessibility/Shizuku/ADB/Root/LSPosed) with automatic best-provider choice | High |
 | **ADB** | None | Wireless debugging, ADB commands, secure execution | Medium |
 | **LSPosed** | None (optional) | Detection + hooks API, zero hard dependency | Low-Medium |
-| **ROM profiles** | ROM *family* detection (13) | Per-ROM constraint profiles (Samsung/Xiaomi/OnePlus/Graphene/AOSP/custom), SELinux, kernel, OEM battery killers | Medium |
+| **ROM profiles** | ROM *family* detection (13) | Per-tier constraint profiles (privileged community / vendor skin / AOSP / custom), SELinux, kernel, OEM battery killers | Medium |
 | **Security** | None dedicated | Encryption, secure storage, command sanitization, plugin isolation | Medium-High |
 | **Logging** | None (only history) | Execution timeline, error logs, perf metrics, crash recovery | Medium |
 | **Backup** | JSON export/import ✅ | ZIP backup, version migration (JSON exists — extend) | Low |
@@ -197,8 +197,8 @@ previous phase's tests pass (`./gradlew testDebugUnitTest assembleDebug lintDebu
 
 ### Phase 7 — Custom ROM Framework
 - `custom-rom` (extends `core/rom-integration`): `RomProfile` data class (execution strategy,
-  restrictions, background problems, perf tweaks) + built-in profiles (AOSP/Samsung/Xiaomi/OnePlus/
-  GrapheneOS/unknown) + SELinux mode detection + kernel detection + OEM battery-killer guidance.
+  restrictions, background problems, perf tweaks) + built-in profiles (AOSP/vendor-skin/community/
+  privacy-focused/unknown) + SELinux mode detection + kernel detection + OEM battery-killer guidance.
 - **Gate:** `RomProfileResolverTest` (detection across simulated build props + SELinux states).
 
 ### Phase 8 — Variables + Plugins + Visual Editor

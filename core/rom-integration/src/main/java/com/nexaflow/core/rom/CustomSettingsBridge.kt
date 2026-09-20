@@ -6,14 +6,14 @@ import com.nexaflow.core.rom.model.RomFamily
 import com.nexaflow.core.rom.model.SystemControlResult
 
 /**
- * Deep integration with Evolution X's custom settings (the "Evolver" keys).
+ * Deep integration with the detected ROM's custom settings (vendor-defined keys).
  *
- * Evolution X is a fork of LineageOS, so its ROM-specific settings live in the
+ * Privileged community builds derive from a shared base, so their custom settings live in the
  * standard `Settings.System` / `Settings.Secure` providers under well-known
- * prefixes (`evo_*`, `evolution_*`, `lineage_*`, `sysui_*`, ...). Instead of
+ * prefixes (`rom_*`, `evolution_*`, `lineage_*`, `sysui_*`, ...). Instead of
  * hard-coding a key list that drifts between ROM versions, this bridge lists
  * the *actual* keys present on the device through the elevated shell and lets
- * the user read or write any of them — the same way the ROM's own Evolver
+ * the user read or write any of them — the same way the ROM's own settings app
  * settings app does, but from inside NexaFlow.
  *
  * Reading is free (the providers expose keys read-only to normal apps);
@@ -21,7 +21,7 @@ import com.nexaflow.core.rom.model.SystemControlResult
  * falls back to the direct `WRITE_SETTINGS`/`WRITE_SECURE_SETTINGS` grant when
  * the app has it.
  */
-object EvolutionXSettingsBridge {
+object CustomSettingsBridge {
 
     data class SettingEntry(
         val namespace: Namespace,
@@ -44,26 +44,25 @@ object EvolutionXSettingsBridge {
 
     /**
      * Prefixes for the device's detected ROM family ([RomSettingSchema]); falls
-     * back to the Evolution X / LineageOS-derived set when no context is
-     * available, which still covers every LineageOS-family custom ROM.
+     * back to the privileged community-ROM set when no context is
+     * available, which still covers every derived build.
      */
     private fun prefixesFor(context: Context?): List<String> {
         val family = context?.let { runCatching {
             RomIntegrationManager.buildInfo(it).family
-        }.getOrNull() } ?: RomFamily.EVOLUTION_X
+        }.getOrNull() } ?: RomFamily.CUSTOM_ROM_PRIVILEGED
         return RomSettingSchema.prefixes(family)
             .ifEmpty { defaultPrefixes() }
     }
 
-    /** Backward-compatible default: Evolution X / LineageOS-derived prefixes. */
-    private fun defaultPrefixes(): List<String> = RomSettingSchema.prefixes(RomFamily.EVOLUTION_X)
+    /** Backward-compatible default: privileged community-ROM prefixes. */
+    private fun defaultPrefixes(): List<String> = RomSettingSchema.prefixes(RomFamily.CUSTOM_ROM_PRIVILEGED)
 
     /**
      * True when the device runs a ROM whose custom settings this bridge can
-     * read/write — any LineageOS-derived family (Evolution X, LineageOS,
-     * crDroid, ArrowOS, PixelOS, ...) or OEM skin (One UI, HyperOS, ...).
+     * read/write — any privileged community build or vendor skin tier.
      */
-    fun isEvolutionX(context: Context): Boolean =
+    fun supportsCustomSettings(context: Context): Boolean =
         RomSettingSchema.isSupported(RomIntegrationManager.buildInfo(context).family)
 
     /**

@@ -248,12 +248,12 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_screen_timeout, R.string.action_screen_timeout_sub, Icons.Filled.Timelapse, ActionType.SYSTEM_SCREEN_TIMEOUT, ActionCategory.DISPLAY),
     ActionOption(R.string.action_stay_awake, R.string.action_stay_awake_sub, Icons.Filled.WbSunny, ActionType.SYSTEM_STAY_AWAKE, ActionCategory.DISPLAY),
     ActionOption(R.string.action_dark_mode, R.string.action_dark_mode_sub, Icons.Filled.DarkMode, ActionType.SYSTEM_DARK_MODE, ActionCategory.DISPLAY),
-    // Advanced System Tweaks — generic for all ROMs (Evolver, Lineage, OEM) — distributed to look native
-    ActionOption(R.string.action_evo_qs_tiles, R.string.action_evo_qs_tiles_sub, Icons.Filled.ViewCarousel, ActionType.EVO_QS_TILES, ActionCategory.DISPLAY),
-    ActionOption(R.string.action_evo_status_bar, R.string.action_evo_status_bar_sub, Icons.Filled.BarChart, ActionType.EVO_STATUS_BAR, ActionCategory.DISPLAY),
-    ActionOption(R.string.action_evo_lockscreen, R.string.action_evo_lockscreen_sub, Icons.Filled.Lock, ActionType.EVO_LOCKSCREEN, ActionCategory.DISPLAY),
-    ActionOption(R.string.action_evo_theme, R.string.action_evo_theme_sub, Icons.Filled.Palette, ActionType.EVO_THEME, ActionCategory.DISPLAY),
-    ActionOption(R.string.action_evo_ambient_aod, R.string.action_evo_ambient_aod_sub, Icons.Filled.WbSunny, ActionType.EVO_AMBIENT_AOD, ActionCategory.DISPLAY),
+    // Advanced System Tweaks — generic for all builds (vendor custom settings) — distributed to look native
+    ActionOption(R.string.action_rom_setting_qs_tiles, R.string.action_rom_setting_qs_tiles_sub, Icons.Filled.ViewCarousel, ActionType.ROM_QS_TILES, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_rom_setting_status_bar, R.string.action_rom_setting_status_bar_sub, Icons.Filled.BarChart, ActionType.ROM_STATUS_BAR, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_rom_setting_lockscreen, R.string.action_rom_setting_lockscreen_sub, Icons.Filled.Lock, ActionType.ROM_LOCKSCREEN, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_rom_setting_theme, R.string.action_rom_setting_theme_sub, Icons.Filled.Palette, ActionType.ROM_THEME, ActionCategory.DISPLAY),
+    ActionOption(R.string.action_rom_setting_ambient_aod, R.string.action_rom_setting_ambient_aod_sub, Icons.Filled.WbSunny, ActionType.ROM_AMBIENT_AOD, ActionCategory.DISPLAY),
     // SOUND
     ActionOption(R.string.action_volume, R.string.action_volume_sub, Icons.AutoMirrored.Filled.VolumeUp, ActionType.SYSTEM_VOLUME, ActionCategory.SOUND),
     ActionOption(R.string.action_stream_volume, R.string.action_stream_volume_sub, Icons.Filled.GraphicEq, ActionType.SYSTEM_STREAM_VOLUME, ActionCategory.SOUND),
@@ -289,7 +289,7 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_open_notifications, R.string.action_open_notifications_sub, Icons.Filled.Notifications, ActionType.SYSTEM_OPEN_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_expand_bar, R.string.action_expand_bar_sub, Icons.Filled.ExpandLess, ActionType.SYSTEM_EXPAND_STATUS_BAR, ActionCategory.NOTIFICATIONS),
     ActionOption(R.string.action_collapse_bar, R.string.action_collapse_bar_sub, Icons.Filled.ExpandMore, ActionType.SYSTEM_COLLAPSE_STATUS_BAR, ActionCategory.NOTIFICATIONS),
-    ActionOption(R.string.action_evo_notifications, R.string.action_evo_notifications_sub, Icons.Filled.NotificationsActive, ActionType.EVO_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
+    ActionOption(R.string.action_rom_setting_notifications, R.string.action_rom_setting_notifications_sub, Icons.Filled.NotificationsActive, ActionType.ROM_NOTIFICATIONS, ActionCategory.NOTIFICATIONS),
     // APPS
     ActionOption(R.string.action_open_apps, R.string.action_open_apps_sub, Icons.Filled.Apps, ActionType.SYSTEM_OPEN_APP, ActionCategory.APPS),
     ActionOption(R.string.action_open_recents, R.string.action_open_recents_sub, Icons.Filled.ViewCarousel, ActionType.SYSTEM_OPEN_RECENTS, ActionCategory.APPS),
@@ -299,7 +299,7 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_play_updates, R.string.action_play_updates_sub, Icons.Filled.Storefront, ActionType.SYSTEM_OPEN_PLAY_UPDATES, ActionCategory.APPS),
     ActionOption(R.string.action_system_update, R.string.action_system_update_sub, Icons.Filled.Settings, ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS, ActionCategory.SYSTEM),
     ActionOption(R.string.action_launch_app, R.string.action_launch_app_sub, Icons.Filled.Apps, ActionType.APPLICATION_LAUNCH_APP, ActionCategory.APPS),
-    ActionOption(R.string.action_galaxy_store, R.string.action_galaxy_store_sub, Icons.Filled.Store, ActionType.SYSTEM_OPEN_GALAXY_STORE, ActionCategory.APPS),
+    ActionOption(R.string.action_device_store, R.string.action_device_store_sub, Icons.Filled.Store, ActionType.SYSTEM_OPEN_DEVICE_STORE, ActionCategory.APPS),
     // SYSTEM
     ActionOption(R.string.action_flashlight, R.string.action_flashlight_sub, Icons.Filled.FlashlightOn, ActionType.SYSTEM_FLASHLIGHT, ActionCategory.SYSTEM),
     ActionOption(R.string.action_open_url, R.string.action_open_url_sub, Icons.Filled.Link, ActionType.SYSTEM_OPEN_URL, ActionCategory.SYSTEM),
@@ -324,9 +324,9 @@ internal val actionOptions = listOf(
     ActionOption(R.string.action_wake_screen, R.string.action_wake_screen_sub, Icons.Filled.WbSunny, ActionType.SYSTEM_WAKE_SCREEN, ActionCategory.DISPLAY),
     ActionOption(R.string.action_clipboard, R.string.action_clipboard_sub, Icons.Filled.ContentPaste, ActionType.SYSTEM_CLIPBOARD_SET, ActionCategory.SYSTEM),
     ActionOption(R.string.action_set_setting, R.string.action_set_setting_sub, Icons.Filled.Tune, ActionType.SYSTEM_SET_SETTING, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_evo_set_setting, R.string.action_evo_set_setting_sub, Icons.Filled.Tune, ActionType.EVO_SET_SETTING, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_evo_navigation, R.string.action_evo_navigation_sub, Icons.Filled.TouchApp, ActionType.EVO_NAVIGATION, ActionCategory.SYSTEM),
-    ActionOption(R.string.action_evo_batch, R.string.action_evo_batch_sub, Icons.Filled.Build, ActionType.EVO_BATCH, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_rom_setting_set_setting, R.string.action_rom_setting_set_setting_sub, Icons.Filled.Tune, ActionType.ROM_CUSTOM_SETTING, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_rom_setting_navigation, R.string.action_rom_setting_navigation_sub, Icons.Filled.TouchApp, ActionType.ROM_NAVIGATION, ActionCategory.SYSTEM),
+    ActionOption(R.string.action_rom_setting_batch, R.string.action_rom_setting_batch_sub, Icons.Filled.Build, ActionType.ROM_BATCH, ActionCategory.SYSTEM),
     ActionOption(R.string.action_screenshot, R.string.action_screenshot_sub, Icons.Filled.CameraAlt, ActionType.SYSTEM_SCREENSHOT, ActionCategory.SYSTEM),
     ActionOption(R.string.action_input_text, R.string.action_input_text_sub, Icons.AutoMirrored.Filled.Chat, ActionType.SYSTEM_INPUT_TEXT, ActionCategory.SYSTEM),
     ActionOption(R.string.action_key_event, R.string.action_key_event_sub, Icons.Filled.Build, ActionType.SYSTEM_KEY_EVENT, ActionCategory.SYSTEM),
@@ -1404,7 +1404,7 @@ fun AutomationBuilderScreen(
         availableTemplates.isNotEmpty()
 
     val stringPermissionDenied = stringResource(R.string.permission_denied_hint)
-    // Permission request currently waiting for the user to confirm the Samsung-style
+    // Permission request currently waiting for the user to confirm the
     // explain screen. The system dialog only opens after the user taps Continue.
     var pendingPermissions by remember { mutableStateOf<Array<String>?>(null) }
     // Special permission (settings-screen) request awaiting the explain screen.
@@ -2334,7 +2334,7 @@ fun AutomationBuilderScreen(
         }
     }
 
-    // Samsung-style explain screens shown before granting a permission.
+    // Explain screens shown before granting a permission.
     pendingPermissions?.let { permissions ->
         PermissionExplainDialog(
             info = remember(permissions) { permissionExplainInfo(permissions) },

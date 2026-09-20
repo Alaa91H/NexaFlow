@@ -118,7 +118,7 @@ Availability depends on permissions, capabilities, Android version and hardware.
 | `SYSTEM_LOCATION` | Location (GPS) |
 | `SYSTEM_UPDATE_GOOGLE_PLAY_APPS` | Google Play app update check |
 | `SYSTEM_OPEN_PLAY_UPDATES` | Play Store updates |
-| `SYSTEM_OPEN_GALAXY_STORE` | Galaxy Store |
+| `SYSTEM_OPEN_DEVICE_STORE` | Device app store |
 | `SYSTEM_SEND_SMS` | Send SMS |
 | `SYSTEM_SEND_REMINDER` | Reminder |
 | `SYSTEM_OPEN_SETTINGS` | Open settings |
@@ -234,15 +234,15 @@ Availability depends on permissions, capabilities, Android version and hardware.
 | `SYSTEM_SET_TIMEZONE` | Set timezone |
 | `CALL_BLOCK` | Block call |
 | `CALL_SILENCE` | Silence call |
-| `EVO_SET_SETTING` | Custom Setting |
-| `EVO_QS_TILES` | QS Tiles |
-| `EVO_STATUS_BAR` | Status bar |
-| `EVO_LOCKSCREEN` | Lockscreen |
-| `EVO_NAVIGATION` | Navigation |
-| `EVO_THEME` | Theme & Monet |
-| `EVO_AMBIENT_AOD` | Ambient & AOD |
-| `EVO_NOTIFICATIONS` | Heads-up |
-| `EVO_BATCH` | Evolver batch |
+| `ROM_CUSTOM_SETTING` | Custom ROM setting |
+| `ROM_QS_TILES` | QS Tiles |
+| `ROM_STATUS_BAR` | Status bar |
+| `ROM_LOCKSCREEN` | Lockscreen |
+| `ROM_NAVIGATION` | Navigation |
+| `ROM_THEME` | Theme & Monet |
+| `ROM_AMBIENT_AOD` | Ambient & AOD |
+| `ROM_NOTIFICATIONS` | Heads-up |
+| `ROM_BATCH` | Batch custom settings |
 | `DATA_TEXT` | Text transform |
 | `DATA_ENCODING` | Text encoding |
 | `DATA_HASH` | Cryptographic hash |

@@ -39,24 +39,20 @@ class RomCapabilityProvider(
                 val notificationManager = context.getSystemService(NotificationManager::class.java)
                 notificationManager.isNotificationPolicyAccessGranted
             }
-            // Evolution X is a fork of LineageOS and ships its full privileged
-            // SDK + vendor hardware HALs, so the LineageOS-derived capabilities
-            // apply to both families whenever the app runs elevated.
-            RomCapability.LINEAGEOS_SDK ->
+            // Privileged community builds ship a full privileged
+            // SDK + vendor hardware HALs, so those capabilities apply
+            // whenever the app runs elevated.
+            RomCapability.PRIVILEGED_ROM_SDK ->
                 isLineageDerived() && isElevated()
-            RomCapability.LINEAGEOS_HARDWARE ->
+            RomCapability.PRIVILEGED_ROM_HARDWARE ->
                 isLineageDerived() && isElevated()
-            RomCapability.EVOLUTION_X_SETTINGS ->
-                romFamily == RomFamily.EVOLUTION_X && isElevated()
-            RomCapability.MIUI_HIDDEN_API ->
-                (romFamily == RomFamily.MIUI || romFamily == RomFamily.HYPER_OS) && isElevated()
-            RomCapability.COLOROS_HIDDEN_API ->
-                (romFamily == RomFamily.COLOR_OS ||
-                    romFamily == RomFamily.OXYGEN_OS ||
-                    romFamily == RomFamily.REALME_UI) && isElevated()
-            RomCapability.ONE_UI_HIDDEN_API ->
-                romFamily == RomFamily.ONE_UI && isElevated()
-            RomCapability.OEM_HIDDEN_API ->
+            RomCapability.CUSTOM_ROM_SETTINGS ->
+                romFamily == RomFamily.CUSTOM_ROM_PRIVILEGED && isElevated()
+            RomCapability.VENDOR_HIDDEN_API_PRIMARY ->
+                romFamily == RomFamily.OEM_SKIN_PRIVILEGED && isElevated()
+            RomCapability.VENDOR_HIDDEN_API_EXTENDED ->
+                RomSettingSchema.isOemSkin(romFamily) && isElevated()
+            RomCapability.VENDOR_HIDDEN_API ->
                 isGenericOemFamily(romFamily) && isElevated()
             // IntegrationLevel is a single display classification. A rooted
             // device may also have a granted Shizuku session, in which case
@@ -80,19 +76,13 @@ class RomCapabilityProvider(
             integrationLevel == IntegrationLevel.SHIZUKU
     }
 
-    /** LineageOS and its forks (Evolution X, crDroid, ...) share the same SDK/HALs. */
+    /** Privileged community builds share the same SDK/HALs. */
     private fun isLineageDerived(): Boolean {
         return RomSettingSchema.isLineageDerived(romFamily)
     }
 
-    /** OEM skins without a dedicated capability enum entry (OriginOS, EMUI, ZenUI, ...). */
+    /** Vendor skin tiers without a dedicated capability enum entry. */
     private fun isGenericOemFamily(romFamily: RomFamily): Boolean {
-        return romFamily == RomFamily.VIVO_ORIGIN_OS ||
-            romFamily == RomFamily.EMUI ||
-            romFamily == RomFamily.HARMONY_OS ||
-            romFamily == RomFamily.ASUS_ZEN_UI ||
-            romFamily == RomFamily.NOTHING_OS ||
-            romFamily == RomFamily.MOTOROLA ||
-            romFamily == RomFamily.SONY_XPERIA
+        return RomSettingSchema.isOemSkin(romFamily) || romFamily == RomFamily.OEM_STOCK
     }
 }

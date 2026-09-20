@@ -1,6 +1,6 @@
 package com.nexaflow.core.engine
 
-import com.nexaflow.core.rom.EvolutionXSettingsBridge.Namespace
+import com.nexaflow.core.rom.CustomSettingsBridge.Namespace
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import org.junit.Assert.assertEquals
@@ -30,7 +30,7 @@ class RomSettingMonitorTest {
     fun `EQUALS matches when actual equals target`() {
         val trigger = Trigger(
             TriggerType.ROM_SETTING,
-            mapOf("namespace" to "SYSTEM", "key" to "evo_x", "operator" to "EQUALS", "value" to "1")
+            mapOf("namespace" to "SYSTEM", "key" to "rom_x", "operator" to "EQUALS", "value" to "1")
         )
         assertTrue(romSettingMatches(trigger, "1"))
         assertFalse(romSettingMatches(trigger, "0"))
@@ -41,7 +41,7 @@ class RomSettingMonitorTest {
     fun `NOT_EQUALS matches when actual differs`() {
         val trigger = Trigger(
             TriggerType.ROM_SETTING,
-            mapOf("namespace" to "SYSTEM", "key" to "evo_x", "operator" to "NOT_EQUALS", "value" to "0")
+            mapOf("namespace" to "SYSTEM", "key" to "rom_x", "operator" to "NOT_EQUALS", "value" to "0")
         )
         assertTrue(romSettingMatches(trigger, "1"))
         assertTrue(romSettingMatches(trigger, null))
@@ -52,7 +52,7 @@ class RomSettingMonitorTest {
     fun `missing value never matches`() {
         val trigger = Trigger(
             TriggerType.ROM_SETTING,
-            mapOf("namespace" to "SYSTEM", "key" to "evo_x", "operator" to "EQUALS")
+            mapOf("namespace" to "SYSTEM", "key" to "rom_x", "operator" to "EQUALS")
         )
         assertFalse(romSettingMatches(trigger, "1"))
     }
@@ -61,7 +61,7 @@ class RomSettingMonitorTest {
     fun `default operator is EQUALS`() {
         val trigger = Trigger(
             TriggerType.ROM_SETTING,
-            mapOf("namespace" to "SYSTEM", "key" to "evo_x", "value" to "1")
+            mapOf("namespace" to "SYSTEM", "key" to "rom_x", "value" to "1")
         )
         assertTrue(romSettingMatches(trigger, "1"))
         assertFalse(romSettingMatches(trigger, "0"))

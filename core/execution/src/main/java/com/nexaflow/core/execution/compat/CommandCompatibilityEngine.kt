@@ -31,7 +31,7 @@ data class DeviceProfile(
         /**
           * Builds the current profile. Never throws: every failure degrades to
           * the least-privileged profile so no command is ever wrongly enabled.
-          * Hardware is probed live, so a whyred without NFC will hide NFC triggers.
+          * Hardware is probed live, so a device without NFC will hide NFC triggers.
           */
         fun capture(context: Context): DeviceProfile {
             return try {

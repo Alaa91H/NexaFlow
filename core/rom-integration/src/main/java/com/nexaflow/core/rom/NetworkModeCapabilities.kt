@@ -147,7 +147,7 @@ class NetworkModeCapabilities(private val context: Context) {
               * 6) ro.telephony.default_network via getprop (bounded)
               * 7) getPreferredNetworkType via reflection (legacy RIL)
               */
-            // Auto-reconnect Shizuku UserService if granted but not bound (common on Xiaomi)
+            // Auto-reconnect Shizuku UserService if granted but not bound
             if (PrivilegedRunner.isShizukuGranted() && !ShizukuShellBridge.isUserServiceBound) {
                 ShizukuShellBridge.reconnect(context)
                 // Brief wait for bind (non-blocking, next read will succeed)

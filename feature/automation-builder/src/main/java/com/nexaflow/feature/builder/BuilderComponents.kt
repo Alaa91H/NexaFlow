@@ -262,7 +262,7 @@ internal fun resolveSpecialStatus(context: Context, special: SpecialPermission):
 }
 
 /**
- * Samsung-style live status row shown inside an action card for ANY special
+ * Live status row shown inside an action card for ANY special
  * permission — root, Shizuku, elevated, write settings, DND access,
  * notification access, accessibility, bluetooth. Instead of a plain button it
  * shows a colour-coded pill (green = granted, amber = grantable now for the
@@ -315,7 +315,7 @@ fun SpecialPermissionStatusRow(
     }
     // The whole row is the button: tap it (or the pill) to start the grant flow.
     // A chevron hints the row is tappable — no separate button, matching the
-    // "badge instead of a button" Samsung-style request.
+    // "badge instead of a button" request style.
     Row(
         modifier = Modifier
             .fillMaxWidth()

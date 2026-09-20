@@ -50,4 +50,4 @@ Historical plans and audits remain in the repository for provenance. The [docume
 
 ## Development
 
-See [architecture](docs/ARCHITECTURE.md), [contributing](CONTRIBUTING.md), [required checks](docs/REQUIRED_CHECKS.md), and [release procedure](docs/RELEASING.md). Report reproducible issues with Android version, device/ROM, permissions and a minimal task; redact tokens and private payloads.
+See [architecture](docs/ARCHITECTURE.md), [contributing](CONTRIBUTING.md), [required checks](docs/REQUIRED_CHECKS.md), and [release procedure](docs/RELEASING.md). Report reproducible issues with Android version, device build, permissions and a minimal task; redact tokens and private payloads.

@@ -22,7 +22,7 @@ object AppForegroundRules {
      * foreground switch and end the session while the user is just typing).
      */
     private val KNOWN_IMES = setOf(
-        "com.samsung.android.honeyboard", // Samsung Keyboard
+        "com.samsung.android.honeyboard", // Vendor keyboard app
         "com.touchtype.swiftkey", // SwiftKey
         "com.miui.inputmethod"
     )

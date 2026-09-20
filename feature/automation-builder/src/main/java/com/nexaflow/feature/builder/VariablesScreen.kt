@@ -49,7 +49,7 @@ import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.domain.models.GlobalVariable
 
 /**
- * Samsung-style manager for Tasker-like global variables. Every variable is
+ * Guided manager for Tasker-like global variables. Every variable is
  * referenced inside action texts as `%NAME` and resolved by the engine when
  * the task runs.
  */

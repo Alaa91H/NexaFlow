@@ -124,7 +124,7 @@ class ExecutionChannelSelectorTest {
         assertNull(
             channelSelector.selectFor(
                 profile(root = true, shizuku = true),
-                capability = RomCapability.LINEAGEOS_SDK
+                capability = RomCapability.PRIVILEGED_ROM_SDK
             )
         )
     }
@@ -192,7 +192,7 @@ class ExecutionChannelSelectorTest {
         val report = channelSelector.executeFor(
             profile(root = true, shizuku = true),
             command = "x",
-            capability = RomCapability.LINEAGEOS_SDK
+            capability = RomCapability.PRIVILEGED_ROM_SDK
         )
         assertFalse(report.success)
         assertNull(report.channel)

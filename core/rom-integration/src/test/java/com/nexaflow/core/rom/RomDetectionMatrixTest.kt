@@ -22,7 +22,7 @@ class RomDetectionMatrixTest {
     @Test
     fun `evolution x wins over inherited lineage version`() {
         assertEquals(
-            RomFamily.EVOLUTION_X,
+            RomFamily.CUSTOM_ROM_PRIVILEGED,
             family(
                 mapOf("ro.evolution.version" to "12.0", "ro.lineage.version" to "21.0"),
                 brand = "Xiaomi", manufacturer = "Xiaomi"
@@ -33,7 +33,7 @@ class RomDetectionMatrixTest {
     @Test
     fun `crdroid wins over inherited lineage version`() {
         assertEquals(
-            RomFamily.CR_DROID,
+            RomFamily.CUSTOM_ROM_PRIVILEGED,
             family(
                 mapOf("ro.crdroid.version" to "10.1", "ro.lineage.version" to "21.0"),
                 brand = "OnePlus", manufacturer = "OnePlus"
@@ -43,26 +43,26 @@ class RomDetectionMatrixTest {
 
     @Test
     fun `arrow pixelos elixir derpfest superior are detected`() {
-        assertEquals(RomFamily.ARROW_OS, family(mapOf("ro.arrow.version" to "14.0")))
-        assertEquals(RomFamily.PIXEL_OS, family(mapOf("ro.pixelos.version" to "5.2")))
-        assertEquals(RomFamily.PROJECT_ELIXIR, family(mapOf("ro.elixir.version" to "4.2")))
-        assertEquals(RomFamily.DERPFEST, family(mapOf("ro.derp.version" to "13.5")))
-        assertEquals(RomFamily.SUPERIOR_OS, family(mapOf("ro.superior.version" to "14.0")))
+        assertEquals(RomFamily.CUSTOM_ROM_PRIVILEGED, family(mapOf("ro.arrow.version" to "14.0")))
+        assertEquals(RomFamily.CUSTOM_ROM_PRIVILEGED, family(mapOf("ro.pixelos.version" to "5.2")))
+        assertEquals(RomFamily.CUSTOM_ROM_PRIVILEGED, family(mapOf("ro.elixir.version" to "4.2")))
+        assertEquals(RomFamily.CUSTOM_ROM_PRIVILEGED, family(mapOf("ro.derp.version" to "13.5")))
+        assertEquals(RomFamily.CUSTOM_ROM_PRIVILEGED, family(mapOf("ro.superior.version" to "14.0")))
     }
 
     @Test
     fun `lineage version alone maps to lineage`() {
-        assertEquals(RomFamily.LINEAGE_OS, family(mapOf("ro.lineage.version" to "21.0")))
+        assertEquals(RomFamily.CUSTOM_ROM_PRIVILEGED, family(mapOf("ro.lineage.version" to "21.0")))
     }
 
     @Test
     fun `graphene os is detected from its build properties`() {
         assertEquals(
-            RomFamily.GRAPHENE_OS,
+            RomFamily.CUSTOM_ROM_PRIVACY,
             family(mapOf("ro.grapheneos.build_type" to "stable"))
         )
         assertEquals(
-            RomFamily.GRAPHENE_OS,
+            RomFamily.CUSTOM_ROM_PRIVACY,
             family(mapOf("ro.grapheneos.version" to "2026080100"))
         )
     }
@@ -72,7 +72,7 @@ class RomDetectionMatrixTest {
     @Test
     fun `lineage on samsung hardware is lineage not one ui`() {
         assertEquals(
-            RomFamily.LINEAGE_OS,
+            RomFamily.CUSTOM_ROM_PRIVILEGED,
             family(
                 mapOf("ro.lineage.version" to "21.0", "ro.build.version.oneui" to "6.1"),
                 brand = "samsung", manufacturer = "samsung"
@@ -85,7 +85,7 @@ class RomDetectionMatrixTest {
     @Test
     fun `hyperos wins over inherited miui property`() {
         assertEquals(
-            RomFamily.HYPER_OS,
+            RomFamily.OEM_SKIN_PRIVILEGED,
             family(
                 mapOf("ro.mi.os.version.name" to "2.0.1", "ro.miui.ui.version.name" to "V140.0"),
                 brand = "Xiaomi", manufacturer = "Xiaomi"
@@ -96,7 +96,7 @@ class RomDetectionMatrixTest {
     @Test
     fun `miui alone maps to miui on xiaomi brand`() {
         assertEquals(
-            RomFamily.MIUI,
+            RomFamily.OEM_SKIN_PRIVILEGED,
             family(mapOf("ro.miui.ui.version.name" to "V140.0"), brand = "Redmi", manufacturer = "Xiaomi")
         )
     }
@@ -106,7 +106,7 @@ class RomDetectionMatrixTest {
     @Test
     fun `oppo with oplus property is color os`() {
         assertEquals(
-            RomFamily.COLOR_OS,
+            RomFamily.OEM_SKIN_PRIVILEGED,
             family(mapOf("ro.oplus.version" to "14.0"), brand = "OPPO", manufacturer = "OPPO")
         )
     }
@@ -114,7 +114,7 @@ class RomDetectionMatrixTest {
     @Test
     fun `realme with oplus property is realme ui via brand tiebreak`() {
         assertEquals(
-            RomFamily.REALME_UI,
+            RomFamily.OEM_SKIN,
             family(mapOf("ro.oplus.version" to "14.0"), brand = "realme", manufacturer = "realme")
         )
     }
@@ -122,7 +122,7 @@ class RomDetectionMatrixTest {
     @Test
     fun `realme version property maps to realme ui`() {
         assertEquals(
-            RomFamily.REALME_UI,
+            RomFamily.OEM_SKIN,
             family(mapOf("ro.build.version.realme" to "RMX3771_14.0"), brand = "realme", manufacturer = "realme")
         )
     }
@@ -133,7 +133,7 @@ class RomDetectionMatrixTest {
         // ro.oxygen.version is not. The ColorOS rule is brand-constrained to
         // OPPO, so the manufacturer fallback resolves OnePlus → OxygenOS.
         assertEquals(
-            RomFamily.OXYGEN_OS,
+            RomFamily.OEM_SKIN_PRIVILEGED,
             family(mapOf("ro.oplus.version" to "13.1"), brand = "OnePlus", manufacturer = "OnePlus")
         )
     }
@@ -141,7 +141,7 @@ class RomDetectionMatrixTest {
     @Test
     fun `oxygen version property maps to oxygen os`() {
         assertEquals(
-            RomFamily.OXYGEN_OS,
+            RomFamily.OEM_SKIN_PRIVILEGED,
             family(mapOf("ro.oxygen.version" to "11.0"), brand = "OnePlus", manufacturer = "OnePlus")
         )
     }
@@ -151,7 +151,7 @@ class RomDetectionMatrixTest {
     @Test
     fun `harmony os wins over inherited emui property`() {
         assertEquals(
-            RomFamily.HARMONY_OS,
+            RomFamily.OEM_SKIN,
             family(
                 mapOf("ro.build.version.harmonyos" to "4.0.0", "ro.build.version.emui" to "Emui_14.0"),
                 brand = "HUAWEI", manufacturer = "HUAWEI"
@@ -162,11 +162,11 @@ class RomDetectionMatrixTest {
     @Test
     fun `emui property maps to emui on huawei or honor brand`() {
         assertEquals(
-            RomFamily.EMUI,
+            RomFamily.OEM_SKIN,
             family(mapOf("ro.build.version.emui" to "Emui_14.0"), brand = "HUAWEI", manufacturer = "HUAWEI")
         )
         assertEquals(
-            RomFamily.EMUI,
+            RomFamily.OEM_SKIN,
             family(mapOf("ro.build.hw_emui_api_level" to "21"), brand = "HONOR", manufacturer = "HONOR")
         )
     }
@@ -176,7 +176,7 @@ class RomDetectionMatrixTest {
     @Test
     fun `one ui property maps to one ui`() {
         assertEquals(
-            RomFamily.ONE_UI,
+            RomFamily.OEM_SKIN_PRIVILEGED,
             family(mapOf("ro.build.version.oneui" to "6.1"), brand = "samsung", manufacturer = "samsung")
         )
     }
@@ -184,7 +184,7 @@ class RomDetectionMatrixTest {
     @Test
     fun `vivo origin os property maps to origin os`() {
         assertEquals(
-            RomFamily.VIVO_ORIGIN_OS,
+            RomFamily.OEM_SKIN,
             family(mapOf("ro.vivo.os.build.display.id" to "OriginOS 4.0"), brand = "vivo", manufacturer = "vivo")
         )
     }
@@ -192,11 +192,11 @@ class RomDetectionMatrixTest {
     @Test
     fun `asus and nothing properties map to their families`() {
         assertEquals(
-            RomFamily.ASUS_ZEN_UI,
+            RomFamily.OEM_SKIN,
             family(mapOf("ro.build.asus.version" to "14.0.0.31"), brand = "asus", manufacturer = "asus")
         )
         assertEquals(
-            RomFamily.NOTHING_OS,
+            RomFamily.OEM_SKIN,
             family(mapOf("ro.nothing.version" to "2.5.5"), brand = "Nothing", manufacturer = "Nothing")
         )
     }
@@ -205,13 +205,13 @@ class RomDetectionMatrixTest {
 
     @Test
     fun `manufacturer fallback resolves stock builds without version props`() {
-        assertEquals(RomFamily.MOTOROLA, family(brand = "motorola", manufacturer = "motorola"))
-        assertEquals(RomFamily.SONY_XPERIA, family(brand = "Sony", manufacturer = "Sony"))
-        assertEquals(RomFamily.PIXEL, family(brand = "google", manufacturer = "Google"))
-        assertEquals(RomFamily.NOTHING_OS, family(brand = "Nothing", manufacturer = "Nothing"))
-        assertEquals(RomFamily.ONE_UI, family(brand = "samsung", manufacturer = "samsung"))
-        assertEquals(RomFamily.ASUS_ZEN_UI, family(brand = "asus", manufacturer = "asus"))
-        assertEquals(RomFamily.COLOR_OS, family(brand = "OPPO", manufacturer = "OPPO"))
+        assertEquals(RomFamily.OEM_STOCK, family(brand = "motorola", manufacturer = "motorola"))
+        assertEquals(RomFamily.OEM_STOCK, family(brand = "Sony", manufacturer = "Sony"))
+        assertEquals(RomFamily.STOCK_GOOGLE, family(brand = "google", manufacturer = "Google"))
+        assertEquals(RomFamily.OEM_SKIN, family(brand = "Nothing", manufacturer = "Nothing"))
+        assertEquals(RomFamily.OEM_SKIN_PRIVILEGED, family(brand = "samsung", manufacturer = "samsung"))
+        assertEquals(RomFamily.OEM_SKIN, family(brand = "asus", manufacturer = "asus"))
+        assertEquals(RomFamily.OEM_SKIN_PRIVILEGED, family(brand = "OPPO", manufacturer = "OPPO"))
     }
 
     // --- Unknown --------------------------------------------------------------
@@ -241,11 +241,9 @@ class RomDetectionMatrixTest {
             buildDisplay = "evolution_marble-17",
             sdkInt = 36
         )
-        assertEquals(RomFamily.EVOLUTION_X, info.family)
+        assertEquals(RomFamily.CUSTOM_ROM_PRIVILEGED, info.family)
         assertEquals(36, info.androidSdk)
-        assertEquals("12.0", info.evolutionVersion)
-        assertEquals("21.0", info.lineageVersion)
-        assertEquals("OFFICIAL", info.evolutionBuildType)
+        assertEquals("21.0", info.vendorVersion)
         assertEquals("Xiaomi", info.manufacturer)
     }
 }

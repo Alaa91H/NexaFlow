@@ -122,7 +122,7 @@ object PermissionCatalog {
      * screen cannot grant. Routing the requirement here sent users to a
      * settings screen that changed nothing and left the task unable to see
      * paired devices. The runtime grant is requested through the system dialog
-     * (with the Samsung-style explain screen) via [runtimePermissionsFor].
+     * (with the explain screen) via [runtimePermissionsFor].
      */
     fun specialPermissionFor(triggerType: TriggerType): SpecialPermission? = when (triggerType) {
         // Android 12+ denies exact alarms by default on many fresh installs.

@@ -97,17 +97,17 @@ class ProviderSelector(
     private fun romBonus(type: ExecutionProviderType, family: RomFamily): Int {
         return when (family) {
             // Custom ROMs with full privileged SDKs reward system-app integration.
-            RomFamily.LINEAGE_OS,
-            RomFamily.CR_DROID,
-            RomFamily.EVOLUTION_X,
-            RomFamily.PIXEL_EXPERIENCE,
-            RomFamily.PARANOID_ANDROID -> if (type == ExecutionProviderType.SYSTEM_APP) 15 else 0
+            RomFamily.CUSTOM_ROM_PRIVILEGED,
+            RomFamily.CUSTOM_ROM_PRIVILEGED,
+            RomFamily.CUSTOM_ROM_PRIVILEGED,
+            RomFamily.CUSTOM_ROM_PRIVILEGED,
+            RomFamily.CUSTOM_ROM_PRIVILEGED -> if (type == ExecutionProviderType.SYSTEM_APP) 15 else 0
             // OEM skins expose hidden APIs to system apps.
-            RomFamily.HYPER_OS,
-            RomFamily.MIUI,
-            RomFamily.COLOR_OS,
-            RomFamily.OXYGEN_OS,
-            RomFamily.ONE_UI -> if (type == ExecutionProviderType.SYSTEM_APP) 10 else 0
+            RomFamily.OEM_SKIN_PRIVILEGED,
+            RomFamily.OEM_SKIN_PRIVILEGED,
+            RomFamily.OEM_SKIN_PRIVILEGED,
+            RomFamily.OEM_SKIN_PRIVILEGED,
+            RomFamily.OEM_SKIN_PRIVILEGED -> if (type == ExecutionProviderType.SYSTEM_APP) 10 else 0
             else -> 0
         }
     }

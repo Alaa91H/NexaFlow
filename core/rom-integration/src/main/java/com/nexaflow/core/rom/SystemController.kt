@@ -1041,19 +1041,19 @@ class SystemController(
         }
     }
 
-    /** Open the Samsung Galaxy Store (falls back to any installed store). */
-    fun openGalaxyStore(): SystemControlResult {
+    /** Open the device's own app-store client (falls back to Play updates). */
+    fun openDeviceStore(): SystemControlResult {
         return try {
-            val galaxyIntent = context.packageManager.getLaunchIntentForPackage("com.sec.android.app.samsungapps")
-            if (galaxyIntent != null) {
-                galaxyIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(galaxyIntent)
-                SystemControlResult.ok("Opened Galaxy Store")
+            val storeIntent = context.packageManager.getLaunchIntentForPackage("com.sec.android.app.samsungapps")
+            if (storeIntent != null) {
+                storeIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(storeIntent)
+                SystemControlResult.ok("Opened device store")
             } else {
                 openPlayStoreUpdates()
             }
         } catch (t: Throwable) {
-            SystemControlResult.fail("Failed to open Galaxy Store: ${t.message}")
+            SystemControlResult.fail("Failed to open device store: ${t.message}")
         }
     }
 
@@ -1302,26 +1302,26 @@ class SystemController(
     }
 
     /**
-     * Writes any ROM custom setting (Evolution X / LineageOS Evolver keys)
-     * through the [EvolutionXSettingsBridge]. Convenience used by the deep
+     * Writes any ROM custom setting (vendor-defined keys)
+     * through the [CustomSettingsBridge]. Convenience used by the deep
      * ROM-integration actions.
      */
     fun writeRomSetting(
-        namespace: EvolutionXSettingsBridge.Namespace,
+        namespace: CustomSettingsBridge.Namespace,
         key: String,
         value: String
     ): SystemControlResult =
-        EvolutionXSettingsBridge.write(context, namespace, key, value)
+        CustomSettingsBridge.write(context, namespace, key, value)
 
     /**
      * Toggles the Quick Settings "smart pulldown" / notification access flags
-     * used by LineageOS-family ROMs (e.g. `quick_settings_tiles`). Writes the
-     * given Evolver key to 1/0 through the elevated runtime.
+     * used by privileged community builds (e.g. `quick_settings_tiles`). Writes the
+     * given vendor custom setting key to 1/0 through the elevated runtime.
      */
     fun setRomToggle(
         key: String,
         enabled: Boolean,
-        namespace: EvolutionXSettingsBridge.Namespace = EvolutionXSettingsBridge.Namespace.SECURE
+        namespace: CustomSettingsBridge.Namespace = CustomSettingsBridge.Namespace.SECURE
     ): SystemControlResult =
         writeRomSetting(namespace, key, if (enabled) "1" else "0")
 

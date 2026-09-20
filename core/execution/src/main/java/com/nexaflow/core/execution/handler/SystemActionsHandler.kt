@@ -21,7 +21,7 @@ class SystemActionsHandler : ActionHandler {
         ActionType.SYSTEM_GO_HOME,
         ActionType.SYSTEM_UPDATE_GOOGLE_PLAY_APPS,
         ActionType.SYSTEM_OPEN_PLAY_UPDATES,
-        ActionType.SYSTEM_OPEN_GALAXY_STORE,
+        ActionType.SYSTEM_OPEN_DEVICE_STORE,
         ActionType.SYSTEM_OPEN_SETTINGS,
         ActionType.SYSTEM_SEND_SMS,
         ActionType.SYSTEM_WAIT,
@@ -174,8 +174,8 @@ class SystemActionsHandler : ActionHandler {
                 ctx.controller.updateGooglePlayApps(action.config)
             ActionType.SYSTEM_OPEN_PLAY_UPDATES ->
                 ctx.controller.openPlayStoreUpdates()
-            ActionType.SYSTEM_OPEN_GALAXY_STORE ->
-                ctx.controller.openGalaxyStore()
+            ActionType.SYSTEM_OPEN_DEVICE_STORE ->
+                ctx.controller.openDeviceStore()
             ActionType.SYSTEM_OPEN_SETTINGS ->
                 ctx.controller.openSystemSettings(action.config["page"] ?: "")
             ActionType.SYSTEM_SEND_SMS ->

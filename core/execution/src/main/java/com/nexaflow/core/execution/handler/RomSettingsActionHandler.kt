@@ -1,64 +1,64 @@
 package com.nexaflow.core.execution.handler
 
-import com.nexaflow.core.rom.EvolutionXSettingsBridge
+import com.nexaflow.core.rom.CustomSettingsBridge
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import org.json.JSONObject
 
 /**
- * Professional Evolution X Evolver handler — covers every Evolver section
+ * Professional Custom ROM settings handler — covers every custom-ROM settings section
  * (QS, Status Bar, Lockscreen, Navigation, Theming, Ambient/AOD, Notifications)
  * with typed, picker-driven actions. Unlike the generic SYSTEM_SET_SETTING,
- * these actions are Evolver-aware: they validate against EvolverCatalog,
+ * these actions are custom-rom-settings-aware: they validate against RomSettingCatalog,
  * use the correct namespace (secure), and provide read-back verification.
  */
-class EvoActionHandler : ActionHandler {
+class RomSettingsActionHandler : ActionHandler {
     override val supportedTypes: Set<ActionType> = setOf(
-        ActionType.EVO_SET_SETTING,
-        ActionType.EVO_QS_TILES,
-        ActionType.EVO_STATUS_BAR,
-        ActionType.EVO_LOCKSCREEN,
-        ActionType.EVO_NAVIGATION,
-        ActionType.EVO_THEME,
-        ActionType.EVO_AMBIENT_AOD,
-        ActionType.EVO_NOTIFICATIONS,
-        ActionType.EVO_BATCH
+        ActionType.ROM_CUSTOM_SETTING,
+        ActionType.ROM_QS_TILES,
+        ActionType.ROM_STATUS_BAR,
+        ActionType.ROM_LOCKSCREEN,
+        ActionType.ROM_NAVIGATION,
+        ActionType.ROM_THEME,
+        ActionType.ROM_AMBIENT_AOD,
+        ActionType.ROM_NOTIFICATIONS,
+        ActionType.ROM_BATCH
     )
 
     override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult {
         return when (action.type) {
-            ActionType.EVO_SET_SETTING -> {
+            ActionType.ROM_CUSTOM_SETTING -> {
                 val namespace = parseNamespace(action.config["namespace"] ?: "SECURE")
                 val key = action.config["key"]?.trim() ?: ""
                 val value = action.config["value"] ?: ""
-                if (key.isBlank()) return SystemControlResult.fail("Evolver key is empty")
-                EvolutionXSettingsBridge.write(ctx.appContext, namespace, key, value)
+                if (key.isBlank()) return SystemControlResult.fail("Custom setting key is empty")
+                CustomSettingsBridge.write(ctx.appContext, namespace, key, value)
             }
 
-            ActionType.EVO_QS_TILES -> {
+            ActionType.ROM_QS_TILES -> {
                 val tiles = action.config["tiles"]?.trim()
                 val columns = action.config["columns"]?.trim()
                 val brightnessSlider = action.config["brightness_slider"]?.trim()
                 val footerText = action.config["footer_text"]?.trim()
                 val results = mutableListOf<SystemControlResult>()
                 if (!tiles.isNullOrBlank()) {
-                    results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "sysui_qs_tiles", tiles)
+                    results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "sysui_qs_tiles", tiles)
                 }
                 if (!columns.isNullOrBlank()) {
                     results += ctx.controller.writeSetting("SECURE", "qs_tiles_columns", columns)
                 }
                 if (!brightnessSlider.isNullOrBlank()) {
-                    results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "qs_show_brightness_slider", brightnessSlider)
+                    results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "qs_show_brightness_slider", brightnessSlider)
                 }
                 if (!footerText.isNullOrBlank()) {
-                    results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "qs_footer_text", footerText)
+                    results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "qs_footer_text", footerText)
                 }
                 combine(results, "QS tiles")
             }
 
-            ActionType.EVO_STATUS_BAR -> {
-                // Config is a JSON map of key->value for status bar Evolver keys
+            ActionType.ROM_STATUS_BAR -> {
+                // Config is a JSON map of key->value for status bar custom keys
                 val json = action.config["config_json"]?.trim().orEmpty()
                 if (json.isBlank()) {
                     // Fallback to individual keys for backward compat
@@ -67,16 +67,16 @@ class EvoActionHandler : ActionHandler {
                     val clockSeconds = action.config["clock_seconds"]
                     val batteryPercent = action.config["battery_percent"]
                     val results = mutableListOf<SystemControlResult>()
-                    if (!clockPos.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "evo_status_bar_clock_position", clockPos)
-                    if (!batteryStyle.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "evo_status_bar_battery_style", batteryStyle)
-                    if (!clockSeconds.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "evo_clock_seconds", clockSeconds)
-                    if (!batteryPercent.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "evo_status_bar_show_battery_percent", batteryPercent)
+                    if (!clockPos.isNullOrBlank()) results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "evo_status_bar_clock_position", clockPos)
+                    if (!batteryStyle.isNullOrBlank()) results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "evo_status_bar_battery_style", batteryStyle)
+                    if (!clockSeconds.isNullOrBlank()) results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "evo_clock_seconds", clockSeconds)
+                    if (!batteryPercent.isNullOrBlank()) results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "evo_status_bar_show_battery_percent", batteryPercent)
                     return combine(results, "Status bar")
                 }
                 batchWrite(ctx, json, "Status bar")
             }
 
-            ActionType.EVO_LOCKSCREEN -> {
+            ActionType.ROM_LOCKSCREEN -> {
                 val json = action.config["config_json"]?.trim().orEmpty()
                 if (json.isBlank()) {
                     val clockStyle = action.config["clock_style"]
@@ -84,83 +84,83 @@ class EvoActionHandler : ActionHandler {
                     val shortcuts = action.config["shortcuts"]
                     val mediaArt = action.config["media_art"]
                     val results = mutableListOf<SystemControlResult>()
-                    if (!clockStyle.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "lockscreen_clock_style", clockStyle)
-                    if (!weather.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "lockscreen_weather_enabled", weather)
-                    if (!shortcuts.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "lockscreen_shortcuts", shortcuts)
-                    if (!mediaArt.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "lockscreen_media_art", mediaArt)
+                    if (!clockStyle.isNullOrBlank()) results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "lockscreen_clock_style", clockStyle)
+                    if (!weather.isNullOrBlank()) results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "lockscreen_weather_enabled", weather)
+                    if (!shortcuts.isNullOrBlank()) results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "lockscreen_shortcuts", shortcuts)
+                    if (!mediaArt.isNullOrBlank()) results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "lockscreen_media_art", mediaArt)
                     return combine(results, "Lockscreen")
                 }
                 batchWrite(ctx, json, "Lockscreen")
             }
 
-            ActionType.EVO_NAVIGATION -> {
+            ActionType.ROM_NAVIGATION -> {
                 val mode = action.config["mode"]?.trim()
                 val results = mutableListOf<SystemControlResult>()
                 if (!mode.isNullOrBlank()) {
-                    // evo_navigation_mode: 0=3-button, 1=2-button, 2=gesture
-                    results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "evo_navigation_mode", mode)
+                    // rom_navigation_mode: 0=3-button, 1=2-button, 2=gesture
+                    results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "rom_navigation_mode", mode)
                 }
                 val backHeight = action.config["back_height"]?.trim()
                 if (!backHeight.isNullOrBlank()) {
-                    results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "back_gesture_height", backHeight)
+                    results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "back_gesture_height", backHeight)
                 }
                 combine(results, "Navigation")
             }
 
-            ActionType.EVO_THEME -> {
+            ActionType.ROM_THEME -> {
                 val json = action.config["config_json"]?.trim().orEmpty()
                 if (json.isBlank()) {
                     val accent = action.config["accent"]?.trim()
                     val monet = action.config["monet"]?.trim()
                     val themedIcons = action.config["themed_icons"]?.trim()
                     val results = mutableListOf<SystemControlResult>()
-                    if (!accent.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "evo_theme_accent", accent)
-                    if (!monet.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "evolution_monet_enabled", monet)
-                    if (!themedIcons.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "themed_icons", themedIcons)
+                    if (!accent.isNullOrBlank()) results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "rom_theme_accent", accent)
+                    if (!monet.isNullOrBlank()) results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "evolution_monet_enabled", monet)
+                    if (!themedIcons.isNullOrBlank()) results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "themed_icons", themedIcons)
                     return combine(results, "Theme")
                 }
                 batchWrite(ctx, json, "Theme")
             }
 
-            ActionType.EVO_AMBIENT_AOD -> {
+            ActionType.ROM_AMBIENT_AOD -> {
                 val enabled = action.config["enabled"]?.trim()
                 val schedule = action.config["schedule"]?.trim()
                 val results = mutableListOf<SystemControlResult>()
                 if (!enabled.isNullOrBlank()) {
-                    results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "always_on_display_enabled", if (enabled == "1" || enabled.equals("true", true)) "1" else "0")
+                    results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "always_on_display_enabled", if (enabled == "1" || enabled.equals("true", true)) "1" else "0")
                 }
                 if (!schedule.isNullOrBlank()) {
-                    results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "evo_aod_schedule", schedule)
+                    results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "rom_aod_schedule", schedule)
                 }
                 combine(results, "Ambient/AOD")
             }
 
-            ActionType.EVO_NOTIFICATIONS -> {
+            ActionType.ROM_NOTIFICATIONS -> {
                 val headsUp = action.config["heads_up"]?.trim()
                 val timeout = action.config["timeout"]?.trim()
                 val lessBoring = action.config["less_boring"]?.trim()
                 val results = mutableListOf<SystemControlResult>()
-                if (!headsUp.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "notification_heads_up", headsUp)
-                if (!timeout.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "heads_up_timeout", timeout)
-                if (!lessBoring.isNullOrBlank()) results += EvolutionXSettingsBridge.write(ctx.appContext, EvolutionXSettingsBridge.Namespace.SECURE, "less_boring_heads_up", lessBoring)
+                if (!headsUp.isNullOrBlank()) results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "notification_heads_up", headsUp)
+                if (!timeout.isNullOrBlank()) results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "heads_up_timeout", timeout)
+                if (!lessBoring.isNullOrBlank()) results += CustomSettingsBridge.write(ctx.appContext, CustomSettingsBridge.Namespace.SECURE, "less_boring_heads_up", lessBoring)
                 combine(results, "Notifications")
             }
 
-            ActionType.EVO_BATCH -> {
+            ActionType.ROM_BATCH -> {
                 val batchJson = action.config["batch_json"]?.trim().orEmpty()
                 if (batchJson.isBlank()) return SystemControlResult.fail("Batch JSON is empty")
                 batchWrite(ctx, batchJson, "Batch")
             }
 
-            else -> SystemControlResult.fail("Unsupported Evolver action ${action.type}")
+            else -> SystemControlResult.fail("Unsupported custom setting action ${action.type}")
         }
     }
 
-    private fun parseNamespace(raw: String): EvolutionXSettingsBridge.Namespace =
+    private fun parseNamespace(raw: String): CustomSettingsBridge.Namespace =
         when (raw.uppercase()) {
-            "SYSTEM" -> EvolutionXSettingsBridge.Namespace.SYSTEM
-            "GLOBAL" -> EvolutionXSettingsBridge.Namespace.GLOBAL
-            else -> EvolutionXSettingsBridge.Namespace.SECURE
+            "SYSTEM" -> CustomSettingsBridge.Namespace.SYSTEM
+            "GLOBAL" -> CustomSettingsBridge.Namespace.GLOBAL
+            else -> CustomSettingsBridge.Namespace.SECURE
         }
 
     private fun batchWrite(ctx: ActionExecutionContext, json: String, label: String): SystemControlResult {
@@ -171,13 +171,13 @@ class EvoActionHandler : ActionHandler {
             while (keys.hasNext()) {
                 val key = keys.next()
                 val value = obj.optString(key, "")
-                // Heuristic: keys starting with evo_/evolution_/sysui_/qs_/lockscreen_ go to SECURE
+                // Heuristic: keys starting with rom_/evolution_/sysui_/qs_/lockscreen_ go to SECURE
                 val namespace = when {
-                    key.startsWith("evo_") || key.startsWith("evolution_") || key.startsWith("sysui_") ||
-                        key.startsWith("qs_") || key.startsWith("lockscreen_") || key.startsWith("status_bar") -> EvolutionXSettingsBridge.Namespace.SECURE
-                    else -> EvolutionXSettingsBridge.Namespace.SECURE
+                    key.startsWith("rom_") || key.startsWith("evolution_") || key.startsWith("sysui_") ||
+                        key.startsWith("qs_") || key.startsWith("lockscreen_") || key.startsWith("status_bar") -> CustomSettingsBridge.Namespace.SECURE
+                    else -> CustomSettingsBridge.Namespace.SECURE
                 }
-                results += EvolutionXSettingsBridge.write(ctx.appContext, namespace, key, value)
+                results += CustomSettingsBridge.write(ctx.appContext, namespace, key, value)
             }
             combine(results, label)
         } catch (e: Exception) {

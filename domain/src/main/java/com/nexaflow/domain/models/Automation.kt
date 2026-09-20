@@ -1,3 +1,5 @@
+@file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+
 package com.nexaflow.domain.models
 
 import androidx.compose.runtime.Immutable
@@ -166,10 +168,10 @@ enum class TriggerType {
      */
     WEBHOOK,
     /**
-     * A real Evolution X / LineageOS custom setting. Reads the actual value
-     * from the ROM's Settings provider through [EvolutionXSettingsBridge] and
+     * A real vendor custom setting. Reads the actual value
+     * from the ROM's Settings provider through [CustomSettingsBridge] and
      * fires when it matches the configured target. Config keys: `namespace`
-     * (SYSTEM/SECURE/GLOBAL), `key` (e.g. `evo_disable_animation`),
+     * (SYSTEM/SECURE/GLOBAL), `key` (e.g. `rom_disable_animation`),
      * `operator` (EQUALS/NOT_EQUALS), `value`.
      */
     ROM_SETTING,
@@ -429,7 +431,10 @@ enum class ActionType {
      */
     SYSTEM_UPDATE_GOOGLE_PLAY_APPS,
     SYSTEM_OPEN_PLAY_UPDATES,
-    SYSTEM_OPEN_GALAXY_STORE,
+    /** Opens the device's own app-store client; falls back to Play updates when absent. Legacy serialized name kept readable. */
+    @kotlinx.serialization.SerialName("SYSTEM_OPEN_DEVICE_STORE")
+    @kotlinx.serialization.json.JsonNames("SYSTEM_OPEN_DEVICE_STORE")
+    SYSTEM_OPEN_DEVICE_STORE,
     SYSTEM_SEND_SMS,
     SYSTEM_SEND_REMINDER,
     SYSTEM_OPEN_SETTINGS,
@@ -660,25 +665,43 @@ enum class ActionType {
      */
     CALL_SILENCE,
 
-    // === Evolution X — Professional Evolver control (typed, picker-driven) ===
-    /** Writes any Evolution X Evolver setting with live picker and category. Config keys: `namespace`, `key`, `value`. Professionally replaces SYSTEM_SET_SETTING for ROM work. */
-    EVO_SET_SETTING,
+    // === Custom ROM settings (typed, picker-driven) ===
+    /** Writes any custom ROM setting with live picker and category. Config keys: `namespace`, `key`, `value`. Replaces SYSTEM_SET_SETTING for ROM work. Serialized names are append-only: the legacy `EVO_*` aliases keep old automations importable. */
+    @kotlinx.serialization.SerialName("ROM_CUSTOM_SETTING")
+    @kotlinx.serialization.json.JsonNames("EVO_SET_SETTING")
+    ROM_CUSTOM_SETTING,
     /** Configures QS tiles and panel. Config keys: `tiles` (csv), `columns`, `brightness_slider` (0/1), `footer_text`. */
-    EVO_QS_TILES,
+    @kotlinx.serialization.SerialName("ROM_QS_TILES")
+    @kotlinx.serialization.json.JsonNames("EVO_QS_TILES")
+    ROM_QS_TILES,
     /** Configures status bar (clock, battery, icons). Config keys: `clock_position`, `clock_seconds`, `battery_style`, `battery_percent`, `show_vpn` etc. as json. */
-    EVO_STATUS_BAR,
+    @kotlinx.serialization.SerialName("ROM_STATUS_BAR")
+    @kotlinx.serialization.json.JsonNames("EVO_STATUS_BAR")
+    ROM_STATUS_BAR,
     /** Configures lockscreen (clock, shortcuts, weather, UDFPS). Config keys: `clock_style`, `shortcuts`, `weather`, `media_art` etc. */
-    EVO_LOCKSCREEN,
+    @kotlinx.serialization.SerialName("ROM_LOCKSCREEN")
+    @kotlinx.serialization.json.JsonNames("EVO_LOCKSCREEN")
+    ROM_LOCKSCREEN,
     /** Configures navigation mode. Config keys: `mode` (GESTURE/3BUTTON/2BUTTON), `back_height`, `navbar_height`. */
-    EVO_NAVIGATION,
+    @kotlinx.serialization.SerialName("ROM_NAVIGATION")
+    @kotlinx.serialization.json.JsonNames("EVO_NAVIGATION")
+    ROM_NAVIGATION,
     /** Configures theming/monet. Config keys: `accent`, `monet`, `themed_icons`, `icon_pack`, `font`. */
-    EVO_THEME,
+    @kotlinx.serialization.SerialName("ROM_THEME")
+    @kotlinx.serialization.json.JsonNames("EVO_THEME")
+    ROM_THEME,
     /** Configures ambient/AOD. Config keys: `aod_enabled`, `aod_schedule`, `doze_*`. */
-    EVO_AMBIENT_AOD,
+    @kotlinx.serialization.SerialName("ROM_AMBIENT_AOD")
+    @kotlinx.serialization.json.JsonNames("EVO_AMBIENT_AOD")
+    ROM_AMBIENT_AOD,
     /** Configures notifications/heads-up. Config keys: `heads_up`, `timeout`, `less_boring`. */
-    EVO_NOTIFICATIONS,
-    /** Batch Evolver apply — writes multiple Evolver keys atomically. Config key: `batch_json` (map of key->value). */
-    EVO_BATCH,
+    @kotlinx.serialization.SerialName("ROM_NOTIFICATIONS")
+    @kotlinx.serialization.json.JsonNames("EVO_NOTIFICATIONS")
+    ROM_NOTIFICATIONS,
+    /** Batch apply — writes multiple custom ROM setting keys atomically. Config key: `batch_json` (map of key->value). */
+    @kotlinx.serialization.SerialName("ROM_BATCH")
+    @kotlinx.serialization.json.JsonNames("EVO_BATCH")
+    ROM_BATCH,
     DATA_TEXT,
     DATA_ENCODING,
     DATA_HASH,

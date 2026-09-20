@@ -13,7 +13,7 @@ import com.nexaflow.core.rom.OemCompat
 /**
  * One-time engine-level alert shown when background monitoring starts on an
  * OEM ROM that gates background execution behind an autostart / app-sleeping
- * switch (MIUI/HyperOS, One UI, ColorOS, OxygenOS).
+ * switch.
  *
  * On those ROMs the OEM aggressively kills background apps after a reboot
  * unless the user enables autostart — which silently stops the monitoring

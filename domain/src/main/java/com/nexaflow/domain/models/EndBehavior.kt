@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 /**
  * What a task should do with one of its actions when the task's condition
- * stops being true (Samsung Modes & Routines style).
+ * stops being true.
  *
  * - [EndMode.LEAVE] — the change stays as the task left it.
  * - [EndMode.REVERT] — restore the device setting to its pre-run state.

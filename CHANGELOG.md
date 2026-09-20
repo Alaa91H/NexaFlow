@@ -2,6 +2,46 @@
 
 ## [Unreleased]
 
+## [v3.78.0] - 2026-09-21
+
+### Changed
+
+- **Product-neutral codebase (vendor decoupling)** — NexaFlow no longer names
+  commercial ROMs, OEMs or devices anywhere in its code, resources, UI or docs.
+  The engine reasons about *capability tiers*, never products:
+  - **`RomFamily`** redefined from 27 vendor-named entries to 8 neutral
+    capability tiers (`CUSTOM_ROM_PRIVILEGED`, `CUSTOM_ROM_PRIVACY`,
+    `OEM_SKIN_PRIVILEGED`, `OEM_SKIN`, `OEM_STOCK`, `STOCK_GOOGLE`, `AOSP`,
+    `OTHER`) describing what a build can do, not what it is called.
+  - **`RomDetectionMatrix`** keeps every detection fingerprint (version
+    properties, brand constraints, manufacturer fallbacks) as protocol evidence
+    in one reviewed table, now mapping to the neutral tiers.
+  - **Files renamed**: `EvolutionXSettingsBridge` → `CustomSettingsBridge`,
+    `EvolverCatalog` → `RomSettingCatalog`, `EvoActionHandler` →
+    `RomSettingsActionHandler`, `EvolverSettingPickerDialog` →
+    `RomSettingPickerDialog`; the vendor autostart deep-link resolver now picks
+    the first vendor gate activity that actually resolves on the device.
+  - **Serialized action-type names neutralized** with full backward
+    compatibility: `EVO_*` actions are now `ROM_*`
+    (`ROM_CUSTOM_SETTING`, `ROM_QS_TILES`, `ROM_STATUS_BAR`, `ROM_LOCKSCREEN`,
+    `ROM_NAVIGATION`, `ROM_THEME`, `ROM_AMBIENT_AOD`, `ROM_NOTIFICATIONS`,
+    `ROM_BATCH`) and `SYSTEM_OPEN_GALAXY_STORE` is now
+    `SYSTEM_OPEN_DEVICE_STORE`. Legacy `@JsonNames` aliases keep every existing
+    saved automation, backup and execution record readable.
+  - **All user-facing strings** (11 languages) reworded neutrally — the custom
+    ROM settings picker, the device-store action and the ROM-setting trigger no
+    longer advertise any product; per-locale translations re-verified.
+  - **Real device setting keys are preserved as protocol surface** (`evo_*`,
+    `sysui_*`, `lineage_*` prefixes) so the picker and the ROM-setting monitor
+    keep working against actual on-device settings providers.
+
+### Added
+
+- **Vendor-neutrality CI gate** (`scripts/check_vendor_neutrality.py`, wired
+  into the lint job with a self-test): any commercial ROM/OEM/device name
+  outside the protocol-allowlisted files fails CI, so vendor coupling cannot
+  silently return.
+
 ## [v3.77.0] - 2026-09-20
 
 ### Added

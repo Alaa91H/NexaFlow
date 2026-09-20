@@ -59,7 +59,7 @@ enum class SpecialPermission {
 }
 
 /**
- * Maps a requested runtime permission set to its Samsung-style explanation
+ * Maps a requested runtime permission set to its Guided explanation
  * (icon + reason). Falls back to a generic explanation for unknown permissions.
  */
 fun permissionExplainInfo(permissions: Array<String>): PermissionExplainInfo = when {
@@ -84,7 +84,7 @@ fun permissionExplainInfo(permissions: Array<String>): PermissionExplainInfo = w
 }
 
 /**
- * Maps a special (settings-screen) permission to its Samsung-style explanation.
+ * Maps a special (settings-screen) permission to its Guided explanation.
  * These open a dedicated system settings screen instead of a permission dialog,
  * so the explain screen explains why and where the user is being taken.
  */

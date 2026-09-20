@@ -945,13 +945,13 @@ internal fun scheduledTaskCardColor(index: Int, darkTheme: Boolean): Color = whe
     else -> Color(0xFFD3D3D3)
 }
 
-/** Samsung-style "Next run · 8:00 PM · Last run · 2 h ago" meta line under the title. */
+/** "Next run · 8:00 PM · Last run · 2 h ago" meta line under the title. */
 @Composable
 private fun RoutineMetaLine(
     nextRun: String?,
     lastRunAt: Long?
 ) {
-    // Last-run is shown even when the routine is disabled (Samsung does too);
+    // Last-run is shown even when the routine is disabled;
     // only the "Next" preview is gated on the routine being enabled.
     val segments = buildList {
         nextRun?.let { add(it) }
@@ -1082,7 +1082,7 @@ private fun triggerLabel(type: TriggerType): Int = when (type) {
     TriggerType.PLUGIN_EVENT -> R.string.trigger_plugin_event
 }
 
-/** Design-time preview of a Samsung-style routine card. */
+/** Design-time preview of a routine card. */
 @Preview(name = "Routine card", showBackground = true, widthDp = 400)
 @Preview(name = "Routine card (dark)", showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable

@@ -9,7 +9,7 @@ import com.nexaflow.core.rom.model.RomFamily
  *
  * [DIRECT]      — public Android SDK API, works on every ROM without elevation.
  * [BRIDGE]      — hidden/system API reached through [com.nexaflow.core.rom.RomSystemApiBridge]
- *                 or an OEM bridge (Evolution X / LineageOS settings).
+ *                 or the vendor custom-settings bridge.
  * [SHELL]       — plain `cmd ...` / `settings put ...` shell command (no root needed).
  * [ELEVATED]    — shell command that requires root or Shizuku.
  * [UNSUPPORTED] — no viable path on this device; the UI must hide the command.
@@ -33,7 +33,7 @@ enum class ExecutionStrategy {
  * @property capabilities  at least one of these must be available; empty = none required.
  * @property requiresIntegration  minimum integration level (NORMAL/ROOT/SHIZUKU/SYSTEM...).
  * @property romFamilies  allowed ROM families; empty = all families.
- * @property deniedFamilies  ROM families where the command is known to fail (e.g. MIUI blocking it).
+ * @property deniedFamilies  Build tiers where the command is known to fail.
  * @property strategy  preferred execution path.
  * @property permissions  Android runtime/install-time permissions to verify (empty = none).
  */

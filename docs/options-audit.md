@@ -114,7 +114,7 @@ The trigger editor is defaults-driven (a default-config map per trigger plus a g
 | `SYSTEM_LOCATION` | toggle | `enabled`, `mode`, `network_mask`, `network_mask_schema`, `network_subscription_id` |
 | `SYSTEM_UPDATE_GOOGLE_PLAY_APPS` | static | `body`, `dpi`, `durationMs`, `enabled`, `filename`, `hostname`, `hour`, `key`, `lat`, `level`, `lng`, `message`, `minute`, `minutes`, `mode`, `namespace`, `number`, `package`, `page`, `password`, `path`, `pattern`, `percent`, `policy`, `query`, `scale`, `seconds`, `skipUi`, `sound`, `speed`, `ssid`, `subject`, `text`, `timeoutSeconds`, `title`, `to`, `tone`, `url`, `value`, `vibration`, `x`, `y`, `zone` |
 | `SYSTEM_OPEN_PLAY_UPDATES` | static | `body`, `dpi`, `durationMs`, `enabled`, `filename`, `hostname`, `hour`, `key`, `lat`, `level`, `lng`, `message`, `minute`, `minutes`, `mode`, `namespace`, `number`, `package`, `page`, `password`, `path`, `pattern`, `percent`, `policy`, `query`, `scale`, `seconds`, `skipUi`, `sound`, `speed`, `ssid`, `subject`, `text`, `timeoutSeconds`, `title`, `to`, `tone`, `url`, `value`, `vibration`, `x`, `y`, `zone` |
-| `SYSTEM_OPEN_GALAXY_STORE` | static | `body`, `dpi`, `durationMs`, `enabled`, `filename`, `hostname`, `hour`, `key`, `lat`, `level`, `lng`, `message`, `minute`, `minutes`, `mode`, `namespace`, `number`, `package`, `page`, `password`, `path`, `pattern`, `percent`, `policy`, `query`, `scale`, `seconds`, `skipUi`, `sound`, `speed`, `ssid`, `subject`, `text`, `timeoutSeconds`, `title`, `to`, `tone`, `url`, `value`, `vibration`, `x`, `y`, `zone` |
+| `SYSTEM_OPEN_DEVICE_STORE` | static | `body`, `dpi`, `durationMs`, `enabled`, `filename`, `hostname`, `hour`, `key`, `lat`, `level`, `lng`, `message`, `minute`, `minutes`, `mode`, `namespace`, `number`, `package`, `page`, `password`, `path`, `pattern`, `percent`, `policy`, `query`, `scale`, `seconds`, `skipUi`, `sound`, `speed`, `ssid`, `subject`, `text`, `timeoutSeconds`, `title`, `to`, `tone`, `url`, `value`, `vibration`, `x`, `y`, `zone` |
 | `SYSTEM_SEND_SMS` | variable chips + text field(s) | `number`, `text` |
 | `SYSTEM_SEND_REMINDER` | bounded-number + variable chips + text field(s) | `hour`, `minute`, `text`, `title` |
 | `SYSTEM_OPEN_SETTINGS` | chips | `page` |
@@ -230,15 +230,15 @@ The trigger editor is defaults-driven (a default-config map per trigger plus a g
 | `SYSTEM_SET_TIMEZONE` | chips + toggle + variable chips + delegated: NotificationButtonsEditor + text field(s) | `zone` |
 | `CALL_BLOCK` | static | — |
 | `CALL_SILENCE` | static | — |
-| `EVO_SET_SETTING` | chips + text field(s) | `key`, `namespace`, `value` |
-| `EVO_QS_TILES` | chips + toggle + text field(s) | `brightness_slider`, `columns`, `footer_text`, `tiles` |
-| `EVO_STATUS_BAR` | chips + toggle | `battery_percent`, `battery_style`, `clock_position`, `clock_seconds`, `config_json` |
-| `EVO_LOCKSCREEN` | chips + toggle | `clock_style`, `config_json`, `media_art`, `shortcuts`, `weather` |
-| `EVO_NAVIGATION` | static | `back_height`, `mode` |
-| `EVO_THEME` | chips + toggle | `accent`, `config_json`, `monet`, `themed_icons` |
-| `EVO_AMBIENT_AOD` | chips + toggle | `enabled`, `schedule` |
-| `EVO_NOTIFICATIONS` | chips + toggle | `heads_up`, `less_boring`, `timeout` |
-| `EVO_BATCH` | chips + text field(s) | `batch_json` |
+| `ROM_CUSTOM_SETTING` | chips + text field(s) | `key`, `namespace`, `value` |
+| `ROM_QS_TILES` | chips + toggle + text field(s) | `brightness_slider`, `columns`, `footer_text`, `tiles` |
+| `ROM_STATUS_BAR` | chips + toggle | `battery_percent`, `battery_style`, `clock_position`, `clock_seconds`, `config_json` |
+| `ROM_LOCKSCREEN` | chips + toggle | `clock_style`, `config_json`, `media_art`, `shortcuts`, `weather` |
+| `ROM_NAVIGATION` | static | `back_height`, `mode` |
+| `ROM_THEME` | chips + toggle | `accent`, `config_json`, `monet`, `themed_icons` |
+| `ROM_AMBIENT_AOD` | chips + toggle | `enabled`, `schedule` |
+| `ROM_NOTIFICATIONS` | chips + toggle | `heads_up`, `less_boring`, `timeout` |
+| `ROM_BATCH` | chips + text field(s) | `batch_json` |
 | `DATA_TEXT` | chips + text field(s) | — |
 | `DATA_ENCODING` | static | — |
 | `DATA_HASH` | static | — |
@@ -297,7 +297,7 @@ Modes: LEAVE (keep as-is), REVERT (restore pre-run state), SET_VALUE (apply a sp
 | `SYSTEM_LOCATION` | toggle | LEAVE, RERUN, SET_VALUE (on/off), REVERT |
 | `SYSTEM_UPDATE_GOOGLE_PLAY_APPS` | default | LEAVE, RERUN |
 | `SYSTEM_OPEN_PLAY_UPDATES` | default | LEAVE, RERUN |
-| `SYSTEM_OPEN_GALAXY_STORE` | default | LEAVE, RERUN |
+| `SYSTEM_OPEN_DEVICE_STORE` | default | LEAVE, RERUN |
 | `SYSTEM_SEND_SMS` | default | LEAVE, RERUN |
 | `SYSTEM_SEND_REMINDER` | default | LEAVE, RERUN |
 | `SYSTEM_OPEN_SETTINGS` | default | LEAVE, RERUN |
@@ -413,15 +413,15 @@ Modes: LEAVE (keep as-is), REVERT (restore pre-run state), SET_VALUE (apply a sp
 | `SYSTEM_SET_TIMEZONE` | default | LEAVE, RERUN |
 | `CALL_BLOCK` | default | LEAVE, RERUN |
 | `CALL_SILENCE` | default | LEAVE, RERUN |
-| `EVO_SET_SETTING` | default | LEAVE, RERUN |
-| `EVO_QS_TILES` | default | LEAVE, RERUN |
-| `EVO_STATUS_BAR` | default | LEAVE, RERUN |
-| `EVO_LOCKSCREEN` | default | LEAVE, RERUN |
-| `EVO_NAVIGATION` | default | LEAVE, RERUN |
-| `EVO_THEME` | default | LEAVE, RERUN |
-| `EVO_AMBIENT_AOD` | default | LEAVE, RERUN |
-| `EVO_NOTIFICATIONS` | default | LEAVE, RERUN |
-| `EVO_BATCH` | default | LEAVE, RERUN |
+| `ROM_CUSTOM_SETTING` | default | LEAVE, RERUN |
+| `ROM_QS_TILES` | default | LEAVE, RERUN |
+| `ROM_STATUS_BAR` | default | LEAVE, RERUN |
+| `ROM_LOCKSCREEN` | default | LEAVE, RERUN |
+| `ROM_NAVIGATION` | default | LEAVE, RERUN |
+| `ROM_THEME` | default | LEAVE, RERUN |
+| `ROM_AMBIENT_AOD` | default | LEAVE, RERUN |
+| `ROM_NOTIFICATIONS` | default | LEAVE, RERUN |
+| `ROM_BATCH` | default | LEAVE, RERUN |
 | `DATA_TEXT` | default | LEAVE, RERUN |
 | `DATA_ENCODING` | default | LEAVE, RERUN |
 | `DATA_HASH` | default | LEAVE, RERUN |

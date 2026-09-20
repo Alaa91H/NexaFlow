@@ -49,7 +49,7 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Samsung-style run-details screen: shows the full execution timeline of one
+ * Run-details screen: shows the full execution timeline of one
  * history record — every action with its own outcome, duration and the channel
  * that ran it, plus the run summary (status, channel, total duration).
  */

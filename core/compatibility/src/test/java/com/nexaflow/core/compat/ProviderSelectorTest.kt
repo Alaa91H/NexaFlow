@@ -111,19 +111,19 @@ class ProviderSelectorTest {
     @Test
     fun capability_lineageSdk_onlySystemApp() {
         val best = selector.bestFor(
-            profile(level = IntegrationLevel.SYSTEM_APP, family = RomFamily.LINEAGE_OS),
-            capability = RomCapability.LINEAGEOS_SDK
+            profile(level = IntegrationLevel.SYSTEM_APP, family = RomFamily.CUSTOM_ROM_PRIVILEGED),
+            capability = RomCapability.PRIVILEGED_ROM_SDK
         )
         assertEquals(ExecutionProviderType.SYSTEM_APP, best?.type)
     }
 
     @Test
     fun capability_romSdk_rootSatisfies() {
-        // isElevated() treats ROOT as elevated — a rooted LineageOS device can
+        // isElevated() treats ROOT as elevated — a rooted community build can
         // drive LINEAGEOS_SDK even without being a system app.
         val best = selector.bestFor(
-            profile(root = true, family = RomFamily.LINEAGE_OS),
-            capability = RomCapability.LINEAGEOS_SDK
+            profile(root = true, family = RomFamily.CUSTOM_ROM_PRIVILEGED),
+            capability = RomCapability.PRIVILEGED_ROM_SDK
         )
         assertEquals(ExecutionProviderType.ROOT, best?.type)
     }
@@ -131,8 +131,8 @@ class ProviderSelectorTest {
     @Test
     fun capability_romSdk_shizukuSatisfies() {
         val best = selector.bestFor(
-            profile(shizuku = true, family = RomFamily.HYPER_OS),
-            capability = RomCapability.MIUI_HIDDEN_API
+            profile(shizuku = true, family = RomFamily.OEM_SKIN_PRIVILEGED),
+            capability = RomCapability.VENDOR_HIDDEN_API_PRIMARY
         )
         assertEquals(ExecutionProviderType.SHIZUKU, best?.type)
     }
@@ -171,17 +171,17 @@ class ProviderSelectorTest {
 
     @Test
     fun customRom_bonusFavorsSystemApp() {
-        val lineage = profile(level = IntegrationLevel.SYSTEM_APP, family = RomFamily.LINEAGE_OS)
+        val lineage = profile(level = IntegrationLevel.SYSTEM_APP, family = RomFamily.CUSTOM_ROM_PRIVILEGED)
         val aosp = profile(level = IntegrationLevel.SYSTEM_APP, family = RomFamily.AOSP)
         val systemApp = selector.rankedFor(lineage).first { it.type == ExecutionProviderType.SYSTEM_APP }
         val baseline = selector.rankedFor(aosp).first { it.type == ExecutionProviderType.SYSTEM_APP }
-        // +15 on LineageOS, +0 on AOSP.
+        // +15 on privileged community tiers, +0 on AOSP.
         assertTrue(selector.score(systemApp, lineage) > selector.score(baseline, aosp))
     }
 
     @Test
     fun oemRom_bonusApplies() {
-        val oneUi = profile(level = IntegrationLevel.SYSTEM_APP, family = RomFamily.ONE_UI)
+        val oneUi = profile(level = IntegrationLevel.SYSTEM_APP, family = RomFamily.OEM_SKIN_PRIVILEGED)
         val aosp = profile(level = IntegrationLevel.SYSTEM_APP, family = RomFamily.AOSP)
         val onOneUi = selector.rankedFor(oneUi).first { it.type == ExecutionProviderType.SYSTEM_APP }
         val onAosp = selector.rankedFor(aosp).first { it.type == ExecutionProviderType.SYSTEM_APP }
@@ -212,8 +212,8 @@ class ProviderSelectorTest {
     @Test
     fun bestForAll_requiresEveryCapability() {
         val best = selector.bestForAll(
-            profile(level = IntegrationLevel.SYSTEM_APP, family = RomFamily.LINEAGE_OS),
-            capabilities = setOf(RomCapability.READ_LOGS, RomCapability.LINEAGEOS_SDK)
+            profile(level = IntegrationLevel.SYSTEM_APP, family = RomFamily.CUSTOM_ROM_PRIVILEGED),
+            capabilities = setOf(RomCapability.READ_LOGS, RomCapability.PRIVILEGED_ROM_SDK)
         )
         assertEquals(ExecutionProviderType.SYSTEM_APP, best?.type)
     }

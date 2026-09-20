@@ -1241,7 +1241,7 @@ fun ActionConfigEditor(
         ActionType.SYSTEM_GO_HOME,
         ActionType.SYSTEM_UPDATE_GOOGLE_PLAY_APPS,
         ActionType.SYSTEM_OPEN_PLAY_UPDATES,
-        ActionType.SYSTEM_OPEN_GALAXY_STORE,
+        ActionType.SYSTEM_OPEN_DEVICE_STORE,
         ActionType.SYSTEM_MEDIA_STOP,
         ActionType.SYSTEM_OPEN_NOTIFICATIONS,
         ActionType.SYSTEM_OPEN_QUICK_SETTINGS,
@@ -1322,45 +1322,45 @@ fun ActionConfigEditor(
                 )
             }
         }
-        ActionType.EVO_SET_SETTING -> {
+        ActionType.ROM_CUSTOM_SETTING -> {
             var showPicker by remember { mutableStateOf(false) }
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(text = stringResource(R.string.evo_custom_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                Text(text = stringResource(R.string.evo_custom_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                Text(text = stringResource(R.string.rom_custom_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                Text(text = stringResource(R.string.rom_custom_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
                 TextButton(onClick = { showPicker = true }, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Filled.Tune, null, modifier = Modifier.padding(end = 6.dp))
-                    Text(stringResource(R.string.evo_custom_pick))
+                    Text(stringResource(R.string.rom_custom_pick))
                 }
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("SECURE", "SYSTEM", "GLOBAL").forEach { ns ->
                         SelectChip(selected = (config["namespace"] ?: "SECURE") == ns, onClick = { onConfigChange(config + ("namespace" to ns)) }, label = ns)
                     }
                 }
-                OutlinedTextField(value = config["key"] ?: "", onValueChange = { onConfigChange(config + ("key" to it)) }, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.evo_custom_key_label)) }, singleLine = true)
+                OutlinedTextField(value = config["key"] ?: "", onValueChange = { onConfigChange(config + ("key" to it)) }, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.rom_custom_key_label)) }, singleLine = true)
                 if (config["key"]?.isNotBlank() == true) {
-                    val cat = com.nexaflow.core.rom.EvolverCatalog.categorize(config["key"]!!)
+                    val cat = com.nexaflow.core.rom.RomSettingCatalog.categorize(config["key"]!!)
                     Text("${categoryLabel(cat)} • ${categoryDescription(cat)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
                 }
-                Text(text = stringResource(R.string.evo_custom_value_label), style = MaterialTheme.typography.titleSmall)
+                Text(text = stringResource(R.string.rom_custom_value_label), style = MaterialTheme.typography.titleSmall)
                 // Chips for common boolean/enum values — easy customization without typing
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("0", "1", "true", "false", "on", "off").forEach { v ->
                         SelectChip(selected = (config["value"] ?: "") == v, onClick = { onConfigChange(config + ("value" to v)) }, label = v)
                     }
                 }
-                OutlinedTextField(value = config["value"] ?: "", onValueChange = { onConfigChange(config + ("value" to it)) }, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.evo_custom_value_custom)) }, singleLine = true, placeholder = { Text(stringResource(R.string.evo_custom_value_placeholder)) })
+                OutlinedTextField(value = config["value"] ?: "", onValueChange = { onConfigChange(config + ("value" to it)) }, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.rom_custom_value_custom)) }, singleLine = true, placeholder = { Text(stringResource(R.string.rom_custom_value_placeholder)) })
             }
             if (showPicker) {
-                EvolverSettingPickerDialog(onPick = { entry ->
+                RomSettingPickerDialog(onPick = { entry ->
                     onConfigChange(mapOf("namespace" to entry.namespace.name, "key" to entry.key, "value" to entry.value))
                     showPicker = false
                 }, onDismiss = { showPicker = false })
             }
         }
-        ActionType.EVO_QS_TILES -> {
+        ActionType.ROM_QS_TILES -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.evo_qs_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                Text(stringResource(R.string.evo_qs_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                Text(stringResource(R.string.rom_qs_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.rom_qs_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
                 val tiles = (config["tiles"] ?: "").split(',').map { it.trim() }.filter { it.isNotBlank() }.toSet()
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("wifi", "bt", "cell", "dnd", "airplane", "rotation", "flashlight", "battery", "alarm", "hotspot", "location", "nfc").forEach { tile ->
@@ -1370,112 +1370,112 @@ fun ActionConfigEditor(
                         }, label = tile)
                     }
                 }
-                Text(stringResource(R.string.evo_qs_columns), style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.rom_qs_columns), style = MaterialTheme.typography.titleSmall)
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf("3", "4", "5").forEach { col ->
-                        SelectChip(selected = (config["columns"] ?: "4") == col, onClick = { onConfigChange(config + ("columns" to col)) }, label = "$col${stringResource(R.string.evo_qs_cols_suffix)}")
+                        SelectChip(selected = (config["columns"] ?: "4") == col, onClick = { onConfigChange(config + ("columns" to col)) }, label = "$col${stringResource(R.string.rom_qs_cols_suffix)}")
                     }
                 }
-                ToggleConfigRow(label = stringResource(R.string.evo_qs_brightness_slider), checked = config["brightness_slider"] != "0", onCheckedChange = { onConfigChange(config + ("brightness_slider" to if (it) "1" else "0")) })
-                ToggleConfigRow(label = stringResource(R.string.evo_qs_footer_toggle), checked = config["footer_text"]?.isNotBlank() == true, onCheckedChange = { if (!it) onConfigChange(config + ("footer_text" to "")) })
+                ToggleConfigRow(label = stringResource(R.string.rom_qs_brightness_slider), checked = config["brightness_slider"] != "0", onCheckedChange = { onConfigChange(config + ("brightness_slider" to if (it) "1" else "0")) })
+                ToggleConfigRow(label = stringResource(R.string.rom_qs_footer_toggle), checked = config["footer_text"]?.isNotBlank() == true, onCheckedChange = { if (!it) onConfigChange(config + ("footer_text" to "")) })
                 if (config["footer_text"]?.isNotBlank() == true || tiles.isEmpty()) {
-                    OutlinedTextField(value = config["footer_text"] ?: "", onValueChange = { onConfigChange(config + ("footer_text" to it)) }, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.evo_qs_footer_field)) }, singleLine = true, placeholder = { Text(stringResource(R.string.evo_qs_footer_placeholder)) })
+                    OutlinedTextField(value = config["footer_text"] ?: "", onValueChange = { onConfigChange(config + ("footer_text" to it)) }, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.rom_qs_footer_field)) }, singleLine = true, placeholder = { Text(stringResource(R.string.rom_qs_footer_placeholder)) })
                 }
             }
         }
-        ActionType.EVO_STATUS_BAR -> {
+        ActionType.ROM_STATUS_BAR -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.evo_status_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                Text(stringResource(R.string.evo_status_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
-                Text(stringResource(R.string.evo_status_clock_position), style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.rom_status_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.rom_status_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                Text(stringResource(R.string.rom_status_clock_position), style = MaterialTheme.typography.titleSmall)
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf("left" to stringResource(R.string.evo_pos_left), "center" to stringResource(R.string.evo_pos_center), "right" to stringResource(R.string.evo_pos_right)).forEach { (v, l) ->
+                    listOf("left" to stringResource(R.string.rom_pos_left), "center" to stringResource(R.string.rom_pos_center), "right" to stringResource(R.string.rom_pos_right)).forEach { (v, l) ->
                         SelectChip(selected = (config["clock_position"] ?: "right") == v, onClick = { onConfigChange(config + ("clock_position" to v)) }, label = l)
                     }
                 }
-                Text(stringResource(R.string.evo_status_battery_style), style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.rom_status_battery_style), style = MaterialTheme.typography.titleSmall)
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf("0" to stringResource(R.string.evo_battery_icon), "1" to stringResource(R.string.evo_battery_circle), "2" to stringResource(R.string.evo_battery_text), "3" to stringResource(R.string.evo_battery_hidden)).forEach { (v, l) ->
+                    listOf("0" to stringResource(R.string.rom_battery_icon), "1" to stringResource(R.string.rom_battery_circle), "2" to stringResource(R.string.rom_battery_text), "3" to stringResource(R.string.rom_battery_hidden)).forEach { (v, l) ->
                         SelectChip(selected = (config["battery_style"] ?: "0") == v, onClick = { onConfigChange(config + ("battery_style" to v)) }, label = l)
                     }
                 }
-                ToggleConfigRow(label = stringResource(R.string.evo_status_battery_percent), checked = config["battery_percent"] == "1", onCheckedChange = { onConfigChange(config + ("battery_percent" to if (it) "1" else "0")) })
-                ToggleConfigRow(label = stringResource(R.string.evo_status_clock_seconds), checked = config["clock_seconds"] == "1", onCheckedChange = { onConfigChange(config + ("clock_seconds" to if (it) "1" else "0")) })
+                ToggleConfigRow(label = stringResource(R.string.rom_status_battery_percent), checked = config["battery_percent"] == "1", onCheckedChange = { onConfigChange(config + ("battery_percent" to if (it) "1" else "0")) })
+                ToggleConfigRow(label = stringResource(R.string.rom_status_clock_seconds), checked = config["clock_seconds"] == "1", onCheckedChange = { onConfigChange(config + ("clock_seconds" to if (it) "1" else "0")) })
             }
         }
-        ActionType.EVO_LOCKSCREEN -> {
+        ActionType.ROM_LOCKSCREEN -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.evo_lockscreen_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                Text(stringResource(R.string.evo_lockscreen_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
-                Text(stringResource(R.string.evo_lockscreen_clock_style), style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.rom_lockscreen_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.rom_lockscreen_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                Text(stringResource(R.string.rom_lockscreen_clock_style), style = MaterialTheme.typography.titleSmall)
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf("0" to stringResource(R.string.evo_clock_default), "1" to stringResource(R.string.evo_clock_bold), "2" to stringResource(R.string.evo_clock_minimal), "3" to stringResource(R.string.evo_clock_weather)).forEach { (v, l) ->
+                    listOf("0" to stringResource(R.string.rom_clock_default), "1" to stringResource(R.string.rom_clock_bold), "2" to stringResource(R.string.rom_clock_minimal), "3" to stringResource(R.string.rom_clock_weather)).forEach { (v, l) ->
                         SelectChip(selected = (config["clock_style"] ?: "0") == v, onClick = { onConfigChange(config + ("clock_style" to v)) }, label = l)
                     }
                 }
-                ToggleConfigRow(label = stringResource(R.string.evo_lockscreen_weather), checked = config["weather"] == "1", onCheckedChange = { onConfigChange(config + ("weather" to if (it) "1" else "0")) })
-                ToggleConfigRow(label = stringResource(R.string.evo_lockscreen_shortcuts), checked = config["shortcuts"] == "1", onCheckedChange = { onConfigChange(config + ("shortcuts" to if (it) "1" else "0")) })
-                ToggleConfigRow(label = stringResource(R.string.evo_lockscreen_media_art), checked = config["media_art"] != "0", onCheckedChange = { onConfigChange(config + ("media_art" to if (it) "1" else "0")) })
+                ToggleConfigRow(label = stringResource(R.string.rom_lockscreen_weather), checked = config["weather"] == "1", onCheckedChange = { onConfigChange(config + ("weather" to if (it) "1" else "0")) })
+                ToggleConfigRow(label = stringResource(R.string.rom_lockscreen_shortcuts), checked = config["shortcuts"] == "1", onCheckedChange = { onConfigChange(config + ("shortcuts" to if (it) "1" else "0")) })
+                ToggleConfigRow(label = stringResource(R.string.rom_lockscreen_media_art), checked = config["media_art"] != "0", onCheckedChange = { onConfigChange(config + ("media_art" to if (it) "1" else "0")) })
             }
         }
-        ActionType.EVO_THEME -> {
+        ActionType.ROM_THEME -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.evo_theme_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                Text(stringResource(R.string.evo_theme_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
-                Text(stringResource(R.string.evo_theme_monet), style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.rom_theme_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.rom_theme_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                Text(stringResource(R.string.rom_theme_monet), style = MaterialTheme.typography.titleSmall)
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf("1" to stringResource(R.string.evo_on), "0" to stringResource(R.string.evo_off)).forEach { (v, l) ->
+                    listOf("1" to stringResource(R.string.rom_on), "0" to stringResource(R.string.rom_off)).forEach { (v, l) ->
                         SelectChip(selected = (config["monet"] ?: "1") == v, onClick = { onConfigChange(config + ("monet" to v)) }, label = l)
                     }
                 }
-                Text(stringResource(R.string.evo_theme_accent), style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.rom_theme_accent), style = MaterialTheme.typography.titleSmall)
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf("#FF4081" to stringResource(R.string.evo_accent_pink), "#2196F3" to stringResource(R.string.evo_accent_blue), "#4CAF50" to stringResource(R.string.evo_accent_green), "#FF9800" to stringResource(R.string.evo_accent_orange)).forEach { (v, l) ->
+                    listOf("#FF4081" to stringResource(R.string.rom_accent_pink), "#2196F3" to stringResource(R.string.rom_accent_blue), "#4CAF50" to stringResource(R.string.rom_accent_green), "#FF9800" to stringResource(R.string.rom_accent_orange)).forEach { (v, l) ->
                         SelectChip(selected = (config["accent"] ?: "#FF4081").equals(v, ignoreCase = true), onClick = { onConfigChange(config + ("accent" to v)) }, label = l)
                     }
                 }
-                ToggleConfigRow(label = stringResource(R.string.evo_theme_themed_icons), checked = config["themed_icons"] == "1", onCheckedChange = { onConfigChange(config + ("themed_icons" to if (it) "1" else "0")) })
+                ToggleConfigRow(label = stringResource(R.string.rom_theme_themed_icons), checked = config["themed_icons"] == "1", onCheckedChange = { onConfigChange(config + ("themed_icons" to if (it) "1" else "0")) })
             }
         }
-        ActionType.EVO_AMBIENT_AOD, ActionType.EVO_NOTIFICATIONS, ActionType.EVO_NAVIGATION -> {
+        ActionType.ROM_AMBIENT_AOD, ActionType.ROM_NOTIFICATIONS, ActionType.ROM_NAVIGATION -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(when (option.actionType) {
-                    ActionType.EVO_AMBIENT_AOD -> stringResource(R.string.evo_aod_title)
-                    ActionType.EVO_NOTIFICATIONS -> stringResource(R.string.evo_notif_title)
-                    else -> stringResource(R.string.evo_nav_title)
+                    ActionType.ROM_AMBIENT_AOD -> stringResource(R.string.rom_aod_title)
+                    ActionType.ROM_NOTIFICATIONS -> stringResource(R.string.rom_notif_title)
+                    else -> stringResource(R.string.rom_nav_title)
                 }, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
                 when (option.actionType) {
-                    ActionType.EVO_AMBIENT_AOD -> {
-                        ToggleConfigRow(label = stringResource(R.string.evo_aod_enabled), checked = config["enabled"] == "1" || config["aod_enabled"] == "1", onCheckedChange = { onConfigChange(config + ("enabled" to if (it) "1" else "0")) })
-                        Text(stringResource(R.string.evo_aod_schedule), style = MaterialTheme.typography.titleSmall)
+                    ActionType.ROM_AMBIENT_AOD -> {
+                        ToggleConfigRow(label = stringResource(R.string.rom_aod_enabled), checked = config["enabled"] == "1" || config["aod_enabled"] == "1", onCheckedChange = { onConfigChange(config + ("enabled" to if (it) "1" else "0")) })
+                        Text(stringResource(R.string.rom_aod_schedule), style = MaterialTheme.typography.titleSmall)
                         FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            listOf("0" to stringResource(R.string.evo_schedule_off), "1" to stringResource(R.string.evo_schedule_on), "2" to stringResource(R.string.evo_schedule_night)).forEach { (v, l) ->
+                            listOf("0" to stringResource(R.string.rom_schedule_off), "1" to stringResource(R.string.rom_schedule_on), "2" to stringResource(R.string.rom_schedule_night)).forEach { (v, l) ->
                                 SelectChip(selected = (config["schedule"] ?: "0") == v, onClick = { onConfigChange(config + ("schedule" to v)) }, label = l)
                             }
                         }
                     }
-                    ActionType.EVO_NOTIFICATIONS -> {
-                        ToggleConfigRow(label = stringResource(R.string.evo_notif_heads_up), checked = config["heads_up"] != "0", onCheckedChange = { onConfigChange(config + ("heads_up" to if (it) "1" else "0")) })
-                        Text(stringResource(R.string.evo_notif_timeout), style = MaterialTheme.typography.titleSmall)
+                    ActionType.ROM_NOTIFICATIONS -> {
+                        ToggleConfigRow(label = stringResource(R.string.rom_notif_heads_up), checked = config["heads_up"] != "0", onCheckedChange = { onConfigChange(config + ("heads_up" to if (it) "1" else "0")) })
+                        Text(stringResource(R.string.rom_notif_timeout), style = MaterialTheme.typography.titleSmall)
                         FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             listOf("3" to "3s", "5" to "5s", "8" to "8s").forEach { (v, l) ->
                                 SelectChip(selected = (config["timeout"] ?: "5") == v, onClick = { onConfigChange(config + ("timeout" to v)) }, label = l)
                             }
                         }
-                        ToggleConfigRow(label = stringResource(R.string.evo_notif_less_boring), checked = config["less_boring"] == "1", onCheckedChange = { onConfigChange(config + ("less_boring" to if (it) "1" else "0")) })
+                        ToggleConfigRow(label = stringResource(R.string.rom_notif_less_boring), checked = config["less_boring"] == "1", onCheckedChange = { onConfigChange(config + ("less_boring" to if (it) "1" else "0")) })
                     }
                     else -> {
-                        Text(stringResource(R.string.evo_nav_mode), style = MaterialTheme.typography.titleSmall)
+                        Text(stringResource(R.string.rom_nav_mode), style = MaterialTheme.typography.titleSmall)
                         FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            listOf("2" to stringResource(R.string.evo_nav_gesture), "0" to stringResource(R.string.evo_nav_3button), "1" to stringResource(R.string.evo_nav_2button)).forEach { (v, l) ->
+                            listOf("2" to stringResource(R.string.rom_nav_gesture), "0" to stringResource(R.string.rom_nav_3button), "1" to stringResource(R.string.rom_nav_2button)).forEach { (v, l) ->
                                 SelectChip(selected = (config["mode"] ?: "2") == v, onClick = { onConfigChange(config + ("mode" to v)) }, label = l)
                             }
                         }
                         // Back-gesture height (dp): the handler writes it as
                         // `back_gesture_height` when set. Chips keep it typed.
-                        Text(stringResource(R.string.evo_nav_back_height), style = MaterialTheme.typography.titleSmall)
+                        Text(stringResource(R.string.rom_nav_back_height), style = MaterialTheme.typography.titleSmall)
                         FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            listOf("" to stringResource(R.string.evo_nav_back_default), "0" to stringResource(R.string.evo_nav_back_full), "24" to stringResource(R.string.evo_nav_back_low), "48" to stringResource(R.string.evo_nav_back_medium), "80" to stringResource(R.string.evo_nav_back_high)).forEach { (v, l) ->
+                            listOf("" to stringResource(R.string.rom_nav_back_default), "0" to stringResource(R.string.rom_nav_back_full), "24" to stringResource(R.string.rom_nav_back_low), "48" to stringResource(R.string.rom_nav_back_medium), "80" to stringResource(R.string.rom_nav_back_high)).forEach { (v, l) ->
                                 SelectChip(
                                     selected = (config["back_height"] ?: "") == v,
                                     onClick = {
@@ -1490,12 +1490,12 @@ fun ActionConfigEditor(
                 }
             }
         }
-        ActionType.EVO_BATCH -> {
+        ActionType.ROM_BATCH -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.evo_batch_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                Text(stringResource(R.string.evo_batch_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                Text(stringResource(R.string.rom_batch_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.rom_batch_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf("sysui_qs_tiles" to stringResource(R.string.evo_batch_key_qs), "evo_status_bar_battery_style" to stringResource(R.string.evo_batch_key_battery), "lockscreen_clock_style" to stringResource(R.string.evo_batch_key_lockscreen)).forEach { (k, l) ->
+                    listOf("sysui_qs_tiles" to stringResource(R.string.rom_batch_key_qs), "rom_status_bar_battery_style" to stringResource(R.string.rom_batch_key_battery), "lockscreen_clock_style" to stringResource(R.string.rom_batch_key_lockscreen)).forEach { (k, l) ->
                         val batch = config["batch_json"] ?: ""
                         SelectChip(selected = batch.contains(k), onClick = {
                             // Toggle key in batch (adds with default 1, removes if present)
@@ -1509,7 +1509,7 @@ fun ActionConfigEditor(
                         }, label = l)
                     }
                 }
-                OutlinedTextField(value = config["batch_json"] ?: "", onValueChange = { onConfigChange(config + ("batch_json" to it)) }, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.evo_batch_json)) }, placeholder = { Text("{\"sysui_qs_tiles\":\"wifi,bt,cell\"}") }, minLines = 2, maxLines = 4)
+                OutlinedTextField(value = config["batch_json"] ?: "", onValueChange = { onConfigChange(config + ("batch_json" to it)) }, modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.rom_batch_json)) }, placeholder = { Text("{\"sysui_qs_tiles\":\"wifi,bt,cell\"}") }, minLines = 2, maxLines = 4)
             }
         }
         ActionType.SYSTEM_SCREENSHOT -> {
@@ -2080,7 +2080,7 @@ fun ActionConfigEditor(
 }
 
 /**
- * Samsung-style insert row: tapping a chip appends its `%NAME` placeholder to
+ * Chip insert row: tapping a chip appends its `%NAME` placeholder to
  * the field's current text so users never type the syntax by hand. Built-in
  * and user-global variables share the row.
  */
@@ -2180,7 +2180,7 @@ private fun ToggleConfigRow(
 }
 
 /**
- * Samsung-style editor for notification action buttons: attach up to three
+ * Editor for notification action buttons: attach up to three
  * tasks that run straight from the notification when it is shown. Tapping a
  * row opens a picker of the other saved tasks; each picked task becomes a
  * button labelled with the task name.

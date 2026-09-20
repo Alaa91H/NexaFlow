@@ -107,7 +107,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.rememberCoroutineScope
 import com.nexaflow.core.engine.currentCellularGeneration
-import com.nexaflow.core.rom.EvolutionXSettingsBridge
+import com.nexaflow.core.rom.CustomSettingsBridge
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.SelectChip
 import com.nexaflow.domain.models.TriggerType
@@ -569,7 +569,7 @@ private fun millisToDateString(millis: Long): String {
         .toString()
 }
 
-/** Samsung-style tappable field that opens a Material3 date picker. */
+/** Guided tappable field that opens a Material3 date picker. */
 @Composable
 private fun DateField(
     label: String,
@@ -611,7 +611,7 @@ private fun DateField(
     }
 }
 
-/** Samsung-style tappable row that opens the time picker. */
+/** Guided tappable row that opens the time picker. */
 @Composable
 private fun TimeField(
     label: String,
@@ -1653,7 +1653,7 @@ fun TriggerEditorCard(
                                 modifier = Modifier.padding(start = 6.dp)
                             )
                         }
-                        // Samsung-style lifecycle hint: the task runs while the
+                        // Guided lifecycle hint: the task runs while the
                         // app stays open and its end options apply on close.
                         Text(
                             text = stringResource(R.string.trigger_app_while_open),
@@ -2662,7 +2662,7 @@ fun TriggerEditorCard(
                     val operator = draft.config["operator"] ?: "EQUALS"
                     val key = draft.config["key"] ?: ""
                     val value = draft.config["value"] ?: ""
-                    var showEvolverPicker by remember { mutableStateOf(false) }
+                    var showRomSettingPicker by remember { mutableStateOf(false) }
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(text = stringResource(R.string.rom_setting_trigger_title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
                         Text(text = stringResource(R.string.rom_setting_trigger_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
@@ -2681,15 +2681,15 @@ fun TriggerEditorCard(
                             selected = namespace,
                             onSelect = { onConfigChange(draft.copy(config = draft.config + ("namespace" to it))) }
                         )
-                        // ── Key: professional Evolver picker (chip-driven) ───
+                        // ── Key: professional vendor custom setting picker (chip-driven) ───
                         // The key is chosen from the live device keys or the
                         // curated catalog — never typed by hand — so the stored
                         // key always matches a real ROM key.
                         val selectedKeyCategory = if (key.isNotBlank()) {
-                            com.nexaflow.core.rom.EvolverCatalog.categorize(key)
+                            com.nexaflow.core.rom.RomSettingCatalog.categorize(key)
                         } else null
                         OutlinedButton(
-                            onClick = { showEvolverPicker = true },
+                            onClick = { showRomSettingPicker = true },
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Icon(imageVector = Icons.Filled.Bolt, contentDescription = null)
@@ -2713,13 +2713,13 @@ fun TriggerEditorCard(
                                 color = MaterialTheme.colorScheme.secondary
                             )
                         }
-                        if (showEvolverPicker) {
-                            EvolverSettingPickerDialog(
+                        if (showRomSettingPicker) {
+                            RomSettingPickerDialog(
                                 onPick = { entry ->
                                     onConfigChange(draft.copy(config = draft.config + mapOf("namespace" to entry.namespace.name, "key" to entry.key, "value" to entry.value)))
-                                    showEvolverPicker = false
+                                    showRomSettingPicker = false
                                 },
-                                onDismiss = { showEvolverPicker = false }
+                                onDismiss = { showRomSettingPicker = false }
                             )
                         }
                         // ── Operator + target value (chips, no free text) ───
@@ -2740,12 +2740,12 @@ fun TriggerEditorCard(
                         // the catalog: booleans get on/off, enums get their fixed
                         // option set, everything else gets the common values.
                         val keyMeta = if (key.isNotBlank()) {
-                            com.nexaflow.core.rom.EvolverCatalog.metaFor(key)
+                            com.nexaflow.core.rom.RomSettingCatalog.metaFor(key)
                         } else null
                         val valueChoices: List<String> = when (keyMeta?.valueType) {
-                            com.nexaflow.core.rom.EvolverCatalog.ValueType.BOOLEAN -> listOf("1", "0")
-                            com.nexaflow.core.rom.EvolverCatalog.ValueType.ENUM -> keyMeta.options.ifEmpty { listOf("0", "1", "2") }
-                            com.nexaflow.core.rom.EvolverCatalog.ValueType.INTEGER -> listOf("0", "1", "2", "5", "10", "48")
+                            com.nexaflow.core.rom.RomSettingCatalog.ValueType.BOOLEAN -> listOf("1", "0")
+                            com.nexaflow.core.rom.RomSettingCatalog.ValueType.ENUM -> keyMeta.options.ifEmpty { listOf("0", "1", "2") }
+                            com.nexaflow.core.rom.RomSettingCatalog.ValueType.INTEGER -> listOf("0", "1", "2", "5", "10", "48")
                             else -> listOf("1", "0", "true", "false", "on", "off")
                         }
                         OptionChips(

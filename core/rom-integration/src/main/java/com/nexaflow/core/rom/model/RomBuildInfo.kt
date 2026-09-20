@@ -1,5 +1,11 @@
 package com.nexaflow.core.rom.model
 
+/**
+ * Live build snapshot of the running device. Fields describe protocol-visible
+ * facts (properties, versions, identity strings) in neutral terms; which
+ * product a build is has no meaning to the engine — only its capability tier
+ * ([family]) and evidence values do. Not serialized: process-local.
+ */
 data class RomBuildInfo(
     val family: RomFamily,
     val brand: String,
@@ -10,12 +16,10 @@ data class RomBuildInfo(
     val securityPatch: String,
     val buildId: String,
     val buildDisplay: String,
-    /** `ro.evolution.version` (e.g. "12.0" on Evolution X 12); blank on other ROMs. */
-    val evolutionVersion: String = "",
-    /** `ro.lineage.version` — Evolution X is LineageOS-based, so this is populated there too. */
-    val lineageVersion: String = "",
-    /** `ro.evolution.buildtype` (OFFICIAL / COMMUNITY / UNOFFICIAL) when present. */
-    val evolutionBuildType: String = "",
-    /** `Build.VERSION.SDK_INT` (12 = S_V2/31, ..., 17 = 36). Drives version-aware capability gating. */
+    /** Version property of the privileged community-ROM base, when present. */
+    val vendorVersion: String = "",
+    /** The shared base version property inherited by derived forks, when present. */
+    val baseVersion: String = "",
+    /** `Build.VERSION.SDK_INT` (12 = S_V2/31, ...). Drives version-aware capability gating. */
     val androidSdk: Int = 0
 )

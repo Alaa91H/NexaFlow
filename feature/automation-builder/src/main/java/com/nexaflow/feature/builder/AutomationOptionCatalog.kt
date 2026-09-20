@@ -27,7 +27,7 @@ internal object AutomationOptionCatalog {
         ActionType.SYSTEM_SEND_NOTIFICATION,
         ActionType.SYSTEM_UPDATE_GOOGLE_PLAY_APPS,
         ActionType.SYSTEM_OPEN_PLAY_UPDATES,
-        ActionType.SYSTEM_OPEN_GALAXY_STORE,
+        ActionType.SYSTEM_OPEN_DEVICE_STORE,
         ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS
     )
 }

@@ -6,17 +6,18 @@ import android.content.Intent
 import com.nexaflow.core.rom.model.RomFamily
 
 /**
- * OEM compatibility helpers.
+ * Vendor compatibility helpers.
  *
- * Many vendor ROMs (Xiaomi MIUI/HyperOS, Samsung One UI, OPPO ColorOS,
- * OnePlus OxygenOS, Vivo OriginOS, Huawei EMUI...) aggressively kill
- * background apps unless the user enables autostart / disables app
- * sleeping. This object detects the current ROM family (via [RomDetector])
- * and produces the vendor-specific deep link to the right settings screen.
+ * Several vendor builds aggressively kill background apps unless the user
+ * enables autostart / disables app sleeping. This object detects the current
+ * build tier (via [RomDetector]) and produces the vendor-specific deep link
+ * to the right settings screen when the build gates background execution.
  *
  * The deep links are best-effort: [autostartDeepLink] only returns an intent
  * whose target component actually resolves on the device, so calling it is
- * always safe.
+ * always safe. Component names below are protocol surface — literal package/
+ * class names of vendor settings activities — and are consulted only when the
+ * detected tier matches and the component resolves.
  */
 object OemCompat {
 
@@ -46,53 +47,56 @@ object OemCompat {
             .apply()
     }
 
-    /** True when the running ROM is one of the vendor families that gate
+    /** True when the running build is a vendor tier that gates
      *  background execution behind an autostart / app-sleeping switch. */
     fun hasVendorAutostartGate(): Boolean {
-        return when (RomDetector.detect().family) {
-            RomFamily.MIUI,
-            RomFamily.HYPER_OS,
-            RomFamily.ONE_UI,
-            RomFamily.COLOR_OS,
-            RomFamily.OXYGEN_OS -> true
-            else -> false
-        }
+        return RomDetector.detect().family == RomFamily.OEM_SKIN_PRIVILEGED
     }
 
     /**
      * Deep link to the vendor autostart / battery-saver screen, or null when
-     * the device runs a clean ROM (Pixel/AOSP/custom) — where the standard
-     * battery-optimization screen is sufficient — or when the vendor app
-     * isn't installed. The returned intent, when present, resolves.
+     * the device runs a build without a vendor autostart gate — where the
+     * standard battery-optimization screen is sufficient — or when the vendor
+     * app isn't installed. The returned intent, when present, resolves.
      */
     fun autostartDeepLink(context: Context): Intent? {
-        val raw = when (RomDetector.detect().family) {
-            RomFamily.MIUI, RomFamily.HYPER_OS -> Intent().setComponent(
-                ComponentName(
-                    "com.miui.securitycenter",
-                    "com.miui.permcenter.autostart.AutoStartManagementActivity"
-                )
-            )
-            RomFamily.COLOR_OS -> Intent().setComponent(
-                ComponentName(
-                    "com.coloros.safecenter",
-                    "com.coloros.safecenter.permission.startup.StartupAppListActivity"
-                )
-            )
-            RomFamily.OXYGEN_OS -> Intent().setComponent(
-                ComponentName(
-                    "com.oneplus.security",
-                    "com.oneplus.security.chainlaunch.view.ChainLaunchAppListActivity"
-                )
-            )
-            RomFamily.ONE_UI -> Intent().setComponent(
-                ComponentName(
-                    "com.samsung.android.lool",
-                    "com.samsung.android.sm.ui.battery.BatteryActivity"
-                )
-            )
+        val family = RomDetector.detect().family
+        val raw = when (family) {
+            RomFamily.OEM_SKIN_PRIVILEGED -> vendorGateIntent(context)
             else -> null
         } ?: return null
         return raw.resolveActivity(context.packageManager)?.let { raw }
+    }
+
+    /**
+     * Known vendor autostart-gate activities, protocol evidence only. The
+     * first component that resolves on this device wins; vendor builds differ
+     * in which package ships the gate screen.
+     */
+    private fun vendorGateIntent(context: Context): Intent? {
+        val candidates = listOf(
+            ComponentName(
+                "com.miui.securitycenter",
+                "com.miui.permcenter.autostart.AutoStartManagementActivity"
+            ),
+            ComponentName(
+                "com.coloros.safecenter",
+                "com.coloros.safecenter.permission.startup.StartupAppListActivity"
+            ),
+            ComponentName(
+                "com.oneplus.security",
+                "com.oneplus.security.chainlaunch.view.ChainLaunchAppListActivity"
+            ),
+            ComponentName(
+                "com.samsung.android.lool",
+                "com.samsung.android.sm.ui.battery.BatteryActivity"
+            )
+        )
+        val pm = context.packageManager
+        for (component in candidates) {
+            val intent = Intent().setComponent(component)
+            if (intent.resolveActivity(pm) != null) return intent
+        }
+        return null
     }
 }

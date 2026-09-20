@@ -17,11 +17,11 @@ class CapabilityRouterTest {
 
     private val fingerprint = DeviceFingerprint(
         manufacturer = "Google",
-        model = "Pixel 8",
+        model = "Test Device",
         device = "shiba",
         androidApi = 35,
         securityPatch = "2026-01-01",
-        romFamily = RomFamily.PIXEL
+        romFamily = RomFamily.STOCK_GOOGLE
     )
 
     private class FakeStrategy(

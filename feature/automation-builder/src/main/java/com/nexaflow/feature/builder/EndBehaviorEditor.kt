@@ -24,7 +24,7 @@ import com.nexaflow.domain.models.EndBehaviorCatalog
 import com.nexaflow.domain.models.EndMode
 
 /**
- * Samsung-style "when the task ends" editor shown for each action in the
+ * "When the task ends" editor shown for each action in the
  * unified end-behavior section at the bottom of the builder.
  *
  * Every action offers two base options — leave the change as-is, or run the

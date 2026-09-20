@@ -37,9 +37,8 @@ object RomIntegrationManager {
                     "brand=${buildInfo.brand} manufacturer=${buildInfo.manufacturer} " +
                     "device=${buildInfo.device} model=${buildInfo.model} " +
                     "build=${buildInfo.buildId} display=${buildInfo.buildDisplay} " +
-                    "evolution=${buildInfo.evolutionVersion.orEmpty()} " +
-                    "lineage=${buildInfo.lineageVersion.orEmpty()} " +
-                    "buildtype=${buildInfo.evolutionBuildType.orEmpty()} " +
+                    "vendor=${buildInfo.vendorVersion.orEmpty()} " +
+                    "base=${buildInfo.baseVersion.orEmpty()} " +
                     "level=${integrationLevel.name}"
             )
         }

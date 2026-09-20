@@ -8,7 +8,7 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * Guards the ROM-family detection ordering: Evolution X is a LineageOS fork
+ * Guards the build-tier detection ordering: fork evidence precedes the base
  * and sets BOTH `ro.evolution.version` and `ro.lineage.version`, so it must
  * be classified as EVOLUTION_X — never as LINEAGE_OS. This matters because
  * the deep-integration card and the LineageOS-derived capabilities only
@@ -47,7 +47,7 @@ class RomDetectorTest {
             "ro.evolution.version" to "12.0",
             "ro.lineage.version" to "21.0"
         )
-        assertEquals(RomFamily.EVOLUTION_X, RomDetector.detect().family)
+        assertEquals(RomFamily.CUSTOM_ROM_PRIVILEGED, RomDetector.detect().family)
     }
 
     @Test
@@ -55,18 +55,16 @@ class RomDetectorTest {
         SystemPropertyProvider.injectedProperties = mapOf(
             "ro.lineage.version" to "21.0"
         )
-        assertEquals(RomFamily.LINEAGE_OS, RomDetector.detect().family)
+        assertEquals(RomFamily.CUSTOM_ROM_PRIVILEGED, RomDetector.detect().family)
     }
 
     @Test
-    fun `evolution version and build type are captured in build info`() {
+    fun `vendor version property is captured in build info`() {
         SystemPropertyProvider.injectedProperties = mapOf(
-            "ro.evolution.version" to "12.0",
-            "ro.evolution.buildtype" to "OFFICIAL"
+            "ro.lineage.version" to "21.0"
         )
         val info = RomDetector.detect()
-        assertEquals("12.0", info.evolutionVersion)
-        assertEquals("OFFICIAL", info.evolutionBuildType)
+        assertEquals("21.0", info.vendorVersion)
     }
 
     @Test
@@ -80,6 +78,6 @@ class RomDetectorTest {
         SystemPropertyProvider.injectedProperties = mapOf(
             "ro.miui.ui.version.name" to "V140.0"
         )
-        assertEquals(RomFamily.MIUI, RomDetector.detect().family)
+        assertEquals(RomFamily.OEM_SKIN_PRIVILEGED, RomDetector.detect().family)
     }
 }

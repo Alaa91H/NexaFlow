@@ -56,12 +56,12 @@ object ShizukuProvider : ExecutionProvider {
         RomCapability.FORCE_STOP_PACKAGES,
         RomCapability.KILL_BACKGROUND_PROCESSES,
         RomCapability.STATUS_BAR_CONTROL,
-        RomCapability.LINEAGEOS_SDK,
-        RomCapability.LINEAGEOS_HARDWARE,
-        RomCapability.MIUI_HIDDEN_API,
-        RomCapability.COLOROS_HIDDEN_API,
-        RomCapability.ONE_UI_HIDDEN_API,
-        RomCapability.OEM_HIDDEN_API
+        RomCapability.PRIVILEGED_ROM_SDK,
+        RomCapability.PRIVILEGED_ROM_HARDWARE,
+        RomCapability.VENDOR_HIDDEN_API_PRIMARY,
+        RomCapability.VENDOR_HIDDEN_API_EXTENDED,
+        RomCapability.VENDOR_HIDDEN_API,
+        RomCapability.VENDOR_HIDDEN_API
     )
 
     override fun isAvailable(profile: DeviceProfile): Boolean = profile.shizukuGranted
@@ -107,12 +107,12 @@ object RootProvider : ExecutionProvider {
         RomCapability.FORCE_STOP_PACKAGES,
         RomCapability.KILL_BACKGROUND_PROCESSES,
         RomCapability.STATUS_BAR_CONTROL,
-        RomCapability.LINEAGEOS_SDK,
-        RomCapability.LINEAGEOS_HARDWARE,
-        RomCapability.MIUI_HIDDEN_API,
-        RomCapability.COLOROS_HIDDEN_API,
-        RomCapability.ONE_UI_HIDDEN_API,
-        RomCapability.OEM_HIDDEN_API
+        RomCapability.PRIVILEGED_ROM_SDK,
+        RomCapability.PRIVILEGED_ROM_HARDWARE,
+        RomCapability.VENDOR_HIDDEN_API_PRIMARY,
+        RomCapability.VENDOR_HIDDEN_API_EXTENDED,
+        RomCapability.VENDOR_HIDDEN_API,
+        RomCapability.VENDOR_HIDDEN_API
     )
 
     override fun isAvailable(profile: DeviceProfile): Boolean = profile.rootAvailable
@@ -132,12 +132,12 @@ object SystemAppProvider : ExecutionProvider {
         RomCapability.STATUS_BAR_CONTROL,
         RomCapability.FORCE_STOP_PACKAGES,
         RomCapability.KILL_BACKGROUND_PROCESSES,
-        RomCapability.LINEAGEOS_SDK,
-        RomCapability.LINEAGEOS_HARDWARE,
-        RomCapability.MIUI_HIDDEN_API,
-        RomCapability.COLOROS_HIDDEN_API,
-        RomCapability.ONE_UI_HIDDEN_API,
-        RomCapability.OEM_HIDDEN_API
+        RomCapability.PRIVILEGED_ROM_SDK,
+        RomCapability.PRIVILEGED_ROM_HARDWARE,
+        RomCapability.VENDOR_HIDDEN_API_PRIMARY,
+        RomCapability.VENDOR_HIDDEN_API_EXTENDED,
+        RomCapability.VENDOR_HIDDEN_API,
+        RomCapability.VENDOR_HIDDEN_API
     )
 
     override fun isAvailable(profile: DeviceProfile): Boolean {

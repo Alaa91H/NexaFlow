@@ -18,7 +18,7 @@ import org.robolectric.annotation.GraphicsMode
 
 /**
  * Compose UI tests (Robolectric) for [SpecialPermissionStatusRow] — the live
- * Samsung-style permission badge inside action/trigger cards. The test seam
+ * Permission badge inside action/trigger cards. The test seam
  * [SpecialPermissionStatusRow.probe] pins each visual state without touching
  * the real root/Shizuku/settings probes.
  */

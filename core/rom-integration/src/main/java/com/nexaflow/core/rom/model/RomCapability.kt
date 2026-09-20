@@ -44,33 +44,29 @@ enum class RomCapability(
         "Kill background processes",
         "Stop background processes and services."
     ),
-    LINEAGEOS_SDK(
-        "LineageOS SDK",
-        "Full LineageOS privileged API access (power profiles, battery, ...)."
+    PRIVILEGED_ROM_SDK(
+        "Privileged ROM SDK",
+        "Full privileged ROM API access (power profiles, battery, ...) on community builds."
     ),
-    LINEAGEOS_HARDWARE(
-        "LineageOS hardware",
-        "Vendor hardware features exposed by LineageOS (LED, vibration, display, ...)."
+    PRIVILEGED_ROM_HARDWARE(
+        "Privileged ROM hardware",
+        "Vendor hardware features exposed by privileged community builds (LED, vibration, display, ...)."
     ),
-    EVOLUTION_X_SETTINGS(
-        "Evolution X settings",
-        "Read and write Evolution X custom settings (Evolver keys) on LineageOS-based builds."
+    CUSTOM_ROM_SETTINGS(
+        "Custom ROM settings",
+        "Read and write the build's custom settings (vendor-defined keys) on privileged community builds."
     ),
-    MIUI_HIDDEN_API(
-        "MIUI / HyperOS APIs",
-        "Xiaomi system APIs exposed when running as a system component."
+    VENDOR_HIDDEN_API_PRIMARY(
+        "Vendor hidden APIs",
+        "Vendor system APIs exposed to system components on gated builds."
     ),
-    COLOROS_HIDDEN_API(
-        "ColorOS / OxygenOS APIs",
-        "OPPO/OnePlus system APIs exposed when running as a system component."
+    VENDOR_HIDDEN_API_EXTENDED(
+        "Extended vendor APIs",
+        "Additional vendor system APIs exposed to system components on related builds."
     ),
-    ONE_UI_HIDDEN_API(
-        "One UI APIs",
-        "Samsung system APIs exposed when running as a system component."
-    ),
-    OEM_HIDDEN_API(
-        "OEM vendor APIs",
-        "Vendor system APIs (OriginOS, EMUI/HarmonyOS, ZenUI, Nothing OS, Motorola, Sony) exposed when running as a system component."
+    VENDOR_HIDDEN_API(
+        "Vendor APIs",
+        "Vendor system APIs exposed when running as a system component."
     ),
     ROOT_SHELL(
         "Root shell",

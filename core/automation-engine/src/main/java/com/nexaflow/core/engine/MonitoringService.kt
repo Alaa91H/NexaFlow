@@ -235,8 +235,8 @@ class MonitoringService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // On OEM ROMs with an autostart gate (MIUI/HyperOS, One UI, ColorOS,
-        // OxygenOS) background monitoring is silently killed after a reboot
+        // On vendor builds with an autostart gate, background monitoring is
+        // silently killed after a reboot
         // unless the user enables auto-start. Nudge once, via a notification
         // that deep-links to the vendor screen, whenever monitoring starts.
         // The notification shares a single flag with the Permission Manager

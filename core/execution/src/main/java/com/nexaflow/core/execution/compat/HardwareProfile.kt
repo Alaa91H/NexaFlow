@@ -9,7 +9,7 @@ import android.hardware.SensorManager
  * Dynamic hardware profile — probes the actual device for what it physically
  * has, so the builder can hide triggers/actions that can never fire here.
  *
- * This is what makes the engine truly adaptive and strict: a whyred without
+ * This is what makes the engine truly adaptive and strict: a device without
  * NFC will never show NFC triggers, a tablet without telephony will hide
  * network-mode, etc. Pure live probes, no hard-coded device lists.
  * Sensor availability is based on the same default-sensor lookup used by the monitor.

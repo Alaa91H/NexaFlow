@@ -20,7 +20,7 @@ import com.nexaflow.domain.models.TriggerType
  *   bluetooth scan/discoverability) → SHELL with a capability or ELEVATED
  *   fallback.
  * - Power ops (reboot/shutdown/restart UI/soft restart) → ELEVATED only.
- * - OEM skins (MIUI/HyperOS, ColorOS, One UI) often hard-block `cmd` paths:
+ * - Vendor skins often hard-block `cmd` paths:
  *   those commands get a [CommandSpec.deniedFamilies] so the engine hides them
  *   there instead of showing a command that would silently fail.
  */
@@ -161,8 +161,8 @@ object CommandCatalog {
         ActionType.SYSTEM_OPEN_SYSTEM_UPDATE_SETTINGS to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_UPDATE_GOOGLE_PLAY_APPS to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_OPEN_PLAY_UPDATES to CommandSpec.UNIVERSAL,
-        ActionType.SYSTEM_OPEN_GALAXY_STORE to CommandSpec(
-            romFamilies = setOf(RomFamily.ONE_UI),
+        ActionType.SYSTEM_OPEN_DEVICE_STORE to CommandSpec(
+            romFamilies = setOf(RomFamily.OEM_SKIN_PRIVILEGED),
             strategy = ExecutionStrategy.DIRECT
         ),
 
@@ -195,16 +195,16 @@ object CommandCatalog {
         ActionType.SYSTEM_SET_ALARM to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_SET_TIMER to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_SET_SETTING to shell(setOf(RomCapability.WRITE_SETTINGS)),
-        // Evolution X — Evolver (typed, picker-driven) — all require Evolver bridge + elevated
-        ActionType.EVO_SET_SETTING to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
-        ActionType.EVO_QS_TILES to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
-        ActionType.EVO_STATUS_BAR to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
-        ActionType.EVO_LOCKSCREEN to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
-        ActionType.EVO_NAVIGATION to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
-        ActionType.EVO_THEME to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
-        ActionType.EVO_AMBIENT_AOD to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
-        ActionType.EVO_NOTIFICATIONS to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
-        ActionType.EVO_BATCH to shell(setOf(RomCapability.EVOLUTION_X_SETTINGS)),
+        // Custom ROM settings (typed, picker-driven) — all require the custom-settings bridge + elevated
+        ActionType.ROM_CUSTOM_SETTING to shell(setOf(RomCapability.CUSTOM_ROM_SETTINGS)),
+        ActionType.ROM_QS_TILES to shell(setOf(RomCapability.CUSTOM_ROM_SETTINGS)),
+        ActionType.ROM_STATUS_BAR to shell(setOf(RomCapability.CUSTOM_ROM_SETTINGS)),
+        ActionType.ROM_LOCKSCREEN to shell(setOf(RomCapability.CUSTOM_ROM_SETTINGS)),
+        ActionType.ROM_NAVIGATION to shell(setOf(RomCapability.CUSTOM_ROM_SETTINGS)),
+        ActionType.ROM_THEME to shell(setOf(RomCapability.CUSTOM_ROM_SETTINGS)),
+        ActionType.ROM_AMBIENT_AOD to shell(setOf(RomCapability.CUSTOM_ROM_SETTINGS)),
+        ActionType.ROM_NOTIFICATIONS to shell(setOf(RomCapability.CUSTOM_ROM_SETTINGS)),
+        ActionType.ROM_BATCH to shell(setOf(RomCapability.CUSTOM_ROM_SETTINGS)),
         ActionType.SYSTEM_HTTP_REQUEST to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_WAIT to CommandSpec.UNIVERSAL,
         ActionType.SYSTEM_FLASHLIGHT to CommandSpec.UNIVERSAL,

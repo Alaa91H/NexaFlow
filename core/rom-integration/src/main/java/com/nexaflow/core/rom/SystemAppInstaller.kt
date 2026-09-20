@@ -11,7 +11,7 @@ import java.util.zip.ZipOutputStream
 /**
  * Installs NexaFlow as a true privileged system app (/system/priv-app) using a
  * Magisk module. This is the "become part of the system" integration path for
- * rooted LineageOS-family ROMs (Evolution X, crDroid, ...):
+ * rooted privileged community builds:
  *
  *  1. Builds a module zip containing:
  *     - `module.prop`          — module metadata (id, name, version)

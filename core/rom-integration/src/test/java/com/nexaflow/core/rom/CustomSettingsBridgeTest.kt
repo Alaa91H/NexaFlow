@@ -1,20 +1,20 @@
 package com.nexaflow.core.rom
 
-import com.nexaflow.core.rom.EvolutionXSettingsBridge.Namespace
-import com.nexaflow.core.rom.EvolutionXSettingsBridge.parseSettingsList
+import com.nexaflow.core.rom.CustomSettingsBridge.Namespace
+import com.nexaflow.core.rom.CustomSettingsBridge.parseSettingsList
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Guards the `settings list` parsing of the deep Evolution X integration:
- * Evolver keys must be picked up from all three namespaces, non-ROM keys must
+ * Guards the `settings list` parsing of the vendor custom-settings bridge:
+ * vendor custom setting keys must be picked up from all three namespaces, non-ROM keys must
  * be dropped, and the display key must round-trip back to the shell command.
  */
-class EvolutionXSettingsBridgeTest {
+class CustomSettingsBridgeTest {
 
     @Test
-    fun `evolution and lineage prefixed keys are parsed from system`() {
+    fun `vendor and base prefixed keys are parsed from system`() {
         val output = """
             evo_status_bar_show_battery_percent=1
             lineage_quick_settings_tiles=wifi,bt
@@ -72,15 +72,16 @@ class EvolutionXSettingsBridgeTest {
     }
 
     @Test
-    fun `family-specific prefixes only admit that families keys`() {
-        val miuiPrefixes = RomSettingSchema.prefixes(com.nexaflow.core.rom.model.RomFamily.MIUI)
+    fun `skin tier prefixes admit vendor keys only`() {
+        val skinPrefixes = RomSettingSchema.prefixes(com.nexaflow.core.rom.model.RomFamily.OEM_SKIN_PRIVILEGED)
         val entries = parseSettingsList(
             Namespace.SYSTEM,
             "miui_dark_mode=1\nsec_night_mode=0\nplain_key=x\n",
-            miuiPrefixes
+            skinPrefixes
         )
-        assertEquals(1, entries.size)
-        assertEquals("miui_dark_mode", entries.single().key)
+        assertEquals(2, entries.size)
+        assertEquals("miui_dark_mode", entries[0].key)
+        assertEquals("sec_night_mode", entries[1].key)
     }
 
     @Test

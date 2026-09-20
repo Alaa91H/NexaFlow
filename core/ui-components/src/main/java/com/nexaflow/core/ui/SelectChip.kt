@@ -17,7 +17,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 /**
- * Samsung-style selection chip with a clearly highlighted selected state
+ * Selection chip with a clearly highlighted selected state
  * (filled primary tint + check icon + bolder label).
  */
 @OptIn(ExperimentalMaterial3Api::class)

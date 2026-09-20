@@ -6,7 +6,7 @@ import android.provider.Settings
 /**
  * Fallback reader for network mode via Settings.Global — works without
  * READ_PHONE_STATE and without root/Shizuku on most AOSP-based ROMs
- * (including Evolution X). This is the layer that makes network-mode
+ * community builds). This is the layer that makes network-mode
  * picker usable even in the worst case: no permission, no elevated runtime.
  */
 object SettingsFallbackReader {
@@ -41,7 +41,7 @@ object SettingsFallbackReader {
                     val filtered = asLong and NetworkModePolicy.BITMASK_SELECTABLE_CELLULAR
                     if (filtered > 0L) return filtered
                 }
-                // Otherwise treat as RIL mode int (e.g., 9, 10 for whyred)
+                // Otherwise treat as RIL mode int (e.g., 9, 10)
                 NetworkModePolicy.defaultNetworkModeMask(asLong.toInt())?.let { return it }
             }
         }

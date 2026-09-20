@@ -86,7 +86,7 @@ class HandlerDispatchE2ETest {
 
     @Test
     fun `every evo action dispatches without throwing`() {
-        runAll(EvoActionHandler()).forEach { (type, result) -> assertGraceful(type, result) }
+        runAll(RomSettingsActionHandler()).forEach { (type, result) -> assertGraceful(type, result) }
     }
 
     @Test

@@ -51,7 +51,7 @@ object RomDetector {
      * Detects the ROM family through [RomDetectionMatrix]: reads every
      * `ro.*` property the matrix understands in one snapshot, then classifies
      * with the brand/manufacturer tiebreaks (custom ROMs before OEM skins,
-     * forks before bases, ColorOS-family brand disambiguation).
+     * forks before bases, shared-property brand disambiguation).
      */
     fun detect(): RomBuildInfo {
         // Metadata keys the matrix reads into the build info beyond classification.

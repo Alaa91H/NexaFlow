@@ -138,7 +138,7 @@ class ChannelStatusMapperTest {
     @Test
     fun customRomSystemApp_reportsShellAccess() {
         val status = map(
-            profile(level = IntegrationLevel.SYSTEM_APP, family = RomFamily.LINEAGE_OS)
+            profile(level = IntegrationLevel.SYSTEM_APP, family = RomFamily.CUSTOM_ROM_PRIVILEGED)
         )
         assertEquals(ExecutionProviderType.SYSTEM_APP, status.provider)
         assertEquals(ChannelTier.ELEVATED, status.tier)

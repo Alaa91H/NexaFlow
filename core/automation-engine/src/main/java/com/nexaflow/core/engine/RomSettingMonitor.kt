@@ -4,8 +4,8 @@ import android.content.Context
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
-import com.nexaflow.core.rom.EvolutionXSettingsBridge
-import com.nexaflow.core.rom.EvolutionXSettingsBridge.Namespace
+import com.nexaflow.core.rom.CustomSettingsBridge
+import com.nexaflow.core.rom.CustomSettingsBridge.Namespace
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
@@ -21,12 +21,12 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Fires automations with a ROM_SETTING trigger when a real Evolution X /
- * LineageOS custom setting reaches the configured target value.
+ * Fires automations with a ROM_SETTING trigger when a real vendor custom
+ * setting reaches the configured target value.
  *
  * Unlike broadcast-based monitors, ROM settings have no change broadcast, so
  * this monitor polls the actual value from the device's Settings provider
- * through [EvolutionXSettingsBridge] every [POLL_INTERVAL_MS]. Reading is free
+ * through [CustomSettingsBridge] every [POLL_INTERVAL_MS]. Reading is free
  * (no root needed); the ROM is the source of truth, exactly as the user asked:
  * the task fires when the *actual* ROM state matches the configured key/value.
  *
@@ -99,8 +99,8 @@ class RomSettingMonitor @Inject constructor(
     internal fun isPollingForTest(): Boolean = pollingJob?.isActive == true
 
     private suspend fun poll() {
-        // Fast-path: nothing to watch when the ROM isn't Evolution X / LineageOS.
-        if (!EvolutionXSettingsBridge.isEvolutionX(context)) return
+        // Fast-path: nothing to watch when the build has no custom settings.
+        if (!CustomSettingsBridge.supportsCustomSettings(context)) return
         val automations = repository.getAutomations().first()
         val watchers = automations.filter { automation ->
             automation.enabled && automation.triggers.any { it.type == TriggerType.ROM_SETTING }
@@ -116,7 +116,7 @@ class RomSettingMonitor @Inject constructor(
             automation.triggers.filter { it.type == TriggerType.ROM_SETTING }.forEach { trigger ->
                 val namespace = romSettingNamespaceOf(trigger.config)
                 val key = trigger.config["key"]?.takeIf { it.isNotEmpty() } ?: return@forEach
-                val actual = EvolutionXSettingsBridge.read(context, namespace, key)
+                val actual = CustomSettingsBridge.read(context, namespace, key)
                 if (romSettingMatches(trigger, actual)) {
                     val last = lastRunAt[automation.id] ?: 0L
                     if (now - last > automation.cooldownMillis) {
