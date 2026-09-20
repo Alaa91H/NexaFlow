@@ -388,7 +388,8 @@ class ExecutionEngine(
         var checkpointRequiresRecovery = false
         var actionChainCompleted = false
         val results = try {
-            automation.actions.mapIndexed { actionIndex, action ->
+            val list = mutableListOf<ActionExecutionResult>()
+            for ((actionIndex, action) in automation.actions.withIndex()) {
                 inProgressActionIndex = actionIndex
                 val actionStartedAt = epochMillis.now()
                 val idempotencyKey = "${payloadContext.runId}:$actionIndex:${action.type.name}"
@@ -407,16 +408,51 @@ class ExecutionEngine(
                 // shared context (Step 4), so %CTX selectors are resolved here —
                 // after the previous node ran, before this node dispatches.
                 val resolved = resolveContextRefs(resolveAction(action, variables), payloadContext)
-                val result = executeAction(
-                    resolved,
-                    controller,
-                    notif,
-                    channel,
-                    automation.id,
-                    automation.revertOnExit,
-                    payloadContext,
-                    dataRuntime
-                )
+
+                // 1. Condition evaluation: skip action if condition is false
+                val conditionExpr = resolved.config["condition"]?.trim()
+                if (!conditionExpr.isNullOrEmpty() &&
+                    !com.nexaflow.domain.workflow.ConditionExpressionEvaluator.evaluate(conditionExpr)
+                ) {
+                    activeExecutionStore.markActionCompleted(
+                        runId = payloadContext.runId,
+                        actionIndex = actionIndex,
+                        updatedAt = epochMillis.now()
+                    ) ?: error("Unable to commit durable checkpoint for run ${payloadContext.runId}")
+                    progressOutcomes.add(true)
+                    inProgressActionIndex = null
+                    list.add(
+                        ActionExecutionResult(
+                            actionType = action.type.name,
+                            success = true,
+                            message = "Skipped: condition not satisfied ($conditionExpr)",
+                            durationMs = epochMillis.now() - actionStartedAt
+                        )
+                    )
+                    continue
+                }
+
+                // 2. Retry support
+                val retryCount = resolved.config["retryCount"]?.toIntOrNull()?.coerceIn(0, 5) ?: 0
+                val retryDelayMs = resolved.config["retryDelayMs"]?.toLongOrNull()?.coerceIn(0, 10_000L) ?: 500L
+                var currentAttempt = 0
+                var result: SystemControlResult
+                while (true) {
+                    currentAttempt++
+                    result = executeAction(
+                        resolved,
+                        controller,
+                        notif,
+                        channel,
+                        automation.id,
+                        automation.revertOnExit,
+                        payloadContext,
+                        dataRuntime
+                    )
+                    if (result.success || currentAttempt > retryCount) break
+                    kotlinx.coroutines.delay(retryDelayMs)
+                }
+
                 activeExecutionStore.markActionCompleted(
                     runId = payloadContext.runId,
                     actionIndex = actionIndex,
@@ -424,13 +460,20 @@ class ExecutionEngine(
                 ) ?: error("Unable to commit durable checkpoint for run ${payloadContext.runId}")
                 progressOutcomes.add(result.success)
                 inProgressActionIndex = null
-                ActionExecutionResult(
+                val execResult = ActionExecutionResult(
                     actionType = action.type.name,
                     success = result.success,
                     message = result.message,
                     durationMs = epochMillis.now() - actionStartedAt
                 )
-            }.also { actionChainCompleted = true }
+                list.add(execResult)
+
+                // 3. OnError policy: abort remaining actions if configured
+                if (!result.success && resolved.config["onError"]?.equals("ABORT", ignoreCase = true) == true) {
+                    break
+                }
+            }
+            list.also { actionChainCompleted = true }
         } catch (cancellation: CancellationException) {
             // The process may have interrupted a side effect after it began.
             // Persist this classification in NonCancellable: otherwise the

@@ -118,6 +118,7 @@ data class CapabilityResolution(
     val policy: PolicyEvaluation,
     val candidates: List<BackendAvailability>,
     val selectedBackend: CapabilityBackend? = null,
+    val candidateBackends: List<CapabilityBackend> = emptyList(),
     val failure: CapabilityResult? = null
 ) {
     val isResolved: Boolean get() = selectedBackend != null
@@ -205,16 +206,18 @@ class CapabilityResolver(
                 preferenceIndex(it.first.id, request.policy)
             }.thenBy { priorityIndex(it.first.id) }
         )
-        val selected = ordered.firstOrNull { (_, availability) ->
+        val eligible = ordered.filter { (_, availability) ->
             availability.availability == CapabilityAvailability.AVAILABLE ||
                 availability.availability == CapabilityAvailability.PARTIAL
         }
+        val selected = eligible.firstOrNull()
         if (selected != null) {
             return CapabilityResolution(
                 descriptor = descriptor,
                 policy = policy,
                 candidates = ordered.map { it.second },
-                selectedBackend = selected.first
+                selectedBackend = selected.first,
+                candidateBackends = eligible.map { it.first }
             )
         }
 
@@ -298,11 +301,21 @@ class CapabilityExecutionService(
                 .withDurationIfMissing(nowMs() - startedAt)
         }
 
+        val remainingCandidates = (resolution.candidateBackends.filter { it.id != backend.id }).toMutableList()
+        var currentBackend: CapabilityBackend = backend
         var attempt = 0
         var outcome: CapabilityResult
         while (true) {
             attempt++
-            outcome = executeAttempt(backend, request)
+            outcome = executeAttempt(currentBackend, request)
+            if (outcome.status == CapabilityStatus.FAILED &&
+                isTransportFailure(outcome.errorCode) &&
+                remainingCandidates.isNotEmpty()
+            ) {
+                val nextBackend = remainingCandidates.removeAt(0)
+                currentBackend = nextBackend
+                continue
+            }
             if (outcome.errorCode !in request.policy.retry.retryableErrors ||
                 attempt >= request.policy.retry.maxAttempts ||
                 outcome.status == CapabilityStatus.CANCELLED
@@ -313,11 +326,19 @@ class CapabilityExecutionService(
         }
 
         val normalized = outcome.copy(
-            backend = outcome.backend ?: backend.id,
+            backend = outcome.backend ?: currentBackend.id,
             durationMs = outcome.durationMs.takeIf { it > 0 } ?: (nowMs() - startedAt),
             metadata = outcome.metadata + ("attempts" to attempt.toString())
         )
-        return verifyIfNeeded(backend, request, normalized)
+        return verifyIfNeeded(currentBackend, request, normalized)
+    }
+
+    private fun isTransportFailure(errorCode: CapabilityErrorCode?): Boolean = when (errorCode) {
+        CapabilityErrorCode.SHIZUKU_UNAVAILABLE,
+        CapabilityErrorCode.ROOT_UNAVAILABLE,
+        CapabilityErrorCode.BACKEND_UNAVAILABLE,
+        CapabilityErrorCode.TIMEOUT -> true
+        else -> false
     }
 
     private suspend fun executeAttempt(

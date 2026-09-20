@@ -423,4 +423,62 @@ class CapabilityRuntimeTest {
         assertTrue(result.verification?.verified ?: false)
         assertEquals("Verified ok", result.verification?.message)
     }
+
+    @Test
+    fun `execution service seamlessly fails over to candidate backend when primary backend suffers transport failure`() = runBlocking {
+        val failingShizuku = FakeBackend(
+            id = CapabilityBackendId.SHIZUKU,
+            supportedCapabilities = setOf(CapabilityId.PACKAGE_FORCE_STOP),
+            result = CapabilityResult.failed(
+                errorCode = CapabilityErrorCode.SHIZUKU_UNAVAILABLE,
+                message = "Shizuku server is not connected",
+                backend = CapabilityBackendId.SHIZUKU
+            )
+        )
+        val healthyRoot = FakeBackend(
+            id = CapabilityBackendId.ROOT,
+            supportedCapabilities = setOf(CapabilityId.PACKAGE_FORCE_STOP),
+            result = CapabilityResult(
+                status = CapabilityStatus.SUCCESS,
+                message = "Force stopped via root",
+                backend = CapabilityBackendId.ROOT
+            )
+        )
+        val registry = CapabilityRegistry.of(
+            descriptors = listOf(
+                CapabilityDescriptor(
+                    id = CapabilityId.PACKAGE_FORCE_STOP,
+                    displayName = "Force stop package",
+                    description = "Terminates package processes",
+                    supportedBackends = listOf(CapabilityBackendId.SHIZUKU, CapabilityBackendId.ROOT),
+                    parameters = listOf(
+                        CapabilityParameterSpec(
+                            name = "packageName",
+                            type = CapabilityParameterType.PACKAGE_NAME,
+                            required = true
+                        )
+                    )
+                )
+            ),
+            backends = listOf(failingShizuku, healthyRoot)
+        )
+        val service = CapabilityExecutionService(
+            resolver = CapabilityResolver(registry),
+            deviceStateProvider = { state() }
+        )
+
+        val result = service.execute(
+            CapabilityRequest(
+                capability = CapabilityId.PACKAGE_FORCE_STOP,
+                parameters = mapOf("packageName" to "com.example.app"),
+                policy = ExecutionPolicy(allowPrivilegedBackends = true)
+            )
+        )
+
+        assertEquals(CapabilityStatus.SUCCESS, result.status)
+        assertEquals(CapabilityBackendId.ROOT, result.backend)
+        assertEquals("Force stopped via root", result.message)
+        assertEquals(1, failingShizuku.executionCalls)
+        assertEquals(1, healthyRoot.executionCalls)
+    }
 }
