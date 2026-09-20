@@ -2,6 +2,115 @@
 
 ## [Unreleased]
 
+## [v3.76.0] - 2026-09-20
+
+### Added
+
+- **Wear OS companion app** — a new `:wear` module delivers a native Wear OS 3
+  watch companion that surfaces NexaFlow automations directly on the user's
+  wrist, enabling monitoring and execution without reaching for the phone.
+  - **Automation list screen** (`AutomationListScreen`): circular-display-optimised
+    `ScalingLazyColumn` presenting every automation with its enable/disable state,
+    last-run outcome badge, and a dedicated "Run Now" button per card. While a
+    run command is in-flight the button is replaced by a `CircularProgressIndicator`
+    so the user always knows the watch is acting.
+  - **Automation detail screen** (`AutomationDetailScreen`): swipe-to-dismiss
+    detail view showing the full automation name, a timestamped last-run result
+    chip (success ✓ / failure ✗ with message excerpt), an enable/disable
+    `ToggleButton`, and a prominent "Run Now" button.
+  - **Navigation**: `SwipeDismissableNavHost` provides the standard Wear OS
+    swipe-back gesture between the list and detail destinations.
+  - **Sealed UI state model** (`WearUiState`): four states — `Connecting`
+    (awaiting first sync), `Empty` (phone has no automations), `Loaded` (normal
+    view), and `Running` (a manual run is in-flight) — drive the UI without
+    intermediate booleans or nullable fields.
+  - **Real-time data sync** via the Wearable Data Layer: `WearSyncRepository`
+    holds a `StateFlow<List<WearAutomationDto>>` that is updated by the
+    background `WearDataListenerService` on every `DATA_CHANGED` event without
+    polling or explicit refresh.
+  - **Watch → Phone command channel**: `WearDataLayerClient` discovers the
+    nearest connected phone node via `NodeClient` and sends typed
+    `MessageClient` messages. Run commands are encoded as the automation ID;
+    toggle commands encode `"automationId:true/false"` over a
+    `WearableListenerService` bridge.
+  - **Hilt dependency injection** in the watch app: `WearModule` provides
+    singleton `MessageClient` and `NodeClient` instances; `WearViewModel` is a
+    standard `@HiltViewModel`; `WearDataListenerService` uses
+    `@AndroidEntryPoint`.
+  - **String resources** localised in all 11 supported locales:
+    `en ar de es fr hi ja pt ru tr zh-rCN`.
+  - **Companion APK bundled** via `wearApp(project(":wear"))` in `:app` so a
+    single Play Store install delivers both the phone and watch APKs.
+
+- **Phone-side Wear OS bridge** (in `:app`):
+  - `WearSyncManager`: subscribes to `AutomationRepository` and
+    `HistoryRepository` via a `combine` flow, debounces rapid saves by 500 ms
+    to coalesce bulk operations, serialises the result to `WearAutomationDto`
+    JSON, and pushes it as an urgent DataItem to all connected watches. A
+    monotonic `updatedAt` timestamp forces a `DATA_CHANGED` delivery even when
+    the automation list is unchanged, guaranteeing state convergence after a
+    watch reconnect.
+  - `WearCommandListenerService`: a `WearableListenerService` declared in the
+    phone manifest with a `MESSAGE_RECEIVED` filter scoped to `/nexaflow/`
+    paths. Uses `EntryPointAccessors` (instead of `@AndroidEntryPoint`) for safe
+    Hilt injection in a platform-managed service. Routes run commands to
+    `ExecutionEngine.forceRun()` and toggle commands to
+    `AutomationRepository.updateAutomationStatus()` followed by
+    `ExecutionEngine.notifyAutomationsChanged()` so stateful monitors react
+    immediately.
+  - `WearSyncManager` is started in `NexaFlowApplication.onCreate()` inside the
+    existing best-effort startup block; failures are caught and logged without
+    impacting any other startup component.
+
+- **Shared Wear OS protocol constants** added to `AutomationIntents.kt`
+  (`WEAR_PATH_AUTOMATIONS`, `WEAR_PATH_RUN_COMMAND`, `WEAR_PATH_TOGGLE_COMMAND`,
+  `WEAR_KEY_PAYLOAD`, `WEAR_KEY_UPDATED_AT`, `WEAR_TOGGLE_SEPARATOR`) as the
+  single authoritative source for the Data Layer communication contract on the
+  phone side, mirrored by `WearProtocol` in the watch module.
+
+- **New Gradle dependencies** (`libs.versions.toml`):
+  - `com.google.android.gms:play-services-wearable:19.0.0` — Data Layer API
+    (both modules).
+  - `androidx.wear.compose:compose-material3:1.5.0-alpha26` — Wear OS
+    Material 3 component library.
+  - `androidx.wear.compose:compose-foundation:1.5.0-alpha26` — `ScalingLazyColumn`
+    and watch-optimised layout primitives.
+  - `androidx.wear.compose:compose-navigation:1.5.0-alpha26` —
+    `SwipeDismissableNavHost`.
+  - `org.mockito.kotlin:mockito-kotlin:5.4.0` (test) — mock support for
+    `WearDataLayerClient` in unit tests.
+  - `app.cash.turbine:turbine:1.2.0` (test) — `StateFlow` assertion helpers.
+
+### Tests
+
+- `WearAutomationDtoSerializationTest` (7 cases): round-trip JSON
+  serialisation, null optional fields, `ignoreUnknownKeys` forward
+  compatibility, malformed JSON graceful degradation, empty-array handling,
+  state replacement on successive calls, and multi-DTO parsing.
+- `WearViewModelTest` (5 cases): initial `Connecting` state, `Loaded`
+  transition after first sync, `Empty` state on empty push, `runNow`
+  command delegation verification, `toggleEnabled` command delegation
+  verification. Uses `StandardTestDispatcher` for deterministic coroutine
+  control.
+- `WearSyncManagerDtoTest` (4 cases): phone-side DTO round-trip
+  serialisation, nullable-field encoding, empty-list serialisation, and
+  `lastRunMessage` truncation boundary.
+- `WearCommandProtocolTest` (8 cases): toggle payload encoding for `true` and
+  `false`, separator parsing, invalid-boolean rejection, missing-separator
+  detection, and protocol path constant verification.
+
+### Validation
+
+- Zero string parity problems across all 11 locales verified via
+  `check_strings_parity.py` (covers both `:app` and `:wear` resource trees).
+- Zero hardcoded non-English strings in shipped Kotlin sources verified via
+  `check_hardcoded_text.py` (425 sources clean).
+- Builder catalog parity verified clean (`CATALOG_PARITY: OK — 56 triggers,
+  176 actions`) via `audit_catalog_and_releases.py catalog`. No new trigger or
+  action enum values were added in this release.
+- All 11 locale `values-*/strings.xml` files created for the `:wear` module
+  with exact key parity against `values/strings.xml`.
+
 ## [v3.75.1] - 2026-09-20
 
 ### Added
