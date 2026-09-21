@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -70,6 +71,14 @@ class ReminderAlarmReceiverTest {
         assertNotNull(notification)
         assertEquals(1, notification!!.actions.size)
         assertEquals("Dismiss", notification.actions[0].title.toString())
+    }
+
+    @Test
+    fun reminder_usesSystemManagedSurfaceForReadableContrast() {
+        showReminder(null)
+        val notification = postedNotification()
+        assertNotNull(notification)
+        assertFalse(notification!!.extras.getBoolean("android.colorized", false))
     }
 
     @Test
