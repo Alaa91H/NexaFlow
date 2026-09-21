@@ -17,10 +17,7 @@ object WearProtocol {
     /** MessageClient path: watch sends an enable/disable toggle command. */
     const val PATH_TOGGLE_COMMAND: String = "/nexaflow/toggle"
 
-    /** MessageClient path: phone sends the execution result back to the watch. */
-    const val PATH_RUN_RESULT: String = "/nexaflow/result"
-
-    /** DataMap key carrying the JSON payload (automation list or result body). */
+    /** DataMap key carrying the JSON automation-list payload. */
     const val KEY_PAYLOAD: String = "payload"
 
     /**
@@ -37,6 +34,6 @@ object WearProtocol {
     /** MessageClient path: watch requests an immediate automation-list push. */
     const val PATH_SYNC_REQUEST: String = "/nexaflow/sync-request"
 
-    /** CapabilityClient capability name advertised by the phone companion app. */
+    /** Capability advertised by the phone companion app. */
     const val CAPABILITY_PHONE_APP: String = "nexaflow_phone_companion"
 }
