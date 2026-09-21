@@ -17,10 +17,10 @@ import javax.inject.Singleton
  * Sends command messages from the watch to the connected phone via the
  * Wearable [MessageClient].
  *
- * Each command is sent to the nearest connected phone node; if no node is
- * found, the call returns silently — the user will see no change on screen
- * and the phone's [WearSyncManager] will push a fresh state when connection
- * is restored.
+ * The phone capability is preferred so commands cannot be routed to the wrong
+ * wearable node. If a capability has not propagated yet (for example while
+ * upgrading from an older build), the client falls back to any connected node,
+ * preferring a nearby node but allowing the Data Layer's Wi-Fi/cloud route.
  */
 @Singleton
 class WearDataLayerClient @Inject constructor(
@@ -34,27 +34,15 @@ class WearDataLayerClient @Inject constructor(
      * UI starts: the phone only pushes on data changes, so without this pull
      * the watch could sit on its "Connecting" spinner forever whenever the
      * phone process started (or its data last changed) while the watch was
-     * disconnected. Targets phone nodes advertising the companion capability
-     * first; falls back to any connected node for older phone builds.
+     * disconnected.
      */
     suspend fun requestSync(): Boolean {
-        val capabilityNodes = runCatching {
-            Wearable.getCapabilityClient(context)
-                .getCapability(WearProtocol.CAPABILITY_PHONE_APP, CapabilityClient.FILTER_REACHABLE)
-                .await()
-                .nodes
-        }.getOrDefault(emptySet())
-        val nodeId = capabilityNodes
-            .filter { it.isNearby }
-            .firstOrNull()?.id
-            ?: capabilityNodes.firstOrNull()?.id
-            ?: nearbyNodeId()
-            ?: return false
+        val nodeId = resolvePhoneNodeId() ?: return false
         return runCatching {
             messageClient.sendMessage(
                 nodeId,
                 WearProtocol.PATH_SYNC_REQUEST,
-                ByteArray(0)
+                ByteArray(0),
             ).await()
             true
         }.getOrElse { error ->
@@ -82,7 +70,11 @@ class WearDataLayerClient @Inject constructor(
 
     private suspend fun sendMessage(path: String, data: ByteArray) {
         withContext(Dispatchers.IO) {
-            val nodeId = nearbyNodeId() ?: return@withContext
+            val nodeId = resolvePhoneNodeId()
+            if (nodeId == null) {
+                Log.w(TAG, "No reachable phone node for Wear message on path $path")
+                return@withContext
+            }
             runCatching {
                 messageClient.sendMessage(nodeId, path, data).await()
             }.onFailure {
@@ -91,11 +83,30 @@ class WearDataLayerClient @Inject constructor(
         }
     }
 
-    private suspend fun nearbyNodeId(): String? = runCatching {
-        nodeClient.connectedNodes.await()
-            .firstOrNull { it.isNearby }
-            ?.id
-    }.getOrNull()
+    /**
+     * Resolves the actual phone companion first by its advertised capability.
+     * Nearby is preferred for latency, but reachable non-nearby nodes remain
+     * valid because the Wearable Data Layer can route via Wi-Fi/cloud.
+     */
+    private suspend fun resolvePhoneNodeId(): String? {
+        val capabilityNodes = runCatching {
+            Wearable.getCapabilityClient(context)
+                .getCapability(
+                    WearProtocol.CAPABILITY_PHONE_APP,
+                    CapabilityClient.FILTER_REACHABLE,
+                )
+                .await()
+                .nodes
+        }.getOrDefault(emptySet())
+
+        capabilityNodes.firstOrNull { it.isNearby }?.let { return it.id }
+        capabilityNodes.firstOrNull()?.let { return it.id }
+
+        return runCatching {
+            val nodes = nodeClient.connectedNodes.await()
+            nodes.firstOrNull { it.isNearby }?.id ?: nodes.firstOrNull()?.id
+        }.getOrNull()
+    }
 
     private companion object {
         const val TAG = "WearDataLayerClient"
