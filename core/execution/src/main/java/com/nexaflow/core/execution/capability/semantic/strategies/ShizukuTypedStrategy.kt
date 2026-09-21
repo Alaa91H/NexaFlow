@@ -325,11 +325,17 @@ class ShizukuTypedStrategy(
             metadata = requestedEnabled?.let { mapOf("requestedEnabled" to it.toString()) } ?: emptyMap()
         )
     } else {
-        val transport = result.message.contains("not granted", ignoreCase = true) ||
-            result.message.contains("not available", ignoreCase = true) ||
+        val permissionUnavailable =
+            result.message.contains("not granted", ignoreCase = true) ||
+                result.message.contains("not available", ignoreCase = true)
+        val endpointFailure =
             result.message.contains("failed", ignoreCase = true) &&
-            result.message.contains("UserService", ignoreCase = true)
-        val uncertain = transport && transportIsUncertain(operation)
+                result.message.contains("UserService", ignoreCase = true)
+        val transport = permissionUnavailable || endpointFailure
+        // A denied/missing grant is known to happen before dispatch. Only a
+        // UserService failure can mean the side effect landed before the
+        // transport died, so only that case is reconciled as UNKNOWN.
+        val uncertain = endpointFailure && transportIsUncertain(operation)
         OperationOutcome(
             operation = operation,
             status = if (uncertain) OperationOutcomeStatus.UNKNOWN else OperationOutcomeStatus.FAILED,
