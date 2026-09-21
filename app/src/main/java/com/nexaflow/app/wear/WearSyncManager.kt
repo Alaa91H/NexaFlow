@@ -132,7 +132,7 @@ class WearSyncManager @Inject constructor(
             if (reachable) trySend(Unit)
 
             awaitClose {
-                capabilityClient.removeListener(listener)
+                capabilityClient.removeListener(listener, WEAR_CAPABILITY_WATCH_APP)
             }
         }
 
