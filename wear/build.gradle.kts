@@ -46,7 +46,11 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.nexaflow.wear"
+        // Wearable Data Layer requires the phone and watch APKs to share the
+        // same package/applicationId and signing certificate. Keep the Wear
+        // namespace separate for source organization, but the installed app
+        // identity must match :app.
+        applicationId = "com.nexaflow.app"
         // Wear OS 3 (API 30) minimum: covers all modern Wear OS devices with
         // stable Compose for Wear support. Wear OS 2.x devices are excluded
         // because they lack the Compose runtime required by the companion UI.
