@@ -2,7 +2,7 @@ package com.nexaflow.feature.builder
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
 import org.junit.Assert.assertFalse
@@ -13,9 +13,7 @@ class BuilderSaveCoordinatorTest {
 
     @Test
     fun postSaveFlow_doesNotRunAfterCancelledSave() = runBlocking {
-        val saveJob = launch {
-            error("simulated save failure")
-        }
+        val saveJob = Job().apply { cancel() }
 
         var postSaveFlowRan = false
         val postSaveJob = launchAfterSave(saveJob) {
