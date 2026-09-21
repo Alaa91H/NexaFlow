@@ -42,6 +42,7 @@ import com.nexaflow.core.ui.SectionHeader
 import com.nexaflow.core.ui.StatusPill
 import com.nexaflow.domain.models.ActionExecutionResult
 import com.nexaflow.domain.models.ActionType
+import com.nexaflow.domain.models.ExecutionOutcomeClassifier
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.feature.automations.actionPresentation
 import java.text.SimpleDateFormat
@@ -154,6 +155,19 @@ private fun RunSummaryCard(record: ExecutionRecord) {
                         color = MaterialTheme.colorScheme.secondary,
                         maxLines = 2
                     )
+                    // Skipped runs store the exact gate reason in the backend
+                    // message ("Skipped: ..."). Show it verbatim so the user
+                    // can diagnose why nothing executed instead of seeing a
+                    // generic "skipped" label with no cause.
+                    if (ExecutionOutcomeClassifier.isSkipped(record)) {
+                        Text(
+                            text = record.message.removePrefix(
+                                ExecutionOutcomeClassifier.SKIPPED_MESSAGE_PREFIX
+                            ).trim(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
                 StatusPill(
                     text = if (record.success) stringResource(R.string.status_success) else stringResource(R.string.status_failed),

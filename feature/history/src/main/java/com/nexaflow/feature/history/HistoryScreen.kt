@@ -242,6 +242,24 @@ private fun HistoryCard(
                     color = MaterialTheme.colorScheme.secondary,
                     maxLines = 1
                 )
+                // Skips carry the exact reason in the backend diagnostic message
+                // ("Skipped: ..."). Surface it here so a silent skip is always
+                // diagnosable from the history list without opening details.
+                val skipReason = if (ExecutionOutcomeClassifier.isSkipped(entry)) {
+                    entry.message.removePrefix(
+                        com.nexaflow.domain.models.ExecutionOutcomeClassifier.SKIPPED_MESSAGE_PREFIX
+                    ).trim()
+                } else {
+                    null
+                }
+                if (!skipReason.isNullOrEmpty()) {
+                    Text(
+                        text = skipReason,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2
+                    )
+                }
                 // Show which execution channel actually ran this task (e.g. "via Root").
                 val channel = entry.channel
                 if (channel != null) {

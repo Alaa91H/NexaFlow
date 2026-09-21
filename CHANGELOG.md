@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [v3.85.1] - 2026-09-22
+
+### Fixed
+
+- **Skipped-run reasons are now visible in the UI.** Skipped executions store an exact gate reason (e.g. `Skipped: not all trigger conditions are true (charger, run time)`) in the backend diagnostic message, but both the history list and the execution-details screen showed only a generic localized "Task was skipped." label. The stored reason is now surfaced verbatim beneath the summary in the routine history row and on the execution-details header, so a silent skip is always diagnosable from the UI without connecting a debugger. Backend messages remain untouched (diagnostics protocol preserved); presentation-only change.
+
+### Notes
+
+- The skip-reason protocol (`Skipped:` message prefix recorded by the engine) predates this release; this change closes the visibility gap between the persisted diagnostics and the user-facing history without altering any recorded data or engine behavior.
+
 ## [v3.85.0] - 2026-09-21
 
 ### Fixed
