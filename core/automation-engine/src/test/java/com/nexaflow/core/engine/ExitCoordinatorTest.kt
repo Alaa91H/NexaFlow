@@ -117,7 +117,7 @@ class ExitCoordinatorTest {
     }
 
     @Test
-    fun `failed exit remains durable and blocks a new activation`() = runBlocking {
+    fun `failed exit within budget remains durable and blocks a new activation`() = runBlocking {
         val history = RecordingHistory()
         val automation = testAutomation("exit-task", emptyList()).copy(
             exitActions = listOf(Action(ActionType.SYSTEM_SEND_NOTIFICATION, mapOf("title" to "exit")))
@@ -132,6 +132,48 @@ class ExitCoordinatorTest {
         assertTrue(result is ExitCoordinatorResult.RecoveryRequired)
         val failed = checkNotNull(store.current("exit-task"))
         assertEquals(AutomationRuntimeLifecycleState.EXIT_FAILED, failed.lifecycleState)
-        assertTrue("failed exit must not be replaced by a new occurrence", !store.activate(activeState("occurrence-2")))
+        // A failed row still inside its retry budget is live recovery state:
+        // a new activation must not clobber it.
+        assertTrue(
+            "failed exit within budget must not be replaced by a new occurrence",
+            !store.activate(activeState("occurrence-2"))
+        )
+    }
+
+    @Test
+    fun `exhausted failed exit is reaped by a future activation`() = runBlocking {
+        val history = RecordingHistory()
+        val automation = testAutomation("exit-task", emptyList()).copy(
+            exitActions = listOf(Action(ActionType.SYSTEM_SEND_NOTIFICATION, mapOf("title" to "exit")))
+        )
+        val repository = FakeRepository(listOf(automation))
+        val engine = testEngine(context, history)
+        val coordinator = ExitCoordinator(store, engine, repository, history)
+        assertTrue(store.activate(activeState()))
+
+        // First failure: the exit claims the occurrence and its end action
+        // fails → EXIT_FAILED with one attempt spent.
+        val first = coordinator.requestExit(automation, ExitReason.TRIGGER_FALSE, "occurrence-1")
+        assertTrue(first is ExitCoordinatorResult.RecoveryRequired)
+
+        // Drive the recovery pass until the retry budget is exhausted.
+        repeat(AutomationRuntimeStore.MAX_EXIT_ATTEMPTS) {
+            coordinator.reconcile(ExitReason.PROCESS_RECOVERY)
+        }
+        val exhausted = checkNotNull(store.current("exit-task"))
+        assertEquals(AutomationRuntimeLifecycleState.EXIT_FAILED, exhausted.lifecycleState)
+        assertEquals(AutomationRuntimeStore.MAX_EXIT_ATTEMPTS, exhausted.exitAttempt)
+
+        // The recovery ledger is spent, so a NEW occurrence (the user re-enabled
+        // the task, or the condition fired again) must win: reaping the stale
+        // failed row is what keeps the automation usable instead of silently
+        // disabled forever behind the "prior lifecycle requires cleanup" skip.
+        assertTrue(
+            "exhausted failed row must be reapable by a new activation",
+            store.activate(activeState("occurrence-fresh"))
+        )
+        val fresh = checkNotNull(store.current("exit-task"))
+        assertEquals("occurrence-fresh", fresh.occurrenceId)
+        assertEquals(AutomationRuntimeLifecycleState.ACTIVE, fresh.lifecycleState)
     }
 }

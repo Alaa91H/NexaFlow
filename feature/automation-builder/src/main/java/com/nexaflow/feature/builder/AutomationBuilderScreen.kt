@@ -183,6 +183,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.nexaflow.core.engine.LocationAccess
 import com.nexaflow.core.execution.NotificationActionButton
+import com.nexaflow.core.execution.TriggerMatchPolicy
 import com.nexaflow.core.execution.compat.CommandRequirementCatalog
 import com.nexaflow.core.pluginsdk.LocaleContract
 import com.nexaflow.core.pluginsdk.PluginConfigParser
@@ -968,10 +969,12 @@ fun AutomationBuilderScreen(
     // The data model is unchanged; only the order in which decisions are shown changes.
     var step by rememberSaveable { mutableStateOf(0) }
     val triggers = rememberSaveable(saver = TriggerDraftListSaver) { mutableStateListOf<TriggerDraft>() }
-    // How multiple triggers combine: ANY (historical default) or ALL. Shown
-    // only when more than one trigger exists — with a single trigger the
-    // choice is meaningless.
-    var triggerMatchName by rememberSaveable { mutableStateOf(TriggerMatchMode.ANY.name) }
+    // How multiple triggers combine. NEW tasks default to ALL: users expect
+    // every configured condition to hold before the task runs (the dominant
+    // support request). Legacy stored tasks keep their own value, and ANY
+    // remains one tap away in the selector. Shown once two or more triggers
+    // exist — with a single trigger the choice is meaningless.
+    var triggerMatchName by rememberSaveable { mutableStateOf(TriggerMatchMode.ALL.name) }
     val triggerMatch = TriggerMatchMode.entries.firstOrNull { it.name == triggerMatchName } ?: TriggerMatchMode.ANY
     val constraints = rememberSaveable(saver = ConstraintDraftListSaver) { mutableStateListOf<ConstraintDraft>() }
     var showConstraintPicker by remember { mutableStateOf(false) }
@@ -2418,41 +2421,20 @@ private fun packagesUsedByOtherTasks(
  * (the firing monitor merely starts the evaluation).
  */
 /**
- * Draft-level event-only check for the ALL-mode advisory. Mirrors
- * TriggerMatchPolicy.isEventOnly on the builder's editable drafts; the
- * momentary trigger types cannot be re-verified after they fire, so an ALL
- * task containing one can only ever skip — the user is warned here.
+ * Draft-level event-only check for the ALL-mode advisory. Delegates to
+ * TriggerMatchPolicy.isEventOnly — the single source of truth the engine and
+ * manual gate also use — so the builder's warning can never drift from what
+ * the runtime actually verifies. The momentary trigger types cannot be
+ * re-verified after they fire, so an ALL task containing one can only ever
+ * skip — the user is warned here.
  */
 private fun triggerMatchBuiltWarning(triggers: List<TriggerDraft>): String? {
     if (triggers.size < 2) return null
-    val eventOnly = triggers.filter { it.type in EVENT_ONLY_TRIGGER_TYPES }
+    val eventOnly = triggers.filter { TriggerMatchPolicy.isEventOnly(it.type) }
     if (eventOnly.isEmpty()) return null
     // Count is what matters for the warning; the localized string is generic.
     return eventOnly.size.toString()
 }
-
-private val EVENT_ONLY_TRIGGER_TYPES = setOf(
-    TriggerType.SMS,
-    TriggerType.NOTIFICATION,
-    TriggerType.APPLICATION,
-    TriggerType.WEBHOOK,
-    TriggerType.SENSOR,
-    TriggerType.CALENDAR,
-    TriggerType.PLUGIN_EVENT,
-    TriggerType.ROM_SETTING,
-    TriggerType.LOCATION,
-    TriggerType.APP_INSTALLED,
-    TriggerType.CALL_STATE,
-    TriggerType.INCOMING_CALL,
-    TriggerType.CLIPBOARD_CHANGED,
-    TriggerType.TIMEZONE_CHANGED,
-    TriggerType.BOOT_COMPLETED,
-    TriggerType.NFC_TAG_SCANNED,
-    TriggerType.MEDIA_PLAYING,
-    TriggerType.SCREEN_TIMEOUT_CHANGED,
-    TriggerType.ALARM_SET_CHANGED,
-    TriggerType.HDMI_CONNECTED
-)
 
 @Composable
 private fun TriggerMatchSelector(

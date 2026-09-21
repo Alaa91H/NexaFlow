@@ -31,18 +31,56 @@ class AutomationRuntimeStore internal constructor(
     private val json = Json { ignoreUnknownKeys = false; encodeDefaults = true }
 
     /**
-     * Reserves a lifecycle before the automation's main actions run. Existing
-     * active/exiting/failed state is intentionally never overwritten: an old
-     * occurrence must first finish or remain visible for recovery.
+     * Reserves a lifecycle before the automation's main actions run. A live
+     * ACTIVE/EXITING occurrence is intentionally never overwritten: it must
+     * first finish or remain visible for recovery.
+     *
+     * Terminal states do NOT block future runs: a COMPLETED/INACTIVE row is
+     * reaped, and an EXIT_FAILED row whose bounded retry budget is spent is
+     * reaped too. A stuck `EXIT_FAILED` used to reject every future activation
+     * forever ("a prior lifecycle still requires cleanup"), silently disabling
+     * the whole automation until the user found the recovery action — the
+     * dominant cause of "my tasks stop running" reports. Reaping replaces the
+     * stale row so the new occurrence starts from a clean, durable state; the
+     * failed exit itself remains visible in history.
      */
-    suspend fun activate(state: AutomationRuntimeState): Boolean {
+    suspend fun activate(state: AutomationRuntimeState): Boolean =
+        activate(state, reapTerminal = true)
+
+    /**
+     * Strict variant used where clobbering even a stale failed row is unsafe
+     * (exit recovery paths): never reaps, never overwrites.
+     */
+    suspend fun activateStrict(state: AutomationRuntimeState): Boolean =
+        activate(state, reapTerminal = false)
+
+    private suspend fun activate(
+        state: AutomationRuntimeState,
+        reapTerminal: Boolean
+    ): Boolean {
         var accepted = false
         dataStore.edit { preferences ->
             val states = runtimeStates(preferences)
-            if (state.automationId !in states && states.size < MAX_RUNTIME_STATES) {
-                states[state.automationId] = state
-                writeRuntimeStates(preferences, states)
-                accepted = true
+            val existing = states[state.automationId]
+            val canReplace = existing != null && reapTerminal && when (existing.lifecycleState) {
+                AutomationRuntimeLifecycleState.ACTIVE,
+                AutomationRuntimeLifecycleState.EXITING -> false
+                AutomationRuntimeLifecycleState.EXIT_FAILED ->
+                    // Only reap a failed row that exhausted its retry budget —
+                    // one still inside the budget belongs to the recovery pass.
+                    existing.exitAttempt >= MAX_EXIT_ATTEMPTS
+            }
+            when {
+                existing == null && states.size < MAX_RUNTIME_STATES -> {
+                    states[state.automationId] = state
+                    writeRuntimeStates(preferences, states)
+                    accepted = true
+                }
+                canReplace -> {
+                    states[state.automationId] = state
+                    writeRuntimeStates(preferences, states)
+                    accepted = true
+                }
             }
         }
         return accepted
@@ -309,11 +347,18 @@ class AutomationRuntimeStore internal constructor(
         }
     }
 
-    private companion object {
-        val KEY_RUNTIME_STATES = stringSetPreferencesKey("automation_runtime_states")
-        val KEY_SCHEDULES = stringSetPreferencesKey("automation_runtime_schedules")
-        const val MAX_RUNTIME_STATES = 128
-        const val MAX_SCHEDULES = 512
+    companion object {
+        /**
+         * Retry budget for a failed exit, mirrored from ExitCoordinator: the
+         * recovery pass re-attempts up to this many times before the row is
+         * considered exhausted (and reapable by a future activation).
+         */
+        const val MAX_EXIT_ATTEMPTS = 5
+
+        private val KEY_RUNTIME_STATES = stringSetPreferencesKey("automation_runtime_states")
+        private val KEY_SCHEDULES = stringSetPreferencesKey("automation_runtime_schedules")
+        private const val MAX_RUNTIME_STATES = 128
+        private const val MAX_SCHEDULES = 512
         const val SCHEDULE_KEY_SEPARATOR = "\u0001"
     }
 }

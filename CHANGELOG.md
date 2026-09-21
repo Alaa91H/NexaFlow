@@ -2,6 +2,37 @@
 
 ## [Unreleased]
 
+## [v3.85.0] - 2026-09-21
+
+### Fixed
+
+- **A failed exit no longer disables the task forever.** Found on a real
+  device: when an end action kept failing, the durable lifecycle row stayed
+  `EXIT_FAILED` after its bounded retry budget (5 attempts) was spent, and
+  every future activation was then rejected with "a prior lifecycle still
+  requires cleanup" — silently disabling the whole automation with no user
+  visible cue. An exhausted failed row is now reaped by the next activation,
+  so the task runs again from a clean state while the failed exit remains in
+  history. A failed row still inside its budget is preserved exactly as
+  before (strict recovery semantics unchanged, both behaviors pinned by
+  tests).
+- **New multi-trigger tasks default to ALL semantics.** The dominant support
+  request: users set several conditions (e.g. charging + night window) and
+  expect the task to run only when every condition holds — not when any one
+  of them fires. The builder now starts new tasks in "all conditions" mode;
+  the ANY selector stays one tap away, and tasks saved before this change
+  keep their stored value untouched.
+- **The builder's ALL-mode advisory now derives from the engine's own policy.**
+  The hard-coded draft list had drifted from the runtime's verifiable-state
+  classification (`APPLICATION` and `CALL_STATE` do have state evaluators).
+  The warning now delegates to `TriggerMatchPolicy.isEventOnly` — the single
+  source of truth the engine and the manual gate use — so it can never
+  disagree with what the runtime will actually verify.
+- **Quiet logs on phones without Wear support.** `WearSyncManager` probed
+  Wearable availability on every push and logged a full `API_UNAVAILABLE`
+  stack trace each time on devices with no watch. Availability is now checked
+  once and the sync path stands down with a single informational line.
+
 ## [v3.84.0] - 2026-09-21
 
 ### Fixed

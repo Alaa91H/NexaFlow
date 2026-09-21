@@ -151,7 +151,28 @@ class WearSyncManager @Inject constructor(
      * and by the connectivity re-push; coalesced through the same builder as
      * the flow-driven push so both paths serialize an identical payload.
      */
+    /**
+     * Cheap guard: the Wearable Data Layer API is genuinely unavailable on
+     * phones with no Wear support (or an unplayable GMS state). Pushing then
+     * is guaranteed failure — checking availability once keeps the log free
+     * of a repeating API_UNAVAILABLE stack trace on every data change.
+     */
+    private var wearableAvailable: Boolean? = null
+
+    private suspend fun isWearableAvailable(): Boolean {
+        wearableAvailable?.let { return it }
+        val available = runCatching {
+            com.google.android.gms.common.GoogleApiAvailability.getInstance()
+                .checkApiAvailability(Wearable.getDataClient(context)).await()
+            true
+        }.getOrElse { false }
+        wearableAvailable = available
+        if (!available) Log.i(TAG, "Wearable Data Layer unavailable; watch sync disabled on this device")
+        return available
+    }
+
     suspend fun pushNow() {
+        if (!isWearableAvailable()) return
         val automations = automationRepository.getAutomations().first()
         val latestRuns = historyRepository.getLatestExecutions().first()
         pushToWatch(buildDtos(automations, latestRuns))
@@ -178,6 +199,7 @@ class WearSyncManager @Inject constructor(
     }
 
     private suspend fun pushToWatch(dtos: List<WearAutomationDto>) {
+        if (!isWearableAvailable()) return
         withContext(Dispatchers.IO) {
             runCatching {
                 val payload = json.encodeToString(dtos)

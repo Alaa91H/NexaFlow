@@ -53,6 +53,10 @@ object TriggerMatchPolicy {
     fun isEventOnly(trigger: Trigger): Boolean =
         TriggerStateEvaluator.isEventOnly(trigger.type)
 
+    /** Type-only overload for draft/UI checks that hold no full [Trigger]. */
+    fun isEventOnly(type: com.nexaflow.domain.models.TriggerType): Boolean =
+        TriggerStateEvaluator.isEventOnly(type)
+
     /**
      * Advisory for a task configured with ALL whose trigger set contains at
      * least one event-only trigger. Null when the task is fully verifiable.
