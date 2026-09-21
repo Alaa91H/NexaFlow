@@ -94,7 +94,8 @@ class OperationRegistry private constructor(
                     strategies = listOf(
                         StrategyId.ANDROID_PUBLIC_API,
                         StrategyId.SHIZUKU_USER_SERVICE,
-                        StrategyId.ROOT_SHELL
+                        StrategyId.ROOT_SHELL,
+                        StrategyId.SETTINGS_USER_ACTION
                     )),
                 spec(SemanticOperationId.BRIGHTNESS_GET, "Read screen brightness",
                     write = false,
