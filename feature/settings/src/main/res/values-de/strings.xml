@@ -220,7 +220,7 @@
     <string name="plugin_capability_shell_commands">Shell-Befehle</string>
     <string name="plugin_capability_locale_tasker">Tasker / Locale</string>
     <string name="update_auto_checks">Automatische Update-Prüfung</string>
-    <string name="update_auto_checks_enabled_sub">Prüft im Hintergrund im gewählten Intervall auf neuere Versionen</string>
+    <string name="update_auto_checks_enabled_sub">Läuft unauffällig im Hintergrund und benachrichtigt dich nur, wenn eine neuere Version verfügbar ist</string>
     <string name="update_auto_checks_disabled_sub">Deaktiviert — keine Hintergrundprüfungen oder Update-Benachrichtigungen</string>
     <string name="update_check_frequency">Häufigkeit der automatischen Prüfung</string>
     <string name="update_check_frequency_sub">Wählen Sie, wann Hintergrundprüfungen ausgeführt werden</string>
