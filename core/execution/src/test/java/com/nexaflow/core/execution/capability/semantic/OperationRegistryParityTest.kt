@@ -39,7 +39,6 @@ class OperationRegistryParityTest {
     @Test
     fun everyWriteOperationHasShizukuAndRootImplementation() {
         val shizuku = ShizukuTypedStrategy(
-            packageName = "com.nexaflow.app",
             shizukuGranted = { true },
             userServiceReady = { true },
             execute = { SystemControlResult.ok("ok") }
