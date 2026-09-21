@@ -48,12 +48,12 @@ class WearViewModelTest {
     }
 
     @Test
-    fun `initial state is Connecting when no automations received`() = runTest {
+    fun `initial state is Connecting when no automations received`() = runTest(testDispatcher) {
         assertEquals(WearUiState.Connecting, viewModel.uiState.value)
     }
 
     @Test
-    fun `state transitions to Loaded after automations received`() = runTest {
+    fun `state transitions to Loaded after automations received`() = runTest(testDispatcher) {
         viewModel.uiState.test {
             assertEquals(WearUiState.Connecting, awaitItem())
 
@@ -68,7 +68,7 @@ class WearViewModelTest {
     }
 
     @Test
-    fun `state is Empty when phone pushes an empty automation list`() = runTest {
+    fun `state is Empty when phone pushes an empty automation list`() = runTest(testDispatcher) {
         viewModel.uiState.test {
             assertEquals(WearUiState.Connecting, awaitItem())
 
@@ -80,7 +80,7 @@ class WearViewModelTest {
     }
 
     @Test
-    fun `cached DataItem snapshot is restored before a live phone is available`() = runTest {
+    fun `cached DataItem snapshot is restored before a live phone is available`() = runTest(testDispatcher) {
         val cachedRepository = WearSyncRepository()
         val cachedClient: WearDataLayerClient = mock()
         whenever(cachedClient.readCachedAutomationPayload()).thenReturn(
@@ -101,7 +101,7 @@ class WearViewModelTest {
     }
 
     @Test
-    fun `fresh sync stops retrying after a new DataItem revision arrives`() = runTest {
+    fun `fresh sync stops retrying after a new DataItem revision arrives`() = runTest(testDispatcher) {
         val retryRepository = WearSyncRepository()
         val retryClient: WearDataLayerClient = mock()
         whenever(retryClient.readCachedAutomationPayload()).thenReturn(null)
@@ -124,7 +124,7 @@ class WearViewModelTest {
     }
 
     @Test
-    fun `runNow delegates to dataLayerClient`() = runTest {
+    fun `runNow delegates to dataLayerClient`() = runTest(testDispatcher) {
         whenever(dataLayerClient.sendRunCommand(any())).thenReturn(Unit)
         val automation = makeDto("a1")
 
@@ -135,7 +135,7 @@ class WearViewModelTest {
     }
 
     @Test
-    fun `toggleEnabled delegates to dataLayerClient`() = runTest {
+    fun `toggleEnabled delegates to dataLayerClient`() = runTest(testDispatcher) {
         whenever(dataLayerClient.sendToggleCommand(any(), any())).thenReturn(Unit)
         val automation = makeDto("b2")
 
