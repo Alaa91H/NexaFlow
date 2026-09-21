@@ -26,7 +26,6 @@ import com.nexaflow.domain.capability.operation.StrategyId
  * unavailable-with-permission-granted, never as executable.
  */
 class ShizukuTypedStrategy(
-    private val packageName: String,
     private val shizukuGranted: () -> Boolean = PrivilegedRunner::isShizukuGranted,
     private val userServiceReady: () -> Boolean = { com.nexaflow.core.rom.ShizukuShellBridge.isUserServiceBound },
     private val execute: (PrivilegedOperation) -> SystemControlResult =
