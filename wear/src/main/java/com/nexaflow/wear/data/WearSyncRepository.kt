@@ -45,10 +45,17 @@ class WearSyncRepository @Inject constructor() {
      * empty list rather than leaving the UI indefinitely in Connecting.
      */
     fun handleIncomingPayload(payload: String) {
-        val dtos = runCatching {
+        val decoded = runCatching {
             json.decodeFromString<List<WearAutomationDto>>(payload)
-        }.getOrElse { emptyList() }
-        _automations.value = dtos
-        _updateSequence.value = sequence.incrementAndGet()
+        }
+        _automations.value = decoded.getOrElse { emptyList() }
+
+        // A malformed frame is visible as an empty state for backward
+        // compatibility, but it must not acknowledge a fresh-sync request.
+        // The ViewModel will continue its bounded retries until a valid
+        // automation snapshot arrives.
+        if (decoded.isSuccess) {
+            _updateSequence.value = sequence.incrementAndGet()
+        }
     }
 }
