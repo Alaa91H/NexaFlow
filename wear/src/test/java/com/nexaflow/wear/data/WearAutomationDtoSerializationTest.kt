@@ -105,4 +105,17 @@ class WearAutomationDtoSerializationTest {
         assertEquals("2", repository.automations.value!![1].id)
         assertEquals("3", repository.automations.value!![2].id)
     }
+
+    @Test
+    fun `each accepted payload advances the monotonic update sequence`() {
+        assertEquals(0L, repository.updateSequence.value)
+
+        repository.handleIncomingPayload("[]")
+        val first = repository.updateSequence.value
+        repository.handleIncomingPayload("[]")
+        val second = repository.updateSequence.value
+
+        assertTrue(first > 0L)
+        assertTrue(second > first)
+    }
 }
