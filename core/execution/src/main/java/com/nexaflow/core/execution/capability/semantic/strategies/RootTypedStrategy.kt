@@ -32,6 +32,7 @@ class RootTypedStrategy(
         SemanticOperationId.AIRPLANE_MODE_GET_STATE,
         SemanticOperationId.AIRPLANE_MODE_SET_STATE,
         SemanticOperationId.DND_GET_STATE,
+        SemanticOperationId.DND_SET_STATE,
         SemanticOperationId.NFC_SET_STATE,
         SemanticOperationId.HOTSPOT_SET_STATE,
         SemanticOperationId.HOTSPOT_GET_STATE,
@@ -120,10 +121,18 @@ class RootTypedStrategy(
                     key = "airplane_mode_on",
                     value = if (enable) "1" else "0"
                 )
+            SemanticOperationId.DND_SET_STATE ->
+                PrivilegedOperation.WriteSetting(
+                    namespace = PrivilegedOperation.SettingNamespace.GLOBAL,
+                    key = "zen_mode",
+                    value = if (enable) "2" else "0"
+                )
             SemanticOperationId.NFC_SET_STATE ->
                 PrivilegedOperation.SetServiceState(
                     PrivilegedOperation.Companion.ServiceName.NFC, enable
                 )
+            SemanticOperationId.HOTSPOT_SET_STATE ->
+                PrivilegedOperation.SetHotspot(enable)
             SemanticOperationId.MOBILE_DATA_SET_STATE ->
                 PrivilegedOperation.SetServiceState(
                     PrivilegedOperation.Companion.ServiceName.DATA, enable
@@ -147,7 +156,7 @@ class RootTypedStrategy(
         SemanticOperationId.AIRPLANE_MODE_GET_STATE ->
             readSettingInt(PrivilegedOperation.SettingNamespace.GLOBAL, "airplane_mode_on")
         SemanticOperationId.DND_GET_STATE ->
-            readSettingInt(PrivilegedOperation.SettingNamespace.GLOBAL, "zen_mode")
+            readNonZeroSetting(PrivilegedOperation.SettingNamespace.GLOBAL, "zen_mode")
         SemanticOperationId.MOBILE_DATA_GET_STATE ->
             readSettingInt(PrivilegedOperation.SettingNamespace.GLOBAL, "mobile_data")
         SemanticOperationId.PACKAGE_GET_ENABLED_STATE -> {
@@ -202,6 +211,16 @@ class RootTypedStrategy(
         key: String
     ): Boolean? = readSettingBool(namespace, key)
 
+    /** DND uses 0 for off and multiple non-zero zen modes for active states. */
+    private fun readNonZeroSetting(
+        namespace: PrivilegedOperation.SettingNamespace,
+        key: String
+    ): Boolean? {
+        val result = execute(PrivilegedOperation.ReadSettingState(namespace, key))
+        if (!result.success) return null
+        return result.message.trim().toIntOrNull()?.let { it != 0 }
+    }
+
     private fun toOutcome(
         operation: SemanticOperationId,
         result: SystemControlResult,
@@ -249,6 +268,7 @@ class RootTypedStrategy(
         SemanticOperationId.NFC_SET_STATE,
         SemanticOperationId.MOBILE_DATA_SET_STATE,
         SemanticOperationId.HOTSPOT_SET_STATE,
+        SemanticOperationId.DND_SET_STATE,
         // A dispatched-but-unconfirmed package operation may have landed:
         // reconcile by reading the actual package state, never blind-retry.
         SemanticOperationId.PACKAGE_FORCE_STOP,
