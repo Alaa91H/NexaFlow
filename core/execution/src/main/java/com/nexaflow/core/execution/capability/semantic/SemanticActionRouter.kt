@@ -170,8 +170,9 @@ class SemanticActionRouter(
 /**
  * Adapts the rich semantic lifecycle to the legacy boolean action contract.
  * Only a completed SUCCESS is successful. In particular, a Settings hand-off
- * or a missing Shizuku/Root grant remains pending/non-successful instead of
- * being recorded as if the requested device state had already changed.
+ * offered as a fallback for a requested state change, or a missing
+ * Shizuku/Root grant, remains pending/non-successful instead of being recorded
+ * as if the requested device state had already changed.
  */
 internal fun OperationOutcome.toSystemControlResult(): SystemControlResult =
     if (status == OperationOutcomeStatus.SUCCESS) {
