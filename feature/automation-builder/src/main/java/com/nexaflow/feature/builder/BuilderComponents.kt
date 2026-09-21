@@ -745,7 +745,13 @@ object PermissionShortcuts {
             SpecialPermission.ACCESSIBILITY -> openAccessibilitySettings(context)
             // Shizuku: request the permission in-app when the server is already
             // running (one tap, no detour); otherwise open the Shizuku app.
-            SpecialPermission.SHIZUKU -> ElevatedAccessShortcuts.openShizuku(context)
+            SpecialPermission.SHIZUKU -> ElevatedAccessShortcuts.openShizuku(context) { granted ->
+                if (granted) {
+                    Thread {
+                        RootPermissionGranter.requestAndGrantAll(context.applicationContext)
+                    }.start()
+                }
+            }
             // Root: trigger the root manager's allow/deny grant dialog directly
             // (Magisk/KernelSU/APatch) instead of opening app info — one tap to
             // grant, exactly how Tasker/Termux request root. Once granted, every
@@ -765,7 +771,13 @@ object PermissionShortcuts {
             // an in-app Shizuku grant when available, otherwise the root dialog.
             SpecialPermission.ELEVATED -> {
                 if (PrivilegedRunner.isShizukuRunning()) {
-                    ElevatedAccessShortcuts.openShizuku(context)
+                    ElevatedAccessShortcuts.openShizuku(context) { granted ->
+                        if (granted) {
+                            Thread {
+                                RootPermissionGranter.requestAndGrantAll(context.applicationContext)
+                            }.start()
+                        }
+                    }
                 } else {
                     ElevatedAccessShortcuts.requestRootAccess(context) { granted ->
                         if (granted) {
