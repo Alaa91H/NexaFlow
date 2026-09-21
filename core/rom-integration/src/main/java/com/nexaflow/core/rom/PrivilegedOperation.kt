@@ -164,6 +164,19 @@ sealed interface PrivilegedOperation {
             listOf("cmd", "location", "is-location-enabled")
     }
 
+    /** Controls airplane mode through ConnectivityService rather than only mutating its setting. */
+    data class SetAirplaneMode(val enabled: Boolean) : PrivilegedOperation {
+        override val wireId: PrivilegedOperationId = PrivilegedOperationId.AIRPLANE_MODE_SET
+        override fun wireArguments(): List<String> = listOf(enabled.toString())
+        override fun argv(): List<String> =
+            listOf(
+                "cmd",
+                "connectivity",
+                "airplane-mode",
+                if (enabled) "enable" else "disable"
+            )
+    }
+
     /** Controls Android's global restrict-background (Data Saver) policy. */
     data class SetDataSaver(val enabled: Boolean) : PrivilegedOperation {
         override val wireId: PrivilegedOperationId = PrivilegedOperationId.DATA_SAVER_STATE_SET
@@ -280,6 +293,8 @@ sealed interface PrivilegedOperation {
                 PrivilegedOperationId.LOCATION_STATE_SET ->
                     SetLocationEnabled(first.toBooleanStrict())
                 PrivilegedOperationId.LOCATION_STATE_READ -> ReadLocationEnabled
+                PrivilegedOperationId.AIRPLANE_MODE_SET ->
+                    SetAirplaneMode(first.toBooleanStrict())
                 PrivilegedOperationId.DATA_SAVER_STATE_SET ->
                     SetDataSaver(first.toBooleanStrict())
                 PrivilegedOperationId.DATA_SAVER_STATE_READ -> ReadDataSaver
@@ -364,6 +379,7 @@ enum class PrivilegedOperationId(val wireValue: String) {
     SERVICE_STATE_SET("service.state.set"),
     LOCATION_STATE_SET("location.state.set"),
     LOCATION_STATE_READ("location.state.read"),
+    AIRPLANE_MODE_SET("airplane_mode.set"),
     DATA_SAVER_STATE_SET("data_saver.state.set"),
     DATA_SAVER_STATE_READ("data_saver.state.read"),
     SETTING_STATE_READ("setting.state.read"),
