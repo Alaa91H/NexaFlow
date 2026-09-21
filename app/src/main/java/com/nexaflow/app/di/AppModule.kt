@@ -68,6 +68,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -352,15 +353,30 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideSemanticEvidenceStore(): com.nexaflow.core.execution.capability.semantic.CapabilityEvidenceStore {
+        return com.nexaflow.core.execution.capability.semantic.CapabilityEvidenceStore()
+    }
+
+    @Provides
+    @Singleton
+    fun provideSemanticHealthTracker(): com.nexaflow.core.execution.capability.semantic.StrategyHealthTracker {
+        return com.nexaflow.core.execution.capability.semantic.StrategyHealthTracker()
+    }
+
+    @Provides
+    @Singleton
     fun provideSemanticActionRouter(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        evidenceStore: com.nexaflow.core.execution.capability.semantic.CapabilityEvidenceStore,
+        healthTracker: com.nexaflow.core.execution.capability.semantic.StrategyHealthTracker
     ): com.nexaflow.core.execution.capability.semantic.SemanticActionRouter {
         val fingerprint = com.nexaflow.core.execution.capability.semantic.DeviceFingerprint.capture()
-        val evidenceStore = com.nexaflow.core.execution.capability.semantic.CapabilityEvidenceStore()
-        val healthTracker = com.nexaflow.core.execution.capability.semantic.StrategyHealthTracker()
         val registry = com.nexaflow.core.execution.capability.semantic.OperationRegistry.default()
         val strategies = listOf(
             com.nexaflow.core.execution.capability.semantic.strategies.AndroidApiStateStrategy(context),
+            com.nexaflow.core.execution.capability.semantic.strategies.ShizukuTypedStrategy(
+                packageName = context.packageName
+            ),
             com.nexaflow.core.execution.capability.semantic.strategies.RootTypedStrategy(),
             com.nexaflow.core.execution.capability.semantic.strategies.SettingsUserActionStrategy(context)
         )
@@ -381,6 +397,30 @@ object AppModule {
                     com.nexaflow.core.rom.PrivilegedRunner.isRootAvailable()
             }
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideEnvironmentEventInvalidator(
+        @ApplicationScope scope: CoroutineScope,
+        evidenceStore: com.nexaflow.core.execution.capability.semantic.CapabilityEvidenceStore,
+        healthTracker: com.nexaflow.core.execution.capability.semantic.StrategyHealthTracker
+    ): com.nexaflow.core.execution.capability.semantic.EnvironmentEventWiring {
+        val bus = com.nexaflow.core.execution.capability.semantic.EnvironmentEventBus()
+        val wiring = com.nexaflow.core.execution.capability.semantic.EnvironmentEventWiring(bus)
+        // Real Shizuku lifecycle transitions (binder received/dead, UserService
+        // connected/disconnected) flow into targeted evidence invalidation for
+        // the Shizuku strategy only — never a full capability rescan.
+        wiring.wireShizukuLifecycle()
+        val invalidator = com.nexaflow.core.execution.capability.semantic.EnvironmentInvalidator(
+            evidenceStore, healthTracker
+        )
+        scope.launch {
+            bus.events.collect { event ->
+                invalidator.apply(event, com.nexaflow.core.execution.capability.semantic.DeviceFingerprint.capture().deviceKey)
+            }
+        }
+        return wiring
     }
 
     @Provides

@@ -6,7 +6,7 @@ Generated from source by `python scripts/generate_capability_catalog.py`. This i
 
 ## Semantic operations (Capability-Adaptive Execution)
 
-Twelve device-state action types are additionally expressed as 24 paired semantic operations in `OperationRegistry` (`WIFI_GET_STATE`/`WIFI_SET_STATE`, `BLUETOOTH_*`, `MOBILE_DATA_*`, `HOTSPOT_*`, `NFC_*`, `LOCATION_*`, `AIRPLANE_MODE_*`, `ROTATION_*`, `BRIGHTNESS_GET/SET`, `SCREEN_TIMEOUT_*`, `DND_*`, `DATA_SAVER_*`). For each, the router advertises only the strategies that really ship: public Android API, root typed operations, and an explicit Settings hand-off. Strategies marked in the specs but not yet implemented (Shizuku typed operations, device owner, OEM-specific) are never selected; unsupported is reported honestly. See the [execution contract](architecture/capability-adaptive-execution.md).
+Twelve device-state action types are additionally expressed as 24 paired semantic operations in `OperationRegistry` (`WIFI_GET_STATE`/`WIFI_SET_STATE`, `BLUETOOTH_*`, `MOBILE_DATA_*`, `HOTSPOT_*`, `NFC_*`, `LOCATION_*`, `AIRPLANE_MODE_*`, `ROTATION_*`, `BRIGHTNESS_GET/SET`, `SCREEN_TIMEOUT_*`, `DND_*`, `DATA_SAVER_*`). For each, the router advertises only the strategies that really ship: public Android API, Shizuku typed operations (closed `PrivilegedOperation` argv over the UserService AIDL; availability requires a bound service, not merely a granted permission), root typed operations, and an explicit Settings hand-off. Strategies marked in the specs but not yet implemented (device owner, OEM-specific) are never selected; unsupported is reported honestly. See the [execution contract](architecture/capability-adaptive-execution.md).
 
 ## Triggers
 

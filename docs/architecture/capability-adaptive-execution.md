@@ -74,7 +74,7 @@ Safe fallback / reconcile when outcome is UNKNOWN or transport-level
 ## 6. الترحيل (Migration)
 
 - **المرحلة A**: البنية أعلاه + عمليات Wi-Fi/Bluetooth/Rotation/Brightness/ScreenTimeout/Location/NFC/Hotspot/AirplaneMode/DND.
-- **المرحلة B**: `CapabilityActionMapper` يرحّل الأنواع المُصنّفة للراوتر عبر `SemanticActionRouter` — بقية الأنواع تستمر عبر مساراتها الحالية بلا تغيير.
+- **المرحلة B**: `CapabilityActionMapper` يرحّل الأنواع المُصنّفة للراوتر عبر `SemanticActionRouter` — بقية الأنواع تستمر عبر مساراتها الحالية بلا تغيير. مكتمل أيضًا: **`ShizukuTypedStrategy`** (مسار Shizuku typed عبر `PrivilegedRunner.runShizukuOperation` بـ argv مغلق عبر UserService AIDL — الصلاحية وحدها لا تكفي، الحصول يتطلب UserService bound)، وربط `EnvironmentEventWiring` الحقيقي: كل انتقال فعلي في دورة حياة Shizuku (binder received/dead، UserService connected/disconnected) ينشر `ShizukuStateChanged` فيسبطل إبطالًا مستهدفًا لدليل استراتيجية Shizuku فقط.
 - **لا يُحذف أي مسار قديم** قبل أن يغطيه الراوتر بعمليات equivalent ومثبتة (parity tests).
 - `DeviceStateSnapshot` وEndBehavior واستعادة الحالة تبقى كما هي؛ الراوتر يُستخدم فيها عبر نفس mapper لاحقًا.
 

@@ -17,6 +17,7 @@ class OperationRegistryParityTest {
     /** Strategies with real implementations shipping in production DI. */
     private val implementedStrategies: Set<StrategyId> = setOf(
         StrategyId.ANDROID_PUBLIC_API,
+        StrategyId.SHIZUKU_USER_SERVICE,
         StrategyId.ROOT_SHELL,
         StrategyId.SETTINGS_USER_ACTION
     )

@@ -2,6 +2,43 @@
 
 ## [Unreleased]
 
+## [v3.80.0] - 2026-09-21
+
+### Added
+
+- **Shizuku typed strategy — Phase B of the capability-adaptive migration.**
+  `ShizukuTypedStrategy` routes semantic operations through the closed
+  `PrivilegedOperation` algebra via `PrivilegedRunner.runShizukuOperation`
+  (UserService AIDL, direct argv, never `sh -c`). Implemented operations:
+  Wi-Fi / Bluetooth / airplane mode / NFC / mobile data / hotspot / DND state
+  writes, plus bounded read-back for reconciliation and verification through
+  the reviewed settings-read allowlist. The strategy is the only place a new
+  Shizuku argv shape may be added — workflow input can never become a shell
+  expression through this path.
+- **Honest Shizuku readiness.** Availability distinguishes three states:
+  not granted (permission required), granted but UserService not bound
+  (GRANTED_NOT_BOUND — reported unavailable with a reconnect path, never
+  executable), and ready. A granted permission alone is no longer treated as
+  readiness for typed operations.
+- **Real environment-event wiring.** `EnvironmentEventWiring` connects the
+  semantic-layer `EnvironmentEventBus` to the actual Shizuku lifecycle
+  listener: binder received, binder dead, and UserService
+  connected/disconnected transitions publish targeted
+  `ShizukuStateChanged` events. The `EnvironmentInvalidator` erases only
+  Shizuku-backed evidence and health — root evidence survives a Shizuku
+  binder death (targeted invalidation, never a full capability rescan).
+  Wiring is idempotent and injected through a listener-registration seam so
+  it is unit-testable without the Shizuku server.
+
+### Changed
+
+- Production DI now ships four semantic strategies (public Android API,
+  Shizuku typed, root typed, Settings hand-off); the registry-parity gate
+  updated accordingly. Router fallback and UNKNOWN-reconciliation semantics
+  are unchanged and now exercised for the Shizuku path: a radio toggle that
+  may have landed before a transport drop surfaces as `UNKNOWN` and
+  reconciles by reading the actual state, never re-executes.
+
 ## [v3.79.0] - 2026-09-21
 
 ### Fixed

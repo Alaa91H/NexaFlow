@@ -1,5 +1,6 @@
 package com.nexaflow.core.execution.capability.semantic
 
+import com.nexaflow.core.rom.ShizukuShellBridge
 import com.nexaflow.domain.capability.operation.SemanticOperationId
 import com.nexaflow.domain.capability.operation.StrategyId
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -93,3 +94,28 @@ class EnvironmentInvalidator(
 
 /** The strategies a semantic operation may name; used by parity tests. */
 fun Iterable<StrategyId>.requireDistinct(): List<StrategyId> = distinct()
+
+/**
+ * Wires [EnvironmentEventBus] to the real platform listeners. Every
+ * registration is idempotent (safe to call from DI and recovery paths alike)
+ * and each listener publishes the **targeted** event only: a Shizuku binder
+ * death invalidates Shizuku-backed evidence — it never triggers a full
+ * capability rescan.
+ */
+class EnvironmentEventWiring(
+    private val bus: EnvironmentEventBus,
+    /** Listener-registration seam; the production default is the real bridge. */
+    private val registerShizukuListener: ((() -> Unit) -> Unit) = ShizukuShellBridge::addStateListener
+) {
+    private val wired = java.util.concurrent.atomic.AtomicBoolean(false)
+
+    fun wireShizukuLifecycle() {
+        if (!wired.compareAndSet(false, true)) return
+        // The bridge invokes each listener immediately on registration (sticky
+        // binder state) and on every real transition: binder received, binder
+        // dead, UserService connected/disconnected, rebind.
+        registerShizukuListener {
+            bus.tryPublish(EnvironmentEvent.ShizukuStateChanged)
+        }
+    }
+}
