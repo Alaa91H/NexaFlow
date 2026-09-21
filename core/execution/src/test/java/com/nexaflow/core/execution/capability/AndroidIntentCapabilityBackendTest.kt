@@ -1,6 +1,5 @@
 package com.nexaflow.core.execution.capability
 
-import android.app.Application
 import android.provider.Settings
 import com.nexaflow.domain.capability.CapabilityId
 import com.nexaflow.domain.capability.CapabilityRequest
@@ -21,7 +20,7 @@ class AndroidIntentCapabilityBackendTest {
 
     @Test
     fun successfulSettingsHandoffIsTerminalCapabilitySuccess() = runTest {
-        val application = RuntimeEnvironment.getApplication<Application>()
+        val application = RuntimeEnvironment.getApplication()
         val backend = AndroidIntentCapabilityBackend(application)
 
         val result = backend.execute(
