@@ -26,9 +26,10 @@
   22:00–07:00*. In ALL mode the engine verifies the remaining triggers' live
   state (via `TriggerStateEvaluator`) after the initiating trigger fires;
   event-only trigger types (notification, screen-off, package install/uninstall,
-  boot, …) cannot be confirmed after the fact and therefore disqualify ALL
-  matching for that automation, falling back to documented OR semantics.
-  Serialized as an optional field — existing automations and backups keep
+  boot, …) cannot be confirmed after the fact; when such a condition cannot be
+  verified, ALL mode fails closed and the run is skipped rather than pretending
+  a past event is current state. Serialized as an optional field — existing
+  automations and backups keep
   their historical ANY behavior unchanged.
 
 ## [v3.81.0] - 2026-09-21
