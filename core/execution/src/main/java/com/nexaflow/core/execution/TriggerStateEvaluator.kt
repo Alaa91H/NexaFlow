@@ -16,6 +16,7 @@ import com.nexaflow.core.common.HotspotStateReader
 import com.nexaflow.core.common.NetworkTransportState
 import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.Trigger
+import com.nexaflow.domain.models.TriggerMatchMode
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.schedule.TimeTriggerCalculator
 import java.time.LocalDate
@@ -33,8 +34,8 @@ import kotlinx.coroutines.withContext
  *
  * Trigger types that cannot be evaluated deterministically without their
  * live monitors (apps, SMS, NFC scans, clipboard, sensors, webhook, calendar,
- * ...) report "not satisfied". A manual tap must never execute main actions
- * without proof that every configured condition is currently true.
+ * ...) report an unknown state. A manual tap follows the task's ANY/ALL rule
+ * and never treats an unknown state as proof that a condition is true.
  */
 @Suppress("TooManyFunctions") // One cohesive manual-gate surface; each adapter mirrors one live monitor's semantics.
 object TriggerStateEvaluator {
@@ -73,24 +74,41 @@ object TriggerStateEvaluator {
         evaluateAsync(context, triggers) == ConditionResult.Satisfied
 
     /**
-     * Typed manual-gate evaluation. Event-only sources, unavailable services,
+     * Typed current-state evaluation. Event-only sources, unavailable services,
      * and reads whose false result cannot be distinguished from an API failure
-     * remain [ConditionResult.Unknown]. The caller keeps that distinction for
-     * diagnostics while applying its explicit manual-run policy.
+     * remain [ConditionResult.Unknown]. [matchMode] combines the individual
+     * states without ever converting unknown/unavailable/error into truth.
      */
-    suspend fun evaluateAsync(context: Context, triggers: List<Trigger>): ConditionResult {
+    suspend fun evaluateAsync(
+        context: Context,
+        triggers: List<Trigger>,
+        matchMode: TriggerMatchMode = TriggerMatchMode.ALL
+    ): ConditionResult {
         if (triggers.isEmpty()) return ConditionResult.Satisfied
-        var unknown = false
-        triggers.forEach { trigger ->
-            when (val result = withContext(Dispatchers.IO) { evaluateTriggerForManualGate(context, trigger) }) {
-                ConditionResult.Satisfied -> Unit
-                ConditionResult.Unsatisfied -> return ConditionResult.Unsatisfied
-                ConditionResult.Unknown,
-                ConditionResult.Unavailable,
-                is ConditionResult.Error -> unknown = true
+        val results = triggers.map { trigger ->
+            withContext(Dispatchers.IO) { evaluateTriggerForManualGate(context, trigger) }
+        }
+        return aggregate(results, matchMode)
+    }
+
+    /** Pure tri-state aggregation used by runtime code and deterministic tests. */
+    internal fun aggregate(
+        results: List<ConditionResult>,
+        matchMode: TriggerMatchMode
+    ): ConditionResult {
+        if (results.isEmpty()) return ConditionResult.Satisfied
+        return when (matchMode) {
+            TriggerMatchMode.ANY -> when {
+                results.any { it == ConditionResult.Satisfied } -> ConditionResult.Satisfied
+                results.all { it == ConditionResult.Unsatisfied } -> ConditionResult.Unsatisfied
+                else -> ConditionResult.Unknown
+            }
+            TriggerMatchMode.ALL -> when {
+                results.any { it == ConditionResult.Unsatisfied } -> ConditionResult.Unsatisfied
+                results.all { it == ConditionResult.Satisfied } -> ConditionResult.Satisfied
+                else -> ConditionResult.Unknown
             }
         }
-        return if (unknown) ConditionResult.Unknown else ConditionResult.Satisfied
     }
 
     /**

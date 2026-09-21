@@ -1,12 +1,12 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 19,
+    "version": 20,
     "identityHash": "e5ab051ec3bc216fa6c82749f304e6d2",
     "entities": [
       {
         "tableName": "automations",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `icon` TEXT NOT NULL, `iconColor` INTEGER NOT NULL, `backgroundColor` INTEGER NOT NULL, `category` TEXT NOT NULL, `priority` INTEGER NOT NULL, `enabled` INTEGER NOT NULL, `showToastOnToggle` INTEGER NOT NULL, `triggersJson` TEXT NOT NULL, `actionsJson` TEXT NOT NULL, `constraintsJson` TEXT NOT NULL, `exitActionsJson` TEXT NOT NULL, `revertOnExit` INTEGER NOT NULL, `cooldownSeconds` INTEGER NOT NULL, `workflowVersion` INTEGER NOT NULL, `maintenanceJson` TEXT, `deepLinkToken` TEXT, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `icon` TEXT NOT NULL, `iconColor` INTEGER NOT NULL, `backgroundColor` INTEGER NOT NULL, `category` TEXT NOT NULL, `priority` INTEGER NOT NULL, `enabled` INTEGER NOT NULL, `showToastOnToggle` INTEGER NOT NULL, `triggersJson` TEXT NOT NULL, `actionsJson` TEXT NOT NULL, `constraintsJson` TEXT NOT NULL, `exitActionsJson` TEXT NOT NULL, `revertOnExit` INTEGER NOT NULL, `cooldownSeconds` INTEGER NOT NULL, `workflowVersion` INTEGER NOT NULL, `maintenanceJson` TEXT, `deepLinkToken` TEXT, `triggerMatch` TEXT NOT NULL DEFAULT 'ANY', `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -120,6 +120,13 @@
             "columnName": "deepLinkToken",
             "affinity": "TEXT",
             "notNull": false
+          },
+          {
+            "fieldPath": "triggerMatch",
+            "columnName": "triggerMatch",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'ANY'"
           },
           {
             "fieldPath": "createdAt",

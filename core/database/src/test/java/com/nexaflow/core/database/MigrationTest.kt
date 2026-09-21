@@ -25,6 +25,20 @@ import java.io.File
 @RunWith(RobolectricTestRunner::class)
 class MigrationTest {
 
+    @Test fun migrate19To20DefaultsExistingTasksToAny() {
+        helper.createDatabase(19).apply {
+            execSQL("INSERT INTO automations (id,name,description,icon,iconColor,backgroundColor,category,priority,enabled,showToastOnToggle,triggersJson,actionsJson,constraintsJson,exitActionsJson,revertOnExit,cooldownSeconds,workflowVersion,maintenanceJson,deepLinkToken,createdAt,updatedAt) VALUES ('logic','Legacy Task','','bolt',1,2,'general',1,1,1,'[]','[]','[]','[]',0,10,1,NULL,NULL,1,2)")
+            close()
+        }
+        val migrated = helper.runMigrationsAndValidate(20, listOf(Migrations.MIGRATION_19_20))
+        migrated.prepare("SELECT name, triggerMatch FROM automations WHERE id='logic'").use {
+            assertTrue(it.step())
+            assertEquals("Legacy Task", it.getText(0))
+            assertEquals("ANY", it.getText(1))
+        }
+        migrated.close()
+    }
+
     @Test fun migrate18To19AddsRevokedCapabilityAndPreservesTask() {
         helper.createDatabase(18).apply {
             execSQL("INSERT INTO automations (id,name,description,icon,iconColor,backgroundColor,category,priority,enabled,showToastOnToggle,triggersJson,actionsJson,constraintsJson,exitActionsJson,revertOnExit,cooldownSeconds,workflowVersion,createdAt,updatedAt) VALUES ('a','Task','','bolt',1,2,'general',1,1,1,'[]','[]','[]','[]',0,10,1,1,2)")
@@ -37,10 +51,10 @@ class MigrationTest {
         migrated.close()
     }
 
-    @Test fun historicalChainsReach19() {
-        for (version in listOf(1, 12, 16, 18)) {
+    @Test fun historicalChainsReach20() {
+        for (version in listOf(1, 12, 16, 18, 19)) {
             helper.createDatabase(version).close()
-            helper.runMigrationsAndValidate(19, Migrations.ALL).close()
+            helper.runMigrationsAndValidate(20, Migrations.ALL).close()
             dbFile.delete()
         }
     }

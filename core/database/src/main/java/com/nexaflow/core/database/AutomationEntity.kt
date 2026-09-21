@@ -1,5 +1,6 @@
 package com.nexaflow.core.database
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -35,6 +36,9 @@ data class AutomationEntity(
      * authorization.
      */
     val deepLinkToken: String? = null,
+    /** Persisted multi-trigger match policy; ANY is the historical default. */
+    @ColumnInfo(defaultValue = "'ANY'")
+    val triggerMatch: String = "ANY",
     val createdAt: Long,
     val updatedAt: Long
 )

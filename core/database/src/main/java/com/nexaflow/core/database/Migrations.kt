@@ -10,6 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  */
 object Migrations {
     const val MIGRATION_15_16_SQL = "ALTER TABLE `automations` ADD COLUMN `maintenanceJson` TEXT"
+    const val MIGRATION_19_20_SQL = "ALTER TABLE `automations` ADD COLUMN `triggerMatch` TEXT NOT NULL DEFAULT 'ANY'"
 
 
     /** v1 -> v2: adds the execution history table. */
@@ -256,6 +257,13 @@ object Migrations {
         }
     }
 
+    /** v19 -> v20: persist task-level ANY/ALL matching without changing legacy behavior. */
+    val MIGRATION_19_20 = object : Migration(19, 20) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(MIGRATION_19_20_SQL)
+        }
+    }
+
     val ALL = listOf(
         MIGRATION_1_2,
         MIGRATION_2_3,
@@ -274,6 +282,7 @@ object Migrations {
         MIGRATION_15_16,
         MIGRATION_16_17,
         MIGRATION_17_18,
-        MIGRATION_18_19
+        MIGRATION_18_19,
+        MIGRATION_19_20
     )
 }

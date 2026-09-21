@@ -174,7 +174,9 @@ class ExecutionEngine(
           */
         completeExitOnFinish: Boolean = false,
         /** Present only for a stateful trigger occurrence owned by ExitCoordinator. */
-        lifecycleContext: AutomationLifecycleContext? = null
+        lifecycleContext: AutomationLifecycleContext? = null,
+        /** Explicit user-approved manual paths may bypass the automatic trigger gate. */
+        bypassTriggerMatch: Boolean = false
     ): ExecutionRecord {
         // Strict mode: acquire wake lock for forceful execution (bypasses Doze, ensures CPU stays on)
         val wakeLock = acquireWakeLock("NexaFlow:runAutomation:${automation.id}")
@@ -293,7 +295,8 @@ class ExecutionEngine(
         // skip (same semantics as a failed constraint, never a failure).
         // Evaluated after the constraint gate and before any checkpoint so a
         // rejected run performs no work and leaves no queue residue.
-        if (automation.triggerMatch == com.nexaflow.domain.models.TriggerMatchMode.ALL &&
+        if (!bypassTriggerMatch &&
+            automation.triggerMatch == com.nexaflow.domain.models.TriggerMatchMode.ALL &&
             automation.triggers.size > 1
         ) {
             val triggerGate = TriggerStateEvaluator.evaluateAsync(context, automation.triggers)
@@ -640,8 +643,8 @@ class ExecutionEngine(
     }
 
     /**
-     * Manual "run now" gate: executes the task's main actions only when every
-     * trigger and constraint is currently and verifiably satisfied. Every other
+     * Manual "run now" gate: evaluates current triggers with the task's
+     * configured ANY/ALL rule while constraints must still all pass. Every other
      * outcome follows the configured "when the task ends" behavior. This is an
      * explicit user-directed command: when the main condition is unavailable,
      * NexaFlow performs the requested end action if one exists, otherwise it
@@ -657,7 +660,11 @@ class ExecutionEngine(
         if (automation.requiresTimeRangeForEndBehavior) {
             return rejectIncompleteTimeRange(automation, startedAt)
         }
-        val triggerResult = TriggerStateEvaluator.evaluateAsync(context, automation.triggers)
+        val triggerResult = TriggerStateEvaluator.evaluateAsync(
+            context = context,
+            triggers = automation.triggers,
+            matchMode = automation.triggerMatch
+        )
         val constraintState = if (automation.constraints.isEmpty()) null else
             constraintStateProvider?.invoke()
                 ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
@@ -670,7 +677,7 @@ class ExecutionEngine(
             triggerResult == ConditionResult.Satisfied &&
             constraintResult == ConditionResult.Satisfied
         ) {
-            runAutomation(automation)
+            runAutomation(automation, bypassTriggerMatch = true)
         } else {
             runExit(
                 automation = automation,
@@ -695,7 +702,11 @@ class ExecutionEngine(
                 failedConstraintLabels = emptyList()
             )
         }
-        val triggerResult = TriggerStateEvaluator.evaluateAsync(context, automation.triggers)
+        val triggerResult = TriggerStateEvaluator.evaluateAsync(
+            context = context,
+            triggers = automation.triggers,
+            matchMode = automation.triggerMatch
+        )
         val failedTriggers = if (triggerResult == ConditionResult.Satisfied) {
             emptyList()
         } else {
@@ -737,7 +748,7 @@ class ExecutionEngine(
      * history shows the run was user-forced, not trigger-driven.
      */
     suspend fun forceRun(automation: Automation): ExecutionRecord {
-        val record = runAutomation(automation)
+        val record = runAutomation(automation, bypassTriggerMatch = true)
         historyRepository.recordExecution(
             record.copy(message = "$MANUAL_FORCE_PREFIX${record.message}".take(500))
         )
