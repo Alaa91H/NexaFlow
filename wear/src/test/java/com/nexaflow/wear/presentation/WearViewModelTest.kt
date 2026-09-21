@@ -6,6 +6,7 @@ import com.nexaflow.wear.data.WearDataLayerClient
 import com.nexaflow.wear.data.WearSyncRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -34,6 +35,10 @@ class WearViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         dataLayerClient = mock()
+        runBlocking {
+            whenever(dataLayerClient.readCachedAutomationPayload()).thenReturn(null)
+            whenever(dataLayerClient.requestSync()).thenReturn(false)
+        }
         viewModel = WearViewModel(syncRepository, dataLayerClient)
     }
 
