@@ -32,7 +32,6 @@ class PackageOperationsStrategyTest {
     }
 
     private fun shizukuStrategy(sink: RecordingSink) = ShizukuTypedStrategy(
-        packageName = "com.nexaflow.app",
         shizukuGranted = { true },
         userServiceReady = { true },
         execute = sink::run
