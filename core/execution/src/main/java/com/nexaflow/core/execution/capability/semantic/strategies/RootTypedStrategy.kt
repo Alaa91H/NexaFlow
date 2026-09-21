@@ -305,9 +305,10 @@ class RootTypedStrategy(
             metadata = requestedEnabled?.let { mapOf("requestedEnabled" to it.toString()) } ?: emptyMap()
         )
     } else {
-        val transport = result.message.contains("timed out", ignoreCase = true) ||
-            result.message.contains("not available", ignoreCase = true)
-        val status = if (transport && transportIsUncertain(operation)) {
+        val timedOut = result.message.contains("timed out", ignoreCase = true)
+        val unavailable = result.message.contains("not available", ignoreCase = true)
+        val transport = timedOut || unavailable
+        val status = if (timedOut && transportIsUncertain(operation)) {
             OperationOutcomeStatus.UNKNOWN
         } else {
             OperationOutcomeStatus.FAILED
@@ -322,7 +323,8 @@ class RootTypedStrategy(
                 com.nexaflow.domain.capability.CapabilityErrorCode.ROOT_DENIED
             },
             message = result.message,
-            transportFailure = transport && !transportIsUncertain(operation),
+            transportFailure = unavailable ||
+                (timedOut && !transportIsUncertain(operation)),
             metadata = requestedEnabled?.let { mapOf("requestedEnabled" to it.toString()) } ?: emptyMap()
         )
     }
