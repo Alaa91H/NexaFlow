@@ -374,9 +374,7 @@ object AppModule {
         val registry = com.nexaflow.core.execution.capability.semantic.OperationRegistry.default()
         val strategies = listOf(
             com.nexaflow.core.execution.capability.semantic.strategies.AndroidApiStateStrategy(context),
-            com.nexaflow.core.execution.capability.semantic.strategies.ShizukuTypedStrategy(
-                packageName = context.packageName
-            ),
+            com.nexaflow.core.execution.capability.semantic.strategies.ShizukuTypedStrategy(),
             com.nexaflow.core.execution.capability.semantic.strategies.RootTypedStrategy(),
             com.nexaflow.core.execution.capability.semantic.strategies.SettingsUserActionStrategy(context)
         )
