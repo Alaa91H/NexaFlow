@@ -12,9 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 
 /**
  * Selection chip with a clearly highlighted selected state
@@ -34,7 +32,7 @@ fun SelectChip(
     showCheck: Boolean = true
 ) {
     val restingContainerColor = alternatingIndex?.let { alternatingSurfaceColor(it) }
-        ?: MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.4f)
+        ?: MaterialTheme.colorScheme.surfaceContainerLow
     FilterChip(
         selected = selected,
         onClick = onClick,
@@ -44,12 +42,12 @@ fun SelectChip(
                 selected && showCheck -> Icon(
                     imageVector = Icons.Filled.Check,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(Dimens.Space4)
                 )
                 leadingIcon != null -> Icon(
                     imageVector = leadingIcon,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(Dimens.Space4)
                 )
             }
         },
@@ -57,7 +55,6 @@ fun SelectChip(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -66,9 +63,9 @@ fun SelectChip(
             containerColor = restingContainerColor,
             labelColor = MaterialTheme.colorScheme.onSurface,
             iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
-            selectedLabelColor = MaterialTheme.colorScheme.primary,
-            selectedLeadingIconColor = MaterialTheme.colorScheme.primary
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
         ),
         border = FilterChipDefaults.filterChipBorder(
             enabled = true,
