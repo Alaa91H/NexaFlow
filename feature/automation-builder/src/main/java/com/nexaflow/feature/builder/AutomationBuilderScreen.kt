@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -136,6 +137,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -202,6 +204,7 @@ import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Constraint
+import com.nexaflow.domain.models.TriggerMatchMode
 import com.nexaflow.domain.models.ConstraintType
 import com.nexaflow.domain.models.EndBehavior
 import com.nexaflow.domain.models.PluginInfo
@@ -965,6 +968,11 @@ fun AutomationBuilderScreen(
     // The data model is unchanged; only the order in which decisions are shown changes.
     var step by rememberSaveable { mutableStateOf(0) }
     val triggers = rememberSaveable(saver = TriggerDraftListSaver) { mutableStateListOf<TriggerDraft>() }
+    // How multiple triggers combine: ANY (historical default) or ALL. Shown
+    // only when more than one trigger exists — with a single trigger the
+    // choice is meaningless.
+    var triggerMatchName by rememberSaveable { mutableStateOf(TriggerMatchMode.ANY.name) }
+    val triggerMatch = TriggerMatchMode.entries.firstOrNull { it.name == triggerMatchName } ?: TriggerMatchMode.ANY
     val constraints = rememberSaveable(saver = ConstraintDraftListSaver) { mutableStateListOf<ConstraintDraft>() }
     var showConstraintPicker by remember { mutableStateOf(false) }
     // A freshly picked constraint opens its editor; loaded ones stay collapsed.
@@ -1164,6 +1172,7 @@ fun AutomationBuilderScreen(
         selectedIconColor = loaded.iconColor
         triggers.clear()
         loaded.triggers.forEach { triggers.add(TriggerDraft(it.type, it.config)) }
+        triggerMatchName = loaded.triggerMatch.name
         selectedTriggerTypes.clear()
         selectedActionTypes.clear()
         expandedTriggerIndex = null
@@ -1518,6 +1527,7 @@ fun AutomationBuilderScreen(
             icon = NexaFlowIcons.all[selectedIconIndex].first,
             iconColor = selectedIconColor,
             triggers = builtTriggers,
+            triggerMatch = triggerMatch,
             actions = actions,
             constraints = builtConstraints,
             exitActions = exitActions,
@@ -1839,6 +1849,15 @@ fun AutomationBuilderScreen(
                     onUseCurrentLocation = { locateAndFill(index) }
                 )
             }
+
+                // Combine rule: visible only when two or more triggers exist —
+                // with one trigger the choice has no meaning.
+                if (triggers.size > 1) {
+                    TriggerMatchSelector(
+                        selected = triggerMatch,
+                        onSelect = { triggerMatchName = it.name }
+                    )
+                }
 
                     }
                 }
@@ -2389,4 +2408,68 @@ private fun packagesUsedByOtherTasks(
         .map { it.trim() }
         .filter { it.isNotEmpty() }
         .distinct()
+}
+
+/**
+ * ANY/ALL selector shown in the Conditions step once the task has two or
+ * more triggers. ANY preserves the historical fire-on-any-event semantics;
+ * ALL requires every configured trigger to be verifiably true at fire time
+ * (the firing monitor merely starts the evaluation).
+ */
+@Composable
+private fun TriggerMatchSelector(
+    selected: TriggerMatchMode,
+    onSelect: (TriggerMatchMode) -> Unit,
+) {
+    Column {
+        Text(
+            text = stringResource(R.string.trigger_match_title),
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(MaterialTheme.shapes.medium),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TriggerMatchMode.entries.forEach { mode ->
+                val isSelected = mode == selected
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(MaterialTheme.shapes.small)
+                        .background(
+                            if (isSelected) MaterialTheme.colorScheme.secondaryContainer
+                            else MaterialTheme.colorScheme.surfaceVariant
+                        )
+                        .clickable { onSelect(mode) }
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = isSelected,
+                        onClick = { onSelect(mode) }
+                    )
+                    Column {
+                        Text(
+                            text = stringResource(
+                                if (mode == TriggerMatchMode.ANY) R.string.trigger_match_any
+                                else R.string.trigger_match_all
+                            ),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = stringResource(
+                                if (mode == TriggerMatchMode.ANY) R.string.trigger_match_any_hint
+                                else R.string.trigger_match_all_hint
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+    }
 }

@@ -8,6 +8,12 @@
 
     
     <string name="section_when">Conditions</string>
+    <!-- Trigger combine rule (ANY/ALL) shown when a task has 2+ triggers -->
+    <string name="trigger_match_title">When multiple conditions are set</string>
+    <string name="trigger_match_any">ANY is true</string>
+    <string name="trigger_match_any_hint">Runs when any condition happens</string>
+    <string name="trigger_match_all">ALL are true</string>
+    <string name="trigger_match_all_hint">Runs only when every condition is true right now</string>
     <string name="remove_trigger">Remove condition</string>
     <string name="expand_options">Show options</string>
     <string name="collapse_options">Collapse options</string>

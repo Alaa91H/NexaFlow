@@ -31,6 +31,16 @@ class WearViewModel @Inject constructor(
 
     private val _runningId = MutableStateFlow<String?>(null)
 
+    init {
+        // Pull-based bootstrap: the phone pushes only on data changes, so the
+        // watch asks for the current list whenever the UI starts. Without this
+        // a watch opened after the phone process began sits on the Connecting
+        // spinner forever (the reported "sync never starts" bug).
+        viewModelScope.launch {
+            dataLayerClient.requestSync()
+        }
+    }
+
     val uiState: StateFlow<WearUiState> =
         combine(syncRepository.automations, _runningId) { automations, runningId ->
             when {
@@ -69,6 +79,14 @@ class WearViewModel @Inject constructor(
      * The phone's [WearCommandListenerService] applies the change and
      * [WearSyncManager] pushes a fresh automation list back to the watch.
      */
+    /**
+     * Re-requests the automation list (connectivity came back, or the user
+     * reopened the app). Idempotent: the phone answers with a fresh push.
+     */
+    fun refreshFromPhone() {
+        viewModelScope.launch { dataLayerClient.requestSync() }
+    }
+
     fun toggleEnabled(automation: WearAutomationDto, enabled: Boolean) {
         viewModelScope.launch {
             runCatching {

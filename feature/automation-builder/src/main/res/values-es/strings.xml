@@ -8,6 +8,11 @@
 
     
     <string name="section_when">Condiciones</string>
+    <string name="trigger_match_title">Con varias condiciones</string>
+    <string name="trigger_match_any">CUALQUIERA se cumple</string>
+    <string name="trigger_match_any_hint">Se ejecuta cuando ocurre cualquier condición</string>
+    <string name="trigger_match_all">TODAS se cumplen</string>
+    <string name="trigger_match_all_hint">Solo se ejecuta si todas las condiciones se cumplen ahora</string>
     <string name="remove_trigger">Quitar condición</string>
     <string name="expand_options">Mostrar opciones</string>
     <string name="trigger_type_time">Hora</string>

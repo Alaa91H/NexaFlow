@@ -8,6 +8,11 @@
 
     
     <string name="section_when">शर्तें</string>
+    <string name="trigger_match_title">एक से अधिक शर्तें होने पर</string>
+    <string name="trigger_match_any">कोई भी शर्त पूरी</string>
+    <string name="trigger_match_any_hint">किसी भी शर्त के होने पर चलता है</string>
+    <string name="trigger_match_all">सभी शर्तें पूरी</string>
+    <string name="trigger_match_all_hint">तभी चलता है जब सभी शर्तें अभी पूरी हों</string>
     <string name="remove_trigger">शर्त हटाएँ</string>
     <string name="expand_options">विकल्प दिखाएँ</string>
     <string name="trigger_type_time">समय</string>

@@ -74,3 +74,15 @@ const val WEAR_KEY_UPDATED_AT = "updatedAt"
 
 /** Separator between automationId and enabled-flag in a toggle message payload. */
 const val WEAR_TOGGLE_SEPARATOR = ":"
+
+/**
+ * MessageClient path: the watch requests an immediate automation-list push.
+ * Sent when the watch UI starts (or regains connectivity) so the user never
+ * stares at an eternal "Connecting" spinner just because the phone process
+ * started while the watch was away and no data change has happened since.
+ * The phone answers by re-pushing the DataItem from [WearSyncManager].
+ */
+const val WEAR_PATH_SYNC_REQUEST = "/nexaflow/sync-request"
+
+/** CapabilityClient capability name advertised by the phone companion app. */
+const val WEAR_CAPABILITY_PHONE_APP = "nexaflow_phone_companion"

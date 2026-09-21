@@ -8,6 +8,11 @@
 
     
     <string name="section_when">条件</string>
+    <string name="trigger_match_title">複数の条件を設定した場合</string>
+    <string name="trigger_match_any">いずれかが成立</string>
+    <string name="trigger_match_any_hint">どれかの条件が起きたら実行</string>
+    <string name="trigger_match_all">すべて成立</string>
+    <string name="trigger_match_all_hint">すべての条件が今そろっているときだけ実行</string>
     <string name="remove_trigger">条件を削除</string>
     <string name="expand_options">オプションを表示</string>
     <string name="trigger_type_time">時刻</string>

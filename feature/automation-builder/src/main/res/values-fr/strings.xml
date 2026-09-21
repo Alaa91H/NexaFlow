@@ -8,6 +8,11 @@
 
     
     <string name="section_when">Conditions</string>
+    <string name="trigger_match_title">Avec plusieurs conditions</string>
+    <string name="trigger_match_any">UNE est vraie</string>
+    <string name="trigger_match_any_hint">S\'exécute dès qu\'une condition survient</string>
+    <string name="trigger_match_all">TOUTES sont vraies</string>
+    <string name="trigger_match_all_hint">S\'exécute seulement si toutes les conditions sont vraies</string>
     <string name="remove_trigger">Retirer la condition</string>
     <string name="expand_options">Afficher les options</string>
     <string name="trigger_type_time">Heure</string>

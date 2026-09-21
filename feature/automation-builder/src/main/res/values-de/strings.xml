@@ -8,6 +8,11 @@
 
     
     <string name="section_when">Bedingungen</string>
+    <string name="trigger_match_title">Bei mehreren Bedingungen</string>
+    <string name="trigger_match_any">IRGENDEINE erfüllt</string>
+    <string name="trigger_match_any_hint">Startet, wenn eine Bedingung eintritt</string>
+    <string name="trigger_match_all">ALLE erfüllt</string>
+    <string name="trigger_match_all_hint">Startet nur, wenn alle Bedingungen jetzt erfüllt sind</string>
     <string name="remove_trigger">Bedingung entfernen</string>
     <string name="expand_options">Optionen anzeigen</string>
     <string name="trigger_type_time">Zeit</string>

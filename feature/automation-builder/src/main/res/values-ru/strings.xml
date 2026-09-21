@@ -8,6 +8,11 @@
 
     
     <string name="section_when">Условия</string>
+    <string name="trigger_match_title">Если задано несколько условий</string>
+    <string name="trigger_match_any">ЛЮБОЕ выполнено</string>
+    <string name="trigger_match_any_hint">Запускается при наступлении любого условия</string>
+    <string name="trigger_match_all">ВСЕ выполнены</string>
+    <string name="trigger_match_all_hint">Запускается только когда все условия выполнены сейчас</string>
     <string name="remove_trigger">Удалить условие</string>
     <string name="expand_options">Показать параметры</string>
     <string name="trigger_type_time">Время</string>

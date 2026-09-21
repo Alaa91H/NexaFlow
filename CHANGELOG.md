@@ -11,6 +11,35 @@
   reappear when the task was opened again. A regression test now guards the
   post-save ordering. Fixes #7.
 
+## [v3.82.0] - 2026-09-21
+
+### Fixed
+
+- **Wear OS sync no longer stays on "Connecting".** Two root causes closed:
+  the phone now declares a Data Layer **capability** (`nexaflow.sync`) and
+  re-pushes the automation snapshot whenever a wearable node **connects**
+  (previously a single fire-and-forget `DataItem` push at process start was
+  silently lost if the watch was not reachable at that moment); and the watch
+  now **actively requests a sync** via the MessageClient pull-request protocol
+  when the app is opened or resumed, instead of waiting for a push that may
+  never come. Together the watch recovers in every order of events — watch
+  opens first, phone restarts while watch is away, or a transient GMS failure.
+
+### Added
+
+- **ALL/ANY trigger matching (community request).** Automations with multiple
+  triggers previously always fired when *any* trigger fired (implicit OR).
+  A new per-automation `triggerMatch` policy — exposed in the builder as a
+  selector above the trigger list — lets users require **ALL conditions to
+  hold simultaneously**: e.g. enable DND only when *charging **AND** between
+  22:00–07:00*. In ALL mode the engine verifies the remaining triggers' live
+  state (via `TriggerStateEvaluator`) after the initiating trigger fires;
+  event-only trigger types (notification, screen-off, package install/uninstall,
+  boot, …) cannot be confirmed after the fact and therefore disqualify ALL
+  matching for that automation, falling back to documented OR semantics.
+  Serialized as an optional field — existing automations and backups keep
+  their historical ANY behavior unchanged.
+
 ## [v3.81.0] - 2026-09-21
 
 ### Added

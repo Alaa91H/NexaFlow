@@ -2,8 +2,10 @@ package com.nexaflow.wear.data
 
 import android.content.Context
 import android.util.Log
+import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.NodeClient
+import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
@@ -26,6 +28,40 @@ class WearDataLayerClient @Inject constructor(
     private val messageClient: MessageClient,
     private val nodeClient: NodeClient,
 ) {
+
+    /**
+     * Asks the phone to re-push the automation list now. Called when the watch
+     * UI starts: the phone only pushes on data changes, so without this pull
+     * the watch could sit on its "Connecting" spinner forever whenever the
+     * phone process started (or its data last changed) while the watch was
+     * disconnected. Targets phone nodes advertising the companion capability
+     * first; falls back to any connected node for older phone builds.
+     */
+    suspend fun requestSync(): Boolean {
+        val capabilityNodes = runCatching {
+            Wearable.getCapabilityClient(context)
+                .getCapability(WearProtocol.CAPABILITY_PHONE_APP, CapabilityClient.FILTER_REACHABLE)
+                .await()
+                .nodes
+        }.getOrDefault(emptySet())
+        val nodeId = capabilityNodes
+            .filter { it.isNearby }
+            .firstOrNull()?.id
+            ?: capabilityNodes.firstOrNull()?.id
+            ?: nearbyNodeId()
+            ?: return false
+        return runCatching {
+            messageClient.sendMessage(
+                nodeId,
+                WearProtocol.PATH_SYNC_REQUEST,
+                ByteArray(0)
+            ).await()
+            true
+        }.getOrElse { error ->
+            Log.w(TAG, "Sync request to node $nodeId failed", error)
+            false
+        }
+    }
 
     /**
      * Asks the phone to manually force-run the automation with [automationId].

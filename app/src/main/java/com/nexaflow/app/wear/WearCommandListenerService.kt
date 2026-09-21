@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.WearableListenerService
 import com.nexaflow.core.execution.WEAR_PATH_RUN_COMMAND
+import com.nexaflow.core.execution.WEAR_PATH_SYNC_REQUEST
 import com.nexaflow.core.execution.WEAR_PATH_TOGGLE_COMMAND
 import com.nexaflow.core.execution.WEAR_TOGGLE_SEPARATOR
 import com.nexaflow.core.execution.ExecutionEngine
@@ -36,6 +37,7 @@ class WearCommandListenerService : WearableListenerService() {
     interface WearBridgeEntryPoint {
         fun executionEngine(): ExecutionEngine
         fun automationRepository(): AutomationRepository
+        fun wearSyncManager(): com.nexaflow.app.wear.WearSyncManager
     }
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -51,7 +53,24 @@ class WearCommandListenerService : WearableListenerService() {
         when (event.path) {
             WEAR_PATH_RUN_COMMAND -> handleRunCommand(event.data)
             WEAR_PATH_TOGGLE_COMMAND -> handleToggleCommand(event.data)
+            WEAR_PATH_SYNC_REQUEST -> handleSyncRequest()
             else -> Log.d(TAG, "Ignoring unknown Wear message path: ${event.path}")
+        }
+    }
+
+    /**
+     * The watch asked for the current automation list (its UI just started or
+     * connectivity returned). Re-push the DataItem immediately: the historical
+     * push-on-change-only design left the watch on its "Connecting" spinner
+     * forever whenever the phone process started while the watch was away.
+     */
+    private fun handleSyncRequest() {
+        serviceScope.launch {
+            runCatching {
+                entryPoint.wearSyncManager().pushNow()
+            }.onFailure {
+                Log.w(TAG, "Wear sync-request push failed", it)
+            }
         }
     }
 

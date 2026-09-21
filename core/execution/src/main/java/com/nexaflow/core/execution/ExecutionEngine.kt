@@ -287,6 +287,38 @@ class ExecutionEngine(
                 return record
             }
         }
+        // ALL-mode trigger gate: with multiple triggers, the firing monitor
+        // only starts the evaluation — every configured trigger must be
+        // verifiably satisfied right now, otherwise the run is an intentional
+        // skip (same semantics as a failed constraint, never a failure).
+        // Evaluated after the constraint gate and before any checkpoint so a
+        // rejected run performs no work and leaves no queue residue.
+        if (automation.triggerMatch == com.nexaflow.domain.models.TriggerMatchMode.ALL &&
+            automation.triggers.size > 1
+        ) {
+            val triggerGate = TriggerStateEvaluator.evaluateAsync(context, automation.triggers)
+            if (triggerGate != ConditionResult.Satisfied) {
+                val failedLabels = automation.triggers.filter { trigger ->
+                    TriggerStateEvaluator.evaluateAsync(context, listOf(trigger)) !=
+                        ConditionResult.Satisfied
+                }.map { TriggerStateEvaluator.triggerLabel(it) }
+                val record = ExecutionRecord(
+                    id = UUID.randomUUID().toString(),
+                    automationId = automation.id,
+                    automationName = automation.name,
+                    success = true,
+                    message = "Skipped: not all trigger conditions are true" +
+                        (failedLabels.takeIf { it.isNotEmpty() }?.let { labels ->
+                            " (${labels.joinToString(", ")})"
+                        } ?: " (condition state unverifiable)"),
+                    executedAt = startedAt,
+                    channel = channel?.type?.name
+                )
+                historyRepository.recordExecution(record)
+                recordTimeline(automation, "TRIGGER_ALL_GATE_BLOCKED", record, startedAt)
+                return record
+            }
+        }
         val maintenanceReadiness = MaintenanceReadinessEvaluator.evaluate(
             profile = automation.maintenanceProfile,
             snapshot = state ?: ConstraintSnapshot(),

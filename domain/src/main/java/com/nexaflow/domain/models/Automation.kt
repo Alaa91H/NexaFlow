@@ -27,6 +27,13 @@ data class Automation(
     val triggers: List<Trigger>,
     val actions: List<Action>,
     /**
+     * Combining rule for [triggers]. ANY = fire when any trigger's monitor
+     * fires (historical default). ALL = the firing monitor only starts the
+     * evaluation; every trigger must be verifiably true right now, otherwise
+     * the run is skipped with a recorded gate reason.
+     */
+    val triggerMatch: TriggerMatchMode = TriggerMatchMode.ANY,
+    /**
      * Gate checks (MacroDroid-style constraints) that must ALL pass before the
      * task's actions run. When any fails, the run is skipped.
      */
@@ -107,6 +114,23 @@ private fun Trigger.isOneShotEvent(): Boolean = when (type) {
     TriggerType.ALARM_SET_CHANGED,
     TriggerType.PLUGIN_EVENT -> true
     else -> false
+}
+
+/**
+ * How multiple [Trigger]s combine when deciding whether a task may run.
+ *
+ * - [ANY] (default, historical behavior): any single trigger firing runs the
+ *   task — its monitor's own condition was the trigger.
+ * - [ALL]: the firing monitor only *starts the evaluation*; every configured
+ *   trigger must be verifiably satisfied right now or the run is skipped.
+ *
+ * Serialized on the automation; the default keeps every saved task's meaning
+ * unchanged (append-only compatibility contract).
+ */
+@Serializable
+enum class TriggerMatchMode {
+    ANY,
+    ALL
 }
 
 @Immutable
