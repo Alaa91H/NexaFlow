@@ -98,7 +98,7 @@ class OperationRegistry private constructor(
                     )),
                 spec(SemanticOperationId.BRIGHTNESS_GET, "Read screen brightness",
                     write = false,
-                    strategies = listOf(StrategyId.ANDROID_PUBLIC_API, StrategyId.WRITE_SETTINGS)),
+                    strategies = listOf(StrategyId.ANDROID_PUBLIC_API)),
                 spec(SemanticOperationId.BRIGHTNESS_SET, "Set screen brightness",
                     parameters = listOf(
                         CapabilityParameterSpec(
