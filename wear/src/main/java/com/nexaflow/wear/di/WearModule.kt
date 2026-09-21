@@ -1,6 +1,7 @@
 package com.nexaflow.wear.di
 
 import android.content.Context
+import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.NodeClient
 import com.google.android.gms.wearable.Wearable
@@ -14,13 +15,18 @@ import javax.inject.Singleton
 /**
  * Hilt module that provides Wearable Data Layer clients for the watch app.
  *
- * [MessageClient] is used by [WearDataLayerClient] to send commands to the
- * phone. [NodeClient] is used to resolve the connected phone's node ID before
- * sending each message.
+ * [DataClient] bootstraps the last synchronized automation snapshot,
+ * [MessageClient] sends commands to the phone, and [NodeClient] provides a
+ * compatibility fallback while capabilities propagate after an upgrade.
  */
 @Module
 @InstallIn(SingletonComponent::class)
 object WearModule {
+
+    @Provides
+    @Singleton
+    fun provideDataClient(@ApplicationContext context: Context): DataClient =
+        Wearable.getDataClient(context)
 
     @Provides
     @Singleton
