@@ -200,12 +200,18 @@ class RootTypedStrategy(
             readSettingInt(PrivilegedOperation.SettingNamespace.GLOBAL, "wifi_on")
         SemanticOperationId.BLUETOOTH_GET_STATE ->
             readSettingInt(PrivilegedOperation.SettingNamespace.GLOBAL, "bluetooth_on")
+        SemanticOperationId.LOCATION_GET_STATE ->
+            readBooleanCommand(execute(PrivilegedOperation.ReadLocationEnabled))
         SemanticOperationId.AIRPLANE_MODE_GET_STATE ->
             readSettingInt(PrivilegedOperation.SettingNamespace.GLOBAL, "airplane_mode_on")
+        SemanticOperationId.ROTATION_GET_STATE ->
+            readSettingInt(PrivilegedOperation.SettingNamespace.SYSTEM, "accelerometer_rotation")
         SemanticOperationId.DND_GET_STATE ->
             readNonZeroSetting(PrivilegedOperation.SettingNamespace.GLOBAL, "zen_mode")
         SemanticOperationId.MOBILE_DATA_GET_STATE ->
             readSettingInt(PrivilegedOperation.SettingNamespace.GLOBAL, "mobile_data")
+        SemanticOperationId.DATA_SAVER_GET_STATE ->
+            readBooleanCommand(execute(PrivilegedOperation.ReadDataSaver))
         SemanticOperationId.PACKAGE_GET_ENABLED_STATE -> {
             val pkg = request.parameters["packageName"]
             if (pkg == null) null else readPackageEnabled(pkg)
