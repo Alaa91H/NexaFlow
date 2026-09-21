@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **Edited trigger removals now persist reliably.** The automation builder waits for
+  its ViewModel-owned save job to finish before leaving the navigation stack.
+  Previously the screen could pop immediately after Save, clear the destination
+  ViewModel, and cancel the in-flight Room write; removed triggers could then
+  reappear when the task was opened again. A regression test now guards the
+  post-save ordering. Fixes #7.
+
 ## [v3.81.0] - 2026-09-21
 
 ### Added
