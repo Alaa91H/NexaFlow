@@ -1,6 +1,7 @@
 package com.nexaflow.core.execution
 
 import android.content.Context
+import android.content.res.Configuration
 import androidx.paging.PagingSource
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
@@ -118,6 +119,78 @@ class ExecutionEngineTriggerMatchTest {
         // Historical OR semantics: the monitor's own firing is enough.
         assertEquals(1, handler.calls)
         assertTrue(!record.message.contains("not all trigger conditions"))
+    }
+
+    @Test
+    fun manualAnyHonorsSelectedMatchMode() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val current = if (
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        ) "ON" else "OFF"
+        val opposite = if (current == "ON") "OFF" else "ON"
+        val task = automation(TriggerMatchMode.ANY).copy(
+            id = "manual-any",
+            triggers = listOf(
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to current)),
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to opposite))
+            )
+        )
+        ActiveExecutionStore(context).clear(task.id)
+
+        val record = engine(handler, history).runWithConditionGate(task)
+
+        assertEquals(1, handler.calls)
+        assertTrue(!record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX))
+    }
+
+    @Test
+    fun manualAllRejectsTheSameMixedState() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val current = if (
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        ) "ON" else "OFF"
+        val opposite = if (current == "ON") "OFF" else "ON"
+        val task = automation(TriggerMatchMode.ALL).copy(
+            id = "manual-all",
+            triggers = listOf(
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to current)),
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to opposite))
+            )
+        )
+        ActiveExecutionStore(context).clear(task.id)
+
+        val record = engine(handler, history).runWithConditionGate(task)
+
+        assertEquals(0, handler.calls)
+        assertTrue(record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX))
+    }
+
+    @Test
+    fun forceRunBypassesAllTriggerGate() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val current = if (
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        ) "ON" else "OFF"
+        val opposite = if (current == "ON") "OFF" else "ON"
+        val task = automation(TriggerMatchMode.ALL).copy(
+            id = "force-all",
+            triggers = listOf(
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to current)),
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to opposite))
+            )
+        )
+        ActiveExecutionStore(context).clear(task.id)
+
+        engine(handler, history).forceRun(task)
+
+        assertEquals(1, handler.calls)
+        assertTrue(history.messages.any { it.startsWith(ExecutionEngine.MANUAL_FORCE_PREFIX) })
     }
 
     @Test
