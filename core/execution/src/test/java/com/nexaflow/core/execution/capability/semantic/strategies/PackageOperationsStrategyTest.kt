@@ -169,6 +169,48 @@ class PackageOperationsStrategyTest {
     }
 
     @Test
+    fun rootStrategyServesAllPrivilegedStateWritesWithClosedOperations() = runTest {
+        val sink = RecordingSink()
+        val strategy = rootStrategy(sink)
+
+        strategy.execute(
+            request(SemanticOperationId.HOTSPOT_SET_STATE, enabled = true),
+            SemanticOperationId.HOTSPOT_SET_STATE
+        )
+        assertEquals(
+            listOf("cmd", "wifi", "start-softap"),
+            sink.lastOperation?.argv()
+        )
+
+        strategy.execute(
+            request(SemanticOperationId.LOCATION_SET_STATE, enabled = false),
+            SemanticOperationId.LOCATION_SET_STATE
+        )
+        assertEquals(
+            listOf("cmd", "location", "set-location-enabled", "false"),
+            sink.lastOperation?.argv()
+        )
+
+        strategy.execute(
+            request(SemanticOperationId.DATA_SAVER_SET_STATE, enabled = true),
+            SemanticOperationId.DATA_SAVER_SET_STATE
+        )
+        assertEquals(
+            listOf("cmd", "netpolicy", "set", "restrict-background", "true"),
+            sink.lastOperation?.argv()
+        )
+
+        strategy.execute(
+            request(SemanticOperationId.DND_SET_STATE, enabled = true),
+            SemanticOperationId.DND_SET_STATE
+        )
+        assertEquals(
+            listOf("settings", "put", "global", "zen_mode", "2"),
+            sink.lastOperation?.argv()
+        )
+    }
+
+    @Test
     fun rootStrategyAlsoServesPackageOperations() = runTest {
         val sink = RecordingSink()
         val outcome = rootStrategy(sink).execute(request(SemanticOperationId.PACKAGE_SET_ENABLED_STATE, enabled = false), SemanticOperationId.PACKAGE_SET_ENABLED_STATE)
