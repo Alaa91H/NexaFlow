@@ -163,12 +163,19 @@ class SemanticActionRouter(
         val request = SemanticActionMapper.requestFor(
             action, workflowId, executionId, privilegedPolicyEnabled()
         ) ?: return null
-        val outcome = router.execute(request)
-        return when (outcome.status) {
-            OperationOutcomeStatus.SUCCESS,
-            OperationOutcomeStatus.PENDING_USER_ACTION -> SystemControlResult.ok(outcome.message)
-            OperationOutcomeStatus.PARTIAL -> SystemControlResult.ok(outcome.message)
-            else -> SystemControlResult.fail(outcome.message)
-        }
+        return router.execute(request).toSystemControlResult()
     }
 }
+
+/**
+ * Adapts the rich semantic lifecycle to the legacy boolean action contract.
+ * Only a completed SUCCESS is successful. In particular, a Settings hand-off
+ * or a missing Shizuku/Root grant remains pending/non-successful instead of
+ * being recorded as if the requested device state had already changed.
+ */
+internal fun OperationOutcome.toSystemControlResult(): SystemControlResult =
+    if (status == OperationOutcomeStatus.SUCCESS) {
+        SystemControlResult.ok(message)
+    } else {
+        SystemControlResult.fail(message)
+    }
