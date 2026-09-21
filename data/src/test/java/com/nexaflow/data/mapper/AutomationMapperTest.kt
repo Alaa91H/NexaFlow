@@ -9,6 +9,7 @@ import com.nexaflow.domain.models.MaintenanceKind
 import com.nexaflow.domain.models.MaintenanceProfile
 import com.nexaflow.domain.models.MaintenanceWindow
 import com.nexaflow.domain.models.Trigger
+import com.nexaflow.domain.models.TriggerMatchMode
 import com.nexaflow.domain.models.TriggerType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -95,6 +96,15 @@ class AutomationMapperTest {
         val entity = maintenance.toEntity()
         assertTrue(entity.maintenanceJson.orEmpty().contains("NIGHT"))
         assertEquals(maintenance, entity.toDomain())
+    }
+
+    @Test
+    fun triggerMatchRoundTripsAndUnknownStoredValueFallsBackToAny() {
+        val all = automation.copy(triggerMatch = TriggerMatchMode.ALL)
+        assertEquals(TriggerMatchMode.ALL, all.toEntity().toDomain().triggerMatch)
+
+        val future = all.toEntity().copy(triggerMatch = "FUTURE_MODE")
+        assertEquals(TriggerMatchMode.ANY, future.toDomain().triggerMatch)
     }
 
     @Test
