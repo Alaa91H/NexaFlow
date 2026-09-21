@@ -35,9 +35,7 @@ class ShizukuTypedStrategyTest {
         bound: Boolean,
         sink: RecordingSink
     ): ShizukuTypedStrategy {
-        @Suppress("UNUSED_PARAMETER")
         val strategy = ShizukuTypedStrategy(
-            packageName = "com.nexaflow.app",
             shizukuGranted = { granted },
             userServiceReady = { bound },
             execute = sink::run
