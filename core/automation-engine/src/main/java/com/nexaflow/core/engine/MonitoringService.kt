@@ -446,11 +446,10 @@ class MonitoringService : Service() {
         recreateChannel(notificationManager, visible)
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(com.nexaflow.core.rom.R.drawable.ic_stat_nexaflow)
-            // M3: brand-tinted small icon; service category for FGS semantics.
-            // Colorized (API 31+) lets the brand color fill the header/app
-            // icon area — the Google 2026 treatment. Ignored below API 31.
+            // Keep the NexaFlow tint on the icon only. SystemUI owns the card
+            // surface/text colors so the foreground-service card stays readable.
             .setColor(getColor(com.nexaflow.core.rom.R.color.notification_brand_color))
-            .setColorized(true)
+            .setColorized(false)
             .setContentTitle(getString(R.string.monitoring_title))
             .setContentText(getString(R.string.monitoring_text))
             .setCategory(NotificationCompat.CATEGORY_SERVICE)

@@ -1253,10 +1253,10 @@ class SystemController(
 
             val builder = NotificationCompat.Builder(context, channelId)
                 .setSmallIcon(R.drawable.ic_stat_nexaflow)
-                // M3: brand-tinted small icon + action icons.
-                // Colorized (API 31+) fills the header with the brand color.
+                // Keep the NexaFlow tint on icons/actions only. SystemUI owns the
+                // surface/text colors so dark and OEM themes keep reliable contrast.
                 .setColor(context.getColor(R.color.notification_brand_color))
-                .setColorized(true)
+                .setColorized(false)
                 .setContentTitle(title)
                 .setContentText(text)
                 .setCategory(NotificationCompat.CATEGORY_STATUS)

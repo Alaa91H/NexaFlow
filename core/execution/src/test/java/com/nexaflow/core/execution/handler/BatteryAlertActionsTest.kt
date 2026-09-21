@@ -15,6 +15,7 @@ import com.nexaflow.core.rom.model.RomFamily
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
@@ -79,6 +80,14 @@ class BatteryAlertActionsTest {
         val dismissIntent = shadowOf(notification.actions[1].actionIntent).savedIntent
         assertEquals(ACTION_DISMISS_NOTIFICATION, dismissIntent.action)
         assertEquals(SystemController.ACTION_NOTIFICATION_ID, dismissIntent.getIntExtra(EXTRA_NOTIFICATION_ID, -1))
+    }
+
+    @Test
+    fun batteryAlert_usesSystemManagedSurfaceForReadableContrast() = runBlocking {
+        handler.execute(alertAction, ctx("task-contrast"))
+        val notification = shadowOf(manager).getNotification(SystemController.ACTION_NOTIFICATION_ID)
+        assertNotNull(notification)
+        assertFalse(notification!!.extras.getBoolean("android.colorized", false))
     }
 
     @Test
