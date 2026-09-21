@@ -6,6 +6,9 @@ import com.nexaflow.wear.data.WearDataLayerClient
 import com.nexaflow.wear.data.WearSyncRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -17,9 +20,9 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import kotlinx.coroutines.flow.MutableStateFlow
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WearViewModelTest {
@@ -66,12 +69,57 @@ class WearViewModelTest {
         viewModel.uiState.test {
             assertEquals(WearUiState.Connecting, awaitItem())
 
-            // An explicit empty list must surface as Empty, not Connecting.
             syncRepository.handleIncomingPayload("[]")
             testDispatcher.scheduler.advanceUntilIdle()
 
             assertEquals(WearUiState.Empty, awaitItem())
         }
+    }
+
+    @Test
+    fun `cached DataItem snapshot is restored before a live phone is available`() = runTest {
+        val cachedRepository = WearSyncRepository()
+        val cachedClient: WearDataLayerClient = mock()
+        whenever(cachedClient.readCachedAutomationPayload()).thenReturn(
+            """[{"id":"cached","name":"Cached","icon":"I","iconColor":0,"enabled":true}]"""
+        )
+        whenever(cachedClient.requestSync()).thenReturn(false)
+        val cachedViewModel = WearViewModel(cachedRepository, cachedClient)
+
+        cachedViewModel.uiState.test {
+            assertEquals(WearUiState.Connecting, awaitItem())
+            testDispatcher.scheduler.advanceUntilIdle()
+            val state = awaitItem()
+            assertTrue(state is WearUiState.Loaded)
+            assertEquals("cached", (state as WearUiState.Loaded).automations.single().id)
+        }
+
+        verify(cachedClient).readCachedAutomationPayload()
+    }
+
+    @Test
+    fun `fresh sync stops retrying after a new DataItem revision arrives`() = runTest {
+        val retryRepository = WearSyncRepository()
+        val retryClient: WearDataLayerClient = mock()
+        whenever(retryClient.readCachedAutomationPayload()).thenReturn(null)
+        whenever(retryClient.requestSync()).thenReturn(true)
+        val retryViewModel = WearViewModel(retryRepository, retryClient)
+
+        launch {
+            delay(100L)
+            retryRepository.handleIncomingPayload(
+                """[{"id":"fresh","name":"Fresh","icon":"I","iconColor":0,"enabled":true}]"""
+            )
+        }
+
+        retryViewModel.uiState.test {
+            assertEquals(WearUiState.Connecting, awaitItem())
+            testDispatcher.scheduler.advanceUntilIdle()
+            val state = awaitItem()
+            assertTrue(state is WearUiState.Loaded)
+        }
+
+        verify(retryClient, times(1)).requestSync()
     }
 
     @Test
