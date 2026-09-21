@@ -18,5 +18,6 @@ internal fun CoroutineScope.launchAfterSave(
     block: suspend CoroutineScope.() -> Unit
 ): Job = launch {
     saveJob.join()
+    if (saveJob.isCancelled) return@launch
     block()
 }
