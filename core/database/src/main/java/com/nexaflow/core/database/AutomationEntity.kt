@@ -35,6 +35,8 @@ data class AutomationEntity(
      * authorization.
      */
     val deepLinkToken: String? = null,
+    /** Persisted multi-trigger match policy; ANY is the historical default. */
+    val triggerMatch: String = "ANY",
     val createdAt: Long,
     val updatedAt: Long
 )
