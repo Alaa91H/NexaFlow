@@ -13,6 +13,7 @@
     <string name="trigger_match_any_hint">どれかの条件が起きたら実行</string>
     <string name="trigger_match_all">すべて成立</string>
     <string name="trigger_match_all_hint">すべての条件が今そろっているときだけ実行</string>
+    <string name="trigger_match_all_event_warning">SMS や通知など、一部の条件は再確認できない一瞬のイベントです。それらを「すべて」と組み合わせたタスクは、独自のイベントからしか実行されません。「いずれか」を検討してください。</string>
     <string name="remove_trigger">条件を削除</string>
     <string name="expand_options">オプションを表示</string>
     <string name="trigger_type_time">時刻</string>

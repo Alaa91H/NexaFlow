@@ -1855,7 +1855,8 @@ fun AutomationBuilderScreen(
                 if (triggers.size > 1) {
                     TriggerMatchSelector(
                         selected = triggerMatch,
-                        onSelect = { triggerMatchName = it.name }
+                        onSelect = { triggerMatchName = it.name },
+                        allModeWarning = triggerMatchBuiltWarning(triggers)
                     )
                 }
 
@@ -2416,10 +2417,48 @@ private fun packagesUsedByOtherTasks(
  * ALL requires every configured trigger to be verifiably true at fire time
  * (the firing monitor merely starts the evaluation).
  */
+/**
+ * Draft-level event-only check for the ALL-mode advisory. Mirrors
+ * TriggerMatchPolicy.isEventOnly on the builder's editable drafts; the
+ * momentary trigger types cannot be re-verified after they fire, so an ALL
+ * task containing one can only ever skip — the user is warned here.
+ */
+private fun triggerMatchBuiltWarning(triggers: List<TriggerDraft>): String? {
+    if (triggers.size < 2) return null
+    val eventOnly = triggers.filter { it.type in EVENT_ONLY_TRIGGER_TYPES }
+    if (eventOnly.isEmpty()) return null
+    // Count is what matters for the warning; the localized string is generic.
+    return eventOnly.size.toString()
+}
+
+private val EVENT_ONLY_TRIGGER_TYPES = setOf(
+    TriggerType.SMS,
+    TriggerType.NOTIFICATION,
+    TriggerType.APPLICATION,
+    TriggerType.WEBHOOK,
+    TriggerType.SENSOR,
+    TriggerType.CALENDAR,
+    TriggerType.PLUGIN_EVENT,
+    TriggerType.ROM_SETTING,
+    TriggerType.LOCATION,
+    TriggerType.APP_INSTALLED,
+    TriggerType.CALL_STATE,
+    TriggerType.INCOMING_CALL,
+    TriggerType.CLIPBOARD_CHANGED,
+    TriggerType.TIMEZONE_CHANGED,
+    TriggerType.BOOT_COMPLETED,
+    TriggerType.NFC_TAG_SCANNED,
+    TriggerType.MEDIA_PLAYING,
+    TriggerType.SCREEN_TIMEOUT_CHANGED,
+    TriggerType.ALARM_SET_CHANGED,
+    TriggerType.HDMI_CONNECTED
+)
+
 @Composable
 private fun TriggerMatchSelector(
     selected: TriggerMatchMode,
     onSelect: (TriggerMatchMode) -> Unit,
+    allModeWarning: String? = null,
 ) {
     Column {
         Text(
@@ -2470,6 +2509,14 @@ private fun TriggerMatchSelector(
                     }
                 }
             }
+        }
+        if (selected == TriggerMatchMode.ALL && allModeWarning != null) {
+            Text(
+                text = stringResource(R.string.trigger_match_all_event_warning),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 6.dp)
+            )
         }
     }
 }

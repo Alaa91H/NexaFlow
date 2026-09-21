@@ -194,15 +194,33 @@ class ExecutionEngineTriggerMatchTest {
     }
 
     @Test
-    fun allModeWithSingleTriggerDoesNotGate() = runBlocking {
+    fun allModeGatesOnLiveEvaluationOfEveryCondition() = runBlocking {
         val handler = RecordingHandler()
         val history = RecordingHistory()
-        val automation = automation(TriggerMatchMode.ALL).copy(
-            triggers = listOf(Trigger(TriggerType.CHARGER, mapOf("event" to "CONNECTED")))
+        // ALL mode evaluates every condition live, including a single one:
+        // the firing monitor only starts the evaluation, it is not proof that
+        // its condition still holds (a past event is not current truth).
+        val record = engine(handler, history).runAutomation(
+            automation(TriggerMatchMode.ALL).copy(
+                triggers = listOf(Trigger(TriggerType.AIRPLANE_MODE, mapOf("state" to "ON")))
+            )
         )
-        val record = engine(handler, history).runAutomation(automation)
-        // The gate exists to combine MULTIPLE triggers; a single-trigger task
-        // is the monitor's own condition and must run unchanged.
+        assertEquals(0, handler.calls)
+        assertTrue(record.message.contains("Skipped"))
+        assertTrue(history.messages.any { it.contains("not all trigger conditions") })
+    }
+
+    @Test
+    fun allModeSingleSatisfiedConditionRuns() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val record = engine(handler, history).runAutomation(
+            automation(TriggerMatchMode.ALL).copy(
+                triggers = listOf(Trigger(TriggerType.AIRPLANE_MODE, mapOf("state" to "OFF")))
+            )
+        )
+        // Airplane mode is OFF in the test environment, so the live evaluation
+        // passes and the action must run — identical to ANY for one condition.
         assertEquals(1, handler.calls)
         assertTrue(!record.message.contains("not all trigger conditions"))
     }

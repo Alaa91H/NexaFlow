@@ -13,6 +13,7 @@
     <string name="trigger_match_any_hint">S\'exécute dès qu\'une condition survient</string>
     <string name="trigger_match_all">TOUTES sont vraies</string>
     <string name="trigger_match_all_hint">S\'exécute seulement si toutes les conditions sont vraies</string>
+    <string name="trigger_match_all_event_warning">Certaines conditions (SMS, notifications...) sont des événements ponctuels invérifiables. Une tâche les combinant avec TOUTES ne s\'exécutera que via son propre événement - préférez UNE.</string>
     <string name="remove_trigger">Retirer la condition</string>
     <string name="expand_options">Afficher les options</string>
     <string name="trigger_type_time">Heure</string>

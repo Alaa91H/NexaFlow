@@ -112,6 +112,17 @@ object TriggerStateEvaluator {
     }
 
     /**
+     * Typed per-condition state for combine policies. Event-only sources,
+     * unavailable services, and reads whose false result cannot be
+     * distinguished from an API failure report [ConditionResult.Unknown];
+     * everything else resolves to [ConditionResult.Satisfied] or
+     * [ConditionResult.Unsatisfied]. Errors are surfaced, never swallowed
+     * into a fabricated boolean.
+     */
+    suspend fun evaluateTriggerState(context: Context, trigger: Trigger): ConditionResult =
+        withContext(Dispatchers.IO) { evaluateTriggerForManualGate(context, trigger) }
+
+    /**
      * First failing trigger for the manual-gate reason surfacing. Returns the
      * trigger whose state blocked a manual run: the first confirmed-unsatisfied
      * trigger wins, otherwise the first unverifiable one. Null when every
@@ -129,6 +140,20 @@ object TriggerStateEvaluator {
         }
         return unknownTrigger
     }
+
+    /**
+     * True when this trigger type is a pure momentary event with no readable
+     * post-state: it can start a task but can never be confirmed as currently
+     * true. Used by the manual gate and by the ALL trigger-match policy, which
+     * must not pretend such a condition can be re-verified after the fact.
+     *
+     * Beyond the explicit event-only set this covers the state-less types that
+     * fall through [triggerSatisfied]'s fail-closed `else -> false` branch (SMS,
+     * webhook, sensor, calendar, plugin, ROM setting, geofence): their manual
+     * gate result is already Unknown, so classifying them here is behavior
+     * neutral — it only makes the ALL-mode advisory honest about them.
+     */
+    fun isEventOnly(type: TriggerType): Boolean = type in NON_VERIFIABLE_TYPES
 
     /**
      * Stable, non-localized trigger label for diagnostics and gate reasons:
@@ -751,15 +776,33 @@ object TriggerStateEvaluator {
         TriggerType.INCOMING_CALL
     )
 
+    /**
+     * Every trigger type whose current state cannot be verified from device
+     * reads: the explicit momentary events above plus the state-less types
+     * without a [triggerSatisfied] evaluator (they read false via the
+     * fail-closed `else` branch and surface as Unknown in the typed gate).
+     */
+    private val NON_VERIFIABLE_TYPES = MANUAL_EVENT_ONLY_TYPES + setOf(
+        TriggerType.SMS,
+        TriggerType.WEBHOOK,
+        TriggerType.SENSOR,
+        TriggerType.CALENDAR,
+        TriggerType.PLUGIN_EVENT,
+        TriggerType.ROM_SETTING,
+        TriggerType.LOCATION
+    )
+
     private val MANUAL_DEFINITIVE_FALSE_TYPES = setOf(
         TriggerType.TIME,
         TriggerType.DARK_MODE,
         TriggerType.SCREEN_ROTATION_STATE,
+        TriggerType.AIRPLANE_MODE,
         // These adapters return precise booleans: false is a verified current
         // state, and an unreadable state throws (→ Unknown) instead.
         TriggerType.DEVICE,
         TriggerType.BLUETOOTH_DEVICE,
-        TriggerType.APPLICATION
+        TriggerType.APPLICATION,
+        TriggerType.CHARGER
     )
 
     private fun batterySatisfied(context: Context, config: Map<String, String>): Boolean {

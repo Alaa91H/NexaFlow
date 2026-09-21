@@ -48,6 +48,7 @@ import com.nexaflow.domain.repositories.VariableRepository
 import com.nexaflow.domain.variables.RuntimeValueCodec
 import com.nexaflow.domain.variables.VariableResolver
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -289,31 +290,32 @@ class ExecutionEngine(
                 return record
             }
         }
-        // ALL-mode trigger gate: with multiple triggers, the firing monitor
-        // only starts the evaluation — every configured trigger must be
-        // verifiably satisfied right now, otherwise the run is an intentional
-        // skip (same semantics as a failed constraint, never a failure).
-        // Evaluated after the constraint gate and before any checkpoint so a
-        // rejected run performs no work and leaves no queue residue.
+        // ALL-mode trigger gate: the firing monitor only starts the evaluation —
+        // every configured trigger must be verifiably satisfied right now,
+        // otherwise the run is an intentional skip (same semantics as a failed
+        // constraint, never a failure). Evaluated after the constraint gate and
+        // before any checkpoint so a rejected run performs no work and leaves
+        // no queue residue. A single condition is live-evaluated too: a past
+        // event is not current truth.
         if (!bypassTriggerMatch &&
             automation.triggerMatch == com.nexaflow.domain.models.TriggerMatchMode.ALL &&
-            automation.triggers.size > 1
+            automation.triggers.isNotEmpty()
         ) {
-            val triggerGate = TriggerStateEvaluator.evaluateAsync(context, automation.triggers)
-            if (triggerGate != ConditionResult.Satisfied) {
-                val failedLabels = automation.triggers.filter { trigger ->
-                    TriggerStateEvaluator.evaluateAsync(context, listOf(trigger)) !=
-                        ConditionResult.Satisfied
-                }.map { TriggerStateEvaluator.triggerLabel(it) }
+            // Every condition is evaluated live (a past event is not current
+            // truth) and combined by the shared policy; an empty trigger list
+            // cannot start a run at all, so no gate is needed there.
+            val gateResults = automation.triggers.map { trigger ->
+                runCatching {
+                    TriggerStateEvaluator.evaluateTriggerState(context, trigger)
+                }.getOrElse { ConditionResult.Error(it.message ?: "unreadable") }
+            }
+            if (!TriggerMatchPolicy.combine(com.nexaflow.domain.models.TriggerMatchMode.ALL, gateResults)) {
                 val record = ExecutionRecord(
                     id = UUID.randomUUID().toString(),
                     automationId = automation.id,
                     automationName = automation.name,
                     success = true,
-                    message = "Skipped: not all trigger conditions are true" +
-                        (failedLabels.takeIf { it.isNotEmpty() }?.let { labels ->
-                            " (${labels.joinToString(", ")})"
-                        } ?: " (condition state unverifiable)"),
+                    message = TriggerMatchPolicy.skipMessage(automation.triggers, gateResults),
                     executedAt = startedAt,
                     channel = channel?.type?.name
                 )

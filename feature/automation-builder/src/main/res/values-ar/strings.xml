@@ -13,6 +13,7 @@
     <string name="trigger_match_any_hint">يعمل عند حدوث أي شرط</string>
     <string name="trigger_match_all">كل الشروط تتحقق</string>
     <string name="trigger_match_all_hint">يعمل فقط عندما تكون كل الشروط متحققة الآن</string>
+    <string name="trigger_match_all_event_warning">بعض الشروط (مثل الرسائل أو الإشعارات) أحداث لحظية لا يمكن إعادة التحقق منها. المهمة التي تجمعها مع الكل لا تعمل إلا من حدثها الخاص - فكّر بخيار أي شرط.</string>
     <string name="remove_trigger">إزالة الشرط</string>
     <string name="expand_options">عرض الخيارات</string>
     <string name="trigger_type_time">الوقت</string>

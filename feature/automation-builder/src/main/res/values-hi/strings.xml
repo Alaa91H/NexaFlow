@@ -13,6 +13,7 @@
     <string name="trigger_match_any_hint">किसी भी शर्त के होने पर चलता है</string>
     <string name="trigger_match_all">सभी शर्तें पूरी</string>
     <string name="trigger_match_all_hint">तभी चलता है जब सभी शर्तें अभी पूरी हों</string>
+    <string name="trigger_match_all_event_warning">कुछ शर्तें (जैसे SMS या सूचनाएँ) क्षणिक घटनाएँ हैं जिन्हें दोबारा जाँचा नहीं जा सकता। उन्हें सभी के साथ जोड़ने वाला कार्य केवल अपनी घटना से चलेगा - कोई भी चुनें।</string>
     <string name="remove_trigger">शर्त हटाएँ</string>
     <string name="expand_options">विकल्प दिखाएँ</string>
     <string name="trigger_type_time">समय</string>

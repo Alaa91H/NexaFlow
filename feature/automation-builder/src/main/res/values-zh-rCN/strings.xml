@@ -13,6 +13,7 @@
     <string name="trigger_match_any_hint">任一条件发生时运行</string>
     <string name="trigger_match_all">全部满足</string>
     <string name="trigger_match_all_hint">仅当所有条件现在都成立时运行</string>
+    <string name="trigger_match_all_event_warning">部分条件（如短信或通知）是瞬时事件，无法重新验证。将它们与「全部」组合的任务只能由自身事件触发运行 - 建议改用「任一」。</string>
     <string name="remove_trigger">移除条件</string>
     <string name="expand_options">显示选项</string>
     <string name="trigger_type_time">时间</string>
