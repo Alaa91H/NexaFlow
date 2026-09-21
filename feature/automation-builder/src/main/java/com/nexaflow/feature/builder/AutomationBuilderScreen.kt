@@ -1539,13 +1539,7 @@ fun AutomationBuilderScreen(
             .filter {
                 context.checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED
             }
-        scope.launch {
-            // Persist the edited task before this destination can leave the back stack.
-            // The save runs in the ViewModel scope; without awaiting it here an immediate
-            // pop destroys the ViewModel and can cancel the Room write, making removed
-            // triggers reappear the next time the task is opened.
-            saveJob.join()
-
+        scope.launchAfterSave(saveJob) {
             // A verified elevated shell can grant a dangerous permission to
             // NexaFlow's own UID through `pm grant`. Do that first and use the
             // Android dialog only for permissions a ROM still leaves missing.
