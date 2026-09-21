@@ -2,6 +2,8 @@ package com.nexaflow.app.wear
 
 import android.content.Context
 import android.util.Log
+import com.google.android.gms.wearable.CapabilityClient
+import com.google.android.gms.wearable.NodeClient
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import com.nexaflow.core.execution.WEAR_KEY_PAYLOAD
@@ -19,7 +21,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -58,6 +64,27 @@ class WearSyncManager @Inject constructor(
     // throttling use case; opted in locally rather than project-wide.
     @OptIn(FlowPreview::class)
     fun start() {
+        // Advertise the phone companion capability: the watch uses it to tell
+        // a reachable companion apart from a paired-but-dead phone.
+        syncScope.launch {
+            runCatching {
+                Wearable.getCapabilityClient(context).addLocalCapability(
+                    com.nexaflow.core.execution.WEAR_CAPABILITY_PHONE_APP
+                ).await()
+            }.onFailure { Log.w(TAG, "Capability advertisement failed", it) }
+        }
+        // Re-push whenever a watch (re)connects: the historical design pushed
+        // only on data changes, so a phone process started while the watch was
+        // disconnected left it with no data — the reported "sync never starts"
+        // bug. DataItems survive in the Data Layer cache, but a fresh urgent
+        // push closes every race (GMS reconnect, stale cache, watch reboot).
+        syncScope.launch {
+            nodeConnectedEvents()
+                .collect {
+                    runCatching { pushNow() }
+                        .onFailure { Log.w(TAG, "Connectivity re-push failed", it) }
+                }
+        }
         syncScope.launch {
             combine(
                 automationRepository.getAutomations(),
@@ -75,6 +102,59 @@ class WearSyncManager @Inject constructor(
     /** Cancel the background sync scope. */
     fun stop() {
         syncScope.cancel()
+    }
+
+    /**
+     * Emits once per (re)connection of a watch node. The first emission is
+     * the initial connectivity state: a watch already present at app start
+     * also gets its fresh push without waiting for a data change.
+     *
+     * Uses the CapabilityClient "companion available" signal — the documented
+     * reachability source (play-services-wearable 19 has no NodeClient
+     * connect listener). When the watch becomes reachable the capability info
+     * carries at least one node, which is exactly the re-push trigger.
+     */
+    private fun nodeConnectedEvents(): kotlinx.coroutines.flow.Flow<Unit> =
+        kotlinx.coroutines.flow.callbackFlow {
+            val capabilityClient = Wearable.getCapabilityClient(context)
+            val listener =
+                com.google.android.gms.wearable.CapabilityClient.OnCapabilityChangedListener { info ->
+                    if (info.nodes.isNotEmpty()) this@callbackFlow.trySend(Unit)
+                }
+            // Snapshot the initial state: a watch already connected at start
+            // must trigger the first push without waiting for a transition.
+            coroutineScope {
+                launch {
+                    val reachable = runCatching {
+                        capabilityClient.getCapability(
+                            com.nexaflow.core.execution.WEAR_CAPABILITY_PHONE_APP,
+                            CapabilityClient.FILTER_REACHABLE
+                        ).await()
+                    }.getOrNull()?.nodes?.isNotEmpty() == true
+                    if (reachable) send(Unit)
+                }
+            }
+            runCatching {
+                capabilityClient.addListener(
+                    listener,
+                    com.nexaflow.core.execution.WEAR_CAPABILITY_PHONE_APP
+                )
+            }.onFailure { Log.w(TAG, "Capability listener registration failed", it) }
+            awaitClose {
+                runCatching { capabilityClient.removeListener(listener) }
+            }
+        }
+
+    /**
+     * Builds and pushes the current automation list right now. Used by the
+     * watch-initiated sync request ([com.nexaflow.core.execution.WEAR_PATH_SYNC_REQUEST])
+     * and by the connectivity re-push; coalesced through the same builder as
+     * the flow-driven push so both paths serialize an identical payload.
+     */
+    suspend fun pushNow() {
+        val automations = automationRepository.getAutomations().first()
+        val latestRuns = historyRepository.getLatestExecutions().first()
+        pushToWatch(buildDtos(automations, latestRuns))
     }
 
     private fun buildDtos(

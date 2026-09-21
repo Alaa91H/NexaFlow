@@ -33,4 +33,10 @@ object WearProtocol {
 
     /** Separator used to encode "automationId:enabled" in a toggle message. */
     const val TOGGLE_SEPARATOR: String = ":"
+
+    /** MessageClient path: watch requests an immediate automation-list push. */
+    const val PATH_SYNC_REQUEST: String = "/nexaflow/sync-request"
+
+    /** CapabilityClient capability name advertised by the phone companion app. */
+    const val CAPABILITY_PHONE_APP: String = "nexaflow_phone_companion"
 }

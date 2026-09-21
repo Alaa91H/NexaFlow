@@ -15,6 +15,7 @@ import com.nexaflow.domain.models.MaintenanceProfile
 import com.nexaflow.domain.models.GlobalVariable
 import com.nexaflow.domain.models.PluginInfo
 import com.nexaflow.domain.models.Trigger
+import com.nexaflow.domain.models.TriggerMatchMode
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.repositories.PluginRepository
 import com.nexaflow.domain.repositories.VariableRepository
@@ -95,6 +96,7 @@ class AutomationBuilderViewModel @Inject constructor(
         icon: String,
         iconColor: Long = 0xFF0B57D0,
         triggers: List<Trigger>,
+        triggerMatch: TriggerMatchMode = TriggerMatchMode.ANY,
         actions: List<Action>,
         constraints: List<Constraint> = emptyList(),
         exitActions: List<Action> = emptyList(),
@@ -125,6 +127,7 @@ class AutomationBuilderViewModel @Inject constructor(
                 priority = prev?.priority ?: 1,
                 enabled = false,
                 triggers = triggers,
+                triggerMatch = triggerMatch,
                 actions = actions,
                 constraints = constraints,
                 exitActions = exitActions,

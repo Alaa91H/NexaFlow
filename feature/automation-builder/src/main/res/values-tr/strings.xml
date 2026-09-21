@@ -8,6 +8,11 @@
 
     
     <string name="section_when">Koşullar</string>
+    <string name="trigger_match_title">Birden fazla koşul varken</string>
+    <string name="trigger_match_any">HERHANGİ BİRİ sağlanır</string>
+    <string name="trigger_match_any_hint">Herhangi bir koşul gerçekleşince çalışır</string>
+    <string name="trigger_match_all">TÜMÜ sağlanır</string>
+    <string name="trigger_match_all_hint">Yalnızca tüm koşullar şu anda sağlanıyorken çalışır</string>
     <string name="remove_trigger">Koşulu kaldır</string>
     <string name="expand_options">Seçenekleri göster</string>
     <string name="trigger_type_time">Zaman</string>
