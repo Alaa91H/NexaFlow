@@ -3,6 +3,7 @@ package com.nexaflow.data.mapper
 import com.nexaflow.core.database.AutomationEntity
 import com.nexaflow.core.database.Converters
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.TriggerMatchMode
 
 fun AutomationEntity.toDomain(): Automation {
     val converters = Converters()
@@ -27,7 +28,9 @@ fun AutomationEntity.toDomain(): Automation {
         updatedAt = updatedAt,
         workflowVersion = workflowVersion,
         maintenanceProfile = converters.toMaintenanceProfile(maintenanceJson),
-        deepLinkToken = deepLinkToken
+        deepLinkToken = deepLinkToken,
+        triggerMatch = runCatching { TriggerMatchMode.valueOf(triggerMatch) }
+            .getOrDefault(TriggerMatchMode.ANY)
     )
 }
 
@@ -53,6 +56,7 @@ fun Automation.toEntity(): AutomationEntity {
         workflowVersion = workflowVersion,
         maintenanceJson = converters.fromMaintenanceProfile(maintenanceProfile),
         deepLinkToken = deepLinkToken,
+        triggerMatch = triggerMatch.name,
         createdAt = createdAt,
         updatedAt = updatedAt
     )
