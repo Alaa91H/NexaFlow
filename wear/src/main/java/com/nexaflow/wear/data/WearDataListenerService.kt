@@ -1,7 +1,5 @@
 package com.nexaflow.wear.data
 
-import android.content.Context
-import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
@@ -11,16 +9,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 /**
- * Watch-side Wearable listener that receives automation list DataItems pushed
- * by the phone and forwards them to [WearSyncRepository] for the UI to observe.
+ * Receives live automation-list DataItem updates pushed by the phone.
  *
- * Declared in the manifest with a DATA_CHANGED filter on /nexaflow/ paths.
+ * Cold starts are handled separately by [WearDataLayerClient], which reads the
+ * last cached DataItem before requesting a fresh snapshot. Both paths feed the
+ * same [WearSyncRepository].
  */
 @AndroidEntryPoint
 class WearDataListenerService : WearableListenerService() {
@@ -33,7 +30,8 @@ class WearDataListenerService : WearableListenerService() {
     override fun onDataChanged(dataEvents: DataEventBuffer) {
         dataEvents.use { buffer ->
             buffer.forEach { event ->
-                if (event.type == DataEvent.TYPE_CHANGED &&
+                if (
+                    event.type == DataEvent.TYPE_CHANGED &&
                     event.dataItem.uri.path == WearProtocol.PATH_AUTOMATIONS
                 ) {
                     handleAutomationUpdate(event.dataItem)
