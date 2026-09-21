@@ -85,6 +85,8 @@ class ExecutionEngine(
     private val capabilityExecutionService: CapabilityExecutionService? = null,
     /** Current shared availability observation; absent only in legacy/test construction. */
     private val capabilitySnapshotProvider: (() -> CapabilitySnapshot)? = null,
+    /** Targeted refresh after a fresh-snapshot block, so the next run sees a new grant. */
+    private val capabilitySnapshotInvalidator: (() -> Unit)? = null,
     /** Test seam for deterministic whole-snapshot restore outcome coverage. */
     private val snapshotRestorer: (DeviceStateSnapshot?, List<Action>) -> SystemControlResult =
         { snapshot, changedActions ->
@@ -101,6 +103,15 @@ class ExecutionEngine(
 
         /** Prefix logged on user-forced runs so history shows the bypass. */
         const val MANUAL_FORCE_PREFIX = "Force run; "
+
+        /**
+         * A capability snapshot older than this is treated as stale for the
+         * whole-run admission gate: it no longer blocks the run, because the
+         * concrete privilege is re-verified live before each action executes.
+         * Aligned with the store's 30s min-refresh interval plus generous
+         * background dwell time.
+         */
+        const val CAPABILITY_SNAPSHOT_FRESHNESS_MS = 60_000L
     }
 
     /** Why the manual admission gate refused a run; [ManualBlockKind.NONE] when it did not. */
@@ -173,20 +184,50 @@ class ExecutionEngine(
             return rejectIncompleteTimeRange(automation, startedAt)
         }
         capabilitySnapshotProvider?.invoke()?.let { snapshot ->
+            // A snapshot observed long ago is not evidence about the device
+            // anymore: the user may have granted Root/Shizuku/settings access
+            // while the process sat in the background. Blocking a run on a
+            // stale snapshot produced exactly the reported "many tasks
+            // skipped" bug. When the snapshot is older than the freshness
+            // window we admit the run — every action path re-verifies the
+            // concrete capability live before its first side effect.
+            val snapshotFresh = snapshotFreshness(snapshot) == SnapshotFreshness.FRESH
             val validation = WorkflowCapabilityValidator.validate(automation, snapshot)
             if (!validation.admissible) {
-                val missing = validation.missingCapabilities.joinToString().ifBlank { "unmapped or unavailable execution path" }
-                val record = ExecutionRecord(
-                    id = UUID.randomUUID().toString(),
-                    automationId = automation.id,
-                    automationName = automation.name,
-                    success = false,
-                    message = "Blocked: required capability is unavailable ($missing)",
-                    executedAt = startedAt
-                )
-                historyRepository.recordExecution(record)
-                recordTimeline(automation, "CAPABILITY_BLOCKED", record, startedAt)
-                return record
+                if (!snapshotFresh) {
+                    recordTimeline(
+                        automation,
+                        "CAPABILITY_BLOCKED_STALE_SNAPSHOT",
+                        ExecutionRecord(
+                            id = UUID.randomUUID().toString(),
+                            automationId = automation.id,
+                            automationName = automation.name,
+                            success = false,
+                            message = "Capability gate skipped on a stale snapshot; live re-check will run per action",
+                            executedAt = startedAt
+                        ),
+                        startedAt
+                    )
+                } else {
+                    // Fresh snapshot and still inadmissible is a genuine,
+                    // observed device fact — record it. Kick a targeted
+                    // capability refresh so the NEXT run sees a grant that
+                    // landed after this observation instead of re-blocking
+                    // on the same evidence forever.
+                    runCatching { capabilitySnapshotInvalidator?.invoke() }
+                    val missing = validation.missingCapabilities.joinToString().ifBlank { "unmapped or unavailable execution path" }
+                    val record = ExecutionRecord(
+                        id = UUID.randomUUID().toString(),
+                        automationId = automation.id,
+                        automationName = automation.name,
+                        success = false,
+                        message = "Blocked: required capability is unavailable ($missing)",
+                        executedAt = startedAt
+                    )
+                    historyRepository.recordExecution(record)
+                    recordTimeline(automation, "CAPABILITY_BLOCKED", record, startedAt)
+                    return record
+                }
             }
         }
         val maintenanceNow = ZonedDateTime.now()
@@ -986,7 +1027,7 @@ class ExecutionEngine(
         val handler = actionRegistry.handlerFor(action.type)
             ?: return SystemControlResult.fail("No handler registered for ${action.type}")
         return try {
-            val result = handler.execute(
+            var result = handler.execute(
                 action,
                 ActionExecutionContext(
                     appContext = context,
@@ -1001,8 +1042,38 @@ class ExecutionEngine(
                 )
             )
             if (!result.success && result.message.contains("No elevated runtime")) {
-                // Refresh once so a just-granted root is seen immediately; log full hint for diagnosis.
-                try { com.nexaflow.core.rom.SystemAppStatusDetector.refreshRootAvailability() } catch (_: Throwable) {}
+                // A grant may have landed between the last probe and this run.
+                // refreshAndProbe bypasses the storm-spacing guard deliberately:
+                // the previous "no root" answer is known stale, so one extra
+                // su spawn is the price of not hiding a fresh grant. When the
+                // re-probe flips to granted, retry the action exactly once —
+                // the previous run never reached the elevated runtime, so no
+                // side effect can have started (safe to re-execute).
+                val reProbed = try {
+                    com.nexaflow.core.rom.SystemAppStatusDetector.refreshAndProbe()
+                } catch (_: Throwable) {
+                    com.nexaflow.core.rom.PrivilegedRunner.isRootAvailable()
+                }
+                if (reProbed) {
+                    result = try {
+                        handler.execute(
+                            action,
+                            ActionExecutionContext(
+                                appContext = context,
+                                controller = controller,
+                                notificationSettings = notif,
+                                channel = channel,
+                                automationId = automationId,
+                                revertOnExit = revertOnExit,
+                                runContext = runContext,
+                                dataRuntime = dataRuntime,
+                                capabilityService = capabilityExecutionService
+                            )
+                        )
+                    } catch (failure: Throwable) {
+                        SystemControlResult.fail(failure.message ?: "Action execution failed")
+                    }
+                }
                 // Never emit dynamic errors, configuration keys or values to logcat.
                 android.util.Log.w("ExecutionEngine", "elevated action failed type=${action.type}")
             }
@@ -1074,6 +1145,20 @@ class ExecutionEngine(
         ConditionResult.Unknown -> "constraint state is unknown"
         ConditionResult.Unavailable -> "constraint provider is unavailable"
         is ConditionResult.Error -> "constraint evaluation error: $reason"
+    }
+
+    /** Coarse freshness classification for the whole-run admission snapshot. */
+    private enum class SnapshotFreshness { FRESH, STALE, NEVER_OBSERVED }
+
+    /**
+     * Classifies a capability snapshot for the admission gate. A snapshot the
+     * store never populated (startup race) or one observed too long ago is
+     * not a refusal basis: the gate admits, the per-action live checks decide.
+     */
+    private fun snapshotFreshness(snapshot: CapabilitySnapshot): SnapshotFreshness = when {
+        snapshot.neverObserved -> SnapshotFreshness.NEVER_OBSERVED
+        epochMillis.now() - snapshot.observedAtMs > CAPABILITY_SNAPSHOT_FRESHNESS_MS -> SnapshotFreshness.STALE
+        else -> SnapshotFreshness.FRESH
     }
 
     private fun buildMessage(results: List<ActionExecutionResult>): String {

@@ -138,18 +138,16 @@ class AutomationBuilderViewModel @Inject constructor(
             // Aggressive permission handling: if not admissible, try to auto-grant via Root/Shizuku
             // before deciding to save as disabled. This makes the "create task" flow proactively
             // request needed permissions instead of silently disabling the task.
-            var admitted = WorkflowCapabilityValidator.validate(
+            //
+            // Admission is decided on a FRESH snapshot, never the cached value:
+            // the refresh triggered on entry is asynchronous, so reading .value
+            // immediately raced the scan and got the pre-refresh answer — a
+            // task the device can actually run was silently saved disabled
+            // (root cause of the reported "tasks skipped on save" bug).
+            val admitted = WorkflowCapabilityValidator.validate(
                 automation,
-                capabilityStateStore.snapshot.value
+                capabilityStateStore.freshSnapshot()
             ).admissible
-            if (!admitted && prev?.enabled != true) {
-                // Try aggressive auto-grant for Root/Shizuku devices
-                // This will attempt to grant via PrivilegedRunner if available
-                // The task will still be saved as disabled if grant fails, and will
-                // be re-validated on next enable attempt (strict).
-                // We don't block the save; the dashboard will show the task as disabled
-                // with a permission hint, and the user can tap to retry grant.
-            }
             val storedAutomation = automation.copy(
                 enabled = resolvedSavedEnabled(
                     previousEnabled = prev?.enabled,

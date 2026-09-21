@@ -2,6 +2,56 @@
 
 ## [Unreleased]
 
+## [v3.79.0] - 2026-09-21
+
+### Fixed
+
+- **Task runs silently skipped — four root causes eliminated.** User-reported:
+  many automations did not execute on a connected device. Static analysis and
+  device logcat review traced every skip path to the admission layer, not the
+  actions:
+  - **Save-time snapshot race** — `saveAutomation` read the capability snapshot
+    synchronously while the refresh triggered on screen entry was still in    flight, so the pre-scan answer classified runnable tasks as inadmissible    and saved them **disabled**. Admission is now decided on
+    `CapabilityStateStore.freshSnapshot()`: request a refresh, wait (bounded,
+    4 s budget) for an observation made at or after the request. Inside the
+    store's 30 s minimum-refresh backoff the recent snapshot is returned
+    immediately, so the save flow can never hang.
+  - **Stale snapshot blocking runs** — the whole-run capability gate blocked
+    any task whose snapshot was inadmissible, including snapshots observed
+    hours earlier while the process sat in the background. A snapshot older
+    than 60 s is now treated as not evidence about the device: the gate
+    admits and every action path re-verifies the concrete capability live
+    before its first side effect (diagnostic timeline entry
+    `CAPABILITY_BLOCKED_STALE_SNAPSHOT`).
+  - **Fresh-block learning** — a block on a genuinely fresh, observed
+    unavailability now schedules a targeted capability refresh
+    (`capabilitySnapshotInvalidator`), so a grant that lands right after a
+    blocked run is seen by the next run instead of re-blocking on the same
+    evidence forever.
+  - **Grant visibility after failure** — when an action failed with "No
+    elevated runtime", the engine only invalidated the root-probe cache,
+    which the 5 s storm-spacing guard then silently swallowed; a grant that
+    landed a second earlier stayed hidden through every "refresh".
+    `SystemAppStatusDetector.refreshAndProbe()` now bypasses the spacing
+    guard deliberately (documented: one extra `su` spawn is the price of
+    never hiding a fresh grant), and the engine retries the action exactly
+    once when the re-probe flips to granted — safe, because the previous run
+    never reached the elevated runtime and no side effect can have started.
+
+### Tests
+
+- `CapabilityGateFreshnessTest` (4 tests): stale snapshot admits, startup
+  race admits, fresh block records and schedules a refresh, fresh admissible
+  runs.
+- `SaveAdmissionFreshnessTest` (2 tests): `freshSnapshot` returns a
+  post-refresh observation; respects the backoff window without hanging.
+- `RefreshAndProbeTest` (3 tests): forced refresh bypasses the spacing guard,
+  result is cached for ordinary callers, invalidate-only can never observe a
+  grant. All tests seed a deterministic baseline so none depends on leftover
+  probe state or wall-clock distance.
+- Full suite: 816 unit tests across `core/execution`, `core/rom-integration`
+  and `domain` — 0 failures, 0 skipped.
+
 ## [v3.78.0] - 2026-09-21
 
 ### Changed

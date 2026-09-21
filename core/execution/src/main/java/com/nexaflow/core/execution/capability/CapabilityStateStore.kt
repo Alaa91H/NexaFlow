@@ -74,6 +74,29 @@ class CapabilityStateStore(
 
     fun refresh() = invalidate()
 
+    /**
+     * Returns a snapshot the caller can base a decision on: requests a
+     * refresh, then waits (bounded) for an observation made at or after the
+     * request. Save flows must use this instead of reading [snapshot].value
+     * directly — the async worker otherwise loses the race and the pre-scan
+     * answer silently disables runnable tasks.
+     *
+     * When the store is inside its min-refresh backoff window the wait ends
+     * at the budget with the recent snapshot, so a slow scan can never hang a
+     * UI flow.
+     */
+    suspend fun freshSnapshot(budgetMs: Long = DEFAULT_FRESH_SNAPSHOT_BUDGET_MS): CapabilitySnapshot {
+        val before = _snapshot.value.observedAtMs
+        invalidate()
+        val deadline = nowMs() + budgetMs
+        var current = _snapshot.value
+        while (current.observedAtMs == before && nowMs() < deadline) {
+            delay(50)
+            current = _snapshot.value
+        }
+        return current
+    }
+
     private fun refreshDelayMs(now: Long): Long {
         if (lastRefreshCompletedAtMs == Long.MIN_VALUE) return 0L
         val elapsed = (now - lastRefreshCompletedAtMs).coerceAtLeast(0L)
@@ -92,7 +115,12 @@ class CapabilityStateStore(
         lastRefreshCompletedAtMs = observedAtMs
     }
 
-    companion object { const val DEFAULT_MIN_REFRESH_INTERVAL_MS = 30_000L }
+    companion object {
+        const val DEFAULT_MIN_REFRESH_INTERVAL_MS = 30_000L
+
+        /** Upper bound on how long a decision flow may wait for a fresh scan. */
+        const val DEFAULT_FRESH_SNAPSHOT_BUDGET_MS = 4_000L
+    }
 
     private suspend fun diagnosticReportFor(capability: CapabilityId): CapabilityAvailabilityReport {
         val reports = buildList {

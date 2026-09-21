@@ -345,7 +345,8 @@ object AppModule {
             variableRepository = variableRepository,
             automationRuntimeStore = automationRuntimeStore,
             capabilityExecutionService = capabilityExecutionService,
-            capabilitySnapshotProvider = { capabilityStateStore.snapshot.value }
+            capabilitySnapshotProvider = { capabilityStateStore.snapshot.value },
+            capabilitySnapshotInvalidator = { capabilityStateStore.refresh() }
         )
     }
 

@@ -94,19 +94,32 @@ object SystemAppStatusDetector {
         }
     }
 
-    /** Drops the cached probe result so the next check re-probes the device. */
     fun refreshRootAvailability() {
         rootProbeAt = 0L
     }
 
     /**
-     * Clears the cache and probes again immediately — used when an execution
-     * just failed with "No elevated runtime" so a freshly granted root is seen
-     * without waiting for the TTL.
+     * Clears the cache and probes again immediately, bypassing the
+     * storm-spacing guard — used when an execution just failed with "No
+     * elevated runtime" or a grant flow just completed, so a freshly granted
+     * root is observed now instead of within the 5s spacing window. The old
+     * implementation (invalidate + isRootAvailable) was silently swallowed by
+     * the spacing guard it shares the lock with, so a grant that landed a
+     * second after the previous probe stayed hidden through every "refresh".
      */
     fun refreshAndProbe(): Boolean {
-        refreshRootAvailability()
-        return isRootAvailable()
+        synchronized(rootProbeLock) {
+            rootProbeAt = 0L
+            // lastProbeAtMs is deliberately not honored here: this is the
+            // post-grant path where the previous answer is known stale (the
+            // user just tapped Allow). One extra `su` spawn is the price of
+            // never hiding a fresh grant.
+            val result = probeRoot()
+            rootProbeResult = result
+            rootProbeAt = System.currentTimeMillis()
+            lastProbeAtMs = rootProbeAt
+            return result
+        }
     }
 
     @Volatile
