@@ -166,6 +166,40 @@ jobs:
         # distributed APK so the map works for all users, not just local builds.
         NEXAFLOW_MAPS_API_KEY: ${{ secrets.NEXAFLOW_MAPS_API_KEY }}
       run: ./gradlew assembleDebug assembleRelease
+    - name: Verify phone/Wear Data Layer identity contract
+      run: |
+        PHONE_APK=app/build/outputs/apk/release/app-release.apk
+        WATCH_APK=wear/build/outputs/apk/release/wear-release.apk
+        test -s "$PHONE_APK" || { echo "Phone release APK missing: $PHONE_APK" >&2; exit 1; }
+        test -s "$WATCH_APK" || { echo "Watch release APK missing: $WATCH_APK" >&2; exit 1; }
+
+        AAPT="$(ls "$ANDROID_SDK_ROOT"/build-tools/*/aapt | sort -V | tail -1)"
+        APKSIGNER="$(ls "$ANDROID_SDK_ROOT"/build-tools/*/apksigner | sort -V | tail -1)"
+
+        PHONE_PACKAGE="$("$AAPT" dump badging "$PHONE_APK" | sed -n "s/^package: name='\([^\']*\)'.*/\1/p" | head -1)"
+        WATCH_PACKAGE="$("$AAPT" dump badging "$WATCH_APK" | sed -n "s/^package: name='\([^\']*\)'.*/\1/p" | head -1)"
+        test -n "$PHONE_PACKAGE" || { echo "Could not read phone applicationId." >&2; exit 1; }
+        test -n "$WATCH_PACKAGE" || { echo "Could not read Wear applicationId." >&2; exit 1; }
+        test "$PHONE_PACKAGE" = "$WATCH_PACKAGE" || {
+          echo "Wear Data Layer package mismatch: phone=$PHONE_PACKAGE watch=$WATCH_PACKAGE" >&2
+          exit 1
+        }
+        test "$PHONE_PACKAGE" = "com.nexaflow.app" || {
+          echo "Unexpected NexaFlow Data Layer package: $PHONE_PACKAGE" >&2
+          exit 1
+        }
+
+        PHONE_CERT="$("$APKSIGNER" verify --print-certs "$PHONE_APK" | awk -F'digest: ' '/certificate SHA-256 digest:/{print $2; exit}' | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+        WATCH_CERT="$("$APKSIGNER" verify --print-certs "$WATCH_APK" | awk -F'digest: ' '/certificate SHA-256 digest:/{print $2; exit}' | tr -d ':' | tr '[:upper:]' '[:lower:]')"
+        test -n "$PHONE_CERT" || { echo "Could not read phone signing certificate." >&2; exit 1; }
+        test -n "$WATCH_CERT" || { echo "Could not read Wear signing certificate." >&2; exit 1; }
+        test "$PHONE_CERT" = "$WATCH_CERT" || {
+          echo "Wear Data Layer certificate mismatch between phone and watch APKs." >&2
+          exit 1
+        }
+
+        "$APKSIGNER" verify --verbose "$WATCH_APK" | grep -E "Verified using v(2|3) scheme.*: true"
+        echo "Wear Data Layer contract OK: package=$PHONE_PACKAGE certificate=$PHONE_CERT"
     - name: Audit merged release exported components
       run: python3 scripts/audit_exported_components.py --merged app/build/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml
     - name: Verify release APK signing certificate
