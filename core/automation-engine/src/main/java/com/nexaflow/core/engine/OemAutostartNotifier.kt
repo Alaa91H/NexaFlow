@@ -99,10 +99,10 @@ object OemAutostartNotifier {
 
             val notification = NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(com.nexaflow.core.rom.R.drawable.ic_stat_nexaflow)
-                // M3: brand-tinted small icon + action icons.
-                // Colorized (API 31+) fills the header with the brand color.
+                // Keep the NexaFlow tint on icons/actions only. SystemUI owns the
+                // surface/text colors so dark and OEM themes keep reliable contrast.
                 .setColor(context.getColor(com.nexaflow.core.rom.R.color.notification_brand_color))
-                .setColorized(true)
+                .setColorized(false)
                 .setContentTitle(context.getString(R.string.oem_autostart_title))
                 .setContentText(context.getString(R.string.oem_autostart_text))
                 .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)
