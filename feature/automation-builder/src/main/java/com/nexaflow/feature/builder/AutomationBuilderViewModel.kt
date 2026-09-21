@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
@@ -107,8 +108,7 @@ class AutomationBuilderViewModel @Inject constructor(
         // the user one review point in the dashboard before a prebuilt routine
         // can react to a device event; manual creation keeps its existing flow.
         startDisabled: Boolean = false
-    ) {
-        viewModelScope.launch {
+    ): Job = viewModelScope.launch {
             val now = System.currentTimeMillis()
             val prev = existing
             val id = prev?.id ?: draftId ?: UUID.randomUUID().toString().also { draftId = it }
@@ -182,7 +182,6 @@ class AutomationBuilderViewModel @Inject constructor(
             // condition already holds runs immediately, and editing a task
             // that is currently active re-arms its end behavior.
             executionEngine.notifyAutomationsChanged()
-        }
     }
 
 }
