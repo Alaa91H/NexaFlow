@@ -110,15 +110,9 @@ class WearSyncManager @Inject constructor(
                     if (info.nodes.isNotEmpty()) trySend(Unit)
                 }
 
-            val reachable = runCatching {
-                capabilityClient.getCapability(
-                    WEAR_CAPABILITY_WATCH_APP,
-                    CapabilityClient.FILTER_REACHABLE,
-                ).await()
-            }.getOrNull()?.nodes?.isNotEmpty() == true
-
-            if (reachable) trySend(Unit)
-
+            // Register first, then take the snapshot. This closes the tiny
+            // race where the watch could become reachable between the initial
+            // query and listener registration.
             runCatching {
                 capabilityClient.addListener(
                     listener,
@@ -127,6 +121,15 @@ class WearSyncManager @Inject constructor(
             }.onFailure {
                 Log.w(TAG, "Watch capability listener registration failed", it)
             }
+
+            val reachable = runCatching {
+                capabilityClient.getCapability(
+                    WEAR_CAPABILITY_WATCH_APP,
+                    CapabilityClient.FILTER_REACHABLE,
+                ).await()
+            }.getOrNull()?.nodes?.isNotEmpty() == true
+
+            if (reachable) trySend(Unit)
 
             awaitClose {
                 capabilityClient.removeListener(listener)
