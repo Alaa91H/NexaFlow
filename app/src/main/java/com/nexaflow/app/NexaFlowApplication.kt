@@ -26,6 +26,7 @@ import com.nexaflow.feature.settings.UpdateVersion
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -108,7 +109,7 @@ class NexaFlowApplication : Application(), Configuration.Provider {
         // default disabled value cancels stale work from older installs; later
         // user edits replace or cancel the unique periodic request immediately.
         appScope.launch {
-            updatePreferences.settings.collect { settings ->
+            updatePreferences.settings.distinctUntilChanged().collect { settings ->
                 runCatching {
                     UpdateCheckScheduler.schedule(this@NexaFlowApplication, settings)
                 }.onFailure { Log.e(TAG, "Update check schedule failed", it) }
