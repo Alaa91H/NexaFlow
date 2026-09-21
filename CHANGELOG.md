@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [v3.83.0] - 2026-09-21
+
 ### Fixed
 
 - **Edited trigger removals now persist reliably.** The automation builder waits for
@@ -10,6 +12,44 @@
   ViewModel, and cancel the in-flight Room write; removed triggers could then
   reappear when the task was opened again. A regression test now guards the
   post-save ordering. Fixes #7.
+
+### Changed
+
+- **Trigger-match ALL mode is now a full evaluation policy, not just a
+  multi-trigger gate.** The dedicated `TriggerMatchPolicy` centralizes the
+  ANY/ALL combination (truth table: ANY requires at least one verifiably
+  satisfied condition; ALL requires every condition verifiably satisfied;
+  an empty condition list can never start a run under either mode), and the
+  execution engine routes every trigger evaluation through it. A task with a
+  **single** condition in ALL mode is now live-evaluated like any other —
+  the firing monitor only starts the evaluation and is never treated as
+  proof that its condition still holds.
+- **Honest typed condition results for state-read adapters.** `CHARGER` and
+  `AIRPLANE_MODE` are classified as definitive-false-when-false state reads
+  (like `TIME` and `DEVICE`): a false answer is a verified current state and
+  an unreadable state surfaces as `Unknown`, so the ALL gate and the manual
+  run gate no longer over-report unverifiable conditions.
+
+### Added
+
+- **Builder advisory for event-only triggers in ALL mode.** When a task set
+  to "all conditions" contains a momentary trigger that can never be
+  re-verified from device state (notification, boot, NFC tag scan, SMS,
+  webhook, sensor, plugin, geofence, ...), the builder shows an explicit
+  warning that such a condition will keep the task from running in ALL mode,
+  instead of failing silently at runtime. Localized across all 10 supported
+  languages.
+
+### Tests
+
+- Complete ANY/ALL truth-table policy suite (17 cases) including 3-condition
+  combinations, the empty-condition guard, and event-only advisory
+  classification.
+- Cross-midnight time-range matrix: `22:00–07:00` is satisfied at 22:30,
+  01:00 and 06:59 and unsatisfied at 12:00, 18:00 and 07:01, plus the
+  charging-at-night acceptance scenario.
+- Engine gate tests for ALL mode with a single condition (both the skip and
+  the run path) proving a firing monitor is not current truth.
 
 ## [v3.82.0] - 2026-09-21
 
