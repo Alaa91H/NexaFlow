@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Wifi
@@ -24,6 +23,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.nexaflow.core.ui.Dimens.RowIconSize
+import com.nexaflow.core.ui.Dimens.Space1
 import com.nexaflow.core.ui.Dimens.Space2
 import com.nexaflow.core.ui.Dimens.Space3
 
@@ -45,8 +45,8 @@ fun SettingRow(
             .then(
                 if (rowSurface != null) {
                     Modifier
-                        .background(rowSurface, RoundedCornerShape(12.dp))
-                        .padding(horizontal = Space2, vertical = 2.dp)
+                        .background(rowSurface, MaterialTheme.shapes.small)
+                        .padding(horizontal = Space2, vertical = Space1)
                 } else {
                     Modifier
                 }
