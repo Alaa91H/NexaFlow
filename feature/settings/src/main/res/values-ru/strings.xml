@@ -222,7 +222,7 @@
     <string name="plugin_capability_shell_commands">Команды shell</string>
     <string name="plugin_capability_locale_tasker">Tasker / Locale</string>
     <string name="update_auto_checks">Автоматическая проверка обновлений</string>
-    <string name="update_auto_checks_enabled_sub">Проверяет новые версии в фоне с выбранной периодичностью</string>
+    <string name="update_auto_checks_enabled_sub">Тихо работает в фоновом режиме и уведомляет только о появлении более новой версии</string>
     <string name="update_auto_checks_disabled_sub">Отключено — без фоновых проверок и уведомлений об обновлениях</string>
     <string name="update_check_frequency">Частота автоматической проверки</string>
     <string name="update_check_frequency_sub">Выберите, когда выполнять фоновую проверку обновлений</string>
