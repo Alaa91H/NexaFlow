@@ -34,8 +34,8 @@ import kotlinx.coroutines.withContext
  *
  * Trigger types that cannot be evaluated deterministically without their
  * live monitors (apps, SMS, NFC scans, clipboard, sensors, webhook, calendar,
- * ...) report "not satisfied". A manual tap must never execute main actions
- * without proof that every configured condition is currently true.
+ * ...) report an unknown state. A manual tap follows the task's ANY/ALL rule
+ * and never treats an unknown state as proof that a condition is true.
  */
 @Suppress("TooManyFunctions") // One cohesive manual-gate surface; each adapter mirrors one live monitor's semantics.
 object TriggerStateEvaluator {
@@ -74,10 +74,10 @@ object TriggerStateEvaluator {
         evaluateAsync(context, triggers) == ConditionResult.Satisfied
 
     /**
-     * Typed manual-gate evaluation. Event-only sources, unavailable services,
+     * Typed current-state evaluation. Event-only sources, unavailable services,
      * and reads whose false result cannot be distinguished from an API failure
-     * remain [ConditionResult.Unknown]. The caller keeps that distinction for
-     * diagnostics while applying its explicit manual-run policy.
+     * remain [ConditionResult.Unknown]. [matchMode] combines the individual
+     * states without ever converting unknown/unavailable/error into truth.
      */
     suspend fun evaluateAsync(
         context: Context,
