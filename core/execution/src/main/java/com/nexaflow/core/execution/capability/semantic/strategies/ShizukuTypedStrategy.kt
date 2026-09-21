@@ -164,10 +164,8 @@ class ShizukuTypedStrategy(
             )
         val privileged = when (operation) {
             SemanticOperationId.WIFI_SET_STATE ->
-                PrivilegedOperation.WriteSetting(
-                    namespace = PrivilegedOperation.SettingNamespace.GLOBAL,
-                    key = "wifi_on",
-                    value = if (enable) "1" else "0"
+                PrivilegedOperation.SetServiceState(
+                    PrivilegedOperation.Companion.ServiceName.WIFI, enable
                 )
             SemanticOperationId.BLUETOOTH_SET_STATE ->
                 PrivilegedOperation.SetServiceState(
@@ -176,11 +174,7 @@ class ShizukuTypedStrategy(
             SemanticOperationId.LOCATION_SET_STATE ->
                 PrivilegedOperation.SetLocationEnabled(enable)
             SemanticOperationId.AIRPLANE_MODE_SET_STATE ->
-                PrivilegedOperation.WriteSetting(
-                    namespace = PrivilegedOperation.SettingNamespace.GLOBAL,
-                    key = "airplane_mode_on",
-                    value = if (enable) "1" else "0"
-                )
+                PrivilegedOperation.SetAirplaneMode(enable)
             SemanticOperationId.ROTATION_SET_STATE ->
                 PrivilegedOperation.WriteSetting(
                     namespace = PrivilegedOperation.SettingNamespace.SYSTEM,
