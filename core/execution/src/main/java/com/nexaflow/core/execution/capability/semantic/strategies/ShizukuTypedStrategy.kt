@@ -153,18 +153,13 @@ class ShizukuTypedStrategy(
             SemanticOperationId.HOTSPOT_SET_STATE ->
                 PrivilegedOperation.SetHotspot(enable)
             SemanticOperationId.DND_SET_STATE ->
-                if (enable) {
-                    // Lowering DND requires notification-policy access for this
-                    // package first; granting it never changes the user's
-                    // interruption filter itself.
-                    PrivilegedOperation.GrantNotificationPolicyAccess(packageName)
-                } else {
-                    PrivilegedOperation.WriteSetting(
-                        namespace = PrivilegedOperation.SettingNamespace.GLOBAL,
-                        key = "zen_mode",
-                        value = "0"
-                    )
-                }
+                PrivilegedOperation.WriteSetting(
+                    namespace = PrivilegedOperation.SettingNamespace.GLOBAL,
+                    key = "zen_mode",
+                    // Android uses 0 for off and non-zero zen modes for DND.
+                    // Use "no interruptions" (2) as the deterministic ON state.
+                    value = if (enable) "2" else "0"
+                )
             else -> return OperationOutcome.unsupported(
                 operation, "Write is not implemented by the Shizuku strategy"
             )
@@ -198,7 +193,7 @@ class ShizukuTypedStrategy(
         SemanticOperationId.AIRPLANE_MODE_GET_STATE ->
             readSettingBool(PrivilegedOperation.SettingNamespace.GLOBAL, "airplane_mode_on")
         SemanticOperationId.DND_GET_STATE ->
-            readSettingBool(PrivilegedOperation.SettingNamespace.GLOBAL, "zen_mode")
+            readNonZeroSetting(PrivilegedOperation.SettingNamespace.GLOBAL, "zen_mode")
         SemanticOperationId.MOBILE_DATA_GET_STATE ->
             readSettingBool(PrivilegedOperation.SettingNamespace.GLOBAL, "mobile_data")
         SemanticOperationId.PACKAGE_GET_ENABLED_STATE -> {
@@ -237,6 +232,16 @@ class ShizukuTypedStrategy(
             "0" -> false
             else -> null
         }
+    }
+
+    /** DND has several active zen modes; every non-zero value means enabled. */
+    private fun readNonZeroSetting(
+        namespace: PrivilegedOperation.SettingNamespace,
+        key: String
+    ): Boolean? {
+        val result = execute(PrivilegedOperation.ReadSettingState(namespace, key))
+        if (!result.success) return null
+        return result.message.trim().toIntOrNull()?.let { it != 0 }
     }
 
     private fun toOutcome(
@@ -287,6 +292,7 @@ class ShizukuTypedStrategy(
         SemanticOperationId.NFC_SET_STATE,
         SemanticOperationId.MOBILE_DATA_SET_STATE,
         SemanticOperationId.HOTSPOT_SET_STATE,
+        SemanticOperationId.DND_SET_STATE,
         // A force-stop/clear-data dispatched through the shell that then loses
         // the binder may have completed: process death on the target package
         // is externally observable, so the outcome must be reconciled, never
