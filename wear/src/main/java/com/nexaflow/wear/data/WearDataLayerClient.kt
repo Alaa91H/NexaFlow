@@ -1,8 +1,11 @@
 package com.nexaflow.wear.data
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import com.google.android.gms.wearable.CapabilityClient
+import com.google.android.gms.wearable.DataClient
+import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.NodeClient
 import com.google.android.gms.wearable.Wearable
@@ -14,8 +17,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Sends command messages from the watch to the connected phone via the
- * Wearable [MessageClient].
+ * Sends commands from the watch to the connected phone and bootstraps the
+ * watch from the latest DataItem already cached by the Wearable Data Layer.
  *
  * The phone capability is preferred so commands cannot be routed to the wrong
  * wearable node. If a capability has not propagated yet (for example while
@@ -25,16 +28,52 @@ import javax.inject.Singleton
 @Singleton
 class WearDataLayerClient @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val dataClient: DataClient,
     private val messageClient: MessageClient,
     private val nodeClient: NodeClient,
 ) {
 
     /**
-     * Asks the phone to re-push the automation list now. Called when the watch
-     * UI starts: the phone only pushes on data changes, so without this pull
-     * the watch could sit on its "Connecting" spinner forever whenever the
-     * phone process started (or its data last changed) while the watch was
-     * disconnected.
+     * Reads the newest locally available automation DataItem, if any.
+     *
+     * DataItems are durable Data Layer state: unlike MessageClient commands,
+     * they remain available while devices are temporarily disconnected. The
+     * wildcard URI covers the phone node that originally created the item and
+     * also handles node-id changes after re-pairing. If more than one creator
+     * exists, the payload with the greatest updatedAt value wins.
+     */
+    suspend fun readCachedAutomationPayload(): String? = withContext(Dispatchers.IO) {
+        val uri = Uri.parse("wear://*${WearProtocol.PATH_AUTOMATIONS}")
+        val buffer = runCatching {
+            dataClient.getDataItems(uri, DataClient.FILTER_LITERAL).await()
+        }.getOrElse { error ->
+            Log.w(TAG, "Failed to read cached Wear automation DataItem", error)
+            return@withContext null
+        }
+
+        try {
+            buffer.mapNotNull { item ->
+                runCatching {
+                    val map = DataMapItem.fromDataItem(item).dataMap
+                    val payload = map.getString(WearProtocol.KEY_PAYLOAD)
+                        ?: return@runCatching null
+                    CachedPayload(
+                        payload = payload,
+                        updatedAt = map.getLong(WearProtocol.KEY_UPDATED_AT),
+                    )
+                }.getOrNull()
+            }.maxByOrNull { it.updatedAt }?.payload
+        } finally {
+            buffer.release()
+        }
+    }
+
+    /**
+     * Asks the phone to re-push the automation list now.
+     *
+     * A true return value means only that MessageClient accepted/delivered the
+     * request to the target node. The caller must still wait for a new DataItem
+     * revision before treating synchronization as complete.
      */
     suspend fun requestSync(): Boolean {
         val nodeId = resolvePhoneNodeId() ?: return false
@@ -107,6 +146,11 @@ class WearDataLayerClient @Inject constructor(
             nodes.firstOrNull { it.isNearby }?.id ?: nodes.firstOrNull()?.id
         }.getOrNull()
     }
+
+    private data class CachedPayload(
+        val payload: String,
+        val updatedAt: Long,
+    )
 
     private companion object {
         const val TAG = "WearDataLayerClient"
