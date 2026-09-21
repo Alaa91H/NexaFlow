@@ -643,8 +643,8 @@ class ExecutionEngine(
     }
 
     /**
-     * Manual "run now" gate: executes the task's main actions only when every
-     * trigger and constraint is currently and verifiably satisfied. Every other
+     * Manual "run now" gate: evaluates current triggers with the task's
+     * configured ANY/ALL rule while constraints must still all pass. Every other
      * outcome follows the configured "when the task ends" behavior. This is an
      * explicit user-directed command: when the main condition is unavailable,
      * NexaFlow performs the requested end action if one exists, otherwise it
