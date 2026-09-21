@@ -3,6 +3,8 @@ package com.nexaflow.core.execution.capability.semantic
 import com.nexaflow.domain.capability.operation.SemanticOperationId
 import com.nexaflow.domain.capability.operation.StrategyId
 import com.nexaflow.core.rom.model.RomFamily
+import com.nexaflow.domain.models.Action
+import com.nexaflow.domain.models.ActionType
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -241,6 +243,53 @@ class CapabilityRouterTest {
             outcome.errorCode
         )
         assertEquals(0, strategy.executions)
+    }
+
+    @Test
+    fun pendingPermissionOutcomeIsNotReportedAsSuccessfulLegacyExecution() = runTest {
+        val root = FakeStrategy(
+            StrategyId.ROOT_SHELL,
+            setOf(SemanticOperationId.WIFI_SET_STATE)
+        )
+        val semantic = SemanticActionRouter(
+            router = router(root),
+            privilegedPolicyEnabled = { false }
+        )
+        val result = semantic.routeIfSupported(
+            Action(ActionType.SYSTEM_WIFI, mapOf("enabled" to "true")),
+            workflowId = "wf",
+            executionId = "run"
+        )
+        assertNotNull(result)
+        assertEquals(false, result!!.success)
+        assertEquals(0, root.executions)
+    }
+
+    @Test
+    fun brightnessAndTimeoutMappingDoesNotRequireBooleanEnabledFlag() {
+        val brightness = SemanticActionMapper.requestFor(
+            Action(
+                ActionType.SYSTEM_BRIGHTNESS,
+                mapOf("value" to "120", "configVersion" to "2")
+            ),
+            workflowId = null,
+            executionId = null,
+            allowPrivilegedStrategies = true
+        )
+        assertNotNull(brightness)
+        assertEquals(mapOf("value" to "120"), brightness!!.parameters)
+
+        val timeout = SemanticActionMapper.requestFor(
+            Action(
+                ActionType.SYSTEM_SCREEN_TIMEOUT,
+                mapOf("seconds" to "30", "configVersion" to "2")
+            ),
+            workflowId = null,
+            executionId = null,
+            allowPrivilegedStrategies = true
+        )
+        assertNotNull(timeout)
+        assertEquals(mapOf("seconds" to "30"), timeout!!.parameters)
     }
 
     @Test
