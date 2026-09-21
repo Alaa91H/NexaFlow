@@ -104,6 +104,12 @@ jobs:
       contents: write
     steps:
     - uses: actions/checkout@v7
+      with:
+        # GitVersion derives versionCode from the nearest v* tag; without the
+        # tag history a main-branch build falls back to 0.0.1 (versionCode 1),
+        # producing APKs that can never upgrade a real install.
+        fetch-depth: 0
+        fetch-tags: true
     - name: set up JDK 17
       uses: actions/setup-java@v5
       with:
