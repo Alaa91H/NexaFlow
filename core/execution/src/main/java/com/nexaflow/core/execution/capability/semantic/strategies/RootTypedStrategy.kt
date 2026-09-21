@@ -155,11 +155,7 @@ class RootTypedStrategy(
             SemanticOperationId.LOCATION_SET_STATE ->
                 PrivilegedOperation.SetLocationEnabled(enable)
             SemanticOperationId.AIRPLANE_MODE_SET_STATE ->
-                PrivilegedOperation.WriteSetting(
-                    namespace = PrivilegedOperation.SettingNamespace.GLOBAL,
-                    key = "airplane_mode_on",
-                    value = if (enable) "1" else "0"
-                )
+                PrivilegedOperation.SetAirplaneMode(enable)
             SemanticOperationId.ROTATION_SET_STATE ->
                 PrivilegedOperation.WriteSetting(
                     namespace = PrivilegedOperation.SettingNamespace.SYSTEM,
