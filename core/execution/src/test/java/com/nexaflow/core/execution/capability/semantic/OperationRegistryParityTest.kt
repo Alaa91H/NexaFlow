@@ -82,13 +82,51 @@ class OperationRegistryParityTest {
     fun privilegedStrategiesAreNotTheOnlyRouteForAnyOperation() {
         // Every operation must retain at least one non-privileged strategy so
         // a device without Shizuku/Root is never locked out by the catalog.
+        // Package operations are the documented exception: force-stop, clear
+        // data and package enable/disable are platform-privileged by design,
+        // so the honest outcome without a privileged runtime is the router's
+        // PENDING_USER_ACTION, never a silent fake success.
         val privileged = setOf(StrategyId.SHIZUKU_USER_SERVICE, StrategyId.ROOT_SHELL)
+        val packageOperations = setOf(
+            SemanticOperationId.PACKAGE_FORCE_STOP,
+            SemanticOperationId.PACKAGE_CLEAR_DATA,
+            SemanticOperationId.PACKAGE_SET_ENABLED_STATE
+        )
         OperationRegistry.default().operations().forEach { spec ->
+            if (spec.id in packageOperations) return@forEach
             val nonPrivileged = spec.strategies.filter { it !in privileged }
             assertTrue(
-                "Operation ${spec.id.name} is only reachable through privileged strategies",
+                "Operation ${'$'}{spec.id.name} is only reachable through privileged strategies",
                 nonPrivileged.isNotEmpty()
             )
         }
+    }
+
+    @Test
+    fun packageOperationsHaveTheirGetCounterpartRegistered() {
+        val registry = OperationRegistry.default()
+        assertEquals(
+            SemanticOperationId.PACKAGE_GET_ENABLED_STATE,
+            SemanticOperationId.counterpartOf(SemanticOperationId.PACKAGE_SET_ENABLED_STATE)
+        )
+        assertEquals(
+            SemanticOperationId.PACKAGE_SET_ENABLED_STATE,
+            SemanticOperationId.counterpartOf(SemanticOperationId.PACKAGE_GET_ENABLED_STATE)
+        )
+        assertNotNull(registry.specFor(SemanticOperationId.PACKAGE_FORCE_STOP))
+        assertNotNull(registry.specFor(SemanticOperationId.PACKAGE_CLEAR_DATA))
+        assertNotNull(registry.specFor(SemanticOperationId.PACKAGE_SET_ENABLED_STATE))
+        assertNotNull(registry.specFor(SemanticOperationId.PACKAGE_GET_ENABLED_STATE))
+    }
+
+    @Test
+    fun packageClearDataIsHonestlyIrreversible() {
+        val spec = OperationRegistry.default().requiresOperation(SemanticOperationId.PACKAGE_CLEAR_DATA)
+        assertEquals(
+            "Clearing user data must never claim compensation support",
+            com.nexaflow.domain.capability.CapabilityCompensationSupport.UNSUPPORTED,
+            spec.compensation
+        )
+        assertEquals(com.nexaflow.domain.capability.CapabilityRiskLevel.HIGH, spec.risk)
     }
 }

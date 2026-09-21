@@ -6,6 +6,8 @@ import com.nexaflow.domain.models.ActionType
 
 /** Open/launch/close apps and open their settings page. */
 class AppActionsHandler : ActionHandler {
+    var semanticRouter: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter? = null
+
     override val supportedTypes: Set<ActionType> = setOf(
         ActionType.SYSTEM_OPEN_APP,
         ActionType.APPLICATION_LAUNCH_APP,
@@ -14,6 +16,11 @@ class AppActionsHandler : ActionHandler {
     )
 
     override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult {
+        // Migrated package operations go through the semantic router first;
+        // the legacy capability/handler path remains for the rest.
+        semanticRouter?.let { router ->
+            router.routeIfSupported(action, ctx.automationId, ctx.runContext?.runId)?.let { return it }
+        }
         val capabilityRequest = com.nexaflow.core.execution.capability.CapabilityActionMapper.requestFor(
             action, ctx.automationId, ctx.runContext?.runId
         )

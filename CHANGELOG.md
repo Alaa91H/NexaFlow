@@ -2,6 +2,39 @@
 
 ## [Unreleased]
 
+## [v3.81.0] - 2026-09-21
+
+### Added
+
+- **Package operations migrated to the semantic router (Phase B).** Force-stop
+  (`APPLICATION_CLOSE_APP`, `SYSTEM_FORCE_STOP_APP`), clear-data
+  (`SYSTEM_CLEAR_APP_DATA`), and package enable/disable (`SYSTEM_ENABLE_APP`,
+  `SYSTEM_DISABLE_APP`) now execute as typed semantic operations
+  (`PACKAGE_FORCE_STOP`, `PACKAGE_CLEAR_DATA`, `PACKAGE_SET_ENABLED_STATE`)
+  through the Shizuku and Root typed strategies — closed `pm`/`am` argv over
+  the UserService AIDL, never workflow-supplied shell text.
+- **Real package-state read-back.** A new bounded `ReadPackageEnabledState`
+  privileged operation (`pm list packages -d`, one deterministic output line)
+  gives verification and UNKNOWN-reconciliation an actual post-condition read;
+  the public-API strategy contributes `PackageManager` enabled-setting reads,
+  so a Shizuku/Root-originated UNKNOWN can be settled through the Android API
+  when available. Unexpected output shapes stay honest-null, never guesses.
+- **Honest failure semantics.** A package dispatch that may have landed before
+  a transport drop surfaces as UNKNOWN and reconciles by reading state instead
+  of blind re-execution; `PACKAGE_CLEAR_DATA` is registered with
+  `UNSUPPORTED` compensation (data destruction is irreversible) and HIGH risk.
+- **Legacy-config compatibility.** The historical `package`/`packageName`
+  config aliases resolve in the mapper; `SYSTEM_ENABLE_APP`/`SYSTEM_DISABLE_APP`
+  carry their intent in the action type for pre-configVersion automations;
+  unparseable explicit flags are rejected rather than defaulted.
+
+### Changed
+
+- `OperationRegistry` grows to 32 registered operations (28 state pairs plus
+  the four package operations); parity gates extended with a package
+  counterpart test, an honest-compensation assertion for clear-data, and the
+  documented privileged-only exception for package writes.
+
 ## [v3.80.0] - 2026-09-21
 
 ### Added

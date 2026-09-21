@@ -40,15 +40,32 @@ enum class SemanticOperationId {
     DND_GET_STATE,
     DND_SET_STATE,
     DATA_SAVER_GET_STATE,
-    DATA_SAVER_SET_STATE;
+    DATA_SAVER_SET_STATE,
+    PACKAGE_FORCE_STOP,
+    PACKAGE_CLEAR_DATA,
+    PACKAGE_SET_ENABLED_STATE,
+    PACKAGE_GET_ENABLED_STATE;
 
     /** True when the operation observes state without changing it. */
     val isReadOnly: Boolean
-        get() = name.endsWith("_GET_STATE") || name.endsWith("_GET")
+        get() = name.endsWith("_GET_STATE") || name.endsWith("_GET") ||
+            name == "PACKAGE_GET_ENABLED_STATE"
+    /** True when the operation mutates device/package state. */
+    val isWrite: Boolean
+        get() = !isReadOnly
 
     companion object {
         /** The paired read operation for a write, or the write for a read. */
         fun counterpartOf(id: SemanticOperationId): SemanticOperationId? {
+            // Package operations use full-word names instead of the SET/GET
+            // suffix scheme; they are paired explicitly here. The two one-shot
+            // write transitions reconcile through the enabled-state read, the
+            // only observable post-condition a package operation has.
+            if (id == PACKAGE_SET_ENABLED_STATE ||
+                id == PACKAGE_FORCE_STOP ||
+                id == PACKAGE_CLEAR_DATA
+            ) return PACKAGE_GET_ENABLED_STATE
+            if (id == PACKAGE_GET_ENABLED_STATE) return PACKAGE_SET_ENABLED_STATE
             val prefix = when {
                 id.name.endsWith("_GET_STATE") -> id.name.removeSuffix("_GET_STATE")
                 id.name.endsWith("_GET") -> id.name.removeSuffix("_GET")

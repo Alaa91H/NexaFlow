@@ -48,7 +48,8 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
         SemanticOperationId.HOTSPOT_GET_STATE,
         SemanticOperationId.MOBILE_DATA_GET_STATE,
         SemanticOperationId.DATA_SAVER_GET_STATE,
-        SemanticOperationId.DATA_SAVER_SET_STATE
+        SemanticOperationId.DATA_SAVER_SET_STATE,
+        SemanticOperationId.PACKAGE_GET_ENABLED_STATE
     )
 
     override suspend fun availability(
@@ -184,6 +185,20 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
                 it == ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED ||
                     it == ConnectivityManager.RESTRICT_BACKGROUND_STATUS_WHITELISTED
             }
+        SemanticOperationId.PACKAGE_GET_ENABLED_STATE -> {
+            // Public PackageManager read: the enabled state observable by the
+            // caller. DEFAULT/ENABLED both count as enabled; anything else
+            // (DISABLED_USER, DISABLED until used…) reads as not-enabled.
+            val pkg = request.parameters["packageName"]
+            pkg?.let {
+                runCatching {
+                    context.packageManager.getApplicationEnabledSetting(it)
+                }.getOrNull()?.let { state ->
+                    state == android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT ||
+                        state == android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                }
+            }
+        }
         else -> null
     }
 

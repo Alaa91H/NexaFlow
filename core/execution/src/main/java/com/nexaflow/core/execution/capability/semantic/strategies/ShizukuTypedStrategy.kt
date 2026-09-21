@@ -43,7 +43,11 @@ class ShizukuTypedStrategy(
         SemanticOperationId.MOBILE_DATA_SET_STATE,
         SemanticOperationId.HOTSPOT_SET_STATE,
         SemanticOperationId.DND_GET_STATE,
-        SemanticOperationId.DND_SET_STATE
+        SemanticOperationId.DND_SET_STATE,
+        SemanticOperationId.PACKAGE_FORCE_STOP,
+        SemanticOperationId.PACKAGE_CLEAR_DATA,
+        SemanticOperationId.PACKAGE_SET_ENABLED_STATE,
+        SemanticOperationId.PACKAGE_GET_ENABLED_STATE
     )
 
     override suspend fun availability(
@@ -73,6 +77,47 @@ class ShizukuTypedStrategy(
         request: TypedOperationRequest,
         operation: SemanticOperationId
     ): OperationOutcome {
+        // Package operations carry a validated package name instead of the
+        // generic enabled boolean; they are parsed first, before the toggle
+        // branch, so their contract is explicit.
+        val packageParameter = request.parameters["packageName"]
+        when (operation) {
+            SemanticOperationId.PACKAGE_FORCE_STOP -> {
+                val pkg = packageParameter
+                    ?: return missingPackage(operation)
+                return toOutcome(
+                    operation,
+                    execute(PrivilegedOperation.ForceStopPackage(pkg)),
+                    requestedEnabled = null
+                )
+            }
+            SemanticOperationId.PACKAGE_CLEAR_DATA -> {
+                val pkg = packageParameter
+                    ?: return missingPackage(operation)
+                return toOutcome(
+                    operation,
+                    execute(PrivilegedOperation.ClearPackageData(pkg)),
+                    requestedEnabled = null
+                )
+            }
+            SemanticOperationId.PACKAGE_SET_ENABLED_STATE -> {
+                val pkg = packageParameter
+                    ?: return missingPackage(operation)
+                val enable = request.parameters["enabled"]?.toBooleanStrictOrNull()
+                    ?: return OperationOutcome.failed(
+                        operation,
+                        CapabilityErrorCode.INVALID_CONFIGURATION,
+                        "The 'enabled' parameter is missing or not a boolean",
+                        strategy = id
+                    )
+                return toOutcome(
+                    operation,
+                    execute(PrivilegedOperation.SetPackageEnabled(pkg, enable)),
+                    requestedEnabled = enable
+                )
+            }
+            else -> { /* toggle operations continue below */ }
+        }
         val enable = request.parameters["enabled"]?.toBooleanStrictOrNull()
             ?: return OperationOutcome.failed(
                 operation,
@@ -128,11 +173,19 @@ class ShizukuTypedStrategy(
         return toOutcome(operation, result, enable)
     }
 
+    private fun missingPackage(operation: SemanticOperationId): OperationOutcome =
+        OperationOutcome.failed(
+            operation,
+            CapabilityErrorCode.INVALID_CONFIGURATION,
+            "A validated package name is required for this operation",
+            strategy = id
+        )
+
     /**
      * Read-back for reconcile/verification through the bounded
-     * [PrivilegedOperation.ReadSettingState] allowlist. Returns null — honest
-     * "unreadable" — for states with no reliable settings projection
-     * (hotspot, NFC on many builds).
+     * [PrivilegedOperation.ReadSettingState] and [PrivilegedOperation.ReadPackageEnabledState]
+     * allowlists. Returns null — honest "unreadable" — for states with no
+     * reliable read (hotspot, NFC on many builds).
      */
     override suspend fun readState(
         request: TypedOperationRequest,
@@ -148,7 +201,29 @@ class ShizukuTypedStrategy(
             readSettingBool(PrivilegedOperation.SettingNamespace.GLOBAL, "zen_mode")
         SemanticOperationId.MOBILE_DATA_GET_STATE ->
             readSettingBool(PrivilegedOperation.SettingNamespace.GLOBAL, "mobile_data")
+        SemanticOperationId.PACKAGE_GET_ENABLED_STATE -> {
+            val pkg = request.parameters["packageName"]
+            if (pkg == null) null else readPackageEnabled(pkg)
+        }
         else -> null // HOTSPOT/NFC: no reliable single read; stay honest
+    }
+
+    /**
+     * `pm list packages -d <pkg>` exits 0 and prints exactly one
+     * `package:<name>` line when the package IS disabled for the caller's
+     * user; it prints nothing when the package is enabled (or uninstalled —
+     * a distinguishable special case the exit code cannot express, hence the
+     * null fallback for absent packages is documented as an honest gap).
+     */
+    private fun readPackageEnabled(packageName: String): Boolean? {
+        val result = execute(PrivilegedOperation.ReadPackageEnabledState(packageName))
+        if (!result.success) return null
+        val output = result.message.trim()
+        return when {
+            output.isEmpty() -> true // not in the disabled list → enabled
+            output == "package:$packageName" -> false
+            else -> null // unexpected shape: never guess
+        }
     }
 
     private fun readSettingBool(
@@ -167,14 +242,14 @@ class ShizukuTypedStrategy(
     private fun toOutcome(
         operation: SemanticOperationId,
         result: SystemControlResult,
-        requestedEnabled: Boolean
+        requestedEnabled: Boolean?
     ): OperationOutcome = if (result.success) {
         OperationOutcome(
             operation = operation,
             status = OperationOutcomeStatus.SUCCESS,
             strategy = id,
             message = result.message,
-            metadata = mapOf("requestedEnabled" to requestedEnabled.toString())
+            metadata = requestedEnabled?.let { mapOf("requestedEnabled" to it.toString()) } ?: emptyMap()
         )
     } else {
         val transport = result.message.contains("not granted", ignoreCase = true) ||
@@ -196,7 +271,7 @@ class ShizukuTypedStrategy(
             // Definite transport unavailability (not granted / service gone)
             // lets the router fall back safely; an uncertain outcome never does.
             transportFailure = transport && !uncertain,
-            metadata = mapOf("requestedEnabled" to requestedEnabled.toString())
+            metadata = requestedEnabled?.let { mapOf("requestedEnabled" to it.toString()) } ?: emptyMap()
         )
     }
 
@@ -211,7 +286,14 @@ class ShizukuTypedStrategy(
         SemanticOperationId.BLUETOOTH_SET_STATE,
         SemanticOperationId.NFC_SET_STATE,
         SemanticOperationId.MOBILE_DATA_SET_STATE,
-        SemanticOperationId.HOTSPOT_SET_STATE -> true
+        SemanticOperationId.HOTSPOT_SET_STATE,
+        // A force-stop/clear-data dispatched through the shell that then loses
+        // the binder may have completed: process death on the target package
+        // is externally observable, so the outcome must be reconciled, never
+        // retried or failed definitively.
+        SemanticOperationId.PACKAGE_FORCE_STOP,
+        SemanticOperationId.PACKAGE_CLEAR_DATA,
+        SemanticOperationId.PACKAGE_SET_ENABLED_STATE -> true
         else -> false
     }
 }

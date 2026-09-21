@@ -9,6 +9,8 @@ private fun Boolean.bool(): String = if (this) "1" else "0"
 
 /** Flashlight, URL, status bar, lock screen, alarm, recents/home, stores, SMS, wait. */
 class SystemActionsHandler : ActionHandler {
+    var semanticRouter: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter? = null
+
     override val supportedTypes: Set<ActionType> = setOf(
         ActionType.SYSTEM_FLASHLIGHT,
         ActionType.SYSTEM_OPEN_URL,
@@ -130,6 +132,10 @@ class SystemActionsHandler : ActionHandler {
     )
 
     override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult {
+        // Migrated package operations go through the semantic router first.
+        semanticRouter?.let { router ->
+            router.routeIfSupported(action, ctx.automationId, ctx.runContext?.runId)?.let { return it }
+        }
         val capabilityRequest = com.nexaflow.core.execution.capability.CapabilityActionMapper.requestFor(
             action, ctx.automationId, ctx.runContext?.runId
         )

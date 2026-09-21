@@ -36,7 +36,11 @@ class RootTypedStrategy(
         SemanticOperationId.HOTSPOT_SET_STATE,
         SemanticOperationId.HOTSPOT_GET_STATE,
         SemanticOperationId.MOBILE_DATA_GET_STATE,
-        SemanticOperationId.MOBILE_DATA_SET_STATE
+        SemanticOperationId.MOBILE_DATA_SET_STATE,
+        SemanticOperationId.PACKAGE_FORCE_STOP,
+        SemanticOperationId.PACKAGE_CLEAR_DATA,
+        SemanticOperationId.PACKAGE_SET_ENABLED_STATE,
+        SemanticOperationId.PACKAGE_GET_ENABLED_STATE
     )
 
     override suspend fun availability(
@@ -53,6 +57,47 @@ class RootTypedStrategy(
         request: TypedOperationRequest,
         operation: SemanticOperationId
     ): OperationOutcome {
+        // Package operations carry a validated package name instead of the
+        // generic enabled boolean; parsed before the toggle branch so their
+        // contract stays explicit.
+        val packageParameter = request.parameters["packageName"]
+        when (operation) {
+            SemanticOperationId.PACKAGE_FORCE_STOP -> {
+                val pkg = packageParameter
+                    ?: return missingPackage(operation)
+                return toOutcome(
+                    operation,
+                    execute(PrivilegedOperation.ForceStopPackage(pkg)),
+                    requestedEnabled = null
+                )
+            }
+            SemanticOperationId.PACKAGE_CLEAR_DATA -> {
+                val pkg = packageParameter
+                    ?: return missingPackage(operation)
+                return toOutcome(
+                    operation,
+                    execute(PrivilegedOperation.ClearPackageData(pkg)),
+                    requestedEnabled = null
+                )
+            }
+            SemanticOperationId.PACKAGE_SET_ENABLED_STATE -> {
+                val pkg = packageParameter
+                    ?: return missingPackage(operation)
+                val enable = request.parameters["enabled"]?.toBooleanStrictOrNull()
+                    ?: return OperationOutcome.failed(
+                        operation,
+                        com.nexaflow.domain.capability.CapabilityErrorCode.INVALID_CONFIGURATION,
+                        "The 'enabled' parameter is missing or not a boolean",
+                        strategy = id
+                    )
+                return toOutcome(
+                    operation,
+                    execute(PrivilegedOperation.SetPackageEnabled(pkg, enable)),
+                    requestedEnabled = enable
+                )
+            }
+            else -> { /* toggle operations continue below */ }
+        }
         val enable = request.parameters["enabled"]?.toBooleanStrictOrNull()
             ?: return OperationOutcome.failed(
                 operation,
@@ -105,9 +150,37 @@ class RootTypedStrategy(
             readSettingInt(PrivilegedOperation.SettingNamespace.GLOBAL, "zen_mode")
         SemanticOperationId.MOBILE_DATA_GET_STATE ->
             readSettingInt(PrivilegedOperation.SettingNamespace.GLOBAL, "mobile_data")
+        SemanticOperationId.PACKAGE_GET_ENABLED_STATE -> {
+            val pkg = request.parameters["packageName"]
+            if (pkg == null) null else readPackageEnabled(pkg)
+        }
         SemanticOperationId.HOTSPOT_GET_STATE -> null // no reliable single read; honest null
         else -> null
     }
+
+    /**
+     * Same bounded probe as the Shizuku strategy: `pm list packages -d <pkg>`
+     * prints exactly one line when the package is disabled, nothing when it
+     * is enabled. Unexpected output shapes stay honest-null, never guesses.
+     */
+    private fun readPackageEnabled(packageName: String): Boolean? {
+        val result = execute(PrivilegedOperation.ReadPackageEnabledState(packageName))
+        if (!result.success) return null
+        val output = result.message.trim()
+        return when {
+            output.isEmpty() -> true
+            output == "package:$packageName" -> false
+            else -> null
+        }
+    }
+
+    private fun missingPackage(operation: SemanticOperationId): OperationOutcome =
+        OperationOutcome.failed(
+            operation,
+            com.nexaflow.domain.capability.CapabilityErrorCode.INVALID_CONFIGURATION,
+            "A validated package name is required for this operation",
+            strategy = id
+        )
 
     private fun readSettingBool(
         namespace: PrivilegedOperation.SettingNamespace,
@@ -132,14 +205,14 @@ class RootTypedStrategy(
     private fun toOutcome(
         operation: SemanticOperationId,
         result: SystemControlResult,
-        requestedEnabled: Boolean
+        requestedEnabled: Boolean?
     ): OperationOutcome = if (result.success) {
         OperationOutcome(
             operation = operation,
             status = OperationOutcomeStatus.SUCCESS,
             strategy = id,
             message = result.message,
-            metadata = mapOf("requestedEnabled" to requestedEnabled.toString())
+            metadata = requestedEnabled?.let { mapOf("requestedEnabled" to it.toString()) } ?: emptyMap()
         )
     } else {
         val transport = result.message.contains("timed out", ignoreCase = true) ||
@@ -160,7 +233,7 @@ class RootTypedStrategy(
             },
             message = result.message,
             transportFailure = transport && !transportIsUncertain(operation),
-            metadata = mapOf("requestedEnabled" to requestedEnabled.toString())
+            metadata = requestedEnabled?.let { mapOf("requestedEnabled" to it.toString()) } ?: emptyMap()
         )
     }
 
@@ -175,7 +248,12 @@ class RootTypedStrategy(
         SemanticOperationId.BLUETOOTH_SET_STATE,
         SemanticOperationId.NFC_SET_STATE,
         SemanticOperationId.MOBILE_DATA_SET_STATE,
-        SemanticOperationId.HOTSPOT_SET_STATE -> true
+        SemanticOperationId.HOTSPOT_SET_STATE,
+        // A dispatched-but-unconfirmed package operation may have landed:
+        // reconcile by reading the actual package state, never blind-retry.
+        SemanticOperationId.PACKAGE_FORCE_STOP,
+        SemanticOperationId.PACKAGE_CLEAR_DATA,
+        SemanticOperationId.PACKAGE_SET_ENABLED_STATE -> true
         else -> false
     }
 

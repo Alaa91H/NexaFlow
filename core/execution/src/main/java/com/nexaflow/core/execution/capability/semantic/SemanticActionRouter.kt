@@ -29,7 +29,12 @@ object SemanticActionMapper {
         ActionType.SYSTEM_NFC,
         ActionType.SYSTEM_HOTSPOT,
         ActionType.SYSTEM_MOBILE_DATA,
-        ActionType.SYSTEM_DATA_SAVER
+        ActionType.SYSTEM_DATA_SAVER,
+        ActionType.APPLICATION_CLOSE_APP,
+        ActionType.SYSTEM_FORCE_STOP_APP,
+        ActionType.SYSTEM_CLEAR_APP_DATA,
+        ActionType.SYSTEM_DISABLE_APP,
+        ActionType.SYSTEM_ENABLE_APP
     )
 
     fun isRouted(action: Action): Boolean = action.type in ROUTED_TYPES
@@ -59,7 +64,47 @@ object SemanticActionMapper {
             ActionType.SYSTEM_HOTSPOT -> SemanticOperationId.HOTSPOT_SET_STATE
             ActionType.SYSTEM_MOBILE_DATA -> SemanticOperationId.MOBILE_DATA_SET_STATE
             ActionType.SYSTEM_DATA_SAVER -> SemanticOperationId.DATA_SAVER_SET_STATE
+            ActionType.APPLICATION_CLOSE_APP -> SemanticOperationId.PACKAGE_FORCE_STOP
+            ActionType.SYSTEM_FORCE_STOP_APP -> SemanticOperationId.PACKAGE_FORCE_STOP
+            ActionType.SYSTEM_CLEAR_APP_DATA -> SemanticOperationId.PACKAGE_CLEAR_DATA
+            ActionType.SYSTEM_DISABLE_APP -> SemanticOperationId.PACKAGE_SET_ENABLED_STATE
+            ActionType.SYSTEM_ENABLE_APP -> SemanticOperationId.PACKAGE_SET_ENABLED_STATE
             else -> return null
+        }
+        // Package operations: a validated package name is the primary
+        // parameter. Historical configs used `package`/`packageName`; the
+        // alias resolution is explicit and a missing name fails the mapping
+        // so the legacy handler keeps reporting in its own terms.
+        if (operation == SemanticOperationId.PACKAGE_FORCE_STOP ||
+            operation == SemanticOperationId.PACKAGE_CLEAR_DATA ||
+            operation == SemanticOperationId.PACKAGE_SET_ENABLED_STATE
+        ) {
+            val pkg = action.config["package"] ?: action.config["packageName"]
+            if (pkg.isNullOrBlank()) return null
+            val parameters = if (operation == SemanticOperationId.PACKAGE_SET_ENABLED_STATE) {
+                val enabled = parseEnabled(action.config["enabled"], action.config["configVersion"])
+                    ?: return null
+                mapOf("packageName" to pkg, "enabled" to enabled)
+            } else {
+                mapOf("packageName" to pkg)
+            }
+            // Enable/disable aliases carry their intent in the action type
+            // itself for every pre-configVersion automation.
+            val resolvedParameters = if (
+                operation == SemanticOperationId.PACKAGE_SET_ENABLED_STATE &&
+                action.config["enabled"] == null
+            ) {
+                parameters + ("enabled" to if (action.type == ActionType.SYSTEM_ENABLE_APP) "true" else "false")
+            } else {
+                parameters
+            }
+            return TypedOperationRequest(
+                operation = operation,
+                parameters = resolvedParameters,
+                allowPrivilegedStrategies = allowPrivilegedStrategies,
+                workflowId = workflowId,
+                executionId = executionId
+            )
         }
         // Legacy toggle configs stored either "enabled" or omitted; the omit
         // case predates the parameter and was displayed to users as a toggle

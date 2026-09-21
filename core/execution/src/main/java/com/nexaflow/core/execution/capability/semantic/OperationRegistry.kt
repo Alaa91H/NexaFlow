@@ -146,7 +146,55 @@ class OperationRegistry private constructor(
                     write = false,
                     strategies = listOf(StrategyId.ANDROID_PUBLIC_API, StrategyId.ROOT_SHELL)),
                 spec(SemanticOperationId.DATA_SAVER_SET_STATE, "Enable or disable Data Saver",
-                    strategies = listOf(StrategyId.WRITE_SETTINGS, StrategyId.SETTINGS_USER_ACTION))
+                    strategies = listOf(StrategyId.WRITE_SETTINGS, StrategyId.SETTINGS_USER_ACTION)),
+                spec(SemanticOperationId.PACKAGE_FORCE_STOP, "Force-stop a package",
+                    parameters = listOf(
+                        CapabilityParameterSpec(
+                            "packageName", CapabilityParameterType.PACKAGE_NAME, required = true
+                        )
+                    ),
+                    risk = CapabilityRiskLevel.HIGH,
+                    strategies = listOf(
+                        StrategyId.SHIZUKU_USER_SERVICE,
+                        StrategyId.ROOT_SHELL
+                    )),
+                spec(SemanticOperationId.PACKAGE_CLEAR_DATA, "Clear a package's data",
+                    parameters = listOf(
+                        CapabilityParameterSpec(
+                            "packageName", CapabilityParameterType.PACKAGE_NAME, required = true
+                        )
+                    ),
+                    risk = CapabilityRiskLevel.HIGH,
+                    strategies = listOf(
+                        StrategyId.SHIZUKU_USER_SERVICE,
+                        StrategyId.ROOT_SHELL
+                    )),
+                spec(SemanticOperationId.PACKAGE_SET_ENABLED_STATE, "Enable or disable a package",
+                    parameters = listOf(
+                        CapabilityParameterSpec(
+                            "packageName", CapabilityParameterType.PACKAGE_NAME, required = true
+                        ),
+                        CapabilityParameterSpec(
+                            "enabled", CapabilityParameterType.BOOLEAN, required = true
+                        )
+                    ),
+                    risk = CapabilityRiskLevel.HIGH,
+                    strategies = listOf(
+                        StrategyId.SHIZUKU_USER_SERVICE,
+                        StrategyId.ROOT_SHELL
+                    )),
+                spec(SemanticOperationId.PACKAGE_GET_ENABLED_STATE, "Read a package's enabled state",
+                    parameters = listOf(
+                        CapabilityParameterSpec(
+                            "packageName", CapabilityParameterType.PACKAGE_NAME, required = true
+                        )
+                    ),
+                    write = false,
+                    strategies = listOf(
+                        StrategyId.ANDROID_PUBLIC_API,
+                        StrategyId.SHIZUKU_USER_SERVICE,
+                        StrategyId.ROOT_SHELL
+                    ))
             )
         )
 
@@ -159,7 +207,7 @@ class OperationRegistry private constructor(
             id: SemanticOperationId,
             displayName: String,
             parameters: List<CapabilityParameterSpec> =
-                if (id.isReadOnly) emptyList() else listOf(
+                if (id.isReadOnly || id.name.startsWith("PACKAGE_")) emptyList() else listOf(
                     CapabilityParameterSpec("enabled", CapabilityParameterType.BOOLEAN, required = true)
                 ),
             features: Set<DeviceFeature> = emptySet(),
@@ -175,7 +223,11 @@ class OperationRegistry private constructor(
             idempotency = CapabilityIdempotency.IDEMPOTENT,
             retrySafety = CapabilityRetrySafety.SAFE,
             verificationMode = if (write) VerificationMode.REQUIRED else VerificationMode.NONE,
-            compensation = if (write) CapabilityCompensationSupport.SUPPORTED
+            // PACKAGE_CLEAR_DATA destroys user data irreversibly; force-stop
+            // and enable/disable are reversible in practice. Compensation
+            // honesty feeds the recovery coordinator, so it must match reality.
+            compensation = if (write && id != SemanticOperationId.PACKAGE_CLEAR_DATA)
+                CapabilityCompensationSupport.SUPPORTED
             else CapabilityCompensationSupport.UNSUPPORTED,
             strategies = strategies
         )

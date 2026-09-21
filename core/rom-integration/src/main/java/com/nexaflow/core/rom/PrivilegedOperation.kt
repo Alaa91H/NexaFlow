@@ -161,6 +161,20 @@ sealed interface PrivilegedOperation {
         override fun argv(): List<String> = listOf("settings", "get", namespace.commandValue, key)
     }
 
+    /**
+     * Reads the current user-visible enabled state of one package through
+     * `pm list packages -d`. The bounded probe prints exactly one line per
+     * disabled package, so its exit/shape is fully deterministic. This gives
+     * verification/reconciliation a real post-condition read for package
+     * operations without exposing a generic package query to callers.
+     */
+    data class ReadPackageEnabledState(val packageName: String) : PrivilegedOperation {
+        override val wireId: PrivilegedOperationId = PrivilegedOperationId.PACKAGE_ENABLED_STATE_READ
+        init { require(packageName.isPackageName()) }
+        override fun wireArguments(): List<String> = listOf(packageName)
+        override fun argv(): List<String> = listOf("pm", "list", "packages", "-d", packageName)
+    }
+
     /** Applies one confirmed allowed-network-types mask for one physical SIM slot. */
     data class SetAllowedNetworkTypes(
         val slotIndex: Int,
@@ -235,6 +249,7 @@ sealed interface PrivilegedOperation {
                     namespace = SettingNamespace.parse(first) ?: return null,
                     key = second
                 )
+                PrivilegedOperationId.PACKAGE_ENABLED_STATE_READ -> ReadPackageEnabledState(first)
                 PrivilegedOperationId.NETWORK_MODE_SET -> SetAllowedNetworkTypes(
                     slotIndex = first.toInt(),
                     subscriptionId = second.toInt(),
@@ -307,5 +322,6 @@ enum class PrivilegedOperationId(val wireValue: String) {
     NOTIFICATION_POLICY_ACCESS_GRANT("notification.policy_access.grant"),
     HOTSPOT_SET("hotspot.set"),
     SERVICE_STATE_SET("service.state.set"),
-    SETTING_STATE_READ("setting.state.read")
+    SETTING_STATE_READ("setting.state.read"),
+    PACKAGE_ENABLED_STATE_READ("package.enabled_state.read")
 }
