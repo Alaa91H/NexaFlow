@@ -101,7 +101,7 @@ class OperationRegistry private constructor(
                     strategies = listOf(StrategyId.ANDROID_PUBLIC_API, StrategyId.SETTINGS_USER_ACTION)),
                 spec(SemanticOperationId.SCREEN_TIMEOUT_GET, "Read screen timeout",
                     write = false,
-                    strategies = listOf(StrategyId.ANDROID_PUBLIC_API, StrategyId.WRITE_SETTINGS)),
+                    strategies = listOf(StrategyId.ANDROID_PUBLIC_API)),
                 spec(SemanticOperationId.SCREEN_TIMEOUT_SET, "Set screen timeout",
                     parameters = listOf(
                         CapabilityParameterSpec(
@@ -109,7 +109,7 @@ class OperationRegistry private constructor(
                             minimumInteger = 1, maximumInteger = 86_400
                         )
                     ),
-                    strategies = listOf(StrategyId.WRITE_SETTINGS, StrategyId.SETTINGS_USER_ACTION)),
+                    strategies = listOf(StrategyId.ANDROID_PUBLIC_API, StrategyId.SETTINGS_USER_ACTION)),
                 spec(SemanticOperationId.DND_GET_STATE, "Read Do-Not-Disturb state",
                     write = false,
                     strategies = listOf(
@@ -159,7 +159,7 @@ class OperationRegistry private constructor(
                     write = false,
                     strategies = listOf(StrategyId.ANDROID_PUBLIC_API)),
                 spec(SemanticOperationId.DATA_SAVER_SET_STATE, "Enable or disable Data Saver",
-                    strategies = listOf(StrategyId.WRITE_SETTINGS, StrategyId.SETTINGS_USER_ACTION)),
+                    strategies = listOf(StrategyId.ANDROID_PUBLIC_API, StrategyId.SETTINGS_USER_ACTION)),
                 spec(SemanticOperationId.PACKAGE_FORCE_STOP, "Force-stop a package",
                     parameters = listOf(
                         CapabilityParameterSpec(
