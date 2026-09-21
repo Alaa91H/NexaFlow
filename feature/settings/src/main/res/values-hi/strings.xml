@@ -222,7 +222,7 @@
     <string name="plugin_capability_shell_commands">Shell कमांड</string>
     <string name="plugin_capability_locale_tasker">Tasker / Locale</string>
     <string name="update_auto_checks">स्वचालित अपडेट जाँच</string>
-    <string name="update_auto_checks_enabled_sub">चुने गए अंतराल पर पृष्ठभूमि में नए संस्करणों की जाँच करता है</string>
+    <string name="update_auto_checks_enabled_sub">बैकग्राउंड में शांतिपूर्वक जाँच करता है और केवल नया संस्करण उपलब्ध होने पर सूचना देता है</string>
     <string name="update_auto_checks_disabled_sub">बंद — पृष्ठभूमि जाँच या अपडेट सूचनाएँ नहीं</string>
     <string name="update_check_frequency">स्वचालित जाँच की आवृत्ति</string>
     <string name="update_check_frequency_sub">चुनें कि पृष्ठभूमि में अपडेट जाँच कब चले</string>
