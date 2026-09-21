@@ -112,6 +112,8 @@ class TaskRunProgressNotifier(
         }
         return Notification.Builder(context, CHANNEL_ID)
             .setSmallIcon(com.nexaflow.core.rom.R.drawable.ic_stat_nexaflow)
+            .setColor(context.getColor(com.nexaflow.core.rom.R.color.notification_brand_color))
+            .setColorized(false)
             .setContentTitle(automation.name)
             .setContentText(contentText(totalActions, stepIndex))
             .setOngoing(true)
@@ -132,6 +134,8 @@ class TaskRunProgressNotifier(
     ): Notification {
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(com.nexaflow.core.rom.R.drawable.ic_stat_nexaflow)
+            .setColor(context.getColor(com.nexaflow.core.rom.R.color.notification_brand_color))
+            .setColorized(false)
             .setContentTitle(automation.name)
             .setContentText(contentText(totalActions, stepIndex))
             .setOngoing(true)
