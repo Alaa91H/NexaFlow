@@ -4,6 +4,15 @@
 
 ### Fixed
 
+- **Capability outcomes no longer report pending work as success.** The execution
+  bridge now treats only terminal `SUCCESS` as a successful action; `PARTIAL`
+  and `PENDING_USER_ACTION` remain non-successful so missing Shizuku/Root
+  grants or Settings-assisted state changes cannot produce false-positive
+  history. Intent capabilities now report `SUCCESS` once `startActivity`
+  completes because the requested operation is the handoff itself, not the
+  destination app's later work. Regression tests cover every capability and
+  semantic outcome status.
+
 - **Edited trigger removals now persist reliably.** The automation builder waits for
   its ViewModel-owned save job to finish before leaving the navigation stack.
   Previously the screen could pop immediately after Save, clear the destination
