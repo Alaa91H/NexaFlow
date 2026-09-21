@@ -65,12 +65,13 @@ class ShizukuTypedStrategyTest {
         val strategy = strategy(granted = true, bound = true, sink = sink)
         val outcome = strategy.execute(request(SemanticOperationId.WIFI_SET_STATE, true), SemanticOperationId.WIFI_SET_STATE)
         assertEquals(OperationOutcomeStatus.SUCCESS, outcome.status)
-        // The write must be a closed allowlisted setting write, never a shell string.
+        // The write must be a closed service operation, never a shell string.
         val operation = sink.lastOperation
-        assertTrue(operation is PrivilegedOperation.WriteSetting)
-        assertEquals("wifi_on", (operation as PrivilegedOperation.WriteSetting).key)
-        assertEquals("1", operation.value)
-        assertEquals(listOf("settings", "put", "global", "wifi_on", "1"), operation.argv())
+        assertTrue(operation is PrivilegedOperation.SetServiceState)
+        assertEquals(
+            listOf("svc", "wifi", "enable"),
+            operation?.argv()
+        )
         assertEquals("true", outcome.metadata["requestedEnabled"])
     }
 
@@ -195,6 +196,21 @@ class ShizukuTypedStrategyTest {
         )
         assertEquals(
             listOf("settings", "put", "system", "screen_off_timeout", "30000"),
+            sink.lastOperation?.argv()
+        )
+    }
+
+    @Test
+    fun airplaneModeUsesConnectivityServiceCommand() = runTest {
+        val sink = RecordingSink()
+        val strategy = strategy(granted = true, bound = true, sink = sink)
+
+        strategy.execute(
+            request(SemanticOperationId.AIRPLANE_MODE_SET_STATE, true),
+            SemanticOperationId.AIRPLANE_MODE_SET_STATE
+        )
+        assertEquals(
+            listOf("cmd", "connectivity", "airplane-mode", "enable"),
             sink.lastOperation?.argv()
         )
     }
