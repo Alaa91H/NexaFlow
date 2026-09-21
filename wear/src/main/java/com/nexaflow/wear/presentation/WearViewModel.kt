@@ -32,10 +32,15 @@ class WearViewModel @Inject constructor(
     private val _runningId = MutableStateFlow<String?>(null)
 
     init {
-        // Pull-based bootstrap: the phone pushes only on data changes, so the
-        // watch asks for the current list whenever the UI starts. Without this
-        // a watch opened after the phone process began sits on the Connecting
-        // spinner forever (the reported "sync never starts" bug).
+        // Cached-snapshot + pull bootstrap. The snapshot read (the pattern the
+        // reference companions use) decodes the phone's last push from the
+        // local Data Layer cache even while the phone is unreachable, so the
+        // UI shows real data immediately; the pull request then refreshes it.
+        // Without the snapshot, a watch opened while the phone app is asleep
+        // could sit on the Connecting spinner forever (the reported bug).
+        dataLayerClient.onDataSnapshot = { payload ->
+            syncRepository.handleIncomingPayload(payload)
+        }
         viewModelScope.launch {
             dataLayerClient.requestSync()
         }

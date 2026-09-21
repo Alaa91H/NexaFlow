@@ -2,6 +2,34 @@
 
 ## [Unreleased]
 
+## [v3.84.0] - 2026-09-21
+
+### Fixed
+
+- **Watch shows automations instantly, even while the phone app is asleep.**
+  Studied two open-source companions with proven sync (PixelWater,
+  WearFiles) and adopted their decisive pattern: on startup the watch now
+  reads the **cached automation DataItem directly from the local Data Layer
+  store** (`getDataItems`) instead of depending entirely on the live
+  request chain (pull-request message → phone listener service → push →
+  DATA_CHANGED). The snapshot may be one edit stale, but the UI shows real
+  content immediately; the background pull request then refreshes it. Any
+  single failure in that chain previously left the watch on its
+  "Connecting" spinner forever.
+- **Symmetric process wake-up on the phone side.** The phone listener now
+  also declares the `DATA_CHANGED` intent filter for `/nexaflow/` paths
+  (the pattern both reference apps use), so Play Services can start the
+  phone process for Data Layer traffic with the same reliability it already
+  had for command messages. A `onDataChanged` handler consumes the buffer
+  and ignores self-echo, keeping the audit surface explicit and reviewed.
+
+### Tests
+
+- Snapshot contract suite: wire-format parity for the automation path and
+  payload key between the standalone wear module and the phone constants,
+  the exact `wear://*` URI shape the cache read parses, and DTO round-trip
+  through the same `Json` decoder both entry points share.
+
 ## [v3.83.0] - 2026-09-21
 
 ### Fixed

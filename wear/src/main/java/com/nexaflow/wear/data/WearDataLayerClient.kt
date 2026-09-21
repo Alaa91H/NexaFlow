@@ -3,6 +3,7 @@ package com.nexaflow.wear.data
 import android.content.Context
 import android.util.Log
 import com.google.android.gms.wearable.CapabilityClient
+import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.NodeClient
 import com.google.android.gms.wearable.Wearable
@@ -38,6 +39,58 @@ class WearDataLayerClient @Inject constructor(
      * first; falls back to any connected node for older phone builds.
      */
     suspend fun requestSync(): Boolean {
+        // 1) Instant local snapshot first (the PixelWater pattern): the Data
+        //    Layer caches the phone's last push on the watch even while the
+        //    phone is unreachable, so reading it directly never depends on the
+        //    phone process being alive or on any GMS round-trip succeeding.
+        readCachedSnapshot()
+        // 2) Then ask the phone to re-push a fresh copy in the background.
+        return sendSyncRequest()
+    }
+
+    /**
+     * Reads the cached automation-list DataItem directly from the local Data
+     * Layer store and feeds it into the repository. This is what makes the
+     * watch show data instantly on app start even if the phone-side pull
+     * request chain (message → listener service → push → DATA_CHANGED) fails
+     * at any hop: the snapshot may be stale by one edit, but the UI shows
+     * real content immediately instead of "Connecting" forever.
+     */
+    private suspend fun readCachedSnapshot() {
+        runCatching {
+            val dataItems = Wearable.getDataClient(context)
+                .getDataItems(
+                    android.net.Uri.parse("wear://*" + WearProtocol.PATH_AUTOMATIONS)
+                ).await()
+            dataItems.use { items ->
+                for (item in items) {
+                    if (item.uri.path == WearProtocol.PATH_AUTOMATIONS) {
+                        val payload = DataMapItem.fromDataItem(item).dataMap
+                            .getString(WearProtocol.KEY_PAYLOAD)
+                        if (payload != null) {
+                            onDataSnapshot?.invoke(payload)
+                        }
+                    }
+                }
+            }
+        }.onFailure {
+            Log.w(TAG, "Failed to read cached automation snapshot", it)
+        }
+    }
+
+    /**
+     * Callback, set by the repository layer, that receives automation-list
+     * payloads read from the local Data Layer cache. Kept as a plain lambda
+     * so this client stays decoupled from the repository implementation.
+     */
+    var onDataSnapshot: ((String) -> Unit)? = null
+
+    /**
+     * Sends a fire-and-forget pull request to the phone. Returns true when a
+     * phone node accepted the message; false when no reachable phone node
+     * exists (the snapshot read above still gives the UI its data).
+     */
+    private suspend fun sendSyncRequest(): Boolean {
         val capabilityNodes = runCatching {
             Wearable.getCapabilityClient(context)
                 .getCapability(WearProtocol.CAPABILITY_PHONE_APP, CapabilityClient.FILTER_REACHABLE)

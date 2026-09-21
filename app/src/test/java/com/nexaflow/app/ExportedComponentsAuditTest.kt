@@ -97,10 +97,10 @@ class ExportedComponentsAuditTest {
         "com.nexaflow.feature.widgets.TaskTile4Service" to
             "QuickSettings tile; guarded by BIND_QUICK_SETTINGS_TILE",
         // Wear Data Layer command listener: Play Services delivers
-        // MESSAGE_RECEIVED only for the same signed package on paired
-        // devices; no platform permission exists for this surface.
+        // MESSAGE_RECEIVED/DATA_CHANGED only for the same signed package on
+        // paired devices; no platform permission exists for this surface.
         "com.nexaflow.app.wear.WearCommandListenerService" to
-            "Wearable MESSAGE_RECEIVED (/nexaflow/); GMS-delivered, same-signature paired devices only",
+            "Wearable MESSAGE_RECEIVED + DATA_CHANGED (/nexaflow/); GMS-delivered, same-signature paired devices only",
         "com.nexaflow.feature.widgets.TaskTile5Service" to
             "QuickSettings tile; guarded by BIND_QUICK_SETTINGS_TILE",
         "com.nexaflow.feature.widgets.TaskTile6Service" to

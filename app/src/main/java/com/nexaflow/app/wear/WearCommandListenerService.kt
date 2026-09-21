@@ -1,6 +1,7 @@
 package com.nexaflow.app.wear
 
 import android.util.Log
+import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.WearableListenerService
 import com.nexaflow.core.execution.WEAR_PATH_RUN_COMMAND
@@ -47,6 +48,15 @@ class WearCommandListenerService : WearableListenerService() {
             applicationContext,
             WearBridgeEntryPoint::class.java,
         )
+    }
+
+    override fun onDataChanged(dataEvents: DataEventBuffer) {
+        // GMS may wake this process for the automation-list DataItem the
+        // listener itself pushes (self-echo) or for items pushed while the
+        // process was dead. Neither requires a reaction here — the push path
+        // and the watch's snapshot read cover recovery — but consuming the
+        // buffer prevents an unread-cursor warning in the platform logs.
+        dataEvents.use { }
     }
 
     override fun onMessageReceived(event: MessageEvent) {
