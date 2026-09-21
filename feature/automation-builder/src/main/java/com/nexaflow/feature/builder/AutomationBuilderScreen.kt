@@ -1520,7 +1520,7 @@ fun AutomationBuilderScreen(
         val actions = actionDrafts.map { it.toAction() }
         val builtConstraints = constraints.map { Constraint(it.type, it.config) }
         val exitActions = selectedExitActions.map { Action(it.actionType, exitActionConfigs[it.actionType] ?: emptyMap()) }
-        viewModel.saveAutomation(
+        val saveJob = viewModel.saveAutomation(
             // A task can be created without making naming the first decision.
             // The default stays localized and users can still refine it in review.
             name = name.trim().ifBlank { stringDefaultTaskName },
@@ -1549,7 +1549,7 @@ fun AutomationBuilderScreen(
             .filter {
                 context.checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED
             }
-        scope.launch {
+        scope.launchAfterSave(saveJob) {
             // A verified elevated shell can grant a dangerous permission to
             // NexaFlow's own UID through `pm grant`. Do that first and use the
             // Android dialog only for permissions a ROM still leaves missing.
