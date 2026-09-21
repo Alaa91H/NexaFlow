@@ -20,6 +20,7 @@ import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.models.MaintenanceKind
 import com.nexaflow.domain.models.MaintenanceProfile
 import com.nexaflow.domain.models.Trigger
+import com.nexaflow.domain.models.TriggerMatchMode
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.HistoryRepository
 import java.util.concurrent.atomic.AtomicInteger
@@ -226,7 +227,7 @@ class ExecutionEngineConstraintsTest {
                 Trigger(TriggerType.NFC_TAG_SCANNED, emptyMap())
             ),
             exitActions = listOf(Action(ActionType.SYSTEM_CLEAR_NOTIFICATIONS, emptyMap()))
-        )
+        ).copy(triggerMatch = TriggerMatchMode.ALL)
 
         val record = engine.runWithConditionGate(automation)
 
