@@ -137,6 +137,8 @@ internal object UpdateNotification {
         )
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(com.nexaflow.core.rom.R.drawable.ic_stat_nexaflow)
+            .setColor(context.getColor(com.nexaflow.core.rom.R.color.notification_brand_color))
+            .setColorized(false)
             .setContentTitle(context.getString(R.string.update_notification_title))
             .setContentText(context.getString(R.string.update_notification_text, version))
             .setContentIntent(pendingIntent)
