@@ -6,9 +6,7 @@ import com.nexaflow.wear.data.WearDataLayerClient
 import com.nexaflow.wear.data.WearSyncRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -102,15 +100,13 @@ class WearViewModelTest {
         val retryRepository = WearSyncRepository()
         val retryClient: WearDataLayerClient = mock()
         whenever(retryClient.readCachedAutomationPayload()).thenReturn(null)
-        whenever(retryClient.requestSync()).thenReturn(true)
-        val retryViewModel = WearViewModel(retryRepository, retryClient)
-
-        launch {
-            delay(100L)
+        whenever(retryClient.requestSync()).thenAnswer {
             retryRepository.handleIncomingPayload(
                 """[{"id":"fresh","name":"Fresh","icon":"I","iconColor":0,"enabled":true}]"""
             )
+            true
         }
+        val retryViewModel = WearViewModel(retryRepository, retryClient)
 
         retryViewModel.uiState.test {
             assertEquals(WearUiState.Connecting, awaitItem())
