@@ -202,6 +202,23 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
         else -> null
     }
 
+    override suspend fun readStateValue(
+        request: TypedOperationRequest,
+        operation: SemanticOperationId
+    ): String? = when (operation) {
+        // Effective-value reads for strict write verification: the actually
+        // applied system value, in the same unit the write uses.
+        SemanticOperationId.BRIGHTNESS_GET ->
+            runCatching {
+                Settings.System.getInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS)
+            }.getOrNull()?.toString()
+        SemanticOperationId.SCREEN_TIMEOUT_GET ->
+            runCatching {
+                Settings.System.getInt(context.contentResolver, Settings.System.SCREEN_OFF_TIMEOUT)
+            }.getOrNull()?.let { (it / 1000).toString() } // write unit is seconds
+        else -> null
+    }
+
     // ---- writers -----------------------------------------------------------
 
     private fun setWifi(enabled: Boolean): OperationOutcome {

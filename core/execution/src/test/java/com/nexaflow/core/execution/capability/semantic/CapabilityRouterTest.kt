@@ -85,7 +85,10 @@ class CapabilityRouterTest {
 
     @Test
     fun prefersLeastPrivilegedAvailableStrategy() = runTest {
-        val androidApi = FakeStrategy(StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE))
+        val androidApi = FakeStrategy(
+            StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE),
+            readValue = true
+        )
         val root = FakeStrategy(StrategyId.ROOT_SHELL, setOf(SemanticOperationId.WIFI_SET_STATE))
         val outcome = router(androidApi, root).execute(request(SemanticOperationId.WIFI_SET_STATE, privileged = true))
         assertEquals(OperationOutcomeStatus.SUCCESS, outcome.status)
@@ -112,9 +115,10 @@ class CapabilityRouterTest {
                 "public toggle rejected",
                 strategy = StrategyId.ANDROID_PUBLIC_API,
                 transportFailure = true
-            )
+            ),
+            readValue = true
         )
-        val root = FakeStrategy(StrategyId.ROOT_SHELL, setOf(SemanticOperationId.WIFI_SET_STATE))
+        val root = FakeStrategy(StrategyId.ROOT_SHELL, setOf(SemanticOperationId.WIFI_SET_STATE), readValue = true)
         val outcome = router(androidApi, root).execute(request(SemanticOperationId.WIFI_SET_STATE, privileged = true))
         assertEquals(OperationOutcomeStatus.SUCCESS, outcome.status)
         assertEquals(StrategyId.ROOT_SHELL, outcome.strategy)
@@ -188,7 +192,8 @@ class CapabilityRouterTest {
                 verification = com.nexaflow.domain.capability.VerificationResult(true, true, "verified"),
                 message = "ok",
                 metadata = mapOf("requestedEnabled" to "true")
-            )
+            ),
+            readValue = true
         )
         val evidence = CapabilityEvidenceStore()
         router(androidApi, evidence = evidence).execute(request(SemanticOperationId.WIFI_SET_STATE))
@@ -202,8 +207,11 @@ class CapabilityRouterTest {
     @Test
     fun coolingStrategyIsDeprioritizedAgainstHealthyPeer() = runTest {
         val health = StrategyHealthTracker()
-        val androidApi = FakeStrategy(StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE))
-        val root = FakeStrategy(StrategyId.ROOT_SHELL, setOf(SemanticOperationId.WIFI_SET_STATE))
+        val androidApi = FakeStrategy(
+            StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE),
+            readValue = true
+        )
+        val root = FakeStrategy(StrategyId.ROOT_SHELL, setOf(SemanticOperationId.WIFI_SET_STATE), readValue = true)
         // Cool the public-API strategy down for this device.
         health.recordFailure(StrategyId.ANDROID_PUBLIC_API, fingerprint.deviceKey)
         health.recordFailure(StrategyId.ANDROID_PUBLIC_API, fingerprint.deviceKey)
@@ -244,6 +252,24 @@ class CapabilityRouterTest {
     }
 
     @Test
+    fun unvalidatedBooleanSpellingIsRejectedBeforeExecution() = runTest {
+        // NF-P0-003: strict type validation at the router, not just presence.
+        val strategy = FakeStrategy(StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE))
+        val outcome = router(strategy).execute(
+            TypedOperationRequest(
+                operation = SemanticOperationId.WIFI_SET_STATE,
+                parameters = mapOf("enabled" to "TRUE ")
+            )
+        )
+        assertEquals(OperationOutcomeStatus.FAILED, outcome.status)
+        assertEquals(
+            com.nexaflow.domain.capability.CapabilityErrorCode.INVALID_CONFIGURATION,
+            outcome.errorCode
+        )
+        assertEquals(0, strategy.executions)
+    }
+
+    @Test
     fun counterpartPairsReadAndWriteOperations() {
         assertEquals(
             SemanticOperationId.WIFI_SET_STATE,
@@ -253,5 +279,156 @@ class CapabilityRouterTest {
             SemanticOperationId.WIFI_GET_STATE,
             SemanticOperationId.counterpartOf(SemanticOperationId.WIFI_SET_STATE)
         )
+    }
+
+    // ---- NF-P0-002: evidence/health only after verification -----------------
+
+    @Test
+    fun transportSuccessWithoutReadBackIsUnknownAndNeverScoresPositiveEvidence() = runTest {
+        // REQUIRED verification with a strategy that has NO read-back: the
+        // strict contract reclassifies the transport success as UNKNOWN, and
+        // the evidence store must NOT record a success for it.
+        val strategy = FakeStrategy(StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE), readValue = null)
+        val evidence = CapabilityEvidenceStore()
+        val outcome = router(strategy, evidence = evidence)
+            .execute(request(SemanticOperationId.WIFI_SET_STATE))
+        assertEquals(OperationOutcomeStatus.UNKNOWN, outcome.status)
+        assertEquals(0L, evidence.evidenceFor(
+            SemanticOperationId.WIFI_SET_STATE, StrategyId.ANDROID_PUBLIC_API, fingerprint.deviceKey
+        ).verifiedSuccesses)
+        assertEquals(0L, evidence.evidenceFor(
+            SemanticOperationId.WIFI_SET_STATE, StrategyId.ANDROID_PUBLIC_API, fingerprint.deviceKey
+        ).unverifiedSuccesses)
+    }
+
+    @Test
+    fun strictVerificationFailsWhenReadBackContradictsTheRequest() = runTest {
+        val strategy = FakeStrategy(
+            StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE),
+            readValue = false // requested ON, observed OFF
+        )
+        val outcome = router(strategy).execute(request(SemanticOperationId.WIFI_SET_STATE))
+        assertEquals(OperationOutcomeStatus.FAILED, outcome.status)
+        assertEquals(
+            com.nexaflow.domain.capability.CapabilityErrorCode.VERIFICATION_FAILED,
+            outcome.errorCode
+        )
+    }
+
+    @Test
+    fun strictVerificationSucceedsWhenReadBackMatches() = runTest {
+        val strategy = FakeStrategy(
+            StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE),
+            readValue = true // requested ON, observed ON
+        )
+        val outcome = router(strategy).execute(request(SemanticOperationId.WIFI_SET_STATE))
+        assertEquals(OperationOutcomeStatus.SUCCESS, outcome.status)
+        assertTrue(outcome.verification?.verified == true)
+    }
+
+    @Test
+    fun unknownReconciliationWithMatchScoresVerifiedEvidence() = runTest {
+        val strategy = FakeStrategy(
+            StrategyId.ROOT_SHELL, setOf(SemanticOperationId.WIFI_SET_STATE),
+            outcome = OperationOutcome(
+                operation = SemanticOperationId.WIFI_SET_STATE,
+                status = OperationOutcomeStatus.UNKNOWN,
+                strategy = StrategyId.ROOT_SHELL,
+                message = "transport dropped after side effect"
+            ),
+            readValue = true
+        )
+        val evidence = CapabilityEvidenceStore()
+        val health = StrategyHealthTracker()
+        val outcome = CapabilityRouter(
+            registry = registry(),
+            strategies = listOf(strategy),
+            evidenceStore = evidence,
+            healthTracker = health,
+            fingerprint = fingerprint
+        ).execute(request(SemanticOperationId.WIFI_SET_STATE, privileged = true))
+        assertEquals(OperationOutcomeStatus.SUCCESS, outcome.status)
+        // Reconciliation IS the verification pass: verified evidence + health.
+        assertEquals(1L, evidence.evidenceFor(
+            SemanticOperationId.WIFI_SET_STATE, StrategyId.ROOT_SHELL, fingerprint.deviceKey
+        ).verifiedSuccesses)
+        assertEquals(
+            StrategyHealthTracker.State.HEALTHY,
+            health.healthFor(StrategyId.ROOT_SHELL, fingerprint.deviceKey).state
+        )
+    }
+
+    @Test
+    fun unknownReconciliationWithoutMatchScoresFailure() = runTest {
+        val strategy = FakeStrategy(
+            StrategyId.ROOT_SHELL, setOf(SemanticOperationId.WIFI_SET_STATE),
+            outcome = OperationOutcome(
+                operation = SemanticOperationId.WIFI_SET_STATE,
+                status = OperationOutcomeStatus.UNKNOWN,
+                strategy = StrategyId.ROOT_SHELL,
+                message = "transport dropped after side effect"
+            ),
+            readValue = false
+        )
+        val evidence = CapabilityEvidenceStore()
+        val health = StrategyHealthTracker()
+        val outcome = CapabilityRouter(
+            registry = registry(),
+            strategies = listOf(strategy),
+            evidenceStore = evidence,
+            healthTracker = health,
+            fingerprint = fingerprint
+        ).execute(request(SemanticOperationId.WIFI_SET_STATE, privileged = true))
+        assertEquals(OperationOutcomeStatus.FAILED, outcome.status)
+        assertEquals(1L, evidence.evidenceFor(
+            SemanticOperationId.WIFI_SET_STATE, StrategyId.ROOT_SHELL, fingerprint.deviceKey
+        ).failures)
+        assertEquals(
+            StrategyHealthTracker.State.FAILED,
+            health.healthFor(StrategyId.ROOT_SHELL, fingerprint.deviceKey).state
+        )
+    }
+
+    @Test
+    fun failedVerificationScoresFailureEvidenceNotSuccess() = runTest {
+        val strategy = FakeStrategy(
+            StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE),
+            readValue = false // contradicted
+        )
+        val evidence = CapabilityEvidenceStore()
+        router(strategy, evidence = evidence).execute(request(SemanticOperationId.WIFI_SET_STATE))
+        val record = evidence.evidenceFor(
+            SemanticOperationId.WIFI_SET_STATE, StrategyId.ANDROID_PUBLIC_API, fingerprint.deviceKey
+        )
+        assertEquals("A contradicted success must score as failure", 1L, record.failures)
+        assertEquals(0L, record.verifiedSuccesses)
+        assertEquals(0L, record.unverifiedSuccesses)
+    }
+
+    @Test
+    fun pendingUserActionIsTerminalAndScoresNoFailure() = runTest {
+        // The settings fallback reports PENDING_USER_ACTION: nothing failed,
+        // so neither evidence nor health may record a failure, and the router
+        // must not advance to a privileged candidate afterwards.
+        val settings = FakeStrategy(
+            StrategyId.SETTINGS_USER_ACTION, setOf(SemanticOperationId.WIFI_SET_STATE),
+            outcome = OperationOutcome(
+                operation = SemanticOperationId.WIFI_SET_STATE,
+                status = OperationOutcomeStatus.PENDING_USER_ACTION,
+                strategy = StrategyId.SETTINGS_USER_ACTION,
+                message = "user action required"
+            )
+        )
+        val root = FakeStrategy(StrategyId.ROOT_SHELL, setOf(SemanticOperationId.WIFI_SET_STATE))
+        val evidence = CapabilityEvidenceStore()
+        val outcome = router(settings, root, evidence = evidence)
+            .execute(request(SemanticOperationId.WIFI_SET_STATE, privileged = true))
+        assertEquals(OperationOutcomeStatus.PENDING_USER_ACTION, outcome.status)
+        assertEquals("PENDING_USER_ACTION must not open the privileged route", 0, root.executions)
+        val record = evidence.evidenceFor(
+            SemanticOperationId.WIFI_SET_STATE, StrategyId.SETTINGS_USER_ACTION, fingerprint.deviceKey
+        )
+        assertEquals(0L, record.failures)
+        assertEquals(0L, record.verifiedSuccesses)
     }
 }

@@ -225,6 +225,32 @@ class ShizukuTypedStrategy(
             else -> null // unexpected shape: never guess
         }
     }
+    override suspend fun readStateValue(
+        request: TypedOperationRequest,
+        operation: SemanticOperationId
+    ): String? = when (operation) {
+        SemanticOperationId.BRIGHTNESS_GET ->
+            readSettingRaw(PrivilegedOperation.SettingNamespace.SYSTEM, "screen_brightness")
+        SemanticOperationId.SCREEN_TIMEOUT_GET ->
+            readSettingRaw(PrivilegedOperation.SettingNamespace.SYSTEM, "screen_off_timeout")
+            ?.let { it.toLongOrNull()?.div(1000)?.toString() } // write unit is seconds
+        else -> null
+    }
+
+    /**
+     * Raw scalar read-back for value writes: succeeds only when the setting
+     * exists and parses as an integer; "null" output or non-numeric output is
+     * honest-null, never coerced.
+     */
+    private fun readSettingRaw(
+        namespace: PrivilegedOperation.SettingNamespace,
+        key: String
+    ): String? {
+        val result = execute(PrivilegedOperation.ReadSettingState(namespace, key))
+        if (!result.success) return null
+        val value = result.message.trim()
+        return value.takeIf { it.isNotEmpty() && it != "null" && it.toLongOrNull() != null }
+    }
 
     private fun readSettingBool(
         namespace: PrivilegedOperation.SettingNamespace,

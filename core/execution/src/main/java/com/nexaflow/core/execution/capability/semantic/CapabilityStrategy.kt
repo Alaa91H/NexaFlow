@@ -57,4 +57,13 @@ interface CapabilityStrategy {
      * a router then treats the outcome as unverifiable rather than proven.
      */
     suspend fun readState(request: TypedOperationRequest, operation: SemanticOperationId): Boolean? = null
+
+    /**
+     * Reads the current externally observable *scalar* state (brightness
+     * level, timeout seconds, …) in the operation's own unit for value-write
+     * verification. Returns null when this strategy has no reliable read;
+     * a strict-verification router then reports the outcome as unconfirmed
+     * instead of fabricating a boolean verdict.
+     */
+    suspend fun readStateValue(request: TypedOperationRequest, operation: SemanticOperationId): String? = null
 }

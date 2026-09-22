@@ -46,11 +46,26 @@ class OperationRegistryParityTest {
 
     @Test
     fun writeOperationsRequireVerificationAndReadOperationsDoNot() {
+        // One-shot package transitions have no reliable observable
+        // post-condition (a killed process may be restarted instantly; the
+        // enabled-state probe says nothing about cleared data), so they are
+        // the documented BEST_EFFORT exception. Everything else writable must
+        // declare strict REQUIRED verification.
+        val bestEffortException = setOf(
+            SemanticOperationId.PACKAGE_FORCE_STOP,
+            SemanticOperationId.PACKAGE_CLEAR_DATA
+        )
         OperationRegistry.default().operations().forEach { spec ->
             if (spec.id.isReadOnly) {
                 assertEquals(
                     "Read operation ${spec.id.name} must not require verification",
                     com.nexaflow.domain.capability.VerificationMode.NONE,
+                    spec.verificationMode
+                )
+            } else if (spec.id in bestEffortException) {
+                assertEquals(
+                    "One-shot package transition ${spec.id.name} must stay honestly BEST_EFFORT",
+                    com.nexaflow.domain.capability.VerificationMode.BEST_EFFORT,
                     spec.verificationMode
                 )
             } else {

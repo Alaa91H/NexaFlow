@@ -154,6 +154,10 @@ class OperationRegistry private constructor(
                         )
                     ),
                     risk = CapabilityRiskLevel.HIGH,
+                    // No reliable observable post-condition (a killed process
+                    // may be restarted instantly by a sync job), so REQUIRED
+                    // would fabricate verdicts; BEST_EFFORT documents that.
+                    verificationMode = VerificationMode.BEST_EFFORT,
                     strategies = listOf(
                         StrategyId.SHIZUKU_USER_SERVICE,
                         StrategyId.ROOT_SHELL
@@ -165,6 +169,9 @@ class OperationRegistry private constructor(
                         )
                     ),
                     risk = CapabilityRiskLevel.HIGH,
+                    // Same honesty as force-stop: the enabled-state probe says
+                    // nothing about whether data was cleared.
+                    verificationMode = VerificationMode.BEST_EFFORT,
                     strategies = listOf(
                         StrategyId.SHIZUKU_USER_SERVICE,
                         StrategyId.ROOT_SHELL
@@ -213,6 +220,7 @@ class OperationRegistry private constructor(
             features: Set<DeviceFeature> = emptySet(),
             risk: CapabilityRiskLevel = CapabilityRiskLevel.LOW,
             write: Boolean = true,
+            verificationMode: VerificationMode? = null,
             strategies: List<StrategyId>
         ) = OperationSpec(
             id = id,
@@ -222,7 +230,8 @@ class OperationRegistry private constructor(
             risk = risk,
             idempotency = CapabilityIdempotency.IDEMPOTENT,
             retrySafety = CapabilityRetrySafety.SAFE,
-            verificationMode = if (write) VerificationMode.REQUIRED else VerificationMode.NONE,
+            verificationMode = verificationMode ?:
+                if (write) VerificationMode.REQUIRED else VerificationMode.NONE,
             // PACKAGE_CLEAR_DATA destroys user data irreversibly; force-stop
             // and enable/disable are reversible in practice. Compensation
             // honesty feeds the recovery coordinator, so it must match reality.

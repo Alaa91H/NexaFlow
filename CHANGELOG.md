@@ -1,5 +1,92 @@
 # Changelog
 
+## Unreleased
+
+### Hardened — CapabilityRouter decision integrity (NF-P0-002, NF-P0-003)
+
+**NF-P0-002 — Evidence and health are scored only after verification:**
+
+- `CapabilityRouter` no longer records success evidence/health on a raw
+  transport `SUCCESS`. Verification now runs first; the post-verification
+  verdict is what gets scored (verified success → verified evidence + healthy;
+  unverified success → unverified evidence only; verification failure or
+  unconfirmed outcome → failure evidence + unhealthy).
+- `VerificationMode.REQUIRED` is now strict. A transport success whose
+  read-back is observable but contradicts the request fails with
+  `VERIFICATION_FAILED`; a transport success whose post-condition **cannot**
+  be read back is reclassified as `UNKNOWN` (outcome unconfirmed) instead of
+  being reported as success — callers reconcile instead of trusting an
+  unobserved claim.
+- Value-write verification now reads the actual applied scalar
+  (`screen_brightness`, `screen_off_timeout`) via a new
+  `CapabilityStrategy.readStateValue` seam implemented by the Android public
+  API and Shizuku strategies, instead of fabricating a boolean verdict.
+- Reconciliation of `UNKNOWN` outcomes is itself the verification pass: a
+  matched read-back scores verified evidence and healthy health; a mismatched
+  or unreadable read scores failure.
+- `PENDING_USER_ACTION` and `CANCELLED` are terminal by contract: the router
+  neither scores a failure (nothing failed inside the strategy) nor falls
+  through to a privileged candidate (no privilege escalation by accident).
+
+**NF-P0-003 — Central typed parameter validation:**
+
+- New `OperationParameterValidator` is the single validation point between
+  the registry spec and strategy dispatch. Type, integer range, allowlist and
+  length checks are all enforced there — presence-only checks are gone.
+- Every `CapabilityParameterType` now enforces an exact grammar: `BOOLEAN`
+  accepts only canonical/wire forms (`true`/`false`/`1`/`0`), `INTEGER`
+  accepts canonical digits within `minimumInteger`/`maximumInteger`,
+  `PACKAGE_NAME` enforces the Android package grammar (no spaces, shell
+  metacharacters, empty labels or leading digits), `HTTPS_URL` requires the
+  https scheme with a host and no embedded credentials, `CONTENT_URI`
+  requires a `content://` provider URI, `OPAQUE_REFERENCE` rejects whitespace
+  and shell metacharacters, and `STRING` honors length and allowlist bounds.
+- All violations for a request are reported together in the spec's parameter
+  order with `INVALID_CONFIGURATION`, before any strategy availability probe
+  or execution runs.
+
+### Migrated — package operations fully on the semantic layer
+
+- Package force-stop, enable/disable and clear-data now run exclusively
+  through the semantic operation chain (`PACKAGE_FORCE_STOP`,
+  `PACKAGE_SET_ENABLED_STATE`, `PACKAGE_CLEAR_DATA`) via the closed
+  `PrivilegedOperation` algebra dispatched by `ShizukuTypedStrategy` and
+  `RootTypedStrategy` — the legacy direct-handler paths remain only as
+  unrouted fallbacks and can no longer bypass the router for these actions.
+- `PACKAGE_SET_ENABLED_STATE` keeps strict REQUIRED verification: the router
+  reads back the actual enabled state (`pm list packages -d` probe) and fails
+  with `VERIFICATION_FAILED` when the observed state contradicts the request.
+- `PACKAGE_FORCE_STOP` and `PACKAGE_CLEAR_DATA` are honestly declared
+  BEST_EFFORT: they have no reliable observable post-condition (a killed
+  process may be restarted instantly; the enabled-state probe says nothing
+  about cleared data), so their transport success stays honest-but-unverified
+  instead of fabricating a verdict.
+- Reconciliation of an uncertain privileged dispatch now distinguishes three
+  outcomes: a matching read-back reclassifies the operation as verified
+  SUCCESS; a contradicting read-back fails it; and when no comparable
+  post-condition exists (one-shot transitions) the outcome stays UNKNOWN —
+  never a fabricated failure, never a claimed success, and never a blind
+  re-execution.
+
+### Tests
+
+- New `PackageSemanticMigrationTest`: end-to-end contract tests running the
+  real strategies under the real router for both privileged transports —
+  closed argv shapes, verified enable/disable cycles, contradicted dispatches
+  failing with `VERIFICATION_FAILED`, uncertain dispatches surfacing UNKNOWN
+  with exactly one dispatch (no blind retry), invalid packages rejected
+  before any transport call, and legacy action types routing through the
+  full chain.
+- `OperationRegistryParityTest` pins the documented BEST_EFFORT exception so
+  the honesty of one-shot package transitions cannot silently regress.
+- New `OperationParameterValidatorTest`: per-type grammar coverage plus
+  router-integration tests proving malformed values never reach a strategy
+  probe.
+- Extended `CapabilityRouterTest` with the NF-P0-002 contract: strict
+  REQUIRED verification (match → verified success, contradiction →
+  `VERIFICATION_FAILED`, unreadable → `UNKNOWN`), reconciliation scoring,
+  failed-verification evidence, and `PENDING_USER_ACTION` terminality.
+
 ## [Unreleased]
 
 ## [v3.85.1] - 2026-09-22

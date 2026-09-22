@@ -180,10 +180,14 @@ class CapabilityRouter(
                 "Operation is not registered; it cannot be executed safely"
             )
 
-        val parameterError = validateParameters(spec, request)
-        if (parameterError != null) {
+        // NF-P0-003: the single typed validation point. Type, range and
+        // allowlist checks all happen here, before any candidate is probed —
+        // strategies never see an unvalidated map.
+        val violations = OperationParameterValidator.validate(spec, request.parameters)
+        if (violations.isNotEmpty()) {
             return OperationOutcome.failed(
-                request.operation, CapabilityErrorCode.INVALID_CONFIGURATION, parameterError
+                request.operation, CapabilityErrorCode.INVALID_CONFIGURATION,
+                violations.joinToString("; ") { it.reason }
             )
         }
 
@@ -229,13 +233,21 @@ class CapabilityRouter(
 
             when {
                 normalized.isSuccess -> {
-                    evidenceStore.recordSuccess(
-                        request.operation, strategy.id, fingerprint.deviceKey,
-                        verified = normalized.verification?.verified == true,
-                        latencyMs = normalized.durationMs
-                    )
-                    healthTracker.recordSuccess(strategy.id, fingerprint.deviceKey)
-                    return verifyIfNeeded(request, spec, strategy, normalized)
+                    // NF-P0-002: verification runs FIRST; evidence and health
+                    // are recorded only for the post-verification verdict, so
+                    // an unverified or contradicted transport success can
+                    // never poison the evidence store with a positive record.
+                    val verified = verifyIfNeeded(request, spec, strategy, normalized)
+                    recordPostVerification(verified)
+                    return verified
+                }
+                normalized.status == OperationOutcomeStatus.PENDING_USER_ACTION ||
+                    normalized.status == OperationOutcomeStatus.CANCELLED -> {
+                    // Externally-actionable or caller-cancelled: terminal by
+                    // contract. Nothing failed inside the strategy, so no
+                    // failure evidence is scored and no privileged route is
+                    // opened by falling through to the next candidate.
+                    return normalized
                 }
                 normalized.transportFailure -> {
                     evidenceStore.recordFailure(request.operation, strategy.id, fingerprint.deviceKey)
@@ -289,27 +301,84 @@ class CapabilityRouter(
         }
         val observed = runCatching { strategy.readState(request, getStateId) }.getOrNull()
         val requestedEnabled = request.parameters["enabled"]?.toBooleanStrictOrNull()
-        return if (observed != null && requestedEnabled != null && observed == requestedEnabled) {
-            OperationOutcome(
-                operation = request.operation,
-                status = OperationOutcomeStatus.SUCCESS,
-                strategy = strategy.id,
-                message = "Reconciled: observed state matches the requested state",
-                verification = com.nexaflow.domain.capability.VerificationResult(
-                    attempted = true, verified = true,
-                    message = "Post-condition verified by state reconciliation"
-                ),
-                metadata = unknownOutcome.metadata
-            )
-        } else {
-            unknownOutcome.copy(
-                status = OperationOutcomeStatus.FAILED,
-                errorCode = CapabilityErrorCode.UNKNOWN_ERROR,
-                message = "Outcome could not be confirmed; observed state differs or is unreadable"
-            )
+        val reconciled = when {
+            observed != null && requestedEnabled != null && observed == requestedEnabled ->
+                OperationOutcome(
+                    operation = request.operation,
+                    status = OperationOutcomeStatus.SUCCESS,
+                    strategy = strategy.id,
+                    message = "Reconciled: observed state matches the requested state",
+                    verification = com.nexaflow.domain.capability.VerificationResult(
+                        attempted = true, verified = true,
+                        message = "Post-condition verified by state reconciliation"
+                    ),
+                    metadata = unknownOutcome.metadata
+                )
+            observed != null && requestedEnabled != null ->
+                // The read-back is reliable and contradicts the request: the
+                // side effect did not land as requested.
+                unknownOutcome.copy(
+                    status = OperationOutcomeStatus.FAILED,
+                    errorCode = CapabilityErrorCode.UNKNOWN_ERROR,
+                    message = "Outcome could not be confirmed; observed state differs"
+                )
+            else ->
+                // No comparable requested state (one-shot transitions such as
+                // force-stop/clear-data) or an unreadable read-back: the side
+                // effect remains unconfirmed — UNKNOWN, never a fabricated
+                // failure, and never a claimed success.
+                unknownOutcome.copy(
+                    message = unknownOutcome.message + " (outcome unconfirmed; no comparable read-back)"
+                )
+        }
+        // Reconciliation IS the verification pass: evidence/health are scored
+        // on its verdict, never on the raw UNKNOWN transport result.
+        recordPostVerification(reconciled)
+        return reconciled
+    }
+
+    /**
+     * NF-P0-002: the only place positive evidence/health is written. A record
+     * is scored strictly by the post-verification verdict:
+     * - verified SUCCESS → verified-success evidence + healthy;
+     * - unverified transport SUCCESS → unverified evidence only (no health
+     *   success, so confidence never rises on claims nobody observed);
+     * - verification-FAILED / final UNKNOWN → failure evidence + unhealthy,
+     *   exactly as if the strategy had reported the failure itself.
+     */
+    private fun recordPostVerification(outcome: OperationOutcome) {
+        val strategyId = outcome.strategy ?: return
+        when {
+            outcome.isSuccess && outcome.verification?.verified == true -> {
+                evidenceStore.recordSuccess(
+                    outcome.operation, strategyId, fingerprint.deviceKey,
+                    verified = true, latencyMs = outcome.durationMs
+                )
+                healthTracker.recordSuccess(strategyId, fingerprint.deviceKey)
+            }
+            outcome.isSuccess -> {
+                evidenceStore.recordSuccess(
+                    outcome.operation, strategyId, fingerprint.deviceKey,
+                    verified = false, latencyMs = outcome.durationMs
+                )
+            }
+            else -> {
+                evidenceStore.recordFailure(outcome.operation, strategyId, fingerprint.deviceKey)
+                healthTracker.recordFailure(strategyId, fingerprint.deviceKey)
+            }
         }
     }
 
+    /**
+     * NF-P0-002: REQUIRED verification is strict. A transport SUCCESS is only
+     * trustworthy when the actual post-condition was observed to match the
+     * request:
+     * - read-back observable and matching  → SUCCESS (verified);
+     * - read-back observable and different → FAILED / VERIFICATION_FAILED;
+     * - read-back unreadable               → UNKNOWN ("outcome unconfirmed"),
+     *   never SUCCESS — an unobserved state is not a verified one.
+     * BEST_EFFORT keeps the older honest-but-unverified behavior.
+     */
     private suspend fun verifyIfNeeded(
         request: TypedOperationRequest,
         spec: OperationSpec,
@@ -323,42 +392,75 @@ class CapabilityRouter(
         // has no observable state of its own.
         val getStateId = SemanticOperationId.counterpartOf(request.operation)
             ?.takeIf { it.isReadOnly }
-        val observed = getStateId
-            ?.let { runCatching { strategy.readState(request, it) }.getOrNull() }
+        if (getStateId == null) {
+            return outcome.copy(
+                verification = com.nexaflow.domain.capability.VerificationResult(
+                    attempted = false,
+                    verified = false,
+                    message = "No read-back operation is registered for this write"
+                )
+            )
+        }
+        val observed = runCatching { strategy.readState(request, getStateId) }.getOrNull()
+        val observedValue = if (observed == null) {
+            runCatching { strategy.readStateValue(request, getStateId) }.getOrNull()
+        } else {
+            null
+        }
         val requestedEnabled = outcome.metadata["requestedEnabled"]
+        val requestedValue = request.parameters["value"] ?: request.parameters["seconds"]
+
+        // Package one-shot transitions (force-stop, clear-data) have no
+        // requested toggle to compare against: their read-back proves nothing
+        // about the side effect. Their specs declare BEST_EFFORT precisely so
+        // a transport success stays honest-but-unverified instead of being
+        // fabricated into a boolean verdict here.
+        val comparable = requestedEnabled != null || requestedValue != null
+
+        // A read-back matches when the boolean state matches the requested
+        // toggle, or (for value writes) the observed scalar equals the value
+        // the strategy applied.
+        val booleanMatch = requestedEnabled != null && (
+            (observed == true && requestedEnabled == "true") ||
+                (observed == false && requestedEnabled == "false")
+            )
+        val valueMatch = requestedValue != null && observedValue != null &&
+            observedValue == requestedValue
+        val matched = booleanMatch || valueMatch
+
         val verification = com.nexaflow.domain.capability.VerificationResult(
-            attempted = observed != null,
-            verified = requestedEnabled != null &&
-                ((observed == true && requestedEnabled == "true") ||
-                    (observed == false && requestedEnabled == "false")),
+            attempted = observed != null || observedValue != null,
+            verified = matched,
             message = when {
-                observed == null -> "Strategy cannot read back the state; success remains unverified"
-                else -> "Observed state: $observed"
+                observed != null -> "Observed state: $observed"
+                observedValue != null -> "Observed value: $observedValue"
+                else -> "Strategy cannot read back the state; outcome is unconfirmed"
             }
         )
         val merged = outcome.copy(verification = verification)
-        // REQUIRED fails closed only when a read-back was attempted and
-        // contradicted the request. When the strategy has no reliable read
-        // (observed == null), the transport success stays honest-but-unverified:
-        // converting it to a definite failure would itself be a false claim.
-        val contradicted = verification.attempted && !verification.verified
-        return if (spec.verificationMode == com.nexaflow.domain.capability.VerificationMode.REQUIRED && contradicted) {
-            merged.copy(status = OperationOutcomeStatus.FAILED, errorCode = CapabilityErrorCode.VERIFICATION_FAILED)
-        } else merged
-    }
-
-    private fun validateParameters(spec: OperationSpec, request: TypedOperationRequest): String? {
-        for (param in spec.parameters) {
-            if (param.required && param.name !in request.parameters) {
-                return "Missing required parameter '${param.name}' for ${spec.id.name}"
-            }
+        if (spec.verificationMode != com.nexaflow.domain.capability.VerificationMode.REQUIRED) {
+            return merged
         }
-        for ((name, _) in request.parameters) {
-            if (spec.parameterSchema(name) == null) {
-                return "Unknown parameter '$name' for ${spec.id.name}"
-            }
+        return when {
+            !comparable -> merged.copy(
+                // REQUIRED without a comparable request (e.g. a read-back-only
+                // pair) can never be judged: unconfirmed, not success.
+                status = OperationOutcomeStatus.UNKNOWN,
+                message = outcome.message + " (outcome unconfirmed: no comparable post-condition)"
+            )
+            verification.attempted && !verification.verified -> merged.copy(
+                status = OperationOutcomeStatus.FAILED,
+                errorCode = CapabilityErrorCode.VERIFICATION_FAILED
+            )
+            verification.attempted -> merged // observed and matching: verified SUCCESS
+            else -> merged.copy(
+                // NF-P0-002 strictness: an unreadable post-condition is
+                // UNKNOWN — the side effect may or may not have landed — so
+                // callers reconcile instead of trusting an unverified claim.
+                status = OperationOutcomeStatus.UNKNOWN,
+                message = outcome.message + " (outcome unconfirmed: state could not be read back)"
+            )
         }
-        return null
     }
 
     private fun isPrivileged(strategyId: StrategyId): Boolean =
