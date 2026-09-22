@@ -2,6 +2,41 @@
 
 ## Unreleased
 
+### Added — WorkflowDocumentV1: versioned persisted workflow foundation (P0.1) and typed execution tracing (P0.4)
+
+**Milestone A groundwork** toward a unified authoring/runtime model. No user-facing
+behavior changes: every existing task continues to read, run and sync exactly
+as before — the legacy `Automation` remains the storage format.
+
+- **`WorkflowDocumentV1`** (new, `domain/workflow`): the versioned persisted
+  workflow contract — `schemaVersion` gate, immutable-revision semantics,
+  stable node ids, declared variables, dependency and risk descriptors, and a
+  deterministic content hash for diagnostics equality.
+- **Conditions are data**: `ConditionExpr` / `ValueExpr` replace persisted
+  lambdas end-to-end. The runtime `WorkflowCondition` lambda is produced only
+  at the execution boundary by the new `WorkflowDocumentCompiler`
+  (`core:execution`), which maps documents onto the existing graph runtime
+  and fails loudly on unregistered named predicates instead of guessing.
+- **Lossless migration surface**: `WorkflowDocumentMappers` maps legacy tasks
+  to documents and back without interpretation or invented defaults; the
+  legacy-flat structure is enforced loudly (complex graphs route to the
+  graph runtime, never silently flattened).
+- **Safe forward rejection**: unknown schema versions and unknown node kinds
+  fail with typed errors instead of loading half-parsed definitions.
+- **Bounded structural validator**: empty graphs, duplicate node ids and
+  runaway loop/retry/timeout bounds are rejected before persist or run.
+- **Typed execution trace events (P0.4)**: `ExecutionTraceEvent`,
+  `TracePhase`, canonical `TraceReasons` and a `TraceRecorder` that writes
+  structured rows onto the *existing* timeline (no parallel logging system)
+  with secret redaction applied at the record boundary. The engine now emits
+  typed gate-blocked events (`CONSTRAINT_BLOCKED`,
+  `TRIGGER_ALL_GATE_BLOCKED`) — the data source for the upcoming
+  "Why didn't this run?" surface.
+- **22 new contract tests** pinning: legacy↔document round-trips,
+  unknown-version/kind rejection, validation parity with runtime bounds,
+  migration idempotency, revision-independent content hash, literal/data
+  condition evaluation, fail-closed context references, and trace redaction.
+
 ### Hardened — CapabilityRouter decision integrity (NF-P0-002, NF-P0-003)
 
 **NF-P0-002 — Evidence and health are scored only after verification:**

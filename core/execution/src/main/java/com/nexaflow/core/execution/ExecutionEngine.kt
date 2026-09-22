@@ -95,7 +95,10 @@ class ExecutionEngine(
         },
     /** Suppresses repeated durable-admission diagnostics from high-frequency triggers. */
     private val checkpointAdmissionReportThrottle: CheckpointAdmissionReportThrottle =
-        CheckpointAdmissionReportThrottle()
+        CheckpointAdmissionReportThrottle(),
+    /** Typed trace sink (P0.4); defaults to the same LogStore the engine already writes. */
+    private val traceRecorder: com.nexaflow.core.logging.TraceRecorder =
+        com.nexaflow.core.logging.TraceRecorder(logStore)
 ) {
 
     companion object {
@@ -287,6 +290,13 @@ class ExecutionEngine(
                 )
                 historyRepository.recordExecution(record)
                 recordTimeline(automation, "BLOCKED", record, startedAt)
+                traceRecorder.recordGateBlocked(
+                    runId = payloadContext.runId,
+                    automationId = automation.id,
+                    reasonCode = com.nexaflow.core.logging.TraceReasons.CONSTRAINT_BLOCKED,
+                    detail = constraintResult.toGateMessage(),
+                    atEpochMs = startedAt,
+                )
                 return record
             }
         }
@@ -321,6 +331,13 @@ class ExecutionEngine(
                 )
                 historyRepository.recordExecution(record)
                 recordTimeline(automation, "TRIGGER_ALL_GATE_BLOCKED", record, startedAt)
+                traceRecorder.recordGateBlocked(
+                    runId = payloadContext.runId,
+                    automationId = automation.id,
+                    reasonCode = com.nexaflow.core.logging.TraceReasons.TRIGGER_ALL_GATE_BLOCKED,
+                    detail = TriggerMatchPolicy.skipMessage(automation.triggers, gateResults),
+                    atEpochMs = startedAt,
+                )
                 return record
             }
         }
