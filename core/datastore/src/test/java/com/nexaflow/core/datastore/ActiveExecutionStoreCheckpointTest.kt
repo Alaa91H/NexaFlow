@@ -228,6 +228,25 @@ class ActiveExecutionStoreCheckpointTest {
     }
 
     @Test
+    fun recoveryCountReadsOnlyDurableRecoveryRequiredRecordsForSelectedAutomation() = runBlocking {
+        val own = checkpoint("run-own-recovery").copy(
+            status = DurableExecutionStatus.RECOVERY_REQUIRED
+        )
+        val other = checkpoint("run-other-recovery", automationId = "automation-b").copy(
+            status = DurableExecutionStatus.RECOVERY_REQUIRED
+        )
+        val active = checkpoint("run-own-active")
+
+        assertTrue(store.beginCheckpoint(own))
+        assertTrue(store.beginCheckpoint(other))
+        assertTrue(store.beginCheckpoint(active))
+
+        assertEquals(1, store.recoveryRequiredCountForAutomation("automation-a"))
+        assertEquals(1, store.recoveryRequiredCountForAutomation("automation-b"))
+        assertEquals(0, store.recoveryRequiredCountForAutomation("automation-c"))
+    }
+
+    @Test
     fun interruptedActionIsExplicitlyUnknownRatherThanReplayable() = runBlocking {
         assertTrue(store.beginCheckpoint(checkpoint("run-unknown")))
         store.markActionStarted("run-unknown", 0, "run-unknown:0:ACTION", 110L)
