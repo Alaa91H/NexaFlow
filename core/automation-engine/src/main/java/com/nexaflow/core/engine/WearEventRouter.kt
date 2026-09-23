@@ -2,6 +2,9 @@ package com.nexaflow.core.engine
 
 import android.content.Context
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationLifecycleContext
+import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.TriggerStateEvaluator
@@ -18,6 +21,7 @@ import com.nexaflow.domain.models.TriggerMatchMode
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -41,6 +45,8 @@ class WearEventRouter @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
+    private val exitCoordinator: ExitCoordinator,
+    private val runtimeStore: AutomationRuntimeStore,
     private val activeStore: ActiveTriggerStore,
     private val triggerIndex: TriggerIndex,
     private val eventBus: NexaFlowEventBus,
@@ -118,19 +124,57 @@ class WearEventRouter @Inject constructor(
     }
 
     private suspend fun restoreAndPruneDurableState(all: List<Automation>) {
+        val source = TriggerSource.WEAR.sourceId
         val byId = all.associateBy { it.id }
-        activeStore.activeKeys(TriggerSource.WEAR.sourceId).forEach { automationId ->
-            val automation = byId[automationId]
-            if (
-                automation?.enabled == true &&
-                automation.triggers.any { it.type == TriggerType.WEAR_EVENT }
-            ) {
-                activeAutomations += automationId
-            } else {
-                activeAutomations -= automationId
-                activeStore.clearAutomation(TriggerSource.WEAR.sourceId, automationId)
+        val runtimeStates = runtimeStore.activeStates().filter { it.source == source }
+        val runtimeIds = runtimeStates.mapTo(linkedSetOf()) { it.automationId }
+
+        runtimeStates.forEach { state ->
+            val automation = byId[state.automationId]
+            when {
+                automation == null -> {
+                    runtimeStore.clear(state.automationId, state.occurrenceId)
+                    activeAutomations -= state.automationId
+                    activeStore.clearAutomation(source, state.automationId)
+                }
+                automation.enabled &&
+                    automation.triggers.any { it.type == TriggerType.WEAR_EVENT } -> {
+                    activeAutomations += state.automationId
+                    activeStore.markActive(source, state.automationId)
+                }
+                else -> {
+                    when (
+                        exitCoordinator.requestExit(
+                            automation = automation,
+                            reason = ExitReason.AUTOMATION_DISABLED,
+                            occurrenceId = state.occurrenceId,
+                        )
+                    ) {
+                        is ExitCoordinatorResult.Executed,
+                        ExitCoordinatorResult.NotActive,
+                        ExitCoordinatorResult.StaleOccurrence -> {
+                            activeAutomations -= state.automationId
+                            activeStore.clearAutomation(source, state.automationId)
+                        }
+                        ExitCoordinatorResult.AlreadyInProgress,
+                        is ExitCoordinatorResult.RecoveryRequired -> {
+                            activeAutomations += state.automationId
+                        }
+                    }
+                }
             }
         }
+
+        // WEAR_EVENT did not exist before this lifecycle implementation, so a
+        // compatibility marker without a runtime occurrence cannot represent
+        // proven execution ownership. Drop it rather than fabricate an active run.
+        activeStore.activeKeys(source)
+            .filterNot { it.substringBefore('|') in runtimeIds }
+            .forEach { staleKey ->
+                val automationId = staleKey.substringBefore('|')
+                activeAutomations -= automationId
+                activeStore.clearAutomation(source, automationId)
+            }
     }
 
     private fun wearConditionFor(automation: Automation): Boolean? {
@@ -184,14 +228,53 @@ class WearEventRouter @Inject constructor(
         if (now - last < automation.cooldownMillis) return
 
         lastRunAt[automation.id] = now
-        activeAutomations += automation.id
-        activeStore.markActive(TriggerSource.WEAR.sourceId, automation.id)
-        executionEngine.runAutomation(automation)
+        val source = TriggerSource.WEAR.sourceId
+        val occurrenceId = "wear:${automation.id}:${UUID.randomUUID()}"
+        executionEngine.runAutomation(
+            automation = automation,
+            lifecycleContext = AutomationLifecycleContext(
+                occurrenceId = occurrenceId,
+                source = source,
+                sourceKey = automation.id,
+            ),
+        )
+        val accepted = runtimeStore.current(automation.id)?.let { state ->
+            state.occurrenceId == occurrenceId && state.source == source
+        } == true
+        if (accepted) {
+            activeAutomations += automation.id
+            activeStore.markActive(source, automation.id)
+        } else {
+            // Admission/constraint failure never becomes lifecycle ownership.
+            lastRunAt.remove(automation.id)
+        }
     }
 
     private suspend fun exitIfNeeded(automation: Automation) {
-        if (!activeAutomations.remove(automation.id)) return
-        activeStore.clearAutomation(TriggerSource.WEAR.sourceId, automation.id)
-        executionEngine.runExit(automation)
+        if (automation.id !in activeAutomations) return
+        val source = TriggerSource.WEAR.sourceId
+        val occurrenceId = runtimeStore.current(automation.id)
+            ?.takeIf { it.source == source }
+            ?.occurrenceId
+
+        when (
+            exitCoordinator.requestExit(
+                automation = automation,
+                reason = ExitReason.TRIGGER_FALSE,
+                occurrenceId = occurrenceId,
+            )
+        ) {
+            is ExitCoordinatorResult.Executed,
+            ExitCoordinatorResult.NotActive,
+            ExitCoordinatorResult.StaleOccurrence -> {
+                activeAutomations -= automation.id
+                activeStore.clearAutomation(source, automation.id)
+            }
+            ExitCoordinatorResult.AlreadyInProgress,
+            is ExitCoordinatorResult.RecoveryRequired -> {
+                // Keep ownership until a successful/reconciled exit proves end.
+                activeAutomations += automation.id
+            }
+        }
     }
 }
