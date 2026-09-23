@@ -2,6 +2,7 @@ package com.nexaflow.core.logging
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -123,6 +124,41 @@ class RunExplainerTest {
         // Redaction re-applied at the report boundary as defense in depth.
         assertTrue("supersecret123" !in report)
         assertTrue("[REDACTED]" in report)
+    }
+
+    @Test
+    fun terminalOutcomeReleasesSequenceState() = runTest {
+        val recorder = TraceRecorder(InMemoryLogStore())
+        recorder.record(
+            event(
+                phase = TracePhase.ADMISSION,
+                reason = TraceReasons.RUN_STARTED,
+                sequence = 0,
+            ),
+        )
+        assertEquals(1, recorder.activeRunCountForTesting())
+
+        recorder.record(
+            event(
+                phase = TracePhase.OUTCOME,
+                reason = TraceReasons.RUN_COMPLETED,
+                sequence = 0,
+            ),
+        )
+        assertEquals(0, recorder.activeRunCountForTesting())
+    }
+
+    @Test
+    fun gateBlockedHelperReleasesSequenceState() = runTest {
+        val recorder = TraceRecorder(InMemoryLogStore())
+        recorder.recordGateBlocked(
+            runId = "blocked-run",
+            automationId = "task-1",
+            reasonCode = TraceReasons.CONSTRAINT_BLOCKED,
+            detail = "battery condition",
+            atEpochMs = 1_000L,
+        )
+        assertEquals(0, recorder.activeRunCountForTesting())
     }
 
     @Test
