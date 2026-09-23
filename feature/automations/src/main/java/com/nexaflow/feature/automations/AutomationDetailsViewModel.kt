@@ -17,6 +17,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.stateIn
@@ -38,10 +39,29 @@ class AutomationDetailsViewModel @Inject constructor(
         .map { list -> list.find { it.id == automationId } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    /** Read-only, locally-derived execution health for the routine being viewed. */
-    val healthReport: StateFlow<AutomationHealthReport> = healthRepository.getHealthReports()
-        .map { reports -> reports.find { it.automationId == automationId } ?: emptyHealthReport(automationId) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyHealthReport(automationId))
+    /** Durable recovery state is kept separate from history-derived health. */
+    private val _recoveryPending = MutableStateFlow(false)
+
+    /**
+     * Read-only health for the routine. History provides execution counts and
+     * failure streaks; the durable execution ledger alone decides whether
+     * recovery review is currently pending.
+     */
+    val healthReport: StateFlow<AutomationHealthReport> = combine(
+        healthRepository.getHealthReports(),
+        _recoveryPending
+    ) { reports, recoveryPending ->
+        val report = reports.find { it.automationId == automationId }
+            ?: emptyHealthReport(automationId)
+        report.copy(
+            recoveryReviewPending = recoveryPending,
+            status = if (recoveryPending) {
+                AutomationHealthStatus.NEEDS_ATTENTION
+            } else {
+                report.status
+            }
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyHealthReport(automationId))
 
     private val _running = MutableStateFlow(false)
     val running: StateFlow<Boolean> = _running
@@ -51,6 +71,18 @@ class AutomationDetailsViewModel @Inject constructor(
 
     private val _executionMessage = MutableStateFlow<String?>(null)
     val executionMessage: StateFlow<String?> = _executionMessage
+
+    init {
+        refreshRecoveryState()
+    }
+
+    private fun refreshRecoveryState() {
+        viewModelScope.launch {
+            _recoveryPending.value = runCatching {
+                executionEngine.recoveryBacklogCount(automationId) > 0
+            }.getOrDefault(false)
+        }
+    }
 
     fun setDeepLinkAccess(enabled: Boolean) {
         viewModelScope.launch {
@@ -146,6 +178,7 @@ class AutomationDetailsViewModel @Inject constructor(
     fun clearRecoveryBacklog() {
         viewModelScope.launch {
             val cleared = executionEngine.clearRecoveryBacklog(automationId)
+            _recoveryPending.value = executionEngine.recoveryBacklogCount(automationId) > 0
             _executionMessage.value = appContext.getString(
                 R.string.recovery_backlog_cleared,
                 cleared
