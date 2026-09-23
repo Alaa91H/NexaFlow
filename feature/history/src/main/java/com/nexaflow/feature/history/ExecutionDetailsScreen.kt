@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,6 +34,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.nexaflow.core.execution.ExecutionResultPresentation
+import com.nexaflow.core.logging.RunExplainer
 import com.nexaflow.core.ui.EmptyState
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.theme.NexaFlowTheme
@@ -95,6 +97,9 @@ fun ExecutionDetailsScreen(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 RunSummaryCard(record = current)
+                uiState.explanation?.let { explanation ->
+                    RunExplanationCard(explanation = explanation)
+                }
                 SectionHeader(text = stringResource(R.string.section_timeline))
                 NexaFlowCard {
                     if (current.actionResults.isEmpty()) {
@@ -210,6 +215,89 @@ private fun RunSummaryCard(record: ExecutionRecord) {
                         style = MaterialTheme.typography.titleSmall
                     )
                 }
+            }
+        }
+    }
+}
+
+/** Human-readable diagnosis backed by the structured execution trace. */
+@Composable
+private fun RunExplanationCard(explanation: RunExplainer.Explanation) {
+    val explanationText = when (explanation.explanationKey) {
+        "explain_constraint_blocked" -> stringResource(R.string.why_run_constraint_blocked)
+        "explain_trigger_all_blocked" -> stringResource(R.string.why_run_all_triggers_blocked)
+        "explain_capability_blocked" -> stringResource(R.string.why_run_capability_blocked)
+        "explain_configuration_blocked" -> stringResource(R.string.why_run_configuration_blocked)
+        "explain_admission_rejected" -> stringResource(R.string.why_run_admission_rejected)
+        "explain_maintenance_waiting" -> stringResource(R.string.why_run_maintenance_waiting)
+        "explain_maintenance_duplicate" -> stringResource(R.string.why_run_maintenance_duplicate)
+        "explain_action_failed" -> stringResource(R.string.why_run_action_failed)
+        "explain_verification_failed" -> stringResource(R.string.why_run_verification_failed)
+        "explain_outcome_uncertain" -> stringResource(R.string.why_run_outcome_uncertain)
+        "explain_run_failed" -> stringResource(R.string.why_run_failed)
+        else -> stringResource(R.string.why_run_unknown)
+    }
+    val fixText = when (explanation.fixKey) {
+        "fix_review_constraints" -> stringResource(R.string.why_run_fix_review_constraints)
+        "fix_check_all_conditions" -> stringResource(R.string.why_run_fix_check_all_conditions)
+        "fix_grant_capability" -> stringResource(R.string.why_run_fix_grant_capability)
+        "fix_review_task_configuration" -> stringResource(R.string.why_run_fix_review_task_configuration)
+        "fix_check_running_state" -> stringResource(R.string.why_run_fix_check_running_state)
+        "fix_review_action_config" -> stringResource(R.string.why_run_fix_review_action_config)
+        "fix_retry_or_review" -> stringResource(R.string.why_run_fix_retry_or_review)
+        "fix_review_device_state" -> stringResource(R.string.why_run_fix_review_device_state)
+        "fix_open_history" -> stringResource(R.string.why_run_fix_open_history)
+        else -> null
+    }
+
+    NexaFlowCard {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                IconBadge(
+                    icon = Icons.Filled.HelpOutline,
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                    size = 40
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.why_run_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = explanationText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            explanation.detail
+                ?.takeIf { it.isNotBlank() }
+                ?.let { detail ->
+                    Text(
+                        text = detail,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+
+            fixText?.let { fix ->
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Text(
+                    text = stringResource(R.string.why_run_fix_label),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = fix,
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
         }
     }
