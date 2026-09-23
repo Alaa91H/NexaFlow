@@ -21,7 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -95,7 +94,7 @@ class WearDeviceRegistry @Inject constructor(
             return false
         }
 
-        upsert(
+        return upsert(
             WearDeviceDescriptor(
                 watchInstallId = snapshot.watchInstallId,
                 nodeId = nodeId,
@@ -108,17 +107,29 @@ class WearDeviceRegistry @Inject constructor(
                 lastSeenEpochMs = snapshot.updatedAtEpochMs,
             )
         )
-        return true
     }
 
     fun findByInstallId(watchInstallId: String): WearDeviceDescriptor? =
         _devices.value.firstOrNull { it.watchInstallId == watchInstallId }
 
-    private fun upsert(device: WearDeviceDescriptor) {
-        _devices.update { current ->
+    @Synchronized
+    private fun upsert(device: WearDeviceDescriptor): Boolean {
+        val current = _devices.value
+        val existing = current.firstOrNull { it.watchInstallId == device.watchInstallId }
+        val existingSeenAt = existing?.lastSeenEpochMs
+        val incomingSeenAt = device.lastSeenEpochMs
+        if (
+            existingSeenAt != null &&
+            incomingSeenAt != null &&
+            incomingSeenAt < existingSeenAt
+        ) {
+            return false
+        }
+
+        _devices.value =
             (current.filterNot { it.watchInstallId == device.watchInstallId } + device)
                 .sortedBy { it.displayName ?: it.watchInstallId }
-        }
+        return true
     }
 
     private companion object {
