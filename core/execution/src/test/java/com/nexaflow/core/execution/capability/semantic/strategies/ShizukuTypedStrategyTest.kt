@@ -35,9 +35,7 @@ class ShizukuTypedStrategyTest {
         bound: Boolean,
         sink: RecordingSink
     ): ShizukuTypedStrategy {
-        @Suppress("UNUSED_PARAMETER")
         val strategy = ShizukuTypedStrategy(
-            packageName = "com.nexaflow.app",
             shizukuGranted = { granted },
             userServiceReady = { bound },
             execute = sink::run
@@ -65,12 +63,13 @@ class ShizukuTypedStrategyTest {
         val strategy = strategy(granted = true, bound = true, sink = sink)
         val outcome = strategy.execute(request(SemanticOperationId.WIFI_SET_STATE, true), SemanticOperationId.WIFI_SET_STATE)
         assertEquals(OperationOutcomeStatus.SUCCESS, outcome.status)
-        // The write must be a closed allowlisted setting write, never a shell string.
+        // The write must be a closed service operation, never a shell string.
         val operation = sink.lastOperation
-        assertTrue(operation is PrivilegedOperation.WriteSetting)
-        assertEquals("wifi_on", (operation as PrivilegedOperation.WriteSetting).key)
-        assertEquals("1", operation.value)
-        assertEquals(listOf("settings", "put", "global", "wifi_on", "1"), operation.argv())
+        assertTrue(operation is PrivilegedOperation.SetServiceState)
+        assertEquals(
+            listOf("svc", "wifi", "enable"),
+            operation?.argv()
+        )
         assertEquals("true", outcome.metadata["requestedEnabled"])
     }
 
@@ -114,20 +113,103 @@ class ShizukuTypedStrategyTest {
     }
 
     @Test
-    fun dndDisableWritesZenModeAndDndEnableGrantsPolicyAccessOnly() = runTest {
+    fun dndToggleWritesRealZenModeState() = runTest {
         val sink = RecordingSink()
         val strategy = strategy(granted = true, bound = true, sink = sink)
         sink.nextResult = SystemControlResult.ok("Operation executed")
-        strategy.execute(request(SemanticOperationId.DND_SET_STATE, false), SemanticOperationId.DND_SET_STATE)
+
+        strategy.execute(
+            request(SemanticOperationId.DND_SET_STATE, false),
+            SemanticOperationId.DND_SET_STATE
+        )
         assertTrue(sink.lastOperation is PrivilegedOperation.WriteSetting)
         assertEquals("zen_mode", (sink.lastOperation as PrivilegedOperation.WriteSetting).key)
-        strategy.execute(request(SemanticOperationId.DND_SET_STATE, true), SemanticOperationId.DND_SET_STATE)
-        // Enabling DND needs only notification-policy access for the app; it
-        // must not write the user's interruption filter directly.
-        assertTrue(sink.lastOperation is PrivilegedOperation.GrantNotificationPolicyAccess)
+        assertEquals("0", (sink.lastOperation as PrivilegedOperation.WriteSetting).value)
+
+        strategy.execute(
+            request(SemanticOperationId.DND_SET_STATE, true),
+            SemanticOperationId.DND_SET_STATE
+        )
+        assertTrue(sink.lastOperation is PrivilegedOperation.WriteSetting)
+        assertEquals("zen_mode", (sink.lastOperation as PrivilegedOperation.WriteSetting).key)
+        assertEquals("2", (sink.lastOperation as PrivilegedOperation.WriteSetting).value)
+
+        sink.nextResult = SystemControlResult.ok("3")
         assertEquals(
-            "com.nexaflow.app",
-            (sink.lastOperation as PrivilegedOperation.GrantNotificationPolicyAccess).packageName
+            true,
+            strategy.readState(
+                request(SemanticOperationId.DND_GET_STATE, true),
+                SemanticOperationId.DND_GET_STATE
+            )
+        )
+    }
+
+    @Test
+    fun locationAndDataSaverUseClosedTypedCommands() = runTest {
+        val sink = RecordingSink()
+        val strategy = strategy(granted = true, bound = true, sink = sink)
+
+        strategy.execute(
+            request(SemanticOperationId.LOCATION_SET_STATE, true),
+            SemanticOperationId.LOCATION_SET_STATE
+        )
+        assertEquals(
+            listOf("cmd", "location", "set-location-enabled", "true"),
+            sink.lastOperation?.argv()
+        )
+
+        strategy.execute(
+            request(SemanticOperationId.DATA_SAVER_SET_STATE, false),
+            SemanticOperationId.DATA_SAVER_SET_STATE
+        )
+        assertEquals(
+            listOf("cmd", "netpolicy", "set", "restrict-background", "false"),
+            sink.lastOperation?.argv()
+        )
+    }
+
+    @Test
+    fun brightnessAndTimeoutUseAllowlistedSettingsWrites() = runTest {
+        val sink = RecordingSink()
+        val strategy = strategy(granted = true, bound = true, sink = sink)
+
+        strategy.execute(
+            TypedOperationRequest(
+                SemanticOperationId.BRIGHTNESS_SET,
+                parameters = mapOf("value" to "123")
+            ),
+            SemanticOperationId.BRIGHTNESS_SET
+        )
+        assertEquals(
+            listOf("settings", "put", "system", "screen_brightness", "123"),
+            sink.lastOperation?.argv()
+        )
+
+        strategy.execute(
+            TypedOperationRequest(
+                SemanticOperationId.SCREEN_TIMEOUT_SET,
+                parameters = mapOf("seconds" to "30")
+            ),
+            SemanticOperationId.SCREEN_TIMEOUT_SET
+        )
+        assertEquals(
+            listOf("settings", "put", "system", "screen_off_timeout", "30000"),
+            sink.lastOperation?.argv()
+        )
+    }
+
+    @Test
+    fun airplaneModeUsesConnectivityServiceCommand() = runTest {
+        val sink = RecordingSink()
+        val strategy = strategy(granted = true, bound = true, sink = sink)
+
+        strategy.execute(
+            request(SemanticOperationId.AIRPLANE_MODE_SET_STATE, true),
+            SemanticOperationId.AIRPLANE_MODE_SET_STATE
+        )
+        assertEquals(
+            listOf("cmd", "connectivity", "airplane-mode", "enable"),
+            sink.lastOperation?.argv()
         )
     }
 
