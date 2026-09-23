@@ -72,6 +72,11 @@ object RunExplainer {
             fixKey = "fix_grant_capability",
             detail = event.detail,
         )
+        TraceReasons.CONFIGURATION_BLOCKED -> Explanation(
+            explanationKey = "explain_configuration_blocked",
+            fixKey = "fix_review_task_configuration",
+            detail = event.detail,
+        )
         TraceReasons.ADMISSION_REJECTED -> Explanation(
             explanationKey = "explain_admission_rejected",
             fixKey = "fix_check_running_state",
