@@ -1,5 +1,6 @@
 package com.nexaflow.core.execution.handler
 
+import com.nexaflow.core.execution.capability.toSystemControlResult
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
@@ -25,14 +26,7 @@ class AppActionsHandler : ActionHandler {
             action, ctx.automationId, ctx.runContext?.runId
         )
         if (capabilityRequest != null && ctx.capabilityService != null) {
-            val res = ctx.capabilityService.execute(capabilityRequest)
-            return if (res.status == com.nexaflow.domain.capability.CapabilityStatus.SUCCESS ||
-                res.status == com.nexaflow.domain.capability.CapabilityStatus.PENDING_USER_ACTION
-            ) {
-                SystemControlResult.ok(res.message)
-            } else {
-                SystemControlResult.fail(res.message)
-            }
+            return ctx.capabilityService.execute(capabilityRequest).toSystemControlResult()
         }
 
         return when (action.type) {
