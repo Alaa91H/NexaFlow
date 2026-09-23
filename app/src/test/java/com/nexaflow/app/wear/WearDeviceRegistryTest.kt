@@ -61,6 +61,29 @@ class WearDeviceRegistryTest {
     }
 
     @Test
+    fun `stale advertisement cannot restore an old node id`() {
+        val current = WearCapabilitySnapshot(
+            watchInstallId = "watch-stable-id",
+            capabilities = setOf(WearCapability.PROTOCOL_V1),
+            deviceName = "Current watch",
+            updatedAtEpochMs = 2_000L,
+        )
+        val stale = current.copy(
+            deviceName = "Stale watch",
+            updatedAtEpochMs = 1_000L,
+        )
+
+        assertTrue(registry.acceptSnapshot("node-current", current))
+        assertFalse(registry.acceptSnapshot("node-stale", stale))
+
+        val device = registry.findByInstallId("watch-stable-id")
+            ?: error("Expected watch-stable-id in registry")
+        assertEquals("node-current", device.nodeId)
+        assertEquals("Current watch", device.displayName)
+        assertEquals(2_000L, device.lastSeenEpochMs)
+    }
+
+    @Test
     fun `unsupported protocol advertisement is rejected`() {
         val unsupported = WearCapabilitySnapshot(
             watchInstallId = "future-watch",
