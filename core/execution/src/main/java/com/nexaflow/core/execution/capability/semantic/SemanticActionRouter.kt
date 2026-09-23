@@ -114,11 +114,9 @@ object SemanticActionMapper {
                 "seconds" to (action.config["seconds"] ?: return null)
             )
             else -> {
-                // Legacy toggle configs stored either "enabled" or omitted; the
-                // omit case predates the parameter and was displayed to users as
-                // a toggle defaulting to ON. Value-based writes such as brightness
-                // and screen timeout do not have an enabled parameter and must not
-                // be rejected by this boolean compatibility rule.
+                // Boolean compatibility rules apply only to toggle operations.
+                // Scalar writes use their own required value and must not be
+                // rejected merely because they do not have an "enabled" key.
                 val enabled = parseEnabled(
                     action.config["enabled"],
                     action.config["configVersion"]
