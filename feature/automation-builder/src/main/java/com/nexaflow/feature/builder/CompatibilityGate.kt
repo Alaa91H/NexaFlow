@@ -5,7 +5,9 @@ import com.nexaflow.core.execution.compat.CommandCompatibilityEngine
 import com.nexaflow.core.execution.compat.CommandCatalog
 import com.nexaflow.core.execution.compat.CommandRequirementCatalog
 import com.nexaflow.core.execution.compat.DeviceProfile
-import com.nexaflow.domain.catalog.AutomationNodeCatalog\nimport com.nexaflow.domain.catalog.AutomationNodeVisibility\nimport com.nexaflow.domain.capability.CapabilityAvailability
+import com.nexaflow.domain.catalog.AutomationNodeCatalog
+import com.nexaflow.domain.catalog.AutomationNodeVisibility
+import com.nexaflow.domain.capability.CapabilityAvailability
 import com.nexaflow.domain.capability.CapabilityId
 import com.nexaflow.domain.capability.CapabilityRequirement
 import com.nexaflow.domain.capability.CapabilityRequirementResolver
