@@ -1215,10 +1215,11 @@ private fun ActionDiagnosticRow(result: ActionExecutionResult) {
             "✕ " + stringResource(R.string.execution_diagnostic_not_verified)
         else -> null
     }
-    val outcome = if (result.success) {
-        "✓ " + stringResource(R.string.execution_diagnostic_action_ok)
-    } else {
-        "✕ " + stringResource(R.string.execution_diagnostic_action_failed)
+    val skipped = result.message.startsWith("Skipped:")
+    val outcome = when {
+        skipped -> stringResource(R.string.execution_diagnostic_skipped)
+        result.success -> "✓ " + stringResource(R.string.execution_diagnostic_action_ok)
+        else -> "✕ " + stringResource(R.string.execution_diagnostic_action_failed)
     }
     val summary = listOfNotNull(outcome, route, verification).joinToString("  →  ")
 
@@ -1227,10 +1228,10 @@ private fun ActionDiagnosticRow(result: ActionExecutionResult) {
         Text(
             text = summary,
             style = MaterialTheme.typography.bodySmall,
-            color = if (result.success) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.error
+            color = when {
+                skipped -> MaterialTheme.colorScheme.secondary
+                result.success -> MaterialTheme.colorScheme.primary
+                else -> MaterialTheme.colorScheme.error
             }
         )
         result.errorCode?.let { code ->
