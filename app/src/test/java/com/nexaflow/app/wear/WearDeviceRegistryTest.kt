@@ -12,7 +12,6 @@ import kotlinx.coroutines.cancel
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -55,10 +54,10 @@ class WearDeviceRegistryTest {
 
         assertEquals(1, registry.devices.value.size)
         val device = registry.findByInstallId("watch-stable-id")
-        assertNotNull(device)
-        assertEquals("node-new", device?.nodeId)
-        assertEquals("Watch re-paired", device?.displayName)
-        assertEquals(2_000L, device?.lastSeenEpochMs)
+            ?: error("Expected watch-stable-id in registry")
+        assertEquals("node-new", device.nodeId)
+        assertEquals("Watch re-paired", device.displayName)
+        assertEquals(2_000L, device.lastSeenEpochMs)
     }
 
     @Test
