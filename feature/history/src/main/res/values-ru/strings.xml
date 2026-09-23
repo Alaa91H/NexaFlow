@@ -67,4 +67,13 @@
     <string name="block_category_contact">Контакт</string>
     <string name="diagnostics_end_behavior_label">Проблемы конечного поведения</string>
     <string name="diagnostics_action_config_label">Проблемы конфигурации действий</string>
+
+    <!-- Structured execution diagnosis. -->
+    <string name="why_run_title">Почему эта задача не запустилась?</string>
+    <string name="why_run_constraint_blocked">Одно или несколько условий задачи заблокировали этот запуск.</string>
+    <string name="why_run_all_triggers_blocked">Не все обязательные триггеры были выполнены одновременно.</string>
+    <string name="why_run_unknown">Этот запуск остановлен по зафиксированной причине. Подробности указаны ниже.</string>
+    <string name="why_run_fix_label">Рекомендуемое исправление</string>
+    <string name="why_run_fix_review_constraints">Проверьте условия задачи и текущее состояние устройства.</string>
+    <string name="why_run_fix_check_all_conditions">Проверьте каждый триггер задачи и убедитесь, что все обязательные условия сейчас выполнены.</string>
 </resources>
