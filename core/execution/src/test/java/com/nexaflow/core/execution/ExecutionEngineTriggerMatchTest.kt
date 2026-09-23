@@ -166,7 +166,7 @@ class ExecutionEngineTriggerMatchTest {
         val record = engine(handler, history).runWithConditionGate(task)
 
         assertEquals(0, handler.calls)
-        assertTrue(record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX))
+        assertTrue(record.message.startsWith("Skipped:"))
     }
 
     @Test
