@@ -1006,6 +1006,10 @@ class ExecutionEngine(
         activeExecutionStore.clear(automationId)
     }
 
+    /** Current unresolved recovery count from the durable checkpoint ledger. */
+    suspend fun recoveryBacklogCount(automationId: String): Int =
+        activeExecutionStore.recoveryRequiredCountForAutomation(automationId)
+
     /**
      * Discards recovery records that the user explicitly acknowledged for one
      * automation. This does not retry uncertain work or mark it successful.
