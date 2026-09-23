@@ -84,5 +84,8 @@ const val WEAR_TOGGLE_SEPARATOR = ":"
  */
 const val WEAR_PATH_SYNC_REQUEST = "/nexaflow/sync-request"
 
-/** CapabilityClient capability name advertised by the phone companion app. */
+/** Capability advertised by the phone APK in app/src/main/res/values/wear.xml. */
 const val WEAR_CAPABILITY_PHONE_APP = "nexaflow_phone_companion"
+
+/** Capability advertised by the watch APK in wear/src/main/res/values/wear.xml. */
+const val WEAR_CAPABILITY_WATCH_APP = "nexaflow_watch_companion"

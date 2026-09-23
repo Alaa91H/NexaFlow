@@ -3,9 +3,9 @@ package com.nexaflow.app.wear
 import android.content.Context
 import android.util.Log
 import com.google.android.gms.wearable.CapabilityClient
-import com.google.android.gms.wearable.NodeClient
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
+import com.nexaflow.core.execution.WEAR_CAPABILITY_WATCH_APP
 import com.nexaflow.core.execution.WEAR_KEY_PAYLOAD
 import com.nexaflow.core.execution.WEAR_KEY_UPDATED_AT
 import com.nexaflow.core.execution.WEAR_PATH_AUTOMATIONS
@@ -19,13 +19,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -64,20 +63,9 @@ class WearSyncManager @Inject constructor(
     // throttling use case; opted in locally rather than project-wide.
     @OptIn(FlowPreview::class)
     fun start() {
-        // Advertise the phone companion capability: the watch uses it to tell
-        // a reachable companion apart from a paired-but-dead phone.
-        syncScope.launch {
-            runCatching {
-                Wearable.getCapabilityClient(context).addLocalCapability(
-                    com.nexaflow.core.execution.WEAR_CAPABILITY_PHONE_APP
-                ).await()
-            }.onFailure { Log.w(TAG, "Capability advertisement failed", it) }
-        }
-        // Re-push whenever a watch (re)connects: the historical design pushed
-        // only on data changes, so a phone process started while the watch was
-        // disconnected left it with no data — the reported "sync never starts"
-        // bug. DataItems survive in the Data Layer cache, but a fresh urgent
-        // push closes every race (GMS reconnect, stale cache, watch reboot).
+        // Re-push whenever the watch companion becomes reachable. The watch
+        // advertises a dedicated static capability, so the phone listens for
+        // the remote watch capability rather than its own phone capability.
         syncScope.launch {
             nodeConnectedEvents()
                 .collect {
@@ -109,39 +97,42 @@ class WearSyncManager @Inject constructor(
      * the initial connectivity state: a watch already present at app start
      * also gets its fresh push without waiting for a data change.
      *
-     * Uses the CapabilityClient "companion available" signal — the documented
-     * reachability source (play-services-wearable 19 has no NodeClient
-     * connect listener). When the watch becomes reachable the capability info
-     * carries at least one node, which is exactly the re-push trigger.
+     * The watch advertises [WEAR_CAPABILITY_WATCH_APP] from wear.xml. Using a
+     * distinct watch capability avoids the previous bug where the phone was
+     * querying/listening for its own phone capability and therefore could not
+     * reliably observe watch reachability transitions.
      */
     private fun nodeConnectedEvents(): kotlinx.coroutines.flow.Flow<Unit> =
-        kotlinx.coroutines.flow.callbackFlow {
+        callbackFlow {
             val capabilityClient = Wearable.getCapabilityClient(context)
             val listener =
-                com.google.android.gms.wearable.CapabilityClient.OnCapabilityChangedListener { info ->
-                    if (info.nodes.isNotEmpty()) this@callbackFlow.trySend(Unit)
+                CapabilityClient.OnCapabilityChangedListener { info ->
+                    if (info.nodes.isNotEmpty()) trySend(Unit)
                 }
-            // Snapshot the initial state: a watch already connected at start
-            // must trigger the first push without waiting for a transition.
-            coroutineScope {
-                launch {
-                    val reachable = runCatching {
-                        capabilityClient.getCapability(
-                            com.nexaflow.core.execution.WEAR_CAPABILITY_PHONE_APP,
-                            CapabilityClient.FILTER_REACHABLE
-                        ).await()
-                    }.getOrNull()?.nodes?.isNotEmpty() == true
-                    if (reachable) send(Unit)
-                }
-            }
+
+            // Register first, then take the snapshot. This closes the tiny
+            // race where the watch could become reachable between the initial
+            // query and listener registration.
             runCatching {
                 capabilityClient.addListener(
                     listener,
-                    com.nexaflow.core.execution.WEAR_CAPABILITY_PHONE_APP
-                )
-            }.onFailure { Log.w(TAG, "Capability listener registration failed", it) }
+                    WEAR_CAPABILITY_WATCH_APP,
+                ).await()
+            }.onFailure {
+                Log.w(TAG, "Watch capability listener registration failed", it)
+            }
+
+            val reachable = runCatching {
+                capabilityClient.getCapability(
+                    WEAR_CAPABILITY_WATCH_APP,
+                    CapabilityClient.FILTER_REACHABLE,
+                ).await()
+            }.getOrNull()?.nodes?.isNotEmpty() == true
+
+            if (reachable) trySend(Unit)
+
             awaitClose {
-                runCatching { capabilityClient.removeListener(listener) }
+                capabilityClient.removeListener(listener, WEAR_CAPABILITY_WATCH_APP)
             }
         }
 

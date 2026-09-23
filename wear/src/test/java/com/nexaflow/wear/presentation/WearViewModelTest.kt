@@ -6,6 +6,7 @@ import com.nexaflow.wear.data.WearDataLayerClient
 import com.nexaflow.wear.data.WearSyncRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -15,13 +16,18 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import kotlinx.coroutines.flow.MutableStateFlow
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35])
 class WearViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
@@ -33,6 +39,10 @@ class WearViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         dataLayerClient = mock()
+        runBlocking {
+            whenever(dataLayerClient.readCachedAutomationPayload()).thenReturn(null)
+            whenever(dataLayerClient.requestSync()).thenReturn(false)
+        }
         viewModel = WearViewModel(syncRepository, dataLayerClient)
     }
 
@@ -66,12 +76,55 @@ class WearViewModelTest {
         viewModel.uiState.test {
             assertEquals(WearUiState.Connecting, awaitItem())
 
-            // An explicit empty list must surface as Empty, not Connecting.
             syncRepository.handleIncomingPayload("[]")
             testDispatcher.scheduler.advanceUntilIdle()
 
             assertEquals(WearUiState.Empty, awaitItem())
         }
+    }
+
+    @Test
+    fun `cached DataItem snapshot is restored before a live phone is available`() = runTest {
+        val cachedRepository = WearSyncRepository()
+        val cachedClient: WearDataLayerClient = mock()
+        whenever(cachedClient.readCachedAutomationPayload()).thenReturn(
+            """[{"id":"cached","name":"Cached","icon":"I","iconColor":0,"enabled":true}]"""
+        )
+        whenever(cachedClient.requestSync()).thenReturn(false)
+        val cachedViewModel = WearViewModel(cachedRepository, cachedClient)
+
+        cachedViewModel.uiState.test {
+            assertEquals(WearUiState.Connecting, awaitItem())
+            testDispatcher.scheduler.advanceUntilIdle()
+            val state = awaitItem()
+            assertTrue(state is WearUiState.Loaded)
+            assertEquals("cached", (state as WearUiState.Loaded).automations.single().id)
+        }
+
+        verify(cachedClient).readCachedAutomationPayload()
+    }
+
+    @Test
+    fun `fresh sync stops retrying after a new DataItem revision arrives`() = runTest {
+        val retryRepository = WearSyncRepository()
+        val retryClient: WearDataLayerClient = mock()
+        whenever(retryClient.readCachedAutomationPayload()).thenReturn(null)
+        whenever(retryClient.requestSync()).thenAnswer {
+            retryRepository.handleIncomingPayload(
+                """[{"id":"fresh","name":"Fresh","icon":"I","iconColor":0,"enabled":true}]"""
+            )
+            true
+        }
+        val retryViewModel = WearViewModel(retryRepository, retryClient)
+
+        retryViewModel.uiState.test {
+            assertEquals(WearUiState.Connecting, awaitItem())
+            testDispatcher.scheduler.advanceUntilIdle()
+            val state = awaitItem()
+            assertTrue(state is WearUiState.Loaded)
+        }
+
+        verify(retryClient, times(1)).requestSync()
     }
 
     @Test

@@ -1,8 +1,10 @@
 package com.nexaflow.wear.data
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import com.google.android.gms.wearable.CapabilityClient
+import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.NodeClient
@@ -15,99 +17,71 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Sends command messages from the watch to the connected phone via the
- * Wearable [MessageClient].
+ * Sends commands from the watch to the connected phone and bootstraps the
+ * watch from the latest DataItem already cached by the Wearable Data Layer.
  *
- * Each command is sent to the nearest connected phone node; if no node is
- * found, the call returns silently — the user will see no change on screen
- * and the phone's [WearSyncManager] will push a fresh state when connection
- * is restored.
+ * The phone capability is preferred so commands cannot be routed to the wrong
+ * wearable node. If a capability has not propagated yet (for example while
+ * upgrading from an older build), the client falls back to any connected node,
+ * preferring a nearby node but allowing the Data Layer's Wi-Fi/cloud route.
  */
 @Singleton
 class WearDataLayerClient @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val dataClient: DataClient,
     private val messageClient: MessageClient,
     private val nodeClient: NodeClient,
 ) {
 
     /**
-     * Asks the phone to re-push the automation list now. Called when the watch
-     * UI starts: the phone only pushes on data changes, so without this pull
-     * the watch could sit on its "Connecting" spinner forever whenever the
-     * phone process started (or its data last changed) while the watch was
-     * disconnected. Targets phone nodes advertising the companion capability
-     * first; falls back to any connected node for older phone builds.
+     * Reads the newest locally available automation DataItem, if any.
+     *
+     * DataItems are durable Data Layer state: unlike MessageClient commands,
+     * they remain available while devices are temporarily disconnected. The
+     * wildcard URI covers the phone node that originally created the item and
+     * also handles node-id changes after re-pairing. If more than one creator
+     * exists, the payload with the greatest updatedAt value wins.
      */
-    suspend fun requestSync(): Boolean {
-        // 1) Instant local snapshot first (the PixelWater pattern): the Data
-        //    Layer caches the phone's last push on the watch even while the
-        //    phone is unreachable, so reading it directly never depends on the
-        //    phone process being alive or on any GMS round-trip succeeding.
-        readCachedSnapshot()
-        // 2) Then ask the phone to re-push a fresh copy in the background.
-        return sendSyncRequest()
-    }
+    suspend fun readCachedAutomationPayload(): String? = withContext(Dispatchers.IO) {
+        val uri = Uri.parse("wear://*${WearProtocol.PATH_AUTOMATIONS}")
+        val buffer = runCatching {
+            dataClient.getDataItems(uri, DataClient.FILTER_LITERAL).await()
+        }.getOrElse { error ->
+            Log.w(TAG, "Failed to read cached Wear automation DataItem", error)
+            return@withContext null
+        }
 
-    /**
-     * Reads the cached automation-list DataItem directly from the local Data
-     * Layer store and feeds it into the repository. This is what makes the
-     * watch show data instantly on app start even if the phone-side pull
-     * request chain (message → listener service → push → DATA_CHANGED) fails
-     * at any hop: the snapshot may be stale by one edit, but the UI shows
-     * real content immediately instead of "Connecting" forever.
-     */
-    private suspend fun readCachedSnapshot() {
-        runCatching {
-            val dataItems = Wearable.getDataClient(context)
-                .getDataItems(
-                    android.net.Uri.parse("wear://*" + WearProtocol.PATH_AUTOMATIONS)
-                ).await()
-            dataItems.use { items ->
-                for (item in items) {
-                    if (item.uri.path == WearProtocol.PATH_AUTOMATIONS) {
-                        val payload = DataMapItem.fromDataItem(item).dataMap
-                            .getString(WearProtocol.KEY_PAYLOAD)
-                        if (payload != null) {
-                            onDataSnapshot?.invoke(payload)
-                        }
-                    }
-                }
-            }
-        }.onFailure {
-            Log.w(TAG, "Failed to read cached automation snapshot", it)
+        try {
+            buffer.mapNotNull { item ->
+                runCatching {
+                    val map = DataMapItem.fromDataItem(item).dataMap
+                    val payload = map.getString(WearProtocol.KEY_PAYLOAD)
+                        ?: return@runCatching null
+                    CachedPayload(
+                        payload = payload,
+                        updatedAt = map.getLong(WearProtocol.KEY_UPDATED_AT),
+                    )
+                }.getOrNull()
+            }.maxByOrNull { it.updatedAt }?.payload
+        } finally {
+            buffer.release()
         }
     }
 
     /**
-     * Callback, set by the repository layer, that receives automation-list
-     * payloads read from the local Data Layer cache. Kept as a plain lambda
-     * so this client stays decoupled from the repository implementation.
+     * Asks the phone to re-push the automation list now.
+     *
+     * A true return value means only that MessageClient accepted/delivered the
+     * request to the target node. The caller must still wait for a new DataItem
+     * revision before treating synchronization as complete.
      */
-    var onDataSnapshot: ((String) -> Unit)? = null
-
-    /**
-     * Sends a fire-and-forget pull request to the phone. Returns true when a
-     * phone node accepted the message; false when no reachable phone node
-     * exists (the snapshot read above still gives the UI its data).
-     */
-    private suspend fun sendSyncRequest(): Boolean {
-        val capabilityNodes = runCatching {
-            Wearable.getCapabilityClient(context)
-                .getCapability(WearProtocol.CAPABILITY_PHONE_APP, CapabilityClient.FILTER_REACHABLE)
-                .await()
-                .nodes
-        }.getOrDefault(emptySet())
-        val nodeId = capabilityNodes
-            .filter { it.isNearby }
-            .firstOrNull()?.id
-            ?: capabilityNodes.firstOrNull()?.id
-            ?: nearbyNodeId()
-            ?: return false
+    suspend fun requestSync(): Boolean {
+        val nodeId = resolvePhoneNodeId() ?: return false
         return runCatching {
             messageClient.sendMessage(
                 nodeId,
                 WearProtocol.PATH_SYNC_REQUEST,
-                ByteArray(0)
+                ByteArray(0),
             ).await()
             true
         }.getOrElse { error ->
@@ -135,7 +109,11 @@ class WearDataLayerClient @Inject constructor(
 
     private suspend fun sendMessage(path: String, data: ByteArray) {
         withContext(Dispatchers.IO) {
-            val nodeId = nearbyNodeId() ?: return@withContext
+            val nodeId = resolvePhoneNodeId()
+            if (nodeId == null) {
+                Log.w(TAG, "No reachable phone node for Wear message on path $path")
+                return@withContext
+            }
             runCatching {
                 messageClient.sendMessage(nodeId, path, data).await()
             }.onFailure {
@@ -144,11 +122,35 @@ class WearDataLayerClient @Inject constructor(
         }
     }
 
-    private suspend fun nearbyNodeId(): String? = runCatching {
-        nodeClient.connectedNodes.await()
-            .firstOrNull { it.isNearby }
-            ?.id
-    }.getOrNull()
+    /**
+     * Resolves the actual phone companion first by its advertised capability.
+     * Nearby is preferred for latency, but reachable non-nearby nodes remain
+     * valid because the Wearable Data Layer can route via Wi-Fi/cloud.
+     */
+    private suspend fun resolvePhoneNodeId(): String? {
+        val capabilityNodes = runCatching {
+            Wearable.getCapabilityClient(context)
+                .getCapability(
+                    WearProtocol.CAPABILITY_PHONE_APP,
+                    CapabilityClient.FILTER_REACHABLE,
+                )
+                .await()
+                .nodes
+        }.getOrDefault(emptySet())
+
+        capabilityNodes.firstOrNull { it.isNearby }?.let { return it.id }
+        capabilityNodes.firstOrNull()?.let { return it.id }
+
+        return runCatching {
+            val nodes = nodeClient.connectedNodes.await()
+            nodes.firstOrNull { it.isNearby }?.id ?: nodes.firstOrNull()?.id
+        }.getOrNull()
+    }
+
+    private data class CachedPayload(
+        val payload: String,
+        val updatedAt: Long,
+    )
 
     private companion object {
         const val TAG = "WearDataLayerClient"
