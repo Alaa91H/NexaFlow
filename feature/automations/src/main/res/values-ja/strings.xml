@@ -552,4 +552,6 @@
     <string name="action_data_date_time_sub">ISO時刻を解析し選択したタイムゾーンで書式設定</string>
     <string name="action_data_json_sub">JSON Pointerのパス、キー、整形済みJSONを読み取り</string>
     <string name="action_data_array_sub">JSON配列の並べ替え・反転・結合・重複削除</string>
+    <string name="trigger_wear_event">Wear OS ウォッチ</string>
+    <string name="trigger_wear_event_sub">NexaFlow ウォッチの接続または切断時にタスクを実行</string>
 </resources>
