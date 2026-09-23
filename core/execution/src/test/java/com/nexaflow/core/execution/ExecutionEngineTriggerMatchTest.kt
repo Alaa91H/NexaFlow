@@ -170,6 +170,40 @@ class ExecutionEngineTriggerMatchTest {
     }
 
     @Test
+    fun liveDiagnosticsExposeEveryTriggerResultInSavedOrder() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val current = if (
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        ) "ON" else "OFF"
+        val opposite = if (current == "ON") "OFF" else "ON"
+        val task = automation(TriggerMatchMode.ALL).copy(
+            id = "diagnostic-all",
+            triggers = listOf(
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to current)),
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to opposite))
+            )
+        )
+        ActiveExecutionStore(context).clear(task.id)
+
+        val diagnostics = engine(handler, history).diagnoseManualAdmission(task)
+
+        assertEquals(
+            listOf(
+                com.nexaflow.domain.models.ConditionResult.Satisfied,
+                com.nexaflow.domain.models.ConditionResult.Unsatisfied
+            ),
+            diagnostics.triggerResults
+        )
+        assertEquals(
+            com.nexaflow.domain.models.ConditionResult.Unsatisfied,
+            diagnostics.triggerGateResult
+        )
+        assertTrue(!diagnostics.admissible)
+    }
+
+    @Test
     fun forceRunBypassesAllTriggerGate() = runBlocking {
         val handler = RecordingHandler()
         val history = RecordingHistory()
