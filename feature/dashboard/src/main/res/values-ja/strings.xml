@@ -146,4 +146,5 @@
     <string name="share_task_title">タスクを共有（.nexaflow）</string>
     <string name="share_task_failed">このタスクを共有できませんでした</string>
     <string name="task_access_details">タスクの詳細とアクセスリンク</string>
+    <string name="trigger_wear_event">Wear OS ウォッチ</string>
 </resources>
