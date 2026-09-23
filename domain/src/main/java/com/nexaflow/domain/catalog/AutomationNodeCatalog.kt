@@ -87,7 +87,7 @@ object AutomationNodeCatalog {
         )
     }
 
-    private val triggerFamilies: Map<TriggerType, AutomationNodeFamily> = strictFamilyMap(
+    private val triggerFamilies: Map<TriggerType, AutomationNodeFamily> by lazy { strictFamilyMap(
         expected = TriggerType.entries.toSet(),
         AutomationNodeFamily.SCHEDULE to listOf(
             TriggerType.TIME,
@@ -173,9 +173,9 @@ object AutomationNodeCatalog {
         AutomationNodeFamily.PLUGINS to listOf(
             TriggerType.PLUGIN_EVENT
         )
-    )
+    ) }
 
-    private val actionFamilies: Map<ActionType, AutomationNodeFamily> = strictFamilyMap(
+    private val actionFamilies: Map<ActionType, AutomationNodeFamily> by lazy { strictFamilyMap(
         expected = ActionType.entries.toSet(),
         AutomationNodeFamily.DISPLAY to listOf(
             ActionType.SYSTEM_BRIGHTNESS,
@@ -391,7 +391,7 @@ object AutomationNodeCatalog {
             ActionType.SYSTEM_OPEN_DEVICE_ADMIN_SETTINGS,
             ActionType.SYSTEM_OPEN_USAGE_ACCESS_SETTINGS
         )
-    )
+    ) }
 
     private fun triggerSchema(type: TriggerType): NodeConfigurationSchema = when (type) {
         TriggerType.TIME -> schema(
@@ -766,7 +766,7 @@ object AutomationNodeCatalog {
         else -> NodeConfigurationSchema()
     }
 
-    private val toggleActions = setOf(
+    private val toggleActions: Set<ActionType> by lazy { setOf(
         ActionType.SYSTEM_LOCATION,
         ActionType.SYSTEM_DND,
         ActionType.SYSTEM_WIFI,
@@ -800,7 +800,7 @@ object AutomationNodeCatalog {
         ActionType.SYSTEM_DATA_ROAMING,
         ActionType.SYSTEM_CALL_VIBRATION,
         ActionType.SYSTEM_STATUS_BAR_TOGGLE
-    )
+    ) }
 
     private fun thresholdSchema(
         default: String,
