@@ -5,6 +5,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.ManualBlockReason
+import com.nexaflow.core.execution.ManualBlockKind
 import com.nexaflow.core.execution.ExecutionResultPresentation
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.AutomationHealthReport
@@ -202,10 +204,10 @@ class AutomationDetailsViewModel @Inject constructor(
      * Typed mismatch explanation for the Run-now dialog; null when admissible.
      * Same policy source as the dashboard and deep-link paths.
      */
-    suspend fun describeManualBlock(): ExecutionEngine.ManualBlockReason? {
+    suspend fun describeManualBlock(): ManualBlockReason? {
         val current = automation.value ?: return null
         val reason = executionEngine.describeManualBlock(current)
-        return if (reason.kind == ExecutionEngine.ManualBlockKind.NONE) null else reason
+        return if (reason.kind == ManualBlockKind.NONE) null else reason
     }
 
     /** Explicit user override after the force-run confirmation dialog. */
