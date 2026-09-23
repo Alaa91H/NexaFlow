@@ -44,12 +44,9 @@ object AutomationHealthAnalyzer {
             ExecutionOutcomeClassifier.classify(it) == ExecutionHistoryOutcome.FAILED
         }
         val latestFailure = latestFailureRecord?.message
-        // A skip does not prove that previously blocked recovery work was resolved.
-        // Only a later admitted run supersedes the last recovery deferral.
-        val recoveryPending = relevant.firstOrNull {
-            ExecutionOutcomeClassifier.awaitsRecoveryReview(it.message) ||
-                !ExecutionOutcomeClassifier.isSkipped(it)
-        }?.let { ExecutionOutcomeClassifier.awaitsRecoveryReview(it.message) } == true
+        // Recovery state is durable engine state, not history-derived state.
+        // The UI overlays the live checkpoint-ledger answer on this history
+        // projection so stale legacy messages can never keep a task red forever.
         return AutomationHealthReport(
             automationId = automationId,
             lastExecutionAt = relevant.firstOrNull()?.executedAt,
@@ -61,11 +58,10 @@ object AutomationHealthAnalyzer {
             latestFailureRecord = latestFailureRecord,
             status = when {
                 relevant.isEmpty() -> AutomationHealthStatus.NO_EXECUTIONS
-                recoveryPending -> AutomationHealthStatus.NEEDS_ATTENTION
                 consecutiveFailures >= REPEATED_FAILURE_THRESHOLD -> AutomationHealthStatus.NEEDS_ATTENTION
                 else -> AutomationHealthStatus.HEALTHY
             },
-            recoveryReviewPending = recoveryPending
+            recoveryReviewPending = false
         )
     }
 
