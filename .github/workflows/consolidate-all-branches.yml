@@ -68,6 +68,42 @@ jobs:
             echo "::endgroup::"
           done
 
+      - name: Reconcile cross-branch privileged read contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path("core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedOperation.kt")
+          text = path.read_text()
+          pattern = re.compile(
+              r'        val READABLE_SETTING_KEYS: Set<String> = setOf\(\n'
+              r'(?:            "[^"]+",?\n)+'
+              r'        \)'
+          )
+          replacement = '''        val READABLE_SETTING_KEYS: Set<String> = setOf(
+              "wifi_on",
+              "bluetooth_on",
+              "airplane_mode_on",
+              "accelerometer_rotation",
+              "screen_brightness",
+              "screen_off_timeout",
+              "zen_mode",
+              "mobile_data"
+          )'''
+          updated, count = pattern.subn(replacement, text, count=1)
+          if count != 1:
+              raise SystemExit("Could not locate READABLE_SETTING_KEYS for reconciliation")
+          path.write_text(updated)
+          PY
+
+          if ! git diff --quiet -- core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedOperation.kt; then
+            git add core/rom-integration/src/main/java/com/nexaflow/core/rom/PrivilegedOperation.kt
+            git commit -m "fix: reconcile bounded settings readback after branch merge"
+          fi
+
       - name: Verify every branch tip is integrated
         shell: bash
         run: |
