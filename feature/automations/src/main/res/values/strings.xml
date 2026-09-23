@@ -551,4 +551,6 @@
     <string name="action_data_date_time_sub">Parse ISO instants and format in a chosen time zone</string>
     <string name="action_data_json_sub">Read JSON Pointer paths, keys and formatted JSON</string>
     <string name="action_data_array_sub">Order, reverse, join and deduplicate JSON arrays</string>
+    <string name="trigger_wear_event">Wear OS watch</string>
+    <string name="trigger_wear_event_sub">Run the task when a NexaFlow watch is connected or disconnected</string>
 </resources>
