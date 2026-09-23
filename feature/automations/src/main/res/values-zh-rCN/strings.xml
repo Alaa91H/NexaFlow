@@ -552,6 +552,38 @@
     <string name="action_data_date_time_sub">解析 ISO 时刻并按所选时区格式化</string>
     <string name="action_data_json_sub">读取 JSON Pointer 路径、键和格式化 JSON</string>
     <string name="action_data_array_sub">排序、反转、连接和去重 JSON 数组</string>
+
+    <string name="execution_diagnostics">执行诊断</string>
+    <string name="execution_diagnostics_subtitle">显示条件的实时状态以及最近操作实际使用的执行路径。</string>
+    <string name="refresh_diagnostics">刷新</string>
+    <string name="execution_diagnostics_loading">正在读取当前设备状态…</string>
+    <string name="execution_diagnostics_ready">现在可运行</string>
+    <string name="execution_diagnostics_blocked">运行条件尚未全部满足</string>
+    <string name="execution_diagnostics_triggers">当前触发器</string>
+    <string name="execution_diagnostics_constraints">当前约束</string>
+    <string name="execution_diagnostics_last_run">最近一次执行</string>
+    <string name="execution_diagnostics_no_last_run">暂时没有逐操作执行详情。</string>
+    <string name="execution_diagnostics_run_channel">执行路径：%1$s</string>
+    <string name="execution_diagnostic_satisfied">已满足</string>
+    <string name="execution_diagnostic_unsatisfied">未满足</string>
+    <string name="execution_diagnostic_unknown">未知</string>
+    <string name="execution_diagnostic_unavailable">不可用</string>
+    <string name="execution_diagnostic_error">错误</string>
+    <string name="execution_diagnostic_detail">详情：%1$s</string>
+    <string name="execution_diagnostic_restore">恢复原始状态</string>
+    <string name="execution_diagnostic_end_action">结束时：%1$s</string>
+    <string name="execution_diagnostic_via">通过 %1$s</string>
+    <string name="execution_diagnostic_verified">已验证</string>
+    <string name="execution_diagnostic_not_verified">未验证</string>
+    <string name="execution_diagnostic_action_ok">已完成</string>
+    <string name="execution_diagnostic_action_failed">失败</string>
+    <string name="execution_diagnostic_reason">原因：%1$s</string>
+
+    <string name="execution_diagnostics_current_run">当前执行</string>
+    <string name="execution_diagnostic_pending">等待中</string>
+    <string name="execution_diagnostic_running">执行中</string>
+    <string name="execution_diagnostic_skipped">已跳过</string>
+    <string name="execution_diagnostic_outcome_unknown">结果未知</string>
     <string name="trigger_wear_event">Wear OS 手表</string>
     <string name="trigger_wear_event_sub">当 NexaFlow 手表连接或断开连接时运行任务</string>
 </resources>
