@@ -4,14 +4,248 @@
 
 ### Fixed
 
-- **Capability outcomes no longer report pending work as success.** The execution
-  bridge now treats only terminal `SUCCESS` as a successful action; `PARTIAL`
-  and `PENDING_USER_ACTION` remain non-successful so missing Shizuku/Root
-  grants or Settings-assisted state changes cannot produce false-positive
-  history. Intent capabilities now report `SUCCESS` once `startActivity`
-  completes because the requested operation is the handoff itself, not the
-  destination app's later work. Regression tests cover every capability and
-  semantic outcome status.
+- Prevented root-detection timeout cleanup from surfacing spurious
+  `java.io.IOException: Stream closed` errors from background process-output
+  readers. The timeout path intentionally destroys the probe process; its pipe
+  closure is now treated as an expected cancellation condition instead of an
+  uncaught thread failure.
+
+## [v3.86.1] - 2026-09-23
+
+### Fixed — Wear OS companion synchronization
+
+- **Restored Wearable Data Layer connectivity between the phone and watch apps.**
+  The Wear APK now uses the same installed application ID as the phone app
+  (`com.nexaflow.app`) while retaining its independent Kotlin namespace
+  (`com.nexaflow.wear`).
+- **Resolved the permanent “Connecting” state reported on correctly paired
+  devices.** Google Play services requires Wearable Data Layer peers to share
+  both the package name and signing certificate; the previous package mismatch
+  prevented NexaFlow from establishing its companion communication channel.
+- **Hardened the build configuration against future identity drift.** The phone
+  and Wear modules now consume a single Gradle property for the shared
+  application ID, so release builds cannot silently diverge again.
+
+### Compatibility
+
+- No automation data, trigger configuration, or execution behavior is changed.
+- Existing phone installations remain on the same application ID.
+- Users should install the matching v3.86.1 phone and Wear APKs so both peers
+  have the same release identity and signing certificate.
+
+Fixes #3.
+
+## [v3.86.0] - 2026-09-23
+
+### Added — WorkflowDocumentV1: versioned persisted workflow foundation (P0.1) and typed execution tracing (P0.4)
+
+**Milestone A groundwork** toward a unified authoring/runtime model. No user-facing
+behavior changes: every existing task continues to read, run and sync exactly
+as before — the legacy `Automation` remains the storage format.
+
+- **`WorkflowDocumentV1`** (new, `domain/workflow`): the versioned persisted
+  workflow contract — `schemaVersion` gate, immutable-revision semantics,
+  stable node ids, declared variables, dependency and risk descriptors, and a
+  deterministic content hash for diagnostics equality.
+- **Conditions are data**: `ConditionExpr` / `ValueExpr` replace persisted
+  lambdas end-to-end. The runtime `WorkflowCondition` lambda is produced only
+  at the execution boundary by the new `WorkflowDocumentCompiler`
+  (`core:execution`), which maps documents onto the existing graph runtime
+  and fails loudly on unregistered named predicates instead of guessing.
+- **Lossless migration surface**: `WorkflowDocumentMappers` maps legacy tasks
+  to documents and back without interpretation or invented defaults; the
+  legacy-flat structure is enforced loudly (complex graphs route to the
+  graph runtime, never silently flattened).
+- **Safe forward rejection**: unknown schema versions and unknown node kinds
+  fail with typed errors instead of loading half-parsed definitions.
+- **Bounded structural validator**: empty graphs, duplicate node ids and
+  runaway loop/retry/timeout bounds are rejected before persist or run.
+- **Typed execution trace events (P0.4)**: `ExecutionTraceEvent`,
+  `TracePhase`, canonical `TraceReasons` and a `TraceRecorder` that writes
+  structured rows onto the *existing* timeline (no parallel logging system)
+  with secret redaction applied at the record boundary. The engine now emits
+  typed gate-blocked events (`CONSTRAINT_BLOCKED`,
+  `TRIGGER_ALL_GATE_BLOCKED`) — the data source for the upcoming
+  "Why didn't this run?" surface.
+- **22 new contract tests** pinning: legacy↔document round-trips,
+  unknown-version/kind rejection, validation parity with runtime bounds,
+  migration idempotency, revision-independent content hash, literal/data
+  condition evaluation, fail-closed context references, and trace redaction.
+
+### Hardened — CapabilityRouter decision integrity (NF-P0-002, NF-P0-003)
+
+**NF-P0-002 — Evidence and health are scored only after verification:**
+
+- `CapabilityRouter` no longer records success evidence/health on a raw
+  transport `SUCCESS`. Verification now runs first; the post-verification
+  verdict is what gets scored (verified success → verified evidence + healthy;
+  unverified success → unverified evidence only; verification failure or
+  unconfirmed outcome → failure evidence + unhealthy).
+- `VerificationMode.REQUIRED` is now strict. A transport success whose
+  read-back is observable but contradicts the request fails with
+  `VERIFICATION_FAILED`; a transport success whose post-condition **cannot**
+  be read back is reclassified as `UNKNOWN` (outcome unconfirmed) instead of
+  being reported as success — callers reconcile instead of trusting an
+  unobserved claim.
+- Value-write verification now reads the actual applied scalar
+  (`screen_brightness`, `screen_off_timeout`) via a new
+  `CapabilityStrategy.readStateValue` seam implemented by the Android public
+  API and Shizuku strategies, instead of fabricating a boolean verdict.
+- Reconciliation of `UNKNOWN` outcomes is itself the verification pass: a
+  matched read-back scores verified evidence and healthy health; a mismatched
+  or unreadable read scores failure.
+- `PENDING_USER_ACTION` and `CANCELLED` are terminal by contract: the router
+  neither scores a failure (nothing failed inside the strategy) nor falls
+  through to a privileged candidate (no privilege escalation by accident).
+
+**NF-P0-003 — Central typed parameter validation:**
+
+- New `OperationParameterValidator` is the single validation point between
+  the registry spec and strategy dispatch. Type, integer range, allowlist and
+  length checks are all enforced there — presence-only checks are gone.
+- Every `CapabilityParameterType` now enforces an exact grammar: `BOOLEAN`
+  accepts only canonical/wire forms (`true`/`false`/`1`/`0`), `INTEGER`
+  accepts canonical digits within `minimumInteger`/`maximumInteger`,
+  `PACKAGE_NAME` enforces the Android package grammar (no spaces, shell
+  metacharacters, empty labels or leading digits), `HTTPS_URL` requires the
+  https scheme with a host and no embedded credentials, `CONTENT_URI`
+  requires a `content://` provider URI, `OPAQUE_REFERENCE` rejects whitespace
+  and shell metacharacters, and `STRING` honors length and allowlist bounds.
+- All violations for a request are reported together in the spec's parameter
+  order with `INVALID_CONFIGURATION`, before any strategy availability probe
+  or execution runs.
+
+### Migrated — package operations fully on the semantic layer
+
+- Package force-stop, enable/disable and clear-data now run exclusively
+  through the semantic operation chain (`PACKAGE_FORCE_STOP`,
+  `PACKAGE_SET_ENABLED_STATE`, `PACKAGE_CLEAR_DATA`) via the closed
+  `PrivilegedOperation` algebra dispatched by `ShizukuTypedStrategy` and
+  `RootTypedStrategy` — the legacy direct-handler paths remain only as
+  unrouted fallbacks and can no longer bypass the router for these actions.
+- `PACKAGE_SET_ENABLED_STATE` keeps strict REQUIRED verification: the router
+  reads back the actual enabled state (`pm list packages -d` probe) and fails
+  with `VERIFICATION_FAILED` when the observed state contradicts the request.
+- `PACKAGE_FORCE_STOP` and `PACKAGE_CLEAR_DATA` are honestly declared
+  BEST_EFFORT: they have no reliable observable post-condition (a killed
+  process may be restarted instantly; the enabled-state probe says nothing
+  about cleared data), so their transport success stays honest-but-unverified
+  instead of fabricating a verdict.
+- Reconciliation of an uncertain privileged dispatch now distinguishes three
+  outcomes: a matching read-back reclassifies the operation as verified
+  SUCCESS; a contradicting read-back fails it; and when no comparable
+  post-condition exists (one-shot transitions) the outcome stays UNKNOWN —
+  never a fabricated failure, never a claimed success, and never a blind
+  re-execution.
+
+### Tests
+
+- New `PackageSemanticMigrationTest`: end-to-end contract tests running the
+  real strategies under the real router for both privileged transports —
+  closed argv shapes, verified enable/disable cycles, contradicted dispatches
+  failing with `VERIFICATION_FAILED`, uncertain dispatches surfacing UNKNOWN
+  with exactly one dispatch (no blind retry), invalid packages rejected
+  before any transport call, and legacy action types routing through the
+  full chain.
+- `OperationRegistryParityTest` pins the documented BEST_EFFORT exception so
+  the honesty of one-shot package transitions cannot silently regress.
+- New `OperationParameterValidatorTest`: per-type grammar coverage plus
+  router-integration tests proving malformed values never reach a strategy
+  probe.
+- Extended `CapabilityRouterTest` with the NF-P0-002 contract: strict
+  REQUIRED verification (match → verified success, contradiction →
+  `VERIFICATION_FAILED`, unreadable → `UNKNOWN`), reconciliation scoring,
+  failed-verification evidence, and `PENDING_USER_ACTION` terminality.
+
+### Added — Variables 1.0 domain contracts (P0.3) and "Why didn't this run?" explainer (P0.4)
+
+- **Variables 1.0 contracts** (new, `domain/variables/Variables10.kt`): the typed variable
+  declaration model with the roadmap's six scopes (action output, node,
+  execution, workflow-persistent, global-persistent, secret), deterministic
+  scope-resolution precedence, bounded size/depth quotas, cycle-safe computed
+  references, and `SecretReference` — a keystore-backed reference type that
+  carries a key alias instead of a value, refuses to serialize the underlying
+  secret, and is excluded from export by default.
+- **RunExplainer** (new, `core/logging/RunExplainer.kt`): turns the typed execution-trace
+  events recorded in the previous milestone into a user-facing answer for the
+  single most-asked question — *"why didn't this run?"* — with a reason code,
+  a plain-language explanation, and a concrete fix step where one exists
+  (grant permission, enable Shizuku, adjust trigger, unsupported on device).
+  Secret values can never enter an explanation by construction; the input
+  surface is the redaction-safe trace model.
+
+## [v3.85.1] - 2026-09-22
+
+### Fixed
+
+- **Skipped-run reasons are now visible in the UI.** Skipped executions store an exact gate reason (e.g. `Skipped: not all trigger conditions are true (charger, run time)`) in the backend diagnostic message, but both the history list and the execution-details screen showed only a generic localized "Task was skipped." label. The stored reason is now surfaced verbatim beneath the summary in the routine history row and on the execution-details header, so a silent skip is always diagnosable from the UI without connecting a debugger. Backend messages remain untouched (diagnostics protocol preserved); presentation-only change.
+
+### Notes
+
+- The skip-reason protocol (`Skipped:` message prefix recorded by the engine) predates this release; this change closes the visibility gap between the persisted diagnostics and the user-facing history without altering any recorded data or engine behavior.
+
+## [v3.85.0] - 2026-09-21
+
+### Fixed
+
+- **A failed exit no longer disables the task forever.** Found on a real
+  device: when an end action kept failing, the durable lifecycle row stayed
+  `EXIT_FAILED` after its bounded retry budget (5 attempts) was spent, and
+  every future activation was then rejected with "a prior lifecycle still
+  requires cleanup" — silently disabling the whole automation with no user
+  visible cue. An exhausted failed row is now reaped by the next activation,
+  so the task runs again from a clean state while the failed exit remains in
+  history. A failed row still inside its budget is preserved exactly as
+  before (strict recovery semantics unchanged, both behaviors pinned by
+  tests).
+- **New multi-trigger tasks default to ALL semantics.** The dominant support
+  request: users set several conditions (e.g. charging + night window) and
+  expect the task to run only when every condition holds — not when any one
+  of them fires. The builder now starts new tasks in "all conditions" mode;
+  the ANY selector stays one tap away, and tasks saved before this change
+  keep their stored value untouched.
+- **The builder's ALL-mode advisory now derives from the engine's own policy.**
+  The hard-coded draft list had drifted from the runtime's verifiable-state
+  classification (`APPLICATION` and `CALL_STATE` do have state evaluators).
+  The warning now delegates to `TriggerMatchPolicy.isEventOnly` — the single
+  source of truth the engine and the manual gate use — so it can never
+  disagree with what the runtime will actually verify.
+- **Quiet logs on phones without Wear support.** `WearSyncManager` probed
+  Wearable availability on every push and logged a full `API_UNAVAILABLE`
+  stack trace each time on devices with no watch. Availability is now checked
+  once and the sync path stands down with a single informational line.
+
+## [v3.84.0] - 2026-09-21
+
+### Fixed
+
+- **Watch shows automations instantly, even while the phone app is asleep.**
+  Studied two open-source companions with proven sync (PixelWater,
+  WearFiles) and adopted their decisive pattern: on startup the watch now
+  reads the **cached automation DataItem directly from the local Data Layer
+  store** (`getDataItems`) instead of depending entirely on the live
+  request chain (pull-request message → phone listener service → push →
+  DATA_CHANGED). The snapshot may be one edit stale, but the UI shows real
+  content immediately; the background pull request then refreshes it. Any
+  single failure in that chain previously left the watch on its
+  "Connecting" spinner forever.
+- **Symmetric process wake-up on the phone side.** The phone listener now
+  also declares the `DATA_CHANGED` intent filter for `/nexaflow/` paths
+  (the pattern both reference apps use), so Play Services can start the
+  phone process for Data Layer traffic with the same reliability it already
+  had for command messages. A `onDataChanged` handler consumes the buffer
+  and ignores self-echo, keeping the audit surface explicit and reviewed.
+
+### Tests
+
+- Snapshot contract suite: wire-format parity for the automation path and
+  payload key between the standalone wear module and the phone constants,
+  the exact `wear://*` URI shape the cache read parses, and DTO round-trip
+  through the same `Json` decoder both entry points share.
+
+## [v3.83.0] - 2026-09-21
+
+### Fixed
 
 - **Edited trigger removals now persist reliably.** The automation builder waits for
   its ViewModel-owned save job to finish before leaving the navigation stack.
@@ -19,6 +253,44 @@
   ViewModel, and cancel the in-flight Room write; removed triggers could then
   reappear when the task was opened again. A regression test now guards the
   post-save ordering. Fixes #7.
+
+### Changed
+
+- **Trigger-match ALL mode is now a full evaluation policy, not just a
+  multi-trigger gate.** The dedicated `TriggerMatchPolicy` centralizes the
+  ANY/ALL combination (truth table: ANY requires at least one verifiably
+  satisfied condition; ALL requires every condition verifiably satisfied;
+  an empty condition list can never start a run under either mode), and the
+  execution engine routes every trigger evaluation through it. A task with a
+  **single** condition in ALL mode is now live-evaluated like any other —
+  the firing monitor only starts the evaluation and is never treated as
+  proof that its condition still holds.
+- **Honest typed condition results for state-read adapters.** `CHARGER` and
+  `AIRPLANE_MODE` are classified as definitive-false-when-false state reads
+  (like `TIME` and `DEVICE`): a false answer is a verified current state and
+  an unreadable state surfaces as `Unknown`, so the ALL gate and the manual
+  run gate no longer over-report unverifiable conditions.
+
+### Added
+
+- **Builder advisory for event-only triggers in ALL mode.** When a task set
+  to "all conditions" contains a momentary trigger that can never be
+  re-verified from device state (notification, boot, NFC tag scan, SMS,
+  webhook, sensor, plugin, geofence, ...), the builder shows an explicit
+  warning that such a condition will keep the task from running in ALL mode,
+  instead of failing silently at runtime. Localized across all 10 supported
+  languages.
+
+### Tests
+
+- Complete ANY/ALL truth-table policy suite (17 cases) including 3-condition
+  combinations, the empty-condition guard, and event-only advisory
+  classification.
+- Cross-midnight time-range matrix: `22:00–07:00` is satisfied at 22:30,
+  01:00 and 06:59 and unsatisfied at 12:00, 18:00 and 07:01, plus the
+  charging-at-night acceptance scenario.
+- Engine gate tests for ALL mode with a single condition (both the skip and
+  the run path) proving a firing monitor is not current truth.
 
 ## [v3.82.0] - 2026-09-21
 
