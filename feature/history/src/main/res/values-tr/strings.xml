@@ -67,4 +67,13 @@
     <string name="block_category_contact">Kişi</string>
     <string name="diagnostics_end_behavior_label">Bitiş davranışı sorunları</string>
     <string name="diagnostics_action_config_label">Eylem yapılandırma sorunları</string>
+
+    <!-- Structured execution diagnosis. -->
+    <string name="why_run_title">Bu görev neden çalışmadı?</string>
+    <string name="why_run_constraint_blocked">Bir veya daha fazla görev koşulu bu çalıştırmayı engelledi.</string>
+    <string name="why_run_all_triggers_blocked">Gerekli tetikleyicilerin tümü aynı anda sağlanmadı.</string>
+    <string name="why_run_unknown">Bu çalıştırma kaydedilmiş bir nedenle durdu. Aşağıdaki ayrıntılara bakın.</string>
+    <string name="why_run_fix_label">Önerilen çözüm</string>
+    <string name="why_run_fix_review_constraints">Görev koşullarını ve cihazın mevcut durumunu gözden geçirin.</string>
+    <string name="why_run_fix_check_all_conditions">Görevdeki tüm tetikleyicileri kontrol edin ve gerekli tüm koşulların şu anda sağlandığından emin olun.</string>
 </resources>
