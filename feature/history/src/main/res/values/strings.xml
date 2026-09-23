@@ -67,4 +67,31 @@
     <string name="block_category_contact">Contact</string>
     <string name="diagnostics_end_behavior_label">End-behavior problems</string>
     <string name="diagnostics_action_config_label">Action configuration problems</string>
+
+    <!-- Structured execution diagnosis. -->
+    <string name="why_run_title">Why didn\'t this run?</string>
+    <string name="why_run_constraint_blocked">One or more task conditions blocked this run.</string>
+    <string name="why_run_all_triggers_blocked">Not all required triggers were true at the same time.</string>
+    <string name="why_run_unknown">This run stopped for a recorded reason. See the detail below.</string>
+    <string name="why_run_fix_label">Suggested fix</string>
+    <string name="why_run_fix_review_constraints">Review the task\'s conditions and the current device state.</string>
+    <string name="why_run_fix_check_all_conditions">Check every trigger in the task and make sure all required conditions are currently true.</string>
+
+    <string name="why_run_capability_blocked">A required capability or permission is unavailable.</string>
+    <string name="why_run_admission_rejected">This run was rejected because another execution or recovery state is still active.</string>
+    <string name="why_run_maintenance_waiting">This maintenance task is waiting for its allowed run window.</string>
+    <string name="why_run_maintenance_duplicate">This maintenance occurrence was already completed, so it was not run again.</string>
+    <string name="why_run_action_failed">An action failed before the task could complete successfully.</string>
+    <string name="why_run_verification_failed">The requested change could not be verified on the device.</string>
+    <string name="why_run_outcome_uncertain">The device state could not confirm whether the requested change completed.</string>
+    <string name="why_run_failed">The task ended with a recorded failure.</string>
+    <string name="why_run_fix_grant_capability">Grant the required permission or make an available execution provider ready, then try again.</string>
+    <string name="why_run_fix_check_running_state">Wait for the active run to finish, or review recovery state if it remains blocked.</string>
+    <string name="why_run_fix_review_action_config">Review the failed action\'s configuration, permissions, and required provider.</string>
+    <string name="why_run_fix_retry_or_review">Retry the task. If it fails again, review the action and device permissions.</string>
+    <string name="why_run_fix_review_device_state">Check the actual device state before retrying the task.</string>
+    <string name="why_run_fix_open_history">Review the execution timeline below for the action that failed.</string>
+
+    <string name="why_run_configuration_blocked">The task configuration is incomplete, so execution was blocked.</string>
+    <string name="why_run_fix_review_task_configuration">Review the task configuration and provide the required values before trying again.</string>
 </resources>
