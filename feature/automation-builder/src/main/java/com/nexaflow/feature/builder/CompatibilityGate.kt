@@ -5,7 +5,7 @@ import com.nexaflow.core.execution.compat.CommandCompatibilityEngine
 import com.nexaflow.core.execution.compat.CommandCatalog
 import com.nexaflow.core.execution.compat.CommandRequirementCatalog
 import com.nexaflow.core.execution.compat.DeviceProfile
-import com.nexaflow.domain.capability.CapabilityAvailability
+import com.nexaflow.domain.catalog.AutomationNodeCatalog\nimport com.nexaflow.domain.catalog.AutomationNodeVisibility\nimport com.nexaflow.domain.capability.CapabilityAvailability
 import com.nexaflow.domain.capability.CapabilityId
 import com.nexaflow.domain.capability.CapabilityRequirement
 import com.nexaflow.domain.capability.CapabilityRequirementResolver
@@ -131,6 +131,8 @@ object CompatibilityGate {
     ): List<Pair<ActionOption, CapabilityRequirement>> {
         val p = profile(context)
         return actionOptions.mapNotNull { option ->
+            val definition = AutomationNodeCatalog.definitionFor(option.actionType)
+            if (definition.visibility != AutomationNodeVisibility.DISCOVERABLE) return@mapNotNull null
             if (!engine.isSupported(option.actionType, p)) return@mapNotNull null
             option to CommandRequirementCatalog.requirementFor(option.actionType)
         }
@@ -162,6 +164,8 @@ object CompatibilityGate {
     ): List<Pair<TriggerType, CapabilityRequirement>> {
         val p = profile(context)
         return triggerTypeOptions.mapNotNull { type ->
+            val definition = AutomationNodeCatalog.definitionFor(type)
+            if (definition.visibility != AutomationNodeVisibility.DISCOVERABLE) return@mapNotNull null
             if (!engine.isSupported(type, p)) return@mapNotNull null
             type to CommandRequirementCatalog.requirementFor(type)
         }
