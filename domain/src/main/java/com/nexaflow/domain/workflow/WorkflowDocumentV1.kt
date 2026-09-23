@@ -126,7 +126,44 @@ data class AutomationSettingsV1(
     val triggerMatch: String = "ANY",
     val cooldownSeconds: Int = 10,
     val workflowVersion: Int = 1,
-    val maintenanceProfile: com.nexaflow.domain.models.MaintenanceProfile? = null,
+    val maintenanceProfile: MaintenanceProfileV1? = null,
+)
+
+/**
+ * Version-pinned copy of legacy recurring-maintenance metadata. V1 documents
+ * must not embed the mutable legacy model directly: adding a field to that
+ * model must not silently change schemaVersion=1 on disk.
+ */
+@Serializable
+data class MaintenanceProfileV1(
+    val kind: String,
+    val window: MaintenanceWindowV1? = null,
+    val retryPolicy: MaintenanceRetryPolicyV1 = MaintenanceRetryPolicyV1(),
+    val notificationPolicy: String = "IMPORTANT_EVENTS",
+    val dependencyAutomationIds: List<String> = emptyList(),
+    val recoveryPolicy: String = "DEFAULT",
+)
+
+@Serializable
+data class MaintenanceWindowV1(
+    val startTime: String? = null,
+    val endTime: String? = null,
+    val allowedDays: Set<Int> = emptySet(),
+    val minimumBatteryPercent: Int? = null,
+    val chargingRequired: Boolean = false,
+    val unmeteredWifiRequired: Boolean = false,
+    val screenOffRequired: Boolean = false,
+    val deviceIdleRequired: Boolean = false,
+    val maximumThermalStatus: Int? = null,
+    val minimumFreeStorageBytes: Long? = null,
+)
+
+@Serializable
+data class MaintenanceRetryPolicyV1(
+    val maxAttempts: Int = 1,
+    val initialDelayMs: Long = 15 * 60 * 1000L,
+    val backoffMultiplier: Double = 2.0,
+    val maxDelayMs: Long = 6 * 60 * 60 * 1000L,
 )
 
 /** Recursively sorts object keys while preserving array order. */
