@@ -196,8 +196,6 @@ class ShizukuTypedStrategy(
                 PrivilegedOperation.WriteSetting(
                     namespace = PrivilegedOperation.SettingNamespace.GLOBAL,
                     key = "zen_mode",
-                    // Android uses 0 for off and non-zero zen modes for DND.
-                    // Use "no interruptions" (2) as the deterministic ON state.
                     value = if (enable) "2" else "0"
                 )
             else -> return OperationOutcome.unsupported(
@@ -328,7 +326,6 @@ class ShizukuTypedStrategy(
         }
     }
 
-    /** DND has several active zen modes; every non-zero value means enabled. */
     private fun readNonZeroSetting(
         namespace: PrivilegedOperation.SettingNamespace,
         key: String
@@ -358,9 +355,6 @@ class ShizukuTypedStrategy(
             result.message.contains("failed", ignoreCase = true) &&
                 result.message.contains("UserService", ignoreCase = true)
         val transport = permissionUnavailable || endpointFailure
-        // A denied/missing grant is known to happen before dispatch. Only a
-        // UserService failure can mean the side effect landed before the
-        // transport died, so only that case is reconciled as UNKNOWN.
         val uncertain = endpointFailure && transportIsUncertain(operation)
         OperationOutcome(
             operation = operation,

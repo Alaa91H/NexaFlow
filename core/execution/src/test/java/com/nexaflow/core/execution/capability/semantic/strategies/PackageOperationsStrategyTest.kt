@@ -210,6 +210,38 @@ class PackageOperationsStrategyTest {
     }
 
     @Test
+    fun rootValueWriteReadBackUsesBoundedSettingsQueries() = runTest {
+        val sink = RecordingSink()
+        val strategy = rootStrategy(sink)
+
+        sink.nextResult = SystemControlResult.ok("123")
+        assertEquals(
+            "123",
+            strategy.readStateValue(
+                TypedOperationRequest(SemanticOperationId.BRIGHTNESS_GET),
+                SemanticOperationId.BRIGHTNESS_GET
+            )
+        )
+        assertEquals(
+            listOf("settings", "get", "system", "screen_brightness"),
+            sink.lastOperation?.argv()
+        )
+
+        sink.nextResult = SystemControlResult.ok("30000")
+        assertEquals(
+            "30",
+            strategy.readStateValue(
+                TypedOperationRequest(SemanticOperationId.SCREEN_TIMEOUT_GET),
+                SemanticOperationId.SCREEN_TIMEOUT_GET
+            )
+        )
+        assertEquals(
+            listOf("settings", "get", "system", "screen_off_timeout"),
+            sink.lastOperation?.argv()
+        )
+    }
+
+    @Test
     fun rootStrategyAlsoServesPackageOperations() = runTest {
         val sink = RecordingSink()
         val outcome = rootStrategy(sink).execute(request(SemanticOperationId.PACKAGE_SET_ENABLED_STATE, enabled = false), SemanticOperationId.PACKAGE_SET_ENABLED_STATE)

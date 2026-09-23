@@ -216,6 +216,28 @@ class RootTypedStrategy(
         else -> null
     }
 
+    override suspend fun readStateValue(
+        request: TypedOperationRequest,
+        operation: SemanticOperationId
+    ): String? = when (operation) {
+        SemanticOperationId.BRIGHTNESS_GET ->
+            readSettingRaw(PrivilegedOperation.SettingNamespace.SYSTEM, "screen_brightness")
+        SemanticOperationId.SCREEN_TIMEOUT_GET ->
+            readSettingRaw(PrivilegedOperation.SettingNamespace.SYSTEM, "screen_off_timeout")
+                ?.let { it.toLongOrNull()?.div(1000)?.toString() }
+        else -> null
+    }
+
+    private fun readSettingRaw(
+        namespace: PrivilegedOperation.SettingNamespace,
+        key: String
+    ): String? {
+        val result = execute(PrivilegedOperation.ReadSettingState(namespace, key))
+        if (!result.success) return null
+        val value = result.message.trim()
+        return value.takeIf { it.isNotEmpty() && it != "null" && it.toLongOrNull() != null }
+    }
+
     /**
      * Same bounded probe as the Shizuku strategy: `pm list packages -d <pkg>`
      * prints exactly one line when the package is disabled, nothing when it
