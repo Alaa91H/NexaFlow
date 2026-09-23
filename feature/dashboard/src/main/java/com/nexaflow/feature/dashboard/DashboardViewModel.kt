@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.ManualBlockReason
+import com.nexaflow.core.execution.ManualBlockKind
 import com.nexaflow.data.backup.BackupManager
 import com.nexaflow.core.execution.ExecutionResultPresentation
 import com.nexaflow.domain.models.Automation
@@ -187,9 +189,9 @@ class DashboardViewModel @Inject constructor(
      * Typed explanation of why a manual run would be rejected right now.
      * The UI shows it on the Run-now mismatch dialog; null means admissible.
      */
-    suspend fun describeManualBlock(automation: Automation): ExecutionEngine.ManualBlockReason? {
+    suspend fun describeManualBlock(automation: Automation): ManualBlockReason? {
         val reason = executionEngine.describeManualBlock(automation)
-        return if (reason.kind == ExecutionEngine.ManualBlockKind.NONE) null else reason
+        return if (reason.kind == ManualBlockKind.NONE) null else reason
     }
 
     /** Saved tasks still carrying the legacy combined CONNECTIVITY trigger. */
