@@ -67,4 +67,13 @@
     <string name="block_category_contact">Contact</string>
     <string name="diagnostics_end_behavior_label">Problèmes de comportement de fin</string>
     <string name="diagnostics_action_config_label">Problèmes de configuration des actions</string>
+
+    <!-- Structured execution diagnosis. -->
+    <string name="why_run_title">Pourquoi cette tâche ne s’est-elle pas exécutée ?</string>
+    <string name="why_run_constraint_blocked">Une ou plusieurs conditions de la tâche ont bloqué cette exécution.</string>
+    <string name="why_run_all_triggers_blocked">Tous les déclencheurs requis n’étaient pas satisfaits en même temps.</string>
+    <string name="why_run_unknown">Cette exécution s’est arrêtée pour une raison enregistrée. Consultez les détails ci-dessous.</string>
+    <string name="why_run_fix_label">Correction suggérée</string>
+    <string name="why_run_fix_review_constraints">Vérifiez les conditions de la tâche et l’état actuel de l’appareil.</string>
+    <string name="why_run_fix_check_all_conditions">Vérifiez chaque déclencheur de la tâche et assurez-vous que toutes les conditions requises sont actuellement satisfaites.</string>
 </resources>
