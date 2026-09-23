@@ -11,7 +11,15 @@ data class ExecutionTimelineEntry(
     val startedAt: Long,
     val durationMs: Long,
     /** Execution provider that ran the actions ("ROOT", "SHIZUKU", ...); null when not selected. */
-    val channel: String? = null
+    val channel: String? = null,
+    /** Structured trace metadata; null on ordinary RUN/EXIT timeline rows. */
+    val traceRunId: String? = null,
+    val traceSequence: Int? = null,
+    val tracePhase: TracePhase? = null,
+    val traceReasonCode: String? = null,
+    /** Already redacted before this value crosses the trace boundary. */
+    val traceDetail: String? = null,
+    val traceNodeId: String? = null,
 )
 
 /** A framework error (crash, provider failure, unsupported action). */
