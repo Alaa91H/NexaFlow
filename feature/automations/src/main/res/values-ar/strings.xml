@@ -552,4 +552,6 @@
     <string name="action_data_date_time_sub">تحليل اللحظات ISO والتنسيق بمنطقة زمنية مختارة</string>
     <string name="action_data_json_sub">قراءة مسارات JSON Pointer والمفاتيح و JSON منسق</string>
     <string name="action_data_array_sub">ترتيب وقلب ودمج وإزالة تكرار مصفوفات JSON</string>
+    <string name="trigger_wear_event">ساعة Wear OS</string>
+    <string name="trigger_wear_event_sub">تشغيل المهمة عندما تكون ساعة NexaFlow متصلة أو غير متصلة</string>
 </resources>
