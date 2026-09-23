@@ -114,7 +114,6 @@ class TraceRecorder(private val logStore: LogStore) {
                     startedAt = stamped.atEpochMs,
                     durationMs = stamped.durationMs,
                     channel = stamped.backend,
-                    runId = stamped.runId,
                     traceRunId = stamped.runId,
                     traceSequence = stamped.sequence,
                     tracePhase = stamped.phase,
