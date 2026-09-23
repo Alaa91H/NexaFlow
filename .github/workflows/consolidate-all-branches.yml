@@ -42,6 +42,45 @@ jobs:
               continue
             fi
 
+            # This branch contains a historical edit to android-ci.yml. GitHub
+            # refuses a GITHUB_TOKEN push when the pushed ancestry introduces
+            # workflow-file commits. Its current workflow delta is preserved
+            # separately on main, so integrate the branch's code/test content
+            # as a squash commit while retaining main's workflow files.
+            if [[ "$branch" == "fix/wear-datalayer-companion-identity" ]]; then
+              before="$(git rev-parse HEAD)"
+              if git merge --squash -X theirs "origin/$branch"; then
+                echo "Squash merge prepared for $branch."
+              else
+                echo "Squash merge reported conflicts; resolving remaining paths in favor of incoming branch $branch."
+                mapfile -d '' -t conflicts < <(git diff --name-only --diff-filter=U -z)
+                for path in "${conflicts[@]}"; do
+                  if git cat-file -e "origin/$branch:$path" 2>/dev/null; then
+                    git checkout "origin/$branch" -- "$path"
+                    git add -- "$path"
+                  else
+                    git rm -f -- "$path"
+                  fi
+                done
+
+                if git diff --name-only --diff-filter=U | grep -q .; then
+                  echo "::error::Unresolved conflicts remain after deterministic squash resolution."
+                  git diff --name-only --diff-filter=U
+                  exit 1
+                fi
+              fi
+
+              git restore --source="$before" --staged --worktree -- .github/workflows
+              git add -A
+              if git diff --cached --quiet; then
+                echo "$branch has no remaining non-workflow delta to commit."
+              else
+                git commit -m "merge: integrate $branch without workflow ancestry"
+              fi
+              echo "::endgroup::"
+              continue
+            fi
+
             if git merge --no-ff --no-edit -X theirs "origin/$branch"; then
               echo "Merged $branch cleanly."
             else
@@ -112,6 +151,10 @@ jobs:
           while IFS= read -r branch; do
             case "$branch" in
               HEAD|main) continue ;;
+              fix/wear-datalayer-companion-identity)
+                echo "$branch was content-integrated by squash; ancestry check intentionally skipped."
+                continue
+                ;;
             esac
             if ! git merge-base --is-ancestor "origin/$branch" HEAD; then
               echo "::error::$branch is not an ancestor of the integration result."
