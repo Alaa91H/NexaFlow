@@ -26,7 +26,13 @@ object WorkflowDocumentCompiler {
     fun compile(
         document: WorkflowDocumentV1,
         conditionCompiler: (ConditionExpr) -> WorkflowCondition,
-    ): WorkflowNode = document.root.toRuntime(conditionCompiler)
+    ): WorkflowNode {
+        val issues = WorkflowDocumentMappers.validateStructure(document)
+        require(issues.isEmpty()) {
+            "Invalid workflow structure: " + issues.joinToString()
+        }
+        return document.root.toRuntime(conditionCompiler)
+    }
 
     /**
      * Convenience for documents that only use [ConditionExpr] kinds the
