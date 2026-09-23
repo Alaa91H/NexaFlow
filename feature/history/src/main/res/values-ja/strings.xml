@@ -67,4 +67,13 @@
     <string name="block_category_contact">連絡先</string>
     <string name="diagnostics_end_behavior_label">終了動作の問題</string>
     <string name="diagnostics_action_config_label">アクション設定の問題</string>
+
+    <!-- Structured execution diagnosis. -->
+    <string name="why_run_title">このタスクが実行されなかった理由</string>
+    <string name="why_run_constraint_blocked">1つ以上のタスク条件により、この実行がブロックされました。</string>
+    <string name="why_run_all_triggers_blocked">必要なトリガーがすべて同時には成立していませんでした。</string>
+    <string name="why_run_unknown">記録された理由により、この実行は停止しました。下の詳細を確認してください。</string>
+    <string name="why_run_fix_label">推奨される対処</string>
+    <string name="why_run_fix_review_constraints">タスクの条件と現在の端末状態を確認してください。</string>
+    <string name="why_run_fix_check_all_conditions">タスク内の各トリガーを確認し、必要な条件がすべて現在成立していることを確認してください。</string>
 </resources>
