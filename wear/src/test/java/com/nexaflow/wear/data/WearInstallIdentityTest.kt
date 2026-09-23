@@ -20,7 +20,7 @@ class WearInstallIdentityTest {
         context.getSharedPreferences("nexaflow_wear_identity", Context.MODE_PRIVATE)
             .edit()
             .clear()
-            .commit()
+            .apply()
     }
 
     @Test
