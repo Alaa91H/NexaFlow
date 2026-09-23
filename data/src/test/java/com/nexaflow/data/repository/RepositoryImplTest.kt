@@ -9,6 +9,9 @@ import com.nexaflow.core.database.GlobalVariableEntity
 import com.nexaflow.core.database.VariableDao
 import com.nexaflow.core.security.SecureStorage
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.Trigger
+import com.nexaflow.domain.models.TriggerMatchMode
+import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.ExecutionHistoryOutcome
 import com.nexaflow.domain.models.GlobalVariable
 import com.nexaflow.domain.variables.RuntimeValue
@@ -309,6 +312,48 @@ class RepositoryImplTest {
 
         repository.deleteAutomation(automation)
         assertTrue(dao.rows.value.isEmpty())
+    }
+
+    @Test
+    fun `saving an edited automation replaces triggers and trigger match for the same id`() = runTest {
+        val dao = FakeAutomationDao()
+        val repository = AutomationRepositoryImpl(dao)
+        val original = Automation(
+            id = "edit-1",
+            name = "Night charging",
+            description = "",
+            icon = "",
+            iconColor = 0L,
+            backgroundColor = 0L,
+            category = "custom",
+            priority = 1,
+            enabled = true,
+            triggers = listOf(
+                Trigger(TriggerType.CHARGER, emptyMap()),
+                Trigger(TriggerType.TIME, mapOf("start" to "22:00", "end" to "07:00"))
+            ),
+            triggerMatch = TriggerMatchMode.ANY,
+            actions = emptyList(),
+            createdAt = 1L,
+            updatedAt = 1L
+        )
+        repository.saveAutomation(original)
+
+        val edited = original.copy(
+            triggers = listOf(
+                Trigger(TriggerType.TIME, mapOf("start" to "22:00", "end" to "07:00")),
+                Trigger(TriggerType.WIFI_CONNECTED, mapOf("ssid" to "Home"))
+            ),
+            triggerMatch = TriggerMatchMode.ALL,
+            updatedAt = 2L
+        )
+        repository.saveAutomation(edited)
+
+        val loaded = repository.getAutomationById(original.id)
+        assertEquals(1, dao.rows.value.size)
+        assertEquals(edited.triggers, loaded?.triggers)
+        assertEquals(TriggerMatchMode.ALL, loaded?.triggerMatch)
+        assertEquals(2L, loaded?.updatedAt)
     }
 
     @Test
