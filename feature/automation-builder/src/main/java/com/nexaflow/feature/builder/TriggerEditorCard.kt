@@ -1323,6 +1323,7 @@ fun TriggerEditorCard(
     refreshKey: Int = 0
 ) {
     val context = LocalContext.current
+    val headerLayoutDirection = LocalLayoutDirection.current
     var showTimePicker by remember { mutableStateOf(false) }
     var timePickerTarget by remember { mutableStateOf("time") } // "time" | "rangeStart" | "rangeEnd"
     var datePickerTarget by remember { mutableStateOf<String?>(null) } // "date" | "startDate" | "endDate"
@@ -1364,15 +1365,50 @@ fun TriggerEditorCard(
                     onDragDelta = onDragDelta,
                     onDragEnd = onDragEnd
                 )
-                // Single horizontal line: the chosen values; the row number
-                // lives in a badge pinned to the right end.
-                Text(
-                    text = triggerSummary(draft),
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
+                // Keep the controls physically pinned LTR, but render the
+                // trigger identity using the app locale. The type name is the
+                // primary label and the configured value is secondary, so two
+                // triggers remain easy to distinguish even when both are
+                // collapsed.
+                val triggerName = stringResource(draft.type.labelRes())
+                val triggerValue = triggerSummary(draft)
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    CompositionLocalProvider(LocalLayoutDirection provides headerLayoutDirection) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = draft.type.icon(),
+                                contentDescription = null,
+                                tint = accent,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = triggerName,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        if (!triggerValue.equals(triggerName, ignoreCase = true)) {
+                            Text(
+                                text = triggerValue,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                }
                 TaskNumberBadge(
                     number = index + 1,
                     containerColor = accent,
