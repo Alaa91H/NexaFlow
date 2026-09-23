@@ -1266,4 +1266,6 @@
     <string name="sensor_unavailable">هذا الجهاز لا يوفّر المستشعر المحدد. لن يعمل هذا المحفز عليه.</string>
     <string name="sensor_invalid_threshold">أدخل عدداً محدوداً صالحاً.</string>
     <string name="sensor_invalid_range">يجب أن يكون الحد الأعلى أكبر من الحد الأدنى أو مساوياً له.</string>
+    <string name="trigger_wear_event">ساعة Wear OS</string>
+    <string name="trigger_wear_event_sub">تشغيل المهمة عندما تكون ساعة NexaFlow متصلة أو غير متصلة</string>
 </resources>
