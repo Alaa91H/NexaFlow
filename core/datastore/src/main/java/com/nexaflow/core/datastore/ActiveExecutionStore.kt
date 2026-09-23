@@ -278,6 +278,17 @@ class ActiveExecutionStore internal constructor(
         return removedCount
     }
 
+    /**
+     * Returns the unresolved manual-recovery count for one routine from the
+     * durable checkpoint ledger. UI health must use this source of truth
+     * instead of inferring recovery state from historical message text.
+     */
+    suspend fun recoveryRequiredCountForAutomation(automationId: String): Int =
+        checkpoints(dataStore.data.first()).values.count {
+            it.automationId == automationId &&
+                it.status == DurableExecutionStatus.RECOVERY_REQUIRED
+        }
+
     /** True when a recurring-maintenance occurrence already completed successfully. */
     suspend fun hasCompletedMaintenanceOccurrence(occurrenceKey: String): Boolean =
         maintenanceReceipts(dataStore.data.first()).any { it.occurrenceKey == occurrenceKey }
