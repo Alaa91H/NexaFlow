@@ -76,4 +76,19 @@
     <string name="why_run_fix_label">सुझाया गया समाधान</string>
     <string name="why_run_fix_review_constraints">कार्य की शर्तों और डिवाइस की वर्तमान स्थिति की समीक्षा करें.</string>
     <string name="why_run_fix_check_all_conditions">कार्य के हर ट्रिगर की जाँच करें और सुनिश्चित करें कि सभी आवश्यक शर्तें अभी पूरी हो रही हैं.</string>
+
+    <string name="why_run_capability_blocked">आवश्यक क्षमता या अनुमति उपलब्ध नहीं है.</string>
+    <string name="why_run_admission_rejected">यह रन अस्वीकार हुआ क्योंकि कोई अन्य रन या रिकवरी स्थिति अभी सक्रिय है.</string>
+    <string name="why_run_maintenance_waiting">यह रखरखाव कार्य अपनी अनुमत रन विंडो की प्रतीक्षा कर रहा है.</string>
+    <string name="why_run_maintenance_duplicate">यह रखरखाव घटना पहले ही पूरी हो चुकी है, इसलिए इसे दोबारा नहीं चलाया गया.</string>
+    <string name="why_run_action_failed">कार्य सफलतापूर्वक पूरा होने से पहले एक कार्रवाई विफल हो गई.</string>
+    <string name="why_run_verification_failed">डिवाइस पर अनुरोधित बदलाव की पुष्टि नहीं की जा सकी.</string>
+    <string name="why_run_outcome_uncertain">डिवाइस की स्थिति यह पुष्टि नहीं कर सकी कि अनुरोधित बदलाव पूरा हुआ या नहीं.</string>
+    <string name="why_run_failed">कार्य दर्ज की गई विफलता के साथ समाप्त हुआ.</string>
+    <string name="why_run_fix_grant_capability">आवश्यक अनुमति दें या उपलब्ध निष्पादन प्रदाता को तैयार करें, फिर दोबारा प्रयास करें.</string>
+    <string name="why_run_fix_check_running_state">सक्रिय रन के समाप्त होने की प्रतीक्षा करें, या यदि अवरोध बना रहे तो रिकवरी स्थिति की समीक्षा करें.</string>
+    <string name="why_run_fix_review_action_config">विफल कार्रवाई की कॉन्फ़िगरेशन, अनुमतियाँ और आवश्यक प्रदाता की समीक्षा करें.</string>
+    <string name="why_run_fix_retry_or_review">कार्य फिर चलाएँ. यदि फिर विफल हो, तो कार्रवाई और डिवाइस अनुमतियाँ जाँचें.</string>
+    <string name="why_run_fix_review_device_state">कार्य फिर चलाने से पहले डिवाइस की वास्तविक स्थिति जाँचें.</string>
+    <string name="why_run_fix_open_history">विफल कार्रवाई जानने के लिए नीचे निष्पादन टाइमलाइन देखें.</string>
 </resources>
