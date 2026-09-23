@@ -101,12 +101,12 @@ class ExecutionEngine(
     /** Coalesces identical intentional skips emitted by noisy state monitors. */
     private val skipReportThrottle: ExecutionSkipReportThrottle =
         ExecutionSkipReportThrottle(),
-    /** In-process per-action status for an open task-details screen. */
-    private val executionProgressTracker: ExecutionProgressTracker =
-        ExecutionProgressTracker(),
     /** Typed trace sink (P0.4); defaults to the same LogStore the engine already writes. */
     private val traceRecorder: com.nexaflow.core.logging.TraceRecorder =
-        com.nexaflow.core.logging.TraceRecorder(logStore)
+        com.nexaflow.core.logging.TraceRecorder(logStore),
+    /** In-process per-action status for an open task-details screen. */
+    private val executionProgressTracker: ExecutionProgressTracker =
+        ExecutionProgressTracker()
 ) {
     private val diagnostics = ExecutionDiagnostics(
         context = context,
