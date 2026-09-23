@@ -163,13 +163,21 @@ class DashboardViewModel @Inject constructor(
         if (automation.id in _runningIds.value) return
         viewModelScope.launch {
             _runningIds.value = _runningIds.value + automation.id
-            // Manual "Run now" must obey the task's triggers and constraints:
-            // satisfied → run the main chain; unsatisfied → run the configured
-            // end behavior ("when the task ends"), or record an explicit
-            // conditions-not-satisfied outcome when none is configured. This is
-            // the single manual-admission policy, shared with the details
-            // screen, the enable toggle, and the builder save path.
+            // Manual "Run now" obeys triggers and constraints. A mismatch is
+            // side-effect free; the separate dialog action owns explicit end
+            // behavior execution.
             val record = executionEngine.runWithConditionGate(automation)
+            _executionMessage.value = formatExecutionMessage(record)
+            _runningIds.value = _runningIds.value - automation.id
+        }
+    }
+
+    /** Explicit user choice to run only the configured end behavior. */
+    fun runEndBehavior(automation: Automation) {
+        if (automation.id in _runningIds.value) return
+        viewModelScope.launch {
+            _runningIds.value = _runningIds.value + automation.id
+            val record = executionEngine.runManualEndBehavior(automation)
             _executionMessage.value = formatExecutionMessage(record)
             _runningIds.value = _runningIds.value - automation.id
         }
