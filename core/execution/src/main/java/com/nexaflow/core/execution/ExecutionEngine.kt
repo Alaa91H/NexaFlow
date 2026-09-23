@@ -111,6 +111,11 @@ class ExecutionEngine(
         epochMillis = epochMillis,
         traceRecorder = traceRecorder,
     )
+    private val manualAdmissionEvaluator = ManualAdmissionEvaluator(
+        context = context,
+        capabilityExecutionService = capabilityExecutionService,
+        constraintStateProvider = constraintStateProvider
+    )
 
     companion object {
         /** Prefix used by UI callers to present a manual condition rejection accurately. */
@@ -749,26 +754,9 @@ class ExecutionEngine(
                 runId = WorkflowRunContext.create(automation.id, startedAt).runId
             )
         }
-        val triggerResult = TriggerStateEvaluator.evaluateAsync(
-            context = context,
-            triggers = automation.triggers,
-            matchMode = automation.triggerMatch
-        )
-        val constraintState = if (automation.constraints.isEmpty()) null else
-            constraintStateProvider?.invoke()
-                ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
-        val constraintResult = if (automation.constraints.isEmpty()) {
-            ConditionResult.Satisfied
-        } else {
-            AutomationConstraintGate(capabilityExecutionService).evaluate(automation, constraintState)
-        }
-        if (
-            triggerResult == ConditionResult.Satisfied &&
-            constraintResult == ConditionResult.Satisfied
-        ) {
+        if (manualAdmissionEvaluator.describe(automation).kind == ManualBlockKind.NONE) {
             return runAutomation(automation, bypassTriggerMatch = true)
         }
-
         val record = ExecutionRecord(
             id = UUID.randomUUID().toString(),
             automationId = automation.id,
@@ -806,52 +794,8 @@ class ExecutionEngine(
      * an explicit user question ("why can this not run?") deserves the full
      * picture rather than the first failure alone.
      */
-    suspend fun describeManualBlock(automation: Automation): ManualBlockReason {
-        if (automation.requiresTimeRangeForEndBehavior) {
-            return ManualBlockReason(
-                kind = ManualBlockKind.INVALID_TIME_RANGE,
-                failedTriggerLabels = emptyList(),
-                failedConstraintLabels = emptyList()
-            )
-        }
-        val triggerResult = TriggerStateEvaluator.evaluateAsync(
-            context = context,
-            triggers = automation.triggers,
-            matchMode = automation.triggerMatch
-        )
-        val failedTriggers = if (triggerResult == ConditionResult.Satisfied) {
-            emptyList()
-        } else {
-            automation.triggers.filter { trigger ->
-                TriggerStateEvaluator.evaluateAsync(context, listOf(trigger)) != ConditionResult.Satisfied
-            }.map { TriggerStateEvaluator.triggerLabel(it) }
-        }
-        var failedConstraints: List<String> = emptyList()
-        var constraintSatisfied = true
-        if (automation.constraints.isNotEmpty()) {
-            val state = constraintStateProvider?.invoke()
-                ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
-            val gate = AutomationConstraintGate(capabilityExecutionService)
-            val result = gate.evaluate(automation, state)
-            constraintSatisfied = result == ConditionResult.Satisfied
-            if (!constraintSatisfied) {
-                failedConstraints = automation.constraints.map { it.type.name }
-            }
-        }
-        return if (failedTriggers.isEmpty() && constraintSatisfied) {
-            ManualBlockReason(kind = ManualBlockKind.NONE, failedTriggerLabels = emptyList(), failedConstraintLabels = emptyList())
-        } else {
-            ManualBlockReason(
-                kind = when {
-                    failedTriggers.isNotEmpty() && triggerResult == ConditionResult.Unknown -> ManualBlockKind.TRIGGERS_UNKNOWN
-                    failedTriggers.isNotEmpty() -> ManualBlockKind.TRIGGERS_NOT_MET
-                    else -> ManualBlockKind.CONSTRAINTS_NOT_MET
-                },
-                failedTriggerLabels = failedTriggers,
-                failedConstraintLabels = failedConstraints
-            )
-        }
-    }
+    suspend fun describeManualBlock(automation: Automation): ManualBlockReason =
+        manualAdmissionEvaluator.describe(automation)
 
     /**
      * Explicit user override of the manual admission gate: skips trigger and
