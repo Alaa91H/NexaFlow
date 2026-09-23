@@ -1267,4 +1267,6 @@
     <string name="sensor_unavailable">Dieses Gerät stellt den ausgewählten Sensor nicht bereit. Dieser Auslöser kann hier nicht laufen.</string>
     <string name="sensor_invalid_threshold">Gib eine endliche Zahl ein.</string>
     <string name="sensor_invalid_range">Die Obergrenze muss größer oder gleich der Untergrenze sein.</string>
+    <string name="trigger_wear_event">Wear-OS-Uhr</string>
+    <string name="trigger_wear_event_sub">Aufgabe ausführen, wenn eine NexaFlow-Uhr verbunden oder getrennt ist</string>
 </resources>
