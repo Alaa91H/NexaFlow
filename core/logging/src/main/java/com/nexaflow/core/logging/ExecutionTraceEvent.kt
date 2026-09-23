@@ -115,6 +115,10 @@ class TraceRecorder(private val logStore: LogStore) {
             throw cancellation
         } catch (_: Throwable) {
             // Ordinary tracing failures must never break execution.
+        } finally {
+            // OUTCOME is terminal. Releasing its sequence state here prevents
+            // a unique runId from remaining in memory forever.
+            if (event.phase == TracePhase.OUTCOME) forgetRun(event.runId)
         }
     }
 
@@ -125,21 +129,32 @@ class TraceRecorder(private val logStore: LogStore) {
         reasonCode: String,
         detail: String,
         atEpochMs: Long,
-    ) = record(
-        ExecutionTraceEvent(
-            id = java.util.UUID.randomUUID().toString(),
-            runId = runId,
-            automationId = automationId,
-            sequence = 0,
-            phase = TracePhase.GATE_BLOCKED,
-            reasonCode = reasonCode,
-            detail = detail,
-            atEpochMs = atEpochMs,
-        )
-    )
+    ) {
+        try {
+            record(
+                ExecutionTraceEvent(
+                    id = java.util.UUID.randomUUID().toString(),
+                    runId = runId,
+                    automationId = automationId,
+                    sequence = 0,
+                    phase = TracePhase.GATE_BLOCKED,
+                    reasonCode = reasonCode,
+                    detail = detail,
+                    atEpochMs = atEpochMs,
+                )
+            )
+        } finally {
+            // A blocked gate is terminal for this run admission; it has no
+            // later OUTCOME event that could release the counter.
+            forgetRun(runId)
+        }
+    }
 
     /** Clears the per-run sequence counters for runs that have ended. */
     fun forgetRun(runId: String) {
         counters.remove(runId)
     }
+
+    /** Test-visible size of the bounded-per-run sequencing state. */
+    internal fun activeRunCountForTesting(): Int = counters.size
 }
