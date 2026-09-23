@@ -269,10 +269,9 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Manual invocation via deep link obeys the same admission policy as the
-     * in-app Run now: the task's triggers and constraints must match,
-     * otherwise only the end behavior runs (or the mismatch is reported
-     * explicitly). The reason for a rejection is included in the toast so a
-     * deep-link invocation is never a silent no-op.
+     * in-app Run now: the task's triggers and constraints must match. A
+     * mismatch is side-effect free unless the caller explicitly requested the
+     * confirmed Force Run path. The rejection reason is included in the toast.
      */
     private fun runThroughAdmissionGate(automation: com.nexaflow.domain.models.Automation) {
         lifecycleScope.launch {
