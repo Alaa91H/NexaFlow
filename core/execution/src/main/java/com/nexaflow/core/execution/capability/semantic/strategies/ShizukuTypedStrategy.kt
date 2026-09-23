@@ -26,7 +26,6 @@ import com.nexaflow.domain.capability.operation.StrategyId
  * unavailable-with-permission-granted, never as executable.
  */
 class ShizukuTypedStrategy(
-    private val packageName: String,
     private val shizukuGranted: () -> Boolean = PrivilegedRunner::isShizukuGranted,
     private val userServiceReady: () -> Boolean = { com.nexaflow.core.rom.ShizukuShellBridge.isUserServiceBound },
     private val execute: (PrivilegedOperation) -> SystemControlResult =
@@ -38,10 +37,15 @@ class ShizukuTypedStrategy(
     override val supportedOperations: Set<SemanticOperationId> = setOf(
         SemanticOperationId.WIFI_SET_STATE,
         SemanticOperationId.BLUETOOTH_SET_STATE,
+        SemanticOperationId.LOCATION_SET_STATE,
         SemanticOperationId.AIRPLANE_MODE_SET_STATE,
+        SemanticOperationId.ROTATION_SET_STATE,
+        SemanticOperationId.BRIGHTNESS_SET,
+        SemanticOperationId.SCREEN_TIMEOUT_SET,
         SemanticOperationId.NFC_SET_STATE,
         SemanticOperationId.MOBILE_DATA_SET_STATE,
         SemanticOperationId.HOTSPOT_SET_STATE,
+        SemanticOperationId.DATA_SAVER_SET_STATE,
         SemanticOperationId.DND_GET_STATE,
         SemanticOperationId.DND_SET_STATE,
         SemanticOperationId.PACKAGE_FORCE_STOP,
@@ -82,6 +86,38 @@ class ShizukuTypedStrategy(
         // branch, so their contract is explicit.
         val packageParameter = request.parameters["packageName"]
         when (operation) {
+            SemanticOperationId.BRIGHTNESS_SET -> {
+                val level = request.parameters["value"]?.toIntOrNull()
+                    ?.takeIf { it in 0..255 }
+                    ?: return invalidParameter(operation, "Brightness value must be in 0..255")
+                return toOutcome(
+                    operation,
+                    execute(
+                        PrivilegedOperation.WriteSetting(
+                            PrivilegedOperation.SettingNamespace.SYSTEM,
+                            "screen_brightness",
+                            level.toString()
+                        )
+                    ),
+                    requestedEnabled = null
+                )
+            }
+            SemanticOperationId.SCREEN_TIMEOUT_SET -> {
+                val seconds = request.parameters["seconds"]?.toLongOrNull()
+                    ?.takeIf { it in 1L..86_400L }
+                    ?: return invalidParameter(operation, "Screen timeout must be in 1..86400 seconds")
+                return toOutcome(
+                    operation,
+                    execute(
+                        PrivilegedOperation.WriteSetting(
+                            PrivilegedOperation.SettingNamespace.SYSTEM,
+                            "screen_off_timeout",
+                            (seconds * 1_000L).toString()
+                        )
+                    ),
+                    requestedEnabled = null
+                )
+            }
             SemanticOperationId.PACKAGE_FORCE_STOP -> {
                 val pkg = packageParameter
                     ?: return missingPackage(operation)
@@ -127,19 +163,21 @@ class ShizukuTypedStrategy(
             )
         val privileged = when (operation) {
             SemanticOperationId.WIFI_SET_STATE ->
-                PrivilegedOperation.WriteSetting(
-                    namespace = PrivilegedOperation.SettingNamespace.GLOBAL,
-                    key = "wifi_on",
-                    value = if (enable) "1" else "0"
+                PrivilegedOperation.SetServiceState(
+                    PrivilegedOperation.Companion.ServiceName.WIFI, enable
                 )
             SemanticOperationId.BLUETOOTH_SET_STATE ->
                 PrivilegedOperation.SetServiceState(
                     PrivilegedOperation.Companion.ServiceName.BLUETOOTH, enable
                 )
+            SemanticOperationId.LOCATION_SET_STATE ->
+                PrivilegedOperation.SetLocationEnabled(enable)
             SemanticOperationId.AIRPLANE_MODE_SET_STATE ->
+                PrivilegedOperation.SetAirplaneMode(enable)
+            SemanticOperationId.ROTATION_SET_STATE ->
                 PrivilegedOperation.WriteSetting(
-                    namespace = PrivilegedOperation.SettingNamespace.GLOBAL,
-                    key = "airplane_mode_on",
+                    namespace = PrivilegedOperation.SettingNamespace.SYSTEM,
+                    key = "accelerometer_rotation",
                     value = if (enable) "1" else "0"
                 )
             SemanticOperationId.NFC_SET_STATE ->
@@ -152,19 +190,14 @@ class ShizukuTypedStrategy(
                 )
             SemanticOperationId.HOTSPOT_SET_STATE ->
                 PrivilegedOperation.SetHotspot(enable)
+            SemanticOperationId.DATA_SAVER_SET_STATE ->
+                PrivilegedOperation.SetDataSaver(enable)
             SemanticOperationId.DND_SET_STATE ->
-                if (enable) {
-                    // Lowering DND requires notification-policy access for this
-                    // package first; granting it never changes the user's
-                    // interruption filter itself.
-                    PrivilegedOperation.GrantNotificationPolicyAccess(packageName)
-                } else {
-                    PrivilegedOperation.WriteSetting(
-                        namespace = PrivilegedOperation.SettingNamespace.GLOBAL,
-                        key = "zen_mode",
-                        value = "0"
-                    )
-                }
+                PrivilegedOperation.WriteSetting(
+                    namespace = PrivilegedOperation.SettingNamespace.GLOBAL,
+                    key = "zen_mode",
+                    value = if (enable) "2" else "0"
+                )
             else -> return OperationOutcome.unsupported(
                 operation, "Write is not implemented by the Shizuku strategy"
             )
@@ -172,6 +205,16 @@ class ShizukuTypedStrategy(
         val result = execute(privileged)
         return toOutcome(operation, result, enable)
     }
+
+    private fun invalidParameter(
+        operation: SemanticOperationId,
+        message: String
+    ): OperationOutcome = OperationOutcome.failed(
+        operation,
+        CapabilityErrorCode.INVALID_CONFIGURATION,
+        message,
+        strategy = id
+    )
 
     private fun missingPackage(operation: SemanticOperationId): OperationOutcome =
         OperationOutcome.failed(
@@ -195,12 +238,18 @@ class ShizukuTypedStrategy(
             readSettingBool(PrivilegedOperation.SettingNamespace.GLOBAL, "wifi_on")
         SemanticOperationId.BLUETOOTH_GET_STATE ->
             readSettingBool(PrivilegedOperation.SettingNamespace.GLOBAL, "bluetooth_on")
+        SemanticOperationId.LOCATION_GET_STATE ->
+            readBooleanCommand(execute(PrivilegedOperation.ReadLocationEnabled))
         SemanticOperationId.AIRPLANE_MODE_GET_STATE ->
             readSettingBool(PrivilegedOperation.SettingNamespace.GLOBAL, "airplane_mode_on")
+        SemanticOperationId.ROTATION_GET_STATE ->
+            readSettingBool(PrivilegedOperation.SettingNamespace.SYSTEM, "accelerometer_rotation")
         SemanticOperationId.DND_GET_STATE ->
-            readSettingBool(PrivilegedOperation.SettingNamespace.GLOBAL, "zen_mode")
+            readNonZeroSetting(PrivilegedOperation.SettingNamespace.GLOBAL, "zen_mode")
         SemanticOperationId.MOBILE_DATA_GET_STATE ->
             readSettingBool(PrivilegedOperation.SettingNamespace.GLOBAL, "mobile_data")
+        SemanticOperationId.DATA_SAVER_GET_STATE ->
+            readBooleanCommand(execute(PrivilegedOperation.ReadDataSaver))
         SemanticOperationId.PACKAGE_GET_ENABLED_STATE -> {
             val pkg = request.parameters["packageName"]
             if (pkg == null) null else readPackageEnabled(pkg)
@@ -265,6 +314,27 @@ class ShizukuTypedStrategy(
         }
     }
 
+    private fun readBooleanCommand(result: SystemControlResult): Boolean? {
+        if (!result.success) return null
+        val value = result.message.trim().lowercase()
+        return when {
+            value == "1" || value == "true" || value == "enabled" ||
+                value.endsWith(": true") || value.endsWith(": enabled") -> true
+            value == "0" || value == "false" || value == "disabled" ||
+                value.endsWith(": false") || value.endsWith(": disabled") -> false
+            else -> null
+        }
+    }
+
+    private fun readNonZeroSetting(
+        namespace: PrivilegedOperation.SettingNamespace,
+        key: String
+    ): Boolean? {
+        val result = execute(PrivilegedOperation.ReadSettingState(namespace, key))
+        if (!result.success) return null
+        return result.message.trim().toIntOrNull()?.let { it != 0 }
+    }
+
     private fun toOutcome(
         operation: SemanticOperationId,
         result: SystemControlResult,
@@ -278,11 +348,14 @@ class ShizukuTypedStrategy(
             metadata = requestedEnabled?.let { mapOf("requestedEnabled" to it.toString()) } ?: emptyMap()
         )
     } else {
-        val transport = result.message.contains("not granted", ignoreCase = true) ||
-            result.message.contains("not available", ignoreCase = true) ||
+        val permissionUnavailable =
+            result.message.contains("not granted", ignoreCase = true) ||
+                result.message.contains("not available", ignoreCase = true)
+        val endpointFailure =
             result.message.contains("failed", ignoreCase = true) &&
-            result.message.contains("UserService", ignoreCase = true)
-        val uncertain = transport && transportIsUncertain(operation)
+                result.message.contains("UserService", ignoreCase = true)
+        val transport = permissionUnavailable || endpointFailure
+        val uncertain = endpointFailure && transportIsUncertain(operation)
         OperationOutcome(
             operation = operation,
             status = if (uncertain) OperationOutcomeStatus.UNKNOWN else OperationOutcomeStatus.FAILED,
@@ -310,9 +383,15 @@ class ShizukuTypedStrategy(
     private fun transportIsUncertain(operation: SemanticOperationId): Boolean = when (operation) {
         SemanticOperationId.WIFI_SET_STATE,
         SemanticOperationId.BLUETOOTH_SET_STATE,
+        SemanticOperationId.LOCATION_SET_STATE,
+        SemanticOperationId.ROTATION_SET_STATE,
+        SemanticOperationId.BRIGHTNESS_SET,
+        SemanticOperationId.SCREEN_TIMEOUT_SET,
         SemanticOperationId.NFC_SET_STATE,
         SemanticOperationId.MOBILE_DATA_SET_STATE,
         SemanticOperationId.HOTSPOT_SET_STATE,
+        SemanticOperationId.DATA_SAVER_SET_STATE,
+        SemanticOperationId.DND_SET_STATE,
         // A force-stop/clear-data dispatched through the shell that then loses
         // the binder may have completed: process death on the target package
         // is externally observable, so the outcome must be reconciled, never
