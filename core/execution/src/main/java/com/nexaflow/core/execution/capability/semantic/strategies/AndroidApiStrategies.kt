@@ -61,10 +61,7 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
             if (service(WifiManager::class.java) != null) StrategyAvailability(true)
             else StrategyAvailability(false, "Wi-Fi service is unavailable")
 
-        SemanticOperationId.BLUETOOTH_GET_STATE ->
-            if (service(BluetoothManager::class.java)?.adapter != null) StrategyAvailability(true)
-            else StrategyAvailability(false, "Bluetooth adapter is unavailable")
-
+        SemanticOperationId.BLUETOOTH_GET_STATE,
         SemanticOperationId.BLUETOOTH_SET_STATE -> {
             val adapter = service(BluetoothManager::class.java)?.adapter
             when {
