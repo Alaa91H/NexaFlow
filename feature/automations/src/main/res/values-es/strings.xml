@@ -568,7 +568,7 @@
     <string name="execution_diagnostic_unsatisfied">No cumplido</string>
     <string name="execution_diagnostic_unknown">Desconocido</string>
     <string name="execution_diagnostic_unavailable">No disponible</string>
-    <string name="execution_diagnostic_error">Error</string>
+    <string name="execution_diagnostic_error">Fallo</string>
     <string name="execution_diagnostic_detail">Detalle: %1$s</string>
     <string name="execution_diagnostic_restore">Restaurar estado original</string>
     <string name="execution_diagnostic_end_action">Al finalizar: %1$s</string>
