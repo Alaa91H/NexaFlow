@@ -578,4 +578,10 @@
     <string name="execution_diagnostic_action_ok">abgeschlossen</string>
     <string name="execution_diagnostic_action_failed">fehlgeschlagen</string>
     <string name="execution_diagnostic_reason">Grund: %1$s</string>
+
+    <string name="execution_diagnostics_current_run">Aktuelle Ausführung</string>
+    <string name="execution_diagnostic_pending">Wartet</string>
+    <string name="execution_diagnostic_running">Wird ausgeführt</string>
+    <string name="execution_diagnostic_skipped">Übersprungen</string>
+    <string name="execution_diagnostic_outcome_unknown">Ergebnis unbekannt</string>
 </resources>
