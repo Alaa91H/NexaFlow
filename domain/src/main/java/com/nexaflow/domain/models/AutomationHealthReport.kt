@@ -34,7 +34,10 @@ object AutomationHealthAnalyzer {
             .filter { it.automationId == automationId }
             .sortedByDescending { it.executedAt }
             .toList()
-        val skipped = relevant.count(ExecutionOutcomeClassifier::isSkipped)
+        // Health counts skip episodes, not raw monitor callbacks. Hundreds of
+        // identical consecutive gate evaluations represent one blocked state,
+        // so collapse them until a different outcome/reason breaks the episode.
+        val skipped = countSkipEpisodes(relevant)
         val failed = relevant.count { ExecutionOutcomeClassifier.classify(it) == ExecutionHistoryOutcome.FAILED }
         val completed = relevant.count { it.success && !ExecutionOutcomeClassifier.isSkipped(it) }
         val consecutiveFailures = relevant.takeWhile {
@@ -63,6 +66,20 @@ object AutomationHealthAnalyzer {
             },
             recoveryReviewPending = false
         )
+    }
+
+    private fun countSkipEpisodes(records: List<ExecutionRecord>): Int {
+        var episodes = 0
+        var previousSkipReason: String? = null
+        records.forEach { record ->
+            if (ExecutionOutcomeClassifier.isSkipped(record)) {
+                if (record.message != previousSkipReason) episodes++
+                previousSkipReason = record.message
+            } else {
+                previousSkipReason = null
+            }
+        }
+        return episodes
     }
 
 }
