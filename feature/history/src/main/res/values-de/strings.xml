@@ -91,4 +91,7 @@
     <string name="why_run_fix_retry_or_review">Starte die Aufgabe erneut. Wenn sie wieder fehlschlägt, prüfe Aktion und Geräteberechtigungen.</string>
     <string name="why_run_fix_review_device_state">Prüfe den tatsächlichen Gerätezustand, bevor du die Aufgabe erneut startest.</string>
     <string name="why_run_fix_open_history">Prüfe die Ausführungszeitleiste unten, um die fehlgeschlagene Aktion zu finden.</string>
+
+    <string name="why_run_configuration_blocked">Die Aufgabenkonfiguration ist unvollständig, daher wurde die Ausführung blockiert.</string>
+    <string name="why_run_fix_review_task_configuration">Prüfe die Aufgabenkonfiguration und ergänze die erforderlichen Werte, bevor du es erneut versuchst.</string>
 </resources>
