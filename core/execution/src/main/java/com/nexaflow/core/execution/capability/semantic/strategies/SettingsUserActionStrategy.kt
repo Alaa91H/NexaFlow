@@ -29,6 +29,7 @@ class SettingsUserActionStrategy(private val context: Context) : CapabilityStrat
         SemanticOperationId.HOTSPOT_SET_STATE,
         SemanticOperationId.MOBILE_DATA_SET_STATE,
         SemanticOperationId.AIRPLANE_MODE_SET_STATE,
+        SemanticOperationId.ROTATION_SET_STATE,
         SemanticOperationId.BRIGHTNESS_SET,
         SemanticOperationId.SCREEN_TIMEOUT_SET,
         SemanticOperationId.DATA_SAVER_SET_STATE,
@@ -84,6 +85,7 @@ class SettingsUserActionStrategy(private val context: Context) : CapabilityStrat
         SemanticOperationId.HOTSPOT_SET_STATE -> Settings.ACTION_WIRELESS_SETTINGS
         SemanticOperationId.MOBILE_DATA_SET_STATE -> Settings.ACTION_DATA_ROAMING_SETTINGS
         SemanticOperationId.AIRPLANE_MODE_SET_STATE -> Settings.ACTION_AIRPLANE_MODE_SETTINGS
+        SemanticOperationId.ROTATION_SET_STATE -> Settings.ACTION_DISPLAY_SETTINGS
         SemanticOperationId.BRIGHTNESS_SET -> Settings.ACTION_DISPLAY_SETTINGS
         SemanticOperationId.SCREEN_TIMEOUT_SET -> Settings.ACTION_DISPLAY_SETTINGS
         // Data Saver has no public Settings action constant across API levels;
