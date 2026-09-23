@@ -30,10 +30,14 @@ object OperationParameterValidator {
         val violations = mutableListOf<Violation>()
 
         // 1. Required parameters must be present and non-blank.
+        // Track these so a blank required value reports one precise violation,
+        // not both "missing" and a second type/grammar error.
+        val missingOrBlank = mutableSetOf<String>()
         for (param in spec.parameters) {
             if (!param.required) continue
             val value = parameters[param.name]
             if (value == null || value.isBlank()) {
+                missingOrBlank += param.name
                 violations += Violation(
                     param.name,
                     "Missing required parameter '${param.name}' for ${spec.id.name}"
@@ -41,16 +45,19 @@ object OperationParameterValidator {
             }
         }
 
-        // 2. Every supplied parameter must be declared (allowlist, unchanged).
-        for (name in parameters.keys) {
-            if (spec.parameterSchema(name) == null) {
+        // 2. Every supplied parameter must be declared. Unknown keys have no
+        // spec order, so sort them for deterministic diagnostics.
+        parameters.keys
+            .filter { spec.parameterSchema(it) == null }
+            .sorted()
+            .forEach { name ->
                 violations += Violation(name, "Unknown parameter '$name' for ${spec.id.name}")
             }
-        }
 
-        // 3. Full typed validation of every supplied value.
+        // 3. Full typed validation of every supplied value in spec order.
         for (param in spec.parameters) {
             val value = parameters[param.name] ?: continue
+            if (param.name in missingOrBlank) continue
             validateValue(param, value)?.let { violations += Violation(param.name, it) }
         }
         return violations
@@ -140,9 +147,10 @@ object OperationParameterValidator {
         // traversal vector.
         val parsed = runCatching { java.net.URI(value) }.getOrNull()
         if (parsed == null || !parsed.scheme.equals("content", ignoreCase = true) ||
-            parsed.isOpaque || parsed.schemeSpecificPart.isNullOrBlank()
+            parsed.isOpaque || parsed.rawAuthority.isNullOrBlank() ||
+            parsed.schemeSpecificPart.isNullOrBlank()
         ) {
-            return "Parameter '${param.name}' must be a content:// URI"
+            return "Parameter '${param.name}' must be a content:// URI with a provider authority"
         }
         return null
     }

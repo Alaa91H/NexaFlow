@@ -44,8 +44,15 @@ data class VariableDeclaration(
         if (!NAME_REGEX.matches(name)) {
             problems += VariableProblem(VariableErrorCode.INVALID_NAME_CHARACTERS, "name")
         }
-        if (defaultValue != null && runtimeType != null && !runtimeType.accepts(defaultValue)) {
-            problems += VariableProblem(VariableErrorCode.DEFAULT_TYPE_MISMATCH, "defaultValue")
+        if (defaultValue != null && runtimeType != null) {
+            when {
+                runtimeType == RuntimeValueType.SECRET &&
+                    defaultValue is RuntimeValue.StringValue &&
+                    SecretReferenceRules.validateHandle(defaultValue.value).isNotEmpty() ->
+                    problems += VariableProblem(VariableErrorCode.INVALID_SECRET_HANDLE, "defaultValue")
+                !runtimeType.accepts(defaultValue) ->
+                    problems += VariableProblem(VariableErrorCode.DEFAULT_TYPE_MISMATCH, "defaultValue")
+            }
         }
         if (defaultValue is RuntimeValue.ObjectValue && defaultValue.values.size > MAX_OBJECT_ENTRIES) {
             problems += VariableProblem(VariableErrorCode.OBJECT_TOO_LARGE, "defaultValue")
@@ -67,6 +74,7 @@ enum class VariableErrorCode {
     NAME_TOO_LONG,
     INVALID_NAME_CHARACTERS,
     DEFAULT_TYPE_MISMATCH,
+    INVALID_SECRET_HANDLE,
     OBJECT_TOO_LARGE,
 }
 
@@ -88,7 +96,8 @@ enum class RuntimeValueType {
             value is RuntimeValue.IntValue || value is RuntimeValue.LongValue
         LIST -> value is RuntimeValue.ListValue
         OBJECT -> value is RuntimeValue.ObjectValue
-        SECRET -> value is RuntimeValue.StringValue // secret material is a string handle payload
+        SECRET -> value is RuntimeValue.StringValue &&
+            SecretReferenceRules.validateHandle(value.value).isEmpty()
     }
 }
 

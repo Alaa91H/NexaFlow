@@ -90,23 +90,47 @@ class TraceRecorder(private val logStore: LogStore) {
      */
     suspend fun record(event: ExecutionTraceEvent) {
         try {
-            val seq = counters.merge(event.runId, 1) { _, b -> b + 1 } ?: 1
+            val seq = counters.compute(event.runId) { _, current ->
+                if (event.sequence > 0) {
+                    maxOf(current ?: 0, event.sequence)
+                } else {
+                    (current ?: 0) + 1
+                }
+            } ?: 1
             val stamped = if (event.sequence == 0) event.copy(sequence = seq) else event
+            // Redact here even when the supplied LogStore is not wrapped in
+            // RedactingLogStore. TraceRecorder's public contract is that raw
+            // user content never crosses this boundary.
+            val redactedDetail = SecretRedactor.redact(stamped.detail)
             logStore.recordExecution(
                 ExecutionTimelineEntry(
                     id = stamped.id,
                     automationId = stamped.automationId,
                     automationName = "", // joined by the history layer when rendering
                     kind = "TRACE:${stamped.phase.name}",
-                    success = stamped.phase != TracePhase.GATE_BLOCKED,
-                    message = "${stamped.reasonCode}${stamped.detail?.let { "|$it" }.orEmpty()}",
+                    success = stamped.isSuccessfulTimelineEvent(),
+                    message = "${stamped.reasonCode}${redactedDetail?.let { "|$it" }.orEmpty()}",
                     startedAt = stamped.atEpochMs,
                     durationMs = stamped.durationMs,
                     channel = stamped.backend,
+                    traceRunId = stamped.runId,
+                    traceSequence = stamped.sequence,
+                    tracePhase = stamped.phase,
+                    traceReasonCode = stamped.reasonCode,
+                    traceDetail = redactedDetail,
+                    traceNodeId = stamped.nodeId,
                 )
             )
+        } catch (cancellation: kotlinx.coroutines.CancellationException) {
+            // Cancellation is structured-concurrency control flow, not a
+            // logging failure. Never turn cancellation into a successful run.
+            throw cancellation
         } catch (_: Throwable) {
-            // Tracing must never break execution.
+            // Ordinary tracing failures must never break execution.
+        } finally {
+            // OUTCOME is terminal. Releasing its sequence state here prevents
+            // a unique runId from remaining in memory forever.
+            if (event.phase == TracePhase.OUTCOME) forgetRun(event.runId)
         }
     }
 
@@ -117,21 +141,66 @@ class TraceRecorder(private val logStore: LogStore) {
         reasonCode: String,
         detail: String,
         atEpochMs: Long,
-    ) = record(
-        ExecutionTraceEvent(
-            id = java.util.UUID.randomUUID().toString(),
-            runId = runId,
-            automationId = automationId,
-            sequence = 0,
-            phase = TracePhase.GATE_BLOCKED,
-            reasonCode = reasonCode,
-            detail = SecretRedactor.redact(detail),
-            atEpochMs = atEpochMs,
-        )
-    )
+    ) {
+        try {
+            record(
+                ExecutionTraceEvent(
+                    id = java.util.UUID.randomUUID().toString(),
+                    runId = runId,
+                    automationId = automationId,
+                    sequence = 0,
+                    phase = TracePhase.GATE_BLOCKED,
+                    reasonCode = reasonCode,
+                    detail = detail,
+                    atEpochMs = atEpochMs,
+                )
+            )
+        } finally {
+            // A blocked gate is terminal for this run admission; it has no
+            // later OUTCOME event that could release the counter.
+            forgetRun(runId)
+        }
+    }
 
     /** Clears the per-run sequence counters for runs that have ended. */
     fun forgetRun(runId: String) {
         counters.remove(runId)
     }
+
+    /** Test-visible size of the bounded-per-run sequencing state. */
+    internal fun activeRunCountForTesting(): Int = counters.size
+}
+
+/** False for blocked, failed or uncertain trace rows; true for progress/success rows. */
+private fun ExecutionTraceEvent.isSuccessfulTimelineEvent(): Boolean =
+    phase != TracePhase.GATE_BLOCKED &&
+        reasonCode !in setOf(
+            TraceReasons.ACTION_FAILED,
+            TraceReasons.VERIFICATION_FAILED,
+            TraceReasons.OUTCOME_UNCERTAIN,
+            TraceReasons.RUN_FAILED,
+        )
+
+/**
+ * Rehydrates a trace row without parsing its free-form message. Rows written
+ * before structured trace metadata existed safely return null.
+ */
+fun ExecutionTimelineEntry.toTraceEventOrNull(): ExecutionTraceEvent? {
+    val runId = traceRunId ?: return null
+    val sequence = traceSequence ?: return null
+    val phase = tracePhase ?: return null
+    val reasonCode = traceReasonCode ?: return null
+    return ExecutionTraceEvent(
+        id = id,
+        runId = runId,
+        automationId = automationId,
+        sequence = sequence,
+        phase = phase,
+        reasonCode = reasonCode,
+        detail = traceDetail,
+        backend = channel,
+        nodeId = traceNodeId,
+        atEpochMs = startedAt,
+        durationMs = durationMs,
+    )
 }

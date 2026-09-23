@@ -56,12 +56,7 @@ object WorkflowDocumentMappers {
             )
         }
         val exitActions = exitActions.mapIndexed { index, action ->
-            PersistedActionV1(
-                type = action.type.name,
-                config = action.config,
-                endBehavior = null,
-                nodeId = stableNodeId("exit", id, index, action.type.name),
-            )
+            action.toPersisted(nodeId = stableNodeId("exit", id, index, action.type.name))
         }
         return WorkflowDocumentV1(
             id = id,
@@ -73,6 +68,17 @@ object WorkflowDocumentMappers {
                 category = category,
                 createdAt = createdAt,
                 updatedAt = updatedAt,
+            ),
+            automationSettings = AutomationSettingsV1(
+                iconColor = iconColor,
+                backgroundColor = backgroundColor,
+                priority = priority,
+                enabled = enabled,
+                showToastOnToggle = showToastOnToggle,
+                triggerMatch = triggerMatch.name,
+                cooldownSeconds = cooldownSeconds,
+                workflowVersion = workflowVersion,
+                maintenanceProfile = maintenanceProfile?.toPersisted(),
             ),
             triggers = triggers.map { it.toDefinition() },
             constraints = constraints.map { it.toDefinition() },
@@ -88,6 +94,60 @@ object WorkflowDocumentMappers {
 
     private fun Trigger.toDefinition() = TriggerDefinitionV1(type = type.name, config = config)
     private fun Constraint.toDefinition() = ConstraintDefinitionV1(type = type.name, config = config)
+
+    private fun com.nexaflow.domain.models.MaintenanceProfile.toPersisted() = MaintenanceProfileV1(
+        kind = kind.name,
+        window = window?.let { legacy ->
+            MaintenanceWindowV1(
+                startTime = legacy.startTime,
+                endTime = legacy.endTime,
+                allowedDays = legacy.allowedDays,
+                minimumBatteryPercent = legacy.minimumBatteryPercent,
+                chargingRequired = legacy.chargingRequired,
+                unmeteredWifiRequired = legacy.unmeteredWifiRequired,
+                screenOffRequired = legacy.screenOffRequired,
+                deviceIdleRequired = legacy.deviceIdleRequired,
+                maximumThermalStatus = legacy.maximumThermalStatus,
+                minimumFreeStorageBytes = legacy.minimumFreeStorageBytes,
+            )
+        },
+        retryPolicy = MaintenanceRetryPolicyV1(
+            maxAttempts = retryPolicy.maxAttempts,
+            initialDelayMs = retryPolicy.initialDelayMs,
+            backoffMultiplier = retryPolicy.backoffMultiplier,
+            maxDelayMs = retryPolicy.maxDelayMs,
+        ),
+        notificationPolicy = notificationPolicy.name,
+        dependencyAutomationIds = dependencyAutomationIds,
+        recoveryPolicy = recoveryPolicy.name,
+    )
+
+    private fun MaintenanceProfileV1.toLegacy() = com.nexaflow.domain.models.MaintenanceProfile(
+        kind = com.nexaflow.domain.models.MaintenanceKind.valueOf(kind),
+        window = window?.let { persisted ->
+            com.nexaflow.domain.models.MaintenanceWindow(
+                startTime = persisted.startTime,
+                endTime = persisted.endTime,
+                allowedDays = persisted.allowedDays,
+                minimumBatteryPercent = persisted.minimumBatteryPercent,
+                chargingRequired = persisted.chargingRequired,
+                unmeteredWifiRequired = persisted.unmeteredWifiRequired,
+                screenOffRequired = persisted.screenOffRequired,
+                deviceIdleRequired = persisted.deviceIdleRequired,
+                maximumThermalStatus = persisted.maximumThermalStatus,
+                minimumFreeStorageBytes = persisted.minimumFreeStorageBytes,
+            )
+        },
+        retryPolicy = com.nexaflow.domain.models.MaintenanceRetryPolicy(
+            maxAttempts = retryPolicy.maxAttempts,
+            initialDelayMs = retryPolicy.initialDelayMs,
+            backoffMultiplier = retryPolicy.backoffMultiplier,
+            maxDelayMs = retryPolicy.maxDelayMs,
+        ),
+        notificationPolicy = com.nexaflow.domain.models.MaintenanceNotificationPolicy.valueOf(notificationPolicy),
+        dependencyAutomationIds = dependencyAutomationIds,
+        recoveryPolicy = com.nexaflow.domain.models.MaintenanceRecoveryPolicy.valueOf(recoveryPolicy),
+    )
 
     private fun Action.toPersisted(nodeId: String) = PersistedActionV1(
         type = type.name,
@@ -130,24 +190,29 @@ object WorkflowDocumentMappers {
     fun WorkflowDocumentV1.toAutomation(): Automation {
         val runActions = requireLinearRun(root)
         val exitPolicy = exitPolicy
+        val settings = automationSettings
         return Automation(
             id = id,
             name = metadata.name,
             description = metadata.description,
             icon = metadata.icon,
-            iconColor = 0xFF448AFF,
-            backgroundColor = 0xFF101010,
-            category = metadata.category.ifBlank { "general" },
-            priority = 5,
-            enabled = false,
+            iconColor = settings.iconColor,
+            backgroundColor = settings.backgroundColor,
+            category = metadata.category,
+            priority = settings.priority,
+            enabled = settings.enabled,
+            showToastOnToggle = settings.showToastOnToggle,
             triggers = triggers.map { it.toTrigger() },
             actions = runActions,
             constraints = constraints.map { it.toConstraint() },
-            triggerMatch = com.nexaflow.domain.models.TriggerMatchMode.ANY,
+            triggerMatch = com.nexaflow.domain.models.TriggerMatchMode.valueOf(settings.triggerMatch),
             exitActions = exitPolicy?.actions?.map { it.toAction() } ?: emptyList(),
             revertOnExit = exitPolicy?.revertOnExit ?: false,
-            createdAt = metadata.createdAt.takeIf { it > 0 } ?: 0L,
-            updatedAt = metadata.updatedAt.takeIf { it > 0 } ?: 0L,
+            cooldownSeconds = settings.cooldownSeconds,
+            createdAt = metadata.createdAt,
+            updatedAt = metadata.updatedAt,
+            workflowVersion = settings.workflowVersion,
+            maintenanceProfile = settings.maintenanceProfile?.toLegacy(),
         )
     }
 
@@ -221,9 +286,23 @@ object WorkflowDocumentMappers {
     fun validateStructure(document: WorkflowDocumentV1): List<ValidationIssue> {
         val issues = mutableListOf<ValidationIssue>()
         val seen = HashSet<String>()
+        // An empty root is not executable, but nested empty sequence/parallel
+        // nodes are legitimate no-op branches.
+        when (val root = document.root) {
+            is PersistedWorkflowNodeV1.Sequence ->
+                if (root.children.isEmpty()) issues += ValidationIssue.EmptyGraph(root.nodeId)
+            is PersistedWorkflowNodeV1.Parallel ->
+                if (root.children.isEmpty()) issues += ValidationIssue.EmptyGraph(root.nodeId)
+            else -> Unit
+        }
         visit(document.root, seen, issues)
         document.exitPolicy?.actions?.forEach { persisted ->
-            if (persisted.nodeId.isBlank()) issues += ValidationIssue.BlankNodeId("exitPolicy")
+            when {
+                persisted.nodeId.isBlank() ->
+                    issues += ValidationIssue.BlankNodeId("exitPolicy")
+                !seen.add(persisted.nodeId) ->
+                    issues += ValidationIssue.DuplicateNodeId(persisted.nodeId)
+            }
         }
         return issues
     }
@@ -242,14 +321,10 @@ object WorkflowDocumentMappers {
             return
         }
         when (node) {
-            is PersistedWorkflowNodeV1.Sequence -> {
-                if (node.children.isEmpty()) issues += ValidationIssue.EmptyGraph(node.nodeId)
+            is PersistedWorkflowNodeV1.Sequence ->
                 node.children.forEach { visit(it, seen, issues) }
-            }
-            is PersistedWorkflowNodeV1.Parallel -> {
-                if (node.children.isEmpty()) issues += ValidationIssue.EmptyGraph(node.nodeId)
+            is PersistedWorkflowNodeV1.Parallel ->
                 node.children.forEach { visit(it, seen, issues) }
-            }
             is PersistedWorkflowNodeV1.Race -> {
                 if (node.children.isEmpty()) issues += ValidationIssue.EmptyGraph(node.nodeId)
                 node.children.forEach { visit(it, seen, issues) }
@@ -274,6 +349,12 @@ object WorkflowDocumentMappers {
                     issues += ValidationIssue.InvalidBound(
                         node.nodeId,
                         "maxAttempts ${node.maxAttempts} outside 1..${WorkflowDocumentMappers.Bounds.MAX_RETRY_ATTEMPTS}",
+                    )
+                }
+                if (node.backoffMs !in 0..WorkflowDocumentMappers.Bounds.MAX_TIMEOUT_MS) {
+                    issues += ValidationIssue.InvalidBound(
+                        node.nodeId,
+                        "backoffMs ${node.backoffMs} outside 0..${WorkflowDocumentMappers.Bounds.MAX_TIMEOUT_MS}",
                     )
                 }
                 visit(node.body, seen, issues)
@@ -332,9 +413,15 @@ object WorkflowDocumentMappers {
     /** Decodes a persisted document, failing safely on unknown versions. */
     fun decode(encoded: String): WorkflowDocumentV1 = json.decodeFromString(encoded)
 
-    /** Encodes a document with its schema version embedded. */
-    fun encode(document: WorkflowDocumentV1): String = json.encodeToString(
-        WorkflowDocumentV1.serializer(),
-        document,
-    )
+    /** Encodes only structurally valid documents with their schema version embedded. */
+    fun encode(document: WorkflowDocumentV1): String {
+        val issues = validateStructure(document)
+        require(issues.isEmpty()) {
+            "Invalid workflow structure: " + issues.joinToString()
+        }
+        return json.encodeToString(
+            WorkflowDocumentV1.serializer(),
+            document,
+        )
+    }
 }

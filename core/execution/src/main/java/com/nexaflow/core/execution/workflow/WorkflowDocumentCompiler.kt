@@ -26,7 +26,13 @@ object WorkflowDocumentCompiler {
     fun compile(
         document: WorkflowDocumentV1,
         conditionCompiler: (ConditionExpr) -> WorkflowCondition,
-    ): WorkflowNode = document.root.toRuntime(conditionCompiler)
+    ): WorkflowNode {
+        val issues = WorkflowDocumentMappers.validateStructure(document)
+        require(issues.isEmpty()) {
+            "Invalid workflow structure: " + issues.joinToString()
+        }
+        return document.root.toRuntime(conditionCompiler)
+    }
 
     /**
      * Convenience for documents that only use [ConditionExpr] kinds the
@@ -64,25 +70,51 @@ object WorkflowDocumentCompiler {
     private suspend fun cmp(left: ValueExpr, op: CompareOp, right: ValueExpr): Boolean {
         val l = resolve(left) ?: return false
         val r = resolve(right) ?: return false
-        val lc = asComparable(l) ?: return false
-        val rc = asComparable(r) ?: return false
-        return compareValues(lc, rc).let { c ->
-            when (op) {
-                CompareOp.LESS_THAN -> c < 0
-                CompareOp.LESS_OR_EQUAL -> c <= 0
-                CompareOp.GREATER_THAN -> c > 0
-                CompareOp.GREATER_OR_EQUAL -> c >= 0
-            }
+        val comparison = compareResolved(l, r) ?: return false
+        return when (op) {
+            CompareOp.LESS_THAN -> comparison < 0
+            CompareOp.LESS_OR_EQUAL -> comparison <= 0
+            CompareOp.GREATER_THAN -> comparison > 0
+            CompareOp.GREATER_OR_EQUAL -> comparison >= 0
         }
     }
 
-    /** Numeric and string values are orderable; others are not comparable. */
-    private fun asComparable(value: com.nexaflow.domain.workflow.RuntimeValueV1): Comparable<*>? =
-        when (value) {
-            is com.nexaflow.domain.workflow.RuntimeValueV1.IntValue -> value.value
-            is com.nexaflow.domain.workflow.RuntimeValueV1.LongValue -> value.value
-            is com.nexaflow.domain.workflow.RuntimeValueV1.DoubleValue -> value.value
-            is com.nexaflow.domain.workflow.RuntimeValueV1.StringValue -> value.value
+    /**
+     * Orders compatible values without relying on erased Comparable casts.
+     * JVM Comparable is type-specific (Integer cannot compare itself to Long),
+     * so mixed numeric RuntimeValue kinds are normalized to BigDecimal first.
+     */
+    private fun compareResolved(
+        left: com.nexaflow.domain.workflow.RuntimeValueV1,
+        right: com.nexaflow.domain.workflow.RuntimeValueV1,
+    ): Int? {
+        val leftNumber = left.asBigDecimalOrNull()
+        val rightNumber = right.asBigDecimalOrNull()
+        if (leftNumber != null || rightNumber != null) {
+            return if (leftNumber != null && rightNumber != null) {
+                leftNumber.compareTo(rightNumber)
+            } else {
+                null
+            }
+        }
+        return if (
+            left is com.nexaflow.domain.workflow.RuntimeValueV1.StringValue &&
+            right is com.nexaflow.domain.workflow.RuntimeValueV1.StringValue
+        ) {
+            left.value.compareTo(right.value)
+        } else {
+            null
+        }
+    }
+
+    private fun com.nexaflow.domain.workflow.RuntimeValueV1.asBigDecimalOrNull(): java.math.BigDecimal? =
+        when (this) {
+            is com.nexaflow.domain.workflow.RuntimeValueV1.IntValue ->
+                java.math.BigDecimal.valueOf(value.toLong())
+            is com.nexaflow.domain.workflow.RuntimeValueV1.LongValue ->
+                java.math.BigDecimal.valueOf(value)
+            is com.nexaflow.domain.workflow.RuntimeValueV1.DoubleValue ->
+                java.math.BigDecimal.valueOf(value)
             else -> null
         }
 

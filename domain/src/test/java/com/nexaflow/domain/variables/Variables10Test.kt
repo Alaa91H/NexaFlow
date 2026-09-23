@@ -88,6 +88,30 @@ class Variables10Test {
         )
     }
 
+    @Test
+    fun secretDeclarationAcceptsOnlyVaultHandles() {
+        val declaration = VariableDeclaration(
+            name = "api.token",
+            scope = VariableScope.WORKFLOW,
+            runtimeType = RuntimeValueType.SECRET,
+            defaultValue = RuntimeValue.StringValue("vault:workflow-api-token"),
+        )
+        assertTrue(declaration.validate().isEmpty())
+    }
+
+    @Test
+    fun secretDeclarationRejectsPlaintextDefault() {
+        val error = runCatching {
+            VariableDeclaration(
+                name = "api.token",
+                scope = VariableScope.WORKFLOW,
+                runtimeType = RuntimeValueType.SECRET,
+                defaultValue = RuntimeValue.StringValue("raw-secret-value"),
+            )
+        }.exceptionOrNull()
+        assertEquals(VariableErrorCode.INVALID_SECRET_HANDLE, firstCode(error))
+    }
+
     // ------------------------------------------------------------------
     // Scope resolution precedence
     // ------------------------------------------------------------------

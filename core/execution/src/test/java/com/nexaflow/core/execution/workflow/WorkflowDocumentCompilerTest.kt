@@ -60,6 +60,25 @@ class WorkflowDocumentCompilerTest {
         assertEquals("a1", seq.children[1].id)
     }
 
+    @Test(expected = IllegalArgumentException::class)
+    fun compilerRejectsDuplicateNodeIdsBeforeBuildingRuntimeGraph() {
+        val duplicate = PersistedWorkflowNodeV1.Action(
+            nodeId = "same-id",
+            action = com.nexaflow.domain.workflow.PersistedActionV1(
+                nodeId = "action-payload-1",
+                type = "SYSTEM_WIFI",
+                config = mapOf("enabled" to "true"),
+            ),
+        )
+        val doc = document(
+            PersistedWorkflowNodeV1.Sequence(
+                nodeId = "root",
+                children = listOf(duplicate, duplicate),
+            ),
+        )
+        WorkflowDocumentCompiler.compile(doc, functionRegistry = emptyMap())
+    }
+
     @Test
     fun dataConditionsEvaluateWithLiteralValues() = runTest {
         val condition = ConditionExpr.And(
@@ -89,6 +108,57 @@ class WorkflowDocumentCompilerTest {
         )
         val branch = node as WorkflowNode.BranchNode
         assertEquals(true, branch.condition.evaluate())
+    }
+
+    @Test
+    fun mixedNumericConditionTypesCompareWithoutRuntimeCastFailures() = runTest {
+        val condition = ConditionExpr.And(
+            terms = listOf(
+                ConditionExpr.Compare(
+                    left = ValueExpr.Literal(RuntimeValueV1.IntValue(60)),
+                    op = com.nexaflow.domain.workflow.CompareOp.LESS_THAN,
+                    right = ValueExpr.Literal(RuntimeValueV1.LongValue(61L)),
+                ),
+                ConditionExpr.Compare(
+                    left = ValueExpr.Literal(RuntimeValueV1.LongValue(61L)),
+                    op = com.nexaflow.domain.workflow.CompareOp.LESS_THAN,
+                    right = ValueExpr.Literal(RuntimeValueV1.DoubleValue(61.5)),
+                ),
+            ),
+        )
+        val node = WorkflowDocumentCompiler.compile(
+            document(
+                PersistedWorkflowNodeV1.Branch(
+                    nodeId = "mixed-numeric",
+                    condition = condition,
+                    whenTrue = PersistedWorkflowNodeV1.Sequence(nodeId = "t", children = emptyList()),
+                ),
+            ),
+            functionRegistry = emptyMap(),
+        )
+        val branch = node as WorkflowNode.BranchNode
+        assertEquals(true, branch.condition.evaluate())
+    }
+
+    @Test
+    fun mixedNumericAndStringComparisonFailsClosed() = runTest {
+        val condition = ConditionExpr.Compare(
+            left = ValueExpr.Literal(RuntimeValueV1.IntValue(10)),
+            op = com.nexaflow.domain.workflow.CompareOp.LESS_THAN,
+            right = ValueExpr.Literal(RuntimeValueV1.StringValue("20")),
+        )
+        val node = WorkflowDocumentCompiler.compile(
+            document(
+                PersistedWorkflowNodeV1.Branch(
+                    nodeId = "mixed-incompatible",
+                    condition = condition,
+                    whenTrue = PersistedWorkflowNodeV1.Sequence(nodeId = "t", children = emptyList()),
+                ),
+            ),
+            functionRegistry = emptyMap(),
+        )
+        val branch = node as WorkflowNode.BranchNode
+        assertEquals(false, branch.condition.evaluate())
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -153,12 +223,19 @@ class WorkflowDocumentCompilerTest {
         val logStore = InMemoryLogStore()
         val recorder = TraceRecorder(logStore)
 
-        recorder.recordGateBlocked(
-            runId = "run-1",
-            automationId = "task-1",
-            reasonCode = TraceReasons.TRIGGER_ALL_GATE_BLOCKED,
-            detail = "charging mismatch; token=supersecret123",
-            atEpochMs = 1_000L,
+        // Use the public generic record() path directly. The recorder itself,
+        // not only convenience builders or RedactingLogStore, owns redaction.
+        recorder.record(
+            ExecutionTraceEvent(
+                id = "trace-1",
+                runId = "run-1",
+                automationId = "task-1",
+                sequence = 0,
+                phase = TracePhase.GATE_BLOCKED,
+                reasonCode = TraceReasons.TRIGGER_ALL_GATE_BLOCKED,
+                detail = "charging mismatch; token=supersecret123",
+                atEpochMs = 1_000L,
+            ),
         )
 
         val timeline = logStore.timeline().first()

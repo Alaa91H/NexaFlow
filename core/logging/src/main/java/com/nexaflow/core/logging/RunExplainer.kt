@@ -41,6 +41,20 @@ object RunExplainer {
         return explainEvent(decisive)
     }
 
+    /**
+     * Reads one run directly from the existing timeline without parsing
+     * free-form messages. Ordinary timeline rows and pre-structured trace rows
+     * are ignored safely.
+     */
+    fun explainTimeline(
+        entries: List<ExecutionTimelineEntry>,
+        runId: String,
+    ): Explanation? = explain(
+        entries
+            .mapNotNull { it.toTraceEventOrNull() }
+            .filter { it.runId == runId },
+    )
+
     /** Explains a single event by its canonical reason code. */
     fun explainEvent(event: ExecutionTraceEvent): Explanation = when (event.reasonCode) {
         TraceReasons.CONSTRAINT_BLOCKED -> Explanation(

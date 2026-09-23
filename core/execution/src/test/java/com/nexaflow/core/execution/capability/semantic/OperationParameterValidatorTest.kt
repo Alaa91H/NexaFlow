@@ -109,11 +109,30 @@ class OperationParameterValidatorTest {
     }
 
     @Test
+    fun blankRequiredParameterProducesOnlyOneViolation() {
+        val violations = OperationParameterValidator.validate(
+            booleanSpec(),
+            mapOf("enabled" to "  "),
+        )
+        assertEquals(1, violations.size)
+        assertTrue(violations.single().reason.contains("Missing required parameter 'enabled'"))
+    }
+
+    @Test
     fun unknownParameterIsRejected() {
         val violation = OperationParameterValidator.firstViolation(
             booleanSpec(), mapOf("enabled" to "true", "extra" to "x")
         )
         assertTrue(violation!!.contains("Unknown parameter 'extra'"))
+    }
+
+    @Test
+    fun unknownParameterDiagnosticsAreDeterministic() {
+        val violations = OperationParameterValidator.validate(
+            booleanSpec(),
+            linkedMapOf("enabled" to "true", "zExtra" to "1", "aExtra" to "2"),
+        )
+        assertEquals(listOf("aExtra", "zExtra"), violations.map { it.parameter })
     }
 
     @Test
@@ -275,7 +294,8 @@ class OperationParameterValidatorTest {
             "file:///data/local/tmp",
             "/storage/emulated/0/x",
             "https://example.com",
-            "content://"
+            "content://",
+            "content:///docs/1" // scheme present but no provider authority
         )) {
             val violation = OperationParameterValidator.firstViolation(s, mapOf("target" to value))
             assertTrue("'$value' must be rejected", violation!!.contains("content://"))

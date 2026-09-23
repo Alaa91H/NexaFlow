@@ -41,7 +41,11 @@ class WorkflowDocumentV1Test {
             ),
         ),
         exitActions: List<Action> = listOf(
-            Action(type = ActionType.SYSTEM_WIFI, config = mapOf("enabled" to "false")),
+            Action(
+                type = ActionType.SYSTEM_WIFI,
+                config = mapOf("enabled" to "false"),
+                endBehavior = EndBehavior(mode = EndMode.LEAVE),
+            ),
         ),
         constraints: List<Constraint> = listOf(
             Constraint(type = ConstraintType.BATTERY, config = mapOf("direction" to "ABOVE", "level" to "50")),
@@ -51,11 +55,12 @@ class WorkflowDocumentV1Test {
         name = "Night Wi-Fi",
         description = "Turn Wi-Fi on at night",
         icon = "wifi",
-        iconColor = 0xFF448AFF,
-        backgroundColor = 0xFF101010,
+        iconColor = 0xFF123456,
+        backgroundColor = 0xFF654321,
         category = "connectivity",
-        priority = 5,
+        priority = 9,
         enabled = true,
+        showToastOnToggle = false,
         triggers = listOf(
             Trigger(type = TriggerType.TIME, config = mapOf("start" to "22:00", "end" to "07:00")),
         ),
@@ -86,6 +91,15 @@ class WorkflowDocumentV1Test {
         assertEquals(legacy.category, doc.metadata.category)
         assertEquals(legacy.createdAt, doc.metadata.createdAt)
         assertEquals(legacy.updatedAt, doc.metadata.updatedAt)
+        assertEquals(legacy.iconColor, doc.automationSettings.iconColor)
+        assertEquals(legacy.backgroundColor, doc.automationSettings.backgroundColor)
+        assertEquals(legacy.priority, doc.automationSettings.priority)
+        assertEquals(legacy.enabled, doc.automationSettings.enabled)
+        assertEquals(legacy.showToastOnToggle, doc.automationSettings.showToastOnToggle)
+        assertEquals(legacy.triggerMatch.name, doc.automationSettings.triggerMatch)
+        assertEquals(legacy.cooldownSeconds, doc.automationSettings.cooldownSeconds)
+        assertEquals(legacy.workflowVersion, doc.automationSettings.workflowVersion)
+        assertEquals(legacy.maintenanceProfile, doc.automationSettings.maintenanceProfile)
 
         assertEquals(1, doc.triggers.size)
         assertEquals(TriggerType.TIME.name, doc.triggers[0].type)
@@ -117,14 +131,49 @@ class WorkflowDocumentV1Test {
         val legacy = automation()
         val roundTripped = with(WorkflowDocumentMappers) { legacy.toDocument().toAutomation() }
 
-        assertEquals(legacy.id, roundTripped.id)
-        assertEquals(legacy.name, roundTripped.name)
-        assertEquals(legacy.description, roundTripped.description)
-        assertEquals(legacy.triggers, roundTripped.triggers)
-        assertEquals(legacy.constraints, roundTripped.constraints)
-        assertEquals(legacy.actions, roundTripped.actions)
-        assertEquals(legacy.exitActions, roundTripped.exitActions)
-        assertEquals(legacy.revertOnExit, roundTripped.revertOnExit)
+        assertEquals(legacy, roundTripped)
+    }
+
+    @Test
+    fun maintenanceProfileRoundTripIsLosslessWithoutEmbeddingLegacySchema() {
+        val profile = com.nexaflow.domain.models.MaintenanceProfile(
+            kind = com.nexaflow.domain.models.MaintenanceKind.WEEKLY,
+            window = com.nexaflow.domain.models.MaintenanceWindow(
+                startTime = "01:00",
+                endTime = "03:00",
+                allowedDays = setOf(1, 3, 5),
+                minimumBatteryPercent = 55,
+                chargingRequired = true,
+                unmeteredWifiRequired = true,
+                screenOffRequired = true,
+                deviceIdleRequired = true,
+                maximumThermalStatus = 2,
+                minimumFreeStorageBytes = 1_000_000L,
+            ),
+            retryPolicy = com.nexaflow.domain.models.MaintenanceRetryPolicy(
+                maxAttempts = 4,
+                initialDelayMs = 1_000L,
+                backoffMultiplier = 1.5,
+                maxDelayMs = 9_000L,
+            ),
+            notificationPolicy = com.nexaflow.domain.models.MaintenanceNotificationPolicy.ERRORS_ONLY,
+            dependencyAutomationIds = listOf("dependency-1"),
+            recoveryPolicy = com.nexaflow.domain.models.MaintenanceRecoveryPolicy.RETRY_TRANSIENT_ONLY,
+        )
+        val legacy = automation().copy(maintenanceProfile = profile)
+        val doc = legacy.toDocument()
+        assertTrue(doc.automationSettings.maintenanceProfile is MaintenanceProfileV1)
+
+        val roundTripped = with(WorkflowDocumentMappers) { doc.toAutomation() }
+        assertEquals(profile, roundTripped.maintenanceProfile)
+        assertEquals(legacy, roundTripped)
+    }
+
+    @Test
+    fun blankLegacyCategoryRemainsBlankAfterRoundTrip() {
+        val legacy = automation().copy(category = "")
+        val roundTripped = with(WorkflowDocumentMappers) { legacy.toDocument().toAutomation() }
+        assertEquals("", roundTripped.category)
     }
 
     @Test
@@ -154,6 +203,61 @@ class WorkflowDocumentV1Test {
         // Same content, different revision → same hash (diagnostics equality).
         val bumped = base.copy(revision = base.revision + 1)
         assertEquals(base.hash, bumped.hash)
+    }
+
+    @Test
+    fun contentHashIgnoresMapInsertionOrder() {
+        val forward = automation(
+            actions = listOf(
+                Action(
+                    type = ActionType.SYSTEM_BRIGHTNESS,
+                    config = linkedMapOf("value" to "120", "mode" to "manual"),
+                ),
+            ),
+            exitActions = emptyList(),
+            constraints = emptyList(),
+        ).toDocument()
+        val reversed = automation(
+            actions = listOf(
+                Action(
+                    type = ActionType.SYSTEM_BRIGHTNESS,
+                    config = linkedMapOf("mode" to "manual", "value" to "120"),
+                ),
+            ),
+            exitActions = emptyList(),
+            constraints = emptyList(),
+        ).toDocument()
+
+        assertEquals(forward, reversed)
+        assertEquals(forward.hash, reversed.hash)
+    }
+
+    @Test
+    fun persistedSecretDeclarationAcceptsVaultReference() {
+        val declaration = VariableDeclarationV1(
+            name = "service.token",
+            runtimeType = "SECRET",
+            scope = "WORKFLOW",
+            defaultValue = RuntimeValueV1.SecretReference("vault:service-token"),
+            isSecret = true,
+        )
+        assertEquals("vault:service-token", (declaration.defaultValue as RuntimeValueV1.SecretReference).handle)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun persistedSecretDeclarationRejectsPlaintextDefault() {
+        VariableDeclarationV1(
+            name = "service.token",
+            runtimeType = "SECRET",
+            scope = "WORKFLOW",
+            defaultValue = RuntimeValueV1.StringValue("plain-secret"),
+            isSecret = true,
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun secretReferenceRejectsNonVaultHandle() {
+        RuntimeValueV1.SecretReference("plain-secret")
     }
 
     // ------------------------------------------------------------------
@@ -205,6 +309,24 @@ class WorkflowDocumentV1Test {
     }
 
     @Test
+    fun duplicateExitNodeIdsAreRejected() {
+        val doc = automation().toDocument()
+        val poisoned = doc.copy(
+            exitPolicy = ExitPolicyV1(
+                actions = listOf(
+                    PersistedActionV1(
+                        nodeId = doc.root.nodeId,
+                        type = ActionType.SYSTEM_WIFI.name,
+                        config = mapOf("enabled" to "false"),
+                    ),
+                ),
+            ),
+        )
+        val issues = WorkflowDocumentMappers.validateStructure(poisoned)
+        assertTrue(issues.any { it is WorkflowDocumentMappers.ValidationIssue.DuplicateNodeId })
+    }
+
+    @Test
     fun runawayLoopBoundsAreRejected() {
         val doc = automation().toDocument()
         val poisoned = doc.copy(
@@ -220,6 +342,57 @@ class WorkflowDocumentV1Test {
         )
         val issues = WorkflowDocumentMappers.validateStructure(poisoned)
         assertTrue(issues.any { it is WorkflowDocumentMappers.ValidationIssue.UnboundedLoop })
+    }
+
+    @Test
+    fun retryBackoffOutsideRuntimeBoundsIsRejected() {
+        val doc = automation().toDocument()
+        val poisoned = doc.copy(
+            root = PersistedWorkflowNodeV1.Retry(
+                nodeId = "retry:bad-backoff",
+                body = PersistedWorkflowNodeV1.Action(
+                    nodeId = "retry:body",
+                    action = PersistedActionV1(
+                        nodeId = "retry:body-action",
+                        type = ActionType.SYSTEM_WIFI.name,
+                        config = mapOf("enabled" to "true"),
+                    ),
+                ),
+                maxAttempts = 2,
+                backoffMs = WorkflowDocumentMappers.Bounds.MAX_TIMEOUT_MS + 1,
+            ),
+        )
+        val issues = WorkflowDocumentMappers.validateStructure(poisoned)
+        assertTrue(issues.any { it is WorkflowDocumentMappers.ValidationIssue.InvalidBound })
+    }
+
+    @Test
+    fun nestedEmptySequenceIsAllowedAsNoOpBranch() {
+        val doc = automation().toDocument().copy(
+            root = PersistedWorkflowNodeV1.Branch(
+                nodeId = "branch:no-op",
+                condition = ConditionExpr.Equals(
+                    left = ValueExpr.Literal(RuntimeValueV1.BooleanValue(true)),
+                    right = ValueExpr.Literal(RuntimeValueV1.BooleanValue(true)),
+                ),
+                whenTrue = PersistedWorkflowNodeV1.Sequence(
+                    nodeId = "branch:no-op:true",
+                    children = emptyList(),
+                ),
+            ),
+        )
+        assertTrue(WorkflowDocumentMappers.validateStructure(doc).isEmpty())
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun encoderRejectsStructurallyInvalidDocument() {
+        val invalid = automation().toDocument().copy(
+            root = PersistedWorkflowNodeV1.Sequence(
+                nodeId = "run:invalid-empty",
+                children = emptyList(),
+            ),
+        )
+        WorkflowDocumentMappers.encode(invalid)
     }
 
     @Test
