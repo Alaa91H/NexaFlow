@@ -259,7 +259,7 @@ private fun RunExplanationCard(explanation: RunExplainer.Explanation) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 IconBadge(
-                    icon = Icons.Filled.HelpOutline,
+                    icon = Icons.AutoMirrored.Filled.HelpOutline,
                     containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                     contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                     size = 40
