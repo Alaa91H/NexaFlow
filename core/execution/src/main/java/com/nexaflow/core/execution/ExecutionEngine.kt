@@ -778,6 +778,10 @@ class ExecutionEngine(
     suspend fun describeManualBlock(automation: Automation): ManualBlockReason =
         manualAdmissionEvaluator.describe(automation)
 
+    /** Side-effect-free live status for every trigger and constraint row. */
+    suspend fun diagnoseManualAdmission(automation: Automation): ManualAdmissionDiagnostics =
+        manualAdmissionEvaluator.diagnostics(automation)
+
     /**
      * Explicit user override of the manual admission gate: skips trigger and
      * constraint checks entirely and runs the main chain. Only reachable from
