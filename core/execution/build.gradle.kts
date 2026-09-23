@@ -83,6 +83,7 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:logging"))
     implementation(project(":core:plugin-sdk"))
+    implementation(project(":core:wear-protocol"))
     testImplementation(libs.junit.junit)
     testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test)
     testImplementation(libs.androidx.paging.paging.common)
