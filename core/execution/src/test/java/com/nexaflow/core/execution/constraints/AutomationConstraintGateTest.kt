@@ -35,6 +35,30 @@ class AutomationConstraintGateTest {
     }
 
     @Test
+    fun perConstraintDiagnosticsPreserveSavedOrder() = runBlocking {
+        val gate = AutomationConstraintGate(serviceReturning(ConditionResult.Unknown))
+        val automation = pluginAutomation().copy(
+            constraints = listOf(
+                Constraint(ConstraintType.WIFI),
+                Constraint(
+                    type = ConstraintType.PLUGIN,
+                    config = mapOf("pluginInstance" to "plugin:condition")
+                )
+            )
+        )
+
+        val results = gate.evaluateEach(
+            automation,
+            state = com.nexaflow.domain.models.ConstraintSnapshot(wifiConnected = true)
+        )
+
+        assertEquals(
+            listOf(ConditionResult.Satisfied, ConditionResult.Unknown),
+            results
+        )
+    }
+
+    @Test
     fun missingCapabilityServiceIsReportedAsUnavailableNotUnsatisfied() = runBlocking {
         val gate = AutomationConstraintGate(capabilityExecutionService = null)
 

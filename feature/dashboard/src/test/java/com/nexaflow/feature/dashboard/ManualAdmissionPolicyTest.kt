@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.ManualBlockKind
 import com.nexaflow.core.execution.handler.ActionRegistry
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
@@ -40,9 +41,8 @@ import android.os.Looper
  *    methods exercised here)
  *
  * Policy under test: a manual Run now whose triggers/constraints do not match
- * must never execute the main chain — only the configured end behavior — and
- * the mismatch must be observable as a typed reason. forceRun is the only
- * bypass and must be logged as user-forced.
+ * must execute no side effects. End behavior is a separate explicit command,
+ * while forceRun is the only main-chain bypass and must be logged as user-forced.
  */
 @RunWith(RobolectricTestRunner::class)
 class ManualAdmissionPolicyTest {
@@ -134,12 +134,12 @@ class ManualAdmissionPolicyTest {
         awaitIdle { viewModel.executionMessage.value != null }
 
         val record = history.records.last()
-        // success=true: a deliberately blocked run is not a failure, and the
-        // message must identify the manual rejection, never a main run.
+        // success=true: a deliberately blocked run is an intentional skip,
+        // and no end behavior may run implicitly.
         assertTrue(record.success)
         assertTrue(
-            "expected manual rejection, got: ${record.message}",
-            record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX)
+            "expected side-effect-free manual rejection, got: ${record.message}",
+            record.message.startsWith("Skipped:")
         )
         assertTrue(record.actionResults.isEmpty())
     }
@@ -147,7 +147,7 @@ class ManualAdmissionPolicyTest {
     @Test
     fun describeManualBlockNamesTheUnsatisfiedTrigger() = runBlocking {
         val reason = engine.describeManualBlock(stateTriggeredTask("admit-b"))
-        assertEquals(ExecutionEngine.ManualBlockKind.TRIGGERS_NOT_MET, reason.kind)
+        assertEquals(ManualBlockKind.TRIGGERS_NOT_MET, reason.kind)
         assertTrue(reason.failedTriggerLabels.firstOrNull()?.startsWith("DARK_MODE") == true)
     }
 
@@ -159,7 +159,7 @@ class ManualAdmissionPolicyTest {
         assertNull(viewModel.describeManualBlock(admissible))
         assertNotNull(engine.describeManualBlock(admissible))
         assertEquals(
-            ExecutionEngine.ManualBlockKind.NONE,
+            ManualBlockKind.NONE,
             engine.describeManualBlock(admissible).kind
         )
     }
@@ -184,9 +184,10 @@ class ManualAdmissionPolicyTest {
         val task = stateTriggeredTask("admit-e")
         ActiveExecutionStore(context).clear(task.id)
         val gateRecord = engine.runWithConditionGate(task)
-        assertTrue(gateRecord.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX))
+        assertTrue(gateRecord.message.startsWith("Skipped:"))
+        assertTrue(gateRecord.actionResults.isEmpty())
         val reason = engine.describeManualBlock(task)
-        assertTrue(reason.kind != ExecutionEngine.ManualBlockKind.NONE)
+        assertTrue(reason.kind != ManualBlockKind.NONE)
         assertTrue(reason.failedTriggerLabels.isNotEmpty())
     }
 }

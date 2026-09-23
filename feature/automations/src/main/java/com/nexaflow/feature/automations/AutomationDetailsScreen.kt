@@ -100,8 +100,16 @@ import androidx.core.graphics.drawable.IconCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.nexaflow.core.execution.AutomationExecutionProgress
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.LiveActionProgress
+import com.nexaflow.core.execution.LiveActionStatus
+import com.nexaflow.core.execution.ManualBlockReason
+import com.nexaflow.core.execution.ManualBlockKind
+import com.nexaflow.core.execution.ManualAdmissionDiagnostics
+import com.nexaflow.core.execution.ExecutionResultPresentation
 import com.nexaflow.core.ui.EmptyState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.produceState
@@ -114,11 +122,15 @@ import com.nexaflow.core.ui.SettingRow
 import com.nexaflow.core.ui.iconVector
 import com.nexaflow.core.ui.resolveInstalledAppPresentation
 import com.nexaflow.domain.models.Action
+import com.nexaflow.domain.models.hasExecutableEndBehavior
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.AutomationHealthReport
 import com.nexaflow.domain.models.AutomationHealthStatus
+import com.nexaflow.domain.models.ActionExecutionResult
+import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.ExecutionHistoryOutcome
+import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.models.hasUserAuthoredDescription
 import com.nexaflow.domain.models.Constraint
 import com.nexaflow.domain.models.ConstraintType
@@ -131,6 +143,9 @@ fun AutomationDetailsScreen(navController: NavController) {
     val viewModel: AutomationDetailsViewModel = hiltViewModel()
     val automation by viewModel.automation.collectAsStateWithLifecycle()
     val healthReport by viewModel.healthReport.collectAsStateWithLifecycle()
+    val diagnostics by viewModel.diagnostics.collectAsStateWithLifecycle()
+    val latestExecution by viewModel.latestExecution.collectAsStateWithLifecycle()
+    val liveProgress by viewModel.liveProgress.collectAsStateWithLifecycle()
     val running by viewModel.running.collectAsStateWithLifecycle()
     val executionMessage by viewModel.executionMessage.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -149,6 +164,16 @@ fun AutomationDetailsScreen(navController: NavController) {
         executionMessage?.let { message ->
             coroutineScope.launch { snackbarHostState.showSnackbar(message) }
             viewModel.consumeExecutionMessage()
+        }
+    }
+
+    // Live only while this details screen is composed. This keeps the status
+    // card fresh without turning device-state probes into a background poller.
+    LaunchedEffect(automation?.id) {
+        automation?.id ?: return@LaunchedEffect
+        while (true) {
+            viewModel.refreshDiagnostics()
+            delay(5_000L)
         }
     }
 
@@ -281,6 +306,13 @@ fun AutomationDetailsScreen(navController: NavController) {
                         )
                     },
                     onClearRecoveryBacklog = { clearRecoveryDialog = true }
+                )
+                ExecutionDiagnosticsCard(
+                    automation = current,
+                    diagnostics = diagnostics,
+                    latestExecution = latestExecution,
+                    liveProgress = liveProgress,
+                    onRefresh = viewModel::refreshDiagnostics
                 )
                 AutomationDetailsSectionCard(
                     index = 0,
@@ -465,7 +497,7 @@ fun AutomationDetailsScreen(navController: NavController) {
     // Typed mismatch dialog: same contract as the dashboard — names what
     // failed and offers the honest exit path or the force-run override.
     if (runBlockDialog) {
-        val block = produceState<ExecutionEngine.ManualBlockReason?>(
+        val block = produceState<ManualBlockReason?>(
             initialValue = null
         ) { value = viewModel.describeManualBlock() }.value
         AlertDialog(
@@ -475,14 +507,14 @@ fun AutomationDetailsScreen(navController: NavController) {
                 Column {
                     automation?.let { Text(text = stringResource(R.string.run_reason_task, it.name)) }
                     when (block?.kind) {
-                        ExecutionEngine.ManualBlockKind.TRIGGERS_NOT_MET ->
+                        ManualBlockKind.TRIGGERS_NOT_MET ->
                             block.failedTriggerLabels.forEach { label ->
                                 Text(
                                     text = stringResource(R.string.run_reason_trigger, label),
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
-                        ExecutionEngine.ManualBlockKind.TRIGGERS_UNKNOWN -> {
+                        ManualBlockKind.TRIGGERS_UNKNOWN -> {
                             Text(text = stringResource(R.string.run_reason_unknown))
                             block.failedTriggerLabels.forEach { label ->
                                 Text(
@@ -491,22 +523,24 @@ fun AutomationDetailsScreen(navController: NavController) {
                                 )
                             }
                         }
-                        ExecutionEngine.ManualBlockKind.CONSTRAINTS_NOT_MET ->
+                        ManualBlockKind.CONSTRAINTS_NOT_MET ->
                             block.failedConstraintLabels.forEach { label ->
                                 Text(
                                     text = stringResource(R.string.run_reason_constraint, label),
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
-                        ExecutionEngine.ManualBlockKind.INVALID_TIME_RANGE ->
+                        ManualBlockKind.INVALID_TIME_RANGE ->
                             Text(text = stringResource(R.string.run_reason_no_exit))
                         else -> Unit
                     }
                 }
             },
             confirmButton = {
-                TextButton(onClick = { runBlockDialog = false; viewModel.runNow() }) {
-                    Text(stringResource(R.string.run_reason_run_end))
+                if (automation?.hasExecutableEndBehavior == true) {
+                    TextButton(onClick = { runBlockDialog = false; viewModel.runEndBehavior() }) {
+                        Text(stringResource(R.string.run_reason_run_end))
+                    }
                 }
             },
             dismissButton = {
@@ -919,6 +953,304 @@ private fun AutomationDetailsPreview() {
     }
 }
 
+/**
+ * Live current-condition status plus the most recent per-action execution
+ * provenance. Raw backend detail is shown only here (the dedicated diagnostic
+ * surface); the health summary above remains fully localized and high-level.
+ */
+@Composable
+private fun ExecutionDiagnosticsCard(
+    automation: Automation,
+    diagnostics: ManualAdmissionDiagnostics?,
+    latestExecution: ExecutionRecord?,
+    liveProgress: AutomationExecutionProgress?,
+    onRefresh: () -> Unit
+) {
+    NexaFlowCard {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.execution_diagnostics),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = stringResource(R.string.execution_diagnostics_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+            TextButton(onClick = onRefresh) {
+                Text(stringResource(R.string.refresh_diagnostics))
+            }
+        }
+
+        if (diagnostics == null) {
+            Text(
+                text = stringResource(R.string.execution_diagnostics_loading),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        } else {
+            Text(
+                text = stringResource(
+                    if (diagnostics.admissible) {
+                        R.string.execution_diagnostics_ready
+                    } else {
+                        R.string.execution_diagnostics_blocked
+                    }
+                ),
+                style = MaterialTheme.typography.labelLarge,
+                color = if (diagnostics.admissible) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.error
+                }
+            )
+
+            if (automation.triggers.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.execution_diagnostics_triggers),
+                    style = MaterialTheme.typography.labelMedium
+                )
+                automation.triggers.forEachIndexed { index, trigger ->
+                    val titleRes = triggerPresentation(trigger.type).first
+                    DiagnosticConditionRow(
+                        title = stringResource(titleRes),
+                        result = diagnostics.triggerResults.getOrNull(index)
+                            ?: ConditionResult.Unknown
+                    )
+                }
+            }
+
+            if (automation.constraints.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.execution_diagnostics_constraints),
+                    style = MaterialTheme.typography.labelMedium
+                )
+                automation.constraints.forEachIndexed { index, constraint ->
+                    val titleRes = constraintPresentation(constraint.type).first
+                    DiagnosticConditionRow(
+                        title = stringResource(titleRes),
+                        result = diagnostics.constraintResults.getOrNull(index)
+                            ?: ConditionResult.Unknown
+                    )
+                }
+            }
+        }
+
+        val progressToShow = liveProgress?.takeIf { progress ->
+            !progress.finished ||
+                latestExecution == null ||
+                latestExecution.executedAt < progress.startedAt
+        }
+        progressToShow?.let { progress ->
+            Text(
+                text = stringResource(R.string.execution_diagnostics_current_run),
+                style = MaterialTheme.typography.labelMedium
+            )
+            progress.actions.forEach { action ->
+                LiveActionDiagnosticRow(action)
+            }
+        }
+
+        Text(
+            text = stringResource(R.string.execution_diagnostics_last_run),
+            style = MaterialTheme.typography.labelMedium
+        )
+        if (latestExecution == null) {
+            Text(
+                text = stringResource(R.string.execution_diagnostics_no_last_run),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        } else {
+            latestExecution.channel?.let { channel ->
+                Text(
+                    text = stringResource(R.string.execution_diagnostics_run_channel, channel),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+            if (latestExecution.actionResults.isEmpty()) {
+                Text(
+                    text = ExecutionResultPresentation.summary(LocalContext.current, latestExecution),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            } else {
+                latestExecution.actionResults.forEach { result ->
+                    ActionDiagnosticRow(result)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DiagnosticConditionRow(
+    title: String,
+    result: ConditionResult
+) {
+    val statusText = when (result) {
+        ConditionResult.Satisfied -> stringResource(R.string.execution_diagnostic_satisfied)
+        ConditionResult.Unsatisfied -> stringResource(R.string.execution_diagnostic_unsatisfied)
+        ConditionResult.Unknown -> stringResource(R.string.execution_diagnostic_unknown)
+        ConditionResult.Unavailable -> stringResource(R.string.execution_diagnostic_unavailable)
+        is ConditionResult.Error -> stringResource(R.string.execution_diagnostic_error)
+    }
+    val marker = when (result) {
+        ConditionResult.Satisfied -> "✓"
+        ConditionResult.Unsatisfied -> "✕"
+        ConditionResult.Unknown,
+        ConditionResult.Unavailable -> "?"
+        is ConditionResult.Error -> "!"
+    }
+    val color = when (result) {
+        ConditionResult.Satisfied -> MaterialTheme.colorScheme.primary
+        ConditionResult.Unsatisfied,
+        is ConditionResult.Error -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.secondary
+    }
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f)
+        )
+        Text(
+            text = "$marker  $statusText",
+            style = MaterialTheme.typography.labelMedium,
+            color = color
+        )
+    }
+    if (result is ConditionResult.Error) {
+        Text(
+            text = stringResource(R.string.execution_diagnostic_detail, result.reason),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error
+        )
+    }
+}
+
+@Composable
+private fun LiveActionDiagnosticRow(progress: LiveActionProgress) {
+    val actionType = runCatching { ActionType.valueOf(progress.actionType) }.getOrNull()
+    val title = if (actionType != null) {
+        stringResource(actionPresentation(actionType).first)
+    } else {
+        progress.actionType.replace('_', ' ')
+    }
+    val statusText = when (progress.status) {
+        LiveActionStatus.PENDING -> stringResource(R.string.execution_diagnostic_pending)
+        LiveActionStatus.RUNNING -> stringResource(R.string.execution_diagnostic_running)
+        LiveActionStatus.SUCCEEDED -> "✓ " + stringResource(R.string.execution_diagnostic_action_ok)
+        LiveActionStatus.FAILED -> "✕ " + stringResource(R.string.execution_diagnostic_action_failed)
+        LiveActionStatus.SKIPPED -> stringResource(R.string.execution_diagnostic_skipped)
+        LiveActionStatus.UNKNOWN -> stringResource(R.string.execution_diagnostic_outcome_unknown)
+    }
+    val route = progress.channel?.let {
+        stringResource(R.string.execution_diagnostic_via, it)
+    }
+    val verification = when {
+        progress.verified == true ->
+            "✓ " + stringResource(R.string.execution_diagnostic_verified)
+        progress.verificationAttempted ->
+            "✕ " + stringResource(R.string.execution_diagnostic_not_verified)
+        else -> null
+    }
+    val summary = listOfNotNull(statusText, route, verification).joinToString("  →  ")
+    val color = when (progress.status) {
+        LiveActionStatus.SUCCEEDED -> MaterialTheme.colorScheme.primary
+        LiveActionStatus.FAILED,
+        LiveActionStatus.UNKNOWN -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.secondary
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(text = title, style = MaterialTheme.typography.bodyMedium)
+        Text(
+            text = summary,
+            style = MaterialTheme.typography.bodySmall,
+            color = color
+        )
+        progress.errorCode?.let { code ->
+            Text(
+                text = stringResource(R.string.execution_diagnostic_reason, code),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+}
+
+@Composable
+private fun ActionDiagnosticRow(result: ActionExecutionResult) {
+    val baseType = result.actionType.removeSuffix("_END")
+    val actionType = runCatching { ActionType.valueOf(baseType) }.getOrNull()
+    val baseTitle = when {
+        baseType == "STATE_RESTORE" -> stringResource(R.string.execution_diagnostic_restore)
+        actionType != null -> stringResource(actionPresentation(actionType).first)
+        else -> baseType.replace('_', ' ')
+    }
+    val title = if (result.actionType.endsWith("_END")) {
+        stringResource(R.string.execution_diagnostic_end_action, baseTitle)
+    } else {
+        baseTitle
+    }
+    val route = result.channel?.let {
+        stringResource(R.string.execution_diagnostic_via, it)
+    }
+    val verification = when {
+        result.verified == true ->
+            "✓ " + stringResource(R.string.execution_diagnostic_verified)
+        result.verificationAttempted ->
+            "✕ " + stringResource(R.string.execution_diagnostic_not_verified)
+        else -> null
+    }
+    val skipped = result.message.startsWith("Skipped:")
+    val outcome = when {
+        skipped -> stringResource(R.string.execution_diagnostic_skipped)
+        result.success -> "✓ " + stringResource(R.string.execution_diagnostic_action_ok)
+        else -> "✕ " + stringResource(R.string.execution_diagnostic_action_failed)
+    }
+    val summary = listOfNotNull(outcome, route, verification).joinToString("  →  ")
+
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(text = title, style = MaterialTheme.typography.bodyMedium)
+        Text(
+            text = summary,
+            style = MaterialTheme.typography.bodySmall,
+            color = when {
+                skipped -> MaterialTheme.colorScheme.secondary
+                result.success -> MaterialTheme.colorScheme.primary
+                else -> MaterialTheme.colorScheme.error
+            }
+        )
+        result.errorCode?.let { code ->
+            Text(
+                text = stringResource(R.string.execution_diagnostic_reason, code),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+        if (!result.success && result.message.isNotBlank()) {
+            Text(
+                text = stringResource(R.string.execution_diagnostic_detail, result.message.take(180)),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+    }
+}
+
 /** Read-only summary derived from persisted execution history for the current routine. */
 @Composable
 private fun ExecutionHealthCard(
@@ -988,19 +1320,20 @@ private fun ExecutionHealthCard(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.secondary
                 )
-                report.latestFailureMessage
-                    ?.takeIf { it.isNotBlank() }
-                    ?.let { failure ->
-                        Text(
-                            text = stringResource(R.string.execution_health_last_issue, failure),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (attention) {
-                                MaterialTheme.colorScheme.error
-                            } else {
-                                MaterialTheme.colorScheme.secondary
-                            }
-                        )
-                    }
+                report.latestFailureRecord?.let { failure ->
+                    Text(
+                        text = stringResource(
+                            R.string.execution_health_last_issue,
+                            ExecutionResultPresentation.summary(LocalContext.current, failure)
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (attention) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.secondary
+                        }
+                    )
+                }
                 TextButton(onClick = onOpenHistory) {
                     Text(stringResource(R.string.view_routine_history))
                 }

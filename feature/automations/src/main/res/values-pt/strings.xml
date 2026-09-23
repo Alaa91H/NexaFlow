@@ -552,4 +552,36 @@
     <string name="action_data_date_time_sub">Analisar instantes ISO e formatar em um fuso escolhido</string>
     <string name="action_data_json_sub">Ler caminhos JSON Pointer, chaves e JSON formatado</string>
     <string name="action_data_array_sub">Ordenar, inverter, unir e desduplicar arrays JSON</string>
+
+    <string name="execution_diagnostics">Diagnóstico de execução</string>
+    <string name="execution_diagnostics_subtitle">Estado atual das condições e a rota realmente usada pelas ações mais recentes.</string>
+    <string name="refresh_diagnostics">Atualizar</string>
+    <string name="execution_diagnostics_loading">Lendo o estado atual do dispositivo…</string>
+    <string name="execution_diagnostics_ready">Pronta para executar agora</string>
+    <string name="execution_diagnostics_blocked">As condições de execução não estão totalmente satisfeitas</string>
+    <string name="execution_diagnostics_triggers">Gatilhos agora</string>
+    <string name="execution_diagnostics_constraints">Restrições agora</string>
+    <string name="execution_diagnostics_last_run">Execução mais recente</string>
+    <string name="execution_diagnostics_no_last_run">Ainda não há detalhes de execução por ação.</string>
+    <string name="execution_diagnostics_run_channel">Rota de execução: %1$s</string>
+    <string name="execution_diagnostic_satisfied">Satisfeito</string>
+    <string name="execution_diagnostic_unsatisfied">Não satisfeito</string>
+    <string name="execution_diagnostic_unknown">Desconhecido</string>
+    <string name="execution_diagnostic_unavailable">Indisponível</string>
+    <string name="execution_diagnostic_error">Erro</string>
+    <string name="execution_diagnostic_detail">Detalhe: %1$s</string>
+    <string name="execution_diagnostic_restore">Restaurar estado original</string>
+    <string name="execution_diagnostic_end_action">Ao terminar: %1$s</string>
+    <string name="execution_diagnostic_via">via %1$s</string>
+    <string name="execution_diagnostic_verified">verificado</string>
+    <string name="execution_diagnostic_not_verified">não verificado</string>
+    <string name="execution_diagnostic_action_ok">concluído</string>
+    <string name="execution_diagnostic_action_failed">falhou</string>
+    <string name="execution_diagnostic_reason">Motivo: %1$s</string>
+
+    <string name="execution_diagnostics_current_run">Execução atual</string>
+    <string name="execution_diagnostic_pending">Aguardando</string>
+    <string name="execution_diagnostic_running">Em execução</string>
+    <string name="execution_diagnostic_skipped">Ignorado</string>
+    <string name="execution_diagnostic_outcome_unknown">Resultado desconhecido</string>
 </resources>

@@ -48,26 +48,39 @@ class AutomationHealthReportTest {
             }
         )
 
-        assertEquals(3, report.skippedRuns)
+        assertEquals(1, report.skippedRuns)
         assertEquals(0, report.failedRuns)
         assertEquals(0, report.consecutiveFailures)
         assertEquals(null, report.latestFailureMessage)
-        assertEquals(true, report.recoveryReviewPending)
-        assertEquals(AutomationHealthStatus.NEEDS_ATTENTION, report.status)
+        assertEquals(false, report.recoveryReviewPending)
+        assertEquals(AutomationHealthStatus.HEALTHY, report.status)
     }
 
     @Test
-    fun `ordinary skip does not hide recovery but admitted run clears warning`() {
+    fun `historical recovery messages never invent a live recovery warning`() {
         val blocked = record(true, "Skipped: recovery queue awaits review before this routine can run", 1L)
         val skipped = record(true, "Skipped: constraint not met", 2L)
-        val pending = AutomationHealthAnalyzer.analyze("maintenance", listOf(skipped, blocked))
-        assertEquals(true, pending.recoveryReviewPending)
-        assertEquals(0, pending.failedRuns)
-        val resolved = AutomationHealthAnalyzer.analyze(
-            "maintenance", listOf(record(true, "Completed", 3L), skipped, blocked)
+        val report = AutomationHealthAnalyzer.analyze("maintenance", listOf(skipped, blocked))
+
+        assertEquals(false, report.recoveryReviewPending)
+        assertEquals(0, report.failedRuns)
+        assertEquals(AutomationHealthStatus.HEALTHY, report.status)
+    }
+
+    @Test
+    fun `consecutive identical skips collapse but a successful run starts a new episode`() {
+        val records = listOf(
+            record(true, "Skipped: Wi-Fi condition not met", 5L),
+            record(true, "Skipped: Wi-Fi condition not met", 4L),
+            record(true, "Completed", 3L),
+            record(true, "Skipped: Wi-Fi condition not met", 2L),
+            record(true, "Skipped: Wi-Fi condition not met", 1L)
         )
-        assertEquals(false, resolved.recoveryReviewPending)
-        assertEquals(AutomationHealthStatus.HEALTHY, resolved.status)
+
+        val report = AutomationHealthAnalyzer.analyze("maintenance", records)
+
+        assertEquals(2, report.skippedRuns)
+        assertEquals(1, report.completedRuns)
     }
 
     @Test

@@ -151,6 +151,27 @@ class ExecutionEngineConstraintsTest {
     }
 
     @Test
+    fun `repeated identical constraint skips are coalesced in history`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(
+            handler,
+            history,
+            ConstraintSnapshot(wifiConnected = false)
+        )
+        val task = automation(listOf(Constraint(ConstraintType.WIFI)))
+
+        repeat(25) { engine.runAutomation(task) }
+
+        assertEquals(0, handler.calls)
+        assertEquals(
+            "high-frequency monitor callbacks must not flood persistent history",
+            1,
+            history.messages.count { it.startsWith("Skipped:") }
+        )
+    }
+
+    @Test
     fun `blocked run does not execute configured exit behavior`() = runBlocking {
         val handler = RecordingHandler()
         val history = RecordingHistory()
@@ -212,7 +233,7 @@ class ExecutionEngineConstraintsTest {
     }
 
     @Test
-    fun `manual run with an unavailable trigger runs configured end behavior without main action`() = runBlocking {
+    fun `manual run with an unavailable trigger is side effect free until end is explicit`() = runBlocking {
         val handler = RecordingHandler()
         val history = RecordingHistory()
         val engine = engine(handler, history, ConstraintSnapshot())
@@ -229,19 +250,22 @@ class ExecutionEngineConstraintsTest {
             exitActions = listOf(Action(ActionType.SYSTEM_CLEAR_NOTIFICATIONS, emptyMap()))
         ).copy(triggerMatch = TriggerMatchMode.ALL)
 
-        val record = engine.runWithConditionGate(automation)
+        val blocked = engine.runWithConditionGate(automation)
 
+        assertEquals("a rejected manual run must execute nothing", emptyList<ActionType>(), handler.actionTypes)
+        assertTrue(blocked.message.startsWith("Skipped:"))
+
+        val end = engine.runManualEndBehavior(automation)
         assertEquals(
-            "an unavailable main condition must dispatch only the configured end action",
+            "only the explicit end command may dispatch the configured end action",
             listOf(ActionType.SYSTEM_CLEAR_NOTIFICATIONS),
             handler.actionTypes
         )
-        assertTrue(record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX))
-        assertTrue(history.messages.any { it.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX) })
+        assertTrue(end.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX))
     }
 
     @Test
-    fun `manual run with unsatisfied constraint runs configured end behavior without main action`() = runBlocking {
+    fun `manual run with unsatisfied constraint is side effect free until end is explicit`() = runBlocking {
         val handler = RecordingHandler()
         val history = RecordingHistory()
         val engine = engine(
@@ -254,14 +278,13 @@ class ExecutionEngineConstraintsTest {
             exitActions = listOf(Action(ActionType.SYSTEM_CLEAR_NOTIFICATIONS, emptyMap()))
         )
 
-        val record = engine.runWithConditionGate(automation)
+        val blocked = engine.runWithConditionGate(automation)
 
-        assertEquals(
-            "an unsatisfied constraint must dispatch only the configured end action",
-            listOf(ActionType.SYSTEM_CLEAR_NOTIFICATIONS),
-            handler.actionTypes
-        )
-        assertTrue(record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX))
+        assertEquals("an unsatisfied constraint must execute nothing", emptyList<ActionType>(), handler.actionTypes)
+        assertTrue(blocked.message.startsWith("Skipped:"))
+
+        engine.runManualEndBehavior(automation)
+        assertEquals(listOf(ActionType.SYSTEM_CLEAR_NOTIFICATIONS), handler.actionTypes)
     }
 
     @Test

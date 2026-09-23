@@ -12,6 +12,7 @@ import android.nfc.NfcAdapter
 import android.os.Build
 import android.provider.Settings
 import android.telephony.TelephonyManager
+import com.nexaflow.core.common.HotspotStateReader
 import com.nexaflow.core.execution.capability.semantic.CapabilityStrategy
 import com.nexaflow.core.execution.capability.semantic.OperationOutcome
 import com.nexaflow.core.execution.capability.semantic.OperationOutcomeStatus
@@ -104,9 +105,9 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
             else StrategyAvailability(false, "NFC hardware is absent")
 
         SemanticOperationId.HOTSPOT_GET_STATE ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && service(WifiManager::class.java) != null) {
+            if (service(WifiManager::class.java) != null) {
                 StrategyAvailability(true)
-            } else StrategyAvailability(false, "Hotspot state read requires Android 11+")
+            } else StrategyAvailability(false, "Wi-Fi service is unavailable")
 
         SemanticOperationId.MOBILE_DATA_GET_STATE ->
             if (service(TelephonyManager::class.java) != null) StrategyAvailability(true)
@@ -189,6 +190,8 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
                     it == NotificationManager.INTERRUPTION_FILTER_PRIORITY }
         SemanticOperationId.NFC_GET_STATE ->
             NfcAdapter.getDefaultAdapter(context)?.isEnabled
+        SemanticOperationId.HOTSPOT_GET_STATE ->
+            HotspotStateReader.currentState(context)
         SemanticOperationId.DATA_SAVER_GET_STATE ->
             service(ConnectivityManager::class.java)?.restrictBackgroundStatus?.let {
                 it == ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED ||

@@ -552,4 +552,36 @@
     <string name="action_data_date_time_sub">تحليل اللحظات ISO والتنسيق بمنطقة زمنية مختارة</string>
     <string name="action_data_json_sub">قراءة مسارات JSON Pointer والمفاتيح و JSON منسق</string>
     <string name="action_data_array_sub">ترتيب وقلب ودمج وإزالة تكرار مصفوفات JSON</string>
+
+    <string name="execution_diagnostics">تشخيص التنفيذ</string>
+    <string name="execution_diagnostics_subtitle">الحالة الحالية للشروط والمسار الفعلي الذي استخدمته أحدث الإجراءات.</string>
+    <string name="refresh_diagnostics">تحديث</string>
+    <string name="execution_diagnostics_loading">جارٍ قراءة حالة الجهاز الحالية…</string>
+    <string name="execution_diagnostics_ready">جاهزة للتشغيل الآن</string>
+    <string name="execution_diagnostics_blocked">شروط التشغيل غير متحققة بالكامل</string>
+    <string name="execution_diagnostics_triggers">حالة المحفزات الآن</string>
+    <string name="execution_diagnostics_constraints">حالة الشروط الآن</string>
+    <string name="execution_diagnostics_last_run">آخر تنفيذ</string>
+    <string name="execution_diagnostics_no_last_run">لا تتوفر تفاصيل تنفيذ لكل إجراء حتى الآن.</string>
+    <string name="execution_diagnostics_run_channel">مسار التنفيذ: %1$s</string>
+    <string name="execution_diagnostic_satisfied">متحقق</string>
+    <string name="execution_diagnostic_unsatisfied">غير متحقق</string>
+    <string name="execution_diagnostic_unknown">غير معروف</string>
+    <string name="execution_diagnostic_unavailable">غير متاح</string>
+    <string name="execution_diagnostic_error">خطأ</string>
+    <string name="execution_diagnostic_detail">التفصيل: %1$s</string>
+    <string name="execution_diagnostic_restore">استعادة الحالة الأصلية</string>
+    <string name="execution_diagnostic_end_action">عند الانتهاء: %1$s</string>
+    <string name="execution_diagnostic_via">عبر %1$s</string>
+    <string name="execution_diagnostic_verified">تم التحقق</string>
+    <string name="execution_diagnostic_not_verified">لم يتم التحقق</string>
+    <string name="execution_diagnostic_action_ok">اكتمل</string>
+    <string name="execution_diagnostic_action_failed">فشل</string>
+    <string name="execution_diagnostic_reason">السبب: %1$s</string>
+
+    <string name="execution_diagnostics_current_run">التنفيذ الحالي</string>
+    <string name="execution_diagnostic_pending">بانتظار التنفيذ</string>
+    <string name="execution_diagnostic_running">قيد التنفيذ</string>
+    <string name="execution_diagnostic_skipped">تم التخطي</string>
+    <string name="execution_diagnostic_outcome_unknown">نتيجة التنفيذ غير معروفة</string>
 </resources>

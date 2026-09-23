@@ -50,6 +50,7 @@ import com.nexaflow.domain.variables.RuntimeValueCodec
 import com.nexaflow.domain.variables.VariableResolver
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -97,9 +98,15 @@ class ExecutionEngine(
     /** Suppresses repeated durable-admission diagnostics from high-frequency triggers. */
     private val checkpointAdmissionReportThrottle: CheckpointAdmissionReportThrottle =
         CheckpointAdmissionReportThrottle(),
+    /** Coalesces identical intentional skips emitted by noisy state monitors. */
+    private val skipReportThrottle: ExecutionSkipReportThrottle =
+        ExecutionSkipReportThrottle(),
     /** Typed trace sink (P0.4); defaults to the same LogStore the engine already writes. */
     private val traceRecorder: com.nexaflow.core.logging.TraceRecorder =
-        com.nexaflow.core.logging.TraceRecorder(logStore)
+        com.nexaflow.core.logging.TraceRecorder(logStore),
+    /** In-process per-action status for an open task-details screen. */
+    private val executionProgressTracker: ExecutionProgressTracker =
+        ExecutionProgressTracker()
 ) {
     private val diagnostics = ExecutionDiagnostics(
         context = context,
@@ -107,6 +114,11 @@ class ExecutionEngine(
         logStore = logStore,
         epochMillis = epochMillis,
         traceRecorder = traceRecorder,
+    )
+    private val manualAdmissionEvaluator = ManualAdmissionEvaluator(
+        context = context,
+        capabilityExecutionService = capabilityExecutionService,
+        constraintStateProvider = constraintStateProvider
     )
 
     companion object {
@@ -124,29 +136,6 @@ class ExecutionEngine(
          * background dwell time.
          */
         const val CAPABILITY_SNAPSHOT_FRESHNESS_MS = 60_000L
-    }
-
-    /** Why the manual admission gate refused a run; [ManualBlockKind.NONE] when it did not. */
-    data class ManualBlockReason(
-        val kind: ManualBlockKind,
-        /** Human-readable labels of the triggers that failed or were unverifiable. */
-        val failedTriggerLabels: List<String>,
-        /** Constraint type names that failed (plugin constraints carry their own message). */
-        val failedConstraintLabels: List<String>
-    )
-
-    /** Coarse classification for [ManualBlockReason]. */
-    enum class ManualBlockKind {
-        /** The gate did not block; the run is admissible. */
-        NONE,
-        /** At least one state trigger is confirmed false right now. */
-        TRIGGERS_NOT_MET,
-        /** Trigger state could not be verified (event-only or unreadable). */
-        TRIGGERS_UNKNOWN,
-        /** All triggers passed but a device constraint refused. */
-        CONSTRAINTS_NOT_MET,
-        /** A point-in-time task configured an end behavior without a time range. */
-        INVALID_TIME_RANGE
     }
 
     /**
@@ -191,7 +180,7 @@ class ExecutionEngine(
         bypassTriggerMatch: Boolean = false
     ): ExecutionRecord {
         // Strict mode: acquire wake lock for forceful execution (bypasses Doze, ensures CPU stays on)
-        val wakeLock = acquireWakeLock("NexaFlow:runAutomation:${automation.id}")
+        val wakeLock = acquireExecutionWakeLock(context, "NexaFlow:runAutomation:${automation.id}")
         try {
             val startedAt = epochMillis.now()
         // Allocate the run identity before admission gates. This lets blocked
@@ -209,7 +198,7 @@ class ExecutionEngine(
             // skipped" bug. When the snapshot is older than the freshness
             // window we admit the run — every action path re-verifies the
             // concrete capability live before its first side effect.
-            val snapshotFresh = snapshotFreshness(snapshot) == SnapshotFreshness.FRESH
+            val snapshotFresh = classifySnapshotFreshness(snapshot, epochMillis.now(), CAPABILITY_SNAPSHOT_FRESHNESS_MS) == SnapshotFreshness.FRESH
             val validation = WorkflowCapabilityValidator.validate(automation, snapshot)
             if (!validation.admissible) {
                 if (!snapshotFresh) {
@@ -277,7 +266,9 @@ class ExecutionEngine(
                 executedAt = startedAt,
                 channel = channel?.type?.name
             )
-            historyRepository.recordExecution(record)
+            if (skipReportThrottle.shouldReport(automation.id, "MAINTENANCE_DUPLICATE", startedAt)) {
+                historyRepository.recordExecution(record)
+            }
             diagnostics.recordTimeline(
                 automation = automation,
                 kind = "MAINTENANCE_DUPLICATE_SKIPPED",
@@ -317,7 +308,9 @@ class ExecutionEngine(
                     executedAt = startedAt,
                     channel = channel?.type?.name
                 )
-                historyRepository.recordExecution(record)
+                if (skipReportThrottle.shouldReport(
+                        automation.id, "CONSTRAINT:" + constraintResult.toGateMessage(), startedAt
+                    )) historyRepository.recordExecution(record)
                 diagnostics.recordTimeline(automation, "BLOCKED", record, startedAt, payloadContext.runId)
                 traceRecorder.recordGateBlocked(
                     runId = payloadContext.runId,
@@ -358,13 +351,18 @@ class ExecutionEngine(
                     executedAt = startedAt,
                     channel = channel?.type?.name
                 )
-                historyRepository.recordExecution(record)
-                diagnostics.recordTimeline(automation, "TRIGGER_ALL_GATE_BLOCKED", record, startedAt, payloadContext.runId)
+                val skipDetail = TriggerMatchPolicy.skipMessage(automation.triggers, gateResults)
+                if (skipReportThrottle.shouldReport(
+                        automation.id, "TRIGGER_ALL:" + skipDetail, startedAt
+                    )) historyRepository.recordExecution(record)
+                diagnostics.recordTimeline(
+                    automation, "TRIGGER_ALL_GATE_BLOCKED", record, startedAt, payloadContext.runId
+                )
                 traceRecorder.recordGateBlocked(
                     runId = payloadContext.runId,
                     automationId = automation.id,
                     reasonCode = com.nexaflow.core.logging.TraceReasons.TRIGGER_ALL_GATE_BLOCKED,
-                    detail = TriggerMatchPolicy.skipMessage(automation.triggers, gateResults),
+                    detail = skipDetail,
                     atEpochMs = startedAt,
                 )
                 return record
@@ -385,7 +383,9 @@ class ExecutionEngine(
                 executedAt = startedAt,
                 channel = channel?.type?.name
             )
-            historyRepository.recordExecution(record)
+            if (skipReportThrottle.shouldReport(
+                    automation.id, "MAINTENANCE_WAITING:" + maintenanceReadiness.reason.name, startedAt
+                )) historyRepository.recordExecution(record)
             diagnostics.recordTimeline(
                 automation = automation,
                 kind = "MAINTENANCE_WAITING",
@@ -524,6 +524,7 @@ class ExecutionEngine(
         // only after every admission gate passed, so blocked/skipped runs
         // never flash a card.
         val progressOutcomes = mutableListOf<Boolean>()
+        executionProgressTracker.start(automation, startedAt)
         runCatching { runProgressNotifier.start(automation, automation.actions.size) }
         // A checkpoint is removed only after a fully known action chain. Once
         // an action starts and the coroutine is interrupted, its side effect
@@ -536,6 +537,7 @@ class ExecutionEngine(
             val list = mutableListOf<ActionExecutionResult>()
             for ((actionIndex, action) in automation.actions.withIndex()) {
                 inProgressActionIndex = actionIndex
+                executionProgressTracker.markRunning(automation.id, actionIndex)
                 val actionStartedAt = epochMillis.now()
                 val idempotencyKey = "${payloadContext.runId}:$actionIndex:${action.type.name}"
                 activeExecutionStore.markActionStarted(
@@ -566,6 +568,7 @@ class ExecutionEngine(
                     ) ?: error("Unable to commit durable checkpoint for run ${payloadContext.runId}")
                     progressOutcomes.add(true)
                     inProgressActionIndex = null
+                    executionProgressTracker.markSkipped(automation.id, actionIndex)
                     list.add(
                         ActionExecutionResult(
                             actionType = action.type.name,
@@ -605,11 +608,21 @@ class ExecutionEngine(
                 ) ?: error("Unable to commit durable checkpoint for run ${payloadContext.runId}")
                 progressOutcomes.add(result.success)
                 inProgressActionIndex = null
+                executionProgressTracker.markResult(
+                    automation.id,
+                    actionIndex,
+                    result,
+                    channel?.type?.name
+                )
                 val execResult = ActionExecutionResult(
                     actionType = action.type.name,
                     success = result.success,
                     message = result.message,
-                    durationMs = epochMillis.now() - actionStartedAt
+                    durationMs = epochMillis.now() - actionStartedAt,
+                    channel = result.executionChannel ?: channel?.type?.name,
+                    errorCode = result.errorCode,
+                    verificationAttempted = result.verificationAttempted,
+                    verified = result.verified
                 )
                 list.add(execResult)
 
@@ -626,6 +639,7 @@ class ExecutionEngine(
             // finally block would erase the only recovery evidence.
             inProgressActionIndex?.let { index ->
                 checkpointRequiresRecovery = true
+                executionProgressTracker.markUnknown(automation.id, index)
                 withContext(NonCancellable) {
                     runCatching {
                         activeExecutionStore.markActionUnknown(
@@ -640,6 +654,7 @@ class ExecutionEngine(
         } catch (failure: Throwable) {
             inProgressActionIndex?.let { index ->
                 checkpointRequiresRecovery = true
+                executionProgressTracker.markUnknown(automation.id, index)
                 withContext(NonCancellable) {
                     runCatching {
                         activeExecutionStore.markActionUnknown(
@@ -652,7 +667,9 @@ class ExecutionEngine(
             }
             throw failure
         } finally {
-            // The run-progress card never outlives the run attempt.
+            // Both progress surfaces stop running together; the in-process
+            // snapshot remains available until durable history catches up.
+            executionProgressTracker.finish(automation.id)
             runCatching { runProgressNotifier.finish(automation.id) }
             if (!checkpointRequiresRecovery) {
                 activeExecutionStore.completeCheckpoint(payloadContext.runId)
@@ -674,7 +691,7 @@ class ExecutionEngine(
             automationId = automation.id,
             automationName = automation.name,
             success = results.all { it.success },
-            message = buildMessage(results),
+            message = buildExecutionMessage(results),
             executedAt = startedAt,
             channel = channel?.type?.name,
             actionResults = results
@@ -707,31 +724,11 @@ class ExecutionEngine(
         }
     }
 
-    private fun acquireWakeLock(tag: String): android.os.PowerManager.WakeLock? {
-        return try {
-            val pm = context.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
-            // Tag limit is 64 chars; UUID (36) + prefix (22) = 58, but truncate defensively
-            val safeTag = if (tag.length > 60) tag.take(60) else tag
-            pm?.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, safeTag)?.apply {
-                setReferenceCounted(false)
-                // 10 minutes max, strict — covers long chains with waits
-                acquire(10 * 60 * 1000L)
-            }
-        } catch (_: Throwable) { null }
-    }
-
     /**
-     * Manual "run now" gate: evaluates current triggers with the task's
-     * configured ANY/ALL rule while constraints must still all pass. Every other
-     * outcome follows the configured "when the task ends" behavior. This is an
-     * explicit user-directed command: when the main condition is unavailable,
-     * NexaFlow performs the requested end action if one exists, otherwise it
-     * performs no action.
-     *
-     * This policy is intentionally limited to the manual entry point. Automatic
-     * monitors still require a durably active occurrence and a confirmed end
-     * transition before dispatching an end action; an unreadable background
-     * state can therefore never fabricate an automatic lifecycle exit.
+     * Manual "run now" gate. A mismatch is side-effect free: it never silently
+     * turns a request to run the main task into an end-behavior execution.
+     * Callers that explicitly want to preview/run the configured end behavior
+     * must use [runManualEndBehavior] after a dedicated user action.
      */
     suspend fun runWithConditionGate(automation: Automation): ExecutionRecord {
         val startedAt = epochMillis.now()
@@ -742,32 +739,38 @@ class ExecutionEngine(
                 runId = WorkflowRunContext.create(automation.id, startedAt).runId
             )
         }
-        val triggerResult = TriggerStateEvaluator.evaluateAsync(
-            context = context,
-            triggers = automation.triggers,
-            matchMode = automation.triggerMatch
+        if (manualAdmissionEvaluator.describe(automation).kind == ManualBlockKind.NONE) {
+            return runAutomation(automation, bypassTriggerMatch = true)
+        }
+        val record = ExecutionRecord(
+            id = UUID.randomUUID().toString(),
+            automationId = automation.id,
+            automationName = automation.name,
+            success = true,
+            message = "Skipped: manual conditions not satisfied",
+            executedAt = startedAt
         )
-        val constraintState = if (automation.constraints.isEmpty()) null else
-            constraintStateProvider?.invoke()
-                ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
-        val constraintResult = if (automation.constraints.isEmpty()) {
-            ConditionResult.Satisfied
-        } else {
-            AutomationConstraintGate(capabilityExecutionService).evaluate(automation, constraintState)
-        }
-        return if (
-            triggerResult == ConditionResult.Satisfied &&
-            constraintResult == ConditionResult.Satisfied
-        ) {
-            runAutomation(automation, bypassTriggerMatch = true)
-        } else {
-            runExit(
-                automation = automation,
-                forceConfiguredEnd = true,
-                manualConditionRejected = true
-            )
-        }
+        historyRepository.recordExecution(record)
+        diagnostics.recordTimeline(
+            automation = automation,
+            kind = "MANUAL_CONDITION_BLOCKED",
+            record = record,
+            startedAt = startedAt
+        )
+        return record
     }
+
+    /**
+     * Explicit manual end-behavior command. This is intentionally separate
+     * from [runWithConditionGate] so a trigger mismatch can never execute end
+     * actions unless the user chose that operation in the mismatch dialog.
+     */
+    suspend fun runManualEndBehavior(automation: Automation): ExecutionRecord =
+        runExit(
+            automation = automation,
+            forceConfiguredEnd = true,
+            manualConditionRejected = true
+        )
 
     /**
      * Typed, UI-presentable explanation of why a manual run was rejected by
@@ -776,52 +779,14 @@ class ExecutionEngine(
      * an explicit user question ("why can this not run?") deserves the full
      * picture rather than the first failure alone.
      */
-    suspend fun describeManualBlock(automation: Automation): ManualBlockReason {
-        if (automation.requiresTimeRangeForEndBehavior) {
-            return ManualBlockReason(
-                kind = ManualBlockKind.INVALID_TIME_RANGE,
-                failedTriggerLabels = emptyList(),
-                failedConstraintLabels = emptyList()
-            )
-        }
-        val triggerResult = TriggerStateEvaluator.evaluateAsync(
-            context = context,
-            triggers = automation.triggers,
-            matchMode = automation.triggerMatch
-        )
-        val failedTriggers = if (triggerResult == ConditionResult.Satisfied) {
-            emptyList()
-        } else {
-            automation.triggers.filter { trigger ->
-                TriggerStateEvaluator.evaluateAsync(context, listOf(trigger)) != ConditionResult.Satisfied
-            }.map { TriggerStateEvaluator.triggerLabel(it) }
-        }
-        var failedConstraints: List<String> = emptyList()
-        var constraintSatisfied = true
-        if (automation.constraints.isNotEmpty()) {
-            val state = constraintStateProvider?.invoke()
-                ?: runCatching { ConstraintStateReader.capture(context) }.getOrNull()
-            val gate = AutomationConstraintGate(capabilityExecutionService)
-            val result = gate.evaluate(automation, state)
-            constraintSatisfied = result == ConditionResult.Satisfied
-            if (!constraintSatisfied) {
-                failedConstraints = automation.constraints.map { it.type.name }
-            }
-        }
-        return if (failedTriggers.isEmpty() && constraintSatisfied) {
-            ManualBlockReason(kind = ManualBlockKind.NONE, failedTriggerLabels = emptyList(), failedConstraintLabels = emptyList())
-        } else {
-            ManualBlockReason(
-                kind = when {
-                    failedTriggers.isNotEmpty() && triggerResult == ConditionResult.Unknown -> ManualBlockKind.TRIGGERS_UNKNOWN
-                    failedTriggers.isNotEmpty() -> ManualBlockKind.TRIGGERS_NOT_MET
-                    else -> ManualBlockKind.CONSTRAINTS_NOT_MET
-                },
-                failedTriggerLabels = failedTriggers,
-                failedConstraintLabels = failedConstraints
-            )
-        }
-    }
+    suspend fun describeManualBlock(automation: Automation): ManualBlockReason =
+        manualAdmissionEvaluator.describe(automation)
+
+    /** Side-effect-free live status for every trigger and constraint row. */
+    suspend fun diagnoseManualAdmission(automation: Automation): ManualAdmissionDiagnostics = manualAdmissionEvaluator.diagnostics(automation)
+
+    /** Live main-chain progress for the selected automation, if a run exists. */
+    fun observeExecutionProgress(automationId: String): Flow<AutomationExecutionProgress?> = executionProgressTracker.observe(automationId)
 
     /**
      * Explicit user override of the manual admission gate: skips trigger and
@@ -853,7 +818,7 @@ class ExecutionEngine(
         /** Durable local snapshot supplied by the occurrence coordinator after restart. */
         runtimeSnapshotJson: String? = null
     ): ExecutionRecord {
-        val wakeLock = acquireWakeLock("NexaFlow:runExit:${automation.id}")
+        val wakeLock = acquireExecutionWakeLock(context, "NexaFlow:runExit:${automation.id}")
         try {
             val startedAt = epochMillis.now()
         // Consume both ledgers as one critical section. Without this per-task
@@ -874,7 +839,9 @@ class ExecutionEngine(
                 message = "Skipped: task was not active",
                 executedAt = startedAt
             )
-            historyRepository.recordExecution(record)
+            if (skipReportThrottle.shouldReport(automation.id, "EXIT_NOT_ACTIVE", startedAt)) {
+                historyRepository.recordExecution(record)
+            }
             diagnostics.recordTimeline(automation, "EXIT_SKIPPED", record, startedAt)
             return record
         }
@@ -924,7 +891,11 @@ class ExecutionEngine(
                     actionType = "STATE_RESTORE",
                     success = restoreResult.success,
                     message = restoreResult.message,
-                    durationMs = 0
+                    durationMs = 0,
+                    channel = restoreResult.executionChannel ?: channel?.type?.name,
+                    errorCode = restoreResult.errorCode,
+                    verificationAttempted = restoreResult.verificationAttempted,
+                    verified = restoreResult.verified
                 )
             )
         } else {
@@ -952,7 +923,11 @@ class ExecutionEngine(
                             actionType = "${action.type.name}_END",
                             success = result.success,
                             message = result.message,
-                            durationMs = epochMillis.now() - actionStartedAt
+                            durationMs = epochMillis.now() - actionStartedAt,
+                            channel = result.executionChannel ?: channel?.type?.name,
+                            errorCode = result.errorCode,
+                            verificationAttempted = result.verificationAttempted,
+                            verified = result.verified
                         )
                     )
                 }
@@ -965,7 +940,11 @@ class ExecutionEngine(
                             actionType = action.type.name,
                             success = result.success,
                             message = result.message,
-                            durationMs = epochMillis.now() - actionStartedAt
+                            durationMs = epochMillis.now() - actionStartedAt,
+                            channel = result.executionChannel ?: channel?.type?.name,
+                            errorCode = result.errorCode,
+                            verificationAttempted = result.verificationAttempted,
+                            verified = result.verified
                         )
                     )
                 }
@@ -977,9 +956,9 @@ class ExecutionEngine(
             automationName = automation.name,
             success = actionResults.all { it.success },
             message = if (manualConditionRejected) {
-                MANUAL_CONDITION_NOT_MET_PREFIX + "end behavior: ${buildMessage(actionResults)}"
+                MANUAL_CONDITION_NOT_MET_PREFIX + "end behavior: ${buildExecutionMessage(actionResults)}"
             } else {
-                buildMessage(actionResults)
+                buildExecutionMessage(actionResults)
             },
             executedAt = startedAt,
             channel = channel?.type?.name,
@@ -1003,8 +982,13 @@ class ExecutionEngine(
     suspend fun clearSnapshot(automationId: String) {
         snapshots.remove(automationId)
         activeExecutions.remove(automationId)
+        executionProgressTracker.clear(automationId)
         activeExecutionStore.clear(automationId)
     }
+
+    /** Current unresolved recovery count from the durable checkpoint ledger. */
+    suspend fun recoveryBacklogCount(automationId: String): Int =
+        activeExecutionStore.recoveryRequiredCountForAutomation(automationId)
 
     /**
      * Discards recovery records that the user explicitly acknowledged for one
@@ -1082,17 +1066,6 @@ class ExecutionEngine(
         }.getOrDefault(emptyList())
         if (globals.isEmpty()) return builtins
         return builtins + globals.associate { it.name to RuntimeValueCodec.display(it.value) }
-    }
-
-    /**
-     * Diagnoses elevated-runtime availability for logging without re-probing too often.
-     * Returns a short human-readable hint used when a privileged action fails.
-     */
-    private fun elevatedHint(): String {
-        val ksuGranted = try { com.nexaflow.core.rom.SystemAppStatusDetector.isRootAvailable() } catch (_: Throwable) { false }
-        val shizuku = try { com.nexaflow.core.rom.PrivilegedRunner.isShizukuGranted() } catch (_: Throwable) { false }
-        val suBin = try { com.nexaflow.core.rom.SystemAppStatusDetector.isSuBinaryAvailable() } catch (_: Throwable) { false }
-        return "elevated: rootAvailable=$ksuGranted shizuku=$shizuku suBin=$suBin"
     }
 
     private suspend fun executeAction(
@@ -1216,22 +1189,5 @@ class ExecutionEngine(
         is ConditionResult.Error -> "constraint evaluation error: $reason"
     }
 
-    /** Coarse freshness classification for the whole-run admission snapshot. */
-    private enum class SnapshotFreshness { FRESH, STALE, NEVER_OBSERVED }
 
-    /**
-     * Classifies a capability snapshot for the admission gate. A snapshot the
-     * store never populated (startup race) or one observed too long ago is
-     * not a refusal basis: the gate admits, the per-action live checks decide.
-     */
-    private fun snapshotFreshness(snapshot: CapabilitySnapshot): SnapshotFreshness = when {
-        snapshot.neverObserved -> SnapshotFreshness.NEVER_OBSERVED
-        epochMillis.now() - snapshot.observedAtMs > CAPABILITY_SNAPSHOT_FRESHNESS_MS -> SnapshotFreshness.STALE
-        else -> SnapshotFreshness.FRESH
-    }
-
-    private fun buildMessage(results: List<ActionExecutionResult>): String {
-        if (results.isEmpty()) return "No actions configured"
-        return results.joinToString(" | ") { it.message }
-    }
 }

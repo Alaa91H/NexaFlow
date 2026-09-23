@@ -184,7 +184,7 @@ class ExecutionEngineExitBehaviorTest {
     }
 
     @Test
-    fun `manual run with unavailable trigger runs configured end action`() = runBlocking {
+    fun `manual mismatch does not execute configured end action implicitly`() = runBlocking {
         val handler = RecordingHandler()
         val history = RecordingHistory()
         val engine = engine(handler, history)
@@ -193,16 +193,20 @@ class ExecutionEngineExitBehaviorTest {
             exitActions = listOf(action)
         )
 
-        val record = engine.runWithConditionGate(automation)
+        val blocked = engine.runWithConditionGate(automation)
 
-        assertTrue(record.success)
-        assertTrue(record.message.startsWith(ExecutionEngine.MANUAL_CONDITION_NOT_MET_PREFIX))
-        assertEquals("unavailable main condition must dispatch the configured end action", 1, handler.calls)
-        assertEquals(1, record.actionResults.size)
+        assertTrue(blocked.success)
+        assertTrue(blocked.message.startsWith("Skipped:"))
+        assertEquals("manual mismatch must have no side effect", 0, handler.calls)
+        assertTrue(blocked.actionResults.isEmpty())
+
+        val end = engine.runManualEndBehavior(automation)
+        assertEquals("explicit end action must run exactly once", 1, handler.calls)
+        assertEquals(1, end.actionResults.size)
     }
 
     @Test
-    fun `manual run with unavailable trigger and no end action has no side effect`() = runBlocking {
+    fun `manual mismatch with no end action remains side effect free`() = runBlocking {
         val handler = RecordingHandler()
         val history = RecordingHistory()
         val engine = engine(handler, history)
@@ -210,11 +214,11 @@ class ExecutionEngineExitBehaviorTest {
             triggers = listOf(Trigger(TriggerType.APP_INSTALLED, mapOf("event" to "INSTALLED")))
         )
 
-        val record = engine.runWithConditionGate(automation)
+        val blocked = engine.runWithConditionGate(automation)
 
-        assertTrue(record.success)
-        assertTrue(record.message.contains("no end behavior configured"))
-        assertTrue("no configured end action means no handler dispatch", record.actionResults.isEmpty())
+        assertTrue(blocked.success)
+        assertTrue(blocked.message.startsWith("Skipped:"))
+        assertTrue(blocked.actionResults.isEmpty())
         assertEquals("no main or end action may run", 0, handler.calls)
     }
 

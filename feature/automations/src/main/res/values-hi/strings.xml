@@ -552,4 +552,36 @@
     <string name="action_data_date_time_sub">ISO इंस्टेंट पार्स करें और चुने हुए टाइम ज़ोन में फ़ॉर्मेट करें</string>
     <string name="action_data_json_sub">JSON पॉइंटर पथ, कुंजियाँ और फ़ॉर्मेटेड JSON पढ़ें</string>
     <string name="action_data_array_sub">JSON ऐरे को क्रमित, उलटा, जोड़ें और डुप्लिकेट हटाएँ</string>
+
+    <string name="execution_diagnostics">निष्पादन निदान</string>
+    <string name="execution_diagnostics_subtitle">शर्तों की वर्तमान स्थिति और हाल की कार्रवाइयों द्वारा वास्तव में उपयोग किया गया मार्ग।</string>
+    <string name="refresh_diagnostics">रीफ़्रेश</string>
+    <string name="execution_diagnostics_loading">वर्तमान डिवाइस स्थिति पढ़ी जा रही है…</string>
+    <string name="execution_diagnostics_ready">अभी चलाने के लिए तैयार</string>
+    <string name="execution_diagnostics_blocked">चलाने की सभी शर्तें पूरी नहीं हैं</string>
+    <string name="execution_diagnostics_triggers">अभी के ट्रिगर</string>
+    <string name="execution_diagnostics_constraints">अभी की शर्तें</string>
+    <string name="execution_diagnostics_last_run">नवीनतम निष्पादन</string>
+    <string name="execution_diagnostics_no_last_run">अभी प्रति-कार्रवाई निष्पादन विवरण उपलब्ध नहीं है।</string>
+    <string name="execution_diagnostics_run_channel">निष्पादन मार्ग: %1$s</string>
+    <string name="execution_diagnostic_satisfied">पूर्ण</string>
+    <string name="execution_diagnostic_unsatisfied">पूर्ण नहीं</string>
+    <string name="execution_diagnostic_unknown">अज्ञात</string>
+    <string name="execution_diagnostic_unavailable">अनुपलब्ध</string>
+    <string name="execution_diagnostic_error">त्रुटि</string>
+    <string name="execution_diagnostic_detail">विवरण: %1$s</string>
+    <string name="execution_diagnostic_restore">मूल स्थिति पुनर्स्थापित करें</string>
+    <string name="execution_diagnostic_end_action">समाप्ति पर: %1$s</string>
+    <string name="execution_diagnostic_via">%1$s के माध्यम से</string>
+    <string name="execution_diagnostic_verified">सत्यापित</string>
+    <string name="execution_diagnostic_not_verified">सत्यापित नहीं</string>
+    <string name="execution_diagnostic_action_ok">पूर्ण</string>
+    <string name="execution_diagnostic_action_failed">विफल</string>
+    <string name="execution_diagnostic_reason">कारण: %1$s</string>
+
+    <string name="execution_diagnostics_current_run">वर्तमान निष्पादन</string>
+    <string name="execution_diagnostic_pending">प्रतीक्षा में</string>
+    <string name="execution_diagnostic_running">चल रहा है</string>
+    <string name="execution_diagnostic_skipped">छोड़ा गया</string>
+    <string name="execution_diagnostic_outcome_unknown">परिणाम अज्ञात</string>
 </resources>

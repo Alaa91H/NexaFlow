@@ -552,4 +552,36 @@
     <string name="action_data_date_time_sub">Analizar instantes ISO y formatear en una zona horaria elegida</string>
     <string name="action_data_json_sub">Leer rutas JSON Pointer, claves y JSON formateado</string>
     <string name="action_data_array_sub">Ordenar, invertir, unir y deduplicar arrays JSON</string>
+
+    <string name="execution_diagnostics">Diagnóstico de ejecución</string>
+    <string name="execution_diagnostics_subtitle">Estado actual de las condiciones y la ruta usada realmente por las acciones más recientes.</string>
+    <string name="refresh_diagnostics">Actualizar</string>
+    <string name="execution_diagnostics_loading">Leyendo el estado actual del dispositivo…</string>
+    <string name="execution_diagnostics_ready">Lista para ejecutarse ahora</string>
+    <string name="execution_diagnostics_blocked">Las condiciones de ejecución no se cumplen por completo</string>
+    <string name="execution_diagnostics_triggers">Activadores ahora</string>
+    <string name="execution_diagnostics_constraints">Restricciones ahora</string>
+    <string name="execution_diagnostics_last_run">Última ejecución</string>
+    <string name="execution_diagnostics_no_last_run">Aún no hay detalles de ejecución por acción.</string>
+    <string name="execution_diagnostics_run_channel">Ruta de ejecución: %1$s</string>
+    <string name="execution_diagnostic_satisfied">Cumplido</string>
+    <string name="execution_diagnostic_unsatisfied">No cumplido</string>
+    <string name="execution_diagnostic_unknown">Desconocido</string>
+    <string name="execution_diagnostic_unavailable">No disponible</string>
+    <string name="execution_diagnostic_error">Fallo</string>
+    <string name="execution_diagnostic_detail">Detalle: %1$s</string>
+    <string name="execution_diagnostic_restore">Restaurar estado original</string>
+    <string name="execution_diagnostic_end_action">Al finalizar: %1$s</string>
+    <string name="execution_diagnostic_via">mediante %1$s</string>
+    <string name="execution_diagnostic_verified">verificado</string>
+    <string name="execution_diagnostic_not_verified">no verificado</string>
+    <string name="execution_diagnostic_action_ok">completado</string>
+    <string name="execution_diagnostic_action_failed">falló</string>
+    <string name="execution_diagnostic_reason">Motivo: %1$s</string>
+
+    <string name="execution_diagnostics_current_run">Ejecución actual</string>
+    <string name="execution_diagnostic_pending">En espera</string>
+    <string name="execution_diagnostic_running">En ejecución</string>
+    <string name="execution_diagnostic_skipped">Omitido</string>
+    <string name="execution_diagnostic_outcome_unknown">Resultado desconocido</string>
 </resources>
