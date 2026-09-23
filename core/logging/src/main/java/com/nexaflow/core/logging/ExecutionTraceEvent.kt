@@ -102,11 +102,17 @@ class TraceRecorder(private val logStore: LogStore) {
                     automationId = stamped.automationId,
                     automationName = "", // joined by the history layer when rendering
                     kind = "TRACE:${stamped.phase.name}",
-                    success = stamped.phase != TracePhase.GATE_BLOCKED,
+                    success = stamped.isSuccessfulTimelineEvent(),
                     message = "${stamped.reasonCode}${redactedDetail?.let { "|$it" }.orEmpty()}",
                     startedAt = stamped.atEpochMs,
                     durationMs = stamped.durationMs,
                     channel = stamped.backend,
+                    traceRunId = stamped.runId,
+                    traceSequence = stamped.sequence,
+                    tracePhase = stamped.phase,
+                    traceReasonCode = stamped.reasonCode,
+                    traceDetail = redactedDetail,
+                    traceNodeId = stamped.nodeId,
                 )
             )
         } catch (cancellation: kotlinx.coroutines.CancellationException) {
@@ -157,4 +163,38 @@ class TraceRecorder(private val logStore: LogStore) {
 
     /** Test-visible size of the bounded-per-run sequencing state. */
     internal fun activeRunCountForTesting(): Int = counters.size
+}
+
+/** False for blocked, failed or uncertain trace rows; true for progress/success rows. */
+private fun ExecutionTraceEvent.isSuccessfulTimelineEvent(): Boolean =
+    phase != TracePhase.GATE_BLOCKED &&
+        reasonCode !in setOf(
+            TraceReasons.ACTION_FAILED,
+            TraceReasons.VERIFICATION_FAILED,
+            TraceReasons.OUTCOME_UNCERTAIN,
+            TraceReasons.RUN_FAILED,
+        )
+
+/**
+ * Rehydrates a trace row without parsing its free-form message. Rows written
+ * before structured trace metadata existed safely return null.
+ */
+fun ExecutionTimelineEntry.toTraceEventOrNull(): ExecutionTraceEvent? {
+    val runId = traceRunId ?: return null
+    val sequence = traceSequence ?: return null
+    val phase = tracePhase ?: return null
+    val reasonCode = traceReasonCode ?: return null
+    return ExecutionTraceEvent(
+        id = id,
+        runId = runId,
+        automationId = automationId,
+        sequence = sequence,
+        phase = phase,
+        reasonCode = reasonCode,
+        detail = traceDetail,
+        backend = channel,
+        nodeId = traceNodeId,
+        atEpochMs = startedAt,
+        durationMs = durationMs,
+    )
 }
