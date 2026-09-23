@@ -226,11 +226,25 @@ private fun RunExplanationCard(explanation: RunExplainer.Explanation) {
     val explanationText = when (explanation.explanationKey) {
         "explain_constraint_blocked" -> stringResource(R.string.why_run_constraint_blocked)
         "explain_trigger_all_blocked" -> stringResource(R.string.why_run_all_triggers_blocked)
+        "explain_capability_blocked" -> stringResource(R.string.why_run_capability_blocked)
+        "explain_admission_rejected" -> stringResource(R.string.why_run_admission_rejected)
+        "explain_maintenance_waiting" -> stringResource(R.string.why_run_maintenance_waiting)
+        "explain_maintenance_duplicate" -> stringResource(R.string.why_run_maintenance_duplicate)
+        "explain_action_failed" -> stringResource(R.string.why_run_action_failed)
+        "explain_verification_failed" -> stringResource(R.string.why_run_verification_failed)
+        "explain_outcome_uncertain" -> stringResource(R.string.why_run_outcome_uncertain)
+        "explain_run_failed" -> stringResource(R.string.why_run_failed)
         else -> stringResource(R.string.why_run_unknown)
     }
     val fixText = when (explanation.fixKey) {
         "fix_review_constraints" -> stringResource(R.string.why_run_fix_review_constraints)
         "fix_check_all_conditions" -> stringResource(R.string.why_run_fix_check_all_conditions)
+        "fix_grant_capability" -> stringResource(R.string.why_run_fix_grant_capability)
+        "fix_check_running_state" -> stringResource(R.string.why_run_fix_check_running_state)
+        "fix_review_action_config" -> stringResource(R.string.why_run_fix_review_action_config)
+        "fix_retry_or_review" -> stringResource(R.string.why_run_fix_retry_or_review)
+        "fix_review_device_state" -> stringResource(R.string.why_run_fix_review_device_state)
+        "fix_open_history" -> stringResource(R.string.why_run_fix_open_history)
         else -> null
     }
 
