@@ -743,7 +743,9 @@ class ExecutionEngine(
                 } else {
                     com.nexaflow.core.logging.TraceReasons.ACTION_FAILED
                 },
-                detail = failedAction?.let { result -> result.actionType + ": " + result.message },
+                detail = failedAction?.let { result ->
+                    (result.actionType + ": " + result.message).take(500)
+                },
                 backend = record.channel,
                 atEpochMs = epochMillis.now(),
                 durationMs = epochMillis.now() - startedAt,
