@@ -67,4 +67,31 @@
     <string name="block_category_contact">Contato</string>
     <string name="diagnostics_end_behavior_label">Problemas do comportamento final</string>
     <string name="diagnostics_action_config_label">Problemas de configuração de ações</string>
+
+    <!-- Structured execution diagnosis. -->
+    <string name="why_run_title">Por que esta tarefa não foi executada?</string>
+    <string name="why_run_constraint_blocked">Uma ou mais condições da tarefa bloquearam esta execução.</string>
+    <string name="why_run_all_triggers_blocked">Nem todos os gatilhos necessários estavam ativos ao mesmo tempo.</string>
+    <string name="why_run_unknown">Esta execução foi interrompida por um motivo registrado. Veja os detalhes abaixo.</string>
+    <string name="why_run_fix_label">Correção sugerida</string>
+    <string name="why_run_fix_review_constraints">Revise as condições da tarefa e o estado atual do dispositivo.</string>
+    <string name="why_run_fix_check_all_conditions">Verifique cada gatilho da tarefa e confirme que todas as condições necessárias estão ativas agora.</string>
+
+    <string name="why_run_capability_blocked">Uma capacidade ou permissão necessária não está disponível.</string>
+    <string name="why_run_admission_rejected">Esta execução foi rejeitada porque outra execução ou estado de recuperação ainda está ativo.</string>
+    <string name="why_run_maintenance_waiting">Esta tarefa de manutenção está aguardando a janela permitida de execução.</string>
+    <string name="why_run_maintenance_duplicate">Esta ocorrência de manutenção já foi concluída e não foi executada novamente.</string>
+    <string name="why_run_action_failed">Uma ação falhou antes que a tarefa pudesse ser concluída com sucesso.</string>
+    <string name="why_run_verification_failed">Não foi possível verificar no dispositivo a alteração solicitada.</string>
+    <string name="why_run_outcome_uncertain">O estado do dispositivo não pôde confirmar se a alteração solicitada foi concluída.</string>
+    <string name="why_run_failed">A tarefa terminou com uma falha registrada.</string>
+    <string name="why_run_fix_grant_capability">Conceda a permissão necessária ou deixe um provedor de execução disponível pronto e tente novamente.</string>
+    <string name="why_run_fix_check_running_state">Aguarde a execução ativa terminar ou revise o estado de recuperação se o bloqueio continuar.</string>
+    <string name="why_run_fix_review_action_config">Revise a configuração, as permissões e o provedor necessário da ação que falhou.</string>
+    <string name="why_run_fix_retry_or_review">Execute a tarefa novamente. Se falhar de novo, revise a ação e as permissões do dispositivo.</string>
+    <string name="why_run_fix_review_device_state">Verifique o estado real do dispositivo antes de executar a tarefa novamente.</string>
+    <string name="why_run_fix_open_history">Revise a linha do tempo de execução abaixo para identificar a ação que falhou.</string>
+
+    <string name="why_run_configuration_blocked">A configuração da tarefa está incompleta, por isso a execução foi bloqueada.</string>
+    <string name="why_run_fix_review_task_configuration">Revise a configuração da tarefa e informe os valores necessários antes de tentar novamente.</string>
 </resources>

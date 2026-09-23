@@ -67,4 +67,31 @@
     <string name="block_category_contact">Contact</string>
     <string name="diagnostics_end_behavior_label">Problèmes de comportement de fin</string>
     <string name="diagnostics_action_config_label">Problèmes de configuration des actions</string>
+
+    <!-- Structured execution diagnosis. -->
+    <string name="why_run_title">Pourquoi cette tâche ne s’est-elle pas exécutée ?</string>
+    <string name="why_run_constraint_blocked">Une ou plusieurs conditions de la tâche ont bloqué cette exécution.</string>
+    <string name="why_run_all_triggers_blocked">Tous les déclencheurs requis n’étaient pas satisfaits en même temps.</string>
+    <string name="why_run_unknown">Cette exécution s’est arrêtée pour une raison enregistrée. Consultez les détails ci-dessous.</string>
+    <string name="why_run_fix_label">Correction suggérée</string>
+    <string name="why_run_fix_review_constraints">Vérifiez les conditions de la tâche et l’état actuel de l’appareil.</string>
+    <string name="why_run_fix_check_all_conditions">Vérifiez chaque déclencheur de la tâche et assurez-vous que toutes les conditions requises sont actuellement satisfaites.</string>
+
+    <string name="why_run_capability_blocked">Une capacité ou autorisation requise n’est pas disponible.</string>
+    <string name="why_run_admission_rejected">Cette exécution a été refusée car une autre exécution ou un état de récupération est encore actif.</string>
+    <string name="why_run_maintenance_waiting">Cette tâche de maintenance attend sa fenêtre d’exécution autorisée.</string>
+    <string name="why_run_maintenance_duplicate">Cette occurrence de maintenance a déjà été terminée et n’a donc pas été exécutée à nouveau.</string>
+    <string name="why_run_action_failed">Une action a échoué avant que la tâche puisse se terminer correctement.</string>
+    <string name="why_run_verification_failed">La modification demandée n’a pas pu être vérifiée sur l’appareil.</string>
+    <string name="why_run_outcome_uncertain">L’état de l’appareil n’a pas permis de confirmer si la modification demandée a abouti.</string>
+    <string name="why_run_failed">La tâche s’est terminée avec un échec enregistré.</string>
+    <string name="why_run_fix_grant_capability">Accordez l’autorisation requise ou rendez un fournisseur d’exécution disponible, puis réessayez.</string>
+    <string name="why_run_fix_check_running_state">Attendez la fin de l’exécution active ou vérifiez l’état de récupération si le blocage persiste.</string>
+    <string name="why_run_fix_review_action_config">Vérifiez la configuration, les autorisations et le fournisseur requis de l’action en échec.</string>
+    <string name="why_run_fix_retry_or_review">Relancez la tâche. Si elle échoue encore, vérifiez l’action et les autorisations de l’appareil.</string>
+    <string name="why_run_fix_review_device_state">Vérifiez l’état réel de l’appareil avant de relancer la tâche.</string>
+    <string name="why_run_fix_open_history">Consultez la chronologie d’exécution ci-dessous pour identifier l’action en échec.</string>
+
+    <string name="why_run_configuration_blocked">La configuration de la tâche est incomplète, l’exécution a donc été bloquée.</string>
+    <string name="why_run_fix_review_task_configuration">Vérifiez la configuration de la tâche et renseignez les valeurs requises avant de réessayer.</string>
 </resources>
