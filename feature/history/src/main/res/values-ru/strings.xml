@@ -91,4 +91,7 @@
     <string name="why_run_fix_retry_or_review">Запустите задачу снова. Если ошибка повторится, проверьте действие и разрешения устройства.</string>
     <string name="why_run_fix_review_device_state">Проверьте фактическое состояние устройства перед повторным запуском задачи.</string>
     <string name="why_run_fix_open_history">Просмотрите временную шкалу выполнения ниже, чтобы найти неудачное действие.</string>
+
+    <string name="why_run_configuration_blocked">Конфигурация задачи неполная, поэтому запуск был заблокирован.</string>
+    <string name="why_run_fix_review_task_configuration">Проверьте конфигурацию задачи и укажите обязательные значения перед повторной попыткой.</string>
 </resources>
