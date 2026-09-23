@@ -76,4 +76,19 @@
     <string name="why_run_fix_label">Solución sugerida</string>
     <string name="why_run_fix_review_constraints">Revisa las condiciones de la tarea y el estado actual del dispositivo.</string>
     <string name="why_run_fix_check_all_conditions">Revisa cada activador de la tarea y asegúrate de que todas las condiciones requeridas se cumplan ahora.</string>
+
+    <string name="why_run_capability_blocked">Una capacidad o permiso requerido no está disponible.</string>
+    <string name="why_run_admission_rejected">Esta ejecución fue rechazada porque otra ejecución o estado de recuperación sigue activo.</string>
+    <string name="why_run_maintenance_waiting">Esta tarea de mantenimiento está esperando su ventana de ejecución permitida.</string>
+    <string name="why_run_maintenance_duplicate">Esta ocurrencia de mantenimiento ya se completó, por lo que no se ejecutó de nuevo.</string>
+    <string name="why_run_action_failed">Una acción falló antes de que la tarea pudiera completarse correctamente.</string>
+    <string name="why_run_verification_failed">No se pudo verificar en el dispositivo el cambio solicitado.</string>
+    <string name="why_run_outcome_uncertain">El estado del dispositivo no pudo confirmar si el cambio solicitado se completó.</string>
+    <string name="why_run_failed">La tarea terminó con un fallo registrado.</string>
+    <string name="why_run_fix_grant_capability">Concede el permiso requerido o prepara un proveedor de ejecución disponible y vuelve a intentarlo.</string>
+    <string name="why_run_fix_check_running_state">Espera a que termine la ejecución activa o revisa el estado de recuperación si sigue bloqueada.</string>
+    <string name="why_run_fix_review_action_config">Revisa la configuración, los permisos y el proveedor requerido de la acción fallida.</string>
+    <string name="why_run_fix_retry_or_review">Vuelve a ejecutar la tarea. Si falla otra vez, revisa la acción y los permisos del dispositivo.</string>
+    <string name="why_run_fix_review_device_state">Comprueba el estado real del dispositivo antes de volver a ejecutar la tarea.</string>
+    <string name="why_run_fix_open_history">Revisa la línea de tiempo de ejecución inferior para identificar la acción que falló.</string>
 </resources>
