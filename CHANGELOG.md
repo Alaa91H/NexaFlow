@@ -2,25 +2,96 @@
 
 ## [Unreleased]
 
-### Added
+## [v3.87.0] - 2026-09-23
 
-- Added a structured “Why didn’t this run?” card to execution details. The UI
-  correlates each history row with the existing typed execution trace using a
-  stable per-run id (with an exact-time fallback for legacy in-memory rows),
-  never parses free-form log text, shows redacted diagnostic detail, and
-  presents a localized suggested fix. Coverage now includes constraints,
-  ALL-trigger gates, missing capabilities/permissions, invalid task
-  configuration, maintenance windows/duplicates, admission/lifecycle
-  conflicts, and failed actions; successful runs remain free of failure UI.
+### Added — Structured execution diagnostics
 
+- **Added a user-facing “Why didn’t this run?” diagnosis card to execution details.**
+  History entries are correlated with typed execution traces through a stable per-run
+  identifier, with an exact-time compatibility fallback for legacy rows.
+- Diagnostics now explain the most important blocked and failed execution paths,
+  including constraints, ALL-trigger gates, missing capabilities or permissions,
+  invalid task configuration, maintenance-window waits and duplicates,
+  admission/lifecycle conflicts, and failed actions.
+- Supporting detail is redacted at the logging boundary and accompanied by localized
+  suggested fixes. Successful runs remain free of failure-oriented diagnostics.
+
+### Changed — Capability outcomes and privileged execution
+
+- **Hardened capability-result semantics across the execution engine.** Only a terminal
+  capability `SUCCESS` is promoted to action success; `PARTIAL`,
+  `PENDING_USER_ACTION`, `UNKNOWN`, failures, and cancellations are preserved as
+  non-success outcomes instead of being accidentally reported as completed actions.
+- **Completed bounded Shizuku and Root fallbacks for registered semantic writes.**
+  Location, airplane mode, Data Saver, rotation, brightness, screen timeout, and DND
+  now use typed privileged operations rather than free-form shell input.
+- Preserved required post-action verification, including scalar read-back for
+  brightness and screen timeout, and removed unwired `WRITE_SETTINGS` strategy
+  declarations from the semantic registry.
+- Shizuku permission requests now return definitive grant results, coalesce concurrent
+  callers behind a single prompt, recover pending callbacks on binder/listener
+  failures, and run the verified permission-repair pass after a confirmed grant.
+- Bluetooth semantic availability on Android 12+ now requires
+  `BLUETOOTH_CONNECT`, matching the actual execution requirement. Public DND
+  permission failures are reported as permission denials instead of ambiguous
+  capability failures.
+
+### Hardened — Workflow contracts, identity, and secret safety
+
+- Strengthened the v3.86 workflow-document foundation so legacy automation state is
+  preserved losslessly across document round-trips, including visual metadata,
+  priority/enabled state, ANY/ALL trigger mode, cooldown, workflow version,
+  maintenance configuration, exit behavior, categories, and timestamps.
+- Workflow identity hashing now canonicalizes nested JSON object keys, producing
+  deterministic hashes for semantically equivalent configuration maps regardless of
+  insertion order.
+- Structural validation now aligns more closely with runtime bounds, including retry
+  backoff limits and duplicate exit-action identifiers.
+- Deep-link authorization tokens remain outside workflow documents/exports, and
+  maintenance metadata is kept behind schema-pinned data-transfer contracts.
+
+### Improved — Builder UX and background update checks
+
+- **Improved trigger-card identification in the automation builder.** Each card now
+  shows the localized trigger type as its primary label, keeps the configured value
+  as a concise secondary summary, and preserves locale-aware RTL/LTR rendering while
+  keeping reorder/remove controls stable.
+- Automatic update checks now default to a weekly cadence, perform the first quiet
+  background check after a six-hour grace period, retry transient GitHub/network
+  failures with bounded exponential backoff, and avoid unnecessary WorkManager
+  rescheduling.
+- Update notifications remain silent/low-priority, are deduplicated per release, and
+  are cancelled together with periodic work when automatic checks are disabled.
 
 ### Fixed
 
-- Prevented root-detection timeout cleanup from surfacing spurious
-  `java.io.IOException: Stream closed` errors from background process-output
-  readers. The timeout path intentionally destroys the probe process; its pipe
-  closure is now treated as an expected cancellation condition instead of an
-  uncaught thread failure.
+- Prevented timed-out Root probes from surfacing spurious
+  `java.io.IOException: Stream closed` failures when forced process termination
+  closes a reader pipe during cleanup.
+- Fixed brightness and screen-timeout semantic mapping so scalar writes are not
+  rejected by an unrelated boolean compatibility rule.
+- Reconciled bounded brightness and timeout state read-back after branch integration,
+  preserving strict verification behavior on the final mainline.
+
+### Tests and reliability
+
+- Expanded regression coverage for strict capability-result mapping, semantic
+  operation parity, Shizuku/Root command shapes and verification, Bluetooth
+  readiness, scalar writes, workflow document round-trips and validation, execution
+  diagnostics, and the History UI.
+- Added targeted persistence regression coverage proving edited automations replace
+  their stored trigger state only after persistence completes, including trigger
+  removal/addition and ANY → ALL changes.
+- Branch-integration and CI contracts were hardened so the consolidated mainline
+  preserves the release, privileged-execution, and Wear Data Layer identity
+  invariants established by earlier releases.
+
+### Compatibility
+
+- No database schema migration is introduced by this release.
+- Existing automations remain compatible with the current persisted storage model.
+- Privileged actions continue to require the corresponding Android, Shizuku, or Root
+  capability and permission before execution.
 
 ## [v3.86.1] - 2026-09-23
 
