@@ -66,6 +66,25 @@ class RunExplainerTest {
     }
 
     @Test
+    fun configurationBlockedPointsToTaskConfiguration() {
+        val explanation = RunExplainer.explain(
+            listOf(event(TracePhase.GATE_BLOCKED, TraceReasons.CONFIGURATION_BLOCKED)),
+        )!!
+        assertEquals("explain_configuration_blocked", explanation.explanationKey)
+        assertEquals("fix_review_task_configuration", explanation.fixKey)
+    }
+
+    @Test
+    fun actionFailurePointsToActionConfiguration() {
+        val explanation = RunExplainer.explain(
+            listOf(event(TracePhase.OUTCOME, TraceReasons.ACTION_FAILED, detail = "SYSTEM_WIFI: denied")),
+        )!!
+        assertEquals("explain_action_failed", explanation.explanationKey)
+        assertEquals("fix_review_action_config", explanation.fixKey)
+        assertEquals("SYSTEM_WIFI: denied", explanation.detail)
+    }
+
+    @Test
     fun uncertainOutcomeExplainsHonestUnknownState() {
         val explanation = RunExplainer.explain(
             listOf(event(TracePhase.OUTCOME, TraceReasons.OUTCOME_UNCERTAIN)),
