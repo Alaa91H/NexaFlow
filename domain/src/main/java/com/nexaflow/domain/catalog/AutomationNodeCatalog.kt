@@ -17,32 +17,41 @@ import com.nexaflow.domain.models.TriggerType
  */
 object AutomationNodeCatalog {
 
-    val triggerDefinitions: List<AutomationNodeDefinition> =
+    val triggerDefinitions: List<AutomationNodeDefinition> by lazy {
         TriggerType.entries.map(::buildTriggerDefinition)
+    }
 
-    val actionDefinitions: List<AutomationNodeDefinition> =
+    val actionDefinitions: List<AutomationNodeDefinition> by lazy {
         ActionType.entries.map(::buildActionDefinition)
+    }
 
-    val all: List<AutomationNodeDefinition> = triggerDefinitions + actionDefinitions
-
-    private val byId: Map<String, AutomationNodeDefinition> = all.associateBy { it.id }
-    private val triggerByType: Map<TriggerType, AutomationNodeDefinition> =
-        TriggerType.entries.zip(triggerDefinitions).toMap()
-    private val actionByType: Map<ActionType, AutomationNodeDefinition> =
-        ActionType.entries.zip(actionDefinitions).toMap()
-
-    init {
-        require(all.map { it.id }.distinct().size == all.size) {
+    val all: List<AutomationNodeDefinition> by lazy {
+        val definitions = triggerDefinitions + actionDefinitions
+        require(definitions.map { it.id }.distinct().size == definitions.size) {
             "Automation node ids must be globally unique"
         }
-        require(byId.size == all.size) {
-            "Automation node id index lost entries"
+        definitions
+    }
+
+    private val byId: Map<String, AutomationNodeDefinition> by lazy {
+        all.associateBy { it.id }.also { index ->
+            require(index.size == all.size) { "Automation node id index lost entries" }
         }
-        require(triggerByType.keys == TriggerType.entries.toSet()) {
-            "Trigger catalog coverage is incomplete"
+    }
+
+    private val triggerByType: Map<TriggerType, AutomationNodeDefinition> by lazy {
+        TriggerType.entries.zip(triggerDefinitions).toMap().also { index ->
+            require(index.keys == TriggerType.entries.toSet()) {
+                "Trigger catalog coverage is incomplete"
+            }
         }
-        require(actionByType.keys == ActionType.entries.toSet()) {
-            "Action catalog coverage is incomplete"
+    }
+
+    private val actionByType: Map<ActionType, AutomationNodeDefinition> by lazy {
+        ActionType.entries.zip(actionDefinitions).toMap().also { index ->
+            require(index.keys == ActionType.entries.toSet()) {
+                "Action catalog coverage is incomplete"
+            }
         }
     }
 
