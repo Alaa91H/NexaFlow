@@ -552,4 +552,6 @@
     <string name="action_data_date_time_sub">Разбор ISO-моментов и форматирование в выбранном поясе</string>
     <string name="action_data_json_sub">Чтение путей JSON Pointer, ключей и форматированного JSON</string>
     <string name="action_data_array_sub">Сортировка, реверс, объединение и дедупликация JSON-массивов</string>
+    <string name="trigger_wear_event">Часы Wear OS</string>
+    <string name="trigger_wear_event_sub">Запускать задачу, когда часы NexaFlow подключены или отключены</string>
 </resources>
