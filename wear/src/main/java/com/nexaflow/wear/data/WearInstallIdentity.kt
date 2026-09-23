@@ -26,7 +26,9 @@ class WearInstallIdentity @Inject constructor(
             ?.let { return it }
 
         val installId = UUID.randomUUID().toString()
-        preferences.edit().putString(KEY_INSTALL_ID, installId).apply()
+        check(preferences.edit().putString(KEY_INSTALL_ID, installId).commit()) {
+            "Unable to persist Wear install identity"
+        }
         return installId
     }
 
