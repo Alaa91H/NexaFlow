@@ -91,4 +91,7 @@
     <string name="why_run_fix_retry_or_review">重新运行任务。如果再次失败，请检查该操作和设备权限。</string>
     <string name="why_run_fix_review_device_state">重新运行任务前，请检查设备的实际状态。</string>
     <string name="why_run_fix_open_history">查看下方执行时间线以找出失败的操作。</string>
+
+    <string name="why_run_configuration_blocked">任务配置不完整，因此此次运行被阻止。</string>
+    <string name="why_run_fix_review_task_configuration">重新尝试前，请检查任务配置并填写所需值。</string>
 </resources>
