@@ -91,4 +91,7 @@
     <string name="why_run_fix_retry_or_review">Vuelve a ejecutar la tarea. Si falla otra vez, revisa la acción y los permisos del dispositivo.</string>
     <string name="why_run_fix_review_device_state">Comprueba el estado real del dispositivo antes de volver a ejecutar la tarea.</string>
     <string name="why_run_fix_open_history">Revisa la línea de tiempo de ejecución inferior para identificar la acción que falló.</string>
+
+    <string name="why_run_configuration_blocked">La configuración de la tarea está incompleta, por lo que la ejecución fue bloqueada.</string>
+    <string name="why_run_fix_review_task_configuration">Revisa la configuración de la tarea y completa los valores requeridos antes de volver a intentarlo.</string>
 </resources>
