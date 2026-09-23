@@ -29,6 +29,7 @@ import com.nexaflow.core.datastore.ThemeMode
 import com.nexaflow.core.datastore.ThemePreferences
 import com.nexaflow.core.datastore.ThemeSettings
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.ManualBlockKind
 import com.nexaflow.core.execution.ExecutionResultPresentation
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -277,13 +278,13 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val record = executionEngine.runWithConditionGate(automation)
             val reason = executionEngine.describeManualBlock(automation)
-            val reasonText = if (reason.kind != ExecutionEngine.ManualBlockKind.NONE) {
+            val reasonText = if (reason.kind != ManualBlockKind.NONE) {
                 when (reason.kind) {
-                    ExecutionEngine.ManualBlockKind.TRIGGERS_NOT_MET ->
+                    ManualBlockKind.TRIGGERS_NOT_MET ->
                         reason.failedTriggerLabels.joinToString().ifEmpty { null }
-                    ExecutionEngine.ManualBlockKind.TRIGGERS_UNKNOWN ->
+                    ManualBlockKind.TRIGGERS_UNKNOWN ->
                         reason.failedTriggerLabels.joinToString().ifEmpty { null }
-                    ExecutionEngine.ManualBlockKind.CONSTRAINTS_NOT_MET ->
+                    ManualBlockKind.CONSTRAINTS_NOT_MET ->
                         reason.failedConstraintLabels.joinToString().ifEmpty { null }
                     else -> null
                 }?.let { " — $it" } ?: ""
