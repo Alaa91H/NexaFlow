@@ -12,7 +12,12 @@ data class ExecutionTimelineEntry(
     val durationMs: Long,
     /** Execution provider that ran the actions ("ROOT", "SHIZUKU", ...); null when not selected. */
     val channel: String? = null,
-    /** Structured trace metadata; null on ordinary RUN/EXIT timeline rows. */
+    /**
+     * Correlation id shared by the durable history row's in-memory timeline
+     * companion and its structured trace events. Null on legacy entries.
+     */
+    val runId: String? = null,
+    /** Structured trace metadata; sequence/phase/reason stay null on ordinary rows. */
     val traceRunId: String? = null,
     val traceSequence: Int? = null,
     val tracePhase: TracePhase? = null,
