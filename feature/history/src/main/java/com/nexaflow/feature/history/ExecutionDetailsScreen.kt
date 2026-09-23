@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,6 +34,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.nexaflow.core.execution.ExecutionResultPresentation
+import com.nexaflow.core.logging.RunExplainer
 import com.nexaflow.core.ui.EmptyState
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.theme.NexaFlowTheme
@@ -95,6 +97,9 @@ fun ExecutionDetailsScreen(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 RunSummaryCard(record = current)
+                uiState.explanation?.let { explanation ->
+                    RunExplanationCard(explanation = explanation)
+                }
                 SectionHeader(text = stringResource(R.string.section_timeline))
                 NexaFlowCard {
                     if (current.actionResults.isEmpty()) {
@@ -210,6 +215,73 @@ private fun RunSummaryCard(record: ExecutionRecord) {
                         style = MaterialTheme.typography.titleSmall
                     )
                 }
+            }
+        }
+    }
+}
+
+/** Human-readable diagnosis backed by the structured execution trace. */
+@Composable
+private fun RunExplanationCard(explanation: RunExplainer.Explanation) {
+    val explanationText = when (explanation.explanationKey) {
+        "explain_constraint_blocked" -> stringResource(R.string.why_run_constraint_blocked)
+        "explain_trigger_all_blocked" -> stringResource(R.string.why_run_all_triggers_blocked)
+        else -> stringResource(R.string.why_run_unknown)
+    }
+    val fixText = when (explanation.fixKey) {
+        "fix_review_constraints" -> stringResource(R.string.why_run_fix_review_constraints)
+        "fix_check_all_conditions" -> stringResource(R.string.why_run_fix_check_all_conditions)
+        else -> null
+    }
+
+    NexaFlowCard {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                IconBadge(
+                    icon = Icons.Filled.HelpOutline,
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                    size = 40
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.why_run_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = explanationText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            explanation.detail
+                ?.takeIf { it.isNotBlank() }
+                ?.let { detail ->
+                    Text(
+                        text = detail,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+
+            fixText?.let { fix ->
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Text(
+                    text = stringResource(R.string.why_run_fix_label),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = fix,
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
         }
     }
