@@ -23,6 +23,11 @@ class TriggerPickerOptionsTest {
     }
 
     @Test
+    fun wearConnectionTriggerIsAddable() {
+        assertTrue(TriggerType.WEAR_EVENT in triggerTypeOptions)
+    }
+
+    @Test
     fun pluginEventsRemainRestrictedToVerifiedPluginConfiguration() {
         assertFalse(TriggerType.PLUGIN_EVENT in triggerTypeOptions)
     }
