@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nexaflow.core.execution.AutomationExecutionProgress
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.ManualBlockReason
 import com.nexaflow.core.execution.ManualBlockKind
@@ -74,6 +75,11 @@ class AutomationDetailsViewModel @Inject constructor(
     val latestExecution: StateFlow<ExecutionRecord?> = historyRepository.getLatestExecutions()
         .map { records -> records.find { it.automationId == automationId } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** In-process progress while the main action chain is executing. */
+    val liveProgress: StateFlow<AutomationExecutionProgress?> =
+        executionEngine.observeExecutionProgress(automationId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     private val _diagnostics = MutableStateFlow<ManualAdmissionDiagnostics?>(null)
     val diagnostics: StateFlow<ManualAdmissionDiagnostics?> = _diagnostics
