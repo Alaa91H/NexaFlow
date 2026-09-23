@@ -83,6 +83,13 @@ class WearDeviceRegistry @Inject constructor(
             return false
         }
 
+        return acceptSnapshot(dataItem.uri.host, snapshot)
+    }
+
+    internal fun acceptSnapshot(
+        nodeId: String?,
+        snapshot: WearCapabilitySnapshot,
+    ): Boolean {
         if (!WearProtocol.isVersionSupported(snapshot.protocolVersion)) {
             Log.w(TAG, "Ignoring unsupported Wear protocol ${snapshot.protocolVersion}")
             return false
@@ -91,7 +98,7 @@ class WearDeviceRegistry @Inject constructor(
         upsert(
             WearDeviceDescriptor(
                 watchInstallId = snapshot.watchInstallId,
-                nodeId = dataItem.uri.host,
+                nodeId = nodeId,
                 displayName = snapshot.deviceName,
                 protocolVersion = snapshot.protocolVersion,
                 appVersionName = snapshot.appVersionName,
