@@ -101,6 +101,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.ExecutionResultPresentation
 import com.nexaflow.core.ui.EmptyState
 import kotlinx.coroutines.launch
 import androidx.compose.material3.AlertDialog
@@ -988,19 +989,20 @@ private fun ExecutionHealthCard(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.secondary
                 )
-                report.latestFailureMessage
-                    ?.takeIf { it.isNotBlank() }
-                    ?.let { failure ->
-                        Text(
-                            text = stringResource(R.string.execution_health_last_issue, failure),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (attention) {
-                                MaterialTheme.colorScheme.error
-                            } else {
-                                MaterialTheme.colorScheme.secondary
-                            }
-                        )
-                    }
+                report.latestFailureRecord?.let { failure ->
+                    Text(
+                        text = stringResource(
+                            R.string.execution_health_last_issue,
+                            ExecutionResultPresentation.summary(LocalContext.current, failure)
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (attention) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.secondary
+                        }
+                    )
+                }
                 TextButton(onClick = onOpenHistory) {
                     Text(stringResource(R.string.view_routine_history))
                 }
