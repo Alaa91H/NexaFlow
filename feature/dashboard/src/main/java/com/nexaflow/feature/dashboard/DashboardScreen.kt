@@ -454,7 +454,7 @@ fun DashboardScreen(navController: NavController) {
                 TextButton(
                     onClick = {
                         runBlockDialogTarget = null
-                        viewModel.runNow(automation)
+                        viewModel.runEndBehavior(automation)
                     }
                 ) {
                     Text(stringResource(R.string.run_reason_run_end))
