@@ -13,6 +13,8 @@ data class AutomationHealthReport(
     val failedRuns: Int,
     val consecutiveFailures: Int,
     val latestFailureMessage: String?,
+    /** Full local record retained so UI can localize the failure safely. */
+    val latestFailureRecord: ExecutionRecord? = null,
     val status: AutomationHealthStatus,
     val recoveryReviewPending: Boolean = false
 )
@@ -38,9 +40,10 @@ object AutomationHealthAnalyzer {
         val consecutiveFailures = relevant.takeWhile {
             ExecutionOutcomeClassifier.classify(it) == ExecutionHistoryOutcome.FAILED
         }.size
-        val latestFailure = relevant.firstOrNull {
+        val latestFailureRecord = relevant.firstOrNull {
             ExecutionOutcomeClassifier.classify(it) == ExecutionHistoryOutcome.FAILED
-        }?.message
+        }
+        val latestFailure = latestFailureRecord?.message
         // A skip does not prove that previously blocked recovery work was resolved.
         // Only a later admitted run supersedes the last recovery deferral.
         val recoveryPending = relevant.firstOrNull {
@@ -55,6 +58,7 @@ object AutomationHealthAnalyzer {
             failedRuns = failed,
             consecutiveFailures = consecutiveFailures,
             latestFailureMessage = latestFailure,
+            latestFailureRecord = latestFailureRecord,
             status = when {
                 relevant.isEmpty() -> AutomationHealthStatus.NO_EXECUTIONS
                 recoveryPending -> AutomationHealthStatus.NEEDS_ATTENTION
