@@ -7,8 +7,11 @@ import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.data.backup.BackupManager
 import com.nexaflow.core.execution.ExecutionResultPresentation
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.AutomationHealthReport
+import com.nexaflow.domain.models.AutomationHealthStatus
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.repositories.AutomationRepository
+import com.nexaflow.domain.repositories.HealthRepository
 import com.nexaflow.domain.repositories.HistoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -30,6 +33,7 @@ class DashboardViewModel @Inject constructor(
     private val automationRepository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
     historyRepository: HistoryRepository,
+    healthRepository: HealthRepository,
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
@@ -44,14 +48,19 @@ class DashboardViewModel @Inject constructor(
 
     private val automationsFlow = combine(
         automationRepository.getAutomations(),
-        lastRunFlow
-    ) { automations, lastRuns ->
+        lastRunFlow,
+        healthRepository.getHealthReports()
+    ) { automations, lastRuns, healthReports ->
+        val healthByAutomation = healthReports.associateBy { it.automationId }
         automations.map { automation ->
             val lastRun = lastRuns[automation.id]
             AutomationRow(
                 automation = automation,
                 lastRunAt = lastRun?.executedAt,
-                lastRunSucceeded = lastRun?.success
+                lastRunSucceeded = lastRun?.success,
+                latestExecution = lastRun,
+                healthReport = healthByAutomation[automation.id]
+                    ?: emptyHealthReport(automation.id)
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -273,5 +282,20 @@ data class AutomationRow(
     val automation: Automation,
     val lastRunAt: Long?,
     /** Null when no run exists; false means the action chain or configuration failed. */
-    val lastRunSucceeded: Boolean? = null
+    val lastRunSucceeded: Boolean? = null,
+    /** Complete latest durable run so expanded cards can present per-action outcomes. */
+    val latestExecution: ExecutionRecord? = null,
+    /** Read-only execution health derived from durable history. */
+    val healthReport: AutomationHealthReport = emptyHealthReport(automation.id)
+)
+
+internal fun emptyHealthReport(automationId: String) = AutomationHealthReport(
+    automationId = automationId,
+    lastExecutionAt = null,
+    completedRuns = 0,
+    skippedRuns = 0,
+    failedRuns = 0,
+    consecutiveFailures = 0,
+    latestFailureMessage = null,
+    status = AutomationHealthStatus.NO_EXECUTIONS
 )

@@ -60,4 +60,27 @@ class TaskCardExpansionTest {
 
         assertEquals(1, automation.exitBehaviorItemCount())
     }
+
+    @Test
+    fun restoreOriginalStateCountsAsOneEndBehavior() {
+        val automation = Automation(
+            id = "restore-task",
+            name = "Restore",
+            description = "",
+            icon = "restore",
+            iconColor = 0,
+            backgroundColor = 0,
+            category = "custom",
+            priority = 0,
+            enabled = true,
+            triggers = emptyList(),
+            actions = emptyList(),
+            revertOnExit = true,
+            createdAt = 0,
+            updatedAt = 0
+        )
+
+        assertEquals(1, automation.exitBehaviorItemCount())
+    }
+
 }
