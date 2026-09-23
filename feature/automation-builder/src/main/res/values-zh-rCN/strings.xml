@@ -1267,4 +1267,6 @@
     <string name="sensor_unavailable">此设备不提供所选传感器。此触发器无法在此运行。</string>
     <string name="sensor_invalid_threshold">请输入有限数字。</string>
     <string name="sensor_invalid_range">上限必须大于或等于下限。</string>
+    <string name="trigger_wear_event">Wear OS 手表</string>
+    <string name="trigger_wear_event_sub">当 NexaFlow 手表连接或断开连接时运行任务</string>
 </resources>
