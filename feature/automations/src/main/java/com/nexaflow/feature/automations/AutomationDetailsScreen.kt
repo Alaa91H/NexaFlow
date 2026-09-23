@@ -117,6 +117,7 @@ import com.nexaflow.core.ui.SettingRow
 import com.nexaflow.core.ui.iconVector
 import com.nexaflow.core.ui.resolveInstalledAppPresentation
 import com.nexaflow.domain.models.Action
+import com.nexaflow.domain.models.hasExecutableEndBehavior
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.AutomationHealthReport
@@ -508,8 +509,10 @@ fun AutomationDetailsScreen(navController: NavController) {
                 }
             },
             confirmButton = {
-                TextButton(onClick = { runBlockDialog = false; viewModel.runEndBehavior() }) {
-                    Text(stringResource(R.string.run_reason_run_end))
+                if (automation?.hasExecutableEndBehavior == true) {
+                    TextButton(onClick = { runBlockDialog = false; viewModel.runEndBehavior() }) {
+                        Text(stringResource(R.string.run_reason_run_end))
+                    }
                 }
             },
             dismissButton = {
