@@ -76,4 +76,19 @@
     <string name="why_run_fix_label">Önerilen çözüm</string>
     <string name="why_run_fix_review_constraints">Görev koşullarını ve cihazın mevcut durumunu gözden geçirin.</string>
     <string name="why_run_fix_check_all_conditions">Görevdeki tüm tetikleyicileri kontrol edin ve gerekli tüm koşulların şu anda sağlandığından emin olun.</string>
+
+    <string name="why_run_capability_blocked">Gerekli bir özellik veya izin kullanılamıyor.</string>
+    <string name="why_run_admission_rejected">Başka bir çalıştırma veya kurtarma durumu hâlâ etkin olduğu için bu çalıştırma reddedildi.</string>
+    <string name="why_run_maintenance_waiting">Bu bakım görevi izin verilen çalışma aralığını bekliyor.</string>
+    <string name="why_run_maintenance_duplicate">Bu bakım olayı daha önce tamamlandığı için yeniden çalıştırılmadı.</string>
+    <string name="why_run_action_failed">Görev başarıyla tamamlanmadan önce bir işlem başarısız oldu.</string>
+    <string name="why_run_verification_failed">İstenen değişiklik cihazda doğrulanamadı.</string>
+    <string name="why_run_outcome_uncertain">Cihaz durumu, istenen değişikliğin tamamlanıp tamamlanmadığını doğrulayamadı.</string>
+    <string name="why_run_failed">Görev kaydedilmiş bir hatayla sona erdi.</string>
+    <string name="why_run_fix_grant_capability">Gerekli izni verin veya kullanılabilir bir yürütme sağlayıcısını hazır duruma getirin ve yeniden deneyin.</string>
+    <string name="why_run_fix_check_running_state">Etkin çalıştırmanın bitmesini bekleyin veya engel sürerse kurtarma durumunu gözden geçirin.</string>
+    <string name="why_run_fix_review_action_config">Başarısız işlemin yapılandırmasını, izinlerini ve gerekli sağlayıcısını gözden geçirin.</string>
+    <string name="why_run_fix_retry_or_review">Görevi yeniden çalıştırın. Tekrar başarısız olursa işlemi ve cihaz izinlerini gözden geçirin.</string>
+    <string name="why_run_fix_review_device_state">Görevi yeniden çalıştırmadan önce cihazın gerçek durumunu kontrol edin.</string>
+    <string name="why_run_fix_open_history">Başarısız işlemi bulmak için aşağıdaki yürütme zaman çizelgesini inceleyin.</string>
 </resources>
