@@ -1042,17 +1042,17 @@ private fun ExecutionDiagnosticsCard(
             }
         }
 
-        val showLiveProgress = liveProgress != null && (
-            !liveProgress.finished ||
+        val progressToShow = liveProgress?.takeIf { progress ->
+            !progress.finished ||
                 latestExecution == null ||
-                latestExecution.executedAt < liveProgress.startedAt
-            )
-        if (showLiveProgress) {
+                latestExecution.executedAt < progress.startedAt
+        }
+        progressToShow?.let { progress ->
             Text(
                 text = stringResource(R.string.execution_diagnostics_current_run),
                 style = MaterialTheme.typography.labelMedium
             )
-            liveProgress.actions.forEach { action ->
+            progress.actions.forEach { action ->
                 LiveActionDiagnosticRow(action)
             }
         }
