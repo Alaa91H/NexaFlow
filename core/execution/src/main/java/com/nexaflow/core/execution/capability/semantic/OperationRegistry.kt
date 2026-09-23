@@ -70,23 +70,36 @@ class OperationRegistry private constructor(
                 spec(SemanticOperationId.LOCATION_SET_STATE, "Enable or disable location",
                     features = setOf(DeviceFeature.LOCATION_HARDWARE),
                     risk = CapabilityRiskLevel.MODERATE,
-                    strategies = listOf(StrategyId.WRITE_SETTINGS, StrategyId.SETTINGS_USER_ACTION)),
+                    strategies = listOf(
+                        StrategyId.SHIZUKU_USER_SERVICE,
+                        StrategyId.ROOT_SHELL,
+                        StrategyId.SETTINGS_USER_ACTION
+                    )),
                 spec(SemanticOperationId.AIRPLANE_MODE_GET_STATE, "Read airplane mode state",
                     write = false,
                     strategies = listOf(StrategyId.ANDROID_PUBLIC_API, StrategyId.ROOT_SHELL)),
                 spec(SemanticOperationId.AIRPLANE_MODE_SET_STATE, "Enable or disable airplane mode",
                     risk = CapabilityRiskLevel.MODERATE,
-                    strategies = listOf(StrategyId.WRITE_SETTINGS, StrategyId.ROOT_SHELL, StrategyId.SETTINGS_USER_ACTION)),
+                    strategies = listOf(
+                        StrategyId.SHIZUKU_USER_SERVICE,
+                        StrategyId.ROOT_SHELL,
+                        StrategyId.SETTINGS_USER_ACTION
+                    )),
                 spec(SemanticOperationId.ROTATION_GET_STATE, "Read auto-rotate state",
                     write = false,
-                    strategies = listOf(StrategyId.ANDROID_PUBLIC_API, StrategyId.WRITE_SETTINGS)),
-                spec(SemanticOperationId.ROTATION_SET_STATE, "Enable or disable auto-rotate",
-                    // Settings.System.putInt is the public API; it additionally
-                    // needs the WRITE_SETTINGS appop, checked by the strategy.
                     strategies = listOf(StrategyId.ANDROID_PUBLIC_API)),
+                spec(SemanticOperationId.ROTATION_SET_STATE, "Enable or disable auto-rotate",
+                    // Settings.System.putInt is the public API; elevated
+                    // strategies provide a direct bounded fallback.
+                    strategies = listOf(
+                        StrategyId.ANDROID_PUBLIC_API,
+                        StrategyId.SHIZUKU_USER_SERVICE,
+                        StrategyId.ROOT_SHELL,
+                        StrategyId.SETTINGS_USER_ACTION
+                    )),
                 spec(SemanticOperationId.BRIGHTNESS_GET, "Read screen brightness",
                     write = false,
-                    strategies = listOf(StrategyId.ANDROID_PUBLIC_API, StrategyId.WRITE_SETTINGS)),
+                    strategies = listOf(StrategyId.ANDROID_PUBLIC_API)),
                 spec(SemanticOperationId.BRIGHTNESS_SET, "Set screen brightness",
                     parameters = listOf(
                         CapabilityParameterSpec(
@@ -94,10 +107,15 @@ class OperationRegistry private constructor(
                             minimumInteger = 0, maximumInteger = 255
                         )
                     ),
-                    strategies = listOf(StrategyId.WRITE_SETTINGS, StrategyId.SETTINGS_USER_ACTION)),
+                    strategies = listOf(
+                        StrategyId.ANDROID_PUBLIC_API,
+                        StrategyId.SHIZUKU_USER_SERVICE,
+                        StrategyId.ROOT_SHELL,
+                        StrategyId.SETTINGS_USER_ACTION
+                    )),
                 spec(SemanticOperationId.SCREEN_TIMEOUT_GET, "Read screen timeout",
                     write = false,
-                    strategies = listOf(StrategyId.ANDROID_PUBLIC_API, StrategyId.WRITE_SETTINGS)),
+                    strategies = listOf(StrategyId.ANDROID_PUBLIC_API)),
                 spec(SemanticOperationId.SCREEN_TIMEOUT_SET, "Set screen timeout",
                     parameters = listOf(
                         CapabilityParameterSpec(
@@ -105,13 +123,23 @@ class OperationRegistry private constructor(
                             minimumInteger = 1, maximumInteger = 86_400
                         )
                     ),
-                    strategies = listOf(StrategyId.WRITE_SETTINGS, StrategyId.SETTINGS_USER_ACTION)),
+                    strategies = listOf(
+                        StrategyId.ANDROID_PUBLIC_API,
+                        StrategyId.SHIZUKU_USER_SERVICE,
+                        StrategyId.ROOT_SHELL,
+                        StrategyId.SETTINGS_USER_ACTION
+                    )),
                 spec(SemanticOperationId.DND_GET_STATE, "Read Do-Not-Disturb state",
                     write = false,
-                    strategies = listOf(StrategyId.ANDROID_PUBLIC_API, StrategyId.ROOT_SHELL)),
+                    strategies = listOf(
+                        StrategyId.ANDROID_PUBLIC_API,
+                        StrategyId.SHIZUKU_USER_SERVICE,
+                        StrategyId.ROOT_SHELL
+                    )),
                 spec(SemanticOperationId.DND_SET_STATE, "Enable or disable Do-Not-Disturb",
                     strategies = listOf(
                         StrategyId.ANDROID_PUBLIC_API,
+                        StrategyId.SHIZUKU_USER_SERVICE,
                         StrategyId.ROOT_SHELL,
                         StrategyId.SETTINGS_USER_ACTION
                     )),
@@ -120,7 +148,11 @@ class OperationRegistry private constructor(
                     strategies = listOf(StrategyId.ANDROID_PUBLIC_API)),
                 spec(SemanticOperationId.NFC_SET_STATE, "Enable or disable NFC",
                     features = setOf(DeviceFeature.NFC_HARDWARE),
-                    strategies = listOf(StrategyId.ROOT_SHELL, StrategyId.SETTINGS_USER_ACTION)),
+                    strategies = listOf(
+                        StrategyId.SHIZUKU_USER_SERVICE,
+                        StrategyId.ROOT_SHELL,
+                        StrategyId.SETTINGS_USER_ACTION
+                    )),
                 spec(SemanticOperationId.HOTSPOT_GET_STATE, "Read hotspot state",
                     write = false,
                     strategies = listOf(StrategyId.ANDROID_PUBLIC_API, StrategyId.ROOT_SHELL)),
@@ -144,9 +176,14 @@ class OperationRegistry private constructor(
                     )),
                 spec(SemanticOperationId.DATA_SAVER_GET_STATE, "Read Data Saver state",
                     write = false,
-                    strategies = listOf(StrategyId.ANDROID_PUBLIC_API, StrategyId.ROOT_SHELL)),
+                    strategies = listOf(StrategyId.ANDROID_PUBLIC_API)),
                 spec(SemanticOperationId.DATA_SAVER_SET_STATE, "Enable or disable Data Saver",
-                    strategies = listOf(StrategyId.WRITE_SETTINGS, StrategyId.SETTINGS_USER_ACTION)),
+                    strategies = listOf(
+                        StrategyId.ANDROID_PUBLIC_API,
+                        StrategyId.SHIZUKU_USER_SERVICE,
+                        StrategyId.ROOT_SHELL,
+                        StrategyId.SETTINGS_USER_ACTION
+                    )),
                 spec(SemanticOperationId.PACKAGE_FORCE_STOP, "Force-stop a package",
                     parameters = listOf(
                         CapabilityParameterSpec(
