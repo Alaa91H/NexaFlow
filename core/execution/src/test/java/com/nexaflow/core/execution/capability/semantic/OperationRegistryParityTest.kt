@@ -2,6 +2,9 @@ package com.nexaflow.core.execution.capability.semantic
 
 import com.nexaflow.domain.capability.operation.SemanticOperationId
 import com.nexaflow.domain.capability.operation.StrategyId
+import com.nexaflow.core.execution.capability.semantic.strategies.RootTypedStrategy
+import com.nexaflow.core.execution.capability.semantic.strategies.ShizukuTypedStrategy
+import com.nexaflow.core.rom.model.SystemControlResult
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -29,6 +32,50 @@ class OperationRegistryParityTest {
             assertTrue(
                 "Operation ${spec.id.name} declares no implemented strategy: ${spec.strategies}",
                 implemented.isNotEmpty()
+            )
+        }
+    }
+
+    @Test
+    fun everyWriteOperationHasShizukuAndRootImplementation() {
+        val shizuku = ShizukuTypedStrategy(
+            shizukuGranted = { true },
+            userServiceReady = { true },
+            execute = { SystemControlResult.ok("ok") }
+        )
+        val root = RootTypedStrategy(
+            rootAvailable = { true },
+            execute = { SystemControlResult.ok("ok") }
+        )
+
+        OperationRegistry.default().operations()
+            .filter { !it.id.isReadOnly }
+            .forEach { spec ->
+                assertTrue(
+                    "${spec.id.name} must expose a Shizuku fallback",
+                    StrategyId.SHIZUKU_USER_SERVICE in spec.strategies
+                )
+                assertTrue(
+                    "${spec.id.name} must expose a Root fallback",
+                    StrategyId.ROOT_SHELL in spec.strategies
+                )
+                assertTrue(
+                    "${spec.id.name} is declared for Shizuku but not implemented",
+                    spec.id in shizuku.supportedOperations
+                )
+                assertTrue(
+                    "${spec.id.name} is declared for Root but not implemented",
+                    spec.id in root.supportedOperations
+                )
+            }
+    }
+
+    @Test
+    fun registryDoesNotReferenceUnwiredWriteSettingsStrategy() {
+        OperationRegistry.default().operations().forEach { spec ->
+            assertTrue(
+                "${spec.id.name} references WRITE_SETTINGS but production DI has no such strategy",
+                StrategyId.WRITE_SETTINGS !in spec.strategies
             )
         }
     }
