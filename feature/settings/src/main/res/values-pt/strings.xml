@@ -222,7 +222,7 @@
     <string name="plugin_capability_shell_commands">Comandos de shell</string>
     <string name="plugin_capability_locale_tasker">Tasker / Locale</string>
     <string name="update_auto_checks">Verificação automática de atualizações</string>
-    <string name="update_auto_checks_enabled_sub">Verifica versões mais recentes em segundo plano no intervalo escolhido</string>
+    <string name="update_auto_checks_enabled_sub">É executado silenciosamente em segundo plano e só avisa quando há uma versão mais recente</string>
     <string name="update_auto_checks_disabled_sub">Desativado — sem verificações em segundo plano ou notificações de atualização</string>
     <string name="update_check_frequency">Frequência da verificação automática</string>
     <string name="update_check_frequency_sub">Escolha quando as verificações em segundo plano são executadas</string>

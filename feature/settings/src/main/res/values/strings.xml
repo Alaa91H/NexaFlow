@@ -221,7 +221,7 @@
     <string name="plugin_capability_shell_commands">Shell commands</string>
     <string name="plugin_capability_locale_tasker">Tasker / Locale</string>
     <string name="update_auto_checks">Automatic update checks</string>
-    <string name="update_auto_checks_enabled_sub">Checks for newer versions in the background at the selected interval</string>
+    <string name="update_auto_checks_enabled_sub">Runs quietly in the background and notifies you only when a newer version is available</string>
     <string name="update_auto_checks_disabled_sub">Disabled — no background checks or update notifications</string>
     <string name="update_check_frequency">Automatic check frequency</string>
     <string name="update_check_frequency_sub">Choose when background update checks run</string>

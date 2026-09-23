@@ -222,7 +222,7 @@
     <string name="plugin_capability_shell_commands">Shell komutları</string>
     <string name="plugin_capability_locale_tasker">Tasker / Locale</string>
     <string name="update_auto_checks">Otomatik güncelleme denetimi</string>
-    <string name="update_auto_checks_enabled_sub">Seçilen aralıkta arka planda daha yeni sürümleri denetler</string>
+    <string name="update_auto_checks_enabled_sub">Arka planda sessizce çalışır ve yalnızca daha yeni bir sürüm olduğunda bildirim gönderir</string>
     <string name="update_auto_checks_disabled_sub">Devre dışı — arka plan denetimi veya güncelleme bildirimi yok</string>
     <string name="update_check_frequency">Otomatik denetim sıklığı</string>
     <string name="update_check_frequency_sub">Arka plan güncelleme denetimlerinin ne zaman çalışacağını seçin</string>

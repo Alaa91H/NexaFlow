@@ -23,7 +23,7 @@ enum class UpdateCheckFrequency(val storageValue: String, val repeatDays: Long) 
 
     companion object {
         fun fromStorage(value: String?): UpdateCheckFrequency =
-            entries.firstOrNull { it.storageValue == value } ?: MONTHLY
+            entries.firstOrNull { it.storageValue == value } ?: WEEKLY
     }
 }
 
@@ -34,7 +34,7 @@ enum class UpdateCheckFrequency(val storageValue: String, val repeatDays: Long) 
  */
 data class UpdateSettings(
     val automaticChecksEnabled: Boolean = false,
-    val frequency: UpdateCheckFrequency = UpdateCheckFrequency.MONTHLY
+    val frequency: UpdateCheckFrequency = UpdateCheckFrequency.WEEKLY
 )
 
 class UpdatePreferences internal constructor(

@@ -12,6 +12,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.work.HiltWorker
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -46,8 +47,10 @@ class UpdateCheckWorker @AssistedInject constructor(
         val settings = updatePreferences.settings.first()
         if (!settings.automaticChecksEnabled) return Result.success()
 
-        val info = UpdateChecker.fetchLatestJson()?.let(UpdateChecker::parseRelease)
-            ?: return Result.success()
+        val releaseJson = UpdateChecker.fetchLatestJson()
+            ?: return retryQuietlyOrWaitForNextCycle()
+        val info = UpdateChecker.parseRelease(releaseJson)
+            ?: return retryQuietlyOrWaitForNextCycle()
         if (!UpdateVersion.shouldOfferUpdate(info.version, installedVersionName())) {
             return Result.success()
         }
@@ -59,6 +62,9 @@ class UpdateCheckWorker @AssistedInject constructor(
         return Result.success()
     }
 
+    private fun retryQuietlyOrWaitForNextCycle(): Result =
+        if (runAttemptCount < MAX_RETRY_ATTEMPTS) Result.retry() else Result.success()
+
     private fun installedVersionName(): String = runCatching {
         applicationContext.packageManager
             .getPackageInfo(applicationContext.packageName, 0)
@@ -68,6 +74,7 @@ class UpdateCheckWorker @AssistedInject constructor(
 
     companion object {
         const val UNIQUE_WORK_NAME = "nexaflow.periodic.update-check"
+        private const val MAX_RETRY_ATTEMPTS = 3
     }
 }
 
@@ -90,9 +97,17 @@ object UpdateCheckScheduler {
                     .setRequiredNetworkType(NetworkType.CONNECTED)
                     .build()
             )
-            // The manual button remains the immediate path. Automatic checks
-            // begin only after the chosen cadence, not as a surprise on enable.
-            .setInitialDelay(settings.frequency.repeatDays, TimeUnit.DAYS)
+            // Do one quiet first check after a short grace period instead of
+            // making a newly-enabled monthly schedule wait 30 days. No UI is
+            // opened; only a genuinely newer release can produce a notification.
+            .setInitialDelay(FIRST_CHECK_DELAY_HOURS, TimeUnit.HOURS)
+            // Temporary GitHub/network failures get only a few bounded retries.
+            // They never surface an error notification to the user.
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                RETRY_BACKOFF_HOURS,
+                TimeUnit.HOURS
+            )
             .build()
         workManager.enqueueUniquePeriodicWork(
             UpdateCheckWorker.UNIQUE_WORK_NAME,
@@ -100,6 +115,9 @@ object UpdateCheckScheduler {
             request
         )
     }
+
+    private const val FIRST_CHECK_DELAY_HOURS = 6L
+    private const val RETRY_BACKOFF_HOURS = 1L
 }
 
 internal object UpdateNotification {
@@ -144,6 +162,9 @@ internal object UpdateNotification {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
+            .setSilent(true)
+            .setCategory(NotificationCompat.CATEGORY_STATUS)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
         NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
@@ -157,7 +178,9 @@ internal object UpdateNotification {
             NotificationManager.IMPORTANCE_LOW
         ).apply {
             description = context.getString(R.string.update_notification_channel_sub)
+            setSound(null, null)
             enableVibration(false)
+            enableLights(false)
             setShowBadge(false)
         }
         context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)

@@ -18,6 +18,13 @@ class UpdatePreferencesTest {
     private val context: Context = ApplicationProvider.getApplicationContext()
 
     @Test
+    fun missingFrequencyDefaultsToWeekly() = runBlocking {
+        val preferences = UpdatePreferences(fixture.store)
+
+        assertEquals(UpdateCheckFrequency.WEEKLY, preferences.settings.first().frequency)
+    }
+
+    @Test
     fun disabledChecksNeverReserveAnUpdateNotification() = runBlocking {
         val preferences = UpdatePreferences(fixture.store)
         preferences.setAutomaticChecksEnabled(false)
@@ -67,7 +74,7 @@ class UpdatePreferencesTest {
                 assertEquals(frequency, preferences.settings.first().frequency)
             }
         } finally {
-            preferences.setFrequency(UpdateCheckFrequency.MONTHLY)
+            preferences.setFrequency(UpdateCheckFrequency.WEEKLY)
             preferences.setAutomaticChecksEnabled(false)
         }
     }
