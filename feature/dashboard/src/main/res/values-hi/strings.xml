@@ -146,4 +146,5 @@
     <string name="share_task_title">कार्य साझा करें (.nexaflow)</string>
     <string name="share_task_failed">इस कार्य को साझा नहीं किया जा सका</string>
     <string name="task_access_details">कार्य विवरण और एक्सेस लिंक</string>
+    <string name="trigger_wear_event">Wear OS घड़ी</string>
 </resources>
