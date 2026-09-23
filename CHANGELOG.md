@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added a structured “Why didn’t this run?” card to execution details. The UI
+  correlates each history row with the existing typed execution trace using a
+  stable per-run id (with an exact-time fallback for legacy in-memory rows),
+  never parses free-form log text, shows redacted diagnostic detail, and
+  presents a localized suggested fix. Coverage now includes constraints,
+  ALL-trigger gates, missing capabilities/permissions, invalid task
+  configuration, maintenance windows/duplicates, admission/lifecycle
+  conflicts, and failed actions; successful runs remain free of failure UI.
+
+
 ### Fixed
 
 - Prevented root-detection timeout cleanup from surfacing spurious
