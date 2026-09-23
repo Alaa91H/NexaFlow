@@ -41,7 +41,11 @@ class WorkflowDocumentV1Test {
             ),
         ),
         exitActions: List<Action> = listOf(
-            Action(type = ActionType.SYSTEM_WIFI, config = mapOf("enabled" to "false")),
+            Action(
+                type = ActionType.SYSTEM_WIFI,
+                config = mapOf("enabled" to "false"),
+                endBehavior = EndBehavior(mode = EndMode.LEAVE),
+            ),
         ),
         constraints: List<Constraint> = listOf(
             Constraint(type = ConstraintType.BATTERY, config = mapOf("direction" to "ABOVE", "level" to "50")),
@@ -128,6 +132,13 @@ class WorkflowDocumentV1Test {
         val roundTripped = with(WorkflowDocumentMappers) { legacy.toDocument().toAutomation() }
 
         assertEquals(legacy, roundTripped)
+    }
+
+    @Test
+    fun blankLegacyCategoryRemainsBlankAfterRoundTrip() {
+        val legacy = automation().copy(category = "")
+        val roundTripped = with(WorkflowDocumentMappers) { legacy.toDocument().toAutomation() }
+        assertEquals("", roundTripped.category)
     }
 
     @Test
