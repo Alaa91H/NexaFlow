@@ -578,4 +578,10 @@
     <string name="execution_diagnostic_action_ok">पूर्ण</string>
     <string name="execution_diagnostic_action_failed">विफल</string>
     <string name="execution_diagnostic_reason">कारण: %1$s</string>
+
+    <string name="execution_diagnostics_current_run">वर्तमान निष्पादन</string>
+    <string name="execution_diagnostic_pending">प्रतीक्षा में</string>
+    <string name="execution_diagnostic_running">चल रहा है</string>
+    <string name="execution_diagnostic_skipped">छोड़ा गया</string>
+    <string name="execution_diagnostic_outcome_unknown">परिणाम अज्ञात</string>
 </resources>
