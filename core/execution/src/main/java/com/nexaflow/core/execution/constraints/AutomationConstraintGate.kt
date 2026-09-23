@@ -22,35 +22,55 @@ class AutomationConstraintGate(
         automation: Automation,
         state: ConstraintSnapshot?
     ): ConditionResult {
-        val localConstraints = automation.constraints.filter { it.type != ConstraintType.PLUGIN }
-        if (localConstraints.isNotEmpty()) {
-            val snapshot = state ?: return ConditionResult.Unavailable
-            if (!ConstraintEvaluator.allSatisfied(localConstraints, snapshot)) {
-                return ConditionResult.Unsatisfied
-            }
+        val results = evaluateEach(automation, state)
+        return when {
+            results.isEmpty() -> ConditionResult.Satisfied
+            results.any { it == ConditionResult.Unsatisfied } -> ConditionResult.Unsatisfied
+            else -> results.firstOrNull { it != ConditionResult.Satisfied }
+                ?: ConditionResult.Satisfied
         }
+    }
 
-        val pluginConstraints = automation.constraints.filter { it.type == ConstraintType.PLUGIN }
-        for (constraint in pluginConstraints) {
-            val instance = constraint.config[KEY_INSTANCE]
-                ?: return ConditionResult.Error("Plugin condition instance reference is missing")
-            val service = capabilityExecutionService ?: return ConditionResult.Unavailable
-            val result = service.execute(
-                CapabilityRequest(
-                    capability = CapabilityId.PLUGIN_CONDITION_READ,
-                    parameters = mapOf(KEY_INSTANCE to instance),
-                    verification = VerificationMode.NONE,
-                    workflowId = automation.id,
-                    actionId = ACTION_ID_CONSTRAINT
-                )
-            )
-            val typed = result.conditionResult ?: when {
-                result.errorCode != null -> ConditionResult.Error(result.message)
-                else -> ConditionResult.Error("Plugin condition backend returned no typed state")
+    /**
+     * Per-constraint live state for diagnostics. Ordering matches the saved
+     * automation so the details screen can pair each result with its exact row.
+     */
+    suspend fun evaluateEach(
+        automation: Automation,
+        state: ConstraintSnapshot?
+    ): List<ConditionResult> = automation.constraints.map { constraint ->
+        if (constraint.type != ConstraintType.PLUGIN) {
+            val snapshot = state ?: return@map ConditionResult.Unavailable
+            if (ConstraintEvaluator.isSatisfied(constraint, snapshot)) {
+                ConditionResult.Satisfied
+            } else {
+                ConditionResult.Unsatisfied
             }
-            if (typed != ConditionResult.Satisfied) return typed
+        } else {
+            evaluatePluginConstraint(automation, constraint)
         }
-        return ConditionResult.Satisfied
+    }
+
+    private suspend fun evaluatePluginConstraint(
+        automation: Automation,
+        constraint: com.nexaflow.domain.models.Constraint
+    ): ConditionResult {
+        val instance = constraint.config[KEY_INSTANCE]
+            ?: return ConditionResult.Error("Plugin condition instance reference is missing")
+        val service = capabilityExecutionService ?: return ConditionResult.Unavailable
+        val result = service.execute(
+            CapabilityRequest(
+                capability = CapabilityId.PLUGIN_CONDITION_READ,
+                parameters = mapOf(KEY_INSTANCE to instance),
+                verification = VerificationMode.NONE,
+                workflowId = automation.id,
+                actionId = ACTION_ID_CONSTRAINT
+            )
+        )
+        return result.conditionResult ?: when {
+            result.errorCode != null -> ConditionResult.Error(result.message)
+            else -> ConditionResult.Error("Plugin condition backend returned no typed state")
+        }
     }
 
     /**

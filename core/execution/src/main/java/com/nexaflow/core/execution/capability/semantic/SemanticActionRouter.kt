@@ -177,8 +177,11 @@ class SemanticActionRouter(
  * as if the requested device state had already changed.
  */
 internal fun OperationOutcome.toSystemControlResult(): SystemControlResult =
-    if (status == OperationOutcomeStatus.SUCCESS) {
-        SystemControlResult.ok(message)
-    } else {
-        SystemControlResult.fail(message)
-    }
+    SystemControlResult(
+        success = status == OperationOutcomeStatus.SUCCESS,
+        message = message,
+        executionChannel = strategy?.name,
+        errorCode = errorCode?.name,
+        verificationAttempted = verification?.attempted == true,
+        verified = verification?.takeIf { it.attempted }?.verified
+    )

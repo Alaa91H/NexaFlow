@@ -29,9 +29,8 @@ import kotlinx.coroutines.withContext
 /**
  * Best-effort evaluation of whether a task's trigger condition is currently
  * true, used by the manual "run now" gate: when the condition is satisfied
- * the task's actions run; otherwise the exit behavior ("when the task ends")
- * runs instead, so a manual run never executes actions whose condition is
- * not met.
+ * the task's actions may run; otherwise the manual request is rejected without
+ * side effects. End behavior and Force Run are separate explicit user actions.
  *
  * Trigger types that cannot be evaluated deterministically without their
  * live monitors (apps, SMS, NFC scans, clipboard, sensors, webhook, calendar,
@@ -485,7 +484,8 @@ object TriggerStateEvaluator {
             }
             // One-shot event triggers are only true at the moment their live
             // monitor receives the event. A manual tap cannot synthesize that
-            // proof, so it follows the configured end behavior instead.
+            // proof, so normal Run now is blocked unless the user explicitly
+            // chooses Force Run.
             TriggerType.TIMEZONE_CHANGED,
             TriggerType.BOOT_COMPLETED,
             TriggerType.NFC_TAG_SCANNED,

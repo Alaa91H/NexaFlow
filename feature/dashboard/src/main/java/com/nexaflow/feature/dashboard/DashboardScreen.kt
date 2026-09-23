@@ -16,23 +16,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -73,21 +67,22 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.ManualBlockReason
+import com.nexaflow.core.execution.ManualBlockKind
 import com.nexaflow.core.execution.R as ExecutionR
 import com.nexaflow.core.ui.EmptyState
 import com.nexaflow.core.ui.IconBadge
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowFloatingActionButton
 import com.nexaflow.core.ui.SectionHeader
-import com.nexaflow.core.ui.SettingRow
 import com.nexaflow.core.ui.iconVector
 import com.nexaflow.core.ui.nexaFlowEntrance
 import com.nexaflow.core.ui.rememberInstalledAppPresentation
 import com.nexaflow.domain.models.Action
+import com.nexaflow.domain.models.hasExecutableEndBehavior
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.EndBehaviorCatalog
 import com.nexaflow.domain.models.EndMode
-import com.nexaflow.feature.automations.actionPresentation
 import com.nexaflow.domain.models.hasUserAuthoredDescription
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
@@ -410,7 +405,7 @@ fun DashboardScreen(navController: NavController) {
     // offers either the honest exit path (OK = run the end behavior) or the
     // explicit force-run override.
     runBlockDialogTarget?.let { automation ->
-        val block = produceState<ExecutionEngine.ManualBlockReason?>(
+        val block = produceState<ManualBlockReason?>(
             initialValue = null,
             key1 = automation.id
         ) { value = viewModel.describeManualBlock(automation) }.value
@@ -421,14 +416,14 @@ fun DashboardScreen(navController: NavController) {
                 Column {
                     Text(text = stringResource(R.string.run_reason_task, automation.name))
                     when (block?.kind) {
-                        ExecutionEngine.ManualBlockKind.TRIGGERS_NOT_MET ->
+                        ManualBlockKind.TRIGGERS_NOT_MET ->
                             block.failedTriggerLabels.forEach { label ->
                                 Text(
                                     text = stringResource(R.string.run_reason_trigger, label),
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
-                        ExecutionEngine.ManualBlockKind.TRIGGERS_UNKNOWN -> {
+                        ManualBlockKind.TRIGGERS_UNKNOWN -> {
                             Text(text = stringResource(R.string.run_reason_unknown))
                             block.failedTriggerLabels.forEach { label ->
                                 Text(
@@ -437,27 +432,29 @@ fun DashboardScreen(navController: NavController) {
                                 )
                             }
                         }
-                        ExecutionEngine.ManualBlockKind.CONSTRAINTS_NOT_MET ->
+                        ManualBlockKind.CONSTRAINTS_NOT_MET ->
                             block.failedConstraintLabels.forEach { label ->
                                 Text(
                                     text = stringResource(R.string.run_reason_constraint, label),
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
-                        ExecutionEngine.ManualBlockKind.INVALID_TIME_RANGE ->
+                        ManualBlockKind.INVALID_TIME_RANGE ->
                             Text(text = stringResource(R.string.run_reason_no_exit))
                         else -> Unit
                     }
                 }
             },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        runBlockDialogTarget = null
-                        viewModel.runNow(automation)
+                if (automation.hasExecutableEndBehavior) {
+                    TextButton(
+                        onClick = {
+                            runBlockDialogTarget = null
+                            viewModel.runEndBehavior(automation)
+                        }
+                    ) {
+                        Text(stringResource(R.string.run_reason_run_end))
                     }
-                ) {
-                    Text(stringResource(R.string.run_reason_run_end))
                 }
             },
             dismissButton = {
@@ -673,6 +670,7 @@ private fun RoutineDetails(
     onToggleToast: (Boolean) -> Unit
 ) {
     val automation = row.automation
+    val conditionSnapshot = rememberRoutineConditionSnapshot(automation)
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -737,109 +735,35 @@ private fun RoutineDetails(
             lines = listOf(automation.description)
         )
     }
-    DetailBlock(
-        title = stringResource(R.string.task_details_summary),
-        lines = listOf(summary)
+    RoutineFlowOverview(
+        automation = automation,
+        summary = summary
     )
-    if (automation.triggers.isNotEmpty()) {
-        DetailBlock(
-            title = stringResource(R.string.task_details_triggers, automation.triggers.size),
-            lines = automation.triggers.map { trigger ->
-                stringResource(triggerLabel(trigger.type))
-            }
-        )
-        automation.triggers.forEach { trigger ->
-            TriggerApps(trigger = trigger)
-        }
-    }
-    if (automation.constraints.isNotEmpty()) {
-        DetailBlock(
-            title = stringResource(R.string.task_details_constraints, automation.constraints.size),
-            lines = listOf(stringResource(R.string.task_details_configured_count, automation.constraints.size))
-        )
-    }
-    if (automation.actions.isNotEmpty()) {
-        DetailBlock(
-            title = stringResource(R.string.task_details_actions, automation.actions.size),
-            lines = automation.actions.map { action -> actionDisplayText(action) }
-        )
-    }
-    val perActionEndBehaviors = automation.actions.filter { action ->
-        action.endBehavior?.mode?.let { it != EndMode.LEAVE } == true
-    }
-    val exitActionCount = automation.exitBehaviorItemCount()
-    if (automation.revertOnExit || exitActionCount > 0) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                text = stringResource(R.string.task_details_exit_actions, exitActionCount),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-            when {
-                automation.revertOnExit -> {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        IconBadge(
-                            icon = Icons.Filled.Security,
-                            containerColor = Color.White,
-                            contentColor = Color(automation.iconColor),
-                            size = 40
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(text = stringResource(R.string.task_details_revert_on_exit), style = MaterialTheme.typography.bodyLarge)
-                        }
-                    }
-                }
-                else -> {
-                    perActionEndBehaviors.forEachIndexed { index, action ->
-                        val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            IconBadge(
-                                icon = icon,
-                                containerColor = Color.White,
-                                contentColor = Color(automation.iconColor),
-                                size = 40
-                            )
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(text = stringResource(titleRes), style = MaterialTheme.typography.bodyLarge)
-                                Text(text = stringResource(subtitleRes), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
-                    }
-                    automation.exitActions.forEachIndexed { index, action ->
-                        val (titleRes, subtitleRes, icon) = actionPresentation(action.type)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            IconBadge(
-                                icon = icon,
-                                containerColor = Color.White,
-                                contentColor = Color(automation.iconColor),
-                                size = 40
-                            )
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(text = stringResource(titleRes), style = MaterialTheme.typography.bodyLarge)
-                                Text(text = stringResource(subtitleRes), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    DetailedReadinessSection(
+        automation = automation,
+        snapshot = conditionSnapshot
+    )
+    DetailedLifecycleSection(automation)
+    DetailedHealthSection(row.healthReport)
+    DetailedTriggerSection(
+        automation = automation,
+        states = conditionSnapshot.triggerStates
+    )
+    DetailedConstraintSection(
+        automation = automation,
+        states = conditionSnapshot.constraintStates
+    )
+    DetailedActionSection(
+        automation = automation,
+        latestExecution = row.latestExecution
+    )
+    DetailedEndBehaviorSection(automation)
+    RoutineCustomizationSection(automation)
+
 }
 
 @Composable
-private fun TriggerApps(trigger: Trigger) {
+internal fun TriggerApps(trigger: Trigger) {
     val packages = trigger.config.selectedPackages()
     if (packages.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -887,9 +811,11 @@ private fun DetailBlock(title: String, lines: List<String>) {
 }
 
 internal fun Automation.exitBehaviorItemCount(): Int =
-    exitActions.size + actions.count { action ->
-        action.endBehavior?.mode?.let { it != EndMode.LEAVE } == true
-    }
+    (if (revertOnExit) 1 else 0) +
+        exitActions.size +
+        actions.count { action ->
+            action.endBehavior?.mode?.let { it != EndMode.LEAVE } == true
+        }
 
 private fun Map<String, String>.selectedPackages(): List<String> =
     (this["packages"] ?: this["package"] ?: "")
@@ -901,8 +827,15 @@ private fun Map<String, String>.selectedPackages(): List<String> =
 @Composable
 private fun actionDisplayText(action: Action): String {
     val (titleRes, _, _) = actionPresentation(action.type)
-    val setting = action.config["enabled"]?.let { enabled ->
-        stringResource(if (enabled == "true") R.string.task_details_enabled else R.string.task_details_disabled)
+    val toggleValue = action.config["enabled"] ?: action.config["autoRotate"]
+    val setting = toggleValue?.let { enabled ->
+        stringResource(
+            if (enabled.equals("true", ignoreCase = true)) {
+                R.string.task_details_enabled
+            } else {
+                R.string.task_details_disabled
+            }
+        )
     }
     return listOf(stringResource(titleRes), setting)
         .filterNotNull()
@@ -911,7 +844,7 @@ private fun actionDisplayText(action: Action): String {
 
 /** Exact, per-action end behavior shown in task cards; null means leave unchanged. */
 @Composable
-private fun taskEndBehaviorDetail(action: Action): String {
+internal fun taskEndBehaviorDetail(action: Action): String {
     val behavior = action.endBehavior ?: return ""
     val label = when (behavior.mode) {
         EndMode.LEAVE -> return ""
@@ -1015,15 +948,15 @@ private fun automationSummary(automation: Automation): String {
     } else {
         automation.triggers.map { stringResource(triggerLabel(it.type)) }.joinToString(", ")
     }
-    val actionText = if (automation.actions.isEmpty()) {
-        stringResource(R.string.summary_no_actions)
-    } else {
-        stringResource(R.string.summary_actions_count, automation.actions.size)
+    val actionText = when {
+        automation.actions.isEmpty() -> stringResource(R.string.summary_no_actions)
+        automation.actions.size == 1 -> actionDisplayText(automation.actions.first())
+        else -> stringResource(R.string.summary_actions_count, automation.actions.size)
     }
     return stringResource(R.string.summary_template, triggerText, actionText)
 }
 
-private fun triggerLabel(type: TriggerType): Int = when (type) {
+internal fun triggerLabel(type: TriggerType): Int = when (type) {
     TriggerType.TIME -> R.string.trigger_time
     TriggerType.BATTERY -> R.string.trigger_battery
     TriggerType.APPLICATION -> R.string.trigger_app

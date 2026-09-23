@@ -4,7 +4,11 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nexaflow.core.execution.AutomationExecutionProgress
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.ManualBlockReason
+import com.nexaflow.core.execution.ManualBlockKind
+import com.nexaflow.core.execution.ManualAdmissionDiagnostics
 import com.nexaflow.core.execution.ExecutionResultPresentation
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.AutomationHealthReport
@@ -12,11 +16,15 @@ import com.nexaflow.domain.models.AutomationHealthStatus
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.repositories.HealthRepository
+import com.nexaflow.domain.repositories.HistoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.stateIn
@@ -27,6 +35,7 @@ import javax.inject.Inject
 class AutomationDetailsViewModel @Inject constructor(
     private val repository: AutomationRepository,
     private val healthRepository: HealthRepository,
+    private val historyRepository: HistoryRepository,
     private val executionEngine: ExecutionEngine,
     savedStateHandle: SavedStateHandle,
     @ApplicationContext private val appContext: Context
@@ -38,10 +47,42 @@ class AutomationDetailsViewModel @Inject constructor(
         .map { list -> list.find { it.id == automationId } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    /** Read-only, locally-derived execution health for the routine being viewed. */
-    val healthReport: StateFlow<AutomationHealthReport> = healthRepository.getHealthReports()
-        .map { reports -> reports.find { it.automationId == automationId } ?: emptyHealthReport(automationId) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyHealthReport(automationId))
+    /** Durable recovery state is kept separate from history-derived health. */
+    private val _recoveryPending = MutableStateFlow(false)
+
+    /**
+     * Read-only health for the routine. History provides execution counts and
+     * failure streaks; the durable execution ledger alone decides whether
+     * recovery review is currently pending.
+     */
+    val healthReport: StateFlow<AutomationHealthReport> = combine(
+        healthRepository.getHealthReports(),
+        _recoveryPending
+    ) { reports, recoveryPending ->
+        val report = reports.find { it.automationId == automationId }
+            ?: emptyHealthReport(automationId)
+        report.copy(
+            recoveryReviewPending = recoveryPending,
+            status = if (recoveryPending) {
+                AutomationHealthStatus.NEEDS_ATTENTION
+            } else {
+                report.status
+            }
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyHealthReport(automationId))
+
+    /** Latest durable run, including per-action route and verification metadata. */
+    val latestExecution: StateFlow<ExecutionRecord?> = historyRepository.getLatestExecutions()
+        .map { records -> records.find { it.automationId == automationId } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** In-process progress while the main action chain is executing. */
+    val liveProgress: StateFlow<AutomationExecutionProgress?> =
+        executionEngine.observeExecutionProgress(automationId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    private val _diagnostics = MutableStateFlow<ManualAdmissionDiagnostics?>(null)
+    val diagnostics: StateFlow<ManualAdmissionDiagnostics?> = _diagnostics
 
     private val _running = MutableStateFlow(false)
     val running: StateFlow<Boolean> = _running
@@ -51,6 +92,35 @@ class AutomationDetailsViewModel @Inject constructor(
 
     private val _executionMessage = MutableStateFlow<String?>(null)
     val executionMessage: StateFlow<String?> = _executionMessage
+
+    init {
+        refreshRecoveryState()
+        viewModelScope.launch {
+            automation.filterNotNull().collectLatest { current ->
+                _diagnostics.value = runCatching {
+                    executionEngine.diagnoseManualAdmission(current)
+                }.getOrNull()
+            }
+        }
+    }
+
+    private fun refreshRecoveryState() {
+        viewModelScope.launch {
+            _recoveryPending.value = runCatching {
+                executionEngine.recoveryBacklogCount(automationId) > 0
+            }.getOrDefault(false)
+        }
+    }
+
+    /** Re-evaluates live trigger/constraint state without executing any action. */
+    fun refreshDiagnostics() {
+        val current = automation.value ?: return
+        viewModelScope.launch {
+            _diagnostics.value = runCatching {
+                executionEngine.diagnoseManualAdmission(current)
+            }.getOrNull()
+        }
+    }
 
     fun setDeepLinkAccess(enabled: Boolean) {
         viewModelScope.launch {
@@ -132,13 +202,25 @@ class AutomationDetailsViewModel @Inject constructor(
         if (_running.value) return
         viewModelScope.launch {
             _running.value = true
-            // Strict manual admission: triggers and constraints must match
-            // before the main chain runs. A mismatch runs the configured end
-            // behavior, or is reported explicitly when none is configured —
-            // a manual tap never bypasses the task's own conditions.
+            // Strict manual admission: a mismatch is side-effect free. End
+            // behavior and Force Run remain separate explicit user choices.
             val record = executionEngine.runWithConditionGate(current)
             _executionMessage.value = formatExecutionMessage(record)
             _running.value = false
+            refreshDiagnostics()
+        }
+    }
+
+    /** Explicit user choice to run only the configured end behavior. */
+    fun runEndBehavior() {
+        val current = automation.value ?: return
+        if (_running.value) return
+        viewModelScope.launch {
+            _running.value = true
+            val record = executionEngine.runManualEndBehavior(current)
+            _executionMessage.value = formatExecutionMessage(record)
+            _running.value = false
+            refreshDiagnostics()
         }
     }
 
@@ -146,6 +228,7 @@ class AutomationDetailsViewModel @Inject constructor(
     fun clearRecoveryBacklog() {
         viewModelScope.launch {
             val cleared = executionEngine.clearRecoveryBacklog(automationId)
+            _recoveryPending.value = executionEngine.recoveryBacklogCount(automationId) > 0
             _executionMessage.value = appContext.getString(
                 R.string.recovery_backlog_cleared,
                 cleared
@@ -157,10 +240,10 @@ class AutomationDetailsViewModel @Inject constructor(
      * Typed mismatch explanation for the Run-now dialog; null when admissible.
      * Same policy source as the dashboard and deep-link paths.
      */
-    suspend fun describeManualBlock(): ExecutionEngine.ManualBlockReason? {
+    suspend fun describeManualBlock(): ManualBlockReason? {
         val current = automation.value ?: return null
         val reason = executionEngine.describeManualBlock(current)
-        return if (reason.kind == ExecutionEngine.ManualBlockKind.NONE) null else reason
+        return if (reason.kind == ManualBlockKind.NONE) null else reason
     }
 
     /** Explicit user override after the force-run confirmation dialog. */
@@ -172,6 +255,7 @@ class AutomationDetailsViewModel @Inject constructor(
             val record = executionEngine.forceRun(current)
             _executionMessage.value = formatExecutionMessage(record)
             _running.value = false
+            refreshDiagnostics()
         }
     }
 

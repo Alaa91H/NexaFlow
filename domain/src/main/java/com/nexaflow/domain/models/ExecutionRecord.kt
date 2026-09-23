@@ -11,7 +11,15 @@ data class ActionExecutionResult(
     val actionType: String,
     val success: Boolean,
     val message: String,
-    val durationMs: Long
+    val durationMs: Long,
+    /** Concrete backend/strategy used for this action, when known. */
+    val channel: String? = null,
+    /** Stable capability failure classification; null for legacy handlers. */
+    val errorCode: String? = null,
+    /** Whether execution attempted an independent post-condition verification. */
+    val verificationAttempted: Boolean = false,
+    /** null = not applicable/unavailable; true/false = explicit verification verdict. */
+    val verified: Boolean? = null
 )
 
 /**

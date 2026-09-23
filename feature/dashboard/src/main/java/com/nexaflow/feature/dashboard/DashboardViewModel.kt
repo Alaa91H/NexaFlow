@@ -4,11 +4,16 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.ManualBlockReason
+import com.nexaflow.core.execution.ManualBlockKind
 import com.nexaflow.data.backup.BackupManager
 import com.nexaflow.core.execution.ExecutionResultPresentation
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.AutomationHealthReport
+import com.nexaflow.domain.models.AutomationHealthStatus
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.repositories.AutomationRepository
+import com.nexaflow.domain.repositories.HealthRepository
 import com.nexaflow.domain.repositories.HistoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -30,6 +35,7 @@ class DashboardViewModel @Inject constructor(
     private val automationRepository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
     historyRepository: HistoryRepository,
+    healthRepository: HealthRepository,
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
@@ -44,14 +50,19 @@ class DashboardViewModel @Inject constructor(
 
     private val automationsFlow = combine(
         automationRepository.getAutomations(),
-        lastRunFlow
-    ) { automations, lastRuns ->
+        lastRunFlow,
+        healthRepository.getHealthReports()
+    ) { automations, lastRuns, healthReports ->
+        val healthByAutomation = healthReports.associateBy { it.automationId }
         automations.map { automation ->
             val lastRun = lastRuns[automation.id]
             AutomationRow(
                 automation = automation,
                 lastRunAt = lastRun?.executedAt,
-                lastRunSucceeded = lastRun?.success
+                lastRunSucceeded = lastRun?.success,
+                latestExecution = lastRun,
+                healthReport = healthByAutomation[automation.id]
+                    ?: emptyHealthReport(automation.id)
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -163,13 +174,21 @@ class DashboardViewModel @Inject constructor(
         if (automation.id in _runningIds.value) return
         viewModelScope.launch {
             _runningIds.value = _runningIds.value + automation.id
-            // Manual "Run now" must obey the task's triggers and constraints:
-            // satisfied → run the main chain; unsatisfied → run the configured
-            // end behavior ("when the task ends"), or record an explicit
-            // conditions-not-satisfied outcome when none is configured. This is
-            // the single manual-admission policy, shared with the details
-            // screen, the enable toggle, and the builder save path.
+            // Manual "Run now" obeys triggers and constraints. A mismatch is
+            // side-effect free; the separate dialog action owns explicit end
+            // behavior execution.
             val record = executionEngine.runWithConditionGate(automation)
+            _executionMessage.value = formatExecutionMessage(record)
+            _runningIds.value = _runningIds.value - automation.id
+        }
+    }
+
+    /** Explicit user choice to run only the configured end behavior. */
+    fun runEndBehavior(automation: Automation) {
+        if (automation.id in _runningIds.value) return
+        viewModelScope.launch {
+            _runningIds.value = _runningIds.value + automation.id
+            val record = executionEngine.runManualEndBehavior(automation)
             _executionMessage.value = formatExecutionMessage(record)
             _runningIds.value = _runningIds.value - automation.id
         }
@@ -179,9 +198,9 @@ class DashboardViewModel @Inject constructor(
      * Typed explanation of why a manual run would be rejected right now.
      * The UI shows it on the Run-now mismatch dialog; null means admissible.
      */
-    suspend fun describeManualBlock(automation: Automation): ExecutionEngine.ManualBlockReason? {
+    suspend fun describeManualBlock(automation: Automation): ManualBlockReason? {
         val reason = executionEngine.describeManualBlock(automation)
-        return if (reason.kind == ExecutionEngine.ManualBlockKind.NONE) null else reason
+        return if (reason.kind == ManualBlockKind.NONE) null else reason
     }
 
     /** Saved tasks still carrying the legacy combined CONNECTIVITY trigger. */
@@ -273,5 +292,20 @@ data class AutomationRow(
     val automation: Automation,
     val lastRunAt: Long?,
     /** Null when no run exists; false means the action chain or configuration failed. */
-    val lastRunSucceeded: Boolean? = null
+    val lastRunSucceeded: Boolean? = null,
+    /** Complete latest durable run so expanded cards can present per-action outcomes. */
+    val latestExecution: ExecutionRecord? = null,
+    /** Read-only execution health derived from durable history. */
+    val healthReport: AutomationHealthReport = emptyHealthReport(automation.id)
+)
+
+internal fun emptyHealthReport(automationId: String) = AutomationHealthReport(
+    automationId = automationId,
+    lastExecutionAt = null,
+    completedRuns = 0,
+    skippedRuns = 0,
+    failedRuns = 0,
+    consecutiveFailures = 0,
+    latestFailureMessage = null,
+    status = AutomationHealthStatus.NO_EXECUTIONS
 )

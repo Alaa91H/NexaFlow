@@ -59,7 +59,7 @@ class AutomationWorkflowRunner(
         }
         val interpreter = WorkflowInterpreter(executorProvider(selected), epochMillis = epochMillis)
         val outcome = interpreter.execute(mapped.runWorkflow.root)
-        val actionResults = outcome.nodeResults.map { it.toActionExecutionResult() }
+        val actionResults = outcome.nodeResults.map { it.toActionExecutionResult(channel) }
         val record = ExecutionRecord(
             id = UUID.randomUUID().toString(),
             automationId = automation.id,
@@ -117,7 +117,7 @@ class AutomationWorkflowRunner(
         } else {
             val interpreter = WorkflowInterpreter(executorProvider(selected), epochMillis = epochMillis)
             val outcome = interpreter.execute(mapped.exitWorkflow!!.root)
-            actionResults = outcome.nodeResults.map { it.toActionExecutionResult() }
+            actionResults = outcome.nodeResults.map { it.toActionExecutionResult(channel) }
             results = outcome.nodeResults.map { SystemControlResult(it.success, it.message) }.ifEmpty {
                 listOf(SystemControlResult(outcome.success, outcome.message))
             }
@@ -149,12 +149,15 @@ class AutomationWorkflowRunner(
     }
 
     /** Maps a workflow node result to the timeline entry (type carried by the node). */
-    private fun com.nexaflow.core.execution.workflow.NodeResult.toActionExecutionResult(): ActionExecutionResult {
+    private fun com.nexaflow.core.execution.workflow.NodeResult.toActionExecutionResult(
+        channel: String?
+    ): ActionExecutionResult {
         return ActionExecutionResult(
             actionType = actionType ?: "WORKFLOW",
             success = success,
             message = message,
-            durationMs = durationMs
+            durationMs = durationMs,
+            channel = channel
         )
     }
 

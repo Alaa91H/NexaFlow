@@ -28,12 +28,22 @@ class CapabilityRouterTest {
 
     private class FakeStrategy(
         override val id: StrategyId,
-        override val supportedOperations: Set<SemanticOperationId>,
+        declaredOperations: Set<SemanticOperationId>,
         private val available: Boolean = true,
         private val outcome: OperationOutcome? = null,
         private val readValue: Boolean? = null,
         private val failTimes: Int = 0
     ) : CapabilityStrategy {
+        override val supportedOperations: Set<SemanticOperationId> =
+            if (readValue == null) {
+                declaredOperations
+            } else {
+                declaredOperations + declaredOperations.mapNotNull { operation ->
+                    if (operation.isReadOnly) null
+                    else SemanticOperationId.counterpartOf(operation)?.takeIf { it.isReadOnly }
+                }
+            }
+
         var executions = 0
             private set
 
@@ -437,10 +447,7 @@ class CapabilityRouterTest {
     }
 
     @Test
-    fun pendingUserActionIsTerminalAndScoresNoFailure() = runTest {
-        // The settings fallback reports PENDING_USER_ACTION: nothing failed,
-        // so neither evidence nor health may record a failure, and the router
-        // must not advance to a privileged candidate afterwards.
+    fun automaticPrivilegedBackendRunsBeforeSettingsFallback() = runTest {
         val settings = FakeStrategy(
             StrategyId.SETTINGS_USER_ACTION, setOf(SemanticOperationId.WIFI_SET_STATE),
             outcome = OperationOutcome(
@@ -450,16 +457,67 @@ class CapabilityRouterTest {
                 message = "user action required"
             )
         )
-        val root = FakeStrategy(StrategyId.ROOT_SHELL, setOf(SemanticOperationId.WIFI_SET_STATE))
+        val root = FakeStrategy(
+            StrategyId.ROOT_SHELL,
+            setOf(SemanticOperationId.WIFI_SET_STATE),
+            readValue = true
+        )
+        val outcome = router(settings, root)
+            .execute(request(SemanticOperationId.WIFI_SET_STATE, privileged = true))
+        assertEquals(OperationOutcomeStatus.SUCCESS, outcome.status)
+        assertEquals(StrategyId.ROOT_SHELL, outcome.strategy)
+        assertEquals(1, root.executions)
+        assertEquals("Settings must remain a last-resort hand-off", 0, settings.executions)
+    }
+
+    @Test
+    fun settingsFallbackRunsOnlyWhenAutomaticBackendsAreUnavailable() = runTest {
+        val settings = FakeStrategy(
+            StrategyId.SETTINGS_USER_ACTION, setOf(SemanticOperationId.WIFI_SET_STATE),
+            outcome = OperationOutcome(
+                operation = SemanticOperationId.WIFI_SET_STATE,
+                status = OperationOutcomeStatus.PENDING_USER_ACTION,
+                strategy = StrategyId.SETTINGS_USER_ACTION,
+                message = "user action required"
+            )
+        )
+        val root = FakeStrategy(
+            StrategyId.ROOT_SHELL,
+            setOf(SemanticOperationId.WIFI_SET_STATE),
+            available = false
+        )
         val evidence = CapabilityEvidenceStore()
         val outcome = router(settings, root, evidence = evidence)
             .execute(request(SemanticOperationId.WIFI_SET_STATE, privileged = true))
         assertEquals(OperationOutcomeStatus.PENDING_USER_ACTION, outcome.status)
-        assertEquals("PENDING_USER_ACTION must not open the privileged route", 0, root.executions)
+        assertEquals(1, settings.executions)
+        assertEquals(0, root.executions)
         val record = evidence.evidenceFor(
             SemanticOperationId.WIFI_SET_STATE, StrategyId.SETTINGS_USER_ACTION, fingerprint.deviceKey
         )
         assertEquals(0L, record.failures)
         assertEquals(0L, record.verifiedSuccesses)
+    }
+
+    @Test
+    fun rootNfcWriteCanBeVerifiedByPublicNfcReader() = runTest {
+        val root = FakeStrategy(
+            StrategyId.ROOT_SHELL,
+            setOf(SemanticOperationId.NFC_SET_STATE),
+            readValue = null
+        )
+        val publicReader = FakeStrategy(
+            StrategyId.ANDROID_PUBLIC_API,
+            setOf(SemanticOperationId.NFC_GET_STATE),
+            readValue = true
+        )
+        val outcome = router(root, publicReader)
+            .execute(request(SemanticOperationId.NFC_SET_STATE, privileged = true))
+
+        assertEquals(OperationOutcomeStatus.SUCCESS, outcome.status)
+        assertEquals(StrategyId.ROOT_SHELL, outcome.strategy)
+        assertTrue(outcome.verification?.verified == true)
+        assertEquals(1, root.executions)
+        assertEquals("Read-only verification must not execute the reader", 0, publicReader.executions)
     }
 }

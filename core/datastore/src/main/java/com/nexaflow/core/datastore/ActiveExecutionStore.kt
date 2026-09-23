@@ -74,8 +74,11 @@ class ActiveExecutionStore internal constructor(
     }
 
     /**
-     * Atomically admits a checkpoint. Terminal entries may be pruned; uncertain
-     * work remains available for recovery instead of being silently discarded.
+     * Atomically admits a checkpoint. Recovery pressure is isolated per
+     * automation: one broken/high-frequency routine may fill its own bounded
+     * recovery lane, but it must never prevent unrelated routines from running.
+     * Terminal entries are compacted opportunistically and uncertain work is
+     * never discarded to make room.
      */
     suspend fun admitCheckpoint(checkpoint: DurableExecutionCheckpoint): CheckpointAdmission {
         var admission = CheckpointAdmission.CAPACITY_RESERVED_FOR_RECOVERY
@@ -85,18 +88,32 @@ class ActiveExecutionStore internal constructor(
                 admission = CheckpointAdmission.DUPLICATE_RUN_ID
                 return@edit
             }
-            // Strict, precise, atomic bounded handling: when ledger is full (128),
-            // atomically prune the oldest terminal checkpoint (COMPLETED) before
-            // admitting the new run, so a burst of triggers never silently drops
-            // an execution. If no terminal entry exists, refuse atomically.
-            if (checkpoints.size >= MAX_CHECKPOINTS) {
-                val oldestTerminal = checkpoints.entries
+            // Bound unresolved work per routine, not globally. This prevents a
+            // single automation with stale RECOVERY_REQUIRED entries from
+            // blocking every other automation on the device.
+            val sameAutomation = checkpoints.entries
+                .filter { it.value.automationId == checkpoint.automationId }
+            if (sameAutomation.size >= MAX_CHECKPOINTS_PER_AUTOMATION) {
+                val oldestOwnTerminal = sameAutomation
                     .filter { it.value.isTerminal }
                     .minByOrNull { it.value.updatedAt }
                     ?.key
                     ?: return@edit
+                checkpoints.remove(oldestOwnTerminal)
+            }
+
+            // Keep the historical global bound as a soft compaction target only.
+            // If all entries are unresolved we allow other routines to exceed the
+            // target rather than sacrificing recovery safety or blocking them.
+            while (checkpoints.size >= SOFT_MAX_CHECKPOINTS) {
+                val oldestTerminal = checkpoints.entries
+                    .filter { it.value.isTerminal }
+                    .minByOrNull { it.value.updatedAt }
+                    ?.key
+                    ?: break
                 checkpoints.remove(oldestTerminal)
             }
+
             checkpoints[checkpoint.runId] = checkpoint
             writeCheckpoints(preferences, checkpoints)
             admission = CheckpointAdmission.ACCEPTED
@@ -261,6 +278,17 @@ class ActiveExecutionStore internal constructor(
         return removedCount
     }
 
+    /**
+     * Returns the unresolved manual-recovery count for one routine from the
+     * durable checkpoint ledger. UI health must use this source of truth
+     * instead of inferring recovery state from historical message text.
+     */
+    suspend fun recoveryRequiredCountForAutomation(automationId: String): Int =
+        checkpoints(dataStore.data.first()).values.count {
+            it.automationId == automationId &&
+                it.status == DurableExecutionStatus.RECOVERY_REQUIRED
+        }
+
     /** True when a recurring-maintenance occurrence already completed successfully. */
     suspend fun hasCompletedMaintenanceOccurrence(occurrenceKey: String): Boolean =
         maintenanceReceipts(dataStore.data.first()).any { it.occurrenceKey == occurrenceKey }
@@ -398,7 +426,8 @@ class ActiveExecutionStore internal constructor(
         val KEY_ACTIVE_EXECUTIONS = stringSetPreferencesKey("active_executions")
         val KEY_CHECKPOINTS = stringSetPreferencesKey("execution_checkpoints")
         val KEY_MAINTENANCE_RECEIPTS = stringSetPreferencesKey("maintenance_occurrence_receipts")
-        const val MAX_CHECKPOINTS = 128
+        const val MAX_CHECKPOINTS_PER_AUTOMATION = 32
+        const val SOFT_MAX_CHECKPOINTS = 128
         const val MAX_MAINTENANCE_RECEIPTS = 256
         const val MAINTENANCE_RECEIPT_RETENTION_MS = 45L * 24 * 60 * 60 * 1000
         const val MAX_MESSAGE_LENGTH = 512

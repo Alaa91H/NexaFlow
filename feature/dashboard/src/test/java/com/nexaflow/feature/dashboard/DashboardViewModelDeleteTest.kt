@@ -12,11 +12,14 @@ import com.nexaflow.core.execution.handler.ActionRegistry
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.AutomationHealthAnalyzer
+import com.nexaflow.domain.models.AutomationHealthReport
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.repositories.HistoryRepository
+import com.nexaflow.domain.repositories.HealthRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -53,6 +56,13 @@ class DashboardViewModelDeleteTest {
         override fun getExecutionPaging(): PagingSource<Int, ExecutionRecord> = emptyPaging()
         override suspend fun getExecutionById(id: String): ExecutionRecord? = null
         override suspend fun recordExecution(record: ExecutionRecord) = Unit
+    }
+
+    private class FakeHealth : HealthRepository {
+        override suspend fun getHealthReport(automationId: String): AutomationHealthReport =
+            AutomationHealthAnalyzer.analyze(automationId, emptyList())
+
+        override fun getHealthReports(): Flow<List<AutomationHealthReport>> = flowOf(emptyList())
     }
 
     private class FakeRepository(
@@ -106,6 +116,7 @@ class DashboardViewModelDeleteTest {
         automationRepository = repo,
         executionEngine = engine,
         historyRepository = FakeHistory(),
+        healthRepository = FakeHealth(),
         appContext = context
     )
 

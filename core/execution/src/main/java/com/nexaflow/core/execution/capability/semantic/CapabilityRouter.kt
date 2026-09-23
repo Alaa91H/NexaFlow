@@ -4,6 +4,7 @@ import com.nexaflow.domain.capability.CapabilityErrorCode
 import com.nexaflow.domain.capability.operation.SemanticOperationId
 import com.nexaflow.domain.capability.operation.OperationSpec
 import com.nexaflow.domain.capability.operation.StrategyId
+import kotlinx.coroutines.delay
 
 /**
  * One ranked, fully explainable candidate produced by the resolver. The router
@@ -30,15 +31,17 @@ data class StrategyCandidate(
  *
  * 1. operation compatibility (spec strategies + policy allow-list)
  * 2. security/privilege eligibility (explicit opt-in for privileged strategies)
- * 3. user policy (preferred strategies)
- * 4. live availability
- * 5. previously verified evidence (same device fingerprint)
- * 6. recent success/failure health (cooldown-aware)
- * 7. strategy confidence (evidence+health composite)
- * 8. least privilege (public API < settings < accessibility < shizuku < root)
+ * 3. automatic execution before interactive Settings hand-off
+ * 4. user policy (preferred strategies)
+ * 5. live availability
+ * 6. previously verified evidence (same device fingerprint)
+ * 7. recent success/failure health (cooldown-aware)
+ * 8. strategy confidence (evidence+health composite)
+ * 9. least privilege among automatic strategies
  *
- * Ties are resolved toward less privilege. Root is never chosen merely
- * because it is available.
+ * Android Settings is deliberately a last-resort hand-off, not a peer
+ * execution backend. A granted Root/Shizuku path must never lose to a page
+ * that asks the user to perform the change manually.
  */
 class OperationStrategyResolver(
     private val evidenceStore: CapabilityEvidenceStore,
@@ -86,6 +89,9 @@ class OperationStrategyResolver(
     fun rank(candidates: List<StrategyCandidate>): List<StrategyCandidate> =
         candidates.sortedWith(
             compareBy<StrategyCandidate> { !it.supported }
+                // SETTINGS_USER_ACTION is an interactive escape hatch. Keep it
+                // behind every live automatic backend, including Root/Shizuku.
+                .thenBy { it.strategy.id == StrategyId.SETTINGS_USER_ACTION }
                 .thenBy { it.strategy.id !in preferredSet() }
                 .thenByDescending { it.confidence }
                 .thenBy { it.privilegeCost }
@@ -299,8 +305,15 @@ class CapabilityRouter(
                 message = unknownOutcome.message + " (outcome unconfirmed; no read-back available)"
             )
         }
-        val observed = runCatching { strategy.readState(request, getStateId) }.getOrNull()
         val requestedEnabled = request.parameters["enabled"]?.toBooleanStrictOrNull()
+        val observation = observePostCondition(
+            request = request,
+            getStateId = getStateId,
+            executingStrategy = strategy,
+            requestedEnabled = requestedEnabled,
+            requestedValue = null
+        )
+        val observed = observation.booleanValue
         val reconciled = when {
             observed != null && requestedEnabled != null && observed == requestedEnabled ->
                 OperationOutcome(
@@ -310,13 +323,14 @@ class CapabilityRouter(
                     message = "Reconciled: observed state matches the requested state",
                     verification = com.nexaflow.domain.capability.VerificationResult(
                         attempted = true, verified = true,
-                        message = "Post-condition verified by state reconciliation"
+                        message = "Post-condition verified by " +
+                            (observation.strategyId?.name ?: "state reader")
                     ),
                     metadata = unknownOutcome.metadata
                 )
             observed != null && requestedEnabled != null ->
-                // The read-back is reliable and contradicts the request: the
-                // side effect did not land as requested.
+                // The read-back is reliable and contradicts the request after
+                // the bounded settling window: the side effect did not land.
                 unknownOutcome.copy(
                     status = OperationOutcomeStatus.FAILED,
                     errorCode = CapabilityErrorCode.UNKNOWN_ERROR,
@@ -401,14 +415,18 @@ class CapabilityRouter(
                 )
             )
         }
-        val observed = runCatching { strategy.readState(request, getStateId) }.getOrNull()
-        val observedValue = if (observed == null) {
-            runCatching { strategy.readStateValue(request, getStateId) }.getOrNull()
-        } else {
-            null
-        }
         val requestedEnabled = outcome.metadata["requestedEnabled"]
+        val requestedEnabledBoolean = requestedEnabled?.toBooleanStrictOrNull()
         val requestedValue = request.parameters["value"] ?: request.parameters["seconds"]
+        val observation = observePostCondition(
+            request = request,
+            getStateId = getStateId,
+            executingStrategy = strategy,
+            requestedEnabled = requestedEnabledBoolean,
+            requestedValue = requestedValue
+        )
+        val observed = observation.booleanValue
+        val observedValue = observation.scalarValue
 
         // Package one-shot transitions (force-stop, clear-data) have no
         // requested toggle to compare against: their read-back proves nothing
@@ -432,8 +450,10 @@ class CapabilityRouter(
             attempted = observed != null || observedValue != null,
             verified = matched,
             message = when {
-                observed != null -> "Observed state: $observed"
-                observedValue != null -> "Observed value: $observedValue"
+                observed != null -> "Observed state: " + observed + " via " +
+                    (observation.strategyId?.name ?: "state reader")
+                observedValue != null -> "Observed value: " + observedValue + " via " +
+                    (observation.strategyId?.name ?: "state reader")
                 else -> "Strategy cannot read back the state; outcome is unconfirmed"
             }
         )
@@ -463,6 +483,96 @@ class CapabilityRouter(
         }
     }
 
+    /**
+     * Reads a write's post-condition without requiring the executor to also
+     * implement the paired GET operation. Root may be the only backend allowed
+     * to toggle NFC/SoftAP while the public framework remains the most
+     * trustworthy observer of the resulting state.
+     *
+     * State transitions are asynchronous, so a bounded settling window keeps a
+     * transient old value from being misclassified as a verification failure.
+     */
+    private suspend fun observePostCondition(
+        request: TypedOperationRequest,
+        getStateId: SemanticOperationId,
+        executingStrategy: CapabilityStrategy,
+        requestedEnabled: Boolean?,
+        requestedValue: String?
+    ): StateObservation {
+        val readSpec = registry.specFor(getStateId) ?: return StateObservation()
+        val readRequest = request.copy(operation = getStateId)
+
+        val rankedReaders = resolverFor(readRequest)
+            .candidates(readRequest, readSpec, strategies)
+            .let { resolverFor(readRequest).rank(it) }
+            .filter { it.supported }
+            .map { it.strategy }
+
+        val readers = buildList {
+            if (
+                getStateId in executingStrategy.supportedOperations &&
+                executingStrategy.id in readSpec.strategies &&
+                (!isPrivileged(executingStrategy.id) || request.allowPrivilegedStrategies)
+            ) {
+                add(executingStrategy)
+            }
+            rankedReaders
+                .filterNot { it.id == executingStrategy.id }
+                .forEach(::add)
+        }
+
+        if (readers.isEmpty()) return StateObservation()
+
+        var lastObserved = StateObservation()
+        for (delayMs in VERIFICATION_POLL_DELAYS_MS) {
+            if (delayMs > 0L) delay(delayMs)
+            for (reader in readers) {
+                val booleanValue = runCatching {
+                    reader.readState(readRequest, getStateId)
+                }.getOrNull()
+                if (booleanValue != null) {
+                    val observed = StateObservation(
+                        booleanValue = booleanValue,
+                        strategyId = reader.id
+                    )
+                    lastObserved = observed
+                    if (requestedEnabled == null || booleanValue == requestedEnabled) {
+                        return observed
+                    }
+                    continue
+                }
+
+                val scalarValue = runCatching {
+                    reader.readStateValue(readRequest, getStateId)
+                }.getOrNull()
+                if (scalarValue != null) {
+                    val observed = StateObservation(
+                        scalarValue = scalarValue,
+                        strategyId = reader.id
+                    )
+                    lastObserved = observed
+                    if (requestedValue == null || scalarValue == requestedValue) {
+                        return observed
+                    }
+                }
+            }
+        }
+        return lastObserved
+    }
+
+    private data class StateObservation(
+        val booleanValue: Boolean? = null,
+        val scalarValue: String? = null,
+        val strategyId: StrategyId? = null
+    )
+
     private fun isPrivileged(strategyId: StrategyId): Boolean =
         strategyId == StrategyId.SHIZUKU_USER_SERVICE || strategyId == StrategyId.ROOT_SHELL
+
+    private companion object {
+        // Cumulative wait is 2.7s. Most radios settle sooner, while NFC/SoftAP
+        // on customized ROMs get enough time for an honest read-back.
+        val VERIFICATION_POLL_DELAYS_MS =
+            longArrayOf(0L, 100L, 200L, 400L, 800L, 1_200L)
+    }
 }

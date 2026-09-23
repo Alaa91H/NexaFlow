@@ -122,6 +122,7 @@ class AutomationDetailsViewModelDeleteTest {
         AutomationDetailsViewModel(
             repository = repo,
             healthRepository = FakeHealth(),
+            historyRepository = FakeHistory(),
             executionEngine = engine,
             savedStateHandle = SavedStateHandle(mapOf("automationId" to id)),
             appContext = context
