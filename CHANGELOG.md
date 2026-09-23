@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added a structured “Why didn’t this run?” card to execution details. The UI
+  correlates the durable history row with the existing typed execution trace,
+  explains blocked constraint/ALL-trigger runs without parsing free-form log
+  text, shows the redacted diagnostic detail, and presents a localized
+  suggested fix. Correlation is exact-time only so rapid repeated runs can
+  never borrow another run’s diagnosis.
+
+
 ### Fixed
 
 - Prevented root-detection timeout cleanup from surfacing spurious
