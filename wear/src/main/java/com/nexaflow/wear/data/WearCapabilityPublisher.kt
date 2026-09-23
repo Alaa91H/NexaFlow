@@ -59,7 +59,7 @@ class WearCapabilityPublisher @Inject constructor(
             val now = System.currentTimeMillis()
             val snapshot = WearCapabilitySnapshot(
                 watchInstallId = installIdentity.getOrCreateInstallId(),
-                capabilities = IMPLEMENTED_CAPABILITIES,
+                capabilities = IMPLEMENTED_CAPABILITIES.mapTo(linkedSetOf()) { it.name },
                 deviceName = Build.MODEL,
                 appVersionName = packageInfo.versionName,
                 appVersionCode = packageInfo.longVersionCode,
