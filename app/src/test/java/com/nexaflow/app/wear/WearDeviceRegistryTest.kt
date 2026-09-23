@@ -84,6 +84,24 @@ class WearDeviceRegistryTest {
     }
 
     @Test
+    fun `unknown future capability is ignored while known capability is retained`() {
+        val snapshot = WearCapabilitySnapshot(
+            watchInstallId = "watch-capabilities",
+            capabilities = setOf(
+                WearCapability.PROTOCOL_V1.name,
+                "FUTURE_CAPABILITY",
+            ),
+            updatedAtEpochMs = 2_500L,
+        )
+
+        assertTrue(registry.acceptSnapshot("node-capabilities", snapshot))
+
+        val device = registry.findByInstallId("watch-capabilities")
+            ?: error("Expected watch-capabilities in registry")
+        assertEquals(setOf(WearCapability.PROTOCOL_V1), device.capabilities)
+    }
+
+    @Test
     fun `unsupported protocol advertisement is rejected`() {
         val unsupported = WearCapabilitySnapshot(
             watchInstallId = "future-watch",
