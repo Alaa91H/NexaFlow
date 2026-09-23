@@ -104,7 +104,19 @@ class ExecutionProgressTracker {
     fun finish(automationId: String) {
         state.update { all ->
             val current = all[automationId] ?: return@update all
-            all + (automationId to current.copy(finished = true))
+            val finalizedActions = current.actions.map { action ->
+                if (action.status == LiveActionStatus.PENDING) {
+                    action.copy(status = LiveActionStatus.SKIPPED)
+                } else {
+                    action
+                }
+            }
+            all + (
+                automationId to current.copy(
+                    finished = true,
+                    actions = finalizedActions
+                )
+                )
         }
     }
 
