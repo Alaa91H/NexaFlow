@@ -80,6 +80,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":core:execution"))
     implementation(project(":core:plugin-sdk"))
+    implementation(project(":core:wear-protocol"))
     implementation(project(":core:rom-integration"))
     implementation(project(":core:common"))
     implementation(project(":core:datastore"))
