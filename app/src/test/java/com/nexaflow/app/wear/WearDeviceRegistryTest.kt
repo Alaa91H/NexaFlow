@@ -2,6 +2,7 @@ package com.nexaflow.app.wear
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.nexaflow.core.execution.events.InMemoryNexaFlowEventBus
 import com.nexaflow.core.wearprotocol.WearCapability
 import com.nexaflow.core.wearprotocol.WearCapabilitySnapshot
 import com.nexaflow.core.wearprotocol.WearProtocol
@@ -28,7 +29,7 @@ class WearDeviceRegistryTest {
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        registry = WearDeviceRegistry(context, scope)
+        registry = WearDeviceRegistry(context, scope, InMemoryNexaFlowEventBus(scope))
     }
 
     @After
