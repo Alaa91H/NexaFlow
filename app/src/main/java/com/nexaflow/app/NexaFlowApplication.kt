@@ -11,6 +11,7 @@ import com.nexaflow.app.work.LocationCheckScheduler
 import com.nexaflow.app.work.MaintenanceWorker
 import com.nexaflow.app.work.UpdateCheckScheduler
 import com.nexaflow.app.work.UpdateNotification
+import com.nexaflow.app.wear.WearDeviceRegistry
 import com.nexaflow.app.wear.WearSyncManager
 import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.datastore.LocationPreferences
@@ -66,6 +67,9 @@ class NexaFlowApplication : Application(), Configuration.Provider {
     @Inject
     lateinit var wearSyncManager: WearSyncManager
 
+    @Inject
+    lateinit var wearDeviceRegistry: WearDeviceRegistry
+
     /**
      * WorkManager must construct MaintenanceWorker through Hilt (it has an
      * @AssistedInject constructor — the default factory would fail with "no
@@ -92,6 +96,8 @@ class NexaFlowApplication : Application(), Configuration.Provider {
             .onFailure { Log.e(TAG, "Sentry attach failed", it) }
         runCatching { wearSyncManager.start() }
             .onFailure { Log.e(TAG, "Wear sync start failed", it) }
+        runCatching { wearDeviceRegistry.start() }
+            .onFailure { Log.e(TAG, "Wear registry start failed", it) }
         runCatching { MaintenanceWorker.schedule(this) }
             .onFailure { Log.e(TAG, "Maintenance worker schedule failed", it) }
         // Periodic location re-check (Settings > Location): schedule at the
