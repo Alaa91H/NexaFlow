@@ -193,7 +193,10 @@ class AndroidIntentCapabilityBackend(private val context: Context) : CapabilityB
         val intent = checkNotNull(intentFor(request))
         context.startActivity(intent)
         CapabilityResult(
-            status = CapabilityStatus.PENDING_USER_ACTION,
+            // The capability contract is the handoff itself. Once startActivity
+            // returns normally, INTENT_LAUNCH / SETTINGS_LAUNCH has completed;
+            // the destination app's later work is outside this capability.
+            status = CapabilityStatus.SUCCESS,
             backend = id,
             message = "Android activity was launched; completion is controlled by the target app",
             metadata = mapOf(
