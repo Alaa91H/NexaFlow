@@ -134,29 +134,6 @@ class ExecutionEngine(
         const val CAPABILITY_SNAPSHOT_FRESHNESS_MS = 60_000L
     }
 
-    /** Why the manual admission gate refused a run; [ManualBlockKind.NONE] when it did not. */
-    data class ManualBlockReason(
-        val kind: ManualBlockKind,
-        /** Human-readable labels of the triggers that failed or were unverifiable. */
-        val failedTriggerLabels: List<String>,
-        /** Constraint type names that failed (plugin constraints carry their own message). */
-        val failedConstraintLabels: List<String>
-    )
-
-    /** Coarse classification for [ManualBlockReason]. */
-    enum class ManualBlockKind {
-        /** The gate did not block; the run is admissible. */
-        NONE,
-        /** At least one state trigger is confirmed false right now. */
-        TRIGGERS_NOT_MET,
-        /** Trigger state could not be verified (event-only or unreadable). */
-        TRIGGERS_UNKNOWN,
-        /** All triggers passed but a device constraint refused. */
-        CONSTRAINTS_NOT_MET,
-        /** A point-in-time task configured an end behavior without a time range. */
-        INVALID_TIME_RANGE
-    }
-
     /**
      * Snapshots captured for automations with revertOnExit, keyed by automation id.
      * The value is nullable because a failed capture must not block the run; a
