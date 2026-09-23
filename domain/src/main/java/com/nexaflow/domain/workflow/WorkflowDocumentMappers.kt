@@ -286,6 +286,15 @@ object WorkflowDocumentMappers {
     fun validateStructure(document: WorkflowDocumentV1): List<ValidationIssue> {
         val issues = mutableListOf<ValidationIssue>()
         val seen = HashSet<String>()
+        // An empty root is not executable, but nested empty sequence/parallel
+        // nodes are legitimate no-op branches.
+        when (val root = document.root) {
+            is PersistedWorkflowNodeV1.Sequence ->
+                if (root.children.isEmpty()) issues += ValidationIssue.EmptyGraph(root.nodeId)
+            is PersistedWorkflowNodeV1.Parallel ->
+                if (root.children.isEmpty()) issues += ValidationIssue.EmptyGraph(root.nodeId)
+            else -> Unit
+        }
         visit(document.root, seen, issues)
         document.exitPolicy?.actions?.forEach { persisted ->
             when {
@@ -312,14 +321,10 @@ object WorkflowDocumentMappers {
             return
         }
         when (node) {
-            is PersistedWorkflowNodeV1.Sequence -> {
-                if (node.children.isEmpty()) issues += ValidationIssue.EmptyGraph(node.nodeId)
+            is PersistedWorkflowNodeV1.Sequence ->
                 node.children.forEach { visit(it, seen, issues) }
-            }
-            is PersistedWorkflowNodeV1.Parallel -> {
-                if (node.children.isEmpty()) issues += ValidationIssue.EmptyGraph(node.nodeId)
+            is PersistedWorkflowNodeV1.Parallel ->
                 node.children.forEach { visit(it, seen, issues) }
-            }
             is PersistedWorkflowNodeV1.Race -> {
                 if (node.children.isEmpty()) issues += ValidationIssue.EmptyGraph(node.nodeId)
                 node.children.forEach { visit(it, seen, issues) }
@@ -408,9 +413,15 @@ object WorkflowDocumentMappers {
     /** Decodes a persisted document, failing safely on unknown versions. */
     fun decode(encoded: String): WorkflowDocumentV1 = json.decodeFromString(encoded)
 
-    /** Encodes a document with its schema version embedded. */
-    fun encode(document: WorkflowDocumentV1): String = json.encodeToString(
-        WorkflowDocumentV1.serializer(),
-        document,
-    )
+    /** Encodes only structurally valid documents with their schema version embedded. */
+    fun encode(document: WorkflowDocumentV1): String {
+        val issues = validateStructure(document)
+        require(issues.isEmpty()) {
+            "Invalid workflow structure: " + issues.joinToString()
+        }
+        return json.encodeToString(
+            WorkflowDocumentV1.serializer(),
+            document,
+        )
+    }
 }
