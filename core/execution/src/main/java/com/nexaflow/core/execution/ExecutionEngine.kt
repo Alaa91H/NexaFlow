@@ -186,6 +186,10 @@ class ExecutionEngine(
         val wakeLock = acquireWakeLock("NexaFlow:runAutomation:${automation.id}")
         try {
             val startedAt = epochMillis.now()
+        // Allocate the run identity before admission gates. This lets blocked
+        // runs correlate their durable history row with the structured trace
+        // without timestamp guessing.
+        val payloadContext = runContext ?: WorkflowRunContext.create(automation.id, startedAt)
         if (automation.requiresTimeRangeForEndBehavior) {
             return rejectIncompleteTimeRange(automation, startedAt)
         }
@@ -231,15 +235,26 @@ class ExecutionEngine(
                         executedAt = startedAt
                     )
                     historyRepository.recordExecution(record)
-                    recordTimeline(automation, "CAPABILITY_BLOCKED", record, startedAt)
+                    recordTimeline(
+                        automation = automation,
+                        kind = "CAPABILITY_BLOCKED",
+                        record = record,
+                        startedAt = startedAt,
+                        runId = payloadContext.runId
+                    )
+                    traceRecorder.recordGateBlocked(
+                        runId = payloadContext.runId,
+                        automationId = automation.id,
+                        reasonCode = com.nexaflow.core.logging.TraceReasons.CAPABILITY_BLOCKED,
+                        detail = missing,
+                        atEpochMs = epochMillis.now(),
+                    )
                     return record
                 }
             }
         }
         val maintenanceNow = ZonedDateTime.now()
         val maintenanceOccurrenceKey = MaintenanceExecutionIdentity.occurrenceKey(automation, maintenanceNow)
-        // Local name avoids shadowing the [Context] property used below.
-        val payloadContext = runContext ?: WorkflowRunContext.create(automation.id, startedAt)
         // One typed, scoped facade per run. It layers over the existing payload
         // context and repository; no action accesses a raw variable store.
         val dataRuntime = variableRepository?.let { ScopedDataRuntime(payloadContext, it) }
@@ -259,7 +274,20 @@ class ExecutionEngine(
                 channel = channel?.type?.name
             )
             historyRepository.recordExecution(record)
-            recordTimeline(automation, "MAINTENANCE_DUPLICATE_SKIPPED", record, startedAt)
+            recordTimeline(
+                automation = automation,
+                kind = "MAINTENANCE_DUPLICATE_SKIPPED",
+                record = record,
+                startedAt = startedAt,
+                runId = payloadContext.runId
+            )
+            traceRecorder.recordGateBlocked(
+                runId = payloadContext.runId,
+                automationId = automation.id,
+                reasonCode = com.nexaflow.core.logging.TraceReasons.MAINTENANCE_DUPLICATE,
+                detail = "maintenance occurrence already completed",
+                atEpochMs = epochMillis.now(),
+            )
             return record
         }
         // Constraint and maintenance-window gates run before any snapshot,
@@ -289,7 +317,13 @@ class ExecutionEngine(
                     channel = channel?.type?.name
                 )
                 historyRepository.recordExecution(record)
-                recordTimeline(automation, "BLOCKED", record, startedAt)
+                recordTimeline(
+                    automation = automation,
+                    kind = "BLOCKED",
+                    record = record,
+                    startedAt = startedAt,
+                    runId = payloadContext.runId
+                )
                 traceRecorder.recordGateBlocked(
                     runId = payloadContext.runId,
                     automationId = automation.id,
@@ -330,7 +364,13 @@ class ExecutionEngine(
                     channel = channel?.type?.name
                 )
                 historyRepository.recordExecution(record)
-                recordTimeline(automation, "TRIGGER_ALL_GATE_BLOCKED", record, startedAt)
+                recordTimeline(
+                    automation = automation,
+                    kind = "TRIGGER_ALL_GATE_BLOCKED",
+                    record = record,
+                    startedAt = startedAt,
+                    runId = payloadContext.runId
+                )
                 traceRecorder.recordGateBlocked(
                     runId = payloadContext.runId,
                     automationId = automation.id,
@@ -357,7 +397,20 @@ class ExecutionEngine(
                 channel = channel?.type?.name
             )
             historyRepository.recordExecution(record)
-            recordTimeline(automation, "MAINTENANCE_WAITING", record, startedAt)
+            recordTimeline(
+                automation = automation,
+                kind = "MAINTENANCE_WAITING",
+                record = record,
+                startedAt = startedAt,
+                runId = payloadContext.runId
+            )
+            traceRecorder.recordGateBlocked(
+                runId = payloadContext.runId,
+                automationId = automation.id,
+                reasonCode = com.nexaflow.core.logging.TraceReasons.MAINTENANCE_WAITING,
+                detail = maintenanceReadiness.reason.name,
+                atEpochMs = epochMillis.now(),
+            )
             return record
         }
         // Checkpoint must exist before any side effect. A rejected durable
@@ -400,7 +453,20 @@ class ExecutionEngine(
                 )
             ) {
                 historyRepository.recordExecution(record)
-                recordTimeline(automation, "CHECKPOINT_REJECTED", record, startedAt)
+                recordTimeline(
+                    automation = automation,
+                    kind = "CHECKPOINT_REJECTED",
+                    record = record,
+                    startedAt = startedAt,
+                    runId = payloadContext.runId
+                )
+                traceRecorder.recordGateBlocked(
+                    runId = payloadContext.runId,
+                    automationId = automation.id,
+                    reasonCode = com.nexaflow.core.logging.TraceReasons.ADMISSION_REJECTED,
+                    detail = admissionMessage.removePrefix("Skipped: ").trim(),
+                    atEpochMs = epochMillis.now(),
+                )
             }
             return record
         }
@@ -456,7 +522,20 @@ class ExecutionEngine(
                     channel = channel?.type?.name
                 )
                 historyRepository.recordExecution(record)
-                recordTimeline(automation, "LIFECYCLE_CONFLICT", record, startedAt)
+                recordTimeline(
+                    automation = automation,
+                    kind = "LIFECYCLE_CONFLICT",
+                    record = record,
+                    startedAt = startedAt,
+                    runId = payloadContext.runId
+                )
+                traceRecorder.recordGateBlocked(
+                    runId = payloadContext.runId,
+                    automationId = automation.id,
+                    reasonCode = com.nexaflow.core.logging.TraceReasons.ADMISSION_REJECTED,
+                    detail = "a prior automation lifecycle still requires cleanup",
+                    atEpochMs = epochMillis.now(),
+                )
                 return record
             }
         }
@@ -640,7 +719,32 @@ class ExecutionEngine(
                 completedAt = epochMillis.now()
             )
         }
-        recordTimeline(automation, "RUN", record, startedAt)
+        recordTimeline(
+            automation = automation,
+            kind = "RUN",
+            record = record,
+            startedAt = startedAt,
+            runId = payloadContext.runId
+        )
+        val failedAction = results.firstOrNull { !it.success }
+        traceRecorder.record(
+            com.nexaflow.core.logging.ExecutionTraceEvent(
+                id = UUID.randomUUID().toString(),
+                runId = payloadContext.runId,
+                automationId = automation.id,
+                sequence = 0,
+                phase = com.nexaflow.core.logging.TracePhase.OUTCOME,
+                reasonCode = if (failedAction == null) {
+                    com.nexaflow.core.logging.TraceReasons.RUN_COMPLETED
+                } else {
+                    com.nexaflow.core.logging.TraceReasons.ACTION_FAILED
+                },
+                detail = failedAction?.let { result -> result.actionType + ": " + result.message },
+                backend = record.channel,
+                atEpochMs = epochMillis.now(),
+                durationMs = epochMillis.now() - startedAt,
+            )
+        )
         context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
         return record
         } finally {
@@ -1180,7 +1284,8 @@ class ExecutionEngine(
         automation: Automation,
         kind: String,
         record: ExecutionRecord,
-        startedAt: Long
+        startedAt: Long,
+        runId: String? = null
     ) {
         try {
             logStore.recordExecution(
@@ -1193,7 +1298,8 @@ class ExecutionEngine(
                     message = record.message,
                     startedAt = startedAt,
                     durationMs = epochMillis.now() - startedAt,
-                    channel = record.channel
+                    channel = record.channel,
+                    runId = runId
                 )
             )
         } catch (_: Throwable) {
