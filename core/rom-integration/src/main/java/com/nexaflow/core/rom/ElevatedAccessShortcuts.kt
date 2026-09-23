@@ -43,10 +43,8 @@ object ElevatedAccessShortcuts {
         if (requestCode == SHIZUKU_REQUEST_CODE) {
             val granted = grantResult == PackageManager.PERMISSION_GRANTED
             val appContext = synchronized(shizukuRequestLock) { shizukuAppContext }
-            // Shizuku 13.1.5 delivers the grant result as an int:
-            // PERMISSION_GRANTED (0) when granted, PERMISSION_DENIED (-1)
-            // otherwise. Arm the UserService before notifying callers so a
-            // follow-up "grant all" pass can immediately use the shell.
+            // Arm the elevated channel before delivering callbacks so a
+            // follow-up permission-repair pass can use Shizuku immediately.
             if (granted) {
                 appContext?.let { context ->
                     runCatching { ShizukuShellBridge.initialize(context) }
@@ -245,11 +243,12 @@ object ElevatedAccessShortcuts {
      */
     fun openShizuku(context: Context, onResult: (Boolean) -> Unit = {}) {
         val appContext = context.applicationContext
+        val mainHandler = Handler(Looper.getMainLooper())
         try {
             if (!Shizuku.pingBinder()) {
                 clearShizukuPermissionRequest()
                 openShizukuManager(appContext)
-                Handler(Looper.getMainLooper()).post { onResult(false) }
+                mainHandler.post { onResult(false) }
                 return
             }
             if (Shizuku.isPreV11() ||
@@ -259,7 +258,7 @@ object ElevatedAccessShortcuts {
                 // Already granted: (re)arm the UserService bind so elevated
                 // commands use the AIDL channel instead of the legacy path.
                 runCatching { ShizukuShellBridge.initialize(appContext) }
-                Handler(Looper.getMainLooper()).post { onResult(true) }
+                mainHandler.post { onResult(true) }
                 return
             }
             if (!beginShizukuPermissionRequest(appContext, onResult)) return
