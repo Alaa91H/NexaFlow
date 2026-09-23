@@ -552,4 +552,30 @@
     <string name="action_data_date_time_sub">Analyser des instants ISO et formater dans un fuseau choisi</string>
     <string name="action_data_json_sub">Lire les chemins JSON Pointer, les clés et le JSON formaté</string>
     <string name="action_data_array_sub">Trier, inverser, joindre et dédupliquer des tableaux JSON</string>
+
+    <string name="execution_diagnostics">Diagnostic d’exécution</string>
+    <string name="execution_diagnostics_subtitle">État actuel des conditions et chemin réellement utilisé par les dernières actions.</string>
+    <string name="refresh_diagnostics">Actualiser</string>
+    <string name="execution_diagnostics_loading">Lecture de l’état actuel de l’appareil…</string>
+    <string name="execution_diagnostics_ready">Prête à être exécutée maintenant</string>
+    <string name="execution_diagnostics_blocked">Les conditions d’exécution ne sont pas entièrement satisfaites</string>
+    <string name="execution_diagnostics_triggers">Déclencheurs maintenant</string>
+    <string name="execution_diagnostics_constraints">Contraintes maintenant</string>
+    <string name="execution_diagnostics_last_run">Dernière exécution</string>
+    <string name="execution_diagnostics_no_last_run">Aucun détail d’exécution par action n’est encore disponible.</string>
+    <string name="execution_diagnostics_run_channel">Chemin d’exécution : %1$s</string>
+    <string name="execution_diagnostic_satisfied">Satisfaite</string>
+    <string name="execution_diagnostic_unsatisfied">Non satisfaite</string>
+    <string name="execution_diagnostic_unknown">Inconnu</string>
+    <string name="execution_diagnostic_unavailable">Indisponible</string>
+    <string name="execution_diagnostic_error">Erreur</string>
+    <string name="execution_diagnostic_detail">Détail : %1$s</string>
+    <string name="execution_diagnostic_restore">Restaurer l’état d’origine</string>
+    <string name="execution_diagnostic_end_action">À la fin : %1$s</string>
+    <string name="execution_diagnostic_via">via %1$s</string>
+    <string name="execution_diagnostic_verified">vérifié</string>
+    <string name="execution_diagnostic_not_verified">non vérifié</string>
+    <string name="execution_diagnostic_action_ok">terminé</string>
+    <string name="execution_diagnostic_action_failed">échec</string>
+    <string name="execution_diagnostic_reason">Raison : %1$s</string>
 </resources>
