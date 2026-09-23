@@ -167,18 +167,7 @@ class SemanticActionRouter(
         val request = SemanticActionMapper.requestFor(
             action, workflowId, executionId, privilegedPolicyEnabled()
         ) ?: return null
-        val outcome = router.execute(request)
-        return when (outcome.status) {
-            OperationOutcomeStatus.SUCCESS,
-            OperationOutcomeStatus.PARTIAL -> SystemControlResult.ok(outcome.message)
-            // A Settings hand-off or a missing grant is not an executed action.
-            // Reporting it as success made permission failures invisible in
-            // history and allowed workflows to continue as if the side effect
-            // had happened.
-            OperationOutcomeStatus.PENDING_USER_ACTION ->
-                SystemControlResult.fail(outcome.message)
-            else -> SystemControlResult.fail(outcome.message)
-        }
+        return router.execute(request).toSystemControlResult()
     }
 }
 
