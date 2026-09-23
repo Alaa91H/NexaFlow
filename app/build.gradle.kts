@@ -12,6 +12,7 @@ plugins {
 }
 
 val gitVer = gitVersion()
+val nexaFlowApplicationId = providers.gradleProperty("nexaflow.applicationId").get()
 
 // Release signing: prefer the project keystore (keystore/keystore.properties,
 // gitignored — carries the SAME key that signed the currently installed app,
@@ -60,7 +61,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.nexaflow.app"
+        applicationId = nexaFlowApplicationId
         minSdk = 26
         targetSdk = 37
         versionCode = gitVer.versionCode
