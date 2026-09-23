@@ -30,6 +30,8 @@ enum class AutomationNodeFamily {
     LOCATION,
     APPLICATIONS,
     COMMUNICATION,
+    NETWORK,
+    FILES,
     DISPLAY,
     SOUND,
     MEDIA,
@@ -38,6 +40,7 @@ enum class AutomationNodeFamily {
     SYSTEM,
     ROM,
     DATA,
+    FLOW,
     PLUGINS,
     DEVELOPER
 }
