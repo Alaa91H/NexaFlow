@@ -43,6 +43,7 @@ import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.Web
+import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material.icons.filled.BrightnessHigh
 import androidx.compose.material.icons.filled.DataUsage
 import androidx.compose.material.icons.filled.LocationOn
@@ -173,6 +174,7 @@ internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> = mapOf(
     TriggerType.HOTSPOT to TriggerCategory.CONNECTIVITY,
     TriggerType.NETWORK_MODE to TriggerCategory.CONNECTIVITY,
     TriggerType.BLUETOOTH_DEVICE to TriggerCategory.CONNECTIVITY,
+    TriggerType.WEAR_EVENT to TriggerCategory.DEVICE,
     TriggerType.WEBHOOK to TriggerCategory.CONNECTIVITY,
     TriggerType.LOCATION to TriggerCategory.LOCATION,
     TriggerType.APPLICATION to TriggerCategory.APPS,
@@ -248,6 +250,7 @@ val triggerTypeOptions = listOf(
     TriggerType.AUTO_ROTATE,
     TriggerType.DEVICE_LOCKED,
     TriggerType.SCREEN_ROTATION_STATE,
+    TriggerType.WEAR_EVENT,
     // CONNECTIVITY is intentionally not offered: Wi-Fi and mobile data are
     // separate triggers (WIFI_CONNECTED / MOBILE_DATA_CONNECTED). The legacy
     // combined type remains available for saved tasks.
@@ -372,6 +375,7 @@ internal fun defaultTriggerConfig(type: TriggerType): Map<String, String> = when
     TriggerType.BOOT_COMPLETED -> mapOf()
     TriggerType.NFC_TAG_SCANNED -> mapOf()
     TriggerType.ALARM_SET_CHANGED -> mapOf()
+    TriggerType.WEAR_EVENT -> mapOf("watchInstallId" to "", "state" to "CONNECTED")
     // Created only by the verified plugin configuration path, never the generic picker.
     TriggerType.PLUGIN_EVENT -> emptyMap()
 }
@@ -432,6 +436,7 @@ internal fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.BOOT_COMPLETED -> R.string.trigger_type_boot_completed
     TriggerType.NFC_TAG_SCANNED -> R.string.trigger_type_nfc_tag_scanned
     TriggerType.ALARM_SET_CHANGED -> R.string.trigger_type_alarm_set_changed
+    TriggerType.WEAR_EVENT -> R.string.trigger_type_wear_event
     TriggerType.PLUGIN_EVENT -> R.string.action_plugin
 }
 
@@ -491,6 +496,7 @@ internal fun TriggerType.descRes(): Int = when (this) {
     TriggerType.BOOT_COMPLETED -> R.string.trigger_type_boot_sub
     TriggerType.NFC_TAG_SCANNED -> R.string.trigger_type_nfc_sub
     TriggerType.ALARM_SET_CHANGED -> R.string.trigger_type_alarm_sub
+    TriggerType.WEAR_EVENT -> R.string.trigger_type_wear_event_sub
     TriggerType.PLUGIN_EVENT -> R.string.action_plugin_sub
 }
 
@@ -550,6 +556,7 @@ internal fun TriggerType.icon(): ImageVector = when (this) {
     TriggerType.BOOT_COMPLETED -> Icons.Filled.PowerSettingsNew
     TriggerType.NFC_TAG_SCANNED -> Icons.Filled.Nfc
     TriggerType.ALARM_SET_CHANGED -> Icons.Filled.Alarm
+    TriggerType.WEAR_EVENT -> Icons.Filled.Watch
     TriggerType.PLUGIN_EVENT -> Icons.Filled.Extension
 }
 
@@ -1287,6 +1294,11 @@ private fun triggerSummary(draft: TriggerDraft): String {
         TriggerType.BOOT_COMPLETED -> stringResource(R.string.trigger_events_on_change)
         TriggerType.NFC_TAG_SCANNED -> stringResource(R.string.trigger_events_on_change)
         TriggerType.ALARM_SET_CHANGED -> stringResource(R.string.trigger_events_on_change)
+        TriggerType.WEAR_EVENT -> if ((c["state"] ?: "CONNECTED") == "CONNECTED") {
+            stringResource(R.string.state_connected)
+        } else {
+            stringResource(R.string.state_disconnected)
+        }
         TriggerType.PLUGIN_EVENT -> stringResource(R.string.action_plugin)
     }
 }
@@ -3178,6 +3190,32 @@ fun TriggerEditorCard(
                     Text(text = stringResource(R.string.trigger_desc_nfc_tag), style = MaterialTheme.typography.bodyMedium)
                 TriggerType.ALARM_SET_CHANGED ->
                     Text(text = stringResource(R.string.trigger_desc_alarm_set), style = MaterialTheme.typography.bodyMedium)
+                TriggerType.WEAR_EVENT -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = stringResource(R.string.trigger_type_wear_event_sub),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        Text(
+                            text = stringResource(R.string.state),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        OptionChips(
+                            options = listOf("CONNECTED", "DISCONNECTED"),
+                            labels = mapOf(
+                                "CONNECTED" to stringResource(R.string.state_connected),
+                                "DISCONNECTED" to stringResource(R.string.state_disconnected)
+                            ),
+                            selected = draft.config["state"] ?: "CONNECTED",
+                            onSelect = {
+                                onConfigChange(
+                                    draft.copy(config = draft.config + ("state" to it))
+                                )
+                            }
+                        )
+                    }
+                }
                 // External component identity and approval are managed only by
                 // the plugin configuration flow. A persisted trigger stays
                 // visible but cannot be changed to an unsafe partial config.
