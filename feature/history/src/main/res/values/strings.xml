@@ -91,4 +91,7 @@
     <string name="why_run_fix_retry_or_review">Retry the task. If it fails again, review the action and device permissions.</string>
     <string name="why_run_fix_review_device_state">Check the actual device state before retrying the task.</string>
     <string name="why_run_fix_open_history">Review the execution timeline below for the action that failed.</string>
+
+    <string name="why_run_configuration_blocked">The task configuration is incomplete, so execution was blocked.</string>
+    <string name="why_run_fix_review_task_configuration">Review the task configuration and provide the required values before trying again.</string>
 </resources>
