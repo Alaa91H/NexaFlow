@@ -552,4 +552,30 @@
     <string name="action_data_date_time_sub">Разбор ISO-моментов и форматирование в выбранном поясе</string>
     <string name="action_data_json_sub">Чтение путей JSON Pointer, ключей и форматированного JSON</string>
     <string name="action_data_array_sub">Сортировка, реверс, объединение и дедупликация JSON-массивов</string>
+
+    <string name="execution_diagnostics">Диагностика выполнения</string>
+    <string name="execution_diagnostics_subtitle">Текущее состояние условий и фактический путь последних действий.</string>
+    <string name="refresh_diagnostics">Обновить</string>
+    <string name="execution_diagnostics_loading">Чтение текущего состояния устройства…</string>
+    <string name="execution_diagnostics_ready">Готово к запуску сейчас</string>
+    <string name="execution_diagnostics_blocked">Условия запуска выполнены не полностью</string>
+    <string name="execution_diagnostics_triggers">Триггеры сейчас</string>
+    <string name="execution_diagnostics_constraints">Ограничения сейчас</string>
+    <string name="execution_diagnostics_last_run">Последнее выполнение</string>
+    <string name="execution_diagnostics_no_last_run">Пока нет подробностей выполнения по действиям.</string>
+    <string name="execution_diagnostics_run_channel">Путь выполнения: %1$s</string>
+    <string name="execution_diagnostic_satisfied">Выполнено</string>
+    <string name="execution_diagnostic_unsatisfied">Не выполнено</string>
+    <string name="execution_diagnostic_unknown">Неизвестно</string>
+    <string name="execution_diagnostic_unavailable">Недоступно</string>
+    <string name="execution_diagnostic_error">Ошибка</string>
+    <string name="execution_diagnostic_detail">Подробность: %1$s</string>
+    <string name="execution_diagnostic_restore">Восстановить исходное состояние</string>
+    <string name="execution_diagnostic_end_action">При завершении: %1$s</string>
+    <string name="execution_diagnostic_via">через %1$s</string>
+    <string name="execution_diagnostic_verified">проверено</string>
+    <string name="execution_diagnostic_not_verified">не проверено</string>
+    <string name="execution_diagnostic_action_ok">завершено</string>
+    <string name="execution_diagnostic_action_failed">сбой</string>
+    <string name="execution_diagnostic_reason">Причина: %1$s</string>
 </resources>
