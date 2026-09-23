@@ -76,4 +76,19 @@
     <string name="why_run_fix_label">建议的修复方法</string>
     <string name="why_run_fix_review_constraints">检查任务条件和设备当前状态。</string>
     <string name="why_run_fix_check_all_conditions">检查任务中的每个触发器，并确保当前满足所有必需条件。</string>
+
+    <string name="why_run_capability_blocked">所需的功能或权限不可用。</string>
+    <string name="why_run_admission_rejected">由于另一次运行或恢复状态仍处于活动状态，此次运行被拒绝。</string>
+    <string name="why_run_maintenance_waiting">此维护任务正在等待允许的运行时间窗口。</string>
+    <string name="why_run_maintenance_duplicate">此维护周期已完成，因此没有再次运行。</string>
+    <string name="why_run_action_failed">某个操作失败，导致任务未能成功完成。</string>
+    <string name="why_run_verification_failed">无法在设备上验证所请求的更改。</string>
+    <string name="why_run_outcome_uncertain">设备状态无法确认所请求的更改是否已完成。</string>
+    <string name="why_run_failed">任务以已记录的失败结束。</string>
+    <string name="why_run_fix_grant_capability">授予所需权限，或准备一个可用的执行提供程序，然后重试。</string>
+    <string name="why_run_fix_check_running_state">等待当前运行结束；如果仍被阻止，请检查恢复状态。</string>
+    <string name="why_run_fix_review_action_config">检查失败操作的配置、权限和所需执行提供程序。</string>
+    <string name="why_run_fix_retry_or_review">重新运行任务。如果再次失败，请检查该操作和设备权限。</string>
+    <string name="why_run_fix_review_device_state">重新运行任务前，请检查设备的实际状态。</string>
+    <string name="why_run_fix_open_history">查看下方执行时间线以找出失败的操作。</string>
 </resources>
