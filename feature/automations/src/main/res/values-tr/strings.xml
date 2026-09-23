@@ -552,4 +552,30 @@
     <string name="action_data_date_time_sub">ISO anlarını ayrıştır ve seçilen saat diliminde biçimlendir</string>
     <string name="action_data_json_sub">JSON Pointer yollarını, anahtarları ve biçimli JSON\'u oku</string>
     <string name="action_data_array_sub">JSON dizilerini sırala, ters çevir, birleştir ve tekilleştir</string>
+
+    <string name="execution_diagnostics">Çalıştırma tanılaması</string>
+    <string name="execution_diagnostics_subtitle">Koşulların canlı durumu ve son eylemlerin gerçekten kullandığı yol.</string>
+    <string name="refresh_diagnostics">Yenile</string>
+    <string name="execution_diagnostics_loading">Geçerli cihaz durumu okunuyor…</string>
+    <string name="execution_diagnostics_ready">Şimdi çalıştırmaya hazır</string>
+    <string name="execution_diagnostics_blocked">Çalıştırma koşulları tamamen karşılanmıyor</string>
+    <string name="execution_diagnostics_triggers">Şu anki tetikleyiciler</string>
+    <string name="execution_diagnostics_constraints">Şu anki koşullar</string>
+    <string name="execution_diagnostics_last_run">Son çalıştırma</string>
+    <string name="execution_diagnostics_no_last_run">Henüz eylem bazında çalıştırma ayrıntısı yok.</string>
+    <string name="execution_diagnostics_run_channel">Çalıştırma yolu: %1$s</string>
+    <string name="execution_diagnostic_satisfied">Karşılandı</string>
+    <string name="execution_diagnostic_unsatisfied">Karşılanmadı</string>
+    <string name="execution_diagnostic_unknown">Bilinmiyor</string>
+    <string name="execution_diagnostic_unavailable">Kullanılamıyor</string>
+    <string name="execution_diagnostic_error">Hata</string>
+    <string name="execution_diagnostic_detail">Ayrıntı: %1$s</string>
+    <string name="execution_diagnostic_restore">Özgün durumu geri yükle</string>
+    <string name="execution_diagnostic_end_action">Bitişte: %1$s</string>
+    <string name="execution_diagnostic_via">%1$s üzerinden</string>
+    <string name="execution_diagnostic_verified">doğrulandı</string>
+    <string name="execution_diagnostic_not_verified">doğrulanmadı</string>
+    <string name="execution_diagnostic_action_ok">tamamlandı</string>
+    <string name="execution_diagnostic_action_failed">başarısız</string>
+    <string name="execution_diagnostic_reason">Neden: %1$s</string>
 </resources>
