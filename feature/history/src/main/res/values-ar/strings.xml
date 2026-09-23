@@ -91,4 +91,7 @@
     <string name="why_run_fix_retry_or_review">أعد تشغيل المهمة. إذا فشلت مجددًا، راجع الإجراء وأذونات الجهاز.</string>
     <string name="why_run_fix_review_device_state">تحقق من حالة الجهاز الفعلية قبل إعادة تشغيل المهمة.</string>
     <string name="why_run_fix_open_history">راجع الخط الزمني للتنفيذ أدناه لمعرفة الإجراء الذي فشل.</string>
+
+    <string name="why_run_configuration_blocked">إعداد المهمة غير مكتمل، لذلك تم منع التشغيل.</string>
+    <string name="why_run_fix_review_task_configuration">راجع إعداد المهمة وأدخل القيم المطلوبة قبل المحاولة مرة أخرى.</string>
 </resources>
