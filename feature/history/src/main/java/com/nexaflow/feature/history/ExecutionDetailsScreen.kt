@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.CircularProgressIndicator
@@ -258,7 +258,7 @@ private fun RunExplanationCard(explanation: RunExplainer.Explanation) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 IconBadge(
-                    icon = Icons.Filled.HelpOutline,
+                    icon = Icons.AutoMirrored.Filled.HelpOutline,
                     containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                     contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                     size = 40
