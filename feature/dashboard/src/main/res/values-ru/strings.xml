@@ -146,4 +146,5 @@
     <string name="share_task_title">Поделиться задачей (.nexaflow)</string>
     <string name="share_task_failed">Не удалось поделиться этой задачей</string>
     <string name="task_access_details">Сведения о задаче и ссылки доступа</string>
+    <string name="trigger_wear_event">Часы Wear OS</string>
 </resources>
