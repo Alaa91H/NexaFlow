@@ -99,6 +99,10 @@ class WearProtocolContractTest {
         val capabilities = WearCapabilitySnapshot(
             watchInstallId = "watch-1",
             capabilities = WearCapability.entries.toSet(),
+            deviceName = "Test watch",
+            appVersionName = "3.87.0",
+            appVersionCode = 38700L,
+            wearOsSdk = 36,
             permissions = mapOf("BODY_SENSORS" to true),
             updatedAtEpochMs = 5_000L,
         )
