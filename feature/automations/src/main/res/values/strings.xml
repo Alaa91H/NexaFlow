@@ -551,4 +551,30 @@
     <string name="action_data_date_time_sub">Parse ISO instants and format in a chosen time zone</string>
     <string name="action_data_json_sub">Read JSON Pointer paths, keys and formatted JSON</string>
     <string name="action_data_array_sub">Order, reverse, join and deduplicate JSON arrays</string>
+
+    <string name="execution_diagnostics">Execution diagnostics</string>
+    <string name="execution_diagnostics_subtitle">Live condition state and the exact route used by the latest actions.</string>
+    <string name="refresh_diagnostics">Refresh</string>
+    <string name="execution_diagnostics_loading">Reading current device state…</string>
+    <string name="execution_diagnostics_ready">Ready to run now</string>
+    <string name="execution_diagnostics_blocked">Run conditions are not fully satisfied</string>
+    <string name="execution_diagnostics_triggers">Triggers now</string>
+    <string name="execution_diagnostics_constraints">Constraints now</string>
+    <string name="execution_diagnostics_last_run">Latest execution</string>
+    <string name="execution_diagnostics_no_last_run">No per-action execution details are available yet.</string>
+    <string name="execution_diagnostics_run_channel">Run route: %1$s</string>
+    <string name="execution_diagnostic_satisfied">Satisfied</string>
+    <string name="execution_diagnostic_unsatisfied">Not satisfied</string>
+    <string name="execution_diagnostic_unknown">Unknown</string>
+    <string name="execution_diagnostic_unavailable">Unavailable</string>
+    <string name="execution_diagnostic_error">Error</string>
+    <string name="execution_diagnostic_detail">Detail: %1$s</string>
+    <string name="execution_diagnostic_restore">Restore original state</string>
+    <string name="execution_diagnostic_end_action">End: %1$s</string>
+    <string name="execution_diagnostic_via">via %1$s</string>
+    <string name="execution_diagnostic_verified">verified</string>
+    <string name="execution_diagnostic_not_verified">not verified</string>
+    <string name="execution_diagnostic_action_ok">completed</string>
+    <string name="execution_diagnostic_action_failed">failed</string>
+    <string name="execution_diagnostic_reason">Reason: %1$s</string>
 </resources>
