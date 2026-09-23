@@ -100,7 +100,10 @@ import androidx.core.graphics.drawable.IconCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.nexaflow.core.execution.AutomationExecutionProgress
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.LiveActionProgress
+import com.nexaflow.core.execution.LiveActionStatus
 import com.nexaflow.core.execution.ManualBlockReason
 import com.nexaflow.core.execution.ManualBlockKind
 import com.nexaflow.core.execution.ManualAdmissionDiagnostics
@@ -142,6 +145,7 @@ fun AutomationDetailsScreen(navController: NavController) {
     val healthReport by viewModel.healthReport.collectAsStateWithLifecycle()
     val diagnostics by viewModel.diagnostics.collectAsStateWithLifecycle()
     val latestExecution by viewModel.latestExecution.collectAsStateWithLifecycle()
+    val liveProgress by viewModel.liveProgress.collectAsStateWithLifecycle()
     val running by viewModel.running.collectAsStateWithLifecycle()
     val executionMessage by viewModel.executionMessage.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -307,6 +311,7 @@ fun AutomationDetailsScreen(navController: NavController) {
                     automation = current,
                     diagnostics = diagnostics,
                     latestExecution = latestExecution,
+                    liveProgress = liveProgress,
                     onRefresh = viewModel::refreshDiagnostics
                 )
                 AutomationDetailsSectionCard(
@@ -958,6 +963,7 @@ private fun ExecutionDiagnosticsCard(
     automation: Automation,
     diagnostics: ManualAdmissionDiagnostics?,
     latestExecution: ExecutionRecord?,
+    liveProgress: AutomationExecutionProgress?,
     onRefresh: () -> Unit
 ) {
     NexaFlowCard {
@@ -1033,6 +1039,21 @@ private fun ExecutionDiagnosticsCard(
                             ?: ConditionResult.Unknown
                     )
                 }
+            }
+        }
+
+        val showLiveProgress = liveProgress != null && (
+            !liveProgress.finished ||
+                latestExecution == null ||
+                latestExecution.executedAt < liveProgress.startedAt
+            )
+        if (showLiveProgress) {
+            Text(
+                text = stringResource(R.string.execution_diagnostics_current_run),
+                style = MaterialTheme.typography.labelMedium
+            )
+            liveProgress.actions.forEach { action ->
+                LiveActionDiagnosticRow(action)
             }
         }
 
@@ -1116,6 +1137,57 @@ private fun DiagnosticConditionRow(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error
         )
+    }
+}
+
+@Composable
+private fun LiveActionDiagnosticRow(progress: LiveActionProgress) {
+    val actionType = runCatching { ActionType.valueOf(progress.actionType) }.getOrNull()
+    val title = if (actionType != null) {
+        stringResource(actionPresentation(actionType).first)
+    } else {
+        progress.actionType.replace('_', ' ')
+    }
+    val statusText = when (progress.status) {
+        LiveActionStatus.PENDING -> stringResource(R.string.execution_diagnostic_pending)
+        LiveActionStatus.RUNNING -> stringResource(R.string.execution_diagnostic_running)
+        LiveActionStatus.SUCCEEDED -> "✓ " + stringResource(R.string.execution_diagnostic_action_ok)
+        LiveActionStatus.FAILED -> "✕ " + stringResource(R.string.execution_diagnostic_action_failed)
+        LiveActionStatus.SKIPPED -> stringResource(R.string.execution_diagnostic_skipped)
+        LiveActionStatus.UNKNOWN -> stringResource(R.string.execution_diagnostic_outcome_unknown)
+    }
+    val route = progress.channel?.let {
+        stringResource(R.string.execution_diagnostic_via, it)
+    }
+    val verification = when {
+        progress.verified == true ->
+            "✓ " + stringResource(R.string.execution_diagnostic_verified)
+        progress.verificationAttempted ->
+            "✕ " + stringResource(R.string.execution_diagnostic_not_verified)
+        else -> null
+    }
+    val summary = listOfNotNull(statusText, route, verification).joinToString("  →  ")
+    val color = when (progress.status) {
+        LiveActionStatus.SUCCEEDED -> MaterialTheme.colorScheme.primary
+        LiveActionStatus.FAILED,
+        LiveActionStatus.UNKNOWN -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.secondary
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(text = title, style = MaterialTheme.typography.bodyMedium)
+        Text(
+            text = summary,
+            style = MaterialTheme.typography.bodySmall,
+            color = color
+        )
+        progress.errorCode?.let { code ->
+            Text(
+                text = stringResource(R.string.execution_diagnostic_reason, code),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
     }
 }
 
