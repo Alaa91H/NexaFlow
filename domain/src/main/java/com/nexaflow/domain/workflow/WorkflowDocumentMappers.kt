@@ -56,12 +56,7 @@ object WorkflowDocumentMappers {
             )
         }
         val exitActions = exitActions.mapIndexed { index, action ->
-            PersistedActionV1(
-                type = action.type.name,
-                config = action.config,
-                endBehavior = null,
-                nodeId = stableNodeId("exit", id, index, action.type.name),
-            )
+            action.toPersisted(nodeId = stableNodeId("exit", id, index, action.type.name))
         }
         return WorkflowDocumentV1(
             id = id,
@@ -149,7 +144,7 @@ object WorkflowDocumentMappers {
             icon = metadata.icon,
             iconColor = settings.iconColor,
             backgroundColor = settings.backgroundColor,
-            category = metadata.category.ifBlank { "general" },
+            category = metadata.category,
             priority = settings.priority,
             enabled = settings.enabled,
             showToastOnToggle = settings.showToastOnToggle,
@@ -160,8 +155,8 @@ object WorkflowDocumentMappers {
             exitActions = exitPolicy?.actions?.map { it.toAction() } ?: emptyList(),
             revertOnExit = exitPolicy?.revertOnExit ?: false,
             cooldownSeconds = settings.cooldownSeconds,
-            createdAt = metadata.createdAt.takeIf { it > 0 } ?: 0L,
-            updatedAt = metadata.updatedAt.takeIf { it > 0 } ?: 0L,
+            createdAt = metadata.createdAt,
+            updatedAt = metadata.updatedAt,
             workflowVersion = settings.workflowVersion,
             maintenanceProfile = settings.maintenanceProfile,
         )
