@@ -506,7 +506,7 @@ fun AutomationDetailsScreen(navController: NavController) {
                 }
             },
             confirmButton = {
-                TextButton(onClick = { runBlockDialog = false; viewModel.runNow() }) {
+                TextButton(onClick = { runBlockDialog = false; viewModel.runEndBehavior() }) {
                     Text(stringResource(R.string.run_reason_run_end))
                 }
             },
