@@ -91,4 +91,7 @@
     <string name="why_run_fix_retry_or_review">Görevi yeniden çalıştırın. Tekrar başarısız olursa işlemi ve cihaz izinlerini gözden geçirin.</string>
     <string name="why_run_fix_review_device_state">Görevi yeniden çalıştırmadan önce cihazın gerçek durumunu kontrol edin.</string>
     <string name="why_run_fix_open_history">Başarısız işlemi bulmak için aşağıdaki yürütme zaman çizelgesini inceleyin.</string>
+
+    <string name="why_run_configuration_blocked">Görev yapılandırması eksik olduğu için çalıştırma engellendi.</string>
+    <string name="why_run_fix_review_task_configuration">Yeniden denemeden önce görev yapılandırmasını gözden geçirin ve gerekli değerleri girin.</string>
 </resources>
