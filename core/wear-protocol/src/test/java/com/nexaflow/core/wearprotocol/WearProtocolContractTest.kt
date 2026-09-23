@@ -64,6 +64,92 @@ class WearProtocolContractTest {
     }
 
     @Test
+    fun `typed command result event and device snapshot round trip`() {
+        val command = WearCommandRequest(
+            requestId = "req-1",
+            command = WearCommandKind.SET_AUTOMATION_ENABLED,
+            automationId = "automation-1",
+            enabled = true,
+            arguments = mapOf("source" to "tile"),
+        )
+        val result = WearCommandResult(
+            requestId = "req-1",
+            status = WearCommandStatus.SUCCESS,
+            executedAtEpochMs = 2_000L,
+            message = "ok",
+            data = mapOf("watch" to "watch-1"),
+        )
+        val event = WearEvent(
+            eventId = "event-1",
+            kind = WearEventKind.BATTERY_LEVEL_CHANGED,
+            occurredAtEpochMs = 3_000L,
+            state = "BELOW",
+            data = mapOf("level" to "18"),
+        )
+        val device = WearDeviceDescriptor(
+            watchInstallId = "watch-1",
+            nodeId = "node-1",
+            displayName = "Test watch",
+            appVersionName = "3.87.0",
+            appVersionCode = 38700L,
+            wearOsSdk = 36,
+            capabilities = WearCapability.entries.toSet(),
+            lastSeenEpochMs = 4_000L,
+        )
+        val capabilities = WearCapabilitySnapshot(
+            watchInstallId = "watch-1",
+            capabilities = WearCapability.entries.toSet(),
+            permissions = mapOf("BODY_SENSORS" to true),
+            updatedAtEpochMs = 5_000L,
+        )
+
+        assertEquals(
+            command,
+            WearProtocolJson.format.decodeFromString<WearCommandRequest>(
+                WearProtocolJson.format.encodeToString(command),
+            ),
+        )
+        assertEquals(
+            result,
+            WearProtocolJson.format.decodeFromString<WearCommandResult>(
+                WearProtocolJson.format.encodeToString(result),
+            ),
+        )
+        assertEquals(
+            event,
+            WearProtocolJson.format.decodeFromString<WearEvent>(
+                WearProtocolJson.format.encodeToString(event),
+            ),
+        )
+        assertEquals(
+            device,
+            WearProtocolJson.format.decodeFromString<WearDeviceDescriptor>(
+                WearProtocolJson.format.encodeToString(device),
+            ),
+        )
+        assertEquals(
+            capabilities,
+            WearProtocolJson.format.decodeFromString<WearCapabilitySnapshot>(
+                WearProtocolJson.format.encodeToString(capabilities),
+            ),
+        )
+    }
+
+    @Test
+    fun `versioned paths are namespaced and distinct`() {
+        val paths = listOf(
+            WearProtocol.PATH_COMMAND_V1,
+            WearProtocol.PATH_EVENT_V1,
+            WearProtocol.PATH_RESULT_V1,
+            WearProtocol.PATH_DEVICE_STATE_V1,
+            WearProtocol.PATH_CAPABILITIES_V1,
+        )
+
+        assertEquals(paths.size, paths.toSet().size)
+        assertTrue(paths.all { it.startsWith("/nexaflow/v1/") })
+    }
+
+    @Test
     fun `ttl expires only after deadline`() {
         val envelope = WearEnvelope(
             messageId = "ttl-1",
