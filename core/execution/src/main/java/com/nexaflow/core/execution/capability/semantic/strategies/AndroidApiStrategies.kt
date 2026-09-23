@@ -61,10 +61,22 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
             if (service(WifiManager::class.java) != null) StrategyAvailability(true)
             else StrategyAvailability(false, "Wi-Fi service is unavailable")
 
-        SemanticOperationId.BLUETOOTH_GET_STATE,
-        SemanticOperationId.BLUETOOTH_SET_STATE ->
+        SemanticOperationId.BLUETOOTH_GET_STATE ->
             if (service(BluetoothManager::class.java)?.adapter != null) StrategyAvailability(true)
             else StrategyAvailability(false, "Bluetooth adapter is unavailable")
+
+        SemanticOperationId.BLUETOOTH_SET_STATE -> {
+            val adapter = service(BluetoothManager::class.java)?.adapter
+            when {
+                adapter == null -> StrategyAvailability(false, "Bluetooth adapter is unavailable")
+                !hasBluetoothConnectPermission() -> StrategyAvailability(
+                    available = false,
+                    reason = "BLUETOOTH_CONNECT has not been granted",
+                    permissionRequired = true
+                )
+                else -> StrategyAvailability(true)
+            }
+        }
 
         SemanticOperationId.LOCATION_GET_STATE ->
             if (service(LocationManager::class.java) != null) StrategyAvailability(true)
@@ -272,11 +284,7 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
         // guard mirrors the reviewed SystemController behavior. Without the
         // runtime grant the call throws SecurityException, so it is checked
         // explicitly instead of relying on a catch-all.
-        val hasPermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
-            androidx.core.content.ContextCompat.checkSelfPermission(
-                context, android.Manifest.permission.BLUETOOTH_CONNECT
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-        if (!hasPermission) {
+        if (!hasBluetoothConnectPermission()) {
             return OperationOutcome.failed(
                 SemanticOperationId.BLUETOOTH_SET_STATE,
                 com.nexaflow.domain.capability.CapabilityErrorCode.PERMISSION_DENIED,
@@ -440,7 +448,7 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
             onFailure = {
                 OperationOutcome.failed(
                     SemanticOperationId.DND_SET_STATE,
-                    com.nexaflow.domain.capability.CapabilityErrorCode.ACCESSIBILITY_UNAVAILABLE,
+                    com.nexaflow.domain.capability.CapabilityErrorCode.PERMISSION_DENIED,
                     "Notification policy access is required to change Do-Not-Disturb",
                     strategy = id
                 )
@@ -487,6 +495,12 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
 
     private fun canWriteSystemSettings(): Boolean =
         android.provider.Settings.System.canWrite(context)
+
+    private fun hasBluetoothConnectPermission(): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                context, android.Manifest.permission.BLUETOOTH_CONNECT
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
 
     private fun notificationPolicyAccessGranted(): Boolean =
         service(NotificationManager::class.java)?.isNotificationPolicyAccessGranted == true
