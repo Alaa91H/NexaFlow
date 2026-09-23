@@ -110,7 +110,9 @@ import com.nexaflow.core.engine.currentCellularGeneration
 import com.nexaflow.core.rom.CustomSettingsBridge
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.SelectChip
-import com.nexaflow.domain.catalog.AutomationNodeCatalog\nimport com.nexaflow.domain.catalog.AutomationNodeFamily\nimport com.nexaflow.domain.models.TriggerType
+import com.nexaflow.domain.catalog.AutomationNodeCatalog
+import com.nexaflow.domain.catalog.AutomationNodeFamily
+import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
