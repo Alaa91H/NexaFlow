@@ -108,6 +108,20 @@ class TriggerIndexTest {
     }
 
     @Test
+    fun `Wear triggers map to the dedicated Wear source and are indexed`() = runTest {
+        assertEquals("wear", sourceOf(TriggerType.WEAR_EVENT))
+        val wear = automation("wear-1", triggerTypes = listOf(TriggerType.WEAR_EVENT))
+        val index = TriggerIndex(MutableStateFlow(listOf(wear)))
+        startCollecting(index)
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf("wear-1"),
+            index.bySource(TriggerSource.WEAR.sourceId).map { it.id },
+        )
+    }
+
+    @Test
     fun `network mode hotspot and rom setting map to their canonical sources`() = runTest {
         val net = automation("net", triggerTypes = listOf(TriggerType.NETWORK_MODE))
         val hotspot = automation("hotspot", triggerTypes = listOf(TriggerType.HOTSPOT))
