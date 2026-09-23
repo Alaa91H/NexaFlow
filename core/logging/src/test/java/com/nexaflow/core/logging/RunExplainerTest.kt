@@ -170,6 +170,29 @@ class RunExplainerTest {
     }
 
     @Test
+    fun explicitTraceSequenceAdvancesAutomaticCounter() = runTest {
+        val store = InMemoryLogStore()
+        val recorder = TraceRecorder(store)
+        recorder.record(
+            event(
+                phase = TracePhase.ADMISSION,
+                reason = TraceReasons.RUN_STARTED,
+                sequence = 5,
+            ),
+        )
+        recorder.record(
+            event(
+                phase = TracePhase.NODE_ATTEMPT,
+                reason = "NODE_STARTED",
+                sequence = 0,
+            ).copy(id = "auto-after-explicit"),
+        )
+
+        val sequences = store.timeline().first().mapNotNull { it.traceSequence }
+        assertEquals(listOf(5, 6), sequences)
+    }
+
+    @Test
     fun terminalOutcomeReleasesSequenceState() = runTest {
         val recorder = TraceRecorder(InMemoryLogStore())
         recorder.record(
