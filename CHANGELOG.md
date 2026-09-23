@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Prevented root-detection timeout cleanup from surfacing spurious
+  `java.io.IOException: Stream closed` errors from background process-output
+  readers. The timeout path intentionally destroys the probe process; its pipe
+  closure is now treated as an expected cancellation condition instead of an
+  uncaught thread failure.
+
 ## [v3.86.1] - 2026-09-23
 
 ### Fixed — Wear OS companion synchronization
