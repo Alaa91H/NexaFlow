@@ -309,3 +309,28 @@ jobs:
             --notes-file release-notes.md \
             $PRERELEASE
         fi
+    - name: Verify Release Assets Are Attached
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        APK_NAME="NexaFlow-$GITHUB_REF_NAME.apk"
+        WATCH_APK_NAME="NexaFlow-Wear-$GITHUB_REF_NAME.apk"
+        REQUIRED="[$APK_NAME, $WATCH_APK_NAME]"
+        sleep 5
+        for attempt in 1 2 3; do
+          MISSING=$(gh release view "$GITHUB_REF_NAME" --json assets \
+            --jq "\$REQUIRED - [.assets[].name] | length" 2>/dev/null || echo 99)
+          if [ "$MISSING" = "0" ]; then
+            echo "All release assets attached for $GITHUB_REF_NAME."
+            exit 0
+          fi
+          echo "Missing $MISSING asset(s) (attempt $attempt) — re-uploading..."
+          gh release upload "$GITHUB_REF_NAME" \
+            "app/build/outputs/apk/release/app-release.apk#$APK_NAME" \
+            "wear/build/outputs/apk/release/wear-release.apk#$WATCH_APK_NAME" \
+            --clobber || true
+          sleep 15
+        done
+        echo "::error::Release assets failed to attach for $GITHUB_REF_NAME — run must not pass silently."
+        exit 1
