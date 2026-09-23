@@ -91,4 +91,7 @@
     <string name="why_run_fix_retry_or_review">タスクを再実行してください。再び失敗する場合は、アクションと端末権限を確認してください。</string>
     <string name="why_run_fix_review_device_state">タスクを再実行する前に、実際の端末状態を確認してください。</string>
     <string name="why_run_fix_open_history">失敗したアクションを確認するには、下の実行タイムラインを確認してください。</string>
+
+    <string name="why_run_configuration_blocked">タスク設定が不完全なため、実行がブロックされました。</string>
+    <string name="why_run_fix_review_task_configuration">再試行する前にタスク設定を確認し、必要な値を入力してください。</string>
 </resources>
