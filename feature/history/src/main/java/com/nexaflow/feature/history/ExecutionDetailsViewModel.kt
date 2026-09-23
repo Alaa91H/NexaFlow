@@ -71,20 +71,24 @@ internal fun explanationForRecord(
 ): RunExplainer.Explanation? {
     if (record.success && !ExecutionOutcomeClassifier.isSkipped(record)) return null
 
-    val anchorAt = timeline
+    val anchor = timeline
         .firstOrNull { it.id == record.id && it.automationId == record.automationId }
-        ?.startedAt
-        ?: record.executedAt
-
-    val runId = timeline
-        .asSequence()
-        .filter { entry ->
-            entry.automationId == record.automationId &&
-                entry.startedAt == anchorAt &&
-                entry.traceRunId != null
+    val runId = anchor?.runId
+        ?: run {
+            // Legacy fallback for timeline rows created before explicit run
+            // correlation existed. Require the exact execution start time so
+            // a nearby run is never selected heuristically.
+            val anchorAt = anchor?.startedAt ?: record.executedAt
+            timeline
+                .asSequence()
+                .filter { entry ->
+                    entry.automationId == record.automationId &&
+                        entry.startedAt == anchorAt &&
+                        entry.traceRunId != null
+                }
+                .mapNotNull { it.traceRunId }
+                .firstOrNull()
         }
-        .mapNotNull { it.traceRunId }
-        .firstOrNull()
         ?: return null
 
     return RunExplainer.explainTimeline(timeline, runId)
