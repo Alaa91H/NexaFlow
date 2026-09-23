@@ -91,4 +91,7 @@
     <string name="why_run_fix_retry_or_review">कार्य फिर चलाएँ. यदि फिर विफल हो, तो कार्रवाई और डिवाइस अनुमतियाँ जाँचें.</string>
     <string name="why_run_fix_review_device_state">कार्य फिर चलाने से पहले डिवाइस की वास्तविक स्थिति जाँचें.</string>
     <string name="why_run_fix_open_history">विफल कार्रवाई जानने के लिए नीचे निष्पादन टाइमलाइन देखें.</string>
+
+    <string name="why_run_configuration_blocked">कार्य कॉन्फ़िगरेशन अधूरा है, इसलिए रन रोक दिया गया.</string>
+    <string name="why_run_fix_review_task_configuration">फिर प्रयास करने से पहले कार्य कॉन्फ़िगरेशन की समीक्षा करें और आवश्यक मान भरें.</string>
 </resources>
