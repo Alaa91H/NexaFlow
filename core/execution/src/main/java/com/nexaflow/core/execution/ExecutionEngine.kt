@@ -605,7 +605,11 @@ class ExecutionEngine(
                     actionType = action.type.name,
                     success = result.success,
                     message = result.message,
-                    durationMs = epochMillis.now() - actionStartedAt
+                    durationMs = epochMillis.now() - actionStartedAt,
+                    channel = result.executionChannel ?: channel?.type?.name,
+                    errorCode = result.errorCode,
+                    verificationAttempted = result.verificationAttempted,
+                    verified = result.verified
                 )
                 list.add(execResult)
 
@@ -877,7 +881,11 @@ class ExecutionEngine(
                     actionType = "STATE_RESTORE",
                     success = restoreResult.success,
                     message = restoreResult.message,
-                    durationMs = 0
+                    durationMs = 0,
+                    channel = restoreResult.executionChannel ?: channel?.type?.name,
+                    errorCode = restoreResult.errorCode,
+                    verificationAttempted = restoreResult.verificationAttempted,
+                    verified = restoreResult.verified
                 )
             )
         } else {
@@ -905,7 +913,11 @@ class ExecutionEngine(
                             actionType = "${action.type.name}_END",
                             success = result.success,
                             message = result.message,
-                            durationMs = epochMillis.now() - actionStartedAt
+                            durationMs = epochMillis.now() - actionStartedAt,
+                            channel = result.executionChannel ?: channel?.type?.name,
+                            errorCode = result.errorCode,
+                            verificationAttempted = result.verificationAttempted,
+                            verified = result.verified
                         )
                     )
                 }
@@ -918,7 +930,11 @@ class ExecutionEngine(
                             actionType = action.type.name,
                             success = result.success,
                             message = result.message,
-                            durationMs = epochMillis.now() - actionStartedAt
+                            durationMs = epochMillis.now() - actionStartedAt,
+                            channel = result.executionChannel ?: channel?.type?.name,
+                            errorCode = result.errorCode,
+                            verificationAttempted = result.verificationAttempted,
+                            verified = result.verified
                         )
                     )
                 }
