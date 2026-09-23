@@ -436,7 +436,7 @@ internal fun TriggerType.labelRes(): Int = when (this) {
     TriggerType.BOOT_COMPLETED -> R.string.trigger_type_boot_completed
     TriggerType.NFC_TAG_SCANNED -> R.string.trigger_type_nfc_tag_scanned
     TriggerType.ALARM_SET_CHANGED -> R.string.trigger_type_alarm_set_changed
-    TriggerType.WEAR_EVENT -> R.string.trigger_type_wear_event
+    TriggerType.WEAR_EVENT -> R.string.trigger_wear_event
     TriggerType.PLUGIN_EVENT -> R.string.action_plugin
 }
 
@@ -496,7 +496,7 @@ internal fun TriggerType.descRes(): Int = when (this) {
     TriggerType.BOOT_COMPLETED -> R.string.trigger_type_boot_sub
     TriggerType.NFC_TAG_SCANNED -> R.string.trigger_type_nfc_sub
     TriggerType.ALARM_SET_CHANGED -> R.string.trigger_type_alarm_sub
-    TriggerType.WEAR_EVENT -> R.string.trigger_type_wear_event_sub
+    TriggerType.WEAR_EVENT -> R.string.trigger_wear_event_sub
     TriggerType.PLUGIN_EVENT -> R.string.action_plugin_sub
 }
 
