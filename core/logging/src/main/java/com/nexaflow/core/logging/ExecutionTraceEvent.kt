@@ -90,7 +90,13 @@ class TraceRecorder(private val logStore: LogStore) {
      */
     suspend fun record(event: ExecutionTraceEvent) {
         try {
-            val seq = counters.merge(event.runId, 1) { _, b -> b + 1 } ?: 1
+            val seq = counters.compute(event.runId) { _, current ->
+                if (event.sequence > 0) {
+                    maxOf(current ?: 0, event.sequence)
+                } else {
+                    (current ?: 0) + 1
+                }
+            } ?: 1
             val stamped = if (event.sequence == 0) event.copy(sequence = seq) else event
             // Redact here even when the supplied LogStore is not wrapped in
             // RedactingLogStore. TraceRecorder's public contract is that raw
