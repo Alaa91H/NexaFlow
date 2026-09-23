@@ -73,6 +73,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.ManualBlockReason
+import com.nexaflow.core.execution.ManualBlockKind
 import com.nexaflow.core.execution.R as ExecutionR
 import com.nexaflow.core.ui.EmptyState
 import com.nexaflow.core.ui.IconBadge
@@ -410,7 +412,7 @@ fun DashboardScreen(navController: NavController) {
     // offers either the honest exit path (OK = run the end behavior) or the
     // explicit force-run override.
     runBlockDialogTarget?.let { automation ->
-        val block = produceState<ExecutionEngine.ManualBlockReason?>(
+        val block = produceState<ManualBlockReason?>(
             initialValue = null,
             key1 = automation.id
         ) { value = viewModel.describeManualBlock(automation) }.value
@@ -421,14 +423,14 @@ fun DashboardScreen(navController: NavController) {
                 Column {
                     Text(text = stringResource(R.string.run_reason_task, automation.name))
                     when (block?.kind) {
-                        ExecutionEngine.ManualBlockKind.TRIGGERS_NOT_MET ->
+                        ManualBlockKind.TRIGGERS_NOT_MET ->
                             block.failedTriggerLabels.forEach { label ->
                                 Text(
                                     text = stringResource(R.string.run_reason_trigger, label),
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
-                        ExecutionEngine.ManualBlockKind.TRIGGERS_UNKNOWN -> {
+                        ManualBlockKind.TRIGGERS_UNKNOWN -> {
                             Text(text = stringResource(R.string.run_reason_unknown))
                             block.failedTriggerLabels.forEach { label ->
                                 Text(
@@ -437,14 +439,14 @@ fun DashboardScreen(navController: NavController) {
                                 )
                             }
                         }
-                        ExecutionEngine.ManualBlockKind.CONSTRAINTS_NOT_MET ->
+                        ManualBlockKind.CONSTRAINTS_NOT_MET ->
                             block.failedConstraintLabels.forEach { label ->
                                 Text(
                                     text = stringResource(R.string.run_reason_constraint, label),
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
-                        ExecutionEngine.ManualBlockKind.INVALID_TIME_RANGE ->
+                        ManualBlockKind.INVALID_TIME_RANGE ->
                             Text(text = stringResource(R.string.run_reason_no_exit))
                         else -> Unit
                     }
