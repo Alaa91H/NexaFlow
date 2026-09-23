@@ -69,11 +69,11 @@
     <string name="diagnostics_action_config_label">Action configuration problems</string>
 
     <!-- Structured execution diagnosis. -->
-    <string name="why_run_title">Why didn't this run?</string>
+    <string name="why_run_title">Why didn\'t this run?</string>
     <string name="why_run_constraint_blocked">One or more task conditions blocked this run.</string>
     <string name="why_run_all_triggers_blocked">Not all required triggers were true at the same time.</string>
     <string name="why_run_unknown">This run stopped for a recorded reason. See the detail below.</string>
     <string name="why_run_fix_label">Suggested fix</string>
-    <string name="why_run_fix_review_constraints">Review the task's conditions and the current device state.</string>
+    <string name="why_run_fix_review_constraints">Review the task\'s conditions and the current device state.</string>
     <string name="why_run_fix_check_all_conditions">Check every trigger in the task and make sure all required conditions are currently true.</string>
 </resources>
