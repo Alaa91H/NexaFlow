@@ -76,4 +76,19 @@
     <string name="why_run_fix_label">推奨される対処</string>
     <string name="why_run_fix_review_constraints">タスクの条件と現在の端末状態を確認してください。</string>
     <string name="why_run_fix_check_all_conditions">タスク内の各トリガーを確認し、必要な条件がすべて現在成立していることを確認してください。</string>
+
+    <string name="why_run_capability_blocked">必要な機能または権限を利用できません。</string>
+    <string name="why_run_admission_rejected">別の実行または復旧状態がまだ有効なため、この実行は拒否されました。</string>
+    <string name="why_run_maintenance_waiting">このメンテナンスタスクは許可された実行時間帯を待っています。</string>
+    <string name="why_run_maintenance_duplicate">このメンテナンス実行はすでに完了しているため、再実行されませんでした。</string>
+    <string name="why_run_action_failed">タスクが正常に完了する前にアクションが失敗しました。</string>
+    <string name="why_run_verification_failed">要求された変更を端末上で確認できませんでした。</string>
+    <string name="why_run_outcome_uncertain">端末の状態から、要求された変更が完了したかどうかを確認できませんでした。</string>
+    <string name="why_run_failed">タスクは記録されたエラーで終了しました。</string>
+    <string name="why_run_fix_grant_capability">必要な権限を付与するか、利用可能な実行プロバイダーを準備してから再試行してください。</string>
+    <string name="why_run_fix_check_running_state">実行中の処理が完了するまで待つか、ブロックが続く場合は復旧状態を確認してください。</string>
+    <string name="why_run_fix_review_action_config">失敗したアクションの設定、権限、必要なプロバイダーを確認してください。</string>
+    <string name="why_run_fix_retry_or_review">タスクを再実行してください。再び失敗する場合は、アクションと端末権限を確認してください。</string>
+    <string name="why_run_fix_review_device_state">タスクを再実行する前に、実際の端末状態を確認してください。</string>
+    <string name="why_run_fix_open_history">失敗したアクションを確認するには、下の実行タイムラインを確認してください。</string>
 </resources>
