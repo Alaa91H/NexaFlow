@@ -201,7 +201,33 @@ data class VariableDeclarationV1(
     /** True when [defaultValue] holds a SecretReference-style handle. */
     val isSecret: Boolean = false,
     val description: String = "",
-)
+) {
+    init {
+        require(runtimeType != "SECRET" || isSecret) {
+            "SECRET runtimeType requires isSecret=true"
+        }
+        if (isSecret && defaultValue != null) {
+            val handle = when (defaultValue) {
+                is RuntimeValueV1.SecretReference -> defaultValue.handle
+                // Read legacy-v1 documents that represented the handle as a
+                // string, but still reject plaintext secret material.
+                is RuntimeValueV1.StringValue -> defaultValue.value
+                else -> null
+            }
+            require(
+                handle != null &&
+                    com.nexaflow.domain.variables.SecretReferenceRules
+                        .validateHandle(handle)
+                        .isEmpty()
+            ) {
+                "Secret variable defaults must be vault handles"
+            }
+        }
+        require(defaultValue !is RuntimeValueV1.SecretReference || isSecret) {
+            "SecretReference defaults require isSecret=true"
+        }
+    }
+}
 
 /**
  * Closed, serializable value algebra for declared defaults. Mirrors the domain
@@ -251,7 +277,15 @@ sealed interface RuntimeValueV1 {
     @Serializable
     @SerialName("secret_ref")
     data class SecretReference(val handle: String) : RuntimeValueV1 {
-        init { require(handle.isNotBlank()) { "SecretReference.handle must not be blank" } }
+        init {
+            require(
+                com.nexaflow.domain.variables.SecretReferenceRules
+                    .validateHandle(handle)
+                    .isEmpty()
+            ) {
+                "SecretReference.handle must be a valid vault handle"
+            }
+        }
     }
 }
 
