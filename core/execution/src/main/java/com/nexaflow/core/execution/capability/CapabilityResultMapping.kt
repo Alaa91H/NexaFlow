@@ -6,17 +6,15 @@ import com.nexaflow.domain.capability.CapabilityStatus
 
 /**
  * Collapses the richer capability lifecycle into the legacy boolean action
- * result without inventing success.
- *
- * Only a completed [CapabilityStatus.SUCCESS] is a successful action. PARTIAL
- * and PENDING_USER_ACTION remain non-successful so history, workflow success
- * and follow-up logic cannot claim that a side effect completed when it did
- * not. Intent-only capabilities must therefore report SUCCESS once the
- * requested handoff itself has been launched.
+ * result without inventing success, while retaining non-sensitive provenance
+ * for execution diagnostics/history.
  */
 internal fun CapabilityResult.toSystemControlResult(): SystemControlResult =
-    if (status == CapabilityStatus.SUCCESS) {
-        SystemControlResult.ok(message)
-    } else {
-        SystemControlResult.fail(message)
-    }
+    SystemControlResult(
+        success = status == CapabilityStatus.SUCCESS,
+        message = message,
+        executionChannel = backend?.name,
+        errorCode = errorCode?.name,
+        verificationAttempted = verification?.attempted == true,
+        verified = verification?.takeIf { it.attempted }?.verified
+    )
