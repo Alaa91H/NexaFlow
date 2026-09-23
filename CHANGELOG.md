@@ -122,7 +122,22 @@ as before — the legacy `Automation` remains the storage format.
   `VERIFICATION_FAILED`, unreadable → `UNKNOWN`), reconciliation scoring,
   failed-verification evidence, and `PENDING_USER_ACTION` terminality.
 
-## [Unreleased]
+### Added — Variables 1.0 domain contracts (P0.3) and "Why didn't this run?" explainer (P0.4)
+
+- **Variables 1.0 contracts** (new, `domain/variables/Variables10.kt`): the typed variable
+  declaration model with the roadmap's six scopes (action output, node,
+  execution, workflow-persistent, global-persistent, secret), deterministic
+  scope-resolution precedence, bounded size/depth quotas, cycle-safe computed
+  references, and `SecretReference` — a keystore-backed reference type that
+  carries a key alias instead of a value, refuses to serialize the underlying
+  secret, and is excluded from export by default.
+- **RunExplainer** (new, `core/logging/RunExplainer.kt`): turns the typed execution-trace
+  events recorded in the previous milestone into a user-facing answer for the
+  single most-asked question — *"why didn't this run?"* — with a reason code,
+  a plain-language explanation, and a concrete fix step where one exists
+  (grant permission, enable Shizuku, adjust trigger, unsupported on device).
+  Secret values can never enter an explanation by construction; the input
+  surface is the redaction-safe trace model.
 
 ## [v3.85.1] - 2026-09-22
 
@@ -351,7 +366,9 @@ as before — the legacy `Automation` remains the storage format.
   device logcat review traced every skip path to the admission layer, not the
   actions:
   - **Save-time snapshot race** — `saveAutomation` read the capability snapshot
-    synchronously while the refresh triggered on screen entry was still in    flight, so the pre-scan answer classified runnable tasks as inadmissible    and saved them **disabled**. Admission is now decided on
+    synchronously while the refresh triggered on screen entry was still in
+    flight, so the pre-scan answer classified runnable tasks as inadmissible
+    and saved them **disabled**. Admission is now decided on
     `CapabilityStateStore.freshSnapshot()`: request a refresh, wait (bounded,
     4 s budget) for an observation made at or after the request. Inside the
     store's 30 s minimum-refresh backoff the recent snapshot is returned
