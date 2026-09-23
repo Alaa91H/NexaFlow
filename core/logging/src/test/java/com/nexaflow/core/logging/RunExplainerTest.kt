@@ -2,6 +2,7 @@ package com.nexaflow.core.logging
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -124,6 +125,48 @@ class RunExplainerTest {
         // Redaction re-applied at the report boundary as defense in depth.
         assertTrue("supersecret123" !in report)
         assertTrue("[REDACTED]" in report)
+    }
+
+    @Test
+    fun timelineTraceRetainsStructuredFieldsForExplainer() = runTest {
+        val store = InMemoryLogStore()
+        val recorder = TraceRecorder(store)
+        recorder.record(
+            ExecutionTraceEvent(
+                id = "trace-structured",
+                runId = "run-structured",
+                automationId = "task-1",
+                sequence = 0,
+                phase = TracePhase.OUTCOME,
+                reasonCode = TraceReasons.RUN_FAILED,
+                detail = "token=supersecret123",
+                backend = "SHIZUKU",
+                nodeId = "node-7",
+                atEpochMs = 2_000L,
+                durationMs = 25L,
+            ),
+        )
+
+        val row = store.timeline().first().single()
+        assertTrue(!row.success)
+        assertEquals("run-structured", row.traceRunId)
+        assertEquals(1, row.traceSequence)
+        assertEquals(TracePhase.OUTCOME, row.tracePhase)
+        assertEquals(TraceReasons.RUN_FAILED, row.traceReasonCode)
+        assertEquals("node-7", row.traceNodeId)
+        assertTrue(row.traceDetail?.contains("supersecret123") == false)
+
+        val event = requireNotNull(row.toTraceEventOrNull())
+        assertEquals("run-structured", event.runId)
+        assertEquals(1, event.sequence)
+        assertEquals("node-7", event.nodeId)
+        assertEquals("SHIZUKU", event.backend)
+
+        val explanation = RunExplainer.explainTimeline(
+            store.timeline().first(),
+            "run-structured",
+        )
+        assertEquals("explain_run_failed", explanation?.explanationKey)
     }
 
     @Test
