@@ -91,4 +91,7 @@
     <string name="why_run_fix_retry_or_review">Relancez la tâche. Si elle échoue encore, vérifiez l’action et les autorisations de l’appareil.</string>
     <string name="why_run_fix_review_device_state">Vérifiez l’état réel de l’appareil avant de relancer la tâche.</string>
     <string name="why_run_fix_open_history">Consultez la chronologie d’exécution ci-dessous pour identifier l’action en échec.</string>
+
+    <string name="why_run_configuration_blocked">La configuration de la tâche est incomplète, l’exécution a donc été bloquée.</string>
+    <string name="why_run_fix_review_task_configuration">Vérifiez la configuration de la tâche et renseignez les valeurs requises avant de réessayer.</string>
 </resources>
