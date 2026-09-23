@@ -9,6 +9,20 @@ import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.ConstraintSnapshot
 import com.nexaflow.domain.models.requiresTimeRangeForEndBehavior
 
+data class ManualBlockReason(
+    val kind: ManualBlockKind,
+    val failedTriggerLabels: List<String>,
+    val failedConstraintLabels: List<String>
+)
+
+enum class ManualBlockKind {
+    NONE,
+    TRIGGERS_NOT_MET,
+    TRIGGERS_UNKNOWN,
+    CONSTRAINTS_NOT_MET,
+    INVALID_TIME_RANGE
+}
+
 /**
  * Side-effect-free evaluator for manual task admission.
  *
@@ -21,9 +35,9 @@ internal class ManualAdmissionEvaluator(
     private val capabilityExecutionService: CapabilityExecutionService?,
     private val constraintStateProvider: (() -> ConstraintSnapshot?)?
 ) {
-    suspend fun describe(automation: Automation): ExecutionEngine.ManualBlockReason {
+    suspend fun describe(automation: Automation): ManualBlockReason {
         if (automation.requiresTimeRangeForEndBehavior) {
-            return reason(ExecutionEngine.ManualBlockKind.INVALID_TIME_RANGE)
+            return reason(ManualBlockKind.INVALID_TIME_RANGE)
         }
 
         val triggerResult = TriggerStateEvaluator.evaluateAsync(
@@ -55,30 +69,30 @@ internal class ManualAdmissionEvaluator(
 
         return when {
             failedTriggers.isEmpty() && constraintSatisfied ->
-                reason(ExecutionEngine.ManualBlockKind.NONE)
+                reason(ManualBlockKind.NONE)
             failedTriggers.isNotEmpty() && triggerResult == ConditionResult.Unknown ->
                 reason(
-                    ExecutionEngine.ManualBlockKind.TRIGGERS_UNKNOWN,
+                    ManualBlockKind.TRIGGERS_UNKNOWN,
                     failedTriggers = failedTriggers
                 )
             failedTriggers.isNotEmpty() ->
                 reason(
-                    ExecutionEngine.ManualBlockKind.TRIGGERS_NOT_MET,
+                    ManualBlockKind.TRIGGERS_NOT_MET,
                     failedTriggers = failedTriggers
                 )
             else ->
                 reason(
-                    ExecutionEngine.ManualBlockKind.CONSTRAINTS_NOT_MET,
+                    ManualBlockKind.CONSTRAINTS_NOT_MET,
                     failedConstraints = failedConstraints
                 )
         }
     }
 
     private fun reason(
-        kind: ExecutionEngine.ManualBlockKind,
+        kind: ManualBlockKind,
         failedTriggers: List<String> = emptyList(),
         failedConstraints: List<String> = emptyList()
-    ) = ExecutionEngine.ManualBlockReason(
+    ) = ManualBlockReason(
         kind = kind,
         failedTriggerLabels = failedTriggers,
         failedConstraintLabels = failedConstraints
