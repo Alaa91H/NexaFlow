@@ -146,4 +146,5 @@
     <string name="share_task_title">Partager la tâche (.nexaflow)</string>
     <string name="share_task_failed">Impossible de partager cette tâche</string>
     <string name="task_access_details">Détails de la tâche et liens d\'accès</string>
+    <string name="trigger_wear_event">Montre Wear OS</string>
 </resources>
