@@ -1,8 +1,10 @@
 package com.nexaflow.core.engine
 
+import android.content.Context
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerStateEvaluator
 import com.nexaflow.core.execution.compat.TriggerSource
 import com.nexaflow.core.wearprotocol.WearRuntimeState
 import com.nexaflow.domain.events.EventFilter
@@ -11,11 +13,13 @@ import com.nexaflow.domain.events.NexaFlowEvent
 import com.nexaflow.domain.events.NexaFlowEventBus
 import com.nexaflow.domain.events.NexaFlowEventType
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.TriggerMatchMode
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import java.util.concurrent.ConcurrentHashMap
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
@@ -34,6 +38,7 @@ import kotlinx.coroutines.sync.withLock
  */
 @Singleton
 class WearEventRouter @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
     private val activeStore: ActiveTriggerStore,
@@ -103,7 +108,9 @@ class WearEventRouter @Inject constructor(
             candidates.forEach { automation ->
                 when (wearConditionFor(automation)) {
                     true -> enterIfNeeded(automation, now)
-                    false -> exitIfNeeded(automation)
+                    false -> if (shouldExitAfterWearFalse(automation)) {
+                        exitIfNeeded(automation)
+                    }
                     null -> Unit
                 }
             }
@@ -149,6 +156,26 @@ class WearEventRouter @Inject constructor(
                 else -> null
             }
         }
+    }
+
+    /**
+     * ALL becomes false as soon as one Wear condition is false. For ANY, a
+     * different trigger may still keep the automation active; confirm the
+     * remaining current-state triggers before closing the lifecycle. Unknown
+     * is deliberately fail-closed: an unreadable state is never proof that the
+     * whole ANY expression ended.
+     */
+    private suspend fun shouldExitAfterWearFalse(automation: Automation): Boolean {
+        if (automation.triggerMatch == TriggerMatchMode.ALL) return true
+        val remaining = automation.triggers.filterNot { it.type == TriggerType.WEAR_EVENT }
+        if (remaining.isEmpty()) return true
+
+        val states = remaining.map { trigger ->
+            runCatching {
+                TriggerStateEvaluator.evaluateTriggerState(context, trigger)
+            }.getOrElse { ConditionResult.Unknown }
+        }
+        return states.all { it == ConditionResult.Unsatisfied }
     }
 
     private suspend fun enterIfNeeded(automation: Automation, now: Long) {
