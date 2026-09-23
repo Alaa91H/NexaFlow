@@ -76,4 +76,19 @@
     <string name="why_run_fix_label">Vorgeschlagene Lösung</string>
     <string name="why_run_fix_review_constraints">Prüfe die Bedingungen der Aufgabe und den aktuellen Gerätezustand.</string>
     <string name="why_run_fix_check_all_conditions">Prüfe jeden Auslöser der Aufgabe und stelle sicher, dass alle erforderlichen Bedingungen derzeit erfüllt sind.</string>
+
+    <string name="why_run_capability_blocked">Eine erforderliche Funktion oder Berechtigung ist nicht verfügbar.</string>
+    <string name="why_run_admission_rejected">Diese Ausführung wurde abgelehnt, weil noch eine andere Ausführung oder ein Wiederherstellungszustand aktiv ist.</string>
+    <string name="why_run_maintenance_waiting">Diese Wartungsaufgabe wartet auf ihr zulässiges Ausführungsfenster.</string>
+    <string name="why_run_maintenance_duplicate">Dieser Wartungsvorgang wurde bereits abgeschlossen und daher nicht erneut ausgeführt.</string>
+    <string name="why_run_action_failed">Eine Aktion ist fehlgeschlagen, bevor die Aufgabe erfolgreich abgeschlossen werden konnte.</string>
+    <string name="why_run_verification_failed">Die angeforderte Änderung konnte auf dem Gerät nicht verifiziert werden.</string>
+    <string name="why_run_outcome_uncertain">Der Gerätezustand konnte nicht bestätigen, ob die angeforderte Änderung abgeschlossen wurde.</string>
+    <string name="why_run_failed">Die Aufgabe wurde mit einem protokollierten Fehler beendet.</string>
+    <string name="why_run_fix_grant_capability">Erteile die erforderliche Berechtigung oder mache einen verfügbaren Ausführungsanbieter bereit und versuche es erneut.</string>
+    <string name="why_run_fix_check_running_state">Warte, bis die aktive Ausführung beendet ist, oder prüfe den Wiederherstellungszustand, wenn die Aufgabe blockiert bleibt.</string>
+    <string name="why_run_fix_review_action_config">Prüfe Konfiguration, Berechtigungen und erforderlichen Anbieter der fehlgeschlagenen Aktion.</string>
+    <string name="why_run_fix_retry_or_review">Starte die Aufgabe erneut. Wenn sie wieder fehlschlägt, prüfe Aktion und Geräteberechtigungen.</string>
+    <string name="why_run_fix_review_device_state">Prüfe den tatsächlichen Gerätezustand, bevor du die Aufgabe erneut startest.</string>
+    <string name="why_run_fix_open_history">Prüfe die Ausführungszeitleiste unten, um die fehlgeschlagene Aktion zu finden.</string>
 </resources>
