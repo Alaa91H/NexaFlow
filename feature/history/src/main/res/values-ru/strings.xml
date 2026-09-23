@@ -67,4 +67,31 @@
     <string name="block_category_contact">Контакт</string>
     <string name="diagnostics_end_behavior_label">Проблемы конечного поведения</string>
     <string name="diagnostics_action_config_label">Проблемы конфигурации действий</string>
+
+    <!-- Structured execution diagnosis. -->
+    <string name="why_run_title">Почему эта задача не запустилась?</string>
+    <string name="why_run_constraint_blocked">Одно или несколько условий задачи заблокировали этот запуск.</string>
+    <string name="why_run_all_triggers_blocked">Не все обязательные триггеры были выполнены одновременно.</string>
+    <string name="why_run_unknown">Этот запуск остановлен по зафиксированной причине. Подробности указаны ниже.</string>
+    <string name="why_run_fix_label">Рекомендуемое исправление</string>
+    <string name="why_run_fix_review_constraints">Проверьте условия задачи и текущее состояние устройства.</string>
+    <string name="why_run_fix_check_all_conditions">Проверьте каждый триггер задачи и убедитесь, что все обязательные условия сейчас выполнены.</string>
+
+    <string name="why_run_capability_blocked">Требуемая возможность или разрешение недоступны.</string>
+    <string name="why_run_admission_rejected">Этот запуск отклонён, потому что другой запуск или состояние восстановления всё ещё активно.</string>
+    <string name="why_run_maintenance_waiting">Эта задача обслуживания ожидает разрешённого окна запуска.</string>
+    <string name="why_run_maintenance_duplicate">Этот цикл обслуживания уже был завершён, поэтому повторный запуск не выполнялся.</string>
+    <string name="why_run_action_failed">Одно из действий завершилось ошибкой до успешного завершения задачи.</string>
+    <string name="why_run_verification_failed">Не удалось подтвердить запрошенное изменение на устройстве.</string>
+    <string name="why_run_outcome_uncertain">По состоянию устройства нельзя подтвердить, завершилось ли запрошенное изменение.</string>
+    <string name="why_run_failed">Задача завершилась с зарегистрированной ошибкой.</string>
+    <string name="why_run_fix_grant_capability">Предоставьте требуемое разрешение или подготовьте доступный способ выполнения, затем повторите попытку.</string>
+    <string name="why_run_fix_check_running_state">Дождитесь завершения активного запуска или проверьте состояние восстановления, если блокировка сохраняется.</string>
+    <string name="why_run_fix_review_action_config">Проверьте настройки, разрешения и требуемый способ выполнения для неудачного действия.</string>
+    <string name="why_run_fix_retry_or_review">Запустите задачу снова. Если ошибка повторится, проверьте действие и разрешения устройства.</string>
+    <string name="why_run_fix_review_device_state">Проверьте фактическое состояние устройства перед повторным запуском задачи.</string>
+    <string name="why_run_fix_open_history">Просмотрите временную шкалу выполнения ниже, чтобы найти неудачное действие.</string>
+
+    <string name="why_run_configuration_blocked">Конфигурация задачи неполная, поэтому запуск был заблокирован.</string>
+    <string name="why_run_fix_review_task_configuration">Проверьте конфигурацию задачи и укажите обязательные значения перед повторной попыткой.</string>
 </resources>
