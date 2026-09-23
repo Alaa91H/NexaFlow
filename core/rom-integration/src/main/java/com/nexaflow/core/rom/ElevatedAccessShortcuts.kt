@@ -22,6 +22,7 @@ object ElevatedAccessShortcuts {
 
     private val shizukuRequestLock = Any()
     private var shizukuPermissionRequestInFlight = false
+    private val pendingShizukuCallbacks = mutableListOf<(Boolean) -> Unit>()
 
     @Volatile
     private var shizukuAppContext: Context? = null
@@ -40,21 +41,16 @@ object ElevatedAccessShortcuts {
      */
     private val shizukuResultListener = Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
         if (requestCode == SHIZUKU_REQUEST_CODE) {
-            val appContext = synchronized(shizukuRequestLock) {
-                shizukuPermissionRequestInFlight = false
-                shizukuAppContext.also { shizukuAppContext = null }
-            }
-            // Shizuku 13.1.5 delivers the grant result as an int:
-            // PERMISSION_GRANTED (0) when granted, PERMISSION_DENIED (-1)
-            // otherwise. A denial still completes the in-flight request so a
-            // later user action can retry instead of being suppressed forever.
-            if (grantResult == PackageManager.PERMISSION_GRANTED) {
-                // Grant landed: arm the elevated shell channel immediately so
-                // the next elevated command runs through the AIDL UserService.
+            val granted = grantResult == PackageManager.PERMISSION_GRANTED
+            val appContext = synchronized(shizukuRequestLock) { shizukuAppContext }
+            // Arm the elevated channel before delivering callbacks so a
+            // follow-up permission-repair pass can use Shizuku immediately.
+            if (granted) {
                 appContext?.let { context ->
                     runCatching { ShizukuShellBridge.initialize(context) }
                 }
             }
+            completeShizukuRequest(granted)
         }
     }
 
@@ -79,7 +75,7 @@ object ElevatedAccessShortcuts {
                 // never arrive; clear the request gate immediately so a later
                 // user action can reconnect instead of being suppressed forever.
                 Shizuku.addBinderDeadListener {
-                    clearShizukuPermissionRequest()
+                    completeShizukuRequest(false)
                 }
                 shizukuBinderDeadListenerRegistered = true
             } catch (_: Throwable) {
@@ -89,21 +85,38 @@ object ElevatedAccessShortcuts {
         return true
     }
 
-    private fun beginShizukuPermissionRequest(context: Context): Boolean =
-        synchronized(shizukuRequestLock) {
-            if (shizukuPermissionRequestInFlight) {
-                false
-            } else {
-                shizukuPermissionRequestInFlight = true
-                shizukuAppContext = context.applicationContext
-                true
-            }
+    private fun beginShizukuPermissionRequest(
+        context: Context,
+        onResult: (Boolean) -> Unit
+    ): Boolean = synchronized(shizukuRequestLock) {
+        pendingShizukuCallbacks += onResult
+        if (shizukuPermissionRequestInFlight) {
+            false
+        } else {
+            shizukuPermissionRequestInFlight = true
+            shizukuAppContext = context.applicationContext
+            true
         }
+    }
 
     private fun clearShizukuPermissionRequest() {
         synchronized(shizukuRequestLock) {
             shizukuPermissionRequestInFlight = false
             shizukuAppContext = null
+            pendingShizukuCallbacks.clear()
+        }
+    }
+
+    private fun completeShizukuRequest(granted: Boolean) {
+        val callbacks = synchronized(shizukuRequestLock) {
+            shizukuPermissionRequestInFlight = false
+            shizukuAppContext = null
+            pendingShizukuCallbacks.toList().also { pendingShizukuCallbacks.clear() }
+        }
+        Handler(Looper.getMainLooper()).post {
+            callbacks.forEach { callback ->
+                runCatching { callback(granted) }
+            }
         }
     }
 
@@ -228,12 +241,14 @@ object ElevatedAccessShortcuts {
      * binder failures clear that state so the user can retry safely, including a
      * Shizuku service restart while the grant dialog is visible.
      */
-    fun openShizuku(context: Context) {
+    fun openShizuku(context: Context, onResult: (Boolean) -> Unit = {}) {
         val appContext = context.applicationContext
+        val mainHandler = Handler(Looper.getMainLooper())
         try {
             if (!Shizuku.pingBinder()) {
                 clearShizukuPermissionRequest()
                 openShizukuManager(appContext)
+                mainHandler.post { onResult(false) }
                 return
             }
             if (Shizuku.isPreV11() ||
@@ -243,17 +258,18 @@ object ElevatedAccessShortcuts {
                 // Already granted: (re)arm the UserService bind so elevated
                 // commands use the AIDL channel instead of the legacy path.
                 runCatching { ShizukuShellBridge.initialize(appContext) }
+                mainHandler.post { onResult(true) }
                 return
             }
-            if (!beginShizukuPermissionRequest(appContext)) return
+            if (!beginShizukuPermissionRequest(appContext, onResult)) return
             if (!ensureShizukuLifecycleListeners()) {
-                clearShizukuPermissionRequest()
+                completeShizukuRequest(false)
                 openShizukuManager(appContext)
                 return
             }
             Shizuku.requestPermission(SHIZUKU_REQUEST_CODE)
         } catch (_: Throwable) {
-            clearShizukuPermissionRequest()
+            completeShizukuRequest(false)
             openShizukuManager(appContext)
         }
     }
