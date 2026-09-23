@@ -1267,4 +1267,6 @@
     <string name="sensor_unavailable">Bu cihaz seçilen sensörü sunmuyor. Bu tetikleyici burada çalışamaz.</string>
     <string name="sensor_invalid_threshold">Sonlu bir sayı girin.</string>
     <string name="sensor_invalid_range">Üst sınır alt sınırdan büyük veya eşit olmalıdır.</string>
+    <string name="trigger_wear_event">Wear OS saati</string>
+    <string name="trigger_wear_event_sub">Bir NexaFlow saati bağlandığında veya bağlantısı kesildiğinde görevi çalıştır</string>
 </resources>
