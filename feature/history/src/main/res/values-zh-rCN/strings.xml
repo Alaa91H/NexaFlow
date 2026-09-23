@@ -67,4 +67,13 @@
     <string name="block_category_contact">联系人</string>
     <string name="diagnostics_end_behavior_label">结束行为问题</string>
     <string name="diagnostics_action_config_label">操作配置问题</string>
+
+    <!-- Structured execution diagnosis. -->
+    <string name="why_run_title">为什么此任务没有运行？</string>
+    <string name="why_run_constraint_blocked">一个或多个任务条件阻止了此次运行。</string>
+    <string name="why_run_all_triggers_blocked">并非所有必需的触发器都在同一时间满足。</string>
+    <string name="why_run_unknown">此次运行因已记录的原因而停止。请查看下方详细信息。</string>
+    <string name="why_run_fix_label">建议的修复方法</string>
+    <string name="why_run_fix_review_constraints">检查任务条件和设备当前状态。</string>
+    <string name="why_run_fix_check_all_conditions">检查任务中的每个触发器，并确保当前满足所有必需条件。</string>
 </resources>
