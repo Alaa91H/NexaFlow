@@ -327,13 +327,15 @@ sealed interface PrivilegedOperation {
 
         /** Conservative read allowlist for reconciliation state reads. */
         val READABLE_SETTING_KEYS: Set<String> = setOf(
-            "wifi_on",
-            "bluetooth_on",
-            "airplane_mode_on",
-            "accelerometer_rotation",
-            "zen_mode",
-            "mobile_data"
-        )
+    "wifi_on",
+    "bluetooth_on",
+    "airplane_mode_on",
+    "accelerometer_rotation",
+    "screen_brightness",
+    "screen_off_timeout",
+    "zen_mode",
+    "mobile_data"
+)
 
         /** Radio services addressable through `svc`; closed by review. */
         enum class ServiceName(val wireValue: String) {
