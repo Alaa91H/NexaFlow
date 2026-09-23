@@ -5,6 +5,8 @@ package com.nexaflow.domain.workflow
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
@@ -35,6 +37,12 @@ data class WorkflowDocumentV1(
     /** Bumped on every edit; immutable once persisted for a given revision. */
     val revision: Long = 1L,
     val metadata: WorkflowMetadataV1,
+    /**
+     * Automation-level behavior/presentation that is not represented by the
+     * graph itself. Keeping it in the document makes legacy round-trips truly
+     * lossless while the legacy Automation row remains the storage format.
+     */
+    val automationSettings: AutomationSettingsV1 = AutomationSettingsV1(),
     val triggers: List<TriggerDefinitionV1> = emptyList(),
     val constraints: List<ConstraintDefinitionV1> = emptyList(),
     val root: PersistedWorkflowNodeV1,
@@ -73,7 +81,10 @@ data class WorkflowDocumentV1(
                     put("metadata", kotlinx.serialization.json.JsonObject(meta))
                 }
             }
-        val canonical = element.toString()
+        // Json object/map iteration order is not semantic. Canonicalize every
+        // object recursively so equal workflow definitions hash identically
+        // even when config maps were constructed in a different key order.
+        val canonical = canonicalizeJson(JsonObject(element)).toString()
         java.security.MessageDigest.getInstance("SHA-256")
             .digest(canonical.toByteArray(Charsets.UTF_8))
             .joinToString("") { "%02x".format(it) }
@@ -95,6 +106,39 @@ data class WorkflowMetadataV1(
     val createdAt: Long = 0L,
     val updatedAt: Long = 0L,
 )
+
+/**
+ * Fields carried by the legacy Automation model that are not encoded by the
+ * workflow graph. Defaults match Automation's historical defaults so documents
+ * written by v3.86.0 (before this block existed) remain readable.
+ *
+ * [deepLinkToken] is intentionally absent: it is an authorization secret and
+ * Automation marks it transient, so workflow export must never copy it.
+ */
+@Serializable
+data class AutomationSettingsV1(
+    val iconColor: Long = 0xFF448AFF,
+    val backgroundColor: Long = 0xFF101010,
+    val priority: Int = 5,
+    val enabled: Boolean = false,
+    val showToastOnToggle: Boolean = true,
+    /** Legacy TriggerMatchMode name: ANY | ALL. */
+    val triggerMatch: String = "ANY",
+    val cooldownSeconds: Int = 10,
+    val workflowVersion: Int = 1,
+    val maintenanceProfile: com.nexaflow.domain.models.MaintenanceProfile? = null,
+)
+
+/** Recursively sorts object keys while preserving array order. */
+private fun canonicalizeJson(element: JsonElement): JsonElement = when (element) {
+    is JsonObject -> JsonObject(
+        element.entries
+            .sortedBy { it.key }
+            .associate { (key, value) -> key to canonicalizeJson(value) }
+    )
+    is JsonArray -> JsonArray(element.map(::canonicalizeJson))
+    else -> element
+}
 
 /**
  * Persisted trigger definition. The legacy `Map<String,String>` config is kept
