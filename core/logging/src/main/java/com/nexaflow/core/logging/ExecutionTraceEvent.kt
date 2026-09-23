@@ -92,6 +92,10 @@ class TraceRecorder(private val logStore: LogStore) {
         try {
             val seq = counters.merge(event.runId, 1) { _, b -> b + 1 } ?: 1
             val stamped = if (event.sequence == 0) event.copy(sequence = seq) else event
+            // Redact here even when the supplied LogStore is not wrapped in
+            // RedactingLogStore. TraceRecorder's public contract is that raw
+            // user content never crosses this boundary.
+            val redactedDetail = SecretRedactor.redact(stamped.detail)
             logStore.recordExecution(
                 ExecutionTimelineEntry(
                     id = stamped.id,
@@ -99,14 +103,18 @@ class TraceRecorder(private val logStore: LogStore) {
                     automationName = "", // joined by the history layer when rendering
                     kind = "TRACE:${stamped.phase.name}",
                     success = stamped.phase != TracePhase.GATE_BLOCKED,
-                    message = "${stamped.reasonCode}${stamped.detail?.let { "|$it" }.orEmpty()}",
+                    message = "${stamped.reasonCode}${redactedDetail?.let { "|$it" }.orEmpty()}",
                     startedAt = stamped.atEpochMs,
                     durationMs = stamped.durationMs,
                     channel = stamped.backend,
                 )
             )
+        } catch (cancellation: kotlinx.coroutines.CancellationException) {
+            // Cancellation is structured-concurrency control flow, not a
+            // logging failure. Never turn cancellation into a successful run.
+            throw cancellation
         } catch (_: Throwable) {
-            // Tracing must never break execution.
+            // Ordinary tracing failures must never break execution.
         }
     }
 
@@ -125,7 +133,7 @@ class TraceRecorder(private val logStore: LogStore) {
             sequence = 0,
             phase = TracePhase.GATE_BLOCKED,
             reasonCode = reasonCode,
-            detail = SecretRedactor.redact(detail),
+            detail = detail,
             atEpochMs = atEpochMs,
         )
     )
