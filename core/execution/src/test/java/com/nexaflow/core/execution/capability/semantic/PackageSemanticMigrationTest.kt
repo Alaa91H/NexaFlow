@@ -75,7 +75,6 @@ class PackageSemanticMigrationTest {
         registry = OperationRegistry.default(),
         strategies = listOf(
             com.nexaflow.core.execution.capability.semantic.strategies.ShizukuTypedStrategy(
-                packageName = "com.nexaflow.app",
                 shizukuGranted = { true },
                 userServiceReady = { true },
                 execute = transport::run
