@@ -783,12 +783,10 @@ class ExecutionEngine(
         manualAdmissionEvaluator.describe(automation)
 
     /** Side-effect-free live status for every trigger and constraint row. */
-    suspend fun diagnoseManualAdmission(automation: Automation): ManualAdmissionDiagnostics =
-        manualAdmissionEvaluator.diagnostics(automation)
+    suspend fun diagnoseManualAdmission(automation: Automation): ManualAdmissionDiagnostics = manualAdmissionEvaluator.diagnostics(automation)
 
     /** Live main-chain progress for the selected automation, if a run exists. */
-    fun observeExecutionProgress(automationId: String): Flow<AutomationExecutionProgress?> =
-        executionProgressTracker.observe(automationId)
+    fun observeExecutionProgress(automationId: String): Flow<AutomationExecutionProgress?> = executionProgressTracker.observe(automationId)
 
     /**
      * Explicit user override of the manual admission gate: skips trigger and
