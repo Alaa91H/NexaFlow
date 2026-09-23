@@ -578,4 +578,10 @@
     <string name="execution_diagnostic_action_ok">اكتمل</string>
     <string name="execution_diagnostic_action_failed">فشل</string>
     <string name="execution_diagnostic_reason">السبب: %1$s</string>
+
+    <string name="execution_diagnostics_current_run">التنفيذ الحالي</string>
+    <string name="execution_diagnostic_pending">بانتظار التنفيذ</string>
+    <string name="execution_diagnostic_running">قيد التنفيذ</string>
+    <string name="execution_diagnostic_skipped">تم التخطي</string>
+    <string name="execution_diagnostic_outcome_unknown">نتيجة التنفيذ غير معروفة</string>
 </resources>
