@@ -128,6 +128,10 @@ data class WearCapabilitySnapshot(
     val watchInstallId: String,
     val protocolVersion: Int = WearProtocol.CURRENT_VERSION,
     val capabilities: Set<WearCapability>,
+    val deviceName: String? = null,
+    val appVersionName: String? = null,
+    val appVersionCode: Long? = null,
+    val wearOsSdk: Int? = null,
     val permissions: Map<String, Boolean> = emptyMap(),
     val updatedAtEpochMs: Long,
 )
