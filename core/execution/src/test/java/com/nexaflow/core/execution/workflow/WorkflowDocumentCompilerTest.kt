@@ -60,6 +60,25 @@ class WorkflowDocumentCompilerTest {
         assertEquals("a1", seq.children[1].id)
     }
 
+    @Test(expected = IllegalArgumentException::class)
+    fun compilerRejectsDuplicateNodeIdsBeforeBuildingRuntimeGraph() {
+        val duplicate = PersistedWorkflowNodeV1.Action(
+            nodeId = "same-id",
+            action = com.nexaflow.domain.workflow.PersistedActionV1(
+                nodeId = "action-payload-1",
+                type = "SYSTEM_WIFI",
+                config = mapOf("enabled" to "true"),
+            ),
+        )
+        val doc = document(
+            PersistedWorkflowNodeV1.Sequence(
+                nodeId = "root",
+                children = listOf(duplicate, duplicate),
+            ),
+        )
+        WorkflowDocumentCompiler.compile(doc, functionRegistry = emptyMap())
+    }
+
     @Test
     fun dataConditionsEvaluateWithLiteralValues() = runTest {
         val condition = ConditionExpr.And(
