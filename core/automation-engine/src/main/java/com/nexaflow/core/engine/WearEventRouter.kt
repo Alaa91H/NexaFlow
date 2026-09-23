@@ -20,6 +20,7 @@ import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.TriggerMatchMode
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
+import com.nexaflow.domain.models.isOneShotEvent
 import com.nexaflow.domain.repositories.AutomationRepository
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -211,7 +212,9 @@ class WearEventRouter @Inject constructor(
      */
     private suspend fun shouldExitAfterWearFalse(automation: Automation): Boolean {
         if (automation.triggerMatch == TriggerMatchMode.ALL) return true
-        val remaining = automation.triggers.filterNot { it.type == TriggerType.WEAR_EVENT }
+        val remaining = automation.triggers.filterNot { trigger ->
+            trigger.type == TriggerType.WEAR_EVENT || trigger.isOneShotEvent()
+        }
         if (remaining.isEmpty()) return true
 
         val states = remaining.map { trigger ->
