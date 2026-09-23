@@ -10,11 +10,14 @@ import com.nexaflow.core.execution.handler.ActionRegistry
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.AutomationHealthAnalyzer
+import com.nexaflow.domain.models.AutomationHealthReport
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.repositories.HistoryRepository
+import com.nexaflow.domain.repositories.HealthRepository
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import kotlinx.coroutines.flow.Flow
@@ -67,6 +70,13 @@ class ManualAdmissionPolicyTest {
         }
     }
 
+    private class FakeHealth : HealthRepository {
+        override suspend fun getHealthReport(automationId: String): AutomationHealthReport =
+            AutomationHealthAnalyzer.analyze(automationId, emptyList())
+
+        override fun getHealthReports(): Flow<List<AutomationHealthReport>> = flowOf(emptyList())
+    }
+
     private class FakeRepository : AutomationRepository {
         override fun getAutomations(): Flow<List<Automation>> = flowOf(emptyList())
         override suspend fun getAutomationById(id: String): Automation? = null
@@ -99,6 +109,7 @@ class ManualAdmissionPolicyTest {
         automationRepository = FakeRepository(),
         executionEngine = engine,
         historyRepository = history,
+        healthRepository = FakeHealth(),
         appContext = context
     )
 
