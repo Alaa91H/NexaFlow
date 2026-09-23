@@ -48,7 +48,7 @@ class AutomationHealthReportTest {
             }
         )
 
-        assertEquals(3, report.skippedRuns)
+        assertEquals(1, report.skippedRuns)
         assertEquals(0, report.failedRuns)
         assertEquals(0, report.consecutiveFailures)
         assertEquals(null, report.latestFailureMessage)
@@ -65,6 +65,22 @@ class AutomationHealthReportTest {
         assertEquals(false, report.recoveryReviewPending)
         assertEquals(0, report.failedRuns)
         assertEquals(AutomationHealthStatus.HEALTHY, report.status)
+    }
+
+    @Test
+    fun `consecutive identical skips collapse but a successful run starts a new episode`() {
+        val records = listOf(
+            record(true, "Skipped: Wi-Fi condition not met", 5L),
+            record(true, "Skipped: Wi-Fi condition not met", 4L),
+            record(true, "Completed", 3L),
+            record(true, "Skipped: Wi-Fi condition not met", 2L),
+            record(true, "Skipped: Wi-Fi condition not met", 1L)
+        )
+
+        val report = AutomationHealthAnalyzer.analyze("maintenance", records)
+
+        assertEquals(2, report.skippedRuns)
+        assertEquals(1, report.completedRuns)
     }
 
     @Test
