@@ -67,4 +67,13 @@
     <string name="block_category_contact">संपर्क</string>
     <string name="diagnostics_end_behavior_label">अंत व्यवहार की समस्याएँ</string>
     <string name="diagnostics_action_config_label">कार्रवाई कॉन्फ़िगरेशन समस्याएँ</string>
+
+    <!-- Structured execution diagnosis. -->
+    <string name="why_run_title">यह कार्य क्यों नहीं चला?</string>
+    <string name="why_run_constraint_blocked">एक या अधिक कार्य शर्तों ने इस रन को रोक दिया.</string>
+    <string name="why_run_all_triggers_blocked">सभी आवश्यक ट्रिगर एक ही समय पर सही नहीं थे.</string>
+    <string name="why_run_unknown">यह रन दर्ज किए गए कारण से रुक गया. नीचे विवरण देखें.</string>
+    <string name="why_run_fix_label">सुझाया गया समाधान</string>
+    <string name="why_run_fix_review_constraints">कार्य की शर्तों और डिवाइस की वर्तमान स्थिति की समीक्षा करें.</string>
+    <string name="why_run_fix_check_all_conditions">कार्य के हर ट्रिगर की जाँच करें और सुनिश्चित करें कि सभी आवश्यक शर्तें अभी पूरी हो रही हैं.</string>
 </resources>
