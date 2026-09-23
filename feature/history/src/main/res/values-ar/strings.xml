@@ -76,4 +76,19 @@
     <string name="why_run_fix_label">الحل المقترح</string>
     <string name="why_run_fix_review_constraints">راجع شروط المهمة وحالة الجهاز الحالية.</string>
     <string name="why_run_fix_check_all_conditions">راجع جميع محفزات المهمة وتأكد من أن كل الشروط المطلوبة متحققة الآن.</string>
+
+    <string name="why_run_capability_blocked">إحدى القدرات أو الأذونات المطلوبة غير متاحة.</string>
+    <string name="why_run_admission_rejected">تم رفض هذا التشغيل لأن تنفيذًا آخر أو حالة استرداد ما تزال نشطة.</string>
+    <string name="why_run_maintenance_waiting">مهمة الصيانة هذه تنتظر نافذة التشغيل المسموح بها.</string>
+    <string name="why_run_maintenance_duplicate">تم إكمال دورة الصيانة هذه مسبقًا، لذلك لم تُشغّل مرة أخرى.</string>
+    <string name="why_run_action_failed">فشل أحد الإجراءات قبل أن تكتمل المهمة بنجاح.</string>
+    <string name="why_run_verification_failed">تعذّر التحقق من تطبيق التغيير المطلوب على الجهاز.</string>
+    <string name="why_run_outcome_uncertain">تعذّر تأكيد ما إذا كان التغيير المطلوب قد اكتمل من حالة الجهاز.</string>
+    <string name="why_run_failed">انتهت المهمة بفشل مسجل.</string>
+    <string name="why_run_fix_grant_capability">امنح الإذن المطلوب أو جهّز مزود تنفيذ متاحًا، ثم حاول مرة أخرى.</string>
+    <string name="why_run_fix_check_running_state">انتظر انتهاء التشغيل النشط، أو راجع حالة الاسترداد إذا بقيت المهمة محجوبة.</string>
+    <string name="why_run_fix_review_action_config">راجع إعداد الإجراء الفاشل وأذوناته ومزوّد التنفيذ المطلوب.</string>
+    <string name="why_run_fix_retry_or_review">أعد تشغيل المهمة. إذا فشلت مجددًا، راجع الإجراء وأذونات الجهاز.</string>
+    <string name="why_run_fix_review_device_state">تحقق من حالة الجهاز الفعلية قبل إعادة تشغيل المهمة.</string>
+    <string name="why_run_fix_open_history">راجع الخط الزمني للتنفيذ أدناه لمعرفة الإجراء الذي فشل.</string>
 </resources>
