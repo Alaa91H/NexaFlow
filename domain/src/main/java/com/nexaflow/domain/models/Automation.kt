@@ -371,6 +371,12 @@ enum class TriggerType {
      */
     ALARM_SET_CHANGED,
     /**
+     * Wear OS companion reachability state. Config keys:
+     * `state` (CONNECTED/DISCONNECTED) and optional `watchInstallId`.
+     * A blank watchInstallId means any previously discovered NexaFlow watch.
+     */
+    WEAR_EVENT,
+    /**
      * A user-approved event from an explicitly configured plugin component.
      * Config keys: `pluginInstance`, `pluginApproval`, `package`, and
      * `eventComponent`. No Bundle, Intent, token, or arbitrary command is
