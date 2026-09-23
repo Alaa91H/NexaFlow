@@ -146,4 +146,5 @@
     <string name="share_task_title">Görevi paylaş (.nexaflow)</string>
     <string name="share_task_failed">Bu görev paylaşılamadı</string>
     <string name="task_access_details">Görev ayrıntıları ve erişim bağlantıları</string>
+    <string name="trigger_wear_event">Wear OS saati</string>
 </resources>
