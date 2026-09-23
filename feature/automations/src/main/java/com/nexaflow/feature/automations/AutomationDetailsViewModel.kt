@@ -174,6 +174,18 @@ class AutomationDetailsViewModel @Inject constructor(
         }
     }
 
+    /** Explicit user choice to run only the configured end behavior. */
+    fun runEndBehavior() {
+        val current = automation.value ?: return
+        if (_running.value) return
+        viewModelScope.launch {
+            _running.value = true
+            val record = executionEngine.runManualEndBehavior(current)
+            _executionMessage.value = formatExecutionMessage(record)
+            _running.value = false
+        }
+    }
+
     /** Explicitly acknowledges unresolved legacy recovery records for this routine. */
     fun clearRecoveryBacklog() {
         viewModelScope.launch {
