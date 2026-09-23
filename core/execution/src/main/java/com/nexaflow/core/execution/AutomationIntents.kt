@@ -1,5 +1,7 @@
 package com.nexaflow.core.execution
 
+import com.nexaflow.core.wearprotocol.WearProtocol
+
 const val ACTION_AUTOMATIONS_CHANGED = "com.nexaflow.core.execution.action.AUTOMATIONS_CHANGED"
 
 /**
@@ -48,44 +50,29 @@ const val REMOTE_INPUT_REPLY_KEY = "com.nexaflow.core.execution.remote_input.rep
 const val WEBHOOK_DEFAULT_PORT = 8765
 
 // ── Wearable Data Layer protocol ─────────────────────────────────────────────
-// These path strings and DataMap keys are shared between the phone-side bridge
-// (WearSyncManager / WearCommandListenerService) and the watch app's WearProtocol
-// object.  Any change here must be reflected in
-// wear/src/main/java/com/nexaflow/wear/data/WearProtocol.kt.
+// Compatibility aliases live here because existing execution/app code imports
+// them from core:execution. The literal values themselves are owned only by
+// core:wear-protocol so phone and watch cannot silently drift apart.
 
-/** DataItem path: phone pushes the serialized automation list to the watch here. */
-const val WEAR_PATH_AUTOMATIONS = "/nexaflow/automations"
+const val WEAR_PROTOCOL_VERSION = WearProtocol.CURRENT_VERSION
 
-/** MessageClient path: the watch sends a manual force-run request for one automation. */
-const val WEAR_PATH_RUN_COMMAND = "/nexaflow/run"
+const val WEAR_PATH_AUTOMATIONS = WearProtocol.PATH_AUTOMATIONS
+const val WEAR_PATH_RUN_COMMAND = WearProtocol.PATH_RUN_COMMAND
+const val WEAR_PATH_TOGGLE_COMMAND = WearProtocol.PATH_TOGGLE_COMMAND
+const val WEAR_PATH_SYNC_REQUEST = WearProtocol.PATH_SYNC_REQUEST
 
-/** MessageClient path: the watch sends an enable/disable toggle for one automation. */
-const val WEAR_PATH_TOGGLE_COMMAND = "/nexaflow/toggle"
+const val WEAR_PATH_COMMAND_V1 = WearProtocol.PATH_COMMAND_V1
+const val WEAR_PATH_EVENT_V1 = WearProtocol.PATH_EVENT_V1
+const val WEAR_PATH_RESULT_V1 = WearProtocol.PATH_RESULT_V1
+const val WEAR_PATH_DEVICE_STATE_V1 = WearProtocol.PATH_DEVICE_STATE_V1
+const val WEAR_PATH_CAPABILITIES_V1 = WearProtocol.PATH_CAPABILITIES_V1
 
-/** DataMap key carrying the JSON payload (automation list body). */
-const val WEAR_KEY_PAYLOAD = "payload"
+const val WEAR_KEY_PAYLOAD = WearProtocol.KEY_PAYLOAD
+const val WEAR_KEY_UPDATED_AT = WearProtocol.KEY_UPDATED_AT
+const val WEAR_KEY_PROTOCOL_VERSION = WearProtocol.KEY_PROTOCOL_VERSION
+const val WEAR_KEY_MESSAGE_ID = WearProtocol.KEY_MESSAGE_ID
 
-/**
- * DataMap key: monotonic epoch-millis timestamp that forces the Data Layer to
- * deliver a DATA_CHANGED event even when the JSON payload is identical to the
- * previous push. Without this, the platform de-duplicates identical DataItems.
- */
-const val WEAR_KEY_UPDATED_AT = "updatedAt"
+const val WEAR_TOGGLE_SEPARATOR = WearProtocol.TOGGLE_SEPARATOR
 
-/** Separator between automationId and enabled-flag in a toggle message payload. */
-const val WEAR_TOGGLE_SEPARATOR = ":"
-
-/**
- * MessageClient path: the watch requests an immediate automation-list push.
- * Sent when the watch UI starts (or regains connectivity) so the user never
- * stares at an eternal "Connecting" spinner just because the phone process
- * started while the watch was away and no data change has happened since.
- * The phone answers by re-pushing the DataItem from [WearSyncManager].
- */
-const val WEAR_PATH_SYNC_REQUEST = "/nexaflow/sync-request"
-
-/** Capability advertised by the phone APK in app/src/main/res/values/wear.xml. */
-const val WEAR_CAPABILITY_PHONE_APP = "nexaflow_phone_companion"
-
-/** Capability advertised by the watch APK in wear/src/main/res/values/wear.xml. */
-const val WEAR_CAPABILITY_WATCH_APP = "nexaflow_watch_companion"
+const val WEAR_CAPABILITY_PHONE_APP = WearProtocol.CAPABILITY_PHONE_APP
+const val WEAR_CAPABILITY_WATCH_APP = WearProtocol.CAPABILITY_WATCH_APP
