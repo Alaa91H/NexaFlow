@@ -552,4 +552,6 @@
     <string name="action_data_date_time_sub">Analizar instantes ISO y formatear en una zona horaria elegida</string>
     <string name="action_data_json_sub">Leer rutas JSON Pointer, claves y JSON formateado</string>
     <string name="action_data_array_sub">Ordenar, invertir, unir y deduplicar arrays JSON</string>
+    <string name="trigger_wear_event">Reloj Wear OS</string>
+    <string name="trigger_wear_event_sub">Ejecutar la tarea cuando un reloj NexaFlow esté conectado o desconectado</string>
 </resources>
