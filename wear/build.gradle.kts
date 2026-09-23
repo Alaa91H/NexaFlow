@@ -3,6 +3,7 @@ import java.util.Properties
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 
 val gitVer = gitVersion()
+val nexaFlowApplicationId = providers.gradleProperty("nexaflow.applicationId").get()
 
 // Release signing — exact :app contract: CI env vars first, then the
 // gitignored keystore/keystore.properties, else debug signing so ad-hoc
@@ -46,7 +47,10 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.nexaflow.wear"
+        // Wearable Data Layer routes peers only when the installed package
+        // name and signing certificate match the phone app. Keep the Wear
+        // Kotlin namespace separate, but share :app's application identity.
+        applicationId = nexaFlowApplicationId
         // Wear OS 3 (API 30) minimum: covers all modern Wear OS devices with
         // stable Compose for Wear support. Wear OS 2.x devices are excluded
         // because they lack the Compose runtime required by the companion UI.
