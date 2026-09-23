@@ -148,6 +148,51 @@ sealed interface PrivilegedOperation {
         override fun argv(): List<String> = listOf("svc", service.wireValue, if (enabled) "enable" else "disable")
     }
 
+    /** Controls the global location master switch through Android's bounded shell API. */
+    data class SetLocationEnabled(val enabled: Boolean) : PrivilegedOperation {
+        override val wireId: PrivilegedOperationId = PrivilegedOperationId.LOCATION_STATE_SET
+        override fun wireArguments(): List<String> = listOf(enabled.toString())
+        override fun argv(): List<String> =
+            listOf("cmd", "location", "set-location-enabled", enabled.toString())
+    }
+
+    /** Reads the global location master switch for verification/reconciliation. */
+    data object ReadLocationEnabled : PrivilegedOperation {
+        override val wireId: PrivilegedOperationId = PrivilegedOperationId.LOCATION_STATE_READ
+        override fun wireArguments(): List<String> = emptyList()
+        override fun argv(): List<String> =
+            listOf("cmd", "location", "is-location-enabled")
+    }
+
+    /** Controls airplane mode through ConnectivityService rather than only mutating its setting. */
+    data class SetAirplaneMode(val enabled: Boolean) : PrivilegedOperation {
+        override val wireId: PrivilegedOperationId = PrivilegedOperationId.AIRPLANE_MODE_SET
+        override fun wireArguments(): List<String> = listOf(enabled.toString())
+        override fun argv(): List<String> =
+            listOf(
+                "cmd",
+                "connectivity",
+                "airplane-mode",
+                if (enabled) "enable" else "disable"
+            )
+    }
+
+    /** Controls Android's global restrict-background (Data Saver) policy. */
+    data class SetDataSaver(val enabled: Boolean) : PrivilegedOperation {
+        override val wireId: PrivilegedOperationId = PrivilegedOperationId.DATA_SAVER_STATE_SET
+        override fun wireArguments(): List<String> = listOf(enabled.toString())
+        override fun argv(): List<String> =
+            listOf("cmd", "netpolicy", "set", "restrict-background", enabled.toString())
+    }
+
+    /** Reads Android's global restrict-background policy. */
+    data object ReadDataSaver : PrivilegedOperation {
+        override val wireId: PrivilegedOperationId = PrivilegedOperationId.DATA_SAVER_STATE_READ
+        override fun wireArguments(): List<String> = emptyList()
+        override fun argv(): List<String> =
+            listOf("cmd", "netpolicy", "get", "restrict-background")
+    }
+
     /**
      * Reads one allowlisted settings key through `settings get`. The key set is
      * the reviewed state-read allowlist; the namespace is a closed enum. This
@@ -245,6 +290,14 @@ sealed interface PrivilegedOperation {
                     service = ServiceName.fromWire(first) ?: return null,
                     enabled = second.toBooleanStrict()
                 )
+                PrivilegedOperationId.LOCATION_STATE_SET ->
+                    SetLocationEnabled(first.toBooleanStrict())
+                PrivilegedOperationId.LOCATION_STATE_READ -> ReadLocationEnabled
+                PrivilegedOperationId.AIRPLANE_MODE_SET ->
+                    SetAirplaneMode(first.toBooleanStrict())
+                PrivilegedOperationId.DATA_SAVER_STATE_SET ->
+                    SetDataSaver(first.toBooleanStrict())
+                PrivilegedOperationId.DATA_SAVER_STATE_READ -> ReadDataSaver
                 PrivilegedOperationId.SETTING_STATE_READ -> ReadSettingState(
                     namespace = SettingNamespace.parse(first) ?: return null,
                     key = second
@@ -264,6 +317,7 @@ sealed interface PrivilegedOperation {
             "screen_off_timeout",
             "screen_brightness",
             "screen_brightness_mode",
+            "accelerometer_rotation",
             "airplane_mode_on",
             "wifi_on",
             "bluetooth_on",
@@ -277,8 +331,6 @@ sealed interface PrivilegedOperation {
             "bluetooth_on",
             "airplane_mode_on",
             "accelerometer_rotation",
-            "screen_brightness",
-            "screen_off_timeout",
             "zen_mode",
             "mobile_data"
         )
@@ -325,6 +377,11 @@ enum class PrivilegedOperationId(val wireValue: String) {
     NOTIFICATION_POLICY_ACCESS_GRANT("notification.policy_access.grant"),
     HOTSPOT_SET("hotspot.set"),
     SERVICE_STATE_SET("service.state.set"),
+    LOCATION_STATE_SET("location.state.set"),
+    LOCATION_STATE_READ("location.state.read"),
+    AIRPLANE_MODE_SET("airplane_mode.set"),
+    DATA_SAVER_STATE_SET("data_saver.state.set"),
+    DATA_SAVER_STATE_READ("data_saver.state.read"),
     SETTING_STATE_READ("setting.state.read"),
     PACKAGE_ENABLED_STATE_READ("package.enabled_state.read")
 }

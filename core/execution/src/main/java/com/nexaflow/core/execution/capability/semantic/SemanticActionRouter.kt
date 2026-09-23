@@ -111,8 +111,6 @@ object SemanticActionMapper {
         // defaulting to ON. Absent value is a *parse error* for new workflows
         // only when no marker exists; marker "configVersion" >= 2 means the
         // builder always persisted an explicit value.
-        val enabled = parseEnabled(action.config["enabled"], action.config["configVersion"])
-            ?: return null
         val parameters = when (operation) {
             SemanticOperationId.BRIGHTNESS_SET -> mapOf(
                 "value" to (action.config["value"] ?: return null)
@@ -120,7 +118,13 @@ object SemanticActionMapper {
             SemanticOperationId.SCREEN_TIMEOUT_SET -> mapOf(
                 "seconds" to (action.config["seconds"] ?: return null)
             )
-            else -> mapOf("enabled" to enabled)
+            else -> {
+                val enabled = parseEnabled(
+                    action.config["enabled"],
+                    action.config["configVersion"]
+                ) ?: return null
+                mapOf("enabled" to enabled)
+            }
         }
         return TypedOperationRequest(
             operation = operation,
@@ -163,7 +167,18 @@ class SemanticActionRouter(
         val request = SemanticActionMapper.requestFor(
             action, workflowId, executionId, privilegedPolicyEnabled()
         ) ?: return null
-        return router.execute(request).toSystemControlResult()
+        val outcome = router.execute(request)
+        return when (outcome.status) {
+            OperationOutcomeStatus.SUCCESS,
+            OperationOutcomeStatus.PARTIAL -> SystemControlResult.ok(outcome.message)
+            // A Settings hand-off or a missing grant is not an executed action.
+            // Reporting it as success made permission failures invisible in
+            // history and allowed workflows to continue as if the side effect
+            // had happened.
+            OperationOutcomeStatus.PENDING_USER_ACTION ->
+                SystemControlResult.fail(outcome.message)
+            else -> SystemControlResult.fail(outcome.message)
+        }
     }
 }
 

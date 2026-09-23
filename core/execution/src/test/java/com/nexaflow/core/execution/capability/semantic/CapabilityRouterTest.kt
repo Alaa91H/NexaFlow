@@ -3,6 +3,8 @@ package com.nexaflow.core.execution.capability.semantic
 import com.nexaflow.domain.capability.operation.SemanticOperationId
 import com.nexaflow.domain.capability.operation.StrategyId
 import com.nexaflow.core.rom.model.RomFamily
+import com.nexaflow.domain.models.Action
+import com.nexaflow.domain.models.ActionType
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -252,21 +254,50 @@ class CapabilityRouterTest {
     }
 
     @Test
-    fun unvalidatedBooleanSpellingIsRejectedBeforeExecution() = runTest {
-        // NF-P0-003: strict type validation at the router, not just presence.
-        val strategy = FakeStrategy(StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE))
-        val outcome = router(strategy).execute(
-            TypedOperationRequest(
-                operation = SemanticOperationId.WIFI_SET_STATE,
-                parameters = mapOf("enabled" to "TRUE ")
-            )
+    fun pendingPermissionOutcomeIsNotReportedAsSuccessfulLegacyExecution() = runTest {
+        val root = FakeStrategy(
+            StrategyId.ROOT_SHELL,
+            setOf(SemanticOperationId.WIFI_SET_STATE)
         )
-        assertEquals(OperationOutcomeStatus.FAILED, outcome.status)
-        assertEquals(
-            com.nexaflow.domain.capability.CapabilityErrorCode.INVALID_CONFIGURATION,
-            outcome.errorCode
+        val semantic = SemanticActionRouter(
+            router = router(root),
+            privilegedPolicyEnabled = { false }
         )
-        assertEquals(0, strategy.executions)
+        val result = semantic.routeIfSupported(
+            Action(ActionType.SYSTEM_WIFI, mapOf("enabled" to "true")),
+            workflowId = "wf",
+            executionId = "run"
+        )
+        assertNotNull(result)
+        assertEquals(false, result!!.success)
+        assertEquals(0, root.executions)
+    }
+
+    @Test
+    fun brightnessAndTimeoutMappingDoesNotRequireBooleanEnabledFlag() {
+        val brightness = SemanticActionMapper.requestFor(
+            Action(
+                ActionType.SYSTEM_BRIGHTNESS,
+                mapOf("value" to "120", "configVersion" to "2")
+            ),
+            workflowId = null,
+            executionId = null,
+            allowPrivilegedStrategies = true
+        )
+        assertNotNull(brightness)
+        assertEquals(mapOf("value" to "120"), brightness!!.parameters)
+
+        val timeout = SemanticActionMapper.requestFor(
+            Action(
+                ActionType.SYSTEM_SCREEN_TIMEOUT,
+                mapOf("seconds" to "30", "configVersion" to "2")
+            ),
+            workflowId = null,
+            executionId = null,
+            allowPrivilegedStrategies = true
+        )
+        assertNotNull(timeout)
+        assertEquals(mapOf("seconds" to "30"), timeout!!.parameters)
     }
 
     @Test

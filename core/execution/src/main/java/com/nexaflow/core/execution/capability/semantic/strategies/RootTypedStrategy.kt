@@ -29,14 +29,20 @@ class RootTypedStrategy(
         SemanticOperationId.WIFI_SET_STATE,
         SemanticOperationId.BLUETOOTH_GET_STATE,
         SemanticOperationId.BLUETOOTH_SET_STATE,
+        SemanticOperationId.LOCATION_SET_STATE,
         SemanticOperationId.AIRPLANE_MODE_GET_STATE,
+        SemanticOperationId.ROTATION_SET_STATE,
+        SemanticOperationId.BRIGHTNESS_SET,
+        SemanticOperationId.SCREEN_TIMEOUT_SET,
         SemanticOperationId.AIRPLANE_MODE_SET_STATE,
         SemanticOperationId.DND_GET_STATE,
+        SemanticOperationId.DND_SET_STATE,
         SemanticOperationId.NFC_SET_STATE,
         SemanticOperationId.HOTSPOT_SET_STATE,
         SemanticOperationId.HOTSPOT_GET_STATE,
         SemanticOperationId.MOBILE_DATA_GET_STATE,
         SemanticOperationId.MOBILE_DATA_SET_STATE,
+        SemanticOperationId.DATA_SAVER_SET_STATE,
         SemanticOperationId.PACKAGE_FORCE_STOP,
         SemanticOperationId.PACKAGE_CLEAR_DATA,
         SemanticOperationId.PACKAGE_SET_ENABLED_STATE,
@@ -62,6 +68,38 @@ class RootTypedStrategy(
         // contract stays explicit.
         val packageParameter = request.parameters["packageName"]
         when (operation) {
+            SemanticOperationId.BRIGHTNESS_SET -> {
+                val level = request.parameters["value"]?.toIntOrNull()
+                    ?.takeIf { it in 0..255 }
+                    ?: return invalidParameter(operation, "Brightness value must be in 0..255")
+                return toOutcome(
+                    operation,
+                    execute(
+                        PrivilegedOperation.WriteSetting(
+                            PrivilegedOperation.SettingNamespace.SYSTEM,
+                            "screen_brightness",
+                            level.toString()
+                        )
+                    ),
+                    requestedEnabled = null
+                )
+            }
+            SemanticOperationId.SCREEN_TIMEOUT_SET -> {
+                val seconds = request.parameters["seconds"]?.toLongOrNull()
+                    ?.takeIf { it in 1L..86_400L }
+                    ?: return invalidParameter(operation, "Screen timeout must be in 1..86400 seconds")
+                return toOutcome(
+                    operation,
+                    execute(
+                        PrivilegedOperation.WriteSetting(
+                            PrivilegedOperation.SettingNamespace.SYSTEM,
+                            "screen_off_timeout",
+                            (seconds * 1_000L).toString()
+                        )
+                    ),
+                    requestedEnabled = null
+                )
+            }
             SemanticOperationId.PACKAGE_FORCE_STOP -> {
                 val pkg = packageParameter
                     ?: return missingPackage(operation)
@@ -114,20 +152,34 @@ class RootTypedStrategy(
                 PrivilegedOperation.SetServiceState(
                     PrivilegedOperation.Companion.ServiceName.BLUETOOTH, enable
                 )
+            SemanticOperationId.LOCATION_SET_STATE ->
+                PrivilegedOperation.SetLocationEnabled(enable)
             SemanticOperationId.AIRPLANE_MODE_SET_STATE ->
+                PrivilegedOperation.SetAirplaneMode(enable)
+            SemanticOperationId.ROTATION_SET_STATE ->
+                PrivilegedOperation.WriteSetting(
+                    namespace = PrivilegedOperation.SettingNamespace.SYSTEM,
+                    key = "accelerometer_rotation",
+                    value = if (enable) "1" else "0"
+                )
+            SemanticOperationId.DND_SET_STATE ->
                 PrivilegedOperation.WriteSetting(
                     namespace = PrivilegedOperation.SettingNamespace.GLOBAL,
-                    key = "airplane_mode_on",
-                    value = if (enable) "1" else "0"
+                    key = "zen_mode",
+                    value = if (enable) "2" else "0"
                 )
             SemanticOperationId.NFC_SET_STATE ->
                 PrivilegedOperation.SetServiceState(
                     PrivilegedOperation.Companion.ServiceName.NFC, enable
                 )
+            SemanticOperationId.HOTSPOT_SET_STATE ->
+                PrivilegedOperation.SetHotspot(enable)
             SemanticOperationId.MOBILE_DATA_SET_STATE ->
                 PrivilegedOperation.SetServiceState(
                     PrivilegedOperation.Companion.ServiceName.DATA, enable
                 )
+            SemanticOperationId.DATA_SAVER_SET_STATE ->
+                PrivilegedOperation.SetDataSaver(enable)
             else -> return OperationOutcome.unsupported(
                 operation, "Write is not implemented by the Root strategy"
             )
@@ -144,12 +196,18 @@ class RootTypedStrategy(
             readSettingInt(PrivilegedOperation.SettingNamespace.GLOBAL, "wifi_on")
         SemanticOperationId.BLUETOOTH_GET_STATE ->
             readSettingInt(PrivilegedOperation.SettingNamespace.GLOBAL, "bluetooth_on")
+        SemanticOperationId.LOCATION_GET_STATE ->
+            readBooleanCommand(execute(PrivilegedOperation.ReadLocationEnabled))
         SemanticOperationId.AIRPLANE_MODE_GET_STATE ->
             readSettingInt(PrivilegedOperation.SettingNamespace.GLOBAL, "airplane_mode_on")
+        SemanticOperationId.ROTATION_GET_STATE ->
+            readSettingInt(PrivilegedOperation.SettingNamespace.SYSTEM, "accelerometer_rotation")
         SemanticOperationId.DND_GET_STATE ->
-            readSettingInt(PrivilegedOperation.SettingNamespace.GLOBAL, "zen_mode")
+            readNonZeroSetting(PrivilegedOperation.SettingNamespace.GLOBAL, "zen_mode")
         SemanticOperationId.MOBILE_DATA_GET_STATE ->
             readSettingInt(PrivilegedOperation.SettingNamespace.GLOBAL, "mobile_data")
+        SemanticOperationId.DATA_SAVER_GET_STATE ->
+            readBooleanCommand(execute(PrivilegedOperation.ReadDataSaver))
         SemanticOperationId.PACKAGE_GET_ENABLED_STATE -> {
             val pkg = request.parameters["packageName"]
             if (pkg == null) null else readPackageEnabled(pkg)
@@ -173,6 +231,16 @@ class RootTypedStrategy(
             else -> null
         }
     }
+
+    private fun invalidParameter(
+        operation: SemanticOperationId,
+        message: String
+    ): OperationOutcome = OperationOutcome.failed(
+        operation,
+        com.nexaflow.domain.capability.CapabilityErrorCode.INVALID_CONFIGURATION,
+        message,
+        strategy = id
+    )
 
     private fun missingPackage(operation: SemanticOperationId): OperationOutcome =
         OperationOutcome.failed(
@@ -202,6 +270,28 @@ class RootTypedStrategy(
         key: String
     ): Boolean? = readSettingBool(namespace, key)
 
+    private fun readBooleanCommand(result: SystemControlResult): Boolean? {
+        if (!result.success) return null
+        val value = result.message.trim().lowercase()
+        return when {
+            value == "1" || value == "true" || value == "enabled" ||
+                value.endsWith(": true") || value.endsWith(": enabled") -> true
+            value == "0" || value == "false" || value == "disabled" ||
+                value.endsWith(": false") || value.endsWith(": disabled") -> false
+            else -> null
+        }
+    }
+
+    /** DND uses 0 for off and multiple non-zero zen modes for active states. */
+    private fun readNonZeroSetting(
+        namespace: PrivilegedOperation.SettingNamespace,
+        key: String
+    ): Boolean? {
+        val result = execute(PrivilegedOperation.ReadSettingState(namespace, key))
+        if (!result.success) return null
+        return result.message.trim().toIntOrNull()?.let { it != 0 }
+    }
+
     private fun toOutcome(
         operation: SemanticOperationId,
         result: SystemControlResult,
@@ -215,9 +305,10 @@ class RootTypedStrategy(
             metadata = requestedEnabled?.let { mapOf("requestedEnabled" to it.toString()) } ?: emptyMap()
         )
     } else {
-        val transport = result.message.contains("timed out", ignoreCase = true) ||
-            result.message.contains("not available", ignoreCase = true)
-        val status = if (transport && transportIsUncertain(operation)) {
+        val timedOut = result.message.contains("timed out", ignoreCase = true)
+        val unavailable = result.message.contains("not available", ignoreCase = true)
+        val transport = timedOut || unavailable
+        val status = if (timedOut && transportIsUncertain(operation)) {
             OperationOutcomeStatus.UNKNOWN
         } else {
             OperationOutcomeStatus.FAILED
@@ -232,7 +323,8 @@ class RootTypedStrategy(
                 com.nexaflow.domain.capability.CapabilityErrorCode.ROOT_DENIED
             },
             message = result.message,
-            transportFailure = transport && !transportIsUncertain(operation),
+            transportFailure = unavailable ||
+                (timedOut && !transportIsUncertain(operation)),
             metadata = requestedEnabled?.let { mapOf("requestedEnabled" to it.toString()) } ?: emptyMap()
         )
     }
@@ -246,9 +338,15 @@ class RootTypedStrategy(
     private fun transportIsUncertain(operation: SemanticOperationId): Boolean = when (operation) {
         SemanticOperationId.WIFI_SET_STATE,
         SemanticOperationId.BLUETOOTH_SET_STATE,
+        SemanticOperationId.LOCATION_SET_STATE,
+        SemanticOperationId.ROTATION_SET_STATE,
+        SemanticOperationId.BRIGHTNESS_SET,
+        SemanticOperationId.SCREEN_TIMEOUT_SET,
         SemanticOperationId.NFC_SET_STATE,
         SemanticOperationId.MOBILE_DATA_SET_STATE,
         SemanticOperationId.HOTSPOT_SET_STATE,
+        SemanticOperationId.DATA_SAVER_SET_STATE,
+        SemanticOperationId.DND_SET_STATE,
         // A dispatched-but-unconfirmed package operation may have landed:
         // reconcile by reading the actual package state, never blind-retry.
         SemanticOperationId.PACKAGE_FORCE_STOP,

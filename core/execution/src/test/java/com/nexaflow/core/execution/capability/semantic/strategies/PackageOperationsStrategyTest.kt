@@ -32,7 +32,6 @@ class PackageOperationsStrategyTest {
     }
 
     private fun shizukuStrategy(sink: RecordingSink) = ShizukuTypedStrategy(
-        packageName = "com.nexaflow.app",
         shizukuGranted = { true },
         userServiceReady = { true },
         execute = sink::run
@@ -165,6 +164,48 @@ class PackageOperationsStrategyTest {
         sink.nextResult = SystemControlResult.ok("something unexpected")
         assertNull(
             strategy.readState(request(SemanticOperationId.PACKAGE_GET_ENABLED_STATE), SemanticOperationId.PACKAGE_GET_ENABLED_STATE)
+        )
+    }
+
+    @Test
+    fun rootStrategyServesAllPrivilegedStateWritesWithClosedOperations() = runTest {
+        val sink = RecordingSink()
+        val strategy = rootStrategy(sink)
+
+        strategy.execute(
+            request(SemanticOperationId.HOTSPOT_SET_STATE, enabled = true),
+            SemanticOperationId.HOTSPOT_SET_STATE
+        )
+        assertEquals(
+            listOf("cmd", "wifi", "start-softap"),
+            sink.lastOperation?.argv()
+        )
+
+        strategy.execute(
+            request(SemanticOperationId.LOCATION_SET_STATE, enabled = false),
+            SemanticOperationId.LOCATION_SET_STATE
+        )
+        assertEquals(
+            listOf("cmd", "location", "set-location-enabled", "false"),
+            sink.lastOperation?.argv()
+        )
+
+        strategy.execute(
+            request(SemanticOperationId.DATA_SAVER_SET_STATE, enabled = true),
+            SemanticOperationId.DATA_SAVER_SET_STATE
+        )
+        assertEquals(
+            listOf("cmd", "netpolicy", "set", "restrict-background", "true"),
+            sink.lastOperation?.argv()
+        )
+
+        strategy.execute(
+            request(SemanticOperationId.DND_SET_STATE, enabled = true),
+            SemanticOperationId.DND_SET_STATE
+        )
+        assertEquals(
+            listOf("settings", "put", "global", "zen_mode", "2"),
+            sink.lastOperation?.argv()
         )
     }
 
