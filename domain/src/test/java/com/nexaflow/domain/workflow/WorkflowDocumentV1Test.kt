@@ -135,6 +135,41 @@ class WorkflowDocumentV1Test {
     }
 
     @Test
+    fun maintenanceProfileRoundTripIsLosslessWithoutEmbeddingLegacySchema() {
+        val profile = com.nexaflow.domain.models.MaintenanceProfile(
+            kind = com.nexaflow.domain.models.MaintenanceKind.WEEKLY,
+            window = com.nexaflow.domain.models.MaintenanceWindow(
+                startTime = "01:00",
+                endTime = "03:00",
+                allowedDays = setOf(1, 3, 5),
+                minimumBatteryPercent = 55,
+                chargingRequired = true,
+                unmeteredWifiRequired = true,
+                screenOffRequired = true,
+                deviceIdleRequired = true,
+                maximumThermalStatus = 2,
+                minimumFreeStorageBytes = 1_000_000L,
+            ),
+            retryPolicy = com.nexaflow.domain.models.MaintenanceRetryPolicy(
+                maxAttempts = 4,
+                initialDelayMs = 1_000L,
+                backoffMultiplier = 1.5,
+                maxDelayMs = 9_000L,
+            ),
+            notificationPolicy = com.nexaflow.domain.models.MaintenanceNotificationPolicy.ERRORS_ONLY,
+            dependencyAutomationIds = listOf("dependency-1"),
+            recoveryPolicy = com.nexaflow.domain.models.MaintenanceRecoveryPolicy.RETRY_TRANSIENT_ONLY,
+        )
+        val legacy = automation().copy(maintenanceProfile = profile)
+        val doc = legacy.toDocument()
+        assertTrue(doc.automationSettings.maintenanceProfile is MaintenanceProfileV1)
+
+        val roundTripped = with(WorkflowDocumentMappers) { doc.toAutomation() }
+        assertEquals(profile, roundTripped.maintenanceProfile)
+        assertEquals(legacy, roundTripped)
+    }
+
+    @Test
     fun blankLegacyCategoryRemainsBlankAfterRoundTrip() {
         val legacy = automation().copy(category = "")
         val roundTripped = with(WorkflowDocumentMappers) { legacy.toDocument().toAutomation() }
