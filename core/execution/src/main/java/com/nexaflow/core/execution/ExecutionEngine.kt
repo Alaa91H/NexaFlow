@@ -180,7 +180,7 @@ class ExecutionEngine(
         bypassTriggerMatch: Boolean = false
     ): ExecutionRecord {
         // Strict mode: acquire wake lock for forceful execution (bypasses Doze, ensures CPU stays on)
-        val wakeLock = acquireWakeLock("NexaFlow:runAutomation:${automation.id}")
+        val wakeLock = acquireExecutionWakeLock(context, "NexaFlow:runAutomation:${automation.id}")
         try {
             val startedAt = epochMillis.now()
         // Allocate the run identity before admission gates. This lets blocked
@@ -198,7 +198,7 @@ class ExecutionEngine(
             // skipped" bug. When the snapshot is older than the freshness
             // window we admit the run — every action path re-verifies the
             // concrete capability live before its first side effect.
-            val snapshotFresh = snapshotFreshness(snapshot) == SnapshotFreshness.FRESH
+            val snapshotFresh = classifySnapshotFreshness(snapshot, epochMillis.now(), CAPABILITY_SNAPSHOT_FRESHNESS_MS) == SnapshotFreshness.FRESH
             val validation = WorkflowCapabilityValidator.validate(automation, snapshot)
             if (!validation.admissible) {
                 if (!snapshotFresh) {
@@ -691,7 +691,7 @@ class ExecutionEngine(
             automationId = automation.id,
             automationName = automation.name,
             success = results.all { it.success },
-            message = buildMessage(results),
+            message = buildExecutionMessage(results),
             executedAt = startedAt,
             channel = channel?.type?.name,
             actionResults = results
@@ -722,19 +722,6 @@ class ExecutionEngine(
         } finally {
             try { wakeLock?.let { if (it.isHeld) it.release() } } catch (_: Throwable) {}
         }
-    }
-
-    private fun acquireWakeLock(tag: String): android.os.PowerManager.WakeLock? {
-        return try {
-            val pm = context.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
-            // Tag limit is 64 chars; UUID (36) + prefix (22) = 58, but truncate defensively
-            val safeTag = if (tag.length > 60) tag.take(60) else tag
-            pm?.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, safeTag)?.apply {
-                setReferenceCounted(false)
-                // 10 minutes max, strict — covers long chains with waits
-                acquire(10 * 60 * 1000L)
-            }
-        } catch (_: Throwable) { null }
     }
 
     /**
@@ -833,7 +820,7 @@ class ExecutionEngine(
         /** Durable local snapshot supplied by the occurrence coordinator after restart. */
         runtimeSnapshotJson: String? = null
     ): ExecutionRecord {
-        val wakeLock = acquireWakeLock("NexaFlow:runExit:${automation.id}")
+        val wakeLock = acquireExecutionWakeLock(context, "NexaFlow:runExit:${automation.id}")
         try {
             val startedAt = epochMillis.now()
         // Consume both ledgers as one critical section. Without this per-task
@@ -971,9 +958,9 @@ class ExecutionEngine(
             automationName = automation.name,
             success = actionResults.all { it.success },
             message = if (manualConditionRejected) {
-                MANUAL_CONDITION_NOT_MET_PREFIX + "end behavior: ${buildMessage(actionResults)}"
+                MANUAL_CONDITION_NOT_MET_PREFIX + "end behavior: ${buildExecutionMessage(actionResults)}"
             } else {
-                buildMessage(actionResults)
+                buildExecutionMessage(actionResults)
             },
             executedAt = startedAt,
             channel = channel?.type?.name,
@@ -1081,17 +1068,6 @@ class ExecutionEngine(
         }.getOrDefault(emptyList())
         if (globals.isEmpty()) return builtins
         return builtins + globals.associate { it.name to RuntimeValueCodec.display(it.value) }
-    }
-
-    /**
-     * Diagnoses elevated-runtime availability for logging without re-probing too often.
-     * Returns a short human-readable hint used when a privileged action fails.
-     */
-    private fun elevatedHint(): String {
-        val ksuGranted = try { com.nexaflow.core.rom.SystemAppStatusDetector.isRootAvailable() } catch (_: Throwable) { false }
-        val shizuku = try { com.nexaflow.core.rom.PrivilegedRunner.isShizukuGranted() } catch (_: Throwable) { false }
-        val suBin = try { com.nexaflow.core.rom.SystemAppStatusDetector.isSuBinaryAvailable() } catch (_: Throwable) { false }
-        return "elevated: rootAvailable=$ksuGranted shizuku=$shizuku suBin=$suBin"
     }
 
     private suspend fun executeAction(
@@ -1215,22 +1191,5 @@ class ExecutionEngine(
         is ConditionResult.Error -> "constraint evaluation error: $reason"
     }
 
-    /** Coarse freshness classification for the whole-run admission snapshot. */
-    private enum class SnapshotFreshness { FRESH, STALE, NEVER_OBSERVED }
 
-    /**
-     * Classifies a capability snapshot for the admission gate. A snapshot the
-     * store never populated (startup race) or one observed too long ago is
-     * not a refusal basis: the gate admits, the per-action live checks decide.
-     */
-    private fun snapshotFreshness(snapshot: CapabilitySnapshot): SnapshotFreshness = when {
-        snapshot.neverObserved -> SnapshotFreshness.NEVER_OBSERVED
-        epochMillis.now() - snapshot.observedAtMs > CAPABILITY_SNAPSHOT_FRESHNESS_MS -> SnapshotFreshness.STALE
-        else -> SnapshotFreshness.FRESH
-    }
-
-    private fun buildMessage(results: List<ActionExecutionResult>): String {
-        if (results.isEmpty()) return "No actions configured"
-        return results.joinToString(" | ") { it.message }
-    }
 }
