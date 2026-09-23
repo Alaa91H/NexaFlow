@@ -16,6 +16,7 @@ import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.NotificationSettings
 import com.nexaflow.core.execution.capability.CapabilityActionMapper
 import com.nexaflow.core.execution.capability.CapabilityExecutionService
+import com.nexaflow.core.execution.capability.toSystemControlResult
 import com.nexaflow.core.execution.compat.WorkflowCapabilityValidator
 import com.nexaflow.core.execution.handler.ActionExecutionContext
 import com.nexaflow.core.execution.handler.ActionRegistry
@@ -1076,14 +1077,7 @@ class ExecutionEngine(
             if (capabilityResult.status == CapabilityStatus.SUCCESS) {
                 publishPluginOutputVariables(capabilityResult.metadata, runContext)
             }
-            return if (
-                capabilityResult.status == CapabilityStatus.SUCCESS ||
-                capabilityResult.status == CapabilityStatus.PENDING_USER_ACTION
-            ) {
-                SystemControlResult.ok(capabilityResult.message)
-            } else {
-                SystemControlResult.fail(capabilityResult.message)
-            }
+            return capabilityResult.toSystemControlResult()
         }
 
         val handler = actionRegistry.handlerFor(action.type)
