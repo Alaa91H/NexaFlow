@@ -67,4 +67,13 @@
     <string name="block_category_contact">Contato</string>
     <string name="diagnostics_end_behavior_label">Problemas do comportamento final</string>
     <string name="diagnostics_action_config_label">Problemas de configuração de ações</string>
+
+    <!-- Structured execution diagnosis. -->
+    <string name="why_run_title">Por que esta tarefa não foi executada?</string>
+    <string name="why_run_constraint_blocked">Uma ou mais condições da tarefa bloquearam esta execução.</string>
+    <string name="why_run_all_triggers_blocked">Nem todos os gatilhos necessários estavam ativos ao mesmo tempo.</string>
+    <string name="why_run_unknown">Esta execução foi interrompida por um motivo registrado. Veja os detalhes abaixo.</string>
+    <string name="why_run_fix_label">Correção sugerida</string>
+    <string name="why_run_fix_review_constraints">Revise as condições da tarefa e o estado atual do dispositivo.</string>
+    <string name="why_run_fix_check_all_conditions">Verifique cada gatilho da tarefa e confirme que todas as condições necessárias estão ativas agora.</string>
 </resources>
