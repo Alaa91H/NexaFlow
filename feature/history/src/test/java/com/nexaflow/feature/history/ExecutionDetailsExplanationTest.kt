@@ -48,6 +48,53 @@ class ExecutionDetailsExplanationTest {
         assertEquals("charger is not connected", explanation?.detail)
     }
 
+
+    @Test
+    fun explicitRunIdCorrelatesTerminalTraceEvenWhenEventTimeDiffers() {
+        val record = ExecutionRecord(
+            id = "record-failed",
+            automationId = "task-1",
+            automationName = "Routine",
+            success = false,
+            message = "Failed",
+            executedAt = 1_000L,
+        )
+        val timeline = listOf(
+            ExecutionTimelineEntry(
+                id = record.id,
+                automationId = record.automationId,
+                automationName = record.automationName,
+                kind = "RUN",
+                success = false,
+                message = record.message,
+                startedAt = 1_000L,
+                durationMs = 500L,
+                runId = "run-7",
+            ),
+            ExecutionTimelineEntry(
+                id = "trace-outcome",
+                automationId = record.automationId,
+                automationName = "",
+                kind = "TRACE:OUTCOME",
+                success = false,
+                message = TraceReasons.ACTION_FAILED,
+                startedAt = 1_500L,
+                durationMs = 500L,
+                traceRunId = "run-7",
+                traceSequence = 1,
+                tracePhase = TracePhase.OUTCOME,
+                traceReasonCode = TraceReasons.ACTION_FAILED,
+                traceDetail = "SYSTEM_WIFI: permission denied",
+            )
+        )
+
+        val explanation = explanationForRecord(record, timeline)
+
+        assertEquals("explain_action_failed", explanation?.explanationKey)
+        assertEquals("fix_review_action_config", explanation?.fixKey)
+        assertEquals("SYSTEM_WIFI: permission denied", explanation?.detail)
+    }
+
     @Test
     fun nearbyTraceIsNotGuessedForAnotherRun() {
         val record = skippedRecord(executedAt = 1_000L)
