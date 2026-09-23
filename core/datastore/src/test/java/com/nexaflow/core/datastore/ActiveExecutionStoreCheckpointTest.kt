@@ -25,9 +25,12 @@ class ActiveExecutionStoreCheckpointTest {
         store.checkpointsForTest().forEach { store.clearCheckpoint(it.runId) }
     }
 
-    private fun checkpoint(runId: String = "run-checkpoint") = DurableExecutionCheckpoint(
+    private fun checkpoint(
+        runId: String = "run-checkpoint",
+        automationId: String = "automation-a"
+    ) = DurableExecutionCheckpoint(
         runId = runId,
-        automationId = "automation-a",
+        automationId = automationId,
         workflowVersion = 4,
         totalActions = 2,
         nextActionIndex = 0,
@@ -98,6 +101,42 @@ class ActiveExecutionStoreCheckpointTest {
         assertEquals(DurableExecutionStatus.RECOVERY_REQUIRED, store.checkpoint("run-checkpoint")?.status)
         assertTrue(store.completeCheckpoint("run-checkpoint"))
         assertEquals(null, store.checkpoint("run-checkpoint"))
+    }
+
+    @Test
+    fun recoveryPressureIsIsolatedPerAutomation() = runBlocking {
+        repeat(32) { index ->
+            assertEquals(
+                ActiveExecutionStore.CheckpointAdmission.ACCEPTED,
+                store.admitCheckpoint(
+                    checkpoint(
+                        runId = "run-a-$index",
+                        automationId = "automation-a"
+                    ).copy(status = DurableExecutionStatus.RECOVERY_REQUIRED)
+                )
+            )
+        }
+
+        assertEquals(
+            ActiveExecutionStore.CheckpointAdmission.CAPACITY_RESERVED_FOR_RECOVERY,
+            store.admitCheckpoint(
+                checkpoint(
+                    runId = "run-a-overflow",
+                    automationId = "automation-a"
+                )
+            )
+        )
+
+        assertEquals(
+            "Recovery backlog from automation-a must not block automation-b",
+            ActiveExecutionStore.CheckpointAdmission.ACCEPTED,
+            store.admitCheckpoint(
+                checkpoint(
+                    runId = "run-b",
+                    automationId = "automation-b"
+                )
+            )
+        )
     }
 
     @Test
