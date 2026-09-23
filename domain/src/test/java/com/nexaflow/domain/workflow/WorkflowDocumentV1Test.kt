@@ -367,6 +367,35 @@ class WorkflowDocumentV1Test {
     }
 
     @Test
+    fun nestedEmptySequenceIsAllowedAsNoOpBranch() {
+        val doc = automation().toDocument().copy(
+            root = PersistedWorkflowNodeV1.Branch(
+                nodeId = "branch:no-op",
+                condition = ConditionExpr.Equals(
+                    left = ValueExpr.Literal(RuntimeValueV1.BooleanValue(true)),
+                    right = ValueExpr.Literal(RuntimeValueV1.BooleanValue(true)),
+                ),
+                whenTrue = PersistedWorkflowNodeV1.Sequence(
+                    nodeId = "branch:no-op:true",
+                    children = emptyList(),
+                ),
+            ),
+        )
+        assertTrue(WorkflowDocumentMappers.validateStructure(doc).isEmpty())
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun encoderRejectsStructurallyInvalidDocument() {
+        val invalid = automation().toDocument().copy(
+            root = PersistedWorkflowNodeV1.Sequence(
+                nodeId = "run:invalid-empty",
+                children = emptyList(),
+            ),
+        )
+        WorkflowDocumentMappers.encode(invalid)
+    }
+
+    @Test
     fun emptyGraphIsRejected() {
         val doc = automation().toDocument()
         val empty = doc.copy(
