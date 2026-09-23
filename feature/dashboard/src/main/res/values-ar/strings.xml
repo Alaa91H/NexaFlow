@@ -146,4 +146,5 @@
     <string name="share_task_title">مشاركة المهمة (.nexaflow)</string>
     <string name="share_task_failed">تعذرت مشاركة هذه المهمة</string>
     <string name="task_access_details">تفاصيل المهمة وروابط الوصول</string>
+    <string name="trigger_wear_event">ساعة Wear OS</string>
 </resources>
