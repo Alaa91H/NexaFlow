@@ -50,6 +50,7 @@ import com.nexaflow.domain.variables.RuntimeValueCodec
 import com.nexaflow.domain.variables.VariableResolver
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -100,6 +101,9 @@ class ExecutionEngine(
     /** Coalesces identical intentional skips emitted by noisy state monitors. */
     private val skipReportThrottle: ExecutionSkipReportThrottle =
         ExecutionSkipReportThrottle(),
+    /** In-process per-action status for an open task-details screen. */
+    private val executionProgressTracker: ExecutionProgressTracker =
+        ExecutionProgressTracker(),
     /** Typed trace sink (P0.4); defaults to the same LogStore the engine already writes. */
     private val traceRecorder: com.nexaflow.core.logging.TraceRecorder =
         com.nexaflow.core.logging.TraceRecorder(logStore)
@@ -520,6 +524,7 @@ class ExecutionEngine(
         // only after every admission gate passed, so blocked/skipped runs
         // never flash a card.
         val progressOutcomes = mutableListOf<Boolean>()
+        executionProgressTracker.start(automation, startedAt)
         runCatching { runProgressNotifier.start(automation, automation.actions.size) }
         // A checkpoint is removed only after a fully known action chain. Once
         // an action starts and the coroutine is interrupted, its side effect
@@ -532,6 +537,7 @@ class ExecutionEngine(
             val list = mutableListOf<ActionExecutionResult>()
             for ((actionIndex, action) in automation.actions.withIndex()) {
                 inProgressActionIndex = actionIndex
+                executionProgressTracker.markRunning(automation.id, actionIndex)
                 val actionStartedAt = epochMillis.now()
                 val idempotencyKey = "${payloadContext.runId}:$actionIndex:${action.type.name}"
                 activeExecutionStore.markActionStarted(
@@ -562,6 +568,7 @@ class ExecutionEngine(
                     ) ?: error("Unable to commit durable checkpoint for run ${payloadContext.runId}")
                     progressOutcomes.add(true)
                     inProgressActionIndex = null
+                    executionProgressTracker.markSkipped(automation.id, actionIndex)
                     list.add(
                         ActionExecutionResult(
                             actionType = action.type.name,
@@ -601,6 +608,12 @@ class ExecutionEngine(
                 ) ?: error("Unable to commit durable checkpoint for run ${payloadContext.runId}")
                 progressOutcomes.add(result.success)
                 inProgressActionIndex = null
+                executionProgressTracker.markResult(
+                    automation.id,
+                    actionIndex,
+                    result,
+                    channel?.type?.name
+                )
                 val execResult = ActionExecutionResult(
                     actionType = action.type.name,
                     success = result.success,
@@ -626,6 +639,7 @@ class ExecutionEngine(
             // finally block would erase the only recovery evidence.
             inProgressActionIndex?.let { index ->
                 checkpointRequiresRecovery = true
+                executionProgressTracker.markUnknown(automation.id, index)
                 withContext(NonCancellable) {
                     runCatching {
                         activeExecutionStore.markActionUnknown(
@@ -640,6 +654,7 @@ class ExecutionEngine(
         } catch (failure: Throwable) {
             inProgressActionIndex?.let { index ->
                 checkpointRequiresRecovery = true
+                executionProgressTracker.markUnknown(automation.id, index)
                 withContext(NonCancellable) {
                     runCatching {
                         activeExecutionStore.markActionUnknown(
@@ -652,7 +667,9 @@ class ExecutionEngine(
             }
             throw failure
         } finally {
-            // The run-progress card never outlives the run attempt.
+            // Both progress surfaces stop running together; the in-process
+            // snapshot remains available until durable history catches up.
+            executionProgressTracker.finish(automation.id)
             runCatching { runProgressNotifier.finish(automation.id) }
             if (!checkpointRequiresRecovery) {
                 activeExecutionStore.completeCheckpoint(payloadContext.runId)
@@ -781,6 +798,10 @@ class ExecutionEngine(
     /** Side-effect-free live status for every trigger and constraint row. */
     suspend fun diagnoseManualAdmission(automation: Automation): ManualAdmissionDiagnostics =
         manualAdmissionEvaluator.diagnostics(automation)
+
+    /** Live main-chain progress for the selected automation, if a run exists. */
+    fun observeExecutionProgress(automationId: String): Flow<AutomationExecutionProgress?> =
+        executionProgressTracker.observe(automationId)
 
     /**
      * Explicit user override of the manual admission gate: skips trigger and
@@ -976,6 +997,7 @@ class ExecutionEngine(
     suspend fun clearSnapshot(automationId: String) {
         snapshots.remove(automationId)
         activeExecutions.remove(automationId)
+        executionProgressTracker.clear(automationId)
         activeExecutionStore.clear(automationId)
     }
 
