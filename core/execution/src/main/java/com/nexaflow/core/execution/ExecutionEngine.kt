@@ -191,7 +191,11 @@ class ExecutionEngine(
         // without timestamp guessing.
         val payloadContext = runContext ?: WorkflowRunContext.create(automation.id, startedAt)
         if (automation.requiresTimeRangeForEndBehavior) {
-            return rejectIncompleteTimeRange(automation, startedAt)
+            return rejectIncompleteTimeRange(
+                automation = automation,
+                startedAt = startedAt,
+                runId = payloadContext.runId
+            )
         }
         capabilitySnapshotProvider?.invoke()?.let { snapshot ->
             // A snapshot observed long ago is not evidence about the device
@@ -886,7 +890,8 @@ class ExecutionEngine(
      */
     private suspend fun rejectIncompleteTimeRange(
         automation: Automation,
-        startedAt: Long
+        startedAt: Long,
+        runId: String = WorkflowRunContext.create(automation.id, startedAt).runId
     ): ExecutionRecord {
         val record = ExecutionRecord(
             id = UUID.randomUUID().toString(),
@@ -897,7 +902,20 @@ class ExecutionEngine(
             executedAt = startedAt
         )
         historyRepository.recordExecution(record)
-        recordTimeline(automation, "CONFIGURATION_BLOCKED", record, startedAt)
+        recordTimeline(
+            automation = automation,
+            kind = "CONFIGURATION_BLOCKED",
+            record = record,
+            startedAt = startedAt,
+            runId = runId
+        )
+        traceRecorder.recordGateBlocked(
+            runId = runId,
+            automationId = automation.id,
+            reasonCode = com.nexaflow.core.logging.TraceReasons.CONFIGURATION_BLOCKED,
+            detail = "end behavior requires a time range with an explicit end time",
+            atEpochMs = epochMillis.now(),
+        )
         context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
         return record
     }
