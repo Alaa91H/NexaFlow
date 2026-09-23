@@ -67,8 +67,22 @@ class ExecutionRecordMapperTest {
             executedAt = 1700000000000L,
             channel = "ROOT",
             actionResults = listOf(
-                ActionExecutionResult("SYSTEM_BRIGHTNESS", true, "Brightness set", 42L),
-                ActionExecutionResult("SYSTEM_WAIT", false, "Cancelled", 5000L)
+                ActionExecutionResult(
+                    "SYSTEM_BRIGHTNESS",
+                    true,
+                    "Brightness set",
+                    42L,
+                    channel = "ROOT_SHELL",
+                    verificationAttempted = true,
+                    verified = true
+                ),
+                ActionExecutionResult(
+                    "SYSTEM_WAIT",
+                    false,
+                    "Cancelled",
+                    5000L,
+                    errorCode = "TIMEOUT"
+                )
             )
         )
 
@@ -78,6 +92,9 @@ class ExecutionRecordMapperTest {
         assertTrue(entity.resultsJson!!.contains("SYSTEM_BRIGHTNESS"))
         assertTrue(entity.resultsJson!!.contains("\"durationMs\":42"))
         assertTrue(entity.resultsJson!!.contains("\"success\":true"))
+        assertTrue(entity.resultsJson!!.contains("ROOT_SHELL"))
+        assertTrue(entity.resultsJson!!.contains("\"verified\":true"))
+        assertTrue(entity.resultsJson!!.contains("TIMEOUT"))
     }
 
     @Test
