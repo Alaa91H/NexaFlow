@@ -8,6 +8,7 @@ import com.google.android.gms.wearable.DataItem
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
 import com.nexaflow.core.engine.di.ApplicationScope
+import com.nexaflow.core.wearprotocol.WearCapability
 import com.nexaflow.core.wearprotocol.WearCapabilitySnapshot
 import com.nexaflow.core.wearprotocol.WearDeviceDescriptor
 import com.nexaflow.core.wearprotocol.WearProtocol
@@ -103,7 +104,9 @@ class WearDeviceRegistry @Inject constructor(
                 appVersionName = snapshot.appVersionName,
                 appVersionCode = snapshot.appVersionCode,
                 wearOsSdk = snapshot.wearOsSdk,
-                capabilities = snapshot.capabilities,
+                capabilities = snapshot.capabilities.mapNotNull { capabilityName ->
+                    WearCapability.entries.firstOrNull { it.name == capabilityName }
+                }.toSet(),
                 lastSeenEpochMs = snapshot.updatedAtEpochMs,
             )
         )
