@@ -28,12 +28,22 @@ class CapabilityRouterTest {
 
     private class FakeStrategy(
         override val id: StrategyId,
-        override val supportedOperations: Set<SemanticOperationId>,
+        declaredOperations: Set<SemanticOperationId>,
         private val available: Boolean = true,
         private val outcome: OperationOutcome? = null,
         private val readValue: Boolean? = null,
         private val failTimes: Int = 0
     ) : CapabilityStrategy {
+        override val supportedOperations: Set<SemanticOperationId> =
+            if (readValue == null) {
+                declaredOperations
+            } else {
+                declaredOperations + declaredOperations.mapNotNull { operation ->
+                    if (operation.isReadOnly) null
+                    else SemanticOperationId.counterpartOf(operation)?.takeIf { it.isReadOnly }
+                }
+            }
+
         var executions = 0
             private set
 
