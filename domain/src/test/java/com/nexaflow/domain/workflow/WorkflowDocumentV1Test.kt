@@ -197,6 +197,34 @@ class WorkflowDocumentV1Test {
         assertEquals(forward.hash, reversed.hash)
     }
 
+    @Test
+    fun persistedSecretDeclarationAcceptsVaultReference() {
+        val declaration = VariableDeclarationV1(
+            name = "service.token",
+            runtimeType = "SECRET",
+            scope = "WORKFLOW",
+            defaultValue = RuntimeValueV1.SecretReference("vault:service-token"),
+            isSecret = true,
+        )
+        assertEquals("vault:service-token", (declaration.defaultValue as RuntimeValueV1.SecretReference).handle)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun persistedSecretDeclarationRejectsPlaintextDefault() {
+        VariableDeclarationV1(
+            name = "service.token",
+            runtimeType = "SECRET",
+            scope = "WORKFLOW",
+            defaultValue = RuntimeValueV1.StringValue("plain-secret"),
+            isSecret = true,
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun secretReferenceRejectsNonVaultHandle() {
+        RuntimeValueV1.SecretReference("plain-secret")
+    }
+
     // ------------------------------------------------------------------
     // NF-P0-009: forward-compatible rejection
     // ------------------------------------------------------------------
