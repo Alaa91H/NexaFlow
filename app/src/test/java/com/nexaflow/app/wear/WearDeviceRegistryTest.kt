@@ -40,7 +40,7 @@ class WearDeviceRegistryTest {
     fun `same install identity updates transport node without duplication`() {
         val first = WearCapabilitySnapshot(
             watchInstallId = "watch-stable-id",
-            capabilities = setOf(WearCapability.PROTOCOL_V1),
+            capabilities = setOf(WearCapability.PROTOCOL_V1.name),
             deviceName = "Watch",
             updatedAtEpochMs = 1_000L,
         )
