@@ -86,6 +86,7 @@ import com.nexaflow.core.ui.iconVector
 import com.nexaflow.core.ui.nexaFlowEntrance
 import com.nexaflow.core.ui.rememberInstalledAppPresentation
 import com.nexaflow.domain.models.Action
+import com.nexaflow.domain.models.hasExecutableEndBehavior
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.EndBehaviorCatalog
 import com.nexaflow.domain.models.EndMode
@@ -453,13 +454,15 @@ fun DashboardScreen(navController: NavController) {
                 }
             },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        runBlockDialogTarget = null
-                        viewModel.runEndBehavior(automation)
+                if (automation.hasExecutableEndBehavior) {
+                    TextButton(
+                        onClick = {
+                            runBlockDialogTarget = null
+                            viewModel.runEndBehavior(automation)
+                        }
+                    ) {
+                        Text(stringResource(R.string.run_reason_run_end))
                     }
-                ) {
-                    Text(stringResource(R.string.run_reason_run_end))
                 }
             },
             dismissButton = {
