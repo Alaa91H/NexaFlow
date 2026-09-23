@@ -526,7 +526,15 @@ internal fun buildPermissionEntries(): List<PermissionEntry> {
             subtitleRes = R.string.shizuku_permission_sub,
             icon = Icons.Filled.Terminal,
             isGranted = { PrivilegedRunner.isShizukuGranted() },
-            openAction = { context -> ElevatedAccessShortcuts.openShizuku(context) }
+            openAction = { context ->
+                ElevatedAccessShortcuts.openShizuku(context) { granted ->
+                    if (granted) {
+                        Thread {
+                            RootPermissionGranter.requestAndGrantAll(context.applicationContext)
+                        }.start()
+                    }
+                }
+            }
         ),
         PermissionEntry(
             key = "write_settings",
