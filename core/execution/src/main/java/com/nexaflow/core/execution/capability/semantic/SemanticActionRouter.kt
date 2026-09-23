@@ -106,13 +106,6 @@ object SemanticActionMapper {
                 executionId = executionId
             )
         }
-        // Legacy toggle configs stored either "enabled" or omitted; the omit
-        // case predates the parameter and was displayed to users as a toggle
-        // defaulting to ON. Absent value is a *parse error* for new workflows
-        // only when no marker exists; marker "configVersion" >= 2 means the
-        // builder always persisted an explicit value.
-        val enabled = parseEnabled(action.config["enabled"], action.config["configVersion"])
-            ?: return null
         val parameters = when (operation) {
             SemanticOperationId.BRIGHTNESS_SET -> mapOf(
                 "value" to (action.config["value"] ?: return null)
@@ -120,7 +113,18 @@ object SemanticActionMapper {
             SemanticOperationId.SCREEN_TIMEOUT_SET -> mapOf(
                 "seconds" to (action.config["seconds"] ?: return null)
             )
-            else -> mapOf("enabled" to enabled)
+            else -> {
+                // Legacy toggle configs stored either "enabled" or omitted; the
+                // omit case predates the parameter and was displayed to users as
+                // a toggle defaulting to ON. Value-based writes such as brightness
+                // and screen timeout do not have an enabled parameter and must not
+                // be rejected by this boolean compatibility rule.
+                val enabled = parseEnabled(
+                    action.config["enabled"],
+                    action.config["configVersion"]
+                ) ?: return null
+                mapOf("enabled" to enabled)
+            }
         }
         return TypedOperationRequest(
             operation = operation,
