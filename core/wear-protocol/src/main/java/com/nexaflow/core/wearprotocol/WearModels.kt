@@ -136,6 +136,5 @@ object WearProtocolJson {
     val format: Json = Json {
         ignoreUnknownKeys = true
         encodeDefaults = true
-        explicitNulls = false
     }
 }
