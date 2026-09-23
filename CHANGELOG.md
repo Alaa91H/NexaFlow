@@ -13,6 +13,9 @@
 - Added typed serializable envelopes, command/result models, watch event kinds, device
   descriptors, capability snapshots, TTL handling and forward-compatible JSON decoding,
   with contract tests covering legacy stability and round trips.
+- Added a stable per-install watch identity plus a durable capability advertisement.
+  The phone now bootstraps a watch registry from cached Data Layer state and updates the
+  same watch entry across node-id changes instead of treating re-pairing as a new device.
 
 
 ## [v3.87.0] - 2026-09-23
