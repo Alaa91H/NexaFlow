@@ -98,7 +98,7 @@ class WearProtocolContractTest {
         )
         val capabilities = WearCapabilitySnapshot(
             watchInstallId = "watch-1",
-            capabilities = WearCapability.entries.toSet(),
+            capabilities = WearCapability.entries.map { it.name }.toSet(),
             deviceName = "Test watch",
             appVersionName = "3.87.0",
             appVersionCode = 38700L,
@@ -137,6 +137,20 @@ class WearProtocolContractTest {
                 WearProtocolJson.format.encodeToString(capabilities),
             ),
         )
+    }
+
+    @Test
+    fun `future capability names survive older decoding`() {
+        val input = WearCapabilitySnapshot(
+            watchInstallId = "watch-future",
+            capabilities = setOf("PROTOCOL_V1", "FUTURE_CAPABILITY"),
+            updatedAtEpochMs = 6_000L,
+        )
+
+        val encoded = WearProtocolJson.format.encodeToString(input)
+        val decoded = WearProtocolJson.format.decodeFromString<WearCapabilitySnapshot>(encoded)
+
+        assertEquals(input.capabilities, decoded.capabilities)
     }
 
     @Test
