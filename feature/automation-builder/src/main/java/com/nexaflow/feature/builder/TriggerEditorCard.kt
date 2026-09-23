@@ -110,6 +110,8 @@ import com.nexaflow.core.engine.currentCellularGeneration
 import com.nexaflow.core.rom.CustomSettingsBridge
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.SelectChip
+import com.nexaflow.domain.catalog.AutomationNodeCatalog
+import com.nexaflow.domain.catalog.AutomationNodeFamily
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -159,69 +161,38 @@ internal fun TriggerCategory.icon(): ImageVector = when (this) {
     TriggerCategory.COMMUNICATION -> Icons.AutoMirrored.Filled.Message
 }
 
-/** Trigger type → category; the grouped picker renders headers from it. */
-internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> = mapOf(
-    TriggerType.TIME to TriggerCategory.SCHEDULE,
-    TriggerType.CALENDAR to TriggerCategory.SCHEDULE,
-    TriggerType.BATTERY to TriggerCategory.DEVICE,
-    TriggerType.DEVICE to TriggerCategory.DEVICE,
-    TriggerType.RINGER_MODE to TriggerCategory.DEVICE,
-    TriggerType.NOTIFICATION to TriggerCategory.DEVICE,
-    TriggerType.CONNECTIVITY to TriggerCategory.CONNECTIVITY,
-    TriggerType.WIFI_CONNECTED to TriggerCategory.CONNECTIVITY,
-    TriggerType.MOBILE_DATA_CONNECTED to TriggerCategory.CONNECTIVITY,
-    TriggerType.HOTSPOT to TriggerCategory.CONNECTIVITY,
-    TriggerType.NETWORK_MODE to TriggerCategory.CONNECTIVITY,
-    TriggerType.BLUETOOTH_DEVICE to TriggerCategory.CONNECTIVITY,
-    TriggerType.WEBHOOK to TriggerCategory.CONNECTIVITY,
-    TriggerType.LOCATION to TriggerCategory.LOCATION,
-    TriggerType.APPLICATION to TriggerCategory.APPS,
-    TriggerType.SMS to TriggerCategory.COMMUNICATION,
-    TriggerType.INCOMING_CALL to TriggerCategory.COMMUNICATION,
-    TriggerType.SENSOR to TriggerCategory.DEVICE,
-    TriggerType.ROM_SETTING to TriggerCategory.DEVICE,
-    TriggerType.HEADPHONE to TriggerCategory.DEVICE,
-    TriggerType.CHARGER to TriggerCategory.DEVICE,
-    TriggerType.AIRPLANE_MODE to TriggerCategory.DEVICE,
-    TriggerType.DARK_MODE to TriggerCategory.DEVICE,
-    TriggerType.CALL_STATE to TriggerCategory.DEVICE,
-    TriggerType.MEDIA_PLAYING to TriggerCategory.DEVICE,
-    TriggerType.VOLUME_CHANGED to TriggerCategory.DEVICE,
-    TriggerType.APP_INSTALLED to TriggerCategory.APPS,
-    TriggerType.POWER_SAVER to TriggerCategory.DEVICE,
-    TriggerType.BLUETOOTH_STATE to TriggerCategory.CONNECTIVITY,
-    TriggerType.BRIGHTNESS_LEVEL to TriggerCategory.DEVICE,
-    TriggerType.STORAGE_LOW to TriggerCategory.DEVICE,
-    TriggerType.AUTO_ROTATE to TriggerCategory.DEVICE,
-    TriggerType.DATA_SAVER_STATE to TriggerCategory.CONNECTIVITY,
-    TriggerType.DEVICE_LOCKED to TriggerCategory.DEVICE,
-    TriggerType.WIFI_STATE to TriggerCategory.CONNECTIVITY,
-    TriggerType.NFC_STATE to TriggerCategory.CONNECTIVITY,
-    // Legacy combined connectivity remains supported for imported automations and
-    // is now also available to new users who need one unified network condition.
-    TriggerType.CONNECTIVITY to TriggerCategory.CONNECTIVITY,
-    TriggerType.WIFI_CONNECTED to TriggerCategory.CONNECTIVITY,
-    TriggerType.MOBILE_DATA_CONNECTED to TriggerCategory.CONNECTIVITY,
-    TriggerType.LOCATION_STATE to TriggerCategory.LOCATION,
-    TriggerType.SCREEN_ROTATION_STATE to TriggerCategory.DEVICE,
-    TriggerType.WIFI_SIGNAL_STRENGTH to TriggerCategory.CONNECTIVITY,
-    TriggerType.CELL_SIGNAL_STRENGTH to TriggerCategory.CONNECTIVITY,
-    TriggerType.BATTERY_TEMPERATURE to TriggerCategory.DEVICE,
-    TriggerType.USB_CONNECTED to TriggerCategory.DEVICE,
-    TriggerType.HDMI_CONNECTED to TriggerCategory.DEVICE,
-    TriggerType.ETHERNET_CONNECTED to TriggerCategory.CONNECTIVITY,
-    TriggerType.VPN_CONNECTED to TriggerCategory.CONNECTIVITY,
-    TriggerType.CLIPBOARD_CHANGED to TriggerCategory.DEVICE,
-    TriggerType.DND_STATE to TriggerCategory.DEVICE,
-    TriggerType.STAY_AWAKE_STATE to TriggerCategory.DEVICE,
-    TriggerType.AUTO_BRIGHTNESS_STATE to TriggerCategory.DEVICE,
-    TriggerType.SCREEN_TIMEOUT_CHANGED to TriggerCategory.DEVICE,
-    TriggerType.DATA_ROAMING_STATE to TriggerCategory.CONNECTIVITY,
-    TriggerType.TIMEZONE_CHANGED to TriggerCategory.DEVICE,
-    TriggerType.BOOT_COMPLETED to TriggerCategory.DEVICE,
-    TriggerType.NFC_TAG_SCANNED to TriggerCategory.CONNECTIVITY,
-    TriggerType.ALARM_SET_CHANGED to TriggerCategory.SCHEDULE
-)
+/** Trigger type → presentation category, derived from the domain catalog. */
+internal val triggerCategoryOf: Map<TriggerType, TriggerCategory> =
+    TriggerType.entries.associateWith { type ->
+        AutomationNodeCatalog.definitionFor(type).family.toTriggerCategory()
+    }
+
+/**
+ * The domain catalog keeps richer semantic families than this compact picker.
+ * Several families intentionally collapse into DEVICE here to preserve the
+ * existing six-category UX while removing duplicate classification data.
+ */
+private fun AutomationNodeFamily.toTriggerCategory(): TriggerCategory = when (this) {
+    AutomationNodeFamily.SCHEDULE -> TriggerCategory.SCHEDULE
+    AutomationNodeFamily.CONNECTIVITY,
+    AutomationNodeFamily.NETWORK -> TriggerCategory.CONNECTIVITY
+    AutomationNodeFamily.LOCATION -> TriggerCategory.LOCATION
+    AutomationNodeFamily.APPLICATIONS -> TriggerCategory.APPS
+    AutomationNodeFamily.COMMUNICATION -> TriggerCategory.COMMUNICATION
+    AutomationNodeFamily.DEVICE,
+    AutomationNodeFamily.DISPLAY,
+    AutomationNodeFamily.SOUND,
+    AutomationNodeFamily.MEDIA,
+    AutomationNodeFamily.NOTIFICATIONS,
+    AutomationNodeFamily.BATTERY,
+    AutomationNodeFamily.SYSTEM,
+    AutomationNodeFamily.ROM,
+    AutomationNodeFamily.DATA,
+    AutomationNodeFamily.FILES,
+    AutomationNodeFamily.FLOW,
+    AutomationNodeFamily.PLUGINS,
+    AutomationNodeFamily.DEVELOPER -> TriggerCategory.DEVICE
+}
 
 /** Trigger types ordered by category — the picker walks [triggerCategories] over it. */
 val triggerTypeOptions = listOf(
