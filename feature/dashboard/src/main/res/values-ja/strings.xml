@@ -288,4 +288,5 @@
     <string name="task_readiness_triggers">成立したトリガー</string>
     <string name="task_readiness_constraints">成立した制約</string>
     <string name="task_readiness_fraction">%2$d件中%1$d件</string>
+    <string name="trigger_wear_event">Wear OS ウォッチ</string>
 </resources>

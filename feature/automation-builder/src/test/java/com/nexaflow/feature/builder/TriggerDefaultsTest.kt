@@ -12,6 +12,14 @@ class TriggerDefaultsTest {
     }
 
     @Test
+    fun wearTrigger_defaultsToAnyConnectedWatch() {
+        assertEquals(
+            mapOf("watchInstallId" to "", "state" to "CONNECTED"),
+            defaultTriggerConfig(TriggerType.WEAR_EVENT),
+        )
+    }
+
+    @Test
     fun smsTrigger_defaultConfig_containsOnlyMatchingFilters() {
         val config = defaultTriggerConfig(TriggerType.SMS)
 

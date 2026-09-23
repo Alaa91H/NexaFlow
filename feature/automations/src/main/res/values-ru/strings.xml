@@ -584,4 +584,6 @@
     <string name="execution_diagnostic_running">Выполняется</string>
     <string name="execution_diagnostic_skipped">Пропущено</string>
     <string name="execution_diagnostic_outcome_unknown">Результат неизвестен</string>
+    <string name="trigger_wear_event">Часы Wear OS</string>
+    <string name="trigger_wear_event_sub">Запускать задачу, когда часы NexaFlow подключены или отключены</string>
 </resources>

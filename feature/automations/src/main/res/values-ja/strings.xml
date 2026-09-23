@@ -584,4 +584,6 @@
     <string name="execution_diagnostic_running">実行中</string>
     <string name="execution_diagnostic_skipped">スキップ</string>
     <string name="execution_diagnostic_outcome_unknown">結果不明</string>
+    <string name="trigger_wear_event">Wear OS ウォッチ</string>
+    <string name="trigger_wear_event_sub">NexaFlow ウォッチの接続または切断時にタスクを実行</string>
 </resources>

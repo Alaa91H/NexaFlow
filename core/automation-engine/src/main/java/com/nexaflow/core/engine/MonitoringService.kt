@@ -103,6 +103,9 @@ class MonitoringService : Service() {
     lateinit var pluginEventRouter: PluginEventRouter
 
     @Inject
+    lateinit var wearEventRouter: WearEventRouter
+
+    @Inject
     lateinit var activeTriggerStore: ActiveTriggerStore
 
     @Inject
@@ -147,6 +150,7 @@ class MonitoringService : Service() {
             ringerModeMonitor.reconcileAutomations()
             deviceEventMonitor.reconcileAutomations()
             deviceStateMonitor28.reconcileAutomations()
+            wearEventRouter.reconcileAutomations()
         }
     }
 
@@ -196,6 +200,7 @@ class MonitoringService : Service() {
             // registered, preserving the EventBus → TriggerIndex route and
             // preventing any direct plugin callback execution.
             pluginEventRouter.start()
+            wearEventRouter.start()
             startMonitors()
             runCatching { romSettingMonitor.initialize() }
                 .onFailure { Log.w(TAG, "monitor 'rom-setting' failed to initialize", it) }
@@ -308,6 +313,7 @@ class MonitoringService : Service() {
         deviceStateMonitor28.stop()
         pluginEventSource.stop()
         pluginEventRouter.stop()
+        wearEventRouter.stop()
     }
 
     /**

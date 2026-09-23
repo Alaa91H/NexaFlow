@@ -584,4 +584,6 @@
     <string name="execution_diagnostic_running">执行中</string>
     <string name="execution_diagnostic_skipped">已跳过</string>
     <string name="execution_diagnostic_outcome_unknown">结果未知</string>
+    <string name="trigger_wear_event">Wear OS 手表</string>
+    <string name="trigger_wear_event_sub">当 NexaFlow 手表连接或断开连接时运行任务</string>
 </resources>

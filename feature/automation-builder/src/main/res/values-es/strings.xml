@@ -1267,4 +1267,6 @@
     <string name="sensor_unavailable">Este dispositivo no expone el sensor seleccionado. Este iniciador no puede ejecutarse aquí.</string>
     <string name="sensor_invalid_threshold">Introduce un número finito.</string>
     <string name="sensor_invalid_range">El límite superior debe ser mayor o igual que el inferior.</string>
+    <string name="trigger_wear_event">Reloj Wear OS</string>
+    <string name="trigger_wear_event_sub">Ejecutar la tarea cuando un reloj NexaFlow esté conectado o desconectado</string>
 </resources>

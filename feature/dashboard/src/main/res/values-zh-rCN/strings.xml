@@ -288,4 +288,5 @@
     <string name="task_readiness_triggers">已满足触发器</string>
     <string name="task_readiness_constraints">已满足约束</string>
     <string name="task_readiness_fraction">%1$d / %2$d</string>
+    <string name="trigger_wear_event">Wear OS 手表</string>
 </resources>

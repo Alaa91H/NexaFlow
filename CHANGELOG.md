@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### Added — Wear OS automation foundation
+
+- Added a shared `:core:wear-protocol` contract used by the phone, execution core,
+  and Wear app so Data Layer paths, keys, capabilities and protocol versioning have
+  one source of truth instead of mirrored literals.
+- Added versioned v1 paths for commands, events, results, device state and capability
+  negotiation while preserving the existing run/toggle/sync paths for installed-version
+  compatibility.
+- Added typed serializable envelopes, command/result models, watch event kinds, device
+  descriptors, capability snapshots, TTL handling and forward-compatible JSON decoding,
+  with contract tests covering legacy stability and round trips.
+- Added a stable per-install watch identity plus a durable capability advertisement.
+  The phone now bootstraps a watch registry from cached Data Layer state and updates the
+  same watch entry across node-id changes instead of treating re-pairing as a new device.
+- Added the first first-class Wear OS automation trigger: watch connection state
+  (CONNECTED / DISCONNECTED). Live Data Layer reachability now flows through the
+  canonical EventBus and TriggerIndex into a stateful Wear router, with durable
+  enter/exit bookkeeping, cooldown handling, ALL/ANY-aware lifecycle behavior,
+  live TriggerStateEvaluator support, builder configuration, dashboard/detail
+  rendering, localized UI, and regression coverage.
+
+
 ## [v3.87.0] - 2026-09-23
 
 ### Added — Structured execution diagnostics

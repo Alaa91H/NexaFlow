@@ -584,4 +584,6 @@
     <string name="execution_diagnostic_running">En cours</string>
     <string name="execution_diagnostic_skipped">Ignoré</string>
     <string name="execution_diagnostic_outcome_unknown">Résultat inconnu</string>
+    <string name="trigger_wear_event">Montre Wear OS</string>
+    <string name="trigger_wear_event_sub">Exécuter la tâche lorsqu’une montre NexaFlow est connectée ou déconnectée</string>
 </resources>

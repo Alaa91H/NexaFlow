@@ -128,7 +128,8 @@ object AutomationNodeCatalog {
             TriggerType.STAY_AWAKE_STATE,
             TriggerType.AUTO_BRIGHTNESS_STATE,
             TriggerType.SCREEN_TIMEOUT_CHANGED,
-            TriggerType.BOOT_COMPLETED
+            TriggerType.BOOT_COMPLETED,
+            TriggerType.WEAR_EVENT
         ),
         AutomationNodeFamily.CONNECTIVITY to listOf(
             TriggerType.CONNECTIVITY,

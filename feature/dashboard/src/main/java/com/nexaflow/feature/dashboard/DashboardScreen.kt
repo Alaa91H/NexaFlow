@@ -1012,6 +1012,7 @@ internal fun triggerLabel(type: TriggerType): Int = when (type) {
     TriggerType.BOOT_COMPLETED -> R.string.trigger_boot_completed
     TriggerType.NFC_TAG_SCANNED -> R.string.trigger_nfc_tag_scanned
     TriggerType.ALARM_SET_CHANGED -> R.string.trigger_alarm_set_changed
+    TriggerType.WEAR_EVENT -> R.string.trigger_wear_event
     TriggerType.PLUGIN_EVENT -> R.string.trigger_plugin_event
 }
 

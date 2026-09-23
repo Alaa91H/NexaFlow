@@ -584,4 +584,6 @@
     <string name="execution_diagnostic_running">Çalışıyor</string>
     <string name="execution_diagnostic_skipped">Atlandı</string>
     <string name="execution_diagnostic_outcome_unknown">Sonuç bilinmiyor</string>
+    <string name="trigger_wear_event">Wear OS saati</string>
+    <string name="trigger_wear_event_sub">Bir NexaFlow saati bağlandığında veya bağlantısı kesildiğinde görevi çalıştır</string>
 </resources>

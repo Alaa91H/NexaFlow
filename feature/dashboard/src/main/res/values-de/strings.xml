@@ -288,4 +288,5 @@
     <string name="task_readiness_triggers">Erfüllte Auslöser</string>
     <string name="task_readiness_constraints">Erfüllte Bedingungen</string>
     <string name="task_readiness_fraction">%1$d von %2$d</string>
+    <string name="trigger_wear_event">Wear-OS-Uhr</string>
 </resources>

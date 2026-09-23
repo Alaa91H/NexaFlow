@@ -162,6 +162,10 @@ internal object TriggerNodeSchemas {
         TriggerType.ALARM_SET_CHANGED -> schema(
             enumField("event", "SET", "CLEARED")
         )
+        TriggerType.WEAR_EVENT -> schema(
+            stringField("watchInstallId"),
+            enumField("state", "CONNECTED", "DISCONNECTED", default = "CONNECTED")
+        )
         TriggerType.BOOT_COMPLETED,
         TriggerType.PLUGIN_EVENT -> NodeConfigurationSchema()
     }

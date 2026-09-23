@@ -132,6 +132,8 @@ kotlin {
 }
 
 dependencies {
+    implementation(project(":core:wear-protocol"))
+
     // Wear OS core
     implementation(libs.com.google.android.gms.play.services.wearable)
 

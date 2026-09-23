@@ -1267,4 +1267,6 @@
     <string name="sensor_unavailable">このデバイスには選択されたセンサーがありません。このトリガーはここでは実行できません。</string>
     <string name="sensor_invalid_threshold">有限の数値を入力してください。</string>
     <string name="sensor_invalid_range">上限は下限以上である必要があります。</string>
+    <string name="trigger_wear_event">Wear OS ウォッチ</string>
+    <string name="trigger_wear_event_sub">NexaFlow ウォッチの接続または切断時にタスクを実行</string>
 </resources>

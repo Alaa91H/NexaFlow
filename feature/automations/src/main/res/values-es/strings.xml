@@ -584,4 +584,6 @@
     <string name="execution_diagnostic_running">En ejecución</string>
     <string name="execution_diagnostic_skipped">Omitido</string>
     <string name="execution_diagnostic_outcome_unknown">Resultado desconocido</string>
+    <string name="trigger_wear_event">Reloj Wear OS</string>
+    <string name="trigger_wear_event_sub">Ejecutar la tarea cuando un reloj NexaFlow esté conectado o desconectado</string>
 </resources>

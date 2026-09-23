@@ -38,6 +38,8 @@ enum class TriggerSource(val sourceId: String) {
     CALENDAR("calendar"),
     SENSOR("sensor"),
     WEBHOOK("webhook"),
+    /** Wear OS companion reachability events from the Data Layer. */
+    WEAR("wear"),
     /** Explicit external-plugin events after receiver authentication. */
     PLUGIN("plugin"),
     /** Pre-ring call screening (CallScreeningService-backed). */
@@ -100,6 +102,7 @@ enum class TriggerSource(val sourceId: String) {
             TriggerType.BOOT_COMPLETED -> DEVICE
             TriggerType.NFC_TAG_SCANNED -> DEVICE
             TriggerType.ALARM_SET_CHANGED -> DEVICE
+            TriggerType.WEAR_EVENT -> WEAR
             TriggerType.PLUGIN_EVENT -> PLUGIN
         }
     }

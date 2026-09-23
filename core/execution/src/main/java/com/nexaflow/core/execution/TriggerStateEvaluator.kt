@@ -14,6 +14,7 @@ import com.nexaflow.core.common.DefaultNetworkSnapshot
 import com.nexaflow.core.common.DefaultNetworkStateReader
 import com.nexaflow.core.common.HotspotStateReader
 import com.nexaflow.core.common.NetworkTransportState
+import com.nexaflow.core.wearprotocol.WearRuntimeState
 import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerMatchMode
@@ -177,6 +178,11 @@ object TriggerStateEvaluator {
                 append(" ").append(c["event"] ?: "CONNECTED")
                 c["deviceName"]?.takeIf { it.isNotBlank() }?.let { append(" ").append(it) }
             }
+            TriggerType.WEAR_EVENT -> buildString {
+                append(base)
+                append(" ").append(c["state"] ?: "CONNECTED")
+                c["watchInstallId"]?.takeIf { it.isNotBlank() }?.let { append(" ").append(it) }
+            }
             TriggerType.LOCATION -> "$base ${c["lat"] ?: ""},${c["lng"] ?: ""}".trim()
             else -> c.entries.firstOrNull { it.value.isNotBlank() }
                 ?.let { "$base ${it.key}=${it.value}" }
@@ -185,6 +191,19 @@ object TriggerStateEvaluator {
     }
 
     private fun evaluateTriggerForManualGate(context: Context, trigger: Trigger): ConditionResult {
+        if (trigger.type == TriggerType.WEAR_EVENT) {
+            val wantConnected = (trigger.config["state"] ?: "CONNECTED") == "CONNECTED"
+            return when (
+                WearRuntimeState.conditionSatisfied(
+                    trigger.config["watchInstallId"],
+                    wantConnected,
+                )
+            ) {
+                true -> ConditionResult.Satisfied
+                false -> ConditionResult.Unsatisfied
+                null -> ConditionResult.Unknown
+            }
+        }
         if (trigger.type in MANUAL_EVENT_ONLY_TYPES) return ConditionResult.Unknown
         val satisfied = runCatching { triggerSatisfied(context, trigger) }.getOrNull()
             ?: return ConditionResult.Unknown
@@ -220,6 +239,10 @@ object TriggerStateEvaluator {
             TriggerType.MOBILE_DATA_CONNECTED ->
                 connectivitySatisfied(context, c + ("network" to "MOBILE"))
             TriggerType.HOTSPOT -> connectivitySatisfied(context, c + ("network" to "HOTSPOT"))
+            TriggerType.WEAR_EVENT -> WearRuntimeState.conditionSatisfied(
+                c["watchInstallId"],
+                (c["state"] ?: "CONNECTED") == "CONNECTED",
+            ) == true
             TriggerType.TIME -> timeTriggerSatisfied(c)
             TriggerType.RINGER_MODE -> ringerModeSatisfied(context, c)
             TriggerType.BATTERY -> batterySatisfied(context, c)

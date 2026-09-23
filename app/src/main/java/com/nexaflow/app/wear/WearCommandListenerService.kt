@@ -1,9 +1,11 @@
 package com.nexaflow.app.wear
 
 import android.util.Log
+import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.WearableListenerService
+import com.nexaflow.core.execution.WEAR_PATH_CAPABILITIES_V1
 import com.nexaflow.core.execution.WEAR_PATH_RUN_COMMAND
 import com.nexaflow.core.execution.WEAR_PATH_SYNC_REQUEST
 import com.nexaflow.core.execution.WEAR_PATH_TOGGLE_COMMAND
@@ -38,7 +40,8 @@ class WearCommandListenerService : WearableListenerService() {
     interface WearBridgeEntryPoint {
         fun executionEngine(): ExecutionEngine
         fun automationRepository(): AutomationRepository
-        fun wearSyncManager(): com.nexaflow.app.wear.WearSyncManager
+        fun wearSyncManager(): WearSyncManager
+        fun wearDeviceRegistry(): WearDeviceRegistry
     }
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -51,12 +54,16 @@ class WearCommandListenerService : WearableListenerService() {
     }
 
     override fun onDataChanged(dataEvents: DataEventBuffer) {
-        // GMS may wake this process for the automation-list DataItem the
-        // listener itself pushes (self-echo) or for items pushed while the
-        // process was dead. Neither requires a reaction here — the push path
-        // and the watch's snapshot read cover recovery — but consuming the
-        // buffer prevents an unread-cursor warning in the platform logs.
-        dataEvents.use { }
+        dataEvents.use { buffer ->
+            buffer.forEach { event ->
+                if (
+                    event.type == DataEvent.TYPE_CHANGED &&
+                    event.dataItem.uri.path == WEAR_PATH_CAPABILITIES_V1
+                ) {
+                    entryPoint.wearDeviceRegistry().acceptDataItem(event.dataItem)
+                }
+            }
+        }
     }
 
     override fun onMessageReceived(event: MessageEvent) {

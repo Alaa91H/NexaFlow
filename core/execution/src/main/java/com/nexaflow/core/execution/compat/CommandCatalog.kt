@@ -318,6 +318,7 @@ object CommandCatalog {
         TriggerType.WEBHOOK to CommandSpec.UNIVERSAL,
         TriggerType.APPLICATION to CommandSpec.UNIVERSAL,
         TriggerType.APP_INSTALLED to CommandSpec.UNIVERSAL,
+        TriggerType.WEAR_EVENT to CommandSpec.UNIVERSAL,
         // Sender identity is exposed to dynamically registered receivers only
         // on Android 14+. Registry approval and component matching are checked
         // separately by PluginEventIngress before EventBus publication.

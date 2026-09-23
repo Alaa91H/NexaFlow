@@ -1267,4 +1267,6 @@
     <string name="sensor_unavailable">Это устройство не предоставляет выбранный датчик. Этот триггер здесь не может работать.</string>
     <string name="sensor_invalid_threshold">Введите конечное число.</string>
     <string name="sensor_invalid_range">Верхняя граница должна быть не меньше нижней.</string>
+    <string name="trigger_wear_event">Часы Wear OS</string>
+    <string name="trigger_wear_event_sub">Запускать задачу, когда часы NexaFlow подключены или отключены</string>
 </resources>

@@ -584,4 +584,6 @@
     <string name="execution_diagnostic_running">चल रहा है</string>
     <string name="execution_diagnostic_skipped">छोड़ा गया</string>
     <string name="execution_diagnostic_outcome_unknown">परिणाम अज्ञात</string>
+    <string name="trigger_wear_event">Wear OS घड़ी</string>
+    <string name="trigger_wear_event_sub">NexaFlow घड़ी के कनेक्ट या डिस्कनेक्ट होने पर कार्य चलाएँ</string>
 </resources>

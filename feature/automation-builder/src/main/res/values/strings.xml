@@ -1276,4 +1276,6 @@
     <string name="sensor_unavailable">This device does not expose the selected sensor. This trigger cannot run here.</string>
     <string name="sensor_invalid_threshold">Enter a finite number.</string>
     <string name="sensor_invalid_range">The upper bound must be greater than or equal to the lower bound.</string>
+    <string name="trigger_wear_event">Wear OS watch</string>
+    <string name="trigger_wear_event_sub">Run the task when a NexaFlow watch is connected or disconnected</string>
 </resources>

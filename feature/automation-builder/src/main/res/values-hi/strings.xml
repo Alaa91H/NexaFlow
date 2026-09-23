@@ -1267,4 +1267,6 @@
     <string name="sensor_unavailable">यह डिवाइस चयनित सेंसर प्रदान नहीं करता। यह ट्रिगर यहाँ नहीं चल सकता।</string>
     <string name="sensor_invalid_threshold">एक परिमित संख्या दर्ज करें।</string>
     <string name="sensor_invalid_range">ऊपरी सीमा निचली सीमा से बड़ी या बराबर होनी चाहिए।</string>
+    <string name="trigger_wear_event">Wear OS घड़ी</string>
+    <string name="trigger_wear_event_sub">NexaFlow घड़ी के कनेक्ट या डिस्कनेक्ट होने पर कार्य चलाएँ</string>
 </resources>

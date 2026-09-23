@@ -102,7 +102,12 @@ val Automation.requiresTimeRangeForEndBehavior: Boolean
         trigger.type == TriggerType.TIME && trigger.config["timeMode"] != "RANGE"
     }
 
-private fun Trigger.isOneShotEvent(): Boolean = when (type) {
+/**
+ * True when this trigger is a momentary occurrence rather than an ongoing
+ * condition. Exposed so stateful source routers can avoid treating a past
+ * one-shot event as a condition that keeps an ANY lifecycle open.
+ */
+fun Trigger.isOneShotEvent(): Boolean = when (type) {
     TriggerType.TIME -> config["timeMode"] != "RANGE"
     TriggerType.SMS,
     TriggerType.WEBHOOK,
@@ -370,6 +375,12 @@ enum class TriggerType {
      * An alarm clock was set or cleared. Config key: `event` (SET/CLEARED).
      */
     ALARM_SET_CHANGED,
+    /**
+     * Wear OS companion reachability state. Config keys:
+     * `state` (CONNECTED/DISCONNECTED) and optional `watchInstallId`.
+     * A blank watchInstallId means any previously discovered NexaFlow watch.
+     */
+    WEAR_EVENT,
     /**
      * A user-approved event from an explicitly configured plugin component.
      * Config keys: `pluginInstance`, `pluginApproval`, `package`, and

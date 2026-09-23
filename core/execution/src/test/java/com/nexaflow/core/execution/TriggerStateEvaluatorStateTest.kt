@@ -1,6 +1,7 @@
 package com.nexaflow.core.execution
 
 import androidx.test.core.app.ApplicationProvider
+import com.nexaflow.core.wearprotocol.WearRuntimeState
 import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
@@ -135,6 +136,108 @@ class TriggerStateEvaluatorStateTest {
                     )
                 )
             }
+        )
+    }
+
+    @Test
+    fun wearConnectedConditionUsesLiveRuntimeState() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val installId = "wear-gate-connected"
+        WearRuntimeState.upsertKnownDevice(
+            watchInstallId = installId,
+            nodeId = "wear-node-connected",
+            reachable = true,
+            observedAtEpochMs = 10_000L,
+        )
+
+        assertEquals(
+            ConditionResult.Satisfied,
+            runBlocking {
+                TriggerStateEvaluator.evaluateTriggerState(
+                    context,
+                    Trigger(
+                        TriggerType.WEAR_EVENT,
+                        mapOf(
+                            "watchInstallId" to installId,
+                            "state" to "CONNECTED",
+                        ),
+                    ),
+                )
+            },
+        )
+        assertEquals(
+            ConditionResult.Unsatisfied,
+            runBlocking {
+                TriggerStateEvaluator.evaluateTriggerState(
+                    context,
+                    Trigger(
+                        TriggerType.WEAR_EVENT,
+                        mapOf(
+                            "watchInstallId" to installId,
+                            "state" to "DISCONNECTED",
+                        ),
+                    ),
+                )
+            },
+        )
+    }
+
+    @Test
+    fun wearDisconnectedConditionBecomesSatisfiedAfterReachabilityEnds() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val installId = "wear-gate-disconnected"
+        val nodeId = "wear-node-disconnected"
+        WearRuntimeState.upsertKnownDevice(
+            watchInstallId = installId,
+            nodeId = nodeId,
+            reachable = true,
+            observedAtEpochMs = 20_000L,
+        )
+        val stillReachable = WearRuntimeState.snapshot()
+            .filter { it.reachable }
+            .mapNotNull { it.nodeId }
+            .filterNot { it == nodeId }
+            .toSet()
+        WearRuntimeState.updateReachableNodeIds(
+            reachableNodeIds = stillReachable,
+            observedAtEpochMs = 21_000L,
+        )
+
+        assertEquals(
+            ConditionResult.Satisfied,
+            runBlocking {
+                TriggerStateEvaluator.evaluateTriggerState(
+                    context,
+                    Trigger(
+                        TriggerType.WEAR_EVENT,
+                        mapOf(
+                            "watchInstallId" to installId,
+                            "state" to "DISCONNECTED",
+                        ),
+                    ),
+                )
+            },
+        )
+    }
+
+    @Test
+    fun unknownWearIdentityRemainsUnknownInsteadOfPretendingDisconnected() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+
+        assertEquals(
+            ConditionResult.Unknown,
+            runBlocking {
+                TriggerStateEvaluator.evaluateTriggerState(
+                    context,
+                    Trigger(
+                        TriggerType.WEAR_EVENT,
+                        mapOf(
+                            "watchInstallId" to "never-discovered-watch",
+                            "state" to "DISCONNECTED",
+                        ),
+                    ),
+                )
+            },
         )
     }
 

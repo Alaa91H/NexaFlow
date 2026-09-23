@@ -584,4 +584,6 @@
     <string name="execution_diagnostic_running">Wird ausgeführt</string>
     <string name="execution_diagnostic_skipped">Übersprungen</string>
     <string name="execution_diagnostic_outcome_unknown">Ergebnis unbekannt</string>
+    <string name="trigger_wear_event">Wear-OS-Uhr</string>
+    <string name="trigger_wear_event_sub">Aufgabe ausführen, wenn eine NexaFlow-Uhr verbunden oder getrennt ist</string>
 </resources>
