@@ -16,6 +16,12 @@
 - Added a stable per-install watch identity plus a durable capability advertisement.
   The phone now bootstraps a watch registry from cached Data Layer state and updates the
   same watch entry across node-id changes instead of treating re-pairing as a new device.
+- Added the first first-class Wear OS automation trigger: watch connection state
+  (CONNECTED / DISCONNECTED). Live Data Layer reachability now flows through the
+  canonical EventBus and TriggerIndex into a stateful Wear router, with durable
+  enter/exit bookkeeping, cooldown handling, ALL/ANY-aware lifecycle behavior,
+  live TriggerStateEvaluator support, builder configuration, dashboard/detail
+  rendering, localized UI, and regression coverage.
 
 
 ## [v3.87.0] - 2026-09-23
