@@ -74,6 +74,17 @@ object WorkflowDocumentMappers {
                 createdAt = createdAt,
                 updatedAt = updatedAt,
             ),
+            automationSettings = AutomationSettingsV1(
+                iconColor = iconColor,
+                backgroundColor = backgroundColor,
+                priority = priority,
+                enabled = enabled,
+                showToastOnToggle = showToastOnToggle,
+                triggerMatch = triggerMatch.name,
+                cooldownSeconds = cooldownSeconds,
+                workflowVersion = workflowVersion,
+                maintenanceProfile = maintenanceProfile,
+            ),
             triggers = triggers.map { it.toDefinition() },
             constraints = constraints.map { it.toDefinition() },
             root = root,
@@ -130,24 +141,29 @@ object WorkflowDocumentMappers {
     fun WorkflowDocumentV1.toAutomation(): Automation {
         val runActions = requireLinearRun(root)
         val exitPolicy = exitPolicy
+        val settings = automationSettings
         return Automation(
             id = id,
             name = metadata.name,
             description = metadata.description,
             icon = metadata.icon,
-            iconColor = 0xFF448AFF,
-            backgroundColor = 0xFF101010,
+            iconColor = settings.iconColor,
+            backgroundColor = settings.backgroundColor,
             category = metadata.category.ifBlank { "general" },
-            priority = 5,
-            enabled = false,
+            priority = settings.priority,
+            enabled = settings.enabled,
+            showToastOnToggle = settings.showToastOnToggle,
             triggers = triggers.map { it.toTrigger() },
             actions = runActions,
             constraints = constraints.map { it.toConstraint() },
-            triggerMatch = com.nexaflow.domain.models.TriggerMatchMode.ANY,
+            triggerMatch = com.nexaflow.domain.models.TriggerMatchMode.valueOf(settings.triggerMatch),
             exitActions = exitPolicy?.actions?.map { it.toAction() } ?: emptyList(),
             revertOnExit = exitPolicy?.revertOnExit ?: false,
+            cooldownSeconds = settings.cooldownSeconds,
             createdAt = metadata.createdAt.takeIf { it > 0 } ?: 0L,
             updatedAt = metadata.updatedAt.takeIf { it > 0 } ?: 0L,
+            workflowVersion = settings.workflowVersion,
+            maintenanceProfile = settings.maintenanceProfile,
         )
     }
 
@@ -223,7 +239,12 @@ object WorkflowDocumentMappers {
         val seen = HashSet<String>()
         visit(document.root, seen, issues)
         document.exitPolicy?.actions?.forEach { persisted ->
-            if (persisted.nodeId.isBlank()) issues += ValidationIssue.BlankNodeId("exitPolicy")
+            when {
+                persisted.nodeId.isBlank() ->
+                    issues += ValidationIssue.BlankNodeId("exitPolicy")
+                !seen.add(persisted.nodeId) ->
+                    issues += ValidationIssue.DuplicateNodeId(persisted.nodeId)
+            }
         }
         return issues
     }
@@ -274,6 +295,12 @@ object WorkflowDocumentMappers {
                     issues += ValidationIssue.InvalidBound(
                         node.nodeId,
                         "maxAttempts ${node.maxAttempts} outside 1..${WorkflowDocumentMappers.Bounds.MAX_RETRY_ATTEMPTS}",
+                    )
+                }
+                if (node.backoffMs !in 0..WorkflowDocumentMappers.Bounds.MAX_TIMEOUT_MS) {
+                    issues += ValidationIssue.InvalidBound(
+                        node.nodeId,
+                        "backoffMs ${node.backoffMs} outside 0..${WorkflowDocumentMappers.Bounds.MAX_TIMEOUT_MS}",
                     )
                 }
                 visit(node.body, seen, issues)
