@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import com.nexaflow.core.rom.model.IntegrationLevel
 import java.io.File
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 object SystemAppStatusDetector {
@@ -199,7 +200,16 @@ object SystemAppStatusDetector {
                 .start()
             val output = StringBuilder()
             val reader = Thread {
-                output.append(process.inputStream.bufferedReader().readText())
+                try {
+                    process.inputStream.bufferedReader().use { input ->
+                        output.append(input.readText())
+                    }
+                } catch (_: IOException) {
+                    // A timeout intentionally destroys the process, which closes
+                    // the pipe while this drain thread may still be reading.
+                    // That race is expected and must not escape as an uncaught
+                    // background-thread exception / CI error annotation.
+                }
             }
             reader.start()
             val exited = process.waitFor(2, TimeUnit.SECONDS)
@@ -229,7 +239,16 @@ object SystemAppStatusDetector {
                 .start()
             val output = StringBuilder()
             val reader = Thread {
-                output.append(process.inputStream.bufferedReader().readText())
+                try {
+                    process.inputStream.bufferedReader().use { input ->
+                        output.append(input.readText())
+                    }
+                } catch (_: IOException) {
+                    // A timeout intentionally destroys the process, which closes
+                    // the pipe while this drain thread may still be reading.
+                    // That race is expected and must not escape as an uncaught
+                    // background-thread exception / CI error annotation.
+                }
             }
             reader.start()
             val exited = process.waitFor(3, TimeUnit.SECONDS)
