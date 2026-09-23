@@ -325,6 +325,8 @@ jobs:
         fi
         APK_NAME="NexaFlow-$GITHUB_REF_NAME.apk"
         WATCH_APK_NAME="NexaFlow-Wear-$GITHUB_REF_NAME.apk"
+        cp app/build/outputs/apk/release/app-release.apk "$APK_NAME"
+        cp wear/build/outputs/apk/release/wear-release.apk "$WATCH_APK_NAME"
         python3 scripts/generate_release_notes.py "$GITHUB_REF_NAME" > release-notes.md
         if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
           echo "Release $GITHUB_REF_NAME already exists — replacing APK assets with the latest build."
@@ -332,13 +334,12 @@ jobs:
           gh release delete-asset "$GITHUB_REF_NAME" "app-release.apk" --yes >/dev/null 2>&1 || true
           gh release delete-asset "$GITHUB_REF_NAME" "$WATCH_APK_NAME" --yes >/dev/null 2>&1 || true
           gh release delete-asset "$GITHUB_REF_NAME" "wear-release.apk" --yes >/dev/null 2>&1 || true
-          gh release upload "$GITHUB_REF_NAME" "app/build/outputs/apk/release/app-release.apk#$APK_NAME" --clobber
-          gh release upload "$GITHUB_REF_NAME" "wear/build/outputs/apk/release/wear-release.apk#$WATCH_APK_NAME" --clobber
+          gh release upload "$GITHUB_REF_NAME" "$APK_NAME" "$WATCH_APK_NAME" --clobber
           gh release edit "$GITHUB_REF_NAME" --notes-file release-notes.md
         else
           gh release create "$GITHUB_REF_NAME" \
-            "app/build/outputs/apk/release/app-release.apk#$APK_NAME" \
-            "wear/build/outputs/apk/release/wear-release.apk#$WATCH_APK_NAME" \
+            "$APK_NAME" \
+            "$WATCH_APK_NAME" \
             --title "NexaFlow $GITHUB_REF_NAME" \
             --notes-file release-notes.md \
             $PRERELEASE
@@ -360,10 +361,7 @@ jobs:
             exit 0
           fi
           echo "Missing $MISSING asset(s) (attempt $attempt) — re-uploading..."
-          gh release upload "$GITHUB_REF_NAME" \
-            "app/build/outputs/apk/release/app-release.apk#$APK_NAME" \
-            "wear/build/outputs/apk/release/wear-release.apk#$WATCH_APK_NAME" \
-            --clobber || true
+          gh release upload "$GITHUB_REF_NAME" "$APK_NAME" "$WATCH_APK_NAME" --clobber || true
           sleep 15
         done
         echo "::error::Release assets failed to attach for $GITHUB_REF_NAME — run must not pass silently."
