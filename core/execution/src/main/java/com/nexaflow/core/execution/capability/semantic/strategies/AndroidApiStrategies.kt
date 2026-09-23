@@ -281,8 +281,7 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
         // guard mirrors the reviewed SystemController behavior. Without the
         // runtime grant the call throws SecurityException, so it is checked
         // explicitly instead of relying on a catch-all.
-        val hasPermission = hasBluetoothConnectPermission()
-        if (!hasPermission) {
+        if (!hasBluetoothConnectPermission()) {
             return OperationOutcome.failed(
                 SemanticOperationId.BLUETOOTH_SET_STATE,
                 com.nexaflow.domain.capability.CapabilityErrorCode.PERMISSION_DENIED,
