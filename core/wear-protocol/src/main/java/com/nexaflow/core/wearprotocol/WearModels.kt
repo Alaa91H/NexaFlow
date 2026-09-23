@@ -127,7 +127,7 @@ data class WearDeviceDescriptor(
 data class WearCapabilitySnapshot(
     val watchInstallId: String,
     val protocolVersion: Int = WearProtocol.CURRENT_VERSION,
-    val capabilities: Set<WearCapability>,
+    val capabilities: Set<String>,
     val deviceName: String? = null,
     val appVersionName: String? = null,
     val appVersionCode: Long? = null,
