@@ -63,7 +63,7 @@ class WearDeviceRegistry @Inject constructor(
         }
 
         try {
-            buffer.forEach(::acceptDataItem)
+            buffer.forEach { item -> acceptDataItem(item) }
         } finally {
             buffer.release()
         }
