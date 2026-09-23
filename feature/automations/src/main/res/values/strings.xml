@@ -577,4 +577,10 @@
     <string name="execution_diagnostic_action_ok">completed</string>
     <string name="execution_diagnostic_action_failed">failed</string>
     <string name="execution_diagnostic_reason">Reason: %1$s</string>
+
+    <string name="execution_diagnostics_current_run">Current execution</string>
+    <string name="execution_diagnostic_pending">Waiting</string>
+    <string name="execution_diagnostic_running">Running</string>
+    <string name="execution_diagnostic_skipped">Skipped</string>
+    <string name="execution_diagnostic_outcome_unknown">Outcome unknown</string>
 </resources>
