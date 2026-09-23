@@ -276,6 +276,9 @@ sealed interface PrivilegedOperation {
             "wifi_on",
             "bluetooth_on",
             "airplane_mode_on",
+            "accelerometer_rotation",
+            "screen_brightness",
+            "screen_off_timeout",
             "zen_mode",
             "mobile_data"
         )
