@@ -67,4 +67,13 @@
     <string name="block_category_contact">Kontakt</string>
     <string name="diagnostics_end_behavior_label">Probleme mit dem Endverhalten</string>
     <string name="diagnostics_action_config_label">Probleme mit der Aktionskonfiguration</string>
+
+    <!-- Structured execution diagnosis. -->
+    <string name="why_run_title">Warum wurde diese Aufgabe nicht ausgeführt?</string>
+    <string name="why_run_constraint_blocked">Eine oder mehrere Aufgabenbedingungen haben diese Ausführung blockiert.</string>
+    <string name="why_run_all_triggers_blocked">Nicht alle erforderlichen Auslöser waren gleichzeitig erfüllt.</string>
+    <string name="why_run_unknown">Diese Ausführung wurde aus einem protokollierten Grund gestoppt. Siehe Details unten.</string>
+    <string name="why_run_fix_label">Vorgeschlagene Lösung</string>
+    <string name="why_run_fix_review_constraints">Prüfe die Bedingungen der Aufgabe und den aktuellen Gerätezustand.</string>
+    <string name="why_run_fix_check_all_conditions">Prüfe jeden Auslöser der Aufgabe und stelle sicher, dass alle erforderlichen Bedingungen derzeit erfüllt sind.</string>
 </resources>
