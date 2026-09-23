@@ -1,16 +1,29 @@
 # Changelog
 
-## [Unreleased]
+## [v3.86.1] - 2026-09-23
 
-### Fixed
+### Fixed — Wear OS companion synchronization
 
-- **Wear OS synchronization can now establish a Data Layer connection.** The
-  watch APK and phone APK now consume one shared application id
-  (`com.nexaflow.app`) while the Wear module keeps its own Kotlin namespace.
-  Google Play services only routes Wearable Data Layer traffic between peers
-  with the same package name and signing certificate; the previous
-  `com.nexaflow.wear` application id made synchronization impossible even on
-  correctly paired devices. Fixes #3.
+- **Restored Wearable Data Layer connectivity between the phone and watch apps.**
+  The Wear APK now uses the same installed application ID as the phone app
+  (`com.nexaflow.app`) while retaining its independent Kotlin namespace
+  (`com.nexaflow.wear`).
+- **Resolved the permanent “Connecting” state reported on correctly paired
+  devices.** Google Play services requires Wearable Data Layer peers to share
+  both the package name and signing certificate; the previous package mismatch
+  prevented NexaFlow from establishing its companion communication channel.
+- **Hardened the build configuration against future identity drift.** The phone
+  and Wear modules now consume a single Gradle property for the shared
+  application ID, so release builds cannot silently diverge again.
+
+### Compatibility
+
+- No automation data, trigger configuration, or execution behavior is changed.
+- Existing phone installations remain on the same application ID.
+- Users should install the matching v3.86.1 phone and Wear APKs so both peers
+  have the same release identity and signing certificate.
+
+Fixes #3.
 
 ## [v3.86.0] - 2026-09-23
 
