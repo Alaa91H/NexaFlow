@@ -569,7 +569,7 @@
     <string name="execution_diagnostic_unknown">Unbekannt</string>
     <string name="execution_diagnostic_unavailable">Nicht verfügbar</string>
     <string name="execution_diagnostic_error">Fehler</string>
-    <string name="execution_diagnostic_detail">Detail: %1$s</string>
+    <string name="execution_diagnostic_detail">Einzelheit: %1$s</string>
     <string name="execution_diagnostic_restore">Originalzustand wiederherstellen</string>
     <string name="execution_diagnostic_end_action">Am Ende: %1$s</string>
     <string name="execution_diagnostic_via">über %1$s</string>
