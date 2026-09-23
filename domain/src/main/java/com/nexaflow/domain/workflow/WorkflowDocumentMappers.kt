@@ -78,7 +78,7 @@ object WorkflowDocumentMappers {
                 triggerMatch = triggerMatch.name,
                 cooldownSeconds = cooldownSeconds,
                 workflowVersion = workflowVersion,
-                maintenanceProfile = maintenanceProfile,
+                maintenanceProfile = maintenanceProfile?.toPersisted(),
             ),
             triggers = triggers.map { it.toDefinition() },
             constraints = constraints.map { it.toDefinition() },
@@ -94,6 +94,60 @@ object WorkflowDocumentMappers {
 
     private fun Trigger.toDefinition() = TriggerDefinitionV1(type = type.name, config = config)
     private fun Constraint.toDefinition() = ConstraintDefinitionV1(type = type.name, config = config)
+
+    private fun com.nexaflow.domain.models.MaintenanceProfile.toPersisted() = MaintenanceProfileV1(
+        kind = kind.name,
+        window = window?.let { legacy ->
+            MaintenanceWindowV1(
+                startTime = legacy.startTime,
+                endTime = legacy.endTime,
+                allowedDays = legacy.allowedDays,
+                minimumBatteryPercent = legacy.minimumBatteryPercent,
+                chargingRequired = legacy.chargingRequired,
+                unmeteredWifiRequired = legacy.unmeteredWifiRequired,
+                screenOffRequired = legacy.screenOffRequired,
+                deviceIdleRequired = legacy.deviceIdleRequired,
+                maximumThermalStatus = legacy.maximumThermalStatus,
+                minimumFreeStorageBytes = legacy.minimumFreeStorageBytes,
+            )
+        },
+        retryPolicy = MaintenanceRetryPolicyV1(
+            maxAttempts = retryPolicy.maxAttempts,
+            initialDelayMs = retryPolicy.initialDelayMs,
+            backoffMultiplier = retryPolicy.backoffMultiplier,
+            maxDelayMs = retryPolicy.maxDelayMs,
+        ),
+        notificationPolicy = notificationPolicy.name,
+        dependencyAutomationIds = dependencyAutomationIds,
+        recoveryPolicy = recoveryPolicy.name,
+    )
+
+    private fun MaintenanceProfileV1.toLegacy() = com.nexaflow.domain.models.MaintenanceProfile(
+        kind = com.nexaflow.domain.models.MaintenanceKind.valueOf(kind),
+        window = window?.let { persisted ->
+            com.nexaflow.domain.models.MaintenanceWindow(
+                startTime = persisted.startTime,
+                endTime = persisted.endTime,
+                allowedDays = persisted.allowedDays,
+                minimumBatteryPercent = persisted.minimumBatteryPercent,
+                chargingRequired = persisted.chargingRequired,
+                unmeteredWifiRequired = persisted.unmeteredWifiRequired,
+                screenOffRequired = persisted.screenOffRequired,
+                deviceIdleRequired = persisted.deviceIdleRequired,
+                maximumThermalStatus = persisted.maximumThermalStatus,
+                minimumFreeStorageBytes = persisted.minimumFreeStorageBytes,
+            )
+        },
+        retryPolicy = com.nexaflow.domain.models.MaintenanceRetryPolicy(
+            maxAttempts = retryPolicy.maxAttempts,
+            initialDelayMs = retryPolicy.initialDelayMs,
+            backoffMultiplier = retryPolicy.backoffMultiplier,
+            maxDelayMs = retryPolicy.maxDelayMs,
+        ),
+        notificationPolicy = com.nexaflow.domain.models.MaintenanceNotificationPolicy.valueOf(notificationPolicy),
+        dependencyAutomationIds = dependencyAutomationIds,
+        recoveryPolicy = com.nexaflow.domain.models.MaintenanceRecoveryPolicy.valueOf(recoveryPolicy),
+    )
 
     private fun Action.toPersisted(nodeId: String) = PersistedActionV1(
         type = type.name,
@@ -158,7 +212,7 @@ object WorkflowDocumentMappers {
             createdAt = metadata.createdAt,
             updatedAt = metadata.updatedAt,
             workflowVersion = settings.workflowVersion,
-            maintenanceProfile = settings.maintenanceProfile,
+            maintenanceProfile = settings.maintenanceProfile?.toLegacy(),
         )
     }
 
