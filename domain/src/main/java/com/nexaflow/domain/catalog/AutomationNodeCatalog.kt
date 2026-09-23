@@ -87,7 +87,7 @@ object AutomationNodeCatalog {
         )
     }
 
-    private val triggerFamilies: Map<TriggerType, AutomationNodeFamily> by lazy { strictFamilyMap(
+    private val triggerFamilies: Map<TriggerType, AutomationNodeFamily> by lazy { strictFamilyMap<TriggerType>(
         expected = TriggerType.entries.toSet(),
         AutomationNodeFamily.SCHEDULE to listOf(
             TriggerType.TIME,
@@ -175,7 +175,7 @@ object AutomationNodeCatalog {
         )
     ) }
 
-    private val actionFamilies: Map<ActionType, AutomationNodeFamily> by lazy { strictFamilyMap(
+    private val actionFamilies: Map<ActionType, AutomationNodeFamily> by lazy { strictFamilyMap<ActionType>(
         expected = ActionType.entries.toSet(),
         AutomationNodeFamily.DISPLAY to listOf(
             ActionType.SYSTEM_BRIGHTNESS,
