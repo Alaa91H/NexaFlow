@@ -735,7 +735,11 @@ class ExecutionEngine(
     suspend fun runWithConditionGate(automation: Automation): ExecutionRecord {
         val startedAt = epochMillis.now()
         if (automation.requiresTimeRangeForEndBehavior) {
-            return rejectIncompleteTimeRange(automation, startedAt)
+            return diagnostics.rejectIncompleteTimeRange(
+                automation = automation,
+                startedAt = startedAt,
+                runId = WorkflowRunContext.create(automation.id, startedAt).runId
+            )
         }
         val triggerResult = TriggerStateEvaluator.evaluateAsync(
             context = context,
