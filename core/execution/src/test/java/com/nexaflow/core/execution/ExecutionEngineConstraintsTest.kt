@@ -151,6 +151,27 @@ class ExecutionEngineConstraintsTest {
     }
 
     @Test
+    fun `repeated identical constraint skips are coalesced in history`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(
+            handler,
+            history,
+            ConstraintSnapshot(wifiConnected = false)
+        )
+        val task = automation(listOf(Constraint(ConstraintType.WIFI)))
+
+        repeat(25) { engine.runAutomation(task) }
+
+        assertEquals(0, handler.calls)
+        assertEquals(
+            "high-frequency monitor callbacks must not flood persistent history",
+            1,
+            history.messages.count { it.startsWith("Skipped:") }
+        )
+    }
+
+    @Test
     fun `blocked run does not execute configured exit behavior`() = runBlocking {
         val handler = RecordingHandler()
         val history = RecordingHistory()
