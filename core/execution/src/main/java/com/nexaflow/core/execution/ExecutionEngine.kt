@@ -280,25 +280,20 @@ class ExecutionEngine(
                 executedAt = startedAt,
                 channel = channel?.type?.name
             )
-            if (skipReportThrottle.shouldReport(
-                    automation.id,
-                    "MAINTENANCE_DUPLICATE",
-                    startedAt
-                )
-            ) {
+            if (skipReportThrottle.shouldReport(automation.id, "MAINTENANCE_DUPLICATE", startedAt)) {
                 historyRepository.recordExecution(record)
-                diagnostics.recordTimeline(
-                    automation = automation,
-                    kind = "MAINTENANCE_DUPLICATE_SKIPPED",
-                    record = record,
-                    startedAt = startedAt,
-                    runId = payloadContext.runId
-                )
-                traceRecorder.recordBlockedRun(
-                    payloadContext.runId, automation.id, TraceReasons.MAINTENANCE_DUPLICATE,
-                    "maintenance occurrence already completed", epochMillis.now()
-                )
             }
+            diagnostics.recordTimeline(
+                automation = automation,
+                kind = "MAINTENANCE_DUPLICATE_SKIPPED",
+                record = record,
+                startedAt = startedAt,
+                runId = payloadContext.runId
+            )
+            traceRecorder.recordBlockedRun(
+                payloadContext.runId, automation.id, TraceReasons.MAINTENANCE_DUPLICATE,
+                "maintenance occurrence already completed", epochMillis.now()
+            )
             return record
         }
         // Constraint and maintenance-window gates run before any snapshot,
@@ -328,21 +323,16 @@ class ExecutionEngine(
                     channel = channel?.type?.name
                 )
                 if (skipReportThrottle.shouldReport(
-                        automation.id,
-                        "CONSTRAINT:" + constraintResult.toGateMessage(),
-                        startedAt
-                    )
-                ) {
-                    historyRepository.recordExecution(record)
-                    diagnostics.recordTimeline(automation, "BLOCKED", record, startedAt, payloadContext.runId)
-                    traceRecorder.recordGateBlocked(
-                        runId = payloadContext.runId,
-                        automationId = automation.id,
-                        reasonCode = com.nexaflow.core.logging.TraceReasons.CONSTRAINT_BLOCKED,
-                        detail = constraintResult.toGateMessage(),
-                        atEpochMs = startedAt,
-                    )
-                }
+                        automation.id, "CONSTRAINT:" + constraintResult.toGateMessage(), startedAt
+                    )) historyRepository.recordExecution(record)
+                diagnostics.recordTimeline(automation, "BLOCKED", record, startedAt, payloadContext.runId)
+                traceRecorder.recordGateBlocked(
+                    runId = payloadContext.runId,
+                    automationId = automation.id,
+                    reasonCode = com.nexaflow.core.logging.TraceReasons.CONSTRAINT_BLOCKED,
+                    detail = constraintResult.toGateMessage(),
+                    atEpochMs = startedAt,
+                )
                 return record
             }
         }
@@ -377,27 +367,18 @@ class ExecutionEngine(
                 )
                 val skipDetail = TriggerMatchPolicy.skipMessage(automation.triggers, gateResults)
                 if (skipReportThrottle.shouldReport(
-                        automation.id,
-                        "TRIGGER_ALL:" + skipDetail,
-                        startedAt
-                    )
-                ) {
-                    historyRepository.recordExecution(record)
-                    diagnostics.recordTimeline(
-                        automation,
-                        "TRIGGER_ALL_GATE_BLOCKED",
-                        record,
-                        startedAt,
-                        payloadContext.runId
-                    )
-                    traceRecorder.recordGateBlocked(
-                        runId = payloadContext.runId,
-                        automationId = automation.id,
-                        reasonCode = com.nexaflow.core.logging.TraceReasons.TRIGGER_ALL_GATE_BLOCKED,
-                        detail = skipDetail,
-                        atEpochMs = startedAt,
-                    )
-                }
+                        automation.id, "TRIGGER_ALL:" + skipDetail, startedAt
+                    )) historyRepository.recordExecution(record)
+                diagnostics.recordTimeline(
+                    automation, "TRIGGER_ALL_GATE_BLOCKED", record, startedAt, payloadContext.runId
+                )
+                traceRecorder.recordGateBlocked(
+                    runId = payloadContext.runId,
+                    automationId = automation.id,
+                    reasonCode = com.nexaflow.core.logging.TraceReasons.TRIGGER_ALL_GATE_BLOCKED,
+                    detail = skipDetail,
+                    atEpochMs = startedAt,
+                )
                 return record
             }
         }
@@ -417,27 +398,22 @@ class ExecutionEngine(
                 channel = channel?.type?.name
             )
             if (skipReportThrottle.shouldReport(
-                    automation.id,
-                    "MAINTENANCE_WAITING:" + maintenanceReadiness.reason.name,
-                    startedAt
-                )
-            ) {
-                historyRepository.recordExecution(record)
-                diagnostics.recordTimeline(
-                    automation = automation,
-                    kind = "MAINTENANCE_WAITING",
-                    record = record,
-                    startedAt = startedAt,
-                    runId = payloadContext.runId
-                )
-                traceRecorder.recordGateBlocked(
-                    runId = payloadContext.runId,
-                    automationId = automation.id,
-                    reasonCode = com.nexaflow.core.logging.TraceReasons.MAINTENANCE_WAITING,
-                    detail = maintenanceReadiness.reason.name,
-                    atEpochMs = epochMillis.now(),
-                )
-            }
+                    automation.id, "MAINTENANCE_WAITING:" + maintenanceReadiness.reason.name, startedAt
+                )) historyRepository.recordExecution(record)
+            diagnostics.recordTimeline(
+                automation = automation,
+                kind = "MAINTENANCE_WAITING",
+                record = record,
+                startedAt = startedAt,
+                runId = payloadContext.runId
+            )
+            traceRecorder.recordGateBlocked(
+                runId = payloadContext.runId,
+                automationId = automation.id,
+                reasonCode = com.nexaflow.core.logging.TraceReasons.MAINTENANCE_WAITING,
+                detail = maintenanceReadiness.reason.name,
+                atEpochMs = epochMillis.now(),
+            )
             return record
         }
         // Checkpoint must exist before any side effect. A rejected durable
@@ -928,15 +904,10 @@ class ExecutionEngine(
                 message = "Skipped: task was not active",
                 executedAt = startedAt
             )
-            if (skipReportThrottle.shouldReport(
-                    automation.id,
-                    "EXIT_NOT_ACTIVE",
-                    startedAt
-                )
-            ) {
+            if (skipReportThrottle.shouldReport(automation.id, "EXIT_NOT_ACTIVE", startedAt)) {
                 historyRepository.recordExecution(record)
-                diagnostics.recordTimeline(automation, "EXIT_SKIPPED", record, startedAt)
             }
+            diagnostics.recordTimeline(automation, "EXIT_SKIPPED", record, startedAt)
             return record
         }
         // Nothing to do when there are no exit actions, no per-action end
