@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.ManualBlockKind
 import com.nexaflow.core.execution.handler.ActionRegistry
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
@@ -146,7 +147,7 @@ class ManualAdmissionPolicyTest {
     @Test
     fun describeManualBlockNamesTheUnsatisfiedTrigger() = runBlocking {
         val reason = engine.describeManualBlock(stateTriggeredTask("admit-b"))
-        assertEquals(ExecutionEngine.ManualBlockKind.TRIGGERS_NOT_MET, reason.kind)
+        assertEquals(ManualBlockKind.TRIGGERS_NOT_MET, reason.kind)
         assertTrue(reason.failedTriggerLabels.firstOrNull()?.startsWith("DARK_MODE") == true)
     }
 
@@ -158,7 +159,7 @@ class ManualAdmissionPolicyTest {
         assertNull(viewModel.describeManualBlock(admissible))
         assertNotNull(engine.describeManualBlock(admissible))
         assertEquals(
-            ExecutionEngine.ManualBlockKind.NONE,
+            ManualBlockKind.NONE,
             engine.describeManualBlock(admissible).kind
         )
     }
@@ -186,7 +187,7 @@ class ManualAdmissionPolicyTest {
         assertTrue(gateRecord.message.startsWith("Skipped:"))
         assertTrue(gateRecord.actionResults.isEmpty())
         val reason = engine.describeManualBlock(task)
-        assertTrue(reason.kind != ExecutionEngine.ManualBlockKind.NONE)
+        assertTrue(reason.kind != ManualBlockKind.NONE)
         assertTrue(reason.failedTriggerLabels.isNotEmpty())
     }
 }
