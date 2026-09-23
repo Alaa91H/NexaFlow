@@ -552,6 +552,38 @@
     <string name="action_data_date_time_sub">ISO時刻を解析し選択したタイムゾーンで書式設定</string>
     <string name="action_data_json_sub">JSON Pointerのパス、キー、整形済みJSONを読み取り</string>
     <string name="action_data_array_sub">JSON配列の並べ替え・反転・結合・重複削除</string>
+
+    <string name="execution_diagnostics">実行診断</string>
+    <string name="execution_diagnostics_subtitle">条件の現在状態と、直近のアクションで実際に使用された経路を表示します。</string>
+    <string name="refresh_diagnostics">更新</string>
+    <string name="execution_diagnostics_loading">現在の端末状態を読み取り中…</string>
+    <string name="execution_diagnostics_ready">今すぐ実行可能</string>
+    <string name="execution_diagnostics_blocked">実行条件が完全には満たされていません</string>
+    <string name="execution_diagnostics_triggers">現在のトリガー</string>
+    <string name="execution_diagnostics_constraints">現在の制約</string>
+    <string name="execution_diagnostics_last_run">最新の実行</string>
+    <string name="execution_diagnostics_no_last_run">アクションごとの実行詳細はまだありません。</string>
+    <string name="execution_diagnostics_run_channel">実行経路: %1$s</string>
+    <string name="execution_diagnostic_satisfied">満たされています</string>
+    <string name="execution_diagnostic_unsatisfied">満たされていません</string>
+    <string name="execution_diagnostic_unknown">不明</string>
+    <string name="execution_diagnostic_unavailable">利用不可</string>
+    <string name="execution_diagnostic_error">エラー</string>
+    <string name="execution_diagnostic_detail">詳細: %1$s</string>
+    <string name="execution_diagnostic_restore">元の状態を復元</string>
+    <string name="execution_diagnostic_end_action">終了時: %1$s</string>
+    <string name="execution_diagnostic_via">%1$s 経由</string>
+    <string name="execution_diagnostic_verified">検証済み</string>
+    <string name="execution_diagnostic_not_verified">未検証</string>
+    <string name="execution_diagnostic_action_ok">完了</string>
+    <string name="execution_diagnostic_action_failed">失敗</string>
+    <string name="execution_diagnostic_reason">理由: %1$s</string>
+
+    <string name="execution_diagnostics_current_run">現在の実行</string>
+    <string name="execution_diagnostic_pending">待機中</string>
+    <string name="execution_diagnostic_running">実行中</string>
+    <string name="execution_diagnostic_skipped">スキップ</string>
+    <string name="execution_diagnostic_outcome_unknown">結果不明</string>
     <string name="trigger_wear_event">Wear OS ウォッチ</string>
     <string name="trigger_wear_event_sub">NexaFlow ウォッチの接続または切断時にタスクを実行</string>
 </resources>
