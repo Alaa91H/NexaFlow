@@ -21,7 +21,6 @@ import com.nexaflow.core.execution.handler.ActionExecutionContext
 import com.nexaflow.core.execution.handler.ActionRegistry
 import com.nexaflow.core.execution.variables.BuiltinVariables
 import com.nexaflow.core.execution.variables.ScopedDataRuntime
-import com.nexaflow.core.logging.ExecutionTimelineEntry
 import com.nexaflow.core.logging.InMemoryLogStore
 import com.nexaflow.core.logging.LogStore
 import com.nexaflow.core.logging.TraceReasons
@@ -101,6 +100,13 @@ class ExecutionEngine(
     private val traceRecorder: com.nexaflow.core.logging.TraceRecorder =
         com.nexaflow.core.logging.TraceRecorder(logStore)
 ) {
+    private val diagnostics = ExecutionDiagnostics(
+        context = context,
+        historyRepository = historyRepository,
+        logStore = logStore,
+        epochMillis = epochMillis,
+        traceRecorder = traceRecorder,
+    )
 
     companion object {
         /** Prefix used by UI callers to present a manual condition rejection accurately. */
@@ -192,7 +198,7 @@ class ExecutionEngine(
         // without timestamp guessing.
         val payloadContext = runContext ?: WorkflowRunContext.create(automation.id, startedAt)
         if (automation.requiresTimeRangeForEndBehavior) {
-            return rejectIncompleteTimeRange(automation, startedAt, payloadContext.runId)
+            return diagnostics.rejectIncompleteTimeRange(automation, startedAt, payloadContext.runId)
         }
         capabilitySnapshotProvider?.invoke()?.let { snapshot ->
             // A snapshot observed long ago is not evidence about the device
@@ -206,7 +212,7 @@ class ExecutionEngine(
             val validation = WorkflowCapabilityValidator.validate(automation, snapshot)
             if (!validation.admissible) {
                 if (!snapshotFresh) {
-                    recordTimeline(
+                    diagnostics.recordTimeline(
                         automation,
                         "CAPABILITY_BLOCKED_STALE_SNAPSHOT",
                         ExecutionRecord(
@@ -236,7 +242,7 @@ class ExecutionEngine(
                         executedAt = startedAt
                     )
                     historyRepository.recordExecution(record)
-                    recordTimeline(
+                    diagnostics.recordTimeline(
                         automation = automation,
                         kind = "CAPABILITY_BLOCKED",
                         record = record,
@@ -271,7 +277,7 @@ class ExecutionEngine(
                 channel = channel?.type?.name
             )
             historyRepository.recordExecution(record)
-            recordTimeline(
+            diagnostics.recordTimeline(
                 automation = automation,
                 kind = "MAINTENANCE_DUPLICATE_SKIPPED",
                 record = record,
@@ -311,7 +317,7 @@ class ExecutionEngine(
                     channel = channel?.type?.name
                 )
                 historyRepository.recordExecution(record)
-                recordTimeline(automation, "BLOCKED", record, startedAt, payloadContext.runId)
+                diagnostics.recordTimeline(automation, "BLOCKED", record, startedAt, payloadContext.runId)
                 traceRecorder.recordGateBlocked(
                     runId = payloadContext.runId,
                     automationId = automation.id,
@@ -352,7 +358,7 @@ class ExecutionEngine(
                     channel = channel?.type?.name
                 )
                 historyRepository.recordExecution(record)
-                recordTimeline(automation, "TRIGGER_ALL_GATE_BLOCKED", record, startedAt, payloadContext.runId)
+                diagnostics.recordTimeline(automation, "TRIGGER_ALL_GATE_BLOCKED", record, startedAt, payloadContext.runId)
                 traceRecorder.recordGateBlocked(
                     runId = payloadContext.runId,
                     automationId = automation.id,
@@ -379,7 +385,7 @@ class ExecutionEngine(
                 channel = channel?.type?.name
             )
             historyRepository.recordExecution(record)
-            recordTimeline(
+            diagnostics.recordTimeline(
                 automation = automation,
                 kind = "MAINTENANCE_WAITING",
                 record = record,
@@ -435,7 +441,7 @@ class ExecutionEngine(
                 )
             ) {
                 historyRepository.recordExecution(record)
-                recordTimeline(automation, "CHECKPOINT_REJECTED", record, startedAt, payloadContext.runId)
+                diagnostics.recordTimeline(automation, "CHECKPOINT_REJECTED", record, startedAt, payloadContext.runId)
                 traceRecorder.recordBlockedRun(
                     payloadContext.runId, automation.id, TraceReasons.ADMISSION_REJECTED,
                     admissionMessage.removePrefix("Skipped: ").trim(), epochMillis.now()
@@ -495,7 +501,7 @@ class ExecutionEngine(
                     channel = channel?.type?.name
                 )
                 historyRepository.recordExecution(record)
-                recordTimeline(automation, "LIFECYCLE_CONFLICT", record, startedAt, payloadContext.runId)
+                diagnostics.recordTimeline(automation, "LIFECYCLE_CONFLICT", record, startedAt, payloadContext.runId)
                 traceRecorder.recordBlockedRun(
                     payloadContext.runId, automation.id, TraceReasons.ADMISSION_REJECTED,
                     "a prior automation lifecycle still requires cleanup", epochMillis.now()
@@ -683,7 +689,7 @@ class ExecutionEngine(
                 completedAt = epochMillis.now()
             )
         }
-        recordTimeline(
+        diagnostics.recordTimeline(
             automation = automation,
             kind = "RUN",
             record = record,
@@ -827,35 +833,6 @@ class ExecutionEngine(
     }
 
     /**
-     * Rejects an invalid time lifecycle before either a main or end action can
-     * change device state. A point-in-time trigger has no future end boundary;
-     * users must explicitly select a time range when they configure a real end
-     * behavior. The durable history entry makes a failed schedule observable.
-     */
-    private suspend fun rejectIncompleteTimeRange(
-        automation: Automation,
-        startedAt: Long,
-        runId: String = WorkflowRunContext.create(automation.id, startedAt).runId
-    ): ExecutionRecord {
-        val record = ExecutionRecord(
-            id = UUID.randomUUID().toString(),
-            automationId = automation.id,
-            automationName = automation.name,
-            success = false,
-            message = "Configuration blocked: end behavior requires a time range with an explicit end time",
-            executedAt = startedAt
-        )
-        historyRepository.recordExecution(record)
-        recordTimeline(automation, "CONFIGURATION_BLOCKED", record, startedAt, runId)
-        traceRecorder.recordBlockedRun(
-            runId, automation.id, TraceReasons.CONFIGURATION_BLOCKED,
-            "end behavior requires a time range with an explicit end time", epochMillis.now()
-        )
-        context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
-        return record
-    }
-
-    /**
      * Runs the exit behavior of a task when its condition stops being true:
      * either restores the device to its pre-run state (revertOnExit) or runs
      * the configured exit actions. Records the run in history as well.
@@ -893,7 +870,7 @@ class ExecutionEngine(
                 executedAt = startedAt
             )
             historyRepository.recordExecution(record)
-            recordTimeline(automation, "EXIT_SKIPPED", record, startedAt)
+            diagnostics.recordTimeline(automation, "EXIT_SKIPPED", record, startedAt)
             return record
         }
         // Nothing to do when there are no exit actions, no per-action end
@@ -919,7 +896,7 @@ class ExecutionEngine(
                 executedAt = startedAt
             )
             historyRepository.recordExecution(record)
-            recordTimeline(
+            diagnostics.recordTimeline(
                 automation,
                 if (manualConditionRejected) "MANUAL_CONDITION_NOT_MET" else "EXIT",
                 record,
@@ -1004,7 +981,7 @@ class ExecutionEngine(
             actionResults = actionResults
         )
         historyRepository.recordExecution(record)
-        recordTimeline(
+        diagnostics.recordTimeline(
             automation,
             if (manualConditionRejected) "MANUAL_CONDITION_NOT_MET" else "EXIT",
             record,
@@ -1231,33 +1208,6 @@ class ExecutionEngine(
         // budget remains authoritative, and a rejected best-effort publication
         // must not turn a successful external action into a failure.
         runCatching { context.put("$.pluginOutputs", merged) }
-    }
-
-    private suspend fun recordTimeline(
-        automation: Automation,
-        kind: String,
-        record: ExecutionRecord,
-        startedAt: Long,
-        runId: String? = null
-    ) {
-        try {
-            logStore.recordExecution(
-                ExecutionTimelineEntry(
-                    id = record.id,
-                    automationId = automation.id,
-                    automationName = automation.name,
-                    kind = kind,
-                    success = record.success,
-                    message = record.message,
-                    startedAt = startedAt,
-                    durationMs = epochMillis.now() - startedAt,
-                    channel = record.channel,
-                    runId = runId
-                )
-            )
-        } catch (_: Throwable) {
-            // Logging must never break execution.
-        }
     }
 
     private fun ConditionResult.toGateMessage(): String = when (this) {
