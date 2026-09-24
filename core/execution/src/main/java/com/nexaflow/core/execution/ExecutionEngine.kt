@@ -16,6 +16,7 @@ import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.NotificationSettings
 import com.nexaflow.core.execution.capability.CapabilityActionMapper
 import com.nexaflow.core.execution.capability.CapabilityExecutionService
+import com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner
 import com.nexaflow.core.execution.capability.toSystemControlResult
 import com.nexaflow.core.execution.handler.ActionExecutionContext
 import com.nexaflow.core.execution.handler.ActionRegistry
@@ -94,6 +95,8 @@ class ExecutionEngine(
     private val capabilitySnapshotInvalidator: (() -> Unit)? = null,
     /** Targeted privilege refresh after an observed authorization block. */
     private val privilegeSnapshotInvalidator: (() -> Unit)? = null,
+    /** Live semantic strategy planner; null preserves legacy/test construction. */
+    private val semanticWorkflowPlanner: SemanticWorkflowPlanner? = null,
     /** Test seam for deterministic whole-snapshot restore outcome coverage. */
     private val snapshotRestorer: (DeviceStateSnapshot?, List<Action>) -> SystemControlResult =
         { snapshot, changedActions ->
@@ -217,6 +220,17 @@ class ExecutionEngine(
                     runId = payloadContext.runId,
                     missingDetail = admission.missingDetail
                 )
+        }
+        semanticWorkflowPlanner?.plan(
+            automation = automation,
+            executionId = payloadContext.runId
+        )?.takeIf { !it.executable }?.let { semanticPlan ->
+            return diagnostics.rejectUnavailableSemanticRoutes(
+                automation = automation,
+                startedAt = startedAt,
+                runId = payloadContext.runId,
+                detail = semanticPlan.blockingDetail
+            )
         }
         val maintenanceNow = ZonedDateTime.now()
         val maintenanceOccurrenceKey = MaintenanceExecutionIdentity.occurrenceKey(automation, maintenanceNow)
