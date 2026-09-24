@@ -9,6 +9,7 @@ import com.nexaflow.domain.capability.PrivilegeSnapshot
 import com.nexaflow.domain.capability.PrivilegeSurface
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
+import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import org.junit.Assert.assertEquals
@@ -113,6 +114,92 @@ class WorkflowRequirementCatalogTest {
     }
 
     @Test
+    fun `repair plan does not request write settings when Root already satisfies brightness`() {
+        val automation = automation(
+            actions = listOf(Action(ActionType.SYSTEM_BRIGHTNESS, mapOf("value" to "120")))
+        )
+        val privilegeSnapshot = privilegeSnapshot(
+            PrivilegeObservation(
+                PrivilegeSurface.SPECIAL_ACCESS,
+                PrivilegeSnapshot.SPECIAL_WRITE_SETTINGS,
+                PrivilegeGrantState.NOT_GRANTED,
+                "SPECIAL_ACCESS_NOT_GRANTED"
+            ),
+            PrivilegeObservation(
+                PrivilegeSurface.SHIZUKU,
+                PrivilegeSnapshot.ENV_SHIZUKU,
+                PrivilegeGrantState.NOT_RUNNING,
+                "SHIZUKU_SERVER_NOT_RUNNING"
+            ),
+            PrivilegeObservation(
+                PrivilegeSurface.ROOT,
+                PrivilegeSnapshot.ENV_ROOT,
+                PrivilegeGrantState.GRANTED,
+                "ROOT_UID_ZERO_VERIFIED"
+            )
+        )
+
+        val plan = WorkflowRequirementCatalog.repairPlan(
+            automation = automation,
+            capabilitySnapshot = CapabilitySnapshot(observedAtMs = 1L),
+            privilegeSnapshot = privilegeSnapshot,
+            sdk = 37
+        )
+
+        assertTrue(plan.specialPermissions.isEmpty())
+        assertTrue(plan.runtimePermissions.isEmpty())
+    }
+
+    @Test
+    fun `repair plan requests only missing runtime permission when elevation is already ready`() {
+        val automation = automation(
+            actions = listOf(
+                Action(ActionType.SYSTEM_LOCATION, mapOf("enabled" to "true", "configVersion" to "2"))
+            )
+        )
+        val privilegeSnapshot = privilegeSnapshot(
+            PrivilegeObservation(
+                PrivilegeSurface.RUNTIME_PERMISSION,
+                "android.permission.ACCESS_FINE_LOCATION",
+                PrivilegeGrantState.NOT_GRANTED,
+                "ANDROID_RUNTIME_NOT_GRANTED"
+            ),
+            PrivilegeObservation(
+                PrivilegeSurface.RUNTIME_PERMISSION,
+                "android.permission.ACCESS_COARSE_LOCATION",
+                PrivilegeGrantState.GRANTED,
+                "ANDROID_RUNTIME_GRANTED"
+            ),
+            PrivilegeObservation(
+                PrivilegeSurface.SHIZUKU,
+                PrivilegeSnapshot.ENV_SHIZUKU,
+                PrivilegeGrantState.NOT_RUNNING,
+                "SHIZUKU_SERVER_NOT_RUNNING"
+            ),
+            PrivilegeObservation(
+                PrivilegeSurface.ROOT,
+                PrivilegeSnapshot.ENV_ROOT,
+                PrivilegeGrantState.GRANTED,
+                "ROOT_UID_ZERO_VERIFIED"
+            )
+        )
+
+        val plan = WorkflowRequirementCatalog.repairPlan(
+            automation = automation,
+            capabilitySnapshot = CapabilitySnapshot(observedAtMs = 1L),
+            privilegeSnapshot = privilegeSnapshot,
+            sdk = 37
+        )
+
+        assertEquals(
+            listOf("android.permission.ACCESS_FINE_LOCATION"),
+            plan.runtimePermissions
+        )
+        assertTrue(plan.specialPermissions.isEmpty())
+        assertTrue("action:0:SYSTEM_LOCATION" in plan.blockedOwners)
+    }
+
+    @Test
     fun `time trigger requires exact alarm special access`() {
         val requirement = WorkflowRequirementCatalog.requirementFor(
             Trigger(TriggerType.TIME, mapOf("time" to "08:00")),
@@ -170,6 +257,25 @@ class WorkflowRequirementCatalogTest {
             WorkflowRequirementCatalog.runtimePermissionsFor(action, sdk = 36).isEmpty()
         )
     }
+
+    private fun automation(
+        actions: List<Action>,
+        triggers: List<Trigger> = emptyList()
+    ) = Automation(
+        id = "requirements",
+        name = "Requirements",
+        description = "",
+        icon = "bolt",
+        iconColor = 0L,
+        backgroundColor = 0L,
+        category = "test",
+        priority = 1,
+        enabled = true,
+        triggers = triggers,
+        actions = actions,
+        createdAt = 1L,
+        updatedAt = 1L
+    )
 
     private fun privilegeSnapshot(
         vararg observations: PrivilegeObservation
