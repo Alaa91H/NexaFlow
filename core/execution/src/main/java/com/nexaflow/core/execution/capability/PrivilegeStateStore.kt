@@ -179,8 +179,11 @@ class AndroidPrivilegeStateProbe(
     private val appContext = context.applicationContext
 
     override suspend fun capture(observedAtMs: Long): PrivilegeSnapshot {
-        val runtimePermissions = declaredDangerousPermissions()
+        val declaredPermissions = declaredPermissions()
+        val runtimePermissions = declaredPermissions.filter(::isDangerousPermission)
+        val nonRuntimePermissions = declaredPermissions.filterNot(::isDangerousPermission)
         val observations = buildList {
+            addAll(androidPermissionObservations(nonRuntimePermissions))
             addAll(runtimePermissionObservations(runtimePermissions))
             addAll(appOpObservations(runtimePermissions))
             addAll(specialAccessObservations())
@@ -191,6 +194,21 @@ class AndroidPrivilegeStateProbe(
         return PrivilegeSnapshot(
             observations = observations.distinctBy { it.surface to it.key },
             observedAtMs = observedAtMs
+        )
+    }
+
+    private fun androidPermissionObservations(
+        permissions: List<String>
+    ): List<PrivilegeObservation> = permissions.map { permission ->
+        val granted = runCatching {
+            ContextCompat.checkSelfPermission(appContext, permission) ==
+                PackageManager.PERMISSION_GRANTED
+        }.getOrDefault(false)
+        observation(
+            PrivilegeSurface.ANDROID_PERMISSION,
+            permission,
+            if (granted) PrivilegeGrantState.GRANTED else PrivilegeGrantState.NOT_GRANTED,
+            if (granted) "ANDROID_PERMISSION_GRANTED" else "ANDROID_PERMISSION_NOT_GRANTED"
         )
     }
 
@@ -379,27 +397,23 @@ class AndroidPrivilegeStateProbe(
         detailCode: String
     ) = PrivilegeObservation(surface, key, state, detailCode)
 
-    private fun declaredDangerousPermissions(): List<String> = runCatching {
-        val info = appContext.packageManager.getPackageInfo(
+    private fun declaredPermissions(): List<String> = runCatching {
+        appContext.packageManager.getPackageInfo(
             appContext.packageName,
             PackageManager.GET_PERMISSIONS
-        )
-        info.requestedPermissions
-            ?.filter { permission ->
-                runCatching {
-                    val permissionInfo = appContext.packageManager.getPermissionInfo(permission, 0)
-                    val protection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        permissionInfo.protection
-                    } else {
-                        @Suppress("DEPRECATION")
-                        permissionInfo.protectionLevel and PermissionInfo.PROTECTION_MASK_BASE
-                    }
-                    protection == PermissionInfo.PROTECTION_DANGEROUS
-                }.getOrDefault(false)
-            }
-            .orEmpty()
-            .distinct()
+        ).requestedPermissions.orEmpty().distinct()
     }.getOrDefault(emptyList())
+
+    private fun isDangerousPermission(permission: String): Boolean = runCatching {
+        val permissionInfo = appContext.packageManager.getPermissionInfo(permission, 0)
+        val protection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            permissionInfo.protection
+        } else {
+            @Suppress("DEPRECATION")
+            permissionInfo.protectionLevel and PermissionInfo.PROTECTION_MASK_BASE
+        }
+        protection == PermissionInfo.PROTECTION_DANGEROUS
+    }.getOrDefault(false)
 
     companion object {
         private val SPECIAL_APP_OPS = setOf(
