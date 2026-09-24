@@ -31,6 +31,15 @@
 - Command-spec Android permissions are merged into the canonical requirement catalog so
   permissions declared by compatibility metadata automatically reach builder and preflight
   flows instead of requiring a second hand-maintained permission map.
+- Added strategy-aware semantic preflight: the capability router can now produce a
+  side-effect-free execution plan using the same live availability, evidence, health and
+  least-privilege ranking that execution uses immediately before a device-state change.
+- Whole-workflow semantic planning covers main actions, per-action end values and explicit
+  exit actions. A Settings-only hand-off is now classified as pending user action instead
+  of an automatically executable route, and runtime blocks it before the first side effect.
+- Builder save admission and dry-run reports consume the same semantic execution plan.
+  Builder repair also bridges otherwise-unowned semantic blockers to one elevated grant
+  path without replacing a more direct WRITE_SETTINGS/DND/runtime-permission repair.
 
 ### Fixed
 
