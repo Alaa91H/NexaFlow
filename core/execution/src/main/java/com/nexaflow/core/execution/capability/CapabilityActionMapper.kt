@@ -166,13 +166,9 @@ object CapabilityActionMapper {
             ?.takeIf { it == CapabilityBackendId.SHIZUKU || it == CapabilityBackendId.ROOT }
 
         return if (pinned != null) {
-            ExecutionPolicy(
-                allowedBackends = listOf(pinned),
-                preferredBackends = listOf(pinned),
-                allowPrivilegedBackends = true
-            )
+            ExecutionPolicy.pinnedPrivileged(pinned)
         } else {
-            ExecutionPolicy(allowPrivilegedBackends = true)
+            ExecutionPolicy.adaptivePrivileged()
         }
     }
 }
