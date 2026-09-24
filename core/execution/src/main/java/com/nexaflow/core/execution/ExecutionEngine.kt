@@ -31,6 +31,7 @@ import com.nexaflow.core.rom.RomIntegrationManager
 import com.nexaflow.core.rom.SystemController
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.capability.CapabilitySnapshot
+import com.nexaflow.domain.capability.PrivilegeSnapshot
 import com.nexaflow.domain.capability.CapabilityStatus
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ConditionResult
@@ -88,8 +89,12 @@ class ExecutionEngine(
     private val capabilityExecutionService: CapabilityExecutionService? = null,
     /** Current shared availability observation; absent only in legacy/test construction. */
     private val capabilitySnapshotProvider: (() -> CapabilitySnapshot)? = null,
+    /** Current unified permission/authority observation. */
+    private val privilegeSnapshotProvider: (() -> PrivilegeSnapshot)? = null,
     /** Targeted refresh after a fresh-snapshot block, so the next run sees a new grant. */
     private val capabilitySnapshotInvalidator: (() -> Unit)? = null,
+    /** Targeted privilege refresh after an observed authorization block. */
+    private val privilegeSnapshotInvalidator: (() -> Unit)? = null,
     /** Test seam for deterministic whole-snapshot restore outcome coverage. */
     private val snapshotRestorer: (DeviceStateSnapshot?, List<Action>) -> SystemControlResult =
         { snapshot, changedActions ->
@@ -192,16 +197,36 @@ class ExecutionEngine(
         }
         capabilitySnapshotProvider?.invoke()?.let { snapshot ->
             // A snapshot observed long ago is not evidence about the device
-            // anymore: the user may have granted Root/Shizuku/settings access
-            // while the process sat in the background. Blocking a run on a
-            // stale snapshot produced exactly the reported "many tasks
-            // skipped" bug. When the snapshot is older than the freshness
-            // window we admit the run — every action path re-verifies the
-            // concrete capability live before its first side effect.
-            val snapshotFresh = classifySnapshotFreshness(snapshot, epochMillis.now(), CAPABILITY_SNAPSHOT_FRESHNESS_MS) == SnapshotFreshness.FRESH
-            val validation = WorkflowCapabilityValidator.validate(automation, snapshot)
+            // anymore. Capability staleness preserves the historical admit-and-
+            // verify behavior; stale privilege state is downgraded to UNKNOWN
+            // so it can never create a false denial.
+            val now = epochMillis.now()
+            val capabilityFresh =
+                classifySnapshotFreshness(
+                    snapshot,
+                    now,
+                    CAPABILITY_SNAPSHOT_FRESHNESS_MS
+                ) == SnapshotFreshness.FRESH
+            val rawPrivilegeSnapshot = privilegeSnapshotProvider?.invoke() ?: PrivilegeSnapshot()
+            val effectivePrivilegeSnapshot =
+                if (classifySnapshotFreshness(
+                        rawPrivilegeSnapshot,
+                        now,
+                        CAPABILITY_SNAPSHOT_FRESHNESS_MS
+                    ) == SnapshotFreshness.FRESH
+                ) {
+                    rawPrivilegeSnapshot
+                } else {
+                    PrivilegeSnapshot()
+                }
+
+            val validation = WorkflowCapabilityValidator.validate(
+                automation = automation,
+                capabilitySnapshot = snapshot,
+                privilegeSnapshot = effectivePrivilegeSnapshot
+            )
             if (!validation.admissible) {
-                if (!snapshotFresh) {
+                if (!capabilityFresh) {
                     diagnostics.recordTimeline(
                         automation,
                         "CAPABILITY_BLOCKED_STALE_SNAPSHOT",
@@ -210,25 +235,29 @@ class ExecutionEngine(
                             automationId = automation.id,
                             automationName = automation.name,
                             success = false,
-                            message = "Capability gate skipped on a stale snapshot; live re-check will run per action",
+                            message = "Requirement gate skipped on a stale snapshot; live re-check will run per action",
                             executedAt = startedAt
                         ),
                         startedAt
                     )
                 } else {
-                    // Fresh snapshot and still inadmissible is a genuine,
-                    // observed device fact — record it. Kick a targeted
-                    // capability refresh so the NEXT run sees a grant that
-                    // landed after this observation instead of re-blocking
-                    // on the same evidence forever.
+                    // Fresh, observed evidence proved there is no currently
+                    // satisfiable requirement branch. Refresh both stores so a
+                    // just-landed grant is visible to the next occurrence.
                     runCatching { capabilitySnapshotInvalidator?.invoke() }
-                    val missing = validation.missingCapabilities.joinToString().ifBlank { "unmapped or unavailable execution path" }
+                    runCatching { privilegeSnapshotInvalidator?.invoke() }
+                    val missing = buildList {
+                        addAll(validation.missingCapabilities.map { "capability:${it.name}" })
+                        addAll(validation.missingPrivileges.map { ref ->
+                            "privilege:${ref.surface.name}:${ref.key}"
+                        })
+                    }.joinToString().ifBlank { "unmapped or unavailable execution path" }
                     val record = ExecutionRecord(
                         id = UUID.randomUUID().toString(),
                         automationId = automation.id,
                         automationName = automation.name,
                         success = false,
-                        message = "Blocked: required capability is unavailable ($missing)",
+                        message = "Blocked: execution requirements are unavailable ($missing)",
                         executedAt = startedAt
                     )
                     historyRepository.recordExecution(record)
@@ -240,7 +269,11 @@ class ExecutionEngine(
                         runId = payloadContext.runId
                     )
                     traceRecorder.recordBlockedRun(
-                        payloadContext.runId, automation.id, TraceReasons.CAPABILITY_BLOCKED, missing, epochMillis.now()
+                        payloadContext.runId,
+                        automation.id,
+                        TraceReasons.CAPABILITY_BLOCKED,
+                        missing,
+                        epochMillis.now()
                     )
                     return record
                 }
