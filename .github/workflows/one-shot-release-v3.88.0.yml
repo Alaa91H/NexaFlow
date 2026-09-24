@@ -1,0 +1,43 @@
+name: One-shot v3.88.0 Release
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - ".github/release-request-v3.88.0"
+
+permissions:
+  contents: write
+
+jobs:
+  create-release-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Validate release request
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(tr -d '[:space:]' < .github/release-request-v3.88.0)"
+          test "$VERSION" = "v3.88.0"
+          grep -Fq "## [$VERSION] - 2026-09-24" CHANGELOG.md
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "::error::Tag $VERSION already exists."
+            exit 1
+          fi
+
+      - name: Create tag and seed GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(tr -d '[:space:]' < .github/release-request-v3.88.0)"
+          gh release create "$VERSION" \
+            --target "$GITHUB_SHA" \
+            --title "NexaFlow $VERSION" \
+            --notes "Release build in progress. The Android CI tag workflow will attach the signed phone and Wear OS APKs and replace these notes with the reviewed changelog."
