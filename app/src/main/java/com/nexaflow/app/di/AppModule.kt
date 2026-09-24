@@ -347,11 +347,13 @@ object AppModule {
         resolver: CapabilityResolver,
         capabilityStateStore: CapabilityStateStore,
         privilegeStateStore: PrivilegeStateStore,
+        semanticWorkflowPlanner: com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner,
         @ApplicationContext context: Context
     ): WorkflowDryRunService = WorkflowDryRunService(
         capabilityResolver = resolver,
         capabilitySnapshotProvider = { capabilityStateStore.snapshot.value },
         privilegeSnapshotProvider = { privilegeStateStore.snapshot.value },
+        semanticWorkflowPlanner = semanticWorkflowPlanner,
         deviceStateProvider = {
             AndroidCapabilityDeviceStateReader(context).capture(System.currentTimeMillis())
         }
@@ -432,6 +434,15 @@ object AppModule {
             }
         )
     }
+
+    @Provides
+    @Singleton
+    fun provideSemanticWorkflowPlanner(
+        semanticActionRouter: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter
+    ): com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner =
+        com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner(
+            semanticActionRouter
+        )
 
     @Provides
     @Singleton
