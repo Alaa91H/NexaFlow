@@ -65,7 +65,7 @@ class WearDeviceRegistryTest {
     fun `stale advertisement cannot restore an old node id`() {
         val current = WearCapabilitySnapshot(
             watchInstallId = "watch-stable-id",
-            capabilities = setOf(WearCapability.PROTOCOL_V1),
+            capabilities = setOf(WearCapability.PROTOCOL_V1.name),
             deviceName = "Current watch",
             updatedAtEpochMs = 2_000L,
         )
