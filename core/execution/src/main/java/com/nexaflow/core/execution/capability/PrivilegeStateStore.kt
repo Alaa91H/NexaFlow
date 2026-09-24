@@ -180,8 +180,8 @@ class AndroidPrivilegeStateProbe(
 
     override suspend fun capture(observedAtMs: Long): PrivilegeSnapshot {
         val declaredPermissions = declaredPermissions()
-        val runtimePermissions = declaredPermissions.filter(::isDangerousPermission)
-        val nonRuntimePermissions = declaredPermissions.filterNot(::isDangerousPermission)
+        val (runtimePermissions, nonRuntimePermissions) =
+            declaredPermissions.partition(::isDangerousPermission)
         val observations = buildList {
             addAll(androidPermissionObservations(nonRuntimePermissions))
             addAll(runtimePermissionObservations(runtimePermissions))
