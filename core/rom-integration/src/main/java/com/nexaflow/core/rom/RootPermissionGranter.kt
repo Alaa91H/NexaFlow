@@ -239,8 +239,15 @@ object RootPermissionGranter {
             !PrivilegedRunner.isRootAvailable() &&
             SystemAppStatusDetector.isSuBinaryAvailable()
         ) {
-            PrivilegedRunner.triggerSuPrompt()
-            SystemAppStatusDetector.refreshRootAvailability()
+            val granted = PrivilegedRunner.triggerSuPrompt()
+            if (granted) {
+                // The prompt has just proved uid=0. Force one post-grant probe
+                // so the root cache cannot keep the pre-prompt negative answer
+                // behind the anti-storm spacing guard.
+                SystemAppStatusDetector.refreshAndProbe()
+            } else {
+                SystemAppStatusDetector.refreshRootAvailability()
+            }
         }
         return grantAllInternal(packageNameProvider())
     }
