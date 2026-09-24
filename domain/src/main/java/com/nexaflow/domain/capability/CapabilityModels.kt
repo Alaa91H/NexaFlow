@@ -315,10 +315,11 @@ data class CapabilityDescriptor(
 
 /**
  * User/workflow policy evaluated before backend resolution. An empty
- * [allowedBackends] allows every non-privileged backend declared by the
- * descriptor; typed Shizuku/Root/ADB operations require exactly one explicit
- * allowed backend. An empty [preferredBackends] delegates safe ordering to the
- * resolver for the remaining eligible backends.
+ * [allowedBackends] allows every backend declared by the descriptor subject to
+ * the privilege authorization flag below. Privileged execution can therefore
+ * be adaptive across Shizuku/Root/ADB when [allowPrivilegedBackends] is true,
+ * while a non-empty allow-list can still pin a workflow to explicit providers.
+ * An empty [preferredBackends] delegates safe ordering to the resolver.
  */
 @Immutable
 @Serializable
@@ -342,6 +343,27 @@ data class ExecutionPolicy(
         require(timeoutMs in 1_000L..300_000L) {
             "timeoutMs must be in 1,000..300,000ms"
         }
+    }
+
+    companion object {
+        /**
+         * Authorizes the resolver to choose among currently healthy privileged
+         * providers without freezing a transient provider observation into the
+         * request. Explicit grants are still enforced by each backend.
+         */
+        fun adaptivePrivileged(
+            preferredBackends: List<CapabilityBackendId> = emptyList()
+        ): ExecutionPolicy = ExecutionPolicy(
+            preferredBackends = preferredBackends,
+            allowPrivilegedBackends = true
+        )
+
+        /** Pins execution to one explicitly selected privileged provider. */
+        fun pinnedPrivileged(backend: CapabilityBackendId): ExecutionPolicy = ExecutionPolicy(
+            allowedBackends = listOf(backend),
+            preferredBackends = listOf(backend),
+            allowPrivilegedBackends = true
+        )
     }
 }
 
