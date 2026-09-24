@@ -8,6 +8,7 @@ import com.nexaflow.domain.capability.CapabilityEnvironmentReport
 import com.nexaflow.domain.capability.CapabilityId
 import com.nexaflow.domain.capability.CapabilityRequest
 import com.nexaflow.domain.capability.CapabilitySnapshot
+import com.nexaflow.domain.capability.PrivilegeSnapshot
 import com.nexaflow.domain.capability.ExecutionPolicy
 import com.nexaflow.domain.capability.VerificationMode
 import kotlinx.coroutines.CancellationException
@@ -24,6 +25,7 @@ class CapabilityStateStore(
     private val registry: CapabilityRegistry,
     private val environmentInspector: CapabilityEnvironmentInspector,
     private val scope: CoroutineScope,
+    private val privilegeSnapshotProvider: (() -> PrivilegeSnapshot)? = null,
     private val nowMs: () -> Long = { System.currentTimeMillis() },
     private val registerShizukuStateListener: ((() -> Unit) -> Unit) = ShizukuShellBridge::addStateListener,
     private val minRefreshIntervalMs: Long = DEFAULT_MIN_REFRESH_INTERVAL_MS
@@ -131,7 +133,7 @@ class CapabilityStateStore(
         val reports = registry.descriptors().associate { descriptor ->
             descriptor.id to diagnosticReportFor(descriptor.id)
         }
-        val environmentReports = environmentInspector.reports()
+        val environmentReports = environmentInspector.reports(privilegeSnapshotProvider?.invoke())
         val observedAtMs = nowMs()
 
         _snapshot.value = CapabilitySnapshot(reports = reports, observedAtMs = observedAtMs)
