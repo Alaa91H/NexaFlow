@@ -1,0 +1,38 @@
+name: Dispatch v3.88.0 Release Build
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - ".github/release-build-request-v3.88.0"
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch-release-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Validate release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(tr -d '[:space:]' < .github/release-build-request-v3.88.0)"
+          test "$VERSION" = "v3.88.0"
+          git rev-parse "$VERSION^{commit}" >/dev/null
+          grep -Fq "## [$VERSION] - 2026-09-24" CHANGELOG.md
+
+      - name: Dispatch Android CI on release tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(tr -d '[:space:]' < .github/release-build-request-v3.88.0)"
+          gh workflow run android-ci.yml --ref "$VERSION"
