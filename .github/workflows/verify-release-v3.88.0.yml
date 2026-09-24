@@ -1,0 +1,48 @@
+name: Verify v3.88.0 Release
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - ".github/verify-release-v3.88.0"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify published release assets and notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG=v3.88.0
+          PHONE="NexaFlow-v3.88.0.apk"
+          WEAR="NexaFlow-Wear-v3.88.0.apk"
+
+          RELEASE_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")"
+
+          test "$(jq -r '.tag_name' <<<"$RELEASE_JSON")" = "$TAG"
+          test "$(jq -r '.draft' <<<"$RELEASE_JSON")" = "false"
+
+          MISSING="$(jq --arg phone "$PHONE" --arg wear "$WEAR"             '[$phone, $wear] - [.assets[].name] | length' <<<"$RELEASE_JSON")"
+          test "$MISSING" = "0"
+
+          for ASSET in "$PHONE" "$WEAR"; do
+            SIZE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .size' <<<"$RELEASE_JSON")"
+            STATE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .state' <<<"$RELEASE_JSON")"
+            DIGEST="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .digest // empty' <<<"$RELEASE_JSON")"
+            test -n "$SIZE" && test "$SIZE" -gt 0
+            test "$STATE" = "uploaded"
+            test -n "$DIGEST"
+          done
+
+          BODY="$(jq -r '.body // ""' <<<"$RELEASE_JSON")"
+          grep -Fq "### Added — Wear OS automation foundation" <<<"$BODY"
+          grep -Fq "### Fixed" <<<"$BODY"
+          ! grep -Fq "Release build in progress" <<<"$BODY"
+
+          echo "Release $TAG is complete: notes and both signed APK assets are present."
