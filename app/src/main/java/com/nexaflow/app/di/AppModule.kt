@@ -363,6 +363,7 @@ object AppModule {
         variableRepository: VariableRepository,
         capabilityExecutionService: CapabilityExecutionService,
         capabilityStateStore: CapabilityStateStore,
+        privilegeStateStore: PrivilegeStateStore,
         automationRuntimeStore: AutomationRuntimeStore,
         semanticActionRouter: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter
     ): ExecutionEngine {
@@ -376,7 +377,9 @@ object AppModule {
             automationRuntimeStore = automationRuntimeStore,
             capabilityExecutionService = capabilityExecutionService,
             capabilitySnapshotProvider = { capabilityStateStore.snapshot.value },
-            capabilitySnapshotInvalidator = { capabilityStateStore.refresh() }
+            privilegeSnapshotProvider = { privilegeStateStore.snapshot.value },
+            capabilitySnapshotInvalidator = { capabilityStateStore.refresh() },
+            privilegeSnapshotInvalidator = { privilegeStateStore.refresh() }
         )
     }
 
