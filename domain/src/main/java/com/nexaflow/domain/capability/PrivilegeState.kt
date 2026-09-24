@@ -10,6 +10,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 enum class PrivilegeSurface {
+    /** Manifest permission checked against NexaFlow's own UID (normal/signature/etc). */
+    ANDROID_PERMISSION,
     RUNTIME_PERMISSION,
     SPECIAL_ACCESS,
     APP_OP,
