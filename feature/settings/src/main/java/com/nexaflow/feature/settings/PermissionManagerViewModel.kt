@@ -1,13 +1,11 @@
 package com.nexaflow.feature.settings
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.nexaflow.core.execution.capability.PrivilegeStateStore
 import com.nexaflow.domain.capability.PrivilegeSnapshot
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
 /**
  * Settings-facing projection of the single process-wide privilege store.
@@ -22,11 +20,5 @@ class PermissionManagerViewModel @Inject constructor(
 
     fun refreshPrivileges() {
         privilegeStateStore.invalidate()
-    }
-
-    fun refreshPrivilegesAsync() {
-        viewModelScope.launch {
-            privilegeStateStore.freshSnapshot()
-        }
     }
 }
