@@ -374,7 +374,9 @@ object WorkflowRequirementCatalog {
         }
 
     private fun runtimeRequirement(permissions: List<String>): ExecutionRequirement =
-        allOf(*permissions.distinct().map(ExecutionRequirement::AndroidPermission).toTypedArray())
+        allOf(*permissions.distinct().map { permission ->
+            ExecutionRequirement.AndroidPermission(permission)
+        }.toTypedArray())
 
     private fun special(key: String) = ExecutionRequirement.SpecialAccess(key)
 
