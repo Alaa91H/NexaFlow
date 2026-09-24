@@ -1545,19 +1545,25 @@ fun AutomationBuilderScreen(
                 ?: loadedAutomation?.maintenanceProfile,
             startDisabled = !isEditing && appliedTemplateId != null
         )
-        // Aggressive permission flow: right after saving, request any missing
-        // runtime permission through the system dialog immediately, and explain
-        // the first missing special (settings-screen) permission — no detour.
-        val missingRuntime = PermissionCatalog.allRuntimePermissions(builtTriggers, actions, exitActions)
-            .filter {
+        // Aggressive permission flow is requirement-aware: only grants that
+        // still block this exact workflow are requested. A working Root or
+        // Shizuku route therefore prevents redundant Android settings prompts.
+        scope.launchAfterSave(saveJob) {
+            var repairPlan = viewModel.freshPermissionRepairPlan(
+                triggers = builtTriggers,
+                actions = actions,
+                exitActions = exitActions
+            )
+            val missingRuntime = repairPlan.runtimePermissions.filter {
                 context.checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED
             }
-        scope.launchAfterSave(saveJob) {
             // A verified elevated shell can grant a dangerous permission to
             // NexaFlow's own UID through `pm grant`. Do that first and use the
             // Android dialog only for permissions a ROM still leaves missing.
+            val autoGrantAttempted = missingRuntime.isNotEmpty() &&
+                withContext(Dispatchers.IO) { RootPermissionGranter.canAutoGrant() }
             val remainingRuntime = withContext(Dispatchers.IO) {
-                if (missingRuntime.isNotEmpty() && RootPermissionGranter.canAutoGrant()) {
+                if (autoGrantAttempted) {
                     RootPermissionGranter.grantRuntimePermissions(
                         context.applicationContext,
                         missingRuntime
@@ -1566,7 +1572,18 @@ fun AutomationBuilderScreen(
                     missingRuntime
                 }
             }
-            val missingSpecial = PermissionCatalog.allSpecialPermissions(builtTriggers, actions, exitActions)
+            if (autoGrantAttempted) {
+                // The elevated repair publishes an invalidation event; read a
+                // fresh graph before deciding which special grant is still
+                // necessary so satisfied alternative branches disappear.
+                repairPlan = viewModel.freshPermissionRepairPlan(
+                    triggers = builtTriggers,
+                    actions = actions,
+                    exitActions = exitActions
+                )
+            }
+            val missingSpecial = repairPlan.specialPermissions
+                .map { it.toUiSpecialPermission() }
                 .filter { !PermissionShortcuts.isGranted(context, it) }
             val userPermissionFlowRequired = remainingRuntime.isNotEmpty() || missingSpecial.isNotEmpty()
             if (remainingRuntime.isNotEmpty()) {

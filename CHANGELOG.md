@@ -2,6 +2,57 @@
 
 ## [Unreleased]
 
+### Changed — Hybrid privilege routing
+
+- Capability-mapped privileged actions now use adaptive execution by default instead of
+  freezing whichever Root/Shizuku provider happened to be available while the action
+  request was created. Explicit `backend`/`channel` selections still pin execution.
+- Added reusable adaptive and pinned privileged execution-policy constructors so future
+  capability adapters share the same authorization and fallback semantics.
+- Added one event-driven privilege snapshot covering declared Android runtime permissions,
+  mapped AppOps, special app access, Shizuku readiness, verified Root authority, and
+  Device Owner state. Permission settings now render from this shared verified snapshot.
+- Runtime permission changes, watched AppOps, accessibility/notification-listener secure
+  settings, Shizuku lifecycle transitions, elevated repair flows, and activity resume all
+  invalidate the shared state. Capability diagnostics consume the same snapshot instead
+  of independently inferring Root/Shizuku/managed-device readiness.
+- Explicit capability refreshes now bypass the passive anti-storm backoff, while passive
+  invalidations remain coalesced. A grant returning from system settings is therefore
+  visible immediately without turning background events into probe storms.
+- Added a tri-state workflow requirement graph covering capabilities, Android permissions,
+  special access, AppOps and exact Root/Shizuku authority with `allOf`/`anyOf` semantics.
+  Unobserved state remains `UNKNOWN` instead of becoming a false denial.
+- Runtime admission, builder save admission and dry-run preflight now evaluate the same
+  workflow-level requirement plan, including triggers, main actions, per-action end values
+  and explicit exit actions. Diagnostics identify the exact blocked workflow node.
+- Builder permission repair is now route-aware: it requests only grants that still block
+  the saved workflow. A working Root or Shizuku alternative no longer causes redundant
+  WRITE_SETTINGS/DND/elevated prompts, while exact Root-only/Shizuku-only actions remain pinned.
+- Command-spec Android permissions are merged into the canonical requirement catalog so
+  permissions declared by compatibility metadata automatically reach builder and preflight
+  flows instead of requiring a second hand-maintained permission map.
+- Added strategy-aware semantic preflight: the capability router can now produce a
+  side-effect-free execution plan using the same live availability, evidence, health and
+  least-privilege ranking that execution uses immediately before a device-state change.
+- Whole-workflow semantic planning covers main actions, per-action end values and explicit
+  exit actions. A Settings-only hand-off is now classified as pending user action instead
+  of an automatically executable route, and runtime blocks it before the first side effect.
+- Builder save admission and dry-run reports consume the same semantic execution plan.
+  Builder repair also bridges otherwise-unowned semantic blockers to one elevated grant
+  path without replacing a more direct WRITE_SETTINGS/DND/runtime-permission repair.
+
+### Fixed
+
+- Fixed the fresh-root grant path so a successful superuser prompt is immediately
+  re-probed before permission repair. The pre-prompt negative root cache can no longer
+  cause the same grant flow to fall through as if no elevated runtime were available.
+- Root transport failures now invalidate cached Root authority and trigger verified
+  privilege re-probing, preventing a revoked superuser grant from remaining falsely
+  healthy for later actions.
+- Removed use of non-public PackageManager permission-change listener APIs from the
+  privilege monitor. Public AppOps/settings/Shizuku events, verified grant events and
+  activity-resume rechecks provide the invalidation path without hidden-SDK coupling.
+
 ## [v3.88.0] - 2026-09-24
 
 ### Added — Wear OS automation foundation

@@ -2,6 +2,7 @@ package com.nexaflow.core.execution.capability.semantic.strategies
 
 import android.annotation.SuppressLint
 import android.app.NotificationManager
+import android.app.admin.DevicePolicyManager
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.location.LocationManager
@@ -57,12 +58,37 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
         request: TypedOperationRequest,
         operation: SemanticOperationId
     ): StrategyAvailability = when (operation) {
-        SemanticOperationId.WIFI_GET_STATE,
-        SemanticOperationId.WIFI_SET_STATE ->
+        SemanticOperationId.WIFI_GET_STATE ->
             if (service(WifiManager::class.java) != null) StrategyAvailability(true)
             else StrategyAvailability(false, "Wi-Fi service is unavailable")
 
-        SemanticOperationId.BLUETOOTH_GET_STATE,
+        SemanticOperationId.WIFI_SET_STATE -> when {
+            service(WifiManager::class.java) == null ->
+                StrategyAvailability(false, "Wi-Fi service is unavailable")
+            !publicWifiToggleAllowed(
+                Build.VERSION.SDK_INT,
+                isFrameworkPrivilegedCaller()
+            ) ->
+                StrategyAvailability(
+                    false,
+                    "Public Wi-Fi toggling is restricted for normal apps on this Android version"
+                )
+            else -> StrategyAvailability(true)
+        }
+
+        SemanticOperationId.BLUETOOTH_GET_STATE -> {
+            val adapter = service(BluetoothManager::class.java)?.adapter
+            when {
+                adapter == null -> StrategyAvailability(false, "Bluetooth adapter is unavailable")
+                !hasBluetoothConnectPermission() -> StrategyAvailability(
+                    available = false,
+                    reason = "BLUETOOTH_CONNECT has not been granted",
+                    permissionRequired = true
+                )
+                else -> StrategyAvailability(true)
+            }
+        }
+
         SemanticOperationId.BLUETOOTH_SET_STATE -> {
             val adapter = service(BluetoothManager::class.java)?.adapter
             when {
@@ -72,6 +98,14 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
                     reason = "BLUETOOTH_CONNECT has not been granted",
                     permissionRequired = true
                 )
+                !publicBluetoothToggleAllowed(
+                    Build.VERSION.SDK_INT,
+                    isFrameworkPrivilegedCaller()
+                ) ->
+                    StrategyAvailability(
+                        false,
+                        "Public Bluetooth toggling is restricted for normal apps on this Android version"
+                    )
                 else -> StrategyAvailability(true)
             }
         }
@@ -113,10 +147,21 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
             if (service(TelephonyManager::class.java) != null) StrategyAvailability(true)
             else StrategyAvailability(false, "Telephony is unavailable")
 
-        SemanticOperationId.DATA_SAVER_GET_STATE,
-        SemanticOperationId.DATA_SAVER_SET_STATE ->
+        SemanticOperationId.DATA_SAVER_GET_STATE ->
             if (service(ConnectivityManager::class.java) != null) StrategyAvailability(true)
             else StrategyAvailability(false, "Connectivity manager is unavailable")
+
+        SemanticOperationId.DATA_SAVER_SET_STATE -> when {
+            service(ConnectivityManager::class.java) == null ->
+                StrategyAvailability(false, "Connectivity manager is unavailable")
+            !hasManageNetworkPolicyPermission() ->
+                StrategyAvailability(
+                    false,
+                    "Changing Data Saver requires privileged network-policy access",
+                    permissionRequired = true
+                )
+            else -> StrategyAvailability(true)
+        }
 
         else -> StrategyAvailability(false, "Operation is not implemented by the public-API strategy")
     }
@@ -504,5 +549,38 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
 
     private fun notificationPolicyAccessGranted(): Boolean =
         service(NotificationManager::class.java)?.isNotificationPolicyAccessGranted == true
+
+    private fun hasManageNetworkPolicyPermission(): Boolean =
+        context.checkSelfPermission("android.permission.MANAGE_NETWORK_POLICY") ==
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+
+    /**
+     * Public framework toggles retain exemptions for managed/system callers.
+     * This check is intentionally authorization-only and never probes Root or
+     * Shizuku, keeping public-strategy availability side-effect-free.
+     */
+    private fun isFrameworkPrivilegedCaller(): Boolean {
+        val flags = context.applicationInfo.flags
+        val systemApp =
+            flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM != 0 ||
+                flags and android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP != 0
+        val policy = service(DevicePolicyManager::class.java)
+        val managed = runCatching {
+            policy?.isDeviceOwnerApp(context.packageName) == true ||
+                policy?.isProfileOwnerApp(context.packageName) == true
+        }.getOrDefault(false)
+        return systemApp || managed
+    }
 }
+
+
+internal fun publicWifiToggleAllowed(
+    sdk: Int,
+    frameworkPrivileged: Boolean
+): Boolean = sdk < 29 || frameworkPrivileged
+
+internal fun publicBluetoothToggleAllowed(
+    sdk: Int,
+    frameworkPrivileged: Boolean
+): Boolean = sdk < 33 || frameworkPrivileged
 

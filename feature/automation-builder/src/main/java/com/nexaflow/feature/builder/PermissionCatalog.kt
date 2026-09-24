@@ -1,6 +1,7 @@
 package com.nexaflow.feature.builder
 
-import android.annotation.SuppressLint
+import com.nexaflow.core.execution.compat.WorkflowRequirementCatalog
+import com.nexaflow.core.execution.compat.WorkflowSpecialPermission
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.PermissionRequirement
@@ -18,122 +19,27 @@ import com.nexaflow.domain.models.TriggerType
  */
 object PermissionCatalog {
     fun runtimePermissionsFor(action: Action): List<String> =
-        if (action.type == ActionType.SYSTEM_HTTP_REQUEST)
-            com.nexaflow.domain.security.HttpAccessPolicy.runtimePermissions(action.config, android.os.Build.VERSION.SDK_INT)
-        else runtimePermissionsFor(action.type)
-
+        WorkflowRequirementCatalog.runtimePermissionsFor(action)
 
     /** Runtime (system-dialog) permissions required by an action. */
-    // Type-only callers cannot opt in to local network access.
-    @SuppressLint("InlinedApi")
-    fun runtimePermissionsFor(actionType: ActionType): List<String> = when (actionType) {
-        ActionType.SYSTEM_SEND_SMS -> listOf(android.Manifest.permission.SEND_SMS)
-        // Screening-role call control; ANSWER_PHONE_CALLS is the runtime
-        // fallback for rejecting when the role is not held.
-        ActionType.CALL_BLOCK -> listOf(android.Manifest.permission.ANSWER_PHONE_CALLS)
-        ActionType.CALL_SILENCE -> emptyList()
-        ActionType.SYSTEM_FLASHLIGHT -> listOf(android.Manifest.permission.CAMERA)
-        ActionType.SYSTEM_SEND_NOTIFICATION,
-        ActionType.SYSTEM_SEND_REMINDER,
-        ActionType.BATTERY_ALERTS,
-        ActionType.BATTERY_CHARGING_NOTIFICATIONS -> listOf(android.Manifest.permission.POST_NOTIFICATIONS)
-        ActionType.SYSTEM_LOCATION -> listOf(
-            android.Manifest.permission.ACCESS_FINE_LOCATION,
-            android.Manifest.permission.ACCESS_COARSE_LOCATION
-        )
-        // SubscriptionManager requires this dangerous runtime permission to
-        // enumerate active SIMs and read confirmed per-SIM network capability.
-        ActionType.SYSTEM_NETWORK_MODE -> listOf(android.Manifest.permission.READ_PHONE_STATE)
-        // Config-aware HTTP resolution is handled by the Action overload.
-        ActionType.SYSTEM_HTTP_REQUEST -> emptyList()
-        else -> emptyList()
-    }
+    fun runtimePermissionsFor(actionType: ActionType): List<String> =
+        WorkflowRequirementCatalog.runtimePermissionsFor(actionType)
 
     /** Special (settings-screen) permission an action needs, if any. */
-    fun specialPermissionFor(actionType: ActionType): SpecialPermission? = when (actionType) {
-        ActionType.SYSTEM_BRIGHTNESS,
-        ActionType.SYSTEM_SCREEN_ROTATION,
-        ActionType.SYSTEM_SCREEN_TIMEOUT,
-        ActionType.SYSTEM_STAY_AWAKE,
-        ActionType.SYSTEM_AUTO_BRIGHTNESS,
-        ActionType.SYSTEM_DARK_MODE,
-        ActionType.SYSTEM_ANIMATIONS -> SpecialPermission.WRITE_SETTINGS
-        ActionType.SYSTEM_DND,
-        ActionType.SYSTEM_RINGER_MODE -> SpecialPermission.DND_ACCESS
-        ActionType.ADVANCED_SHIZUKU -> SpecialPermission.SHIZUKU
-        ActionType.ADVANCED_ROOT,
-        ActionType.SYSTEM_CHARGING_LIMIT -> SpecialPermission.ROOT
-        ActionType.APPLICATION_CLOSE_APP,
-        ActionType.SYSTEM_MOBILE_DATA,
-        ActionType.SYSTEM_NETWORK_MODE,
-        ActionType.SYSTEM_PRIVATE_DNS,
-        ActionType.SYSTEM_CHARGING_FEEDBACK,
-        ActionType.SYSTEM_HOTSPOT,
-        ActionType.SYSTEM_NFC,
-        ActionType.SYSTEM_POWER_SAVER,
-        ActionType.SYSTEM_LOCK_SCREEN,
-        ActionType.SYSTEM_OPEN_RECENTS,
-        ActionType.SYSTEM_GO_HOME -> SpecialPermission.ELEVATED
-        ActionType.SYSTEM_SET_RINGTONE -> SpecialPermission.WRITE_SETTINGS
-        ActionType.SYSTEM_BLOCK_NOTIFICATION,
-        ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS -> SpecialPermission.NOTIFICATION_ACCESS
-        else -> null
-    }
+    fun specialPermissionFor(actionType: ActionType): SpecialPermission? =
+        WorkflowRequirementCatalog.specialPermissionFor(actionType)?.toUiSpecialPermission()
 
     /** Runtime permissions required by a trigger type. */
-    fun runtimePermissionsFor(triggerType: TriggerType): List<String> = when (triggerType) {
-        TriggerType.NETWORK_MODE -> listOf(android.Manifest.permission.READ_PHONE_STATE)
-        TriggerType.SMS -> listOf(android.Manifest.permission.RECEIVE_SMS)
-        TriggerType.INCOMING_CALL -> listOf(android.Manifest.permission.READ_PHONE_STATE)
-        TriggerType.LOCATION -> listOf(
-            android.Manifest.permission.ACCESS_FINE_LOCATION,
-            android.Manifest.permission.ACCESS_COARSE_LOCATION
-        )
-        TriggerType.CALENDAR -> listOf(android.Manifest.permission.READ_CALENDAR)
-        // Monitoring other apps' notifications is authorized by the dedicated
-        // Notification Listener special access below. POST_NOTIFICATIONS only
-        // controls this app posting visible notifications; it is not required
-        // to receive listener callbacks and must not be requested needlessly.
-        TriggerType.NOTIFICATION -> emptyList()
-        TriggerType.BLUETOOTH_DEVICE -> listOf(android.Manifest.permission.BLUETOOTH_CONNECT)
-        TriggerType.SENSOR -> listOf(android.Manifest.permission.ACTIVITY_RECOGNITION)
-        else -> emptyList()
-    }
+    fun runtimePermissionsFor(triggerType: TriggerType): List<String> =
+        WorkflowRequirementCatalog.runtimePermissionsFor(triggerType)
 
     /** Runtime permissions required by a trigger, including config-specific reads. */
-    fun runtimePermissionsFor(trigger: Trigger): List<String> = when {
-        trigger.type == TriggerType.CONNECTIVITY &&
-            trigger.config["network"] == "NETWORK_MODE" ->
-            listOf(android.Manifest.permission.READ_PHONE_STATE)
-        // Merged DEVICE trigger configured for Bluetooth connect/disconnect:
-        // the engine reads the device name from ACL broadcasts, which needs
-        // the same runtime grant the legacy BLUETOOTH_DEVICE trigger asks for.
-        trigger.type == TriggerType.DEVICE &&
-            trigger.config["event"].orEmpty().startsWith("BLUETOOTH") ->
-            listOf(android.Manifest.permission.BLUETOOTH_CONNECT)
-        else -> runtimePermissionsFor(trigger.type)
-    }
+    fun runtimePermissionsFor(trigger: Trigger): List<String> =
+        WorkflowRequirementCatalog.runtimePermissionsFor(trigger)
 
-    /**
-     * Special (settings-screen) permission required by a trigger, if any.
-     *
-     * Bluetooth is deliberately absent: a device-connect trigger needs the
-     * BLUETOOTH_CONNECT *runtime* permission, which the Bluetooth settings
-     * screen cannot grant. Routing the requirement here sent users to a
-     * settings screen that changed nothing and left the task unable to see
-     * paired devices. The runtime grant is requested through the system dialog
-     * (with the explain screen) via [runtimePermissionsFor].
-     */
-    fun specialPermissionFor(triggerType: TriggerType): SpecialPermission? = when (triggerType) {
-        // Android 12+ denies exact alarms by default on many fresh installs.
-        // A task set for a user-selected wall-clock time must request this
-        // special access instead of silently being treated as punctual while an
-        // inexact fallback can be deferred by Doze or battery restrictions.
-        TriggerType.TIME -> SpecialPermission.EXACT_ALARM
-        TriggerType.NOTIFICATION -> SpecialPermission.NOTIFICATION_ACCESS
-        TriggerType.APPLICATION -> SpecialPermission.ACCESSIBILITY
-        else -> null
-    }
+    /** Special permission required by a trigger, if any. */
+    fun specialPermissionFor(triggerType: TriggerType): SpecialPermission? =
+        WorkflowRequirementCatalog.specialPermissionFor(triggerType)?.toUiSpecialPermission()
 
     /**
      * Aggregates every permission the task needs — runtime permissions first
@@ -147,13 +53,12 @@ object PermissionCatalog {
     ): List<PermissionRequirement> {
         val result = mutableListOf<PermissionRequirement>()
         triggers.forEach { trigger ->
-            val runtime = runtimePermissionsFor(trigger)
-            val special = specialPermissionFor(trigger.type)
-            if (runtime.isNotEmpty() || special != null) {
+            val requirement = WorkflowRequirementCatalog.permissionRequirementFor(trigger)
+            if (requirement.runtimePermissions.isNotEmpty() || requirement.special != null) {
                 result += PermissionRequirement(
                     owner = "trigger:${trigger.type.name}",
-                    runtimePermissions = runtime,
-                    special = special?.name
+                    runtimePermissions = requirement.runtimePermissions,
+                    special = requirement.special?.toUiSpecialPermission()?.name
                 )
             }
         }
@@ -161,13 +66,12 @@ object PermissionCatalog {
             action.endBehavior?.takeIf { it.mode == com.nexaflow.domain.models.EndMode.SET_VALUE }
                 ?.let { action.withConfig(it.config) }
         }).forEach { action ->
-            val runtime = runtimePermissionsFor(action)
-            val special = specialPermissionFor(action.type)
-            if (runtime.isNotEmpty() || special != null) {
+            val requirement = WorkflowRequirementCatalog.permissionRequirementFor(action)
+            if (requirement.runtimePermissions.isNotEmpty() || requirement.special != null) {
                 result += PermissionRequirement(
                     owner = "action:${action.type.name}",
-                    runtimePermissions = runtime,
-                    special = special?.name
+                    runtimePermissions = requirement.runtimePermissions,
+                    special = requirement.special?.toUiSpecialPermission()?.name
                 )
             }
         }
@@ -193,4 +97,15 @@ object PermissionCatalog {
         .mapNotNull { it.special }
         .distinct()
         .mapNotNull { name -> SpecialPermission.entries.firstOrNull { it.name == name } }
+}
+
+internal fun WorkflowSpecialPermission.toUiSpecialPermission(): SpecialPermission = when (this) {
+    WorkflowSpecialPermission.WRITE_SETTINGS -> SpecialPermission.WRITE_SETTINGS
+    WorkflowSpecialPermission.DND_ACCESS -> SpecialPermission.DND_ACCESS
+    WorkflowSpecialPermission.NOTIFICATION_ACCESS -> SpecialPermission.NOTIFICATION_ACCESS
+    WorkflowSpecialPermission.ACCESSIBILITY -> SpecialPermission.ACCESSIBILITY
+    WorkflowSpecialPermission.SHIZUKU -> SpecialPermission.SHIZUKU
+    WorkflowSpecialPermission.ROOT -> SpecialPermission.ROOT
+    WorkflowSpecialPermission.ELEVATED -> SpecialPermission.ELEVATED
+    WorkflowSpecialPermission.EXACT_ALARM -> SpecialPermission.EXACT_ALARM
 }

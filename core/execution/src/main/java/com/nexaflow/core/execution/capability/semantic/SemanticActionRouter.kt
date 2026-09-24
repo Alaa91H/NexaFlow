@@ -37,12 +37,32 @@ object SemanticActionMapper {
         ActionType.SYSTEM_ENABLE_APP
     )
 
-    fun isRouted(action: Action): Boolean = action.type in ROUTED_TYPES
+    fun operationFor(actionType: ActionType): SemanticOperationId? = when (actionType) {
+        ActionType.SYSTEM_WIFI -> SemanticOperationId.WIFI_SET_STATE
+        ActionType.SYSTEM_BLUETOOTH -> SemanticOperationId.BLUETOOTH_SET_STATE
+        ActionType.SYSTEM_LOCATION -> SemanticOperationId.LOCATION_SET_STATE
+        ActionType.SYSTEM_AIRPLANE_MODE -> SemanticOperationId.AIRPLANE_MODE_SET_STATE
+        ActionType.SYSTEM_SCREEN_ROTATION -> SemanticOperationId.ROTATION_SET_STATE
+        ActionType.SYSTEM_BRIGHTNESS -> SemanticOperationId.BRIGHTNESS_SET
+        ActionType.SYSTEM_SCREEN_TIMEOUT -> SemanticOperationId.SCREEN_TIMEOUT_SET
+        ActionType.SYSTEM_DND -> SemanticOperationId.DND_SET_STATE
+        ActionType.SYSTEM_NFC -> SemanticOperationId.NFC_SET_STATE
+        ActionType.SYSTEM_HOTSPOT -> SemanticOperationId.HOTSPOT_SET_STATE
+        ActionType.SYSTEM_MOBILE_DATA -> SemanticOperationId.MOBILE_DATA_SET_STATE
+        ActionType.SYSTEM_DATA_SAVER -> SemanticOperationId.DATA_SAVER_SET_STATE
+        ActionType.APPLICATION_CLOSE_APP -> SemanticOperationId.PACKAGE_FORCE_STOP
+        ActionType.SYSTEM_FORCE_STOP_APP -> SemanticOperationId.PACKAGE_FORCE_STOP
+        ActionType.SYSTEM_CLEAR_APP_DATA -> SemanticOperationId.PACKAGE_CLEAR_DATA
+        ActionType.SYSTEM_DISABLE_APP -> SemanticOperationId.PACKAGE_SET_ENABLED_STATE
+        ActionType.SYSTEM_ENABLE_APP -> SemanticOperationId.PACKAGE_SET_ENABLED_STATE
+        else -> null
+    }
+
+    fun isRouted(action: Action): Boolean = operationFor(action.type) != null
 
     /**
-     * Builds a typed request, or null when the action must remain on its
-     * legacy handler (unsupported type here or invalid configuration that the
-     * legacy handler already reports in its own terms).
+     * Builds a typed request, or null when the action is not routed or its
+     * configuration cannot be represented by the typed semantic contract.
      */
     fun requestFor(
         action: Action,
@@ -50,27 +70,7 @@ object SemanticActionMapper {
         executionId: String?,
         allowPrivilegedStrategies: Boolean
     ): TypedOperationRequest? {
-        if (!isRouted(action)) return null
-        val operation = when (action.type) {
-            ActionType.SYSTEM_WIFI -> SemanticOperationId.WIFI_SET_STATE
-            ActionType.SYSTEM_BLUETOOTH -> SemanticOperationId.BLUETOOTH_SET_STATE
-            ActionType.SYSTEM_LOCATION -> SemanticOperationId.LOCATION_SET_STATE
-            ActionType.SYSTEM_AIRPLANE_MODE -> SemanticOperationId.AIRPLANE_MODE_SET_STATE
-            ActionType.SYSTEM_SCREEN_ROTATION -> SemanticOperationId.ROTATION_SET_STATE
-            ActionType.SYSTEM_BRIGHTNESS -> SemanticOperationId.BRIGHTNESS_SET
-            ActionType.SYSTEM_SCREEN_TIMEOUT -> SemanticOperationId.SCREEN_TIMEOUT_SET
-            ActionType.SYSTEM_DND -> SemanticOperationId.DND_SET_STATE
-            ActionType.SYSTEM_NFC -> SemanticOperationId.NFC_SET_STATE
-            ActionType.SYSTEM_HOTSPOT -> SemanticOperationId.HOTSPOT_SET_STATE
-            ActionType.SYSTEM_MOBILE_DATA -> SemanticOperationId.MOBILE_DATA_SET_STATE
-            ActionType.SYSTEM_DATA_SAVER -> SemanticOperationId.DATA_SAVER_SET_STATE
-            ActionType.APPLICATION_CLOSE_APP -> SemanticOperationId.PACKAGE_FORCE_STOP
-            ActionType.SYSTEM_FORCE_STOP_APP -> SemanticOperationId.PACKAGE_FORCE_STOP
-            ActionType.SYSTEM_CLEAR_APP_DATA -> SemanticOperationId.PACKAGE_CLEAR_DATA
-            ActionType.SYSTEM_DISABLE_APP -> SemanticOperationId.PACKAGE_SET_ENABLED_STATE
-            ActionType.SYSTEM_ENABLE_APP -> SemanticOperationId.PACKAGE_SET_ENABLED_STATE
-            else -> return null
-        }
+        val operation = operationFor(action.type) ?: return null
         // Package operations: a validated package name is the primary
         // parameter. Historical configs used `package`/`packageName`; the
         // alias resolution is explicit and a missing name fails the mapping
@@ -157,6 +157,35 @@ class SemanticActionRouter(
     private val router: CapabilityRouter,
     private val privilegedPolicyEnabled: () -> Boolean = { false }
 ) {
+    /**
+     * Side-effect-free planning through the same router used by execution.
+     * A routed action with invalid typed configuration returns an explicit
+     * INVALID_CONFIGURATION plan instead of silently falling back to legacy.
+     */
+    suspend fun planIfSupported(
+        action: Action,
+        workflowId: String?,
+        executionId: String?
+    ): OperationExecutionPlan? {
+        val operation = SemanticActionMapper.operationFor(action.type) ?: return null
+        val request = SemanticActionMapper.requestFor(
+            action,
+            workflowId,
+            executionId,
+            // Planning is read-only, so include privileged candidates even
+            // before a grant exists. Their live availability still decides
+            // readiness, and execution re-applies the real policy immediately
+            // before the side effect.
+            allowPrivilegedStrategies = true
+        ) ?: return OperationExecutionPlan(
+            operation = operation,
+            status = OperationPlanStatus.INVALID_CONFIGURATION,
+            message = "Action configuration cannot be mapped to the typed operation contract",
+            errorCode = com.nexaflow.domain.capability.CapabilityErrorCode.INVALID_CONFIGURATION
+        )
+        return router.plan(request)
+    }
+
     /**
      * Executes when the action maps to a semantic operation; returns null so
      * callers fall back to the legacy handler untouched.

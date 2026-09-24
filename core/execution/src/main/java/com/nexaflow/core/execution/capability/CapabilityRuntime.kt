@@ -16,6 +16,7 @@ import com.nexaflow.domain.capability.ExecutionPolicy
 import com.nexaflow.domain.capability.NetworkRequirement
 import com.nexaflow.domain.capability.PolicyBlockReason
 import com.nexaflow.domain.capability.PolicyEvaluation
+import com.nexaflow.domain.capability.PrivilegeSnapshot
 import com.nexaflow.domain.capability.ThermalState
 import com.nexaflow.core.execution.verification.VerificationEngine
 import kotlinx.coroutines.CancellationException
@@ -131,7 +132,8 @@ data class CapabilityResolution(
  */
 class CapabilityResolver(
     private val registry: CapabilityRegistry,
-    private val priority: List<CapabilityBackendId> = DEFAULT_PRIORITY
+    private val priority: List<CapabilityBackendId> = DEFAULT_PRIORITY,
+    private val privilegeSnapshotProvider: (() -> PrivilegeSnapshot)? = null
 ) {
 
     fun validate(request: CapabilityRequest): CapabilityValidationResult =
@@ -160,6 +162,23 @@ class CapabilityResolver(
                 failure = CapabilityResult.failed(
                     errorCode = CapabilityErrorCode.POLICY_NOT_SATISFIED,
                     message = "Execution policy requirements are not met"
+                )
+            )
+        }
+
+        val missingPermissions = missingRequiredPermissions(descriptor)
+        if (missingPermissions.isNotEmpty()) {
+            return CapabilityResolution(
+                descriptor = descriptor,
+                policy = policy,
+                candidates = emptyList(),
+                failure = CapabilityResult.failed(
+                    errorCode = CapabilityErrorCode.PERMISSION_DENIED,
+                    message = "Required Android permission is not granted"
+                ).copy(
+                    metadata = mapOf(
+                        "missingPermissions" to missingPermissions.sorted().joinToString(",")
+                    )
                 )
             )
         }
@@ -240,6 +259,16 @@ class CapabilityResolver(
             candidates = ordered.map { it.second },
             failure = error
         )
+    }
+
+    private fun missingRequiredPermissions(
+        descriptor: CapabilityDescriptor
+    ): List<String> {
+        val snapshot = privilegeSnapshotProvider?.invoke() ?: return emptyList()
+        if (snapshot.neverObserved) return emptyList()
+        return descriptor.requiredPermissions.filter { permission ->
+            snapshot.grantedAndroidPermission(permission) == false
+        }
     }
 
     private fun preferenceIndex(id: CapabilityBackendId, policy: ExecutionPolicy): Int {

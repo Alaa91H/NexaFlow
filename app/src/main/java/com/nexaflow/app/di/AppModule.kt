@@ -35,6 +35,7 @@ import com.nexaflow.core.execution.capability.CapabilityResolver
 import com.nexaflow.core.execution.capability.CapabilityStateStore
 import com.nexaflow.core.execution.capability.PluginCapabilityBackend
 import com.nexaflow.core.execution.capability.PluginCapabilityCatalog
+import com.nexaflow.core.execution.capability.PrivilegeStateStore
 import com.nexaflow.core.execution.capability.PluginConditionCapabilityCatalog
 import com.nexaflow.core.execution.capability.PrivilegedCapabilityCatalog
 import com.nexaflow.core.execution.capability.RootCapabilityBackend
@@ -68,6 +69,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 @Module
@@ -268,8 +270,8 @@ object AppModule {
                 AndroidPublicCapabilityBackend(context),
                 AndroidIntentCapabilityBackend(context),
                 PluginCapabilityBackend(context, automationRepository, pluginDiscoveryRegistry),
-                // Both channels require explicit request-policy selection; the
-                // resolver never falls through from Shizuku to Root or vice versa.
+                // Capability requests are adaptive by default once privileged
+                // execution is authorized; explicit backend pins are still honored.
                 ShizukuCapabilityBackend(),
                 RootCapabilityBackend(),
                 AccessibilityCapabilityBackend(context, accessibilityBridge)
@@ -278,20 +280,47 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideCapabilityResolver(registry: CapabilityRegistry): CapabilityResolver =
-        CapabilityResolver(registry)
+    fun provideCapabilityResolver(
+        registry: CapabilityRegistry,
+        privilegeStateStore: PrivilegeStateStore
+    ): CapabilityResolver = CapabilityResolver(
+        registry = registry,
+        privilegeSnapshotProvider = { privilegeStateStore.snapshot.value }
+    )
+
+    @Provides
+    @Singleton
+    fun providePrivilegeStateStore(
+        @ApplicationContext context: Context,
+        @ApplicationScope scope: CoroutineScope
+    ): PrivilegeStateStore = PrivilegeStateStore(
+        context = context,
+        scope = scope
+    )
 
     @Provides
     @Singleton
     fun provideCapabilityStateStore(
         registry: CapabilityRegistry,
+        privilegeStateStore: PrivilegeStateStore,
         @ApplicationContext context: Context,
         @ApplicationScope scope: CoroutineScope
-    ): CapabilityStateStore = CapabilityStateStore(
-        registry = registry,
-        environmentInspector = CapabilityEnvironmentInspector.forContext(context),
-        scope = scope
-    )
+    ): CapabilityStateStore {
+        val store = CapabilityStateStore(
+            registry = registry,
+            environmentInspector = CapabilityEnvironmentInspector.forContext(context),
+            scope = scope,
+            privilegeSnapshotProvider = { privilegeStateStore.snapshot.value }
+        )
+        scope.launch {
+            privilegeStateStore.snapshot.collect { privilegeSnapshot ->
+                if (!privilegeSnapshot.neverObserved) {
+                    store.refresh()
+                }
+            }
+        }
+        return store
+    }
 
     @Provides
     @Singleton
@@ -316,9 +345,15 @@ object AppModule {
     @Singleton
     fun provideWorkflowDryRunService(
         resolver: CapabilityResolver,
+        capabilityStateStore: CapabilityStateStore,
+        privilegeStateStore: PrivilegeStateStore,
+        semanticWorkflowPlanner: com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner,
         @ApplicationContext context: Context
     ): WorkflowDryRunService = WorkflowDryRunService(
         capabilityResolver = resolver,
+        capabilitySnapshotProvider = { capabilityStateStore.snapshot.value },
+        privilegeSnapshotProvider = { privilegeStateStore.snapshot.value },
+        semanticWorkflowPlanner = semanticWorkflowPlanner,
         deviceStateProvider = {
             AndroidCapabilityDeviceStateReader(context).capture(System.currentTimeMillis())
         }
@@ -334,6 +369,8 @@ object AppModule {
         variableRepository: VariableRepository,
         capabilityExecutionService: CapabilityExecutionService,
         capabilityStateStore: CapabilityStateStore,
+        privilegeStateStore: PrivilegeStateStore,
+        semanticWorkflowPlanner: com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner,
         automationRuntimeStore: AutomationRuntimeStore,
         semanticActionRouter: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter
     ): ExecutionEngine {
@@ -347,7 +384,10 @@ object AppModule {
             automationRuntimeStore = automationRuntimeStore,
             capabilityExecutionService = capabilityExecutionService,
             capabilitySnapshotProvider = { capabilityStateStore.snapshot.value },
-            capabilitySnapshotInvalidator = { capabilityStateStore.refresh() }
+            privilegeSnapshotProvider = { privilegeStateStore.snapshot.value },
+            capabilitySnapshotInvalidator = { capabilityStateStore.refresh() },
+            privilegeSnapshotInvalidator = { privilegeStateStore.refresh() },
+            semanticWorkflowPlanner = semanticWorkflowPlanner
         )
     }
 
@@ -396,6 +436,15 @@ object AppModule {
             }
         )
     }
+
+    @Provides
+    @Singleton
+    fun provideSemanticWorkflowPlanner(
+        semanticActionRouter: com.nexaflow.core.execution.capability.semantic.SemanticActionRouter
+    ): com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner =
+        com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner(
+            semanticActionRouter
+        )
 
     @Provides
     @Singleton

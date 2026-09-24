@@ -25,6 +25,47 @@ data class StrategyCandidate(
     val privilegeCost: Int
 )
 
+/** Read-only preflight state for one semantic operation. */
+enum class OperationPlanStatus {
+    READY,
+    PENDING_USER_ACTION,
+    UNAVAILABLE,
+    INVALID_CONFIGURATION
+}
+
+/**
+ * Safe, value-only view of one strategy candidate. The concrete strategy
+ * object never escapes the router, so preflight cannot become an execution
+ * handle or an authorization cache.
+ */
+data class StrategyPlanCandidate(
+    val strategy: StrategyId,
+    val available: Boolean,
+    val selected: Boolean,
+    val interactive: Boolean,
+    val permissionRequired: Boolean,
+    val confidence: Int,
+    val reason: String,
+    val evidenceScore: Long,
+    val privilegeCost: Int
+)
+
+/**
+ * Side-effect-free result of asking how an operation would run right now.
+ * execute() uses the same preparation path immediately before side effects.
+ */
+data class OperationExecutionPlan(
+    val operation: SemanticOperationId,
+    val status: OperationPlanStatus,
+    val selectedStrategy: StrategyId? = null,
+    val candidates: List<StrategyPlanCandidate> = emptyList(),
+    val message: String,
+    val errorCode: CapabilityErrorCode? = null
+) {
+    val executable: Boolean
+        get() = status == OperationPlanStatus.READY
+}
+
 /**
  * The single decision point for "how do I execute this operation on this
  * device, right now?". Ordering factors, most significant first:
@@ -179,46 +220,23 @@ class CapabilityRouter(
         OperationStrategyResolver(evidenceStore, healthTracker, fingerprint, nowMs)
             .withPreferred(request.preferredStrategies)
 
-    suspend fun execute(request: TypedOperationRequest): OperationOutcome {
-        val spec = registry.specFor(request.operation)
-            ?: return OperationOutcome.unsupported(
-                request.operation,
-                "Operation is not registered; it cannot be executed safely"
-            )
+    suspend fun plan(request: TypedOperationRequest): OperationExecutionPlan =
+        prepare(request).plan
 
-        // NF-P0-003: the single typed validation point. Type, range and
-        // allowlist checks all happen here, before any candidate is probed —
-        // strategies never see an unvalidated map.
-        val violations = OperationParameterValidator.validate(spec, request.parameters)
-        if (violations.isNotEmpty()) {
-            return OperationOutcome.failed(
-                request.operation, CapabilityErrorCode.INVALID_CONFIGURATION,
-                violations.joinToString("; ") { it.reason }
-            )
+    suspend fun execute(request: TypedOperationRequest): OperationOutcome {
+        val prepared = prepare(request)
+        val spec = prepared.spec
+            ?: return terminalOutcome(prepared.plan)
+
+        if (prepared.plan.status == OperationPlanStatus.INVALID_CONFIGURATION ||
+            prepared.plan.status == OperationPlanStatus.UNAVAILABLE
+        ) {
+            return terminalOutcome(prepared.plan)
         }
 
-        val ranked = resolverFor(request)
-            .candidates(request, spec, strategies)
-            .let { resolverFor(request).rank(it) }
-            .filter { it.supported }
-
+        val ranked = prepared.ranked.filter { it.supported }
         if (ranked.isEmpty()) {
-            val anyPrivilegedBlocked = strategies.any {
-                it.id in spec.strategies && isPrivileged(it.id)
-            } && !request.allowPrivilegedStrategies
-            return if (anyPrivilegedBlocked) {
-                OperationOutcome(
-                    operation = request.operation,
-                    status = OperationOutcomeStatus.PENDING_USER_ACTION,
-                    errorCode = CapabilityErrorCode.PERMISSION_DENIED,
-                    message = "Executing this operation requires enabling a privileged provider (Shizuku or Root)"
-                )
-            } else {
-                OperationOutcome.unsupported(
-                    request.operation,
-                    "No registered strategy is available on this device right now"
-                )
-            }
+            return terminalOutcome(prepared.plan)
         }
 
         var lastOutcome: OperationOutcome? = null
@@ -286,6 +304,131 @@ class CapabilityRouter(
             request.operation, "No strategy could execute the operation"
         )
     }
+
+    private suspend fun prepare(request: TypedOperationRequest): PreparedOperation {
+        val spec = registry.specFor(request.operation)
+            ?: return PreparedOperation(
+                spec = null,
+                ranked = emptyList(),
+                plan = OperationExecutionPlan(
+                    operation = request.operation,
+                    status = OperationPlanStatus.UNAVAILABLE,
+                    message = "Operation is not registered; it cannot be executed safely",
+                    errorCode = CapabilityErrorCode.BACKEND_UNAVAILABLE
+                )
+            )
+
+        // NF-P0-003: one typed validation point shared by plan() and execute().
+        val violations = OperationParameterValidator.validate(spec, request.parameters)
+        if (violations.isNotEmpty()) {
+            return PreparedOperation(
+                spec = spec,
+                ranked = emptyList(),
+                plan = OperationExecutionPlan(
+                    operation = request.operation,
+                    status = OperationPlanStatus.INVALID_CONFIGURATION,
+                    message = violations.joinToString("; ") { it.reason },
+                    errorCode = CapabilityErrorCode.INVALID_CONFIGURATION
+                )
+            )
+        }
+
+        val resolver = resolverFor(request)
+        val ranked = resolver.candidates(request, spec, strategies)
+            .let(resolver::rank)
+        val supported = ranked.filter { it.supported }
+        val automatic = supported.firstOrNull {
+            it.strategy.id != StrategyId.SETTINGS_USER_ACTION
+        }
+        val selected = automatic ?: supported.firstOrNull()
+        val privilegedBlockedByPolicy = strategies.any {
+            it.id in spec.strategies && isPrivileged(it.id)
+        } && !request.allowPrivilegedStrategies
+
+        val status = when {
+            automatic != null -> OperationPlanStatus.READY
+            selected?.strategy?.id == StrategyId.SETTINGS_USER_ACTION ->
+                OperationPlanStatus.PENDING_USER_ACTION
+            privilegedBlockedByPolicy -> OperationPlanStatus.PENDING_USER_ACTION
+            else -> OperationPlanStatus.UNAVAILABLE
+        }
+        val message = when (status) {
+            OperationPlanStatus.READY ->
+                "Ready via ${selected?.strategy?.id?.name ?: "available strategy"}"
+            OperationPlanStatus.PENDING_USER_ACTION ->
+                if (selected?.strategy?.id == StrategyId.SETTINGS_USER_ACTION) {
+                    "Automatic execution is unavailable; Android Settings requires user action"
+                } else {
+                    "Executing this operation requires an authorized privileged provider"
+                }
+            OperationPlanStatus.UNAVAILABLE ->
+                "No registered automatic strategy is available on this device right now"
+            OperationPlanStatus.INVALID_CONFIGURATION ->
+                "Operation parameters are invalid"
+        }
+        val errorCode = when (status) {
+            OperationPlanStatus.PENDING_USER_ACTION -> CapabilityErrorCode.PERMISSION_DENIED
+            OperationPlanStatus.UNAVAILABLE -> CapabilityErrorCode.BACKEND_UNAVAILABLE
+            OperationPlanStatus.INVALID_CONFIGURATION -> CapabilityErrorCode.INVALID_CONFIGURATION
+            OperationPlanStatus.READY -> null
+        }
+
+        return PreparedOperation(
+            spec = spec,
+            ranked = ranked,
+            plan = OperationExecutionPlan(
+                operation = request.operation,
+                status = status,
+                selectedStrategy = selected?.strategy?.id,
+                candidates = ranked.map { candidate ->
+                    StrategyPlanCandidate(
+                        strategy = candidate.strategy.id,
+                        available = candidate.supported,
+                        selected = candidate.strategy.id == selected?.strategy?.id,
+                        interactive = candidate.strategy.id == StrategyId.SETTINGS_USER_ACTION,
+                        permissionRequired = candidate.availability.permissionRequired,
+                        confidence = candidate.confidence,
+                        reason = candidate.reason,
+                        evidenceScore = candidate.evidenceScore,
+                        privilegeCost = candidate.privilegeCost
+                    )
+                },
+                message = message,
+                errorCode = errorCode
+            )
+        )
+    }
+
+    private fun terminalOutcome(plan: OperationExecutionPlan): OperationOutcome = when (plan.status) {
+        OperationPlanStatus.INVALID_CONFIGURATION ->
+            OperationOutcome.failed(
+                plan.operation,
+                CapabilityErrorCode.INVALID_CONFIGURATION,
+                plan.message
+            )
+        OperationPlanStatus.PENDING_USER_ACTION ->
+            OperationOutcome(
+                operation = plan.operation,
+                status = OperationOutcomeStatus.PENDING_USER_ACTION,
+                errorCode = plan.errorCode ?: CapabilityErrorCode.PERMISSION_DENIED,
+                message = plan.message,
+                strategy = plan.selectedStrategy
+            )
+        OperationPlanStatus.UNAVAILABLE ->
+            OperationOutcome.unsupported(plan.operation, plan.message)
+        OperationPlanStatus.READY ->
+            OperationOutcome.failed(
+                plan.operation,
+                CapabilityErrorCode.UNKNOWN_ERROR,
+                "Execution plan was ready but no executable strategy was retained"
+            )
+    }
+
+    private data class PreparedOperation(
+        val spec: OperationSpec?,
+        val ranked: List<StrategyCandidate>,
+        val plan: OperationExecutionPlan
+    )
 
     /**
      * Reconciles an UNKNOWN outcome by reading the actual state via the

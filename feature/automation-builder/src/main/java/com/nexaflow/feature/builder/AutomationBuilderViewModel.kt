@@ -5,8 +5,16 @@ import androidx.lifecycle.viewModelScope
 import com.nexaflow.core.engine.BatteryMonitor
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.capability.CapabilityStateStore
+import com.nexaflow.core.execution.capability.PrivilegeStateStore
+import com.nexaflow.core.execution.capability.semantic.SemanticWorkflowExecutionPlan
+import com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner
+import com.nexaflow.domain.capability.operation.StrategyId
 import com.nexaflow.core.execution.compat.WorkflowCapabilityValidator
+import com.nexaflow.core.execution.compat.WorkflowPermissionRepairPlan
+import com.nexaflow.core.execution.compat.WorkflowRequirementCatalog
+import com.nexaflow.core.execution.compat.WorkflowSpecialPermission
 import com.nexaflow.domain.capability.CapabilitySnapshot
+import com.nexaflow.domain.capability.PrivilegeSnapshot
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.isLegacyGeneratedAutomationDescription
@@ -25,6 +33,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
@@ -36,18 +46,58 @@ class AutomationBuilderViewModel @Inject constructor(
     private val pluginRepository: PluginRepository,
     private val batteryMonitor: BatteryMonitor,
     private val executionEngine: ExecutionEngine,
-    private val capabilityStateStore: CapabilityStateStore
+    private val capabilityStateStore: CapabilityStateStore,
+    private val privilegeStateStore: PrivilegeStateStore,
+    private val semanticWorkflowPlanner: SemanticWorkflowPlanner
 ) : ViewModel() {
 
     /** One capability-engine snapshot for all builder visibility decisions. */
     val capabilitySnapshot: StateFlow<CapabilitySnapshot> = capabilityStateStore.snapshot
+
+    /** Same verified permission/authority state used by runtime admission. */
+    val privilegeSnapshot: StateFlow<PrivilegeSnapshot> = privilegeStateStore.snapshot
 
     /**
      * Re-probes capability availability. Called on ON_RESUME so rows locked
      * behind a permission unlock immediately after the user returns from the
      * grant screen instead of waiting for the next periodic refresh.
      */
-    fun refreshCapabilities() = capabilityStateStore.refresh()
+    fun refreshCapabilities() {
+        capabilityStateStore.refresh()
+        privilegeStateStore.refresh()
+    }
+
+    /**
+     * Builds the same verified requirement-repair plan used by runtime
+     * admission, from fresh capability and privilege observations. The UI uses
+     * this instead of blindly requesting every possible grant for an action.
+     */
+    suspend fun freshPermissionRepairPlan(
+        triggers: List<Trigger>,
+        actions: List<Action>,
+        exitActions: List<Action> = emptyList()
+    ): WorkflowPermissionRepairPlan = coroutineScope {
+        val capabilitySnapshot = async { capabilityStateStore.freshSnapshot() }
+        val privilegeSnapshot = async { privilegeStateStore.freshSnapshot() }
+        val semanticPlan = async {
+            semanticWorkflowPlanner.plan(
+                workflowId = "builder-repair",
+                actions = actions,
+                exitActions = exitActions
+            )
+        }
+        val requirementPlan = WorkflowRequirementCatalog.repairPlan(
+            triggers = triggers,
+            actions = actions,
+            exitActions = exitActions,
+            capabilitySnapshot = capabilitySnapshot.await(),
+            privilegeSnapshot = privilegeSnapshot.await()
+        )
+        mergeSemanticRepairPlan(
+            requirementPlan = requirementPlan,
+            semanticPlan = semanticPlan.await()
+        )
+    }
 
     /** User-defined global variables, so the editor can offer %VAR insertion. */
     val variables: StateFlow<List<GlobalVariable>> = variableRepository.getVariables()
@@ -147,10 +197,17 @@ class AutomationBuilderViewModel @Inject constructor(
             // immediately raced the scan and got the pre-refresh answer — a
             // task the device can actually run was silently saved disabled
             // (root cause of the reported "tasks skipped on save" bug).
-            val admitted = WorkflowCapabilityValidator.validate(
-                automation,
-                capabilityStateStore.freshSnapshot()
-            ).admissible
+            val admitted = coroutineScope {
+                val capabilitySnapshot = async { capabilityStateStore.freshSnapshot() }
+                val privilegeSnapshot = async { privilegeStateStore.freshSnapshot() }
+                val semanticPlan = async { semanticWorkflowPlanner.plan(automation) }
+                val requirementsAdmissible = WorkflowCapabilityValidator.validate(
+                    automation = automation,
+                    capabilitySnapshot = capabilitySnapshot.await(),
+                    privilegeSnapshot = privilegeSnapshot.await()
+                ).admissible
+                requirementsAdmissible && semanticPlan.await().executable
+            }
             val storedAutomation = automation.copy(
                 enabled = resolvedSavedEnabled(
                     previousEnabled = prev?.enabled,
@@ -195,6 +252,36 @@ class AutomationBuilderViewModel @Inject constructor(
  * Existing routines retain the user's toggle, an inadmissible routine can never
  * be enabled, and a starter routine begins disabled until the user reviews it.
  */
+/**
+ * Adds one elevated repair path only for semantic blockers that the
+ * declarative requirement graph does not already know how to repair.
+ */
+internal fun mergeSemanticRepairPlan(
+    requirementPlan: WorkflowPermissionRepairPlan,
+    semanticPlan: SemanticWorkflowExecutionPlan
+): WorkflowPermissionRepairPlan {
+    val elevatedOwners = semanticPlan.nodes
+        .filter { node ->
+            !node.plan.executable &&
+                node.owner !in requirementPlan.blockedOwners &&
+                node.plan.candidates.any { candidate ->
+                    candidate.strategy == StrategyId.ROOT_SHELL ||
+                        candidate.strategy == StrategyId.SHIZUKU_USER_SERVICE
+                }
+        }
+        .mapTo(linkedSetOf()) { it.owner }
+
+    if (elevatedOwners.isEmpty()) return requirementPlan
+
+    return requirementPlan.copy(
+        specialPermissions = (
+            requirementPlan.specialPermissions +
+                WorkflowSpecialPermission.ELEVATED
+            ).distinct(),
+        blockedOwners = requirementPlan.blockedOwners + elevatedOwners
+    )
+}
+
 internal fun resolvedSavedEnabled(
     previousEnabled: Boolean?,
     admissible: Boolean,

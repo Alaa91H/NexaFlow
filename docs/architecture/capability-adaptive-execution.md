@@ -1,6 +1,6 @@
 # Capability-Adaptive Execution — Operation Registry & Router
 
-> **الحالة:** تصميم مُنفَّذ (Phase A–B) على الكومِت المرجعي `518e8e47` (v3.76.0+).
+> **الحالة:** تصميم مُنفَّذ (Phase A–C)؛ Phase C يضيف التخطيط الدلالي المسبق الموحّد مع مسار التنفيذ.
 > الوثيقة تشرح البنية كما هي في الكود فعليًا، لا كما هي مرغوبة.
 
 ## 1. القرار المعماري
@@ -75,6 +75,7 @@ Safe fallback / reconcile when outcome is UNKNOWN or transport-level
 
 - **المرحلة A**: البنية أعلاه + عمليات Wi-Fi/Bluetooth/Rotation/Brightness/ScreenTimeout/Location/NFC/Hotspot/AirplaneMode/DND.
 - **المرحلة B**: `CapabilityActionMapper` يرحّل الأنواع المُصنّفة للراوتر عبر `SemanticActionRouter` — بقية الأنواع تستمر عبر مساراتها الحالية بلا تغيير. مكتمل أيضًا: **`ShizukuTypedStrategy`** (مسار Shizuku typed عبر `PrivilegedRunner.runShizukuOperation` بـ argv مغلق عبر UserService AIDL — الصلاحية وحدها لا تكفي، الحصول يتطلب UserService bound)، وربط `EnvironmentEventWiring` الحقيقي: كل انتقال فعلي في دورة حياة Shizuku (binder received/dead، UserService connected/disconnected) ينشر `ShizukuStateChanged` فيسبطل إبطالًا مستهدفًا لدليل استراتيجية Shizuku فقط.
+- **المرحلة C**: `CapabilityRouter.plan()` يستخدم نفس التحقق والترشيح والترتيب الحي من دون أي side effect، ثم `SemanticWorkflowPlanner` يجمع الخطة لكل main action و`SET_VALUE` end behavior وexit action. المسار الذي لا يملك سوى `SETTINGS_USER_ACTION` يصبح `PENDING_USER_ACTION` ولا يُعتبر صالحًا للتنفيذ الآلي. Builder وDry Run و`ExecutionEngine` يستهلكون الخطة نفسها، بينما التنفيذ يعيد التخطيط مباشرة قبل الـ side effect ولا يثق بنتيجة preflight كتصريح مخزّن.
 - **لا يُحذف أي مسار قديم** قبل أن يغطيه الراوتر بعمليات equivalent ومثبتة (parity tests).
 - `DeviceStateSnapshot` وEndBehavior واستعادة الحالة تبقى كما هي؛ الراوتر يُستخدم فيها عبر نفس mapper لاحقًا.
 
@@ -91,3 +92,4 @@ Safe fallback / reconcile when outcome is UNKNOWN or transport-level
 - **Robolectric**: قراءة الحالة الحقيقية عبر Settings/WifiManager/LocationManager على الأجهزة الافتراضية.
 - **Parity gates**: عملية مسجلة بلا استراتيجية = فشل؛ strategy بلا verifier لكن verification REQUIRED = فشل.
 - **الجهاز الحقيقي**: يبقى خارج نطاق CI؛ يُصادق يدويًا ويُسجل NOT TESTED حيث لم يتم.
+- **Preflight parity**: اختبار الخطة يثبت أن اختيار الاستراتيجية لا ينفّذها، وأن Settings-only يمنع التشغيل الآلي قبل أول side effect، وأن Dry Run وBuilder يحصلان على نفس قرار الراوتر.

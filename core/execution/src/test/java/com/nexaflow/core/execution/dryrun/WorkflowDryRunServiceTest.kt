@@ -3,6 +3,18 @@ package com.nexaflow.core.execution.dryrun
 import com.nexaflow.core.execution.capability.CapabilityBackend
 import com.nexaflow.core.execution.capability.CapabilityRegistry
 import com.nexaflow.core.execution.capability.CapabilityResolver
+import com.nexaflow.core.execution.capability.semantic.CapabilityEvidenceStore
+import com.nexaflow.core.execution.capability.semantic.CapabilityRouter
+import com.nexaflow.core.execution.capability.semantic.CapabilityStrategy
+import com.nexaflow.core.execution.capability.semantic.DeviceFingerprint
+import com.nexaflow.core.execution.capability.semantic.OperationOutcome
+import com.nexaflow.core.execution.capability.semantic.OperationOutcomeStatus
+import com.nexaflow.core.execution.capability.semantic.OperationRegistry
+import com.nexaflow.core.execution.capability.semantic.SemanticActionRouter
+import com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner
+import com.nexaflow.core.execution.capability.semantic.StrategyAvailability
+import com.nexaflow.core.execution.capability.semantic.StrategyHealthTracker
+import com.nexaflow.core.execution.capability.semantic.TypedOperationRequest
 import com.nexaflow.domain.capability.BackendAvailability
 import com.nexaflow.domain.capability.CapabilityAvailability
 import com.nexaflow.domain.capability.CapabilityBackendId
@@ -12,6 +24,14 @@ import com.nexaflow.domain.capability.CapabilityId
 import com.nexaflow.domain.capability.CapabilityRequest
 import com.nexaflow.domain.capability.CapabilityResult
 import com.nexaflow.domain.capability.NetworkRequirement
+import com.nexaflow.domain.capability.CapabilitySnapshot
+import com.nexaflow.domain.capability.PrivilegeGrantState
+import com.nexaflow.domain.capability.PrivilegeObservation
+import com.nexaflow.domain.capability.PrivilegeSnapshot
+import com.nexaflow.domain.capability.PrivilegeSurface
+import com.nexaflow.domain.capability.operation.SemanticOperationId
+import com.nexaflow.domain.capability.operation.StrategyId
+import com.nexaflow.core.rom.model.RomFamily
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
@@ -80,6 +100,121 @@ class WorkflowDryRunServiceTest {
         assertFalse(report.executable)
         assertEquals(0, backend.executions)
         assertEquals(false, report.capabilityResolutions.single().policy.allowed)
+    }
+
+    @Test
+    fun dryRunBlocksObservedElevatedWorkflowWithoutAnyAuthorizedBackend() = runBlocking {
+        val elevated = automation.copy(
+            actions = listOf(Action(ActionType.SYSTEM_REBOOT, emptyMap()))
+        )
+        val service = WorkflowDryRunService(
+            capabilityResolver = CapabilityResolver(
+                CapabilityRegistry.of(emptyList(), emptyList())
+            ),
+            capabilitySnapshotProvider = {
+                CapabilitySnapshot(observedAtMs = 1L)
+            },
+            privilegeSnapshotProvider = {
+                PrivilegeSnapshot(
+                    observations = listOf(
+                        PrivilegeObservation(
+                            PrivilegeSurface.SHIZUKU,
+                            PrivilegeSnapshot.ENV_SHIZUKU,
+                            PrivilegeGrantState.NOT_RUNNING,
+                            "SHIZUKU_SERVER_NOT_RUNNING"
+                        ),
+                        PrivilegeObservation(
+                            PrivilegeSurface.ROOT,
+                            PrivilegeSnapshot.ENV_ROOT,
+                            PrivilegeGrantState.NOT_GRANTED,
+                            "ROOT_NOT_GRANTED"
+                        )
+                    ),
+                    observedAtMs = 1L
+                )
+            },
+            sdkProvider = { 37 }
+        ) {
+            CapabilityDeviceState(capturedAt = 1L)
+        }
+
+        val report = service.inspect(WorkflowDryRunInput(elevated))
+
+        assertFalse(report.executable)
+        assertFalse(report.requirementValidation?.admissible ?: true)
+        assertTrue(report.requirementValidation?.missingPrivileges?.isNotEmpty() == true)
+    }
+
+    @Test
+    fun dryRunBlocksSettingsOnlySemanticRouteWithoutExecutingIt() = runBlocking {
+        val settings = object : CapabilityStrategy {
+            override val id = StrategyId.SETTINGS_USER_ACTION
+            override val supportedOperations = setOf(SemanticOperationId.WIFI_SET_STATE)
+            var executions = 0
+
+            override suspend fun availability(
+                request: TypedOperationRequest,
+                operation: SemanticOperationId
+            ) = StrategyAvailability(true)
+
+            override suspend fun execute(
+                request: TypedOperationRequest,
+                operation: SemanticOperationId
+            ): OperationOutcome {
+                executions++
+                return OperationOutcome(
+                    operation = operation,
+                    status = OperationOutcomeStatus.PENDING_USER_ACTION,
+                    strategy = id,
+                    message = "user action"
+                )
+            }
+        }
+        val semanticRouter = CapabilityRouter(
+            registry = OperationRegistry.default(),
+            strategies = listOf(settings),
+            evidenceStore = CapabilityEvidenceStore(),
+            healthTracker = StrategyHealthTracker(),
+            fingerprint = DeviceFingerprint(
+                manufacturer = "test",
+                model = "test",
+                device = "test",
+                androidApi = 37,
+                securityPatch = "2026-09-01",
+                romFamily = RomFamily.AOSP
+            )
+        )
+        val planner = SemanticWorkflowPlanner(
+            SemanticActionRouter(
+                router = semanticRouter,
+                privilegedPolicyEnabled = { false }
+            )
+        )
+        val service = WorkflowDryRunService(
+            capabilityResolver = CapabilityResolver(
+                CapabilityRegistry.of(emptyList(), emptyList())
+            ),
+            semanticWorkflowPlanner = planner
+        ) {
+            CapabilityDeviceState(capturedAt = 1L)
+        }
+
+        val report = service.inspect(
+            WorkflowDryRunInput(
+                automation.copy(
+                    actions = listOf(
+                        Action(
+                            ActionType.SYSTEM_WIFI,
+                            mapOf("enabled" to "true", "configVersion" to "2")
+                        )
+                    )
+                )
+            )
+        )
+
+        assertFalse(report.executable)
+        assertEquals(setOf("action:0:SYSTEM_WIFI"), report.semanticPlan?.pendingUserActionOwners)
+        assertEquals(0, settings.executions)
     }
 
     @Test

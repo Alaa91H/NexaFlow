@@ -16,8 +16,8 @@ import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.datastore.NotificationSettings
 import com.nexaflow.core.execution.capability.CapabilityActionMapper
 import com.nexaflow.core.execution.capability.CapabilityExecutionService
+import com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner
 import com.nexaflow.core.execution.capability.toSystemControlResult
-import com.nexaflow.core.execution.compat.WorkflowCapabilityValidator
 import com.nexaflow.core.execution.handler.ActionExecutionContext
 import com.nexaflow.core.execution.handler.ActionRegistry
 import com.nexaflow.core.execution.variables.BuiltinVariables
@@ -31,6 +31,7 @@ import com.nexaflow.core.rom.RomIntegrationManager
 import com.nexaflow.core.rom.SystemController
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.capability.CapabilitySnapshot
+import com.nexaflow.domain.capability.PrivilegeSnapshot
 import com.nexaflow.domain.capability.CapabilityStatus
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ConditionResult
@@ -88,8 +89,14 @@ class ExecutionEngine(
     private val capabilityExecutionService: CapabilityExecutionService? = null,
     /** Current shared availability observation; absent only in legacy/test construction. */
     private val capabilitySnapshotProvider: (() -> CapabilitySnapshot)? = null,
+    /** Current unified permission/authority observation. */
+    private val privilegeSnapshotProvider: (() -> PrivilegeSnapshot)? = null,
     /** Targeted refresh after a fresh-snapshot block, so the next run sees a new grant. */
     private val capabilitySnapshotInvalidator: (() -> Unit)? = null,
+    /** Targeted privilege refresh after an observed authorization block. */
+    private val privilegeSnapshotInvalidator: (() -> Unit)? = null,
+    /** Live semantic strategy planner; null preserves legacy/test construction. */
+    private val semanticWorkflowPlanner: SemanticWorkflowPlanner? = null,
     /** Test seam for deterministic whole-snapshot restore outcome coverage. */
     private val snapshotRestorer: (DeviceStateSnapshot?, List<Action>) -> SystemControlResult =
         { snapshot, changedActions ->
@@ -119,6 +126,14 @@ class ExecutionEngine(
         context = context,
         capabilityExecutionService = capabilityExecutionService,
         constraintStateProvider = constraintStateProvider
+    )
+    private val workflowAdmissionGate = WorkflowAdmissionGate(
+        capabilitySnapshotProvider = capabilitySnapshotProvider,
+        privilegeSnapshotProvider = privilegeSnapshotProvider,
+        capabilitySnapshotInvalidator = capabilitySnapshotInvalidator,
+        privilegeSnapshotInvalidator = privilegeSnapshotInvalidator,
+        nowMs = epochMillis::now,
+        freshnessMs = CAPABILITY_SNAPSHOT_FRESHNESS_MS
     )
 
     companion object {
@@ -190,61 +205,33 @@ class ExecutionEngine(
         if (automation.requiresTimeRangeForEndBehavior) {
             return diagnostics.rejectIncompleteTimeRange(automation, startedAt, payloadContext.runId)
         }
-        capabilitySnapshotProvider?.invoke()?.let { snapshot ->
-            // A snapshot observed long ago is not evidence about the device
-            // anymore: the user may have granted Root/Shizuku/settings access
-            // while the process sat in the background. Blocking a run on a
-            // stale snapshot produced exactly the reported "many tasks
-            // skipped" bug. When the snapshot is older than the freshness
-            // window we admit the run — every action path re-verifies the
-            // concrete capability live before its first side effect.
-            val snapshotFresh = classifySnapshotFreshness(snapshot, epochMillis.now(), CAPABILITY_SNAPSHOT_FRESHNESS_MS) == SnapshotFreshness.FRESH
-            val validation = WorkflowCapabilityValidator.validate(automation, snapshot)
-            if (!validation.admissible) {
-                if (!snapshotFresh) {
-                    diagnostics.recordTimeline(
-                        automation,
-                        "CAPABILITY_BLOCKED_STALE_SNAPSHOT",
-                        ExecutionRecord(
-                            id = UUID.randomUUID().toString(),
-                            automationId = automation.id,
-                            automationName = automation.name,
-                            success = false,
-                            message = "Capability gate skipped on a stale snapshot; live re-check will run per action",
-                            executedAt = startedAt
-                        ),
-                        startedAt
-                    )
-                } else {
-                    // Fresh snapshot and still inadmissible is a genuine,
-                    // observed device fact — record it. Kick a targeted
-                    // capability refresh so the NEXT run sees a grant that
-                    // landed after this observation instead of re-blocking
-                    // on the same evidence forever.
-                    runCatching { capabilitySnapshotInvalidator?.invoke() }
-                    val missing = validation.missingCapabilities.joinToString().ifBlank { "unmapped or unavailable execution path" }
-                    val record = ExecutionRecord(
-                        id = UUID.randomUUID().toString(),
-                        automationId = automation.id,
-                        automationName = automation.name,
-                        success = false,
-                        message = "Blocked: required capability is unavailable ($missing)",
-                        executedAt = startedAt
-                    )
-                    historyRepository.recordExecution(record)
-                    diagnostics.recordTimeline(
-                        automation = automation,
-                        kind = "CAPABILITY_BLOCKED",
-                        record = record,
-                        startedAt = startedAt,
-                        runId = payloadContext.runId
-                    )
-                    traceRecorder.recordBlockedRun(
-                        payloadContext.runId, automation.id, TraceReasons.CAPABILITY_BLOCKED, missing, epochMillis.now()
-                    )
-                    return record
-                }
-            }
+        val admission = workflowAdmissionGate.evaluate(automation)
+        when (admission.state) {
+            WorkflowAdmissionState.ADMITTED -> Unit
+            WorkflowAdmissionState.STALE_EVIDENCE_ADMITTED ->
+                diagnostics.recordStaleRequirementAdmission(
+                    automation = automation,
+                    startedAt = startedAt,
+                    runId = payloadContext.runId
+                )
+            WorkflowAdmissionState.BLOCKED ->
+                return diagnostics.rejectUnavailableRequirements(
+                    automation = automation,
+                    startedAt = startedAt,
+                    runId = payloadContext.runId,
+                    missingDetail = admission.missingDetail
+                )
+        }
+        semanticWorkflowPlanner?.plan(
+            automation = automation,
+            executionId = payloadContext.runId
+        )?.takeIf { !it.executable }?.let { semanticPlan ->
+            return diagnostics.rejectUnavailableSemanticRoutes(
+                automation = automation,
+                startedAt = startedAt,
+                runId = payloadContext.runId,
+                detail = semanticPlan.blockingDetail
+            )
         }
         val maintenanceNow = ZonedDateTime.now()
         val maintenanceOccurrenceKey = MaintenanceExecutionIdentity.occurrenceKey(automation, maintenanceNow)

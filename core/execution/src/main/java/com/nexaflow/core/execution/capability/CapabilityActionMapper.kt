@@ -1,8 +1,6 @@
 package com.nexaflow.core.execution.capability
 
 import com.nexaflow.core.rom.PrivilegedOperation
-import com.nexaflow.core.rom.PrivilegedRunner
-import com.nexaflow.core.rom.ShizukuShellBridge
 import com.nexaflow.domain.capability.CapabilityBackendId
 import com.nexaflow.domain.capability.CapabilityId
 import com.nexaflow.domain.capability.CapabilityRequest
@@ -17,7 +15,6 @@ import com.nexaflow.domain.models.ActionType
  * through their existing reviewed handlers.
  */
 object CapabilityActionMapper {
-    var privilegedBackendResolver: ((Action) -> CapabilityBackendId)? = null
 
     fun requestFor(
         action: Action,
@@ -57,11 +54,10 @@ object CapabilityActionMapper {
             if (pkg.isNullOrBlank()) {
                 null
             } else {
-                val backend = resolvePrivilegedBackend(action)
                 CapabilityRequest(
                     capability = CapabilityId.PACKAGE_FORCE_STOP,
                     parameters = mapOf("packageName" to pkg),
-                    policy = privilegedPolicy(backend),
+                    policy = privilegedPolicy(action),
                     verification = VerificationMode.BEST_EFFORT,
                     workflowId = workflowId,
                     executionId = executionId,
@@ -75,11 +71,10 @@ object CapabilityActionMapper {
             if (pkg.isNullOrBlank()) {
                 null
             } else {
-                val backend = resolvePrivilegedBackend(action)
                 CapabilityRequest(
                     capability = CapabilityId.PACKAGE_CLEAR_DATA,
                     parameters = mapOf("packageName" to pkg),
-                    policy = privilegedPolicy(backend),
+                    policy = privilegedPolicy(action),
                     verification = VerificationMode.BEST_EFFORT,
                     workflowId = workflowId,
                     executionId = executionId,
@@ -96,7 +91,6 @@ object CapabilityActionMapper {
                 // Non-allowlisted or incomplete settings continue through the legacy handler.
                 null
             } else {
-                val backend = resolvePrivilegedBackend(action)
                 CapabilityRequest(
                     capability = CapabilityId.SYSTEM_SETTING_WRITE,
                     parameters = mapOf(
@@ -104,7 +98,7 @@ object CapabilityActionMapper {
                         "key" to key,
                         "value" to value
                     ),
-                    policy = privilegedPolicy(backend),
+                    policy = privilegedPolicy(action),
                     verification = VerificationMode.REQUIRED,
                     workflowId = workflowId,
                     executionId = executionId,
@@ -151,23 +145,30 @@ object CapabilityActionMapper {
         actionId = actionId
     )
 
-    private fun resolvePrivilegedBackend(action: Action): CapabilityBackendId {
-        privilegedBackendResolver?.invoke(action)?.let { return it }
+    /**
+     * Capability-based privileged actions are adaptive by default. A backend is
+     * pinned only when the saved action explicitly asks for one through
+     * backend/channel. Otherwise the live resolver is free to choose the best
+     * currently healthy authorized provider and to fall back safely.
+     *
+     * This avoids freezing a transient mapping-time observation (for example a
+     * temporarily disconnected Shizuku UserService) into the request itself.
+     */
+    private fun privilegedPolicy(action: Action): ExecutionPolicy {
         val configured = action.config["backend"] ?: action.config["channel"]
-        if (!configured.isNullOrBlank()) {
-            val parsed = CapabilityBackendId.entries.firstOrNull { it.name.equals(configured, ignoreCase = true) }
-            if (parsed != null) return parsed
-        }
-        return when {
-            PrivilegedRunner.isShizukuGranted() && ShizukuShellBridge.isUserServiceBound -> CapabilityBackendId.SHIZUKU
-            PrivilegedRunner.isRootAvailable() -> CapabilityBackendId.ROOT
-            else -> CapabilityBackendId.SHIZUKU
+        val pinned = configured
+            ?.takeIf { it.isNotBlank() }
+            ?.let { value ->
+                CapabilityBackendId.entries.firstOrNull {
+                    it.name.equals(value, ignoreCase = true)
+                }
+            }
+            ?.takeIf { it == CapabilityBackendId.SHIZUKU || it == CapabilityBackendId.ROOT }
+
+        return if (pinned != null) {
+            ExecutionPolicy.pinnedPrivileged(pinned)
+        } else {
+            ExecutionPolicy.adaptivePrivileged()
         }
     }
-
-    private fun privilegedPolicy(backend: CapabilityBackendId): ExecutionPolicy = ExecutionPolicy(
-        allowedBackends = listOf(backend),
-        preferredBackends = listOf(backend),
-        allowPrivilegedBackends = true
-    )
 }

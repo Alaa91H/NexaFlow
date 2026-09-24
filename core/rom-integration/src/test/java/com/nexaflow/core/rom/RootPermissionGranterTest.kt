@@ -46,6 +46,9 @@ class RootPermissionGranterTest {
         RootPermissionGranter.notificationListenerChecker = null
         SystemAppStatusDetector.pathResolution = null
         SystemAppStatusDetector.rootProbe = null
+        PrivilegedRunner.suProbe = null
+        PrivilegedRunner.shizukuGrantProbe = null
+        PrivilegedRunner.rootProbeOverride = null
         SystemAppStatusDetector.probeSpacingMs = 5_000L
         SystemAppStatusDetector.refreshRootAvailability()
     }
@@ -409,6 +412,30 @@ class RootPermissionGranterTest {
         assertTrue(commands.isEmpty())
     }
 
+    @Test
+    fun `requestAndGrantAll observes a root grant immediately after the su prompt`() {
+        var rootGranted = false
+        SystemAppStatusDetector.pathResolution = { true }
+        SystemAppStatusDetector.rootProbe = { rootGranted }
+        PrivilegedRunner.shizukuGrantProbe = { false }
+        PrivilegedRunner.suProbe = {
+            rootGranted = true
+            true
+        }
+        RootPermissionGranter.permissionsProvider = { emptyList() }
+        RootPermissionGranter.appOpsProvider = { emptyList() }
+        RootPermissionGranter.batteryExemptChecker = { true }
+        RootPermissionGranter.accessibilityChecker = { true }
+        RootPermissionGranter.notificationListenerChecker = { true }
+
+        val result = RootPermissionGranter.requestAndGrantAllInternal {
+            "com.nexaflow.app"
+        }
+
+        assertTrue(rootGranted)
+        assertTrue(result.failures.isEmpty())
+        assertTrue(result.remaining.isEmpty())
+    }
     @Test
     fun `requestAndGrantAll grants directly when root already available`() {
         assertTrue(grantRoot())

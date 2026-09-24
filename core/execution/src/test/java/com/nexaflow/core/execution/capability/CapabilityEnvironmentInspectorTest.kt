@@ -2,6 +2,10 @@ package com.nexaflow.core.execution.capability
 
 import com.nexaflow.domain.capability.CapabilityEnvironmentId
 import com.nexaflow.domain.capability.CapabilityEnvironmentState
+import com.nexaflow.domain.capability.PrivilegeGrantState
+import com.nexaflow.domain.capability.PrivilegeObservation
+import com.nexaflow.domain.capability.PrivilegeSnapshot
+import com.nexaflow.domain.capability.PrivilegeSurface
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -73,6 +77,59 @@ class CapabilityEnvironmentInspectorTest {
         assertReport(inspector, CapabilityEnvironmentId.ROOT, CapabilityEnvironmentState.AVAILABLE, "ROOT_UID_ZERO_VERIFIED")
         assertReport(inspector, CapabilityEnvironmentId.MANAGED_DEVICE, CapabilityEnvironmentState.AVAILABLE, "DEVICE_OWNER_ACTIVE")
         assertReport(inspector, CapabilityEnvironmentId.ADB, CapabilityEnvironmentState.UNSUPPORTED, "ADB_NOT_EXPOSED_TO_NORMAL_APP")
+    }
+
+    @Test
+    fun `unified privilege snapshot drives environment reports without live re-probes`() {
+        var liveProbeCalls = 0
+        val inspector = CapabilityEnvironmentInspector(
+            shizukuInstalled = { liveProbeCalls++; false },
+            shizukuRunning = { liveProbeCalls++; false },
+            shizukuGranted = { liveProbeCalls++; false },
+            shizukuUserServiceBound = { liveProbeCalls++; false },
+            suBinaryPresent = { liveProbeCalls++; false },
+            rootAvailable = { liveProbeCalls++; false },
+            deviceOwner = { liveProbeCalls++; false }
+        )
+        val snapshot = PrivilegeSnapshot(
+            observations = listOf(
+                PrivilegeObservation(
+                    PrivilegeSurface.SHIZUKU,
+                    PrivilegeSnapshot.ENV_SHIZUKU,
+                    PrivilegeGrantState.SERVICE_UNAVAILABLE,
+                    "SHIZUKU_USER_SERVICE_UNAVAILABLE"
+                ),
+                PrivilegeObservation(
+                    PrivilegeSurface.ROOT,
+                    PrivilegeSnapshot.ENV_ROOT,
+                    PrivilegeGrantState.GRANTED,
+                    "ROOT_UID_ZERO_VERIFIED"
+                ),
+                PrivilegeObservation(
+                    PrivilegeSurface.DEVICE_OWNER,
+                    PrivilegeSnapshot.ENV_DEVICE_OWNER,
+                    PrivilegeGrantState.NOT_GRANTED,
+                    "DEVICE_OWNER_NOT_ACTIVE"
+                )
+            ),
+            observedAtMs = 10_000L
+        )
+
+        val reports = inspector.reports(snapshot)
+
+        assertEquals(0, liveProbeCalls)
+        assertEquals(
+            CapabilityEnvironmentState.SERVICE_UNAVAILABLE,
+            reports.first { it.environment == CapabilityEnvironmentId.SHIZUKU }.state
+        )
+        assertEquals(
+            CapabilityEnvironmentState.AVAILABLE,
+            reports.first { it.environment == CapabilityEnvironmentId.ROOT }.state
+        )
+        assertEquals(
+            CapabilityEnvironmentState.UNAVAILABLE,
+            reports.first { it.environment == CapabilityEnvironmentId.MANAGED_DEVICE }.state
+        )
     }
 
     @Test

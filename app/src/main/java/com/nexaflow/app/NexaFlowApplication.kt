@@ -21,6 +21,7 @@ import com.nexaflow.core.engine.ExitCoordinator
 import com.nexaflow.core.engine.MonitoringService
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.capability.CapabilityStateStore
+import com.nexaflow.core.execution.capability.PrivilegeStateStore
 import com.nexaflow.core.execution.recovery.ExecutionRecoveryCoordinator
 import com.nexaflow.core.rom.ShizukuShellBridge
 import com.nexaflow.feature.settings.UpdateVersion
@@ -59,6 +60,10 @@ class NexaFlowApplication : Application(), Configuration.Provider {
     /** Eager singleton attachment for event-driven capability-state invalidation. */
     @Inject
     lateinit var capabilityStateStore: CapabilityStateStore
+
+    /** Unified Android/AppOps/Shizuku/Root/managed-device authorization state. */
+    @Inject
+    lateinit var privilegeStateStore: PrivilegeStateStore
 
     @Inject
     @ApplicationScope
@@ -173,7 +178,12 @@ class NexaFlowApplication : Application(), Configuration.Provider {
         registerActivityLifecycleCallbacks(
             object : ActivityLifecycleCallbacks {
                 override fun onActivityResumed(activity: Activity) {
-                    capabilityStateStore.invalidate()
+                    // Some special-access surfaces have no reliable broadcast
+                    // on every OEM. Re-read both stores when the user returns
+                    // from Settings/root-manager UI; internal listeners handle
+                    // runtime/AppOps/Shizuku transitions while the app stays up.
+                    privilegeStateStore.invalidate()
+                    capabilityStateStore.refresh()
                 }
 
                 override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit

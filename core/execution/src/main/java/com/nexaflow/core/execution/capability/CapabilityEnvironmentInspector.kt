@@ -8,6 +8,9 @@ import com.nexaflow.core.rom.SystemAppStatusDetector
 import com.nexaflow.domain.capability.CapabilityEnvironmentId
 import com.nexaflow.domain.capability.CapabilityEnvironmentReport
 import com.nexaflow.domain.capability.CapabilityEnvironmentState
+import com.nexaflow.domain.capability.PrivilegeGrantState
+import com.nexaflow.domain.capability.PrivilegeSnapshot
+import com.nexaflow.domain.capability.PrivilegeSurface
 
 /**
  * Read-only detector for optional execution environments. It intentionally
@@ -23,16 +26,81 @@ class CapabilityEnvironmentInspector(
     private val rootAvailable: () -> Boolean,
     private val deviceOwner: () -> Boolean
 ) {
-    fun reports(): List<CapabilityEnvironmentReport> = listOf(
-        standardReport(),
-        shizukuReport(),
-        rootReport(),
-        managedDeviceReport(),
-        CapabilityEnvironmentReport(
-            environment = CapabilityEnvironmentId.ADB,
-            state = CapabilityEnvironmentState.UNSUPPORTED,
-            detailCode = "ADB_NOT_EXPOSED_TO_NORMAL_APP"
+    fun reports(snapshot: PrivilegeSnapshot? = null): List<CapabilityEnvironmentReport> {
+        if (snapshot != null && !snapshot.neverObserved) {
+            return listOf(
+                standardReport(),
+                snapshotEnvironmentReport(
+                    snapshot,
+                    surface = PrivilegeSurface.SHIZUKU,
+                    key = PrivilegeSnapshot.ENV_SHIZUKU,
+                    environment = CapabilityEnvironmentId.SHIZUKU
+                ),
+                snapshotEnvironmentReport(
+                    snapshot,
+                    surface = PrivilegeSurface.ROOT,
+                    key = PrivilegeSnapshot.ENV_ROOT,
+                    environment = CapabilityEnvironmentId.ROOT
+                ),
+                snapshotEnvironmentReport(
+                    snapshot,
+                    surface = PrivilegeSurface.DEVICE_OWNER,
+                    key = PrivilegeSnapshot.ENV_DEVICE_OWNER,
+                    environment = CapabilityEnvironmentId.MANAGED_DEVICE
+                ),
+                adbUnsupportedReport()
+            )
+        }
+
+        return listOf(
+            standardReport(),
+            shizukuReport(),
+            rootReport(),
+            managedDeviceReport(),
+            adbUnsupportedReport()
         )
+    }
+
+    private fun snapshotEnvironmentReport(
+        snapshot: PrivilegeSnapshot,
+        surface: PrivilegeSurface,
+        key: String,
+        environment: CapabilityEnvironmentId
+    ): CapabilityEnvironmentReport {
+        val observation = snapshot.observation(surface, key)
+            ?: return CapabilityEnvironmentReport(
+                environment,
+                CapabilityEnvironmentState.UNAVAILABLE,
+                "PRIVILEGE_OBSERVATION_MISSING"
+            )
+        val state = when (observation.state) {
+            PrivilegeGrantState.GRANTED -> CapabilityEnvironmentState.AVAILABLE
+            PrivilegeGrantState.PERMISSION_REQUIRED -> CapabilityEnvironmentState.PERMISSION_REQUIRED
+            PrivilegeGrantState.NOT_GRANTED -> {
+                if (environment == CapabilityEnvironmentId.MANAGED_DEVICE) {
+                    CapabilityEnvironmentState.UNAVAILABLE
+                } else {
+                    CapabilityEnvironmentState.PERMISSION_REQUIRED
+                }
+            }
+            PrivilegeGrantState.NOT_INSTALLED -> CapabilityEnvironmentState.NOT_INSTALLED
+            PrivilegeGrantState.NOT_RUNNING -> CapabilityEnvironmentState.NOT_RUNNING
+            PrivilegeGrantState.SERVICE_UNAVAILABLE,
+            PrivilegeGrantState.PARTIAL -> CapabilityEnvironmentState.SERVICE_UNAVAILABLE
+            PrivilegeGrantState.UNSUPPORTED -> CapabilityEnvironmentState.UNSUPPORTED
+            PrivilegeGrantState.UNKNOWN -> CapabilityEnvironmentState.UNAVAILABLE
+        }
+        return CapabilityEnvironmentReport(
+            environment = environment,
+            state = state,
+            detailCode = observation.detailCode
+        )
+    }
+
+    private fun adbUnsupportedReport() = CapabilityEnvironmentReport(
+        environment = CapabilityEnvironmentId.ADB,
+        state = CapabilityEnvironmentState.UNSUPPORTED,
+        detailCode = "ADB_NOT_EXPOSED_TO_NORMAL_APP"
     )
 
     private fun standardReport() = CapabilityEnvironmentReport(

@@ -4,6 +4,11 @@ import com.nexaflow.domain.capability.CapabilityAvailability
 import com.nexaflow.domain.capability.CapabilityAvailabilityReport
 import com.nexaflow.domain.capability.CapabilityId
 import com.nexaflow.domain.capability.CapabilitySnapshot
+import com.nexaflow.domain.capability.ExecutionRequirementState
+import com.nexaflow.domain.capability.PrivilegeGrantState
+import com.nexaflow.domain.capability.PrivilegeObservation
+import com.nexaflow.domain.capability.PrivilegeSnapshot
+import com.nexaflow.domain.capability.PrivilegeSurface
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
@@ -52,11 +57,111 @@ class WorkflowCapabilityValidatorTest {
     }
 
     @Test
-    fun `admits legacy elevated action for the concrete handler to verify root`() {
-        val result = WorkflowCapabilityValidator.validate(automation(ActionType.SYSTEM_REBOOT), CapabilitySnapshot())
+    fun `admits elevated action while privilege state has not been observed yet`() {
+        val result = WorkflowCapabilityValidator.validate(
+            automation(ActionType.SYSTEM_REBOOT),
+            CapabilitySnapshot(observedAtMs = 1L),
+            PrivilegeSnapshot()
+        )
 
         assertTrue(result.admissible)
+        assertTrue(result.state == ExecutionRequirementState.UNKNOWN)
     }
+
+    @Test
+    fun `blocks elevated action only after both Shizuku and Root are observed unavailable`() {
+        val result = WorkflowCapabilityValidator.validate(
+            automation(ActionType.SYSTEM_REBOOT),
+            CapabilitySnapshot(observedAtMs = 1L),
+            privilegeSnapshot(
+                PrivilegeObservation(
+                    PrivilegeSurface.SHIZUKU,
+                    PrivilegeSnapshot.ENV_SHIZUKU,
+                    PrivilegeGrantState.NOT_RUNNING,
+                    "SHIZUKU_SERVER_NOT_RUNNING"
+                ),
+                PrivilegeObservation(
+                    PrivilegeSurface.ROOT,
+                    PrivilegeSnapshot.ENV_ROOT,
+                    PrivilegeGrantState.NOT_GRANTED,
+                    "ROOT_NOT_GRANTED"
+                )
+            )
+        )
+
+        assertFalse(result.admissible)
+        assertTrue(result.missingPrivileges.isNotEmpty())
+        assertTrue("action:0:SYSTEM_REBOOT" in result.blockedOwners)
+        assertTrue("trigger:0:TIME" in result.unknownOwners)
+    }
+
+    @Test
+    fun `reports an unavailable exit action as the exact blocked workflow node`() {
+        val base = automation(ActionType.SYSTEM_SEND_NOTIFICATION)
+        val withExit = base.copy(
+            triggers = emptyList(),
+            exitActions = listOf(Action(ActionType.SYSTEM_REBOOT, emptyMap()))
+        )
+        val result = WorkflowCapabilityValidator.validate(
+            withExit,
+            CapabilitySnapshot(observedAtMs = 1L),
+            privilegeSnapshot(
+                PrivilegeObservation(
+                    PrivilegeSurface.SHIZUKU,
+                    PrivilegeSnapshot.ENV_SHIZUKU,
+                    PrivilegeGrantState.NOT_RUNNING,
+                    "SHIZUKU_SERVER_NOT_RUNNING"
+                ),
+                PrivilegeObservation(
+                    PrivilegeSurface.ROOT,
+                    PrivilegeSnapshot.ENV_ROOT,
+                    PrivilegeGrantState.NOT_GRANTED,
+                    "ROOT_NOT_GRANTED"
+                )
+            )
+        )
+
+        assertFalse(result.admissible)
+        assertTrue("exitAction:0:SYSTEM_REBOOT" in result.blockedOwners)
+    }
+
+    @Test
+    fun `root satisfies hybrid write-settings action without Android special access`() {
+        val result = WorkflowCapabilityValidator.validate(
+            automation(ActionType.SYSTEM_BRIGHTNESS),
+            CapabilitySnapshot(observedAtMs = 1L),
+            privilegeSnapshot(
+                PrivilegeObservation(
+                    PrivilegeSurface.SPECIAL_ACCESS,
+                    PrivilegeSnapshot.SPECIAL_WRITE_SETTINGS,
+                    PrivilegeGrantState.NOT_GRANTED,
+                    "SPECIAL_ACCESS_NOT_GRANTED"
+                ),
+                PrivilegeObservation(
+                    PrivilegeSurface.SHIZUKU,
+                    PrivilegeSnapshot.ENV_SHIZUKU,
+                    PrivilegeGrantState.NOT_RUNNING,
+                    "SHIZUKU_SERVER_NOT_RUNNING"
+                ),
+                PrivilegeObservation(
+                    PrivilegeSurface.ROOT,
+                    PrivilegeSnapshot.ENV_ROOT,
+                    PrivilegeGrantState.GRANTED,
+                    "ROOT_UID_ZERO_VERIFIED"
+                )
+            )
+        )
+
+        assertTrue(result.admissible)
+        assertTrue(result.missingPrivileges.isEmpty())
+    }
+
+    private fun privilegeSnapshot(
+        vararg observations: PrivilegeObservation
+    ) = PrivilegeSnapshot(
+        observations = observations.toList(),
+        observedAtMs = 1L
+    )
 
     private fun automation(action: ActionType) = Automation(
         id = "validator",
