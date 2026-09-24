@@ -354,7 +354,7 @@ class CapabilityRouter(
         }
         val message = when (status) {
             OperationPlanStatus.READY ->
-                "Ready via \${selected?.strategy?.id?.name ?: "available strategy"}"
+                "Ready via ${selected?.strategy?.id?.name ?: "available strategy"}"
             OperationPlanStatus.PENDING_USER_ACTION ->
                 if (selected?.strategy?.id == StrategyId.SETTINGS_USER_ACTION) {
                     "Automatic execution is unavailable; Android Settings requires user action"
