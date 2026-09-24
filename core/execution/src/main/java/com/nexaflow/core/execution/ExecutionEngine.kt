@@ -205,7 +205,8 @@ class ExecutionEngine(
         if (automation.requiresTimeRangeForEndBehavior) {
             return diagnostics.rejectIncompleteTimeRange(automation, startedAt, payloadContext.runId)
         }
-        when (val admission = workflowAdmissionGate.evaluate(automation)) {
+        val admission = workflowAdmissionGate.evaluate(automation)
+        when (admission.state) {
             WorkflowAdmissionState.ADMITTED -> Unit
             WorkflowAdmissionState.STALE_EVIDENCE_ADMITTED ->
                 diagnostics.recordStaleRequirementAdmission(
