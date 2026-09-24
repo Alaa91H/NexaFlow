@@ -409,21 +409,6 @@ object WorkflowRequirementCatalog {
         else -> specialPermissionFromCommandSpec(actionType)
     }
 
-    private fun specialPermissionFromCommandSpec(
-        actionType: ActionType
-    ): WorkflowSpecialPermission? {
-        val spec = CommandCatalog.specFor(actionType) ?: return null
-        return when (spec.requiredBackend) {
-            RomCapability.ROOT_SHELL -> WorkflowSpecialPermission.ROOT
-            RomCapability.SHIZUKU -> WorkflowSpecialPermission.SHIZUKU
-            else -> if (spec.strategy == ExecutionStrategy.ELEVATED) {
-                WorkflowSpecialPermission.ELEVATED
-            } else {
-                null
-            }
-        }
-    }
-
     fun specialPermissionFor(triggerType: TriggerType): WorkflowSpecialPermission? = when (triggerType) {
         TriggerType.TIME -> WorkflowSpecialPermission.EXACT_ALARM
         TriggerType.NOTIFICATION -> WorkflowSpecialPermission.NOTIFICATION_ACCESS
@@ -506,128 +491,145 @@ object WorkflowRequirementCatalog {
             null -> ExecutionRequirement.None
         }
 
-    private fun isSpecialGrantMissing(
-        special: WorkflowSpecialPermission,
-        snapshot: PrivilegeSnapshot
-    ): Boolean = when (special) {
-        WorkflowSpecialPermission.WRITE_SETTINGS ->
-            snapshot.isGranted(
-                PrivilegeSurface.SPECIAL_ACCESS,
-                PrivilegeSnapshot.SPECIAL_WRITE_SETTINGS
-            ) == false
 
-        WorkflowSpecialPermission.DND_ACCESS ->
-            snapshot.isGranted(
-                PrivilegeSurface.SPECIAL_ACCESS,
-                PrivilegeSnapshot.SPECIAL_DND_POLICY
-            ) == false
+}
 
-        WorkflowSpecialPermission.NOTIFICATION_ACCESS ->
-            snapshot.isGranted(
-                PrivilegeSurface.SPECIAL_ACCESS,
-                PrivilegeSnapshot.SPECIAL_NOTIFICATION_LISTENER
-            ) == false
-
-        WorkflowSpecialPermission.ACCESSIBILITY ->
-            snapshot.isGranted(
-                PrivilegeSurface.SPECIAL_ACCESS,
-                PrivilegeSnapshot.SPECIAL_ACCESSIBILITY_SERVICE
-            ) == false
-
-        WorkflowSpecialPermission.EXACT_ALARM ->
-            snapshot.isGranted(
-                PrivilegeSurface.SPECIAL_ACCESS,
-                PrivilegeSnapshot.SPECIAL_EXACT_ALARM
-            ) == false
-
-        WorkflowSpecialPermission.SHIZUKU ->
-            snapshot.isGranted(
-                PrivilegeSurface.SHIZUKU,
-                PrivilegeSnapshot.ENV_SHIZUKU
-            ) == false
-
-        WorkflowSpecialPermission.ROOT ->
-            snapshot.isGranted(
-                PrivilegeSurface.ROOT,
-                PrivilegeSnapshot.ENV_ROOT
-            ) == false
-
-        WorkflowSpecialPermission.ELEVATED -> {
-            val shizuku = snapshot.isGranted(
-                PrivilegeSurface.SHIZUKU,
-                PrivilegeSnapshot.ENV_SHIZUKU
-            )
-            val root = snapshot.isGranted(
-                PrivilegeSurface.ROOT,
-                PrivilegeSnapshot.ENV_ROOT
-            )
-            shizuku == false && root == false
-        }
-    }
-
-    private fun exactBackendRequirement(actionType: ActionType): ExecutionRequirement? =
-        when (CommandCatalog.specFor(actionType)?.requiredBackend) {
-            RomCapability.ROOT_SHELL -> rootAuthority()
-            RomCapability.SHIZUKU -> shizukuAuthority()
-            else -> null
-        }
-
-    private fun elevatedRequirementFromCommandSpec(actionType: ActionType): ExecutionRequirement {
-        val spec = CommandCatalog.specFor(actionType) ?: return ExecutionRequirement.None
-        return if (spec.strategy == ExecutionStrategy.ELEVATED) {
-            elevatedAuthority()
+private fun specialPermissionFromCommandSpec(
+    actionType: ActionType
+): WorkflowSpecialPermission? {
+    val spec = CommandCatalog.specFor(actionType) ?: return null
+    return when (spec.requiredBackend) {
+        RomCapability.ROOT_SHELL -> WorkflowSpecialPermission.ROOT
+        RomCapability.SHIZUKU -> WorkflowSpecialPermission.SHIZUKU
+        else -> if (spec.strategy == ExecutionStrategy.ELEVATED) {
+            WorkflowSpecialPermission.ELEVATED
         } else {
-            ExecutionRequirement.None
+            null
         }
     }
+}
 
-    private fun capabilityRequirement(requirement: CapabilityRequirement): ExecutionRequirement =
-        when (requirement) {
-            CapabilityRequirement.None -> ExecutionRequirement.None
-            is CapabilityRequirement.Capability -> ExecutionRequirement.Capability(requirement.id)
-            is CapabilityRequirement.AllOf ->
-                allOf(*requirement.requirements.map(::capabilityRequirement).toTypedArray())
-            is CapabilityRequirement.AnyOf ->
-                anyOf(*requirement.requirements.map(::capabilityRequirement).toTypedArray())
-            is CapabilityRequirement.Not ->
-                ExecutionRequirement.Not(capabilityRequirement(requirement.requirement))
-        }
+private fun isSpecialGrantMissing(
+    special: WorkflowSpecialPermission,
+    snapshot: PrivilegeSnapshot
+): Boolean = when (special) {
+    WorkflowSpecialPermission.WRITE_SETTINGS ->
+        snapshot.isGranted(
+            PrivilegeSurface.SPECIAL_ACCESS,
+            PrivilegeSnapshot.SPECIAL_WRITE_SETTINGS
+        ) == false
 
-    private fun runtimeRequirement(permissions: List<String>): ExecutionRequirement =
-        allOf(*permissions.distinct().map { permission ->
-            ExecutionRequirement.AndroidPermission(permission)
-        }.toTypedArray())
+    WorkflowSpecialPermission.DND_ACCESS ->
+        snapshot.isGranted(
+            PrivilegeSurface.SPECIAL_ACCESS,
+            PrivilegeSnapshot.SPECIAL_DND_POLICY
+        ) == false
 
-    private fun special(key: String) = ExecutionRequirement.SpecialAccess(key)
+    WorkflowSpecialPermission.NOTIFICATION_ACCESS ->
+        snapshot.isGranted(
+            PrivilegeSurface.SPECIAL_ACCESS,
+            PrivilegeSnapshot.SPECIAL_NOTIFICATION_LISTENER
+        ) == false
 
-    private fun shizukuAuthority() = ExecutionRequirement.Authority(
-        PrivilegeSurface.SHIZUKU,
-        PrivilegeSnapshot.ENV_SHIZUKU
-    )
+    WorkflowSpecialPermission.ACCESSIBILITY ->
+        snapshot.isGranted(
+            PrivilegeSurface.SPECIAL_ACCESS,
+            PrivilegeSnapshot.SPECIAL_ACCESSIBILITY_SERVICE
+        ) == false
 
-    private fun rootAuthority() = ExecutionRequirement.Authority(
-        PrivilegeSurface.ROOT,
-        PrivilegeSnapshot.ENV_ROOT
-    )
+    WorkflowSpecialPermission.EXACT_ALARM ->
+        snapshot.isGranted(
+            PrivilegeSurface.SPECIAL_ACCESS,
+            PrivilegeSnapshot.SPECIAL_EXACT_ALARM
+        ) == false
 
-    private fun elevatedAuthority(): ExecutionRequirement =
-        anyOf(shizukuAuthority(), rootAuthority())
+    WorkflowSpecialPermission.SHIZUKU ->
+        snapshot.isGranted(
+            PrivilegeSurface.SHIZUKU,
+            PrivilegeSnapshot.ENV_SHIZUKU
+        ) == false
 
-    private fun allOf(vararg requirements: ExecutionRequirement): ExecutionRequirement {
-        val children = requirements.filterNot { it == ExecutionRequirement.None }
-        return when (children.size) {
-            0 -> ExecutionRequirement.None
-            1 -> children.single()
-            else -> ExecutionRequirement.AllOf(children)
-        }
+    WorkflowSpecialPermission.ROOT ->
+        snapshot.isGranted(
+            PrivilegeSurface.ROOT,
+            PrivilegeSnapshot.ENV_ROOT
+        ) == false
+
+    WorkflowSpecialPermission.ELEVATED -> {
+        val shizuku = snapshot.isGranted(
+            PrivilegeSurface.SHIZUKU,
+            PrivilegeSnapshot.ENV_SHIZUKU
+        )
+        val root = snapshot.isGranted(
+            PrivilegeSurface.ROOT,
+            PrivilegeSnapshot.ENV_ROOT
+        )
+        shizuku == false && root == false
+    }
+}
+
+private fun exactBackendRequirement(actionType: ActionType): ExecutionRequirement? =
+    when (CommandCatalog.specFor(actionType)?.requiredBackend) {
+        RomCapability.ROOT_SHELL -> rootAuthority()
+        RomCapability.SHIZUKU -> shizukuAuthority()
+        else -> null
     }
 
-    private fun anyOf(vararg requirements: ExecutionRequirement): ExecutionRequirement {
-        val children = requirements.filterNot { it == ExecutionRequirement.None }
-        return when (children.size) {
-            0 -> ExecutionRequirement.None
-            1 -> children.single()
-            else -> ExecutionRequirement.AnyOf(children)
-        }
+private fun elevatedRequirementFromCommandSpec(actionType: ActionType): ExecutionRequirement {
+    val spec = CommandCatalog.specFor(actionType) ?: return ExecutionRequirement.None
+    return if (spec.strategy == ExecutionStrategy.ELEVATED) {
+        elevatedAuthority()
+    } else {
+        ExecutionRequirement.None
+    }
+}
+
+private fun capabilityRequirement(requirement: CapabilityRequirement): ExecutionRequirement =
+    when (requirement) {
+        CapabilityRequirement.None -> ExecutionRequirement.None
+        is CapabilityRequirement.Capability -> ExecutionRequirement.Capability(requirement.id)
+        is CapabilityRequirement.AllOf ->
+            allOf(*requirement.requirements.map(::capabilityRequirement).toTypedArray())
+        is CapabilityRequirement.AnyOf ->
+            anyOf(*requirement.requirements.map(::capabilityRequirement).toTypedArray())
+        is CapabilityRequirement.Not ->
+            ExecutionRequirement.Not(capabilityRequirement(requirement.requirement))
+    }
+
+private fun runtimeRequirement(permissions: List<String>): ExecutionRequirement =
+    allOf(*permissions.distinct().map { permission ->
+        ExecutionRequirement.AndroidPermission(permission)
+    }.toTypedArray())
+
+private fun special(key: String) = ExecutionRequirement.SpecialAccess(key)
+
+private fun shizukuAuthority() = ExecutionRequirement.Authority(
+    PrivilegeSurface.SHIZUKU,
+    PrivilegeSnapshot.ENV_SHIZUKU
+)
+
+private fun rootAuthority() = ExecutionRequirement.Authority(
+    PrivilegeSurface.ROOT,
+    PrivilegeSnapshot.ENV_ROOT
+)
+
+private fun elevatedAuthority(): ExecutionRequirement =
+    anyOf(shizukuAuthority(), rootAuthority())
+
+private fun allOf(vararg requirements: ExecutionRequirement): ExecutionRequirement {
+    val children = requirements.filterNot { it == ExecutionRequirement.None }
+    return when (children.size) {
+        0 -> ExecutionRequirement.None
+        1 -> children.single()
+        else -> ExecutionRequirement.AllOf(children)
+    }
+}
+
+private fun anyOf(vararg requirements: ExecutionRequirement): ExecutionRequirement {
+    val children = requirements.filterNot { it == ExecutionRequirement.None }
+    return when (children.size) {
+        0 -> ExecutionRequirement.None
+        1 -> children.single()
+        else -> ExecutionRequirement.AnyOf(children)
     }
 }
