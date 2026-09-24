@@ -183,7 +183,7 @@ class NexaFlowApplication : Application(), Configuration.Provider {
                     // from Settings/root-manager UI; internal listeners handle
                     // runtime/AppOps/Shizuku transitions while the app stays up.
                     privilegeStateStore.invalidate()
-                    capabilityStateStore.invalidate()
+                    capabilityStateStore.refresh()
                 }
 
                 override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
