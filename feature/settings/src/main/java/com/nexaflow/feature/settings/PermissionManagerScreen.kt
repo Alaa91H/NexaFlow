@@ -374,7 +374,7 @@ fun PermissionManagerScreen(
 
 private fun PrivilegeSnapshot.grantedFor(entry: PermissionEntry): Boolean? {
     if (entry.runtimePermissions.isNotEmpty()) {
-        val states = entry.runtimePermissions.map(::grantedRuntimePermission)
+        val states = entry.runtimePermissions.map { permission -> grantedRuntimePermission(permission) }
         if (states.all { it != null }) {
             return states.all { it == true }
         }
