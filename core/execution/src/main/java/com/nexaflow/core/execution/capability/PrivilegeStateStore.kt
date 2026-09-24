@@ -442,10 +442,6 @@ class AndroidPrivilegeStateEventSource(
     private var onChanged: (() -> Unit)? = null
     private var started = false
 
-    private val permissionListener = PackageManager.OnPermissionsChangedListener { uid ->
-        if (uid == Process.myUid()) onChanged?.invoke()
-    }
-
     private val appOpsListener = AppOpsManager.OnOpChangedListener { _, packageName ->
         if (packageName == null || packageName == appContext.packageName) {
             onChanged?.invoke()
@@ -473,14 +469,10 @@ class AndroidPrivilegeStateEventSource(
         this.onChanged = onChanged
 
         runCatching {
-            appContext.packageManager.addOnPermissionsChangeListener(permissionListener)
-        }
-
-        runCatching {
             val permissions = appContext.packageManager.getPackageInfo(
                 appContext.packageName,
                 PackageManager.GET_PERMISSIONS
-            ).requestedPermissions.orEmpty()
+            ).requestedPermissions.orEmpty().asList()
             val appOps = appContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
             AndroidPrivilegeStateProbe.watchedAppOps(permissions).forEach { op ->
                 runCatching {
@@ -523,9 +515,6 @@ class AndroidPrivilegeStateEventSource(
         if (!started) return
         started = false
 
-        runCatching {
-            appContext.packageManager.removeOnPermissionsChangeListener(permissionListener)
-        }
         runCatching {
             val appOps = appContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
             appOps.stopWatchingMode(appOpsListener)
