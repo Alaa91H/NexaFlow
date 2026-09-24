@@ -6,6 +6,7 @@ import com.nexaflow.core.engine.BatteryMonitor
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.capability.CapabilityStateStore
 import com.nexaflow.core.execution.capability.PrivilegeStateStore
+import com.nexaflow.core.execution.capability.semantic.SemanticWorkflowExecutionPlan
 import com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner
 import com.nexaflow.domain.capability.operation.StrategyId
 import com.nexaflow.core.execution.compat.WorkflowCapabilityValidator
@@ -92,35 +93,10 @@ class AutomationBuilderViewModel @Inject constructor(
             capabilitySnapshot = capabilitySnapshot.await(),
             privilegeSnapshot = privilegeSnapshot.await()
         )
-        val semantic = semanticPlan.await()
-
-        // If the declarative requirement graph already owns a blocked node,
-        // keep its direct grant (WRITE_SETTINGS, DND, runtime permission, ...)
-        // as the preferred repair. Otherwise a semantic action that has no
-        // automatic route but does declare Root/Shizuku alternatives receives
-        // one ELEVATED repair hint rather than a dead-end Settings-only path.
-        val elevatedOwners = semantic.nodes
-            .filter { node ->
-                !node.plan.executable &&
-                    node.owner !in requirementPlan.blockedOwners &&
-                    node.plan.candidates.any { candidate ->
-                        candidate.strategy == StrategyId.ROOT_SHELL ||
-                            candidate.strategy == StrategyId.SHIZUKU_USER_SERVICE
-                    }
-            }
-            .mapTo(linkedSetOf()) { it.owner }
-
-        if (elevatedOwners.isEmpty()) {
-            requirementPlan
-        } else {
-            requirementPlan.copy(
-                specialPermissions = (
-                    requirementPlan.specialPermissions +
-                        WorkflowSpecialPermission.ELEVATED
-                    ).distinct(),
-                blockedOwners = requirementPlan.blockedOwners + elevatedOwners
-            )
-        }
+        mergeSemanticRepairPlan(
+            requirementPlan = requirementPlan,
+            semanticPlan = semanticPlan.await()
+        )
     }
 
     /** User-defined global variables, so the editor can offer %VAR insertion. */
@@ -276,6 +252,36 @@ class AutomationBuilderViewModel @Inject constructor(
  * Existing routines retain the user's toggle, an inadmissible routine can never
  * be enabled, and a starter routine begins disabled until the user reviews it.
  */
+/**
+ * Adds one elevated repair path only for semantic blockers that the
+ * declarative requirement graph does not already know how to repair.
+ */
+internal fun mergeSemanticRepairPlan(
+    requirementPlan: WorkflowPermissionRepairPlan,
+    semanticPlan: SemanticWorkflowExecutionPlan
+): WorkflowPermissionRepairPlan {
+    val elevatedOwners = semanticPlan.nodes
+        .filter { node ->
+            !node.plan.executable &&
+                node.owner !in requirementPlan.blockedOwners &&
+                node.plan.candidates.any { candidate ->
+                    candidate.strategy == StrategyId.ROOT_SHELL ||
+                        candidate.strategy == StrategyId.SHIZUKU_USER_SERVICE
+                }
+        }
+        .mapTo(linkedSetOf()) { it.owner }
+
+    if (elevatedOwners.isEmpty()) return requirementPlan
+
+    return requirementPlan.copy(
+        specialPermissions = (
+            requirementPlan.specialPermissions +
+                WorkflowSpecialPermission.ELEVATED
+            ).distinct(),
+        blockedOwners = requirementPlan.blockedOwners + elevatedOwners
+    )
+}
+
 internal fun resolvedSavedEnabled(
     previousEnabled: Boolean?,
     admissible: Boolean,
