@@ -7,6 +7,8 @@ import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.capability.CapabilityStateStore
 import com.nexaflow.core.execution.capability.PrivilegeStateStore
 import com.nexaflow.core.execution.compat.WorkflowCapabilityValidator
+import com.nexaflow.core.execution.compat.WorkflowPermissionRepairPlan
+import com.nexaflow.core.execution.compat.WorkflowRequirementCatalog
 import com.nexaflow.domain.capability.CapabilitySnapshot
 import com.nexaflow.domain.capability.PrivilegeSnapshot
 import com.nexaflow.domain.models.Action
@@ -58,6 +60,27 @@ class AutomationBuilderViewModel @Inject constructor(
     fun refreshCapabilities() {
         capabilityStateStore.refresh()
         privilegeStateStore.refresh()
+    }
+
+    /**
+     * Builds the same verified requirement-repair plan used by runtime
+     * admission, from fresh capability and privilege observations. The UI uses
+     * this instead of blindly requesting every possible grant for an action.
+     */
+    suspend fun freshPermissionRepairPlan(
+        triggers: List<Trigger>,
+        actions: List<Action>,
+        exitActions: List<Action> = emptyList()
+    ): WorkflowPermissionRepairPlan = coroutineScope {
+        val capabilitySnapshot = async { capabilityStateStore.freshSnapshot() }
+        val privilegeSnapshot = async { privilegeStateStore.freshSnapshot() }
+        WorkflowRequirementCatalog.repairPlan(
+            triggers = triggers,
+            actions = actions,
+            exitActions = exitActions,
+            capabilitySnapshot = capabilitySnapshot.await(),
+            privilegeSnapshot = privilegeSnapshot.await()
+        )
     }
 
     /** User-defined global variables, so the editor can offer %VAR insertion. */
