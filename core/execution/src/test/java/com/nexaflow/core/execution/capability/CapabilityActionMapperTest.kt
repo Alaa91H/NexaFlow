@@ -102,6 +102,39 @@ class CapabilityActionMapperTest {
     }
 
     @Test
+    fun privilegedCapabilityUsesAdaptivePolicyWhenBackendIsNotPinned() {
+        val request = CapabilityActionMapper.requestFor(
+            action = Action(
+                ActionType.SYSTEM_FORCE_STOP_APP,
+                mapOf("package" to "com.example.adaptive")
+            ),
+            workflowId = "wf-adaptive",
+            executionId = "run-adaptive"
+        )
+
+        requireNotNull(request)
+        assertEquals(true, request.policy.allowPrivilegedBackends)
+        assertEquals(emptyList<com.nexaflow.domain.capability.CapabilityBackendId>(), request.policy.allowedBackends)
+        assertEquals(emptyList<com.nexaflow.domain.capability.CapabilityBackendId>(), request.policy.preferredBackends)
+    }
+
+    @Test
+    fun unsupportedBackendHintDoesNotDisableAdaptiveRouting() {
+        val request = CapabilityActionMapper.requestFor(
+            action = Action(
+                ActionType.SYSTEM_FORCE_STOP_APP,
+                mapOf("package" to "com.example.adaptive", "backend" to "ADB")
+            ),
+            workflowId = "wf-adaptive-hint",
+            executionId = "run-adaptive-hint"
+        )
+
+        requireNotNull(request)
+        assertEquals(true, request.policy.allowPrivilegedBackends)
+        assertEquals(emptyList<com.nexaflow.domain.capability.CapabilityBackendId>(), request.policy.allowedBackends)
+        assertEquals(emptyList<com.nexaflow.domain.capability.CapabilityBackendId>(), request.policy.preferredBackends)
+    }
+    @Test
     fun mapsApplicationCloseAppToPrivilegedCapability() {
         val request = CapabilityActionMapper.requestFor(
             action = Action(
