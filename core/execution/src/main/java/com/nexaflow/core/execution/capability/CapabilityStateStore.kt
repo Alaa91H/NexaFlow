@@ -58,7 +58,16 @@ class CapabilityStateStore(
             if (immediate) {
                 immediateRefreshQueued = true
             }
-            if (workerJob != null) return
+            if (workerJob != null) {
+                if (immediate) {
+                    // Wake a worker that may currently be sleeping in the
+                    // passive 30s backoff. Cancellation is safe: the mutex and
+                    // last coherent snapshot are preserved, and finally below
+                    // restarts the queued urgent refresh.
+                    workerJob?.cancel()
+                }
+                return
+            }
             workerJob = scope.launch {
                 try {
                     while (true) {
@@ -76,14 +85,14 @@ class CapabilityStateStore(
                         }
                     }
                 } finally {
-                    val shouldRestart = synchronized(schedulerLock) {
+                    val restart = synchronized(schedulerLock) {
                         workerJob = null
-                        refreshQueued
+                        refreshQueued to immediateRefreshQueued
                     }
-                    if (shouldRestart) {
+                    if (restart.first) {
                         // Preserve an urgent request that arrived while the
                         // previous worker was shutting down.
-                        scheduleRefresh(immediate = immediateRefreshQueued)
+                        scheduleRefresh(immediate = restart.second)
                     }
                 }
             }
