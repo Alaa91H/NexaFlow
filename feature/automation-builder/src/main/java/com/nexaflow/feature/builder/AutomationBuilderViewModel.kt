@@ -8,6 +8,7 @@ import com.nexaflow.core.execution.capability.CapabilityStateStore
 import com.nexaflow.core.execution.capability.PrivilegeStateStore
 import com.nexaflow.core.execution.compat.WorkflowCapabilityValidator
 import com.nexaflow.domain.capability.CapabilitySnapshot
+import com.nexaflow.domain.capability.PrivilegeSnapshot
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.isLegacyGeneratedAutomationDescription
@@ -45,6 +46,9 @@ class AutomationBuilderViewModel @Inject constructor(
 
     /** One capability-engine snapshot for all builder visibility decisions. */
     val capabilitySnapshot: StateFlow<CapabilitySnapshot> = capabilityStateStore.snapshot
+
+    /** Same verified permission/authority state used by runtime admission. */
+    val privilegeSnapshot: StateFlow<PrivilegeSnapshot> = privilegeStateStore.snapshot
 
     /**
      * Re-probes capability availability. Called on ON_RESUME so rows locked
