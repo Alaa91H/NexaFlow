@@ -260,7 +260,22 @@ object WorkflowRequirementCatalog {
         ActionType.SYSTEM_BLOCK_NOTIFICATION,
         ActionType.SYSTEM_CLEAR_APP_NOTIFICATIONS -> WorkflowSpecialPermission.NOTIFICATION_ACCESS
 
-        else -> null
+        else -> specialPermissionFromCommandSpec(actionType)
+    }
+
+    private fun specialPermissionFromCommandSpec(
+        actionType: ActionType
+    ): WorkflowSpecialPermission? {
+        val spec = CommandCatalog.specFor(actionType) ?: return null
+        return when (spec.requiredBackend) {
+            RomCapability.ROOT_SHELL -> WorkflowSpecialPermission.ROOT
+            RomCapability.SHIZUKU -> WorkflowSpecialPermission.SHIZUKU
+            else -> if (spec.strategy == ExecutionStrategy.ELEVATED) {
+                WorkflowSpecialPermission.ELEVATED
+            } else {
+                null
+            }
+        }
     }
 
     fun specialPermissionFor(triggerType: TriggerType): WorkflowSpecialPermission? = when (triggerType) {
