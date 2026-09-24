@@ -351,11 +351,11 @@ jobs:
       run: |
         APK_NAME="NexaFlow-$GITHUB_REF_NAME.apk"
         WATCH_APK_NAME="NexaFlow-Wear-$GITHUB_REF_NAME.apk"
-        REQUIRED="[$APK_NAME, $WATCH_APK_NAME]"
         sleep 5
         for attempt in 1 2 3; do
-          MISSING=$(gh release view "$GITHUB_REF_NAME" --json assets \
-            --jq "\$REQUIRED - [.assets[].name] | length" 2>/dev/null || echo 99)
+          MISSING="$(gh release view "$GITHUB_REF_NAME" --json assets \
+            | jq --arg phone "$APK_NAME" --arg watch "$WATCH_APK_NAME" \
+              '[$phone, $watch] - [.assets[].name] | length' 2>/dev/null || echo 99)"
           if [ "$MISSING" = "0" ]; then
             echo "All release assets attached for $GITHUB_REF_NAME."
             exit 0
