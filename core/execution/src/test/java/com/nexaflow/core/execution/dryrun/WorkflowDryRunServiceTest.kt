@@ -12,6 +12,11 @@ import com.nexaflow.domain.capability.CapabilityId
 import com.nexaflow.domain.capability.CapabilityRequest
 import com.nexaflow.domain.capability.CapabilityResult
 import com.nexaflow.domain.capability.NetworkRequirement
+import com.nexaflow.domain.capability.CapabilitySnapshot
+import com.nexaflow.domain.capability.PrivilegeGrantState
+import com.nexaflow.domain.capability.PrivilegeObservation
+import com.nexaflow.domain.capability.PrivilegeSnapshot
+import com.nexaflow.domain.capability.PrivilegeSurface
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
@@ -80,6 +85,49 @@ class WorkflowDryRunServiceTest {
         assertFalse(report.executable)
         assertEquals(0, backend.executions)
         assertEquals(false, report.capabilityResolutions.single().policy.allowed)
+    }
+
+    @Test
+    fun dryRunBlocksObservedElevatedWorkflowWithoutAnyAuthorizedBackend() = runBlocking {
+        val elevated = automation.copy(
+            actions = listOf(Action(ActionType.SYSTEM_REBOOT, emptyMap()))
+        )
+        val service = WorkflowDryRunService(
+            capabilityResolver = CapabilityResolver(
+                CapabilityRegistry.of(emptyList(), emptyList())
+            ),
+            capabilitySnapshotProvider = {
+                CapabilitySnapshot(observedAtMs = 1L)
+            },
+            privilegeSnapshotProvider = {
+                PrivilegeSnapshot(
+                    observations = listOf(
+                        PrivilegeObservation(
+                            PrivilegeSurface.SHIZUKU,
+                            PrivilegeSnapshot.ENV_SHIZUKU,
+                            PrivilegeGrantState.NOT_RUNNING,
+                            "SHIZUKU_SERVER_NOT_RUNNING"
+                        ),
+                        PrivilegeObservation(
+                            PrivilegeSurface.ROOT,
+                            PrivilegeSnapshot.ENV_ROOT,
+                            PrivilegeGrantState.NOT_GRANTED,
+                            "ROOT_NOT_GRANTED"
+                        )
+                    ),
+                    observedAtMs = 1L
+                )
+            },
+            sdkProvider = { 37 }
+        ) {
+            CapabilityDeviceState(capturedAt = 1L)
+        }
+
+        val report = service.inspect(WorkflowDryRunInput(elevated))
+
+        assertFalse(report.executable)
+        assertFalse(report.requirementValidation?.admissible ?: true)
+        assertTrue(report.requirementValidation?.missingPrivileges?.isNotEmpty() == true)
     }
 
     @Test
