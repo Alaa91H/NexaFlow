@@ -66,12 +66,16 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.nexaflow.core.rom.ElevatedAccessShortcuts
 import com.nexaflow.core.rom.OemCompat
 import com.nexaflow.core.rom.PermissionStatus
 import com.nexaflow.core.rom.PrivilegedRunner
 import com.nexaflow.core.rom.RootPermissionGranter
+import com.nexaflow.domain.capability.PrivilegeSnapshot
+import com.nexaflow.domain.capability.PrivilegeSurface
 import com.nexaflow.core.ui.NexaFlowCard
 import com.nexaflow.core.ui.NexaFlowTopBar
 import com.nexaflow.core.ui.SectionHeader
@@ -90,8 +94,12 @@ internal data class PermissionEntry(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PermissionManagerScreen(navController: NavController) {
+fun PermissionManagerScreen(
+    navController: NavController,
+    viewModel: PermissionManagerViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
+    val privilegeSnapshot by viewModel.privilegeSnapshot.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
     var refreshTick by remember { mutableStateOf(0) }
     var showAccessibilityDisclosure by rememberSaveable { mutableStateOf(false) }
@@ -107,6 +115,7 @@ fun PermissionManagerScreen(navController: NavController) {
         deniedRuntimePermissions = deniedRuntimePermissions - pendingRuntimePermissions + denied
         pendingRuntimePermissions = emptySet()
         refreshTick++
+        viewModel.refreshPrivileges()
     }
 
     // Re-check permissions whenever the screen resumes (after returning from settings).
@@ -114,6 +123,7 @@ fun PermissionManagerScreen(navController: NavController) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 refreshTick++
+                viewModel.refreshPrivileges()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -121,14 +131,19 @@ fun PermissionManagerScreen(navController: NavController) {
     }
 
     val entries = remember(refreshTick) { buildPermissionEntries() }
-    // Permission checks (the root probe can take up to ~3s) run off the main
-    // thread; the map is recomputed whenever the screen resumes so a freshly
-    // granted root is picked up.
+    // Prefer the process-wide verified privilege snapshot. The legacy row
+    // predicate remains only as a bounded fallback before the first snapshot or
+    // for a UI-only permission not represented by the unified model yet.
     val grantedStates = remember { mutableStateMapOf<String, Boolean>() }
-    LaunchedEffect(entries, refreshTick) {
+    LaunchedEffect(entries, refreshTick, privilegeSnapshot) {
         val appContext = context.applicationContext
         val computed = withContext(Dispatchers.IO) {
-            entries.associate { it.key to it.isGranted(appContext) }
+            entries.associate { entry ->
+                entry.key to (
+                    privilegeSnapshot.grantedFor(entry)
+                        ?: entry.isGranted(appContext)
+                    )
+            }
         }
         grantedStates.clear()
         grantedStates.putAll(computed)
@@ -192,6 +207,7 @@ fun PermissionManagerScreen(navController: NavController) {
                             RootPermissionGranter.requestAndGrantAll(context.applicationContext)
                         }
                         refreshTick++
+                        viewModel.refreshPrivileges()
                     }
                 } else {
                     ElevatedAccessShortcuts.openRootManager(context)
@@ -211,6 +227,7 @@ fun PermissionManagerScreen(navController: NavController) {
                     RootPermissionGranter.grantAll(context.applicationContext)
                 }
                 refreshTick++
+                viewModel.refreshPrivileges()
                 if (!entry.isGranted(context)) {
                     entry.openAction(context)
                 }
@@ -233,6 +250,7 @@ fun PermissionManagerScreen(navController: NavController) {
                         )
                     }
                     refreshTick++
+                    viewModel.refreshPrivileges()
                     if (result.remaining.isNotEmpty()) {
                         // A ROM may block an elevated `pm grant`; fall back to
                         // Android's own dialog only when it has not already
@@ -351,6 +369,45 @@ fun PermissionManagerScreen(navController: NavController) {
                 }
             }
         }
+    }
+}
+
+private fun PrivilegeSnapshot.grantedFor(entry: PermissionEntry): Boolean? {
+    if (entry.runtimePermissions.isNotEmpty()) {
+        val states = entry.runtimePermissions.map(::grantedRuntimePermission)
+        if (states.all { it != null }) {
+            return states.all { it == true }
+        }
+    }
+
+    return when (entry.key) {
+        "accessibility" -> isGranted(
+            PrivilegeSurface.SPECIAL_ACCESS,
+            PrivilegeSnapshot.SPECIAL_ACCESSIBILITY_SERVICE
+        )
+        "notification_access" -> isGranted(
+            PrivilegeSurface.SPECIAL_ACCESS,
+            PrivilegeSnapshot.SPECIAL_NOTIFICATION_LISTENER
+        )
+        "root" -> isGranted(PrivilegeSurface.ROOT, PrivilegeSnapshot.ENV_ROOT)
+        "shizuku" -> isGranted(PrivilegeSurface.SHIZUKU, PrivilegeSnapshot.ENV_SHIZUKU)
+        "write_settings" -> isGranted(
+            PrivilegeSurface.SPECIAL_ACCESS,
+            PrivilegeSnapshot.SPECIAL_WRITE_SETTINGS
+        )
+        "dnd" -> isGranted(
+            PrivilegeSurface.SPECIAL_ACCESS,
+            PrivilegeSnapshot.SPECIAL_DND_POLICY
+        )
+        "exact_alarms" -> isGranted(
+            PrivilegeSurface.SPECIAL_ACCESS,
+            PrivilegeSnapshot.SPECIAL_EXACT_ALARM
+        )
+        "battery_opt" -> isGranted(
+            PrivilegeSurface.SPECIAL_ACCESS,
+            PrivilegeSnapshot.SPECIAL_BATTERY_OPTIMIZATION
+        )
+        else -> null
     }
 }
 
