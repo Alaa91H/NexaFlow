@@ -190,31 +190,37 @@ object WorkflowRequirementCatalog {
     fun runtimePermissionsFor(
         actionType: ActionType,
         sdk: Int = runtimeSdk()
-    ): List<String> = when (actionType) {
-        ActionType.SYSTEM_SEND_SMS -> listOf(Manifest.permission.SEND_SMS)
-        ActionType.CALL_BLOCK -> listOf(Manifest.permission.ANSWER_PHONE_CALLS)
-        ActionType.SYSTEM_FLASHLIGHT -> listOf(Manifest.permission.CAMERA)
+    ): List<String> {
+        val explicit = when (actionType) {
+            ActionType.SYSTEM_SEND_SMS -> listOf(Manifest.permission.SEND_SMS)
+            ActionType.CALL_BLOCK -> listOf(Manifest.permission.ANSWER_PHONE_CALLS)
+            ActionType.SYSTEM_FLASHLIGHT -> listOf(Manifest.permission.CAMERA)
 
-        ActionType.SYSTEM_SEND_NOTIFICATION,
-        ActionType.SYSTEM_SEND_REMINDER,
-        ActionType.BATTERY_ALERTS,
-        ActionType.BATTERY_CHARGING_NOTIFICATIONS ->
-            if (sdk >= Build.VERSION_CODES.TIRAMISU) {
-                listOf(Manifest.permission.POST_NOTIFICATIONS)
-            } else {
-                emptyList()
-            }
+            ActionType.SYSTEM_SEND_NOTIFICATION,
+            ActionType.SYSTEM_SEND_REMINDER,
+            ActionType.BATTERY_ALERTS,
+            ActionType.BATTERY_CHARGING_NOTIFICATIONS ->
+                if (sdk >= Build.VERSION_CODES.TIRAMISU) {
+                    listOf(Manifest.permission.POST_NOTIFICATIONS)
+                } else {
+                    emptyList()
+                }
 
-        ActionType.SYSTEM_LOCATION -> listOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        )
+            ActionType.SYSTEM_LOCATION -> listOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
 
-        ActionType.SYSTEM_NETWORK_MODE -> listOf(Manifest.permission.READ_PHONE_STATE)
+            ActionType.SYSTEM_NETWORK_MODE -> listOf(Manifest.permission.READ_PHONE_STATE)
 
-        // Config-aware local-network permission is evaluated by the Action overload.
-        ActionType.SYSTEM_HTTP_REQUEST -> emptyList()
-        else -> emptyList()
+            // Config-aware local-network permission is evaluated by the Action overload.
+            ActionType.SYSTEM_HTTP_REQUEST -> emptyList()
+            else -> emptyList()
+        }
+        val declaredByCommandSpec = CommandCatalog.specFor(actionType)
+            ?.permissions
+            .orEmpty()
+        return (explicit + declaredByCommandSpec).distinct()
     }
 
     fun runtimePermissionsFor(
@@ -236,28 +242,34 @@ object WorkflowRequirementCatalog {
     fun runtimePermissionsFor(
         triggerType: TriggerType,
         sdk: Int = runtimeSdk()
-    ): List<String> = when (triggerType) {
-        TriggerType.NETWORK_MODE -> listOf(Manifest.permission.READ_PHONE_STATE)
-        TriggerType.SMS -> listOf(Manifest.permission.RECEIVE_SMS)
-        TriggerType.INCOMING_CALL -> listOf(Manifest.permission.READ_PHONE_STATE)
-        TriggerType.LOCATION -> listOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        )
-        TriggerType.CALENDAR -> listOf(Manifest.permission.READ_CALENDAR)
-        TriggerType.BLUETOOTH_DEVICE ->
-            if (sdk >= Build.VERSION_CODES.S) {
-                listOf(Manifest.permission.BLUETOOTH_CONNECT)
-            } else {
-                emptyList()
-            }
-        TriggerType.SENSOR ->
-            if (sdk >= Build.VERSION_CODES.Q) {
-                listOf(Manifest.permission.ACTIVITY_RECOGNITION)
-            } else {
-                emptyList()
-            }
-        else -> emptyList()
+    ): List<String> {
+        val explicit = when (triggerType) {
+            TriggerType.NETWORK_MODE -> listOf(Manifest.permission.READ_PHONE_STATE)
+            TriggerType.SMS -> listOf(Manifest.permission.RECEIVE_SMS)
+            TriggerType.INCOMING_CALL -> listOf(Manifest.permission.READ_PHONE_STATE)
+            TriggerType.LOCATION -> listOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+            TriggerType.CALENDAR -> listOf(Manifest.permission.READ_CALENDAR)
+            TriggerType.BLUETOOTH_DEVICE ->
+                if (sdk >= Build.VERSION_CODES.S) {
+                    listOf(Manifest.permission.BLUETOOTH_CONNECT)
+                } else {
+                    emptyList()
+                }
+            TriggerType.SENSOR ->
+                if (sdk >= Build.VERSION_CODES.Q) {
+                    listOf(Manifest.permission.ACTIVITY_RECOGNITION)
+                } else {
+                    emptyList()
+                }
+            else -> emptyList()
+        }
+        val declaredByCommandSpec = CommandCatalog.specFor(triggerType)
+            ?.permissions
+            .orEmpty()
+        return (explicit + declaredByCommandSpec).distinct()
     }
 
     fun specialPermissionFor(actionType: ActionType): WorkflowSpecialPermission? = when (actionType) {
