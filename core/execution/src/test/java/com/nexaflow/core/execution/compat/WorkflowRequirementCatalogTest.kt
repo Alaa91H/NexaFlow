@@ -135,6 +135,24 @@ class WorkflowRequirementCatalogTest {
     }
 
     @Test
+    fun `command spec permissions automatically flow into the shared requirement catalog`() {
+        assertEquals(
+            listOf("android.permission.CALL_PHONE"),
+            WorkflowRequirementCatalog.runtimePermissionsFor(
+                ActionType.SYSTEM_DIAL_NUMBER,
+                sdk = 37
+            )
+        )
+        assertEquals(
+            listOf("android.permission.READ_PHONE_STATE"),
+            WorkflowRequirementCatalog.runtimePermissionsFor(
+                TriggerType.CALL_STATE,
+                sdk = 37
+            )
+        )
+    }
+
+    @Test
     fun `private network HTTP permission is config and API aware`() {
         val action = Action(
             ActionType.SYSTEM_HTTP_REQUEST,
