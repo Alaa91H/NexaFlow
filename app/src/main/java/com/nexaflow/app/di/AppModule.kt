@@ -269,8 +269,8 @@ object AppModule {
                 AndroidPublicCapabilityBackend(context),
                 AndroidIntentCapabilityBackend(context),
                 PluginCapabilityBackend(context, automationRepository, pluginDiscoveryRegistry),
-                // Both channels require explicit request-policy selection; the
-                // resolver never falls through from Shizuku to Root or vice versa.
+                // Capability requests are adaptive by default once privileged
+                // execution is authorized; explicit backend pins are still honored.
                 ShizukuCapabilityBackend(),
                 RootCapabilityBackend(),
                 AccessibilityCapabilityBackend(context, accessibilityBridge)
@@ -308,7 +308,7 @@ object AppModule {
         scope.launch {
             privilegeStateStore.snapshot.collect { privilegeSnapshot ->
                 if (!privilegeSnapshot.neverObserved) {
-                    store.invalidate()
+                    store.refresh()
                 }
             }
         }
