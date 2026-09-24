@@ -139,6 +139,7 @@ object PrivilegedRunner {
                 if (result.success) return result
                 lastFailure = result.message
             }
+            invalidateRootAfterTransportFailure()
             SystemControlResult.fail(lastFailure ?: "Root operation failed")
         } catch (t: Throwable) {
             SystemControlResult.fail("Root operation failed: ${t.message}")
@@ -234,10 +235,19 @@ object PrivilegedRunner {
                 if (result.success) return result
                 lastFailure = result.message
             }
+            invalidateRootAfterTransportFailure()
             SystemControlResult.fail(lastFailure ?: "Root command failed")
         } catch (t: Throwable) {
             SystemControlResult.fail("Root execution failed: ${t.message}")
         }
+    }
+
+    private fun invalidateRootAfterTransportFailure() {
+        // A root manager can revoke access while the process is alive. Do not
+        // let the previous positive uid=0 cache keep routing later operations
+        // into a dead transport; the unified privilege store will re-probe.
+        SystemAppStatusDetector.refreshRootAvailability()
+        PrivilegeStateEvents.notifyChanged()
     }
 
     /** Runs one su invocation with a hard timeout and merged output. */
