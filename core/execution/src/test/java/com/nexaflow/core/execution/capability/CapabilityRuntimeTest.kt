@@ -17,6 +17,10 @@ import com.nexaflow.domain.capability.ExecutionPolicy
 import com.nexaflow.domain.capability.NetworkRequirement
 import com.nexaflow.domain.capability.PolicyBlockReason
 import com.nexaflow.domain.capability.PrivilegeLevel
+import com.nexaflow.domain.capability.PrivilegeGrantState
+import com.nexaflow.domain.capability.PrivilegeObservation
+import com.nexaflow.domain.capability.PrivilegeSnapshot
+import com.nexaflow.domain.capability.PrivilegeSurface
 import com.nexaflow.domain.capability.VerificationMode
 import com.nexaflow.domain.capability.VerificationResult
 import com.nexaflow.core.execution.verification.VerificationEngine
@@ -173,6 +177,87 @@ class CapabilityRuntimeTest {
         assertTrue(PolicyBlockReason.PRIVILEGE_NOT_ALLOWED in resolution.policy.reasons)
         assertEquals(CapabilityErrorCode.POLICY_NOT_SATISFIED, resolution.failure?.errorCode)
         assertEquals(0, root.availabilityCalls)
+    }
+
+    @Test
+    fun `declared Android permission blocks capability before backend probing`() = runBlocking {
+        val backend = FakeBackend(
+            CapabilityBackendId.ANDROID_API,
+            setOf(CapabilityId.PACKAGE_READ)
+        )
+        val registry = CapabilityRegistry.of(
+            descriptors = listOf(
+                CapabilityDescriptor(
+                    id = CapabilityId.PACKAGE_READ,
+                    displayName = "Read packages",
+                    description = "Reads package metadata",
+                    requiredPermissions = listOf("android.permission.CAMERA"),
+                    supportedBackends = listOf(CapabilityBackendId.ANDROID_API)
+                )
+            ),
+            backends = listOf(backend)
+        )
+        val snapshot = PrivilegeSnapshot(
+            observations = listOf(
+                PrivilegeObservation(
+                    surface = PrivilegeSurface.RUNTIME_PERMISSION,
+                    key = "android.permission.CAMERA",
+                    state = PrivilegeGrantState.NOT_GRANTED,
+                    detailCode = "ANDROID_RUNTIME_NOT_GRANTED"
+                )
+            ),
+            observedAtMs = 2_000L
+        )
+        val resolver = CapabilityResolver(
+            registry = registry,
+            privilegeSnapshotProvider = { snapshot }
+        )
+
+        val resolution = resolver.resolve(
+            CapabilityRequest(capability = CapabilityId.PACKAGE_READ),
+            state()
+        )
+
+        assertFalse(resolution.isResolved)
+        assertEquals(CapabilityErrorCode.PERMISSION_DENIED, resolution.failure?.errorCode)
+        assertTrue(
+            resolution.failure?.metadata
+                ?.get("missingPermissions")
+                ?.contains("android.permission.CAMERA") == true
+        )
+        assertEquals(0, backend.availabilityCalls)
+    }
+
+    @Test
+    fun `never-observed privilege snapshot never creates a false startup denial`() = runBlocking {
+        val backend = FakeBackend(
+            CapabilityBackendId.ANDROID_API,
+            setOf(CapabilityId.PACKAGE_READ)
+        )
+        val registry = CapabilityRegistry.of(
+            descriptors = listOf(
+                CapabilityDescriptor(
+                    id = CapabilityId.PACKAGE_READ,
+                    displayName = "Read packages",
+                    description = "Reads package metadata",
+                    requiredPermissions = listOf("android.permission.CAMERA"),
+                    supportedBackends = listOf(CapabilityBackendId.ANDROID_API)
+                )
+            ),
+            backends = listOf(backend)
+        )
+        val resolver = CapabilityResolver(
+            registry = registry,
+            privilegeSnapshotProvider = { PrivilegeSnapshot() }
+        )
+
+        val resolution = resolver.resolve(
+            CapabilityRequest(capability = CapabilityId.PACKAGE_READ),
+            state()
+        )
+
+        assertTrue(resolution.isResolved)
+        assertEquals(1, backend.availabilityCalls)
     }
 
     @Test
