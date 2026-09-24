@@ -74,7 +74,7 @@ object WorkflowRequirementCatalog {
             automation.triggers.forEachIndexed { index, trigger ->
                 add(
                     WorkflowRequirementEntry(
-                        owner = "trigger:$index:\${trigger.type.name}",
+                        owner = "trigger:$index:${trigger.type.name}",
                         requirement = requirementFor(trigger, sdk)
                     )
                 )
@@ -83,7 +83,7 @@ object WorkflowRequirementCatalog {
             automation.actions.forEachIndexed { index, action ->
                 add(
                     WorkflowRequirementEntry(
-                        owner = "action:$index:\${action.type.name}",
+                        owner = "action:$index:${action.type.name}",
                         requirement = requirementFor(action, sdk)
                     )
                 )
@@ -93,7 +93,7 @@ object WorkflowRequirementCatalog {
                         val endAction = action.withConfig(endBehavior.config)
                         add(
                             WorkflowRequirementEntry(
-                                owner = "endBehavior:$index:\${action.type.name}",
+                                owner = "endBehavior:$index:${action.type.name}",
                                 requirement = requirementFor(endAction, sdk)
                             )
                         )
@@ -103,7 +103,7 @@ object WorkflowRequirementCatalog {
             automation.exitActions.forEachIndexed { index, action ->
                 add(
                     WorkflowRequirementEntry(
-                        owner = "exitAction:$index:\${action.type.name}",
+                        owner = "exitAction:$index:${action.type.name}",
                         requirement = requirementFor(action, sdk)
                     )
                 )
