@@ -1,6 +1,5 @@
 package com.nexaflow.core.execution.capability
 
-import android.Manifest
 import android.app.AlarmManager
 import android.app.AppOpsManager
 import android.app.NotificationManager
@@ -62,15 +61,21 @@ interface PrivilegeStateEventSource {
  * grant from an event: every event schedules a complete read-back.
  */
 class PrivilegeStateStore(
-    context: Context,
     private val scope: CoroutineScope,
-    private val probe: PrivilegeStateProbe = AndroidPrivilegeStateProbe(context.applicationContext),
-    private val eventSource: PrivilegeStateEventSource =
-        AndroidPrivilegeStateEventSource(context.applicationContext),
+    private val probe: PrivilegeStateProbe,
+    private val eventSource: PrivilegeStateEventSource,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val nowMs: () -> Long = { System.currentTimeMillis() },
     private val minRefreshIntervalMs: Long = DEFAULT_MIN_REFRESH_INTERVAL_MS
 ) {
+    constructor(
+        context: Context,
+        scope: CoroutineScope
+    ) : this(
+        scope = scope,
+        probe = AndroidPrivilegeStateProbe(context.applicationContext),
+        eventSource = AndroidPrivilegeStateEventSource(context.applicationContext)
+    )
     private val refreshMutex = Mutex()
     private val schedulerLock = Any()
     private val _snapshot = MutableStateFlow(PrivilegeSnapshot())
