@@ -76,7 +76,7 @@ class SemanticWorkflowPlannerTest {
     }
 
     @Test
-    fun \`settings-only route blocks automatic workflow without side effects\`() = runTest {
+    fun `settings-only route blocks automatic workflow without side effects`() = runTest {
         val settings = FakeStrategy(
             StrategyId.SETTINGS_USER_ACTION,
             setOf(SemanticOperationId.WIFI_SET_STATE)
@@ -90,7 +90,7 @@ class SemanticWorkflowPlannerTest {
     }
 
     @Test
-    fun \`verified privileged route makes automatic workflow executable\`() = runTest {
+    fun `verified privileged route makes automatic workflow executable`() = runTest {
         val root = FakeStrategy(
             StrategyId.ROOT_SHELL,
             setOf(SemanticOperationId.WIFI_SET_STATE)
@@ -107,7 +107,7 @@ class SemanticWorkflowPlannerTest {
     }
 
     @Test
-    fun \`planner includes configured end values and explicit exit actions\`() = runTest {
+    fun `planner includes configured end values and explicit exit actions`() = runTest {
         val root = FakeStrategy(
             StrategyId.ROOT_SHELL,
             setOf(
