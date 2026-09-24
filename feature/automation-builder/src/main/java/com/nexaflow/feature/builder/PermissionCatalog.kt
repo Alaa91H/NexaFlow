@@ -99,7 +99,7 @@ object PermissionCatalog {
         .mapNotNull { name -> SpecialPermission.entries.firstOrNull { it.name == name } }
 }
 
-private fun WorkflowSpecialPermission.toUiSpecialPermission(): SpecialPermission = when (this) {
+internal fun WorkflowSpecialPermission.toUiSpecialPermission(): SpecialPermission = when (this) {
     WorkflowSpecialPermission.WRITE_SETTINGS -> SpecialPermission.WRITE_SETTINGS
     WorkflowSpecialPermission.DND_ACCESS -> SpecialPermission.DND_ACCESS
     WorkflowSpecialPermission.NOTIFICATION_ACCESS -> SpecialPermission.NOTIFICATION_ACCESS
