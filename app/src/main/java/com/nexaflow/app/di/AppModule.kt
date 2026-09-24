@@ -280,8 +280,13 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideCapabilityResolver(registry: CapabilityRegistry): CapabilityResolver =
-        CapabilityResolver(registry)
+    fun provideCapabilityResolver(
+        registry: CapabilityRegistry,
+        privilegeStateStore: PrivilegeStateStore
+    ): CapabilityResolver = CapabilityResolver(
+        registry = registry,
+        privilegeSnapshotProvider = { privilegeStateStore.snapshot.value }
+    )
 
     @Provides
     @Singleton
