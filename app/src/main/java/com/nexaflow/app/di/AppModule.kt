@@ -345,9 +345,13 @@ object AppModule {
     @Singleton
     fun provideWorkflowDryRunService(
         resolver: CapabilityResolver,
+        capabilityStateStore: CapabilityStateStore,
+        privilegeStateStore: PrivilegeStateStore,
         @ApplicationContext context: Context
     ): WorkflowDryRunService = WorkflowDryRunService(
         capabilityResolver = resolver,
+        capabilitySnapshotProvider = { capabilityStateStore.snapshot.value },
+        privilegeSnapshotProvider = { privilegeStateStore.snapshot.value },
         deviceStateProvider = {
             AndroidCapabilityDeviceStateReader(context).capture(System.currentTimeMillis())
         }
