@@ -256,6 +256,12 @@ object WorkflowRequirementCatalog {
         ActionType.SYSTEM_CHARGING_LIMIT -> WorkflowSpecialPermission.ROOT
 
         ActionType.APPLICATION_CLOSE_APP,
+        ActionType.SYSTEM_FORCE_STOP_APP,
+        ActionType.SYSTEM_CLEAR_APP_DATA,
+        ActionType.SYSTEM_DISABLE_APP,
+        ActionType.SYSTEM_ENABLE_APP,
+        ActionType.SYSTEM_LOCATION,
+        ActionType.SYSTEM_AIRPLANE_MODE,
         ActionType.SYSTEM_MOBILE_DATA,
         ActionType.SYSTEM_NETWORK_MODE,
         ActionType.SYSTEM_PRIVATE_DNS,
