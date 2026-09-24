@@ -5,6 +5,9 @@ import android.os.Build
 import com.nexaflow.core.rom.model.RomCapability
 import com.nexaflow.domain.capability.CapabilityRequirement
 import com.nexaflow.domain.capability.ExecutionRequirement
+import com.nexaflow.domain.capability.ExecutionRequirementResolution
+import com.nexaflow.domain.capability.ExecutionRequirementResolver
+import com.nexaflow.domain.capability.CapabilitySnapshot
 import com.nexaflow.domain.capability.PrivilegeSnapshot
 import com.nexaflow.domain.capability.PrivilegeSurface
 import com.nexaflow.domain.models.Action
@@ -41,6 +44,11 @@ data class WorkflowRequirementEntry(
     val requirement: ExecutionRequirement
 )
 
+data class WorkflowRequirementEntryResolution(
+    val owner: String,
+    val resolution: ExecutionRequirementResolution
+)
+
 data class WorkflowRequirementPlan(
     val entries: List<WorkflowRequirementEntry>
 ) {
@@ -54,6 +62,20 @@ data class WorkflowRequirementPlan(
                     else -> ExecutionRequirement.AllOf(children)
                 }
             }
+
+    fun resolveEntries(
+        capabilitySnapshot: CapabilitySnapshot,
+        privilegeSnapshot: PrivilegeSnapshot
+    ): List<WorkflowRequirementEntryResolution> = entries.map { entry ->
+        WorkflowRequirementEntryResolution(
+            owner = entry.owner,
+            resolution = ExecutionRequirementResolver.resolve(
+                entry.requirement,
+                capabilitySnapshot,
+                privilegeSnapshot
+            )
+        )
+    }
 }
 
 /**
