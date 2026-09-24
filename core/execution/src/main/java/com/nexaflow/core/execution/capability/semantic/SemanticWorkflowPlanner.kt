@@ -29,6 +29,21 @@ data class SemanticWorkflowExecutionPlan(
                     it.plan.status == OperationPlanStatus.INVALID_CONFIGURATION
             }
             .mapTo(linkedSetOf()) { it.owner }
+
+    val blockingDetail: String
+        get() = nodes
+            .filterNot { it.plan.executable }
+            .joinToString { node ->
+                buildString {
+                    append(node.owner)
+                    append('=')
+                    append(node.plan.status.name)
+                    node.plan.selectedStrategy?.let {
+                        append(':').append(it.name)
+                    }
+                }
+            }
+            .ifBlank { "no automatic semantic execution route" }
 }
 
 /**
