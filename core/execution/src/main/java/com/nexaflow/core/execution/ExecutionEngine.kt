@@ -247,6 +247,7 @@ class ExecutionEngine(
                     runCatching { capabilitySnapshotInvalidator?.invoke() }
                     runCatching { privilegeSnapshotInvalidator?.invoke() }
                     val missing = buildList {
+                        addAll(validation.blockedOwners.map { "node:$it" })
                         addAll(validation.missingCapabilities.map { "capability:${it.name}" })
                         addAll(validation.missingPrivileges.map { ref ->
                             "privilege:${ref.surface.name}:${ref.key}"
