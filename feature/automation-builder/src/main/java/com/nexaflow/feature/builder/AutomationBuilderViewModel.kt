@@ -7,9 +7,11 @@ import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.capability.CapabilityStateStore
 import com.nexaflow.core.execution.capability.PrivilegeStateStore
 import com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner
+import com.nexaflow.domain.capability.operation.StrategyId
 import com.nexaflow.core.execution.compat.WorkflowCapabilityValidator
 import com.nexaflow.core.execution.compat.WorkflowPermissionRepairPlan
 import com.nexaflow.core.execution.compat.WorkflowRequirementCatalog
+import com.nexaflow.core.execution.compat.WorkflowSpecialPermission
 import com.nexaflow.domain.capability.CapabilitySnapshot
 import com.nexaflow.domain.capability.PrivilegeSnapshot
 import com.nexaflow.domain.models.Action
@@ -76,13 +78,49 @@ class AutomationBuilderViewModel @Inject constructor(
     ): WorkflowPermissionRepairPlan = coroutineScope {
         val capabilitySnapshot = async { capabilityStateStore.freshSnapshot() }
         val privilegeSnapshot = async { privilegeStateStore.freshSnapshot() }
-        WorkflowRequirementCatalog.repairPlan(
+        val semanticPlan = async {
+            semanticWorkflowPlanner.plan(
+                workflowId = "builder-repair",
+                actions = actions,
+                exitActions = exitActions
+            )
+        }
+        val requirementPlan = WorkflowRequirementCatalog.repairPlan(
             triggers = triggers,
             actions = actions,
             exitActions = exitActions,
             capabilitySnapshot = capabilitySnapshot.await(),
             privilegeSnapshot = privilegeSnapshot.await()
         )
+        val semantic = semanticPlan.await()
+
+        // If the declarative requirement graph already owns a blocked node,
+        // keep its direct grant (WRITE_SETTINGS, DND, runtime permission, ...)
+        // as the preferred repair. Otherwise a semantic action that has no
+        // automatic route but does declare Root/Shizuku alternatives receives
+        // one ELEVATED repair hint rather than a dead-end Settings-only path.
+        val elevatedOwners = semantic.nodes
+            .filter { node ->
+                !node.plan.executable &&
+                    node.owner !in requirementPlan.blockedOwners &&
+                    node.plan.candidates.any { candidate ->
+                        candidate.strategy == StrategyId.ROOT_SHELL ||
+                            candidate.strategy == StrategyId.SHIZUKU_USER_SERVICE
+                    }
+            }
+            .mapTo(linkedSetOf()) { it.owner }
+
+        if (elevatedOwners.isEmpty()) {
+            requirementPlan
+        } else {
+            requirementPlan.copy(
+                specialPermissions = (
+                    requirementPlan.specialPermissions +
+                        WorkflowSpecialPermission.ELEVATED
+                    ).distinct(),
+                blockedOwners = requirementPlan.blockedOwners + elevatedOwners
+            )
+        }
     }
 
     /** User-defined global variables, so the editor can offer %VAR insertion. */
