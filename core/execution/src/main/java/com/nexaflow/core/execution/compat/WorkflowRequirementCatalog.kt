@@ -66,9 +66,19 @@ data class WorkflowRequirementPlan(
  */
 object WorkflowRequirementCatalog {
 
+    /**
+     * Local JVM tests expose android.jar's SDK_INT as 0 unless a Robolectric
+     * sandbox is active. Zero is impossible on-device, so use compileSdk only
+     * for that host-only case; production always uses the real device API.
+     */
+    private fun runtimeSdk(): Int =
+        Build.VERSION.SDK_INT.takeIf { it > 0 } ?: HOST_TEST_FALLBACK_SDK
+
+    private const val HOST_TEST_FALLBACK_SDK = 37
+
     fun plan(
         automation: Automation,
-        sdk: Int = Build.VERSION.SDK_INT
+        sdk: Int = runtimeSdk()
     ): WorkflowRequirementPlan {
         val entries = buildList {
             automation.triggers.forEachIndexed { index, trigger ->
@@ -114,7 +124,7 @@ object WorkflowRequirementCatalog {
 
     fun requirementFor(
         action: Action,
-        sdk: Int = Build.VERSION.SDK_INT
+        sdk: Int = runtimeSdk()
     ): ExecutionRequirement = allOf(
         capabilityRequirement(CommandRequirementCatalog.requirementFor(action.type)),
         runtimeRequirement(runtimePermissionsFor(action, sdk)),
@@ -123,7 +133,7 @@ object WorkflowRequirementCatalog {
 
     fun requirementFor(
         trigger: Trigger,
-        sdk: Int = Build.VERSION.SDK_INT
+        sdk: Int = runtimeSdk()
     ): ExecutionRequirement = allOf(
         capabilityRequirement(CommandRequirementCatalog.requirementFor(trigger.type)),
         runtimeRequirement(runtimePermissionsFor(trigger, sdk)),
@@ -132,7 +142,7 @@ object WorkflowRequirementCatalog {
 
     fun permissionRequirementFor(
         action: Action,
-        sdk: Int = Build.VERSION.SDK_INT
+        sdk: Int = runtimeSdk()
     ): WorkflowPermissionRequirement = WorkflowPermissionRequirement(
         runtimePermissions = runtimePermissionsFor(action, sdk),
         special = specialPermissionFor(action.type)
@@ -140,7 +150,7 @@ object WorkflowRequirementCatalog {
 
     fun permissionRequirementFor(
         trigger: Trigger,
-        sdk: Int = Build.VERSION.SDK_INT
+        sdk: Int = runtimeSdk()
     ): WorkflowPermissionRequirement = WorkflowPermissionRequirement(
         runtimePermissions = runtimePermissionsFor(trigger, sdk),
         special = specialPermissionFor(trigger.type)
@@ -148,7 +158,7 @@ object WorkflowRequirementCatalog {
 
     fun runtimePermissionsFor(
         action: Action,
-        sdk: Int = Build.VERSION.SDK_INT
+        sdk: Int = runtimeSdk()
     ): List<String> = if (action.type == ActionType.SYSTEM_HTTP_REQUEST) {
         HttpAccessPolicy.runtimePermissions(action.config, sdk)
     } else {
@@ -157,7 +167,7 @@ object WorkflowRequirementCatalog {
 
     fun runtimePermissionsFor(
         actionType: ActionType,
-        sdk: Int = Build.VERSION.SDK_INT
+        sdk: Int = runtimeSdk()
     ): List<String> = when (actionType) {
         ActionType.SYSTEM_SEND_SMS -> listOf(Manifest.permission.SEND_SMS)
         ActionType.CALL_BLOCK -> listOf(Manifest.permission.ANSWER_PHONE_CALLS)
@@ -187,7 +197,7 @@ object WorkflowRequirementCatalog {
 
     fun runtimePermissionsFor(
         trigger: Trigger,
-        sdk: Int = Build.VERSION.SDK_INT
+        sdk: Int = runtimeSdk()
     ): List<String> = when {
         trigger.type == TriggerType.CONNECTIVITY &&
             trigger.config["network"] == "NETWORK_MODE" ->
@@ -203,7 +213,7 @@ object WorkflowRequirementCatalog {
 
     fun runtimePermissionsFor(
         triggerType: TriggerType,
-        sdk: Int = Build.VERSION.SDK_INT
+        sdk: Int = runtimeSdk()
     ): List<String> = when (triggerType) {
         TriggerType.NETWORK_MODE -> listOf(Manifest.permission.READ_PHONE_STATE)
         TriggerType.SMS -> listOf(Manifest.permission.RECEIVE_SMS)
