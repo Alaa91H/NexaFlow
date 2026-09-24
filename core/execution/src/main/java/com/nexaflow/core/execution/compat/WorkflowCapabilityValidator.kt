@@ -30,13 +30,23 @@ object WorkflowCapabilityValidator {
             capabilitySnapshot,
             privilegeSnapshot
         )
+        val entryResolutions = plan.resolveEntries(
+            capabilitySnapshot = capabilitySnapshot,
+            privilegeSnapshot = privilegeSnapshot
+        )
         return WorkflowCapabilityValidationResult(
             admissible = resolution.state != ExecutionRequirementState.BLOCKED,
             state = resolution.state,
             missingCapabilities = resolution.missingCapabilities,
             missingPrivileges = resolution.missingPrivileges,
             unknownCapabilities = resolution.unknownCapabilities,
-            unknownPrivileges = resolution.unknownPrivileges
+            unknownPrivileges = resolution.unknownPrivileges,
+            blockedOwners = entryResolutions
+                .filter { it.resolution.state == ExecutionRequirementState.BLOCKED }
+                .mapTo(linkedSetOf()) { it.owner },
+            unknownOwners = entryResolutions
+                .filter { it.resolution.state == ExecutionRequirementState.UNKNOWN }
+                .mapTo(linkedSetOf()) { it.owner }
         )
     }
 }
@@ -48,5 +58,7 @@ data class WorkflowCapabilityValidationResult(
     val state: ExecutionRequirementState =
         if (admissible) ExecutionRequirementState.READY else ExecutionRequirementState.BLOCKED,
     val unknownCapabilities: Set<CapabilityId> = emptySet(),
-    val unknownPrivileges: Set<PrivilegeRequirementRef> = emptySet()
+    val unknownPrivileges: Set<PrivilegeRequirementRef> = emptySet(),
+    val blockedOwners: Set<String> = emptySet(),
+    val unknownOwners: Set<String> = emptySet()
 )
