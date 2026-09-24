@@ -96,6 +96,46 @@ class CapabilityRouterTest {
         )
 
     @Test
+    fun planSelectsBestStrategyWithoutExecutingIt() = runTest {
+        val androidApi = FakeStrategy(
+            StrategyId.ANDROID_PUBLIC_API,
+            setOf(SemanticOperationId.WIFI_SET_STATE),
+            readValue = true
+        )
+        val root = FakeStrategy(
+            StrategyId.ROOT_SHELL,
+            setOf(SemanticOperationId.WIFI_SET_STATE),
+            readValue = true
+        )
+
+        val plan = router(androidApi, root)
+            .plan(request(SemanticOperationId.WIFI_SET_STATE, privileged = true))
+
+        assertEquals(OperationPlanStatus.READY, plan.status)
+        assertEquals(StrategyId.ANDROID_PUBLIC_API, plan.selectedStrategy)
+        assertEquals(0, androidApi.executions)
+        assertEquals(0, root.executions)
+        assertTrue(plan.candidates.any {
+            it.strategy == StrategyId.ANDROID_PUBLIC_API && it.selected
+        })
+    }
+
+    @Test
+    fun planMarksSettingsOnlyFallbackAsPendingUserAction() = runTest {
+        val settings = FakeStrategy(
+            StrategyId.SETTINGS_USER_ACTION,
+            setOf(SemanticOperationId.WIFI_SET_STATE)
+        )
+
+        val plan = router(settings)
+            .plan(request(SemanticOperationId.WIFI_SET_STATE, privileged = false))
+
+        assertEquals(OperationPlanStatus.PENDING_USER_ACTION, plan.status)
+        assertEquals(StrategyId.SETTINGS_USER_ACTION, plan.selectedStrategy)
+        assertEquals(0, settings.executions)
+    }
+
+    @Test
     fun prefersLeastPrivilegedAvailableStrategy() = runTest {
         val androidApi = FakeStrategy(
             StrategyId.ANDROID_PUBLIC_API, setOf(SemanticOperationId.WIFI_SET_STATE),
