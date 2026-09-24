@@ -56,7 +56,7 @@ object PermissionCatalog {
             val requirement = WorkflowRequirementCatalog.permissionRequirementFor(trigger)
             if (requirement.runtimePermissions.isNotEmpty() || requirement.special != null) {
                 result += PermissionRequirement(
-                    owner = "trigger:\${trigger.type.name}",
+                    owner = "trigger:${trigger.type.name}",
                     runtimePermissions = requirement.runtimePermissions,
                     special = requirement.special?.toUiSpecialPermission()?.name
                 )
@@ -69,7 +69,7 @@ object PermissionCatalog {
             val requirement = WorkflowRequirementCatalog.permissionRequirementFor(action)
             if (requirement.runtimePermissions.isNotEmpty() || requirement.special != null) {
                 result += PermissionRequirement(
-                    owner = "action:\${action.type.name}",
+                    owner = "action:${action.type.name}",
                     runtimePermissions = requirement.runtimePermissions,
                     special = requirement.special?.toUiSpecialPermission()?.name
                 )
