@@ -180,11 +180,15 @@ object RootPermissionGranter {
     fun grantRuntimePermissions(
         context: Context,
         permissions: Collection<String>
-    ): RuntimeGrantResult = grantRuntimePermissionsInternal(
-        packageName = context.applicationContext.packageName,
-        permissions = permissions,
-        grantedChecker = { permission -> isRuntimeGranted(context, permission) }
-    )
+    ): RuntimeGrantResult {
+        val result = grantRuntimePermissionsInternal(
+            packageName = context.applicationContext.packageName,
+            permissions = permissions,
+            grantedChecker = { permission -> isRuntimeGranted(context, permission) }
+        )
+        PrivilegeStateEvents.notifyChanged()
+        return result
+    }
 
     /** Test seam for targeted elevated grants without an Android Context. */
     internal fun grantRuntimePermissionsInternal(
@@ -224,8 +228,11 @@ object RootPermissionGranter {
      * timeout, the prompt itself up to 30s) — call from a background
      * coroutine, never the main thread.
      */
-    fun requestAndGrantAll(context: Context): Result =
-        requestAndGrantAllInternal { context.applicationContext.packageName }
+    fun requestAndGrantAll(context: Context): Result {
+        val result = requestAndGrantAllInternal { context.applicationContext.packageName }
+        PrivilegeStateEvents.notifyChanged()
+        return result
+    }
 
     /**
      * Test seam: injects the package name (real: [Context.packageName]) so the
@@ -287,8 +294,11 @@ object RootPermissionGranter {
      * (each bounded by PrivilegedRunner's timeout) — call from a background
      * coroutine, never the main thread.
      */
-    fun grantAll(context: Context): Result =
-        grantAllInternal(packageNameProvider?.invoke() ?: context.packageName, context)
+    fun grantAll(context: Context): Result {
+        val result = grantAllInternal(packageNameProvider?.invoke() ?: context.packageName, context)
+        PrivilegeStateEvents.notifyChanged()
+        return result
+    }
 
     /**
      * Pure grant pipeline: [packageName] is injected, and every Context-backed
