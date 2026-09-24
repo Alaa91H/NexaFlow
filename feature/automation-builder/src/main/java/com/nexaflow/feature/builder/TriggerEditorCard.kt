@@ -3163,7 +3163,7 @@ fun TriggerEditorCard(
                 TriggerType.WEAR_EVENT -> {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            text = stringResource(R.string.trigger_type_wear_event_sub),
+                            text = stringResource(R.string.trigger_wear_event_sub),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.secondary
                         )
