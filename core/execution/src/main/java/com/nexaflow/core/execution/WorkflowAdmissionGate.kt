@@ -20,10 +20,10 @@ internal data class WorkflowAdmissionDecision(
         get() {
             val result = validation ?: return "unmapped or unavailable execution path"
             return buildList {
-                addAll(result.blockedOwners.map { "node:\${it}" })
-                addAll(result.missingCapabilities.map { "capability:\${it.name}" })
+                addAll(result.blockedOwners.map { "node:${it}" })
+                addAll(result.missingCapabilities.map { "capability:${it.name}" })
                 addAll(result.missingPrivileges.map { ref ->
-                    "privilege:\${ref.surface.name}:\${ref.key}"
+                    "privilege:${ref.surface.name}:${ref.key}"
                 })
             }.joinToString().ifBlank { "unmapped or unavailable execution path" }
         }
