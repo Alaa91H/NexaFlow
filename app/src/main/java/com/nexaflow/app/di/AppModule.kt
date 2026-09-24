@@ -35,6 +35,7 @@ import com.nexaflow.core.execution.capability.CapabilityResolver
 import com.nexaflow.core.execution.capability.CapabilityStateStore
 import com.nexaflow.core.execution.capability.PluginCapabilityBackend
 import com.nexaflow.core.execution.capability.PluginCapabilityCatalog
+import com.nexaflow.core.execution.capability.PrivilegeStateStore
 import com.nexaflow.core.execution.capability.PluginConditionCapabilityCatalog
 import com.nexaflow.core.execution.capability.PrivilegedCapabilityCatalog
 import com.nexaflow.core.execution.capability.RootCapabilityBackend
@@ -283,15 +284,36 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideCapabilityStateStore(
-        registry: CapabilityRegistry,
+    fun providePrivilegeStateStore(
         @ApplicationContext context: Context,
         @ApplicationScope scope: CoroutineScope
-    ): CapabilityStateStore = CapabilityStateStore(
-        registry = registry,
-        environmentInspector = CapabilityEnvironmentInspector.forContext(context),
+    ): PrivilegeStateStore = PrivilegeStateStore(
+        context = context,
         scope = scope
     )
+
+    @Provides
+    @Singleton
+    fun provideCapabilityStateStore(
+        registry: CapabilityRegistry,
+        privilegeStateStore: PrivilegeStateStore,
+        @ApplicationContext context: Context,
+        @ApplicationScope scope: CoroutineScope
+    ): CapabilityStateStore {
+        val store = CapabilityStateStore(
+            registry = registry,
+            environmentInspector = CapabilityEnvironmentInspector.forContext(context),
+            scope = scope
+        )
+        scope.launch {
+            privilegeStateStore.snapshot.collect { privilegeSnapshot ->
+                if (!privilegeSnapshot.neverObserved) {
+                    store.invalidate()
+                }
+            }
+        }
+        return store
+    }
 
     @Provides
     @Singleton
