@@ -17,7 +17,6 @@ import com.nexaflow.core.datastore.NotificationSettings
 import com.nexaflow.core.execution.capability.CapabilityActionMapper
 import com.nexaflow.core.execution.capability.CapabilityExecutionService
 import com.nexaflow.core.execution.capability.toSystemControlResult
-import com.nexaflow.core.execution.compat.WorkflowCapabilityValidator
 import com.nexaflow.core.execution.handler.ActionExecutionContext
 import com.nexaflow.core.execution.handler.ActionRegistry
 import com.nexaflow.core.execution.variables.BuiltinVariables
@@ -125,6 +124,14 @@ class ExecutionEngine(
         capabilityExecutionService = capabilityExecutionService,
         constraintStateProvider = constraintStateProvider
     )
+    private val workflowAdmissionGate = WorkflowAdmissionGate(
+        capabilitySnapshotProvider = capabilitySnapshotProvider,
+        privilegeSnapshotProvider = privilegeSnapshotProvider,
+        capabilitySnapshotInvalidator = capabilitySnapshotInvalidator,
+        privilegeSnapshotInvalidator = privilegeSnapshotInvalidator,
+        nowMs = epochMillis::now,
+        freshnessMs = CAPABILITY_SNAPSHOT_FRESHNESS_MS
+    )
 
     companion object {
         /** Prefix used by UI callers to present a manual condition rejection accurately. */
@@ -195,90 +202,21 @@ class ExecutionEngine(
         if (automation.requiresTimeRangeForEndBehavior) {
             return diagnostics.rejectIncompleteTimeRange(automation, startedAt, payloadContext.runId)
         }
-        capabilitySnapshotProvider?.invoke()?.let { snapshot ->
-            // A snapshot observed long ago is not evidence about the device
-            // anymore. Capability staleness preserves the historical admit-and-
-            // verify behavior; stale privilege state is downgraded to UNKNOWN
-            // so it can never create a false denial.
-            val now = epochMillis.now()
-            val capabilityFresh =
-                classifySnapshotFreshness(
-                    snapshot,
-                    now,
-                    CAPABILITY_SNAPSHOT_FRESHNESS_MS
-                ) == SnapshotFreshness.FRESH
-            val rawPrivilegeSnapshot = privilegeSnapshotProvider?.invoke() ?: PrivilegeSnapshot()
-            val effectivePrivilegeSnapshot =
-                if (classifySnapshotFreshness(
-                        rawPrivilegeSnapshot,
-                        now,
-                        CAPABILITY_SNAPSHOT_FRESHNESS_MS
-                    ) == SnapshotFreshness.FRESH
-                ) {
-                    rawPrivilegeSnapshot
-                } else {
-                    PrivilegeSnapshot()
-                }
-
-            val validation = WorkflowCapabilityValidator.validate(
-                automation = automation,
-                capabilitySnapshot = snapshot,
-                privilegeSnapshot = effectivePrivilegeSnapshot
-            )
-            if (!validation.admissible) {
-                if (!capabilityFresh) {
-                    diagnostics.recordTimeline(
-                        automation,
-                        "CAPABILITY_BLOCKED_STALE_SNAPSHOT",
-                        ExecutionRecord(
-                            id = UUID.randomUUID().toString(),
-                            automationId = automation.id,
-                            automationName = automation.name,
-                            success = false,
-                            message = "Requirement gate skipped on a stale snapshot; live re-check will run per action",
-                            executedAt = startedAt
-                        ),
-                        startedAt
-                    )
-                } else {
-                    // Fresh, observed evidence proved there is no currently
-                    // satisfiable requirement branch. Refresh both stores so a
-                    // just-landed grant is visible to the next occurrence.
-                    runCatching { capabilitySnapshotInvalidator?.invoke() }
-                    runCatching { privilegeSnapshotInvalidator?.invoke() }
-                    val missing = buildList {
-                        addAll(validation.blockedOwners.map { "node:$it" })
-                        addAll(validation.missingCapabilities.map { "capability:${it.name}" })
-                        addAll(validation.missingPrivileges.map { ref ->
-                            "privilege:${ref.surface.name}:${ref.key}"
-                        })
-                    }.joinToString().ifBlank { "unmapped or unavailable execution path" }
-                    val record = ExecutionRecord(
-                        id = UUID.randomUUID().toString(),
-                        automationId = automation.id,
-                        automationName = automation.name,
-                        success = false,
-                        message = "Blocked: execution requirements are unavailable ($missing)",
-                        executedAt = startedAt
-                    )
-                    historyRepository.recordExecution(record)
-                    diagnostics.recordTimeline(
-                        automation = automation,
-                        kind = "CAPABILITY_BLOCKED",
-                        record = record,
-                        startedAt = startedAt,
-                        runId = payloadContext.runId
-                    )
-                    traceRecorder.recordBlockedRun(
-                        payloadContext.runId,
-                        automation.id,
-                        TraceReasons.CAPABILITY_BLOCKED,
-                        missing,
-                        epochMillis.now()
-                    )
-                    return record
-                }
-            }
+        when (val admission = workflowAdmissionGate.evaluate(automation)) {
+            WorkflowAdmissionState.ADMITTED -> Unit
+            WorkflowAdmissionState.STALE_EVIDENCE_ADMITTED ->
+                diagnostics.recordStaleRequirementAdmission(
+                    automation = automation,
+                    startedAt = startedAt,
+                    runId = payloadContext.runId
+                )
+            WorkflowAdmissionState.BLOCKED ->
+                return diagnostics.rejectUnavailableRequirements(
+                    automation = automation,
+                    startedAt = startedAt,
+                    runId = payloadContext.runId,
+                    missingDetail = admission.missingDetail
+                )
         }
         val maintenanceNow = ZonedDateTime.now()
         val maintenanceOccurrenceKey = MaintenanceExecutionIdentity.occurrenceKey(automation, maintenanceNow)
