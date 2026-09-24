@@ -4,6 +4,8 @@ import com.nexaflow.core.execution.capability.CapabilityResolution
 import com.nexaflow.core.execution.capability.CapabilityResolver
 import com.nexaflow.core.execution.compat.WorkflowCapabilityValidationResult
 import com.nexaflow.core.execution.compat.WorkflowCapabilityValidator
+import com.nexaflow.core.execution.capability.semantic.SemanticWorkflowExecutionPlan
+import com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner
 import com.nexaflow.domain.capability.CapabilityDeviceState
 import com.nexaflow.domain.capability.CapabilityRequest
 import com.nexaflow.domain.capability.CapabilitySnapshot
@@ -27,7 +29,8 @@ data class WorkflowDryRunReport(
     val capabilityResolutions: List<CapabilityResolution>,
     val executable: Boolean,
     val summary: String,
-    val requirementValidation: WorkflowCapabilityValidationResult? = null
+    val requirementValidation: WorkflowCapabilityValidationResult? = null,
+    val semanticPlan: SemanticWorkflowExecutionPlan? = null
 )
 
 /**
@@ -38,6 +41,7 @@ class WorkflowDryRunService(
     private val capabilityResolver: CapabilityResolver,
     private val capabilitySnapshotProvider: (() -> CapabilitySnapshot)? = null,
     private val privilegeSnapshotProvider: (() -> PrivilegeSnapshot)? = null,
+    private val semanticWorkflowPlanner: SemanticWorkflowPlanner? = null,
     private val sdkProvider: () -> Int = { Build.VERSION.SDK_INT },
     private val deviceStateProvider: suspend () -> CapabilityDeviceState
 ) {
@@ -63,13 +67,15 @@ class WorkflowDryRunService(
                 sdk = sdkProvider()
             )
         }
+        val semanticPlan = semanticWorkflowPlanner?.plan(input.automation)
         val state = deviceStateProvider()
         val resolutions = input.capabilityRequests.map { request ->
             capabilityResolver.resolve(request, state)
         }
         val requestsExecutable = resolutions.all { it.isResolved }
         val requirementsExecutable = requirementValidation?.admissible != false
-        val executable = requestsExecutable && requirementsExecutable
+        val semanticExecutable = semanticPlan?.executable != false
+        val executable = requestsExecutable && requirementsExecutable && semanticExecutable
         return WorkflowDryRunReport(
             workflowValidation = workflowValidation,
             capabilityResolutions = resolutions,
@@ -77,16 +83,21 @@ class WorkflowDryRunService(
             summary = when {
                 requirementValidation?.admissible == false ->
                     "Workflow execution requirements are unavailable"
+                semanticPlan?.pendingUserActionOwners?.isNotEmpty() == true ->
+                    "Workflow has semantic actions that require user interaction"
+                semanticPlan?.unavailableOwners?.isNotEmpty() == true ->
+                    "Workflow has semantic actions without an automatic execution route"
                 !requestsExecutable ->
                     "One or more capabilities are unavailable or blocked by policy"
                 requirementValidation?.state ==
                     com.nexaflow.domain.capability.ExecutionRequirementState.UNKNOWN ->
                     "Workflow is valid; one or more execution requirements await a fresh observation"
                 resolutions.isEmpty() ->
-                    "Workflow and observed execution requirements passed dry-run"
+                    "Workflow and observed execution routes passed dry-run"
                 else -> "Workflow and requested capabilities passed dry-run"
             },
-            requirementValidation = requirementValidation
+            requirementValidation = requirementValidation,
+            semanticPlan = semanticPlan
         )
     }
 }
