@@ -102,6 +102,38 @@ internal class ExecutionDiagnostics(
         return record
     }
 
+    suspend fun rejectUnavailableSemanticRoutes(
+        automation: Automation,
+        startedAt: Long,
+        runId: String,
+        detail: String,
+    ): ExecutionRecord {
+        val record = ExecutionRecord(
+            id = UUID.randomUUID().toString(),
+            automationId = automation.id,
+            automationName = automation.name,
+            success = false,
+            message = "Blocked: no automatic semantic execution route ($detail)",
+            executedAt = startedAt,
+        )
+        historyRepository.recordExecution(record)
+        recordTimeline(
+            automation = automation,
+            kind = "SEMANTIC_ROUTE_BLOCKED",
+            record = record,
+            startedAt = startedAt,
+            runId = runId,
+        )
+        traceRecorder.recordBlockedRun(
+            runId,
+            automation.id,
+            TraceReasons.CAPABILITY_BLOCKED,
+            "semantic-route:$detail",
+            epochMillis.now(),
+        )
+        return record
+    }
+
     suspend fun rejectIncompleteTimeRange(
         automation: Automation,
         startedAt: Long,
