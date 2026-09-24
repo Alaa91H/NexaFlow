@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.nexaflow.core.engine.BatteryMonitor
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.capability.CapabilityStateStore
+import com.nexaflow.core.execution.capability.PrivilegeStateStore
 import com.nexaflow.core.execution.compat.WorkflowCapabilityValidator
 import com.nexaflow.domain.capability.CapabilitySnapshot
 import com.nexaflow.domain.models.Action
@@ -25,6 +26,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
@@ -36,7 +39,8 @@ class AutomationBuilderViewModel @Inject constructor(
     private val pluginRepository: PluginRepository,
     private val batteryMonitor: BatteryMonitor,
     private val executionEngine: ExecutionEngine,
-    private val capabilityStateStore: CapabilityStateStore
+    private val capabilityStateStore: CapabilityStateStore,
+    private val privilegeStateStore: PrivilegeStateStore
 ) : ViewModel() {
 
     /** One capability-engine snapshot for all builder visibility decisions. */
@@ -47,7 +51,10 @@ class AutomationBuilderViewModel @Inject constructor(
      * behind a permission unlock immediately after the user returns from the
      * grant screen instead of waiting for the next periodic refresh.
      */
-    fun refreshCapabilities() = capabilityStateStore.refresh()
+    fun refreshCapabilities() {
+        capabilityStateStore.refresh()
+        privilegeStateStore.refresh()
+    }
 
     /** User-defined global variables, so the editor can offer %VAR insertion. */
     val variables: StateFlow<List<GlobalVariable>> = variableRepository.getVariables()
@@ -147,10 +154,15 @@ class AutomationBuilderViewModel @Inject constructor(
             // immediately raced the scan and got the pre-refresh answer — a
             // task the device can actually run was silently saved disabled
             // (root cause of the reported "tasks skipped on save" bug).
-            val admitted = WorkflowCapabilityValidator.validate(
-                automation,
-                capabilityStateStore.freshSnapshot()
-            ).admissible
+            val admitted = coroutineScope {
+                val capabilitySnapshot = async { capabilityStateStore.freshSnapshot() }
+                val privilegeSnapshot = async { privilegeStateStore.freshSnapshot() }
+                WorkflowCapabilityValidator.validate(
+                    automation = automation,
+                    capabilitySnapshot = capabilitySnapshot.await(),
+                    privilegeSnapshot = privilegeSnapshot.await()
+                ).admissible
+            }
             val storedAutomation = automation.copy(
                 enabled = resolvedSavedEnabled(
                     previousEnabled = prev?.enabled,
