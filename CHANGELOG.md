@@ -2,27 +2,46 @@
 
 ## [Unreleased]
 
+## [v3.88.0] - 2026-09-24
+
 ### Added — Wear OS automation foundation
 
-- Added a shared `:core:wear-protocol` contract used by the phone, execution core,
-  and Wear app so Data Layer paths, keys, capabilities and protocol versioning have
-  one source of truth instead of mirrored literals.
-- Added versioned v1 paths for commands, events, results, device state and capability
-  negotiation while preserving the existing run/toggle/sync paths for installed-version
+- Added a shared `:core:wear-protocol` contract used by the phone app, execution core,
+  and Wear app, giving Data Layer paths, keys, capabilities, and protocol versioning a
+  single source of truth instead of mirrored literals.
+- Added versioned v1 paths and typed serializable envelopes for commands, events,
+  results, device state, capability negotiation, TTL handling, and forward-compatible
+  JSON decoding, while preserving the existing run/toggle/sync paths for installed-version
   compatibility.
-- Added typed serializable envelopes, command/result models, watch event kinds, device
-  descriptors, capability snapshots, TTL handling and forward-compatible JSON decoding,
-  with contract tests covering legacy stability and round trips.
-- Added a stable per-install watch identity plus a durable capability advertisement.
-  The phone now bootstraps a watch registry from cached Data Layer state and updates the
-  same watch entry across node-id changes instead of treating re-pairing as a new device.
+- Added stable per-install watch identity and durable capability advertisement. The phone
+  now bootstraps its watch registry from cached Data Layer state and preserves the same
+  logical watch identity across node-ID changes and re-pairing.
 - Added the first first-class Wear OS automation trigger: watch connection state
-  (CONNECTED / DISCONNECTED). Live Data Layer reachability now flows through the
-  canonical EventBus and TriggerIndex into a stateful Wear router, with durable
-  enter/exit bookkeeping, cooldown handling, ALL/ANY-aware lifecycle behavior,
-  live TriggerStateEvaluator support, builder configuration, dashboard/detail
-  rendering, localized UI, and regression coverage.
+  (`CONNECTED` / `DISCONNECTED`). Live Data Layer reachability now flows through the
+  canonical EventBus and TriggerIndex into the stateful Wear router, including durable
+  enter/exit bookkeeping, cooldown handling, ANY/ALL lifecycle behavior,
+  TriggerStateEvaluator integration, builder configuration, dashboard/detail rendering,
+  localized UI, and regression coverage.
 
+### Fixed
+
+- Fixed the Wear automation build by reusing the existing Wear event subtitle resource
+  instead of referencing a missing resource.
+- Fixed the Wear device-registry snapshot test by serializing capability enum names,
+  keeping the persisted test representation aligned with the production registry format.
+
+### Tests and reliability
+
+- Added protocol contract coverage for legacy-path stability, serialization round trips,
+  capability snapshots, and forward-compatible decoding.
+- Expanded regression coverage for Wear connection-state lifecycle behavior, registry
+  identity continuity, trigger-state evaluation, and builder/detail presentation.
+
+### Compatibility
+
+- Existing Wear run/toggle/sync Data Layer paths remain supported for compatibility with
+  already installed versions.
+- No database schema migration is introduced by this release.
 
 ## [v3.87.0] - 2026-09-23
 
