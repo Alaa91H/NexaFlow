@@ -19,6 +19,18 @@
 - Explicit capability refreshes now bypass the passive anti-storm backoff, while passive
   invalidations remain coalesced. A grant returning from system settings is therefore
   visible immediately without turning background events into probe storms.
+- Added a tri-state workflow requirement graph covering capabilities, Android permissions,
+  special access, AppOps and exact Root/Shizuku authority with `allOf`/`anyOf` semantics.
+  Unobserved state remains `UNKNOWN` instead of becoming a false denial.
+- Runtime admission, builder save admission and dry-run preflight now evaluate the same
+  workflow-level requirement plan, including triggers, main actions, per-action end values
+  and explicit exit actions. Diagnostics identify the exact blocked workflow node.
+- Builder permission repair is now route-aware: it requests only grants that still block
+  the saved workflow. A working Root or Shizuku alternative no longer causes redundant
+  WRITE_SETTINGS/DND/elevated prompts, while exact Root-only/Shizuku-only actions remain pinned.
+- Command-spec Android permissions are merged into the canonical requirement catalog so
+  permissions declared by compatibility metadata automatically reach builder and preflight
+  flows instead of requiring a second hand-maintained permission map.
 
 ### Fixed
 
@@ -28,6 +40,9 @@
 - Root transport failures now invalidate cached Root authority and trigger verified
   privilege re-probing, preventing a revoked superuser grant from remaining falsely
   healthy for later actions.
+- Removed use of non-public PackageManager permission-change listener APIs from the
+  privilege monitor. Public AppOps/settings/Shizuku events, verified grant events and
+  activity-resume rechecks provide the invalidation path without hidden-SDK coupling.
 
 ## [v3.88.0] - 2026-09-24
 
