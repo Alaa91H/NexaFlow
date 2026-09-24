@@ -65,7 +65,10 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
         SemanticOperationId.WIFI_SET_STATE -> when {
             service(WifiManager::class.java) == null ->
                 StrategyAvailability(false, "Wi-Fi service is unavailable")
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !isFrameworkPrivilegedCaller() ->
+            !publicWifiToggleAllowed(
+                Build.VERSION.SDK_INT,
+                isFrameworkPrivilegedCaller()
+            ) ->
                 StrategyAvailability(
                     false,
                     "Public Wi-Fi toggling is restricted for normal apps on this Android version"
@@ -95,8 +98,10 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
                     reason = "BLUETOOTH_CONNECT has not been granted",
                     permissionRequired = true
                 )
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                    !isFrameworkPrivilegedCaller() ->
+                !publicBluetoothToggleAllowed(
+                    Build.VERSION.SDK_INT,
+                    isFrameworkPrivilegedCaller()
+                ) ->
                     StrategyAvailability(
                         false,
                         "Public Bluetooth toggling is restricted for normal apps on this Android version"
@@ -567,4 +572,15 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
         return systemApp || managed
     }
 }
+
+
+internal fun publicWifiToggleAllowed(
+    sdk: Int,
+    frameworkPrivileged: Boolean
+): Boolean = sdk < 29 || frameworkPrivileged
+
+internal fun publicBluetoothToggleAllowed(
+    sdk: Int,
+    frameworkPrivileged: Boolean
+): Boolean = sdk < 33 || frameworkPrivileged
 
