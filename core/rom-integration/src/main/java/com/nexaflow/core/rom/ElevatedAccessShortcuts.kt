@@ -113,6 +113,7 @@ object ElevatedAccessShortcuts {
             shizukuAppContext = null
             pendingShizukuCallbacks.toList().also { pendingShizukuCallbacks.clear() }
         }
+        PrivilegeStateEvents.notifyChanged()
         Handler(Looper.getMainLooper()).post {
             callbacks.forEach { callback ->
                 runCatching { callback(granted) }
@@ -125,6 +126,7 @@ object ElevatedAccessShortcuts {
             rootRequestInFlight = false
             pendingRootCallbacks.toList().also { pendingRootCallbacks.clear() }
         }
+        PrivilegeStateEvents.notifyChanged()
         mainHandler.post {
             callbacks.forEach { callback ->
                 runCatching { callback(granted) }
@@ -175,10 +177,16 @@ object ElevatedAccessShortcuts {
             val granted = runCatching {
                 PrivilegedRunner.triggerSuPrompt()
             }.getOrDefault(false)
-            // Drop the cached probe so permission checks pick up the new grant
-            // immediately instead of within the TTL window. Refresh failures
-            // must not suppress delivery of the actual root-manager result.
-            runCatching { SystemAppStatusDetector.refreshRootAvailability() }
+            // A successful prompt is a verified authorization transition:
+            // force one uid=0 read-back immediately so the old negative cache
+            // cannot survive behind the anti-storm spacing guard.
+            runCatching {
+                if (granted) {
+                    SystemAppStatusDetector.refreshAndProbe()
+                } else {
+                    SystemAppStatusDetector.refreshRootAvailability()
+                }
+            }
             completeRootRequest(granted, mainHandler)
         }
         runCatching { requestThread.start() }
