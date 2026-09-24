@@ -304,7 +304,8 @@ object AppModule {
         val store = CapabilityStateStore(
             registry = registry,
             environmentInspector = CapabilityEnvironmentInspector.forContext(context),
-            scope = scope
+            scope = scope,
+            privilegeSnapshotProvider = { privilegeStateStore.snapshot.value }
         )
         scope.launch {
             privilegeStateStore.snapshot.collect { privilegeSnapshot ->
