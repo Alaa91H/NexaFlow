@@ -3,6 +3,7 @@ package com.nexaflow.core.execution
 import android.content.Context
 import android.os.PowerManager
 import com.nexaflow.domain.capability.CapabilitySnapshot
+import com.nexaflow.domain.capability.PrivilegeSnapshot
 import com.nexaflow.domain.models.ActionExecutionResult
 
 internal enum class SnapshotFreshness {
@@ -13,6 +14,16 @@ internal enum class SnapshotFreshness {
 
 internal fun classifySnapshotFreshness(
     snapshot: CapabilitySnapshot,
+    nowMs: Long,
+    freshnessMs: Long
+): SnapshotFreshness = when {
+    snapshot.neverObserved -> SnapshotFreshness.NEVER_OBSERVED
+    nowMs - snapshot.observedAtMs > freshnessMs -> SnapshotFreshness.STALE
+    else -> SnapshotFreshness.FRESH
+}
+
+internal fun classifySnapshotFreshness(
+    snapshot: PrivilegeSnapshot,
     nowMs: Long,
     freshnessMs: Long
 ): SnapshotFreshness = when {
