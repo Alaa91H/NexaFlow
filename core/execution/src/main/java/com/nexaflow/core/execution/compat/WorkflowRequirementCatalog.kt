@@ -112,9 +112,21 @@ object WorkflowRequirementCatalog {
     fun plan(
         automation: Automation,
         sdk: Int = runtimeSdk()
+    ): WorkflowRequirementPlan = plan(
+        triggers = automation.triggers,
+        actions = automation.actions,
+        exitActions = automation.exitActions,
+        sdk = sdk
+    )
+
+    fun plan(
+        triggers: List<Trigger>,
+        actions: List<Action>,
+        exitActions: List<Action> = emptyList(),
+        sdk: Int = runtimeSdk()
     ): WorkflowRequirementPlan {
         val entries = buildList {
-            automation.triggers.forEachIndexed { index, trigger ->
+            triggers.forEachIndexed { index, trigger ->
                 add(
                     WorkflowRequirementEntry(
                         owner = "trigger:$index:${trigger.type.name}",
@@ -124,7 +136,7 @@ object WorkflowRequirementCatalog {
                 )
             }
 
-            automation.actions.forEachIndexed { index, action ->
+            actions.forEachIndexed { index, action ->
                 add(
                     WorkflowRequirementEntry(
                         owner = "action:$index:${action.type.name}",
@@ -146,7 +158,7 @@ object WorkflowRequirementCatalog {
                     }
             }
 
-            automation.exitActions.forEachIndexed { index, action ->
+            exitActions.forEachIndexed { index, action ->
                 add(
                     WorkflowRequirementEntry(
                         owner = "exitAction:$index:${action.type.name}",
@@ -164,8 +176,30 @@ object WorkflowRequirementCatalog {
         capabilitySnapshot: CapabilitySnapshot,
         privilegeSnapshot: PrivilegeSnapshot,
         sdk: Int = runtimeSdk()
+    ): WorkflowPermissionRepairPlan = repairPlan(
+        plan = plan(automation, sdk),
+        capabilitySnapshot = capabilitySnapshot,
+        privilegeSnapshot = privilegeSnapshot
+    )
+
+    fun repairPlan(
+        triggers: List<Trigger>,
+        actions: List<Action>,
+        exitActions: List<Action> = emptyList(),
+        capabilitySnapshot: CapabilitySnapshot,
+        privilegeSnapshot: PrivilegeSnapshot,
+        sdk: Int = runtimeSdk()
+    ): WorkflowPermissionRepairPlan = repairPlan(
+        plan = plan(triggers, actions, exitActions, sdk),
+        capabilitySnapshot = capabilitySnapshot,
+        privilegeSnapshot = privilegeSnapshot
+    )
+
+    private fun repairPlan(
+        plan: WorkflowRequirementPlan,
+        capabilitySnapshot: CapabilitySnapshot,
+        privilegeSnapshot: PrivilegeSnapshot
     ): WorkflowPermissionRepairPlan {
-        val plan = plan(automation, sdk)
         val resolutions = plan.resolveEntries(capabilitySnapshot, privilegeSnapshot)
             .associateBy { it.owner }
 
