@@ -97,6 +97,47 @@ class CapabilityStateStoreTest {
     }
 
     @Test
+    fun `explicit refresh bypasses passive backoff after a grant change`() = runTest {
+        val backend = MutableAvailabilityBackend(CapabilityAvailability.AVAILABLE)
+        val registry = CapabilityRegistry.of(
+            descriptors = listOf(
+                CapabilityDescriptor(
+                    id = CapabilityId.DEVICE_STATE_READ,
+                    displayName = "Device state",
+                    description = "Test descriptor",
+                    supportedBackends = listOf(CapabilityBackendId.ANDROID_API)
+                )
+            ),
+            backends = listOf(backend)
+        )
+        val store = CapabilityStateStore(
+            registry = registry,
+            environmentInspector = inspector(),
+            scope = this,
+            nowMs = { 1_000L },
+            registerShizukuStateListener = { listener -> listener() },
+            minRefreshIntervalMs = 30_000L
+        )
+
+        advanceUntilIdle()
+        assertEquals(0L, currentTime)
+
+        backend.availability = CapabilityAvailability.UNAVAILABLE
+        store.refresh()
+        advanceUntilIdle()
+
+        assertEquals(
+            "explicit permission refresh must not sleep through the passive backoff",
+            0L,
+            currentTime
+        )
+        assertEquals(
+            CapabilityAvailability.UNAVAILABLE,
+            store.snapshot.value.availabilityOf(CapabilityId.DEVICE_STATE_READ)
+        )
+    }
+
+    @Test
     fun `probe failure does not block a later capability refresh`() = runTest {
         val backend = FailOnceBackend()
         val registry = CapabilityRegistry.of(
