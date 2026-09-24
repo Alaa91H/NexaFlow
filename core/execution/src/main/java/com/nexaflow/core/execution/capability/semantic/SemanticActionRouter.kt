@@ -172,7 +172,11 @@ class SemanticActionRouter(
             action,
             workflowId,
             executionId,
-            privilegedPolicyEnabled()
+            // Planning is read-only, so include privileged candidates even
+            // before a grant exists. Their live availability still decides
+            // readiness, and execution re-applies the real policy immediately
+            // before the side effect.
+            allowPrivilegedStrategies = true
         ) ?: return OperationExecutionPlan(
             operation = operation,
             status = OperationPlanStatus.INVALID_CONFIGURATION,
