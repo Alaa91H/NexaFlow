@@ -60,13 +60,25 @@ class SemanticWorkflowPlanner(
     suspend fun plan(
         automation: Automation,
         executionId: String? = null
+    ): SemanticWorkflowExecutionPlan = plan(
+        workflowId = automation.id,
+        actions = automation.actions,
+        exitActions = automation.exitActions,
+        executionId = executionId
+    )
+
+    suspend fun plan(
+        workflowId: String,
+        actions: List<Action>,
+        exitActions: List<Action> = emptyList(),
+        executionId: String? = null
     ): SemanticWorkflowExecutionPlan {
         val nodes = buildList {
-            automation.actions.forEachIndexed { index, action ->
+            actions.forEachIndexed { index, action ->
                 addPlan(
                     owner = "action:$index:${action.type.name}",
                     action = action,
-                    workflowId = automation.id,
+                    workflowId = workflowId,
                     executionId = executionId
                 )
                 action.endBehavior
@@ -75,16 +87,16 @@ class SemanticWorkflowPlanner(
                         addPlan(
                             owner = "endBehavior:$index:${action.type.name}",
                             action = action.withConfig(endBehavior.config),
-                            workflowId = automation.id,
+                            workflowId = workflowId,
                             executionId = executionId
                         )
                     }
             }
-            automation.exitActions.forEachIndexed { index, action ->
+            exitActions.forEachIndexed { index, action ->
                 addPlan(
                     owner = "exitAction:$index:${action.type.name}",
                     action = action,
-                    workflowId = automation.id,
+                    workflowId = workflowId,
                     executionId = executionId
                 )
             }
