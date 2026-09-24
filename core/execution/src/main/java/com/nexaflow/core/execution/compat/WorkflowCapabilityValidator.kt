@@ -22,7 +22,7 @@ object WorkflowCapabilityValidator {
         automation: Automation,
         capabilitySnapshot: CapabilitySnapshot,
         privilegeSnapshot: PrivilegeSnapshot = PrivilegeSnapshot(),
-        sdk: Int = Build.VERSION.SDK_INT
+        sdk: Int = Build.VERSION.SDK_INT.takeIf { it > 0 } ?: 37
     ): WorkflowCapabilityValidationResult {
         val plan = WorkflowRequirementCatalog.plan(automation, sdk)
         val resolution = ExecutionRequirementResolver.resolve(
