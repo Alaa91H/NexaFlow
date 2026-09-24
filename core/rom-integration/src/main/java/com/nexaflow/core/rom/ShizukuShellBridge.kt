@@ -50,6 +50,11 @@ object ShizukuShellBridge {
         listener.invoke()
     }
 
+    /** Removes a previously registered lifecycle observer. */
+    fun removeStateListener(listener: () -> Unit) {
+        stateListeners -= listener
+    }
+
     private fun notifyStateChanged() {
         stateListeners.forEach { listener -> runCatching { listener.invoke() } }
     }
