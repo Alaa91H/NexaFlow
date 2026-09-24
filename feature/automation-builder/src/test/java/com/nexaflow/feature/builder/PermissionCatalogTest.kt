@@ -28,6 +28,18 @@ class PermissionCatalogTest {
     }
 
     @Test
+    fun `legacy elevated command specs surface one shared elevated hint`() {
+        assertEquals(
+            SpecialPermission.ELEVATED,
+            PermissionCatalog.specialPermissionFor(ActionType.SYSTEM_REBOOT)
+        )
+        assertEquals(
+            SpecialPermission.ELEVATED,
+            PermissionCatalog.specialPermissionFor(ActionType.SYSTEM_SHUTDOWN)
+        )
+    }
+
+    @Test
     fun `private dns and charging feedback require elevated access`() {
         assertEquals(SpecialPermission.ELEVATED, PermissionCatalog.specialPermissionFor(ActionType.SYSTEM_PRIVATE_DNS))
         assertEquals(SpecialPermission.ELEVATED, PermissionCatalog.specialPermissionFor(ActionType.SYSTEM_CHARGING_FEEDBACK))
