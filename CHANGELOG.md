@@ -9,12 +9,25 @@
   request was created. Explicit `backend`/`channel` selections still pin execution.
 - Added reusable adaptive and pinned privileged execution-policy constructors so future
   capability adapters share the same authorization and fallback semantics.
+- Added one event-driven privilege snapshot covering declared Android runtime permissions,
+  mapped AppOps, special app access, Shizuku readiness, verified Root authority, and
+  Device Owner state. Permission settings now render from this shared verified snapshot.
+- Runtime permission changes, watched AppOps, accessibility/notification-listener secure
+  settings, Shizuku lifecycle transitions, elevated repair flows, and activity resume all
+  invalidate the shared state. Capability diagnostics consume the same snapshot instead
+  of independently inferring Root/Shizuku/managed-device readiness.
+- Explicit capability refreshes now bypass the passive anti-storm backoff, while passive
+  invalidations remain coalesced. A grant returning from system settings is therefore
+  visible immediately without turning background events into probe storms.
 
 ### Fixed
 
 - Fixed the fresh-root grant path so a successful superuser prompt is immediately
   re-probed before permission repair. The pre-prompt negative root cache can no longer
   cause the same grant flow to fall through as if no elevated runtime were available.
+- Root transport failures now invalidate cached Root authority and trigger verified
+  privilege re-probing, preventing a revoked superuser grant from remaining falsely
+  healthy for later actions.
 
 ## [v3.88.0] - 2026-09-24
 
