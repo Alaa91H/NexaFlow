@@ -153,7 +153,16 @@ class CapabilityStateStore(
             for (request in diagnosticRequestsFor(capability)) add(diagnostics.report(request))
         }
         val candidates = reports.flatMap(CapabilityAvailabilityReport::backends)
+        val missingPermissions = registry.descriptorFor(capability)
+            ?.requiredPermissions
+            ?.filter { permission ->
+                privilegeSnapshotProvider?.invoke()
+                    ?.takeUnless { it.neverObserved }
+                    ?.grantedAndroidPermission(permission) == false
+            }
+            .orEmpty()
         val availability = when {
+            missingPermissions.isNotEmpty() -> CapabilityAvailability.PERMISSION_REQUIRED
             candidates.any { it.availability == CapabilityAvailability.AVAILABLE } -> CapabilityAvailability.AVAILABLE
             candidates.any { it.availability == CapabilityAvailability.PARTIAL } -> CapabilityAvailability.PARTIAL
             candidates.any { it.availability == CapabilityAvailability.PERMISSION_REQUIRED } -> CapabilityAvailability.PERMISSION_REQUIRED
@@ -164,8 +173,12 @@ class CapabilityStateStore(
             capability = capability,
             availability = availability,
             backends = candidates.distinctBy { Triple(it.backend, it.availability, it.reason) },
-            reason = candidates.firstOrNull { it.availability == availability }?.reason
-                ?: candidates.firstOrNull { it.reason != null }?.reason
+            reason = if (missingPermissions.isNotEmpty()) {
+                "Required Android permission is not granted: " + missingPermissions.sorted().joinToString(",")
+            } else {
+                candidates.firstOrNull { it.availability == availability }?.reason
+                    ?: candidates.firstOrNull { it.reason != null }?.reason
+            }
         )
     }
 
