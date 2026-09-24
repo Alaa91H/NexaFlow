@@ -91,6 +91,38 @@ class WorkflowCapabilityValidatorTest {
 
         assertFalse(result.admissible)
         assertTrue(result.missingPrivileges.isNotEmpty())
+        assertTrue("action:0:SYSTEM_REBOOT" in result.blockedOwners)
+        assertTrue("trigger:0:TIME" in result.unknownOwners)
+    }
+
+    @Test
+    fun `reports an unavailable exit action as the exact blocked workflow node`() {
+        val base = automation(ActionType.SYSTEM_SEND_NOTIFICATION)
+        val withExit = base.copy(
+            triggers = emptyList(),
+            exitActions = listOf(Action(ActionType.SYSTEM_REBOOT, emptyMap()))
+        )
+        val result = WorkflowCapabilityValidator.validate(
+            withExit,
+            CapabilitySnapshot(observedAtMs = 1L),
+            privilegeSnapshot(
+                PrivilegeObservation(
+                    PrivilegeSurface.SHIZUKU,
+                    PrivilegeSnapshot.ENV_SHIZUKU,
+                    PrivilegeGrantState.NOT_RUNNING,
+                    "SHIZUKU_SERVER_NOT_RUNNING"
+                ),
+                PrivilegeObservation(
+                    PrivilegeSurface.ROOT,
+                    PrivilegeSnapshot.ENV_ROOT,
+                    PrivilegeGrantState.NOT_GRANTED,
+                    "ROOT_NOT_GRANTED"
+                )
+            )
+        )
+
+        assertFalse(result.admissible)
+        assertTrue("exitAction:0:SYSTEM_REBOOT" in result.blockedOwners)
     }
 
     @Test
