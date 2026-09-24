@@ -6,6 +6,7 @@ import com.nexaflow.core.engine.BatteryMonitor
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.capability.CapabilityStateStore
 import com.nexaflow.core.execution.capability.PrivilegeStateStore
+import com.nexaflow.core.execution.capability.semantic.SemanticWorkflowPlanner
 import com.nexaflow.core.execution.compat.WorkflowCapabilityValidator
 import com.nexaflow.core.execution.compat.WorkflowPermissionRepairPlan
 import com.nexaflow.core.execution.compat.WorkflowRequirementCatalog
@@ -43,7 +44,8 @@ class AutomationBuilderViewModel @Inject constructor(
     private val batteryMonitor: BatteryMonitor,
     private val executionEngine: ExecutionEngine,
     private val capabilityStateStore: CapabilityStateStore,
-    private val privilegeStateStore: PrivilegeStateStore
+    private val privilegeStateStore: PrivilegeStateStore,
+    private val semanticWorkflowPlanner: SemanticWorkflowPlanner
 ) : ViewModel() {
 
     /** One capability-engine snapshot for all builder visibility decisions. */
@@ -184,11 +186,13 @@ class AutomationBuilderViewModel @Inject constructor(
             val admitted = coroutineScope {
                 val capabilitySnapshot = async { capabilityStateStore.freshSnapshot() }
                 val privilegeSnapshot = async { privilegeStateStore.freshSnapshot() }
-                WorkflowCapabilityValidator.validate(
+                val semanticPlan = async { semanticWorkflowPlanner.plan(automation) }
+                val requirementsAdmissible = WorkflowCapabilityValidator.validate(
                     automation = automation,
                     capabilitySnapshot = capabilitySnapshot.await(),
                     privilegeSnapshot = privilegeSnapshot.await()
                 ).admissible
+                requirementsAdmissible && semanticPlan.await().executable
             }
             val storedAutomation = automation.copy(
                 enabled = resolvedSavedEnabled(
