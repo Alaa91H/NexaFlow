@@ -75,8 +75,14 @@ class CapabilityEnvironmentInspector(
             )
         val state = when (observation.state) {
             PrivilegeGrantState.GRANTED -> CapabilityEnvironmentState.AVAILABLE
-            PrivilegeGrantState.PERMISSION_REQUIRED,
-            PrivilegeGrantState.NOT_GRANTED -> CapabilityEnvironmentState.PERMISSION_REQUIRED
+            PrivilegeGrantState.PERMISSION_REQUIRED -> CapabilityEnvironmentState.PERMISSION_REQUIRED
+            PrivilegeGrantState.NOT_GRANTED -> {
+                if (environment == CapabilityEnvironmentId.MANAGED_DEVICE) {
+                    CapabilityEnvironmentState.UNAVAILABLE
+                } else {
+                    CapabilityEnvironmentState.PERMISSION_REQUIRED
+                }
+            }
             PrivilegeGrantState.NOT_INSTALLED -> CapabilityEnvironmentState.NOT_INSTALLED
             PrivilegeGrantState.NOT_RUNNING -> CapabilityEnvironmentState.NOT_RUNNING
             PrivilegeGrantState.SERVICE_UNAVAILABLE,
