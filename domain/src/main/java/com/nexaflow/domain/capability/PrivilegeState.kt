@@ -80,6 +80,11 @@ data class PrivilegeSnapshot(
     fun grantedRuntimePermission(permission: String): Boolean? =
         isGranted(PrivilegeSurface.RUNTIME_PERMISSION, permission)
 
+    /** Effective manifest-permission grant, regardless of protection level. */
+    fun grantedAndroidPermission(permission: String): Boolean? =
+        isGranted(PrivilegeSurface.RUNTIME_PERMISSION, permission)
+            ?: isGranted(PrivilegeSurface.ANDROID_PERMISSION, permission)
+
     companion object {
         const val SPECIAL_ACCESSIBILITY_SERVICE = "accessibility_service"
         const val SPECIAL_NOTIFICATION_LISTENER = "notification_listener"
