@@ -41,13 +41,24 @@ data class WorkflowPermissionRequirement(
 
 data class WorkflowRequirementEntry(
     val owner: String,
-    val requirement: ExecutionRequirement
+    val requirement: ExecutionRequirement,
+    val permissionHint: WorkflowPermissionRequirement = WorkflowPermissionRequirement()
 )
 
 data class WorkflowRequirementEntryResolution(
     val owner: String,
     val resolution: ExecutionRequirementResolution
 )
+
+data class WorkflowPermissionRepairPlan(
+    val runtimePermissions: List<String> = emptyList(),
+    val specialPermissions: List<WorkflowSpecialPermission> = emptyList(),
+    val blockedOwners: Set<String> = emptySet(),
+    val unknownOwners: Set<String> = emptySet()
+) {
+    val requiresUserAction: Boolean
+        get() = runtimePermissions.isNotEmpty() || specialPermissions.isNotEmpty()
+}
 
 data class WorkflowRequirementPlan(
     val entries: List<WorkflowRequirementEntry>
@@ -107,7 +118,8 @@ object WorkflowRequirementCatalog {
                 add(
                     WorkflowRequirementEntry(
                         owner = "trigger:$index:${trigger.type.name}",
-                        requirement = requirementFor(trigger, sdk)
+                        requirement = requirementFor(trigger, sdk),
+                        permissionHint = permissionRequirementFor(trigger, sdk)
                     )
                 )
             }
@@ -116,7 +128,8 @@ object WorkflowRequirementCatalog {
                 add(
                     WorkflowRequirementEntry(
                         owner = "action:$index:${action.type.name}",
-                        requirement = requirementFor(action, sdk)
+                        requirement = requirementFor(action, sdk),
+                        permissionHint = permissionRequirementFor(action, sdk)
                     )
                 )
                 action.endBehavior
@@ -126,7 +139,8 @@ object WorkflowRequirementCatalog {
                         add(
                             WorkflowRequirementEntry(
                                 owner = "endBehavior:$index:${action.type.name}",
-                                requirement = requirementFor(endAction, sdk)
+                                requirement = requirementFor(endAction, sdk),
+                                permissionHint = permissionRequirementFor(endAction, sdk)
                             )
                         )
                     }
@@ -136,12 +150,60 @@ object WorkflowRequirementCatalog {
                 add(
                     WorkflowRequirementEntry(
                         owner = "exitAction:$index:${action.type.name}",
-                        requirement = requirementFor(action, sdk)
+                        requirement = requirementFor(action, sdk),
+                        permissionHint = permissionRequirementFor(action, sdk)
                     )
                 )
             }
         }
         return WorkflowRequirementPlan(entries)
+    }
+
+    fun repairPlan(
+        automation: Automation,
+        capabilitySnapshot: CapabilitySnapshot,
+        privilegeSnapshot: PrivilegeSnapshot,
+        sdk: Int = runtimeSdk()
+    ): WorkflowPermissionRepairPlan {
+        val plan = plan(automation, sdk)
+        val resolutions = plan.resolveEntries(capabilitySnapshot, privilegeSnapshot)
+            .associateBy { it.owner }
+
+        val blockedOwners = linkedSetOf<String>()
+        val unknownOwners = linkedSetOf<String>()
+        val runtimePermissions = linkedSetOf<String>()
+        val specialPermissions = linkedSetOf<WorkflowSpecialPermission>()
+
+        plan.entries.forEach { entry ->
+            val resolution = resolutions[entry.owner]?.resolution ?: return@forEach
+            when (resolution.state) {
+                com.nexaflow.domain.capability.ExecutionRequirementState.READY -> Unit
+                com.nexaflow.domain.capability.ExecutionRequirementState.UNKNOWN -> {
+                    unknownOwners += entry.owner
+                }
+                com.nexaflow.domain.capability.ExecutionRequirementState.BLOCKED -> {
+                    blockedOwners += entry.owner
+                    entry.permissionHint.runtimePermissions
+                        .filter { permission ->
+                            privilegeSnapshot.grantedAndroidPermission(permission) == false
+                        }
+                        .forEach(runtimePermissions::add)
+
+                    entry.permissionHint.special
+                        ?.takeIf { special ->
+                            isSpecialGrantMissing(special, privilegeSnapshot)
+                        }
+                        ?.let(specialPermissions::add)
+                }
+            }
+        }
+
+        return WorkflowPermissionRepairPlan(
+            runtimePermissions = runtimePermissions.toList(),
+            specialPermissions = specialPermissions.toList(),
+            blockedOwners = blockedOwners,
+            unknownOwners = unknownOwners
+        )
     }
 
     fun requirementFor(
@@ -409,6 +471,65 @@ object WorkflowRequirementCatalog {
             WorkflowSpecialPermission.ELEVATED -> elevatedAuthority()
             null -> ExecutionRequirement.None
         }
+
+    private fun isSpecialGrantMissing(
+        special: WorkflowSpecialPermission,
+        snapshot: PrivilegeSnapshot
+    ): Boolean = when (special) {
+        WorkflowSpecialPermission.WRITE_SETTINGS ->
+            snapshot.isGranted(
+                PrivilegeSurface.SPECIAL_ACCESS,
+                PrivilegeSnapshot.SPECIAL_WRITE_SETTINGS
+            ) == false
+
+        WorkflowSpecialPermission.DND_ACCESS ->
+            snapshot.isGranted(
+                PrivilegeSurface.SPECIAL_ACCESS,
+                PrivilegeSnapshot.SPECIAL_DND_POLICY
+            ) == false
+
+        WorkflowSpecialPermission.NOTIFICATION_ACCESS ->
+            snapshot.isGranted(
+                PrivilegeSurface.SPECIAL_ACCESS,
+                PrivilegeSnapshot.SPECIAL_NOTIFICATION_LISTENER
+            ) == false
+
+        WorkflowSpecialPermission.ACCESSIBILITY ->
+            snapshot.isGranted(
+                PrivilegeSurface.SPECIAL_ACCESS,
+                PrivilegeSnapshot.SPECIAL_ACCESSIBILITY_SERVICE
+            ) == false
+
+        WorkflowSpecialPermission.EXACT_ALARM ->
+            snapshot.isGranted(
+                PrivilegeSurface.SPECIAL_ACCESS,
+                PrivilegeSnapshot.SPECIAL_EXACT_ALARM
+            ) == false
+
+        WorkflowSpecialPermission.SHIZUKU ->
+            snapshot.isGranted(
+                PrivilegeSurface.SHIZUKU,
+                PrivilegeSnapshot.ENV_SHIZUKU
+            ) == false
+
+        WorkflowSpecialPermission.ROOT ->
+            snapshot.isGranted(
+                PrivilegeSurface.ROOT,
+                PrivilegeSnapshot.ENV_ROOT
+            ) == false
+
+        WorkflowSpecialPermission.ELEVATED -> {
+            val shizuku = snapshot.isGranted(
+                PrivilegeSurface.SHIZUKU,
+                PrivilegeSnapshot.ENV_SHIZUKU
+            )
+            val root = snapshot.isGranted(
+                PrivilegeSurface.ROOT,
+                PrivilegeSnapshot.ENV_ROOT
+            )
+            shizuku == false && root == false
+        }
+    }
 
     private fun exactBackendRequirement(actionType: ActionType): ExecutionRequirement? =
         when (CommandCatalog.specFor(actionType)?.requiredBackend) {
