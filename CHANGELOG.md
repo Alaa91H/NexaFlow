@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Changed — Hybrid privilege routing
+
+- Capability-mapped privileged actions now use adaptive execution by default instead of
+  freezing whichever Root/Shizuku provider happened to be available while the action
+  request was created. Explicit `backend`/`channel` selections still pin execution.
+- Added reusable adaptive and pinned privileged execution-policy constructors so future
+  capability adapters share the same authorization and fallback semantics.
+
+### Fixed
+
+- Fixed the fresh-root grant path so a successful superuser prompt is immediately
+  re-probed before permission repair. The pre-prompt negative root cache can no longer
+  cause the same grant flow to fall through as if no elevated runtime were available.
+
 ## [v3.88.0] - 2026-09-24
 
 ### Added — Wear OS automation foundation
