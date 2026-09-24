@@ -10,6 +10,7 @@ import com.nexaflow.domain.capability.CapabilityResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.currentTime
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -131,6 +132,46 @@ class CapabilityStateStoreTest {
             0L,
             currentTime
         )
+        assertEquals(
+            CapabilityAvailability.UNAVAILABLE,
+            store.snapshot.value.availabilityOf(CapabilityId.DEVICE_STATE_READ)
+        )
+    }
+
+    @Test
+    fun `explicit refresh wakes a worker sleeping in passive backoff`() = runTest {
+        val backend = MutableAvailabilityBackend(CapabilityAvailability.AVAILABLE)
+        val registry = CapabilityRegistry.of(
+            descriptors = listOf(
+                CapabilityDescriptor(
+                    id = CapabilityId.DEVICE_STATE_READ,
+                    displayName = "Device state",
+                    description = "Test descriptor",
+                    supportedBackends = listOf(CapabilityBackendId.ANDROID_API)
+                )
+            ),
+            backends = listOf(backend)
+        )
+        val store = CapabilityStateStore(
+            registry = registry,
+            environmentInspector = inspector(),
+            scope = this,
+            nowMs = { 1_000L },
+            registerShizukuStateListener = { listener -> listener() },
+            minRefreshIntervalMs = 30_000L
+        )
+        advanceUntilIdle()
+        assertEquals(0L, currentTime)
+
+        backend.availability = CapabilityAvailability.UNAVAILABLE
+        store.invalidate()
+        runCurrent() // worker is now suspended in the passive 30s delay
+        assertEquals(0L, currentTime)
+
+        store.refresh()
+        runCurrent()
+
+        assertEquals(0L, currentTime)
         assertEquals(
             CapabilityAvailability.UNAVAILABLE,
             store.snapshot.value.availabilityOf(CapabilityId.DEVICE_STATE_READ)
