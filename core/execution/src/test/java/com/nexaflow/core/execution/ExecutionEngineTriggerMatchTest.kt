@@ -9,6 +9,8 @@ import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.handler.ActionExecutionContext
 import com.nexaflow.core.execution.handler.ActionHandler
 import com.nexaflow.core.execution.handler.ActionRegistry
+import com.nexaflow.core.logging.InMemoryLogStore
+import com.nexaflow.core.logging.TraceReasons
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
@@ -21,6 +23,7 @@ import com.nexaflow.domain.repositories.HistoryRepository
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -355,6 +358,58 @@ class ExecutionEngineTriggerMatchTest {
         assertEquals(0, handler.calls)
         assertTrue(record.message.contains("Skipped"))
         assertTrue(record.message.contains("unverifiable"))
+    }
+
+
+    @Test
+    fun allGateTraceRecordsTypedEvidenceSources() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val logStore = InMemoryLogStore()
+        val currentDarkMode = if (
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        ) "ON" else "OFF"
+        val oppositeDarkMode = if (currentDarkMode == "ON") "OFF" else "ON"
+        val task = automation(TriggerMatchMode.ALL).copy(
+            id = "typed-all-trace",
+            triggers = listOf(
+                Trigger(TriggerType.SMS, mapOf("contains" to "private-content")),
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to oppositeDarkMode)),
+            ),
+        )
+        ActiveExecutionStore(context).clear(task.id)
+
+        val engine = ExecutionEngine(
+            context = context,
+            historyRepository = history,
+            notificationPreferences = NotificationPreferences(context),
+            actionRegistry = ActionRegistry.from(listOf(handler)),
+            logStore = logStore,
+        )
+
+        val record = engine.runAutomation(
+            automation = task,
+            triggerOccurrence = TriggerOccurrence.single(
+                triggerIndex = 0,
+                occurredAtEpochMs = System.currentTimeMillis(),
+                sourceId = "sms",
+            ),
+        )
+
+        assertEquals(0, handler.calls)
+        assertTrue(record.message.startsWith("Skipped:"))
+
+        val trace = logStore.timeline().first().firstOrNull {
+            it.traceReasonCode == TraceReasons.TRIGGER_AND_UNSATISFIED
+        }
+        requireNotNull(trace)
+        val detail = trace.traceDetail.orEmpty()
+        assertTrue(detail.contains("#0:SMS=SATISFIED@CURRENT_EVENT"))
+        assertTrue(detail.contains("#1:DARK_MODE=UNSATISFIED@LIVE_STATE"))
+        assertTrue(!detail.contains("private-content"))
+
+        ActiveExecutionStore(context).clear(task.id)
     }
 
 }
