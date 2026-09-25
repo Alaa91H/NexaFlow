@@ -122,9 +122,11 @@ sealed interface PrivilegedOperation {
     }
 
     /**
-     * Starts or stops the device Soft AP through the reviewed WifiShell command.
-     * The old hidden WifiManager#setWifiApEnabled reflection disappeared from
-     * modern Android releases and must never be the primary Shizuku path.
+     * Starts or stops Wi-Fi Internet tethering. On API 36+ the Shizuku
+     * UserService handles this typed wire operation through TetheringManager.
+     * The argv shape is retained only for the closed operation contract and
+     * compatibility tooling; production Root routing rejects it because a bare
+     * WifiShell Soft AP command is not equivalent to Internet tethering.
      */
     data class SetHotspot(val enabled: Boolean) : PrivilegedOperation {
         override val wireId: PrivilegedOperationId = PrivilegedOperationId.HOTSPOT_SET
