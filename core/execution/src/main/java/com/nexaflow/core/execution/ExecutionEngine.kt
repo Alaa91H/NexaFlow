@@ -457,7 +457,7 @@ class ExecutionEngine(
                     runId = payloadContext.runId,
                     automationId = automation.id,
                     reasonCode = reasonCode,
-                    detail = "$skipDetail | ${triggerSnapshot.diagnosticDetail()}".take(1_024),
+                    detail = triggerSnapshot.diagnosticDetail(),
                     atEpochMs = startedAt,
                 )
                 return record
