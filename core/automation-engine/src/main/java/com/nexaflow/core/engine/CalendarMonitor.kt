@@ -13,6 +13,7 @@ import androidx.core.net.toUri
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerOccurrence
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
@@ -157,7 +158,8 @@ class CalendarMonitor @Inject constructor(
         events: List<CalendarEvent>,
         now: Long
     ) {
-        val triggers = automation.triggers.filter { it.type == TriggerType.CALENDAR }
+        val triggers = automation.triggers.withIndex()
+            .filter { (_, trigger) -> trigger.type == TriggerType.CALENDAR }
         val processed = processedEvents.getOrPut(automation.id) {
             Collections.newSetFromMap(ConcurrentHashMap())
         }
@@ -166,7 +168,9 @@ class CalendarMonitor @Inject constructor(
         }
         var changed = false
 
-        triggers.forEach { trigger ->
+        triggers.forEach { indexedTrigger ->
+            val triggerIndex = indexedTrigger.index
+            val trigger = indexedTrigger.value
             val eventType = trigger.config["event"] ?: "EVENT_START"
             val beforeMinutes = trigger.config["beforeMinutes"]?.toLongOrNull() ?: 0L
             val matching = events.filter { event ->
@@ -184,7 +188,7 @@ class CalendarMonitor @Inject constructor(
                             activeStates[automation.id] = occurrence
                             val occurrenceKey = "${automation.id}|${occurrence.eventId}:${occurrence.start}"
                             scope.launch { activeStore.markActive(SOURCE, occurrenceKey) }
-                            fire(automation)
+                            fire(automation, triggerIndex, now)
                         }
                     }
                 }
@@ -194,7 +198,7 @@ class CalendarMonitor @Inject constructor(
                         if (now >= event.end && !processed.contains(occurrence)) {
                             processed.add(occurrence)
                             changed = true
-                            fire(automation)
+                            fire(automation, triggerIndex, now)
                         }
                     }
                 }
@@ -203,7 +207,7 @@ class CalendarMonitor @Inject constructor(
                         if (!processedCreatedIds.contains(event.id)) {
                             processedCreatedIds.add(event.id)
                             changed = true
-                            fire(automation)
+                            fire(automation, triggerIndex, now)
                         }
                     }
                 }
@@ -242,12 +246,25 @@ class CalendarMonitor @Inject constructor(
         }
     }
 
-    private fun fire(automation: Automation) {
-        val now = System.currentTimeMillis()
+    private fun fire(
+        automation: Automation,
+        triggerIndex: Int,
+        occurredAtEpochMs: Long,
+    ) {
+        val dispatchAt = System.currentTimeMillis()
         val last = lastRunAt[automation.id] ?: 0L
-        if (now - last <= automation.cooldownMillis) return
-        lastRunAt[automation.id] = now
-        scope.launch { executionEngine.runAutomation(automation) }
+        if (dispatchAt - last <= automation.cooldownMillis) return
+        lastRunAt[automation.id] = dispatchAt
+        scope.launch {
+            executionEngine.runAutomation(
+                automation = automation,
+                triggerOccurrence = TriggerOccurrence.single(
+                    triggerIndex = triggerIndex,
+                    occurredAtEpochMs = occurredAtEpochMs,
+                    sourceId = SOURCE,
+                ),
+            )
+        }
     }
 
     private fun matchesTrigger(config: Map<String, String>, event: CalendarEvent): Boolean {
