@@ -103,7 +103,7 @@ class PluginEventRouter(
                         matchedTriggerIndices = matchedTriggerIndices,
                         occurredAtEpochMs = event.occurredAt,
                         sourceId = TriggerSource.PLUGIN.sourceId,
-                        eventId = eventId,
+                        eventId = event.eventId,
                     ),
                 )
             }
