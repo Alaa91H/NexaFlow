@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: [ "main" ]
-    tags: [ "v*" ]
+    tags: [ "v[0-9]*" ]
   pull_request:
     branches: [ "main" ]
   pull_request_target:
@@ -15,42 +15,6 @@ on:
 permissions: {}
 
 jobs:
-  changes:
-    name: Detect workflow control requests
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-26.04
-    permissions:
-      contents: read
-    outputs:
-      release_build_387: ${{ steps.filter.outputs.release_build_387 }}
-      release_build_388: ${{ steps.filter.outputs.release_build_388 }}
-      release_request_387: ${{ steps.filter.outputs.release_request_387 }}
-      release_request_388: ${{ steps.filter.outputs.release_request_388 }}
-      repair_release_387: ${{ steps.filter.outputs.repair_release_387 }}
-      verify_release_388: ${{ steps.filter.outputs.verify_release_388 }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 2
-          persist-credentials: false
-      - name: Detect control-file changes
-        id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            release_build_387:
-              - '.github/release-build-request-v3.87.0'
-            release_build_388:
-              - '.github/release-build-request-v3.88.0'
-            release_request_387:
-              - '.github/release-request-v3.87.0'
-            release_request_388:
-              - '.github/release-request-v3.88.0'
-            repair_release_387:
-              - '.github/repair-release-assets-v3.87.0'
-            verify_release_388:
-              - '.github/verify-release-v3.88.0'
-
   lint:
     if: github.event_name != 'pull_request_target'
     permissions:
@@ -143,7 +107,7 @@ jobs:
     # Keep lint and packaging on the same reviewed runner baseline.
     runs-on: ubuntu-26.04
     permissions:
-      contents: write
+      contents: read
     steps:
     - uses: actions/checkout@v7
       with:
@@ -152,6 +116,20 @@ jobs:
         # producing APKs that can never upgrade a real install.
         fetch-depth: 0
         fetch-tags: true
+    - name: Validate release tag
+      if: startsWith(github.ref, 'refs/tags/')
+      shell: bash
+      run: |
+        set -euo pipefail
+        TAG="$GITHUB_REF_NAME"
+        if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
+          echo "::error::Invalid release tag '$TAG'. Expected vMAJOR.MINOR.PATCH with an optional prerelease suffix."
+          exit 1
+        fi
+        EXACT_TAG="$(git describe --tags --exact-match --match 'v[0-9]*' HEAD 2>/dev/null || true)"
+        test "$EXACT_TAG" = "$TAG" || { echo "::error::Checked-out commit does not resolve exactly to release tag $TAG."; exit 1; }
+        git fetch origin main --no-tags
+        git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "::error::Release tags must point to a commit contained in main."; exit 1; }
     - name: set up JDK 17
       uses: actions/setup-java@v5
       with:
@@ -188,6 +166,7 @@ jobs:
               echo "NEXAFLOW_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD"
               echo "NEXAFLOW_KEY_ALIAS=$KEY_ALIAS"
               echo "NEXAFLOW_KEY_PASSWORD=$KEY_PASSWORD"
+              echo "NEXAFLOW_SIGNING_CONFIGURED=true"
             } >> "$GITHUB_ENV"
           else
             echo "Release keystore credentials are incomplete; signing variables were not exported."
@@ -214,6 +193,19 @@ jobs:
         # distributed APK so the map works for all users, not just local builds.
         NEXAFLOW_MAPS_API_KEY: ${{ secrets.NEXAFLOW_MAPS_API_KEY }}
       run: ./gradlew assembleDebug assembleRelease
+    - name: Verify packaged version matches release tag
+      if: startsWith(github.ref, 'refs/tags/')
+      shell: bash
+      run: |
+        set -euo pipefail
+        APK=app/build/outputs/apk/release/app-release.apk
+        AAPT="$(ls "$ANDROID_SDK_ROOT"/build-tools/*/aapt | sort -V | tail -1)"
+        ACTUAL_VERSION="$("$AAPT" dump badging "$APK" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p" | head -1)"
+        test "$ACTUAL_VERSION" = "$GITHUB_REF_NAME" || {
+          echo "::error::Packaged versionName '$ACTUAL_VERSION' does not match release tag '$GITHUB_REF_NAME'."
+          exit 1
+        }
+        echo "Package version verified: $ACTUAL_VERSION"
     - name: Verify phone/Wear Data Layer identity contract
       run: |
         PHONE_APK=app/build/outputs/apk/release/app-release.apk
@@ -251,7 +243,7 @@ jobs:
     - name: Audit merged release exported components
       run: python3 scripts/audit_exported_components.py --merged app/build/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml
     - name: Verify release APK signing certificate
-      if: ${{ env.KEYSTORE_B64 != '' }}
+      if: env.NEXAFLOW_SIGNING_CONFIGURED == 'true'
       run: |
         APKSIGNER="$(ls "$ANDROID_SDK_ROOT"/build-tools/*/apksigner | sort -V | tail -1)"
         echo "=== Release APK signing certificate ==="
@@ -356,58 +348,116 @@ jobs:
       with:
         name: nexaflow-release-aab
         path: app/build/outputs/bundle/release/app-release.aab
-    - name: Create or Update GitHub Release
-      if: startsWith(github.ref, 'refs/tags/')
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        PRERELEASE=""
-        if [[ "$GITHUB_REF_NAME" == *alpha* || "$GITHUB_REF_NAME" == *beta* || "$GITHUB_REF_NAME" == *rc* ]]; then
-          PRERELEASE="--prerelease"
-        fi
-        APK_NAME="NexaFlow-$GITHUB_REF_NAME.apk"
-        WATCH_APK_NAME="NexaFlow-Wear-$GITHUB_REF_NAME.apk"
-        cp app/build/outputs/apk/release/app-release.apk "$APK_NAME"
-        cp wear/build/outputs/apk/release/wear-release.apk "$WATCH_APK_NAME"
-        python3 scripts/generate_release_notes.py "$GITHUB_REF_NAME" > release-notes.md
-        if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-          echo "Release $GITHUB_REF_NAME already exists — replacing APK assets with the latest build."
-          gh release delete-asset "$GITHUB_REF_NAME" "$APK_NAME" --yes >/dev/null 2>&1 || true
-          gh release delete-asset "$GITHUB_REF_NAME" "app-release.apk" --yes >/dev/null 2>&1 || true
-          gh release delete-asset "$GITHUB_REF_NAME" "$WATCH_APK_NAME" --yes >/dev/null 2>&1 || true
-          gh release delete-asset "$GITHUB_REF_NAME" "wear-release.apk" --yes >/dev/null 2>&1 || true
-          gh release upload "$GITHUB_REF_NAME" "$APK_NAME" "$WATCH_APK_NAME" --clobber
-          gh release edit "$GITHUB_REF_NAME" --notes-file release-notes.md
-        else
-          gh release create "$GITHUB_REF_NAME" \
-            "$APK_NAME" \
-            "$WATCH_APK_NAME" \
-            --title "NexaFlow $GITHUB_REF_NAME" \
-            --notes-file release-notes.md \
-            $PRERELEASE
-        fi
-    - name: Verify Release Assets Are Attached
-      if: startsWith(github.ref, 'refs/tags/')
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        APK_NAME="NexaFlow-$GITHUB_REF_NAME.apk"
-        WATCH_APK_NAME="NexaFlow-Wear-$GITHUB_REF_NAME.apk"
-        sleep 5
-        for attempt in 1 2 3; do
-          MISSING="$(gh release view "$GITHUB_REF_NAME" --json assets \
-            | jq --arg phone "$APK_NAME" --arg watch "$WATCH_APK_NAME" \
-              '[$phone, $watch] - [.assets[].name] | length' 2>/dev/null || echo 99)"
-          if [ "$MISSING" = "0" ]; then
-            echo "All release assets attached for $GITHUB_REF_NAME."
-            exit 0
+
+  release:
+    name: Publish tagged release
+    needs: [lint, build]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    concurrency:
+      group: nexaflow-release-${{ github.ref }}
+      cancel-in-progress: false
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Validate release tag and changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]] || {
+            echo "::error::Invalid release tag '$TAG'."
+            exit 1
+          }
+          python3 scripts/audit_catalog_and_releases.py tag-changelog "$TAG"
+
+      - name: Download phone APK
+        uses: actions/download-artifact@v7
+        with:
+          name: nexaflow-release-apk
+          path: release-assets/phone
+
+      - name: Download Wear OS APK
+        uses: actions/download-artifact@v7
+        with:
+          name: nexaflow-wear-release-apk
+          path: release-assets/wear
+
+      - name: Download Android App Bundle
+        uses: actions/download-artifact@v7
+        with:
+          name: nexaflow-release-aab
+          path: release-assets/aab
+
+      - name: Prepare versioned release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          PHONE="NexaFlow-$TAG.apk"
+          WEAR="NexaFlow-Wear-$TAG.apk"
+          BUNDLE="NexaFlow-$TAG.aab"
+          cp release-assets/phone/app-release.apk "$PHONE"
+          cp release-assets/wear/wear-release.apk "$WEAR"
+          cp release-assets/aab/app-release.aab "$BUNDLE"
+          test -s "$PHONE"
+          test -s "$WEAR"
+          test -s "$BUNDLE"
+          python3 scripts/generate_release_notes.py "$TAG" > release-notes.md
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          PHONE="NexaFlow-$TAG.apk"
+          WEAR="NexaFlow-Wear-$TAG.apk"
+          BUNDLE="NexaFlow-$TAG.aab"
+          PRERELEASE=()
+          [[ "$TAG" == *-* ]] && PRERELEASE=(--prerelease)
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$PHONE" "$WEAR" "$BUNDLE" --clobber
+            gh release edit "$TAG" --title "NexaFlow $TAG" --notes-file release-notes.md "${PRERELEASE[@]}"
+          else
+            gh release create "$TAG" "$PHONE" "$WEAR" "$BUNDLE" \
+              --verify-tag \
+              --title "NexaFlow $TAG" \
+              --notes-file release-notes.md \
+              "${PRERELEASE[@]}"
           fi
-          echo "Missing $MISSING asset(s) (attempt $attempt) — re-uploading..."
-          gh release upload "$GITHUB_REF_NAME" "$APK_NAME" "$WATCH_APK_NAME" --clobber || true
-          sleep 15
-        done
-        echo "::error::Release assets failed to attach for $GITHUB_REF_NAME — run must not pass silently."
-        exit 1
+
+      - name: Verify published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          PHONE="NexaFlow-$TAG.apk"
+          WEAR="NexaFlow-Wear-$TAG.apk"
+          BUNDLE="NexaFlow-$TAG.aab"
+          RELEASE_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")"
+          test "$(jq -r '.tag_name' <<<"$RELEASE_JSON")" = "$TAG"
+          test "$(jq -r '.draft' <<<"$RELEASE_JSON")" = "false"
+          MISSING="$(jq --arg phone "$PHONE" --arg wear "$WEAR" --arg bundle "$BUNDLE" \
+            '[$phone, $wear, $bundle] - [.assets[].name] | length' <<<"$RELEASE_JSON")"
+          test "$MISSING" = "0"
+          for ASSET in "$PHONE" "$WEAR" "$BUNDLE"; do
+            SIZE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .size' <<<"$RELEASE_JSON")"
+            STATE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .state' <<<"$RELEASE_JSON")"
+            test -n "$SIZE" && test "$SIZE" -gt 0
+            test "$STATE" = "uploaded"
+          done
+          echo "Release $TAG published and verified."
 
   consolidate:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[merge-all-branches]')
@@ -634,224 +684,3 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: gh pr merge "$PR_URL" --auto --squash --delete-branch
-
-  dispatch-release-build-v3-87-0:
-    needs: changes
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.release_build_387 == 'true'
-    permissions:
-      actions: write
-      contents: read
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Validate release tag
-        shell: bash
-        run: |
-          set -euo pipefail
-          VERSION="$(tr -d '[:space:]' < .github/release-build-request-v3.87.0)"
-          test "$VERSION" = "v3.87.0"
-          git rev-parse "$VERSION^{commit}" >/dev/null
-          grep -Fq "## [$VERSION] - 2026-09-23" CHANGELOG.md
-
-      - name: Dispatch Android CI on release tag
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          VERSION="$(tr -d '[:space:]' < .github/release-build-request-v3.87.0)"
-          gh workflow run nexaflow-ci.yml --ref "$VERSION"
-
-  dispatch-release-build-v3-88-0:
-    needs: changes
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.release_build_388 == 'true'
-    permissions:
-      actions: write
-      contents: read
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Validate release tag
-        shell: bash
-        run: |
-          set -euo pipefail
-          VERSION="$(tr -d '[:space:]' < .github/release-build-request-v3.88.0)"
-          test "$VERSION" = "v3.88.0"
-          git rev-parse "$VERSION^{commit}" >/dev/null
-          grep -Fq "## [$VERSION] - 2026-09-24" CHANGELOG.md
-
-      - name: Dispatch Android CI on release tag
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          VERSION="$(tr -d '[:space:]' < .github/release-build-request-v3.88.0)"
-          gh workflow run nexaflow-ci.yml --ref "$VERSION"
-
-  create-release-tag-v3-87-0:
-    needs: changes
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.release_request_387 == 'true'
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Validate release request
-        shell: bash
-        run: |
-          set -euo pipefail
-          VERSION="$(tr -d '[:space:]' < .github/release-request-v3.87.0)"
-          test "$VERSION" = "v3.87.0"
-          grep -Fq "## [$VERSION] - 2026-09-23" CHANGELOG.md
-          if git rev-parse "$VERSION" >/dev/null 2>&1; then
-            echo "::error::Tag $VERSION already exists."
-            exit 1
-          fi
-
-      - name: Create tag and seed GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          VERSION="$(tr -d '[:space:]' < .github/release-request-v3.87.0)"
-          gh release create "$VERSION" \
-            --target "$GITHUB_SHA" \
-            --title "NexaFlow $VERSION" \
-            --notes "Release build in progress. The Android CI tag workflow will attach the signed phone and Wear OS APKs and replace these notes with the reviewed changelog."
-
-  create-release-tag-v3-88-0:
-    needs: changes
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.release_request_388 == 'true'
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Validate release request
-        shell: bash
-        run: |
-          set -euo pipefail
-          VERSION="$(tr -d '[:space:]' < .github/release-request-v3.88.0)"
-          test "$VERSION" = "v3.88.0"
-          grep -Fq "## [$VERSION] - 2026-09-24" CHANGELOG.md
-          if git rev-parse "$VERSION" >/dev/null 2>&1; then
-            echo "::error::Tag $VERSION already exists."
-            exit 1
-          fi
-
-      - name: Create tag and seed GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          VERSION="$(tr -d '[:space:]' < .github/release-request-v3.88.0)"
-          gh release create "$VERSION" \
-            --target "$GITHUB_SHA" \
-            --title "NexaFlow $VERSION" \
-            --notes "Release build in progress. The Android CI tag workflow will attach the signed phone and Wear OS APKs and replace these notes with the reviewed changelog."
-
-  repair-release-v3-87-0:
-    needs: changes
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.repair_release_387 == 'true'
-    permissions:
-      actions: read
-      contents: write
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Download signed release APK artifacts
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          gh run download 35894958963 -n nexaflow-release-apk -D /tmp/nexaflow-phone
-          gh run download 35894958963 -n nexaflow-wear-release-apk -D /tmp/nexaflow-wear
-
-          PHONE_APK="$(find /tmp/nexaflow-phone -type f -name '*.apk' -print -quit)"
-          WEAR_APK="$(find /tmp/nexaflow-wear -type f -name '*.apk' -print -quit)"
-          test -n "$PHONE_APK"
-          test -n "$WEAR_APK"
-
-          cp "$PHONE_APK" NexaFlow-v3.87.0.apk
-          cp "$WEAR_APK" NexaFlow-Wear-v3.87.0.apk
-
-      - name: Replace release assets with versioned filenames
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          TAG=v3.87.0
-
-          gh release delete-asset "$TAG" "app-release.apk" --yes >/dev/null 2>&1 || true
-          gh release delete-asset "$TAG" "wear-release.apk" --yes >/dev/null 2>&1 || true
-          gh release delete-asset "$TAG" "NexaFlow-v3.87.0.apk" --yes >/dev/null 2>&1 || true
-          gh release delete-asset "$TAG" "NexaFlow-Wear-v3.87.0.apk" --yes >/dev/null 2>&1 || true
-
-          gh release upload "$TAG" NexaFlow-v3.87.0.apk NexaFlow-Wear-v3.87.0.apk --clobber
-
-          MISSING="$(gh release view "$TAG" --json assets --jq '["NexaFlow-v3.87.0.apk","NexaFlow-Wear-v3.87.0.apk"] - [.assets[].name] | length')"
-          test "$MISSING" = "0"
-          echo "Release assets repaired successfully."
-
-  verify-release-v3-88-0:
-    needs: changes
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.verify_release_388 == 'true'
-    permissions:
-      contents: read
-    runs-on: ubuntu-latest
-    steps:
-      - name: Verify published release assets and notes
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          TAG=v3.88.0
-          PHONE="NexaFlow-v3.88.0.apk"
-          WEAR="NexaFlow-Wear-v3.88.0.apk"
-
-          RELEASE_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")"
-
-          test "$(jq -r '.tag_name' <<<"$RELEASE_JSON")" = "$TAG"
-          test "$(jq -r '.draft' <<<"$RELEASE_JSON")" = "false"
-
-          MISSING="$(jq --arg phone "$PHONE" --arg wear "$WEAR"             '[$phone, $wear] - [.assets[].name] | length' <<<"$RELEASE_JSON")"
-          test "$MISSING" = "0"
-
-          for ASSET in "$PHONE" "$WEAR"; do
-            SIZE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .size' <<<"$RELEASE_JSON")"
-            STATE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .state' <<<"$RELEASE_JSON")"
-            DIGEST="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .digest // empty' <<<"$RELEASE_JSON")"
-            test -n "$SIZE" && test "$SIZE" -gt 0
-            test "$STATE" = "uploaded"
-            test -n "$DIGEST"
-          done
-
-          BODY="$(jq -r '.body // ""' <<<"$RELEASE_JSON")"
-          grep -Fq "### Added — Wear OS automation foundation" <<<"$BODY"
-          grep -Fq "### Fixed" <<<"$BODY"
-          ! grep -Fq "Release build in progress" <<<"$BODY"
-
-          echo "Release $TAG is complete: notes and both signed APK assets are present."
