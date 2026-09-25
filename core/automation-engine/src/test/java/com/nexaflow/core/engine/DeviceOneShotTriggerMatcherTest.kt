@@ -117,6 +117,20 @@ class DeviceOneShotTriggerMatcherTest {
                 flagValue = false,
             )
         )
+        assertTrue(
+            DeviceOneShotTriggerMatcher.matches(
+                TriggerType.ALARM_SET_CHANGED,
+                emptyMap(),
+                flagValue = true,
+            )
+        )
+        assertTrue(
+            DeviceOneShotTriggerMatcher.matches(
+                TriggerType.ALARM_SET_CHANGED,
+                emptyMap(),
+                flagValue = false,
+            )
+        )
     }
 
     @Test
