@@ -11,6 +11,7 @@ import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerOccurrence
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
@@ -211,7 +212,9 @@ class LocationMonitor @Inject constructor(
             automations
                 .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.LOCATION } }
                 .forEach { automation ->
-                    val trigger = automation.triggers.first { it.type == TriggerType.LOCATION }
+                    val triggerIndex = automation.triggers.indexOfFirst { it.type == TriggerType.LOCATION }
+                    if (triggerIndex < 0) return@forEach
+                    val trigger = automation.triggers[triggerIndex]
                     val lat = trigger.config["lat"]?.toDoubleOrNull() ?: return@forEach
                     val lng = trigger.config["lng"]?.toDoubleOrNull() ?: return@forEach
                     val radius = trigger.config["radius"]?.toDoubleOrNull() ?: return@forEach
@@ -256,7 +259,13 @@ class LocationMonitor @Inject constructor(
                                 occurrenceId = occurrenceId,
                                 source = SOURCE,
                                 sourceKey = automation.id
-                            )
+                            ),
+                            triggerOccurrence = TriggerOccurrence.single(
+                                triggerIndex = triggerIndex,
+                                occurredAtEpochMs = now,
+                                sourceId = SOURCE,
+                                eventId = occurrenceId,
+                            ),
                         )
                         val accepted = runtimeStore.current(automation.id)?.let { state ->
                             state.occurrenceId == occurrenceId && state.source == SOURCE
