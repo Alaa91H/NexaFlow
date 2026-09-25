@@ -5,6 +5,7 @@ import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerMatchMode
+import kotlinx.coroutines.CancellationException
 
 /**
  * One concrete trigger event that caused an automation evaluation.
@@ -135,12 +136,16 @@ object TriggerExpressionEvaluator {
                     source = TriggerEvidenceSource.CURRENT_EVENT,
                 )
             } else {
-                val result = runCatching {
+                val result = try {
                     stateReader(trigger)
-                }.getOrElse { error ->
-                    ConditionResult.Error(
-                        error.message?.takeIf { it.isNotBlank() } ?: "unreadable trigger state"
-                    )
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (failure: Throwable) {
+                    val reason = failure.message
+                        ?.takeIf { it.isNotBlank() }
+                        ?.take(1_024)
+                        ?: "unreadable trigger state"
+                    ConditionResult.Error(reason)
                 }
                 TriggerEvidence(
                     triggerIndex = index,
