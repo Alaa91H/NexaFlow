@@ -64,7 +64,15 @@ import java.util.UUID
  * Executes tasks. Action dispatch is delegated to an [ActionRegistry] so new
  * actions (built-in or plugin-provided) plug in without changing the engine.
  * Every run is recorded to the [LogStore] execution timeline.
+ *
+ * This class is intentionally the lifecycle orchestration boundary. Most
+ * implementation work is already delegated to focused collaborators (registry,
+ * admission gates, diagnostics, capability execution, progress tracking and
+ * durable stores), while keeping run/exit ownership in one place prevents
+ * lifecycle races. Suppress the size-only rule locally rather than weakening
+ * LargeClass for the rest of the project.
  */
+@Suppress("LargeClass")
 class ExecutionEngine(
     private val context: Context,
     private val historyRepository: HistoryRepository,
