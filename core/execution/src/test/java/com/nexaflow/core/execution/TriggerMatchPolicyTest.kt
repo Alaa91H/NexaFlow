@@ -168,4 +168,70 @@ class TriggerMatchPolicyTest {
         assertFalse(TriggerMatchPolicy.isEventOnly(range))
     }
 
+
+    @Test
+    fun aggregatePreservesTriStateSemantics() {
+        assertEquals(
+            ConditionResult.Satisfied,
+            TriggerMatchPolicy.aggregate(
+                TriggerMatchMode.ANY,
+                listOf(ConditionResult.Unknown, ConditionResult.Satisfied),
+            ),
+        )
+        assertEquals(
+            ConditionResult.Unknown,
+            TriggerMatchPolicy.aggregate(
+                TriggerMatchMode.ANY,
+                listOf(ConditionResult.Unsatisfied, ConditionResult.Unknown),
+            ),
+        )
+        assertEquals(
+            ConditionResult.Unsatisfied,
+            TriggerMatchPolicy.aggregate(
+                TriggerMatchMode.ALL,
+                listOf(ConditionResult.Satisfied, ConditionResult.Unsatisfied, ConditionResult.Unknown),
+            ),
+        )
+        assertEquals(
+            ConditionResult.Unknown,
+            TriggerMatchPolicy.aggregate(
+                TriggerMatchMode.ALL,
+                listOf(ConditionResult.Satisfied, ConditionResult.Unavailable),
+            ),
+        )
+    }
+
+    @Test
+    fun eventSemanticsDistinguishSingleEventFromSameOccurrenceRequirement() {
+        val sms = Trigger(TriggerType.SMS, mapOf("contains" to "otp"))
+        val dark = Trigger(TriggerType.DARK_MODE, mapOf("state" to "ON"))
+        val notification = Trigger(TriggerType.NOTIFICATION, mapOf("contains" to "otp"))
+
+        assertEquals(
+            TriggerMatchPolicy.AllModeEventSemantics.CURRENT_EVENT_WITH_LIVE_STATE,
+            TriggerMatchPolicy.allModeEventSemantics(listOf(sms, dark)),
+        )
+        assertEquals(
+            TriggerMatchPolicy.AllModeEventSemantics.SAME_OCCURRENCE_REQUIRED,
+            TriggerMatchPolicy.allModeEventSemantics(listOf(sms, notification)),
+        )
+        assertEquals(
+            TriggerMatchPolicy.AllModeEventSemantics.NONE,
+            TriggerMatchPolicy.allModeEventSemantics(listOf(dark)),
+        )
+    }
+
+    @Test
+    fun multipleMomentaryConditionsExplainSameOccurrenceRequirement() {
+        val smsOne = Trigger(TriggerType.SMS, mapOf("from" to "111"))
+        val smsTwo = Trigger(TriggerType.SMS, mapOf("contains" to "otp"))
+
+        val message = TriggerMatchPolicy.skipMessage(
+            listOf(smsOne, smsTwo),
+            listOf(ConditionResult.Satisfied, ConditionResult.Unknown),
+        )
+
+        assertTrue(message.contains("same current occurrence"))
+    }
+
 }
