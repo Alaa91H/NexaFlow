@@ -152,4 +152,20 @@ class TriggerMatchPolicyTest {
         val message = TriggerMatchPolicy.skipMessage(listOf(sms), listOf(unknown))
         assertTrue(message.contains("condition state unverifiable"))
     }
+
+    @Test
+    fun oneShotTimeIsEventOnlyButTimeRangeIsStateReadable() {
+        val instant = Trigger(
+            TriggerType.TIME,
+            mapOf("timeMode" to "AT", "time" to "22:00")
+        )
+        val range = Trigger(
+            TriggerType.TIME,
+            mapOf("timeMode" to "RANGE", "rangeStart" to "22:00", "rangeEnd" to "07:00")
+        )
+
+        assertTrue(TriggerMatchPolicy.isEventOnly(instant))
+        assertFalse(TriggerMatchPolicy.isEventOnly(range))
+    }
+
 }
