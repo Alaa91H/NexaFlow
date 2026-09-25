@@ -11,8 +11,10 @@ import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerMatchPolicy
 import com.nexaflow.core.execution.TriggerOccurrence
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
@@ -41,10 +43,13 @@ class LocationMonitor @Inject constructor(
     @Volatile
     private var initialized = false
     private var listening = false
-    private val insideByAutomation = mutableMapOf<String, Boolean>()
+    /** Last definitive inside/outside state per configured location trigger. */
+    private val insideByTrigger = mutableMapOf<LocationTriggerKey, Boolean>()
     private val lastRunAt = mutableMapOf<String, Long>()
     /** Automations currently in their triggered state (to fire exit when leaving). */
     private val activeStates = mutableMapOf<String, Boolean>()
+    /** Location trigger indices that own the accepted occurrence lifecycle. */
+    private val activeTriggerIndices = mutableMapOf<String, Set<Int>>()
     /** Serializes location transitions so an exit cannot race activation. */
     private val evaluationMutex = Mutex()
 
@@ -89,6 +94,10 @@ class LocationMonitor @Inject constructor(
             .forEach { state ->
                 if (state.automationId in enabledIds) {
                     activeStates[state.automationId] = true
+                    activeTriggerIndices[state.automationId] =
+                        decodeSourceKey(state.sourceKey).ifEmpty {
+                            fallbackLocationTriggerIndices(automations[state.automationId])
+                        }
                     activeStore.markActive(SOURCE, state.automationId)
                 } else {
                     runtimeStore.clear(state.automationId, state.occurrenceId)
@@ -98,7 +107,13 @@ class LocationMonitor @Inject constructor(
             val id = key.substringBefore('|')
             if (id in enabledIds) {
                 activeStates[id] = true
+                activeTriggerIndices.putIfAbsent(
+                    id,
+                    fallbackLocationTriggerIndices(automations[id]),
+                )
             } else {
+                activeStates.remove(id)
+                activeTriggerIndices.remove(id)
                 activeStore.clearAutomation(SOURCE, id)
             }
         }
@@ -191,10 +206,13 @@ class LocationMonitor @Inject constructor(
      */
     private fun adaptiveParams(automations: List<Automation>): Pair<Long, Float> {
         val radius = automations
-            .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.LOCATION } }
-            .mapNotNull {
-                it.triggers.first { t -> t.type == TriggerType.LOCATION }.config["radius"]?.toFloatOrNull()
+            .asSequence()
+            .filter { it.enabled }
+            .flatMap { automation ->
+                automation.triggers.asSequence()
+                    .filter { it.type == TriggerType.LOCATION }
             }
+            .mapNotNull { it.config["radius"]?.toFloatOrNull() }
             .minOrNull()
         return when {
             radius == null -> 120_000L to 100f
@@ -212,45 +230,86 @@ class LocationMonitor @Inject constructor(
             automations
                 .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.LOCATION } }
                 .forEach { automation ->
-                    val triggerIndex = automation.triggers.indexOfFirst { it.type == TriggerType.LOCATION }
-                    if (triggerIndex < 0) return@forEach
-                    val trigger = automation.triggers[triggerIndex]
-                    val lat = trigger.config["lat"]?.toDoubleOrNull() ?: return@forEach
-                    val lng = trigger.config["lng"]?.toDoubleOrNull() ?: return@forEach
-                    val radius = trigger.config["radius"]?.toDoubleOrNull() ?: return@forEach
-                    val event = trigger.config["event"] ?: "ENTER"
-                    val source = trigger.config["source"] ?: "current"
-                    if (!FixedLocationEvaluator.isValidCoordinate(lat, lng) ||
-                        !FixedLocationEvaluator.isValidRadius(radius) ||
-                        !FixedLocationEvaluator.isValidCoordinate(location.latitude, location.longitude) ||
-                        event !in setOf("ENTER", "EXIT")
-                    ) return@forEach
+                    val evaluations = automation.triggers.mapIndexedNotNull { index, trigger ->
+                        if (trigger.type != TriggerType.LOCATION) return@mapIndexedNotNull null
+                        val key = LocationTriggerKey(automation.id, index)
+                        val result = LocationTriggerEvidenceEvaluator.evaluate(
+                            trigger = trigger,
+                            deviceLatitude = location.latitude,
+                            deviceLongitude = location.longitude,
+                            previousInside = insideByTrigger[key],
+                        ) ?: return@mapIndexedNotNull null
+                        IndexedLocationEvaluation(index, result)
+                    }
+                    if (evaluations.isEmpty()) return@forEach
 
-                    val distance = FloatArray(1)
-                    Location.distanceBetween(lat, lng, location.latitude, location.longitude, distance)
-                    val inside = distance[0].toDouble() <= radius
-                    val wasInside = insideByAutomation[automation.id]
+                    evaluations.forEach { evaluation ->
+                        insideByTrigger[
+                            LocationTriggerKey(automation.id, evaluation.index)
+                        ] = evaluation.result.inside
+                    }
 
-                    // Selected fixed locations deliberately initialise their state
-                    // without emitting an event after process/device restart.
-                    // The legacy current-location flow retains its established
-                    // first-fix behavior.
-                    val shouldRun = if (source == "selected") {
-                        val previous = wasInside?.let {
-                            if (it) FixedLocationEvaluator.TransitionState.INSIDE
-                            else FixedLocationEvaluator.TransitionState.OUTSIDE
-                        } ?: FixedLocationEvaluator.TransitionState.UNKNOWN
-                        val requested = if (event == "ENTER") FixedLocationEvaluator.EventType.ENTER
-                        else FixedLocationEvaluator.EventType.EXIT
-                        FixedLocationEvaluator.transition(previous, inside, requested) != null
-                    } else {
-                        when (event) {
-                            "ENTER" -> inside && wasInside != true
-                            "EXIT" -> !inside && wasInside != false
-                            else -> false
+                    var lifecycleActive = activeStates[automation.id] == true
+                    if (lifecycleActive) {
+                        val ownedIndices = activeTriggerIndices[automation.id]
+                            .orEmpty()
+                            .ifEmpty { fallbackLocationTriggerIndices(automation) }
+                        val byIndex = evaluations.associateBy { it.index }
+                        val ownedResults = ownedIndices.map { index ->
+                            byIndex[index]?.result?.let { evaluation ->
+                                if (evaluation.targetStateActive) {
+                                    ConditionResult.Satisfied
+                                } else {
+                                    ConditionResult.Unsatisfied
+                                }
+                            } ?: ConditionResult.Unknown
+                        }
+
+                        val lifecycleDecision = if (ownedResults.isEmpty()) {
+                            ConditionResult.Unknown
+                        } else {
+                            TriggerMatchPolicy.aggregate(
+                                mode = automation.triggerMatch,
+                                results = ownedResults,
+                            )
+                        }
+
+                        // Unknown/unreadable state never ends an active
+                        // occurrence. Only a logically confirmed false
+                        // expression may request the durable exit.
+                        if (lifecycleDecision == ConditionResult.Unsatisfied) {
+                            when (
+                                exitCoordinator.requestExit(
+                                    automation,
+                                    ExitReason.TRIGGER_FALSE,
+                                )
+                            ) {
+                                is ExitCoordinatorResult.Executed,
+                                ExitCoordinatorResult.NotActive,
+                                ExitCoordinatorResult.StaleOccurrence -> {
+                                    activeStates.remove(automation.id)
+                                    activeTriggerIndices.remove(automation.id)
+                                    activeStore.clearAutomation(SOURCE, automation.id)
+                                    lifecycleActive = false
+                                }
+                                ExitCoordinatorResult.AlreadyInProgress,
+                                is ExitCoordinatorResult.RecoveryRequired -> {
+                                    activeStates[automation.id] = true
+                                    lifecycleActive = true
+                                }
+                            }
                         }
                     }
-                    if (shouldRun && now - (lastRunAt[automation.id] ?: 0L) > automation.cooldownMillis) {
+
+                    val matchedTriggerIndices = evaluations
+                        .filter { it.result.eventMatched }
+                        .mapTo(linkedSetOf()) { it.index }
+
+                    if (
+                        !lifecycleActive &&
+                        matchedTriggerIndices.isNotEmpty() &&
+                        now - (lastRunAt[automation.id] ?: 0L) > automation.cooldownMillis
+                    ) {
                         lastRunAt[automation.id] = now
                         val occurrenceId = "location:${automation.id}:${UUID.randomUUID()}"
                         executionEngine.runAutomation(
@@ -258,10 +317,10 @@ class LocationMonitor @Inject constructor(
                             lifecycleContext = AutomationLifecycleContext(
                                 occurrenceId = occurrenceId,
                                 source = SOURCE,
-                                sourceKey = automation.id
+                                sourceKey = encodeSourceKey(matchedTriggerIndices),
                             ),
-                            triggerOccurrence = TriggerOccurrence.single(
-                                triggerIndex = triggerIndex,
+                            triggerOccurrence = TriggerOccurrence(
+                                matchedTriggerIndices = matchedTriggerIndices,
                                 occurredAtEpochMs = now,
                                 sourceId = SOURCE,
                                 eventId = occurrenceId,
@@ -272,6 +331,7 @@ class LocationMonitor @Inject constructor(
                         } == true
                         if (accepted) {
                             activeStates[automation.id] = true
+                            activeTriggerIndices[automation.id] = matchedTriggerIndices
                             activeStore.markActive(SOURCE, automation.id)
                         } else {
                             // Never claim an active state when durable lifecycle
@@ -279,39 +339,44 @@ class LocationMonitor @Inject constructor(
                             lastRunAt.remove(automation.id)
                         }
                     }
-                    // Exit behavior: fire when the configured state (ENTER=inside, EXIT=outside) ends.
-                    val activeShouldEnd = when (event) {
-                        "ENTER" -> !inside && activeStates[automation.id] == true
-                        "EXIT" -> inside && activeStates[automation.id] == true
-                        else -> false
-                    }
-                    // Cooldown guards repeated entries only. Once a task is
-                    // active, its configured end behavior must run immediately
-                    // when the location condition ends, even during cooldown.
-                    if (activeShouldEnd) {
-                        when (exitCoordinator.requestExit(automation, ExitReason.TRIGGER_FALSE)) {
-                            is ExitCoordinatorResult.Executed,
-                            ExitCoordinatorResult.NotActive,
-                            ExitCoordinatorResult.StaleOccurrence -> {
-                                activeStates.remove(automation.id)
-                                activeStore.clearAutomation(SOURCE, automation.id)
-                            }
-                            ExitCoordinatorResult.AlreadyInProgress,
-                            is ExitCoordinatorResult.RecoveryRequired -> {
-                                // Retain the active marker until the durable
-                                // coordinator confirms a successful end.
-                                activeStates[automation.id] = true
-                            }
-                        }
-                    }
-                    insideByAutomation[automation.id] = inside
                 }
             }
         }
     }
 
+    private fun fallbackLocationTriggerIndices(
+        automation: Automation?,
+    ): Set<Int> {
+        if (automation == null) return emptySet()
+        val first = automation.triggers.indexOfFirst { it.type == TriggerType.LOCATION }
+        return if (first >= 0) setOf(first) else emptySet()
+    }
+
+    private fun encodeSourceKey(indices: Set<Int>): String =
+        SOURCE_KEY_PREFIX + indices.sorted().joinToString(",")
+
+    private fun decodeSourceKey(sourceKey: String): Set<Int> {
+        if (!sourceKey.startsWith(SOURCE_KEY_PREFIX)) return emptySet()
+        return sourceKey.removePrefix(SOURCE_KEY_PREFIX)
+            .split(',')
+            .mapNotNull { it.toIntOrNull() }
+            .filter { it >= 0 }
+            .toSet()
+    }
+
+    private data class LocationTriggerKey(
+        val automationId: String,
+        val triggerIndex: Int,
+    )
+
+    private data class IndexedLocationEvaluation(
+        val index: Int,
+        val result: LocationTriggerEvidenceEvaluator.Result,
+    )
+
     private companion object {
         const val SOURCE = "location"
+        const val SOURCE_KEY_PREFIX = "location-indices:"
     }
 
 }
