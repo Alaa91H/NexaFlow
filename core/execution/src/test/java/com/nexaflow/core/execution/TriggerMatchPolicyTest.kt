@@ -1,5 +1,6 @@
 package com.nexaflow.core.execution
 
+import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerMatchMode
@@ -252,6 +253,78 @@ class TriggerMatchPolicyTest {
 
         assertTrue(message.contains("DARK_MODE"))
         assertFalse(message.contains("same current occurrence"))
+    }
+
+
+    @Test
+    fun legacyReviewIsRequiredOnlyForAllWithMomentaryEvidence() {
+        fun task(
+            mode: TriggerMatchMode,
+            triggers: List<Trigger>,
+            version: Int,
+        ) = Automation(
+            id = "review",
+            name = "Review",
+            description = "",
+            icon = "bolt",
+            iconColor = 0L,
+            backgroundColor = 0L,
+            category = "test",
+            priority = 1,
+            enabled = true,
+            triggers = triggers,
+            actions = emptyList(),
+            triggerMatch = mode,
+            createdAt = 0L,
+            updatedAt = 0L,
+            workflowVersion = version,
+        )
+
+        val eventAndState = listOf(
+            Trigger(TriggerType.SMS, emptyMap()),
+            Trigger(TriggerType.DARK_MODE, mapOf("state" to "ON")),
+        )
+        val statesOnly = listOf(
+            Trigger(TriggerType.DARK_MODE, mapOf("state" to "ON")),
+            Trigger(TriggerType.CHARGER, mapOf("state" to "CONNECTED")),
+        )
+
+        assertTrue(
+            TriggerMatchPolicy.requiresOccurrenceSemanticsReview(
+                task(
+                    TriggerMatchMode.ALL,
+                    eventAndState,
+                    Automation.LEGACY_TRIGGER_SEMANTICS_VERSION,
+                )
+            )
+        )
+        assertFalse(
+            TriggerMatchPolicy.requiresOccurrenceSemanticsReview(
+                task(
+                    TriggerMatchMode.ALL,
+                    eventAndState,
+                    Automation.OCCURRENCE_AWARE_TRIGGER_SEMANTICS_VERSION,
+                )
+            )
+        )
+        assertFalse(
+            TriggerMatchPolicy.requiresOccurrenceSemanticsReview(
+                task(
+                    TriggerMatchMode.ALL,
+                    statesOnly,
+                    Automation.LEGACY_TRIGGER_SEMANTICS_VERSION,
+                )
+            )
+        )
+        assertFalse(
+            TriggerMatchPolicy.requiresOccurrenceSemanticsReview(
+                task(
+                    TriggerMatchMode.ANY,
+                    eventAndState,
+                    Automation.LEGACY_TRIGGER_SEMANTICS_VERSION,
+                )
+            )
+        )
     }
 
 }
