@@ -9,7 +9,7 @@
     <string name="execution_task_completed">A tarefa foi concluída com êxito.</string>
     <string name="execution_task_failed">Não foi possível concluir a tarefa.</string>
     <string name="execution_task_skipped">A tarefa foi ignorada.</string>
-    <string name="execution_recovery_queue_awaits_review">A tarefa está pausada enquanto execuções interrompidas são analisadas.</string>
+    <string name="execution_recovery_queue_awaits_review">Há execuções interrompidas que precisam ser revisadas antes que o resultado seja considerado confiável.</string>
     <string name="execution_conditions_not_satisfied_end_behavior_completed">Gatilhos ou condições não satisfeitos. Apenas o comportamento final (ao término da tarefa) foi executado.</string>
     <string name="execution_conditions_not_satisfied_no_end_behavior">Os gatilhos ou condições da tarefa não foram satisfeitos, portanto não pode ser executada agora. Nenhum comportamento final configurado.</string>
     <string name="execution_conditions_not_satisfied_end_behavior_failed">Os gatilhos ou condições da tarefa não foram satisfeitos, portanto não pode ser executada agora. O comportamento final não pôde ser concluído.</string>
