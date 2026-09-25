@@ -835,6 +835,7 @@ object TriggerStateEvaluator {
      */
     private val NON_VERIFIABLE_TYPES = MANUAL_EVENT_ONLY_TYPES + setOf(
         TriggerType.SMS,
+        TriggerType.NOTIFICATION,
         TriggerType.WEBHOOK,
         TriggerType.SENSOR,
         TriggerType.CALENDAR,
