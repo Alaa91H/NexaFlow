@@ -183,6 +183,9 @@ class ExecutionEngine(
     private val runningAutomationIds =
         java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
+    /** Same-process replay protection for sources with a trustworthy event id. */
+    private val occurrenceDeduplicator = TriggerOccurrenceDeduplicator()
+
     /** Serializes the paired in-memory and durable exit-ledger consumption per task. */
     private val exitConsumptionLocks = java.util.concurrent.ConcurrentHashMap<String, Mutex>()
 
@@ -261,6 +264,40 @@ class ExecutionEngine(
         // Strict mode: acquire wake lock for forceful execution (bypasses Doze, ensures CPU stays on)
         val wakeLock = acquireExecutionWakeLock(context, "NexaFlow:runAutomation:${automation.id}")
         try {
+        if (!occurrenceDeduplicator.tryAdmit(automation.id, triggerOccurrence, startedAt)) {
+            val record = ExecutionRecord(
+                id = UUID.randomUUID().toString(),
+                automationId = automation.id,
+                automationName = automation.name,
+                success = true,
+                message = "Skipped: trigger occurrence was already processed",
+                executedAt = startedAt
+            )
+            if (skipReportThrottle.shouldReport(
+                    automationId = automation.id,
+                    reasonKey = "DUPLICATE_OCCURRENCE",
+                    now = startedAt
+                )
+            ) {
+                historyRepository.recordExecution(record)
+                diagnostics.recordTimeline(
+                    automation = automation,
+                    kind = "DUPLICATE_OCCURRENCE_SKIPPED",
+                    record = record,
+                    startedAt = startedAt,
+                    runId = payloadContext.runId
+                )
+                traceRecorder.recordBlockedRun(
+                    payloadContext.runId,
+                    automation.id,
+                    TraceReasons.ADMISSION_REJECTED,
+                    "trigger occurrence was already processed",
+                    epochMillis.now()
+                )
+            }
+            return record
+        }
+
         if (automation.requiresTimeRangeForEndBehavior) {
             return diagnostics.rejectIncompleteTimeRange(automation, startedAt, payloadContext.runId)
         }
