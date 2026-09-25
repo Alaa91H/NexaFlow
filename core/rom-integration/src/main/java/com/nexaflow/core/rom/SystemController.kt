@@ -623,7 +623,7 @@ class SystemController(
         }
     }
 
-    /** Toggle Wi-Fi hotspot through the reviewed elevated WifiShell operation. */
+    /** Toggle Wi-Fi Internet tethering through the reviewed typed elevated operation. */
     fun setHotspot(enabled: Boolean): SystemControlResult {
         val result = PrivilegedRunner.runElevatedOperation(PrivilegedOperation.SetHotspot(enabled))
         return if (result.success) {
