@@ -8,7 +8,7 @@
     <string name="execution_task_completed">Aufgabe wurde erfolgreich abgeschlossen.</string>
     <string name="execution_task_failed">Aufgabe konnte nicht abgeschlossen werden.</string>
     <string name="execution_task_skipped">Aufgabe wurde übersprungen.</string>
-    <string name="execution_recovery_queue_awaits_review">Die Aufgabe ist pausiert, während unterbrochene Ausführungen geprüft werden.</string>
+    <string name="execution_recovery_queue_awaits_review">Unterbrochene Ausführungen müssen überprüft werden, bevor ihr Ergebnis als verlässlich gilt.</string>
     <string name="execution_conditions_not_satisfied_end_behavior_completed">Trigger oder Bedingungen sind nicht erfüllt. Nur das Endverhalten (beim Aufgabenende) wurde ausgeführt.</string>
     <string name="execution_conditions_not_satisfied_no_end_behavior">Trigger oder Bedingungen der Aufgabe sind nicht erfüllt, sie kann jetzt nicht laufen. Kein Endverhalten konfiguriert.</string>
     <string name="execution_conditions_not_satisfied_end_behavior_failed">Trigger oder Bedingungen der Aufgabe sind nicht erfüllt, sie kann jetzt nicht laufen. Das Endverhalten konnte nicht abgeschlossen werden.</string>
