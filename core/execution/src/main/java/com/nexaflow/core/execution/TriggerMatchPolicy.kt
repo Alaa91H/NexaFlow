@@ -119,9 +119,21 @@ object TriggerMatchPolicy {
      * a definitive false read.
      */
     fun skipMessage(triggers: List<Trigger>, results: List<ConditionResult>): String {
-        val failed = triggers.zip(results)
+        val paired = triggers.zip(results)
+        val failed = paired
             .filter { (_, result) -> result == ConditionResult.Unsatisfied }
             .map { (trigger, _) -> TriggerStateEvaluator.triggerLabel(trigger) }
+
+        val unresolvedMomentary = paired.count { (trigger, result) ->
+            isEventOnly(trigger) && result != ConditionResult.Satisfied
+        }
+        if (
+            allModeEventSemantics(triggers) == AllModeEventSemantics.SAME_OCCURRENCE_REQUIRED &&
+            unresolvedMomentary > 0
+        ) {
+            return "Skipped: ALL momentary conditions must match the same current occurrence"
+        }
+
         return if (failed.isEmpty()) {
             "Skipped: not all trigger conditions are true (condition state unverifiable)"
         } else {
