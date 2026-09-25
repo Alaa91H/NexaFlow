@@ -48,6 +48,18 @@
   the same sticky battery status used by the battery monitor, eliminating a
   race where `BatteryManager.isCharging` could lag the charger broadcast and
   incorrectly reject the run. A full battery remains treated as connected.
+- Centralized tri-state ANY/ALL aggregation in `TriggerMatchPolicy` and routed
+  the automatic engine gate, manual/current-state aggregation, Wear routing,
+  and dashboard readiness through the same truth table. Unknown/unavailable
+  evidence can no longer drift between runtime surfaces.
+- Made momentary ALL semantics explicit: one current event may prove an
+  event-only trigger while state-readable siblings are checked live; with
+  multiple momentary conditions, one current occurrence must match them all.
+  Separate past events are never remembered or implicitly correlated.
+- Added typed ALL-gate diagnostics that record each trigger's result and
+  evidence source (`CURRENT_EVENT` vs `LIVE_STATE`) with config-free trace
+  details and stable reason codes for confirmed false, unknown, unavailable,
+  and error states.
 
 - Fixed the fresh-root grant path so a successful superuser prompt is immediately
   re-probed before permission repair. The pre-prompt negative root cache can no longer
