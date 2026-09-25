@@ -47,7 +47,14 @@ data class Automation(
     val cooldownSeconds: Int = 10,
     val createdAt: Long,
     val updatedAt: Long,
-    /** Persisted workflow schema version; older definitions are migrated at the boundary. */
+    /**
+     * Persisted workflow semantics version.
+     *
+     * v1 predates occurrence-aware ALL matching. v2 allows the current trigger
+     * occurrence to prove momentary conditions while state-readable siblings
+     * are evaluated live. Older event-based ALL definitions stay fail-closed
+     * until the user reviews and saves them through the builder.
+     */
     val workflowVersion: Int = CURRENT_WORKFLOW_VERSION,
     /** Optional recurring-maintenance metadata; null preserves ordinary automations unchanged. */
     val maintenanceProfile: MaintenanceProfile? = null,
@@ -66,7 +73,9 @@ data class Automation(
     }
 
     companion object {
-        const val CURRENT_WORKFLOW_VERSION = 1
+        const val LEGACY_TRIGGER_SEMANTICS_VERSION = 1
+        const val OCCURRENCE_AWARE_TRIGGER_SEMANTICS_VERSION = 2
+        const val CURRENT_WORKFLOW_VERSION = OCCURRENCE_AWARE_TRIGGER_SEMANTICS_VERSION
     }
 }
 
@@ -127,8 +136,10 @@ fun Trigger.isOneShotEvent(): Boolean = when (type) {
  *
  * - [ANY] (default, historical behavior): any single trigger firing runs the
  *   task — its monitor's own condition was the trigger.
- * - [ALL]: the firing monitor only *starts the evaluation*; every configured
- *   trigger must be verifiably satisfied right now or the run is skipped.
+ * - [ALL]: every configured trigger needs evidence in one evaluation.
+ *   Workflow v2+ may use the current occurrence for momentary triggers and
+ *   live reads for stateful siblings. Legacy v1 event-based ALL definitions
+ *   remain fail-closed until reviewed and saved.
  *
  * Serialized on the automation; the default keeps every saved task's meaning
  * unchanged (append-only compatibility contract).
