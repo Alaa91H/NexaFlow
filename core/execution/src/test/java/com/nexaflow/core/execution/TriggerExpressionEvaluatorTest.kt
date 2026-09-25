@@ -238,4 +238,39 @@ class TriggerExpressionEvaluatorTest {
         assertTrue(snapshot.diagnosticDetail().contains("ERROR@LIVE_STATE"))
     }
 
+
+    @Test
+    fun legacyWorkflowDoesNotSilentlyEnableCurrentEventEvidence() = runBlocking {
+        val task = automation(
+            listOf(
+                Trigger(TriggerType.SMS, mapOf("contains" to "night")),
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to "ON")),
+            )
+        ).copy(workflowVersion = Automation.LEGACY_TRIGGER_SEMANTICS_VERSION)
+
+        val snapshot = TriggerExpressionEvaluator.evaluate(
+            automation = task,
+            occurrence = TriggerOccurrence.single(
+                triggerIndex = 0,
+                occurredAtEpochMs = 800L,
+                sourceId = "sms",
+            ),
+            evaluatedAtEpochMs = 801L,
+            stateReader = { trigger ->
+                if (trigger.type == TriggerType.DARK_MODE) {
+                    ConditionResult.Satisfied
+                } else {
+                    ConditionResult.Unknown
+                }
+            },
+        )
+
+        assertEquals(
+            listOf(ConditionResult.Unknown, ConditionResult.Satisfied),
+            snapshot.results,
+        )
+        assertTrue(snapshot.evidence.all { it.source == TriggerEvidenceSource.LIVE_STATE })
+        assertFalse(snapshot.isSatisfied(TriggerMatchMode.ALL))
+    }
+
 }
