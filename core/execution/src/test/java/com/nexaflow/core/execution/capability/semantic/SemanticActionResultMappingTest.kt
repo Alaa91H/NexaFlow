@@ -28,6 +28,19 @@ class SemanticActionResultMappingTest {
     }
 
     @Test
+    fun unknownSemanticOutcomePreservesUncertainSideEffectSignal() {
+        val legacy = OperationOutcome(
+            operation = SemanticOperationId.HOTSPOT_SET_STATE,
+            status = OperationOutcomeStatus.UNKNOWN,
+            strategy = StrategyId.SHIZUKU_USER_SERVICE,
+            message = "transport dropped after dispatch"
+        ).toSystemControlResult()
+
+        assertEquals(false, legacy.success)
+        assertEquals(true, legacy.outcomeUncertain)
+    }
+
+    @Test
     fun mappingRetainsStrategyAndVerificationProvenance() {
         val legacy = OperationOutcome(
             operation = SemanticOperationId.NFC_SET_STATE,
