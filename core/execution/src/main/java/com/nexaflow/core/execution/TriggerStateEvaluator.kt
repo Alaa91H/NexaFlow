@@ -92,24 +92,18 @@ object TriggerStateEvaluator {
         return aggregate(results, matchMode)
     }
 
-    /** Pure tri-state aggregation used by runtime code and deterministic tests. */
+    /**
+     * Compatibility wrapper for current-state/manual callers.
+     *
+     * Manual evaluation treats "no triggers configured" as vacuously satisfied;
+     * every non-empty ANY/ALL truth table is owned by [TriggerMatchPolicy].
+     */
     internal fun aggregate(
         results: List<ConditionResult>,
         matchMode: TriggerMatchMode
     ): ConditionResult {
         if (results.isEmpty()) return ConditionResult.Satisfied
-        return when (matchMode) {
-            TriggerMatchMode.ANY -> when {
-                results.any { it == ConditionResult.Satisfied } -> ConditionResult.Satisfied
-                results.all { it == ConditionResult.Unsatisfied } -> ConditionResult.Unsatisfied
-                else -> ConditionResult.Unknown
-            }
-            TriggerMatchMode.ALL -> when {
-                results.any { it == ConditionResult.Unsatisfied } -> ConditionResult.Unsatisfied
-                results.all { it == ConditionResult.Satisfied } -> ConditionResult.Satisfied
-                else -> ConditionResult.Unknown
-            }
-        }
+        return TriggerMatchPolicy.aggregate(matchMode, results)
     }
 
     /**
@@ -150,7 +144,7 @@ object TriggerStateEvaluator {
      *
      * Beyond the explicit event-only set this covers the state-less types that
      * fall through [triggerSatisfied]'s fail-closed `else -> false` branch (SMS,
-     * webhook, sensor, calendar, plugin, ROM setting, geofence): their manual
+     * webhook, sensor, calendar, plugin, geofence): their manual
      * gate result is already Unknown, so classifying them here is behavior
      * neutral — it only makes the ALL-mode advisory honest about them.
      */
