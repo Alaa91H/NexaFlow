@@ -9,7 +9,7 @@
     <string name="execution_task_completed">Задача успешно выполнена.</string>
     <string name="execution_task_failed">Не удалось выполнить задачу.</string>
     <string name="execution_task_skipped">Задача была пропущена.</string>
-    <string name="execution_recovery_queue_awaits_review">Задача приостановлена, пока проверяются прерванные выполнения.</string>
+    <string name="execution_recovery_queue_awaits_review">Есть прерванные запуски; прежде чем считать их результат достоверным, требуется проверка.</string>
     <string name="execution_conditions_not_satisfied_end_behavior_completed">Триггеры или условия не выполнены. Выполнено только конечное поведение (при завершении задачи).</string>
     <string name="execution_conditions_not_satisfied_no_end_behavior">Триггеры или условия задачи не выполнены, поэтому сейчас она не может запуститься. Конечное поведение не настроено.</string>
     <string name="execution_conditions_not_satisfied_end_behavior_failed">Триггеры или условия задачи не выполнены, поэтому сейчас она не может запуститься. Конечное поведение не удалось завершить.</string>
