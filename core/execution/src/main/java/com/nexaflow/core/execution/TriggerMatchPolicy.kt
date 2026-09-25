@@ -1,5 +1,6 @@
 package com.nexaflow.core.execution
 
+import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerMatchMode
@@ -102,6 +103,18 @@ object TriggerMatchPolicy {
             else -> AllModeEventSemantics.SAME_OCCURRENCE_REQUIRED
         }
     }
+
+    /**
+     * Legacy v1 ALL definitions containing momentary events used live-state-only
+     * evaluation. Enabling occurrence evidence silently would change a saved
+     * workflow from "never admitted" into a side-effecting automation. Keep it
+     * fail-closed until an explicit builder save upgrades the workflow to v2.
+     */
+    fun requiresOccurrenceSemanticsReview(automation: Automation): Boolean =
+        automation.triggerMatch == TriggerMatchMode.ALL &&
+            automation.workflowVersion <
+                Automation.OCCURRENCE_AWARE_TRIGGER_SEMANTICS_VERSION &&
+            automation.triggers.any(::isEventOnly)
 
     /**
      * Diagnostic labels for event-only conditions. Kept for existing call sites
