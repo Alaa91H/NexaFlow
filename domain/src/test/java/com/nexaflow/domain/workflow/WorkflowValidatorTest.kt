@@ -51,11 +51,16 @@ class WorkflowValidatorTest {
                 automation(version = Automation.LEGACY_TRIGGER_SEMANTICS_VERSION)
             ).isValid
         )
-        assertFalse(
-            WorkflowValidator.validate(
-                automation(version = Automation.CURRENT_WORKFLOW_VERSION + 1)
-            ).isValid
-        )
+
+        // Automation owns the hard model invariant: a future semantics version
+        // must never become a runnable domain object. WorkflowValidator remains
+        // the structured diagnostic boundary for objects that reach it.
+        try {
+            automation(version = Automation.CURRENT_WORKFLOW_VERSION + 1)
+            throw AssertionError("expected future workflow version to be rejected")
+        } catch (_: IllegalArgumentException) {
+            // Expected: unsupported future versions fail closed.
+        }
     }
 
 }
