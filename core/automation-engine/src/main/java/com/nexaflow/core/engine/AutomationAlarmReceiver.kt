@@ -9,6 +9,7 @@ import com.nexaflow.core.datastore.AutomationLifecycleContext
 import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerOccurrence
 import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
@@ -142,9 +143,11 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                     // exits remain durable as EXIT_FAILED for reconciliation.
                     scheduler.completeOccurrence(automationId, occurrenceId)
                 } else if (automation.enabled) {
-                    val isTimeRange = automation.triggers
-                        .firstOrNull { it.type == TriggerType.TIME }
-                        ?.config?.get("timeMode") == "RANGE"
+                    val timeTriggerIndex = automation.triggers.indexOfFirst {
+                        it.type == TriggerType.TIME
+                    }
+                    val isTimeRange = timeTriggerIndex >= 0 &&
+                        automation.triggers[timeTriggerIndex].config["timeMode"] == "RANGE"
                     val now = System.currentTimeMillis()
                     val expiredRange = isTimeRange && windowEndAt != null && windowEndAt <= now
                     if (!shouldExecuteRangeStart(isTimeRange, windowEndAt)) {
@@ -170,7 +173,17 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                             )
                         } else {
                             null
-                        }
+                        },
+                        triggerOccurrence = if (!isTimeRange && timeTriggerIndex >= 0) {
+                            TriggerOccurrence.single(
+                                triggerIndex = timeTriggerIndex,
+                                occurredAtEpochMs = now,
+                                sourceId = "time",
+                                eventId = occurrenceId,
+                            )
+                        } else {
+                            null
+                        },
                     )
                     if (!isTimeRange) {
                         // A one-shot occurrence has already been delivered,
