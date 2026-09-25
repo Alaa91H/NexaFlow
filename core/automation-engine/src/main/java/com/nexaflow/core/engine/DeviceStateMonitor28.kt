@@ -90,19 +90,75 @@ class DeviceStateMonitor28 @Inject constructor(
     private val observer = object : ContentObserver(mainHandler) {
         override fun onChange(selfChange: Boolean, uri: Uri?) {
             evaluateAll()
-            fireOneShot(TriggerType.SCREEN_TIMEOUT_CHANGED)
-            fireOneShot(TriggerType.ALARM_SET_CHANGED)
+            when (uri) {
+                Settings.System.getUriFor(Settings.System.SCREEN_OFF_TIMEOUT) -> {
+                    val timeoutSeconds = runCatching {
+                        Settings.System.getLong(
+                            context.contentResolver,
+                            Settings.System.SCREEN_OFF_TIMEOUT,
+                        ) / 1_000L
+                    }.getOrNull()
+                    fireOneShot(TriggerType.SCREEN_TIMEOUT_CHANGED) { config ->
+                        DeviceOneShotTriggerMatcher.matches(
+                            type = TriggerType.SCREEN_TIMEOUT_CHANGED,
+                            config = config,
+                            numericValue = timeoutSeconds,
+                        )
+                    }
+                }
+
+                Settings.System.getUriFor("next_alarm_formatted") -> {
+                    val alarmIsSet = runCatching {
+                        !Settings.System.getString(
+                            context.contentResolver,
+                            "next_alarm_formatted",
+                        ).isNullOrBlank()
+                    }.getOrNull()
+                    fireOneShot(TriggerType.ALARM_SET_CHANGED) { config ->
+                        DeviceOneShotTriggerMatcher.matches(
+                            type = TriggerType.ALARM_SET_CHANGED,
+                            config = config,
+                            flagValue = alarmIsSet,
+                        )
+                    }
+                }
+            }
         }
     }
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(receiverContext: Context, intent: Intent) {
             when (intent.action) {
-                Intent.ACTION_TIMEZONE_CHANGED -> fireOneShot(TriggerType.TIMEZONE_CHANGED)
-                Intent.ACTION_BOOT_COMPLETED -> fireOneShot(TriggerType.BOOT_COMPLETED)
+                Intent.ACTION_TIMEZONE_CHANGED -> {
+                    val zoneId = java.util.TimeZone.getDefault().id
+                    fireOneShot(TriggerType.TIMEZONE_CHANGED) { config ->
+                        DeviceOneShotTriggerMatcher.matches(
+                            type = TriggerType.TIMEZONE_CHANGED,
+                            config = config,
+                            textValue = zoneId,
+                        )
+                    }
+                }
+                Intent.ACTION_BOOT_COMPLETED -> {
+                    fireOneShot(TriggerType.BOOT_COMPLETED) { config ->
+                        DeviceOneShotTriggerMatcher.matches(
+                            type = TriggerType.BOOT_COMPLETED,
+                            config = config,
+                        )
+                    }
+                }
                 NfcAdapter.ACTION_NDEF_DISCOVERED,
                 ACTION_TAG_DISCOVERED,
-                NfcAdapter.ACTION_TECH_DISCOVERED -> fireOneShot(TriggerType.NFC_TAG_SCANNED)
+                NfcAdapter.ACTION_TECH_DISCOVERED -> {
+                    val tagId = nfcTagId(intent)
+                    fireOneShot(TriggerType.NFC_TAG_SCANNED) { config ->
+                        DeviceOneShotTriggerMatcher.matches(
+                            type = TriggerType.NFC_TAG_SCANNED,
+                            config = config,
+                            textValue = tagId,
+                        )
+                    }
+                }
                 "android.intent.action.HDMI_PLUGGED" -> {
                     lastHdmiPlugged = intent.getBooleanExtra("state", false)
                     evaluateAll()
@@ -126,7 +182,21 @@ class DeviceStateMonitor28 @Inject constructor(
     }
 
     private val clipListener = ClipboardManager.OnPrimaryClipChangedListener {
-        fireOneShot(TriggerType.CLIPBOARD_CHANGED)
+        val text = runCatching {
+            val clipboard =
+                context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+            val clip = clipboard?.primaryClip ?: return@runCatching null
+            if (clip.itemCount <= 0) return@runCatching null
+            clip.getItemAt(0).coerceToText(context)?.toString()
+        }.getOrNull()
+
+        fireOneShot(TriggerType.CLIPBOARD_CHANGED) { config ->
+            DeviceOneShotTriggerMatcher.matches(
+                type = TriggerType.CLIPBOARD_CHANGED,
+                config = config,
+                textValue = text,
+            )
+        }
     }
 
     fun initialize() {
@@ -262,17 +332,30 @@ class DeviceStateMonitor28 @Inject constructor(
         }
     }
 
-    /** Fires automations whose trigger is the given one-shot event type. */
-    private fun fireOneShot(type: TriggerType) {
+    /**
+     * Fires only the configured one-shot conditions that actually match this
+     * concrete event payload. A broad event type is never enough evidence for a
+     * filtered trigger.
+     */
+    private fun fireOneShot(
+        type: TriggerType,
+        matchesConfig: (Map<String, String>) -> Boolean,
+    ) {
         scope.launch {
             val automations = repository.getAutomations().first()
             val now = System.currentTimeMillis()
             automations
-                .filter { it.enabled && it.triggers.any { t -> t.type == type } }
+                .filter { it.enabled && it.triggers.any { trigger ->
+                    trigger.type == type && matchesConfig(trigger.config)
+                } }
                 .forEach { automation ->
                     val matchedTriggerIndices = automation.triggers.mapIndexedNotNull { index, trigger ->
-                        index.takeIf { trigger.type == type }
+                        index.takeIf {
+                            trigger.type == type && matchesConfig(trigger.config)
+                        }
                     }.toSet()
+                    if (matchedTriggerIndices.isEmpty()) return@forEach
+
                     // These signals are momentary events, not a durable state
                     // with an opposite callback. Close their lifecycle after the
                     // main chain so per-action end behavior is never stranded.
@@ -418,6 +501,19 @@ class DeviceStateMonitor28 @Inject constructor(
                 hasTransport(NetworkCapabilities.TRANSPORT_VPN) == wantOn
             }
             else -> false
+        }
+    }
+
+    private fun nfcTagId(intent: Intent): String? {
+        val tag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(NfcAdapter.EXTRA_TAG, android.nfc.Tag::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(NfcAdapter.EXTRA_TAG) as? android.nfc.Tag
+        } ?: return null
+
+        return tag.id?.joinToString(separator = "") { byte ->
+            "%02X".format(byte.toInt() and 0xFF)
         }
     }
 
