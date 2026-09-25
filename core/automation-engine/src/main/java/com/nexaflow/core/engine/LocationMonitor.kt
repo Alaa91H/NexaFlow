@@ -107,10 +107,10 @@ class LocationMonitor @Inject constructor(
             val id = key.substringBefore('|')
             if (id in enabledIds) {
                 activeStates[id] = true
-                activeTriggerIndices.putIfAbsent(
-                    id,
-                    fallbackLocationTriggerIndices(automations[id]),
-                )
+                if (id !in activeTriggerIndices) {
+                    activeTriggerIndices[id] =
+                        fallbackLocationTriggerIndices(automations[id])
+                }
             } else {
                 activeStates.remove(id)
                 activeTriggerIndices.remove(id)
