@@ -122,53 +122,48 @@ class UserShellService : IUserShellService.Stub {
 
         return try {
             val manager = createElevatedTetheringManager(baseContext)
-            val request = TetheringManager.TetheringRequest.Builder(TetheringManager.TETHERING_WIFI)
-                .build()
-            val result = AtomicInteger(UNSET_TETHERING_RESULT)
-            val latch = CountDownLatch(1)
 
-            if (enabled) {
-                manager.startTethering(
-                    request,
-                    DIRECT_EXECUTOR,
-                    object : TetheringManager.StartTetheringCallback {
-                        override fun onTetheringStarted() {
-                            result.set(TetheringManager.TETHER_ERROR_NO_ERROR)
-                            latch.countDown()
-                        }
-
-                        override fun onTetheringFailed(error: Int) {
-                            result.set(error)
-                            latch.countDown()
-                        }
-                    }
+            if (!enabled) {
+                // The public request-scoped stop API only stops a matching
+                // request. A routine must also be able to stop tethering that
+                // the user (or Settings) started, so use the reviewed system
+                // API by type from this privileged UserService. Post-condition
+                // verification in the app still confirms the actual OFF state.
+                val stopByType = manager.javaClass.getMethod(
+                    "stopTethering",
+                    Int::class.javaPrimitiveType
                 )
-            } else {
-                manager.stopTethering(
-                    request,
-                    DIRECT_EXECUTOR,
-                    object : TetheringManager.StopTetheringCallback {
-                        override fun onStopTetheringSucceeded() {
-                            result.set(TetheringManager.TETHER_ERROR_NO_ERROR)
-                            latch.countDown()
-                        }
-
-                        override fun onStopTetheringFailed(error: Int) {
-                            result.set(error)
-                            latch.countDown()
-                        }
-                    }
-                )
+                stopByType.invoke(manager, TetheringManager.TETHERING_WIFI)
+                return "0\nWi-Fi Internet tethering stop dispatched"
             }
 
+            val request = buildWifiTetheringRequest()
+            val result = AtomicInteger(UNSET_TETHERING_RESULT)
+            val latch = CountDownLatch(1)
+            manager.startTethering(
+                request,
+                DIRECT_EXECUTOR,
+                object : TetheringManager.StartTetheringCallback {
+                    override fun onTetheringStarted() {
+                        result.set(TetheringManager.TETHER_ERROR_NO_ERROR)
+                        latch.countDown()
+                    }
+
+                    override fun onTetheringFailed(error: Int) {
+                        result.set(error)
+                        latch.countDown()
+                    }
+                }
+            )
+
             if (!latch.await(TETHERING_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-                "$TIMEOUT_EXIT_CODE\nTetheringManager ${if (enabled) "start" else "stop"} request timed out"
+                "$TIMEOUT_EXIT_CODE\nTetheringManager start request timed out"
             } else {
                 val code = result.get()
                 if (code == TetheringManager.TETHER_ERROR_NO_ERROR) {
-                    "0\nWi-Fi Internet tethering ${if (enabled) "started" else "stopped"}"
+                    "0\nWi-Fi Internet tethering started"
                 } else {
-                    "1\nTetheringManager ${if (enabled) "start" else "stop"} failed with error $code"
+                    "1\nTetheringManager start failed with error $code"
                 }
             }
         } catch (t: Throwable) {
@@ -182,6 +177,20 @@ class UserShellService : IUserShellService.Stub {
      * UserService has no non-SDK reflection restriction; construct it against
      * the real tethering binder while keeping the operation fully typed.
      */
+    @TargetApi(API_PUBLIC_TETHERING_CONTROL)
+    private fun buildWifiTetheringRequest(): TetheringManager.TetheringRequest {
+        val builder = TetheringManager.TetheringRequest.Builder(TetheringManager.TETHERING_WIFI)
+        // Background automation must never unexpectedly launch carrier UI.
+        // This system API exists on API 36+ but is not in public SDK stubs;
+        // UserService may call it reflectively without hidden-API restrictions.
+        runCatching {
+            builder.javaClass
+                .getMethod("setShouldShowEntitlementUi", Boolean::class.javaPrimitiveType)
+                .invoke(builder, false)
+        }
+        return builder.build()
+    }
+
     @TargetApi(API_PUBLIC_TETHERING_CONTROL)
     private fun createElevatedTetheringManager(baseContext: Context): TetheringManager {
         val callerPackage = when (Process.myUid()) {
