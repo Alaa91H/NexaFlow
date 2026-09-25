@@ -13,7 +13,7 @@
     <string name="trigger_match_any_hint">Herhangi bir koşul gerçekleşince çalışır</string>
     <string name="trigger_match_all">TÜMÜ sağlanır</string>
     <string name="trigger_match_all_hint">Yalnızca tüm koşullar şu anda sağlanıyorken çalışır</string>
-    <string name="trigger_match_all_event_warning">Bazı koşullar (SMS, bildirim gibi) yeniden doğrulanamayan anlık olaylardır. Bunları TÜMÜ ile birleştiren görev yalnızca kendi olayıyla çalışır - HERHANGİ BİRİ seçeneğini düşünün.</string>
+    <string name="trigger_match_all_event_warning">Anlık koşullar (SMS veya bildirim gibi), çalıştırmayı başlatan olay tarafından doğrulanır. TÜMÜ seçiliyken diğer tüm koşulların da o anda sağlanması gerekir.</string>
     <string name="remove_trigger">Koşulu kaldır</string>
     <string name="expand_options">Seçenekleri göster</string>
     <string name="trigger_type_time">Zaman</string>

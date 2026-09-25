@@ -13,7 +13,7 @@
     <string name="trigger_match_any_hint">Startet, wenn eine Bedingung eintritt</string>
     <string name="trigger_match_all">ALLE erfüllt</string>
     <string name="trigger_match_all_hint">Startet nur, wenn alle Bedingungen jetzt erfüllt sind</string>
-    <string name="trigger_match_all_event_warning">Einige Bedingungen (z. B. SMS oder Benachrichtigungen) sind Momentereignisse und können nicht erneut geprüft werden. Eine Aufgabe, die sie mit ALLE kombiniert, läuft nur durch ihr eigenes Ereignis - verwende stattdessen IRGENDEINE.</string>
+    <string name="trigger_match_all_event_warning">Momentane Bedingungen (z. B. SMS oder Benachrichtigungen) werden durch das Ereignis bestätigt, das den Lauf startet. Bei ALLE müssen alle anderen Bedingungen in diesem Moment ebenfalls erfüllt sein.</string>
     <string name="remove_trigger">Bedingung entfernen</string>
     <string name="expand_options">Optionen anzeigen</string>
     <string name="trigger_type_time">Zeit</string>

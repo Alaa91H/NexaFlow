@@ -13,7 +13,7 @@
     <string name="trigger_match_any_hint">Запускается при наступлении любого условия</string>
     <string name="trigger_match_all">ВСЕ выполнены</string>
     <string name="trigger_match_all_hint">Запускается только когда все условия выполнены сейчас</string>
-    <string name="trigger_match_all_event_warning">Некоторые условия (СМС, уведомления) — мгновенные события, которые нельзя проверить повторно. Задача, объединяющая их с режимом «ВСЕ», запустится только от собственного события — рассмотрите «ЛЮБОЕ».</string>
+    <string name="trigger_match_all_event_warning">Мгновенные условия (например, SMS или уведомления) подтверждаются событием, которое запускает выполнение. В режиме «ВСЕ» остальные условия тоже должны быть истинны в этот момент.</string>
     <string name="remove_trigger">Удалить условие</string>
     <string name="expand_options">Показать параметры</string>
     <string name="trigger_type_time">Время</string>

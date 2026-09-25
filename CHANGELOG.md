@@ -454,10 +454,11 @@ as before — the legacy `Automation` remains the storage format.
 
 ### Added
 
-- **Builder advisory for event-only triggers in ALL mode.** When a task set
-  to "all conditions" contains a momentary trigger that can never be
-  re-verified from device state (notification, boot, NFC tag scan, SMS,
-  webhook, sensor, plugin, geofence, ...), the builder shows an explicit
+- **Builder explanation for event-only triggers in ALL mode.** When a task set
+  to "all conditions" contains a momentary trigger (notification, boot, NFC
+  tag scan, SMS, webhook, sensor, plugin, geofence, ...), the builder explains
+  that the current event proves that trigger while every state-readable sibling
+  must be true at the same moment.
   warning that such a condition will keep the task from running in ALL mode,
   instead of failing silently at runtime. Localized across all 10 supported
   languages.

@@ -2440,10 +2440,10 @@ private fun packagesUsedByOtherTasks(
 /**
  * Draft-level event-only check for the ALL-mode advisory. Delegates to
  * TriggerMatchPolicy.isEventOnly — the single source of truth the engine and
- * manual gate also use — so the builder's warning can never drift from what
- * the runtime actually verifies. The momentary trigger types cannot be
- * re-verified after they fire, so an ALL task containing one can only ever
- * skip — the user is warned here.
+ * manual gate also use — so the builder's explanation cannot drift from
+ * runtime semantics. Momentary triggers are proven by the current occurrence;
+ * the advisory explains that every state-readable sibling must be true at that
+ * same moment.
  */
 private fun triggerMatchBuiltWarning(triggers: List<TriggerDraft>): String? {
     if (triggers.size < 2) return null
@@ -2513,7 +2513,7 @@ private fun TriggerMatchSelector(
             Text(
                 text = stringResource(R.string.trigger_match_all_event_warning),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 6.dp)
             )
         }

@@ -14,7 +14,7 @@
     <string name="trigger_match_any_hint">Runs when any condition happens</string>
     <string name="trigger_match_all">ALL are true</string>
     <string name="trigger_match_all_hint">Runs only when every condition is true right now</string>
-    <string name="trigger_match_all_event_warning">Some conditions (like SMS or notifications) are momentary events that cannot be re-checked. A task combining them with ALL can only run from their own event - consider ANY instead.</string>
+    <string name="trigger_match_all_event_warning">Momentary conditions (such as SMS or notifications) are proven by the event that starts the run. With ALL, every other condition must also be true at that moment.</string>
     <string name="remove_trigger">Remove condition</string>
     <string name="expand_options">Show options</string>
     <string name="collapse_options">Collapse options</string>
