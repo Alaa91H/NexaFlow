@@ -1876,7 +1876,7 @@ fun AutomationBuilderScreen(
                     TriggerMatchSelector(
                         selected = triggerMatch,
                         onSelect = { triggerMatchName = it.name },
-                        allModeWarning = triggerMatchBuiltWarning(triggers)
+                        allModeSemantics = triggerMatchBuiltWarning(triggers)
                     )
                 }
 
@@ -2445,19 +2445,21 @@ private fun packagesUsedByOtherTasks(
  * the advisory explains that every state-readable sibling must be true at that
  * same moment.
  */
-private fun triggerMatchBuiltWarning(triggers: List<TriggerDraft>): String? {
-    if (triggers.size < 2) return null
-    val eventOnly = triggers.filter { TriggerMatchPolicy.isEventOnly(it.type) }
-    if (eventOnly.isEmpty()) return null
-    // Count is what matters for the warning; the localized string is generic.
-    return eventOnly.size.toString()
+private fun triggerMatchBuiltWarning(
+    triggers: List<TriggerDraft>
+): TriggerMatchPolicy.AllModeEventSemantics {
+    if (triggers.size < 2) return TriggerMatchPolicy.AllModeEventSemantics.NONE
+    return TriggerMatchPolicy.allModeEventSemantics(
+        triggers.map { draft -> Trigger(draft.type, draft.config) }
+    )
 }
 
 @Composable
 private fun TriggerMatchSelector(
     selected: TriggerMatchMode,
     onSelect: (TriggerMatchMode) -> Unit,
-    allModeWarning: String? = null,
+    allModeSemantics: TriggerMatchPolicy.AllModeEventSemantics =
+        TriggerMatchPolicy.AllModeEventSemantics.NONE,
 ) {
     Column {
         Text(
@@ -2509,9 +2511,21 @@ private fun TriggerMatchSelector(
                 }
             }
         }
-        if (selected == TriggerMatchMode.ALL && allModeWarning != null) {
+        if (
+            selected == TriggerMatchMode.ALL &&
+            allModeSemantics != TriggerMatchPolicy.AllModeEventSemantics.NONE
+        ) {
             Text(
-                text = stringResource(R.string.trigger_match_all_event_warning),
+                text = stringResource(
+                    if (
+                        allModeSemantics ==
+                        TriggerMatchPolicy.AllModeEventSemantics.SAME_OCCURRENCE_REQUIRED
+                    ) {
+                        R.string.trigger_match_all_multi_event_warning
+                    } else {
+                        R.string.trigger_match_all_event_warning
+                    }
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 6.dp)
