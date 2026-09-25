@@ -187,7 +187,9 @@ object TriggerExpressionEvaluator {
     ): TriggerEvaluationSnapshot {
         val evidence = automation.triggers.mapIndexed { index, trigger ->
             val currentEventProvesTrigger =
-                occurrence?.matchedTriggerIndices?.contains(index) == true &&
+                automation.workflowVersion >=
+                    Automation.OCCURRENCE_AWARE_TRIGGER_SEMANTICS_VERSION &&
+                    occurrence?.matchedTriggerIndices?.contains(index) == true &&
                     TriggerMatchPolicy.isEventOnly(trigger)
 
             if (currentEventProvesTrigger) {
