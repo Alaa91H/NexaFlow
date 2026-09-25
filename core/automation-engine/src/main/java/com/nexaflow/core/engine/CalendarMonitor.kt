@@ -198,6 +198,7 @@ class CalendarMonitor @Inject constructor(
                                 ),
                                 occurredAtEpochMs = now,
                                 eventIdentity = "calendar:$eventType:${event.id}:${event.start}",
+                                completeExitOnFinish = eventType != "EVENT_START",
                             )
                         }
                     }
@@ -218,6 +219,7 @@ class CalendarMonitor @Inject constructor(
                                 ),
                                 occurredAtEpochMs = now,
                                 eventIdentity = "calendar:$eventType:${event.id}:${event.start}",
+                                completeExitOnFinish = eventType != "EVENT_START",
                             )
                         }
                     }
@@ -237,6 +239,7 @@ class CalendarMonitor @Inject constructor(
                                 ),
                                 occurredAtEpochMs = now,
                                 eventIdentity = "calendar:$eventType:${event.id}:${event.start}",
+                                completeExitOnFinish = eventType != "EVENT_START",
                             )
                         }
                     }
@@ -281,6 +284,7 @@ class CalendarMonitor @Inject constructor(
         triggerIndices: Set<Int>,
         occurredAtEpochMs: Long,
         eventIdentity: String,
+        completeExitOnFinish: Boolean,
     ) {
         if (triggerIndices.isEmpty()) return
         val dispatchAt = System.currentTimeMillis()
@@ -290,6 +294,7 @@ class CalendarMonitor @Inject constructor(
         scope.launch {
             executionEngine.runAutomation(
                 automation = automation,
+                completeExitOnFinish = completeExitOnFinish,
                 triggerOccurrence = TriggerOccurrence(
                     matchedTriggerIndices = triggerIndices,
                     occurredAtEpochMs = occurredAtEpochMs,
