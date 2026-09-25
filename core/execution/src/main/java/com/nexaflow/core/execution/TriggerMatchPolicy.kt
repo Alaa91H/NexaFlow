@@ -14,14 +14,11 @@ import com.nexaflow.domain.models.TriggerMatchMode
  *  - ANY (default, historical): the firing monitor's own event is the proof;
  *    sibling conditions are not re-checked. A task with zero triggers cannot
  *    start through a monitor anyway, so ANY of an empty list stays false.
- *  - ALL: the firing monitor only *starts* the evaluation; every configured
- *    condition must be verifiably satisfied right now. [TriggerStateEvaluator]
- *    reads each condition's live state — a past event is never treated as
- *    current truth. Unverifiable conditions (event-only sources such as SMS,
- *    notification, package install, boot, webhook...) can never be confirmed,
- *    so ALL never becomes true when one of them participates; the engine
- *    surfaces this to the builder as an advisory warning instead of silently
- *    dead-locking the task.
+ *  - ALL: every configured condition needs current evidence. State-readable
+ *    triggers are checked from live state; event-only triggers may be satisfied
+ *    only by the [TriggerOccurrence] that started the current evaluation.
+ *    Historical events are never cached as truth. This makes combinations such
+ *    as SMS + Wi-Fi deterministic without pretending an old SMS is still true.
  */
 object TriggerMatchPolicy {
 
@@ -45,10 +42,9 @@ object TriggerMatchPolicy {
     }
 
     /**
-     * True when [trigger] can never be verified from current device state —
-     * it is a pure momentary event with no readable post-state. A task that
-     * mixes such a trigger into ALL mode can only ever skip; the builder shows
-     * an advisory so the user can move it to a state-based condition.
+     * True when [trigger] has no readable post-state and therefore needs
+     * current-event evidence during automatic evaluation. Manual evaluation has
+     * no occurrence, so these triggers remain unverifiable there.
      */
     fun isEventOnly(trigger: Trigger): Boolean =
         TriggerStateEvaluator.isEventOnly(trigger.type)
@@ -59,9 +55,9 @@ object TriggerMatchPolicy {
 
     /**
      * Advisory for a task configured with ALL whose trigger set contains at
-     * least one event-only trigger. Null when the task is fully verifiable.
-     * The builder displays this next to the selector so the configuration is
-     * explainable rather than mysteriously inert.
+     * least one event-only trigger. Such a task can start only from a matching
+     * current event while every state-readable sibling is true. The builder
+     * surfaces that event-driven behavior instead of implying persistent truth.
      */
     fun allModeAdvisory(triggers: List<Trigger>): String? =
         triggers.filter { isEventOnly(it) }
