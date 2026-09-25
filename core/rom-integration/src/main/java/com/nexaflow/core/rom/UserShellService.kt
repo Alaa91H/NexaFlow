@@ -131,7 +131,7 @@ class UserShellService : IUserShellService.Stub {
                 // verification in the app still confirms the actual OFF state.
                 val stopByType = manager.javaClass.getMethod(
                     "stopTethering",
-                    Int::class.javaPrimitiveType
+                    Integer.TYPE
                 )
                 stopByType.invoke(manager, TetheringManager.TETHERING_WIFI)
                 return "0\nWi-Fi Internet tethering stop dispatched"
@@ -185,7 +185,7 @@ class UserShellService : IUserShellService.Stub {
         // UserService may call it reflectively without hidden-API restrictions.
         runCatching {
             builder.javaClass
-                .getMethod("setShouldShowEntitlementUi", Boolean::class.javaPrimitiveType)
+                .getMethod("setShouldShowEntitlementUi", java.lang.Boolean.TYPE)
                 .invoke(builder, false)
         }
         return builder.build()
