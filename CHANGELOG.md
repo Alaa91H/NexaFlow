@@ -43,6 +43,12 @@
 
 ### Fixed
 
+- Fixed ALL/AND automations that combine a charger trigger with another live
+  condition (for example, charging AND 22:00–07:00). The trigger gate now reads
+  the same sticky battery status used by the battery monitor, eliminating a
+  race where `BatteryManager.isCharging` could lag the charger broadcast and
+  incorrectly reject the run. A full battery remains treated as connected.
+
 - Fixed the fresh-root grant path so a successful superuser prompt is immediately
   re-probed before permission repair. The pre-prompt negative root cache can no longer
   cause the same grant flow to fall through as if no elevated runtime were available.
