@@ -234,4 +234,24 @@ class TriggerMatchPolicyTest {
         assertTrue(message.contains("same current occurrence"))
     }
 
+
+    @Test
+    fun confirmedFalseTakesPrecedenceOverSameOccurrenceAdvisory() {
+        val smsOne = Trigger(TriggerType.SMS, mapOf("from" to "111"))
+        val smsTwo = Trigger(TriggerType.SMS, mapOf("contains" to "otp"))
+        val dark = Trigger(TriggerType.DARK_MODE, mapOf("state" to "ON"))
+
+        val message = TriggerMatchPolicy.skipMessage(
+            listOf(smsOne, smsTwo, dark),
+            listOf(
+                ConditionResult.Satisfied,
+                ConditionResult.Unknown,
+                ConditionResult.Unsatisfied,
+            ),
+        )
+
+        assertTrue(message.contains("DARK_MODE"))
+        assertFalse(message.contains("same current occurrence"))
+    }
+
 }
