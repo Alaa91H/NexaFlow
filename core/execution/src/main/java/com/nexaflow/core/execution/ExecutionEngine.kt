@@ -446,10 +446,6 @@ class ExecutionEngine(
             }
             return record
         }
-        // The constraint gate accepted this run, so it owns a lifecycle exit if
-        // a monitor later reports that the trigger condition ended.
-        activeExecutions.add(automation.id)
-        activeExecutionStore.markStarted(automation.id)
         // Capture the device state when the run needs to restore anything on
         // exit: either the global revert-on-exit toggle or any action configured
         // with a per-action "restore original" end behavior. A failed snapshot
@@ -480,13 +476,10 @@ class ExecutionEngine(
                 )
             )
             if (!lifecycleAccepted) {
-                // The action checkpoint and legacy marker were accepted earlier
-                // solely to reserve this run. Undo that reservation before
-                // returning the explicit skip record; never overwrite the
-                // previous lifecycle or its original-state snapshot.
-                // Never remove the id-scoped legacy marker or in-memory
-                // snapshot here: they may belong to the older lifecycle that
-                // correctly caused this admission to be rejected.
+                // The action checkpoint was accepted only to reserve this
+                // candidate run. No active marker has been armed yet, so a
+                // losing concurrent occurrence cannot leave legacy lifecycle
+                // state behind or cause a later duplicate exit.
                 activeExecutionStore.completeCheckpoint(payloadContext.runId)
                 val record = ExecutionRecord(
                     id = UUID.randomUUID().toString(),
@@ -506,6 +499,12 @@ class ExecutionEngine(
                 return record
             }
         }
+        // Arm the legacy/in-memory exit marker only after durable lifecycle
+        // admission has succeeded. For stateless/one-shot runs there is no
+        // lifecycle claim, so reaching this point is the admission boundary.
+        activeExecutions.add(automation.id)
+        activeExecutionStore.markStarted(automation.id)
+
         // The durable admission succeeded (or this is a legacy/stateless run),
         // so this invocation may now own the in-memory restore snapshot too.
         if (needsSnapshot) {
