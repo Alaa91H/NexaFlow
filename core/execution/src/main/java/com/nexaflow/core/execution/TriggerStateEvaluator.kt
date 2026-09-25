@@ -252,9 +252,8 @@ object TriggerStateEvaluator {
                 audio.isWiredHeadsetConnected() == wantConnected
             }
             TriggerType.CHARGER -> {
-                val battery = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager ?: return false
                 val wantConnected = (c["event"] ?: "CONNECTED") == "CONNECTED"
-                battery.isCharging == wantConnected
+                currentChargingState(context) == wantConnected
             }
             TriggerType.AIRPLANE_MODE -> {
                 val on = Settings.Global.getInt(
@@ -770,6 +769,35 @@ object TriggerStateEvaluator {
 
     private fun batteryManager(context: Context) =
         context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+
+    /**
+     * Canonical charger state shared with BatteryMonitor semantics.
+     *
+     * ACTION_BATTERY_CHANGED is sticky and carries the same status that caused
+     * the monitor to dispatch a charger transition. Reading that snapshot here
+     * avoids a race where BatteryManager.isCharging can briefly lag behind the
+     * broadcast and make an ALL trigger gate reject the event that just fired.
+     * A full battery still counts as connected, matching BatteryMonitor.
+     */
+    private fun currentChargingState(context: Context): Boolean {
+        val status = runCatching {
+            context.registerReceiver(
+                null,
+                android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED)
+            )?.getIntExtra(
+                BatteryManager.EXTRA_STATUS,
+                BatteryManager.BATTERY_STATUS_UNKNOWN
+            )
+        }.getOrNull()
+
+        return when (status) {
+            BatteryManager.BATTERY_STATUS_CHARGING,
+            BatteryManager.BATTERY_STATUS_FULL -> true
+            BatteryManager.BATTERY_STATUS_DISCHARGING,
+            BatteryManager.BATTERY_STATUS_NOT_CHARGING -> false
+            else -> batteryManager(context)?.isCharging == true
+        }
+    }
 
     private fun audioManager(context: Context) =
         context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
