@@ -458,10 +458,9 @@ as before — the legacy `Automation` remains the storage format.
   to "all conditions" contains a momentary trigger (notification, boot, NFC
   tag scan, SMS, webhook, sensor, plugin, geofence, ...), the builder explains
   that the current event proves that trigger while every state-readable sibling
-  must be true at the same moment.
-  warning that such a condition will keep the task from running in ALL mode,
-  instead of failing silently at runtime. Localized across all 10 supported
-  languages.
+  must be true at the same moment. The explanation is localized across every
+  supported builder locale instead of presenting this valid configuration as
+  an error.
 
 ### Tests
 
