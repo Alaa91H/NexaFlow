@@ -56,6 +56,12 @@ class RootTypedStrategy(
         if (!rootAvailable()) {
             return StrategyAvailability(false, "Root access is not available")
         }
+        if (operation == SemanticOperationId.HOTSPOT_SET_STATE) {
+            return StrategyAvailability(
+                false,
+                "Root shell Soft AP commands are not a safe Internet-tethering backend; use Shizuku UserService"
+            )
+        }
         return StrategyAvailability(true)
     }
 
