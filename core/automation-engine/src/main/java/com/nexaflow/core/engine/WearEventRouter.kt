@@ -7,6 +7,7 @@ import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerMatchPolicy
 import com.nexaflow.core.execution.TriggerStateEvaluator
 import com.nexaflow.core.execution.compat.TriggerSource
 import com.nexaflow.core.wearprotocol.WearRuntimeState
@@ -179,27 +180,26 @@ class WearEventRouter @Inject constructor(
     }
 
     private fun wearConditionFor(automation: Automation): Boolean? {
-        val states = automation.triggers
+        val results = automation.triggers
             .filter { it.type == TriggerType.WEAR_EVENT }
             .map { trigger ->
-                WearRuntimeState.conditionSatisfied(
-                    watchInstallId = trigger.config["watchInstallId"],
-                    wantConnected = (trigger.config["state"] ?: "CONNECTED") == "CONNECTED",
-                )
+                when (
+                    WearRuntimeState.conditionSatisfied(
+                        watchInstallId = trigger.config["watchInstallId"],
+                        wantConnected = (trigger.config["state"] ?: "CONNECTED") == "CONNECTED",
+                    )
+                ) {
+                    true -> ConditionResult.Satisfied
+                    false -> ConditionResult.Unsatisfied
+                    null -> ConditionResult.Unknown
+                }
             }
 
-        if (states.isEmpty()) return null
-        return when (automation.triggerMatch) {
-            TriggerMatchMode.ANY -> when {
-                states.any { it == true } -> true
-                states.all { it == false } -> false
-                else -> null
-            }
-            TriggerMatchMode.ALL -> when {
-                states.any { it == false } -> false
-                states.all { it == true } -> true
-                else -> null
-            }
+        if (results.isEmpty()) return null
+        return when (TriggerMatchPolicy.aggregate(automation.triggerMatch, results)) {
+            ConditionResult.Satisfied -> true
+            ConditionResult.Unsatisfied -> false
+            else -> null
         }
     }
 
