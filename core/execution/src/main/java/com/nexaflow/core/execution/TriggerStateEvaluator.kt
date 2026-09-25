@@ -15,6 +15,7 @@ import com.nexaflow.core.common.DefaultNetworkStateReader
 import com.nexaflow.core.common.HotspotStateReader
 import com.nexaflow.core.common.NetworkTransportState
 import com.nexaflow.core.wearprotocol.WearRuntimeState
+import com.nexaflow.core.rom.CustomSettingsBridge
 import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerMatchMode
@@ -228,6 +229,7 @@ object TriggerStateEvaluator {
     fun triggerSatisfied(context: Context, trigger: Trigger): Boolean {
         val c = trigger.config
         return when (trigger.type) {
+            TriggerType.ROM_SETTING -> romSettingSatisfied(context, c)
             TriggerType.NETWORK_MODE ->
                 CellularNetworkReader.matchesNetworkMode(
                     c["state"] ?: CellularNetworkReader.GENERATION_4G,
@@ -840,7 +842,6 @@ object TriggerStateEvaluator {
         TriggerType.SENSOR,
         TriggerType.CALENDAR,
         TriggerType.PLUGIN_EVENT,
-        TriggerType.ROM_SETTING,
         TriggerType.LOCATION
     )
 
@@ -854,8 +855,25 @@ object TriggerStateEvaluator {
         TriggerType.DEVICE,
         TriggerType.BLUETOOTH_DEVICE,
         TriggerType.APPLICATION,
-        TriggerType.CHARGER
+        TriggerType.CHARGER,
+        TriggerType.ROM_SETTING
     )
+
+    private fun romSettingSatisfied(
+        context: Context,
+        config: Map<String, String>
+    ): Boolean {
+        val namespace = CustomSettingsBridge.Namespace.entries.firstOrNull {
+            it.name == (config["namespace"] ?: "SYSTEM")
+        } ?: CustomSettingsBridge.Namespace.SYSTEM
+        val key = config["key"]?.trim()?.takeIf { it.isNotEmpty() } ?: return false
+        val target = config["value"]?.trim()?.takeIf { it.isNotEmpty() } ?: return false
+        val actual = CustomSettingsBridge.read(context, namespace, key)
+        return when (config["operator"] ?: "EQUALS") {
+            "NOT_EQUALS" -> actual != target
+            else -> actual == target
+        }
+    }
 
     private fun batterySatisfied(context: Context, config: Map<String, String>): Boolean {
         val battery = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager ?: return false
