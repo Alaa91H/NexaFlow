@@ -172,4 +172,70 @@ class TriggerExpressionEvaluatorTest {
         )
         assertFalse(snapshot.isSatisfied(TriggerMatchMode.ALL))
     }
+
+    @Test
+    fun evidenceDiagnosticsAreTypedAndExcludeTriggerConfigValues() = runBlocking {
+        val secretValue = "private-sms-content"
+        val task = automation(
+            listOf(
+                Trigger(TriggerType.SMS, mapOf("contains" to secretValue)),
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to "ON")),
+            )
+        )
+
+        val snapshot = TriggerExpressionEvaluator.evaluate(
+            automation = task,
+            occurrence = TriggerOccurrence.single(
+                triggerIndex = 0,
+                occurredAtEpochMs = 600L,
+                sourceId = "sms",
+            ),
+            evaluatedAtEpochMs = 601L,
+            stateReader = { trigger ->
+                if (trigger.type == TriggerType.DARK_MODE) {
+                    ConditionResult.Unsatisfied
+                } else {
+                    ConditionResult.Unknown
+                }
+            },
+        )
+
+        assertEquals(TriggerBlockKind.UNSATISFIED, snapshot.blockKind())
+        assertEquals(
+            ConditionResult.Unsatisfied,
+            snapshot.decision(TriggerMatchMode.ALL),
+        )
+        val detail = snapshot.diagnosticDetail()
+        assertTrue(detail.contains("#0:SMS=SATISFIED@CURRENT_EVENT"))
+        assertTrue(detail.contains("#1:DARK_MODE=UNSATISFIED@LIVE_STATE"))
+        assertFalse(detail.contains(secretValue))
+    }
+
+    @Test
+    fun errorDominatesUnknownWhenNoConfirmedFalseExists() = runBlocking {
+        val task = automation(
+            listOf(
+                Trigger(TriggerType.SMS, emptyMap()),
+                Trigger(TriggerType.NOTIFICATION, emptyMap()),
+            )
+        )
+
+        val snapshot = TriggerExpressionEvaluator.evaluate(
+            automation = task,
+            occurrence = null,
+            evaluatedAtEpochMs = 700L,
+            stateReader = { trigger ->
+                if (trigger.type == TriggerType.SMS) {
+                    ConditionResult.Unknown
+                } else {
+                    ConditionResult.Error("sensitive-provider-detail")
+                }
+            },
+        )
+
+        assertEquals(TriggerBlockKind.ERROR, snapshot.blockKind())
+        assertFalse(snapshot.diagnosticDetail().contains("sensitive-provider-detail"))
+        assertTrue(snapshot.diagnosticDetail().contains("ERROR@LIVE_STATE"))
+    }
+
 }
