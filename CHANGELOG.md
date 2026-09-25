@@ -2,87 +2,100 @@
 
 ## [Unreleased]
 
-### Changed — Hybrid privilege routing
+## [v3.89.0] - 2026-09-25
 
-- Capability-mapped privileged actions now use adaptive execution by default instead of
-  freezing whichever Root/Shizuku provider happened to be available while the action
-  request was created. Explicit `backend`/`channel` selections still pin execution.
-- Added reusable adaptive and pinned privileged execution-policy constructors so future
-  capability adapters share the same authorization and fallback semantics.
-- Added one event-driven privilege snapshot covering declared Android runtime permissions,
-  mapped AppOps, special app access, Shizuku readiness, verified Root authority, and
-  Device Owner state. Permission settings now render from this shared verified snapshot.
-- Runtime permission changes, watched AppOps, accessibility/notification-listener secure
-  settings, Shizuku lifecycle transitions, elevated repair flows, and activity resume all
-  invalidate the shared state. Capability diagnostics consume the same snapshot instead
-  of independently inferring Root/Shizuku/managed-device readiness.
-- Explicit capability refreshes now bypass the passive anti-storm backoff, while passive
-  invalidations remain coalesced. A grant returning from system settings is therefore
-  visible immediately without turning background events into probe storms.
-- Added a tri-state workflow requirement graph covering capabilities, Android permissions,
-  special access, AppOps and exact Root/Shizuku authority with `allOf`/`anyOf` semantics.
-  Unobserved state remains `UNKNOWN` instead of becoming a false denial.
-- Runtime admission, builder save admission and dry-run preflight now evaluate the same
-  workflow-level requirement plan, including triggers, main actions, per-action end values
-  and explicit exit actions. Diagnostics identify the exact blocked workflow node.
-- Builder permission repair is now route-aware: it requests only grants that still block
-  the saved workflow. A working Root or Shizuku alternative no longer causes redundant
-  WRITE_SETTINGS/DND/elevated prompts, while exact Root-only/Shizuku-only actions remain pinned.
+### Changed — Adaptive privilege routing and workflow admission
+
+- Privileged capability actions now use adaptive execution by default instead of locking
+  onto whichever Root or Shizuku provider happened to be available when the request was
+  created. Explicit `backend` or `channel` selections continue to pin execution when a
+  workflow requires a specific elevated path.
+- Added shared adaptive and pinned execution-policy constructors so privileged capability
+  adapters use the same authorization, fallback, and least-privilege semantics.
+- Added an event-driven privilege snapshot covering declared Android runtime permissions,
+  mapped AppOps, special app access, Shizuku readiness, verified Root authority, and Device
+  Owner state. Permission settings and capability diagnostics now consume the same verified
+  state instead of maintaining independent readiness assumptions.
+- Privilege state is invalidated by runtime-permission changes, watched AppOps, accessibility
+  and notification-listener settings, Shizuku lifecycle transitions, elevated repair flows,
+  and activity resume. Explicit refreshes bypass passive anti-storm backoff so newly granted
+  access is reflected immediately.
+- Added a tri-state workflow requirement graph spanning capabilities, Android permissions,
+  special access, AppOps, and exact Root/Shizuku authority with `allOf` / `anyOf`
+  semantics. Unobserved state remains `UNKNOWN` rather than being treated as a denial.
+- Runtime admission, builder save admission, and dry-run preflight now evaluate the same
+  workflow-level requirement plan across triggers, main actions, per-action end values, and
+  explicit exit actions. Diagnostics identify the exact blocked workflow node.
+- Builder permission repair is now route-aware and requests only grants that still block the
+  saved workflow. Working Root or Shizuku alternatives no longer cause redundant
+  WRITE_SETTINGS, DND, or elevated prompts, while explicitly pinned actions stay pinned.
 - Command-spec Android permissions are merged into the canonical requirement catalog so
   permissions declared by compatibility metadata automatically reach builder and preflight
-  flows instead of requiring a second hand-maintained permission map.
-- Added strategy-aware semantic preflight: the capability router can now produce a
-  side-effect-free execution plan using the same live availability, evidence, health and
-  least-privilege ranking that execution uses immediately before a device-state change.
-- Whole-workflow semantic planning covers main actions, per-action end values and explicit
-  exit actions. A Settings-only hand-off is now classified as pending user action instead
-  of an automatically executable route, and runtime blocks it before the first side effect.
-- Builder save admission and dry-run reports consume the same semantic execution plan.
-  Builder repair also bridges otherwise-unowned semantic blockers to one elevated grant
-  path without replacing a more direct WRITE_SETTINGS/DND/runtime-permission repair.
+  flows without a second hand-maintained permission map.
+- Added strategy-aware semantic preflight using the same live availability, evidence, health,
+  and least-privilege ranking used immediately before execution. Whole-workflow planning now
+  covers main actions, end values, and explicit exit actions.
+- Settings-only hand-offs are now classified as pending user action instead of automatic
+  execution routes. Runtime admission blocks them before the first side effect, while builder
+  save admission, repair, and dry-run reporting expose the same semantic plan.
 
-### Fixed
+### Fixed — Trigger semantics, lifecycle ownership, and privilege recovery
 
-- Fixed ALL/AND automations that combine a charger trigger with another live
-  condition (for example, charging AND 22:00–07:00). The trigger gate now reads
-  the same sticky battery status used by the battery monitor, eliminating a
-  race where `BatteryManager.isCharging` could lag the charger broadcast and
-  incorrectly reject the run. A full battery remains treated as connected.
-- Centralized tri-state ANY/ALL aggregation in `TriggerMatchPolicy` and routed
-  the automatic engine gate, manual/current-state aggregation, Wear routing,
-  and dashboard readiness through the same truth table. Unknown/unavailable
-  evidence can no longer drift between runtime surfaces.
-- Made momentary ALL semantics explicit: one current event may prove an
-  event-only trigger while state-readable siblings are checked live; with
-  multiple momentary conditions, one current occurrence must match them all.
-  Separate past events are never remembered or implicitly correlated.
-- Added typed ALL-gate diagnostics that record each trigger's result and
-  evidence source (`CURRENT_EVENT` vs `LIVE_STATE`) with config-free trace
-  details and stable reason codes for confirmed false, unknown, unavailable,
-  and error states.
-- Hardened event-source evidence so filtered clipboard, timezone, NFC, screen
-  timeout and alarm-change triggers only receive `CURRENT_EVENT` proof when
-  the concrete event payload matches their saved configuration. Calendar,
-  scheduled-time and boot delivery now preserve the exact trigger indices
-  proven by the same occurrence.
-- Reworked multi-location lifecycle ownership: one location fix evaluates every
-  configured location trigger, stores the indices that admitted the occurrence,
-  uses the central ANY/ALL policy to decide when that owned location expression
-  has definitively ended, and never converts unreadable state into an exit.
-- Raised the persisted workflow semantics version to v2 for occurrence-aware
-  ALL matching. Existing v1 ALL tasks that contain momentary triggers remain
-  fail-closed and are marked for review; opening and saving them in the builder
-  upgrades them explicitly. Legacy state-only ALL tasks keep working unchanged.
+- Fixed ALL/AND automations that combine a charger trigger with another live condition, such
+  as charging plus a time range. The gate now reads the same sticky battery state used by the
+  battery monitor, preventing a charger-broadcast race from incorrectly rejecting a run.
+- Centralized tri-state ANY/ALL aggregation in `TriggerMatchPolicy` and routed automatic
+  execution, manual/current-state evaluation, Wear routing, and dashboard readiness through
+  the same truth table. Unknown and unavailable evidence can no longer drift between runtime
+  surfaces.
+- Made momentary ALL semantics occurrence-aware: a current event may prove an event-only
+  trigger while state-readable siblings are evaluated live, but separate historical events
+  are never remembered or implicitly correlated.
+- Added typed ALL-gate diagnostics that record each trigger result and evidence source
+  (`CURRENT_EVENT` or `LIVE_STATE`) using config-free trace details and stable reason
+  codes for false, unknown, unavailable, and error outcomes.
+- Hardened event evidence for filtered clipboard, timezone, NFC, screen-timeout, and
+  alarm-change triggers so `CURRENT_EVENT` proof is accepted only when the concrete payload
+  matches the saved configuration. Calendar, scheduled-time, and boot delivery preserve the
+  exact trigger indices proven by the same occurrence.
+- Reworked multi-location lifecycle ownership so one location fix evaluates every configured
+  location trigger, records the indices that admitted the occurrence, and uses the central
+  ANY/ALL policy to determine when the owned expression has definitively ended. Unreadable
+  location state no longer becomes a synthetic exit.
+- Raised persisted workflow trigger semantics to v2 for occurrence-aware ALL matching.
+  Existing v1 ALL workflows containing momentary triggers fail closed and are marked for
+  review until opened and saved; legacy state-only ALL workflows continue to operate.
+- Fixed fresh Root grants so a successful superuser prompt is immediately re-probed before
+  permission repair. A stale negative Root cache can no longer make a successful grant appear
+  unavailable in the same flow.
+- Root transport failures now invalidate cached Root authority and force verified privilege
+  re-probing, preventing revoked superuser access from remaining falsely healthy.
+- Removed dependence on non-public PackageManager permission-change listener APIs. Public
+  AppOps/settings/Shizuku events, verified grant events, and activity-resume rechecks provide
+  the invalidation path without hidden-SDK coupling.
 
-- Fixed the fresh-root grant path so a successful superuser prompt is immediately
-  re-probed before permission repair. The pre-prompt negative root cache can no longer
-  cause the same grant flow to fall through as if no elevated runtime were available.
-- Root transport failures now invalidate cached Root authority and trigger verified
-  privilege re-probing, preventing a revoked superuser grant from remaining falsely
-  healthy for later actions.
-- Removed use of non-public PackageManager permission-change listener APIs from the
-  privilege monitor. Public AppOps/settings/Shizuku events, verified grant events and
-  activity-resume rechecks provide the invalidation path without hidden-SDK coupling.
+### Tests and reliability
+
+- Expanded regression coverage for adaptive privilege state, workflow requirement resolution,
+  semantic execution planning, save/dry-run admission, elevated repair routing, and Root
+  recovery behavior.
+- Added coverage for concurrent workflow admission, lifecycle admission, occurrence
+  deduplication, charger-state evaluation, ANY/ALL expression semantics, filtered event
+  evidence, and multi-location lifecycle ownership.
+- Aligned coroutine test scheduling and CI contract tests with current runtime behavior,
+  removing stale expectations while preserving the execution-engine invariants introduced by
+  the trigger-semantics migration.
+
+### Release engineering
+
+- Consolidated repository automation into a single `NexaFlow Unified CI` pipeline covering
+  lint, static analysis, tests, debug/release builds, artifact validation, and tagged release
+  publication.
+- Release publication is now tag-driven: valid `vMAJOR.MINOR.PATCH` tags must point to a
+  commit contained in `main`, match the newest changelog entry, and pass the full CI gate
+  before signed phone, Wear OS, and AAB artifacts are published.
+- Removed version-specific release-control workflows and marker files in favor of the unified
+  reusable release path, and updated CI documentation to reference the consolidated pipeline.
 
 ## [v3.88.0] - 2026-09-24
 
