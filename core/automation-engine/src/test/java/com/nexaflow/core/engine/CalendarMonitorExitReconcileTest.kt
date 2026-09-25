@@ -153,13 +153,14 @@ class CalendarMonitorExitReconcileTest {
     private fun monitorFor(
         repository: FakeRepository,
         engine: com.nexaflow.core.execution.ExecutionEngine,
-        store: ActiveTriggerStore
+        store: ActiveTriggerStore,
+        scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
     ): CalendarMonitor = CalendarMonitor(
         context = context,
         repository = repository,
         executionEngine = engine,
         activeStore = store,
-        scope = CoroutineScope(Dispatchers.Default)
+        scope = scope
     )
 
     @Test
@@ -272,19 +273,32 @@ class CalendarMonitorExitReconcileTest {
             )
         )
 
-        val monitor = monitorFor(repository, testEngine(context, history), store)
-        monitor.initialize()
-
-        waitUntil { history.exits.isNotEmpty() }
-        assertTrue(
-            "same calendar event should satisfy both CALENDAR filters",
-            history.exits.none {
-                it.contains("same current occurrence") ||
-                    it.contains("not all trigger conditions")
-            }
+        // Keep this integration test inside the runBlocking structured
+        // scope. Using a detached Dispatchers.Default scope made the admission
+        // assertion sensitive to CI executor contention even though production
+        // behavior was correct.
+        val monitor = monitorFor(
+            repository = repository,
+            engine = testEngine(context, history),
+            store = store,
+            scope = this
         )
-        monitor.stop()
-        store.clearAutomation("calendar", automation.id)
+        try {
+            monitor.initialize()
+
+            waitUntil(timeoutMs = 10_000L) { history.exits.isNotEmpty() }
+            assertTrue(
+                "same calendar event should satisfy both CALENDAR filters; records=${history.exits}",
+                history.exits.none {
+                    it.contains("same current occurrence") ||
+                        it.contains("not all trigger conditions")
+                }
+            )
+        } finally {
+            monitor.stop()
+            store.clearAutomation("calendar", automation.id)
+            ActiveExecutionStore(context).clear(automation.id)
+        }
         ActiveExecutionStore(context).clear(automation.id)
     }
 
