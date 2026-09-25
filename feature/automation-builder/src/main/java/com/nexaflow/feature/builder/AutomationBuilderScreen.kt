@@ -1876,7 +1876,16 @@ fun AutomationBuilderScreen(
                     TriggerMatchSelector(
                         selected = triggerMatch,
                         onSelect = { triggerMatchName = it.name },
-                        allModeSemantics = triggerMatchBuiltWarning(triggers)
+                        allModeSemantics = triggerMatchBuiltWarning(triggers),
+                        legacyReviewRequired =
+                            loadedAutomation?.workflowVersion
+                                ?.let { version ->
+                                    version <
+                                        Automation.OCCURRENCE_AWARE_TRIGGER_SEMANTICS_VERSION &&
+                                        triggerMatch == TriggerMatchMode.ALL &&
+                                        triggerMatchBuiltWarning(triggers) !=
+                                            TriggerMatchPolicy.AllModeEventSemantics.NONE
+                                } == true,
                     )
                 }
 
@@ -2460,6 +2469,7 @@ private fun TriggerMatchSelector(
     onSelect: (TriggerMatchMode) -> Unit,
     allModeSemantics: TriggerMatchPolicy.AllModeEventSemantics =
         TriggerMatchPolicy.AllModeEventSemantics.NONE,
+    legacyReviewRequired: Boolean = false,
 ) {
     Column {
         Text(
@@ -2510,6 +2520,14 @@ private fun TriggerMatchSelector(
                     }
                 }
             }
+        }
+        if (legacyReviewRequired) {
+            Text(
+                text = stringResource(R.string.trigger_match_legacy_review_required),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 6.dp)
+            )
         }
         if (
             selected == TriggerMatchMode.ALL &&
