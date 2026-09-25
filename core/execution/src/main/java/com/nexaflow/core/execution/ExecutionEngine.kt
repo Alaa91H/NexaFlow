@@ -168,6 +168,21 @@ class ExecutionEngine(
      */
     private val activeExecutions = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
+    /**
+     * Process-local single-flight admission per automation.
+     *
+     * The production ExecutionEngine is a singleton, so every monitor converges
+     * on this boundary before any gate/checkpoint/side effect. A second callback
+     * for the same automation while one run is still open is intentionally
+     * skipped rather than queued: queueing would replay stale event evidence
+     * after the triggering occurrence has already passed.
+     *
+     * Durable crash/recovery semantics remain owned by ActiveExecutionStore;
+     * this set only closes the in-process concurrency race.
+     */
+    private val runningAutomationIds =
+        java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
     /** Serializes the paired in-memory and durable exit-ledger consumption per task. */
     private val exitConsumptionLocks = java.util.concurrent.ConcurrentHashMap<String, Mutex>()
 
@@ -200,14 +215,52 @@ class ExecutionEngine(
         /** Explicit user-approved manual paths may bypass the automatic trigger gate. */
         bypassTriggerMatch: Boolean = false
     ): ExecutionRecord {
-        // Strict mode: acquire wake lock for forceful execution (bypasses Doze, ensures CPU stays on)
-        val wakeLock = acquireExecutionWakeLock(context, "NexaFlow:runAutomation:${automation.id}")
-        try {
-            val startedAt = epochMillis.now()
+        val startedAt = epochMillis.now()
         // Allocate the run identity before admission gates. This lets blocked
         // runs correlate their durable history row with the structured trace
         // without timestamp guessing.
         val payloadContext = runContext ?: WorkflowRunContext.create(automation.id, startedAt)
+
+        // Single-flight admission is intentionally process-local. The durable
+        // checkpoint store handles crash recovery; this guard prevents two live
+        // callbacks from producing two action chains for the same automation.
+        if (!runningAutomationIds.add(automation.id)) {
+            val record = ExecutionRecord(
+                id = UUID.randomUUID().toString(),
+                automationId = automation.id,
+                automationName = automation.name,
+                success = true,
+                message = "Skipped: automation is already running",
+                executedAt = startedAt
+            )
+            if (skipReportThrottle.shouldReport(
+                    automationId = automation.id,
+                    reason = "CONCURRENT_RUN",
+                    now = startedAt
+                )
+            ) {
+                historyRepository.recordExecution(record)
+            }
+            diagnostics.recordTimeline(
+                automation = automation,
+                kind = "CONCURRENT_RUN_SKIPPED",
+                record = record,
+                startedAt = startedAt,
+                runId = payloadContext.runId
+            )
+            traceRecorder.recordBlockedRun(
+                payloadContext.runId,
+                automation.id,
+                TraceReasons.ADMISSION_REJECTED,
+                "automation is already running",
+                epochMillis.now()
+            )
+            return record
+        }
+
+        // Strict mode: acquire wake lock for forceful execution (bypasses Doze, ensures CPU stays on)
+        val wakeLock = acquireExecutionWakeLock(context, "NexaFlow:runAutomation:${automation.id}")
+        try {
         if (automation.requiresTimeRangeForEndBehavior) {
             return diagnostics.rejectIncompleteTimeRange(automation, startedAt, payloadContext.runId)
         }
@@ -715,6 +768,7 @@ class ExecutionEngine(
         context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
         return record
         } finally {
+            runningAutomationIds.remove(automation.id)
             try { wakeLock?.let { if (it.isHeld) it.release() } } catch (_: Throwable) {}
         }
     }
