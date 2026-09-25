@@ -430,7 +430,13 @@ class ExecutionEngine(
             if (triggerSnapshot.decision(com.nexaflow.domain.models.TriggerMatchMode.ALL) !=
                 ConditionResult.Satisfied
             ) {
-                val skipDetail = TriggerMatchPolicy.skipMessage(automation.triggers, gateResults)
+                val semanticsReviewRequired =
+                    TriggerMatchPolicy.requiresOccurrenceSemanticsReview(automation)
+                val skipDetail = if (semanticsReviewRequired) {
+                    "Skipped: legacy ALL event semantics require review and save before event matching can run"
+                } else {
+                    TriggerMatchPolicy.skipMessage(automation.triggers, gateResults)
+                }
                 val record = ExecutionRecord(
                     id = UUID.randomUUID().toString(),
                     automationId = automation.id,
@@ -446,12 +452,16 @@ class ExecutionEngine(
                 diagnostics.recordTimeline(
                     automation, "TRIGGER_ALL_GATE_BLOCKED", record, startedAt, payloadContext.runId
                 )
-                val reasonCode = when (triggerSnapshot.blockKind()) {
-                    TriggerBlockKind.UNSATISFIED -> TraceReasons.TRIGGER_AND_UNSATISFIED
-                    TriggerBlockKind.ERROR -> TraceReasons.TRIGGER_STATE_ERROR
-                    TriggerBlockKind.UNAVAILABLE -> TraceReasons.TRIGGER_STATE_UNAVAILABLE
-                    TriggerBlockKind.UNKNOWN -> TraceReasons.TRIGGER_STATE_UNKNOWN
-                    null -> TraceReasons.TRIGGER_ALL_GATE_BLOCKED
+                val reasonCode = if (semanticsReviewRequired) {
+                    TraceReasons.TRIGGER_SEMANTICS_REVIEW_REQUIRED
+                } else {
+                    when (triggerSnapshot.blockKind()) {
+                        TriggerBlockKind.UNSATISFIED -> TraceReasons.TRIGGER_AND_UNSATISFIED
+                        TriggerBlockKind.ERROR -> TraceReasons.TRIGGER_STATE_ERROR
+                        TriggerBlockKind.UNAVAILABLE -> TraceReasons.TRIGGER_STATE_UNAVAILABLE
+                        TriggerBlockKind.UNKNOWN -> TraceReasons.TRIGGER_STATE_UNKNOWN
+                        null -> TraceReasons.TRIGGER_ALL_GATE_BLOCKED
+                    }
                 }
                 traceRecorder.recordGateBlocked(
                     runId = payloadContext.runId,
