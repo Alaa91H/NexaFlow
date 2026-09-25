@@ -13,6 +13,8 @@ import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.ExecutionRecord
+import com.nexaflow.domain.models.Trigger
+import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.HistoryRepository
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CompletableDeferred
@@ -57,6 +59,22 @@ class ExecutionEngineConcurrentAdmissionTest {
 
         fun unblock() {
             release.complete(Unit)
+        }
+    }
+
+    private class CountingHandler : ActionHandler {
+        private val count = AtomicInteger()
+        val calls: Int get() = count.get()
+
+        override val supportedTypes: Set<ActionType> =
+            setOf(ActionType.SYSTEM_SEND_NOTIFICATION)
+
+        override suspend fun execute(
+            action: Action,
+            ctx: ActionExecutionContext,
+        ): SystemControlResult {
+            count.incrementAndGet()
+            return SystemControlResult.ok("ok")
         }
     }
 
@@ -161,6 +179,50 @@ class ExecutionEngineConcurrentAdmissionTest {
 
         handler.unblock()
         assertTrue(first.await().success)
+
+        activeStore.clear(task.id)
+    }
+
+
+    @Test
+    fun sequentialReplayOfSameIdentifiedOccurrenceDoesNotRepeatActions() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val task = automation("occurrence-replay").copy(
+            triggers = listOf(Trigger(TriggerType.SMS, mapOf("contains" to "go")))
+        )
+        val activeStore = ActiveExecutionStore(context)
+        activeStore.clear(task.id)
+
+        val handler = CountingHandler()
+        val engine = ExecutionEngine(
+            context = context,
+            historyRepository = RecordingHistory(),
+            notificationPreferences = NotificationPreferences(context),
+            actionRegistry = ActionRegistry.from(listOf(handler)),
+            activeExecutionStore = activeStore,
+        )
+        val occurrence = TriggerOccurrence.single(
+            triggerIndex = 0,
+            occurredAtEpochMs = 100L,
+            sourceId = "test-event-source",
+            eventId = "physical-event-1",
+        )
+
+        val first = engine.runAutomation(task, triggerOccurrence = occurrence)
+        val replay = engine.runAutomation(task, triggerOccurrence = occurrence)
+        val next = engine.runAutomation(
+            task,
+            triggerOccurrence = occurrence.copy(
+                occurredAtEpochMs = 101L,
+                eventId = "physical-event-2",
+            ),
+        )
+
+        assertTrue(first.success)
+        assertTrue(replay.message.contains("already processed"))
+        assertTrue(replay.actionResults.isEmpty())
+        assertTrue(next.success)
+        assertEquals(2, handler.calls)
 
         activeStore.clear(task.id)
     }
