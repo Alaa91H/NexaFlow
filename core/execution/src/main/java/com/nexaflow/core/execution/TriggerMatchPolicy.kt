@@ -3,6 +3,7 @@ package com.nexaflow.core.execution
 import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerMatchMode
+import com.nexaflow.domain.models.isOneShotEvent
 
 /**
  * Single source of truth for combining multiple trigger conditions under the
@@ -47,7 +48,7 @@ object TriggerMatchPolicy {
      * no occurrence, so these triggers remain unverifiable there.
      */
     fun isEventOnly(trigger: Trigger): Boolean =
-        TriggerStateEvaluator.isEventOnly(trigger.type)
+        trigger.isOneShotEvent() || TriggerStateEvaluator.isEventOnly(trigger.type)
 
     /** Type-only overload for draft/UI checks that hold no full [Trigger]. */
     fun isEventOnly(type: com.nexaflow.domain.models.TriggerType): Boolean =
