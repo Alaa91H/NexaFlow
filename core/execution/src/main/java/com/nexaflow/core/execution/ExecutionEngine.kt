@@ -427,28 +427,37 @@ class ExecutionEngine(
                 evaluatedAtEpochMs = startedAt,
             )
             val gateResults = triggerSnapshot.results
-            if (!TriggerMatchPolicy.combine(com.nexaflow.domain.models.TriggerMatchMode.ALL, gateResults)) {
+            if (triggerSnapshot.decision(com.nexaflow.domain.models.TriggerMatchMode.ALL) !=
+                ConditionResult.Satisfied
+            ) {
+                val skipDetail = TriggerMatchPolicy.skipMessage(automation.triggers, gateResults)
                 val record = ExecutionRecord(
                     id = UUID.randomUUID().toString(),
                     automationId = automation.id,
                     automationName = automation.name,
                     success = true,
-                    message = TriggerMatchPolicy.skipMessage(automation.triggers, gateResults),
+                    message = skipDetail,
                     executedAt = startedAt,
                     channel = channel?.type?.name
                 )
-                val skipDetail = TriggerMatchPolicy.skipMessage(automation.triggers, gateResults)
                 if (skipReportThrottle.shouldReport(
                         automation.id, "TRIGGER_ALL:" + skipDetail, startedAt
                     )) historyRepository.recordExecution(record)
                 diagnostics.recordTimeline(
                     automation, "TRIGGER_ALL_GATE_BLOCKED", record, startedAt, payloadContext.runId
                 )
+                val reasonCode = when (triggerSnapshot.blockKind()) {
+                    TriggerBlockKind.UNSATISFIED -> TraceReasons.TRIGGER_AND_UNSATISFIED
+                    TriggerBlockKind.ERROR -> TraceReasons.TRIGGER_STATE_ERROR
+                    TriggerBlockKind.UNAVAILABLE -> TraceReasons.TRIGGER_STATE_UNAVAILABLE
+                    TriggerBlockKind.UNKNOWN -> TraceReasons.TRIGGER_STATE_UNKNOWN
+                    null -> TraceReasons.TRIGGER_ALL_GATE_BLOCKED
+                }
                 traceRecorder.recordGateBlocked(
                     runId = payloadContext.runId,
                     automationId = automation.id,
-                    reasonCode = com.nexaflow.core.logging.TraceReasons.TRIGGER_ALL_GATE_BLOCKED,
-                    detail = skipDetail,
+                    reasonCode = reasonCode,
+                    detail = "$skipDetail | ${triggerSnapshot.diagnosticDetail()}".take(1_024),
                     atEpochMs = startedAt,
                 )
                 return record
