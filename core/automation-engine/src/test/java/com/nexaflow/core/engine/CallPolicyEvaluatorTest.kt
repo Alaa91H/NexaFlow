@@ -215,4 +215,30 @@ class CallPolicyEvaluatorTest {
         )
         assertNull(CallPolicyEvaluator.verdictOf(unrelated, "123456", CallPolicyEvaluator.CATEGORY_UNKNOWN, false))
     }
+
+    @Test
+    fun `matching trigger indices keep unrelated call filters out of event evidence`() {
+        val task = callTask().copy(
+            triggers = listOf(
+                Trigger(
+                    TriggerType.INCOMING_CALL,
+                    mapOf("from" to "177", "matchMode" to "CONTAINS", "category" to "ANY")
+                ),
+                Trigger(
+                    TriggerType.INCOMING_CALL,
+                    mapOf("from" to "030", "matchMode" to "CONTAINS", "category" to "ANY")
+                ),
+            )
+        )
+
+        assertEquals(
+            setOf(0),
+            CallPolicyEvaluator.matchingTriggerIndices(
+                automation = task,
+                number = "+49177999",
+                category = CallPolicyEvaluator.CATEGORY_UNKNOWN,
+            ),
+        )
+    }
+
 }
