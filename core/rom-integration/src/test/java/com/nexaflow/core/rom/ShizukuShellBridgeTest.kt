@@ -164,10 +164,10 @@ class ShizukuShellBridgeTest {
     }
 
     @Test
-    fun `hotspot wire uses the modern WifiShell commands`() {
+    fun `hotspot wire remains typed and preserves the requested state`() {
         assertEquals(
-            listOf("cmd", "wifi", "start-softap"),
-            PrivilegedOperation.SetHotspot(true).argv()
+            PrivilegedOperation.SetHotspot(true),
+            PrivilegedOperation.fromWire("hotspot.set", "true", "", "")
         )
         assertEquals(
             PrivilegedOperation.SetHotspot(false),
