@@ -16,6 +16,7 @@ import com.nexaflow.domain.repositories.HistoryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * Shared scaffolding for the exit-reconcile-after-restart tests. Each monitor
@@ -42,7 +43,7 @@ internal fun emptyPagingSource(): PagingSource<Int, ExecutionRecord> =
 
 /** Records every execution message; exit runs leave the [EXIT_NOOP_MARKER]. */
 internal class RecordingHistory : HistoryRepository {
-    val exits = mutableListOf<String>()
+    val exits = CopyOnWriteArrayList<String>()
     override fun getExecutionHistory(): Flow<List<ExecutionRecord>> = flowOf(emptyList())
     override fun getExecutionPaging(): PagingSource<Int, ExecutionRecord> = emptyPagingSource()
     override suspend fun getExecutionById(id: String): ExecutionRecord? = null

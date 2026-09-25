@@ -43,20 +43,20 @@ class AndroidApiBluetoothReadinessTest {
 
         shadowApplication.grantPermissions(Manifest.permission.BLUETOOTH_CONNECT)
 
-        assertTrue(
-            strategy.availability(
-                TypedOperationRequest(SemanticOperationId.BLUETOOTH_GET_STATE),
-                SemanticOperationId.BLUETOOTH_GET_STATE
-            ).available
+        val readAfterGrant = strategy.availability(
+            TypedOperationRequest(SemanticOperationId.BLUETOOTH_GET_STATE),
+            SemanticOperationId.BLUETOOTH_GET_STATE
         )
-        assertTrue(
-            strategy.availability(
-                TypedOperationRequest(
-                    SemanticOperationId.BLUETOOTH_SET_STATE,
-                    parameters = mapOf("enabled" to "true")
-                ),
-                SemanticOperationId.BLUETOOTH_SET_STATE
-            ).available
+        val writeAfterGrant = strategy.availability(
+            TypedOperationRequest(
+                SemanticOperationId.BLUETOOTH_SET_STATE,
+                parameters = mapOf("enabled" to "true")
+            ),
+            SemanticOperationId.BLUETOOTH_SET_STATE
         )
+
+        assertTrue(readAfterGrant.available)
+        assertFalse(writeAfterGrant.available)
+        assertFalse(writeAfterGrant.permissionRequired)
     }
 }

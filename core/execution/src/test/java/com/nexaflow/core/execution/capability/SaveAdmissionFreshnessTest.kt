@@ -93,7 +93,7 @@ class SaveAdmissionFreshnessTest {
     }
 
     @Test
-    fun `freshSnapshot respects the min-refresh backoff and still returns promptly`() = runTest {
+    fun `freshSnapshot bypasses passive min-refresh backoff and still returns promptly`() = runTest {
         val backend = MutableBackend(CapabilityAvailability.AVAILABLE)
         var now = 1_000_000L
         val store = CapabilityStateStore(
@@ -110,10 +110,9 @@ class SaveAdmissionFreshnessTest {
 
         val fresh = store.freshSnapshot(budgetMs = 200L)
 
-        assertEquals(
-            "a backoff-window refresh keeps the recent snapshot — no hang, no empty state",
-            observedAt,
-            fresh.observedAtMs
+        assertTrue(
+            "an explicit freshness request must bypass passive backoff (fresh=${fresh.observedAtMs}, before=$observedAt)",
+            fresh.observedAtMs > observedAt
         )
     }
 }
