@@ -8,7 +8,7 @@
     <string name="execution_task_completed">اكتملت المهمة بنجاح.</string>
     <string name="execution_task_failed">تعذر إكمال المهمة.</string>
     <string name="execution_task_skipped">تم تخطي المهمة.</string>
-    <string name="execution_recovery_queue_awaits_review">أُوقفت المهمة مؤقتاً حتى تُراجع عمليات التنفيذ المتقطعة.</string>
+    <string name="execution_recovery_queue_awaits_review">هناك عمليات تنفيذ متقطعة تحتاج إلى مراجعة قبل اعتماد نتيجتها.</string>
     <string name="execution_conditions_not_satisfied_end_behavior_completed">المحفزات أو الشروط غير متطابقة. تم تنفيذ سلوك النهاية فقط (عند انتهاء المهمة).</string>
     <string name="execution_conditions_not_satisfied_no_end_behavior">محفزات المهمة أو شروطها غير متطابقة، لذلك لا يمكن تشغيلها الآن. لم يتم تكوين سلوك نهاية.</string>
     <string name="execution_conditions_not_satisfied_end_behavior_failed">محفزات المهمة أو شروطها غير متطابقة، لذلك لا يمكن تشغيلها الآن. تعذر إكمال سلوك النهاية.</string>

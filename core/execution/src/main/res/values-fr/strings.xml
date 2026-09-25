@@ -9,7 +9,7 @@
     <string name="execution_task_completed">La tâche a été effectuée avec succès.</string>
     <string name="execution_task_failed">La tâche n’a pas pu être effectuée.</string>
     <string name="execution_task_skipped">La tâche a été ignorée.</string>
-    <string name="execution_recovery_queue_awaits_review">La tâche est suspendue pendant la vérification des exécutions interrompues.</string>
+    <string name="execution_recovery_queue_awaits_review">Des exécutions interrompues doivent être examinées avant que leur résultat puisse être considéré comme fiable.</string>
     <string name="execution_conditions_not_satisfied_end_behavior_completed">Déclencheurs ou conditions non satisfaits. Seul le comportement final (à la fin de la tâche) a été exécuté.</string>
     <string name="execution_conditions_not_satisfied_no_end_behavior">Déclencheurs ou conditions de la tâche non satisfaits, elle ne peut donc pas s\'exécuter maintenant. Aucun comportement final n\'est configuré.</string>
     <string name="execution_conditions_not_satisfied_end_behavior_failed">Déclencheurs ou conditions de la tâche non satisfaits, elle ne peut donc pas s\'exécuter maintenant. Le comportement final n\'a pas pu être mené à terme.</string>

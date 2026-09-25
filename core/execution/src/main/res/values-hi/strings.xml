@@ -9,7 +9,7 @@
     <string name="execution_task_completed">कार्य सफलतापूर्वक पूरा हुआ।</string>
     <string name="execution_task_failed">कार्य पूरा नहीं किया जा सका।</string>
     <string name="execution_task_skipped">कार्य छोड़ दिया गया।</string>
-    <string name="execution_recovery_queue_awaits_review">बाधित निष्पादनों की समीक्षा के दौरान कार्य रोका गया है।</string>
+    <string name="execution_recovery_queue_awaits_review">कुछ रन बीच में रुक गए थे; उनके परिणाम को विश्वसनीय मानने से पहले समीक्षा आवश्यक है।</string>
     <string name="execution_conditions_not_satisfied_end_behavior_completed">ट्रिगर या शर्तें पूरी नहीं हुईं। केवल अंतिम व्यवहार (कार्य समाप्त होने पर) पूरा हुआ।</string>
     <string name="execution_conditions_not_satisfied_no_end_behavior">कार्य के ट्रिगर या शर्तें पूरी नहीं हुईं, इसलिए यह अभी नहीं चल सकता। कोई अंतिम व्यवहार कॉन्फ़िगर नहीं है।</string>
     <string name="execution_conditions_not_satisfied_end_behavior_failed">कार्य के ट्रिगर या शर्तें पूरी नहीं हुईं, इसलिए यह अभी नहीं चल सकता। अंतिम व्यवहार पूरा नहीं हो सका।</string>

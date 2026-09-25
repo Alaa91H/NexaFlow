@@ -8,6 +8,10 @@ import android.net.TetheringManager
 import android.os.Build
 import android.provider.Settings
 import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.resume
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Authoritative reader for the internet hotspot (Wi-Fi tethering) state.
@@ -30,8 +34,63 @@ object HotspotStateReader {
      */
     fun currentState(context: Context): Boolean? {
         callbackState?.let { return it }
-        return legacyState(context)
+        // On API 36+ never fall back to the undocumented tether_on setting:
+        // a missing callback sample is UNKNOWN, not a trustworthy OFF/ON value.
+        return if (Build.VERSION.SDK_INT < API_TETHERING_CALLBACK) legacyState(context) else null
     }
+
+    /**
+     * Performs an independent one-shot platform read. Unlike [currentState],
+     * this does not depend on ConnectivityMonitor having already populated the
+     * process cache, so post-action verification remains valid during cold
+     * starts and immediately after process recovery.
+     */
+    @SuppressLint("MissingPermission")
+    suspend fun freshState(context: Context, timeoutMs: Long = FRESH_READ_TIMEOUT_MS): Boolean? {
+        if (Build.VERSION.SDK_INT < API_TETHERING_CALLBACK) return legacyState(context)
+        return withTimeoutOrNull(timeoutMs.coerceAtLeast(1L)) {
+            freshStateApi36(context)
+        }
+    }
+
+    @TargetApi(API_TETHERING_CALLBACK)
+    private suspend fun freshStateApi36(context: Context): Boolean? =
+        suspendCancellableCoroutine { continuation ->
+            val manager = context.getSystemService(TetheringManager::class.java)
+            if (manager == null) {
+                continuation.resume(null)
+                return@suspendCancellableCoroutine
+            }
+
+            val finished = AtomicBoolean(false)
+            lateinit var callback: TetheringManager.TetheringEventCallback
+
+            fun finish(value: Boolean?) {
+                if (!finished.compareAndSet(false, true)) return
+                runCatching { manager.unregisterTetheringEventCallback(callback) }
+                if (continuation.isActive) continuation.resume(value)
+            }
+
+            callback = object : TetheringManager.TetheringEventCallback {
+                override fun onTetheredInterfacesChanged(interfaces: Set<TetheringInterface>) {
+                    val value = hasWifiTetheringInterface(interfaces.map { it.type })
+                    callbackState = value
+                    finish(value)
+                }
+            }
+
+            continuation.invokeOnCancellation {
+                if (finished.compareAndSet(false, true)) {
+                    runCatching { manager.unregisterTetheringEventCallback(callback) }
+                }
+            }
+
+            runCatching {
+                manager.registerTetheringEventCallback(DIRECT_EXECUTOR, callback)
+            }.onFailure {
+                finish(null)
+            }
+        }
 
     /**
      * Begins Android 16+/17+ observation. The callback is invoked once with
@@ -92,6 +151,8 @@ object HotspotStateReader {
         callbackState = null
     }
 
+    private val DIRECT_EXECUTOR = Executor { command -> command.run() }
+    private const val FRESH_READ_TIMEOUT_MS = 2_000L
     private const val LEGACY_TETHER_KEY = "tether_on"
     private const val API_TETHERING_CALLBACK = 36
 }

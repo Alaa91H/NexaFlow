@@ -37,7 +37,7 @@ class OperationRegistryParityTest {
     }
 
     @Test
-    fun everyWriteOperationHasShizukuAndRootImplementation() {
+    fun everyWriteOperationHasAnImplementedPrivilegedRoute() {
         val shizuku = ShizukuTypedStrategy(
             shizukuGranted = { true },
             userServiceReady = { true },
@@ -47,26 +47,31 @@ class OperationRegistryParityTest {
             rootAvailable = { true },
             execute = { SystemControlResult.ok("ok") }
         )
+        val privileged = setOf(
+            StrategyId.SHIZUKU_USER_SERVICE,
+            StrategyId.ROOT_SHELL
+        )
 
         OperationRegistry.default().operations()
             .filter { !it.id.isReadOnly }
             .forEach { spec ->
+                val declaredPrivileged = spec.strategies.filter { it in privileged }
                 assertTrue(
-                    "${spec.id.name} must expose a Shizuku fallback",
-                    StrategyId.SHIZUKU_USER_SERVICE in spec.strategies
+                    "${spec.id.name} must expose at least one privileged execution route",
+                    declaredPrivileged.isNotEmpty()
                 )
-                assertTrue(
-                    "${spec.id.name} must expose a Root fallback",
-                    StrategyId.ROOT_SHELL in spec.strategies
-                )
-                assertTrue(
-                    "${spec.id.name} is declared for Shizuku but not implemented",
-                    spec.id in shizuku.supportedOperations
-                )
-                assertTrue(
-                    "${spec.id.name} is declared for Root but not implemented",
-                    spec.id in root.supportedOperations
-                )
+                if (StrategyId.SHIZUKU_USER_SERVICE in spec.strategies) {
+                    assertTrue(
+                        "${spec.id.name} is declared for Shizuku but not implemented",
+                        spec.id in shizuku.supportedOperations
+                    )
+                }
+                if (StrategyId.ROOT_SHELL in spec.strategies) {
+                    assertTrue(
+                        "${spec.id.name} is declared for Root but not implemented",
+                        spec.id in root.supportedOperations
+                    )
+                }
             }
     }
 

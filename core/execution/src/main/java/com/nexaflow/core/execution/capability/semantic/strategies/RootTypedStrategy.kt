@@ -38,8 +38,6 @@ class RootTypedStrategy(
         SemanticOperationId.DND_GET_STATE,
         SemanticOperationId.DND_SET_STATE,
         SemanticOperationId.NFC_SET_STATE,
-        SemanticOperationId.HOTSPOT_SET_STATE,
-        SemanticOperationId.HOTSPOT_GET_STATE,
         SemanticOperationId.MOBILE_DATA_GET_STATE,
         SemanticOperationId.MOBILE_DATA_SET_STATE,
         SemanticOperationId.DATA_SAVER_SET_STATE,
@@ -172,8 +170,6 @@ class RootTypedStrategy(
                 PrivilegedOperation.SetServiceState(
                     PrivilegedOperation.Companion.ServiceName.NFC, enable
                 )
-            SemanticOperationId.HOTSPOT_SET_STATE ->
-                PrivilegedOperation.SetHotspot(enable)
             SemanticOperationId.MOBILE_DATA_SET_STATE ->
                 PrivilegedOperation.SetServiceState(
                     PrivilegedOperation.Companion.ServiceName.DATA, enable
@@ -212,7 +208,6 @@ class RootTypedStrategy(
             val pkg = request.parameters["packageName"]
             if (pkg == null) null else readPackageEnabled(pkg)
         }
-        SemanticOperationId.HOTSPOT_GET_STATE -> null // no reliable single read; honest null
         else -> null
     }
 

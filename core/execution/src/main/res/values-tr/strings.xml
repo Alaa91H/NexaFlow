@@ -9,7 +9,7 @@
     <string name="execution_task_completed">Görev başarıyla tamamlandı.</string>
     <string name="execution_task_failed">Görev tamamlanamadı.</string>
     <string name="execution_task_skipped">Görev atlandı.</string>
-    <string name="execution_recovery_queue_awaits_review">Kesintiye uğrayan çalıştırmalar incelenirken görev duraklatıldı.</string>
+    <string name="execution_recovery_queue_awaits_review">Kesintiye uğrayan çalıştırmaların sonucu güvenilir sayılmadan önce incelenmesi gerekiyor.</string>
     <string name="execution_conditions_not_satisfied_end_behavior_completed">Tetikleyiciler veya koşullar sağlanmadı. Yalnızca bitiş davranışı (görev bittiğinde) tamamlandı.</string>
     <string name="execution_conditions_not_satisfied_no_end_behavior">Görevin tetikleyicileri veya koşulları sağlanmadı, bu yüzden şu anda çalışamaz. Bitiş davranışı yapılandırılmamış.</string>
     <string name="execution_conditions_not_satisfied_end_behavior_failed">Görevin tetikleyicileri veya koşulları sağlanmadı, bu yüzden şu anda çalışamaz. Bitiş davranışı tamamlanamadı.</string>

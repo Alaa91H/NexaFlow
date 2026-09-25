@@ -160,7 +160,6 @@ class OperationRegistry private constructor(
                     risk = CapabilityRiskLevel.MODERATE,
                     strategies = listOf(
                         StrategyId.SHIZUKU_USER_SERVICE,
-                        StrategyId.ROOT_SHELL,
                         StrategyId.SETTINGS_USER_ACTION
                     )),
                 spec(SemanticOperationId.MOBILE_DATA_GET_STATE, "Read mobile data state",

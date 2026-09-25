@@ -667,7 +667,12 @@ class CapabilityRouter(
         if (readers.isEmpty()) return StateObservation()
 
         var lastObserved = StateObservation()
-        for (delayMs in VERIFICATION_POLL_DELAYS_MS) {
+        val pollDelays = if (getStateId == SemanticOperationId.HOTSPOT_GET_STATE) {
+            HOTSPOT_VERIFICATION_POLL_DELAYS_MS
+        } else {
+            VERIFICATION_POLL_DELAYS_MS
+        }
+        for (delayMs in pollDelays) {
             if (delayMs > 0L) delay(delayMs)
             for (reader in readers) {
                 val booleanValue = runCatching {
@@ -713,9 +718,15 @@ class CapabilityRouter(
         strategyId == StrategyId.SHIZUKU_USER_SERVICE || strategyId == StrategyId.ROOT_SHELL
 
     private companion object {
-        // Cumulative wait is 2.7s. Most radios settle sooner, while NFC/SoftAP
-        // on customized ROMs get enough time for an honest read-back.
+        // Cumulative wait is 2.7s for ordinary state changes.
         val VERIFICATION_POLL_DELAYS_MS =
             longArrayOf(0L, 100L, 200L, 400L, 800L, 1_200L)
+
+        // Internet tethering/Soft AP startup is materially slower on several
+        // OEM Android builds. Give it a dedicated settling window rather than
+        // declaring verification failure after the generic radio timeout.
+        // Cumulative delay: 10.75s; each read returns early on a matching state.
+        val HOTSPOT_VERIFICATION_POLL_DELAYS_MS =
+            longArrayOf(0L, 250L, 500L, 1_000L, 2_000L, 3_000L, 4_000L)
     }
 }

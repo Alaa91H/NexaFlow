@@ -126,6 +126,11 @@ object PrivilegedRunner {
         if (!isRootAvailable()) {
             return SystemControlResult.fail("Root is not available. Grant NexaFlow in your root manager")
         }
+        if (operation is PrivilegedOperation.SetHotspot) {
+            return SystemControlResult.fail(
+                "Root shell Soft AP commands are not used for Internet tethering; connect Shizuku UserService or use Android Settings"
+            )
+        }
         return try {
             val command = operation.rootCommand()
             val attempts = listOf(

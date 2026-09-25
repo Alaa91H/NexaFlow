@@ -14,14 +14,19 @@ on:
 
 permissions: {}
 
+# Concurrency belongs to the whole workflow, not individual jobs. With
+# per-job concurrency an older run can finish lint later, start its build, and
+# cancel the build of a newer commit. The newest run for the same event/ref now
+# owns the complete lint -> test -> build chain.
+concurrency:
+  group: nexaflow-ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     if: github.event_name != 'pull_request_target'
     permissions:
       contents: read
-    concurrency:
-      group: nexaflow-android-lint-${{ github.event_name }}-${{ github.ref }}
-      cancel-in-progress: true
     # Exercise the newest GitHub-hosted Ubuntu LTS image explicitly.
     runs-on: ubuntu-26.04
     steps:
@@ -101,9 +106,6 @@ jobs:
   build:
     needs: lint
     if: github.event_name != 'pull_request_target'
-    concurrency:
-      group: nexaflow-android-build-${{ github.event_name }}-${{ github.ref }}
-      cancel-in-progress: true
     # Keep lint and packaging on the same reviewed runner baseline.
     runs-on: ubuntu-26.04
     permissions:

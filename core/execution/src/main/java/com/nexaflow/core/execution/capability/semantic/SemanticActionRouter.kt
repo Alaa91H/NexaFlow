@@ -212,5 +212,6 @@ internal fun OperationOutcome.toSystemControlResult(): SystemControlResult =
         executionChannel = strategy?.name,
         errorCode = errorCode?.name,
         verificationAttempted = verification?.attempted == true,
-        verified = verification?.takeIf { it.attempted }?.verified
+        verified = verification?.takeIf { it.attempted }?.verified,
+        outcomeUncertain = status == OperationOutcomeStatus.UNKNOWN
     )

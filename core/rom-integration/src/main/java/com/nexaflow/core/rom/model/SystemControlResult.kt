@@ -16,7 +16,13 @@ data class SystemControlResult(
     /** True when a post-condition read-back was attempted. */
     val verificationAttempted: Boolean = false,
     /** null = no verification verdict; true/false = explicit read-back verdict. */
-    val verified: Boolean? = null
+    val verified: Boolean? = null,
+    /**
+     * True when the backend may already have applied the side effect but the
+     * final state could not be confirmed. Callers must never blind-retry such
+     * a result; recovery/reconciliation owns the next decision.
+     */
+    val outcomeUncertain: Boolean = false
 ) {
     companion object {
         fun ok(
@@ -37,14 +43,16 @@ data class SystemControlResult(
             executionChannel: String? = null,
             errorCode: String? = null,
             verificationAttempted: Boolean = false,
-            verified: Boolean? = null
+            verified: Boolean? = null,
+            outcomeUncertain: Boolean = false
         ) = SystemControlResult(
             success = false,
             message = message,
             executionChannel = executionChannel,
             errorCode = errorCode,
             verificationAttempted = verificationAttempted,
-            verified = verified
+            verified = verified,
+            outcomeUncertain = outcomeUncertain
         )
     }
 }

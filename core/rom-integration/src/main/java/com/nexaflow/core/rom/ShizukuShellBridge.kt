@@ -23,7 +23,7 @@ object ShizukuShellBridge {
      * and without a version bump it would keep serving the stale class from
      * an older APK after an upgrade.
      */
-    private const val USER_SERVICE_VERSION = 2
+    private const val USER_SERVICE_VERSION = 3
 
     @Volatile private var appContext: Context? = null
     @Volatile private var boundShell: IUserShellService? = null

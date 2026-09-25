@@ -173,11 +173,11 @@ class PackageOperationsStrategyTest {
         val strategy = rootStrategy(sink)
 
         strategy.execute(
-            request(SemanticOperationId.HOTSPOT_SET_STATE, enabled = true),
-            SemanticOperationId.HOTSPOT_SET_STATE
+            request(SemanticOperationId.MOBILE_DATA_SET_STATE, enabled = true),
+            SemanticOperationId.MOBILE_DATA_SET_STATE
         )
         assertEquals(
-            listOf("cmd", "wifi", "start-softap"),
+            listOf("svc", "data", "enable"),
             sink.lastOperation?.argv()
         )
 

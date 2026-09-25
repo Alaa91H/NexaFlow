@@ -236,7 +236,7 @@ class AndroidApiStateStrategy(private val context: Context) : CapabilityStrategy
         SemanticOperationId.NFC_GET_STATE ->
             NfcAdapter.getDefaultAdapter(context)?.isEnabled
         SemanticOperationId.HOTSPOT_GET_STATE ->
-            HotspotStateReader.currentState(context)
+            HotspotStateReader.freshState(context)
         SemanticOperationId.DATA_SAVER_GET_STATE ->
             service(ConnectivityManager::class.java)?.restrictBackgroundStatus?.let {
                 it == ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED ||
