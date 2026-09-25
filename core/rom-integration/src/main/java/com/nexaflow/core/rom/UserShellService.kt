@@ -36,7 +36,7 @@ class UserShellService : IUserShellService.Stub {
     private var serviceContext: Context? = null
 
     /** Kept for Shizuku versions before v13. */
-    constructor()
+    constructor() : super()
 
     /**
      * Shizuku v13+ supplies a package Context. We retain it only for framework
@@ -44,7 +44,7 @@ class UserShellService : IUserShellService.Stub {
      * UserService UID (shell or root), never as the normal app process.
      */
     @Keep
-    constructor(context: Context) {
+    constructor(context: Context) : super() {
         serviceContext = context
     }
 
