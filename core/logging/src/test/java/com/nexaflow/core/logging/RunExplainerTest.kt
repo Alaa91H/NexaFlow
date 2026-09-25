@@ -259,6 +259,7 @@ class RunExplainerTest {
             TraceReasons.TRIGGER_STATE_UNKNOWN,
             TraceReasons.TRIGGER_STATE_UNAVAILABLE,
             TraceReasons.TRIGGER_STATE_ERROR,
+            TraceReasons.TRIGGER_SEMANTICS_REVIEW_REQUIRED,
         ).forEach { reason ->
             val explanation = RunExplainer.explain(
                 listOf(
