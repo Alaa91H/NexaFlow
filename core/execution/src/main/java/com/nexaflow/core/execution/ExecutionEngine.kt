@@ -235,26 +235,26 @@ class ExecutionEngine(
             )
             if (skipReportThrottle.shouldReport(
                     automationId = automation.id,
-                    reason = "CONCURRENT_RUN",
+                    reasonKey = "CONCURRENT_RUN",
                     now = startedAt
                 )
             ) {
                 historyRepository.recordExecution(record)
+                diagnostics.recordTimeline(
+                    automation = automation,
+                    kind = "CONCURRENT_RUN_SKIPPED",
+                    record = record,
+                    startedAt = startedAt,
+                    runId = payloadContext.runId
+                )
+                traceRecorder.recordBlockedRun(
+                    payloadContext.runId,
+                    automation.id,
+                    TraceReasons.ADMISSION_REJECTED,
+                    "automation is already running",
+                    epochMillis.now()
+                )
             }
-            diagnostics.recordTimeline(
-                automation = automation,
-                kind = "CONCURRENT_RUN_SKIPPED",
-                record = record,
-                startedAt = startedAt,
-                runId = payloadContext.runId
-            )
-            traceRecorder.recordBlockedRun(
-                payloadContext.runId,
-                automation.id,
-                TraceReasons.ADMISSION_REJECTED,
-                "automation is already running",
-                epochMillis.now()
-            )
             return record
         }
 
