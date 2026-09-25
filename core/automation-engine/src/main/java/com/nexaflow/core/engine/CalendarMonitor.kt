@@ -13,6 +13,7 @@ import androidx.core.net.toUri
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerOccurrence
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
@@ -157,7 +158,8 @@ class CalendarMonitor @Inject constructor(
         events: List<CalendarEvent>,
         now: Long
     ) {
-        val triggers = automation.triggers.filter { it.type == TriggerType.CALENDAR }
+        val triggers = automation.triggers.withIndex()
+            .filter { (_, trigger) -> trigger.type == TriggerType.CALENDAR }
         val processed = processedEvents.getOrPut(automation.id) {
             Collections.newSetFromMap(ConcurrentHashMap())
         }
@@ -166,7 +168,9 @@ class CalendarMonitor @Inject constructor(
         }
         var changed = false
 
-        triggers.forEach { trigger ->
+        triggers.forEach { indexedTrigger ->
+            val triggerIndex = indexedTrigger.index
+            val trigger = indexedTrigger.value
             val eventType = trigger.config["event"] ?: "EVENT_START"
             val beforeMinutes = trigger.config["beforeMinutes"]?.toLongOrNull() ?: 0L
             val matching = events.filter { event ->
@@ -184,7 +188,18 @@ class CalendarMonitor @Inject constructor(
                             activeStates[automation.id] = occurrence
                             val occurrenceKey = "${automation.id}|${occurrence.eventId}:${occurrence.start}"
                             scope.launch { activeStore.markActive(SOURCE, occurrenceKey) }
-                            fire(automation)
+                            fire(
+                                automation = automation,
+                                triggerIndices = matchingTriggerIndicesForEvent(
+                                    automation = automation,
+                                    event = event,
+                                    eventType = eventType,
+                                    now = now,
+                                ),
+                                occurredAtEpochMs = now,
+                                eventIdentity = "calendar:$eventType:${event.id}:${event.start}",
+                                completeExitOnFinish = eventType != "EVENT_START",
+                            )
                         }
                     }
                 }
@@ -194,7 +209,18 @@ class CalendarMonitor @Inject constructor(
                         if (now >= event.end && !processed.contains(occurrence)) {
                             processed.add(occurrence)
                             changed = true
-                            fire(automation)
+                            fire(
+                                automation = automation,
+                                triggerIndices = matchingTriggerIndicesForEvent(
+                                    automation = automation,
+                                    event = event,
+                                    eventType = eventType,
+                                    now = now,
+                                ),
+                                occurredAtEpochMs = now,
+                                eventIdentity = "calendar:$eventType:${event.id}:${event.start}",
+                                completeExitOnFinish = eventType != "EVENT_START",
+                            )
                         }
                     }
                 }
@@ -203,7 +229,18 @@ class CalendarMonitor @Inject constructor(
                         if (!processedCreatedIds.contains(event.id)) {
                             processedCreatedIds.add(event.id)
                             changed = true
-                            fire(automation)
+                            fire(
+                                automation = automation,
+                                triggerIndices = matchingTriggerIndicesForEvent(
+                                    automation = automation,
+                                    event = event,
+                                    eventType = eventType,
+                                    now = now,
+                                ),
+                                occurredAtEpochMs = now,
+                                eventIdentity = "calendar:$eventType:${event.id}:${event.start}",
+                                completeExitOnFinish = eventType != "EVENT_START",
+                            )
                         }
                     }
                 }
@@ -242,13 +279,59 @@ class CalendarMonitor @Inject constructor(
         }
     }
 
-    private fun fire(automation: Automation) {
-        val now = System.currentTimeMillis()
+    private fun fire(
+        automation: Automation,
+        triggerIndices: Set<Int>,
+        occurredAtEpochMs: Long,
+        eventIdentity: String,
+        completeExitOnFinish: Boolean,
+    ) {
+        if (triggerIndices.isEmpty()) return
+        val dispatchAt = System.currentTimeMillis()
         val last = lastRunAt[automation.id] ?: 0L
-        if (now - last <= automation.cooldownMillis) return
-        lastRunAt[automation.id] = now
-        scope.launch { executionEngine.runAutomation(automation) }
+        if (dispatchAt - last <= automation.cooldownMillis) return
+        lastRunAt[automation.id] = dispatchAt
+        scope.launch {
+            executionEngine.runAutomation(
+                automation = automation,
+                completeExitOnFinish = completeExitOnFinish,
+                triggerOccurrence = TriggerOccurrence(
+                    matchedTriggerIndices = triggerIndices,
+                    occurredAtEpochMs = occurredAtEpochMs,
+                    sourceId = SOURCE,
+                    eventId = eventIdentity,
+                ),
+            )
+        }
     }
+
+    /**
+     * Every CALENDAR trigger proven by this exact occurrence at this exact
+     * phase. This lets one calendar event satisfy multiple filters in an ALL
+     * expression without treating a different calendar event as evidence.
+     */
+    private fun matchingTriggerIndicesForEvent(
+        automation: Automation,
+        event: CalendarEvent,
+        eventType: String,
+        now: Long,
+    ): Set<Int> = automation.triggers.mapIndexedNotNull { index, trigger ->
+        if (trigger.type != TriggerType.CALENDAR) return@mapIndexedNotNull null
+        if ((trigger.config["event"] ?: "EVENT_START") != eventType) {
+            return@mapIndexedNotNull null
+        }
+        if (!matchesTrigger(trigger.config, event)) return@mapIndexedNotNull null
+
+        val eligible = when (eventType) {
+            "EVENT_START" -> {
+                val beforeMinutes = trigger.config["beforeMinutes"]?.toLongOrNull() ?: 0L
+                now >= event.start - beforeMinutes * 60_000L
+            }
+            "EVENT_END" -> now >= event.end
+            else -> true // EVENT_CREATED
+        }
+        index.takeIf { eligible }
+    }.toSet()
 
     private fun matchesTrigger(config: Map<String, String>, event: CalendarEvent): Boolean {
         val calendarName = config["calendar"].orEmpty().trim()

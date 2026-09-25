@@ -1876,7 +1876,16 @@ fun AutomationBuilderScreen(
                     TriggerMatchSelector(
                         selected = triggerMatch,
                         onSelect = { triggerMatchName = it.name },
-                        allModeWarning = triggerMatchBuiltWarning(triggers)
+                        allModeSemantics = triggerMatchBuiltWarning(triggers),
+                        legacyReviewRequired =
+                            loadedAutomation?.workflowVersion
+                                ?.let { version ->
+                                    version <
+                                        Automation.OCCURRENCE_AWARE_TRIGGER_SEMANTICS_VERSION &&
+                                        triggerMatch == TriggerMatchMode.ALL &&
+                                        triggerMatchBuiltWarning(triggers) !=
+                                            TriggerMatchPolicy.AllModeEventSemantics.NONE
+                                } == true,
                     )
                 }
 
@@ -2440,24 +2449,27 @@ private fun packagesUsedByOtherTasks(
 /**
  * Draft-level event-only check for the ALL-mode advisory. Delegates to
  * TriggerMatchPolicy.isEventOnly — the single source of truth the engine and
- * manual gate also use — so the builder's warning can never drift from what
- * the runtime actually verifies. The momentary trigger types cannot be
- * re-verified after they fire, so an ALL task containing one can only ever
- * skip — the user is warned here.
+ * manual gate also use — so the builder's explanation cannot drift from
+ * runtime semantics. Momentary triggers are proven by the current occurrence;
+ * the advisory explains that every state-readable sibling must be true at that
+ * same moment.
  */
-private fun triggerMatchBuiltWarning(triggers: List<TriggerDraft>): String? {
-    if (triggers.size < 2) return null
-    val eventOnly = triggers.filter { TriggerMatchPolicy.isEventOnly(it.type) }
-    if (eventOnly.isEmpty()) return null
-    // Count is what matters for the warning; the localized string is generic.
-    return eventOnly.size.toString()
+private fun triggerMatchBuiltWarning(
+    triggers: List<TriggerDraft>
+): TriggerMatchPolicy.AllModeEventSemantics {
+    if (triggers.size < 2) return TriggerMatchPolicy.AllModeEventSemantics.NONE
+    return TriggerMatchPolicy.allModeEventSemantics(
+        triggers.map { draft -> Trigger(draft.type, draft.config) }
+    )
 }
 
 @Composable
 private fun TriggerMatchSelector(
     selected: TriggerMatchMode,
     onSelect: (TriggerMatchMode) -> Unit,
-    allModeWarning: String? = null,
+    allModeSemantics: TriggerMatchPolicy.AllModeEventSemantics =
+        TriggerMatchPolicy.AllModeEventSemantics.NONE,
+    legacyReviewRequired: Boolean = false,
 ) {
     Column {
         Text(
@@ -2509,11 +2521,31 @@ private fun TriggerMatchSelector(
                 }
             }
         }
-        if (selected == TriggerMatchMode.ALL && allModeWarning != null) {
+        if (legacyReviewRequired) {
             Text(
-                text = stringResource(R.string.trigger_match_all_event_warning),
+                text = stringResource(R.string.trigger_match_legacy_review_required),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 6.dp)
+            )
+        }
+        if (
+            selected == TriggerMatchMode.ALL &&
+            allModeSemantics != TriggerMatchPolicy.AllModeEventSemantics.NONE
+        ) {
+            Text(
+                text = stringResource(
+                    if (
+                        allModeSemantics ==
+                        TriggerMatchPolicy.AllModeEventSemantics.SAME_OCCURRENCE_REQUIRED
+                    ) {
+                        R.string.trigger_match_all_multi_event_warning
+                    } else {
+                        R.string.trigger_match_all_event_warning
+                    }
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 6.dp)
             )
         }

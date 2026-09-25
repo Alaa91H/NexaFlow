@@ -13,7 +13,9 @@
     <string name="trigger_match_any_hint">S\'exécute dès qu\'une condition survient</string>
     <string name="trigger_match_all">TOUTES sont vraies</string>
     <string name="trigger_match_all_hint">S\'exécute seulement si toutes les conditions sont vraies</string>
-    <string name="trigger_match_all_event_warning">Certaines conditions (SMS, notifications...) sont des événements ponctuels invérifiables. Une tâche les combinant avec TOUTES ne s\'exécutera que via son propre événement - préférez UNE.</string>
+    <string name="trigger_match_all_event_warning">Les conditions ponctuelles (comme les SMS ou notifications) sont validées par l’événement qui démarre l’exécution. Avec TOUTES, toutes les autres conditions doivent aussi être vraies à ce moment-là.</string>
+    <string name="trigger_match_all_multi_event_warning">Avec TOUTES, plusieurs conditions ponctuelles doivent correspondre au même événement actuel. Les événements distincts ne sont ni mémorisés ni corrélés.</string>
+    <string name="trigger_match_legacy_review_required">Cette tâche utilise l’ancienne sémantique d’événement avec TOUTES. Vérifiez les déclencheurs puis enregistrez une fois pour activer la correspondance basée sur l’occurrence actuelle.</string>
     <string name="remove_trigger">Retirer la condition</string>
     <string name="expand_options">Afficher les options</string>
     <string name="trigger_type_time">Heure</string>

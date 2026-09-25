@@ -10,6 +10,7 @@ import android.telephony.SmsManager
 import com.google.android.gms.auth.api.phone.SmsRetriever
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerOccurrence
 import com.nexaflow.core.execution.variables.BuiltinVariables
 import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
@@ -88,10 +89,17 @@ class SmsConsentReceiver : BroadcastReceiver() {
                     .forEach { automation ->
                         val last = SmsTriggerMatcher.lastRunAt[automation.id] ?: 0L
                         if (now - last > automation.cooldownMillis) {
+                            val matchedTriggerIndices =
+                                SmsTriggerMatcher.matchingTriggerIndices(automation, sender, body)
                             SmsTriggerMatcher.lastRunAt[automation.id] = now
                             executionEngine.runAutomation(
                                 automation = automation,
-                                completeExitOnFinish = true
+                                completeExitOnFinish = true,
+                                triggerOccurrence = TriggerOccurrence(
+                                    matchedTriggerIndices = matchedTriggerIndices,
+                                    occurredAtEpochMs = now,
+                                    sourceId = "sms",
+                                ),
                             )
                             val reply = SmsTriggerMatcher.replyOf(automation)
                             if (!reply.isNullOrBlank()) {

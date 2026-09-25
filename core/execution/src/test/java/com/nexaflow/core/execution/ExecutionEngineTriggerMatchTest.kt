@@ -9,6 +9,8 @@ import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.handler.ActionExecutionContext
 import com.nexaflow.core.execution.handler.ActionHandler
 import com.nexaflow.core.execution.handler.ActionRegistry
+import com.nexaflow.core.logging.InMemoryLogStore
+import com.nexaflow.core.logging.TraceReasons
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
@@ -21,6 +23,7 @@ import com.nexaflow.domain.repositories.HistoryRepository
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -258,4 +261,211 @@ class ExecutionEngineTriggerMatchTest {
         assertEquals(1, handler.calls)
         assertTrue(!record.message.contains("not all trigger conditions"))
     }
+
+    @Test
+    fun allModeRunsWhenStickyChargerAndTimeRangeAreBothActive() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+
+        @Suppress("DEPRECATION")
+        context.sendStickyBroadcast(
+            android.content.Intent(android.content.Intent.ACTION_BATTERY_CHANGED)
+                .putExtra(android.os.BatteryManager.EXTRA_LEVEL, 50)
+                .putExtra(
+                    android.os.BatteryManager.EXTRA_STATUS,
+                    android.os.BatteryManager.BATTERY_STATUS_CHARGING
+                )
+                .putExtra(
+                    android.os.BatteryManager.EXTRA_PLUGGED,
+                    android.os.BatteryManager.BATTERY_PLUGGED_USB
+                )
+        )
+
+        val now = java.time.LocalTime.now()
+        val formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+        val task = automation(TriggerMatchMode.ALL).copy(
+            id = "charger-active-time-all",
+            triggers = listOf(
+                Trigger(TriggerType.CHARGER, mapOf("event" to "CONNECTED")),
+                Trigger(
+                    TriggerType.TIME,
+                    mapOf(
+                        "timeMode" to "RANGE",
+                        "rangeStart" to now.minusHours(1).format(formatter),
+                        "rangeEnd" to now.plusHours(1).format(formatter)
+                    )
+                )
+            )
+        )
+        ActiveExecutionStore(context).clear(task.id)
+
+        val record = engine(handler, history).runAutomation(task)
+
+        assertEquals(1, handler.calls)
+        assertTrue(!record.message.contains("not all trigger conditions"))
+    }
+
+
+    @Test
+    fun allModeAcceptsCurrentSmsEventWhenLiveSiblingIsSatisfied() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val currentDarkMode = if (
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        ) "ON" else "OFF"
+        val task = automation(TriggerMatchMode.ALL).copy(
+            id = "sms-and-live-state",
+            triggers = listOf(
+                Trigger(TriggerType.SMS, mapOf("contains" to "night")),
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to currentDarkMode)),
+            ),
+        )
+        ActiveExecutionStore(context).clear(task.id)
+
+        val record = engine(handler, history).runAutomation(
+            automation = task,
+            triggerOccurrence = TriggerOccurrence.single(
+                triggerIndex = 0,
+                occurredAtEpochMs = System.currentTimeMillis(),
+                sourceId = "sms",
+            ),
+        )
+
+        assertEquals(1, handler.calls)
+        assertTrue(!record.message.contains("not all trigger conditions"))
+    }
+
+    @Test
+    fun allModeDoesNotReusePastSmsAsCurrentTruth() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val currentDarkMode = if (
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        ) "ON" else "OFF"
+        val task = automation(TriggerMatchMode.ALL).copy(
+            id = "sms-without-occurrence",
+            triggers = listOf(
+                Trigger(TriggerType.SMS, mapOf("contains" to "night")),
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to currentDarkMode)),
+            ),
+        )
+        ActiveExecutionStore(context).clear(task.id)
+
+        val record = engine(handler, history).runAutomation(task)
+
+        assertEquals(0, handler.calls)
+        assertTrue(record.message.contains("Skipped"))
+        assertTrue(record.message.contains("unverifiable"))
+    }
+
+
+    @Test
+    fun allGateTraceRecordsTypedEvidenceSources() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val logStore = InMemoryLogStore()
+        val currentDarkMode = if (
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        ) "ON" else "OFF"
+        val oppositeDarkMode = if (currentDarkMode == "ON") "OFF" else "ON"
+        val task = automation(TriggerMatchMode.ALL).copy(
+            id = "typed-all-trace",
+            triggers = listOf(
+                Trigger(TriggerType.SMS, mapOf("contains" to "private-content")),
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to oppositeDarkMode)),
+            ),
+        )
+        ActiveExecutionStore(context).clear(task.id)
+
+        val engine = ExecutionEngine(
+            context = context,
+            historyRepository = history,
+            notificationPreferences = NotificationPreferences(context),
+            actionRegistry = ActionRegistry.from(listOf(handler)),
+            logStore = logStore,
+        )
+
+        val record = engine.runAutomation(
+            automation = task,
+            triggerOccurrence = TriggerOccurrence.single(
+                triggerIndex = 0,
+                occurredAtEpochMs = System.currentTimeMillis(),
+                sourceId = "sms",
+            ),
+        )
+
+        assertEquals(0, handler.calls)
+        assertTrue(record.message.startsWith("Skipped:"))
+
+        val trace = logStore.timeline().first().firstOrNull {
+            it.traceReasonCode == TraceReasons.TRIGGER_AND_UNSATISFIED
+        }
+        requireNotNull(trace)
+        val detail = trace.traceDetail.orEmpty()
+        assertTrue(detail.contains("#0:SMS=SATISFIED@CURRENT_EVENT"))
+        assertTrue(detail.contains("#1:DARK_MODE=UNSATISFIED@LIVE_STATE"))
+        assertTrue(!detail.contains("private-content"))
+
+        ActiveExecutionStore(context).clear(task.id)
+    }
+
+
+    @Test
+    fun legacyAllEventWorkflowRequiresReviewBeforeOccurrenceEvidenceIsEnabled() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val currentDarkMode = if (
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        ) "ON" else "OFF"
+        val task = automation(TriggerMatchMode.ALL).copy(
+            id = "legacy-event-all",
+            workflowVersion = Automation.LEGACY_TRIGGER_SEMANTICS_VERSION,
+            triggers = listOf(
+                Trigger(TriggerType.SMS, mapOf("contains" to "night")),
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to currentDarkMode)),
+            ),
+        )
+        ActiveExecutionStore(context).clear(task.id)
+
+        val record = engine(handler, history).runAutomation(
+            automation = task,
+            triggerOccurrence = TriggerOccurrence.single(
+                triggerIndex = 0,
+                occurredAtEpochMs = System.currentTimeMillis(),
+                sourceId = "sms",
+            ),
+        )
+
+        assertEquals(0, handler.calls)
+        assertTrue(record.message.contains("legacy ALL event semantics require review"))
+    }
+
+    @Test
+    fun legacyAllStateOnlyWorkflowKeepsWorkingWithoutReview() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val currentDarkMode = if (
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        ) "ON" else "OFF"
+        val task = automation(TriggerMatchMode.ALL).copy(
+            id = "legacy-state-all",
+            workflowVersion = Automation.LEGACY_TRIGGER_SEMANTICS_VERSION,
+            triggers = listOf(
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to currentDarkMode)),
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to currentDarkMode)),
+            ),
+        )
+        ActiveExecutionStore(context).clear(task.id)
+
+        val record = engine(handler, history).runAutomation(task)
+
+        assertEquals(1, handler.calls)
+        assertTrue(!record.message.contains("legacy ALL event semantics require review"))
+    }
+
 }

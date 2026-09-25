@@ -28,6 +28,7 @@ import com.nexaflow.core.execution.AutomationExitReason
 import com.nexaflow.core.execution.AutomationLifecycleDisplayState
 import com.nexaflow.core.execution.AutomationLifecycleSnapshot
 import com.nexaflow.core.execution.AutomationLifecycleStateReader
+import com.nexaflow.core.execution.TriggerMatchPolicy
 import com.nexaflow.core.execution.TriggerStateEvaluator
 import com.nexaflow.core.execution.constraints.ConstraintStateReader
 import com.nexaflow.domain.constraints.ConstraintEvaluator
@@ -478,25 +479,14 @@ private fun aggregateTriggerState(
     hasTriggers: Boolean
 ): GateState {
     if (!hasTriggers) return GateState.READY
-    val hasSatisfied = states.any { it == ConditionResult.Satisfied }
-    val hasBlocked = states.any { it == ConditionResult.Unsatisfied }
-    val hasUnknown = states.any {
-        it == null ||
-            it == ConditionResult.Unknown ||
-            it == ConditionResult.Unavailable ||
-            it is ConditionResult.Error
-    }
-    return when (mode) {
-        TriggerMatchMode.ALL -> when {
-            hasBlocked -> GateState.BLOCKED
-            hasUnknown -> GateState.UNKNOWN
-            else -> GateState.READY
-        }
-        TriggerMatchMode.ANY -> when {
-            hasSatisfied -> GateState.READY
-            hasUnknown -> GateState.UNKNOWN
-            else -> GateState.BLOCKED
-        }
+    val result = TriggerMatchPolicy.aggregate(
+        mode = mode,
+        results = states.map { it ?: ConditionResult.Unknown },
+    )
+    return when (result) {
+        ConditionResult.Satisfied -> GateState.READY
+        ConditionResult.Unsatisfied -> GateState.BLOCKED
+        else -> GateState.UNKNOWN
     }
 }
 
@@ -641,7 +631,7 @@ private fun TriggerDetailItem(
     trigger: Trigger,
     state: ConditionResult?
 ) {
-    val isEventOnly = TriggerStateEvaluator.isEventOnly(trigger.type)
+    val isEventOnly = TriggerMatchPolicy.isEventOnly(trigger)
     RoutineDetailItem(
         leading = (index + 1).toString(),
         title = stringResource(triggerLabel(trigger.type)),

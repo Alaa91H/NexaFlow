@@ -251,4 +251,28 @@ class RunExplainerTest {
         val report = RunExplainer.buildReport("run-empty", emptyList())
         assertTrue(report.contains("no trace events"))
     }
+
+    @Test
+    fun typedTriggerGateReasonsUseAllConditionExplanation() {
+        listOf(
+            TraceReasons.TRIGGER_AND_UNSATISFIED,
+            TraceReasons.TRIGGER_STATE_UNKNOWN,
+            TraceReasons.TRIGGER_STATE_UNAVAILABLE,
+            TraceReasons.TRIGGER_STATE_ERROR,
+            TraceReasons.TRIGGER_SEMANTICS_REVIEW_REQUIRED,
+        ).forEach { reason ->
+            val explanation = RunExplainer.explain(
+                listOf(
+                    event(
+                        TracePhase.GATE_BLOCKED,
+                        reason,
+                        detail = "#0:SMS=SATISFIED@CURRENT_EVENT",
+                    )
+                ),
+            )!!
+            assertEquals("explain_trigger_all_blocked", explanation.explanationKey)
+            assertEquals("fix_check_all_conditions", explanation.fixKey)
+        }
+    }
+
 }

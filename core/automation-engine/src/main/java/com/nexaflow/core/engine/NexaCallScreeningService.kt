@@ -12,6 +12,7 @@ import android.telephony.PhoneNumberUtils
 import android.util.Log
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerOccurrence
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -119,10 +120,18 @@ class NexaCallScreeningService : CallScreeningService() {
                     CallPolicyEvaluator.verdictOf(task, number, category, isEmergency) != null
                 }
                 .forEach { task ->
+                    val matchedTriggerIndices =
+                        CallPolicyEvaluator.matchingTriggerIndices(task, number, category)
+                    if (matchedTriggerIndices.isEmpty()) return@forEach
                     runCatching {
                         executionEngine.runAutomation(
                             automation = task,
-                            completeExitOnFinish = true
+                            completeExitOnFinish = true,
+                            triggerOccurrence = TriggerOccurrence(
+                                matchedTriggerIndices = matchedTriggerIndices,
+                                occurredAtEpochMs = System.currentTimeMillis(),
+                                sourceId = "incoming-call",
+                            ),
                         )
                     }
                 }

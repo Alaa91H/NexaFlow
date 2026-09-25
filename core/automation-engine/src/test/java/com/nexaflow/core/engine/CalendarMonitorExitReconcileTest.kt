@@ -13,6 +13,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.domain.models.Trigger
+import com.nexaflow.domain.models.TriggerMatchMode
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -237,4 +238,52 @@ class CalendarMonitorExitReconcileTest {
         waitUntil { store.activeKeys("calendar").isEmpty() }
         monitor.stop()
     }
+
+    @Test
+    fun `one calendar occurrence can prove multiple matching calendar triggers under ALL`() = runBlocking {
+        val history = RecordingHistory()
+        val base = calendarAutomation("calendar-all")
+        val automation = base.copy(
+            triggerMatch = TriggerMatchMode.ALL,
+            triggers = listOf(
+                Trigger(
+                    TriggerType.CALENDAR,
+                    mapOf("event" to "EVENT_START", "calendar" to "Work", "contains" to "Meeting")
+                ),
+                Trigger(
+                    TriggerType.CALENDAR,
+                    mapOf("event" to "EVENT_START", "calendar" to "Work", "contains" to "Meet")
+                ),
+            ),
+            actions = emptyList(),
+        )
+        val repository = FakeRepository(listOf(automation))
+        val store = ActiveTriggerStore(context)
+        val now = System.currentTimeMillis()
+        registerProvider(
+            listOf(
+                FakeCalendarEvent(
+                    id = 99L,
+                    title = "Meeting",
+                    start = now - 1_000L,
+                    end = now + 3_600_000L,
+                )
+            )
+        )
+
+        val monitor = monitorFor(repository, testEngine(context, history), store)
+        monitor.initialize()
+
+        waitUntil { history.exits.isNotEmpty() }
+        assertTrue(
+            "same calendar event should satisfy both CALENDAR filters",
+            history.exits.none {
+                it.contains("same current occurrence") ||
+                    it.contains("not all trigger conditions")
+            }
+        )
+        monitor.stop()
+        store.clearAutomation("calendar", automation.id)
+    }
+
 }

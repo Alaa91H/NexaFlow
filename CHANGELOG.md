@@ -43,6 +43,37 @@
 
 ### Fixed
 
+- Fixed ALL/AND automations that combine a charger trigger with another live
+  condition (for example, charging AND 22:00–07:00). The trigger gate now reads
+  the same sticky battery status used by the battery monitor, eliminating a
+  race where `BatteryManager.isCharging` could lag the charger broadcast and
+  incorrectly reject the run. A full battery remains treated as connected.
+- Centralized tri-state ANY/ALL aggregation in `TriggerMatchPolicy` and routed
+  the automatic engine gate, manual/current-state aggregation, Wear routing,
+  and dashboard readiness through the same truth table. Unknown/unavailable
+  evidence can no longer drift between runtime surfaces.
+- Made momentary ALL semantics explicit: one current event may prove an
+  event-only trigger while state-readable siblings are checked live; with
+  multiple momentary conditions, one current occurrence must match them all.
+  Separate past events are never remembered or implicitly correlated.
+- Added typed ALL-gate diagnostics that record each trigger's result and
+  evidence source (`CURRENT_EVENT` vs `LIVE_STATE`) with config-free trace
+  details and stable reason codes for confirmed false, unknown, unavailable,
+  and error states.
+- Hardened event-source evidence so filtered clipboard, timezone, NFC, screen
+  timeout and alarm-change triggers only receive `CURRENT_EVENT` proof when
+  the concrete event payload matches their saved configuration. Calendar,
+  scheduled-time and boot delivery now preserve the exact trigger indices
+  proven by the same occurrence.
+- Reworked multi-location lifecycle ownership: one location fix evaluates every
+  configured location trigger, stores the indices that admitted the occurrence,
+  uses the central ANY/ALL policy to decide when that owned location expression
+  has definitively ended, and never converts unreadable state into an exit.
+- Raised the persisted workflow semantics version to v2 for occurrence-aware
+  ALL matching. Existing v1 ALL tasks that contain momentary triggers remain
+  fail-closed and are marked for review; opening and saving them in the builder
+  upgrades them explicitly. Legacy state-only ALL tasks keep working unchanged.
+
 - Fixed the fresh-root grant path so a successful superuser prompt is immediately
   re-probed before permission repair. The pre-prompt negative root cache can no longer
   cause the same grant flow to fall through as if no elevated runtime were available.
@@ -448,13 +479,13 @@ as before — the legacy `Automation` remains the storage format.
 
 ### Added
 
-- **Builder advisory for event-only triggers in ALL mode.** When a task set
-  to "all conditions" contains a momentary trigger that can never be
-  re-verified from device state (notification, boot, NFC tag scan, SMS,
-  webhook, sensor, plugin, geofence, ...), the builder shows an explicit
-  warning that such a condition will keep the task from running in ALL mode,
-  instead of failing silently at runtime. Localized across all 10 supported
-  languages.
+- **Builder explanation for event-only triggers in ALL mode.** When a task set
+  to "all conditions" contains a momentary trigger (notification, boot, NFC
+  tag scan, SMS, webhook, sensor, plugin, geofence, ...), the builder explains
+  that the current event proves that trigger while every state-readable sibling
+  must be true at the same moment. The explanation is localized across every
+  supported builder locale instead of presenting this valid configuration as
+  an error.
 
 ### Tests
 

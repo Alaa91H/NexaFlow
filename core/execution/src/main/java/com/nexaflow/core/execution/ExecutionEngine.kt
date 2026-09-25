@@ -168,6 +168,24 @@ class ExecutionEngine(
      */
     private val activeExecutions = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
+    /**
+     * Process-local single-flight admission per automation.
+     *
+     * The production ExecutionEngine is a singleton, so every monitor converges
+     * on this boundary before any gate/checkpoint/side effect. A second callback
+     * for the same automation while one run is still open is intentionally
+     * skipped rather than queued: queueing would replay stale event evidence
+     * after the triggering occurrence has already passed.
+     *
+     * Durable crash/recovery semantics remain owned by ActiveExecutionStore;
+     * this set only closes the in-process concurrency race.
+     */
+    private val runningAutomationIds =
+        java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
+    /** Same-process replay protection for sources with a trustworthy event id. */
+    private val occurrenceDeduplicator = TriggerOccurrenceDeduplicator()
+
     /** Serializes the paired in-memory and durable exit-ledger consumption per task. */
     private val exitConsumptionLocks = java.util.concurrent.ConcurrentHashMap<String, Mutex>()
 
@@ -191,17 +209,95 @@ class ExecutionEngine(
         completeExitOnFinish: Boolean = false,
         /** Present only for a stateful trigger occurrence owned by ExitCoordinator. */
         lifecycleContext: AutomationLifecycleContext? = null,
+        /**
+         * Ephemeral proof for the trigger event that started this evaluation.
+         * Event-only triggers may be satisfied only by this current occurrence;
+         * state-readable triggers are still verified live.
+         */
+        triggerOccurrence: TriggerOccurrence? = null,
         /** Explicit user-approved manual paths may bypass the automatic trigger gate. */
         bypassTriggerMatch: Boolean = false
     ): ExecutionRecord {
-        // Strict mode: acquire wake lock for forceful execution (bypasses Doze, ensures CPU stays on)
-        val wakeLock = acquireExecutionWakeLock(context, "NexaFlow:runAutomation:${automation.id}")
-        try {
-            val startedAt = epochMillis.now()
+        val startedAt = epochMillis.now()
         // Allocate the run identity before admission gates. This lets blocked
         // runs correlate their durable history row with the structured trace
         // without timestamp guessing.
         val payloadContext = runContext ?: WorkflowRunContext.create(automation.id, startedAt)
+
+        // Single-flight admission is intentionally process-local. The durable
+        // checkpoint store handles crash recovery; this guard prevents two live
+        // callbacks from producing two action chains for the same automation.
+        if (!runningAutomationIds.add(automation.id)) {
+            val record = ExecutionRecord(
+                id = UUID.randomUUID().toString(),
+                automationId = automation.id,
+                automationName = automation.name,
+                success = true,
+                message = "Skipped: automation is already running",
+                executedAt = startedAt
+            )
+            if (skipReportThrottle.shouldReport(
+                    automationId = automation.id,
+                    reasonKey = "CONCURRENT_RUN",
+                    now = startedAt
+                )
+            ) {
+                historyRepository.recordExecution(record)
+                diagnostics.recordTimeline(
+                    automation = automation,
+                    kind = "CONCURRENT_RUN_SKIPPED",
+                    record = record,
+                    startedAt = startedAt,
+                    runId = payloadContext.runId
+                )
+                traceRecorder.recordBlockedRun(
+                    payloadContext.runId,
+                    automation.id,
+                    TraceReasons.ADMISSION_REJECTED,
+                    "automation is already running",
+                    epochMillis.now()
+                )
+            }
+            return record
+        }
+
+        // Strict mode: acquire wake lock for forceful execution (bypasses Doze, ensures CPU stays on)
+        val wakeLock = acquireExecutionWakeLock(context, "NexaFlow:runAutomation:${automation.id}")
+        try {
+        if (!occurrenceDeduplicator.tryAdmit(automation.id, triggerOccurrence, startedAt)) {
+            val record = ExecutionRecord(
+                id = UUID.randomUUID().toString(),
+                automationId = automation.id,
+                automationName = automation.name,
+                success = true,
+                message = "Skipped: trigger occurrence was already processed",
+                executedAt = startedAt
+            )
+            if (skipReportThrottle.shouldReport(
+                    automationId = automation.id,
+                    reasonKey = "DUPLICATE_OCCURRENCE",
+                    now = startedAt
+                )
+            ) {
+                historyRepository.recordExecution(record)
+                diagnostics.recordTimeline(
+                    automation = automation,
+                    kind = "DUPLICATE_OCCURRENCE_SKIPPED",
+                    record = record,
+                    startedAt = startedAt,
+                    runId = payloadContext.runId
+                )
+                traceRecorder.recordBlockedRun(
+                    payloadContext.runId,
+                    automation.id,
+                    TraceReasons.ADMISSION_REJECTED,
+                    "trigger occurrence was already processed",
+                    epochMillis.now()
+                )
+            }
+            return record
+        }
+
         if (automation.requiresTimeRangeForEndBehavior) {
             return diagnostics.rejectIncompleteTimeRange(automation, startedAt, payloadContext.runId)
         }
@@ -320,36 +416,58 @@ class ExecutionEngine(
             automation.triggerMatch == com.nexaflow.domain.models.TriggerMatchMode.ALL &&
             automation.triggers.isNotEmpty()
         ) {
-            // Every condition is evaluated live (a past event is not current
-            // truth) and combined by the shared policy; an empty trigger list
-            // cannot start a run at all, so no gate is needed there.
-            val gateResults = automation.triggers.map { trigger ->
-                runCatching {
-                    TriggerStateEvaluator.evaluateTriggerState(context, trigger)
-                }.getOrElse { ConditionResult.Error(it.message ?: "unreadable") }
-            }
-            if (!TriggerMatchPolicy.combine(com.nexaflow.domain.models.TriggerMatchMode.ALL, gateResults)) {
+            // Evaluate one coherent expression snapshot. Event-only triggers
+            // can be proven by the occurrence that started this run; every
+            // state-readable trigger is re-read live. A past event is never
+            // carried forward as current truth.
+            val triggerSnapshot = TriggerExpressionEvaluator.evaluate(
+                context = context,
+                automation = automation,
+                occurrence = triggerOccurrence,
+                evaluatedAtEpochMs = startedAt,
+            )
+            val gateResults = triggerSnapshot.results
+            if (triggerSnapshot.decision(com.nexaflow.domain.models.TriggerMatchMode.ALL) !=
+                ConditionResult.Satisfied
+            ) {
+                val semanticsReviewRequired =
+                    TriggerMatchPolicy.requiresOccurrenceSemanticsReview(automation)
+                val skipDetail = if (semanticsReviewRequired) {
+                    "Skipped: legacy ALL event semantics require review and save before event matching can run"
+                } else {
+                    TriggerMatchPolicy.skipMessage(automation.triggers, gateResults)
+                }
                 val record = ExecutionRecord(
                     id = UUID.randomUUID().toString(),
                     automationId = automation.id,
                     automationName = automation.name,
                     success = true,
-                    message = TriggerMatchPolicy.skipMessage(automation.triggers, gateResults),
+                    message = skipDetail,
                     executedAt = startedAt,
                     channel = channel?.type?.name
                 )
-                val skipDetail = TriggerMatchPolicy.skipMessage(automation.triggers, gateResults)
                 if (skipReportThrottle.shouldReport(
                         automation.id, "TRIGGER_ALL:" + skipDetail, startedAt
                     )) historyRepository.recordExecution(record)
                 diagnostics.recordTimeline(
                     automation, "TRIGGER_ALL_GATE_BLOCKED", record, startedAt, payloadContext.runId
                 )
+                val reasonCode = if (semanticsReviewRequired) {
+                    TraceReasons.TRIGGER_SEMANTICS_REVIEW_REQUIRED
+                } else {
+                    when (triggerSnapshot.blockKind()) {
+                        TriggerBlockKind.UNSATISFIED -> TraceReasons.TRIGGER_AND_UNSATISFIED
+                        TriggerBlockKind.ERROR -> TraceReasons.TRIGGER_STATE_ERROR
+                        TriggerBlockKind.UNAVAILABLE -> TraceReasons.TRIGGER_STATE_UNAVAILABLE
+                        TriggerBlockKind.UNKNOWN -> TraceReasons.TRIGGER_STATE_UNKNOWN
+                        null -> TraceReasons.TRIGGER_ALL_GATE_BLOCKED
+                    }
+                }
                 traceRecorder.recordGateBlocked(
                     runId = payloadContext.runId,
                     automationId = automation.id,
-                    reasonCode = com.nexaflow.core.logging.TraceReasons.TRIGGER_ALL_GATE_BLOCKED,
-                    detail = skipDetail,
+                    reasonCode = reasonCode,
+                    detail = triggerSnapshot.diagnosticDetail(),
                     atEpochMs = startedAt,
                 )
                 return record
@@ -437,10 +555,6 @@ class ExecutionEngine(
             }
             return record
         }
-        // The constraint gate accepted this run, so it owns a lifecycle exit if
-        // a monitor later reports that the trigger condition ended.
-        activeExecutions.add(automation.id)
-        activeExecutionStore.markStarted(automation.id)
         // Capture the device state when the run needs to restore anything on
         // exit: either the global revert-on-exit toggle or any action configured
         // with a per-action "restore original" end behavior. A failed snapshot
@@ -471,13 +585,10 @@ class ExecutionEngine(
                 )
             )
             if (!lifecycleAccepted) {
-                // The action checkpoint and legacy marker were accepted earlier
-                // solely to reserve this run. Undo that reservation before
-                // returning the explicit skip record; never overwrite the
-                // previous lifecycle or its original-state snapshot.
-                // Never remove the id-scoped legacy marker or in-memory
-                // snapshot here: they may belong to the older lifecycle that
-                // correctly caused this admission to be rejected.
+                // The action checkpoint was accepted only to reserve this
+                // candidate run. No active marker has been armed yet, so a
+                // losing concurrent occurrence cannot leave legacy lifecycle
+                // state behind or cause a later duplicate exit.
                 activeExecutionStore.completeCheckpoint(payloadContext.runId)
                 val record = ExecutionRecord(
                     id = UUID.randomUUID().toString(),
@@ -497,6 +608,12 @@ class ExecutionEngine(
                 return record
             }
         }
+        // Arm the legacy/in-memory exit marker only after durable lifecycle
+        // admission has succeeded. For stateless/one-shot runs there is no
+        // lifecycle claim, so reaching this point is the admission boundary.
+        activeExecutions.add(automation.id)
+        activeExecutionStore.markStarted(automation.id)
+
         // The durable admission succeeded (or this is a legacy/stateless run),
         // so this invocation may now own the in-memory restore snapshot too.
         if (needsSnapshot) {
@@ -707,6 +824,7 @@ class ExecutionEngine(
         context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
         return record
         } finally {
+            runningAutomationIds.remove(automation.id)
             try { wakeLock?.let { if (it.isHeld) it.release() } } catch (_: Throwable) {}
         }
     }

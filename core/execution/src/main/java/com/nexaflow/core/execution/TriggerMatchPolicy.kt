@@ -1,89 +1,156 @@
 package com.nexaflow.core.execution
 
+import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerMatchMode
+import com.nexaflow.domain.models.isOneShotEvent
 
 /**
  * Single source of truth for combining multiple trigger conditions under the
- * task's [TriggerMatchMode]. The engine gate (automatic runs), the manual-run
- * gate, and diagnostics all evaluate through this policy so the truth table
- * exists in exactly one place.
+ * task's [TriggerMatchMode]. Runtime routers, the automatic engine gate, the
+ * manual gate and readiness surfaces must delegate their tri-state truth table
+ * here instead of maintaining local ANY/ALL implementations.
  *
  * Semantics:
- *  - ANY (default, historical): the firing monitor's own event is the proof;
- *    sibling conditions are not re-checked. A task with zero triggers cannot
- *    start through a monitor anyway, so ANY of an empty list stays false.
- *  - ALL: the firing monitor only *starts* the evaluation; every configured
- *    condition must be verifiably satisfied right now. [TriggerStateEvaluator]
- *    reads each condition's live state — a past event is never treated as
- *    current truth. Unverifiable conditions (event-only sources such as SMS,
- *    notification, package install, boot, webhook...) can never be confirmed,
- *    so ALL never becomes true when one of them participates; the engine
- *    surfaces this to the builder as an advisory warning instead of silently
- *    dead-locking the task.
+ *  - ANY (historical): one satisfied condition is enough. If every known
+ *    condition is unsatisfied the result is Unsatisfied; otherwise unresolved
+ *    evidence remains Unknown.
+ *  - ALL: one confirmed Unsatisfied condition blocks the expression. Every
+ *    condition must be Satisfied to pass; otherwise unresolved evidence stays
+ *    Unknown.
+ *
+ * Automatic ALL evaluation supplies CURRENT_EVENT evidence for momentary
+ * triggers and LIVE_STATE evidence for readable triggers. Historical events
+ * are never cached as truth.
  */
 object TriggerMatchPolicy {
 
     /**
-     * Combines per-condition [ConditionResult]s under the task's mode.
+     * Typed aggregation for a non-empty trigger expression.
      *
-     * Truth table (per spec):
-     *  - ANY: at least one condition Satisfied → true.
-     *  - ALL: every condition Satisfied → true; any Unsatisfied → false;
-     *    otherwise (Unknown/Unavailable/Error) → false (never fabricate a
-     *    success from an unverifiable condition).
-     *
-     * An empty condition list evaluates to false under ALL (`all(empty) ==
-     * true` is never allowed to start a task); ANY of an empty list is also
-     * false because there is nothing that fired.
+     * Empty is intentionally [ConditionResult.Unsatisfied] here because an
+     * automatic trigger expression with no conditions must never self-start.
+     * Manual "no triggers configured" handling remains an explicit caller rule
+     * in [TriggerStateEvaluator.evaluateAsync].
      */
-    fun combine(mode: TriggerMatchMode, results: List<ConditionResult>): Boolean = when {
-        results.isEmpty() -> false
-        mode == TriggerMatchMode.ANY -> results.any { it == ConditionResult.Satisfied }
-        else -> results.all { it == ConditionResult.Satisfied }
+    fun aggregate(
+        mode: TriggerMatchMode,
+        results: List<ConditionResult>,
+    ): ConditionResult {
+        if (results.isEmpty()) return ConditionResult.Unsatisfied
+
+        return when (mode) {
+            TriggerMatchMode.ANY -> when {
+                results.any { it == ConditionResult.Satisfied } ->
+                    ConditionResult.Satisfied
+                results.all { it == ConditionResult.Unsatisfied } ->
+                    ConditionResult.Unsatisfied
+                else ->
+                    ConditionResult.Unknown
+            }
+
+            TriggerMatchMode.ALL -> when {
+                results.any { it == ConditionResult.Unsatisfied } ->
+                    ConditionResult.Unsatisfied
+                results.all { it == ConditionResult.Satisfied } ->
+                    ConditionResult.Satisfied
+                else ->
+                    ConditionResult.Unknown
+            }
+        }
     }
 
+    /** Boolean admission view used by the automatic engine gate. */
+    fun combine(mode: TriggerMatchMode, results: List<ConditionResult>): Boolean =
+        aggregate(mode, results) == ConditionResult.Satisfied
+
     /**
-     * True when [trigger] can never be verified from current device state —
-     * it is a pure momentary event with no readable post-state. A task that
-     * mixes such a trigger into ALL mode can only ever skip; the builder shows
-     * an advisory so the user can move it to a state-based condition.
+     * True when [trigger] has no readable post-state and therefore needs
+     * current-event evidence during automatic evaluation. Manual evaluation has
+     * no occurrence, so these triggers remain unverifiable there.
      */
     fun isEventOnly(trigger: Trigger): Boolean =
-        TriggerStateEvaluator.isEventOnly(trigger.type)
+        trigger.isOneShotEvent() || TriggerStateEvaluator.isEventOnly(trigger.type)
 
-    /** Type-only overload for draft/UI checks that hold no full [Trigger]. */
+    /**
+     * Type-only compatibility overload. It cannot classify configuration-
+     * sensitive triggers such as TIME (AT vs RANGE); new runtime/UI code should
+     * always call [isEventOnly] with the full [Trigger].
+     */
     fun isEventOnly(type: com.nexaflow.domain.models.TriggerType): Boolean =
         TriggerStateEvaluator.isEventOnly(type)
 
     /**
-     * Advisory for a task configured with ALL whose trigger set contains at
-     * least one event-only trigger. Null when the task is fully verifiable.
-     * The builder displays this next to the selector so the configuration is
-     * explainable rather than mysteriously inert.
+     * Event semantics to explain for ALL mode.
+     *
+     * With one momentary condition, that current event may be combined with
+     * any number of live-state siblings. With two or more momentary conditions,
+     * NexaFlow does not remember earlier events: one physical/logical occurrence
+     * must match every momentary condition participating in that ALL decision.
      */
-    fun allModeAdvisory(triggers: List<Trigger>): String? =
-        triggers.filter { isEventOnly(it) }
-            .takeIf { it.isNotEmpty() }
-            ?.let { eventOnly ->
-                eventOnly.joinToString(", ") { TriggerStateEvaluator.triggerLabel(it) }
-            }
+    enum class AllModeEventSemantics {
+        NONE,
+        CURRENT_EVENT_WITH_LIVE_STATE,
+        SAME_OCCURRENCE_REQUIRED,
+    }
+
+    fun allModeEventSemantics(triggers: List<Trigger>): AllModeEventSemantics {
+        val eventOnlyCount = triggers.count(::isEventOnly)
+        return when {
+            eventOnlyCount == 0 -> AllModeEventSemantics.NONE
+            eventOnlyCount == 1 -> AllModeEventSemantics.CURRENT_EVENT_WITH_LIVE_STATE
+            else -> AllModeEventSemantics.SAME_OCCURRENCE_REQUIRED
+        }
+    }
 
     /**
-     * Skip message for a run the ALL gate rejected. Lists the confirmed-false
+     * Legacy v1 ALL definitions containing momentary events used live-state-only
+     * evaluation. Enabling occurrence evidence silently would change a saved
+     * workflow from "never admitted" into a side-effecting automation. Keep it
+     * fail-closed until an explicit builder save upgrades the workflow to v2.
+     */
+    fun requiresOccurrenceSemanticsReview(automation: Automation): Boolean =
+        automation.triggerMatch == TriggerMatchMode.ALL &&
+            automation.workflowVersion <
+                Automation.OCCURRENCE_AWARE_TRIGGER_SEMANTICS_VERSION &&
+            automation.triggers.any(::isEventOnly)
+
+    /**
+     * Diagnostic labels for event-only conditions. Kept for existing call sites
+     * while UI wording is selected via [allModeEventSemantics].
+     */
+    fun allModeAdvisory(triggers: List<Trigger>): String? =
+        triggers.filter(::isEventOnly)
+            .takeIf { it.isNotEmpty() }
+            ?.joinToString(", ") { TriggerStateEvaluator.triggerLabel(it) }
+
+    /**
+     * Skip message for a run the ALL gate rejected. Lists confirmed-false
      * labels first; when none is confirmed false but the combination still
-     * failed, the condition state was unverifiable — say so instead of
-     * implying a check that never produced a definitive answer.
+     * failed, the condition state was unresolved — say so rather than implying
+     * a definitive false read.
      */
     fun skipMessage(triggers: List<Trigger>, results: List<ConditionResult>): String {
-        val failed = triggers.zip(results)
+        val paired = triggers.zip(results)
+        val failed = paired
             .filter { (_, result) -> result == ConditionResult.Unsatisfied }
             .map { (trigger, _) -> TriggerStateEvaluator.triggerLabel(trigger) }
-        return if (failed.isEmpty()) {
-            "Skipped: not all trigger conditions are true (condition state unverifiable)"
-        } else {
-            "Skipped: not all trigger conditions are true (${failed.joinToString(", ")})"
+
+        if (failed.isNotEmpty()) {
+            return "Skipped: not all trigger conditions are true (${failed.joinToString(", ")})"
         }
+
+        val unresolvedMomentary = paired.count { (trigger, result) ->
+            isEventOnly(trigger) && result != ConditionResult.Satisfied
+        }
+        if (
+            allModeEventSemantics(triggers) == AllModeEventSemantics.SAME_OCCURRENCE_REQUIRED &&
+            unresolvedMomentary > 0
+        ) {
+            return "Skipped: ALL momentary conditions must match the same current occurrence"
+        }
+
+        return "Skipped: not all trigger conditions are true (condition state unverifiable)"
     }
 }

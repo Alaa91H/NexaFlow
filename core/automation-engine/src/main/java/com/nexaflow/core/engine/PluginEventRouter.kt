@@ -1,6 +1,7 @@
 package com.nexaflow.core.engine
 
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerOccurrence
 import com.nexaflow.core.execution.compat.TriggerSource
 import com.nexaflow.domain.events.EventFilter
 import com.nexaflow.domain.events.EventSubscription
@@ -74,22 +75,38 @@ class PluginEventRouter(
             ?.takeIf { it.isNotEmpty() }
             ?: return
         val targets = triggerIndex.bySource(TriggerSource.PLUGIN.sourceId)
-            .filter { automation -> automation.triggers.any { trigger ->
-                trigger.type == TriggerType.PLUGIN_EVENT &&
-                    trigger.config[PluginEventIngress.KEY_APPROVAL] == PluginEventIngress.APPROVAL_VALUE &&
-                    trigger.config[PluginEventIngress.KEY_PACKAGE] == pluginPackage &&
-                    trigger.config[PluginEventIngress.KEY_COMPONENT] == component &&
-                    trigger.config[PluginEventIngress.KEY_INSTANCE] in instances &&
-                    (trigger.config[PluginEventIngress.KEY_EVENT_ID].isNullOrBlank() ||
-                        trigger.config[PluginEventIngress.KEY_EVENT_ID] == eventId)
-            } }
-        targets.forEach { automation ->
+            .mapNotNull { automation ->
+                val matchedTriggerIndices = automation.triggers.mapIndexedNotNull { index, trigger ->
+                    index.takeIf {
+                        trigger.type == TriggerType.PLUGIN_EVENT &&
+                            trigger.config[PluginEventIngress.KEY_APPROVAL] == PluginEventIngress.APPROVAL_VALUE &&
+                            trigger.config[PluginEventIngress.KEY_PACKAGE] == pluginPackage &&
+                            trigger.config[PluginEventIngress.KEY_COMPONENT] == component &&
+                            trigger.config[PluginEventIngress.KEY_INSTANCE] in instances &&
+                            (trigger.config[PluginEventIngress.KEY_EVENT_ID].isNullOrBlank() ||
+                                trigger.config[PluginEventIngress.KEY_EVENT_ID] == eventId)
+                    }
+                }.toSet()
+                (automation to matchedTriggerIndices).takeIf { matchedTriggerIndices.isNotEmpty() }
+            }
+        targets.forEach { (automation, matchedTriggerIndices) ->
             if (!admitCooldown(automation.id, automation.cooldownMillis, event.occurredAt)) return@forEach
             // The event has already crossed the authenticated receiver → bus →
             // index boundary. This reuses the singleton execution engine rather
             // than constructing an interpreter, manager, or recovery path.
             // Plugin events are one-shot notifications, not a persistent state.
-            runCatching { executionEngine.runAutomation(automation, completeExitOnFinish = true) }
+            runCatching {
+                executionEngine.runAutomation(
+                    automation = automation,
+                    completeExitOnFinish = true,
+                    triggerOccurrence = TriggerOccurrence(
+                        matchedTriggerIndices = matchedTriggerIndices,
+                        occurredAtEpochMs = event.occurredAt,
+                        sourceId = TriggerSource.PLUGIN.sourceId,
+                        eventId = event.eventId,
+                    ),
+                )
+            }
         }
     }
 

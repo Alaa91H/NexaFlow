@@ -13,7 +13,9 @@
     <string name="trigger_match_any_hint">どれかの条件が起きたら実行</string>
     <string name="trigger_match_all">すべて成立</string>
     <string name="trigger_match_all_hint">すべての条件が今そろっているときだけ実行</string>
-    <string name="trigger_match_all_event_warning">SMS や通知など、一部の条件は再確認できない一瞬のイベントです。それらを「すべて」と組み合わせたタスクは、独自のイベントからしか実行されません。「いずれか」を検討してください。</string>
+    <string name="trigger_match_all_event_warning">SMS や通知などの瞬間的な条件は、実行を開始したイベントによって成立したものとして扱われます。「すべて」では、その瞬間に他のすべての条件も成立している必要があります。</string>
+    <string name="trigger_match_all_multi_event_warning">「すべて」では、複数の瞬間的な条件が同じ現在のイベントに一致する必要があります。別々のイベントは記憶も関連付けもされません。</string>
+    <string name="trigger_match_legacy_review_required">このタスクは旧しい「すべて」のイベント動作を使用しています。トリガーを確認して一度保存すると、現在のイベント発生に基づく判定が有効になります。</string>
     <string name="remove_trigger">条件を削除</string>
     <string name="expand_options">オプションを表示</string>
     <string name="trigger_type_time">時刻</string>

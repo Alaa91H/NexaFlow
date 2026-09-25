@@ -40,15 +40,29 @@ object SmsTriggerMatcher {
         return fromMatch && textMatch
     }
 
-    /** Automations (enabled) whose first SMS trigger matches the message. */
+    /**
+     * Saved trigger indices satisfied by this concrete SMS event.
+     *
+     * Returning every matching index matters for ALL: one physical message may
+     * legitimately satisfy more than one SMS filter in the same automation.
+     */
+    fun matchingTriggerIndices(
+        automation: Automation,
+        sender: String,
+        body: String
+    ): Set<Int> = automation.triggers.mapIndexedNotNull { index, trigger ->
+        index.takeIf {
+            trigger.type == TriggerType.SMS && matches(trigger.config, sender, body)
+        }
+    }.toSet()
+
+    /** Enabled automations with at least one SMS trigger matched by this event. */
     fun matchingAutomations(
         automations: List<Automation>,
         sender: String,
         body: String
     ): List<Automation> = automations.filter { automation ->
-        automation.enabled && automation.triggers.any { trigger ->
-            trigger.type == TriggerType.SMS && matches(trigger.config, sender, body)
-        }
+        automation.enabled && matchingTriggerIndices(automation, sender, body).isNotEmpty()
     }
 
     /** The reply text of the first SMS trigger of the automation, or null. */

@@ -8,7 +8,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WorkflowValidatorTest {
-    private fun automation(actionConfig: Map<String, String> = emptyMap(), version: Int = 1) = Automation(
+    private fun automation(
+        actionConfig: Map<String, String> = emptyMap(),
+        version: Int = Automation.CURRENT_WORKFLOW_VERSION,
+    ) = Automation(
         id = "workflow-1",
         name = "Workflow",
         description = "",
@@ -40,4 +43,19 @@ class WorkflowValidatorTest {
         assertFalse(result.isValid)
         assertTrue(result.issues.any { it.code == WorkflowValidationCode.CONFIG_VALUE_TOO_LONG })
     }
+
+    @Test
+    fun legacyWorkflowVersionRemainsReadableWhileFutureVersionIsRejected() {
+        assertTrue(
+            WorkflowValidator.validate(
+                automation(version = Automation.LEGACY_TRIGGER_SEMANTICS_VERSION)
+            ).isValid
+        )
+        assertFalse(
+            WorkflowValidator.validate(
+                automation(version = Automation.CURRENT_WORKFLOW_VERSION + 1)
+            ).isValid
+        )
+    }
+
 }

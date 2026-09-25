@@ -4,11 +4,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.PowerManager
+import android.os.SystemClock
 import android.util.Log
 import com.nexaflow.core.datastore.AutomationLifecycleContext
 import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerOccurrence
 import com.nexaflow.core.rom.RootPermissionGranter
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
@@ -48,7 +50,10 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
             intent.action == Intent.ACTION_LOCKED_BOOT_COMPLETED ||
             intent.action == Intent.ACTION_MY_PACKAGE_REPLACED
         ) {
-            restoreAfterBoot(context)
+            restoreAfterBoot(
+                context = context,
+                fireBootTriggers = intent.action == Intent.ACTION_BOOT_COMPLETED,
+            )
             return
         }
         // Android cancels future exact alarms when this access changes. The
@@ -142,9 +147,11 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                     // exits remain durable as EXIT_FAILED for reconciliation.
                     scheduler.completeOccurrence(automationId, occurrenceId)
                 } else if (automation.enabled) {
-                    val isTimeRange = automation.triggers
-                        .firstOrNull { it.type == TriggerType.TIME }
-                        ?.config?.get("timeMode") == "RANGE"
+                    val matchedTimeTriggerIndices =
+                        matchingScheduledTimeTriggerIndices(automation)
+                    val primaryTimeTriggerIndex = matchedTimeTriggerIndices.minOrNull() ?: -1
+                    val isTimeRange = primaryTimeTriggerIndex >= 0 &&
+                        automation.triggers[primaryTimeTriggerIndex].config["timeMode"] == "RANGE"
                     val now = System.currentTimeMillis()
                     val expiredRange = isTimeRange && windowEndAt != null && windowEndAt <= now
                     if (!shouldExecuteRangeStart(isTimeRange, windowEndAt)) {
@@ -170,7 +177,19 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                             )
                         } else {
                             null
-                        }
+                        },
+                        triggerOccurrence = if (
+                            !isTimeRange && matchedTimeTriggerIndices.isNotEmpty()
+                        ) {
+                            TriggerOccurrence(
+                                matchedTriggerIndices = matchedTimeTriggerIndices,
+                                occurredAtEpochMs = now,
+                                sourceId = "time",
+                                eventId = occurrenceId,
+                            )
+                        } else {
+                            null
+                        },
                     )
                     if (!isTimeRange) {
                         // A one-shot occurrence has already been delivered,
@@ -248,7 +267,10 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun restoreAfterBoot(context: Context) {
+    private fun restoreAfterBoot(
+        context: Context,
+        fireBootTriggers: Boolean,
+    ) {
         val pendingResult = goAsync()
         val wakeLock = acquireWakeLock(context)
         scope.launch {
@@ -256,8 +278,37 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                 // First reconcile elapsed/failed exits from the durable ledger;
                 // then rebuild future alarms, which Android cancels at reboot.
                 exitCoordinator.reconcile(ExitReason.BOOT_RECOVERY)
+                val automations = repository.getAutomations().first()
                 scheduler.initialize()
-                scheduler.rescheduleAll(repository.getAutomations().first())
+                scheduler.rescheduleAll(automations)
+
+                // BOOT_COMPLETED is delivered to this manifest receiver before
+                // DeviceStateMonitor28 can exist. Dispatch the user trigger from
+                // this real boot boundary exactly once per boot session.
+                if (fireBootTriggers) {
+                    val occurredAt = System.currentTimeMillis()
+                    val bootEventId = bootOccurrenceId(
+                        epochMillis = occurredAt,
+                        elapsedRealtimeMillis = SystemClock.elapsedRealtime(),
+                    )
+                    automations
+                        .filter { it.enabled }
+                        .forEach { automation ->
+                            val matchedTriggerIndices = bootTriggerIndices(automation)
+                            if (matchedTriggerIndices.isEmpty()) return@forEach
+                            executionEngine.runAutomation(
+                                automation = automation,
+                                completeExitOnFinish = true,
+                                triggerOccurrence = TriggerOccurrence(
+                                    matchedTriggerIndices = matchedTriggerIndices,
+                                    occurredAtEpochMs = occurredAt,
+                                    sourceId = SOURCE_BOOT,
+                                    eventId = bootEventId,
+                                ),
+                            )
+                        }
+                }
+
                 MonitoringService.scheduleStart(context.applicationContext)
             } catch (failure: Throwable) {
                 Log.e(TAG, "Failed to restore automation schedules after boot", failure)
@@ -295,8 +346,44 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
             windowEndAt: Long?
         ): Boolean = !isTimeRange || windowEndAt != null
 
+        internal fun matchingScheduledTimeTriggerIndices(
+            automation: com.nexaflow.domain.models.Automation,
+        ): Set<Int> {
+            val scheduledConfig = automation.triggers
+                .firstOrNull { it.type == TriggerType.TIME }
+                ?.config
+                ?: return emptySet()
+
+            return automation.triggers.mapIndexedNotNull { index, trigger ->
+                index.takeIf {
+                    trigger.type == TriggerType.TIME && trigger.config == scheduledConfig
+                }
+            }.toSet()
+        }
+
+        internal fun bootTriggerIndices(
+            automation: com.nexaflow.domain.models.Automation,
+        ): Set<Int> = automation.triggers.mapIndexedNotNull { index, trigger ->
+            index.takeIf { trigger.type == TriggerType.BOOT_COMPLETED }
+        }.toSet()
+
+        /**
+         * Stable identity for one device boot. Wall-clock boot epoch is derived
+         * from elapsed realtime so receiver redelivery in the same boot maps to
+         * the same dedupe key without persisting user data.
+         */
+        internal fun bootOccurrenceId(
+            epochMillis: Long,
+            elapsedRealtimeMillis: Long,
+        ): String {
+            val bootEpochSeconds =
+                ((epochMillis - elapsedRealtimeMillis).coerceAtLeast(0L)) / 1_000L
+            return "boot:$bootEpochSeconds"
+        }
+
         private const val TAG = "AutomationAlarmReceiver"
         private const val SOURCE_TIME_RANGE = "time-range"
+        private const val SOURCE_BOOT = "device-event:boot_completed"
         internal const val ALARM_PERMISSION_CHANGED_ACTION =
             "android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED"
         /** Android 17: sent when a fixed UTC offset changes without a zone switch. */

@@ -135,4 +135,25 @@ class SmsTriggerMatcherTest {
         assertEquals("Thanks", SmsTriggerMatcher.replyOf(withReply))
         assertNull(SmsTriggerMatcher.replyOf(automation()))
     }
+
+    @Test
+    fun matchingTriggerIndices_returnsEverySmsFilterMatchedBySameMessage() {
+        val task = automation().copy(
+            triggers = listOf(
+                Trigger(TriggerType.SMS, mapOf("from" to "BANK")),
+                Trigger(TriggerType.SMS, mapOf("contains" to "OTP")),
+                Trigger(TriggerType.SMS, mapOf("from" to "OTHER")),
+            )
+        )
+
+        assertEquals(
+            setOf(0, 1),
+            SmsTriggerMatcher.matchingTriggerIndices(
+                automation = task,
+                sender = "BANK-OPS",
+                body = "Your OTP is 42",
+            ),
+        )
+    }
+
 }

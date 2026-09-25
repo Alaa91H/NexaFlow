@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerOccurrence
 import com.nexaflow.core.pluginsdk.PluginDiscoveryRegistry
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
@@ -85,19 +86,28 @@ class PackageMonitor @Inject constructor(
             automations
                 .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.APP_INSTALLED } }
                 .forEach { automation ->
-                    val trigger = automation.triggers.first { it.type == TriggerType.APP_INSTALLED }
-                    val want = trigger.config["event"] ?: "INSTALLED"
-                    val filterPkg = trigger.config["package"]?.takeIf { it.isNotBlank() }
-                    if (filterPkg != null && filterPkg != pkg) return@forEach
-                    if (event == want) {
-                        val last = lastRunAt[automation.id] ?: 0L
-                        if (now - last > automation.cooldownMillis) {
-                            lastRunAt[automation.id] = now
-                            executionEngine.runAutomation(
-                                automation = automation,
-                                completeExitOnFinish = true
-                            )
+                    val matchedTriggerIndices = automation.triggers.mapIndexedNotNull { index, trigger ->
+                        if (trigger.type != TriggerType.APP_INSTALLED) return@mapIndexedNotNull null
+                        val want = trigger.config["event"] ?: "INSTALLED"
+                        val filterPkg = trigger.config["package"]?.takeIf { it.isNotBlank() }
+                        index.takeIf {
+                            event == want && (filterPkg == null || filterPkg == pkg)
                         }
+                    }.toSet()
+                    if (matchedTriggerIndices.isEmpty()) return@forEach
+
+                    val last = lastRunAt[automation.id] ?: 0L
+                    if (now - last > automation.cooldownMillis) {
+                        lastRunAt[automation.id] = now
+                        executionEngine.runAutomation(
+                            automation = automation,
+                            completeExitOnFinish = true,
+                            triggerOccurrence = TriggerOccurrence(
+                                matchedTriggerIndices = matchedTriggerIndices,
+                                occurredAtEpochMs = now,
+                                sourceId = "package",
+                            ),
+                        )
                     }
                 }
         }

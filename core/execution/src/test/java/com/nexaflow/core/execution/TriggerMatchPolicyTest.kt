@@ -1,5 +1,6 @@
 package com.nexaflow.core.execution
 
+import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerMatchMode
@@ -152,4 +153,178 @@ class TriggerMatchPolicyTest {
         val message = TriggerMatchPolicy.skipMessage(listOf(sms), listOf(unknown))
         assertTrue(message.contains("condition state unverifiable"))
     }
+
+    @Test
+    fun oneShotTimeIsEventOnlyButTimeRangeIsStateReadable() {
+        val instant = Trigger(
+            TriggerType.TIME,
+            mapOf("timeMode" to "AT", "time" to "22:00")
+        )
+        val range = Trigger(
+            TriggerType.TIME,
+            mapOf("timeMode" to "RANGE", "rangeStart" to "22:00", "rangeEnd" to "07:00")
+        )
+
+        assertTrue(TriggerMatchPolicy.isEventOnly(instant))
+        assertFalse(TriggerMatchPolicy.isEventOnly(range))
+    }
+
+
+    @Test
+    fun aggregatePreservesTriStateSemantics() {
+        assertEquals(
+            ConditionResult.Satisfied,
+            TriggerMatchPolicy.aggregate(
+                TriggerMatchMode.ANY,
+                listOf(ConditionResult.Unknown, ConditionResult.Satisfied),
+            ),
+        )
+        assertEquals(
+            ConditionResult.Unknown,
+            TriggerMatchPolicy.aggregate(
+                TriggerMatchMode.ANY,
+                listOf(ConditionResult.Unsatisfied, ConditionResult.Unknown),
+            ),
+        )
+        assertEquals(
+            ConditionResult.Unsatisfied,
+            TriggerMatchPolicy.aggregate(
+                TriggerMatchMode.ALL,
+                listOf(ConditionResult.Satisfied, ConditionResult.Unsatisfied, ConditionResult.Unknown),
+            ),
+        )
+        assertEquals(
+            ConditionResult.Unknown,
+            TriggerMatchPolicy.aggregate(
+                TriggerMatchMode.ALL,
+                listOf(ConditionResult.Satisfied, ConditionResult.Unavailable),
+            ),
+        )
+    }
+
+    @Test
+    fun eventSemanticsDistinguishSingleEventFromSameOccurrenceRequirement() {
+        val sms = Trigger(TriggerType.SMS, mapOf("contains" to "otp"))
+        val dark = Trigger(TriggerType.DARK_MODE, mapOf("state" to "ON"))
+        val notification = Trigger(TriggerType.NOTIFICATION, mapOf("contains" to "otp"))
+
+        assertEquals(
+            TriggerMatchPolicy.AllModeEventSemantics.CURRENT_EVENT_WITH_LIVE_STATE,
+            TriggerMatchPolicy.allModeEventSemantics(listOf(sms, dark)),
+        )
+        assertEquals(
+            TriggerMatchPolicy.AllModeEventSemantics.SAME_OCCURRENCE_REQUIRED,
+            TriggerMatchPolicy.allModeEventSemantics(listOf(sms, notification)),
+        )
+        assertEquals(
+            TriggerMatchPolicy.AllModeEventSemantics.NONE,
+            TriggerMatchPolicy.allModeEventSemantics(listOf(dark)),
+        )
+    }
+
+    @Test
+    fun multipleMomentaryConditionsExplainSameOccurrenceRequirement() {
+        val smsOne = Trigger(TriggerType.SMS, mapOf("from" to "111"))
+        val smsTwo = Trigger(TriggerType.SMS, mapOf("contains" to "otp"))
+
+        val message = TriggerMatchPolicy.skipMessage(
+            listOf(smsOne, smsTwo),
+            listOf(ConditionResult.Satisfied, ConditionResult.Unknown),
+        )
+
+        assertTrue(message.contains("same current occurrence"))
+    }
+
+
+    @Test
+    fun confirmedFalseTakesPrecedenceOverSameOccurrenceAdvisory() {
+        val smsOne = Trigger(TriggerType.SMS, mapOf("from" to "111"))
+        val smsTwo = Trigger(TriggerType.SMS, mapOf("contains" to "otp"))
+        val dark = Trigger(TriggerType.DARK_MODE, mapOf("state" to "ON"))
+
+        val message = TriggerMatchPolicy.skipMessage(
+            listOf(smsOne, smsTwo, dark),
+            listOf(
+                ConditionResult.Satisfied,
+                ConditionResult.Unknown,
+                ConditionResult.Unsatisfied,
+            ),
+        )
+
+        assertTrue(message.contains("DARK_MODE"))
+        assertFalse(message.contains("same current occurrence"))
+    }
+
+
+    @Test
+    fun legacyReviewIsRequiredOnlyForAllWithMomentaryEvidence() {
+        fun task(
+            mode: TriggerMatchMode,
+            triggers: List<Trigger>,
+            version: Int,
+        ) = Automation(
+            id = "review",
+            name = "Review",
+            description = "",
+            icon = "bolt",
+            iconColor = 0L,
+            backgroundColor = 0L,
+            category = "test",
+            priority = 1,
+            enabled = true,
+            triggers = triggers,
+            actions = emptyList(),
+            triggerMatch = mode,
+            createdAt = 0L,
+            updatedAt = 0L,
+            workflowVersion = version,
+        )
+
+        val eventAndState = listOf(
+            Trigger(TriggerType.SMS, emptyMap()),
+            Trigger(TriggerType.DARK_MODE, mapOf("state" to "ON")),
+        )
+        val statesOnly = listOf(
+            Trigger(TriggerType.DARK_MODE, mapOf("state" to "ON")),
+            Trigger(TriggerType.CHARGER, mapOf("state" to "CONNECTED")),
+        )
+
+        assertTrue(
+            TriggerMatchPolicy.requiresOccurrenceSemanticsReview(
+                task(
+                    TriggerMatchMode.ALL,
+                    eventAndState,
+                    Automation.LEGACY_TRIGGER_SEMANTICS_VERSION,
+                )
+            )
+        )
+        assertFalse(
+            TriggerMatchPolicy.requiresOccurrenceSemanticsReview(
+                task(
+                    TriggerMatchMode.ALL,
+                    eventAndState,
+                    Automation.OCCURRENCE_AWARE_TRIGGER_SEMANTICS_VERSION,
+                )
+            )
+        )
+        assertFalse(
+            TriggerMatchPolicy.requiresOccurrenceSemanticsReview(
+                task(
+                    TriggerMatchMode.ALL,
+                    statesOnly,
+                    Automation.LEGACY_TRIGGER_SEMANTICS_VERSION,
+                )
+            )
+        )
+        assertFalse(
+            TriggerMatchPolicy.requiresOccurrenceSemanticsReview(
+                task(
+                    TriggerMatchMode.ANY,
+                    eventAndState,
+                    Automation.LEGACY_TRIGGER_SEMANTICS_VERSION,
+                )
+            )
+        )
+    }
+
 }

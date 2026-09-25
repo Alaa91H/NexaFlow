@@ -15,6 +15,7 @@ import com.nexaflow.core.common.DefaultNetworkStateReader
 import com.nexaflow.core.common.HotspotStateReader
 import com.nexaflow.core.common.NetworkTransportState
 import com.nexaflow.core.wearprotocol.WearRuntimeState
+import com.nexaflow.core.rom.CustomSettingsBridge
 import com.nexaflow.domain.models.ConditionResult
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerMatchMode
@@ -91,24 +92,18 @@ object TriggerStateEvaluator {
         return aggregate(results, matchMode)
     }
 
-    /** Pure tri-state aggregation used by runtime code and deterministic tests. */
+    /**
+     * Compatibility wrapper for current-state/manual callers.
+     *
+     * Manual evaluation treats "no triggers configured" as vacuously satisfied;
+     * every non-empty ANY/ALL truth table is owned by [TriggerMatchPolicy].
+     */
     internal fun aggregate(
         results: List<ConditionResult>,
         matchMode: TriggerMatchMode
     ): ConditionResult {
         if (results.isEmpty()) return ConditionResult.Satisfied
-        return when (matchMode) {
-            TriggerMatchMode.ANY -> when {
-                results.any { it == ConditionResult.Satisfied } -> ConditionResult.Satisfied
-                results.all { it == ConditionResult.Unsatisfied } -> ConditionResult.Unsatisfied
-                else -> ConditionResult.Unknown
-            }
-            TriggerMatchMode.ALL -> when {
-                results.any { it == ConditionResult.Unsatisfied } -> ConditionResult.Unsatisfied
-                results.all { it == ConditionResult.Satisfied } -> ConditionResult.Satisfied
-                else -> ConditionResult.Unknown
-            }
-        }
+        return TriggerMatchPolicy.aggregate(matchMode, results)
     }
 
     /**
@@ -149,7 +144,7 @@ object TriggerStateEvaluator {
      *
      * Beyond the explicit event-only set this covers the state-less types that
      * fall through [triggerSatisfied]'s fail-closed `else -> false` branch (SMS,
-     * webhook, sensor, calendar, plugin, ROM setting, geofence): their manual
+     * webhook, sensor, calendar, plugin, geofence): their manual
      * gate result is already Unknown, so classifying them here is behavior
      * neutral — it only makes the ALL-mode advisory honest about them.
      */
@@ -228,6 +223,7 @@ object TriggerStateEvaluator {
     fun triggerSatisfied(context: Context, trigger: Trigger): Boolean {
         val c = trigger.config
         return when (trigger.type) {
+            TriggerType.ROM_SETTING -> romSettingSatisfied(context, c)
             TriggerType.NETWORK_MODE ->
                 CellularNetworkReader.matchesNetworkMode(
                     c["state"] ?: CellularNetworkReader.GENERATION_4G,
@@ -252,9 +248,8 @@ object TriggerStateEvaluator {
                 audio.isWiredHeadsetConnected() == wantConnected
             }
             TriggerType.CHARGER -> {
-                val battery = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager ?: return false
                 val wantConnected = (c["event"] ?: "CONNECTED") == "CONNECTED"
-                battery.isCharging == wantConnected
+                currentChargingState(context) == wantConnected
             }
             TriggerType.AIRPLANE_MODE -> {
                 val on = Settings.Global.getInt(
@@ -771,6 +766,35 @@ object TriggerStateEvaluator {
     private fun batteryManager(context: Context) =
         context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
 
+    /**
+     * Canonical charger state shared with BatteryMonitor semantics.
+     *
+     * ACTION_BATTERY_CHANGED is sticky and carries the same status that caused
+     * the monitor to dispatch a charger transition. Reading that snapshot here
+     * avoids a race where BatteryManager.isCharging can briefly lag behind the
+     * broadcast and make an ALL trigger gate reject the event that just fired.
+     * A full battery still counts as connected, matching BatteryMonitor.
+     */
+    private fun currentChargingState(context: Context): Boolean {
+        val status = runCatching {
+            context.registerReceiver(
+                null,
+                android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED)
+            )?.getIntExtra(
+                BatteryManager.EXTRA_STATUS,
+                BatteryManager.BATTERY_STATUS_UNKNOWN
+            )
+        }.getOrNull()
+
+        return when (status) {
+            BatteryManager.BATTERY_STATUS_CHARGING,
+            BatteryManager.BATTERY_STATUS_FULL -> true
+            BatteryManager.BATTERY_STATUS_DISCHARGING,
+            BatteryManager.BATTERY_STATUS_NOT_CHARGING -> false
+            else -> batteryManager(context)?.isCharging == true
+        }
+    }
+
     private fun audioManager(context: Context) =
         context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
 
@@ -807,11 +831,11 @@ object TriggerStateEvaluator {
      */
     private val NON_VERIFIABLE_TYPES = MANUAL_EVENT_ONLY_TYPES + setOf(
         TriggerType.SMS,
+        TriggerType.NOTIFICATION,
         TriggerType.WEBHOOK,
         TriggerType.SENSOR,
         TriggerType.CALENDAR,
         TriggerType.PLUGIN_EVENT,
-        TriggerType.ROM_SETTING,
         TriggerType.LOCATION
     )
 
@@ -825,8 +849,25 @@ object TriggerStateEvaluator {
         TriggerType.DEVICE,
         TriggerType.BLUETOOTH_DEVICE,
         TriggerType.APPLICATION,
-        TriggerType.CHARGER
+        TriggerType.CHARGER,
+        TriggerType.ROM_SETTING
     )
+
+    private fun romSettingSatisfied(
+        context: Context,
+        config: Map<String, String>
+    ): Boolean {
+        val namespace = CustomSettingsBridge.Namespace.entries.firstOrNull {
+            it.name == (config["namespace"] ?: "SYSTEM")
+        } ?: CustomSettingsBridge.Namespace.SYSTEM
+        val key = config["key"]?.trim()?.takeIf { it.isNotEmpty() } ?: return false
+        val target = config["value"]?.trim()?.takeIf { it.isNotEmpty() } ?: return false
+        val actual = CustomSettingsBridge.read(context, namespace, key)
+        return when (config["operator"] ?: "EQUALS") {
+            "NOT_EQUALS" -> actual != target
+            else -> actual == target
+        }
+    }
 
     private fun batterySatisfied(context: Context, config: Map<String, String>): Boolean {
         val battery = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager ?: return false
