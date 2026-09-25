@@ -66,7 +66,8 @@ object RunExplainer {
         TraceReasons.TRIGGER_AND_UNSATISFIED,
         TraceReasons.TRIGGER_STATE_UNKNOWN,
         TraceReasons.TRIGGER_STATE_UNAVAILABLE,
-        TraceReasons.TRIGGER_STATE_ERROR -> Explanation(
+        TraceReasons.TRIGGER_STATE_ERROR,
+        TraceReasons.TRIGGER_SEMANTICS_REVIEW_REQUIRED -> Explanation(
             explanationKey = "explain_trigger_all_blocked",
             fixKey = "fix_check_all_conditions",
             detail = event.detail,
