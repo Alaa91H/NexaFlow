@@ -709,23 +709,39 @@ class ExecutionEngine(
                         payloadContext,
                         dataRuntime
                     )
-                    if (result.success || currentAttempt > retryCount) break
+                    // UNKNOWN means the backend may already have applied the
+                    // side effect. Never blind-retry it: preserve the durable
+                    // ACTION_UNKNOWN checkpoint and let reconciliation decide.
+                    if (result.success || result.outcomeUncertain || currentAttempt > retryCount) break
                     kotlinx.coroutines.delay(retryDelayMs)
                 }
 
-                activeExecutionStore.markActionCompleted(
-                    runId = payloadContext.runId,
-                    actionIndex = actionIndex,
-                    updatedAt = epochMillis.now()
-                ) ?: error("Unable to commit durable checkpoint for run ${payloadContext.runId}")
+                if (result.outcomeUncertain) {
+                    checkpointRequiresRecovery = true
+                    activeExecutionStore.markActionUnknown(
+                        runId = payloadContext.runId,
+                        message = "Action $actionIndex outcome is unconfirmed: ${result.message.take(160)}",
+                        updatedAt = epochMillis.now()
+                    ) ?: error("Unable to preserve uncertain checkpoint for run ${payloadContext.runId}")
+                } else {
+                    activeExecutionStore.markActionCompleted(
+                        runId = payloadContext.runId,
+                        actionIndex = actionIndex,
+                        updatedAt = epochMillis.now()
+                    ) ?: error("Unable to commit durable checkpoint for run ${payloadContext.runId}")
+                }
                 progressOutcomes.add(result.success)
                 inProgressActionIndex = null
-                executionProgressTracker.markResult(
-                    automation.id,
-                    actionIndex,
-                    result,
-                    channel?.type?.name
-                )
+                if (result.outcomeUncertain) {
+                    executionProgressTracker.markUnknown(automation.id, actionIndex)
+                } else {
+                    executionProgressTracker.markResult(
+                        automation.id,
+                        actionIndex,
+                        result,
+                        channel?.type?.name
+                    )
+                }
                 val execResult = ActionExecutionResult(
                     actionType = action.type.name,
                     success = result.success,
@@ -738,12 +754,17 @@ class ExecutionEngine(
                 )
                 list.add(execResult)
 
-                // 3. OnError policy: abort remaining actions if configured
-                if (!result.success && resolved.config["onError"]?.equals("ABORT", ignoreCase = true) == true) {
+                // 3. An uncertain side effect is always a hard safety stop:
+                // continuing could compound an effect whose state is unknown.
+                // Definite failures retain the configured OnError policy.
+                if (result.outcomeUncertain ||
+                    (!result.success &&
+                        resolved.config["onError"]?.equals("ABORT", ignoreCase = true) == true)
+                ) {
                     break
                 }
             }
-            list.also { actionChainCompleted = true }
+            list.also { actionChainCompleted = !checkpointRequiresRecovery }
         } catch (cancellation: CancellationException) {
             // The process may have interrupted a side effect after it began.
             // Persist this classification in NonCancellable: otherwise the
