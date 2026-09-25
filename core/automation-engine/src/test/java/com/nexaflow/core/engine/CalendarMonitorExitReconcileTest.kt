@@ -128,6 +128,7 @@ class CalendarMonitorExitReconcileTest {
         runBlocking {
             ActiveTriggerStore(context).clearSource("calendar")
             ActiveExecutionStore(context).clear("cal-task")
+            ActiveExecutionStore(context).clear("calendar-all")
         }
         // The monitor's rescan gates on READ_CALENDAR; grant it explicitly so
         // the reconcile path is exercised regardless of manifest merging.
@@ -248,11 +249,11 @@ class CalendarMonitorExitReconcileTest {
             triggers = listOf(
                 Trigger(
                     TriggerType.CALENDAR,
-                    mapOf("event" to "EVENT_START", "calendar" to "Work", "contains" to "Meeting")
+                    mapOf("event" to "EVENT_START", "contains" to "Meeting")
                 ),
                 Trigger(
                     TriggerType.CALENDAR,
-                    mapOf("event" to "EVENT_START", "calendar" to "Work", "contains" to "Meet")
+                    mapOf("event" to "EVENT_START", "contains" to "Meet")
                 ),
             ),
             actions = emptyList(),
@@ -284,6 +285,7 @@ class CalendarMonitorExitReconcileTest {
         )
         monitor.stop()
         store.clearAutomation("calendar", automation.id)
+        ActiveExecutionStore(context).clear(automation.id)
     }
 
 }
