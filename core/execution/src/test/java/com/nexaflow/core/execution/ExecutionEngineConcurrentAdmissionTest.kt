@@ -17,6 +17,7 @@ import com.nexaflow.domain.repositories.HistoryRepository
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -129,4 +130,39 @@ class ExecutionEngineConcurrentAdmissionTest {
 
         activeStore.clear(task.id)
     }
+
+    @Test
+    fun burstOfConcurrentCallbacksExecutesOnlyOneActionChain() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val task = automation("single-flight-burst")
+        val activeStore = ActiveExecutionStore(context)
+        activeStore.clear(task.id)
+
+        val handler = BlockingHandler()
+        val history = RecordingHistory()
+        val engine = ExecutionEngine(
+            context = context,
+            historyRepository = history,
+            notificationPreferences = NotificationPreferences(context),
+            actionRegistry = ActionRegistry.from(listOf(handler)),
+            activeExecutionStore = activeStore,
+        )
+
+        val first = async { engine.runAutomation(task) }
+        handler.entered.await()
+
+        val contenders = List(32) {
+            async { engine.runAutomation(task) }
+        }.awaitAll()
+
+        assertEquals(1, handler.calls)
+        assertTrue(contenders.all { it.message.contains("already running") })
+        assertTrue(contenders.all { it.actionResults.isEmpty() })
+
+        handler.unblock()
+        assertTrue(first.await().success)
+
+        activeStore.clear(task.id)
+    }
+
 }
