@@ -60,6 +60,19 @@
   evidence source (`CURRENT_EVENT` vs `LIVE_STATE`) with config-free trace
   details and stable reason codes for confirmed false, unknown, unavailable,
   and error states.
+- Hardened event-source evidence so filtered clipboard, timezone, NFC, screen
+  timeout and alarm-change triggers only receive `CURRENT_EVENT` proof when
+  the concrete event payload matches their saved configuration. Calendar,
+  scheduled-time and boot delivery now preserve the exact trigger indices
+  proven by the same occurrence.
+- Reworked multi-location lifecycle ownership: one location fix evaluates every
+  configured location trigger, stores the indices that admitted the occurrence,
+  uses the central ANY/ALL policy to decide when that owned location expression
+  has definitively ended, and never converts unreadable state into an exit.
+- Raised the persisted workflow semantics version to v2 for occurrence-aware
+  ALL matching. Existing v1 ALL tasks that contain momentary triggers remain
+  fail-closed and are marked for review; opening and saving them in the builder
+  upgrades them explicitly. Legacy state-only ALL tasks keep working unchanged.
 
 - Fixed the fresh-root grant path so a successful superuser prompt is immediately
   re-probed before permission repair. The pre-prompt negative root cache can no longer
