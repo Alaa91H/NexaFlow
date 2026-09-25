@@ -2,6 +2,7 @@ package com.nexaflow.core.engine
 
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerOccurrence
 import com.nexaflow.core.execution.NotificationAccess
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.TriggerType
@@ -48,17 +49,30 @@ class NotificationTriggerMonitor @Inject constructor(
                     }
                 }
                 .forEach { automation ->
-                    val notificationTriggers = automation.triggers.filter {
-                        it.type == TriggerType.NOTIFICATION && matches(it.config, packageName, title, text)
+                    val notificationTriggers = automation.triggers.withIndex().filter { (_, trigger) ->
+                        trigger.type == TriggerType.NOTIFICATION &&
+                            matches(trigger.config, packageName, title, text)
                     }
-                    val firesOnPosted = notificationTriggers.any { (it.config["event"] ?: "POSTED") == "POSTED" }
-                    val firesOnRemoved = notificationTriggers.any { (it.config["event"] ?: "POSTED") == "REMOVED" }
-                    if (firesOnPosted) {
+                    val postedIndices = notificationTriggers
+                        .filter { (_, trigger) -> (trigger.config["event"] ?: "POSTED") == "POSTED" }
+                        .map { it.index }
+                        .toSet()
+                    val firesOnRemoved = notificationTriggers.any { (_, trigger) ->
+                        (trigger.config["event"] ?: "POSTED") == "REMOVED"
+                    }
+                    if (postedIndices.isNotEmpty()) {
                         val last = lastRunAt[automation.id] ?: 0L
                         if (now - last > automation.cooldownMillis) {
                             lastRunAt[automation.id] = now
                             activeStates[automation.id] = packageName
-                            executionEngine.runAutomation(automation)
+                            executionEngine.runAutomation(
+                                automation = automation,
+                                triggerOccurrence = TriggerOccurrence(
+                                    matchedTriggerIndices = postedIndices,
+                                    occurredAtEpochMs = now,
+                                    sourceId = "notification",
+                                ),
+                            )
                         }
                     } else if (firesOnRemoved && activeStates[automation.id] == packageName) {
                         // Only REMOVED triggers: a new notification arriving while the
@@ -81,18 +95,31 @@ class NotificationTriggerMonitor @Inject constructor(
                     }
                 }
                 .forEach { automation ->
-                    val notificationTriggers = automation.triggers.filter {
-                        it.type == TriggerType.NOTIFICATION && matches(it.config, packageName, title, text)
+                    val notificationTriggers = automation.triggers.withIndex().filter { (_, trigger) ->
+                        trigger.type == TriggerType.NOTIFICATION &&
+                            matches(trigger.config, packageName, title, text)
                     }
-                    val firesOnPosted = notificationTriggers.any { (it.config["event"] ?: "POSTED") == "POSTED" }
-                    val firesOnRemoved = notificationTriggers.any { (it.config["event"] ?: "POSTED") == "REMOVED" }
-                    if (firesOnRemoved) {
+                    val removedIndices = notificationTriggers
+                        .filter { (_, trigger) -> (trigger.config["event"] ?: "POSTED") == "REMOVED" }
+                        .map { it.index }
+                        .toSet()
+                    val firesOnPosted = notificationTriggers.any { (_, trigger) ->
+                        (trigger.config["event"] ?: "POSTED") == "POSTED"
+                    }
+                    if (removedIndices.isNotEmpty()) {
                         val last = lastRunAt[automation.id] ?: 0L
                         val now = System.currentTimeMillis()
                         if (now - last > automation.cooldownMillis) {
                             lastRunAt[automation.id] = now
                             activeStates[automation.id] = packageName
-                            executionEngine.runAutomation(automation)
+                            executionEngine.runAutomation(
+                                automation = automation,
+                                triggerOccurrence = TriggerOccurrence(
+                                    matchedTriggerIndices = removedIndices,
+                                    occurredAtEpochMs = now,
+                                    sourceId = "notification",
+                                ),
+                            )
                         }
                     } else if (firesOnPosted && activeStates[automation.id] == packageName) {
                         // The notification that activated the task was dismissed: run exit.
