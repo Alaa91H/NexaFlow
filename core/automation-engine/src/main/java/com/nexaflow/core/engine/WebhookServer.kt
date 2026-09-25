@@ -3,6 +3,7 @@ package com.nexaflow.core.engine
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ACTION_AUTOMATIONS_CHANGED
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerOccurrence
 import com.nexaflow.core.execution.WEBHOOK_DEFAULT_PORT
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.TriggerType
@@ -188,10 +189,13 @@ class WebhookServer @Inject constructor(
         var anyFired = false
         var authenticated = false
         WebhookTriggerMatcher.webhookAutomations(snapshot).forEach { automation ->
-            val matches = automation.triggers
-                .filter { it.type == TriggerType.WEBHOOK }
-                .any { WebhookTriggerMatcher.matches(it.config, method, path, token) }
-            if (matches) {
+            val matchedTriggerIndices = automation.triggers.mapIndexedNotNull { index, trigger ->
+                index.takeIf {
+                    trigger.type == TriggerType.WEBHOOK &&
+                        WebhookTriggerMatcher.matches(trigger.config, method, path, token)
+                }
+            }.toSet()
+            if (matchedTriggerIndices.isNotEmpty()) {
                 authenticated = true
                 var admitted = false
                 lastRunAt.compute(automation.id) { _, last ->
@@ -200,7 +204,15 @@ class WebhookServer @Inject constructor(
                 if (admitted) {
                     anyFired = true
                     // A webhook is a one-shot event with no opposite callback.
-                    executionEngine.runAutomation(automation, completeExitOnFinish = true)
+                    executionEngine.runAutomation(
+                        automation = automation,
+                        completeExitOnFinish = true,
+                        triggerOccurrence = TriggerOccurrence(
+                            matchedTriggerIndices = matchedTriggerIndices,
+                            occurredAtEpochMs = now,
+                            sourceId = "webhook",
+                        ),
+                    )
                 }
             }
         }
