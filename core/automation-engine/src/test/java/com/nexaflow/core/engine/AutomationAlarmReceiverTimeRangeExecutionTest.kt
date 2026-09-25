@@ -69,4 +69,24 @@ class AutomationAlarmReceiverTimeRangeExecutionTest {
         assertEquals(first, redelivery)
     }
 
+
+    @Test
+    fun `identical scheduled time triggers share one occurrence evidence set`() {
+        val config = mapOf("timeMode" to "AT", "time" to "08:00", "repeat" to "DAILY")
+        val automation = testAutomation(
+            id = "time-duplicates",
+            triggers = listOf(
+                Trigger(TriggerType.TIME, config),
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to "ON")),
+                Trigger(TriggerType.TIME, config),
+                Trigger(TriggerType.TIME, config + ("time" to "09:00")),
+            ),
+        )
+
+        assertEquals(
+            setOf(0, 2),
+            AutomationAlarmReceiver.matchingScheduledTimeTriggerIndices(automation),
+        )
+    }
+
 }
