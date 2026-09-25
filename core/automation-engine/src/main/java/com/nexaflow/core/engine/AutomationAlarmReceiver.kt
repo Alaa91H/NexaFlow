@@ -147,11 +147,11 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                     // exits remain durable as EXIT_FAILED for reconciliation.
                     scheduler.completeOccurrence(automationId, occurrenceId)
                 } else if (automation.enabled) {
-                    val timeTriggerIndex = automation.triggers.indexOfFirst {
-                        it.type == TriggerType.TIME
-                    }
-                    val isTimeRange = timeTriggerIndex >= 0 &&
-                        automation.triggers[timeTriggerIndex].config["timeMode"] == "RANGE"
+                    val matchedTimeTriggerIndices =
+                        matchingScheduledTimeTriggerIndices(automation)
+                    val primaryTimeTriggerIndex = matchedTimeTriggerIndices.minOrNull() ?: -1
+                    val isTimeRange = primaryTimeTriggerIndex >= 0 &&
+                        automation.triggers[primaryTimeTriggerIndex].config["timeMode"] == "RANGE"
                     val now = System.currentTimeMillis()
                     val expiredRange = isTimeRange && windowEndAt != null && windowEndAt <= now
                     if (!shouldExecuteRangeStart(isTimeRange, windowEndAt)) {
@@ -178,9 +178,11 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
                         } else {
                             null
                         },
-                        triggerOccurrence = if (!isTimeRange && timeTriggerIndex >= 0) {
-                            TriggerOccurrence.single(
-                                triggerIndex = timeTriggerIndex,
+                        triggerOccurrence = if (
+                            !isTimeRange && matchedTimeTriggerIndices.isNotEmpty()
+                        ) {
+                            TriggerOccurrence(
+                                matchedTriggerIndices = matchedTimeTriggerIndices,
                                 occurredAtEpochMs = now,
                                 sourceId = "time",
                                 eventId = occurrenceId,
@@ -343,6 +345,21 @@ class AutomationAlarmReceiver : BroadcastReceiver() {
             isTimeRange: Boolean,
             windowEndAt: Long?
         ): Boolean = !isTimeRange || windowEndAt != null
+
+        internal fun matchingScheduledTimeTriggerIndices(
+            automation: com.nexaflow.domain.models.Automation,
+        ): Set<Int> {
+            val scheduledConfig = automation.triggers
+                .firstOrNull { it.type == TriggerType.TIME }
+                ?.config
+                ?: return emptySet()
+
+            return automation.triggers.mapIndexedNotNull { index, trigger ->
+                index.takeIf {
+                    trigger.type == TriggerType.TIME && trigger.config == scheduledConfig
+                }
+            }.toSet()
+        }
 
         internal fun bootTriggerIndices(
             automation: com.nexaflow.domain.models.Automation,
