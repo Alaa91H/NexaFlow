@@ -28,9 +28,10 @@ data class Automation(
     val actions: List<Action>,
     /**
      * Combining rule for [triggers]. ANY = fire when any trigger's monitor
-     * fires (historical default). ALL = the firing monitor only starts the
-     * evaluation; every trigger must be verifiably true right now, otherwise
-     * the run is skipped with a recorded gate reason.
+     * fires (historical default). ALL = every trigger needs current evidence:
+     * state-readable triggers are verified live and event-only triggers must
+     * match the [com.nexaflow.core.execution.TriggerOccurrence] that started
+     * the automatic evaluation. Past events are never retained as truth.
      */
     val triggerMatch: TriggerMatchMode = TriggerMatchMode.ANY,
     /**
