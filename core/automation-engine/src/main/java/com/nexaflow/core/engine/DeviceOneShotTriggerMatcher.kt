@@ -34,8 +34,14 @@ internal object DeviceOneShotTriggerMatcher {
         }
 
         TriggerType.ALARM_SET_CHANGED -> {
-            val wantSet = (config["event"] ?: "SET").uppercase() == "SET"
-            flagValue != null && flagValue == wantSet
+            val event = config["event"]?.trim()?.uppercase().orEmpty()
+            when {
+                flagValue == null -> false
+                event.isEmpty() -> true
+                event == "SET" -> flagValue
+                event == "CLEARED" -> !flagValue
+                else -> false
+            }
         }
 
         TriggerType.BOOT_COMPLETED -> true
