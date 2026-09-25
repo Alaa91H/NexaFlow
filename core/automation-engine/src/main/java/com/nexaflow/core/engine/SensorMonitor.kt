@@ -16,6 +16,7 @@ import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ACTION_AUTOMATIONS_CHANGED
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerOccurrence
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.NumericSensors
 import com.nexaflow.domain.models.TriggerType
@@ -75,6 +76,12 @@ class SensorMonitor @Inject constructor(
     private val lastSensorEventAt = ConcurrentHashMap<String, Long>()
     /** Cached candidates per sensor — rebuilt only on refresh, not per reading. */
     private var candidatesBySensor: Map<String, List<Automation>> = emptyMap()
+
+    private data class PendingSensorOperation(
+        val automation: Automation,
+        val enter: Boolean,
+        val matchedTriggerIndices: Set<Int> = emptySet(),
+    )
 
     private val sensorManager by lazy {
         context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -291,6 +298,7 @@ class SensorMonitor @Inject constructor(
         }
         if (!readingValid) return
         val now = SystemClock.elapsedRealtime()
+        val occurredAtEpochMs = System.currentTimeMillis()
         if (!SensorTriggerMatcher.isStateful(sensor)) {
             val last = lastSensorEventAt[sensor]
             if (last != null && now - last < 200) return
@@ -298,16 +306,29 @@ class SensorMonitor @Inject constructor(
         }
         runningScope.launch {
             val operations = stateMutex.withLock {
-                if (!registered || !runningScope.isActive) return@withLock emptyList<Pair<Automation, Boolean>>()
+                if (!registered || !runningScope.isActive) {
+                    return@withLock emptyList<PendingSensorOperation>()
+                }
                 val candidates = candidatesBySensor[sensor].orEmpty()
-                val pending = mutableListOf<Pair<Automation, Boolean>>()
+                val pending = mutableListOf<PendingSensorOperation>()
                 candidates.forEach { automation ->
-                    val triggers = automation.triggers.filter {
-                        it.type == TriggerType.SENSOR && SensorTriggerMatcher.sensorOf(it.config) == sensor
-                    }
-                    val fired = triggers.any {
-                        SensorTriggerMatcher.matches(it.config, sensor, distanceCm, lux, shakeG, stepDelta, maxRangeCm, value)
-                    }
+                    val matchedTriggerIndices = automation.triggers.mapIndexedNotNull { index, trigger ->
+                        index.takeIf {
+                            trigger.type == TriggerType.SENSOR &&
+                                SensorTriggerMatcher.sensorOf(trigger.config) == sensor &&
+                                SensorTriggerMatcher.matches(
+                                    trigger.config,
+                                    sensor,
+                                    distanceCm,
+                                    lux,
+                                    shakeG,
+                                    stepDelta,
+                                    maxRangeCm,
+                                    value,
+                                )
+                        }
+                    }.toSet()
+                    val fired = matchedTriggerIndices.isNotEmpty()
                     val stateful = SensorTriggerMatcher.isStateful(sensor)
                     if (fired) {
                         val last = lastRunAt[automation.id]
@@ -318,20 +339,39 @@ class SensorMonitor @Inject constructor(
                         }
                         if (canRun) {
                             lastRunAt[automation.id] = now
-                            pending += automation to true
+                            pending += PendingSensorOperation(
+                                automation = automation,
+                                enter = true,
+                                matchedTriggerIndices = matchedTriggerIndices,
+                            )
                         }
                     } else if (stateful && activeStates.contains(automation.id, sensor)) {
                         val ended = activeStates.remove(automation.id, sensor)
                         activeStore.clearActive(SOURCE, "${automation.id}|$sensor")
-                        if (ended) pending += automation to false
+                        if (ended) {
+                            pending += PendingSensorOperation(
+                                automation = automation,
+                                enter = false,
+                            )
+                        }
                     }
                 }
                 pending
             }
-            operations.forEach { (automation, enter) ->
-                if (enter) executionEngine.runAutomation(automation = automation,
-                    completeExitOnFinish = !SensorTriggerMatcher.isStateful(sensor))
-                else executionEngine.runExit(automation)
+            operations.forEach { operation ->
+                if (operation.enter) {
+                    executionEngine.runAutomation(
+                        automation = operation.automation,
+                        completeExitOnFinish = !SensorTriggerMatcher.isStateful(sensor),
+                        triggerOccurrence = TriggerOccurrence(
+                            matchedTriggerIndices = operation.matchedTriggerIndices,
+                            occurredAtEpochMs = occurredAtEpochMs,
+                            sourceId = SOURCE,
+                        ),
+                    )
+                } else {
+                    executionEngine.runExit(operation.automation)
+                }
             }
         }
     }
