@@ -302,4 +302,59 @@ class ExecutionEngineTriggerMatchTest {
         assertTrue(!record.message.contains("not all trigger conditions"))
     }
 
+
+    @Test
+    fun allModeAcceptsCurrentSmsEventWhenLiveSiblingIsSatisfied() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val currentDarkMode = if (
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        ) "ON" else "OFF"
+        val task = automation(TriggerMatchMode.ALL).copy(
+            id = "sms-and-live-state",
+            triggers = listOf(
+                Trigger(TriggerType.SMS, mapOf("contains" to "night")),
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to currentDarkMode)),
+            ),
+        )
+        ActiveExecutionStore(context).clear(task.id)
+
+        val record = engine(handler, history).runAutomation(
+            automation = task,
+            triggerOccurrence = TriggerOccurrence.single(
+                triggerIndex = 0,
+                occurredAtEpochMs = System.currentTimeMillis(),
+                sourceId = "sms",
+            ),
+        )
+
+        assertEquals(1, handler.calls)
+        assertTrue(!record.message.contains("not all trigger conditions"))
+    }
+
+    @Test
+    fun allModeDoesNotReusePastSmsAsCurrentTruth() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val currentDarkMode = if (
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        ) "ON" else "OFF"
+        val task = automation(TriggerMatchMode.ALL).copy(
+            id = "sms-without-occurrence",
+            triggers = listOf(
+                Trigger(TriggerType.SMS, mapOf("contains" to "night")),
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to currentDarkMode)),
+            ),
+        )
+        ActiveExecutionStore(context).clear(task.id)
+
+        val record = engine(handler, history).runAutomation(task)
+
+        assertEquals(0, handler.calls)
+        assertTrue(record.message.contains("Skipped"))
+        assertTrue(record.message.contains("unverifiable"))
+    }
+
 }
