@@ -258,4 +258,48 @@ class ExecutionEngineTriggerMatchTest {
         assertEquals(1, handler.calls)
         assertTrue(!record.message.contains("not all trigger conditions"))
     }
+
+    @Test
+    fun allModeRunsWhenStickyChargerAndTimeRangeAreBothActive() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+
+        @Suppress("DEPRECATION")
+        context.sendStickyBroadcast(
+            android.content.Intent(android.content.Intent.ACTION_BATTERY_CHANGED)
+                .putExtra(android.os.BatteryManager.EXTRA_LEVEL, 50)
+                .putExtra(
+                    android.os.BatteryManager.EXTRA_STATUS,
+                    android.os.BatteryManager.BATTERY_STATUS_CHARGING
+                )
+                .putExtra(
+                    android.os.BatteryManager.EXTRA_PLUGGED,
+                    android.os.BatteryManager.BATTERY_PLUGGED_USB
+                )
+        )
+
+        val now = java.time.LocalTime.now()
+        val formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+        val task = automation(TriggerMatchMode.ALL).copy(
+            id = "charger-active-time-all",
+            triggers = listOf(
+                Trigger(TriggerType.CHARGER, mapOf("event" to "CONNECTED")),
+                Trigger(
+                    TriggerType.TIME,
+                    mapOf(
+                        "timeMode" to "RANGE",
+                        "rangeStart" to now.minusHours(1).format(formatter),
+                        "rangeEnd" to now.plusHours(1).format(formatter)
+                    )
+                )
+            )
+        )
+        ActiveExecutionStore(context).clear(task.id)
+
+        val record = engine(handler, history).runAutomation(task)
+
+        assertEquals(1, handler.calls)
+        assertTrue(!record.message.contains("not all trigger conditions"))
+    }
+
 }
