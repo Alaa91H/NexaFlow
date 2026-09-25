@@ -76,6 +76,14 @@ enum class TriggerEvidenceSource {
     LIVE_STATE,
 }
 
+/** Dominant fail-closed reason for an ALL expression that did not pass. */
+enum class TriggerBlockKind {
+    UNSATISFIED,
+    UNKNOWN,
+    UNAVAILABLE,
+    ERROR,
+}
+
 /** Typed evidence for one trigger in saved-list order. */
 data class TriggerEvidence(
     val triggerIndex: Int,
@@ -98,8 +106,45 @@ data class TriggerEvaluationSnapshot(
     val results: List<ConditionResult>
         get() = evidence.map { it.result }
 
+    fun decision(mode: TriggerMatchMode): ConditionResult =
+        TriggerMatchPolicy.aggregate(mode, results)
+
     fun isSatisfied(mode: TriggerMatchMode): Boolean =
-        TriggerMatchPolicy.combine(mode, results)
+        decision(mode) == ConditionResult.Satisfied
+
+    /**
+     * Stable dominant block kind. Confirmed false wins over unresolved states,
+     * matching ALL aggregation semantics; then errors/unavailability/unknown
+     * describe why no definitive truth was available.
+     */
+    fun blockKind(): TriggerBlockKind? {
+        if (results.all { it == ConditionResult.Satisfied }) return null
+        return when {
+            results.any { it == ConditionResult.Unsatisfied } -> TriggerBlockKind.UNSATISFIED
+            results.any { it is ConditionResult.Error } -> TriggerBlockKind.ERROR
+            results.any { it == ConditionResult.Unavailable } -> TriggerBlockKind.UNAVAILABLE
+            else -> TriggerBlockKind.UNKNOWN
+        }
+    }
+
+    /**
+     * Bounded, config-free evidence summary for diagnostics. It intentionally
+     * excludes trigger values, payloads, phone numbers, tokens and error text.
+     */
+    fun diagnosticDetail(maxLength: Int = 1_024): String {
+        require(maxLength > 0) { "maxLength must be positive" }
+        return evidence.joinToString(";") { item ->
+            "#${item.triggerIndex}:${item.trigger.type.name}=${item.result.diagnosticCode()}@${item.source.name}"
+        }.take(maxLength)
+    }
+}
+
+private fun ConditionResult.diagnosticCode(): String = when (this) {
+    ConditionResult.Satisfied -> "SATISFIED"
+    ConditionResult.Unsatisfied -> "UNSATISFIED"
+    ConditionResult.Unknown -> "UNKNOWN"
+    ConditionResult.Unavailable -> "UNAVAILABLE"
+    is ConditionResult.Error -> "ERROR"
 }
 
 /**
