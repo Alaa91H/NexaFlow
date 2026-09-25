@@ -412,4 +412,60 @@ class ExecutionEngineTriggerMatchTest {
         ActiveExecutionStore(context).clear(task.id)
     }
 
+
+    @Test
+    fun legacyAllEventWorkflowRequiresReviewBeforeOccurrenceEvidenceIsEnabled() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val currentDarkMode = if (
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        ) "ON" else "OFF"
+        val task = automation(TriggerMatchMode.ALL).copy(
+            id = "legacy-event-all",
+            workflowVersion = Automation.LEGACY_TRIGGER_SEMANTICS_VERSION,
+            triggers = listOf(
+                Trigger(TriggerType.SMS, mapOf("contains" to "night")),
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to currentDarkMode)),
+            ),
+        )
+        ActiveExecutionStore(context).clear(task.id)
+
+        val record = engine(handler, history).runAutomation(
+            automation = task,
+            triggerOccurrence = TriggerOccurrence.single(
+                triggerIndex = 0,
+                occurredAtEpochMs = System.currentTimeMillis(),
+                sourceId = "sms",
+            ),
+        )
+
+        assertEquals(0, handler.calls)
+        assertTrue(record.message.contains("legacy ALL event semantics require review"))
+    }
+
+    @Test
+    fun legacyAllStateOnlyWorkflowKeepsWorkingWithoutReview() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val currentDarkMode = if (
+            (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        ) "ON" else "OFF"
+        val task = automation(TriggerMatchMode.ALL).copy(
+            id = "legacy-state-all",
+            workflowVersion = Automation.LEGACY_TRIGGER_SEMANTICS_VERSION,
+            triggers = listOf(
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to currentDarkMode)),
+                Trigger(TriggerType.DARK_MODE, mapOf("state" to currentDarkMode)),
+            ),
+        )
+        ActiveExecutionStore(context).clear(task.id)
+
+        val record = engine(handler, history).runAutomation(task)
+
+        assertEquals(1, handler.calls)
+        assertTrue(!record.message.contains("legacy ALL event semantics require review"))
+    }
+
 }
