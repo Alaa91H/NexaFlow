@@ -40,6 +40,22 @@ object CallPolicyEvaluator {
     const val CATEGORY_CONTACT = "CONTACT"
 
     /**
+     * Exact INCOMING_CALL trigger indices matched by this concrete call event.
+     * Keeping the indices lets the execution engine use the call as current
+     * event evidence without treating unrelated call filters as satisfied.
+     */
+    fun matchingTriggerIndices(
+        automation: Automation,
+        number: String,
+        category: String,
+    ): Set<Int> = automation.triggers.mapIndexedNotNull { index, trigger ->
+        index.takeIf {
+            trigger.type == TriggerType.INCOMING_CALL &&
+                matchesTrigger(trigger.config, number, category)
+        }
+    }.toSet()
+
+    /**
      * The verdict of one task's INCOMING_CALL trigger for a call, or null when
      * the task does not screen this call (no match, or outside its schedule).
      *
@@ -57,9 +73,7 @@ object CallPolicyEvaluator {
     ): Verdict? {
         if (isEmergency) return null
         if (!automation.enabled) return null
-        val trigger = automation.triggers.firstOrNull { it.type == TriggerType.INCOMING_CALL }
-            ?: return null
-        if (!matchesTrigger(trigger.config, number, category)) return null
+        if (matchingTriggerIndices(automation, number, category).isEmpty()) return null
         // A schedule gate narrows when the rule applies; a corrupt window
         // fails closed (rule inactive) the same way ConstraintEvaluator does.
         automation.constraints
