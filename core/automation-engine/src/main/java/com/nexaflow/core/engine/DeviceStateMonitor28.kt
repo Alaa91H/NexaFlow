@@ -28,6 +28,7 @@ import androidx.core.content.ContextCompat
 import com.nexaflow.core.datastore.ActiveTriggerStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.TriggerOccurrence
 import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -265,13 +266,25 @@ class DeviceStateMonitor28 @Inject constructor(
     private fun fireOneShot(type: TriggerType) {
         scope.launch {
             val automations = repository.getAutomations().first()
+            val now = System.currentTimeMillis()
             automations
                 .filter { it.enabled && it.triggers.any { t -> t.type == type } }
                 .forEach { automation ->
+                    val matchedTriggerIndices = automation.triggers.mapIndexedNotNull { index, trigger ->
+                        index.takeIf { trigger.type == type }
+                    }.toSet()
                     // These signals are momentary events, not a durable state
                     // with an opposite callback. Close their lifecycle after the
                     // main chain so per-action end behavior is never stranded.
-                    executionEngine.runAutomation(automation, completeExitOnFinish = true)
+                    executionEngine.runAutomation(
+                        automation = automation,
+                        completeExitOnFinish = true,
+                        triggerOccurrence = TriggerOccurrence(
+                            matchedTriggerIndices = matchedTriggerIndices,
+                            occurredAtEpochMs = now,
+                            sourceId = "device-event:" + type.name.lowercase(),
+                        ),
+                    )
                 }
         }
     }
