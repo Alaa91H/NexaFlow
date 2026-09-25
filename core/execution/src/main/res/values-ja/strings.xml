@@ -9,7 +9,7 @@
     <string name="execution_task_completed">タスクが正常に完了しました。</string>
     <string name="execution_task_failed">タスクを完了できませんでした。</string>
     <string name="execution_task_skipped">タスクはスキップされました。</string>
-    <string name="execution_recovery_queue_awaits_review">中断された実行を確認している間、タスクは一時停止されています。</string>
+    <string name="execution_recovery_queue_awaits_review">中断された実行があります。結果を確定する前に確認が必要です。</string>
     <string name="execution_conditions_not_satisfied_end_behavior_completed">トリガーまたは条件が満たされませんでした。終了動作（タスク終了時）のみ実行されました。</string>
     <string name="execution_conditions_not_satisfied_no_end_behavior">タスクのトリガーまたは条件が満たされず、現在実行できません。終了動作は設定されていません。</string>
     <string name="execution_conditions_not_satisfied_end_behavior_failed">タスクのトリガーまたは条件が満たされず、現在実行できません。終了動作を完了できませんでした。</string>
