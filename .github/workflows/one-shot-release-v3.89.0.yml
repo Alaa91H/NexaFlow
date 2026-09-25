@@ -29,7 +29,8 @@ jobs:
           [[ "$TARGET" =~ ^[0-9a-f]{40}$ ]]
           git cat-file -e "$TARGET^{commit}"
           git merge-base --is-ancestor "$TARGET" HEAD
-          CHANGELOG_TEXT="$(git show "$TARGET:CHANGELOG.md")"\n          grep -Fq "## [$VERSION] - 2026-09-25" <<< "$CHANGELOG_TEXT"
+          CHANGELOG_TEXT="$(git show "$TARGET:CHANGELOG.md")"
+          grep -Fq "## [$VERSION] - 2026-09-25" <<< "$CHANGELOG_TEXT"
           if git rev-parse "$VERSION" >/dev/null 2>&1; then
             echo "::error::Tag $VERSION already exists."
             exit 1
