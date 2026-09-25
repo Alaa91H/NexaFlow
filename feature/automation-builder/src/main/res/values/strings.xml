@@ -16,6 +16,7 @@
     <string name="trigger_match_all_hint">Runs only when every condition is true right now</string>
     <string name="trigger_match_all_event_warning">Momentary conditions (such as SMS or notifications) are proven by the event that starts the run. With ALL, every other condition must also be true at that moment.</string>
     <string name="trigger_match_all_multi_event_warning">With ALL, multiple momentary conditions must be matched by the same current event. Separate events are not remembered or correlated.</string>
+    <string name="trigger_match_legacy_review_required">This task uses legacy ALL event semantics. Review these triggers and save once to enable occurrence-aware matching.</string>
     <string name="remove_trigger">Remove condition</string>
     <string name="expand_options">Show options</string>
     <string name="collapse_options">Collapse options</string>

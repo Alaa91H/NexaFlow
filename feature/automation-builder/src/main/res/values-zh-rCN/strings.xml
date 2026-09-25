@@ -15,6 +15,7 @@
     <string name="trigger_match_all_hint">仅当所有条件现在都成立时运行</string>
     <string name="trigger_match_all_event_warning">短信或通知等瞬时条件由启动本次运行的事件作为成立依据。选择“全部”时，其他所有条件也必须在该时刻同时成立。</string>
     <string name="trigger_match_all_multi_event_warning">选择“全部”时，多个瞬时条件必须由同一个当前事件同时匹配。彼此独立的事件不会被记住或关联。</string>
+    <string name="trigger_match_legacy_review_required">此任务使用旧版“全部”事件语义。请检查这些触发器并保存一次，以启用基于当前事件发生的匹配。</string>
     <string name="remove_trigger">移除条件</string>
     <string name="expand_options">显示选项</string>
     <string name="trigger_type_time">时间</string>
