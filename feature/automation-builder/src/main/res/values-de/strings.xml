@@ -14,6 +14,7 @@
     <string name="trigger_match_all">ALLE erfüllt</string>
     <string name="trigger_match_all_hint">Startet nur, wenn alle Bedingungen jetzt erfüllt sind</string>
     <string name="trigger_match_all_event_warning">Momentane Bedingungen (z. B. SMS oder Benachrichtigungen) werden durch das Ereignis bestätigt, das den Lauf startet. Bei ALLE müssen alle anderen Bedingungen in diesem Moment ebenfalls erfüllt sein.</string>
+    <string name="trigger_match_all_multi_event_warning">Bei ALLE müssen mehrere momentane Bedingungen durch dasselbe aktuelle Ereignis erfüllt werden. Getrennte Ereignisse werden weder gespeichert noch miteinander verknüpft.</string>
     <string name="remove_trigger">Bedingung entfernen</string>
     <string name="expand_options">Optionen anzeigen</string>
     <string name="trigger_type_time">Zeit</string>

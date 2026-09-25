@@ -14,6 +14,7 @@
     <string name="trigger_match_all">كل الشروط تتحقق</string>
     <string name="trigger_match_all_hint">يعمل فقط عندما تكون كل الشروط متحققة الآن</string>
     <string name="trigger_match_all_event_warning">الشروط اللحظية (مثل الرسائل أو الإشعارات) يثبتها الحدث الذي يبدأ التشغيل. مع خيار الكل، يجب أن تكون بقية الشروط متحققة أيضًا في تلك اللحظة.</string>
+    <string name="trigger_match_all_multi_event_warning">مع خيار الكل، يجب أن يطابق الحدث الحالي نفسه جميع الشروط اللحظية المتعددة. لا يتم تذكر الأحداث المنفصلة أو ربطها معًا.</string>
     <string name="remove_trigger">إزالة الشرط</string>
     <string name="expand_options">عرض الخيارات</string>
     <string name="trigger_type_time">الوقت</string>

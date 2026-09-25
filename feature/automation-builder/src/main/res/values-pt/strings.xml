@@ -14,6 +14,7 @@
     <string name="trigger_match_all">TODAS verdadeiras</string>
     <string name="trigger_match_all_hint">Executa só quando todas as condições estiverem verdadeiras agora</string>
     <string name="trigger_match_all_event_warning">Condições momentâneas (como SMS ou notificações) são confirmadas pelo evento que inicia a execução. Com TODAS, todas as outras condições também precisam estar verdadeiras naquele momento.</string>
+    <string name="trigger_match_all_multi_event_warning">Com TODAS, várias condições momentâneas devem corresponder ao mesmo evento atual. Eventos separados não são lembrados nem correlacionados.</string>
     <string name="remove_trigger">Remover condição</string>
     <string name="expand_options">Mostrar opções</string>
     <string name="trigger_type_time">Hora</string>

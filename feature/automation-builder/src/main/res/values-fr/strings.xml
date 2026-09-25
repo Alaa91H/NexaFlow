@@ -14,6 +14,7 @@
     <string name="trigger_match_all">TOUTES sont vraies</string>
     <string name="trigger_match_all_hint">S\'exécute seulement si toutes les conditions sont vraies</string>
     <string name="trigger_match_all_event_warning">Les conditions ponctuelles (comme les SMS ou notifications) sont validées par l’événement qui démarre l’exécution. Avec TOUTES, toutes les autres conditions doivent aussi être vraies à ce moment-là.</string>
+    <string name="trigger_match_all_multi_event_warning">Avec TOUTES, plusieurs conditions ponctuelles doivent correspondre au même événement actuel. Les événements distincts ne sont ni mémorisés ni corrélés.</string>
     <string name="remove_trigger">Retirer la condition</string>
     <string name="expand_options">Afficher les options</string>
     <string name="trigger_type_time">Heure</string>
