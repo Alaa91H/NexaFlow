@@ -139,14 +139,6 @@ class DeviceStateMonitor28 @Inject constructor(
                         )
                     }
                 }
-                Intent.ACTION_BOOT_COMPLETED -> {
-                    fireOneShot(TriggerType.BOOT_COMPLETED) { config ->
-                        DeviceOneShotTriggerMatcher.matches(
-                            type = TriggerType.BOOT_COMPLETED,
-                            config = config,
-                        )
-                    }
-                }
                 NfcAdapter.ACTION_NDEF_DISCOVERED,
                 ACTION_TAG_DISCOVERED,
                 NfcAdapter.ACTION_TECH_DISCOVERED -> {
@@ -215,7 +207,6 @@ class DeviceStateMonitor28 @Inject constructor(
 
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_TIMEZONE_CHANGED)
-            addAction(Intent.ACTION_BOOT_COMPLETED)
             addAction("android.intent.action.HDMI_PLUGGED")
             addAction(Intent.ACTION_POWER_CONNECTED)
             addAction(Intent.ACTION_POWER_DISCONNECTED)
