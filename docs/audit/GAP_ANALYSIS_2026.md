@@ -37,4 +37,4 @@ The first tranche defined canonical execution-state and node-state contracts as 
 
 ## Audit evidence locations
 
-The architecture map is [`CURRENT_ARCHITECTURE_2026.md`](CURRENT_ARCHITECTURE_2026.md). The 2026-09-04 forensic inventory is [`FORENSIC_INVENTORY_2026.txt`](FORENSIC_INVENTORY_2026.txt). The existing lifecycle audit is [`../PRODUCTION_AUDIT.md`](../PRODUCTION_AUDIT.md). DNS platform boundaries are recorded in [`../dns-platform-findings.md`](../dns-platform-findings.md). CI and resource-gate definitions are in `.github/workflows/android-ci.yml` and `scripts/check_resources.py`.
+The architecture map is [`CURRENT_ARCHITECTURE_2026.md`](CURRENT_ARCHITECTURE_2026.md). The 2026-09-04 forensic inventory is [`FORENSIC_INVENTORY_2026.txt`](FORENSIC_INVENTORY_2026.txt). The existing lifecycle audit is [`../PRODUCTION_AUDIT.md`](../PRODUCTION_AUDIT.md). DNS platform boundaries are recorded in [`../dns-platform-findings.md`](../dns-platform-findings.md). CI and resource-gate definitions are in `.github/workflows/nexaflow-ci.yml` and `scripts/check_resources.py`.

@@ -1,6 +1,6 @@
 # Required checks
 
-The workflow is `.github/workflows/android-ci.yml`. Its `lint` job gates its `build` job. A successful tag publication must correspond to the exact intended commit.
+The workflow is `.github/workflows/nexaflow-ci.yml`. Its `lint` job gates its `build` job. A successful tag publication must correspond to the exact intended commit.
 
 ## Source and unit gates
 

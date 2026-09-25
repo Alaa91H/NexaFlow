@@ -92,7 +92,7 @@
 ### المهمة 4: حارس الجودة في CI — lint مستقل
 
 **Files:**
-- Modify: `.github/workflows/android-ci.yml`
+- Modify: `.github/workflows/nexaflow-ci.yml`
 
 - [ ] **Step 1:** إضافة job `lint` (أو خطوة داخل job البناء) يشغّل `./gradlew lintDebug` مع رفع تقرير lint كأثر عند الفشل.
 - [ ] **Step 2:** تشغيل `./gradlew lintDebug` محلياً وإصلاح التحذيرات الظاهرة.
@@ -218,7 +218,7 @@
 ### المهمة 13: التوقيع الاحترافي للـ release
 
 **Files:**
-- Modify: `.github/workflows/android-ci.yml` (قراءة keystore من `GH Secrets`/`Actions Secrets` بدل debug)
+- Modify: `.github/workflows/nexaflow-ci.yml` (قراءة keystore من `GH Secrets`/`Actions Secrets` بدل debug)
 - Modify: `app/build.gradle.kts` (قراءة `storeFile` من متغيرات البيئة عند توفّرها، والرجوع للـ debug محلياً)
 
 - [ ] **Step 1:** تحديث gradle وCI لدعم keystore سريّ.

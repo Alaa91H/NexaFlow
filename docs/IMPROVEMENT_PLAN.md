@@ -208,7 +208,7 @@
 
 | البند | ما نُفّذ | الملفات الرئيسية |
 |---|---|---|
-| 16KB | **بوابة CI لفحص محاذاة 16KB** لكل `.so` داخل APK (مطلوب Google Play للتطبيقات التي تستهدف Android 15+) — تحقّق من `p_align >= 16384` لكل PT_LOAD في ELF32/64؛ كل المكتبات الحالية (graphics.path + datastore) متوافقة، والبوابة تمنع انحداراً مستقبلياً (مثل إعادة إضافة Sentry NDK) | `scripts/check_16kb.py` · خطوة جديدة في `.github/workflows/android-ci.yml` |
+| 16KB | **بوابة CI لفحص محاذاة 16KB** لكل `.so` داخل APK (مطلوب Google Play للتطبيقات التي تستهدف Android 15+) — تحقّق من `p_align >= 16384` لكل PT_LOAD في ELF32/64؛ كل المكتبات الحالية (graphics.path + datastore) متوافقة، والبوابة تمنع انحداراً مستقبلياً (مثل إعادة إضافة Sentry NDK) | `scripts/check_16kb.py` · خطوة جديدة في `.github/workflows/nexaflow-ci.yml` |
 | DataStore | **معالج تلف `ReplaceFileCorruptionHandler`** للملفات الأربعة (notifications/privacy/sms/theme) — تعطّل القراءة بعد انقطاع أثناء الكتابة كان سيكرّش التطبيق عند كل إقلاع؛ الآن يُعاد ضبطه للافتراضيات + اختباران يثبتان السلوك (فشل بدون معالج / افتراضيات معه) | `NotificationPreferences.kt` · `PrivacyPreferences.kt` · `SmsPreferences.kt` · `ThemePreferences.kt` · `DataStoreCorruptionHandlerTest.kt` |
 | سرعة البناء | `org.gradle.parallel=true` + رفع heap الجذر إلى 4GB + `kotlin.daemon.jvmargs=3GB` — البوابة الكاملة: **45m → 27m** | `gradle.properties` |
 
