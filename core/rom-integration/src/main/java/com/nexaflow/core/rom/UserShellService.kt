@@ -1,5 +1,6 @@
 package com.nexaflow.core.rom
 
+import android.annotation.TargetApi
 import android.content.Context
 import android.content.ContextWrapper
 import android.net.TetheringManager
@@ -111,6 +112,7 @@ class UserShellService : IUserShellService.Stub {
      * to NexaFlow. The small ContextWrapper therefore supplies the canonical
      * package identity for that elevated UID.
      */
+    @TargetApi(API_PUBLIC_TETHERING_CONTROL)
     private fun runHotspotTethering(enabled: Boolean): String {
         if (Build.VERSION.SDK_INT < API_PUBLIC_TETHERING_CONTROL) {
             return "$INTERNAL_ERROR_EXIT\nAutomatic Internet hotspot control requires Android 16 or newer"
@@ -180,6 +182,7 @@ class UserShellService : IUserShellService.Stub {
      * UserService has no non-SDK reflection restriction; construct it against
      * the real tethering binder while keeping the operation fully typed.
      */
+    @TargetApi(API_PUBLIC_TETHERING_CONTROL)
     private fun createElevatedTetheringManager(baseContext: Context): TetheringManager {
         val callerPackage = when (Process.myUid()) {
             ROOT_UID -> ROOT_PACKAGE
