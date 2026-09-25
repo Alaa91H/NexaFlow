@@ -45,6 +45,20 @@ class ExecutionEngineRecoveryCheckpointTest {
         }
     }
 
+    private class UncertainHandler : ActionHandler {
+        var calls: Int = 0
+        override val supportedTypes: Set<ActionType> = setOf(ActionType.SYSTEM_SEND_NOTIFICATION)
+
+        override suspend fun execute(action: Action, ctx: ActionExecutionContext): SystemControlResult {
+            calls++
+            return SystemControlResult.fail(
+                message = "dispatch completed but confirmation was lost",
+                executionChannel = "TEST",
+                outcomeUncertain = true
+            )
+        }
+    }
+
     private class NoopHistory : HistoryRepository {
         override fun getExecutionHistory(): Flow<List<ExecutionRecord>> = flowOf(emptyList())
         override fun getExecutionPaging(): PagingSource<Int, ExecutionRecord> =
@@ -73,6 +87,47 @@ class ExecutionEngineRecoveryCheckpointTest {
         createdAt = 0L,
         updatedAt = 0L
     )
+
+    @Test
+    fun uncertainResultIsNeverRetriedAndRemainsRecoverable() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val store = ActiveExecutionStore(context)
+        val runId = "uncertain-${System.nanoTime()}"
+        val handler = UncertainHandler()
+        val base = automation()
+        val task = base.copy(
+            actions = listOf(
+                base.actions.single().copy(
+                    config = base.actions.single().config + ("retryCount" to "5")
+                )
+            )
+        )
+        val engine = ExecutionEngine(
+            context = context,
+            historyRepository = NoopHistory(),
+            notificationPreferences = NotificationPreferences(context),
+            actionRegistry = ActionRegistry.from(listOf(handler)),
+            activeExecutionStore = store
+        )
+
+        try {
+            val record = engine.runAutomation(
+                automation = task,
+                runContext = WorkflowRunContext(runId, task.id, 1L)
+            )
+
+            assertEquals("uncertain side effect must not be retried", 1, handler.calls)
+            assertEquals(false, record.success)
+            assertEquals(DurableExecutionStatus.ACTION_UNKNOWN, store.checkpoint(runId)?.status)
+
+            val report = ExecutionRecoveryCoordinator(store).reconcileStartup()
+            val item = report.items.single { it.checkpoint.runId == runId }
+            assertEquals(RecoveryDisposition.VERIFY_OR_COMPENSATE_REQUIRED, item.disposition)
+        } finally {
+            store.clearCheckpoint(runId)
+            store.clear(task.id)
+        }
+    }
 
     @Test
     fun crashedActionIsRetainedAndClassifiedForVerification() = runBlocking {
