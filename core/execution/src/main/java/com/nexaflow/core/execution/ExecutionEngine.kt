@@ -191,6 +191,12 @@ class ExecutionEngine(
         completeExitOnFinish: Boolean = false,
         /** Present only for a stateful trigger occurrence owned by ExitCoordinator. */
         lifecycleContext: AutomationLifecycleContext? = null,
+        /**
+         * Ephemeral proof for the trigger event that started this evaluation.
+         * Event-only triggers may be satisfied only by this current occurrence;
+         * state-readable triggers are still verified live.
+         */
+        triggerOccurrence: TriggerOccurrence? = null,
         /** Explicit user-approved manual paths may bypass the automatic trigger gate. */
         bypassTriggerMatch: Boolean = false
     ): ExecutionRecord {
@@ -320,14 +326,17 @@ class ExecutionEngine(
             automation.triggerMatch == com.nexaflow.domain.models.TriggerMatchMode.ALL &&
             automation.triggers.isNotEmpty()
         ) {
-            // Every condition is evaluated live (a past event is not current
-            // truth) and combined by the shared policy; an empty trigger list
-            // cannot start a run at all, so no gate is needed there.
-            val gateResults = automation.triggers.map { trigger ->
-                runCatching {
-                    TriggerStateEvaluator.evaluateTriggerState(context, trigger)
-                }.getOrElse { ConditionResult.Error(it.message ?: "unreadable") }
-            }
+            // Evaluate one coherent expression snapshot. Event-only triggers
+            // can be proven by the occurrence that started this run; every
+            // state-readable trigger is re-read live. A past event is never
+            // carried forward as current truth.
+            val triggerSnapshot = TriggerExpressionEvaluator.evaluate(
+                context = context,
+                automation = automation,
+                occurrence = triggerOccurrence,
+                evaluatedAtEpochMs = startedAt,
+            )
+            val gateResults = triggerSnapshot.results
             if (!TriggerMatchPolicy.combine(com.nexaflow.domain.models.TriggerMatchMode.ALL, gateResults)) {
                 val record = ExecutionRecord(
                     id = UUID.randomUUID().toString(),
