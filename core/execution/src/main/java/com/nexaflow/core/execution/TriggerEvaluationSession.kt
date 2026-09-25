@@ -14,6 +14,11 @@ import kotlinx.coroutines.CancellationException
  * [ExecutionEngine.runAutomation]. More than one index may be matched by the
  * same physical event (for example one SMS may satisfy two SMS filters).
  *
+ * [eventId], when present, must identify the concrete physical/logical
+ * occurrence rather than only the event type. The engine uses it for a short
+ * same-process replay guard; sources without a trustworthy occurrence identity
+ * should leave it null.
+ *
  * This object is intentionally ephemeral: it is evaluation evidence, not
  * persisted workflow state.
  */
@@ -32,6 +37,18 @@ data class TriggerOccurrence(
         }
         require(occurredAtEpochMs >= 0L) {
             "TriggerOccurrence timestamp must be non-negative"
+        }
+        require(sourceId == null || sourceId.isNotBlank()) {
+            "TriggerOccurrence sourceId must be null or non-blank"
+        }
+        require(eventId == null || eventId.isNotBlank()) {
+            "TriggerOccurrence eventId must be null or non-blank"
+        }
+        require(sourceId == null || sourceId.length <= 128) {
+            "TriggerOccurrence sourceId is too long"
+        }
+        require(eventId == null || eventId.length <= 512) {
+            "TriggerOccurrence eventId is too long"
         }
     }
 
