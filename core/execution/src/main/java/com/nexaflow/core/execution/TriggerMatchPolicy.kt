@@ -124,6 +124,10 @@ object TriggerMatchPolicy {
             .filter { (_, result) -> result == ConditionResult.Unsatisfied }
             .map { (trigger, _) -> TriggerStateEvaluator.triggerLabel(trigger) }
 
+        if (failed.isNotEmpty()) {
+            return "Skipped: not all trigger conditions are true (${failed.joinToString(", ")})"
+        }
+
         val unresolvedMomentary = paired.count { (trigger, result) ->
             isEventOnly(trigger) && result != ConditionResult.Satisfied
         }
@@ -134,10 +138,6 @@ object TriggerMatchPolicy {
             return "Skipped: ALL momentary conditions must match the same current occurrence"
         }
 
-        return if (failed.isEmpty()) {
-            "Skipped: not all trigger conditions are true (condition state unverifiable)"
-        } else {
-            "Skipped: not all trigger conditions are true (${failed.joinToString(", ")})"
-        }
+        return "Skipped: not all trigger conditions are true (condition state unverifiable)"
     }
 }
