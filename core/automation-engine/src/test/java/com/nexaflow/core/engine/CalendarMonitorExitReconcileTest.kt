@@ -20,6 +20,7 @@ import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -223,10 +224,9 @@ class CalendarMonitorExitReconcileTest {
             "active mark survives while the occurrence is active",
             store.activeKeys("calendar").isNotEmpty()
         )
-        assertTrue(
-            AutomationRuntimeStore(context).current("cal-task")?.lifecycleState ==
-                AutomationRuntimeLifecycleState.ACTIVE
-        )
+        val runtime = AutomationRuntimeStore(context).current("cal-task")
+        assertTrue(runtime?.lifecycleState == AutomationRuntimeLifecycleState.ACTIVE)
+        assertEquals(end, runtime?.expectedEndAt)
         monitor.stop()
     }
 
