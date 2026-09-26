@@ -230,6 +230,7 @@ class DeviceEventMonitorExitReconcileTest {
         assertTrue(store.activeKeys("device").isEmpty())
         assertTrue(history.exits.isEmpty())
         runtimeStore.clear("screen-task")
+        Unit
     }
 
     @Test
