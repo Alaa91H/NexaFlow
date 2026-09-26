@@ -52,6 +52,33 @@ class AutomationRuntimeStoreTest {
     }
 
     @Test
+    fun `active source key can evolve without changing lifecycle ownership`() = runBlocking {
+        assertTrue(store.activate(state("owned-occurrence")))
+
+        assertTrue(
+            store.updateActiveSourceKey(
+                automationId = "automation-a",
+                occurrenceId = "owned-occurrence",
+                sourceKey = "automation-a|LIGHT,PROXIMITY"
+            )
+        )
+
+        val updated = checkNotNull(store.current("automation-a"))
+        assertEquals("owned-occurrence", updated.occurrenceId)
+        assertEquals(AutomationRuntimeLifecycleState.ACTIVE, updated.lifecycleState)
+        assertEquals("automation-a|LIGHT,PROXIMITY", updated.sourceKey)
+
+        assertFalse(
+            store.updateActiveSourceKey(
+                automationId = "automation-a",
+                occurrenceId = "stale-occurrence",
+                sourceKey = "automation-a|LIGHT"
+            )
+        )
+        assertEquals("automation-a|LIGHT,PROXIMITY", store.current("automation-a")?.sourceKey)
+    }
+
+    @Test
     fun `only one caller claims an active occurrence for exit`() = runBlocking {
         assertTrue(store.activate(state()))
 
