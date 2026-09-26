@@ -9,6 +9,7 @@ import com.nexaflow.core.agentsecurity.AgentAccessManager
 import com.nexaflow.core.agentsecurity.AgentGrantRecord
 import com.nexaflow.core.agentsecurity.AgentIdentityRequest
 import com.nexaflow.core.agentsecurity.AgentPairingStartResult
+import com.nexaflow.core.airuntime.AiProviderRegistry
 import com.nexaflow.core.airuntime.OpenAiCompatibleProvider
 import com.nexaflow.core.airuntime.OpenAiCompatibleProviderConfig
 import com.nexaflow.core.airuntime.OpenAiEndpointPolicy
@@ -59,6 +60,7 @@ class AgentSettingsViewModel @Inject constructor(
     private val runtime: AgentApiRuntime,
     private val providerPreferences: AiProviderPreferences,
     private val provider: OpenAiCompatibleProvider,
+    private val providerRegistry: AiProviderRegistry,
     private val secureStorage: SecureStorage
 ) : ViewModel() {
 
@@ -187,6 +189,7 @@ class AgentSettingsViewModel @Inject constructor(
                     )
                 }
                 provider.configure(candidate.toProviderConfig())
+                providerRegistry.refreshDescriptors()
             }.isSuccess
             reload(
                 providerProbeState = AiProviderProbeState.IDLE,
