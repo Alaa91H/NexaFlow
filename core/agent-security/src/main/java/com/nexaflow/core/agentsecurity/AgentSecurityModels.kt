@@ -154,6 +154,7 @@ sealed interface AgentGrantResult {
     ) : AgentGrantResult
 
     data object Disabled : AgentGrantResult
+    data object CapacityExceeded : AgentGrantResult
 }
 
 sealed interface AgentPairingStartResult {
@@ -173,6 +174,7 @@ sealed interface AgentPairingCompletionResult {
     data object InvalidChallenge : AgentPairingCompletionResult
     data object Expired : AgentPairingCompletionResult
     data object Locked : AgentPairingCompletionResult
+    data object CapacityExceeded : AgentPairingCompletionResult
 }
 
 sealed interface AgentSessionIssueResult {
@@ -198,4 +200,6 @@ sealed interface AgentAuthorizationResult {
     data object Revoked : AgentAuthorizationResult
     data object BindingMismatch : AgentAuthorizationResult
     data object ScopeDenied : AgentAuthorizationResult
+    data object PayloadTooLarge : AgentAuthorizationResult
+    data object RateLimited : AgentAuthorizationResult
 }
