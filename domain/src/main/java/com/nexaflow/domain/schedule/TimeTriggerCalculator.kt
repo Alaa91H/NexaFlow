@@ -43,6 +43,31 @@ object TimeTriggerCalculator {
     const val END_ON_DATE = "ON_DATE"
     const val END_AFTER_OCCURRENCES = "AFTER_OCCURRENCES"
 
+    /** Persisted timezone policy for TIME trigger configs. */
+    const val ZONE_POLICY_DEVICE_LOCAL = "DEVICE_LOCAL"
+    const val ZONE_POLICY_FIXED_IANA = "FIXED_IANA"
+    const val ZONE_POLICY_KEY = "zonePolicy"
+    const val ZONE_ID_KEY = "zoneId"
+
+    /**
+     * Resolves the zone used by both preview and production scheduling.
+     *
+     * Existing tasks omit zonePolicy and therefore preserve historical
+     * device-local wall-clock semantics. A malformed FIXED_IANA zone fails
+     * closed by returning null rather than silently falling back to the device.
+     */
+    fun resolveZone(
+        config: Map<String, String>,
+        deviceZone: ZoneId = ZoneId.systemDefault()
+    ): ZoneId? = when (config[ZONE_POLICY_KEY] ?: ZONE_POLICY_DEVICE_LOCAL) {
+        ZONE_POLICY_DEVICE_LOCAL -> deviceZone
+        ZONE_POLICY_FIXED_IANA -> config[ZONE_ID_KEY]
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { id -> runCatching { ZoneId.of(id) }.getOrNull() }
+        else -> null
+    }
+
     // A daily scan is intentionally bounded. The UI limits custom intervals to
     // 99 units, and this horizon still covers yearly schedules for up to 100 years.
     private const val MAX_SEARCH_DAYS = 366 * 100
