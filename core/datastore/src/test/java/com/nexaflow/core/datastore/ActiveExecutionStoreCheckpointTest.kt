@@ -224,6 +224,31 @@ class ActiveExecutionStoreCheckpointTest {
     }
 
     @Test
+    fun recoveryClassificationPreservesOriginalUncertainEvidence() = runBlocking {
+        assertTrue(store.beginCheckpoint(checkpoint("run-recovery-evidence")))
+        store.markActionStarted(
+            runId = "run-recovery-evidence",
+            actionIndex = 0,
+            idempotencyKey = "run-recovery-evidence:0:ACTION",
+            updatedAt = 110L
+        )
+        store.markActionUnknown(
+            runId = "run-recovery-evidence",
+            message = "dispatch unconfirmed",
+            updatedAt = 120L
+        )
+        store.claimRecoveryCandidates(130L)
+        val classified = store.markRecoveryRequired(
+            runId = "run-recovery-evidence",
+            message = "manual verification required",
+            updatedAt = 140L
+        )
+
+        assertTrue(classified?.message?.contains("dispatch unconfirmed") == true)
+        assertTrue(classified?.message?.contains("manual verification required") == true)
+    }
+
+    @Test
     fun recoveryRequiredCheckpointIsNotClaimedAgainAutomatically() = runBlocking {
         assertTrue(store.beginCheckpoint(checkpoint("run-recovery-required")))
         assertEquals(1, store.claimRecoveryCandidates(105L).size)
