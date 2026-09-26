@@ -9,6 +9,22 @@ interface AutomationRepository {
     suspend fun saveAutomation(automation: Automation)
 
     /**
+     * Optimistic-concurrency boundary for API/agent updates.
+     *
+     * Production repositories override this with one storage transaction.
+     * The default keeps lightweight test implementations source-compatible.
+     */
+    suspend fun saveAutomationIfRevisionMatches(
+        automation: Automation,
+        expectedRevision: Long
+    ): Boolean {
+        val current = getAutomationById(automation.id) ?: return false
+        if (current.updatedAt != expectedRevision) return false
+        saveAutomation(automation)
+        return true
+    }
+
+    /**
      * Persists a batch as one logical operation. Production repositories should
      * override this with a storage transaction; the default keeps lightweight
      * test/legacy implementations source-compatible.
@@ -18,5 +34,20 @@ interface AutomationRepository {
     }
 
     suspend fun deleteAutomation(automation: Automation)
+
+    /**
+     * Deletes only when the persisted revision still matches the caller's
+     * observation. Production repositories should override atomically.
+     */
+    suspend fun deleteAutomationIfRevisionMatches(
+        automationId: String,
+        expectedRevision: Long
+    ): Boolean {
+        val current = getAutomationById(automationId) ?: return false
+        if (current.updatedAt != expectedRevision) return false
+        deleteAutomation(current)
+        return true
+    }
+
     suspend fun updateAutomationStatus(id: String, enabled: Boolean)
 }

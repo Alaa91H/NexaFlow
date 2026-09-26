@@ -60,6 +60,49 @@ class AutomationCommandServiceTest {
         assertEquals(50L, repository.current().single().updatedAt)
     }
 
+    @Test
+    fun concurrentUpdateAfterPreflightReturnsConflictInsteadOfOverwriting() = runTest {
+        val existing = automation(updatedAt = 50L)
+        val repository = FakeAutomationRepository(listOf(existing)).apply {
+            failNextCompareAndSetWithRevision = 75L
+        }
+        val service = service(repository)
+
+        val result = service.update(
+            automationId = existing.id,
+            draft = AgentTaskDraftV1(name = "Agent edit"),
+            context = agentContext(expectedRevision = 50L)
+        )
+
+        assertTrue(result is AutomationMutationResult.Conflict)
+        result as AutomationMutationResult.Conflict
+        assertEquals(50L, result.expectedRevision)
+        assertEquals(75L, result.currentRevision)
+        assertEquals(75L, repository.current().single().updatedAt)
+        assertEquals("Existing", repository.current().single().name)
+    }
+
+    @Test
+    fun concurrentDeleteAfterDependencyCheckReturnsConflictInsteadOfDeletingNewerRevision() = runTest {
+        val existing = automation(updatedAt = 50L)
+        val repository = FakeAutomationRepository(listOf(existing)).apply {
+            failNextDeleteCompareAndSetWithRevision = 80L
+        }
+        val service = service(repository)
+
+        val result = service.delete(
+            automationId = existing.id,
+            context = agentContext(expectedRevision = 50L)
+        )
+
+        assertTrue(result is AutomationMutationResult.Conflict)
+        result as AutomationMutationResult.Conflict
+        assertEquals(50L, result.expectedRevision)
+        assertEquals(80L, result.currentRevision)
+        assertEquals(1, repository.current().size)
+        assertEquals(80L, repository.current().single().updatedAt)
+    }
+
     private fun service(repository: AutomationRepository) = AutomationCommandService(
         repository = repository,
         dryRunInspector = AutomationDryRunInspector {
@@ -102,6 +145,9 @@ class AutomationCommandServiceTest {
     ) : AutomationRepository {
         private val state = MutableStateFlow(initial)
 
+        var failNextCompareAndSetWithRevision: Long? = null
+        var failNextDeleteCompareAndSetWithRevision: Long? = null
+
         fun current(): List<Automation> = state.value
 
         override fun getAutomations(): Flow<List<Automation>> = state
@@ -113,8 +159,42 @@ class AutomationCommandServiceTest {
             state.value = state.value.filterNot { it.id == automation.id } + automation
         }
 
+        override suspend fun saveAutomationIfRevisionMatches(
+            automation: Automation,
+            expectedRevision: Long
+        ): Boolean {
+            failNextCompareAndSetWithRevision?.let { concurrentRevision ->
+                failNextCompareAndSetWithRevision = null
+                state.value = state.value.map {
+                    if (it.id == automation.id) it.copy(updatedAt = concurrentRevision) else it
+                }
+                return false
+            }
+            val current = getAutomationById(automation.id) ?: return false
+            if (current.updatedAt != expectedRevision) return false
+            saveAutomation(automation)
+            return true
+        }
+
         override suspend fun deleteAutomation(automation: Automation) {
             state.value = state.value.filterNot { it.id == automation.id }
+        }
+
+        override suspend fun deleteAutomationIfRevisionMatches(
+            automationId: String,
+            expectedRevision: Long
+        ): Boolean {
+            failNextDeleteCompareAndSetWithRevision?.let { concurrentRevision ->
+                failNextDeleteCompareAndSetWithRevision = null
+                state.value = state.value.map {
+                    if (it.id == automationId) it.copy(updatedAt = concurrentRevision) else it
+                }
+                return false
+            }
+            val current = getAutomationById(automationId) ?: return false
+            if (current.updatedAt != expectedRevision) return false
+            deleteAutomation(current)
+            return true
         }
 
         override suspend fun updateAutomationStatus(id: String, enabled: Boolean) {

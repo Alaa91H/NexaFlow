@@ -27,6 +27,14 @@ class AutomationRepositoryImpl @Inject constructor(
         automationDao.insertAutomation(automation.toEntity())
     }
 
+    override suspend fun saveAutomationIfRevisionMatches(
+        automation: Automation,
+        expectedRevision: Long
+    ): Boolean = automationDao.compareAndSetAutomation(
+        automation = automation.toEntity(),
+        expectedRevision = expectedRevision
+    )
+
     override suspend fun saveAutomationsAtomically(automations: List<Automation>) {
         if (automations.isEmpty()) return
         automationDao.insertAutomations(automations.map { it.toEntity() })
@@ -35,6 +43,14 @@ class AutomationRepositoryImpl @Inject constructor(
     override suspend fun deleteAutomation(automation: Automation) {
         automationDao.deleteAutomation(automation.toEntity())
     }
+
+    override suspend fun deleteAutomationIfRevisionMatches(
+        automationId: String,
+        expectedRevision: Long
+    ): Boolean = automationDao.deleteAutomationIfRevisionMatches(
+        id = automationId,
+        expectedRevision = expectedRevision
+    ) == 1
 
     override suspend fun updateAutomationStatus(id: String, enabled: Boolean) {
         automationDao.updateAutomationStatus(id, enabled)
