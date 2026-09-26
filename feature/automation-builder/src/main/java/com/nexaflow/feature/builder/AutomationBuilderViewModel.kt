@@ -222,7 +222,7 @@ class AutomationBuilderViewModel @Inject constructor(
             // Strict: if the task was enabled and now disabled, run exit immediately
             if (wasEnabled && nowDisabled) {
                 try {
-                    executionEngine.runExit(prev, forceConfiguredEnd = true)
+                    executionEngine.runDisableCleanup(prev)
                 } catch (_: Exception) {}
             }
             // Strict: if the task is newly enabled and triggers already match, run immediately

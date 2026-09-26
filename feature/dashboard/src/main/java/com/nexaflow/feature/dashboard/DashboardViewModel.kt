@@ -88,7 +88,7 @@ class DashboardViewModel @Inject constructor(
             if (!enabled) {
                 // Strict: when disabling, immediately attempt to run "when task ends"
                 try {
-                    executionEngine.runExit(automation, forceConfiguredEnd = true)
+                    executionEngine.runDisableCleanup(automation)
                 } catch (_: Exception) {}
             } else {
                 // Strict: when enabling, if triggers already match, run immediately

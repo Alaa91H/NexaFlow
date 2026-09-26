@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.paging.PagingSource
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.NotificationPreferences
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeState
+import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.execution.handler.ActionExecutionContext
 import com.nexaflow.core.execution.handler.ActionHandler
 import com.nexaflow.core.execution.handler.ActionRegistry
@@ -104,19 +107,24 @@ class ExecutionEngineExitBehaviorTest {
         snapshotRestorer: (DeviceStateSnapshot?, List<Action>) -> SystemControlResult =
             { snapshot, actions ->
                 snapshot?.restore(context, actions) ?: SystemControlResult.ok("Nothing to restore")
-            }
+            },
+        runtimeStore: AutomationRuntimeStore = AutomationRuntimeStore(context)
     ): ExecutionEngine =
         ExecutionEngine(
             context = context,
             historyRepository = history,
             notificationPreferences = NotificationPreferences(context),
             actionRegistry = ActionRegistry.from(listOf(handler)),
+            automationRuntimeStore = runtimeStore,
             snapshotRestorer = snapshotRestorer
         )
 
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
+        runBlocking {
+            AutomationRuntimeStore(context).clear("auto-exit")
+        }
     }
 
     @Test
@@ -244,6 +252,47 @@ class ExecutionEngineExitBehaviorTest {
         assertTrue(blocked.message.startsWith("Skipped:"))
         assertTrue(blocked.actionResults.isEmpty())
         assertEquals("no main or end action may run", 0, handler.calls)
+    }
+
+    @Test
+    fun `disable cleanup delegates monitor-owned lifecycle instead of executing exit directly`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val runtimeStore = AutomationRuntimeStore(context)
+        val engine = engine(handler, history, runtimeStore = runtimeStore)
+        val automation = automation(exitActions = listOf(action))
+        runtimeStore.activateStrict(
+            AutomationRuntimeState(
+                automationId = automation.id,
+                occurrenceId = "disable-owned",
+                source = "connectivity",
+                sourceKey = "${automation.id}|CONNECTED",
+                lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                activatedAt = 1L
+            )
+        )
+
+        val record = engine.runDisableCleanup(automation)
+
+        assertEquals(null, record)
+        assertEquals("UI disable must not bypass ExitCoordinator", 0, handler.calls)
+        assertEquals(
+            AutomationRuntimeLifecycleState.ACTIVE,
+            runtimeStore.current(automation.id)?.lifecycleState
+        )
+    }
+
+    @Test
+    fun `disable cleanup preserves immediate legacy exit when no durable owner exists`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(handler, history)
+        val automation = automation(exitActions = listOf(action))
+
+        val record = engine.runDisableCleanup(automation)
+
+        assertTrue(record?.success == true)
+        assertEquals("legacy/stateless disable still runs configured end behavior", 1, handler.calls)
     }
 
     @Test

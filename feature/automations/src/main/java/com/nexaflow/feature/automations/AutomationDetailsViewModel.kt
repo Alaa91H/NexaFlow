@@ -153,7 +153,7 @@ class AutomationDetailsViewModel @Inject constructor(
             repository.updateAutomationStatus(automationId, enabled)
             if (!enabled && wasEnabled) {
                 try {
-                    automation.value?.let { executionEngine.runExit(it, forceConfiguredEnd = true) }
+                    automation.value?.let { executionEngine.runDisableCleanup(it) }
                 } catch (_: Exception) {}
             } else if (enabled && !wasEnabled) {
                 // Strict: enable → run immediately if triggers match
