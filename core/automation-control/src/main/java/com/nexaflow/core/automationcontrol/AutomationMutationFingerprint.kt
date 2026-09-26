@@ -21,10 +21,10 @@ internal object AutomationMutationFingerprint {
         draft: AgentTaskDraftV1
     ): String {
         val canonical = draft.copy(
-            triggers = draft.triggers.map(AgentTriggerDraftV1::canonical),
-            actions = draft.actions.map(AgentActionDraftV1::canonical),
-            constraints = draft.constraints.map(AgentConstraintDraftV1::canonical),
-            exitActions = draft.exitActions.map(AgentActionDraftV1::canonical)
+            triggers = draft.triggers.map { it.canonical() },
+            actions = draft.actions.map { it.canonical() },
+            constraints = draft.constraints.map { it.canonical() },
+            exitActions = draft.exitActions.map { it.canonical() }
         )
         return hash(
             buildString {
