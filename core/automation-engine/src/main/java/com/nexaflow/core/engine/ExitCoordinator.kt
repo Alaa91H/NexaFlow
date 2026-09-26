@@ -63,14 +63,20 @@ class ExitCoordinator(
             val shouldExit = when (state.lifecycleState) {
                 AutomationRuntimeLifecycleState.ACTIVE ->
                     state.expectedEndAt?.let { it <= now } == true
-                AutomationRuntimeLifecycleState.EXIT_FAILED -> state.exitAttempt < MAX_EXIT_ATTEMPTS
+                AutomationRuntimeLifecycleState.EXIT_FAILED ->
+                    !state.exitOutcomeUncertain && state.exitAttempt < MAX_EXIT_ATTEMPTS
                 AutomationRuntimeLifecycleState.EXITING -> false
             }
             if (!shouldExit) {
                 if (state.lifecycleState == AutomationRuntimeLifecycleState.EXIT_FAILED) {
+                    val detail = if (state.exitOutcomeUncertain) {
+                        "Exit outcome is uncertain; automatic replay is blocked"
+                    } else {
+                        "Exit recovery limit reached"
+                    }
                     Log.w(
                         TAG,
-                        "Exit recovery limit reached for ${state.automationId}; retaining visible failed state"
+                        "$detail for ${state.automationId}; retaining visible failed state"
                     )
                     return@mapNotNull ExitCoordinatorResult.RecoveryRequired(state)
                 }
@@ -139,17 +145,19 @@ class ExitCoordinator(
                 )
                 ExitCoordinatorResult.Executed(record)
             } else {
+                val outcomeUncertain = record.actionResults.any { it.outcomeUncertain }
                 runtimeStore.failExit(
                     automationId = automation.id,
                     occurrenceId = state.occurrenceId,
                     reason = reason,
                     error = record.message,
-                    now = epochMillis.now()
+                    now = epochMillis.now(),
+                    outcomeUncertain = outcomeUncertain
                 )
                 lifecycleLog(
                     automationId = automation.id,
                     occurrenceId = state.occurrenceId,
-                    event = "exit_failed",
+                    event = if (outcomeUncertain) "exit_uncertain" else "exit_failed",
                     previous = AutomationRuntimeLifecycleState.EXITING,
                     next = AutomationRuntimeLifecycleState.EXIT_FAILED,
                     reason = reason
