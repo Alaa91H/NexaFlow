@@ -296,6 +296,15 @@ class CallStateMonitor @Inject constructor(
             val current = runtimeStore.current(automationId)
             if (current?.source == SOURCE) {
                 markLegacyActive(current)
+                if (!automation.enabled ||
+                    automation.triggers.none { it.type == TriggerType.CALL_STATE }
+                ) {
+                    requestExit(
+                        automation = automation,
+                        reason = ExitReason.AUTOMATION_DISABLED,
+                        occurrenceId = current.occurrenceId
+                    )
+                }
             } else {
                 // A stale call marker must never exit a lifecycle owned by
                 // another stateful trigger.
