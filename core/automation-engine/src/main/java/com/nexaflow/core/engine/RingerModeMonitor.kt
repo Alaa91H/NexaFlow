@@ -22,6 +22,8 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -48,6 +50,8 @@ class RingerModeMonitor @Inject constructor(
     private var registered = false
 
     private val lastRunAt = ConcurrentHashMap<String, Long>()
+    /** Serializes broadcasts and edit-triggered reconciliation for one lifecycle. */
+    private val evaluationMutex = Mutex()
     /** Automations currently in their triggered mode (to fire exit when it ends). */
     private val activeModes = ConcurrentHashMap<String, String>()
 
@@ -108,35 +112,47 @@ class RingerModeMonitor @Inject constructor(
                 AudioManager.RINGER_MODE_VIBRATE -> "VIBRATE"
                 else -> "NORMAL"
             }
-            val automations = repository.getAutomations().first()
-            val byId = automations.associateBy { it.id }
-
-            rearmFromLedger(byId)
-
-            // Preserve a durable lifecycle for disabled/edited routines until
-            // their configured end behavior has either succeeded or been
-            // retained as EXIT_FAILED by ExitCoordinator.
-            automations
-                .filter { automation ->
-                    val state = runtimeStore.current(automation.id)
-                    state?.source == SOURCE &&
-                        (!automation.enabled || automation.triggers.none { it.type == TriggerType.RINGER_MODE })
-                }
-                .forEach { automation -> requestExit(automation, ExitReason.AUTOMATION_DISABLED) }
-
-            automations
-                .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.RINGER_MODE } }
-                .forEach { automation ->
-                    val matchesNow = automation.triggers
-                        .filter { it.type == TriggerType.RINGER_MODE }
-                        .any { (it.config["mode"] ?: "NORMAL") == currentMode }
-                    if (matchesNow) {
-                        activateIfNeeded(automation, currentMode)
-                    } else {
-                        requestExit(automation, ExitReason.TRIGGER_FALSE)
-                    }
-                }
+            reconcileMode(currentMode)
         }
+    }
+
+    /** One serialized lifecycle evaluation for broadcasts, restarts and edits. */
+    internal suspend fun reconcileMode(mode: String) = evaluationMutex.withLock {
+        val automations = repository.getAutomations().first()
+        val byId = automations.associateBy { it.id }
+
+        rearmFromLedger(byId)
+
+        // Preserve a durable lifecycle for disabled/edited routines until
+        // their configured end behavior has either succeeded or been retained
+        // as EXIT_FAILED by ExitCoordinator.
+        automations
+            .filter { automation ->
+                val state = runtimeStore.current(automation.id)
+                state?.source == SOURCE &&
+                    (!automation.enabled ||
+                        automation.triggers.none { it.type == TriggerType.RINGER_MODE })
+            }
+            .forEach { automation ->
+                requestExit(automation, ExitReason.AUTOMATION_DISABLED)
+            }
+
+        automations
+            .filter {
+                it.enabled && it.triggers.any { trigger ->
+                    trigger.type == TriggerType.RINGER_MODE
+                }
+            }
+            .forEach { automation ->
+                val matchesNow = automation.triggers
+                    .filter { it.type == TriggerType.RINGER_MODE }
+                    .any { (it.config["mode"] ?: "NORMAL") == mode }
+                if (matchesNow) {
+                    activateIfNeeded(automation, mode)
+                } else {
+                    requestExit(automation, ExitReason.TRIGGER_FALSE)
+                }
+            }
     }
 
     /**
@@ -275,23 +291,7 @@ class RingerModeMonitor @Inject constructor(
     }
 
     private fun handleModeChange(mode: String) {
-        scope.launch {
-            val automations = repository.getAutomations().first()
-            automations
-                .filter { automation ->
-                    automation.enabled && automation.triggers.any { it.type == TriggerType.RINGER_MODE }
-                }
-                .forEach { automation ->
-                    val matchesAny = automation.triggers
-                        .filter { it.type == TriggerType.RINGER_MODE }
-                        .any { (it.config["mode"] ?: "NORMAL") == mode }
-                    if (matchesAny) {
-                        activateIfNeeded(automation, mode)
-                    } else {
-                        requestExit(automation, ExitReason.TRIGGER_FALSE)
-                    }
-                }
-        }
+        scope.launch { reconcileMode(mode) }
     }
 
     private companion object {
