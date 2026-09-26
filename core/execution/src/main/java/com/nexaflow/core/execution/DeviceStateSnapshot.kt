@@ -3,6 +3,7 @@ package com.nexaflow.core.execution
 import android.content.Context
 import android.media.AudioManager
 import android.provider.Settings
+import com.nexaflow.core.common.HotspotStateReader
 import com.nexaflow.core.rom.RomIntegrationManager
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
@@ -370,7 +371,11 @@ class DeviceStateSnapshot private constructor(
                 displayDensity = runCatching {
                     Settings.Global.getString(context.contentResolver, "display_density_forced")
                 }.getOrNull(),
-                hotspotEnabled = globalBool(context, "tether_on"),
+                // Use the same authoritative reader as trigger evaluation and
+                // semantic post-condition verification. On API 36+ an absent
+                // callback sample remains UNKNOWN instead of falling back to
+                // the undocumented/stale global tethering setting.
+                hotspotEnabled = HotspotStateReader.currentState(context),
                 airplaneModeEnabled = globalBool(context, Settings.Global.AIRPLANE_MODE_ON),
                 dndEnabled = runCatching {
                     val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
