@@ -37,6 +37,7 @@ kotlin {
 dependencies {
     implementation(project(":domain"))
     implementation(project(":core:automation-control"))
+    implementation(project(":core:execution"))
     implementation(project(":core:agent-security"))
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
     implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)

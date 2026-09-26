@@ -319,7 +319,6 @@ class AgentApiController(
             )
         }
 
-        val previous = repository.getAutomationById(id)
         val disableResult = commandService.setEnabled(
             id,
             false,
@@ -336,12 +335,7 @@ class AgentApiController(
         )
 
         val disabledRevision = when (disableResult) {
-            is AutomationMutationResult.Success -> {
-                if (previous?.enabled == true) {
-                    runtime.onDisabled(previous)
-                }
-                disableResult.revision
-            }
+            is AutomationMutationResult.Success -> disableResult.revision
             is AutomationMutationResult.IdempotentReplay ->
                 disableResult.revision ?: runtime.effectiveRevision(id)
             is AutomationMutationResult.NotFound -> {
