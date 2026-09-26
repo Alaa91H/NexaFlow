@@ -5,6 +5,8 @@ import android.media.AudioManager
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.CoroutineScope
@@ -43,6 +45,7 @@ class RingerModeMonitorExitReconcileTest {
         // test methods, so reset the ringer source for isolation.
         runBlocking {
             ActiveTriggerStore(context).clearSource("ringer")
+            AutomationRuntimeStore(context).clear("ring-task")
             ActiveExecutionStore(context).clear("ring-task")
         }
     }
@@ -68,14 +71,21 @@ class RingerModeMonitorExitReconcileTest {
     private fun monitorFor(
         repository: FakeRepository,
         engine: com.nexaflow.core.execution.ExecutionEngine,
-        store: ActiveTriggerStore
-    ): RingerModeMonitor = RingerModeMonitor(
-        context = context,
-        repository = repository,
-        executionEngine = engine,
-        activeStore = store,
-        scope = CoroutineScope(Dispatchers.Default)
-    )
+        store: ActiveTriggerStore,
+        history: RecordingHistory,
+        scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+    ): RingerModeMonitor {
+        val runtimeStore = AutomationRuntimeStore(context)
+        return RingerModeMonitor(
+            context = context,
+            repository = repository,
+            executionEngine = engine,
+            activeStore = store,
+            runtimeStore = runtimeStore,
+            exitCoordinator = ExitCoordinator(runtimeStore, engine, repository, history),
+            scope = scope
+        )
+    }
 
     @Test
     fun `restart with ringer already left fires the missed exit on init`() = runBlocking {
@@ -89,13 +99,65 @@ class RingerModeMonitorExitReconcileTest {
         // The sound mode is now Normal — the VIBRATE condition ended during downtime.
         setRingerMode(AudioManager.RINGER_MODE_NORMAL)
 
-        val monitor = monitorFor(repository, engine, store)
+        val monitor = monitorFor(repository, engine, store, history)
         monitor.initialize()
 
         // reconcileWithCurrentMode reads Normal and fires the missed exit.
         waitUntil { history.exits.any { it == EXIT_NOOP_MARKER } }
         waitUntil { store.activeKeys("ringer").isEmpty() }
         monitor.stop()
+    }
+
+    @Test
+    fun `restart promotes legacy mark into durable active ownership`() = runBlocking {
+        val history = RecordingHistory()
+        val engine = testEngine(context, history)
+        val repository = FakeRepository(listOf(ringerAutomation("ring-task", "VIBRATE")))
+        val store = ActiveTriggerStore(context)
+        val runtimeStore = AutomationRuntimeStore(context)
+        store.markActive("ringer", "ring-task|VIBRATE")
+        setRingerMode(AudioManager.RINGER_MODE_VIBRATE)
+
+        val monitor = monitorFor(repository, engine, store, history)
+        monitor.initialize()
+
+        waitUntil {
+            runtimeStore.current("ring-task")?.lifecycleState ==
+                AutomationRuntimeLifecycleState.ACTIVE
+        }
+        assertTrue(runtimeStore.current("ring-task")?.source == "ringer")
+        assertTrue(runtimeStore.current("ring-task")?.sourceKey == "ring-task|VIBRATE")
+        monitor.stop()
+    }
+
+    @Test
+    fun `legacy ringer marker is cleared when another source owns the routine`() = runBlocking {
+        val history = RecordingHistory()
+        val engine = testEngine(context, history)
+        val repository = FakeRepository(listOf(ringerAutomation("ring-task", "VIBRATE")))
+        val store = ActiveTriggerStore(context)
+        val runtimeStore = AutomationRuntimeStore(context)
+        runtimeStore.activate(
+            com.nexaflow.core.datastore.AutomationRuntimeState(
+                automationId = "ring-task",
+                occurrenceId = "settings-owner",
+                source = "settings",
+                sourceKey = "ring-task|foreign",
+                lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                activatedAt = 1L
+            )
+        )
+        store.markActive("ringer", "ring-task|VIBRATE")
+        setRingerMode(AudioManager.RINGER_MODE_VIBRATE)
+
+        val monitor = monitorFor(repository, engine, store, history)
+        monitor.initialize()
+
+        waitUntil { store.activeKeys("ringer").isEmpty() }
+        assertTrue(runtimeStore.current("ring-task")?.source == "settings")
+        monitor.stop()
+        runtimeStore.clear("ring-task")
+        Unit
     }
 
     @Test
@@ -108,7 +170,7 @@ class RingerModeMonitorExitReconcileTest {
         // Still on Vibrate — the condition still holds after the restart.
         setRingerMode(AudioManager.RINGER_MODE_VIBRATE)
 
-        val monitor = monitorFor(repository, engine, store)
+        val monitor = monitorFor(repository, engine, store, history)
         monitor.initialize()
 
         // Give the async reconcile a moment, then assert no exit ran.
@@ -125,26 +187,22 @@ class RingerModeMonitorExitReconcileTest {
     }
 
     @Test
-    fun `stale mark for a disabled automation is pruned on restart`() = runBlocking {
+    fun `disabled automation closes its durable occurrence before clearing compatibility state`() = runBlocking {
         val history = RecordingHistory()
         val engine = testEngine(context, history)
         val repository = FakeRepository(
             listOf(ringerAutomation("ring-task", "VIBRATE").copy(enabled = false))
         )
         val store = ActiveTriggerStore(context)
+        val runtimeStore = AutomationRuntimeStore(context)
         store.markActive("ringer", "ring-task|VIBRATE")
         setRingerMode(AudioManager.RINGER_MODE_NORMAL)
 
-        val monitor = monitorFor(repository, engine, store)
+        val monitor = monitorFor(repository, engine, store, history)
         monitor.initialize()
 
-        // Give the async prune a moment, then assert nothing fired and the
-        // stale mark is gone.
-        Thread.sleep(300)
-        assertTrue(
-            "disabled task must not fire a stale exit",
-            history.exits.none { it == EXIT_NOOP_MARKER }
-        )
+        waitUntil { history.exits.any { it == EXIT_NOOP_MARKER } }
+        waitUntil { runtimeStore.current("ring-task") == null }
         waitUntil { store.activeKeys("ringer").isEmpty() }
         monitor.stop()
     }
