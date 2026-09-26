@@ -286,8 +286,29 @@ class AutomationCommandService(
         automationId: String,
         context: AutomationMutationContext
     ): AutomationMutationResult {
+        val deleteFingerprint = AutomationMutationFingerprint.state(
+            kind = AutomationMutationKind.DELETE,
+            automationId = automationId
+        )
         val existing = repository.getAutomationById(automationId)
-            ?: return notFound(automationId, context)
+            ?: return when (
+                val replay = mutationPersistence.resolveStoredIdempotency(
+                    context = context,
+                    kind = AutomationMutationKind.DELETE,
+                    automationId = automationId,
+                    requestFingerprint = deleteFingerprint,
+                    occurredAt = clockMillis()
+                )
+            ) {
+                is AutomationPersistenceResult.IdempotentReplay ->
+                    AutomationMutationResult.IdempotentReplay(
+                        automationId = replay.automationId,
+                        revision = replay.revision
+                    )
+                AutomationPersistenceResult.IdempotencyConflict ->
+                    AutomationMutationResult.IdempotencyConflict
+                else -> notFound(automationId, context)
+            }
 
         val remaining = repository.getAutomations().first()
             .filterNot { it.id == automationId }
@@ -323,10 +344,7 @@ class AutomationCommandService(
                 automation = existing,
                 context = context,
                 baseDefinitionUpdatedAt = existing.updatedAt,
-                requestFingerprint = AutomationMutationFingerprint.state(
-                    kind = AutomationMutationKind.DELETE,
-                    automationId = automationId
-                ),
+                requestFingerprint = deleteFingerprint,
                 occurredAt = clockMillis()
             )
         )
