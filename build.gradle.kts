@@ -189,3 +189,18 @@ fun Project.configureCoverage() {
         }
     }
 }
+
+
+/**
+ * Repository-wide coverage gate used by CI. Each Android module owns its
+ * report and threshold logic; the root task only aggregates those gates.
+ */
+tasks.register("coverageGateAll") {
+    group = "verification"
+    description = "Runs every Android module's strict unit-test coverage gate."
+    dependsOn(
+        subprojects.map { project ->
+            project.tasks.matching { task -> task.name == "coverageGate" }
+        }
+    )
+}
