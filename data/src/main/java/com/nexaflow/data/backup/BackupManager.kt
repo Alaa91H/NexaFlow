@@ -161,9 +161,10 @@ class BackupManager(
             )
         }
         val disabledCount = backup.automations.count { it.enabled }
-        for (automation in importedAutomations) {
-            automationRepository.saveAutomation(automation)
-        }
+        // Persist the validated/re-keyed graph as one storage transaction.
+        // A disk/constraint failure must never leave the installation with a
+        // half-restored dependency graph.
+        automationRepository.saveAutomationsAtomically(importedAutomations)
         return ImportResult.Success(importedAutomations.size, disabledCount)
     }
 
