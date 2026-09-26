@@ -1231,15 +1231,25 @@ class ExecutionEngine(
 
     /**
      * Single owner of the engine-side half of deleting an automation. Call
-     * after the row has been removed from the repository: drops any captured
-     * device state and durable active-run marker for [automationId], then
-     * broadcasts [ACTION_AUTOMATIONS_CHANGED] so every stateful monitor prunes
-     * its markers immediately instead of leaking until the next restart. The
-     * snapshot is cleared BEFORE the broadcast so no monitor can reconcile a
-     * stale marker into an exit behavior for an automation that no longer exists.
+     * after the row has been removed from the repository: drops captured
+     * device state, active-run/checkpoint evidence, runtime lifecycle ownership,
+     * and pending schedule identities for [automationId], then broadcasts
+     * [ACTION_AUTOMATIONS_CHANGED]. Missing definitions discovered accidentally
+     * are preserved for review elsewhere; explicit user deletion is different:
+     * it is the deliberate policy boundary that makes this id unreachable.
      */
     suspend fun onAutomationDeleted(automationId: String) {
-        clearSnapshot(automationId)
+        snapshots.remove(automationId)
+        activeExecutions.remove(automationId)
+        executionProgressTracker.clear(automationId)
+
+        // Explicit user deletion is the policy-resolution boundary: no future
+        // screen/monitor can address this id, so retain no unreachable durable
+        // execution, lifecycle, or scheduled-occurrence state.
+        activeExecutionStore.clearAutomationState(automationId)
+        automationRuntimeStore.clear(automationId)
+        automationRuntimeStore.clearSchedule(automationId)
+
         notifyAutomationsChanged()
     }
 
