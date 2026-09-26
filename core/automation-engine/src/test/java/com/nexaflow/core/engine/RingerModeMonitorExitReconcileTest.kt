@@ -131,6 +131,35 @@ class RingerModeMonitorExitReconcileTest {
     }
 
     @Test
+    fun `legacy ringer marker is cleared when another source owns the routine`() = runBlocking {
+        val history = RecordingHistory()
+        val engine = testEngine(context, history)
+        val repository = FakeRepository(listOf(ringerAutomation("ring-task", "VIBRATE")))
+        val store = ActiveTriggerStore(context)
+        val runtimeStore = AutomationRuntimeStore(context)
+        runtimeStore.activate(
+            com.nexaflow.core.datastore.AutomationRuntimeState(
+                automationId = "ring-task",
+                occurrenceId = "settings-owner",
+                source = "settings",
+                sourceKey = "ring-task|foreign",
+                lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                activatedAt = 1L
+            )
+        )
+        store.markActive("ringer", "ring-task|VIBRATE")
+        setRingerMode(AudioManager.RINGER_MODE_VIBRATE)
+
+        val monitor = monitorFor(repository, engine, store, history)
+        monitor.initialize()
+
+        waitUntil { store.activeKeys("ringer").isEmpty() }
+        assertTrue(runtimeStore.current("ring-task")?.source == "settings")
+        monitor.stop()
+        runtimeStore.clear("ring-task")
+    }
+
+    @Test
     fun `restart while ringer still in the triggered mode keeps the task active`() = runBlocking {
         val history = RecordingHistory()
         val engine = testEngine(context, history)
