@@ -365,12 +365,25 @@ class CalendarMonitor @Inject constructor(
         // occurrence is known to have ended or disappeared from the query.
         val activeOccurrence = activeStates[automation.id]
         if (activeOccurrence != null) {
-            val stillActive = events.any { event ->
+            val activeEvent = events.firstOrNull { event ->
                 event.id == activeOccurrence.eventId &&
                     event.start == activeOccurrence.start &&
                     now < event.end
             }
-            if (!stillActive) {
+            if (activeEvent != null) {
+                // A promoted legacy marker did not carry the event's end time.
+                // Once the provider proves the exact occurrence is still live,
+                // enrich the durable lifecycle so process-recovery can later
+                // reconcile a known elapsed end without another calendar read.
+                val state = runtimeStore.current(automation.id)
+                if (state?.source == SOURCE && state.expectedEndAt != activeEvent.end) {
+                    runtimeStore.bindExpectedEndAt(
+                        automationId = automation.id,
+                        occurrenceId = state.occurrenceId,
+                        expectedEndAt = activeEvent.end
+                    )
+                }
+            } else {
                 val state = runtimeStore.current(automation.id)
                 if (state?.source == SOURCE) {
                     requestExit(
