@@ -205,9 +205,11 @@ class MonitoringService : Service() {
                 Log.i(TAG, "startup elevated check: rootAvailable=$rootAvail suBin=$suBin shizukuGranted=$shizuku sdk=${android.os.Build.VERSION.SDK_INT}")
             } catch (_: Throwable) {}
             activeTriggerStore.purgeExpired()
-            // A process/service restart can occur after a range end or after a
-            // failed exit. Reconcile durable lifecycle state before callbacks
-            // re-arm so cleanup never depends on seeing a future condition flip.
+            // A process/service restart can occur after the user disabled
+            // a task while monitoring was stopped, after a range end, or after
+            // a failed exit. Resolve persisted disable intent first, then the
+            // generic recovery facts, before callbacks re-arm.
+            exitCoordinator.reconcileDisabledAutomations()
             exitCoordinator.reconcile(ExitReason.PROCESS_RECOVERY)
             // Subscription is established before the external receiver is
             // registered, preserving the EventBus → TriggerIndex route and
