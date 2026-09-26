@@ -280,6 +280,99 @@ class AgentAccessManagerTest {
         assertEquals(0, status.activeSessionCount)
     }
 
+    @Test
+    fun activeAgentCapacityIsBoundedButExistingGrantCanRotate() = runTest {
+        val fixture = fixture()
+        fixture.manager.setAccessEnabled(true)
+
+        repeat(AgentAccessManager.MAX_ACTIVE_AGENTS) { index ->
+            assertTrue(
+                fixture.manager.grantPermanentAccess(identity("agent.$index")) is
+                    AgentGrantResult.Granted
+            )
+        }
+        assertEquals(
+            AgentGrantResult.CapacityExceeded,
+            fixture.manager.grantPermanentAccess(identity("agent.overflow"))
+        )
+        assertTrue(
+            fixture.manager.grantPermanentAccess(identity("agent.0")) is
+                AgentGrantResult.Granted
+        )
+        assertEquals(
+            AgentAccessManager.MAX_ACTIVE_AGENTS,
+            fixture.manager.status().activeAgentCount
+        )
+    }
+
+    @Test
+    fun requestAuthorizerRejectsOversizedPayloadBeforeTokenUse() = runTest {
+        val fixture = fixture()
+        fixture.manager.setAccessEnabled(true)
+        val bootstrap = (
+            fixture.manager.grantPermanentAccess(identity()) as AgentGrantResult.Granted
+            ).credential
+        val session = fixture.manager.exchangeRefreshToken(bootstrap.refreshToken)
+            as AgentSessionIssueResult.Issued
+        val authorizer = AgentRequestAuthorizer(
+            accessManager = fixture.manager,
+            maxPayloadBytes = 16,
+            maxRequestsPerWindow = 10
+        )
+
+        assertEquals(
+            AgentAuthorizationResult.PayloadTooLarge,
+            authorizer.authorize(
+                accessToken = session.credential.accessToken,
+                operation = AgentOperation.TASK_CREATE,
+                payloadBytes = 17
+            )
+        )
+    }
+
+    @Test
+    fun requestAuthorizerEnforcesPerAgentWindowWithoutPersistingTokenMaterial() = runTest {
+        val fixture = fixture()
+        fixture.manager.setAccessEnabled(true)
+        val bootstrap = (
+            fixture.manager.grantPermanentAccess(identity()) as AgentGrantResult.Granted
+            ).credential
+        val session = fixture.manager.exchangeRefreshToken(bootstrap.refreshToken)
+            as AgentSessionIssueResult.Issued
+        var now = 10_000L
+        val authorizer = AgentRequestAuthorizer(
+            accessManager = fixture.manager,
+            clockMillis = { now },
+            maxRequestsPerWindow = 2,
+            rateWindowMs = 1_000L
+        )
+
+        repeat(2) {
+            assertTrue(
+                authorizer.authorize(
+                    accessToken = session.credential.accessToken,
+                    operation = AgentOperation.TASK_LIST
+                ) is AgentAuthorizationResult.Authorized
+            )
+        }
+        assertEquals(
+            AgentAuthorizationResult.RateLimited,
+            authorizer.authorize(
+                accessToken = session.credential.accessToken,
+                operation = AgentOperation.TASK_LIST
+            )
+        )
+
+        now += 1_000L
+        assertTrue(
+            authorizer.authorize(
+                accessToken = session.credential.accessToken,
+                operation = AgentOperation.TASK_LIST
+            ) is AgentAuthorizationResult.Authorized
+        )
+        assertFalse(fixture.storage.rawState().contains(session.credential.accessToken))
+    }
+
     private fun identity(
         binding: AgentIdentityBinding = AgentIdentityBinding()
     ): AgentIdentityRequest = identity("agent.test", binding)
