@@ -30,15 +30,18 @@ class ExitCoordinatorTest {
         runBlocking {
             context = ApplicationProvider.getApplicationContext()
             store = AutomationRuntimeStore(context)
-            store.clear("exit-task")
+            listOf("exit-task", "exit-disabled-task", "exit-enabled-task").forEach {
+                store.clear(it)
+            }
         }
     }
 
     private fun activeState(
+        automationId: String = "exit-task",
         occurrenceId: String = "occurrence-1",
         expectedEndAt: Long? = null
     ) = AutomationRuntimeState(
-        automationId = "exit-task",
+        automationId = automationId,
         occurrenceId = occurrenceId,
         source = "time-range",
         sourceKey = occurrenceId,
@@ -69,12 +72,13 @@ class ExitCoordinatorTest {
 
     @Test
     fun `disabled automation is claimed and exited exactly once by central reconcile`() = runBlocking {
+        val id = "exit-disabled-task"
         val history = RecordingHistory()
-        val automation = testAutomation("exit-task", emptyList()).copy(enabled = false)
+        val automation = testAutomation(id, emptyList()).copy(enabled = false)
         val repository = FakeRepository(listOf(automation))
         val engine = testEngine(context, history)
         val coordinator = ExitCoordinator(store, engine, repository, history)
-        assertTrue(store.activate(activeState()))
+        assertTrue(store.activate(activeState(automationId = id)))
 
         val first = coordinator.reconcileDisabledAutomations()
         val second = coordinator.reconcileDisabledAutomations()
@@ -82,24 +86,25 @@ class ExitCoordinatorTest {
         assertEquals(1, first.count { it is ExitCoordinatorResult.Executed })
         assertTrue(second.isEmpty())
         assertEquals(1, history.exits.count { it == EXIT_NOOP_MARKER })
-        assertTrue(store.current("exit-task") == null)
+        assertTrue(store.current(id) == null)
     }
 
     @Test
     fun `enabled automation is untouched by disabled reconcile`() = runBlocking {
+        val id = "exit-enabled-task"
         val history = RecordingHistory()
-        val automation = testAutomation("exit-task", emptyList()).copy(enabled = true)
+        val automation = testAutomation(id, emptyList()).copy(enabled = true)
         val repository = FakeRepository(listOf(automation))
         val engine = testEngine(context, history)
         val coordinator = ExitCoordinator(store, engine, repository, history)
-        assertTrue(store.activate(activeState()))
+        assertTrue(store.activate(activeState(automationId = id)))
 
         val outcomes = coordinator.reconcileDisabledAutomations()
 
         assertTrue(outcomes.isEmpty())
         assertEquals(
             AutomationRuntimeLifecycleState.ACTIVE,
-            store.current("exit-task")?.lifecycleState
+            store.current(id)?.lifecycleState
         )
         assertTrue(history.exits.isEmpty())
     }
