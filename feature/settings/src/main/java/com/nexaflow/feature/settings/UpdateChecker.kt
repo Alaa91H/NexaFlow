@@ -19,8 +19,12 @@ data class UpdateInfo(
     val sha256: String?,
     val notes: String?
 ) {
-    /** Whether a downloadable APK is attached to this release. */
-    val canInstall: Boolean get() = apkUrl != null
+    /**
+     * Install is offered only when the phone APK has a matching published
+     * SHA-256 asset. A downloadable artifact without independent integrity
+     * metadata remains visible as release information but is not installable.
+     */
+    val canInstall: Boolean get() = apkUrl != null && sha256 != null
 }
 
 /**
@@ -56,21 +60,37 @@ object UpdateChecker {
         val version = root.optString("tag_name").trim().ifEmpty { return null }
         val notes = root.optString("body").trim().ifEmpty { null }
         val assets = root.optJSONArray("assets")
-        var apkUrl: String? = null
-        var apkSize: Long? = null
-        var sha256: String? = null
-        if (assets != null) {
-            for (i in 0 until assets.length()) {
-                val asset = assets.optJSONObject(i) ?: continue
-                val name = asset.optString("name")
-                if (name.endsWith(".apk", ignoreCase = true) && apkUrl == null) {
-                    apkUrl = asset.optString("browser_download_url").ifEmpty { null }
-                    apkSize = if (asset.has("size")) asset.optLong("size") else null
-                } else if (name.endsWith(".sha256", ignoreCase = true)) {
-                    sha256 = asset.optString("browser_download_url").ifEmpty { null }
+        val assetList = buildList {
+            if (assets != null) {
+                for (i in 0 until assets.length()) {
+                    assets.optJSONObject(i)?.let(::add)
                 }
             }
         }
+        val expectedPhoneName = "NexaFlow-$version.apk"
+        val phoneAsset = assetList.firstOrNull {
+            it.optString("name").equals(expectedPhoneName, ignoreCase = true)
+        } ?: assetList.firstOrNull { asset ->
+            val name = asset.optString("name")
+            name.endsWith(".apk", ignoreCase = true) &&
+                listOf("wear", "debug", "test", "unsigned").none {
+                    name.contains(it, ignoreCase = true)
+                }
+        }
+        val apkName = phoneAsset?.optString("name").orEmpty()
+        val apkUrl = phoneAsset?.optString("browser_download_url")?.ifEmpty { null }
+        val apkSize = phoneAsset?.takeIf { it.has("size") }?.optLong("size")
+        val digestNames = if (apkName.isBlank()) {
+            emptySet()
+        } else {
+            setOf(
+                "$apkName.sha256".lowercase(),
+                apkName.removeSuffix(".apk").plus(".sha256").lowercase()
+            )
+        }
+        val sha256 = assetList.firstOrNull {
+            it.optString("name").lowercase() in digestNames
+        }?.optString("browser_download_url")?.ifEmpty { null }
         UpdateInfo(version, apkUrl, apkSize, sha256, notes)
     }.getOrNull()
 
@@ -151,18 +171,31 @@ object UpdateChecker {
             } finally {
                 connection.disconnect()
             }
-            val expected = sha256Url?.let { fetchText(it) }
-            if (expected != null) {
-                val actual = sha256(dest)
-                // The published digest may be lower/upper case or have trailing
-                // whitespace; compare normalized.
-                if (!actual.equals(expected.trim(), ignoreCase = true)) {
-                    dest.delete()
-                    return@runCatching null
-                }
+            val digestUrl = sha256Url ?: run {
+                dest.delete()
+                return@runCatching null
+            }
+            val expected = fetchText(digestUrl)?.let(::parseSha256Text) ?: run {
+                dest.delete()
+                return@runCatching null
+            }
+            val actual = sha256(dest)
+            if (!actual.equals(expected, ignoreCase = true)) {
+                dest.delete()
+                return@runCatching null
             }
             dest
         }.getOrNull()
+    }
+
+    /**
+     * Accepts either a digest-only asset or the conventional
+     * `sha256sum` format (`<hex>  <filename>`). Any malformed digest is
+     * rejected instead of silently disabling verification.
+     */
+    internal fun parseSha256Text(text: String): String? {
+        val token = text.trim().substringBefore(Regex("\\s+")).lowercase()
+        return token.takeIf { it.matches(Regex("[0-9a-f]{64}")) }
     }
 
     /** SHA-256 of [file] as lowercase hex. */
