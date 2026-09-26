@@ -32,7 +32,7 @@ class AiChatViewModel @Inject constructor(
     private val providerRegistry: AiProviderRegistry
 ) : ViewModel() {
     private val conversationId = "chat." + UUID.randomUUID()
-    private val transcript = mutableListOf<AiConversationMessage>()
+    private val transcript = mutableListOf(systemMessage())
     private var responseJob: Job? = null
 
     private val _state = MutableStateFlow(AiChatUiState())
@@ -130,6 +130,7 @@ class AiChatViewModel @Inject constructor(
         responseJob?.cancel()
         responseJob = null
         transcript.clear()
+        transcript += systemMessage()
         _state.value = AiChatUiState(
             providerName = providerRegistry.state.value.selectedProvider?.displayName
         )
@@ -138,6 +139,11 @@ class AiChatViewModel @Inject constructor(
     fun clearError() {
         _state.value = _state.value.copy(errorCode = null)
     }
+
+    private fun systemMessage() = AiConversationMessage(
+        role = AiRole.SYSTEM,
+        text = SYSTEM_PROMPT
+    )
 
     private fun publish(
         running: Boolean = _state.value.running,
@@ -155,5 +161,17 @@ class AiChatViewModel @Inject constructor(
             activeToolName = activeToolName,
             errorCode = errorCode
         )
+    }
+
+    private companion object {
+        const val SYSTEM_PROMPT = """You are NexaFlow's automation agent.
+Use NexaFlow tools for device capabilities, catalogs, task state, history, and every automation mutation.
+Never claim that a task was created, changed, enabled, disabled, deleted, or run unless the corresponding tool result confirms success.
+Before changing or running an existing task, read it first and use its exact current revision.
+Use a new stable idempotency key for each intended mutation or manual run, and reuse that key only when retrying the same request.
+Before creating or materially updating a task, inspect the relevant catalog when needed, validate the draft, and use dry-run or schedule preview when it helps verify executability or timing.
+Prefer typed NexaFlow tools over guessing platform behavior. Do not invent capabilities, task IDs, revisions, schedules, or execution results.
+If a requested operation cannot be represented safely by the available tools, explain the limitation instead of fabricating success.
+Respond in the user's language unless they request another language."""
     }
 }
