@@ -410,10 +410,18 @@ class ActiveExecutionStore internal constructor(
         message: String,
         updatedAt: Long
     ): DurableExecutionCheckpoint? = updateCheckpoint(runId) { checkpoint ->
+        // Recovery classification must not erase the diagnostic captured at the
+        // uncertain side-effect boundary. Keep both pieces of evidence bounded
+        // so the review UI can explain what happened and why manual recovery is
+        // now required.
+        val recoveryMessage = listOfNotNull(
+            checkpoint.message?.takeIf { it.isNotBlank() },
+            message.takeIf { it.isNotBlank() }
+        ).distinct().joinToString(" | ").take(MAX_MESSAGE_LENGTH)
         checkpoint.copy(
             status = DurableExecutionStatus.RECOVERY_REQUIRED,
             updatedAt = updatedAt,
-            message = message.take(MAX_MESSAGE_LENGTH)
+            message = recoveryMessage.ifBlank { null }
         )
     }
 
