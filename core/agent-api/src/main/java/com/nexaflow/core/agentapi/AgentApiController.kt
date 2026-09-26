@@ -81,7 +81,7 @@ class AgentApiController(
                 uri = uri,
                 path = path,
                 agentId = checkNotNull(principal.agentId),
-                transport = TRANSPORT
+                transport = transport
             )
         } catch (_: SerializationException) {
             error(400, "invalid_json", "Request JSON does not match the API schema")
@@ -692,7 +692,7 @@ class AgentApiController(
         agentId = agentId,
         expectedRevision = revision,
         requireExecutable = false,
-        transport = TRANSPORT,
+        transport = transport,
         requestId = request.header("x-request-id"),
         idempotencyKey = idempotency
     )
@@ -736,7 +736,7 @@ class AgentApiController(
         agentId = agentId,
         providerId = providerId,
         modelId = modelId,
-        transport = TRANSPORT,
+        transport = transport,
         requestId = requestId,
         conversationId = conversationId,
         idempotencyKey = idempotencyKey,
