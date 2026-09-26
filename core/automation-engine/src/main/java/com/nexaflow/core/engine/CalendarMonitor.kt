@@ -69,8 +69,12 @@ class CalendarMonitor @Inject constructor(
     private val lastRunAt = ConcurrentHashMap<String, Long>()
     /** automationId -> occurrence key (eventId, start) of the event that activated the task. */
     private val activeStates = ConcurrentHashMap<String, Occurrence>()
-    /** automationId -> occurrence keys already reported as started/ended (thread-safe). */
-    private val processedEvents = ConcurrentHashMap<String, MutableSet<Occurrence>>()
+    /**
+     * automationId -> occurrence/phase pairs already reported. START and END
+     * for the same calendar occurrence are distinct events and must never
+     * suppress each other.
+     */
+    private val processedEvents = ConcurrentHashMap<String, MutableSet<ProcessedOccurrence>>()
     /** automationId -> event ids already reported as created (creation is per event, not per occurrence). */
     private val processedCreated = ConcurrentHashMap<String, MutableSet<Long>>()
 
@@ -269,36 +273,42 @@ class CalendarMonitor @Inject constructor(
                     matching.sortedBy { it.start }.forEach { event ->
                         val fireAt = event.start - beforeMinutes * 60_000L
                         val occurrence = Occurrence(event.id, event.start)
+                        val processedKey = ProcessedOccurrence(eventType, occurrence)
                         if (
                             now >= fireAt &&
                             now < event.end &&
-                            !processed.contains(occurrence)
+                            !processed.contains(processedKey)
                         ) {
                             // One automation owns at most one stateful lifecycle.
                             // Do not consume a second overlapping occurrence while
                             // the first still owns its exit behavior.
                             val current = runtimeStore.current(automation.id)
-                            if (current != null) return@forEach
-
-                            val triggerIndices = matchingTriggerIndicesForEvent(
-                                automation = automation,
-                                event = event,
-                                eventType = eventType,
-                                now = now,
-                            )
-                            if (triggerIndices.isEmpty()) return@forEach
-
-                            activateStart(
-                                automation = automation,
-                                event = event,
-                                triggerIndices = triggerIndices,
-                                now = now
-                            )
-                            // Preserve the historical once-per-occurrence policy
-                            // even when another admission gate intentionally
-                            // skips the main action chain.
-                            processed.add(occurrence)
-                            changed = true
+                            if (current == null) {
+                                val triggerIndices = matchingTriggerIndicesForEvent(
+                                    automation = automation,
+                                    event = event,
+                                    eventType = eventType,
+                                    now = now,
+                                )
+                                if (triggerIndices.isNotEmpty()) {
+                                    val last = lastRunAt[automation.id] ?: 0L
+                                    if (now - last > automation.cooldownMillis) {
+                                        lastRunAt[automation.id] = now
+                                        activateStart(
+                                            automation = automation,
+                                            event = event,
+                                            triggerIndices = triggerIndices,
+                                            now = now
+                                        )
+                                        // Preserve the historical one-attempt
+                                        // policy for this occurrence even when
+                                        // another admission gate intentionally
+                                        // skips the main action chain.
+                                        processed.add(processedKey)
+                                        changed = true
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -306,8 +316,9 @@ class CalendarMonitor @Inject constructor(
                 "EVENT_END" -> {
                     matching.forEach { event ->
                         val occurrence = Occurrence(event.id, event.start)
-                        if (now >= event.end && !processed.contains(occurrence)) {
-                            processed.add(occurrence)
+                        val processedKey = ProcessedOccurrence(eventType, occurrence)
+                        if (now >= event.end && !processed.contains(processedKey)) {
+                            processed.add(processedKey)
                             changed = true
                             fireOneShot(
                                 automation = automation,
@@ -602,6 +613,12 @@ class CalendarMonitor @Inject constructor(
     private data class Occurrence(
         val eventId: Long,
         val start: Long
+    )
+
+    /** START and END of one occurrence are independent trigger events. */
+    private data class ProcessedOccurrence(
+        val eventType: String,
+        val occurrence: Occurrence
     )
 
     private data class CalendarEvent(
