@@ -61,6 +61,34 @@ class RoomAutomationMutationPersistence(
         }
     }
 
+    override suspend fun resolveStoredIdempotency(
+        context: com.nexaflow.core.automationcontrol.AutomationMutationContext,
+        kind: AutomationMutationKind,
+        automationId: String?,
+        requestFingerprint: String,
+        occurredAt: Long
+    ): AutomationPersistenceResult? = database.withTransaction {
+        validateIdempotencyContext(context)
+        agentPlatformDao.pruneExpiredIdempotency(occurredAt)
+        val rawKey = context.idempotencyKey ?: return@withTransaction null
+        val existing = agentPlatformDao.getIdempotency(
+            actorId = context.actorId,
+            keyHash = sha256(rawKey)
+        ) ?: return@withTransaction null
+
+        if (existing.requestFingerprint == requestFingerprint &&
+            existing.operation == kind.name &&
+            existing.automationId == automationId
+        ) {
+            AutomationPersistenceResult.IdempotentReplay(
+                automationId = existing.automationId,
+                revision = existing.resultRevision
+            )
+        } else {
+            AutomationPersistenceResult.IdempotencyConflict
+        }
+    }
+
     private suspend fun commitCreate(
         request: AutomationMutationCommitRequest
     ): AutomationPersistenceResult {
@@ -252,9 +280,6 @@ class RoomAutomationMutationPersistence(
         request: AutomationMutationCommitRequest
     ): AutomationPersistenceResult? {
         val rawKey = request.context.idempotencyKey ?: return null
-        require(rawKey.isNotBlank() && rawKey.length <= MAX_IDEMPOTENCY_KEY_LENGTH) {
-            "Idempotency key has an invalid length"
-        }
         val keyHash = sha256(rawKey)
         val existing = agentPlatformDao.getIdempotency(
             actorId = request.context.actorId,
@@ -362,9 +387,7 @@ class RoomAutomationMutationPersistence(
     }
 
     private fun validateContext(request: AutomationMutationCommitRequest) {
-        require(request.context.actorId.matches(ACTOR_ID_PATTERN)) {
-            "Mutation actor id has an invalid format"
-        }
+        validateIdempotencyContext(request.context)
         require(request.context.transport.length <= MAX_METADATA_VALUE_LENGTH)
         requireOptionalBound(request.context.agentId)
         requireOptionalBound(request.context.providerId)
@@ -373,6 +396,19 @@ class RoomAutomationMutationPersistence(
         requireOptionalBound(request.context.conversationId)
         requireOptionalBound(request.context.riskLevel)
         require(request.requestFingerprint.isNotBlank())
+    }
+
+    private fun validateIdempotencyContext(
+        context: com.nexaflow.core.automationcontrol.AutomationMutationContext
+    ) {
+        require(context.actorId.matches(ACTOR_ID_PATTERN)) {
+            "Mutation actor id has an invalid format"
+        }
+        context.idempotencyKey?.let { rawKey ->
+            require(rawKey.isNotBlank() && rawKey.length <= MAX_IDEMPOTENCY_KEY_LENGTH) {
+                "Idempotency key has an invalid length"
+            }
+        }
     }
 
     private fun requireOptionalBound(value: String?) {
