@@ -135,7 +135,10 @@ class MediaMonitor @Inject constructor(
                 val automation = byId[state.automationId]
                 when {
                     automation == null -> {
-                        runtimeStore.clear(state.automationId, state.occurrenceId)
+                        // The immutable definition is gone; do not erase the
+                        // durable occurrence as if its exit had succeeded.
+                        // Drop only the compatibility mirror and leave the
+                        // orphaned lifecycle visible to recovery/diagnostics.
                         clearLegacyState(state.automationId)
                     }
                     !automation.enabled || automation.triggers.none { it.type == TriggerType.MEDIA_PLAYING } -> {
@@ -229,7 +232,8 @@ class MediaMonitor @Inject constructor(
                 val automation = automations[state.automationId]
                 when {
                     automation == null -> {
-                        runtimeStore.clear(state.automationId, state.occurrenceId)
+                        // Keep orphaned durable ownership visible; without the
+                        // definition there is no safe end behavior to invent.
                         clearLegacyState(state.automationId)
                     }
                     automation.enabled && automation.triggers.any { it.type == TriggerType.MEDIA_PLAYING } ->
