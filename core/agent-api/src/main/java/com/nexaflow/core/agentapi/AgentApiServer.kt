@@ -128,14 +128,14 @@ class AgentApiServer(
         runCatching {
             val head = buildString {
                 append("HTTP/1.1 ").append(response.status).append(' ')
-                    .append(reasonPhrase(response.status)).append("\\r\\n")
+                    .append(reasonPhrase(response.status)).append("\r\n")
                 response.headers.forEach { (name, value) ->
-                    append(name).append(": ").append(value).append("\\r\\n")
+                    append(name).append(": ").append(value).append("\r\n")
                 }
-                append("Content-Length: ").append(response.body.size).append("\\r\\n")
-                append("Cache-Control: no-store\\r\\n")
-                append("X-Content-Type-Options: nosniff\\r\\n")
-                append("Connection: close\\r\\n\\r\\n")
+                append("Content-Length: ").append(response.body.size).append("\r\n")
+                append("Cache-Control: no-store\r\n")
+                append("X-Content-Type-Options: nosniff\r\n")
+                append("Connection: close\r\n\r\n")
             }.toByteArray(StandardCharsets.ISO_8859_1)
             client.getOutputStream().apply {
                 write(head)
@@ -167,7 +167,7 @@ class AgentApiServer(
     }
 
     private fun escape(value: String) =
-        value.replace("\\\\", "\\\\\\\\").replace("\\"", "\\\\\\"")
+        value.replace("\\", "\\\\").replace("\"", "\\\"")
 
     companion object {
         const val DEFAULT_PORT = 8766
