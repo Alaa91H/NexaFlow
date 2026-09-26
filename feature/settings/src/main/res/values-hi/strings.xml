@@ -241,4 +241,38 @@
     <string name="blocked_calls_title">अवरोधित कॉल</string>
     <string name="blocked_calls_empty">अभी कोई अवरोधित कॉल नहीं</string>
     <string name="blocked_calls_filter_all">सभी नियम</string>
+
+    <!-- AI & agent management -->
+    <string name="ai_agents_title">एआई और एजेंट</string>
+    <string name="ai_agents_subtitle">स्थायी पहुँच, पेयरिंग और एजेंट गतिविधि</string>
+    <string name="agent_access_title">एआई एजेंट पहुँच</string>
+    <string name="agent_access_on">पूर्ण स्थायी पहुँच चालू है</string>
+    <string name="agent_access_off">बंद — एजेंट कनेक्ट या कार्रवाई नहीं कर सकते</string>
+    <string name="agent_gateway_title">स्थानीय एजेंट गेटवे</string>
+    <string name="agent_gateway_running">127.0.0.1:%1$d पर चल रहा है</string>
+    <string name="agent_gateway_stopped">नहीं चल रहा</string>
+    <string name="agent_gateway_rest">REST एपीआई · /api/v1</string>
+    <string name="agent_gateway_mcp">MCP प्रोटोकॉल · /mcp</string>
+    <string name="agent_add_title">एजेंट जोड़ें</string>
+    <string name="agent_name_label">एजेंट का नाम</string>
+    <string name="agent_name_hint">उदाहरण: मेरा लैपटॉप</string>
+    <string name="agent_generate_pairing">पेयरिंग कोड बनाएँ</string>
+    <string name="agent_pairing_payload">एक बार उपयोग होने वाला पेयरिंग डेटा</string>
+    <string name="agent_pairing_help">इसे केवल उसी एजेंट को दें जिस पर आप भरोसा करना चाहते हैं। यह 5 मिनट में समाप्त हो जाता है।</string>
+    <string name="agent_copy_payload">डेटा कॉपी करें</string>
+    <string name="agent_payload_copied">पेयरिंग डेटा कॉपी किया गया</string>
+    <string name="agent_expires_at">%1$s पर समाप्त होगा</string>
+    <string name="agent_trusted_title">विश्वसनीय एजेंट</string>
+    <string name="agent_none">कोई एजेंट पेयर नहीं है</string>
+    <string name="agent_full_access">पूर्ण स्थायी पहुँच</string>
+    <string name="agent_active_sessions">%1$d सक्रिय सत्र</string>
+    <string name="agent_revoke">रद्द करें</string>
+    <string name="agent_revoke_all">सभी रद्द करें</string>
+    <string name="agent_revoke_all_title">सभी एजेंट रद्द करें?</string>
+    <string name="agent_revoke_all_message">सभी एजेंट क्रेडेंशियल और सत्र काम करना बंद कर देंगे। मौजूदा ऑटोमेशन बने रहेंगे।</string>
+    <string name="agent_activity_title">एजेंट गतिविधि</string>
+    <string name="agent_activity_empty">अभी कोई एजेंट गतिविधि नहीं है</string>
+    <string name="agent_refresh">रीफ़्रेश करें</string>
+    <string name="agent_operation_failed">एजेंट कार्रवाई पूरी नहीं हो सकी</string>
+    <string name="agent_pending_pairings">%1$d लंबित पेयरिंग अनुरोध</string>
 </resources>
