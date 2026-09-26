@@ -36,7 +36,8 @@ fun DurableExecutionStatus.canTransitionTo(next: DurableExecutionStatus): Boolea
         DurableExecutionStatus.ACTION_STARTED,
         DurableExecutionStatus.COMPLETED,
         DurableExecutionStatus.EXIT_PENDING,
-        DurableExecutionStatus.RECOVERY_CLAIMED
+        DurableExecutionStatus.RECOVERY_CLAIMED,
+        DurableExecutionStatus.RECOVERY_REQUIRED
     )
     DurableExecutionStatus.ACTION_UNKNOWN -> next in setOf(
         DurableExecutionStatus.RECOVERY_CLAIMED,
