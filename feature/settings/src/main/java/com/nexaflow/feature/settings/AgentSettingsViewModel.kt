@@ -9,6 +9,12 @@ import com.nexaflow.core.agentsecurity.AgentAccessManager
 import com.nexaflow.core.agentsecurity.AgentGrantRecord
 import com.nexaflow.core.agentsecurity.AgentIdentityRequest
 import com.nexaflow.core.agentsecurity.AgentPairingStartResult
+import com.nexaflow.core.airuntime.OpenAiCompatibleProvider
+import com.nexaflow.core.airuntime.OpenAiCompatibleProviderConfig
+import com.nexaflow.core.airuntime.OpenAiEndpointPolicy
+import com.nexaflow.core.datastore.AiProviderPreferences
+import com.nexaflow.core.datastore.AiProviderSettings
+import com.nexaflow.core.security.SecureStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.UUID
 import javax.inject.Inject
@@ -25,6 +31,13 @@ data class AgentPairingUi(
     val expiresAt: Long
 )
 
+enum class AiProviderProbeState {
+    IDLE,
+    TESTING,
+    SUCCESS,
+    FAILED
+}
+
 data class AgentSettingsUiState(
     val loading: Boolean = true,
     val accessEnabled: Boolean = false,
@@ -34,13 +47,19 @@ data class AgentSettingsUiState(
     val agents: List<AgentGrantRecord> = emptyList(),
     val activity: List<AgentApiAuditEventV1> = emptyList(),
     val pairing: AgentPairingUi? = null,
+    val providerSettings: AiProviderSettings = AiProviderSettings(),
+    val providerApiKeyConfigured: Boolean = false,
+    val providerProbeState: AiProviderProbeState = AiProviderProbeState.IDLE,
     val operationFailed: Boolean = false
 )
 
 @HiltViewModel
 class AgentSettingsViewModel @Inject constructor(
     private val accessManager: AgentAccessManager,
-    private val runtime: AgentApiRuntime
+    private val runtime: AgentApiRuntime,
+    private val providerPreferences: AiProviderPreferences,
+    private val provider: OpenAiCompatibleProvider,
+    private val secureStorage: SecureStorage
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AgentSettingsUiState())
@@ -133,12 +152,85 @@ class AgentSettingsViewModel @Inject constructor(
         }
     }
 
+    fun saveProvider(
+        enabled: Boolean,
+        displayName: String,
+        baseUrl: String,
+        modelId: String,
+        local: Boolean,
+        apiKey: String
+    ) {
+        viewModelScope.launch {
+            val candidate = AiProviderSettings(
+                enabled = enabled,
+                displayName = displayName.trim(),
+                baseUrl = baseUrl.trim().trimEnd('/'),
+                modelId = modelId.trim(),
+                local = local
+            )
+            val success = runCatching {
+                val existingKey = secureStorage.get(
+                    OpenAiCompatibleProvider.API_KEY_STORAGE_KEY
+                )
+                val hasApiKey = apiKey.isNotBlank() || !existingKey.isNullOrBlank()
+                if (candidate.enabled) {
+                    OpenAiEndpointPolicy.chatCompletionsUri(
+                        candidate.toProviderConfig(),
+                        hasApiKey = hasApiKey
+                    )
+                }
+                providerPreferences.update(candidate)
+                if (apiKey.isNotBlank()) {
+                    secureStorage.put(
+                        OpenAiCompatibleProvider.API_KEY_STORAGE_KEY,
+                        apiKey
+                    )
+                }
+                provider.configure(candidate.toProviderConfig())
+            }.isSuccess
+            reload(
+                providerProbeState = AiProviderProbeState.IDLE,
+                operationFailed = !success
+            )
+        }
+    }
+
+    fun clearProviderApiKey() {
+        viewModelScope.launch {
+            val success = runCatching {
+                secureStorage.remove(OpenAiCompatibleProvider.API_KEY_STORAGE_KEY)
+            }.isSuccess
+            reload(
+                providerProbeState = AiProviderProbeState.IDLE,
+                operationFailed = !success
+            )
+        }
+    }
+
+    fun testProvider() {
+        if (_state.value.providerProbeState == AiProviderProbeState.TESTING) return
+        _state.value = _state.value.copy(
+            providerProbeState = AiProviderProbeState.TESTING
+        )
+        viewModelScope.launch {
+            val result = provider.probe()
+            reload(
+                providerProbeState = if (result.success) {
+                    AiProviderProbeState.SUCCESS
+                } else {
+                    AiProviderProbeState.FAILED
+                }
+            )
+        }
+    }
+
     fun clearOperationError() {
         _state.value = _state.value.copy(operationFailed = false)
     }
 
     private suspend fun reload(
         pairing: AgentPairingUi? = _state.value.pairing,
+        providerProbeState: AiProviderProbeState = _state.value.providerProbeState,
         operationFailed: Boolean = false
     ) {
         val security = runCatching { accessManager.status() }.getOrNull()
@@ -149,6 +241,12 @@ class AgentSettingsViewModel @Inject constructor(
         val activity = runCatching {
             runtime.latestAudit(MAX_ACTIVITY_ROWS)
         }.getOrElse { emptyList() }
+        val providerSettings = runCatching {
+            providerPreferences.current()
+        }.getOrDefault(AiProviderSettings())
+        val providerApiKeyConfigured = runCatching {
+            !secureStorage.get(OpenAiCompatibleProvider.API_KEY_STORAGE_KEY).isNullOrBlank()
+        }.getOrDefault(false)
 
         _state.value = AgentSettingsUiState(
             loading = false,
@@ -159,9 +257,21 @@ class AgentSettingsViewModel @Inject constructor(
             agents = agents,
             activity = activity,
             pairing = pairing,
+            providerSettings = providerSettings,
+            providerApiKeyConfigured = providerApiKeyConfigured,
+            providerProbeState = providerProbeState,
             operationFailed = operationFailed || security == null
         )
     }
+
+    private fun AiProviderSettings.toProviderConfig() =
+        OpenAiCompatibleProviderConfig(
+            enabled = enabled,
+            displayName = displayName,
+            baseUrl = baseUrl,
+            modelId = modelId,
+            local = local
+        )
 
     private companion object {
         const val MAX_AGENT_NAME_LENGTH = 128

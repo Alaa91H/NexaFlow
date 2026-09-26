@@ -65,6 +65,8 @@ dependencies {
     implementation(project(":core:execution"))
     implementation(project(":core:agent-security"))
     implementation(project(":core:agent-api"))
+    implementation(project(":core:ai-runtime"))
+    implementation(project(":core:security"))
     implementation(project(":core:plugin-sdk"))
     implementation(project(":core:rom-integration"))
     // In-app Shizuku permission dialog for the permission manager.
