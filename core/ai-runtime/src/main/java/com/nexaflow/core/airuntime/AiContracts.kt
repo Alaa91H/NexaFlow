@@ -2,6 +2,7 @@ package com.nexaflow.core.airuntime
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.serialization.json.put
 
 interface AiModelProvider {
     val descriptor: StateFlow<AiProviderDescriptor>
