@@ -3,7 +3,9 @@ package com.nexaflow.feature.dashboard
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
+import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.core.datastore.NotificationPreferences
+import com.nexaflow.core.engine.ExitCoordinator
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.ManualBlockKind
 import com.nexaflow.core.execution.handler.ActionRegistry
@@ -105,13 +107,22 @@ class ManualAdmissionPolicyTest {
         updatedAt = 0L
     )
 
-    private fun newViewModel(): DashboardViewModel = DashboardViewModel(
-        automationRepository = FakeRepository(),
-        executionEngine = engine,
-        historyRepository = history,
-        healthRepository = FakeHealth(),
-        appContext = context
-    )
+    private fun newViewModel(): DashboardViewModel {
+        val repository = FakeRepository()
+        return DashboardViewModel(
+            automationRepository = repository,
+            executionEngine = engine,
+            exitCoordinator = ExitCoordinator(
+                AutomationRuntimeStore(context),
+                engine,
+                repository,
+                history
+            ),
+            historyRepository = history,
+            healthRepository = FakeHealth(),
+            appContext = context
+        )
+    }
 
     private fun awaitIdle(timeoutMs: Long = 10_000, condition: () -> Boolean) {
         val deadline = System.currentTimeMillis() + timeoutMs
