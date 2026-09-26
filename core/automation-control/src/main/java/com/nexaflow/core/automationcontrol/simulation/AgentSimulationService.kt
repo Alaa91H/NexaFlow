@@ -15,7 +15,7 @@ import kotlinx.serialization.Serializable
 data class AgentSimulationScheduleOptionsV1(
     val fromEpochMillis: Long,
     val count: Int = AgentSchedulePreviewRequestV1.DEFAULT_PREVIEW_COUNT,
-    val zonePolicy: AgentScheduleZonePolicyV1 = AgentScheduleZonePolicyV1.DEVICE_LOCAL,
+    val zonePolicy: AgentScheduleZonePolicyV1 = AgentScheduleZonePolicyV1.TASK_CONFIG,
     val fixedZoneId: String? = null
 )
 
