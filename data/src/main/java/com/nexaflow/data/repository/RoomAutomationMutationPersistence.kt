@@ -35,12 +35,20 @@ class RoomAutomationMutationPersistence(
     private val automationDao: AutomationDao,
     private val agentPlatformDao: AgentPlatformDao,
     private val auditIdGenerator: () -> String = { UUID.randomUUID().toString() },
-    private val idempotencyRetentionMs: Long = DEFAULT_IDEMPOTENCY_RETENTION_MS
+    private val idempotencyRetentionMs: Long = DEFAULT_IDEMPOTENCY_RETENTION_MS,
+    private val auditRetentionMs: Long = DEFAULT_AUDIT_RETENTION_MS,
+    private val maxAuditRows: Int = DEFAULT_MAX_AUDIT_ROWS
 ) : AutomationMutationPersistence {
 
     init {
         require(idempotencyRetentionMs > 0L) {
             "Idempotency retention must be positive"
+        }
+        require(auditRetentionMs > 0L) {
+            "Audit retention must be positive"
+        }
+        require(maxAuditRows > 0) {
+            "Audit row limit must be positive"
         }
     }
 
@@ -48,8 +56,7 @@ class RoomAutomationMutationPersistence(
         request: AutomationMutationCommitRequest
     ): AutomationPersistenceResult = database.withTransaction {
         validateContext(request)
-        agentPlatformDao.pruneExpiredIdempotency(request.occurredAt)
-
+        pruneRetention(request.occurredAt)
         resolveIdempotency(request)?.let { return@withTransaction it }
 
         when (request.kind) {
@@ -69,7 +76,7 @@ class RoomAutomationMutationPersistence(
         occurredAt: Long
     ): AutomationPersistenceResult? = database.withTransaction {
         validateIdempotencyContext(context)
-        agentPlatformDao.pruneExpiredIdempotency(occurredAt)
+        pruneRetention(occurredAt)
         val rawKey = context.idempotencyKey ?: return@withTransaction null
         val existing = agentPlatformDao.getIdempotency(
             actorId = context.actorId,
@@ -352,6 +359,13 @@ class RoomAutomationMutationPersistence(
         )
     }
 
+    private suspend fun pruneRetention(now: Long) {
+        agentPlatformDao.pruneExpiredIdempotency(now)
+        val cutoff = (now - auditRetentionMs).coerceAtLeast(0L)
+        agentPlatformDao.pruneAuditBefore(cutoff)
+        agentPlatformDao.pruneAuditToNewest(maxAuditRows)
+    }
+
     private suspend fun currentRevision(entity: AutomationEntity): Long {
         val metadata = agentPlatformDao.getAutomationMetadata(entity.id)
             ?: return INITIAL_REVISION
@@ -486,6 +500,8 @@ class RoomAutomationMutationPersistence(
     private companion object {
         const val INITIAL_REVISION = 1L
         const val DEFAULT_IDEMPOTENCY_RETENTION_MS = 7L * 24L * 60L * 60L * 1000L
+        const val DEFAULT_AUDIT_RETENTION_MS = 90L * 24L * 60L * 60L * 1000L
+        const val DEFAULT_MAX_AUDIT_ROWS = 10_000
         const val MAX_IDEMPOTENCY_KEY_LENGTH = 256
         const val MAX_METADATA_VALUE_LENGTH = 256
         const val MAX_AUDIT_DETAILS_LENGTH = 2_048
