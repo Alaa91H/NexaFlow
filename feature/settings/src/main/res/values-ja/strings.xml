@@ -241,4 +241,38 @@
     <string name="blocked_calls_title">ブロックした着信</string>
     <string name="blocked_calls_empty">ブロックした着信はまだありません</string>
     <string name="blocked_calls_filter_all">すべてのルール</string>
+
+    <!-- AI & agent management -->
+    <string name="ai_agents_title">AI とエージェント</string>
+    <string name="ai_agents_subtitle">永続アクセス、ペアリング、エージェント活動</string>
+    <string name="agent_access_title">AI エージェントアクセス</string>
+    <string name="agent_access_on">完全な永続アクセスが有効です</string>
+    <string name="agent_access_off">無効 — エージェントは接続も操作もできません</string>
+    <string name="agent_gateway_title">ローカルエージェントゲートウェイ</string>
+    <string name="agent_gateway_running">127.0.0.1:%1$d で実行中</string>
+    <string name="agent_gateway_stopped">停止中</string>
+    <string name="agent_gateway_rest">REST API · /api/v1</string>
+    <string name="agent_gateway_mcp">MCP プロトコル · /mcp</string>
+    <string name="agent_add_title">エージェントを追加</string>
+    <string name="agent_name_label">エージェント名</string>
+    <string name="agent_name_hint">例: 自分のノートPC</string>
+    <string name="agent_generate_pairing">ペアリングコードを生成</string>
+    <string name="agent_pairing_payload">1回限りのペアリングデータ</string>
+    <string name="agent_pairing_help">信頼するエージェントだけに渡してください。5分で期限切れになります。</string>
+    <string name="agent_copy_payload">データをコピー</string>
+    <string name="agent_payload_copied">ペアリングデータをコピーしました</string>
+    <string name="agent_expires_at">有効期限: %1$s</string>
+    <string name="agent_trusted_title">信頼済みエージェント</string>
+    <string name="agent_none">ペアリング済みエージェントはありません</string>
+    <string name="agent_full_access">完全な永続アクセス</string>
+    <string name="agent_active_sessions">アクティブなセッション %1$d 件</string>
+    <string name="agent_revoke">取り消す</string>
+    <string name="agent_revoke_all">すべて取り消す</string>
+    <string name="agent_revoke_all_title">すべてのエージェントを取り消しますか？</string>
+    <string name="agent_revoke_all_message">すべてのエージェント資格情報とセッションが無効になります。既存の自動化は残ります。</string>
+    <string name="agent_activity_title">エージェント活動</string>
+    <string name="agent_activity_empty">エージェント活動はまだありません</string>
+    <string name="agent_refresh">更新</string>
+    <string name="agent_operation_failed">エージェント操作を完了できませんでした</string>
+    <string name="agent_pending_pairings">保留中のペアリング要求 %1$d 件</string>
 </resources>
