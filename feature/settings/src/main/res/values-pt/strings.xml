@@ -241,4 +241,38 @@
     <string name="blocked_calls_title">Chamadas bloqueadas</string>
     <string name="blocked_calls_empty">Ainda não há chamadas bloqueadas</string>
     <string name="blocked_calls_filter_all">Todas as regras</string>
+
+    <!-- AI & agent management -->
+    <string name="ai_agents_title">IA e agentes</string>
+    <string name="ai_agents_subtitle">Acesso permanente, emparelhamento e atividade dos agentes</string>
+    <string name="agent_access_title">Acesso de agentes de IA</string>
+    <string name="agent_access_on">O acesso permanente completo está ativado</string>
+    <string name="agent_access_off">Desativado — os agentes não podem ligar-se nem agir</string>
+    <string name="agent_gateway_title">Gateway local de agentes</string>
+    <string name="agent_gateway_running">Em execução em 127.0.0.1:%1$d</string>
+    <string name="agent_gateway_stopped">Não está em execução</string>
+    <string name="agent_gateway_rest">API REST · /api/v1</string>
+    <string name="agent_gateway_mcp">Protocolo MCP · /mcp</string>
+    <string name="agent_add_title">Adicionar agente</string>
+    <string name="agent_name_label">Nome do agente</string>
+    <string name="agent_name_hint">Exemplo: Meu portátil</string>
+    <string name="agent_generate_pairing">Gerar código de emparelhamento</string>
+    <string name="agent_pairing_payload">Dados de emparelhamento de utilização única</string>
+    <string name="agent_pairing_help">Partilhe estes dados apenas com o agente em que pretende confiar. Expiram em 5 minutos.</string>
+    <string name="agent_copy_payload">Copiar dados</string>
+    <string name="agent_payload_copied">Dados de emparelhamento copiados</string>
+    <string name="agent_expires_at">Expira às %1$s</string>
+    <string name="agent_trusted_title">Agentes de confiança</string>
+    <string name="agent_none">Não há agentes emparelhados</string>
+    <string name="agent_full_access">Acesso permanente completo</string>
+    <string name="agent_active_sessions">%1$d sessão(ões) ativa(s)</string>
+    <string name="agent_revoke">Revogar</string>
+    <string name="agent_revoke_all">Revogar todos</string>
+    <string name="agent_revoke_all_title">Revogar todos os agentes?</string>
+    <string name="agent_revoke_all_message">Todas as credenciais e sessões dos agentes deixarão de funcionar. As automações existentes permanecerão.</string>
+    <string name="agent_activity_title">Atividade dos agentes</string>
+    <string name="agent_activity_empty">Ainda não há atividade de agentes</string>
+    <string name="agent_refresh">Atualizar</string>
+    <string name="agent_operation_failed">Não foi possível concluir a operação do agente</string>
+    <string name="agent_pending_pairings">%1$d pedido(s) de emparelhamento pendente(s)</string>
 </resources>
