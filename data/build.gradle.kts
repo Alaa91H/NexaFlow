@@ -35,6 +35,7 @@ kotlin {
 dependencies {
     implementation(libs.androidx.core.core.ktx)
     implementation(libs.androidx.paging.paging.common)
+    implementation(libs.androidx.room.room.ktx)
     implementation(libs.javax.inject.javax.inject)
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
     // kotlinx.serialization JSON runtime for BackupManager + execution records.
@@ -43,9 +44,12 @@ dependencies {
     implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
     implementation(project(":domain"))
     implementation(project(":core:database"))
+    implementation(project(":core:automation-control"))
     implementation(project(":core:datastore"))
     implementation(project(":core:security"))
     implementation(project(":core:plugin-sdk"))
     testImplementation(libs.junit.junit)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.org.robolectric.robolectric)
     testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test)
 }
