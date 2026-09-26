@@ -73,6 +73,32 @@ class AutomationCommandServiceTest {
     }
 
     @Test
+    fun deleteRetryCanReplayAfterDefinitionWasAlreadyRemoved() = runTest {
+        val existing = automation(updatedAt = 50L)
+        val repository = FakeAutomationRepository(listOf(existing))
+        val persistence = RecordingPersistence(repository)
+        val service = service(repository, persistence)
+        val context = agentContext(expectedRevision = 1L, idempotencyKey = "delete-1")
+
+        val first = service.delete(existing.id, context)
+        assertTrue(first is AutomationMutationResult.Success)
+        assertTrue(repository.current().isEmpty())
+
+        persistence.storedReplay = AutomationPersistenceResult.IdempotentReplay(
+            automationId = existing.id,
+            revision = 2L
+        )
+        val replay = service.delete(existing.id, context)
+
+        assertEquals(
+            AutomationMutationResult.IdempotentReplay(existing.id, 2L),
+            replay
+        )
+        assertEquals(1, persistence.commitCount)
+        assertEquals(1, persistence.resolveCount)
+    }
+
+    @Test
     fun idempotentReplayIsReturnedWithoutSecondDefinitionWrite() = runTest {
         val repository = FakeAutomationRepository()
         val persistence = RecordingPersistence(
@@ -147,6 +173,9 @@ class AutomationCommandServiceTest {
         private val repository: FakeAutomationRepository,
         private val forcedResult: AutomationPersistenceResult? = null
     ) : AutomationMutationPersistence {
+        var storedReplay: AutomationPersistenceResult? = null
+        var resolveCount: Int = 0
+            private set
         var commitCount: Int = 0
             private set
         var lastRequest: AutomationMutationCommitRequest? = null
@@ -175,6 +204,17 @@ class AutomationCommandServiceTest {
                     )
                 }
             }
+        }
+
+        override suspend fun resolveStoredIdempotency(
+            context: AutomationMutationContext,
+            kind: AutomationMutationKind,
+            automationId: String?,
+            requestFingerprint: String,
+            occurredAt: Long
+        ): AutomationPersistenceResult? {
+            resolveCount += 1
+            return storedReplay
         }
     }
 
