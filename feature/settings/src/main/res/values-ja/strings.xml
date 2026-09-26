@@ -251,7 +251,7 @@
     <string name="agent_gateway_title">ローカルエージェントゲートウェイ</string>
     <string name="agent_gateway_running">127.0.0.1:%1$d で実行中</string>
     <string name="agent_gateway_stopped">停止中</string>
-    <string name="agent_gateway_rest">REST API · /api/v1</string>
+    <string name="agent_gateway_rest">REST API エンドポイント · /api/v1</string>
     <string name="agent_gateway_mcp">MCP プロトコル · /mcp</string>
     <string name="agent_add_title">エージェントを追加</string>
     <string name="agent_name_label">エージェント名</string>
