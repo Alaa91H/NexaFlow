@@ -1,15 +1,18 @@
 package com.nexaflow.core.engine
 
 import android.content.Context
-import android.provider.Settings
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -17,25 +20,37 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 /**
- * Exit-reliability contracts for the two remaining untested state monitors
- * (airplane mode and dark mode), mirroring the RingerModeMonitor contract:
- * a task triggered before a restart must fire its exit when the condition
- * ends, the missed exit fires on the first reconcile after start when the
- * condition already ended during downtime, and a stale mark for a disabled
- * task is pruned without firing a stale exit.
+ * Deterministic restart/exit contracts for the AIRPLANE_MODE and DARK_MODE
+ * stateful monitors. Platform receiver registration is intentionally outside
+ * these tests; [reconcileState] is the lifecycle boundary that both callbacks
+ * and startup reconciliation execute.
  */
 @RunWith(RobolectricTestRunner::class)
 class AirplaneDarkMonitorExitReconcileTest {
 
     private lateinit var context: Context
+    private lateinit var activeStore: ActiveTriggerStore
+    private lateinit var runtimeStore: AutomationRuntimeStore
+
+    private val ids = listOf(
+        "air-task",
+        "air-disabled",
+        "dark-task",
+        "dark-disabled"
+    )
 
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
+        activeStore = ActiveTriggerStore(context)
+        runtimeStore = AutomationRuntimeStore(context)
         runBlocking {
-            ActiveTriggerStore(context).clearSource("airplane")
-            ActiveTriggerStore(context).clearSource("dark")
-            Settings.Global.putInt(context.contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0)
+            activeStore.clearSource("airplane")
+            activeStore.clearSource("dark-mode")
+            ids.forEach {
+                runtimeStore.clear(it)
+                ActiveExecutionStore(context).clear(it)
+            }
         }
     }
 
@@ -49,122 +64,129 @@ class AirplaneDarkMonitorExitReconcileTest {
         triggers = listOf(Trigger(TriggerType.DARK_MODE, mapOf("state" to wantOn)))
     )
 
-    private fun airplaneMonitor(repository: FakeRepository): AirplaneModeMonitor =
-        AirplaneModeMonitor(
-            context = context,
-            repository = repository,
-            executionEngine = testEngine(context, RecordingHistory()),
-            activeStore = ActiveTriggerStore(context),
-            scope = CoroutineScope(Dispatchers.Default)
-        )
-
-    private fun darkMonitor(repository: FakeRepository): DarkModeMonitor =
-        DarkModeMonitor(
-            context = context,
-            repository = repository,
-            executionEngine = testEngine(context, RecordingHistory()),
-            activeStore = ActiveTriggerStore(context),
-            scope = CoroutineScope(Dispatchers.Default)
-        )
-
-    @Test
-    fun `airplane restart with condition already ended fires the missed exit on init`() = runBlocking {
-        val history = RecordingHistory()
+    private fun airplaneMonitor(
+        repository: FakeRepository,
+        history: RecordingHistory
+    ): AirplaneModeMonitor {
         val engine = testEngine(context, history)
-        val repository = FakeRepository(listOf(airplaneAutomation("air-task")))
-        val store = ActiveTriggerStore(context)
-        // The task fired in airplane mode, then the process died. The mode is
-        // already OFF again, so the missed exit must fire on first reconcile.
-        store.markActive("airplane", "air-task")
-        ActiveExecutionStore(context).markStarted("air-task")
-        Settings.Global.putInt(context.contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0)
-
-        val monitor = AirplaneModeMonitor(
+        return AirplaneModeMonitor(
             context = context,
             repository = repository,
             executionEngine = engine,
-            activeStore = store,
+            activeStore = activeStore,
+            runtimeStore = runtimeStore,
+            exitCoordinator = ExitCoordinator(runtimeStore, engine, repository, history),
             scope = CoroutineScope(Dispatchers.Default)
         )
-        monitor.initialize()
+    }
 
-        waitUntil { history.exits.any { it == EXIT_NOOP_MARKER } }
-        waitUntil { store.activeKeys("airplane").isEmpty() }
-        monitor.stop()
+    private fun darkMonitor(
+        repository: FakeRepository,
+        history: RecordingHistory
+    ): DarkModeMonitor {
+        val engine = testEngine(context, history)
+        return DarkModeMonitor(
+            context = context,
+            repository = repository,
+            executionEngine = engine,
+            activeStore = activeStore,
+            runtimeStore = runtimeStore,
+            exitCoordinator = ExitCoordinator(runtimeStore, engine, repository, history),
+            scope = CoroutineScope(Dispatchers.Default)
+        )
     }
 
     @Test
-    fun `airplane restart while condition still holds keeps the task active`() = runBlocking {
+    fun `airplane legacy marker is promoted before an opposite state can exit it`() = runBlocking {
+        val task = airplaneAutomation("air-task")
         val history = RecordingHistory()
-        val repository = FakeRepository(listOf(airplaneAutomation("air-task")))
-        val store = ActiveTriggerStore(context)
-        store.markActive("airplane", "air-task")
-        Settings.Global.putInt(context.contentResolver, Settings.Global.AIRPLANE_MODE_ON, 1)
+        val monitor = airplaneMonitor(FakeRepository(listOf(task)), history)
+        activeStore.markActive("airplane", task.id)
 
-        val monitor = AirplaneModeMonitor(
-            context = context,
-            repository = repository,
-            executionEngine = engine(context, history),
-            activeStore = store,
-            scope = CoroutineScope(Dispatchers.Default)
-        )
-        monitor.initialize()
+        monitor.reconcileState(on = false)
 
-        Thread.sleep(300)
-        assertTrue(
-            "no exit while airplane mode still matches",
-            history.exits.none { it == EXIT_NOOP_MARKER }
-        )
-        assertTrue("active mark survives while the mode matches", store.activeKeys("airplane").isNotEmpty())
-        monitor.stop()
+        assertNull(runtimeStore.current(task.id))
+        assertTrue(activeStore.activeKeys("airplane").none { it.startsWith(task.id) })
+        assertEquals(1, history.exits.count { it == EXIT_NOOP_MARKER })
     }
 
     @Test
-    fun `airplane stale mark for a disabled automation is pruned without a stale exit`() = runBlocking {
+    fun `airplane matching state activates once and remains durable`() = runBlocking {
+        val task = airplaneAutomation("air-task")
         val history = RecordingHistory()
-        val repository = FakeRepository(listOf(airplaneAutomation("air-task").copy(enabled = false)))
-        val store = ActiveTriggerStore(context)
-        store.markActive("airplane", "air-task")
-        Settings.Global.putInt(context.contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0)
+        val monitor = airplaneMonitor(FakeRepository(listOf(task)), history)
 
-        val monitor = AirplaneModeMonitor(
-            context = context,
-            repository = repository,
-            executionEngine = testEngine(context, history),
-            activeStore = store,
-            scope = CoroutineScope(Dispatchers.Default)
-        )
-        monitor.initialize()
+        monitor.reconcileState(on = true)
+        val first = runtimeStore.current(task.id)
+        monitor.reconcileState(on = true)
+        val second = runtimeStore.current(task.id)
 
-        waitUntil { store.activeKeys("airplane").isEmpty() }
-        assertTrue("disabled task must not fire a stale exit", history.exits.none { it == EXIT_NOOP_MARKER })
-        monitor.stop()
+        assertEquals(AutomationRuntimeLifecycleState.ACTIVE, second?.lifecycleState)
+        assertEquals(first?.occurrenceId, second?.occurrenceId)
+        assertTrue(activeStore.activeKeys("airplane").any { it.startsWith(task.id) })
+        assertTrue(history.exits.none { it == EXIT_NOOP_MARKER })
     }
 
     @Test
-    fun `dark mode monitor initializes and reconciles without throwing`() = runBlocking {
+    fun `disabled airplane occurrence exits before compatibility state clears`() = runBlocking {
+        val task = airplaneAutomation("air-disabled").copy(enabled = false)
         val history = RecordingHistory()
-        val repository = FakeRepository(listOf(darkAutomation("dark-task")))
-        val store = ActiveTriggerStore(context)
+        val monitor = airplaneMonitor(FakeRepository(listOf(task)), history)
+        activeStore.markActive("airplane", task.id)
 
-        val monitor = DarkModeMonitor(
-            context = context,
-            repository = repository,
-            executionEngine = testEngine(context, history),
-            activeStore = store,
-            scope = CoroutineScope(Dispatchers.Default)
+        monitor.reconcileState(on = true)
+
+        assertNull(runtimeStore.current(task.id))
+        assertTrue(activeStore.activeKeys("airplane").none { it.startsWith(task.id) })
+        assertEquals(1, history.exits.count { it == EXIT_NOOP_MARKER })
+    }
+
+    @Test
+    fun `dark mode activation and opposite state use one durable occurrence`() = runBlocking {
+        val task = darkAutomation("dark-task")
+        val history = RecordingHistory()
+        val monitor = darkMonitor(FakeRepository(listOf(task)), history)
+
+        monitor.reconcileState(dark = true)
+        val active = runtimeStore.current(task.id)
+        assertEquals(AutomationRuntimeLifecycleState.ACTIVE, active?.lifecycleState)
+        assertTrue(activeStore.activeKeys("dark-mode").any { it.startsWith(task.id) })
+
+        monitor.reconcileState(dark = false)
+
+        assertNull(runtimeStore.current(task.id))
+        assertTrue(activeStore.activeKeys("dark-mode").none { it.startsWith(task.id) })
+        assertEquals(1, history.exits.count { it == EXIT_NOOP_MARKER })
+    }
+
+    @Test
+    fun `dark mode legacy marker survives restart while condition still matches`() = runBlocking {
+        val task = darkAutomation("dark-task")
+        val history = RecordingHistory()
+        val monitor = darkMonitor(FakeRepository(listOf(task)), history)
+        activeStore.markActive("dark-mode", task.id)
+
+        monitor.reconcileState(dark = true)
+
+        assertEquals(
+            AutomationRuntimeLifecycleState.ACTIVE,
+            runtimeStore.current(task.id)?.lifecycleState
         )
-        monitor.initialize()
-        Thread.sleep(300)
-        monitor.stop()
-        // Robolectric reports the UiModeManager state without a real theme
-        // transition; the contract under test is that the full lifecycle
-        // (initialize → reconcile → stop) is exception-free and leaves no
-        // active marks for a task whose condition never held.
-        assertTrue("no exit may fire for a condition that never held", history.exits.isEmpty())
-        assertTrue(store.activeKeys("dark").isEmpty())
+        assertTrue(activeStore.activeKeys("dark-mode").any { it.startsWith(task.id) })
+        assertTrue(history.exits.none { it == EXIT_NOOP_MARKER })
+    }
+
+    @Test
+    fun `disabled dark mode occurrence exits through coordinator`() = runBlocking {
+        val task = darkAutomation("dark-disabled").copy(enabled = false)
+        val history = RecordingHistory()
+        val monitor = darkMonitor(FakeRepository(listOf(task)), history)
+        activeStore.markActive("dark-mode", task.id)
+
+        monitor.reconcileState(dark = true)
+
+        assertNull(runtimeStore.current(task.id))
+        assertTrue(activeStore.activeKeys("dark-mode").none { it.startsWith(task.id) })
+        assertEquals(1, history.exits.count { it == EXIT_NOOP_MARKER })
     }
 }
-
-/** Local alias so both engine test styles compile in one file. */
-private fun engine(context: Context, history: RecordingHistory) = testEngine(context, history)
