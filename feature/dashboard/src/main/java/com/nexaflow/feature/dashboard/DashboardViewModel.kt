@@ -3,6 +3,7 @@ package com.nexaflow.feature.dashboard
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nexaflow.core.engine.ExitCoordinator
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.ManualBlockReason
 import com.nexaflow.core.execution.ManualBlockKind
@@ -34,6 +35,7 @@ import javax.inject.Inject
 class DashboardViewModel @Inject constructor(
     private val automationRepository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
+    private val exitCoordinator: ExitCoordinator,
     historyRepository: HistoryRepository,
     healthRepository: HealthRepository,
     @ApplicationContext private val appContext: Context
@@ -143,25 +145,29 @@ class DashboardViewModel @Inject constructor(
     fun deleteAutomation(automation: Automation) {
         viewModelScope.launch {
             try {
+                // Keep the immutable definition available until every owned
+                // stateful exit and durable execution checkpoint is terminal.
+                // Deleting first would strand recovery without the actions
+                // needed to verify/compensate it.
+                if (!exitCoordinator.prepareForDeletion(automation)) {
+                    _executionMessage.value =
+                        appContext.getString(R.string.task_delete_failed, automation.name)
+                    return@launch
+                }
+
                 automationRepository.deleteAutomation(automation)
-                // The row is gone: no monitor can ever resolve this id again, so
-                // the engine ledger is unreachable. Cleanup is therefore
-                // best-effort — a storage failure must not turn a successful
-                // delete into a failure report.
                 try {
                     executionEngine.onAutomationDeleted(automation.id)
                 } catch (cancellation: CancellationException) {
                     throw cancellation
                 } catch (_: Exception) {
-                    // Best-effort; the durable marker is inert once the row is gone.
+                    // Repository deletion succeeded and no unresolved runtime
+                    // work existed; remaining local cleanup is best-effort.
                 }
                 _executionMessage.value = appContext.getString(R.string.task_deleted, automation.name)
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Exception) {
-                // Room rolls the delete back on failure, so the task still exists
-                // and its engine state must stay intact. Surface the failure
-                // instead of crashing the app.
                 _executionMessage.value = appContext.getString(R.string.task_delete_failed, automation.name)
             }
         }
