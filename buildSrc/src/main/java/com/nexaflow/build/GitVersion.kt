@@ -11,9 +11,11 @@ import org.gradle.api.Project
  *   - No tags exist       → fallback `0.0.1-<hash>`
  *
  * **versionCode** – monotonically increasing integer for semantic release lines:
- *   - Major×100000000 + Minor×100000 + Patch×100 + distanceSinceTag
- *   - Supports major 0..20, minor/patch 0..999, and 0..99 commits after a tag
- *   - Unsupported ranges fail loudly instead of silently colliding
+ *   - Major×100000000 + Minor×100000 + Patch×100 + snapshotDistance
+ *   - Supports major 0..20 and minor/patch 0..999.
+ *   - Untagged snapshot distance is saturated at 99. The full Git distance
+ *     remains in versionName, while versionCode stays below the next patch.
+ *   - Semantic component ranges still fail loudly instead of colliding
  *   - No tags exist → `1`
  */
 data class GitVersionInfo(val versionName: String, val versionCode: Int)
@@ -68,18 +70,21 @@ fun encodeVersionCode(
     require(major in 0..20) { "major version must be between 0 and 20" }
     require(minor in 0..999) { "minor version must be between 0 and 999" }
     require(patch in 0..999) { "patch version must be between 0 and 999" }
-    require(distanceSinceTag in 0..99) {
-        "more than 99 commits since the nearest release tag; create a new semantic release tag"
+    require(distanceSinceTag >= 0) {
+        "distance since tag must not be negative"
     }
+    val snapshotDistance = distanceSinceTag.coerceAtMost(MAX_SNAPSHOT_DISTANCE)
 
     val code =
         major * 100_000_000 +
             minor * 100_000 +
             patch * 100 +
-            distanceSinceTag
+            snapshotDistance
     require(code in 1..2_100_000_000) { "versionCode is outside Android's supported range" }
     return code
 }
+
+private const val MAX_SNAPSHOT_DISTANCE = 99
 
 private fun Project.runGit(vararg args: String): String {
     // Gradle 9 removed `Project.exec`; `providers.exec` is the supported
