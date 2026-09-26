@@ -53,6 +53,43 @@ class ExitCoordinator(
     }
 
     /**
+     * Closes only occurrences whose persisted automation is now disabled.
+     *
+     * UI callers update Room first and then broadcast ACTION_AUTOMATIONS_CHANGED.
+     * This central sweep lets the durable owner claim the exit exactly once;
+     * feature ViewModels must never call ExecutionEngine.runExit directly for a
+     * stateful occurrence because that bypasses the ACTIVE -> EXITING claim.
+     *
+     * Missing definitions and failed/uncertain exits remain visible for recovery
+     * instead of being treated as successful cleanup.
+     */
+    suspend fun reconcileDisabledAutomations(): List<ExitCoordinatorResult> =
+        runtimeStore.activeStates().mapNotNull { state ->
+            val automation = automationRepository.getAutomationById(state.automationId)
+            if (automation == null) {
+                Log.w(
+                    TAG,
+                    "Automation definition missing for ${state.automationId}; retaining disabled-reconcile evidence"
+                )
+                return@mapNotNull ExitCoordinatorResult.RecoveryRequired(state)
+            }
+            if (automation.enabled) return@mapNotNull null
+
+            when (state.lifecycleState) {
+                AutomationRuntimeLifecycleState.ACTIVE ->
+                    requestExit(
+                        automation = automation,
+                        reason = ExitReason.AUTOMATION_DISABLED,
+                        occurrenceId = state.occurrenceId
+                    )
+                AutomationRuntimeLifecycleState.EXITING ->
+                    ExitCoordinatorResult.AlreadyInProgress
+                AutomationRuntimeLifecycleState.EXIT_FAILED ->
+                    ExitCoordinatorResult.RecoveryRequired(state)
+            }
+        }
+
+    /**
      * Reconciles only provable lifecycle facts. A known elapsed expected end and
      * a previously failed exit can be resumed without evaluating the current
      * trigger; an unknown trigger state never becomes an implicit end event.
