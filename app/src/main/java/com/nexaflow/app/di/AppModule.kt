@@ -8,6 +8,9 @@ import com.nexaflow.core.database.AutomationDao
 import com.nexaflow.core.database.CorruptionRecoveryFactory
 import com.nexaflow.core.database.ExecutionDao
 import com.nexaflow.core.database.Migrations
+import com.nexaflow.core.agentsecurity.AgentAccessManager
+import com.nexaflow.core.agentsecurity.AgentSecurityStore
+import com.nexaflow.core.agentsecurity.EncryptedAgentSecurityStore
 import com.nexaflow.core.database.VariableDao
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.ActiveTriggerStore
@@ -117,6 +120,18 @@ object AppModule {
     fun provideSecureStorage(@ApplicationContext context: Context): SecureStorage {
         // Keystore AES-GCM; encrypts sensitive variable values at rest.
         return KeystoreSecureStorage(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAgentSecurityStore(secureStorage: SecureStorage): AgentSecurityStore {
+        return EncryptedAgentSecurityStore(secureStorage)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAgentAccessManager(agentSecurityStore: AgentSecurityStore): AgentAccessManager {
+        return AgentAccessManager(agentSecurityStore)
     }
 
     @Provides
