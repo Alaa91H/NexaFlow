@@ -3,6 +3,8 @@ package com.nexaflow.wear.data
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -34,5 +36,26 @@ class WearInstallIdentityTest {
 
         assertEquals(first, second)
         assertEquals(first, UUID.fromString(first).toString())
+    }
+
+    @Test
+    fun `concurrent store instances converge on one install identity`() {
+        val pool = Executors.newFixedThreadPool(8)
+        val start = CountDownLatch(1)
+        try {
+            val futures = List(32) {
+                pool.submit<String> {
+                    start.await()
+                    WearInstallIdentity(context).getOrCreateInstallId()
+                }
+            }
+            start.countDown()
+
+            val ids = futures.map { it.get() }.toSet()
+            assertEquals(1, ids.size)
+            assertEquals(ids.single(), UUID.fromString(ids.single()).toString())
+        } finally {
+            pool.shutdownNow()
+        }
     }
 }
