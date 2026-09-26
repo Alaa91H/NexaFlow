@@ -10,6 +10,7 @@ import com.nexaflow.core.execution.ManualBlockReason
 import com.nexaflow.core.execution.ManualBlockKind
 import com.nexaflow.core.execution.ManualAdmissionDiagnostics
 import com.nexaflow.core.execution.ExecutionResultPresentation
+import com.nexaflow.core.execution.RecoveryReviewItem
 import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.AutomationHealthReport
 import com.nexaflow.domain.models.AutomationHealthStatus
@@ -47,8 +48,9 @@ class AutomationDetailsViewModel @Inject constructor(
         .map { list -> list.find { it.id == automationId } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    /** Durable recovery state is kept separate from history-derived health. */
-    private val _recoveryPending = MutableStateFlow(false)
+    /** Durable recovery evidence is kept separate from history-derived health. */
+    private val _recoveryItems = MutableStateFlow<List<RecoveryReviewItem>>(emptyList())
+    val recoveryItems: StateFlow<List<RecoveryReviewItem>> = _recoveryItems
 
     /**
      * Read-only health for the routine. History provides execution counts and
@@ -57,8 +59,9 @@ class AutomationDetailsViewModel @Inject constructor(
      */
     val healthReport: StateFlow<AutomationHealthReport> = combine(
         healthRepository.getHealthReports(),
-        _recoveryPending
-    ) { reports, recoveryPending ->
+        _recoveryItems
+    ) { reports, recoveryItems ->
+        val recoveryPending = recoveryItems.isNotEmpty()
         val report = reports.find { it.automationId == automationId }
             ?: emptyHealthReport(automationId)
         report.copy(
@@ -106,9 +109,9 @@ class AutomationDetailsViewModel @Inject constructor(
 
     private fun refreshRecoveryState() {
         viewModelScope.launch {
-            _recoveryPending.value = runCatching {
-                executionEngine.recoveryBacklogCount(automationId) > 0
-            }.getOrDefault(false)
+            _recoveryItems.value = runCatching {
+                executionEngine.recoveryReviewItems(automationId)
+            }.getOrDefault(emptyList())
         }
     }
 
@@ -228,7 +231,7 @@ class AutomationDetailsViewModel @Inject constructor(
     fun clearRecoveryBacklog() {
         viewModelScope.launch {
             val cleared = executionEngine.clearRecoveryBacklog(automationId)
-            _recoveryPending.value = executionEngine.recoveryBacklogCount(automationId) > 0
+            _recoveryItems.value = executionEngine.recoveryReviewItems(automationId)
             _executionMessage.value = appContext.getString(
                 R.string.recovery_backlog_cleared,
                 cleared
