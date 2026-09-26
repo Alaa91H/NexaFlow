@@ -49,6 +49,16 @@ interface AutomationDao {
     @Delete
     suspend fun deleteAutomation(automation: AutomationEntity)
 
+    /**
+     * Deletes only the exact revision observed by an optimistic-concurrency
+     * caller. SQLite evaluates the predicate and delete atomically.
+     */
+    @Query("DELETE FROM automations WHERE id = :id AND updatedAt = :expectedRevision")
+    suspend fun deleteAutomationIfRevisionMatches(
+        id: String,
+        expectedRevision: Long
+    ): Int
+
     @Query("UPDATE automations SET enabled = :enabled WHERE id = :id")
     suspend fun updateAutomationStatus(id: String, enabled: Boolean)
 }
