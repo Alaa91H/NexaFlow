@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nexaflow.core.execution.AutomationExecutionProgress
+import com.nexaflow.core.engine.ExitCoordinator
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.ManualBlockReason
 import com.nexaflow.core.execution.ManualBlockKind
@@ -38,6 +39,7 @@ class AutomationDetailsViewModel @Inject constructor(
     private val healthRepository: HealthRepository,
     private val historyRepository: HistoryRepository,
     private val executionEngine: ExecutionEngine,
+    private val exitCoordinator: ExitCoordinator,
     savedStateHandle: SavedStateHandle,
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
@@ -172,25 +174,25 @@ class AutomationDetailsViewModel @Inject constructor(
         _deleting.value = true
         viewModelScope.launch {
             try {
-                repository.getAutomationById(automationId)?.let { repository.deleteAutomation(it) }
-                // The row is gone: no monitor can ever resolve this id again, so
-                // the engine ledger is unreachable. Cleanup is therefore
-                // best-effort — a storage failure must not strand the user on a
-                // screen for a task that no longer exists.
+                val current = repository.getAutomationById(automationId)
+                if (current != null && !exitCoordinator.prepareForDeletion(current)) {
+                    _executionMessage.value = appContext.getString(R.string.task_delete_failed)
+                    return@launch
+                }
+
+                current?.let { repository.deleteAutomation(it) }
                 try {
                     executionEngine.onAutomationDeleted(automationId)
                 } catch (cancellation: CancellationException) {
                     throw cancellation
                 } catch (_: Exception) {
-                    // Best-effort; the durable marker is inert once the row is gone.
+                    // No unresolved runtime work remained when deletion was
+                    // admitted; residual process-local cleanup is best-effort.
                 }
                 onDeleted()
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Exception) {
-                // Room rolls the delete back on failure, so the task still exists
-                // and its engine state must stay intact. Surface the failure
-                // instead of crashing the app.
                 _executionMessage.value = appContext.getString(R.string.task_delete_failed)
             } finally {
                 _deleting.value = false
