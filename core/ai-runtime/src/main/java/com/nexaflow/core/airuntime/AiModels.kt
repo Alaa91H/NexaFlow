@@ -1,5 +1,6 @@
 package com.nexaflow.core.airuntime
 
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 
 enum class AiRole {
@@ -32,7 +33,7 @@ data class AiToolCall(
 data class AiToolResult(
     val callId: String,
     val toolName: String,
-    val output: JsonObject,
+    val output: JsonElement,
     val isError: Boolean = false
 )
 

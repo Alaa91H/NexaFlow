@@ -23,6 +23,7 @@ interface AgentMcpToolExecutor {
 
 class AgentMcpRestToolExecutor(
     private val restController: AgentApiController,
+    private val trustedPrincipal: AgentTrustedPrincipal? = null,
     private val json: Json = Json {
         ignoreUnknownKeys = false
         explicitNulls = false
@@ -216,9 +217,10 @@ class AgentMcpRestToolExecutor(
             if (bytes.isNotEmpty()) put("content-type", "application/json")
             putAll(extraHeaders)
         }
-        return restController.handle(
-            AgentHttpRequest(method, target, headers, bytes)
-        )
+        val forwarded = AgentHttpRequest(method, target, headers, bytes)
+        return trustedPrincipal?.let { principal ->
+            restController.handleTrusted(forwarded, principal)
+        } ?: restController.handle(forwarded)
     }
 
     private fun mutationBody(arguments: JsonObject) = buildJsonObject {

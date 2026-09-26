@@ -80,7 +80,42 @@ class AgentApiController(
                 request = request,
                 uri = uri,
                 path = path,
-                agentId = checkNotNull(principal.agentId)
+                agentId = checkNotNull(principal.agentId),
+                transport = TRANSPORT
+            )
+        } catch (_: SerializationException) {
+            error(400, "invalid_json", "Request JSON does not match the API schema")
+        } catch (_: IllegalArgumentException) {
+            error(400, "invalid_request", "Request is invalid")
+        }
+    }
+
+    /**
+     * In-process entry point for app-owned AI surfaces.
+     *
+     * It intentionally skips bearer/session authentication because the caller
+     * is already inside the application process, but it reuses the exact same
+     * route, validation, idempotency, lifecycle and mutation pipeline.
+     */
+    suspend fun handleTrusted(
+        request: AgentHttpRequest,
+        principal: AgentTrustedPrincipal
+    ): AgentHttpResponse {
+        require(principal.agentId.isNotBlank())
+        require(principal.transport.isNotBlank())
+        val uri = runCatching { URI(request.target) }.getOrNull()
+            ?: return error(400, "invalid_target", "Request target is invalid")
+        val path = uri.path ?: "/"
+        operationFor(request.method, path)
+            ?: return error(404, "not_found", "API route was not found")
+
+        return try {
+            dispatch(
+                request = request,
+                uri = uri,
+                path = path,
+                agentId = principal.agentId,
+                transport = principal.transport
             )
         } catch (_: SerializationException) {
             error(400, "invalid_json", "Request JSON does not match the API schema")
@@ -93,7 +128,8 @@ class AgentApiController(
         request: AgentHttpRequest,
         uri: URI,
         path: String,
-        agentId: String
+        agentId: String,
+        transport: String
     ): AgentHttpResponse {
         val taskId = taskId(path)
         return when {
@@ -118,22 +154,22 @@ class AgentApiController(
             request.method == "GET" && taskId != null && path == "/api/v1/tasks/$taskId" ->
                 getTask(taskId)
             request.method == "POST" && path == "/api/v1/tasks" ->
-                createTask(request, agentId)
+                createTask(request, agentId, transport)
             request.method in setOf("PATCH", "PUT") &&
                 taskId != null && path == "/api/v1/tasks/$taskId" ->
-                updateTask(taskId, request, agentId)
+                updateTask(taskId, request, agentId, transport)
             request.method == "DELETE" &&
                 taskId != null && path == "/api/v1/tasks/$taskId" ->
-                deleteTask(taskId, request, agentId)
+                deleteTask(taskId, request, agentId, transport)
             request.method == "POST" && taskId != null &&
                 path == "/api/v1/tasks/$taskId/enable" ->
-                setEnabled(taskId, true, request, agentId)
+                setEnabled(taskId, true, request, agentId, transport)
             request.method == "POST" && taskId != null &&
                 path == "/api/v1/tasks/$taskId/disable" ->
-                setEnabled(taskId, false, request, agentId)
+                setEnabled(taskId, false, request, agentId, transport)
             request.method == "POST" && taskId != null &&
                 path == "/api/v1/tasks/$taskId/run" ->
-                runTask(taskId, request, agentId)
+                runTask(taskId, request, agentId, transport)
             request.method == "POST" && path == "/api/v1/validate" ->
                 validate(request)
             request.method == "POST" && path == "/api/v1/simulate" ->
@@ -298,13 +334,14 @@ class AgentApiController(
 
     private suspend fun createTask(
         request: AgentHttpRequest,
-        agentId: String
+        agentId: String,
+        transport: String
     ): AgentHttpResponse {
         val idempotency = requiredIdempotency(request) ?: return missingIdempotency()
         val body = decode<AgentApiTaskMutationRequestV1>(request)
         val result = commandService.create(
             body.task,
-            body.context(agentId, idempotency, expectedRevision = null)
+            body.context(agentId, idempotency, expectedRevision = null, transport = transport)
         )
         val lifecycleWarning = if (result is AutomationMutationResult.Success &&
             result.automation.enabled
@@ -323,7 +360,8 @@ class AgentApiController(
     private suspend fun updateTask(
         id: String,
         request: AgentHttpRequest,
-        agentId: String
+        agentId: String,
+        transport: String
     ): AgentHttpResponse {
         val idempotency = requiredIdempotency(request) ?: return missingIdempotency()
         val revision = requiredRevision(request) ?: return missingRevision()
@@ -332,7 +370,7 @@ class AgentApiController(
         val result = commandService.update(
             id,
             body.task,
-            body.context(agentId, idempotency, revision)
+            body.context(agentId, idempotency, revision, transport)
         )
         val lifecycleWarning = if (result is AutomationMutationResult.Success) {
             lifecycleTransitionWarning(previous, result.automation)
@@ -348,7 +386,8 @@ class AgentApiController(
     private suspend fun deleteTask(
         id: String,
         request: AgentHttpRequest,
-        agentId: String
+        agentId: String,
+        transport: String
     ): AgentHttpResponse {
         val idempotency = requiredIdempotency(request) ?: return missingIdempotency()
         val revision = requiredRevision(request) ?: return missingRevision()
@@ -378,7 +417,7 @@ class AgentApiController(
                 agentId = agentId,
                 expectedRevision = revision,
                 requireExecutable = false,
-                transport = TRANSPORT,
+                transport = transport,
                 requestId = request.header("x-request-id"),
                 idempotencyKey = "$idempotency:disable"
             )
@@ -396,7 +435,8 @@ class AgentApiController(
                             agentId = agentId,
                             request = request,
                             idempotency = derivedIdempotencyKey(idempotency, "delete"),
-                            revision = revision
+                            revision = revision,
+                            transport = transport
                         )
                     )
                 )
@@ -425,7 +465,8 @@ class AgentApiController(
                     agentId = agentId,
                     request = request,
                     idempotency = derivedIdempotencyKey(idempotency, "delete"),
-                    revision = disabledRevision
+                    revision = disabledRevision,
+                    transport = transport
                 )
             )
         )
@@ -435,7 +476,8 @@ class AgentApiController(
         id: String,
         enabled: Boolean,
         request: AgentHttpRequest,
-        agentId: String
+        agentId: String,
+        transport: String
     ): AgentHttpResponse {
         val idempotency = requiredIdempotency(request) ?: return missingIdempotency()
         val revision = requiredRevision(request) ?: return missingRevision()
@@ -448,7 +490,7 @@ class AgentApiController(
                 origin = AutomationMutationOrigin.AGENT,
                 agentId = agentId,
                 expectedRevision = revision,
-                transport = TRANSPORT,
+                transport = transport,
                 requestId = request.header("x-request-id"),
                 idempotencyKey = idempotency
             )
@@ -467,7 +509,8 @@ class AgentApiController(
     private suspend fun runTask(
         id: String,
         request: AgentHttpRequest,
-        agentId: String
+        agentId: String,
+        transport: String
     ): AgentHttpResponse {
         val idempotency = requiredIdempotency(request) ?: return missingIdempotency()
         val expectedRevision = requiredRevision(request) ?: return missingRevision()
@@ -490,7 +533,7 @@ class AgentApiController(
             )
         ) {
             AgentApiRunReservationResult.Acquired ->
-                executeReservedRun(automation, request, agentId)
+                executeReservedRun(automation, request, agentId, transport)
             AgentApiRunReservationResult.Replay -> respond(
                 200,
                 AgentApiRunReplayV1(
@@ -514,14 +557,16 @@ class AgentApiController(
     private suspend fun executeReservedRun(
         automation: Automation,
         request: AgentHttpRequest,
-        agentId: String
+        agentId: String,
+        transport: String
     ): AgentHttpResponse {
         val record = runtime.run(
             automation,
             AgentApiRunContext(
                 actorId = actorId(agentId),
                 agentId = agentId,
-                requestId = request.header("x-request-id")
+                requestId = request.header("x-request-id"),
+                transport = transport
             )
         )
         return respond(200, record.toAgentApiModel())
@@ -639,7 +684,8 @@ class AgentApiController(
         agentId: String,
         request: AgentHttpRequest,
         idempotency: String,
-        revision: Long
+        revision: Long,
+        transport: String
     ) = AutomationMutationContext(
         actorId = actorId(agentId),
         origin = AutomationMutationOrigin.AGENT,
@@ -680,7 +726,8 @@ class AgentApiController(
     private fun AgentApiTaskMutationRequestV1.context(
         agentId: String,
         idempotencyKey: String,
-        expectedRevision: Long?
+        expectedRevision: Long?,
+        transport: String
     ) = AutomationMutationContext(
         actorId = actorId(agentId),
         origin = AutomationMutationOrigin.AGENT,

@@ -25,7 +25,13 @@ interface AgentApiRuntime {
 data class AgentApiRunContext(
     val actorId: String,
     val agentId: String,
-    val requestId: String?
+    val requestId: String?,
+    val transport: String
+)
+
+data class AgentTrustedPrincipal(
+    val agentId: String,
+    val transport: String
 )
 
 

@@ -111,7 +111,7 @@ class AndroidAgentApiRuntime @Inject constructor(
                 agentId = request.agentId,
                 automationId = automation.id,
                 requestId = request.requestId,
-                transport = "LOCAL_REST",
+                transport = request.transport,
                 createdAt = startedAt
             )
         )
@@ -125,7 +125,7 @@ class AndroidAgentApiRuntime @Inject constructor(
                     agentId = request.agentId,
                     automationId = automation.id,
                     requestId = request.requestId,
-                    transport = "LOCAL_REST",
+                    transport = request.transport,
                     details = mapOf(
                         "executionId" to record.id,
                         "channel" to (record.channel ?: "NONE")
@@ -143,7 +143,7 @@ class AndroidAgentApiRuntime @Inject constructor(
                     agentId = request.agentId,
                     automationId = automation.id,
                     requestId = request.requestId,
-                    transport = "LOCAL_REST",
+                    transport = request.transport,
                     createdAt = System.currentTimeMillis()
                 )
             )
@@ -157,7 +157,7 @@ class AndroidAgentApiRuntime @Inject constructor(
                     agentId = request.agentId,
                     automationId = automation.id,
                     requestId = request.requestId,
-                    transport = "LOCAL_REST",
+                    transport = request.transport,
                     details = mapOf(
                         "failureType" to failure::class.java.simpleName.take(128)
                     ),

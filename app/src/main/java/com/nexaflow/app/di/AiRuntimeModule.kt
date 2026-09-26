@@ -1,9 +1,10 @@
 package com.nexaflow.app.di
 
+import com.nexaflow.app.agent.NexaFlowAiToolExecutor
+import com.nexaflow.core.agentapi.AgentApiController
 import com.nexaflow.core.airuntime.AiConversationEngine
 import com.nexaflow.core.airuntime.AiProviderRegistry
 import com.nexaflow.core.airuntime.AiToolExecutor
-import com.nexaflow.core.airuntime.EmptyAiToolExecutor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,8 +22,9 @@ object AiRuntimeModule {
 
     @Provides
     @Singleton
-    fun provideAiToolExecutor(): AiToolExecutor =
-        EmptyAiToolExecutor
+    fun provideAiToolExecutor(
+        controller: AgentApiController
+    ): AiToolExecutor = NexaFlowAiToolExecutor(controller)
 
     @Provides
     @Singleton
