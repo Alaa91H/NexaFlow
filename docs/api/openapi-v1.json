@@ -1,0 +1,33 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "NexaFlow Agent API",
+    "version": "1.0.0",
+    "description": "Loopback-only authenticated REST control plane for paired AI agents."
+  },
+  "servers": [{"url": "http://127.0.0.1:8766/api/v1"}],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {"type": "http", "scheme": "bearer"}
+    }
+  },
+  "security": [{"bearerAuth": []}],
+  "paths": {
+    "/auth/session": {"post": {"security": [], "summary": "Exchange a refresh token for an access session"}},
+    "/status": {"get": {"summary": "API status"}},
+    "/capabilities": {"get": {"summary": "Device capabilities"}},
+    "/catalog": {"get": {"summary": "Automation catalog"}},
+    "/tasks": {"get": {"summary": "List tasks"}, "post": {"summary": "Create task"}},
+    "/tasks/{id}": {"get": {"summary": "Get task"}, "patch": {"summary": "Update task"}, "delete": {"summary": "Delete task"}},
+    "/tasks/{id}/enable": {"post": {"summary": "Enable task"}},
+    "/tasks/{id}/disable": {"post": {"summary": "Disable task"}},
+    "/tasks/{id}/run": {"post": {"summary": "Run task"}},
+    "/validate": {"post": {"summary": "Validate task draft"}},
+    "/simulate": {"post": {"summary": "Side-effect-free task simulation"}},
+    "/schedules/preview": {"post": {"summary": "Preview schedule"}},
+    "/history": {"get": {"summary": "Execution history"}},
+    "/audit": {"get": {"summary": "Agent audit"}},
+    "/openapi.json": {"get": {"security": [], "summary": "OpenAPI document"}},
+    "/schemas/task-v1.json": {"get": {"security": [], "summary": "Task JSON Schema"}}
+  }
+}

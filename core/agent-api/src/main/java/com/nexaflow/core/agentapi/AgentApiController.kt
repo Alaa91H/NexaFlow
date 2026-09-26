@@ -22,6 +22,7 @@ import java.net.URI
 import java.nio.charset.StandardCharsets
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 

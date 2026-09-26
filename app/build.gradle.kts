@@ -248,6 +248,7 @@ dependencies {
     implementation(project(":core:database"))
     implementation(project(":core:security"))
     implementation(project(":core:agent-security"))
+    implementation(project(":core:agent-api"))
     implementation(project(":core:automation-control"))
     implementation(project(":core:datastore"))
     implementation(project(":core:logging"))
