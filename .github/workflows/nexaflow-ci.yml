@@ -405,12 +405,267 @@ jobs:
           PHONE="NexaFlow-$TAG.apk"
           WEAR="NexaFlow-Wear-$TAG.apk"
           BUNDLE="NexaFlow-$TAG.aab"
+          PHONE_SHA="$PHONE.sha256"
+          WEAR_SHA="$WEAR.sha256"
+          BUNDLE_SHA="$BUNDLE.sha256"
           cp release-assets/phone/app-release.apk "$PHONE"
           cp release-assets/wear/wear-release.apk "$WEAR"
           cp release-assets/aab/app-release.aab "$BUNDLE"
           test -s "$PHONE"
           test -s "$WEAR"
           test -s "$BUNDLE"
+          sha256sum "$PHONE" | awk '{print $1}' > "$PHONE_SHA"
+          sha256sum "$WEAR" | awk '{print $1}' > "$WEAR_SHA"
+          sha256sum "$BUNDLE" | awk '{print $1}' > "$BUNDLE_SHA"
+          grep -Eq '^[0-9a-f]{64}
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          PHONE="NexaFlow-$TAG.apk"
+          WEAR="NexaFlow-Wear-$TAG.apk"
+          BUNDLE="NexaFlow-$TAG.aab"
+          PHONE_SHA="$PHONE.sha256"
+          WEAR_SHA="$WEAR.sha256"
+          BUNDLE_SHA="$BUNDLE.sha256"
+          PRERELEASE=()
+          [[ "$TAG" == *-* ]] && PRERELEASE=(--prerelease)
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$PHONE" "$WEAR" "$BUNDLE" "$PHONE_SHA" "$WEAR_SHA" "$BUNDLE_SHA" --clobber
+            gh release edit "$TAG" --title "NexaFlow $TAG" --notes-file release-notes.md "${PRERELEASE[@]}"
+          else
+            gh release create "$TAG" "$PHONE" "$WEAR" "$BUNDLE" "$PHONE_SHA" "$WEAR_SHA" "$BUNDLE_SHA" \
+              --verify-tag \
+              --title "NexaFlow $TAG" \
+              --notes-file release-notes.md \
+              "${PRERELEASE[@]}"
+          fi
+
+      - name: Verify published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          PHONE="NexaFlow-$TAG.apk"
+          WEAR="NexaFlow-Wear-$TAG.apk"
+          BUNDLE="NexaFlow-$TAG.aab"
+          PHONE_SHA="$PHONE.sha256"
+          WEAR_SHA="$WEAR.sha256"
+          BUNDLE_SHA="$BUNDLE.sha256"
+          RELEASE_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")"
+          test "$(jq -r '.tag_name' <<<"$RELEASE_JSON")" = "$TAG"
+          test "$(jq -r '.draft' <<<"$RELEASE_JSON")" = "false"
+          MISSING="$(jq \
+            --arg phone "$PHONE" --arg wear "$WEAR" --arg bundle "$BUNDLE" \
+            --arg phone_sha "$PHONE_SHA" --arg wear_sha "$WEAR_SHA" --arg bundle_sha "$BUNDLE_SHA" \
+            '[$phone, $wear, $bundle, $phone_sha, $wear_sha, $bundle_sha] - [.assets[].name] | length' \
+            <<<"$RELEASE_JSON")"
+          test "$MISSING" = "0"
+          for ASSET in "$PHONE" "$WEAR" "$BUNDLE" "$PHONE_SHA" "$WEAR_SHA" "$BUNDLE_SHA"; do
+            SIZE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .size' <<<"$RELEASE_JSON")"
+            STATE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .state' <<<"$RELEASE_JSON")"
+            test -n "$SIZE" && test "$SIZE" -gt 0
+            test "$STATE" = "uploaded"
+          done
+          echo "Release $TAG published and verified."
+
+  # Branch integration is intentionally PR-only. The former consolidate job
+  # merged every remote branch into main with incoming-branch conflict wins and
+  # then deleted all branches. That made an arbitrary stale or experimental
+  # branch capable of entering main without focused review. Keep integration at
+  # the pull-request boundary where the normal lint/build gates apply.
+
+  merge-dependabot-update:
+    permissions:
+      contents: write
+      pull-requests: write
+    # Do not check out or execute code from the pull request. This workflow
+    # only asks GitHub to watch its required checks and merge the PR after they
+    # pass, so it retains pull_request_target permissions safely.
+    if: >-
+      github.event_name == 'pull_request_target' &&
+      github.actor == 'dependabot[bot]' &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Wait for all pull-request checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr checks "$PR_URL" --watch --fail-fast
+      - name: Enable squash auto-merge after verified checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge "$PR_URL" --auto --squash --delete-branch
+ "$PHONE_SHA"
+          grep -Eq '^[0-9a-f]{64}
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          PHONE="NexaFlow-$TAG.apk"
+          WEAR="NexaFlow-Wear-$TAG.apk"
+          BUNDLE="NexaFlow-$TAG.aab"
+          PRERELEASE=()
+          [[ "$TAG" == *-* ]] && PRERELEASE=(--prerelease)
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$PHONE" "$WEAR" "$BUNDLE" --clobber
+            gh release edit "$TAG" --title "NexaFlow $TAG" --notes-file release-notes.md "${PRERELEASE[@]}"
+          else
+            gh release create "$TAG" "$PHONE" "$WEAR" "$BUNDLE" \
+              --verify-tag \
+              --title "NexaFlow $TAG" \
+              --notes-file release-notes.md \
+              "${PRERELEASE[@]}"
+          fi
+
+      - name: Verify published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          PHONE="NexaFlow-$TAG.apk"
+          WEAR="NexaFlow-Wear-$TAG.apk"
+          BUNDLE="NexaFlow-$TAG.aab"
+          RELEASE_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")"
+          test "$(jq -r '.tag_name' <<<"$RELEASE_JSON")" = "$TAG"
+          test "$(jq -r '.draft' <<<"$RELEASE_JSON")" = "false"
+          MISSING="$(jq --arg phone "$PHONE" --arg wear "$WEAR" --arg bundle "$BUNDLE" \
+            '[$phone, $wear, $bundle] - [.assets[].name] | length' <<<"$RELEASE_JSON")"
+          test "$MISSING" = "0"
+          for ASSET in "$PHONE" "$WEAR" "$BUNDLE"; do
+            SIZE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .size' <<<"$RELEASE_JSON")"
+            STATE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .state' <<<"$RELEASE_JSON")"
+            test -n "$SIZE" && test "$SIZE" -gt 0
+            test "$STATE" = "uploaded"
+          done
+          echo "Release $TAG published and verified."
+
+  # Branch integration is intentionally PR-only. The former consolidate job
+  # merged every remote branch into main with incoming-branch conflict wins and
+  # then deleted all branches. That made an arbitrary stale or experimental
+  # branch capable of entering main without focused review. Keep integration at
+  # the pull-request boundary where the normal lint/build gates apply.
+
+  merge-dependabot-update:
+    permissions:
+      contents: write
+      pull-requests: write
+    # Do not check out or execute code from the pull request. This workflow
+    # only asks GitHub to watch its required checks and merge the PR after they
+    # pass, so it retains pull_request_target permissions safely.
+    if: >-
+      github.event_name == 'pull_request_target' &&
+      github.actor == 'dependabot[bot]' &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Wait for all pull-request checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr checks "$PR_URL" --watch --fail-fast
+      - name: Enable squash auto-merge after verified checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge "$PR_URL" --auto --squash --delete-branch
+ "$WEAR_SHA"
+          grep -Eq '^[0-9a-f]{64}
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          PHONE="NexaFlow-$TAG.apk"
+          WEAR="NexaFlow-Wear-$TAG.apk"
+          BUNDLE="NexaFlow-$TAG.aab"
+          PRERELEASE=()
+          [[ "$TAG" == *-* ]] && PRERELEASE=(--prerelease)
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$PHONE" "$WEAR" "$BUNDLE" --clobber
+            gh release edit "$TAG" --title "NexaFlow $TAG" --notes-file release-notes.md "${PRERELEASE[@]}"
+          else
+            gh release create "$TAG" "$PHONE" "$WEAR" "$BUNDLE" \
+              --verify-tag \
+              --title "NexaFlow $TAG" \
+              --notes-file release-notes.md \
+              "${PRERELEASE[@]}"
+          fi
+
+      - name: Verify published release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$GITHUB_REF_NAME"
+          PHONE="NexaFlow-$TAG.apk"
+          WEAR="NexaFlow-Wear-$TAG.apk"
+          BUNDLE="NexaFlow-$TAG.aab"
+          RELEASE_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}")"
+          test "$(jq -r '.tag_name' <<<"$RELEASE_JSON")" = "$TAG"
+          test "$(jq -r '.draft' <<<"$RELEASE_JSON")" = "false"
+          MISSING="$(jq --arg phone "$PHONE" --arg wear "$WEAR" --arg bundle "$BUNDLE" \
+            '[$phone, $wear, $bundle] - [.assets[].name] | length' <<<"$RELEASE_JSON")"
+          test "$MISSING" = "0"
+          for ASSET in "$PHONE" "$WEAR" "$BUNDLE"; do
+            SIZE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .size' <<<"$RELEASE_JSON")"
+            STATE="$(jq --arg name "$ASSET" -r '.assets[] | select(.name == $name) | .state' <<<"$RELEASE_JSON")"
+            test -n "$SIZE" && test "$SIZE" -gt 0
+            test "$STATE" = "uploaded"
+          done
+          echo "Release $TAG published and verified."
+
+  # Branch integration is intentionally PR-only. The former consolidate job
+  # merged every remote branch into main with incoming-branch conflict wins and
+  # then deleted all branches. That made an arbitrary stale or experimental
+  # branch capable of entering main without focused review. Keep integration at
+  # the pull-request boundary where the normal lint/build gates apply.
+
+  merge-dependabot-update:
+    permissions:
+      contents: write
+      pull-requests: write
+    # Do not check out or execute code from the pull request. This workflow
+    # only asks GitHub to watch its required checks and merge the PR after they
+    # pass, so it retains pull_request_target permissions safely.
+    if: >-
+      github.event_name == 'pull_request_target' &&
+      github.actor == 'dependabot[bot]' &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Wait for all pull-request checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr checks "$PR_URL" --watch --fail-fast
+      - name: Enable squash auto-merge after verified checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge "$PR_URL" --auto --squash --delete-branch
+ "$BUNDLE_SHA"
           python3 scripts/generate_release_notes.py "$TAG" > release-notes.md
 
       - name: Publish GitHub Release
