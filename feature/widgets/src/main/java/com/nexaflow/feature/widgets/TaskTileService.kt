@@ -79,20 +79,21 @@ abstract class TaskTileService : TileService() {
                 boundId = TileBindingStore.bindingFor(this@TaskTileService, slot)
             )
             if (target != null) {
-                // Match the in-app toggle exactly: persist the new state, then
-                // disable → run the task's configured end behavior (restore
-                // state / exit actions); enable → run the main chain only when
-                // the triggers and conditions currently match.
+                // Match the durable in-app toggle contract: persist first.
+                // Enabling may run immediately when current trigger state
+                // matches. Disabling is intentionally NOT allowed to call
+                // ExecutionEngine.runExit directly; the monitoring layer owns
+                // the atomic ACTIVE -> EXITING claim and will reconcile this
+                // committed disable after ACTION_AUTOMATIONS_CHANGED.
                 repository.updateAutomationStatus(target.id, !target.enabled)
-                try {
-                    if (target.enabled) {
-                        entryPoint().executionEngine().runExit(target, forceConfiguredEnd = true)
-                    } else {
+                if (!target.enabled) {
+                    try {
                         entryPoint().executionEngine().runWithConditionGate(target)
+                    } catch (_: Exception) {
+                        // The tile must never crash on an execution hiccup; the
+                        // persisted state and monitor reconciliation remain the
+                        // source of truth.
                     }
-                } catch (_: Exception) {
-                    // The tile must never crash on an execution hiccup; the DB
-                    // state is already persisted and the monitors reconcile.
                 }
             }
             withContext(Dispatchers.Main) {
