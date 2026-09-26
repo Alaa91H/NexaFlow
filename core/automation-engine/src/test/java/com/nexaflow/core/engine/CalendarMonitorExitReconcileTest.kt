@@ -43,7 +43,8 @@ internal data class FakeCalendarEvent(
  * configured occurrence from any `instances/when` window.
  */
 internal class FakeCalendarProvider(
-    private val events: List<FakeCalendarEvent>
+    private val events: List<FakeCalendarEvent>,
+    private val instancesReadable: Boolean = true
 ) : ContentProvider() {
 
     override fun onCreate(): Boolean = true
@@ -71,7 +72,7 @@ internal class FakeCalendarProvider(
         val path = uri.path ?: return null
         return when {
             path.startsWith("/calendars") -> calendarsCursor()
-            path.contains("/instances/when") -> instancesCursor()
+            path.contains("/instances/when") -> if (instancesReadable) instancesCursor() else null
             else -> null
         }
     }
@@ -148,10 +149,13 @@ class CalendarMonitorExitReconcileTest {
             )
         )
 
-    private fun registerProvider(events: List<FakeCalendarEvent>) {
+    private fun registerProvider(
+        events: List<FakeCalendarEvent>,
+        instancesReadable: Boolean = true
+    ) {
         ShadowContentResolver.registerProviderInternal(
             CalendarContract.AUTHORITY,
-            FakeCalendarProvider(events)
+            FakeCalendarProvider(events, instancesReadable)
         )
     }
 
@@ -227,6 +231,34 @@ class CalendarMonitorExitReconcileTest {
         val runtime = AutomationRuntimeStore(context).current("cal-task")
         assertTrue(runtime?.lifecycleState == AutomationRuntimeLifecycleState.ACTIVE)
         assertEquals(end, runtime?.expectedEndAt)
+        monitor.stop()
+    }
+
+    @Test
+    fun `unreadable calendar snapshot never becomes a false event end`() = runBlocking {
+        val history = RecordingHistory()
+        val engine = testEngine(context, history)
+        val repository = FakeRepository(listOf(calendarAutomation("cal-task")))
+        val store = ActiveTriggerStore(context)
+        val runtimeStore = AutomationRuntimeStore(context)
+        val now = System.currentTimeMillis()
+        val start = now - 60_000L
+        store.markActive("calendar", "cal-task|7:$start")
+        registerProvider(emptyList(), instancesReadable = false)
+
+        val monitor = monitorFor(repository, engine, store, history)
+        monitor.initialize()
+
+        waitUntil {
+            runtimeStore.current("cal-task")?.lifecycleState ==
+                AutomationRuntimeLifecycleState.ACTIVE
+        }
+        kotlinx.coroutines.delay(150)
+        assertTrue(
+            "provider read failure must not be treated as an ended occurrence",
+            history.exits.none { it == EXIT_NOOP_MARKER }
+        )
+        assertTrue(store.activeKeys("calendar").isNotEmpty())
         monitor.stop()
     }
 
