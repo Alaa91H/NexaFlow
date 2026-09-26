@@ -3,6 +3,9 @@ package com.nexaflow.core.engine
 import android.content.Context
 import android.media.AudioManager
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationLifecycleContext
+import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.domain.models.TriggerType
@@ -11,6 +14,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,6 +29,8 @@ class MediaMonitor @Inject constructor(
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
     private val activeStore: ActiveTriggerStore,
+    private val runtimeStore: AutomationRuntimeStore,
+    private val exitCoordinator: ExitCoordinator,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -52,9 +58,44 @@ class MediaMonitor @Inject constructor(
         if (registered) return
         registered = true
         val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
-        runCatching {
-            audio.registerAudioPlaybackCallback(playbackCallback, null)
-            lastPlaying = audio.isMusicActive
+        scope.launch {
+            // Restore durable ownership before callbacks can turn a process
+            // restart into a duplicate main run or lose the matching exit.
+            rearmFromLedger()
+            if (!registered) return@launch
+            runCatching {
+                audio.registerAudioPlaybackCallback(playbackCallback, null)
+                lastPlaying = audio.isMusicActive
+            }
+        }
+    }
+
+    private suspend fun rearmFromLedger() {
+        val enabledIds = repository.getAutomations().first()
+            .filter { it.enabled && it.triggers.any { trigger -> trigger.type == TriggerType.MEDIA_PLAYING } }
+            .map { it.id }
+            .toSet()
+
+        runtimeStore.activeStates()
+            .filter { it.source == SOURCE }
+            .forEach { state ->
+                if (state.automationId in enabledIds) {
+                    activeStates[state.automationId] = true
+                    activeStore.markActive(SOURCE, state.automationId)
+                } else {
+                    runtimeStore.clear(state.automationId, state.occurrenceId)
+                    activeStore.clearAutomation(SOURCE, state.automationId)
+                }
+            }
+
+        // Legacy markers are compatibility hints only. Without a durable
+        // occurrence they must not authorize an exit side effect after restart.
+        activeStore.activeKeys(SOURCE).forEach { key ->
+            val id = key.substringBefore('|')
+            val owned = runtimeStore.current(id)?.source == SOURCE
+            if (id !in enabledIds || !owned) {
+                activeStore.clearAutomation(SOURCE, id)
+            }
         }
     }
 
@@ -75,14 +116,40 @@ class MediaMonitor @Inject constructor(
                 .forEach { automation ->
                     val wantStart = (automation.triggers.first { it.type == TriggerType.MEDIA_PLAYING }
                         .config["event"] ?: "STARTED") == "STARTED"
-                    if (playing == wantStart) {
-                        if (activeStates.put(automation.id, playing) == null) {
+                    val satisfied = playing == wantStart
+
+                    if (satisfied && activeStates[automation.id] != true) {
+                        val occurrenceId = "media:${automation.id}:${UUID.randomUUID()}"
+                        executionEngine.runAutomation(
+                            automation = automation,
+                            lifecycleContext = AutomationLifecycleContext(
+                                occurrenceId = occurrenceId,
+                                source = SOURCE,
+                                sourceKey = if (wantStart) "STARTED" else "STOPPED"
+                            )
+                        )
+                        val accepted = runtimeStore.current(automation.id)?.let { state ->
+                            state.occurrenceId == occurrenceId && state.source == SOURCE
+                        } == true
+                        if (accepted) {
+                            activeStates[automation.id] = true
                             activeStore.markActive(SOURCE, automation.id)
-                            executionEngine.runAutomation(automation)
                         }
-                    } else if (activeStates.remove(automation.id) != null) {
-                        activeStore.clearAutomation(SOURCE, automation.id)
-                        executionEngine.runExit(automation)
+                    } else if (!satisfied && activeStates[automation.id] == true) {
+                        when (exitCoordinator.requestExit(automation, ExitReason.TRIGGER_FALSE)) {
+                            is ExitCoordinatorResult.Executed,
+                            ExitCoordinatorResult.NotActive,
+                            ExitCoordinatorResult.StaleOccurrence -> {
+                                activeStates.remove(automation.id)
+                                activeStore.clearAutomation(SOURCE, automation.id)
+                            }
+                            ExitCoordinatorResult.AlreadyInProgress,
+                            is ExitCoordinatorResult.RecoveryRequired -> {
+                                // Preserve ownership so a failed/uncertain exit
+                                // remains visible and cannot be executed twice.
+                                activeStates[automation.id] = true
+                            }
+                        }
                     }
                 }
         }
