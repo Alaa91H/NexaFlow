@@ -39,7 +39,6 @@ import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -653,19 +652,20 @@ class DeviceStateMonitor28 @Inject constructor(
             (MAX_WIFI_RSSI - MIN_WIFI_RSSI)
     }
 
-    private fun pluggedType(): Int {
+    private fun pluggedType(): Int? {
         val intent = context.registerReceiver(
             null, IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        ) ?: return 0
+        ) ?: return null
         return intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
     }
 
-    private fun hasTransport(transport: Int): Boolean {
+    private fun hasTransport(transport: Int): Boolean? {
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-            ?: return false
-        return runCatching {
-            cm.getNetworkCapabilities(cm.activeNetwork)?.hasTransport(transport) == true
-        }.getOrDefault(false)
+            ?: return null
+        val network = runCatching { cm.activeNetwork }.getOrNull() ?: return false
+        val capabilities = runCatching { cm.getNetworkCapabilities(network) }.getOrNull()
+            ?: return null
+        return capabilities.hasTransport(transport)
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
