@@ -238,4 +238,38 @@
     <string name="blocked_calls_title">Blocked calls</string>
     <string name="blocked_calls_empty">No blocked calls yet</string>
     <string name="blocked_calls_filter_all">All rules</string>
+
+    <!-- AI & agent management -->
+    <string name="ai_agents_title">AI &amp; Agents</string>
+    <string name="ai_agents_subtitle">Permanent access, pairing and agent activity</string>
+    <string name="agent_access_title">AI Agent Access</string>
+    <string name="agent_access_on">Full permanent access is enabled</string>
+    <string name="agent_access_off">Disabled — agents cannot connect or act</string>
+    <string name="agent_gateway_title">Local agent gateway</string>
+    <string name="agent_gateway_running">Running on 127.0.0.1:%1$d</string>
+    <string name="agent_gateway_stopped">Not running</string>
+    <string name="agent_gateway_rest">REST API · /api/v1</string>
+    <string name="agent_gateway_mcp">MCP protocol · /mcp</string>
+    <string name="agent_add_title">Add agent</string>
+    <string name="agent_name_label">Agent name</string>
+    <string name="agent_name_hint">Example: My laptop</string>
+    <string name="agent_generate_pairing">Generate pairing code</string>
+    <string name="agent_pairing_payload">One-time pairing payload</string>
+    <string name="agent_pairing_help">Give this only to the agent you want to trust. It expires in 5 minutes.</string>
+    <string name="agent_copy_payload">Copy payload</string>
+    <string name="agent_payload_copied">Pairing payload copied</string>
+    <string name="agent_expires_at">Expires at %1$s</string>
+    <string name="agent_trusted_title">Trusted agents</string>
+    <string name="agent_none">No agents are paired</string>
+    <string name="agent_full_access">Full permanent access</string>
+    <string name="agent_active_sessions">%1$d active session(s)</string>
+    <string name="agent_revoke">Revoke</string>
+    <string name="agent_revoke_all">Revoke all</string>
+    <string name="agent_revoke_all_title">Revoke all agents?</string>
+    <string name="agent_revoke_all_message">All agent credentials and sessions will stop working. Existing automations will remain.</string>
+    <string name="agent_activity_title">Agent activity</string>
+    <string name="agent_activity_empty">No agent activity yet</string>
+    <string name="agent_refresh">Refresh</string>
+    <string name="agent_operation_failed">Could not complete the agent operation</string>
+    <string name="agent_pending_pairings">%1$d pending pairing request(s)</string>
 </resources>
