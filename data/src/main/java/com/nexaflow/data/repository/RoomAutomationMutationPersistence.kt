@@ -86,11 +86,29 @@ class RoomAutomationMutationPersistence(
             existing.operation == kind.name &&
             automationMatches
         ) {
+            auditStoredIdempotencyResolution(
+                context = context,
+                eventType = "IDEMPOTENCY_REPLAY",
+                outcome = "REPLAY",
+                automationId = existing.automationId ?: automationId,
+                kind = kind,
+                revision = existing.resultRevision,
+                occurredAt = occurredAt
+            )
             AutomationPersistenceResult.IdempotentReplay(
                 automationId = existing.automationId,
                 revision = existing.resultRevision
             )
         } else {
+            auditStoredIdempotencyResolution(
+                context = context,
+                eventType = "IDEMPOTENCY_CONFLICT",
+                outcome = "CONFLICT",
+                automationId = existing.automationId ?: automationId,
+                kind = kind,
+                revision = existing.resultRevision,
+                occurredAt = occurredAt
+            )
             AutomationPersistenceResult.IdempotencyConflict
         }
     }
@@ -363,6 +381,36 @@ class RoomAutomationMutationPersistence(
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt
         )
+
+    private suspend fun auditStoredIdempotencyResolution(
+        context: com.nexaflow.core.automationcontrol.AutomationMutationContext,
+        eventType: String,
+        outcome: String,
+        automationId: String?,
+        kind: AutomationMutationKind,
+        revision: Long?,
+        occurredAt: Long
+    ) {
+        val details = buildJsonObject {
+            put("operation", kind.name)
+            if (revision != null) put("revision", revision)
+        }.toString()
+        require(details.length <= MAX_AUDIT_DETAILS_LENGTH)
+        agentPlatformDao.insertAudit(
+            AgentAuditEntity(
+                id = auditIdGenerator(),
+                eventType = eventType,
+                outcome = outcome,
+                actorId = context.actorId,
+                agentId = context.agentId,
+                automationId = automationId,
+                requestId = context.requestId,
+                transport = context.transport,
+                detailsJson = details,
+                createdAt = occurredAt
+            )
+        )
+    }
 
     private suspend fun audit(
         request: AutomationMutationCommitRequest,
