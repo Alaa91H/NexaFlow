@@ -109,7 +109,15 @@ class AppTriggerAccessibilityService : AccessibilityService() {
                         if (state.automationId in byId.keys) {
                             tracker.restoreActive(state.automationId)
                         } else {
-                            runtimeStore.clear(state.automationId, state.occurrenceId)
+                            // The immutable automation definition is no longer
+                            // available, so there is no safe end behavior to
+                            // reconstruct. Preserve the durable occurrence as
+                            // recovery evidence instead of deleting ownership
+                            // as though the exit had completed successfully.
+                            android.util.Log.w(
+                                TAG,
+                                "Preserving orphaned app-foreground lifecycle for recovery"
+                            )
                         }
                     }
                 tracker.onForegroundChange(packageName, tasks) { taskId, pkg ->
@@ -150,6 +158,7 @@ class AppTriggerAccessibilityService : AccessibilityService() {
 
     private companion object {
         const val SOURCE = "app-foreground"
+        const val TAG = "AppTriggerLifecycle"
     }
 }
 
