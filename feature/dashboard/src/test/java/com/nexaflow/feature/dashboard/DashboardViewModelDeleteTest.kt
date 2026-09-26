@@ -8,7 +8,10 @@ import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.handler.ActionExecutionContext
+import com.nexaflow.core.execution.handler.ActionHandler
 import com.nexaflow.core.execution.handler.ActionRegistry
+import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
@@ -68,13 +71,16 @@ class DashboardViewModelDeleteTest {
     private class FakeRepository(
         private val throwOnDelete: Boolean = false
     ) : AutomationRepository {
+        val statusUpdates = mutableListOf<Boolean>()
         override fun getAutomations(): Flow<List<Automation>> = flowOf(emptyList())
         override suspend fun getAutomationById(id: String): Automation? = null
         override suspend fun saveAutomation(automation: Automation) = Unit
         override suspend fun deleteAutomation(automation: Automation) {
             if (throwOnDelete) throw IllegalStateException("simulated database write failure")
         }
-        override suspend fun updateAutomationStatus(id: String, enabled: Boolean) = Unit
+        override suspend fun updateAutomationStatus(id: String, enabled: Boolean) {
+            statusUpdates += enabled
+        }
     }
 
     private fun task(id: String): Automation = Automation(
@@ -94,12 +100,21 @@ class DashboardViewModelDeleteTest {
         updatedAt = 0L
     )
 
-    private fun newEngine(): ExecutionEngine = ExecutionEngine(
-        context = context,
-        historyRepository = FakeHistory(),
-        notificationPreferences = NotificationPreferences(context),
-        actionRegistry = ActionRegistry.from(emptyList())
-    )
+    private fun newEngine(): ExecutionEngine {
+        val handler = object : ActionHandler {
+            override val supportedTypes = setOf(ActionType.SYSTEM_SEND_NOTIFICATION)
+            override suspend fun execute(
+                action: Action,
+                ctx: ActionExecutionContext
+            ): SystemControlResult = SystemControlResult.ok("ok")
+        }
+        return ExecutionEngine(
+            context = context,
+            historyRepository = FakeHistory(),
+            notificationPreferences = NotificationPreferences(context),
+            actionRegistry = ActionRegistry.from(listOf(handler))
+        )
+    }
 
     @Before
     fun setUp() = runBlocking {
@@ -138,7 +153,8 @@ class DashboardViewModelDeleteTest {
     fun successfulDeleteDelegatesToEngineAndConfirms() {
         val id = "vm-dash-delete-a"
         arm(id)
-        val viewModel = viewModel(FakeRepository())
+        val repository = FakeRepository()
+        val viewModel = viewModel(repository)
 
         viewModel.deleteAutomation(task(id))
         awaitIdle { viewModel.executionMessage.value != null }
@@ -151,23 +167,23 @@ class DashboardViewModelDeleteTest {
             "durable marker must be cleared",
             freshExitMessage(id).contains("task was not active")
         )
+        assertEquals(listOf(false), repository.statusUpdates)
     }
 
     @Test
     fun deleteWhenRepositoryThrowsKeepsEngineStateAndReportsFailure() {
         val id = "vm-dash-delete-b"
         arm(id)
-        val viewModel = viewModel(FakeRepository(throwOnDelete = true))
+        val repository = FakeRepository(throwOnDelete = true)
+        val viewModel = viewModel(repository)
 
         viewModel.deleteAutomation(task(id))
         awaitIdle { viewModel.executionMessage.value != null }
 
-        // The task still exists (Room rolls the delete back), so its engine
-        // state must stay intact and the user must see a failure, not a crash.
-        assertTrue(
-            "engine marker must remain while the task still exists",
-            !freshExitMessage(id).contains("task was not active")
-        )
+        // Cleanup happens before the database delete. If that delete fails, the
+        // prior enabled flag is restored so the task definition is not silently
+        // mutated by a failed delete request.
+        assertEquals(listOf(false, true), repository.statusUpdates)
         assertEquals(
             context.getString(R.string.task_delete_failed, task(id).name),
             viewModel.executionMessage.value
