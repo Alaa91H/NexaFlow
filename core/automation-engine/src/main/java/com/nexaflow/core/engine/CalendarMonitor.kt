@@ -11,6 +11,11 @@ import android.provider.CalendarContract
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationLifecycleContext
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeState
+import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.TriggerOccurrence
@@ -22,7 +27,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.Collections
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -50,6 +58,8 @@ class CalendarMonitor @Inject constructor(
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
     private val activeStore: ActiveTriggerStore,
+    private val runtimeStore: AutomationRuntimeStore,
+    private val exitCoordinator: ExitCoordinator,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -63,6 +73,9 @@ class CalendarMonitor @Inject constructor(
     private val processedEvents = ConcurrentHashMap<String, MutableSet<Occurrence>>()
     /** automationId -> event ids already reported as created (creation is per event, not per occurrence). */
     private val processedCreated = ConcurrentHashMap<String, MutableSet<Long>>()
+
+    /** Serializes observer, periodic and automation-change rescans. */
+    private val rescanMutex = Mutex()
 
     private val handler = Handler(Looper.getMainLooper())
 
