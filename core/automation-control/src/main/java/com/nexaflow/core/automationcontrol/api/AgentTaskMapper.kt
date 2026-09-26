@@ -25,6 +25,78 @@ class AgentTaskMappingException(
 
 object AgentTaskMapper {
 
+    fun fromAutomation(automation: Automation): AgentTaskDraftV1 = AgentTaskDraftV1(
+        schemaVersion = AgentTaskDraftV1.CURRENT_SCHEMA_VERSION,
+        name = automation.name,
+        description = automation.description,
+        icon = automation.icon,
+        iconColor = automation.iconColor,
+        backgroundColor = automation.backgroundColor,
+        category = automation.category,
+        priority = automation.priority,
+        enabled = automation.enabled,
+        showToastOnToggle = automation.showToastOnToggle,
+        triggers = automation.triggers.map { trigger ->
+            AgentTriggerDraftV1(
+                type = trigger.type.name,
+                config = trigger.config.toMap()
+            )
+        },
+        triggerMatch = when (automation.triggerMatch) {
+            TriggerMatchMode.ANY -> AgentTriggerMatchV1.ANY
+            TriggerMatchMode.ALL -> AgentTriggerMatchV1.ALL
+        },
+        actions = automation.actions.map(::fromAction),
+        constraints = automation.constraints.map { constraint ->
+            AgentConstraintDraftV1(
+                type = constraint.type.name,
+                config = constraint.config.toMap()
+            )
+        },
+        exitActions = automation.exitActions.map(::fromAction),
+        revertOnExit = automation.revertOnExit,
+        cooldownSeconds = automation.cooldownSeconds,
+        maintenance = automation.maintenanceProfile?.let { profile ->
+            AgentMaintenanceDraftV1(
+                kind = profile.kind.name,
+                window = profile.window?.let { window ->
+                    AgentMaintenanceWindowV1(
+                        startTime = window.startTime,
+                        endTime = window.endTime,
+                        allowedDays = window.allowedDays.toSet(),
+                        minimumBatteryPercent = window.minimumBatteryPercent,
+                        chargingRequired = window.chargingRequired,
+                        unmeteredWifiRequired = window.unmeteredWifiRequired,
+                        screenOffRequired = window.screenOffRequired,
+                        deviceIdleRequired = window.deviceIdleRequired,
+                        maximumThermalStatus = window.maximumThermalStatus,
+                        minimumFreeStorageBytes = window.minimumFreeStorageBytes
+                    )
+                },
+                retryPolicy = AgentMaintenanceRetryPolicyV1(
+                    maxAttempts = profile.retryPolicy.maxAttempts,
+                    initialDelayMs = profile.retryPolicy.initialDelayMs,
+                    backoffMultiplier = profile.retryPolicy.backoffMultiplier,
+                    maxDelayMs = profile.retryPolicy.maxDelayMs
+                ),
+                notificationPolicy = profile.notificationPolicy.name,
+                dependencyAutomationIds = profile.dependencyAutomationIds.toList(),
+                recoveryPolicy = profile.recoveryPolicy.name
+            )
+        }
+    )
+
+    private fun fromAction(action: Action): AgentActionDraftV1 = AgentActionDraftV1(
+        type = action.type.name,
+        config = action.config.toMap(),
+        endBehavior = action.endBehavior?.let { behavior ->
+            AgentEndBehaviorDraftV1(
+                mode = AgentEndModeV1.valueOf(behavior.mode.name),
+                config = behavior.config.toMap()
+            )
+        }
+    )
+
     fun toAutomation(
         draft: AgentTaskDraftV1,
         id: String,
