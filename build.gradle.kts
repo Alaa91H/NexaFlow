@@ -113,11 +113,12 @@ fun Project.configureCoverage() {
         executionData.setFrom(fileTree(layout.buildDirectory.dir("jacoco")) {
             include("*.exec")
         })
-        // Both AGP class-output shapes are covered: library modules expose
-        // their classes under runtime_library_classes_dir, application modules
-        // under the ASM-transformed tree (all Kotlin classes live there). The
-        // common generated-code excludes keep the reports focused on product
-        // code.
+        // AGP 9 built-in Kotlin writes source classes below
+        // intermediates/built_in_kotlinc/<variant>/compile<Variant>Kotlin,
+        // while Java sources remain under intermediates/javac. Read those
+        // pre-transform source outputs directly so JaCoCo sees the same class
+        // identities that the unit-test agent instruments. Older AGP output
+        // shapes remain as compatibility fallbacks.
         val classExcludes = listOf(
             "**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*",
             "**/*Test*.*", "**/*_Impl*.*", "**/*_Factory*.*", "**/Dagger*.*",
@@ -131,18 +132,23 @@ fun Project.configureCoverage() {
         )
         classDirectories.setFrom(
             files(
+                fileTree(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin")) {
+                    include("**/*.class")
+                    exclude(classExcludes)
+                },
+                fileTree(layout.buildDirectory.dir("intermediates/javac/debug/compileDebugJavaWithJavac/classes")) {
+                    include("**/*.class")
+                    exclude(classExcludes)
+                },
+                // Compatibility fallbacks for modules still exposing the older
+                // AGP output layouts. These trees are ignored when absent.
                 fileTree(layout.buildDirectory.dir("intermediates/runtime_library_classes_dir")) {
                     include("**/*.class")
                     exclude(classExcludes)
                 },
-                fileTree(layout.buildDirectory.dir("intermediates/classes")) {
+                fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
                     include("**/*.class")
-                    exclude(classExcludes + listOf(
-                        // Only the hilt/javac outputs are unique under here;
-                        // the ASM tree duplicates runtime classes.
-                        "**/transformDebugClassesWithAsm/**",
-                        "**/transformReleaseClassesWithAsm/**"
-                    ))
+                    exclude(classExcludes)
                 }
             )
         )
