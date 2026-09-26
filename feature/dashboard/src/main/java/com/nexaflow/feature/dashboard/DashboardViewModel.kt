@@ -85,13 +85,11 @@ class DashboardViewModel @Inject constructor(
     fun toggleAutomation(automation: Automation, enabled: Boolean) {
         viewModelScope.launch {
             automationRepository.updateAutomationStatus(automation.id, enabled)
-            if (!enabled) {
-                // Strict: when disabling, immediately attempt to run "when task ends"
-                try {
-                    executionEngine.runExit(automation, forceConfiguredEnd = true)
-                } catch (_: Exception) {}
-            } else {
-                // Strict: when enabling, if triggers already match, run immediately
+            if (enabled) {
+                // Enabling may admit immediately when the current trigger state
+                // already matches. Disabling is intentionally not executed here:
+                // the monitoring layer owns the durable ACTIVE -> EXITING claim
+                // and consumes it exactly once after this committed status change.
                 try {
                     executionEngine.runWithConditionGate(automation)
                 } catch (_: Exception) {}
