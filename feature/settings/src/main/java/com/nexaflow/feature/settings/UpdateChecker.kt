@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import androidx.core.content.FileProvider
+import androidx.core.content.pm.PackageInfoCompat
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -214,7 +215,9 @@ object UpdateChecker {
      * belongs to the installed app's signing lineage before it ever reaches the
      * package installer. The release checksum protects transport integrity; this
      * additionally protects package identity if release metadata is tampered
-     * with or the wrong APK asset is attached.
+     * with or the wrong APK asset is attached. The archive must also advance
+     * versionCode, so a validly signed historical APK cannot be offered as an
+     * in-app "update".
      *
      * Signing-certificate history is used instead of current-signer equality so
      * Android's proof-of-rotation lineage remains compatible with legitimate key
@@ -243,6 +246,8 @@ object UpdateChecker {
         } ?: return@runCatching false
 
         archive.packageName == context.packageName &&
+            PackageInfoCompat.getLongVersionCode(archive) >
+                PackageInfoCompat.getLongVersionCode(installed) &&
             hasTrustedSigningLineage(
                 installedCurrent = currentSigningDigests(installed),
                 archiveCurrent = currentSigningDigests(archive),
