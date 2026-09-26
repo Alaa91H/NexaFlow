@@ -19,14 +19,18 @@ data class UpdateInfo(
     val sha256: String?,
     val notes: String?
 ) {
-    /** Whether a downloadable APK is attached to this release. */
-    val canInstall: Boolean get() = apkUrl != null
+    /**
+     * Installation is offered only when the exact phone APK and its checksum
+     * are both present. Future updater-enabled releases therefore never fall
+     * back to an unverified download.
+     */
+    val canInstall: Boolean get() = apkUrl != null && sha256 != null
 }
 
 /**
  * In-app update checker (P2-6): queries the GitHub releases API for the latest
- * release, verifies the attached APK against a published SHA-256 (when the
- * release ships a `.sha256` asset), downloads it into the app cache and hands
+ * release, requires the exact phone APK plus its published SHA-256 asset,
+ * downloads it into the app cache, verifies size + digest, and hands
  * it to the system installer through the FileProvider.
  *
  * Parsing is pure ([parseRelease]) so it is unit-testable without the network;
@@ -56,18 +60,22 @@ object UpdateChecker {
         val version = root.optString("tag_name").trim().ifEmpty { return null }
         val notes = root.optString("body").trim().ifEmpty { null }
         val assets = root.optJSONArray("assets")
+        val expectedApkName = "NexaFlow-$version.apk"
+        val expectedShaName = "$expectedApkName.sha256"
         var apkUrl: String? = null
         var apkSize: Long? = null
         var sha256: String? = null
         if (assets != null) {
             for (i in 0 until assets.length()) {
                 val asset = assets.optJSONObject(i) ?: continue
-                val name = asset.optString("name")
-                if (name.endsWith(".apk", ignoreCase = true) && apkUrl == null) {
-                    apkUrl = asset.optString("browser_download_url").ifEmpty { null }
-                    apkSize = if (asset.has("size")) asset.optLong("size") else null
-                } else if (name.endsWith(".sha256", ignoreCase = true)) {
-                    sha256 = asset.optString("browser_download_url").ifEmpty { null }
+                when (asset.optString("name")) {
+                    expectedApkName -> {
+                        apkUrl = asset.optString("browser_download_url").ifEmpty { null }
+                        apkSize = if (asset.has("size")) asset.optLong("size") else null
+                    }
+                    expectedShaName -> {
+                        sha256 = asset.optString("browser_download_url").ifEmpty { null }
+                    }
                 }
             }
         }
@@ -125,15 +133,16 @@ object UpdateChecker {
     }.getOrNull()
 
     /**
-     * Downloads [url] into `cacheDir/updates/nexaflow-latest.apk`. When
-     * [sha256Url] is given, the published digest is fetched and the download is
-     * verified against it; a mismatch returns null (never installs corrupt
-     * bytes). Returns the downloaded file on success.
+     * Downloads [url] into `cacheDir/updates/nexaflow-latest.apk`.
+     * The published checksum is mandatory; inability to fetch or parse it is a
+     * verification failure. [expectedSizeBytes], when present, must match the
+     * GitHub release metadata before the digest is checked.
      */
     suspend fun downloadAndVerify(
         context: Context,
         url: String,
-        sha256Url: String?
+        sha256Url: String,
+        expectedSizeBytes: Long? = null
     ): File? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
         runCatching {
             val dir = File(context.cacheDir, "updates").apply { mkdirs() }
@@ -151,19 +160,33 @@ object UpdateChecker {
             } finally {
                 connection.disconnect()
             }
-            val expected = sha256Url?.let { fetchText(it) }
-            if (expected != null) {
-                val actual = sha256(dest)
-                // The published digest may be lower/upper case or have trailing
-                // whitespace; compare normalized.
-                if (!actual.equals(expected.trim(), ignoreCase = true)) {
-                    dest.delete()
-                    return@runCatching null
-                }
+            if (expectedSizeBytes != null && expectedSizeBytes >= 0L && dest.length() != expectedSizeBytes) {
+                dest.delete()
+                return@runCatching null
+            }
+            val expected = fetchText(sha256Url)?.let(::parseSha256)
+            if (expected == null) {
+                dest.delete()
+                return@runCatching null
+            }
+            val actual = sha256(dest)
+            if (!actual.equals(expected, ignoreCase = true)) {
+                dest.delete()
+                return@runCatching null
             }
             dest
         }.getOrNull()
     }
+
+    /**
+     * Accepts the raw 64-hex form emitted by NexaFlow releases and the common
+     * `sha256sum` form ("<digest>  <filename>") for forward compatibility.
+     */
+    fun parseSha256(text: String): String? =
+        Regex("(?i)(?<![0-9a-f])[0-9a-f]{64}(?![0-9a-f])")
+            .find(text)
+            ?.value
+            ?.lowercase()
 
     /** SHA-256 of [file] as lowercase hex. */
     fun sha256(file: File): String {
