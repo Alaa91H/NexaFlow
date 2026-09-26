@@ -6,9 +6,12 @@ import com.nexaflow.core.agentapi.AgentApiCapabilitiesV1
 import com.nexaflow.core.agentapi.AgentApiCapabilityV1
 import com.nexaflow.core.agentapi.AgentApiPrivilegeV1
 import com.nexaflow.core.agentapi.AgentApiRunContext
+import com.nexaflow.core.agentapi.AgentApiRunReservation
+import com.nexaflow.core.agentapi.AgentApiRunReservationResult
 import com.nexaflow.core.agentapi.AgentApiRuntime
 import com.nexaflow.core.automationcontrol.AutomationAuditEvent
 import com.nexaflow.core.automationcontrol.AutomationAuditSink
+import com.nexaflow.core.database.AgentIdempotencyEntity
 import com.nexaflow.core.database.AgentPlatformDao
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.capability.CapabilityStateStore
@@ -17,6 +20,8 @@ import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.models.ExecutionRecord
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.repositories.HistoryRepository
+import java.security.MessageDigest
+import java.util.Base64
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.async
@@ -54,6 +59,44 @@ class AndroidAgentApiRuntime @Inject constructor(
 
     override suspend fun prepareForDeletion(automation: Automation): Boolean =
         executionEngine.prepareForDeletion(automation)
+
+    override suspend fun reserveRun(
+        request: AgentApiRunReservation
+    ): AgentApiRunReservationResult {
+        val now = System.currentTimeMillis()
+        agentPlatformDao.pruneExpiredIdempotency(now)
+
+        val keyHash = sha256(request.idempotencyKey)
+        val fingerprint = sha256(
+            "RUN\n${request.automationId}\n${request.revision}"
+        )
+        val reservation = AgentIdempotencyEntity(
+            actorId = request.actorId,
+            keyHash = keyHash,
+            requestFingerprint = fingerprint,
+            operation = "RUN",
+            automationId = request.automationId,
+            resultRevision = request.revision,
+            createdAt = now,
+            expiresAt = now + RUN_IDEMPOTENCY_RETENTION_MS
+        )
+        if (agentPlatformDao.reserveIdempotency(reservation) != -1L) {
+            return AgentApiRunReservationResult.Acquired
+        }
+
+        val existing = agentPlatformDao.getIdempotency(request.actorId, keyHash)
+            ?: return AgentApiRunReservationResult.Conflict
+        return if (
+            existing.operation == "RUN" &&
+            existing.automationId == request.automationId &&
+            existing.resultRevision == request.revision &&
+            existing.requestFingerprint == fingerprint
+        ) {
+            AgentApiRunReservationResult.Replay
+        } else {
+            AgentApiRunReservationResult.Conflict
+        }
+    }
 
     override suspend fun run(
         automation: Automation,
@@ -144,6 +187,12 @@ class AndroidAgentApiRuntime @Inject constructor(
             )
         }
 
+    private fun sha256(value: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+            .digest(value.toByteArray(Charsets.UTF_8))
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(digest)
+    }
+
     override suspend fun capabilities(): AgentApiCapabilitiesV1 = coroutineScope {
         val capabilityDeferred = async { capabilityStateStore.freshSnapshot() }
         val privilegeDeferred = async { privilegeStateStore.freshSnapshot() }
@@ -181,5 +230,9 @@ class AndroidAgentApiRuntime @Inject constructor(
                     )
                 }
         )
+    }
+    private companion object {
+        const val RUN_IDEMPOTENCY_RETENTION_MS =
+            7L * 24L * 60L * 60L * 1000L
     }
 }
