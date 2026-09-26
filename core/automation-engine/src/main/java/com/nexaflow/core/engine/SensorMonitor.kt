@@ -683,6 +683,38 @@ class SensorMonitor @Inject constructor(
         }
     }
 
+    private suspend fun requestExit(
+        automation: Automation,
+        reason: ExitReason,
+        occurrenceId: String
+    ) {
+        when (
+            exitCoordinator.requestExit(
+                automation = automation,
+                reason = reason,
+                occurrenceId = occurrenceId
+            )
+        ) {
+            is ExitCoordinatorResult.Executed,
+            ExitCoordinatorResult.NotActive,
+            ExitCoordinatorResult.StaleOccurrence -> {
+                activeStates.removeAutomation(automation.id)
+                activeStore.clearAutomation(SOURCE, automation.id)
+            }
+            ExitCoordinatorResult.AlreadyInProgress,
+            is ExitCoordinatorResult.RecoveryRequired -> {
+                runtimeStore.current(automation.id)
+                    ?.takeIf { it.source == SOURCE }
+                    ?.let { state ->
+                        parseSourceSensors(state.sourceKey).forEach { sensor ->
+                            activeStates.add(automation.id, sensor)
+                            activeStore.markActive(SOURCE, "${automation.id}|$sensor")
+                        }
+                    }
+            }
+        }
+    }
+
     private fun isValidReading(
         sensor: String,
         distanceCm: Float,
