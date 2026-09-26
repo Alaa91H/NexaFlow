@@ -267,18 +267,25 @@ class BluetoothMonitor @Inject constructor(
                             val last = lastRunAt[automation.id] ?: 0L
                             if (now - last > automation.cooldownMillis) {
                                 lastRunAt[automation.id] = now
-                                activeConnections[automation.id] = address
-                                activeStore.markActive(SOURCE, "${automation.id}|$address")
-                                // Strict durable admission (disconnect-fired task).
                                 val occurrenceId = "bluetooth:${automation.id}:${UUID.randomUUID()}"
+                                val sourceKey = "${automation.id}|$address"
                                 executionEngine.runAutomation(
                                     automation = automation,
                                     lifecycleContext = AutomationLifecycleContext(
                                         occurrenceId = occurrenceId,
                                         source = SOURCE,
-                                        sourceKey = "${automation.id}|$address"
+                                        sourceKey = sourceKey
                                     )
                                 )
+                                val accepted = runtimeStore.current(automation.id)?.let { state ->
+                                    state.source == SOURCE && state.occurrenceId == occurrenceId
+                                } == true
+                                if (accepted) {
+                                    activeConnections[automation.id] = address
+                                    activeStore.markActive(SOURCE, sourceKey)
+                                } else {
+                                    lastRunAt.remove(automation.id)
+                                }
                             }
                         } else if (firesOnConnect && activeConnections[automation.id] == address) {
                             // The device disconnected: the connect condition ended.
