@@ -27,6 +27,14 @@ class AutomationRepositoryImpl @Inject constructor(
         automationDao.insertAutomation(automation.toEntity())
     }
 
+    override suspend fun saveAutomationIfRevisionMatches(
+        automation: Automation,
+        expectedRevision: Long
+    ): Boolean = automationDao.compareAndSetAutomation(
+        automation = automation.toEntity(),
+        expectedRevision = expectedRevision
+    )
+
     override suspend fun saveAutomationsAtomically(automations: List<Automation>) {
         if (automations.isEmpty()) return
         automationDao.insertAutomations(automations.map { it.toEntity() })
