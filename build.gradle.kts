@@ -59,11 +59,13 @@ tasks.register("verifyVersionCodeEncoding") {
         check(encodeVersionCode(3, 58, 999) < encodeVersionCode(3, 59, 0))
         check(encodeVersionCode(3, 999, 999) < encodeVersionCode(4, 0, 0))
         check(encodeVersionCode(3, 90, 0, 99) < encodeVersionCode(3, 90, 1, 0))
+        check(encodeVersionCode(3, 90, 0, 100) == encodeVersionCode(3, 90, 0, 99))
+        check(encodeVersionCode(3, 90, 0, 10_000) < encodeVersionCode(3, 90, 1, 0))
         check(encodeVersionCode(20, 999, 999, 99) == 2_099_999_999)
         check(runCatching { encodeVersionCode(21, 0, 0) }.isFailure)
         check(runCatching { encodeVersionCode(3, 1000, 0) }.isFailure)
         check(runCatching { encodeVersionCode(3, 90, 1000) }.isFailure)
-        check(runCatching { encodeVersionCode(3, 90, 0, 100) }.isFailure)
+        check(runCatching { encodeVersionCode(3, 90, 0, -1) }.isFailure)
     }
 }
 
