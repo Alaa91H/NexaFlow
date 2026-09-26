@@ -41,7 +41,7 @@ object AgentHttpRequestParser {
 
     fun read(input: InputStream): AgentHttpRequest {
         val headerBytes = readHeaderBlock(input)
-        val headerText = headerBytes.toString(StandardCharsets.ISO_8859_1.name())
+        val headerText = headerBytes.toString(StandardCharsets.ISO_8859_1)
         val lines = headerText.split("\r\n")
         val requestLine = lines.firstOrNull()
             ?: throw protocol(400, "bad_request", "Missing request line")
