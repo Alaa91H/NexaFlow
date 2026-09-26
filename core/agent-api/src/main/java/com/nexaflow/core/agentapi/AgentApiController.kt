@@ -17,6 +17,7 @@ import com.nexaflow.core.automationcontrol.schedule.AgentSchedulePreviewService
 import com.nexaflow.core.automationcontrol.schema.AutomationSchemaRegistry
 import com.nexaflow.core.automationcontrol.simulation.AgentSimulationRequestV1
 import com.nexaflow.core.automationcontrol.simulation.AgentSimulationService
+import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.repositories.AutomationRepository
 import java.net.URI
 import java.nio.charset.StandardCharsets
@@ -419,8 +420,53 @@ class AgentApiController(
         request: AgentHttpRequest,
         agentId: String
     ): AgentHttpResponse {
+        val idempotency = requiredIdempotency(request) ?: return missingIdempotency()
+        val expectedRevision = requiredRevision(request) ?: return missingRevision()
         val automation = repository.getAutomationById(id)
             ?: return error(404, "task_not_found", "Task was not found")
+        val currentRevision = runtime.effectiveRevision(id)
+            ?: return error(404, "task_not_found", "Task was not found")
+        if (currentRevision != expectedRevision) {
+            return revisionConflict(expectedRevision, currentRevision)
+        }
+
+        return when (
+            runtime.reserveRun(
+                AgentApiRunReservation(
+                    actorId = actorId(agentId),
+                    automationId = id,
+                    revision = currentRevision,
+                    idempotencyKey = idempotency
+                )
+            )
+        ) {
+            AgentApiRunReservationResult.Acquired ->
+                executeReservedRun(automation, request, agentId)
+            AgentApiRunReservationResult.Replay -> respond(
+                200,
+                AgentApiRunReplayV1(
+                    automationId = id,
+                    revision = currentRevision
+                ),
+                mapOf(
+                    "ETag" to quoteRevision(currentRevision),
+                    "X-Idempotent-Replay" to "true"
+                )
+            )
+            AgentApiRunReservationResult.Conflict ->
+                error(
+                    409,
+                    "idempotency_conflict",
+                    "Idempotency key was already used for another request"
+                )
+        }
+    }
+
+    private suspend fun executeReservedRun(
+        automation: Automation,
+        request: AgentHttpRequest,
+        agentId: String
+    ): AgentHttpResponse {
         val record = runtime.run(
             automation,
             AgentApiRunContext(
@@ -660,6 +706,19 @@ class AgentApiController(
             ?.removeSurrounding("\"")
         return raw?.toLongOrNull()?.takeIf { it >= 1L }
     }
+
+    private fun revisionConflict(
+        expectedRevision: Long,
+        currentRevision: Long
+    ) = error(
+        409,
+        "revision_conflict",
+        "Task revision changed",
+        mapOf(
+            "expectedRevision" to expectedRevision.toString(),
+            "currentRevision" to currentRevision.toString()
+        )
+    )
 
     private fun missingIdempotency() = error(
         428,
