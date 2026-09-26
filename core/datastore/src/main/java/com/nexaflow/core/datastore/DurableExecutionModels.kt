@@ -127,6 +127,12 @@ data class DurableExecutionCheckpoint(
     val status: DurableExecutionStatus,
     /** Original state preserved when a recovery worker atomically claims this run. */
     val recoverySourceStatus: DurableExecutionStatus? = null,
+    /**
+     * Process-scoped owner of a recovery claim. A new app process receives a
+     * different token and may reclaim a checkpoint left in RECOVERY_CLAIMED by
+     * a process that died before classification completed.
+     */
+    val recoveryClaimOwner: String? = null,
     val startedAt: Long,
     val updatedAt: Long,
     val message: String? = null,
@@ -158,6 +164,9 @@ data class DurableExecutionCheckpoint(
         }
         require(idempotencyKeys.all { it.isNotBlank() && it.length <= MAX_IDEMPOTENCY_KEY_LENGTH }) {
             "idempotencyKeys contains an invalid key"
+        }
+        require(recoveryClaimOwner == null || recoveryClaimOwner.isNotBlank()) {
+            "recoveryClaimOwner must not be blank"
         }
         require(schemaVersion == 1) { "Unsupported checkpoint schema version" }
     }
