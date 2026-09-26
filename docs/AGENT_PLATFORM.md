@@ -108,13 +108,20 @@ the complete scope set with one choice.
 
 ## Phase 3 - persistence, provenance and audit
 
-Add Room migrations and dedicated tables for:
+Implemented foundation:
 
-- agent grants
-- credentials/sessions
-- audit events
-- idempotency keys
-- automation API metadata
+- [x] Room schema 21 agent control-plane ledger
+- [x] automation API provenance metadata
+- [x] redacted agent audit events
+- [x] hashed idempotency keys with bounded replay metadata
+- [x] transactional API revisions / CAS
+- [x] atomic definition + metadata + audit + idempotency commits
+- [x] transaction-local dependency revalidation
+- [x] detection of out-of-band first-party definition edits
+- [x] permanent agent grants/credentials/sessions remain Keystore-backed
+
+Later phases add their own dedicated persistence as required for:
+
 - conversations/messages
 - execution traces
 - subscriptions
@@ -123,20 +130,26 @@ Add Room migrations and dedicated tables for:
 Automation metadata records origin, agent, provider/model, transport,
 conversation/request identifiers, risk, revision and timestamps.
 
-Agent audit must redact credentials, secret values and sensitive dynamic config.
+Agent audit redacts credentials, secret values and sensitive dynamic config.
 
 ## Phase 4 - scheduling and simulation
 
-Add:
+Implemented:
 
-- schedule preview using the existing `TimeTriggerCalculator`
-- next-N occurrence preview
-- DEVICE_LOCAL timezone policy
-- optional FIXED IANA timezone policy
-- SimulationService built on dry-run/capability planning
-- no-side-effect execution preview
+- [x] schedule preview using the existing `TimeTriggerCalculator`
+- [x] next-N occurrence preview
+- [x] DEVICE_LOCAL timezone policy
+- [x] optional FIXED IANA timezone policy
+- [x] SimulationService built on command preflight + dry-run/capability planning
+- [x] no-side-effect execution preview
+- [x] machine-readable requirement gaps
+- [x] semantic action strategy/candidate preview
+- [x] optional schedule preview composed into simulation
+- [x] explicit `noSideEffects=true` transport contract
 
-All existing recurrence forms must remain representable.
+All existing recurrence forms remain represented by the production calculator.
+Simulation never writes Room, schedules alarms, invokes action handlers, executes
+capability backends, Root commands, or Shizuku operations.
 
 ## Phase 5 - REST/OpenAPI
 
