@@ -1,0 +1,28 @@
+name: Room Schema Debug
+
+on:
+  push:
+    branches:
+      - feature/agent-persistence-v2
+
+permissions:
+  contents: read
+
+jobs:
+  schema:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: gradle
+      - name: Generate Room schema 21
+        run: |
+          chmod +x gradlew
+          ./gradlew :core:database:kspDebugKotlin --no-configuration-cache --no-daemon --console=plain
+          echo "=== ROOM_SCHEMA_21_BEGIN ==="
+          cat core/database/schemas/com.nexaflow.core.database.AppDatabase/21.json
+          echo "=== ROOM_SCHEMA_21_END ==="

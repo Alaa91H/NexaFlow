@@ -259,6 +259,12 @@ jobs:
         cache: gradle
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+    - name: Generate and print Room schema 21 for review
+      run: |
+        ./gradlew :core:database:kspDebugKotlin --no-configuration-cache --console=plain
+        echo "=== ROOM_SCHEMA_21_BEGIN ==="
+        cat core/database/schemas/com.nexaflow.core.database.AppDatabase/21.json
+        echo "=== ROOM_SCHEMA_21_END ==="
     - name: Run unit tests
       run: ./gradlew testDebugUnitTest
     - name: Restore release signing keystore (when configured)

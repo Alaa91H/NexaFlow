@@ -40,6 +40,7 @@ dependencies {
     implementation(project(":core:execution"))
     implementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.core)
     implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.core)
+    implementation(libs.org.jetbrains.kotlinx.kotlinx.serialization.json)
 
     testImplementation(libs.junit.junit)
     testImplementation(libs.org.jetbrains.kotlinx.kotlinx.coroutines.test)

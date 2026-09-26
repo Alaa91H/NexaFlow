@@ -76,6 +76,7 @@ class RepositoryImplTest {
         override fun getAllAutomations(): Flow<List<AutomationEntity>> = rows
         override suspend fun getAutomationById(id: String): AutomationEntity? =
             rows.value.firstOrNull { it.id == id }
+        override suspend fun getAllAutomationsSnapshot(): List<AutomationEntity> = rows.value
 
         override suspend fun insertAutomation(automation: AutomationEntity) {
             rows.value = rows.value.filterNot { it.id == automation.id } + automation

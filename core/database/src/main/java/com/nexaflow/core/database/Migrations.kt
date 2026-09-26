@@ -264,6 +264,112 @@ object Migrations {
         }
     }
 
+
+    /**
+     * v20 -> v21: adds the durable agent control-plane ledger. Existing
+     * automations are backfilled as human/legacy provenance with revision one.
+     * Credentials remain in Keystore-backed SecureStorage; these tables contain
+     * only non-secret provenance, audit and idempotency metadata.
+     */
+    val MIGRATION_20_21 = object : Migration(20, 21) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `automation_api_metadata` (" +
+                    "`automationId` TEXT NOT NULL, " +
+                    "`origin` TEXT NOT NULL, " +
+                    "`creatorActorId` TEXT NOT NULL, " +
+                    "`creatorAgentId` TEXT, " +
+                    "`lastActorId` TEXT NOT NULL, " +
+                    "`lastAgentId` TEXT, " +
+                    "`providerId` TEXT, " +
+                    "`modelId` TEXT, " +
+                    "`transport` TEXT, " +
+                    "`requestId` TEXT, " +
+                    "`conversationId` TEXT, " +
+                    "`riskLevel` TEXT, " +
+                    "`revision` INTEGER NOT NULL, " +
+                    "`definitionUpdatedAt` INTEGER NOT NULL, " +
+                    "`createdAt` INTEGER NOT NULL, " +
+                    "`updatedAt` INTEGER NOT NULL, " +
+                    "PRIMARY KEY(`automationId`))"
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_automation_api_metadata_origin` " +
+                    "ON `automation_api_metadata` (`origin`)"
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_automation_api_metadata_lastAgentId` " +
+                    "ON `automation_api_metadata` (`lastAgentId`)"
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_automation_api_metadata_requestId` " +
+                    "ON `automation_api_metadata` (`requestId`)"
+            )
+            db.execSQL(
+                "INSERT OR IGNORE INTO `automation_api_metadata` (" +
+                    "`automationId`, `origin`, `creatorActorId`, `creatorAgentId`, " +
+                    "`lastActorId`, `lastAgentId`, `providerId`, `modelId`, " +
+                    "`transport`, `requestId`, `conversationId`, `riskLevel`, " +
+                    "`revision`, `definitionUpdatedAt`, `createdAt`, `updatedAt`) " +
+                    "SELECT `id`, 'HUMAN', 'legacy', NULL, 'legacy', NULL, NULL, NULL, " +
+                    "'INTERNAL', NULL, NULL, NULL, 1, `updatedAt`, `createdAt`, `updatedAt` " +
+                    "FROM `automations`"
+            )
+
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `agent_audit` (" +
+                    "`id` TEXT NOT NULL, " +
+                    "`eventType` TEXT NOT NULL, " +
+                    "`outcome` TEXT NOT NULL, " +
+                    "`actorId` TEXT NOT NULL, " +
+                    "`agentId` TEXT, " +
+                    "`automationId` TEXT, " +
+                    "`requestId` TEXT, " +
+                    "`transport` TEXT, " +
+                    "`detailsJson` TEXT, " +
+                    "`createdAt` INTEGER NOT NULL, " +
+                    "PRIMARY KEY(`id`))"
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_agent_audit_createdAt` " +
+                    "ON `agent_audit` (`createdAt`)"
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_agent_audit_agentId` " +
+                    "ON `agent_audit` (`agentId`)"
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_agent_audit_automationId` " +
+                    "ON `agent_audit` (`automationId`)"
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_agent_audit_requestId` " +
+                    "ON `agent_audit` (`requestId`)"
+            )
+
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `agent_idempotency` (" +
+                    "`actorId` TEXT NOT NULL, " +
+                    "`keyHash` TEXT NOT NULL, " +
+                    "`requestFingerprint` TEXT NOT NULL, " +
+                    "`operation` TEXT NOT NULL, " +
+                    "`automationId` TEXT, " +
+                    "`resultRevision` INTEGER, " +
+                    "`createdAt` INTEGER NOT NULL, " +
+                    "`expiresAt` INTEGER NOT NULL, " +
+                    "PRIMARY KEY(`actorId`, `keyHash`))"
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_agent_idempotency_expiresAt` " +
+                    "ON `agent_idempotency` (`expiresAt`)"
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_agent_idempotency_automationId` " +
+                    "ON `agent_idempotency` (`automationId`)"
+            )
+        }
+    }
+
     val ALL = listOf(
         MIGRATION_1_2,
         MIGRATION_2_3,
@@ -283,6 +389,7 @@ object Migrations {
         MIGRATION_16_17,
         MIGRATION_17_18,
         MIGRATION_18_19,
-        MIGRATION_19_20
+        MIGRATION_19_20,
+        MIGRATION_20_21
     )
 }
