@@ -145,8 +145,21 @@ class AutomationCommandService(
         draft: AgentTaskDraftV1,
         context: AutomationMutationContext
     ): AutomationMutationResult {
-        val id = generateUniqueId()
         val occurredAt = clockMillis()
+        val fingerprint = AutomationMutationFingerprint.draft(
+            AutomationMutationKind.CREATE,
+            automationId = null,
+            draft = draft
+        )
+        resolveStoredReplay(
+            context = context,
+            kind = AutomationMutationKind.CREATE,
+            automationId = null,
+            fingerprint = fingerprint,
+            occurredAt = occurredAt
+        )?.let { return it }
+
+        val id = generateUniqueId()
         val prepared = prepare(
             draft = draft,
             id = id,
@@ -169,11 +182,7 @@ class AutomationCommandService(
                 kind = AutomationMutationKind.CREATE,
                 automation = automation,
                 context = context,
-                requestFingerprint = AutomationMutationFingerprint.draft(
-                    AutomationMutationKind.CREATE,
-                    automationId = null,
-                    draft = draft
-                ),
+                requestFingerprint = fingerprint,
                 occurredAt = occurredAt
             )
         )
@@ -184,9 +193,22 @@ class AutomationCommandService(
         draft: AgentTaskDraftV1,
         context: AutomationMutationContext
     ): AutomationMutationResult {
+        val occurredAt = clockMillis()
+        val fingerprint = AutomationMutationFingerprint.draft(
+            AutomationMutationKind.UPDATE,
+            automationId = automationId,
+            draft = draft
+        )
+        resolveStoredReplay(
+            context = context,
+            kind = AutomationMutationKind.UPDATE,
+            automationId = automationId,
+            fingerprint = fingerprint,
+            occurredAt = occurredAt
+        )?.let { return it }
+
         val existing = repository.getAutomationById(automationId)
             ?: return notFound(automationId, context)
-        val occurredAt = clockMillis()
         val prepared = prepare(
             draft = draft,
             id = automationId,
@@ -210,11 +232,7 @@ class AutomationCommandService(
                 automation = automation,
                 context = context,
                 baseDefinitionUpdatedAt = existing.updatedAt,
-                requestFingerprint = AutomationMutationFingerprint.draft(
-                    AutomationMutationKind.UPDATE,
-                    automationId = automationId,
-                    draft = draft
-                ),
+                requestFingerprint = fingerprint,
                 occurredAt = occurredAt
             )
         )
@@ -225,9 +243,27 @@ class AutomationCommandService(
         enabled: Boolean,
         context: AutomationMutationContext
     ): AutomationMutationResult {
+        val occurredAt = clockMillis()
+        val kind = if (enabled) {
+            AutomationMutationKind.ENABLE
+        } else {
+            AutomationMutationKind.DISABLE
+        }
+        val fingerprint = AutomationMutationFingerprint.state(
+            kind = kind,
+            automationId = automationId,
+            enabled = enabled
+        )
+        resolveStoredReplay(
+            context = context,
+            kind = kind,
+            automationId = automationId,
+            fingerprint = fingerprint,
+            occurredAt = occurredAt
+        )?.let { return it }
+
         val existing = repository.getAutomationById(automationId)
             ?: return notFound(automationId, context)
-        val occurredAt = clockMillis()
         val candidate = existing.copy(
             enabled = enabled,
             updatedAt = max(occurredAt, existing.updatedAt + 1L)
@@ -259,11 +295,6 @@ class AutomationCommandService(
             )
         }
 
-        val kind = if (enabled) {
-            AutomationMutationKind.ENABLE
-        } else {
-            AutomationMutationKind.DISABLE
-        }
         return persist(
             automation = candidate,
             report = report,
@@ -272,11 +303,7 @@ class AutomationCommandService(
                 automation = candidate,
                 context = context,
                 baseDefinitionUpdatedAt = existing.updatedAt,
-                requestFingerprint = AutomationMutationFingerprint.state(
-                    kind = kind,
-                    automationId = automationId,
-                    enabled = enabled
-                ),
+                requestFingerprint = fingerprint,
                 occurredAt = occurredAt
             )
         )
@@ -290,25 +317,17 @@ class AutomationCommandService(
             kind = AutomationMutationKind.DELETE,
             automationId = automationId
         )
+        val occurredAt = clockMillis()
+        resolveStoredReplay(
+            context = context,
+            kind = AutomationMutationKind.DELETE,
+            automationId = automationId,
+            fingerprint = deleteFingerprint,
+            occurredAt = occurredAt
+        )?.let { return it }
+
         val existing = repository.getAutomationById(automationId)
-            ?: return when (
-                val replay = mutationPersistence.resolveStoredIdempotency(
-                    context = context,
-                    kind = AutomationMutationKind.DELETE,
-                    automationId = automationId,
-                    requestFingerprint = deleteFingerprint,
-                    occurredAt = clockMillis()
-                )
-            ) {
-                is AutomationPersistenceResult.IdempotentReplay ->
-                    AutomationMutationResult.IdempotentReplay(
-                        automationId = replay.automationId,
-                        revision = replay.revision
-                    )
-                AutomationPersistenceResult.IdempotencyConflict ->
-                    AutomationMutationResult.IdempotencyConflict
-                else -> notFound(automationId, context)
-            }
+            ?: return notFound(automationId, context)
 
         val remaining = repository.getAutomations().first()
             .filterNot { it.id == automationId }
@@ -345,9 +364,34 @@ class AutomationCommandService(
                 context = context,
                 baseDefinitionUpdatedAt = existing.updatedAt,
                 requestFingerprint = deleteFingerprint,
-                occurredAt = clockMillis()
+                occurredAt = occurredAt
             )
         )
+    }
+
+    private suspend fun resolveStoredReplay(
+        context: AutomationMutationContext,
+        kind: AutomationMutationKind,
+        automationId: String?,
+        fingerprint: String,
+        occurredAt: Long
+    ): AutomationMutationResult? = when (
+        val stored = mutationPersistence.resolveStoredIdempotency(
+            context = context,
+            kind = kind,
+            automationId = automationId,
+            requestFingerprint = fingerprint,
+            occurredAt = occurredAt
+        )
+    ) {
+        is AutomationPersistenceResult.IdempotentReplay ->
+            AutomationMutationResult.IdempotentReplay(
+                automationId = stored.automationId,
+                revision = stored.revision
+            )
+        AutomationPersistenceResult.IdempotencyConflict ->
+            AutomationMutationResult.IdempotencyConflict
+        else -> null
     }
 
     private suspend fun rejected(
