@@ -225,7 +225,12 @@ object UpdateChecker {
      */
     internal fun packageIdentityMatches(context: Context, apk: File): Boolean = runCatching {
         val packageManager = context.packageManager
-        val flags = PackageManager.GET_SIGNING_CERTIFICATES
+        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            PackageManager.GET_SIGNING_CERTIFICATES
+        } else {
+            @Suppress("DEPRECATION")
+            PackageManager.GET_SIGNATURES
+        }
         val installed = if (Build.VERSION.SDK_INT >= 33) {
             packageManager.getPackageInfo(
                 context.packageName,
