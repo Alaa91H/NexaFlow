@@ -10,22 +10,37 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ExecutionDao {
-    @Query("SELECT * FROM execution_history ORDER BY executedAt DESC")
+    @Query("SELECT * FROM execution_history ORDER BY executedAt DESC, id DESC")
     fun getAllExecutions(): Flow<List<ExecutionRecordEntity>>
 
-    /** Latest execution per automation — used by dashboard for O(automationCount) instead of O(historySize). */
-    @Query("SELECT * FROM execution_history WHERE executedAt IN (SELECT MAX(executedAt) FROM execution_history GROUP BY automationId)")
+    /**
+     * Exactly one latest execution per automation.
+     *
+     * The previous timestamp-IN query could return an older row for one
+     * automation when its timestamp happened to equal another automation's
+     * latest timestamp. Correlating by automation id closes that collision;
+     * id is a deterministic tie-breaker for same-millisecond rows.
+     */
+    @Query(
+        "SELECT current.* FROM execution_history AS current " +
+            "WHERE current.id = (" +
+            "SELECT candidate.id FROM execution_history AS candidate " +
+            "WHERE candidate.automationId = current.automationId " +
+            "ORDER BY candidate.executedAt DESC, candidate.id DESC LIMIT 1" +
+            ") " +
+            "ORDER BY current.executedAt DESC, current.id DESC"
+    )
     fun getLatestExecutions(): Flow<List<ExecutionRecordEntity>>
 
     /**
      * Pageable view of the same table — the history screen streams pages of
      * [PAGE_SIZE] instead of materializing the whole table on every change.
      */
-    @Query("SELECT * FROM execution_history ORDER BY executedAt DESC")
+    @Query("SELECT * FROM execution_history ORDER BY executedAt DESC, id DESC")
     fun getExecutionsPaged(): PagingSource<Int, ExecutionRecordEntity>
 
     /** Pageable execution history scoped to one routine, newest record first. */
-    @Query("SELECT * FROM execution_history WHERE automationId = :automationId ORDER BY executedAt DESC")
+    @Query("SELECT * FROM execution_history WHERE automationId = :automationId ORDER BY executedAt DESC, id DESC")
     fun getExecutionsPagedForAutomation(automationId: String): PagingSource<Int, ExecutionRecordEntity>
 
     /**
@@ -36,7 +51,7 @@ interface ExecutionDao {
         "SELECT * FROM execution_history " +
             "WHERE (:automationId IS NULL OR automationId = :automationId) " +
             "AND (:success IS NULL OR (CASE WHEN message GLOB 'Deferred: recovery queue is full;*' THEN 1 ELSE success END) = :success) " +
-            "ORDER BY executedAt DESC"
+            "ORDER BY executedAt DESC, id DESC"
     )
     fun getExecutionsPagedFiltered(
         automationId: String?,
@@ -52,14 +67,14 @@ interface ExecutionDao {
             "WHERE (:automationId IS NULL OR automationId = :automationId) " +
             "AND ((success = 1 AND message LIKE :skipMessageLike) " +
             "OR message GLOB 'Deferred: recovery queue is full;*') " +
-            "ORDER BY executedAt DESC"
+            "ORDER BY executedAt DESC, id DESC"
     )
     fun getExecutionsPagedSkipped(
         automationId: String?,
         skipMessageLike: String
     ): PagingSource<Int, ExecutionRecordEntity>
 
-    @Query("SELECT * FROM execution_history ORDER BY executedAt DESC LIMIT 1")
+    @Query("SELECT * FROM execution_history ORDER BY executedAt DESC, id DESC LIMIT 1")
     suspend fun getLatestExecution(): ExecutionRecordEntity?
 
     @Query("SELECT * FROM execution_history WHERE id = :id")
@@ -90,7 +105,7 @@ interface ExecutionDao {
     /** Keeps only the newest [keepCount] records; returns rows removed. */
     @Query(
         "DELETE FROM execution_history WHERE id NOT IN " +
-            "(SELECT id FROM execution_history ORDER BY executedAt DESC LIMIT :keepCount)"
+            "(SELECT id FROM execution_history ORDER BY executedAt DESC, id DESC LIMIT :keepCount)"
     )
     suspend fun pruneExcess(keepCount: Int): Int
 
