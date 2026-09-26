@@ -27,6 +27,11 @@ class AutomationRepositoryImpl @Inject constructor(
         automationDao.insertAutomation(automation.toEntity())
     }
 
+    override suspend fun saveAutomationsAtomically(automations: List<Automation>) {
+        if (automations.isEmpty()) return
+        automationDao.insertAutomations(automations.map { it.toEntity() })
+    }
+
     override suspend fun deleteAutomation(automation: Automation) {
         automationDao.deleteAutomation(automation.toEntity())
     }
