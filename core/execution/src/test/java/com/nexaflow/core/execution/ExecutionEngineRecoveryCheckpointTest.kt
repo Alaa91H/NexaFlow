@@ -300,6 +300,12 @@ class ExecutionEngineRecoveryCheckpointTest {
             val report = ExecutionRecoveryCoordinator(store).reconcileStartup()
             val item = report.items.single { it.checkpoint.runId == runId }
             assertEquals(RecoveryDisposition.VERIFY_OR_COMPENSATE_REQUIRED, item.disposition)
+
+            val review = engine.recoveryReviewItems(task.id).single { it.runId == runId }
+            assertEquals("ACTION_UNKNOWN", review.sourceStatus)
+            assertEquals("UNKNOWN", review.nodeState)
+            assertEquals("UNKNOWN_OUTCOME", review.failureCode)
+            assertTrue(review.message?.contains("unconfirmed") == true)
         } finally {
             store.clearCheckpoint(runId)
             store.clear(task.id)
