@@ -70,15 +70,19 @@ object TimeTriggerCalculator {
         if (endDate != null && today.isAfter(endDate)) return null
 
         var daysChecked = 0
-        var candidate = safeZonedDateTime(today, localTime, zone) ?: ZonedDateTime.of(today, localTime, zone)
+        var day = today
         while (daysChecked < MAX_SEARCH_DAYS) {
-            val day = candidate.toLocalDate()
             if (startDate != null && day.isBefore(startDate)) {
-                candidate = ZonedDateTime.of(startDate, localTime, zone)
-                continue
+                day = startDate
             }
             if (endDate != null && day.isAfter(endDate)) return null
-            if (matchesRepeat(repeat, config, day)) {
+
+            // Rebuild the wall-clock candidate for every calendar day. Adding
+            // one day to a ZonedDateTime that precedes a DST gap can normalize
+            // a missing 02:30 into 03:30 and accidentally fire one hour late.
+            // A schedule for a nonexistent wall time must skip that date.
+            val candidate = safeZonedDateTime(day, localTime, zone)
+            if (candidate != null && matchesRepeat(repeat, config, day)) {
                 val millis = candidate.toInstant().toEpochMilli()
                 if (millis > fromMillis) {
                     val limit = occurrenceLimit(config)
@@ -88,7 +92,7 @@ object TimeTriggerCalculator {
                     return millis
                 }
             }
-            candidate = candidate.plusDays(1)
+            day = day.plusDays(1)
             daysChecked++
         }
         return null

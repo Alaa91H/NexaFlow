@@ -105,17 +105,18 @@ class TimeTriggerCalculatorTest {
     }
 
     @Test
-    fun `daily schedule at the spring-forward gap hour resolves to the later instant`() {
+    fun `daily schedule at the spring-forward gap hour skips the nonexistent day`() {
         // 02:30 on 2026-03-29 does not exist (02:00-03:00 jumps to 03:00
-        // CEST). ZonedDateTime resolves to the shifted instant; the result
-        // must still be a valid local time on the 29th.
+        // CEST). A wall-clock schedule must not silently move to 03:30; the
+        // next valid 02:30 occurrence is the following day.
         val berlin = ZoneId.of("Europe/Berlin")
         val before = zoned("Europe/Berlin", 2026, 3, 28, 12, 0)
         val next = TimeTriggerCalculator.nextFireTime(mapOf("time" to "02:30"), before, berlin)
         assertNotNull(next)
         val zdt = Instant.ofEpochMilli(next!!).atZone(berlin)
-        assertEquals(LocalDate.of(2026, 3, 29), zdt.toLocalDate())
-        assertTrue("02:30 resolves into 03:00-04:00 window", zdt.hour in 3..4)
+        assertEquals(LocalDate.of(2026, 3, 30), zdt.toLocalDate())
+        assertEquals(2, zdt.hour)
+        assertEquals(30, zdt.minute)
     }
 
     @Test
