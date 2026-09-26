@@ -109,11 +109,15 @@ class MediaMonitor @Inject constructor(
     }
 
     private fun handleState(playing: Boolean) {
-        scope.launch {
-            val automations = repository.getAutomations().first()
-            automations
-                .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.MEDIA_PLAYING } }
-                .forEach { automation ->
+        scope.launch { reconcileState(playing) }
+    }
+
+    /** Serialized by the monitor scope in production; exposed internally for lifecycle contract tests. */
+    internal suspend fun reconcileState(playing: Boolean) {
+        val automations = repository.getAutomations().first()
+        automations
+            .filter { it.enabled && it.triggers.any { t -> t.type == TriggerType.MEDIA_PLAYING } }
+            .forEach { automation ->
                     val wantStart = (automation.triggers.first { it.type == TriggerType.MEDIA_PLAYING }
                         .config["event"] ?: "STARTED") == "STARTED"
                     val satisfied = playing == wantStart
@@ -152,7 +156,6 @@ class MediaMonitor @Inject constructor(
                         }
                     }
                 }
-        }
     }
 
     private companion object {
