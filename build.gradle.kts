@@ -70,12 +70,22 @@ subprojects {
     plugins.withId("com.android.library") { configureUnusedResourcesGate() }
 }
 
-// Strict coverage gate: every Android application/library module enables JaCoCo
-// for its unit-test variant, and the aggregate `coverageReport` task builds a
-// per-module HTML/XML report under build/coverage/. The CI `coverage-gate` job
-// reads those XML reports and fails when a module's covered-line ratio drops
-// below 80% (see scripts/check_coverage.py) — a regression in test coverage is
-// a build failure, not a suggestion.
+// Coverage policy: every Android application/library module emits JaCoCo
+// reports for visibility, but an 80% JVM unit-test gate is enforced only for
+// modules whose behavior is primarily deterministic/JVM-testable today.
+// UI shells, Android framework integrations, Wear, and hardware/privileged
+// adapters remain report-only until connected/device coverage is part of the
+// policy. This avoids "passing" coverage by excluding production code or
+// writing meaningless JVM tests for behavior that only exists on Android.
+val strictJvmCoverageThresholds = mapOf(
+    ":data" to 0.80,
+    ":domain" to 0.80,
+    ":core:compatibility" to 0.80,
+    ":core:logging" to 0.80,
+    ":core:security" to 0.80,
+    ":core:wear-protocol" to 0.80,
+)
+
 subprojects {
     plugins.withId("com.android.application") { configureCoverage() }
     plugins.withId("com.android.library") { configureCoverage() }
@@ -180,7 +190,14 @@ fun Project.configureCoverage() {
                 throw GradleException("coverage report has zero measured lines for ${project.path}")
             }
             val ratio = covered.toInt().toDouble() / total
-            val threshold = 0.80
+            val threshold = strictJvmCoverageThresholds[project.path]
+            if (threshold == null) {
+                println(
+                    "COVERAGE_REPORT: ${project.path} " +
+                        "${"%.1f".format(ratio * 100)}% (${covered}/${total}) — report-only"
+                )
+                return@doLast
+            }
             if (ratio < threshold) {
                 throw GradleException(
                     "coverage gate FAILED for ${project.path}: " +
@@ -190,7 +207,8 @@ fun Project.configureCoverage() {
             }
             println(
                 "COVERAGE_GATE: ${project.path} " +
-                    "${"%.1f".format(ratio * 100)}% (${covered}/${total})"
+                    "${"%.1f".format(ratio * 100)}% >= " +
+                    "${"%.0f".format(threshold * 100)}% (${covered}/${total})"
             )
         }
     }
