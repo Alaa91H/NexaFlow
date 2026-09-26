@@ -138,6 +138,22 @@ data class AgentSecurityStatus(
     val pendingPairingCount: Int
 )
 
+sealed interface AgentGrantResult {
+    data class Granted(
+        val credential: AgentBootstrapCredential
+    ) : AgentGrantResult
+
+    data object Disabled : AgentGrantResult
+}
+
+sealed interface AgentPairingStartResult {
+    data class Started(
+        val offer: AgentPairingOffer
+    ) : AgentPairingStartResult
+
+    data object Disabled : AgentPairingStartResult
+}
+
 sealed interface AgentPairingCompletionResult {
     data class Granted(
         val credential: AgentBootstrapCredential
