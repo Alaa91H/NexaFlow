@@ -12,12 +12,15 @@ import android.provider.CalendarContract
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeStore
 import com.nexaflow.domain.models.Trigger
 import com.nexaflow.domain.models.TriggerMatchMode
 import com.nexaflow.domain.models.TriggerType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -40,7 +43,8 @@ internal data class FakeCalendarEvent(
  * configured occurrence from any `instances/when` window.
  */
 internal class FakeCalendarProvider(
-    private val events: List<FakeCalendarEvent>
+    private val events: List<FakeCalendarEvent>,
+    private val instancesReadable: Boolean = true
 ) : ContentProvider() {
 
     override fun onCreate(): Boolean = true
@@ -68,7 +72,7 @@ internal class FakeCalendarProvider(
         val path = uri.path ?: return null
         return when {
             path.startsWith("/calendars") -> calendarsCursor()
-            path.contains("/instances/when") -> instancesCursor()
+            path.contains("/instances/when") -> if (instancesReadable) instancesCursor() else null
             else -> null
         }
     }
@@ -129,6 +133,8 @@ class CalendarMonitorExitReconcileTest {
             ActiveTriggerStore(context).clearSource("calendar")
             ActiveExecutionStore(context).clear("cal-task")
             ActiveExecutionStore(context).clear("calendar-all")
+            AutomationRuntimeStore(context).clear("cal-task")
+            AutomationRuntimeStore(context).clear("calendar-all")
         }
         // The monitor's rescan gates on READ_CALENDAR; grant it explicitly so
         // the reconcile path is exercised regardless of manifest merging.
@@ -143,10 +149,13 @@ class CalendarMonitorExitReconcileTest {
             )
         )
 
-    private fun registerProvider(events: List<FakeCalendarEvent>) {
+    private fun registerProvider(
+        events: List<FakeCalendarEvent>,
+        instancesReadable: Boolean = true
+    ) {
         ShadowContentResolver.registerProviderInternal(
             CalendarContract.AUTHORITY,
-            FakeCalendarProvider(events)
+            FakeCalendarProvider(events, instancesReadable)
         )
     }
 
@@ -154,14 +163,20 @@ class CalendarMonitorExitReconcileTest {
         repository: FakeRepository,
         engine: com.nexaflow.core.execution.ExecutionEngine,
         store: ActiveTriggerStore,
+        history: RecordingHistory,
         scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
-    ): CalendarMonitor = CalendarMonitor(
-        context = context,
-        repository = repository,
-        executionEngine = engine,
-        activeStore = store,
-        scope = scope
-    )
+    ): CalendarMonitor {
+        val runtimeStore = AutomationRuntimeStore(context)
+        return CalendarMonitor(
+            context = context,
+            repository = repository,
+            executionEngine = engine,
+            activeStore = store,
+            runtimeStore = runtimeStore,
+            exitCoordinator = ExitCoordinator(runtimeStore, engine, repository, history),
+            scope = scope
+        )
+    }
 
     @Test
     fun `restart with the activating occurrence already over fires the missed exit on init`() = runBlocking {
@@ -176,7 +191,7 @@ class CalendarMonitorExitReconcileTest {
         ActiveExecutionStore(context).markStarted("cal-task")
         registerProvider(emptyList())
 
-        val monitor = monitorFor(repository, engine, store)
+        val monitor = monitorFor(repository, engine, store, history)
         monitor.initialize()
 
         // The first rescan finds the restored occurrence gone and fires the
@@ -199,7 +214,7 @@ class CalendarMonitorExitReconcileTest {
         store.markActive("calendar", "cal-task|7:$start")
         registerProvider(listOf(FakeCalendarEvent(7L, "Meeting", start, end)))
 
-        val monitor = monitorFor(repository, engine, store)
+        val monitor = monitorFor(repository, engine, store, history)
         monitor.initialize()
 
         // Give the async re-arm + rescan a moment, then assert no exit ran and
@@ -213,30 +228,57 @@ class CalendarMonitorExitReconcileTest {
             "active mark survives while the occurrence is active",
             store.activeKeys("calendar").isNotEmpty()
         )
+        val runtime = AutomationRuntimeStore(context).current("cal-task")
+        assertTrue(runtime?.lifecycleState == AutomationRuntimeLifecycleState.ACTIVE)
+        assertEquals(end, runtime?.expectedEndAt)
         monitor.stop()
     }
 
     @Test
-    fun `stale mark for a disabled automation is pruned on restart`() = runBlocking {
+    fun `unreadable calendar snapshot never becomes a false event end`() = runBlocking {
+        val history = RecordingHistory()
+        val engine = testEngine(context, history)
+        val repository = FakeRepository(listOf(calendarAutomation("cal-task")))
+        val store = ActiveTriggerStore(context)
+        val runtimeStore = AutomationRuntimeStore(context)
+        val now = System.currentTimeMillis()
+        val start = now - 60_000L
+        store.markActive("calendar", "cal-task|7:$start")
+        registerProvider(emptyList(), instancesReadable = false)
+
+        val monitor = monitorFor(repository, engine, store, history)
+        monitor.initialize()
+
+        waitUntil {
+            runtimeStore.current("cal-task")?.lifecycleState ==
+                AutomationRuntimeLifecycleState.ACTIVE
+        }
+        kotlinx.coroutines.delay(150)
+        assertTrue(
+            "provider read failure must not be treated as an ended occurrence",
+            history.exits.none { it == EXIT_NOOP_MARKER }
+        )
+        assertTrue(store.activeKeys("calendar").isNotEmpty())
+        monitor.stop()
+    }
+
+    @Test
+    fun `disabled calendar occurrence exits before compatibility state is cleared`() = runBlocking {
         val history = RecordingHistory()
         val engine = testEngine(context, history)
         val repository = FakeRepository(
             listOf(calendarAutomation("cal-task").copy(enabled = false))
         )
         val store = ActiveTriggerStore(context)
+        val runtimeStore = AutomationRuntimeStore(context)
         store.markActive("calendar", "cal-task|7:1234567890000")
         registerProvider(emptyList())
 
-        val monitor = monitorFor(repository, engine, store)
+        val monitor = monitorFor(repository, engine, store, history)
         monitor.initialize()
 
-        // Give the async prune a moment, then assert nothing fired and the
-        // stale mark is gone.
-        Thread.sleep(300)
-        assertTrue(
-            "disabled task must not fire a stale exit",
-            history.exits.none { it == EXIT_NOOP_MARKER }
-        )
+        waitUntil { history.exits.any { it == EXIT_NOOP_MARKER } }
+        waitUntil { runtimeStore.current("cal-task") == null }
         waitUntil { store.activeKeys("calendar").isEmpty() }
         monitor.stop()
     }
@@ -281,6 +323,7 @@ class CalendarMonitorExitReconcileTest {
             repository = repository,
             engine = testEngine(context, history),
             store = store,
+            history = history,
             scope = this
         )
         try {
@@ -297,8 +340,10 @@ class CalendarMonitorExitReconcileTest {
         } finally {
             monitor.stop()
             store.clearAutomation("calendar", automation.id)
+            AutomationRuntimeStore(context).clear(automation.id)
             ActiveExecutionStore(context).clear(automation.id)
         }
+        AutomationRuntimeStore(context).clear(automation.id)
         ActiveExecutionStore(context).clear(automation.id)
     }
 
