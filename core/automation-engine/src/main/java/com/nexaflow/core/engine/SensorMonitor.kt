@@ -13,6 +13,11 @@ import android.os.Looper
 import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationLifecycleContext
+import com.nexaflow.core.datastore.AutomationRuntimeLifecycleState
+import com.nexaflow.core.datastore.AutomationRuntimeState
+import com.nexaflow.core.datastore.AutomationRuntimeStore
+import com.nexaflow.core.datastore.ExitReason
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ACTION_AUTOMATIONS_CHANGED
 import com.nexaflow.core.execution.ExecutionEngine
@@ -23,6 +28,7 @@ import com.nexaflow.domain.models.TriggerType
 import com.nexaflow.domain.models.cooldownMillis
 import com.nexaflow.domain.repositories.AutomationRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -57,6 +63,8 @@ class SensorMonitor @Inject constructor(
     private val repository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
     private val activeStore: ActiveTriggerStore,
+    private val runtimeStore: AutomationRuntimeStore,
+    private val exitCoordinator: ExitCoordinator,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
@@ -76,12 +84,6 @@ class SensorMonitor @Inject constructor(
     private val lastSensorEventAt = ConcurrentHashMap<String, Long>()
     /** Cached candidates per sensor — rebuilt only on refresh, not per reading. */
     private var candidatesBySensor: Map<String, List<Automation>> = emptyMap()
-
-    private data class PendingSensorOperation(
-        val automation: Automation,
-        val enter: Boolean,
-        val matchedTriggerIndices: Set<Int> = emptySet(),
-    )
 
     private val sensorManager by lazy {
         context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -205,41 +207,156 @@ class SensorMonitor @Inject constructor(
     }
 
     /**
-     * Restores the durable active ids into the in-memory map. Stale keys for
-     * deleted/disabled automations are pruned.
+     * Restores durable sensor ownership before the first live reading.
+     *
+     * The runtime ledger owns whether the automation still has an exit to
+     * execute; ActiveTriggerStore stores the per-sensor detail needed to know
+     * when the *final* stateful sensor condition ends. Legacy id-only markers
+     * are promoted conservatively to every configured stateful sensor.
      */
-    private suspend fun rearmFromLedger(fresh: List<Automation>) {
-        val allowed = fresh.filter { it.enabled }.associate { automation ->
-            automation.id to automation.triggers.filter { it.type == TriggerType.SENSOR }
-                .map { SensorTriggerMatcher.sensorOf(it.config) }.filter { kind ->
-                    val type = when (kind) {
-                        "PROXIMITY" -> SENSOR_PROXIMITY
-                        "LIGHT" -> SENSOR_LIGHT
-                        else -> NumericSensors.specs[kind]?.type
-                    }
-                    SensorTriggerMatcher.isStateful(kind) && type != null && sensorManager.getDefaultSensor(type) != null
-                }.toSet()
+    internal suspend fun rearmFromLedger(fresh: List<Automation>) {
+        val byId = fresh.associateBy { it.id }
+        val configuredStateful = fresh.associate { automation ->
+            automation.id to automation.triggers
+                .filter { it.type == TriggerType.SENSOR }
+                .map { SensorTriggerMatcher.sensorOf(it.config) }
+                .filter { SensorTriggerMatcher.isStateful(it) }
+                .toSet()
         }
-        activeStates.retain(allowed)
+
+        activeStates.retain(
+            fresh.filter { it.enabled }.associate { automation ->
+                automation.id to configuredStateful[automation.id].orEmpty()
+            }
+        )
+
+        // Runtime ownership is authoritative. Reconstruct at least the sensor
+        // set encoded by the lifecycle even if the compatibility mirror was
+        // lost during a crash.
+        runtimeStore.activeStates()
+            .filter { it.source == SOURCE }
+            .forEach { state ->
+                val automation = byId[state.automationId]
+                when {
+                    automation == null -> {
+                        activeStates.removeAutomation(state.automationId)
+                        activeStore.clearAutomation(SOURCE, state.automationId)
+                    }
+                    !automation.enabled ||
+                        configuredStateful[automation.id].isNullOrEmpty() -> {
+                        requestExit(
+                            automation = automation,
+                            reason = ExitReason.AUTOMATION_DISABLED,
+                            occurrenceId = state.occurrenceId
+                        )
+                    }
+                    else -> {
+                        val restoredSensors = parseSourceSensors(state.sourceKey)
+                            .filter { it in configuredStateful[automation.id].orEmpty() }
+                            .toSet()
+                        if (restoredSensors.isEmpty()) {
+                            // The configuration no longer contains any sensor
+                            // that can own this occurrence. Close the old
+                            // lifecycle before a newly configured sensor can
+                            // establish another one.
+                            requestExit(
+                                automation = automation,
+                                reason = ExitReason.AUTOMATION_DISABLED,
+                                occurrenceId = state.occurrenceId
+                            )
+                        } else {
+                            restoredSensors.forEach { sensor ->
+                                activeStates.add(automation.id, sensor)
+                                activeStore.markActive(SOURCE, "${automation.id}|$sensor")
+                            }
+                        }
+                    }
+                }
+            }
+
+        // Upgrade pre-runtime-ledger compatibility keys and restore every
+        // per-sensor condition they can prove.
         activeStore.activeKeys(SOURCE).forEach { key ->
-            val id = key.substringBefore('|')
+            val automationId = key.substringBefore('|')
+            val automation = byId[automationId]
+            val kinds = configuredStateful[automationId].orEmpty()
+
+            if (automation == null) {
+                activeStates.removeAutomation(automationId)
+                activeStore.clearAutomation(SOURCE, automationId)
+                return@forEach
+            }
+
+            val current = runtimeStore.current(automationId)
+            if (current != null && current.source != SOURCE) {
+                // Another stateful source owns this task. A stale sensor mirror
+                // must never authorize an exit for that foreign occurrence.
+                activeStates.removeAutomation(automationId)
+                activeStore.clearAutomation(SOURCE, automationId)
+                return@forEach
+            }
+
             val sensor = key.substringAfter('|', "")
-            val kinds = allowed[id].orEmpty()
             when {
-                sensor.isNotEmpty() && sensor in kinds -> activeStates.add(id, sensor)
+                sensor.isNotEmpty() && sensor in kinds -> {
+                    activeStates.add(automationId, sensor)
+                }
                 sensor.isEmpty() && kinds.isNotEmpty() -> {
-                    // Earlier versions stored only the automation id. Reconcile each
-                    // configured stateful sensor before deciding its missed exit.
                     kinds.forEach { kind ->
-                        activeStates.add(id, kind)
-                        activeStore.markActive(SOURCE, "$id|$kind")
+                        activeStates.add(automationId, kind)
+                        activeStore.markActive(SOURCE, "$automationId|$kind")
                     }
                     activeStore.clearActive(SOURCE, key)
                 }
-                else -> activeStore.clearActive(SOURCE, key)
+                else -> {
+                    activeStore.clearActive(SOURCE, key)
+                }
+            }
+
+            if (!automation.enabled || kinds.isEmpty()) {
+                current
+                    ?.takeIf { it.source == SOURCE }
+                    ?.let { state ->
+                        requestExit(
+                            automation = automation,
+                            reason = ExitReason.AUTOMATION_DISABLED,
+                            occurrenceId = state.occurrenceId
+                        )
+                    }
+                if (current == null) {
+                    activeStates.removeAutomation(automationId)
+                    activeStore.clearAutomation(SOURCE, automationId)
+                }
+                return@forEach
+            }
+
+            if (runtimeStore.current(automationId) == null &&
+                activeStates.isActive(automationId)
+            ) {
+                val sensors = activeStates.sensorsFor(automationId)
+                runtimeStore.activateStrict(
+                    AutomationRuntimeState(
+                        automationId = automationId,
+                        occurrenceId = "legacy:$SOURCE:$automationId:${UUID.randomUUID()}",
+                        source = SOURCE,
+                        sourceKey = sourceKeyFor(automationId, sensors),
+                        lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                        activatedAt = System.currentTimeMillis()
+                    )
+                )
             }
         }
     }
+
+    private fun sourceKeyFor(automationId: String, sensors: Set<String>): String =
+        "$automationId|${sensors.sorted().joinToString(",")}"
+
+    private fun parseSourceSensors(sourceKey: String): Set<String> =
+        sourceKey.substringAfter('|', "")
+            .split(',')
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .toSet()
 
     private fun updateRegistrations(automations: List<Automation>) {
         val wanted = SensorTriggerMatcher.automationsFor(automations, "PROXIMITY").isNotEmpty()
@@ -289,91 +406,329 @@ class SensorMonitor @Inject constructor(
         value: Float = 0f
     ) {
         val runningScope = monitorScope?.takeIf { registered && it.isActive } ?: return
-        val readingValid = when (sensor) {
-            "PROXIMITY" -> distanceCm.isFinite() && maxRangeCm.isFinite()
-            "LIGHT" -> lux.isFinite()
-            "SHAKE" -> shakeG.isFinite()
-            "STEP" -> stepDelta > 0
-            else -> value.isFinite()
+        if (!isValidReading(sensor, distanceCm, lux, shakeG, stepDelta, maxRangeCm, value)) {
+            return
         }
-        if (!readingValid) return
-        val now = SystemClock.elapsedRealtime()
+
+        val elapsedRealtimeMs = SystemClock.elapsedRealtime()
         val occurredAtEpochMs = System.currentTimeMillis()
         if (!SensorTriggerMatcher.isStateful(sensor)) {
             val last = lastSensorEventAt[sensor]
-            if (last != null && now - last < 200) return
-            lastSensorEventAt[sensor] = now
+            if (last != null && elapsedRealtimeMs - last < TRANSIENT_DEBOUNCE_MS) return
+            lastSensorEventAt[sensor] = elapsedRealtimeMs
         }
+
         runningScope.launch {
-            val operations = stateMutex.withLock {
-                if (!registered || !runningScope.isActive) {
-                    return@withLock emptyList<PendingSensorOperation>()
+            processReading(
+                sensor = sensor,
+                distanceCm = distanceCm,
+                lux = lux,
+                shakeG = shakeG,
+                stepDelta = stepDelta,
+                maxRangeCm = maxRangeCm,
+                value = value,
+                elapsedRealtimeMs = elapsedRealtimeMs,
+                occurredAtEpochMs = occurredAtEpochMs,
+                candidates = candidatesBySensor[sensor].orEmpty(),
+                requireLiveMonitor = true
+            )
+        }
+    }
+
+    /**
+     * Deterministic sensor lifecycle seam used by regression tests. Production
+     * listeners use the same [processReading] path with the cached candidate
+     * set built during [refresh].
+     */
+    internal suspend fun reconcileReadingForTest(
+        sensor: String,
+        distanceCm: Float = 0f,
+        lux: Float = 0f,
+        shakeG: Float = 0f,
+        stepDelta: Int = 0,
+        maxRangeCm: Float = 0f,
+        value: Float = 0f,
+        elapsedRealtimeMs: Long = 1_000L,
+        occurredAtEpochMs: Long = 1_000L
+    ) {
+        if (!isValidReading(sensor, distanceCm, lux, shakeG, stepDelta, maxRangeCm, value)) {
+            return
+        }
+        val fresh = repository.getAutomations().first()
+        processReading(
+            sensor = sensor,
+            distanceCm = distanceCm,
+            lux = lux,
+            shakeG = shakeG,
+            stepDelta = stepDelta,
+            maxRangeCm = maxRangeCm,
+            value = value,
+            elapsedRealtimeMs = elapsedRealtimeMs,
+            occurredAtEpochMs = occurredAtEpochMs,
+            candidates = SensorTriggerMatcher.automationsFor(fresh, sensor),
+            requireLiveMonitor = false
+        )
+    }
+
+    private suspend fun processReading(
+        sensor: String,
+        distanceCm: Float,
+        lux: Float,
+        shakeG: Float,
+        stepDelta: Int,
+        maxRangeCm: Float,
+        value: Float,
+        elapsedRealtimeMs: Long,
+        occurredAtEpochMs: Long,
+        candidates: List<Automation>,
+        requireLiveMonitor: Boolean
+    ) = stateMutex.withLock {
+        if (requireLiveMonitor &&
+            (!registered || monitorScope?.isActive != true)
+        ) {
+            return@withLock
+        }
+
+        val stateful = SensorTriggerMatcher.isStateful(sensor)
+        candidates.forEach { automation ->
+            val matchedTriggerIndices = automation.triggers.mapIndexedNotNull { index, trigger ->
+                index.takeIf {
+                    trigger.type == TriggerType.SENSOR &&
+                        SensorTriggerMatcher.sensorOf(trigger.config) == sensor &&
+                        SensorTriggerMatcher.matches(
+                            trigger.config,
+                            sensor,
+                            distanceCm,
+                            lux,
+                            shakeG,
+                            stepDelta,
+                            maxRangeCm,
+                            value
+                        )
                 }
-                val candidates = candidatesBySensor[sensor].orEmpty()
-                val pending = mutableListOf<PendingSensorOperation>()
-                candidates.forEach { automation ->
-                    val matchedTriggerIndices = automation.triggers.mapIndexedNotNull { index, trigger ->
-                        index.takeIf {
-                            trigger.type == TriggerType.SENSOR &&
-                                SensorTriggerMatcher.sensorOf(trigger.config) == sensor &&
-                                SensorTriggerMatcher.matches(
-                                    trigger.config,
-                                    sensor,
-                                    distanceCm,
-                                    lux,
-                                    shakeG,
-                                    stepDelta,
-                                    maxRangeCm,
-                                    value,
-                                )
-                        }
-                    }.toSet()
-                    val fired = matchedTriggerIndices.isNotEmpty()
-                    val stateful = SensorTriggerMatcher.isStateful(sensor)
-                    if (fired) {
-                        val last = lastRunAt[automation.id]
-                        val canRun = last == null || now - last >= automation.cooldownMillis
-                        if (stateful && (canRun || activeStates.isActive(automation.id))) {
-                            val entered = activeStates.add(automation.id, sensor)
-                            if (entered || canRun) activeStore.markActive(SOURCE, "${automation.id}|$sensor")
-                        }
-                        if (canRun) {
-                            lastRunAt[automation.id] = now
-                            pending += PendingSensorOperation(
-                                automation = automation,
-                                enter = true,
-                                matchedTriggerIndices = matchedTriggerIndices,
-                            )
-                        }
-                    } else if (stateful && activeStates.contains(automation.id, sensor)) {
-                        val ended = activeStates.remove(automation.id, sensor)
-                        activeStore.clearActive(SOURCE, "${automation.id}|$sensor")
-                        if (ended) {
-                            pending += PendingSensorOperation(
-                                automation = automation,
-                                enter = false,
-                            )
+            }.toSet()
+            val fired = matchedTriggerIndices.isNotEmpty()
+
+            if (!stateful) {
+                if (!fired) return@forEach
+                val last = lastRunAt[automation.id]
+                if (last != null && elapsedRealtimeMs - last < automation.cooldownMillis) {
+                    return@forEach
+                }
+                lastRunAt[automation.id] = elapsedRealtimeMs
+                executionEngine.runAutomation(
+                    automation = automation,
+                    completeExitOnFinish = true,
+                    triggerOccurrence = TriggerOccurrence(
+                        matchedTriggerIndices = matchedTriggerIndices,
+                        occurredAtEpochMs = occurredAtEpochMs,
+                        sourceId = SOURCE
+                    )
+                )
+                return@forEach
+            }
+
+            if (fired) {
+                handleStatefulEnter(
+                    automation = automation,
+                    sensor = sensor,
+                    matchedTriggerIndices = matchedTriggerIndices,
+                    elapsedRealtimeMs = elapsedRealtimeMs,
+                    occurredAtEpochMs = occurredAtEpochMs
+                )
+            } else if (activeStates.contains(automation.id, sensor)) {
+                handleStatefulExit(
+                    automation = automation,
+                    sensor = sensor
+                )
+            }
+        }
+    }
+
+    private suspend fun handleStatefulEnter(
+        automation: Automation,
+        sensor: String,
+        matchedTriggerIndices: Set<Int>,
+        elapsedRealtimeMs: Long,
+        occurredAtEpochMs: Long
+    ) {
+        val last = lastRunAt[automation.id]
+        val canRun = last == null || elapsedRealtimeMs - last >= automation.cooldownMillis
+        val alreadySensorActive = activeStates.contains(automation.id, sensor)
+        val automationAlreadyActive = activeStates.isActive(automation.id)
+        val current = runtimeStore.current(automation.id)
+
+        if (current != null && current.source != SOURCE) {
+            // Another stateful source owns the task. Sensor compatibility state
+            // must never authorize a foreign lifecycle exit.
+            activeStates.removeAutomation(automation.id)
+            activeStore.clearAutomation(SOURCE, automation.id)
+            return
+        }
+
+        if (!alreadySensorActive && (canRun || automationAlreadyActive)) {
+            activeStates.add(automation.id, sensor)
+        }
+
+        val sensors = activeStates.sensorsFor(automation.id)
+        if (sensors.isEmpty()) return
+
+        if (current?.source == SOURCE) {
+            activeStore.markActive(SOURCE, "${automation.id}|$sensor")
+            runtimeStore.updateActiveSourceKey(
+                automationId = automation.id,
+                occurrenceId = current.occurrenceId,
+                sourceKey = sourceKeyFor(automation.id, sensors)
+            )
+            if (canRun) {
+                lastRunAt[automation.id] = elapsedRealtimeMs
+                executionEngine.runAutomation(
+                    automation = automation,
+                    triggerOccurrence = TriggerOccurrence(
+                        matchedTriggerIndices = matchedTriggerIndices,
+                        occurredAtEpochMs = occurredAtEpochMs,
+                        sourceId = SOURCE
+                    )
+                )
+            }
+            return
+        }
+
+        // The first stateful sensor to enter establishes the durable lifecycle.
+        // Do not write the compatibility mirror until ExecutionEngine confirms
+        // occurrence admission.
+        if (!automationAlreadyActive && canRun) {
+            val occurrenceId = "sensor:${automation.id}:${UUID.randomUUID()}"
+            lastRunAt[automation.id] = elapsedRealtimeMs
+            executionEngine.runAutomation(
+                automation = automation,
+                lifecycleContext = AutomationLifecycleContext(
+                    occurrenceId = occurrenceId,
+                    source = SOURCE,
+                    sourceKey = sourceKeyFor(automation.id, sensors)
+                ),
+                triggerOccurrence = TriggerOccurrence(
+                    matchedTriggerIndices = matchedTriggerIndices,
+                    occurredAtEpochMs = occurredAtEpochMs,
+                    sourceId = SOURCE
+                )
+            )
+            val admitted = runtimeStore.current(automation.id)
+                ?.let { state ->
+                    state.source == SOURCE && state.occurrenceId == occurrenceId
+                } == true
+            if (admitted) {
+                sensors.forEach { activeSensor ->
+                    activeStore.markActive(SOURCE, "${automation.id}|$activeSensor")
+                }
+            } else {
+                // Constraints/admission may reject the run before lifecycle
+                // ownership exists. Do not leave a sensor condition armed as
+                // though main actions had actually started.
+                activeStates.removeAutomation(automation.id)
+                activeStore.clearAutomation(SOURCE, automation.id)
+                lastRunAt.remove(automation.id)
+            }
+        }
+    }
+
+    private suspend fun handleStatefulExit(
+        automation: Automation,
+        sensor: String
+    ) {
+        val finalConditionEnded = activeStates.remove(automation.id, sensor)
+        if (!finalConditionEnded) {
+            activeStore.clearActive(SOURCE, "${automation.id}|$sensor")
+            runtimeStore.current(automation.id)
+                ?.takeIf { it.source == SOURCE }
+                ?.let { state ->
+                    runtimeStore.updateActiveSourceKey(
+                        automationId = automation.id,
+                        occurrenceId = state.occurrenceId,
+                        sourceKey = sourceKeyFor(
+                            automation.id,
+                            activeStates.sensorsFor(automation.id)
+                        )
+                    )
+                }
+            return
+        }
+
+        val state = runtimeStore.current(automation.id)
+        if (state?.source != SOURCE) {
+            activeStore.clearAutomation(SOURCE, automation.id)
+            return
+        }
+
+        when (
+            exitCoordinator.requestExit(
+                automation = automation,
+                reason = ExitReason.TRIGGER_FALSE,
+                occurrenceId = state.occurrenceId
+            )
+        ) {
+            is ExitCoordinatorResult.Executed,
+            ExitCoordinatorResult.NotActive,
+            ExitCoordinatorResult.StaleOccurrence -> {
+                activeStore.clearAutomation(SOURCE, automation.id)
+            }
+            ExitCoordinatorResult.AlreadyInProgress,
+            is ExitCoordinatorResult.RecoveryRequired -> {
+                // The end behavior still belongs to this occurrence. Restore
+                // the volatile sensor marker so repeated readings cannot create
+                // a fresh lifecycle while recovery remains pending.
+                activeStates.add(automation.id, sensor)
+                activeStore.markActive(SOURCE, "${automation.id}|$sensor")
+            }
+        }
+    }
+
+    private suspend fun requestExit(
+        automation: Automation,
+        reason: ExitReason,
+        occurrenceId: String
+    ) {
+        when (
+            exitCoordinator.requestExit(
+                automation = automation,
+                reason = reason,
+                occurrenceId = occurrenceId
+            )
+        ) {
+            is ExitCoordinatorResult.Executed,
+            ExitCoordinatorResult.NotActive,
+            ExitCoordinatorResult.StaleOccurrence -> {
+                activeStates.removeAutomation(automation.id)
+                activeStore.clearAutomation(SOURCE, automation.id)
+            }
+            ExitCoordinatorResult.AlreadyInProgress,
+            is ExitCoordinatorResult.RecoveryRequired -> {
+                runtimeStore.current(automation.id)
+                    ?.takeIf { it.source == SOURCE }
+                    ?.let { state ->
+                        parseSourceSensors(state.sourceKey).forEach { sensor ->
+                            activeStates.add(automation.id, sensor)
+                            activeStore.markActive(SOURCE, "${automation.id}|$sensor")
                         }
                     }
-                }
-                pending
-            }
-            operations.forEach { operation ->
-                if (operation.enter) {
-                    executionEngine.runAutomation(
-                        automation = operation.automation,
-                        completeExitOnFinish = !SensorTriggerMatcher.isStateful(sensor),
-                        triggerOccurrence = TriggerOccurrence(
-                            matchedTriggerIndices = operation.matchedTriggerIndices,
-                            occurredAtEpochMs = occurredAtEpochMs,
-                            sourceId = SOURCE,
-                        ),
-                    )
-                } else {
-                    executionEngine.runExit(operation.automation)
-                }
             }
         }
+    }
+
+    private fun isValidReading(
+        sensor: String,
+        distanceCm: Float,
+        lux: Float,
+        shakeG: Float,
+        stepDelta: Int,
+        maxRangeCm: Float,
+        value: Float
+    ): Boolean = when (sensor) {
+        "PROXIMITY" -> distanceCm.isFinite() && maxRangeCm.isFinite()
+        "LIGHT" -> lux.isFinite()
+        "SHAKE" -> shakeG.isFinite()
+        "STEP" -> stepDelta > 0
+        else -> value.isFinite()
     }
 
     private val changeReceiver = object : BroadcastReceiver() {
@@ -390,6 +745,7 @@ class SensorMonitor @Inject constructor(
         // Normal rate keeps battery impact low; shake/step only need coarse
         // samples and proximity/light are stateful, not time-critical.
         const val SENSOR_DELAY = SensorManager.SENSOR_DELAY_NORMAL
+        const val TRANSIENT_DEBOUNCE_MS = 200L
         const val SOURCE = "sensor"
     }
 }
