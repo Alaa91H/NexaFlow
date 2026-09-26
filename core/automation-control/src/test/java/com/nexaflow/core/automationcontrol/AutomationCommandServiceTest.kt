@@ -73,6 +73,31 @@ class AutomationCommandServiceTest {
     }
 
     @Test
+    fun createRetryResolvesBeforeAllocatingOrWritingAnotherDefinition() = runTest {
+        val repository = FakeAutomationRepository()
+        val persistence = RecordingPersistence(repository).apply {
+            storedReplay = AutomationPersistenceResult.IdempotentReplay(
+                automationId = "already-created",
+                revision = 4L
+            )
+        }
+        val service = service(repository, persistence)
+
+        val result = service.create(
+            draft = AgentTaskDraftV1(name = "Replay create"),
+            context = agentContext(idempotencyKey = "create-retry")
+        )
+
+        assertEquals(
+            AutomationMutationResult.IdempotentReplay("already-created", 4L),
+            result
+        )
+        assertEquals(1, persistence.resolveCount)
+        assertEquals(0, persistence.commitCount)
+        assertTrue(repository.current().isEmpty())
+    }
+
+    @Test
     fun deleteRetryCanReplayAfterDefinitionWasAlreadyRemoved() = runTest {
         val existing = automation(updatedAt = 50L)
         val repository = FakeAutomationRepository(listOf(existing))
