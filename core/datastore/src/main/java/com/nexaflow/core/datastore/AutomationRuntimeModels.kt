@@ -65,6 +65,9 @@ data class AutomationRuntimeState(
         require(occurrenceId.isNotBlank()) { "occurrenceId must not be blank" }
         require(source.isNotBlank()) { "source must not be blank" }
         require(sourceKey.isNotBlank()) { "sourceKey must not be blank" }
+        require(sourceKey.length <= MAX_SOURCE_KEY_LENGTH) {
+            "sourceKey exceeds the bounded runtime ledger"
+        }
         require(activatedAt >= 0L) { "activatedAt must not be negative" }
         require(expectedEndAt == null || expectedEndAt >= activatedAt) {
             "expectedEndAt must not precede activation"
@@ -82,6 +85,7 @@ data class AutomationRuntimeState(
     companion object {
         const val MAX_SNAPSHOT_LENGTH = 24_000
         const val MAX_ERROR_LENGTH = 512
+        const val MAX_SOURCE_KEY_LENGTH = 512
     }
 }
 
