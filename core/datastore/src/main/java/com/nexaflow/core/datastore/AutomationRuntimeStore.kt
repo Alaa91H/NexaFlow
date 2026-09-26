@@ -113,7 +113,7 @@ class AutomationRuntimeStore internal constructor(
                 current.lifecycleState == AutomationRuntimeLifecycleState.ACTIVE
             ) {
                 states[automationId] = current.copy(
-                    sourceKey = sourceKey.take(AutomationRuntimeState.MAX_SOURCE_KEY_LENGTH)
+                    sourceKey = sourceKey
                 )
                 writeRuntimeStates(preferences, states)
                 changed = true
