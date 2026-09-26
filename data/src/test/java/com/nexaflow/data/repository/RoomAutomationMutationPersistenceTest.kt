@@ -598,6 +598,31 @@ class RoomAutomationMutationPersistenceTest {
     }
 
     @Test
+    fun reserveIdempotencyIsAtomicAndPreservesFirstOwner() = runTest {
+        val first = com.nexaflow.core.database.AgentIdempotencyEntity(
+            actorId = "agent:test",
+            keyHash = "hash",
+            requestFingerprint = "run:a:1",
+            operation = "RUN",
+            automationId = "a",
+            resultRevision = 1L,
+            createdAt = 100L,
+            expiresAt = 200L
+        )
+        val duplicate = first.copy(
+            requestFingerprint = "run:b:1",
+            automationId = "b"
+        )
+
+        assertNotEquals(-1L, database.agentPlatformDao().reserveIdempotency(first))
+        assertEquals(-1L, database.agentPlatformDao().reserveIdempotency(duplicate))
+        assertEquals(
+            first,
+            database.agentPlatformDao().getIdempotency("agent:test", "hash")
+        )
+    }
+
+    @Test
     fun deleteRemovesDefinitionAndMetadataAndRecordsIdempotency() = runTest {
         val persistence = persistence()
         val original = automation("delete-me", "Delete", 100L)
