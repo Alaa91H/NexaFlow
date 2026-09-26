@@ -2,7 +2,6 @@ package com.nexaflow.core.agentapi
 
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
-import java.net.SocketTimeoutException
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 
@@ -108,11 +107,7 @@ object AgentHttpRequestParser {
         var matched = 0
         val terminator = byteArrayOf(13, 10, 13, 10)
         while (true) {
-            val value = try {
-                input.read()
-            } catch (timeout: SocketTimeoutException) {
-                throw timeout
-            }
+            val value = input.read()
             if (value < 0) {
                 throw protocol(400, "truncated_headers", "Request headers are incomplete")
             }

@@ -12,6 +12,9 @@ import com.nexaflow.domain.models.ExecutionRecord
  */
 interface AgentApiRuntime {
     suspend fun effectiveRevision(automationId: String): Long?
+    suspend fun onEnabled(automation: Automation)
+    suspend fun onDisabled(automation: Automation)
+    suspend fun prepareForDeletion(automation: Automation): Boolean
     suspend fun run(automation: Automation, request: AgentApiRunContext): ExecutionRecord
     suspend fun latestHistory(limit: Int): List<ExecutionRecord>
     suspend fun latestAudit(limit: Int): List<AgentApiAuditEventV1>

@@ -73,7 +73,6 @@ class AgentApiController(
                 request = request,
                 uri = uri,
                 path = path,
-                operation = operation,
                 agentId = checkNotNull(principal.agentId)
             )
         } catch (_: SerializationException) {
@@ -87,7 +86,6 @@ class AgentApiController(
         request: AgentHttpRequest,
         uri: URI,
         path: String,
-        operation: AgentOperation,
         agentId: String
     ): AgentHttpResponse {
         val taskId = taskId(path)
@@ -258,7 +256,18 @@ class AgentApiController(
             body.task,
             body.context(agentId, idempotency, expectedRevision = null)
         )
-        return mutationResponse(result, created = true)
+        val lifecycleWarning = if (result is AutomationMutationResult.Success &&
+            result.automation.enabled
+        ) {
+            lifecycleWarning { runtime.onEnabled(result.automation) }
+        } else {
+            null
+        }
+        return mutationResponse(
+            result = result,
+            created = true,
+            extraHeaders = lifecycleWarningHeader(lifecycleWarning)
+        )
     }
 
     private suspend fun updateTask(
@@ -269,12 +278,21 @@ class AgentApiController(
         val idempotency = requiredIdempotency(request) ?: return missingIdempotency()
         val revision = requiredRevision(request) ?: return missingRevision()
         val body = decode<AgentApiTaskMutationRequestV1>(request)
+        val previous = repository.getAutomationById(id)
         val result = commandService.update(
             id,
             body.task,
             body.context(agentId, idempotency, revision)
         )
-        return mutationResponse(result)
+        val lifecycleWarning = if (result is AutomationMutationResult.Success) {
+            lifecycleTransitionWarning(previous, result.automation)
+        } else {
+            null
+        }
+        return mutationResponse(
+            result,
+            extraHeaders = lifecycleWarningHeader(lifecycleWarning)
+        )
     }
 
     private suspend fun deleteTask(
@@ -284,17 +302,86 @@ class AgentApiController(
     ): AgentHttpResponse {
         val idempotency = requiredIdempotency(request) ?: return missingIdempotency()
         val revision = requiredRevision(request) ?: return missingRevision()
+
+        val catalog = repository.getAutomations().first()
+        val dependentIds = catalog
+            .filter { automation ->
+                id in automation.maintenanceProfile?.dependencyAutomationIds.orEmpty()
+            }
+            .map { it.id }
+            .sorted()
+        if (dependentIds.isNotEmpty()) {
+            return error(
+                409,
+                "delete_blocked",
+                "Task is still referenced by another automation",
+                mapOf("dependentAutomationIds" to dependentIds.joinToString(","))
+            )
+        }
+
+        val previous = repository.getAutomationById(id)
+        val disableResult = commandService.setEnabled(
+            id,
+            false,
+            AutomationMutationContext(
+                actorId = actorId(agentId),
+                origin = AutomationMutationOrigin.AGENT,
+                agentId = agentId,
+                expectedRevision = revision,
+                requireExecutable = false,
+                transport = TRANSPORT,
+                requestId = request.header("x-request-id"),
+                idempotencyKey = "$idempotency:disable"
+            )
+        )
+
+        val disabledRevision = when (disableResult) {
+            is AutomationMutationResult.Success -> {
+                if (previous?.enabled == true) {
+                    runtime.onDisabled(previous)
+                }
+                disableResult.revision
+            }
+            is AutomationMutationResult.IdempotentReplay ->
+                disableResult.revision ?: runtime.effectiveRevision(id)
+            is AutomationMutationResult.NotFound -> {
+                return mutationResponse(
+                    commandService.delete(
+                        id,
+                        deleteContext(
+                            agentId = agentId,
+                            request = request,
+                            idempotency = "$idempotency:delete",
+                            revision = revision
+                        )
+                    )
+                )
+            }
+            else -> return mutationResponse(disableResult)
+        } ?: return error(
+            409,
+            "revision_unavailable",
+            "Task revision is unavailable after disable"
+        )
+
+        val disabled = repository.getAutomationById(id)
+        if (disabled != null && !runtime.prepareForDeletion(disabled)) {
+            return error(
+                409,
+                "lifecycle_cleanup_incomplete",
+                "Task was disabled but its exit/revert lifecycle did not complete",
+                mapOf("currentRevision" to disabledRevision.toString())
+            )
+        }
+
         return mutationResponse(
             commandService.delete(
                 id,
-                AutomationMutationContext(
-                    actorId = actorId(agentId),
-                    origin = AutomationMutationOrigin.AGENT,
+                deleteContext(
                     agentId = agentId,
-                    expectedRevision = revision,
-                    transport = TRANSPORT,
-                    requestId = request.header("x-request-id"),
-                    idempotencyKey = idempotency
+                    request = request,
+                    idempotency = "$idempotency:delete",
+                    revision = disabledRevision
                 )
             )
         )
@@ -308,20 +395,28 @@ class AgentApiController(
     ): AgentHttpResponse {
         val idempotency = requiredIdempotency(request) ?: return missingIdempotency()
         val revision = requiredRevision(request) ?: return missingRevision()
-        return mutationResponse(
-            commandService.setEnabled(
-                id,
-                enabled,
-                AutomationMutationContext(
-                    actorId = actorId(agentId),
-                    origin = AutomationMutationOrigin.AGENT,
-                    agentId = agentId,
-                    expectedRevision = revision,
-                    transport = TRANSPORT,
-                    requestId = request.header("x-request-id"),
-                    idempotencyKey = idempotency
-                )
+        val previous = repository.getAutomationById(id)
+        val result = commandService.setEnabled(
+            id,
+            enabled,
+            AutomationMutationContext(
+                actorId = actorId(agentId),
+                origin = AutomationMutationOrigin.AGENT,
+                agentId = agentId,
+                expectedRevision = revision,
+                transport = TRANSPORT,
+                requestId = request.header("x-request-id"),
+                idempotencyKey = idempotency
             )
+        )
+        val lifecycleWarning = if (result is AutomationMutationResult.Success) {
+            lifecycleTransitionWarning(previous, result.automation)
+        } else {
+            null
+        }
+        return mutationResponse(
+            result,
+            extraHeaders = lifecycleWarningHeader(lifecycleWarning)
         )
     }
 
@@ -386,7 +481,8 @@ class AgentApiController(
 
     private suspend fun mutationResponse(
         result: AutomationMutationResult,
-        created: Boolean = false
+        created: Boolean = false,
+        extraHeaders: Map<String, String> = emptyMap()
     ): AgentHttpResponse = when (result) {
         is AutomationMutationResult.Success -> respond(
             if (created) 201 else 200,
@@ -395,7 +491,7 @@ class AgentApiController(
                 revision = result.revision,
                 task = AgentTaskMapper.fromAutomation(result.automation)
             ),
-            mapOf("ETag" to quoteRevision(result.revision))
+            mapOf("ETag" to quoteRevision(result.revision)) + extraHeaders
         )
         is AutomationMutationResult.IdempotentReplay -> {
             val id = result.automationId
@@ -408,13 +504,13 @@ class AgentApiController(
                     mapOf(
                         "ETag" to quoteRevision(revision),
                         "X-Idempotent-Replay" to "true"
-                    )
+                    ) + extraHeaders
                 )
             } else {
                 respond(
                     200,
                     mapOf("idempotentReplay" to "true"),
-                    mapOf("X-Idempotent-Replay" to "true")
+                    mapOf("X-Idempotent-Replay" to "true") + extraHeaders
                 )
             }
         }
@@ -449,6 +545,48 @@ class AgentApiController(
         is AutomationMutationResult.NotFound ->
             error(404, "task_not_found", "Task was not found")
     }
+
+    private fun deleteContext(
+        agentId: String,
+        request: AgentHttpRequest,
+        idempotency: String,
+        revision: Long
+    ) = AutomationMutationContext(
+        actorId = actorId(agentId),
+        origin = AutomationMutationOrigin.AGENT,
+        agentId = agentId,
+        expectedRevision = revision,
+        requireExecutable = false,
+        transport = TRANSPORT,
+        requestId = request.header("x-request-id"),
+        idempotencyKey = idempotency
+    )
+
+    private suspend fun lifecycleTransitionWarning(
+        previous: com.nexaflow.domain.models.Automation?,
+        current: com.nexaflow.domain.models.Automation
+    ): String? = when {
+        previous == null -> null
+        previous.enabled && !current.enabled ->
+            lifecycleWarning { runtime.onDisabled(previous) }
+        !previous.enabled && current.enabled ->
+            lifecycleWarning { runtime.onEnabled(current) }
+        else -> null
+    }
+
+    private suspend fun lifecycleWarning(
+        block: suspend () -> Unit
+    ): String? = try {
+        block()
+        null
+    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+        throw cancelled
+    } catch (_: Exception) {
+        "lifecycle_followup_failed"
+    }
+
+    private fun lifecycleWarningHeader(warning: String?): Map<String, String> =
+        warning?.let { mapOf("X-NexaFlow-Warning" to it) }.orEmpty()
 
     private fun AgentApiTaskMutationRequestV1.context(
         agentId: String,

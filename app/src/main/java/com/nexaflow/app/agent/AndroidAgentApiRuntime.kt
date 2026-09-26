@@ -41,6 +41,17 @@ class AndroidAgentApiRuntime @Inject constructor(
         }
     }
 
+    override suspend fun onEnabled(automation: Automation) {
+        executionEngine.runWithConditionGate(automation)
+    }
+
+    override suspend fun onDisabled(automation: Automation) {
+        executionEngine.runDisableCleanup(automation)
+    }
+
+    override suspend fun prepareForDeletion(automation: Automation): Boolean =
+        executionEngine.prepareForDeletion(automation)
+
     override suspend fun run(
         automation: Automation,
         request: AgentApiRunContext
