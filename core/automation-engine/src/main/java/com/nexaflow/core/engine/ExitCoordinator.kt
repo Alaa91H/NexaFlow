@@ -53,6 +53,74 @@ class ExitCoordinator(
     }
 
     /**
+     * Safely prepares one automation for destructive deletion.
+     *
+     * The immutable definition remains available until all execution evidence
+     * and stateful ownership have reached a terminal point.
+     */
+    suspend fun prepareForDeletion(automation: Automation): Boolean {
+        if (executionEngine.hasUnresolvedExecutionCheckpoint(automation.id)) {
+            return false
+        }
+
+        val runtime = runtimeStore.current(automation.id)
+        val lifecycleResolved = if (runtime != null) {
+            when (
+                requestExit(
+                    automation = automation,
+                    reason = ExitReason.AUTOMATION_DISABLED,
+                    occurrenceId = runtime.occurrenceId
+                )
+            ) {
+                is ExitCoordinatorResult.Executed,
+                ExitCoordinatorResult.NotActive -> true
+                ExitCoordinatorResult.StaleOccurrence,
+                ExitCoordinatorResult.AlreadyInProgress,
+                is ExitCoordinatorResult.RecoveryRequired -> false
+            }
+        } else if (executionEngine.hasActiveExitMarker(automation.id)) {
+            // Compatibility path for a run created before occurrence-aware
+            // ownership. This remains centralized at the coordinator boundary.
+            executionEngine.runExit(automation).success
+        } else {
+            true
+        }
+        if (!lifecycleResolved) return false
+
+        return !executionEngine.hasUnresolvedExecutionCheckpoint(automation.id)
+    }
+
+    /**
+     * Closes only durable occurrences whose persisted automation is disabled.
+     * Missing definitions and failed/uncertain exits stay visible for recovery.
+     */
+    suspend fun reconcileDisabledAutomations(): List<ExitCoordinatorResult> =
+        runtimeStore.activeStates().mapNotNull { state ->
+            val automation = automationRepository.getAutomationById(state.automationId)
+            if (automation == null) {
+                Log.w(
+                    TAG,
+                    "Automation definition missing for ${state.automationId}; retaining disabled-reconcile evidence"
+                )
+                return@mapNotNull ExitCoordinatorResult.RecoveryRequired(state)
+            }
+            if (automation.enabled) return@mapNotNull null
+
+            when (state.lifecycleState) {
+                AutomationRuntimeLifecycleState.ACTIVE ->
+                    requestExit(
+                        automation = automation,
+                        reason = ExitReason.AUTOMATION_DISABLED,
+                        occurrenceId = state.occurrenceId
+                    )
+                AutomationRuntimeLifecycleState.EXITING ->
+                    ExitCoordinatorResult.AlreadyInProgress
+                AutomationRuntimeLifecycleState.EXIT_FAILED ->
+                    ExitCoordinatorResult.RecoveryRequired(state)
+            }
+        }
+
+    /**
      * Reconciles only provable lifecycle facts. A known elapsed expected end and
      * a previously failed exit can be resumed without evaluating the current
      * trigger; an unknown trigger state never becomes an implicit end event.
