@@ -14,7 +14,7 @@ The source catalog contains **56 trigger enum entries (54 in the general picker)
 - HTTPS requests with configurable method, body, headers, timeout, retries and output path. Private-network destinations require explicit opt-in.
 - Local authenticated webhooks and revocable task links. Custom-scheme execution requires confirmation.
 - Full backup and single-task sharing. Imported tasks stay disabled for review; external execution tokens are removed.
-- Room database schema 19, explicit migrations, DataStore preferences, widgets and a foreground monitoring service.
+- Room database schema 20, explicit migrations, DataStore preferences, widgets and a foreground monitoring service.
 
 See the [generated catalog](docs/CAPABILITY_CATALOG.md), [configuration reference](docs/CONFIGURATION.md), [security model](docs/SECURITY.md) and [validation record](docs/VALIDATION.md).
 

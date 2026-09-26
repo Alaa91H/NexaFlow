@@ -4,7 +4,7 @@
 
 - `domain`: serializable task/action/trigger models, workflow validation, retry policy, bounded data transforms and shared external-access policy. No UI-specific state belongs here.
 - `data`: repositories, database mapping and backup/single-task import/export. All external imports pass bounded preflight before persistence.
-- `core/database`: Room schema 19 and explicit migrations.
+- `core/database`: Room schema 20 and explicit data-preserving migrations.
 - `core/automation-engine`: foreground monitoring, scheduling and platform event adapters, including authenticated local webhooks and sensor listeners.
 - `core/execution`: admission, action dispatch, run context, exit behavior, capability routing and transport implementations. `ActionRegistry` maps action types to handlers. The semantic layer (`core/execution/capability/semantic`) owns the single execution decision for migrated device-state operations: `OperationRegistry` declares typed `OperationSpec` contracts, and `CapabilityRouter` selects a concrete strategy with explainable, evidence-aware ranking.
 - `core/rom-integration`, compatibility/capability modules: device probing and normal/Shizuku/root execution providers. An enum entry does not imply that a provider is available.

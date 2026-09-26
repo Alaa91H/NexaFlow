@@ -70,7 +70,7 @@ class HistoryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun recordExecution(record: ExecutionRecord) {
-        // Insert + enforce the retention policy (60-day window, 1000-record
+        // Insert + enforce the retention policy (90-day window, 1000-record
         // ceiling) atomically so the history table never grows without bound.
         executionDao.insertWithRetention(record.toEntity())
     }
