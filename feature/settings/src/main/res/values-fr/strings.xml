@@ -241,4 +241,38 @@
     <string name="blocked_calls_title">Appels bloqués</string>
     <string name="blocked_calls_empty">Aucun appel bloqué pour l’instant</string>
     <string name="blocked_calls_filter_all">Toutes les règles</string>
+
+    <!-- AI & agent management -->
+    <string name="ai_agents_title">IA et agents</string>
+    <string name="ai_agents_subtitle">Accès permanent, appairage et activité des agents</string>
+    <string name="agent_access_title">Accès des agents IA</string>
+    <string name="agent_access_on">L’accès permanent complet est activé</string>
+    <string name="agent_access_off">Désactivé — les agents ne peuvent ni se connecter ni agir</string>
+    <string name="agent_gateway_title">Passerelle locale des agents</string>
+    <string name="agent_gateway_running">Active sur 127.0.0.1:%1$d</string>
+    <string name="agent_gateway_stopped">Non active</string>
+    <string name="agent_gateway_rest">API REST · /api/v1</string>
+    <string name="agent_gateway_mcp">Protocole MCP · /mcp</string>
+    <string name="agent_add_title">Ajouter un agent</string>
+    <string name="agent_name_label">Nom de l’agent</string>
+    <string name="agent_name_hint">Exemple : Mon ordinateur portable</string>
+    <string name="agent_generate_pairing">Générer un code d’appairage</string>
+    <string name="agent_pairing_payload">Données d’appairage à usage unique</string>
+    <string name="agent_pairing_help">Transmettez ces données uniquement à l’agent auquel vous faites confiance. Elles expirent dans 5 minutes.</string>
+    <string name="agent_copy_payload">Copier les données</string>
+    <string name="agent_payload_copied">Données d’appairage copiées</string>
+    <string name="agent_expires_at">Expire à %1$s</string>
+    <string name="agent_trusted_title">Agents de confiance</string>
+    <string name="agent_none">Aucun agent n’est appairé</string>
+    <string name="agent_full_access">Accès permanent complet</string>
+    <string name="agent_active_sessions">%1$d session(s) active(s)</string>
+    <string name="agent_revoke">Révoquer</string>
+    <string name="agent_revoke_all">Tout révoquer</string>
+    <string name="agent_revoke_all_title">Révoquer tous les agents ?</string>
+    <string name="agent_revoke_all_message">Toutes les informations d’identification et sessions des agents cesseront de fonctionner. Les automatisations existantes resteront.</string>
+    <string name="agent_activity_title">Activité des agents</string>
+    <string name="agent_activity_empty">Aucune activité d’agent pour le moment</string>
+    <string name="agent_refresh">Actualiser</string>
+    <string name="agent_operation_failed">Impossible de terminer l’opération de l’agent</string>
+    <string name="agent_pending_pairings">%1$d demande(s) d’appairage en attente</string>
 </resources>
