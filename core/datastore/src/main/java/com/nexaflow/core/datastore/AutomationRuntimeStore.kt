@@ -91,6 +91,34 @@ class AutomationRuntimeStore internal constructor(
     suspend fun current(automationId: String): AutomationRuntimeState? =
         runtimeStates(dataStore.data.first())[automationId]
 
+    /**
+     * Enriches a matching active occurrence with a newly proven expected end.
+     * Used when a promoted legacy marker is later matched to its exact
+     * provider occurrence. Ownership and non-active lifecycles are unchanged.
+     */
+    suspend fun bindExpectedEndAt(
+        automationId: String,
+        occurrenceId: String,
+        expectedEndAt: Long
+    ): Boolean {
+        var changed = false
+        dataStore.edit { preferences ->
+            val states = runtimeStates(preferences)
+            val current = states[automationId]
+            if (
+                current?.occurrenceId == occurrenceId &&
+                current.lifecycleState == AutomationRuntimeLifecycleState.ACTIVE &&
+                expectedEndAt >= current.activatedAt &&
+                current.expectedEndAt != expectedEndAt
+            ) {
+                states[automationId] = current.copy(expectedEndAt = expectedEndAt)
+                writeRuntimeStates(preferences, states)
+                changed = true
+            }
+        }
+        return changed
+    }
+
     suspend fun activeStates(): List<AutomationRuntimeState> =
         runtimeStates(dataStore.data.first()).values.sortedBy { it.activatedAt }
 
