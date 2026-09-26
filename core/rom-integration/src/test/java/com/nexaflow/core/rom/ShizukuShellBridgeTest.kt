@@ -45,6 +45,18 @@ class ShizukuShellBridgeTest {
     }
 
     @Test
+    fun `parse timeout exit preserves uncertain side effect signal`() {
+        val result = ShizukuShellBridge.parseAidlResponse(
+            "124\nTetheringManager start request timed out",
+            "hotspot.set"
+        )
+
+        assertFalse(result.success)
+        assertTrue(result.outcomeUncertain)
+        assertTrue(result.message.contains("exit 124"))
+    }
+
+    @Test
     fun `typed wire operation round trips only allowlisted shape`() {
         val operation = PrivilegedOperation.fromWire(
             wireId = "settings.write",
