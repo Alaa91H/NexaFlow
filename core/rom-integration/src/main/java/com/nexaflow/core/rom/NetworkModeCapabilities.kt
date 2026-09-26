@@ -55,6 +55,11 @@ data class NetworkModeSnapshot(
  * explicit [NetworkModeSnapshot.Status.UNREADABLE] state rather than guessed
  * generations.
  */
+internal data class NetworkSubscriptionRef(
+    val subscriptionId: Int,
+    val simSlotIndex: Int
+)
+
 class NetworkModeCapabilities(private val context: Context) {
 
     fun read(): NetworkModeSnapshot {
@@ -149,9 +154,10 @@ class NetworkModeCapabilities(private val context: Context) {
               */
             // Auto-reconnect Shizuku UserService if granted but not bound
             if (PrivilegedRunner.isShizukuGranted() && !ShizukuShellBridge.isUserServiceBound) {
+                // Reconnect opportunistically but never block the caller. The
+                // current read continues through the remaining fallbacks; a
+                // later read can consume the UserService once binding completes.
                 ShizukuShellBridge.reconnect(context)
-                // Brief wait for bind (non-blocking, next read will succeed)
-                try { Thread.sleep(300) } catch (_: InterruptedException) {}
             }
             val elevatedUserRead = if (platformUserMask == null) {
                 readElevatedUserMask(
@@ -332,7 +338,7 @@ class NetworkModeCapabilities(private val context: Context) {
         return id.takeUnless { it == SubscriptionManager.INVALID_SUBSCRIPTION_ID }
     }
 
-    private fun activeSubscriptions(): List<android.telephony.SubscriptionInfo> {
+    private fun activeSubscriptions(): List<NetworkSubscriptionRef> {
         if (context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) !=
             PackageManager.PERMISSION_GRANTED
         ) return emptyList()
@@ -340,54 +346,44 @@ class NetworkModeCapabilities(private val context: Context) {
             context.getSystemService(SubscriptionManager::class.java)
                 ?.activeSubscriptionInfoList
                 .orEmpty()
+                .map { info ->
+                    NetworkSubscriptionRef(
+                        subscriptionId = info.subscriptionId,
+                        simSlotIndex = info.simSlotIndex
+                    )
+                }
         }.getOrDefault(emptyList())
     }
 
     /**
-     * Fallback when READ_PHONE_STATE is missing: use phoneCount (no permission)
-     * and Settings.Global to fabricate minimal subscription descriptors so the
-     * 7-layer fallback can still produce selectable masks via Settings/property.
+     * Permission-free fallback descriptor set. Do not fabricate hidden
+     * SubscriptionInfo instances via reflection: those constructors are
+     * API-dependent and the previous implementation always returned null,
+     * collapsing multi-SIM devices to the slot-0 last-resort path.
+     *
+     * Synthetic negative subscription ids are never passed to subscription-only
+     * framework reads as authoritative identities; they simply preserve one
+     * independent slot through the Settings/property/elevated fallback layers.
      */
-    private fun fallbackSubscriptions(): List<android.telephony.SubscriptionInfo> {
-        // We cannot construct SubscriptionInfo (hidden API), so we repurpose the
-        // existing activeSubscriptions() path by creating lightweight fake objects
-        // via reflection or fallback to phoneCount. Instead, we synthesize a list
-        // of size phoneCount that the caller will treat as subscriptions with
-        // subscriptionId = -1 - slotIndex. The read() method already handles
-        // subscriptionId == -1 for fallback modes.
+    private fun fallbackSubscriptions(): List<NetworkSubscriptionRef> {
         val telephony = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
         @Suppress("DEPRECATION")
-        val phoneCount = runCatching { telephony?.phoneCount ?: 1 }.getOrDefault(1).coerceIn(1, 4)
-        // Check if Settings have any preferred_network_mode keys to infer actual SIM presence
-        val hasAnySettings = (0 until phoneCount).any { slot ->
-            SettingsFallbackReader.readViaContentResolver(context, slot, null) != null
-        }
-        // If no settings and no permission, return single fallback for slot 0 to avoid empty
-        return if (hasAnySettings || phoneCount > 0) {
-            // Create shadow SubscriptionInfo list via emptyList trick: we cannot instantiate
-            // SubscriptionInfo (its constructor is hidden), so we return empty and let the
-            // caller use the property fallback path that creates a synthetic single entry.
-            // To keep the existing mapNotNull loop working, we return a list with one
-            // fake entry built via reflection if possible, otherwise empty.
-            runCatching {
-                val fake = createFakeSubscriptionInfo(slotIndex = 0, subscriptionId = -1)
-                if (fake != null) listOf(fake) else emptyList()
-            }.getOrDefault(emptyList())
-        } else emptyList()
+        val phoneCount = runCatching { telephony?.phoneCount ?: 1 }
+            .getOrDefault(1)
+            .coerceIn(1, MAX_FALLBACK_SLOTS)
+        return fallbackSubscriptionRefs(phoneCount)
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    @SuppressLint("PrivateApi")
-    private fun createFakeSubscriptionInfo(@Suppress("UNUSED_PARAMETER") slotIndex: Int, @Suppress("UNUSED_PARAMETER") subscriptionId: Int): android.telephony.SubscriptionInfo? {
-        return try {
-            val clazz = Class.forName("android.telephony.SubscriptionInfo")
-            val constructor = clazz.declaredConstructors.firstOrNull { it.parameterCount >= 10 } ?: return null
-            constructor.isAccessible = true
-            // SubscriptionInfo constructor varies by API; try common signatures
-            // This is best-effort for fallback; if it fails, caller uses property fallback
-            null
-        } catch (_: Exception) {
-            null
-        }
+    private companion object {
+        const val MAX_FALLBACK_SLOTS = 4
     }
 }
+
+
+internal fun fallbackSubscriptionRefs(phoneCount: Int): List<NetworkSubscriptionRef> =
+    (0 until phoneCount.coerceIn(1, 4)).map { slotIndex ->
+        NetworkSubscriptionRef(
+            subscriptionId = -1 - slotIndex,
+            simSlotIndex = slotIndex
+        )
+    }
