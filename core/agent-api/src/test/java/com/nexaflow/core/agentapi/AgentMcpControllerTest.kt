@@ -173,7 +173,6 @@ class AgentMcpControllerTest {
             }
         }
         return request(
-            token = token,
             method = method,
             id = id,
             params = params,
@@ -187,7 +186,6 @@ class AgentMcpControllerTest {
         id: String,
         params: JsonObject = buildJsonObject {}
     ) = request(
-        token = token,
         method = method,
         id = id,
         params = params,
@@ -199,7 +197,6 @@ class AgentMcpControllerTest {
     )
 
     private fun request(
-        token: String,
         method: String,
         id: String,
         params: JsonObject,
