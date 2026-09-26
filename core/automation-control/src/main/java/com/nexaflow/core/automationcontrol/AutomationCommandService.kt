@@ -163,7 +163,16 @@ class AutomationCommandService(
             return AutomationMutationResult.Rejected(prepared.report)
         }
 
-        repository.saveAutomation(automation)
+        if (!repository.saveAutomationIfRevisionMatches(
+                automation = automation,
+                expectedRevision = existing.updatedAt
+            )
+        ) {
+            return concurrentConflict(
+                automationId = automationId,
+                expectedRevision = context.expectedRevision ?: existing.updatedAt
+            )
+        }
         return AutomationMutationResult.Success(
             automation = automation,
             revision = automation.updatedAt,
@@ -208,7 +217,16 @@ class AutomationCommandService(
             return AutomationMutationResult.Rejected(report)
         }
 
-        repository.saveAutomation(candidate)
+        if (!repository.saveAutomationIfRevisionMatches(
+                automation = candidate,
+                expectedRevision = existing.updatedAt
+            )
+        ) {
+            return concurrentConflict(
+                automationId = automationId,
+                expectedRevision = context.expectedRevision ?: existing.updatedAt
+            )
+        }
         return AutomationMutationResult.Success(
             automation = candidate,
             revision = candidate.updatedAt,
@@ -301,6 +319,18 @@ class AutomationCommandService(
             }
         }
         error("Unable to allocate a unique automation id")
+    }
+
+    private suspend fun concurrentConflict(
+        automationId: String,
+        expectedRevision: Long?
+    ): AutomationMutationResult.Conflict {
+        val currentRevision = repository.getAutomationById(automationId)?.updatedAt
+        return AutomationMutationResult.Conflict(
+            automationId = automationId,
+            expectedRevision = expectedRevision,
+            currentRevision = currentRevision
+        )
     }
 
     private fun revisionConflict(
