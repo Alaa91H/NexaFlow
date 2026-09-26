@@ -96,8 +96,12 @@ class DeviceStateSnapshot private constructor(
         val failures = results.filterNot(SystemControlResult::success)
         return when {
             failures.isNotEmpty() -> SystemControlResult.fail(
-                "Failed to restore ${failures.size} setting(s): " +
-                    failures.joinToString(limit = 2, truncated = "…") { it.message }
+                message = "Failed to restore ${failures.size} setting(s): " +
+                    failures.joinToString(limit = 2, truncated = "…") { it.message },
+                // A restore is uncertain if any constituent write may already
+                // have landed. Collapsing that signal here would make durable
+                // exit recovery eligible to repeat an unknown side effect.
+                outcomeUncertain = failures.any(SystemControlResult::outcomeUncertain)
             )
             results.isEmpty() -> SystemControlResult.ok("Nothing to restore")
             else -> SystemControlResult.ok("Restored original state")
