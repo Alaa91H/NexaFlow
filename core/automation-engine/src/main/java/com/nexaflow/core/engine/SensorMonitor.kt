@@ -85,15 +85,6 @@ class SensorMonitor @Inject constructor(
     /** Cached candidates per sensor — rebuilt only on refresh, not per reading. */
     private var candidatesBySensor: Map<String, List<Automation>> = emptyMap()
 
-    private data class PendingSensorOperation(
-        val automation: Automation,
-        val sensor: String,
-        val enter: Boolean,
-        val matchedTriggerIndices: Set<Int> = emptySet(),
-        val occurrenceId: String? = null,
-        val lifecycleStart: Boolean = false,
-    )
-
     private val sensorManager by lazy {
         context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     }
