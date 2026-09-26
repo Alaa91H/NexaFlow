@@ -375,8 +375,8 @@ class ShizukuTypedStrategy(
             errorCode = when {
                 result.message.contains("not granted", ignoreCase = true) ->
                     CapabilityErrorCode.SHIZUKU_DENIED
-                transport -> CapabilityErrorCode.SHIZUKU_UNAVAILABLE
                 uncertain -> CapabilityErrorCode.UNKNOWN_ERROR
+                transport -> CapabilityErrorCode.SHIZUKU_UNAVAILABLE
                 else -> CapabilityErrorCode.POLICY_NOT_SATISFIED
             },
             message = result.message,
