@@ -68,18 +68,32 @@ class AutomationDetailsViewModelDeleteTest {
     }
 
     private class FakeRepository(
-        private val automation: Automation?,
+        automation: Automation?,
         private val throwOnDelete: Boolean = false
     ) : AutomationRepository {
+        private var current: Automation? = automation
+
+        val currentAutomation: Automation?
+            get() = current
+
         override fun getAutomations(): Flow<List<Automation>> =
-            flowOf(automation?.let(::listOf) ?: emptyList())
+            flowOf(current?.let(::listOf) ?: emptyList())
+
         override suspend fun getAutomationById(id: String): Automation? =
-            automation?.takeIf { it.id == id }
-        override suspend fun saveAutomation(automation: Automation) = Unit
+            current?.takeIf { it.id == id }
+
+        override suspend fun saveAutomation(automation: Automation) {
+            current = automation
+        }
+
         override suspend fun deleteAutomation(automation: Automation) {
             if (throwOnDelete) throw IllegalStateException("simulated database write failure")
+            if (current?.id == automation.id) current = null
         }
-        override suspend fun updateAutomationStatus(id: String, enabled: Boolean) = Unit
+
+        override suspend fun updateAutomationStatus(id: String, enabled: Boolean) {
+            current = current?.takeIf { it.id == id }?.copy(enabled = enabled)
+        }
     }
 
     private fun task(id: String): Automation = Automation(
@@ -179,17 +193,20 @@ class AutomationDetailsViewModelDeleteTest {
         val id = "vm-delete-b"
         arm(id)
         var navigated = 0
-        val viewModel = vm(id, FakeRepository(automation = task(id), throwOnDelete = true))
+        val repository = FakeRepository(automation = task(id), throwOnDelete = true)
+        val viewModel = vm(id, repository)
 
         viewModel.delete { navigated++ }
         awaitIdle { viewModel.executionMessage.value != null }
 
-        // The task still exists (Room rolls the delete back), so its engine
-        // state must stay intact and the user must not be navigated away.
+        // The row remains because deletion failed, but disabled intent was
+        // persisted before the owned lifecycle was consumed. It must therefore
+        // remain inert rather than enabled with an already-closed exit.
         assertEquals("must not navigate on a failed delete", 0, navigated)
+        assertEquals(false, repository.currentAutomation?.enabled)
         assertTrue(
-            "engine marker must remain while the task still exists",
-            !freshExitMessage(id).contains("task was not active")
+            "owned exit must be consumed before destructive deletion",
+            freshExitMessage(id).contains("task was not active")
         )
         assertEquals(
             "the failure must be surfaced instead of crashing the app",
