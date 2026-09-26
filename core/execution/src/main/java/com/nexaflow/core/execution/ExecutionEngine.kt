@@ -1198,6 +1198,30 @@ class ExecutionEngine(
         activeExecutionStore.recoveryRequiredCountForAutomation(automationId)
 
     /**
+     * Read-only recovery evidence for diagnostics/UI. No claim, retry or
+     * acknowledgement occurs here.
+     */
+    suspend fun recoveryReviewItems(automationId: String): List<RecoveryReviewItem> =
+        activeExecutionStore.recoveryRequiredForAutomation(automationId).map { checkpoint ->
+            val currentNode = checkpoint.currentNodeId?.let { nodeId ->
+                checkpoint.nodeExecutions.lastOrNull { it.nodeId == nodeId }
+            } ?: checkpoint.nodeExecutions.lastOrNull()
+            RecoveryReviewItem(
+                runId = checkpoint.runId,
+                startedAt = checkpoint.startedAt,
+                updatedAt = checkpoint.updatedAt,
+                sourceStatus = (checkpoint.recoverySourceStatus ?: checkpoint.status).name,
+                nodeId = currentNode?.nodeId ?: checkpoint.currentNodeId,
+                nodeState = currentNode?.state?.name,
+                backend = currentNode?.backend,
+                verificationState = currentNode?.verificationState?.name
+                    ?: checkpoint.verificationState.name,
+                failureCode = currentNode?.failureCode,
+                message = checkpoint.message
+            )
+        }
+
+    /**
      * Discards recovery records that the user explicitly acknowledged for one
      * automation. This does not retry uncertain work or mark it successful.
      */

@@ -224,6 +224,31 @@ class ActiveExecutionStoreCheckpointTest {
     }
 
     @Test
+    fun recoveryClassificationPreservesOriginalUncertainEvidence() = runBlocking {
+        assertTrue(store.beginCheckpoint(checkpoint("run-recovery-evidence")))
+        store.markActionStarted(
+            runId = "run-recovery-evidence",
+            actionIndex = 0,
+            idempotencyKey = "run-recovery-evidence:0:ACTION",
+            updatedAt = 110L
+        )
+        store.markActionUnknown(
+            runId = "run-recovery-evidence",
+            message = "dispatch unconfirmed",
+            updatedAt = 120L
+        )
+        store.claimRecoveryCandidates(130L)
+        val classified = store.markRecoveryRequired(
+            runId = "run-recovery-evidence",
+            message = "manual verification required",
+            updatedAt = 140L
+        )
+
+        assertTrue(classified?.message?.contains("dispatch unconfirmed") == true)
+        assertTrue(classified?.message?.contains("manual verification required") == true)
+    }
+
+    @Test
     fun recoveryRequiredCheckpointIsNotClaimedAgainAutomatically() = runBlocking {
         assertTrue(store.beginCheckpoint(checkpoint("run-recovery-required")))
         assertEquals(1, store.claimRecoveryCandidates(105L).size)
@@ -252,6 +277,42 @@ class ActiveExecutionStoreCheckpointTest {
         assertEquals(null, store.checkpoint("run-own"))
         assertNotNull(store.checkpoint("run-other"))
         assertNotNull(store.checkpoint("run-active"))
+    }
+
+    @Test
+    fun recoveryReviewListIsScopedAndNewestFirst() = runBlocking {
+        assertTrue(
+            store.beginCheckpoint(
+                checkpoint("recovery-old").copy(
+                    status = DurableExecutionStatus.RECOVERY_REQUIRED,
+                    updatedAt = 200L,
+                    message = "old"
+                )
+            )
+        )
+        assertTrue(
+            store.beginCheckpoint(
+                checkpoint("recovery-new").copy(
+                    status = DurableExecutionStatus.RECOVERY_REQUIRED,
+                    updatedAt = 400L,
+                    message = "new"
+                )
+            )
+        )
+        assertTrue(
+            store.beginCheckpoint(
+                checkpoint("recovery-other", automationId = "automation-b").copy(
+                    status = DurableExecutionStatus.RECOVERY_REQUIRED,
+                    updatedAt = 500L
+                )
+            )
+        )
+        assertTrue(store.beginCheckpoint(checkpoint("active-own").copy(updatedAt = 600L)))
+
+        val items = store.recoveryRequiredForAutomation("automation-a")
+
+        assertEquals(listOf("recovery-new", "recovery-old"), items.map { it.runId })
+        assertEquals(listOf("new", "old"), items.map { it.message })
     }
 
     @Test

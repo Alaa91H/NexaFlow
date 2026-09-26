@@ -109,6 +109,7 @@ import com.nexaflow.core.execution.ManualBlockReason
 import com.nexaflow.core.execution.ManualBlockKind
 import com.nexaflow.core.execution.ManualAdmissionDiagnostics
 import com.nexaflow.core.execution.ExecutionResultPresentation
+import com.nexaflow.core.execution.RecoveryReviewItem
 import com.nexaflow.core.ui.EmptyState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -144,6 +145,7 @@ fun AutomationDetailsScreen(navController: NavController) {
     val viewModel: AutomationDetailsViewModel = hiltViewModel()
     val automation by viewModel.automation.collectAsStateWithLifecycle()
     val healthReport by viewModel.healthReport.collectAsStateWithLifecycle()
+    val recoveryItems by viewModel.recoveryItems.collectAsStateWithLifecycle()
     val diagnostics by viewModel.diagnostics.collectAsStateWithLifecycle()
     val latestExecution by viewModel.latestExecution.collectAsStateWithLifecycle()
     val liveProgress by viewModel.liveProgress.collectAsStateWithLifecycle()
@@ -295,6 +297,7 @@ fun AutomationDetailsScreen(navController: NavController) {
                 }
                 ExecutionHealthCard(
                     report = healthReport,
+                    recoveryItems = recoveryItems,
                     onOpenHistory = { navController.navigate(routineHistoryRoute(current.id)) },
                     onOpenFailures = {
                         navController.navigate(
@@ -1257,6 +1260,7 @@ private fun ActionDiagnosticRow(result: ActionExecutionResult) {
 @Composable
 private fun ExecutionHealthCard(
     report: AutomationHealthReport,
+    recoveryItems: List<RecoveryReviewItem>,
     onOpenHistory: () -> Unit,
     onOpenFailures: () -> Unit,
     onOpenSkips: () -> Unit,
@@ -1338,6 +1342,52 @@ private fun ExecutionHealthCard(
                 }
                 TextButton(onClick = onOpenHistory) {
                     Text(stringResource(R.string.view_routine_history))
+                }
+                if (report.recoveryReviewPending && recoveryItems.isNotEmpty()) {
+                    recoveryItems.take(3).forEach { item ->
+                        val title = listOfNotNull(
+                            item.sourceStatus.takeIf(String::isNotBlank),
+                            item.nodeId?.takeIf(String::isNotBlank) ?: item.nodeState?.takeIf(String::isNotBlank)
+                        ).joinToString(" · ")
+                        if (title.isNotBlank()) {
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                        val metadata = listOfNotNull(
+                            item.backend?.takeIf(String::isNotBlank),
+                            item.verificationState?.takeIf(String::isNotBlank),
+                            item.failureCode?.takeIf(String::isNotBlank)
+                        ).joinToString(" · ")
+                        if (metadata.isNotBlank()) {
+                            Text(
+                                text = metadata,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                        item.message?.takeIf(String::isNotBlank)?.let { message ->
+                            Text(
+                                text = stringResource(
+                                    R.string.execution_diagnostic_detail,
+                                    message.take(180)
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                        Text(
+                            text = android.text.format.DateUtils.getRelativeTimeSpanString(
+                                item.updatedAt,
+                                System.currentTimeMillis(),
+                                android.text.format.DateUtils.MINUTE_IN_MILLIS
+                            ).toString(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
                 }
                 if (report.recoveryReviewPending) {
                     TextButton(onClick = onClearRecoveryBacklog) {

@@ -329,6 +329,23 @@ class ActiveExecutionStore internal constructor(
                 it.status == DurableExecutionStatus.RECOVERY_REQUIRED
         }
 
+    /**
+     * Read-only recovery evidence for one automation, newest update first.
+     * This never claims, retries, or clears work; UI/diagnostics can inspect the
+     * durable ledger without changing execution semantics.
+     */
+    suspend fun recoveryRequiredForAutomation(
+        automationId: String
+    ): List<DurableExecutionCheckpoint> =
+        checkpoints(dataStore.data.first()).values
+            .asSequence()
+            .filter {
+                it.automationId == automationId &&
+                    it.status == DurableExecutionStatus.RECOVERY_REQUIRED
+            }
+            .sortedByDescending { it.updatedAt }
+            .toList()
+
     /** True when a recurring-maintenance occurrence already completed successfully. */
     suspend fun hasCompletedMaintenanceOccurrence(occurrenceKey: String): Boolean =
         maintenanceReceipts(dataStore.data.first()).any { it.occurrenceKey == occurrenceKey }
@@ -393,10 +410,18 @@ class ActiveExecutionStore internal constructor(
         message: String,
         updatedAt: Long
     ): DurableExecutionCheckpoint? = updateCheckpoint(runId) { checkpoint ->
+        // Recovery classification must not erase the diagnostic captured at the
+        // uncertain side-effect boundary. Keep both pieces of evidence bounded
+        // so the review UI can explain what happened and why manual recovery is
+        // now required.
+        val recoveryMessage = listOfNotNull(
+            checkpoint.message?.takeIf { it.isNotBlank() },
+            message.takeIf { it.isNotBlank() }
+        ).distinct().joinToString(" | ").take(MAX_MESSAGE_LENGTH)
         checkpoint.copy(
             status = DurableExecutionStatus.RECOVERY_REQUIRED,
             updatedAt = updatedAt,
-            message = message.take(MAX_MESSAGE_LENGTH)
+            message = recoveryMessage.ifBlank { null }
         )
     }
 
