@@ -254,7 +254,16 @@ class AutomationCommandService(
             )
         }
 
-        repository.deleteAutomation(existing)
+        if (!repository.deleteAutomationIfRevisionMatches(
+                automationId = automationId,
+                expectedRevision = existing.updatedAt
+            )
+        ) {
+            return concurrentConflict(
+                automationId = automationId,
+                expectedRevision = context.expectedRevision ?: existing.updatedAt
+            )
+        }
         return AutomationMutationResult.Success(
             automation = existing,
             revision = existing.updatedAt,
