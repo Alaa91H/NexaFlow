@@ -35,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -55,12 +56,26 @@ fun AgentSettingsScreen(
     var agentName by rememberSaveable { mutableStateOf("") }
     var showRevokeAll by rememberSaveable { mutableStateOf(false) }
     var copiedPayload by rememberSaveable { mutableStateOf(false) }
+    var providerEnabled by rememberSaveable { mutableStateOf(false) }
+    var providerName by rememberSaveable { mutableStateOf("") }
+    var providerUrl by rememberSaveable { mutableStateOf("") }
+    var providerModel by rememberSaveable { mutableStateOf("") }
+    var providerLocal by rememberSaveable { mutableStateOf(true) }
+    var providerApiKey by rememberSaveable { mutableStateOf("") }
     val dateFormat = remember {
         DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
     }
 
     LaunchedEffect(Unit) {
         viewModel.refresh()
+    }
+    LaunchedEffect(state.providerSettings) {
+        providerEnabled = state.providerSettings.enabled
+        providerName = state.providerSettings.displayName
+        providerUrl = state.providerSettings.baseUrl
+        providerModel = state.providerSettings.modelId
+        providerLocal = state.providerSettings.local
+        providerApiKey = ""
     }
 
     if (showRevokeAll) {
@@ -195,6 +210,154 @@ fun AgentSettingsScreen(
                         style = MaterialTheme.typography.bodySmall,
                         fontFamily = FontFamily.Monospace
                     )
+                }
+            }
+
+            item(key = "ai_model_provider") {
+                NexaFlowCard {
+                    Text(
+                        text = stringResource(R.string.ai_provider_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = stringResource(R.string.ai_provider_subtitle),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.ai_provider_enabled),
+                            modifier = Modifier.weight(1f)
+                        )
+                        Switch(
+                            checked = providerEnabled,
+                            onCheckedChange = { providerEnabled = it }
+                        )
+                    }
+                    OutlinedTextField(
+                        value = providerName,
+                        onValueChange = { if (it.length <= 128) providerName = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.ai_provider_name)) },
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = providerUrl,
+                        onValueChange = { if (it.length <= 2048) providerUrl = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.ai_provider_endpoint)) },
+                        placeholder = {
+                            Text(stringResource(R.string.ai_provider_endpoint_hint))
+                        },
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = providerModel,
+                        onValueChange = { if (it.length <= 256) providerModel = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.ai_provider_model)) },
+                        placeholder = {
+                            Text(stringResource(R.string.ai_provider_model_hint))
+                        },
+                        singleLine = true
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            Text(stringResource(R.string.ai_provider_local))
+                            Text(
+                                text = stringResource(R.string.ai_provider_local_subtitle),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = providerLocal,
+                            onCheckedChange = { providerLocal = it }
+                        )
+                    }
+                    OutlinedTextField(
+                        value = providerApiKey,
+                        onValueChange = { if (it.length <= 16_384) providerApiKey = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.ai_provider_api_key)) },
+                        placeholder = {
+                            Text(stringResource(R.string.ai_provider_api_key_hint))
+                        },
+                        visualTransformation = PasswordVisualTransformation(),
+                        singleLine = true
+                    )
+                    if (state.providerApiKeyConfigured) {
+                        Text(
+                            text = stringResource(R.string.ai_provider_api_key_saved),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Text(
+                        text = stringResource(R.string.ai_provider_compatibility),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = {
+                                viewModel.saveProvider(
+                                    enabled = providerEnabled,
+                                    displayName = providerName,
+                                    baseUrl = providerUrl,
+                                    modelId = providerModel,
+                                    local = providerLocal,
+                                    apiKey = providerApiKey
+                                )
+                                providerApiKey = ""
+                            }
+                        ) {
+                            Text(stringResource(R.string.ai_provider_save))
+                        }
+                        TextButton(
+                            onClick = viewModel::testProvider,
+                            enabled = state.providerSettings.enabled &&
+                                state.providerProbeState != AiProviderProbeState.TESTING
+                        ) {
+                            Text(
+                                stringResource(
+                                    if (state.providerProbeState == AiProviderProbeState.TESTING) {
+                                        R.string.ai_provider_testing
+                                    } else {
+                                        R.string.ai_provider_test
+                                    }
+                                )
+                            )
+                        }
+                    }
+                    when (state.providerProbeState) {
+                        AiProviderProbeState.SUCCESS -> Text(
+                            text = stringResource(R.string.ai_provider_test_success),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        AiProviderProbeState.FAILED -> Text(
+                            text = stringResource(R.string.ai_provider_test_failed),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        else -> Unit
+                    }
+                    if (state.providerApiKeyConfigured) {
+                        TextButton(onClick = viewModel::clearProviderApiKey) {
+                            Text(stringResource(R.string.ai_provider_clear_key))
+                        }
+                    }
                 }
             }
 
