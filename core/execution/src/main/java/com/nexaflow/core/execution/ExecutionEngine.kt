@@ -1060,7 +1060,7 @@ class ExecutionEngine(
         // exitActions: the whole device state is restored instead. Do not "fix"
         // this to run them too — that would double-apply end actions after a revert.
         val actionResults = if (automation.revertOnExit) {
-            val snapshot = snapshots.remove(automation.id)
+            val snapshot = snapshots[automation.id]
                 ?: DeviceStateSnapshot.decodeForRuntime(runtimeSnapshotJson)
             val restoreResult = snapshotRestorer(snapshot, automation.actions)
             listOf(
@@ -1171,13 +1171,30 @@ class ExecutionEngine(
             channel = channel?.type?.name,
             actionResults = actionResults
         )
-        historyRepository.recordExecution(record)
+        // Exit side effects are already decided at this point. A history
+        // persistence failure must never turn a known-successful exit into a
+        // retryable execution failure: replaying the end behavior could duplicate
+        // an external side effect. Keep the returned action outcome authoritative
+        // and surface the history failure through diagnostics instead.
+        val historyFailure = runCatching { historyRepository.recordExecution(record) }.exceptionOrNull()
         diagnostics.recordTimeline(
             automation,
-            if (manualConditionRejected) "MANUAL_CONDITION_NOT_MET" else "EXIT",
+            if (historyFailure != null) {
+                "EXIT_HISTORY_PERSIST_FAILED"
+            } else if (manualConditionRejected) {
+                "MANUAL_CONDITION_NOT_MET"
+            } else {
+                "EXIT"
+            },
             record,
             startedAt
         )
+        if (record.success) {
+            // The captured state is consumed only after the exit itself is known
+            // to have succeeded. A definitive failed restore/end action retains
+            // the snapshot for explicit or coordinator-owned recovery.
+            snapshots.remove(automation.id)
+        }
         context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
         return record
         } finally {
