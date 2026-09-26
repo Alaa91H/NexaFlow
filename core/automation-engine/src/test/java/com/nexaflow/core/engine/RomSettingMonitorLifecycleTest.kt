@@ -3,6 +3,7 @@ package com.nexaflow.core.engine
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveTriggerStore
+import com.nexaflow.core.datastore.AutomationRuntimeStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -25,11 +26,17 @@ class RomSettingMonitorLifecycleTest {
     fun `stop cancels polling and a later initialize starts one fresh job`() {
         val context: Context = ApplicationProvider.getApplicationContext()
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        val repository = FakeRepository(emptyList())
+        val history = RecordingHistory()
+        val engine = testEngine(context, history)
+        val runtimeStore = AutomationRuntimeStore(context)
         val monitor = RomSettingMonitor(
             context = context,
-            repository = FakeRepository(emptyList()),
-            executionEngine = testEngine(context, RecordingHistory()),
+            repository = repository,
+            executionEngine = engine,
             activeStore = ActiveTriggerStore(context),
+            runtimeStore = runtimeStore,
+            exitCoordinator = ExitCoordinator(runtimeStore, engine, repository, history),
             scope = scope
         )
 

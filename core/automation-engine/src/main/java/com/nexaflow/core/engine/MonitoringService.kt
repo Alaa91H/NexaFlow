@@ -153,6 +153,7 @@ class MonitoringService : Service() {
             volumeMonitor.reconcileAutomations()
             deviceEventMonitor.reconcileAutomations()
             deviceStateMonitor28.reconcileAutomations()
+            romSettingMonitor.reconcileAutomations()
             wearEventRouter.reconcileAutomations()
         }
     }
