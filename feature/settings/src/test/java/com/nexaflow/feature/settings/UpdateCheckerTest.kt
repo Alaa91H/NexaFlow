@@ -143,6 +143,13 @@ class UpdateCheckerTest {
     }
 
     @Test
+    fun forwardVersion_requiresStrictlyNewerVersionCode() {
+        assertTrue(UpdateChecker.isForwardVersion(100L, 101L))
+        assertFalse(UpdateChecker.isForwardVersion(100L, 100L))
+        assertFalse(UpdateChecker.isForwardVersion(100L, 99L))
+    }
+
+    @Test
     fun signingLineage_acceptsSameSignerAndForwardRotation() {
         assertTrue(
             UpdateChecker.hasTrustedSigningLineage(
