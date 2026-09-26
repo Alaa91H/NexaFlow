@@ -151,6 +151,7 @@ class MonitoringService : Service() {
             callStateMonitor.reconcileAutomations()
             mediaMonitor.reconcileAutomations()
             volumeMonitor.reconcileAutomations()
+            calendarMonitor.reconcileAutomations()
             deviceEventMonitor.reconcileAutomations()
             deviceStateMonitor28.reconcileAutomations()
             romSettingMonitor.reconcileAutomations()
