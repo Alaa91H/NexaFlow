@@ -9,7 +9,10 @@ import androidx.test.core.app.ApplicationProvider
 import com.nexaflow.core.datastore.ActiveExecutionStore
 import com.nexaflow.core.datastore.NotificationPreferences
 import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.core.execution.handler.ActionExecutionContext
+import com.nexaflow.core.execution.handler.ActionHandler
 import com.nexaflow.core.execution.handler.ActionRegistry
+import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.ActionType
 import com.nexaflow.domain.models.Automation
@@ -66,18 +69,24 @@ class AutomationDetailsViewModelDeleteTest {
     }
 
     private class FakeRepository(
-        private val automation: Automation?,
+        automation: Automation?,
         private val throwOnDelete: Boolean = false
     ) : AutomationRepository {
+        var stored: Automation? = automation
         override fun getAutomations(): Flow<List<Automation>> =
-            flowOf(automation?.let(::listOf) ?: emptyList())
+            flowOf(stored?.let(::listOf) ?: emptyList())
         override suspend fun getAutomationById(id: String): Automation? =
-            automation?.takeIf { it.id == id }
-        override suspend fun saveAutomation(automation: Automation) = Unit
+            stored?.takeIf { it.id == id }
+        override suspend fun saveAutomation(automation: Automation) {
+            stored = automation
+        }
         override suspend fun deleteAutomation(automation: Automation) {
             if (throwOnDelete) throw IllegalStateException("simulated database write failure")
+            stored = null
         }
-        override suspend fun updateAutomationStatus(id: String, enabled: Boolean) = Unit
+        override suspend fun updateAutomationStatus(id: String, enabled: Boolean) {
+            stored = stored?.takeIf { it.id == id }?.copy(enabled = enabled) ?: stored
+        }
     }
 
     private fun task(id: String): Automation = Automation(
@@ -97,12 +106,21 @@ class AutomationDetailsViewModelDeleteTest {
         updatedAt = 0L
     )
 
-    private fun newEngine(): ExecutionEngine = ExecutionEngine(
-        context = context,
-        historyRepository = FakeHistory(),
-        notificationPreferences = NotificationPreferences(context),
-        actionRegistry = ActionRegistry.from(emptyList())
-    )
+    private fun newEngine(): ExecutionEngine {
+        val handler = object : ActionHandler {
+            override val supportedTypes = setOf(ActionType.SYSTEM_SEND_NOTIFICATION)
+            override suspend fun execute(
+                action: Action,
+                ctx: ActionExecutionContext
+            ): SystemControlResult = SystemControlResult.ok("ok")
+        }
+        return ExecutionEngine(
+            context = context,
+            historyRepository = FakeHistory(),
+            notificationPreferences = NotificationPreferences(context),
+            actionRegistry = ActionRegistry.from(listOf(handler))
+        )
+    }
 
     @Before
     fun setUp() = runBlocking {
@@ -169,21 +187,19 @@ class AutomationDetailsViewModelDeleteTest {
         val id = "vm-delete-b"
         arm(id)
         var navigated = 0
-        val viewModel = vm(id, FakeRepository(automation = task(id), throwOnDelete = true))
+        val repository = FakeRepository(automation = task(id), throwOnDelete = true)
+        val viewModel = vm(id, repository)
 
         viewModel.delete { navigated++ }
         awaitIdle { viewModel.executionMessage.value != null }
 
-        // The task still exists (Room rolls the delete back), so its engine
-        // state must stay intact and the user must not be navigated away.
+        // Cleanup must run before the delete, but when the database delete
+        // fails the original enabled flag is restored and navigation is blocked.
         assertEquals("must not navigate on a failed delete", 0, navigated)
-        assertTrue(
-            "engine marker must remain while the task still exists",
-            !freshExitMessage(id).contains("task was not active")
-        )
+        assertTrue("the task remains enabled after delete rollback", repository.stored?.enabled == true)
         assertEquals(
             "the failure must be surfaced instead of crashing the app",
-            context.getString(R.string.task_delete_failed),
+            context.getString(R.string.task_delete_failed, task(id).name),
             viewModel.executionMessage.value
         )
     }
