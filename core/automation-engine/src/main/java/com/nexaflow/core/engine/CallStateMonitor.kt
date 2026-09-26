@@ -329,6 +329,7 @@ class CallStateMonitor @Inject constructor(
     }
 
     @SuppressLint("MissingPermission")
+    @Suppress("DEPRECATION")
     private fun readCurrentCallState(telephony: TelephonyManager): Int? =
         runCatching { telephony.callState }.getOrNull()
 
