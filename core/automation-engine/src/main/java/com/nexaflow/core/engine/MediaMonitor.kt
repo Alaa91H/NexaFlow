@@ -70,7 +70,7 @@ class MediaMonitor @Inject constructor(
         }
     }
 
-    private suspend fun rearmFromLedger() {
+    internal suspend fun rearmFromLedger() {
         val enabledIds = repository.getAutomations().first()
             .filter { it.enabled && it.triggers.any { trigger -> trigger.type == TriggerType.MEDIA_PLAYING } }
             .map { it.id }
