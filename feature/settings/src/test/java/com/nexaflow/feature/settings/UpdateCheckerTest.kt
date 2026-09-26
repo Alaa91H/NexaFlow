@@ -143,6 +143,74 @@ class UpdateCheckerTest {
     }
 
     @Test
+    fun forwardVersion_requiresStrictlyNewerVersionCode() {
+        assertTrue(UpdateChecker.isForwardVersion(100L, 101L))
+        assertFalse(UpdateChecker.isForwardVersion(100L, 100L))
+        assertFalse(UpdateChecker.isForwardVersion(100L, 99L))
+    }
+
+    @Test
+    fun signingLineage_acceptsSameSignerAndForwardRotation() {
+        assertTrue(
+            UpdateChecker.hasTrustedSigningLineage(
+                installedCurrent = setOf("current-cert"),
+                archiveCurrent = setOf("current-cert"),
+                archiveHistory = setOf("current-cert")
+            )
+        )
+        assertTrue(
+            UpdateChecker.hasTrustedSigningLineage(
+                installedCurrent = setOf("current-cert"),
+                archiveCurrent = setOf("next-cert"),
+                archiveHistory = setOf("old-cert", "current-cert", "next-cert")
+            )
+        )
+    }
+
+    @Test
+    fun signingLineage_rejectsOldKeyRollbackAndUnrelatedSigner() {
+        assertFalse(
+            UpdateChecker.hasTrustedSigningLineage(
+                installedCurrent = setOf("current-cert"),
+                archiveCurrent = setOf("old-cert"),
+                archiveHistory = setOf("old-cert")
+            )
+        )
+        assertFalse(
+            UpdateChecker.hasTrustedSigningLineage(
+                installedCurrent = setOf("installed-cert"),
+                archiveCurrent = setOf("other-cert"),
+                archiveHistory = setOf("other-cert")
+            )
+        )
+        assertFalse(
+            UpdateChecker.hasTrustedSigningLineage(
+                installedCurrent = emptySet(),
+                archiveCurrent = setOf("cert"),
+                archiveHistory = setOf("cert")
+            )
+        )
+    }
+
+    @Test
+    fun signingLineage_requiresExactSetForMultipleSigners() {
+        assertTrue(
+            UpdateChecker.hasTrustedSigningLineage(
+                installedCurrent = setOf("a", "b"),
+                archiveCurrent = setOf("a", "b"),
+                archiveHistory = setOf("a", "b")
+            )
+        )
+        assertFalse(
+            UpdateChecker.hasTrustedSigningLineage(
+                installedCurrent = setOf("a", "b"),
+                archiveCurrent = setOf("a", "c"),
+                archiveHistory = setOf("a", "b", "c")
+            )
+        )
+    }
+
+    @Test
     fun sha256_matchesKnownDigest() {
         // "hello" → known SHA-256.
         val file = File.createTempFile("update-checker", ".bin")
