@@ -66,9 +66,11 @@ class AutomationRuntimeStore internal constructor(
                 AutomationRuntimeLifecycleState.ACTIVE,
                 AutomationRuntimeLifecycleState.EXITING -> false
                 AutomationRuntimeLifecycleState.EXIT_FAILED ->
-                    // Only reap a failed row that exhausted its retry budget —
-                    // one still inside the budget belongs to the recovery pass.
-                    existing.exitAttempt >= MAX_EXIT_ATTEMPTS
+                    // Uncertain exits are terminal for automatic replay. A
+                    // later independent occurrence may replace that row rather
+                    // than reissuing the previous unknown side effect.
+                    existing.exitOutcomeUncertain ||
+                        existing.exitAttempt >= MAX_EXIT_ATTEMPTS
             }
             when {
                 existing == null && states.size < MAX_RUNTIME_STATES -> {
@@ -116,7 +118,8 @@ class AutomationRuntimeStore internal constructor(
                         exitStartedAt = now,
                         exitAttempt = current.exitAttempt + 1,
                         exitReason = reason,
-                        lastError = null
+                        lastError = null,
+                        exitOutcomeUncertain = false
                     )
                     states[automationId] = claimed
                     writeRuntimeStates(preferences, states)
@@ -151,6 +154,7 @@ class AutomationRuntimeStore internal constructor(
                 current == null -> ExitClaim.NoActiveOccurrence
                 current.occurrenceId != occurrenceId -> ExitClaim.OccurrenceMismatch
                 current.lifecycleState != AutomationRuntimeLifecycleState.EXIT_FAILED -> ExitClaim.AlreadyExiting
+                current.exitOutcomeUncertain -> ExitClaim.RecoveryRequired(current)
                 else -> {
                     val claimed = current.copy(
                         lifecycleState = AutomationRuntimeLifecycleState.EXITING,
@@ -191,7 +195,8 @@ class AutomationRuntimeStore internal constructor(
         occurrenceId: String,
         reason: ExitReason,
         error: String,
-        now: Long
+        now: Long,
+        outcomeUncertain: Boolean = false
     ): Boolean {
         var changed = false
         dataStore.edit { preferences ->
@@ -204,7 +209,8 @@ class AutomationRuntimeStore internal constructor(
                     lifecycleState = AutomationRuntimeLifecycleState.EXIT_FAILED,
                     exitReason = reason,
                     exitStartedAt = now,
-                    lastError = error.take(AutomationRuntimeState.MAX_ERROR_LENGTH)
+                    lastError = error.take(AutomationRuntimeState.MAX_ERROR_LENGTH),
+                    exitOutcomeUncertain = outcomeUncertain
                 )
                 writeRuntimeStates(preferences, states)
                 changed = true
