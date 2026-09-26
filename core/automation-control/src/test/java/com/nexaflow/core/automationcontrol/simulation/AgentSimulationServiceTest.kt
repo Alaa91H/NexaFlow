@@ -147,6 +147,54 @@ class AgentSimulationServiceTest {
         assertTrue(result.nodes.isNotEmpty())
     }
 
+
+    @Test
+    fun invalidPersistedFixedTimezoneIsRejectedBeforeDryRun() = runTest {
+        var dryRuns = 0
+        val repository = FakeAutomationRepository()
+        val commandService = AutomationCommandService(
+            repository = repository,
+            dryRunInspector = AutomationDryRunInspector {
+                dryRuns += 1
+                executableReport()
+            },
+            mutationPersistence = AutomationMutationPersistence {
+                error("simulation must never persist")
+            },
+            clockMillis = { 100L },
+            idGenerator = { "simulation-id" }
+        )
+        val service = AgentSimulationService(
+            commandService = commandService,
+            schedulePreviewService = AgentSchedulePreviewService {
+                ZoneId.of("UTC")
+            }
+        )
+
+        val result = service.simulate(
+            AgentSimulationRequestV1(
+                task = scheduledTask().copy(
+                    triggers = listOf(
+                        AgentTriggerDraftV1(
+                            type = "TIME",
+                            config = mapOf(
+                                "time" to "08:00",
+                                "repeat" to "DAILY",
+                                "zonePolicy" to "FIXED_IANA",
+                                "zoneId" to "Mars/Olympus"
+                            )
+                        )
+                    )
+                )
+            )
+        )
+
+        assertFalse(result.valid)
+        assertFalse(result.executable)
+        assertEquals(0, dryRuns)
+        assertTrue(result.issues.any { it.code == "INVALID_TIMEZONE" })
+    }
+
     private fun commandService(
         persistence: AutomationMutationPersistence,
         report: WorkflowDryRunReport
