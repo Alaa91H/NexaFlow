@@ -162,17 +162,21 @@ class ConnectivityMonitorExitReconcileTest {
 
         val exitCoordinator = ExitCoordinator(runtimeStore, engine, repository, history)
         val monitor = monitorFor(repository, engine, exitCoordinator, runtimeStore, store)
-        monitor.initialize()
+
+        // Exercise only the restart boundary. initialize() also registers a
+        // platform network callback whose Robolectric shadow can inherit
+        // network state from another test method; that callback is a separate
+        // contract and made this test order-dependent.
+        monitor.rearmFromLedger()
 
         assertTrue(
             "no exit without a known opposite network signal",
             history.exits.none { it == EXIT_NOOP_MARKER }
         )
         assertTrue(
-            "active mark survives while the condition holds",
+            "active mark survives without an opposite signal",
             store.activeKeys("connectivity").isNotEmpty()
         )
-        monitor.stop()
     }
 
     @Test
