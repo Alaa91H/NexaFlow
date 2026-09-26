@@ -31,6 +31,11 @@ data class OpenAiCompatibleTransportResponse(
     val body: String
 )
 
+data class OpenAiProviderProbeResult(
+    val success: Boolean,
+    val statusCode: Int? = null
+)
+
 fun interface OpenAiCompatibleTransport {
     suspend fun postChatCompletions(
         config: OpenAiCompatibleProviderConfig,
@@ -58,6 +63,45 @@ class OpenAiCompatibleProvider(
     fun configure(value: OpenAiCompatibleProviderConfig) {
         config = value.normalized()
         _descriptor.value = descriptorFor(config)
+    }
+
+    suspend fun probe(): OpenAiProviderProbeResult {
+        val snapshot = config
+        if (!isConfigured(snapshot)) {
+            return OpenAiProviderProbeResult(success = false)
+        }
+        return runCatching {
+            val response = transport.postChatCompletions(
+                config = snapshot,
+                body = buildJsonObject {
+                    put("model", snapshot.modelId)
+                    put("stream", false)
+                    put("max_tokens", 8)
+                    putJsonArray("messages") {
+                        add(
+                            buildJsonObject {
+                                put("role", "user")
+                                put("content", "Reply with OK.")
+                            }
+                        )
+                    }
+                },
+                apiKey = apiKeyProvider()?.takeIf(String::isNotBlank)
+            )
+            val validBody = response.statusCode in 200..299 &&
+                runCatching {
+                    json.parseToJsonElement(response.body)
+                        .jsonObject["choices"]
+                        ?.jsonArray
+                        ?.isNotEmpty() == true
+                }.getOrDefault(false)
+            OpenAiProviderProbeResult(
+                success = validBody,
+                statusCode = response.statusCode
+            )
+        }.getOrElse {
+            OpenAiProviderProbeResult(success = false)
+        }
     }
 
     override fun stream(request: AiProviderRequest): Flow<AiProviderEvent> = flow {
