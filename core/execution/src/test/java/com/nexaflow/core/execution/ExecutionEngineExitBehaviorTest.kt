@@ -184,6 +184,30 @@ class ExecutionEngineExitBehaviorTest {
     }
 
     @Test
+    fun `uncertain whole snapshot restore remains uncertain in exit history`() = runBlocking {
+        val handler = RecordingHandler()
+        val history = RecordingHistory()
+        val engine = engine(
+            handler = handler,
+            history = history,
+            snapshotRestorer = { _, _ ->
+                SystemControlResult.fail(
+                    message = "restore dispatch confirmation timed out",
+                    outcomeUncertain = true
+                )
+            }
+        )
+        val automation = automation(revertOnExit = true)
+
+        engine.runAutomation(automation)
+        val record = engine.runExit(automation)
+
+        assertFalse(record.success)
+        assertTrue(record.actionResults.single().outcomeUncertain)
+        assertTrue(record.message.contains("confirmation timed out"))
+    }
+
+    @Test
     fun `manual mismatch does not execute configured end action implicitly`() = runBlocking {
         val handler = RecordingHandler()
         val history = RecordingHistory()
