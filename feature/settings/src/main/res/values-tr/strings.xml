@@ -241,4 +241,38 @@
     <string name="blocked_calls_title">Engellenen aramalar</string>
     <string name="blocked_calls_empty">Henüz engellenen arama yok</string>
     <string name="blocked_calls_filter_all">Tüm kurallar</string>
+
+    <!-- AI & agent management -->
+    <string name="ai_agents_title">Yapay zekâ ve aracılar</string>
+    <string name="ai_agents_subtitle">Kalıcı erişim, eşleştirme ve aracı etkinliği</string>
+    <string name="agent_access_title">Yapay zekâ aracı erişimi</string>
+    <string name="agent_access_on">Tam kalıcı erişim etkin</string>
+    <string name="agent_access_off">Devre dışı — aracılar bağlanamaz veya işlem yapamaz</string>
+    <string name="agent_gateway_title">Yerel aracı ağ geçidi</string>
+    <string name="agent_gateway_running">127.0.0.1:%1$d üzerinde çalışıyor</string>
+    <string name="agent_gateway_stopped">Çalışmıyor</string>
+    <string name="agent_gateway_rest">REST API · /api/v1</string>
+    <string name="agent_gateway_mcp">MCP protokolü · /mcp</string>
+    <string name="agent_add_title">Aracı ekle</string>
+    <string name="agent_name_label">Aracı adı</string>
+    <string name="agent_name_hint">Örnek: Dizüstü bilgisayarım</string>
+    <string name="agent_generate_pairing">Eşleştirme kodu oluştur</string>
+    <string name="agent_pairing_payload">Tek kullanımlık eşleştirme verisi</string>
+    <string name="agent_pairing_help">Bu veriyi yalnızca güvenmek istediğiniz aracıya verin. 5 dakika içinde geçersiz olur.</string>
+    <string name="agent_copy_payload">Veriyi kopyala</string>
+    <string name="agent_payload_copied">Eşleştirme verisi kopyalandı</string>
+    <string name="agent_expires_at">Bitiş zamanı: %1$s</string>
+    <string name="agent_trusted_title">Güvenilen aracılar</string>
+    <string name="agent_none">Eşleştirilmiş aracı yok</string>
+    <string name="agent_full_access">Tam kalıcı erişim</string>
+    <string name="agent_active_sessions">%1$d etkin oturum</string>
+    <string name="agent_revoke">İptal et</string>
+    <string name="agent_revoke_all">Tümünü iptal et</string>
+    <string name="agent_revoke_all_title">Tüm aracıların erişimi iptal edilsin mi?</string>
+    <string name="agent_revoke_all_message">Tüm aracı kimlik bilgileri ve oturumları çalışmayı durduracak. Mevcut otomasyonlar kalacak.</string>
+    <string name="agent_activity_title">Aracı etkinliği</string>
+    <string name="agent_activity_empty">Henüz aracı etkinliği yok</string>
+    <string name="agent_refresh">Yenile</string>
+    <string name="agent_operation_failed">Aracı işlemi tamamlanamadı</string>
+    <string name="agent_pending_pairings">%1$d bekleyen eşleştirme isteği</string>
 </resources>
