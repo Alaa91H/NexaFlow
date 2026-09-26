@@ -6,3 +6,8 @@ repositories {
     gradlePluginPortal()
     mavenCentral()
 }
+
+
+dependencies {
+    testImplementation(kotlin("test"))
+}
