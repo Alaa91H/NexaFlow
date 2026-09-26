@@ -90,6 +90,54 @@ class RoomAutomationMutationPersistenceTest {
     }
 
     @Test
+    fun storedDeleteIdempotencyCanBeResolvedAfterDefinitionRemoval() = runTest {
+        val persistence = persistence()
+        val original = automation(id = "delete-replay", name = "Delete", updatedAt = 100L)
+        persistence.commit(
+            request(
+                kind = AutomationMutationKind.CREATE,
+                automation = original,
+                occurredAt = 100L
+            )
+        )
+        val deleteRequest = request(
+            kind = AutomationMutationKind.DELETE,
+            automation = original,
+            expectedRevision = 1L,
+            baseDefinitionUpdatedAt = 100L,
+            idempotencyKey = "delete-key",
+            fingerprint = "delete-fingerprint",
+            occurredAt = 200L
+        )
+        assertEquals(
+            AutomationPersistenceResult.Committed("delete-replay", 2L),
+            persistence.commit(deleteRequest)
+        )
+        assertTrue(database.automationDao().getAutomationById("delete-replay") == null)
+
+        val replay = persistence.resolveStoredIdempotency(
+            context = deleteRequest.context,
+            kind = AutomationMutationKind.DELETE,
+            automationId = "delete-replay",
+            requestFingerprint = "delete-fingerprint",
+            occurredAt = 250L
+        )
+        assertEquals(
+            AutomationPersistenceResult.IdempotentReplay("delete-replay", 2L),
+            replay
+        )
+
+        val conflict = persistence.resolveStoredIdempotency(
+            context = deleteRequest.context,
+            kind = AutomationMutationKind.DELETE,
+            automationId = "delete-replay",
+            requestFingerprint = "different-fingerprint",
+            occurredAt = 250L
+        )
+        assertEquals(AutomationPersistenceResult.IdempotencyConflict, conflict)
+    }
+
+    @Test
     fun sameIdempotencyKeyReplaysSameRequestAndRejectsDifferentRequest() = runTest {
         val persistence = persistence()
         val candidate = automation(id = "created", name = "Original", updatedAt = 100L)
