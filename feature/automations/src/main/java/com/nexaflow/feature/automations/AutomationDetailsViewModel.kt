@@ -175,12 +175,21 @@ class AutomationDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val current = repository.getAutomationById(automationId)
-                if (current != null && !exitCoordinator.prepareForDeletion(current)) {
-                    _executionMessage.value = appContext.getString(R.string.task_delete_failed)
-                    return@launch
+                if (current != null) {
+                    // Deletion is a two-phase safety operation: persist disabled
+                    // intent first so a later repository-delete failure cannot
+                    // leave an enabled task whose lifecycle was already closed.
+                    if (current.enabled) {
+                        repository.updateAutomationStatus(current.id, false)
+                        executionEngine.notifyAutomationsChanged()
+                    }
+                    val disabled = current.copy(enabled = false)
+                    if (!exitCoordinator.prepareForDeletion(disabled)) {
+                        _executionMessage.value = appContext.getString(R.string.task_delete_failed)
+                        return@launch
+                    }
+                    repository.deleteAutomation(disabled)
                 }
-
-                current?.let { repository.deleteAutomation(it) }
                 try {
                     executionEngine.onAutomationDeleted(automationId)
                 } catch (cancellation: CancellationException) {
