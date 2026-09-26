@@ -28,6 +28,18 @@ data class ActionExecutionContext(
      */
     val automationId: String? = null,
     /**
+     * Unique logical execution id for this invocation. Unlike [automationId],
+     * this changes for every independent run and remains stable only across
+     * retries of that same run.
+     */
+    val executionId: String? = null,
+    /**
+     * Stable node identity within [executionId] (for example `action:2` or
+     * `exit:0`). Handlers use it for per-node idempotency without conflating
+     * two independent executions of the same automation.
+     */
+    val nodeId: String? = null,
+    /**
      * Whether the enclosing task restores its state when it ends. When true,
      * notification-sending handlers append the revert action button so the
      * user can restore the pre-run state straight from the notification.
