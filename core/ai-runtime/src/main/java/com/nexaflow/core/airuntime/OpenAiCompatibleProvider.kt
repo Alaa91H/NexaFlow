@@ -226,5 +226,6 @@ class OpenAiCompatibleProvider(
         const val PROVIDER_ID = "openai_compatible"
         const val MAX_BASE_URL_LENGTH = 2048
         const val MAX_TOOL_CALL_ID_LENGTH = 256
+        const val API_KEY_STORAGE_KEY = "ai.provider.openai_compatible.api_key"
     }
 }
