@@ -355,7 +355,12 @@ class ShizukuTypedStrategy(
             result.message.contains("failed", ignoreCase = true) &&
                 result.message.contains("UserService", ignoreCase = true)
         val transport = permissionUnavailable || endpointFailure
-        val uncertain = endpointFailure && transportIsUncertain(operation)
+        // The bridge can explicitly report that dispatch already happened but
+        // confirmation timed out. Honor that structured signal rather than
+        // inferring certainty from a generic failure string. Only operations
+        // whose side effects can outlive the transport are promoted to UNKNOWN.
+        val uncertain = transportIsUncertain(operation) &&
+            (result.outcomeUncertain || endpointFailure)
         OperationOutcome(
             operation = operation,
             status = if (uncertain) OperationOutcomeStatus.UNKNOWN else OperationOutcomeStatus.FAILED,
@@ -364,6 +369,7 @@ class ShizukuTypedStrategy(
                 result.message.contains("not granted", ignoreCase = true) ->
                     CapabilityErrorCode.SHIZUKU_DENIED
                 transport -> CapabilityErrorCode.SHIZUKU_UNAVAILABLE
+                uncertain -> CapabilityErrorCode.UNKNOWN_ERROR
                 else -> CapabilityErrorCode.POLICY_NOT_SATISFIED
             },
             message = result.message,
