@@ -829,5 +829,6 @@ class AgentApiController(
         const val TRANSPORT = "LOCAL_REST"
         const val DEFAULT_READ_LIMIT = 50
         const val MAX_READ_LIMIT = 200
+        const val MAX_PAIRING_FIELD_LENGTH = 512
     }
 }
