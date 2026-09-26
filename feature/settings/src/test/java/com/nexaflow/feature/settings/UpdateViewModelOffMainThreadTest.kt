@@ -35,9 +35,9 @@ class UpdateViewModelOffMainThreadTest {
 
     companion object {
         private const val APK_URL =
-            "https://github.com/Alaa91H/NexaFlow/releases/download/v99.0.0/nexaflow-release.apk"
+            "https://github.com/Alaa91H/NexaFlow/releases/download/v99.0.0/NexaFlow-v99.0.0.apk"
         private const val SHA_URL =
-            "https://github.com/Alaa91H/NexaFlow/releases/download/v99.0.0/nexaflow-release.apk.sha256"
+            "https://github.com/Alaa91H/NexaFlow/releases/download/v99.0.0/NexaFlow-v99.0.0.apk.sha256"
 
         private val FAKE_APK = "NexaFlow fake APK payload (off-main-thread test)".toByteArray()
 
@@ -46,8 +46,8 @@ class UpdateViewModelOffMainThreadTest {
           "tag_name": "v99.0.0",
           "body": "test release",
           "assets": [
-            {"name": "nexaflow-release.apk", "size": 123, "browser_download_url": "$APK_URL"},
-            {"name": "nexaflow-release.apk.sha256", "browser_download_url": "$SHA_URL"}
+            {"name": "NexaFlow-v99.0.0.apk", "size": ${FAKE_APK.size}, "browser_download_url": "$APK_URL"},
+            {"name": "NexaFlow-v99.0.0.apk.sha256", "browser_download_url": "$SHA_URL"}
           ]
         }
         """.trimIndent()
@@ -184,7 +184,7 @@ class UpdateViewModelOffMainThreadTest {
         // APK download + digest fetch (and the later install attempt) are the
         // network-touching parts of downloadAndVerify.
         val downloadThreads = calls
-            .filter { it.first.contains("nexaflow-release.apk") }
+            .filter { it.first.contains("NexaFlow-v99.0.0.apk") }
             .map { it.second }
         assertNotMainThread(downloadThreads, "downloadAndVerify (APK download + SHA-256 fetch)")
     }
