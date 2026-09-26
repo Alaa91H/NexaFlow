@@ -4,6 +4,7 @@ import com.nexaflow.core.rom.PrivilegedOperation
 import com.nexaflow.core.rom.model.SystemControlResult
 import com.nexaflow.core.execution.capability.semantic.OperationOutcomeStatus
 import com.nexaflow.core.execution.capability.semantic.TypedOperationRequest
+import com.nexaflow.domain.capability.CapabilityErrorCode
 import com.nexaflow.domain.capability.operation.SemanticOperationId
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -82,6 +83,7 @@ class ShizukuTypedStrategyTest {
         // The side effect may have landed before the transport dropped: UNKNOWN
         // forces the router to reconcile by reading state, never re-execute.
         assertEquals(OperationOutcomeStatus.UNKNOWN, outcome.status)
+        assertEquals(CapabilityErrorCode.UNKNOWN_ERROR, outcome.errorCode)
         assertFalse(outcome.transportFailure)
     }
 
@@ -100,6 +102,7 @@ class ShizukuTypedStrategyTest {
         )
 
         assertEquals(OperationOutcomeStatus.UNKNOWN, outcome.status)
+        assertEquals(CapabilityErrorCode.UNKNOWN_ERROR, outcome.errorCode)
         assertFalse(outcome.transportFailure)
         assertEquals("true", outcome.metadata["requestedEnabled"])
     }
