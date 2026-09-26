@@ -59,7 +59,7 @@ fun Project.gitVersion(): GitVersionInfo {
 }
 
 
-internal fun encodeVersionCode(
+fun encodeVersionCode(
     major: Int,
     minor: Int,
     patch: Int,
