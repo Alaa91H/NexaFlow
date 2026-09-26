@@ -24,6 +24,7 @@ import com.nexaflow.feature.history.DiagnosticsScreen
 import com.nexaflow.feature.history.ExecutionDetailsScreen
 import com.nexaflow.feature.history.HistoryScreen
 import com.nexaflow.feature.icons.IconPickerScreen
+import com.nexaflow.feature.settings.AgentSettingsScreen
 import com.nexaflow.feature.settings.NotificationManagerScreen
 import com.nexaflow.feature.settings.PermissionManagerScreen
 import com.nexaflow.feature.settings.PluginDestination
@@ -177,6 +178,9 @@ fun NexaFlowApp(reviewAutomationId: String? = null, onReviewOpened: () -> Unit =
             }
             composable("settings") {
                 SettingsScreen(navController = navController)
+            }
+            composable(SettingsDestination.AI_AGENTS_ROUTE) {
+                AgentSettingsScreen(navController = navController)
             }
         }
     }
