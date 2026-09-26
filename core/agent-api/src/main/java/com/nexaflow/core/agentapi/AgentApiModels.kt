@@ -96,6 +96,14 @@ data class AgentApiActionResultV1(
 )
 
 @Serializable
+data class AgentApiRunReplayV1(
+    val idempotentReplay: Boolean = true,
+    val automationId: String,
+    val revision: Long,
+    val message: String = "Run was already accepted for this idempotency key"
+)
+
+@Serializable
 data class AgentApiExecutionV1(
     val id: String,
     val automationId: String,
