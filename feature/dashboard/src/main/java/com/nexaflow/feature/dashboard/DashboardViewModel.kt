@@ -145,17 +145,25 @@ class DashboardViewModel @Inject constructor(
     fun deleteAutomation(automation: Automation) {
         viewModelScope.launch {
             try {
+                // Deletion is two-phase: persist disabled intent first.
+                // If the subsequent repository delete fails, the task remains
+                // present but cannot be re-admitted after its lifecycle was
+                // already closed.
+                if (automation.enabled) {
+                    automationRepository.updateAutomationStatus(automation.id, false)
+                    executionEngine.notifyAutomationsChanged()
+                }
+                val disabled = automation.copy(enabled = false)
+
                 // Keep the immutable definition available until every owned
                 // stateful exit and durable execution checkpoint is terminal.
-                // Deleting first would strand recovery without the actions
-                // needed to verify/compensate it.
-                if (!exitCoordinator.prepareForDeletion(automation)) {
+                if (!exitCoordinator.prepareForDeletion(disabled)) {
                     _executionMessage.value =
                         appContext.getString(R.string.task_delete_failed, automation.name)
                     return@launch
                 }
 
-                automationRepository.deleteAutomation(automation)
+                automationRepository.deleteAutomation(disabled)
                 try {
                     executionEngine.onAutomationDeleted(automation.id)
                 } catch (cancellation: CancellationException) {
