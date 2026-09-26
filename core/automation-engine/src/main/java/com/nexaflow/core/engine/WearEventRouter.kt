@@ -125,7 +125,7 @@ class WearEventRouter @Inject constructor(
         }
     }
 
-    private suspend fun restoreAndPruneDurableState(all: List<Automation>) {
+    internal suspend fun restoreAndPruneDurableState(all: List<Automation>) {
         val source = TriggerSource.WEAR.sourceId
         val byId = all.associateBy { it.id }
         val runtimeStates = runtimeStore.activeStates().filter { it.source == source }
@@ -135,7 +135,10 @@ class WearEventRouter @Inject constructor(
             val automation = byId[state.automationId]
             when {
                 automation == null -> {
-                    runtimeStore.clear(state.automationId, state.occurrenceId)
+                    // The immutable definition is gone; erasing the runtime row
+                    // would falsely imply that any owned external/device state
+                    // was cleaned up. Keep durable evidence for recovery review
+                    // and drop only volatile/compatibility mirrors.
                     activeAutomations -= state.automationId
                     activeStore.clearAutomation(source, state.automationId)
                 }
