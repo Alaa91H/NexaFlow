@@ -53,6 +53,35 @@ class ExitCoordinator(
     }
 
     /**
+     * Safely prepares one automation for destructive deletion.
+     *
+     * The immutable definition is retained unless every currently-known side
+     * effect has reached a durable terminal point and any owned stateful
+     * occurrence has completed its configured end behavior. Callers may delete
+     * the repository row only when this returns true.
+     */
+    suspend fun prepareForDeletion(automation: Automation): Boolean {
+        if (executionEngine.hasUnresolvedExecutionCheckpoint(automation.id)) {
+            return false
+        }
+
+        val lifecycleResult = requestExit(
+            automation = automation,
+            reason = ExitReason.AUTOMATION_DISABLED
+        )
+        val lifecycleResolved = when (lifecycleResult) {
+            is ExitCoordinatorResult.Executed,
+            ExitCoordinatorResult.NotActive -> true
+            ExitCoordinatorResult.StaleOccurrence,
+            ExitCoordinatorResult.AlreadyInProgress,
+            is ExitCoordinatorResult.RecoveryRequired -> false
+        }
+        if (!lifecycleResolved) return false
+
+        return !executionEngine.hasUnresolvedExecutionCheckpoint(automation.id)
+    }
+
+    /**
      * Closes only occurrences whose persisted automation is now disabled.
      *
      * UI callers update Room first and then broadcast ACTION_AUTOMATIONS_CHANGED.
