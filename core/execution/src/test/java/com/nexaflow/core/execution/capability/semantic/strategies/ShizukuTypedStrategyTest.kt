@@ -86,6 +86,25 @@ class ShizukuTypedStrategyTest {
     }
 
     @Test
+    fun timedOutHotspotDispatchIsUnknownNotRetryableFailure() = runTest {
+        val sink = RecordingSink()
+        val strategy = strategy(granted = true, bound = true, sink = sink)
+        sink.nextResult = SystemControlResult.fail(
+            message = "Operation failed (exit 124): TetheringManager start request timed out",
+            outcomeUncertain = true
+        )
+
+        val outcome = strategy.execute(
+            request(SemanticOperationId.HOTSPOT_SET_STATE, true),
+            SemanticOperationId.HOTSPOT_SET_STATE
+        )
+
+        assertEquals(OperationOutcomeStatus.UNKNOWN, outcome.status)
+        assertFalse(outcome.transportFailure)
+        assertEquals("true", outcome.metadata["requestedEnabled"])
+    }
+
+    @Test
     fun transportFailureWithoutSideEffectIsSafeFallback() = runTest {
         val sink = RecordingSink()
         val strategy = strategy(granted = true, bound = true, sink = sink)
@@ -214,14 +233,19 @@ class ShizukuTypedStrategyTest {
     }
 
     @Test
-    fun hotspotUsesClosedWifiShellCommand() = runTest {
+    fun hotspotUsesClosedTypedTetheringOperation() = runTest {
         val sink = RecordingSink()
         val strategy = strategy(granted = true, bound = true, sink = sink)
-        strategy.execute(request(SemanticOperationId.HOTSPOT_SET_STATE, true), SemanticOperationId.HOTSPOT_SET_STATE)
-        assertEquals(
-            listOf("cmd", "wifi", "start-softap"),
-            sink.lastOperation?.argv()
+
+        strategy.execute(
+            request(SemanticOperationId.HOTSPOT_SET_STATE, true),
+            SemanticOperationId.HOTSPOT_SET_STATE
         )
+
+        // Production UserShellService intercepts this typed operation and uses
+        // TetheringManager. The test must not re-introduce a dependency on the
+        // legacy bare WifiShell start-softap argv.
+        assertEquals(PrivilegedOperation.SetHotspot(true), sink.lastOperation)
     }
 
 }
