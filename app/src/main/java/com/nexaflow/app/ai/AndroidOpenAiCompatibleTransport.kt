@@ -117,10 +117,10 @@ class AndroidOpenAiCompatibleTransport : OpenAiCompatibleTransport {
                 append("Connection: close\r\n\r\n")
             }.toByteArray(Charsets.ISO_8859_1)
 
-            socket.getOutputStream().use { output ->
-                output.write(header)
-                output.write(payload)
-                output.flush()
+            socket.getOutputStream().apply {
+                write(header)
+                write(payload)
+                flush()
             }
 
             return parseHttpResponse(BufferedInputStream(socket.getInputStream()))
