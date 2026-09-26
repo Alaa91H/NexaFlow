@@ -1193,6 +1193,14 @@ class ExecutionEngine(
         activeExecutionStore.clear(automationId)
     }
 
+    /**
+     * Deletion guard: a non-terminal action checkpoint means side effects may
+     * still be executing or require recovery, so the immutable automation
+     * definition must remain available.
+     */
+    suspend fun hasUnresolvedExecutionCheckpoint(automationId: String): Boolean =
+        activeExecutionStore.hasUnresolvedCheckpointForAutomation(automationId)
+
     /** Current unresolved recovery count from the durable checkpoint ledger. */
     suspend fun recoveryBacklogCount(automationId: String): Int =
         activeExecutionStore.recoveryRequiredCountForAutomation(automationId)
