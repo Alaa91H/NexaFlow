@@ -99,12 +99,12 @@ class AgentSchedulePreviewService(
         val previews = timeTriggers.map { indexed ->
             val occurrences = ArrayList<AgentScheduleOccurrenceV1>(request.count)
             var cursor = request.fromEpochMillis
-            repeat(request.count) {
+            while (occurrences.size < request.count) {
                 val next = TimeTriggerCalculator.nextFireTime(
                     config = indexed.value.config,
                     fromMillis = cursor,
                     zone = zone
-                ) ?: return@repeat
+                ) ?: break
                 occurrences += AgentScheduleOccurrenceV1(
                     triggerIndex = indexed.index,
                     fireAtEpochMillis = next,
