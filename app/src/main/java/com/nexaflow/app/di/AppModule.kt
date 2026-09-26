@@ -194,8 +194,12 @@ object AppModule {
     @Provides
     @Singleton
     fun provideExecutionRecoveryCoordinator(
-        activeExecutionStore: ActiveExecutionStore
-    ): ExecutionRecoveryCoordinator = ExecutionRecoveryCoordinator(activeExecutionStore)
+        activeExecutionStore: ActiveExecutionStore,
+        automationRepository: AutomationRepository
+    ): ExecutionRecoveryCoordinator = ExecutionRecoveryCoordinator(
+        activeExecutionStore = activeExecutionStore,
+        automationRepository = automationRepository
+    )
 
     @Provides
     @Singleton

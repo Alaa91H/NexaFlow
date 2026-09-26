@@ -527,6 +527,7 @@ class ExecutionEngine(
                 runId = payloadContext.runId,
                 automationId = automation.id,
                 workflowVersion = automation.workflowVersion,
+                workflowRevision = automation.updatedAt,
                 totalActions = automation.actions.size,
                 nextActionIndex = 0,
                 status = DurableExecutionStatus.STARTED,
