@@ -4,6 +4,9 @@ import com.nexaflow.app.agent.AndroidAgentApiRuntime
 import com.nexaflow.core.agentapi.AgentApiController
 import com.nexaflow.core.agentapi.AgentApiRuntime
 import com.nexaflow.core.agentapi.AgentApiServer
+import com.nexaflow.core.agentapi.AgentMcpController
+import com.nexaflow.core.agentapi.AgentMcpRestToolExecutor
+import com.nexaflow.core.agentapi.AgentMcpToolExecutor
 import com.nexaflow.core.agentsecurity.AgentAccessManager
 import com.nexaflow.core.agentsecurity.AgentRequestAuthorizer
 import com.nexaflow.core.automationcontrol.AutomationCommandService
@@ -58,11 +61,31 @@ object AgentApiModule {
 
     @Provides
     @Singleton
+    fun provideAgentMcpToolExecutor(
+        controller: AgentApiController
+    ): AgentMcpToolExecutor = AgentMcpRestToolExecutor(controller)
+
+    @Provides
+    @Singleton
+    fun provideAgentMcpController(
+        accessManager: AgentAccessManager,
+        authorizer: AgentRequestAuthorizer,
+        toolExecutor: AgentMcpToolExecutor
+    ): AgentMcpController = AgentMcpController(
+        accessManager = accessManager,
+        authorizer = authorizer,
+        toolExecutor = toolExecutor
+    )
+
+    @Provides
+    @Singleton
     fun provideAgentApiServer(
         controller: AgentApiController,
+        mcpController: AgentMcpController,
         @ApplicationScope scope: CoroutineScope
     ): AgentApiServer = AgentApiServer(
         controller = controller,
+        mcpController = mcpController,
         scope = scope
     )
 }

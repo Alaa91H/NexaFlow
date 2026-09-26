@@ -181,26 +181,25 @@ shared permanent Agent Access boundary. The server binds only to
 
 ## Phase 6 - MCP
 
-Expose tools including:
+Implemented foundation:
 
-- `nexaflow.get_capabilities`
-- `nexaflow.list_triggers`
-- `nexaflow.list_actions`
-- `nexaflow.list_tasks`
-- `nexaflow.get_task`
-- `nexaflow.validate_task`
-- `nexaflow.preview_schedule`
-- `nexaflow.dry_run_task`
-- `nexaflow.create_task`
-- `nexaflow.update_task`
-- `nexaflow.clone_task`
-- `nexaflow.enable_task`
-- `nexaflow.disable_task`
-- `nexaflow.delete_task`
-- `nexaflow.run_task`
-- `nexaflow.get_history`
+- [x] loopback-only `/mcp` on the existing bounded HTTP server
+- [x] stateless MCP `2026-07-28` with `server/discover`
+- [x] MCP `2025-11-25` initialize compatibility
+- [x] modern per-request metadata and routing-header validation
+- [x] deterministic tool inventory with read/destructive/idempotent annotations
+- [x] status, capabilities and trigger/action/constraint catalogs
+- [x] list/get/create/update/clone/enable/disable/delete/run task tools
+- [x] validation, schedule preview and no-side-effect simulation
+- [x] history and redacted audit tools
+- [x] permanent-agent bearer authorization and scope checks
+- [x] REST/MCP parity for idempotency, revisions and lifecycle semantics
+- [x] modern result discrimination and conservative cache hints
 
-MCP must remain a thin adapter over the same command/control services.
+MCP remains a thin adapter over the same REST/control services. It does not
+write Room, schedule alarms, execute privileged backends or implement a second
+automation engine. The Android build intentionally reuses the bounded
+ServerSocket transport instead of adding a second Ktor HTTP server stack.
 
 ## Phase 7 - AI & Agents UI
 
