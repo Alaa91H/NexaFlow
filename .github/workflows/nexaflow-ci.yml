@@ -129,7 +129,7 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Enforce per-module line coverage
-      run: ./gradlew coverageGate --no-configuration-cache --no-parallel --max-workers=2 --console=plain
+      run: ./gradlew coverageGate --continue --no-configuration-cache --no-parallel --max-workers=2 --console=plain
     - name: Upload coverage reports
       if: always()
       uses: actions/upload-artifact@v7
