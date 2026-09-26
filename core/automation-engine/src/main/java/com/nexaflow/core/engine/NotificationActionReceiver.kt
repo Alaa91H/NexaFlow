@@ -75,31 +75,43 @@ class NotificationActionReceiver : BroadcastReceiver() {
                 }
                 val automation = repository.getAutomationById(automationId)
                 if (automation != null) {
-                    if (revert) {
-                        // Stateful routines must consume the exact durable
-                        // occurrence before any end behavior runs. Bypassing
-                        // ExitCoordinator here could restore once from the
-                        // notification button and then restore a second time
-                        // when the owning trigger later ended.
-                        val runtime = runtimeStore.current(automation.id)
-                        if (runtime != null) {
-                            exitCoordinator.requestExit(
-                                automation = automation,
-                                reason = ExitReason.MANUAL_STOP,
-                                occurrenceId = runtime.occurrenceId
-                            )
-                        } else {
-                            // Legacy/stateless runs have no occurrence ledger;
-                            // preserve the explicit user-facing revert action.
-                            executionEngine.runExit(automation)
-                        }
-                    } else {
-                        executionEngine.runAutomation(automation)
-                    }
+                    executeResolvedAction(automation, revert)
                 }
             } finally {
                 result.finish()
             }
+        }
+    }
+
+    /**
+     * Executes the already-resolved notification request. Kept as a suspend
+     * boundary so lifecycle ownership can be regression-tested without
+     * depending on BroadcastReceiver scheduling.
+     */
+    internal suspend fun executeResolvedAction(
+        automation: com.nexaflow.domain.models.Automation,
+        revert: Boolean
+    ) {
+        if (!revert) {
+            executionEngine.runAutomation(automation)
+            return
+        }
+
+        // Stateful routines must consume the exact durable occurrence before
+        // any end behavior runs. Bypassing ExitCoordinator here could restore
+        // once from the notification button and then restore a second time when
+        // the owning trigger later ended.
+        val runtime = runtimeStore.current(automation.id)
+        if (runtime != null) {
+            exitCoordinator.requestExit(
+                automation = automation,
+                reason = ExitReason.MANUAL_STOP,
+                occurrenceId = runtime.occurrenceId
+            )
+        } else {
+            // Legacy/stateless runs have no occurrence ledger; preserve the
+            // explicit user-facing revert action.
+            executionEngine.runExit(automation)
         }
     }
 
