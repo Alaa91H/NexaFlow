@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.Telephony
 import android.telephony.SmsManager
+import com.nexaflow.core.datastore.SmsDeliveryStore
 import com.nexaflow.core.engine.di.ApplicationScope
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.TriggerOccurrence
@@ -45,6 +46,9 @@ class SmsReceiver : BroadcastReceiver() {
     @Inject
     lateinit var variableRepository: VariableRepository
 
+    @Inject
+    lateinit var smsDeliveryStore: SmsDeliveryStore
+
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) return
         if (context.checkSelfPermission(Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) return
@@ -52,26 +56,37 @@ class SmsReceiver : BroadcastReceiver() {
         val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent) ?: return
         val body = messages.joinToString("") { it.messageBody ?: "" }.trim()
         val sender = messages.firstOrNull()?.originatingAddress ?: return
+        val receivedAt = System.currentTimeMillis()
+        val messageTimestamp = messages
+            .mapNotNull { message -> message.timestampMillis.takeIf { it > 0L } }
+            .minOrNull()
+            ?: (receivedAt / FALLBACK_TIMESTAMP_BUCKET_MS) * FALLBACK_TIMESTAMP_BUCKET_MS
+        val fingerprint = SmsTriggerMatcher.deliveryFingerprint(sender, body, messageTimestamp)
 
         val result = goAsync()
         scope.launch {
             try {
                 val automations = repository.getAutomations().first()
-                val now = System.currentTimeMillis()
                 SmsTriggerMatcher.matchingAutomations(automations, sender, body)
                     .forEach { automation ->
-                        val last = SmsTriggerMatcher.lastRunAt[automation.id] ?: 0L
-                        if (now - last > automation.cooldownMillis) {
+                        if (
+                            smsDeliveryStore.claim(
+                                automationId = automation.id,
+                                fingerprint = fingerprint,
+                                cooldownMillis = automation.cooldownMillis,
+                                occurredAt = receivedAt
+                            )
+                        ) {
                             val matchedTriggerIndices =
                                 SmsTriggerMatcher.matchingTriggerIndices(automation, sender, body)
-                            SmsTriggerMatcher.lastRunAt[automation.id] = now
                             executionEngine.runAutomation(
                                 automation = automation,
                                 completeExitOnFinish = true,
                                 triggerOccurrence = TriggerOccurrence(
                                     matchedTriggerIndices = matchedTriggerIndices,
-                                    occurredAtEpochMs = now,
+                                    occurredAtEpochMs = receivedAt,
                                     sourceId = "sms",
+                                    eventId = fingerprint,
                                 ),
                             )
                             val reply = SmsTriggerMatcher.replyOf(automation)
@@ -110,4 +125,7 @@ class SmsReceiver : BroadcastReceiver() {
         }
     }
 
+    private companion object {
+        const val FALLBACK_TIMESTAMP_BUCKET_MS = 5_000L
+    }
 }
