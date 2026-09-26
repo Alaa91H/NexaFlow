@@ -90,6 +90,36 @@ class RoomAutomationMutationPersistenceTest {
     }
 
     @Test
+    fun storedCreateIdempotencyResolvesWithoutKnowingGeneratedAutomationId() = runTest {
+        val persistence = persistence()
+        val original = automation(id = "generated-id", name = "Created", updatedAt = 100L)
+        val createRequest = request(
+            kind = AutomationMutationKind.CREATE,
+            automation = original,
+            idempotencyKey = "create-key",
+            fingerprint = "create-fingerprint",
+            occurredAt = 100L
+        )
+        assertEquals(
+            AutomationPersistenceResult.Committed("generated-id", 1L),
+            persistence.commit(createRequest)
+        )
+
+        val replay = persistence.resolveStoredIdempotency(
+            context = createRequest.context,
+            kind = AutomationMutationKind.CREATE,
+            automationId = null,
+            requestFingerprint = "create-fingerprint",
+            occurredAt = 120L
+        )
+
+        assertEquals(
+            AutomationPersistenceResult.IdempotentReplay("generated-id", 1L),
+            replay
+        )
+    }
+
+    @Test
     fun storedDeleteIdempotencyCanBeResolvedAfterDefinitionRemoval() = runTest {
         val persistence = persistence()
         val original = automation(id = "delete-replay", name = "Delete", updatedAt = 100L)
