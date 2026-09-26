@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.first
+import java.util.UUID
 import kotlinx.serialization.json.Json
 
 private val Context.activeExecutionDataStore by preferencesDataStore(
@@ -382,16 +383,29 @@ class ActiveExecutionStore internal constructor(
         dataStore.edit { preferences ->
             val checkpoints = checkpoints(preferences)
             checkpoints.values.toList().forEach { checkpoint ->
-                if (!checkpoint.isTerminal &&
-                    checkpoint.status != DurableExecutionStatus.RECOVERY_CLAIMED &&
-                    checkpoint.status != DurableExecutionStatus.RECOVERY_REQUIRED
-                ) {
-                    check(checkpoint.status.canTransitionTo(DurableExecutionStatus.RECOVERY_CLAIMED)) {
-                        "Invalid recovery transition for ${checkpoint.runId}: ${checkpoint.status} -> ${DurableExecutionStatus.RECOVERY_CLAIMED}"
+                val reclaimFromDeadProcess =
+                    checkpoint.status == DurableExecutionStatus.RECOVERY_CLAIMED &&
+                        checkpoint.recoveryClaimOwner != PROCESS_RECOVERY_OWNER
+
+                val claimableFresh =
+                    !checkpoint.isTerminal &&
+                        checkpoint.status != DurableExecutionStatus.RECOVERY_CLAIMED &&
+                        checkpoint.status != DurableExecutionStatus.RECOVERY_REQUIRED
+
+                if (claimableFresh || reclaimFromDeadProcess) {
+                    val sourceStatus = if (reclaimFromDeadProcess) {
+                        checkpoint.recoverySourceStatus
+                            ?: DurableExecutionStatus.RECOVERY_REQUIRED
+                    } else {
+                        check(checkpoint.status.canTransitionTo(DurableExecutionStatus.RECOVERY_CLAIMED)) {
+                            "Invalid recovery transition for ${checkpoint.runId}: ${checkpoint.status} -> ${DurableExecutionStatus.RECOVERY_CLAIMED}"
+                        }
+                        checkpoint.status
                     }
                     val next = checkpoint.copy(
                         status = DurableExecutionStatus.RECOVERY_CLAIMED,
-                        recoverySourceStatus = checkpoint.status,
+                        recoverySourceStatus = sourceStatus,
+                        recoveryClaimOwner = PROCESS_RECOVERY_OWNER,
                         updatedAt = updatedAt,
                         message = checkpoint.message?.take(MAX_MESSAGE_LENGTH)
                     )
@@ -420,6 +434,7 @@ class ActiveExecutionStore internal constructor(
         ).distinct().joinToString(" | ").take(MAX_MESSAGE_LENGTH)
         checkpoint.copy(
             status = DurableExecutionStatus.RECOVERY_REQUIRED,
+            recoveryClaimOwner = null,
             updatedAt = updatedAt,
             message = recoveryMessage.ifBlank { null }
         )
@@ -488,6 +503,14 @@ class ActiveExecutionStore internal constructor(
     }
 
     private companion object {
+        /**
+         * One token per app process. DataStore survives process death; this token
+         * does not, which lets the next process reclaim a checkpoint stranded
+         * in RECOVERY_CLAIMED without allowing a second worker in the same
+         * process to claim it twice.
+         */
+        val PROCESS_RECOVERY_OWNER: String = UUID.randomUUID().toString()
+
         val KEY_ACTIVE_EXECUTIONS = stringSetPreferencesKey("active_executions")
         val KEY_CHECKPOINTS = stringSetPreferencesKey("execution_checkpoints")
         val KEY_MAINTENANCE_RECEIPTS = stringSetPreferencesKey("maintenance_occurrence_receipts")

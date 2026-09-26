@@ -104,6 +104,37 @@ class ActiveExecutionStoreCheckpointTest {
     }
 
     @Test
+    fun recoveryClaimStrandedByAnotherProcessIsReclaimedImmediately() = runBlocking {
+        val stranded = checkpoint(
+            runId = "run-stranded-claim",
+            automationId = "automation-a"
+        ).copy(
+            status = DurableExecutionStatus.RECOVERY_CLAIMED,
+            recoverySourceStatus = DurableExecutionStatus.ACTION_COMPLETED,
+            recoveryClaimOwner = "dead-process-owner",
+            updatedAt = 125L
+        )
+        assertEquals(
+            ActiveExecutionStore.CheckpointAdmission.ACCEPTED,
+            store.admitCheckpoint(stranded)
+        )
+
+        val reclaimed = store.claimRecoveryCandidates(200L)
+
+        assertEquals(1, reclaimed.size)
+        assertEquals("run-stranded-claim", reclaimed.single().runId)
+        assertEquals(
+            DurableExecutionStatus.ACTION_COMPLETED,
+            reclaimed.single().recoverySourceStatus
+        )
+        assertTrue(reclaimed.single().recoveryClaimOwner != "dead-process-owner")
+
+        // A second worker in this same process sees the process-owned claim and
+        // cannot claim it again.
+        assertTrue(store.claimRecoveryCandidates(210L).isEmpty())
+    }
+
+    @Test
     fun recoveryPressureIsIsolatedPerAutomation() = runBlocking {
         repeat(32) { index ->
             assertEquals(
