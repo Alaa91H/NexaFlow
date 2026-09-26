@@ -105,6 +105,23 @@ class ShizukuTypedStrategyTest {
     }
 
     @Test
+    fun vanishedUserServiceBeforeDispatchIsSafeTransportFallback() = runTest {
+        val sink = RecordingSink()
+        val strategy = strategy(granted = true, bound = true, sink = sink)
+        sink.nextResult = SystemControlResult.fail(
+            "Shizuku UserService is unavailable; reconnect Shizuku and retry"
+        )
+
+        val outcome = strategy.execute(
+            request(SemanticOperationId.HOTSPOT_SET_STATE, true),
+            SemanticOperationId.HOTSPOT_SET_STATE
+        )
+
+        assertEquals(OperationOutcomeStatus.FAILED, outcome.status)
+        assertTrue(outcome.transportFailure)
+    }
+
+    @Test
     fun transportFailureWithoutSideEffectIsSafeFallback() = runTest {
         val sink = RecordingSink()
         val strategy = strategy(granted = true, bound = true, sink = sink)
