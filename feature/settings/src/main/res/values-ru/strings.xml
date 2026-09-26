@@ -241,4 +241,38 @@
     <string name="blocked_calls_title">Заблокированные вызовы</string>
     <string name="blocked_calls_empty">Заблокированных вызовов пока нет</string>
     <string name="blocked_calls_filter_all">Все правила</string>
+
+    <!-- AI & agent management -->
+    <string name="ai_agents_title">ИИ и агенты</string>
+    <string name="ai_agents_subtitle">Постоянный доступ, сопряжение и активность агентов</string>
+    <string name="agent_access_title">Доступ ИИ-агентов</string>
+    <string name="agent_access_on">Полный постоянный доступ включён</string>
+    <string name="agent_access_off">Отключено — агенты не могут подключаться или выполнять действия</string>
+    <string name="agent_gateway_title">Локальный шлюз агентов</string>
+    <string name="agent_gateway_running">Работает на 127.0.0.1:%1$d</string>
+    <string name="agent_gateway_stopped">Не запущен</string>
+    <string name="agent_gateway_rest">REST API · /api/v1</string>
+    <string name="agent_gateway_mcp">Протокол MCP · /mcp</string>
+    <string name="agent_add_title">Добавить агента</string>
+    <string name="agent_name_label">Имя агента</string>
+    <string name="agent_name_hint">Пример: Мой ноутбук</string>
+    <string name="agent_generate_pairing">Создать код сопряжения</string>
+    <string name="agent_pairing_payload">Одноразовые данные сопряжения</string>
+    <string name="agent_pairing_help">Передайте эти данные только агенту, которому хотите доверять. Они действуют 5 минут.</string>
+    <string name="agent_copy_payload">Копировать данные</string>
+    <string name="agent_payload_copied">Данные сопряжения скопированы</string>
+    <string name="agent_expires_at">Истекает в %1$s</string>
+    <string name="agent_trusted_title">Доверенные агенты</string>
+    <string name="agent_none">Нет сопряжённых агентов</string>
+    <string name="agent_full_access">Полный постоянный доступ</string>
+    <string name="agent_active_sessions">Активных сеансов: %1$d</string>
+    <string name="agent_revoke">Отозвать</string>
+    <string name="agent_revoke_all">Отозвать все</string>
+    <string name="agent_revoke_all_title">Отозвать доступ всех агентов?</string>
+    <string name="agent_revoke_all_message">Все учётные данные и сеансы агентов перестанут работать. Существующие автоматизации сохранятся.</string>
+    <string name="agent_activity_title">Активность агентов</string>
+    <string name="agent_activity_empty">Активности агентов пока нет</string>
+    <string name="agent_refresh">Обновить</string>
+    <string name="agent_operation_failed">Не удалось завершить операцию агента</string>
+    <string name="agent_pending_pairings">Ожидающих запросов сопряжения: %1$d</string>
 </resources>
