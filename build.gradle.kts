@@ -1,3 +1,5 @@
+import com.nexaflow.build.encodeVersionCode
+
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
     alias(libs.plugins.android.application) apply false
@@ -47,6 +49,26 @@ tasks.register("detekt") {
     group = "verification"
     description = "Runs Detekt on every module (aggregate gate)."
     dependsOn(subprojects.map { it.tasks.named("detekt") })
+}
+
+tasks.register("verifyVersionCodeEncoding") {
+    group = "verification"
+    description = "Proves semantic versionCode ordering and Android range invariants."
+    doLast {
+        check(encodeVersionCode(3, 58, 9) < encodeVersionCode(3, 58, 10))
+        check(encodeVersionCode(3, 58, 999) < encodeVersionCode(3, 59, 0))
+        check(encodeVersionCode(3, 999, 999) < encodeVersionCode(4, 0, 0))
+        check(encodeVersionCode(3, 90, 0, 99) < encodeVersionCode(3, 90, 1, 0))
+        check(encodeVersionCode(20, 999, 999, 99) == 2_099_999_999)
+        check(runCatching { encodeVersionCode(21, 0, 0) }.isFailure)
+        check(runCatching { encodeVersionCode(3, 1000, 0) }.isFailure)
+        check(runCatching { encodeVersionCode(3, 90, 1000) }.isFailure)
+        check(runCatching { encodeVersionCode(3, 90, 0, 100) }.isFailure)
+    }
+}
+
+tasks.named("detekt") {
+    dependsOn("verifyVersionCodeEncoding")
 }
 
 // Zero-tolerance for unused resources: every Android module (application or
