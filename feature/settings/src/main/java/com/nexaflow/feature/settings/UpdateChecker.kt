@@ -290,7 +290,7 @@ object UpdateChecker {
         return digestSignatures(signatures.orEmpty())
     }
 
-    private fun digestSignatures(signatures: Array<android.content.pm.Signature>): Set<String> =
+    private fun digestSignatures(signatures: Array<out android.content.pm.Signature>): Set<String> =
         signatures.mapTo(linkedSetOf()) { signature ->
             val digest = MessageDigest.getInstance("SHA-256")
                 .digest(signature.toByteArray())
