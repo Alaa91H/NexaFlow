@@ -179,12 +179,15 @@ class RingerModeMonitor @Inject constructor(
                     )
                 )
             }
-            runtimeStore.current(automationId)
-                ?.takeIf { it.source == SOURCE }
-                ?.let { state ->
-                    activeModes[automationId] = state.sourceKey.substringAfter('|', "")
-                    activeStore.markActive(SOURCE, state.sourceKey)
-                }
+            val state = runtimeStore.current(automationId)
+            if (state?.source == SOURCE) {
+                activeModes[automationId] = state.sourceKey.substringAfter('|', "")
+                activeStore.markActive(SOURCE, state.sourceKey)
+            } else {
+                // Another stateful source owns the routine; a legacy ringer
+                // mirror must not survive and later authorize a foreign exit.
+                clearLegacyState(automationId)
+            }
         }
     }
 
