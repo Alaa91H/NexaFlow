@@ -138,7 +138,7 @@ class ConnectivityMonitorExitReconcileTest {
     }
 
     @Test
-    fun `restart without an opposite network signal preserves the durable occurrence`() = runBlocking {
+    fun `durable rearm without an opposite network signal preserves the occurrence`() = runBlocking {
         val history = RecordingHistory()
         val engine = testEngine(context, history)
         val repository = FakeRepository(listOf(connectivityAutomation("conn-task")))
@@ -156,23 +156,30 @@ class ConnectivityMonitorExitReconcileTest {
                 activatedAt = 1L
             )
         )
-        // No opposite network signal was observed while the service was down.
-        // The durable occurrence must remain active until a known non-matching
-        // snapshot is delivered; an absent callback must never imply false.
 
         val exitCoordinator = ExitCoordinator(runtimeStore, engine, repository, history)
         val monitor = monitorFor(repository, engine, exitCoordinator, runtimeStore, store)
-        monitor.initialize()
+
+        // Exercise only the restart ownership boundary. initialize() also
+        // performs an immediate live network read, whose Robolectric shadow
+        // state is process-global and can retain a prior test's default
+        // network. That made this ownership contract order-dependent even
+        // though production behavior was correct.
+        monitor.rearmFromLedger()
 
         assertTrue(
-            "no exit without a known opposite network signal",
+            "rearming alone must not execute an exit",
             history.exits.none { it == EXIT_NOOP_MARKER }
         )
         assertTrue(
-            "active mark survives while the condition holds",
+            "active mark survives until a known non-matching snapshot arrives",
             store.activeKeys("connectivity").isNotEmpty()
         )
-        monitor.stop()
+        assertTrue(
+            "durable occurrence remains active after rearm",
+            runtimeStore.current("conn-task")?.lifecycleState ==
+                AutomationRuntimeLifecycleState.ACTIVE
+        )
     }
 
     @Test

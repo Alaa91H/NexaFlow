@@ -141,7 +141,7 @@ class ConnectivityMonitor @Inject constructor(
      * deleted/disabled automations are pruned so they can never fire a stale
      * exit.
      */
-    private suspend fun rearmFromLedger() {
+    internal suspend fun rearmFromLedger() {
         val automations = repository.getAutomations().first().associateBy { it.id }
         // The occurrence ledger is authoritative. This closes the process-death
         // gap between durable lifecycle activation and writing the older active
