@@ -166,10 +166,10 @@ class ExecutionEngine(
 
     /**
      * Snapshots captured for automations with revertOnExit, keyed by automation id.
-     * The value is nullable because a failed capture must not block the run; a
-     * null snapshot simply means "nothing to restore" on exit.
+     * Failed capture is represented by absence from the map; ConcurrentHashMap
+     * does not permit null values.
      */
-    private val snapshots = java.util.concurrent.ConcurrentHashMap<String, DeviceStateSnapshot?>()
+    private val snapshots = java.util.concurrent.ConcurrentHashMap<String, DeviceStateSnapshot>()
 
     /**
      * Runtime ledger for tasks whose main actions actually started. Monitors may
@@ -977,6 +977,25 @@ class ExecutionEngine(
             record.copy(message = "$MANUAL_FORCE_PREFIX${record.message}".take(500))
         )
         return record
+    }
+
+    /**
+     * Disable-path handoff used by UI surfaces.
+     *
+     * A stateful monitor-owned occurrence must be closed by ExitCoordinator;
+     * running [runExit] directly here would bypass the atomic lifecycle claim
+     * and can double-apply end behavior when the monitor reconciles the same
+     * disable. Legacy/stateless tasks have no runtime occurrence, so they keep
+     * the historical immediate end-behavior semantics.
+     *
+     * Returns null when cleanup is delegated to the owning monitor.
+     */
+    suspend fun runDisableCleanup(automation: Automation): ExecutionRecord? {
+        if (automationRuntimeStore.current(automation.id) != null) {
+            notifyAutomationsChanged()
+            return null
+        }
+        return runExit(automation, forceConfiguredEnd = true)
     }
 
     /**
