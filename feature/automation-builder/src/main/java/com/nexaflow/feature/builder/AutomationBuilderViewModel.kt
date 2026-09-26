@@ -216,16 +216,11 @@ class AutomationBuilderViewModel @Inject constructor(
                 )
             )
             val wasEnabled = prev?.enabled == true
-            val nowDisabled = !storedAutomation.enabled
             existing = storedAutomation
             repository.saveAutomation(storedAutomation)
-            // Strict: if the task was enabled and now disabled, run exit immediately
-            if (wasEnabled && nowDisabled) {
-                try {
-                    executionEngine.runExit(prev, forceConfiguredEnd = true)
-                } catch (_: Exception) {}
-            }
-            // Strict: if the task is newly enabled and triggers already match, run immediately
+            // Disable cleanup is owned by the durable monitoring lifecycle.
+            // Calling runExit here would bypass the atomic ACTIVE -> EXITING
+            // claim and can duplicate a monitor-driven end behavior.
             val nowEnabled = storedAutomation.enabled
             if (!wasEnabled && nowEnabled) {
                 try {
