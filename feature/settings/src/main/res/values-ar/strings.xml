@@ -273,4 +273,26 @@
     <string name="agent_refresh">تحديث</string>
     <string name="agent_operation_failed">تعذر إكمال عملية الوكيل</string>
     <string name="agent_pending_pairings">%1$d طلب اقتران معلّق</string>
+
+    <!-- Local AI model provider -->
+    <string name="ai_provider_title">مزوّد النموذج</string>
+    <string name="ai_provider_subtitle">إعداد نقطة نهاية متوافقة مع OpenAI لدردشة NexaFlow.</string>
+    <string name="ai_provider_enabled">تفعيل مزوّد النموذج</string>
+    <string name="ai_provider_name">اسم المزوّد</string>
+    <string name="ai_provider_endpoint">عنوان نقطة النهاية</string>
+    <string name="ai_provider_endpoint_hint">مثال: http://192.168.1.20:11434/v1</string>
+    <string name="ai_provider_model">معرّف النموذج</string>
+    <string name="ai_provider_model_hint">مثال: qwen3</string>
+    <string name="ai_provider_local">نقطة نهاية محلية أو خاصة</string>
+    <string name="ai_provider_local_subtitle">مطلوب لاتصال HTTP غير المشفّر. يجب أن تستخدم النقاط العامة HTTPS.</string>
+    <string name="ai_provider_api_key">مفتاح API</string>
+    <string name="ai_provider_api_key_hint">اتركه فارغًا للاحتفاظ بالمفتاح المخزّن</string>
+    <string name="ai_provider_api_key_saved">مفتاح API محفوظ بشكل آمن</string>
+    <string name="ai_provider_compatibility">يعمل مع Ollama وLM Studio وvLLM وllama.cpp وLocalAI عند تفعيل واجهتها المتوافقة مع OpenAI.</string>
+    <string name="ai_provider_save">حفظ المزوّد</string>
+    <string name="ai_provider_test">اختبار النموذج</string>
+    <string name="ai_provider_testing">جارٍ الاختبار…</string>
+    <string name="ai_provider_test_success">النموذج جاهز</string>
+    <string name="ai_provider_test_failed">فشل اختبار النموذج</string>
+    <string name="ai_provider_clear_key">حذف المفتاح المخزّن</string>
 </resources>

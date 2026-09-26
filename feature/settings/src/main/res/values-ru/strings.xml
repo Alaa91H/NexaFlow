@@ -275,4 +275,26 @@
     <string name="agent_refresh">Обновить</string>
     <string name="agent_operation_failed">Не удалось завершить операцию агента</string>
     <string name="agent_pending_pairings">Ожидающих запросов сопряжения: %1$d</string>
+
+    <!-- Local AI model provider -->
+    <string name="ai_provider_title">Провайдер модели</string>
+    <string name="ai_provider_subtitle">Настройте совместимый с OpenAI адрес для чата NexaFlow.</string>
+    <string name="ai_provider_enabled">Включить провайдер модели</string>
+    <string name="ai_provider_name">Название провайдера</string>
+    <string name="ai_provider_endpoint">Адрес конечной точки</string>
+    <string name="ai_provider_endpoint_hint">Пример: http://192.168.1.20:11434/v1</string>
+    <string name="ai_provider_model">Идентификатор модели</string>
+    <string name="ai_provider_model_hint">Пример: qwen3</string>
+    <string name="ai_provider_local">Локальная или частная конечная точка</string>
+    <string name="ai_provider_local_subtitle">Требуется для незашифрованного HTTP. Публичные адреса должны использовать HTTPS.</string>
+    <string name="ai_provider_api_key">Ключ API</string>
+    <string name="ai_provider_api_key_hint">Оставьте пустым, чтобы сохранить текущий ключ</string>
+    <string name="ai_provider_api_key_saved">Ключ API сохранён безопасно</string>
+    <string name="ai_provider_compatibility">Работает с Ollama, LM Studio, vLLM, llama.cpp и LocalAI при включённом OpenAI-совместимом API.</string>
+    <string name="ai_provider_save">Сохранить провайдер</string>
+    <string name="ai_provider_test">Проверить модель</string>
+    <string name="ai_provider_testing">Идёт проверка…</string>
+    <string name="ai_provider_test_success">Модель готова</string>
+    <string name="ai_provider_test_failed">Проверка модели не удалась</string>
+    <string name="ai_provider_clear_key">Удалить сохранённый ключ</string>
 </resources>

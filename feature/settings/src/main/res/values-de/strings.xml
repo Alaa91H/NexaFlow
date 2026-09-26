@@ -273,4 +273,26 @@
     <string name="agent_refresh">Aktualisieren</string>
     <string name="agent_operation_failed">Agentenvorgang konnte nicht abgeschlossen werden</string>
     <string name="agent_pending_pairings">%1$d ausstehende Kopplungsanfrage(n)</string>
+
+    <!-- Local AI model provider -->
+    <string name="ai_provider_title">Modellanbieter</string>
+    <string name="ai_provider_subtitle">Einen OpenAI-kompatiblen Endpunkt für den NexaFlow-Chat einrichten.</string>
+    <string name="ai_provider_enabled">Modellanbieter aktivieren</string>
+    <string name="ai_provider_name">Anbietername</string>
+    <string name="ai_provider_endpoint">Endpunkt-URL</string>
+    <string name="ai_provider_endpoint_hint">Beispiel: http://192.168.1.20:11434/v1</string>
+    <string name="ai_provider_model">Modell-ID</string>
+    <string name="ai_provider_model_hint">Beispiel: qwen3</string>
+    <string name="ai_provider_local">Lokaler oder privater Endpunkt</string>
+    <string name="ai_provider_local_subtitle">Für unverschlüsseltes HTTP erforderlich. Öffentliche Endpunkte müssen HTTPS verwenden.</string>
+    <string name="ai_provider_api_key">API-Schlüssel</string>
+    <string name="ai_provider_api_key_hint">Leer lassen, um den gespeicherten Schlüssel beizubehalten</string>
+    <string name="ai_provider_api_key_saved">API-Schlüssel sicher gespeichert</string>
+    <string name="ai_provider_compatibility">Funktioniert mit Ollama, LM Studio, vLLM, llama.cpp und LocalAI, wenn deren OpenAI-kompatible API aktiviert ist.</string>
+    <string name="ai_provider_save">Anbieter speichern</string>
+    <string name="ai_provider_test">Modell testen</string>
+    <string name="ai_provider_testing">Test läuft…</string>
+    <string name="ai_provider_test_success">Modell ist bereit</string>
+    <string name="ai_provider_test_failed">Modelltest fehlgeschlagen</string>
+    <string name="ai_provider_clear_key">Gespeicherten Schlüssel entfernen</string>
 </resources>

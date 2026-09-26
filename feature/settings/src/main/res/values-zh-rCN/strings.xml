@@ -275,4 +275,26 @@
     <string name="agent_refresh">刷新</string>
     <string name="agent_operation_failed">无法完成代理操作</string>
     <string name="agent_pending_pairings">%1$d 个待处理配对请求</string>
+
+    <!-- Local AI model provider -->
+    <string name="ai_provider_title">模型提供方</string>
+    <string name="ai_provider_subtitle">为 NexaFlow 聊天配置兼容 OpenAI 的端点。</string>
+    <string name="ai_provider_enabled">启用模型提供方</string>
+    <string name="ai_provider_name">提供方名称</string>
+    <string name="ai_provider_endpoint">端点地址</string>
+    <string name="ai_provider_endpoint_hint">示例：http://192.168.1.20:11434/v1</string>
+    <string name="ai_provider_model">模型标识</string>
+    <string name="ai_provider_model_hint">示例：qwen3</string>
+    <string name="ai_provider_local">本地或私有端点</string>
+    <string name="ai_provider_local_subtitle">未加密 HTTP 必须启用此项。公共端点必须使用 HTTPS。</string>
+    <string name="ai_provider_api_key">API 密钥</string>
+    <string name="ai_provider_api_key_hint">留空可保留已存储的密钥</string>
+    <string name="ai_provider_api_key_saved">API 密钥已安全存储</string>
+    <string name="ai_provider_compatibility">启用 OpenAI 兼容 API 后，可与 Ollama、LM Studio、vLLM、llama.cpp 和 LocalAI 配合使用。</string>
+    <string name="ai_provider_save">保存提供方</string>
+    <string name="ai_provider_test">测试模型</string>
+    <string name="ai_provider_testing">正在测试…</string>
+    <string name="ai_provider_test_success">模型已就绪</string>
+    <string name="ai_provider_test_failed">模型测试失败</string>
+    <string name="ai_provider_clear_key">删除已存储的密钥</string>
 </resources>

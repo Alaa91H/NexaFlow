@@ -275,4 +275,26 @@
     <string name="agent_refresh">रीफ़्रेश करें</string>
     <string name="agent_operation_failed">एजेंट कार्रवाई पूरी नहीं हो सकी</string>
     <string name="agent_pending_pairings">%1$d लंबित पेयरिंग अनुरोध</string>
+
+    <!-- Local AI model provider -->
+    <string name="ai_provider_title">मॉडल प्रदाता</string>
+    <string name="ai_provider_subtitle">NexaFlow चैट के लिए OpenAI-संगत एंडपॉइंट सेट करें।</string>
+    <string name="ai_provider_enabled">मॉडल प्रदाता चालू करें</string>
+    <string name="ai_provider_name">प्रदाता का नाम</string>
+    <string name="ai_provider_endpoint">एंडपॉइंट URL</string>
+    <string name="ai_provider_endpoint_hint">उदाहरण: http://192.168.1.20:11434/v1</string>
+    <string name="ai_provider_model">मॉडल आईडी</string>
+    <string name="ai_provider_model_hint">उदाहरण: qwen3</string>
+    <string name="ai_provider_local">स्थानीय या निजी एंडपॉइंट</string>
+    <string name="ai_provider_local_subtitle">बिना एन्क्रिप्शन वाले HTTP के लिए आवश्यक। सार्वजनिक एंडपॉइंट को HTTPS उपयोग करना होगा।</string>
+    <string name="ai_provider_api_key">API कुंजी</string>
+    <string name="ai_provider_api_key_hint">सहेजी गई कुंजी रखने के लिए खाली छोड़ें</string>
+    <string name="ai_provider_api_key_saved">API कुंजी सुरक्षित रूप से सहेजी गई</string>
+    <string name="ai_provider_compatibility">OpenAI-संगत API चालू होने पर Ollama, LM Studio, vLLM, llama.cpp और LocalAI के साथ काम करता है।</string>
+    <string name="ai_provider_save">प्रदाता सहेजें</string>
+    <string name="ai_provider_test">मॉडल जाँचें</string>
+    <string name="ai_provider_testing">जाँच जारी है…</string>
+    <string name="ai_provider_test_success">मॉडल तैयार है</string>
+    <string name="ai_provider_test_failed">मॉडल जाँच विफल रही</string>
+    <string name="ai_provider_clear_key">सहेजी गई कुंजी हटाएँ</string>
 </resources>
