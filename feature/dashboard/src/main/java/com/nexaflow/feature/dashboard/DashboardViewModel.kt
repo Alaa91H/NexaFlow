@@ -3,6 +3,7 @@ package com.nexaflow.feature.dashboard
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nexaflow.core.engine.ExitCoordinator
 import com.nexaflow.core.execution.ExecutionEngine
 import com.nexaflow.core.execution.ManualBlockReason
 import com.nexaflow.core.execution.ManualBlockKind
@@ -34,6 +35,7 @@ import javax.inject.Inject
 class DashboardViewModel @Inject constructor(
     private val automationRepository: AutomationRepository,
     private val executionEngine: ExecutionEngine,
+    private val exitCoordinator: ExitCoordinator,
     historyRepository: HistoryRepository,
     healthRepository: HealthRepository,
     @ApplicationContext private val appContext: Context
@@ -85,13 +87,10 @@ class DashboardViewModel @Inject constructor(
     fun toggleAutomation(automation: Automation, enabled: Boolean) {
         viewModelScope.launch {
             automationRepository.updateAutomationStatus(automation.id, enabled)
-            if (!enabled) {
-                // Strict: when disabling, immediately attempt to run "when task ends"
-                try {
-                    executionEngine.runExit(automation, forceConfiguredEnd = true)
-                } catch (_: Exception) {}
-            } else {
-                // Strict: when enabling, if triggers already match, run immediately
+            if (enabled) {
+                // Enable may run immediately when current conditions already
+                // match. Disable cleanup is owned by the monitoring layer's
+                // durable ACTIVE -> EXITING claim.
                 try {
                     executionEngine.runWithConditionGate(automation)
                 } catch (_: Exception) {}
@@ -145,25 +144,33 @@ class DashboardViewModel @Inject constructor(
     fun deleteAutomation(automation: Automation) {
         viewModelScope.launch {
             try {
-                automationRepository.deleteAutomation(automation)
-                // The row is gone: no monitor can ever resolve this id again, so
-                // the engine ledger is unreachable. Cleanup is therefore
-                // best-effort — a storage failure must not turn a successful
-                // delete into a failure report.
+                if (automation.enabled) {
+                    automationRepository.updateAutomationStatus(automation.id, false)
+                    executionEngine.notifyAutomationsChanged()
+                }
+                val disabled = automation.copy(enabled = false)
+
+                // Preserve the immutable definition until all durable action
+                // checkpoints and owned end behavior are terminal.
+                if (!exitCoordinator.prepareForDeletion(disabled)) {
+                    _executionMessage.value =
+                        appContext.getString(R.string.task_delete_failed, automation.name)
+                    return@launch
+                }
+
+                automationRepository.deleteAutomation(disabled)
                 try {
                     executionEngine.onAutomationDeleted(automation.id)
                 } catch (cancellation: CancellationException) {
                     throw cancellation
                 } catch (_: Exception) {
-                    // Best-effort; the durable marker is inert once the row is gone.
+                    // Durable work was resolved before deletion; remaining
+                    // process-local cleanup is best-effort.
                 }
                 _executionMessage.value = appContext.getString(R.string.task_deleted, automation.name)
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (_: Exception) {
-                // Room rolls the delete back on failure, so the task still exists
-                // and its engine state must stay intact. Surface the failure
-                // instead of crashing the app.
                 _executionMessage.value = appContext.getString(R.string.task_delete_failed, automation.name)
             }
         }
