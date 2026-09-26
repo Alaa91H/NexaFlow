@@ -330,6 +330,18 @@ class ActiveExecutionStore internal constructor(
         }
 
     /**
+     * True while this automation owns any non-terminal execution checkpoint.
+     *
+     * Deletion must not discard an automation definition while one of its
+     * actions may still be running or awaiting recovery: the checkpoint is the
+     * evidence needed to classify that side effect after process death.
+     */
+    suspend fun hasUnresolvedCheckpointForAutomation(automationId: String): Boolean =
+        checkpoints(dataStore.data.first()).values.any {
+            it.automationId == automationId && !it.isTerminal
+        }
+
+    /**
      * Read-only recovery evidence for one automation, newest update first.
      * This never claims, retries, or clears work; UI/diagnostics can inspect the
      * durable ledger without changing execution semantics.
