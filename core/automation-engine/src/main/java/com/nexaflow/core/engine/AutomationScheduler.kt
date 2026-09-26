@@ -19,6 +19,7 @@ import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.schedule.TimeTriggerCalculator
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.security.MessageDigest
+import java.time.ZoneId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -145,9 +146,18 @@ class AutomationScheduler @Inject constructor(
         // detach the 06:00 delivery from the ACTIVE lifecycle that owns it.
         rearmRetainedActiveRangeEnd(automation.id)
         val config = automation.timeConfigOrNull()
-        val triggerAt = config?.let { TimeTriggerCalculator.nextFireTime(it, System.currentTimeMillis()) }
-        if (config == null || triggerAt == null) false
-        else registerAndArm(automation.id, config, triggerAt)
+        val zone = config?.let(TimeTriggerCalculator::resolveZone)
+        val triggerAt = if (config != null && zone != null) {
+            TimeTriggerCalculator.nextFireTime(
+                config = config,
+                fromMillis = System.currentTimeMillis(),
+                zone = zone
+            )
+        } else {
+            null
+        }
+        if (config == null || zone == null || triggerAt == null) false
+        else registerAndArm(automation.id, config, triggerAt, zone)
     } catch (failure: Throwable) {
         Log.e(TAG, "Failed to schedule ${automation.id}", failure)
         false
@@ -165,13 +175,16 @@ class AutomationScheduler @Inject constructor(
         if (config["repeat"] == TimeTriggerCalculator.REPEAT_ONCE ||
             config["repeat"] == TimeTriggerCalculator.REPEAT_SPECIFIC_DATE
         ) return
+        val zone = TimeTriggerCalculator.resolveZone(config) ?: return
         val triggerAt = TimeTriggerCalculator.nextFireTime(
             config = config,
-            fromMillis = System.currentTimeMillis() + SCHEDULE_GUARD_MS
+            fromMillis = System.currentTimeMillis() + SCHEDULE_GUARD_MS,
+            zone = zone
         ) ?: return
-        val occurrenceId = occurrenceId(triggerAt, TimeTriggerCalculator.windowEndMillis(config, triggerAt))
+        val endAt = TimeTriggerCalculator.windowEndMillis(config, triggerAt, zone)
+        val occurrenceId = occurrenceId(triggerAt, endAt)
         if (runtimeStore.schedulesFor(automationId).any { it.occurrenceId == occurrenceId }) return
-        registerAndArm(automationId, config, triggerAt)
+        registerAndArm(automationId, config, triggerAt, zone)
     }
 
     /** Clears all PendingIntents and all durable schedule identities for the automation. */
@@ -250,9 +263,10 @@ class AutomationScheduler @Inject constructor(
     private suspend fun registerAndArm(
         automationId: String,
         config: Map<String, String>,
-        triggerAt: Long
+        triggerAt: Long,
+        zone: ZoneId
     ): Boolean {
-        val endAt = TimeTriggerCalculator.windowEndMillis(config, triggerAt)
+        val endAt = TimeTriggerCalculator.windowEndMillis(config, triggerAt, zone)
         if (config["timeMode"] == TIME_MODE_RANGE && endAt == null) {
             Log.w(TAG, "Ignoring time range without a valid end for $automationId")
             return false
