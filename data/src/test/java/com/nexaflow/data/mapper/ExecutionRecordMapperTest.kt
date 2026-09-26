@@ -81,7 +81,8 @@ class ExecutionRecordMapperTest {
                     false,
                     "Cancelled",
                     5000L,
-                    errorCode = "TIMEOUT"
+                    errorCode = "TIMEOUT",
+                    outcomeUncertain = true
                 )
             )
         )
@@ -95,6 +96,7 @@ class ExecutionRecordMapperTest {
         assertTrue(entity.resultsJson!!.contains("ROOT_SHELL"))
         assertTrue(entity.resultsJson!!.contains("\"verified\":true"))
         assertTrue(entity.resultsJson!!.contains("TIMEOUT"))
+        assertTrue(entity.resultsJson!!.contains("\"outcomeUncertain\":true"))
     }
 
     @Test
