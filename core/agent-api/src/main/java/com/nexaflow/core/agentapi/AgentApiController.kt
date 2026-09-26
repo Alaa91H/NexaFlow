@@ -21,6 +21,8 @@ import com.nexaflow.domain.models.Automation
 import com.nexaflow.domain.repositories.AutomationRepository
 import java.net.URI
 import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
+import java.util.Base64
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
@@ -346,7 +348,7 @@ class AgentApiController(
                         deleteContext(
                             agentId = agentId,
                             request = request,
-                            idempotency = "$idempotency:delete",
+                            idempotency = derivedIdempotencyKey(idempotency, "delete"),
                             revision = revision
                         )
                     )
@@ -375,7 +377,7 @@ class AgentApiController(
                 deleteContext(
                     agentId = agentId,
                     request = request,
-                    idempotency = "$idempotency:delete",
+                    idempotency = derivedIdempotencyKey(idempotency, "delete"),
                     revision = disabledRevision
                 )
             )
@@ -694,6 +696,12 @@ class AgentApiController(
         if (host.isNullOrBlank()) return false
         val normalized = host.substringBefore(':').lowercase()
         return normalized == "127.0.0.1" || normalized == "localhost"
+    }
+
+    private fun derivedIdempotencyKey(base: String, phase: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+            .digest("$phase\n$base".toByteArray(StandardCharsets.UTF_8))
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(digest)
     }
 
     private fun requiredIdempotency(request: AgentHttpRequest): String? =
