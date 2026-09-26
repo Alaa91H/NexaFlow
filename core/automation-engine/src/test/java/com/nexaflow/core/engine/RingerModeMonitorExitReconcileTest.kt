@@ -157,6 +157,7 @@ class RingerModeMonitorExitReconcileTest {
         assertTrue(runtimeStore.current("ring-task")?.source == "settings")
         monitor.stop()
         runtimeStore.clear("ring-task")
+        Unit
     }
 
     @Test
