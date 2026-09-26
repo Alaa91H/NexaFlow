@@ -251,7 +251,7 @@
     <string name="agent_gateway_title">Yerel aracı ağ geçidi</string>
     <string name="agent_gateway_running">127.0.0.1:%1$d üzerinde çalışıyor</string>
     <string name="agent_gateway_stopped">Çalışmıyor</string>
-    <string name="agent_gateway_rest">REST API · /api/v1</string>
+    <string name="agent_gateway_rest">REST arayüzü · /api/v1</string>
     <string name="agent_gateway_mcp">MCP protokolü · /mcp</string>
     <string name="agent_add_title">Aracı ekle</string>
     <string name="agent_name_label">Aracı adı</string>
