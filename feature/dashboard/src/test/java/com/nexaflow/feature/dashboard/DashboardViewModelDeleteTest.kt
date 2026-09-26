@@ -68,15 +68,32 @@ class DashboardViewModelDeleteTest {
     }
 
     private class FakeRepository(
+        automation: Automation,
         private val throwOnDelete: Boolean = false
     ) : AutomationRepository {
-        override fun getAutomations(): Flow<List<Automation>> = flowOf(emptyList())
-        override suspend fun getAutomationById(id: String): Automation? = null
-        override suspend fun saveAutomation(automation: Automation) = Unit
+        private var current: Automation? = automation
+
+        val currentAutomation: Automation?
+            get() = current
+
+        override fun getAutomations(): Flow<List<Automation>> =
+            flowOf(current?.let(::listOf) ?: emptyList())
+
+        override suspend fun getAutomationById(id: String): Automation? =
+            current?.takeIf { it.id == id }
+
+        override suspend fun saveAutomation(automation: Automation) {
+            current = automation
+        }
+
         override suspend fun deleteAutomation(automation: Automation) {
             if (throwOnDelete) throw IllegalStateException("simulated database write failure")
+            if (current?.id == automation.id) current = null
         }
-        override suspend fun updateAutomationStatus(id: String, enabled: Boolean) = Unit
+
+        override suspend fun updateAutomationStatus(id: String, enabled: Boolean) {
+            current = current?.takeIf { it.id == id }?.copy(enabled = enabled)
+        }
     }
 
     private fun task(id: String): Automation = Automation(
@@ -149,7 +166,7 @@ class DashboardViewModelDeleteTest {
     fun successfulDeleteDelegatesToEngineAndConfirms() {
         val id = "vm-dash-delete-a"
         arm(id)
-        val viewModel = viewModel(FakeRepository())
+        val viewModel = viewModel(FakeRepository(task(id)))
 
         viewModel.deleteAutomation(task(id))
         awaitIdle { viewModel.executionMessage.value != null }
@@ -168,16 +185,18 @@ class DashboardViewModelDeleteTest {
     fun deleteWhenRepositoryThrowsKeepsEngineStateAndReportsFailure() {
         val id = "vm-dash-delete-b"
         arm(id)
-        val viewModel = viewModel(FakeRepository(throwOnDelete = true))
+        val repository = FakeRepository(task(id), throwOnDelete = true)
+        val viewModel = viewModel(repository)
 
         viewModel.deleteAutomation(task(id))
         awaitIdle { viewModel.executionMessage.value != null }
 
-        // The task still exists (Room rolls the delete back), so its engine
-        // state must stay intact and the user must see a failure, not a crash.
+        // Destructive delete failed, but disabled intent is already durable and
+        // the lifecycle is closed. The surviving row must remain inert.
+        assertEquals(false, repository.currentAutomation?.enabled)
         assertTrue(
-            "engine marker must remain while the task still exists",
-            !freshExitMessage(id).contains("task was not active")
+            "owned exit must be consumed before destructive deletion",
+            freshExitMessage(id).contains("task was not active")
         )
         assertEquals(
             context.getString(R.string.task_delete_failed, task(id).name),
