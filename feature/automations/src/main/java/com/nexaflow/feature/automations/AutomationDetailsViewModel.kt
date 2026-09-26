@@ -151,12 +151,10 @@ class AutomationDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             val wasEnabled = automation.value?.enabled == true
             repository.updateAutomationStatus(automationId, enabled)
-            if (!enabled && wasEnabled) {
-                try {
-                    automation.value?.let { executionEngine.runExit(it, forceConfiguredEnd = true) }
-                } catch (_: Exception) {}
-            } else if (enabled && !wasEnabled) {
-                // Strict: enable → run immediately if triggers match
+            if (enabled && !wasEnabled) {
+                // Enable may run immediately when current conditions already
+                // match. Disable cleanup is claimed by the monitoring layer's
+                // durable lifecycle coordinator after the status commit.
                 try {
                     automation.value?.let { executionEngine.runWithConditionGate(it) }
                 } catch (_: Exception) {}
