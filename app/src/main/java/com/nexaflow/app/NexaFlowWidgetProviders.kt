@@ -12,6 +12,8 @@ import android.widget.RemoteViews
 import com.nexaflow.core.database.AutomationDao
 import com.nexaflow.core.database.ExecutionDao
 import com.nexaflow.core.execution.ACTION_AUTOMATIONS_CHANGED
+import com.nexaflow.core.execution.ExecutionEngine
+import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.feature.widgets.TaskTileService
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -34,6 +36,8 @@ private const val ACTION_REFRESH = "com.nexaflow.app.action.REFRESH"
 interface WidgetEntryPoint {
     fun automationDao(): AutomationDao
     fun executionDao(): ExecutionDao
+    fun automationRepository(): AutomationRepository
+    fun executionEngine(): ExecutionEngine
 }
 
 class NexaFlowToggleWidgetProvider : AppWidgetProvider() {
@@ -71,17 +75,21 @@ class NexaFlowToggleWidgetProvider : AppWidgetProvider() {
 
     private suspend fun toggleAll(context: Context) {
         val entryPoint = EntryPointAccessors.fromApplication(context.applicationContext, WidgetEntryPoint::class.java)
-        val dao = entryPoint.automationDao()
-        val automations = dao.getAllAutomations().first()
+        val repository = entryPoint.automationRepository()
+        val engine = entryPoint.executionEngine()
+        val automations = repository.getAutomations().first()
         val enable = automations.none { it.enabled }
         automations.forEach { automation ->
             if (automation.enabled != enable) {
-                dao.updateAutomationStatus(automation.id, enable)
+                repository.updateAutomationStatus(automation.id, enable)
+                if (!enable && automation.enabled) {
+                    engine.runDisableCleanup(automation)
+                }
             }
         }
-        // Notify the monitors so enabling fires tasks whose conditions already
-        // hold, and disabling runs the end behavior of active tasks.
-        context.sendBroadcast(Intent(ACTION_AUTOMATIONS_CHANGED).setPackage(context.packageName))
+        // Stateful owners reconcile through ExitCoordinator; legacy/stateless
+        // tasks have already received their immediate disable cleanup above.
+        engine.notifyAutomationsChanged()
     }
 }
 
