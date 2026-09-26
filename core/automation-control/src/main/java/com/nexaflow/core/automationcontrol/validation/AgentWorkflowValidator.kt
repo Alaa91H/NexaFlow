@@ -4,6 +4,8 @@ import com.nexaflow.domain.catalog.AutomationNodeCatalog
 import com.nexaflow.domain.catalog.NodeConfigurationValidator
 import com.nexaflow.domain.models.Action
 import com.nexaflow.domain.models.Automation
+import com.nexaflow.domain.models.TriggerType
+import com.nexaflow.domain.schedule.TimeTriggerCalculator
 import com.nexaflow.domain.workflow.AutomationDependencyValidator
 import com.nexaflow.domain.workflow.WorkflowValidationIssue
 import com.nexaflow.domain.workflow.WorkflowValidator
@@ -46,6 +48,19 @@ object AgentWorkflowValidator {
                             owner = "triggers[$index]",
                             key = issue.key,
                             code = issue.code.name
+                        )
+                    )
+                }
+                if (trigger.type == TriggerType.TIME &&
+                    trigger.config[TimeTriggerCalculator.ZONE_POLICY_KEY] ==
+                    TimeTriggerCalculator.ZONE_POLICY_FIXED_IANA &&
+                    TimeTriggerCalculator.resolveZone(trigger.config) == null
+                ) {
+                    add(
+                        AgentConfigValidationIssue(
+                            owner = "triggers[$index]",
+                            key = TimeTriggerCalculator.ZONE_ID_KEY,
+                            code = "INVALID_TIMEZONE"
                         )
                     )
                 }
