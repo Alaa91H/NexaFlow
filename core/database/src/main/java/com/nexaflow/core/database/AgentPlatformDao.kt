@@ -44,12 +44,22 @@ interface AgentPlatformDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertAudit(event: AgentAuditEntity)
 
-    @Query("SELECT * FROM agent_audit ORDER BY createdAt DESC LIMIT :limit")
+    @Query("DELETE FROM agent_audit WHERE createdAt < :cutoffMillis")
+    suspend fun pruneAuditBefore(cutoffMillis: Long): Int
+
+    @Query(
+        "DELETE FROM agent_audit WHERE id NOT IN (" +
+            "SELECT id FROM agent_audit ORDER BY createdAt DESC, id DESC LIMIT :keepCount" +
+            ")"
+    )
+    suspend fun pruneAuditToNewest(keepCount: Int): Int
+
+    @Query("SELECT * FROM agent_audit ORDER BY createdAt DESC, id DESC LIMIT :limit")
     suspend fun latestAudit(limit: Int): List<AgentAuditEntity>
 
     @Query(
         "SELECT * FROM agent_audit WHERE automationId = :automationId " +
-            "ORDER BY createdAt DESC LIMIT :limit"
+            "ORDER BY createdAt DESC, id DESC LIMIT :limit"
     )
     suspend fun auditForAutomation(
         automationId: String,
