@@ -216,41 +216,143 @@ class SensorMonitor @Inject constructor(
     }
 
     /**
-     * Restores the durable active ids into the in-memory map. Stale keys for
-     * deleted/disabled automations are pruned.
+     * Restores durable sensor ownership before the first live reading.
+     *
+     * The runtime ledger owns whether the automation still has an exit to
+     * execute; ActiveTriggerStore stores the per-sensor detail needed to know
+     * when the *final* stateful sensor condition ends. Legacy id-only markers
+     * are promoted conservatively to every configured stateful sensor.
      */
-    private suspend fun rearmFromLedger(fresh: List<Automation>) {
-        val allowed = fresh.filter { it.enabled }.associate { automation ->
-            automation.id to automation.triggers.filter { it.type == TriggerType.SENSOR }
-                .map { SensorTriggerMatcher.sensorOf(it.config) }.filter { kind ->
-                    val type = when (kind) {
-                        "PROXIMITY" -> SENSOR_PROXIMITY
-                        "LIGHT" -> SENSOR_LIGHT
-                        else -> NumericSensors.specs[kind]?.type
-                    }
-                    SensorTriggerMatcher.isStateful(kind) && type != null && sensorManager.getDefaultSensor(type) != null
-                }.toSet()
+    internal suspend fun rearmFromLedger(fresh: List<Automation>) {
+        val byId = fresh.associateBy { it.id }
+        val configuredStateful = fresh.associate { automation ->
+            automation.id to automation.triggers
+                .filter { it.type == TriggerType.SENSOR }
+                .map { SensorTriggerMatcher.sensorOf(it.config) }
+                .filter { SensorTriggerMatcher.isStateful(it) }
+                .toSet()
         }
-        activeStates.retain(allowed)
+
+        activeStates.retain(
+            fresh.filter { it.enabled }.associate { automation ->
+                automation.id to configuredStateful[automation.id].orEmpty()
+            }
+        )
+
+        // Runtime ownership is authoritative. Reconstruct at least the sensor
+        // set encoded by the lifecycle even if the compatibility mirror was
+        // lost during a crash.
+        runtimeStore.activeStates()
+            .filter { it.source == SOURCE }
+            .forEach { state ->
+                val automation = byId[state.automationId]
+                when {
+                    automation == null -> {
+                        activeStates.removeAutomation(state.automationId)
+                        activeStore.clearAutomation(SOURCE, state.automationId)
+                    }
+                    !automation.enabled ||
+                        configuredStateful[automation.id].isNullOrEmpty() -> {
+                        requestExit(
+                            automation = automation,
+                            reason = ExitReason.AUTOMATION_DISABLED,
+                            occurrenceId = state.occurrenceId
+                        )
+                    }
+                    else -> {
+                        parseSourceSensors(state.sourceKey)
+                            .filter { it in configuredStateful[automation.id].orEmpty() }
+                            .forEach { sensor ->
+                                activeStates.add(automation.id, sensor)
+                                activeStore.markActive(SOURCE, "${automation.id}|$sensor")
+                            }
+                    }
+                }
+            }
+
+        // Upgrade pre-runtime-ledger compatibility keys and restore every
+        // per-sensor condition they can prove.
         activeStore.activeKeys(SOURCE).forEach { key ->
-            val id = key.substringBefore('|')
+            val automationId = key.substringBefore('|')
+            val automation = byId[automationId]
+            val kinds = configuredStateful[automationId].orEmpty()
+
+            if (automation == null) {
+                activeStates.removeAutomation(automationId)
+                activeStore.clearAutomation(SOURCE, automationId)
+                return@forEach
+            }
+
+            val current = runtimeStore.current(automationId)
+            if (current != null && current.source != SOURCE) {
+                // Another stateful source owns this task. A stale sensor mirror
+                // must never authorize an exit for that foreign occurrence.
+                activeStates.removeAutomation(automationId)
+                activeStore.clearAutomation(SOURCE, automationId)
+                return@forEach
+            }
+
             val sensor = key.substringAfter('|', "")
-            val kinds = allowed[id].orEmpty()
             when {
-                sensor.isNotEmpty() && sensor in kinds -> activeStates.add(id, sensor)
+                sensor.isNotEmpty() && sensor in kinds -> {
+                    activeStates.add(automationId, sensor)
+                }
                 sensor.isEmpty() && kinds.isNotEmpty() -> {
-                    // Earlier versions stored only the automation id. Reconcile each
-                    // configured stateful sensor before deciding its missed exit.
                     kinds.forEach { kind ->
-                        activeStates.add(id, kind)
-                        activeStore.markActive(SOURCE, "$id|$kind")
+                        activeStates.add(automationId, kind)
+                        activeStore.markActive(SOURCE, "$automationId|$kind")
                     }
                     activeStore.clearActive(SOURCE, key)
                 }
-                else -> activeStore.clearActive(SOURCE, key)
+                else -> {
+                    activeStore.clearActive(SOURCE, key)
+                }
+            }
+
+            if (!automation.enabled || kinds.isEmpty()) {
+                current
+                    ?.takeIf { it.source == SOURCE }
+                    ?.let { state ->
+                        requestExit(
+                            automation = automation,
+                            reason = ExitReason.AUTOMATION_DISABLED,
+                            occurrenceId = state.occurrenceId
+                        )
+                    }
+                if (current == null) {
+                    activeStates.removeAutomation(automationId)
+                    activeStore.clearAutomation(SOURCE, automationId)
+                }
+                return@forEach
+            }
+
+            if (runtimeStore.current(automationId) == null &&
+                activeStates.isActive(automationId)
+            ) {
+                val sensors = activeStates.sensorsFor(automationId)
+                runtimeStore.activateStrict(
+                    AutomationRuntimeState(
+                        automationId = automationId,
+                        occurrenceId = "legacy:$SOURCE:$automationId:${UUID.randomUUID()}",
+                        source = SOURCE,
+                        sourceKey = sourceKeyFor(automationId, sensors),
+                        lifecycleState = AutomationRuntimeLifecycleState.ACTIVE,
+                        activatedAt = System.currentTimeMillis()
+                    )
+                )
             }
         }
     }
+
+    private fun sourceKeyFor(automationId: String, sensors: Set<String>): String =
+        "$automationId|${sensors.sorted().joinToString(",")}"
+
+    private fun parseSourceSensors(sourceKey: String): Set<String> =
+        sourceKey.substringAfter('|', "")
+            .split(',')
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .toSet()
 
     private fun updateRegistrations(automations: List<Automation>) {
         val wanted = SensorTriggerMatcher.automationsFor(automations, "PROXIMITY").isNotEmpty()
