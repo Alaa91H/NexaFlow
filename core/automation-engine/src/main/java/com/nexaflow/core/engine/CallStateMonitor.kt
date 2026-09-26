@@ -211,13 +211,23 @@ class CallStateMonitor @Inject constructor(
         runtimeStore.activeStates()
             .filter { it.source == SOURCE }
             .forEach { state ->
-                if (automations[state.automationId] != null) {
-                    markLegacyActive(state)
-                } else {
-                    // No immutable definition means no safe end behavior can be
-                    // reconstructed. Preserve durable evidence, remove only the
-                    // compatibility mirror.
-                    clearLegacyState(state.automationId)
+                val automation = automations[state.automationId]
+                when {
+                    automation == null -> {
+                        // No immutable definition means no safe end behavior can
+                        // be reconstructed. Preserve durable evidence, remove
+                        // only the compatibility mirror.
+                        clearLegacyState(state.automationId)
+                    }
+                    !automation.enabled ||
+                        automation.triggers.none { it.type == TriggerType.CALL_STATE } -> {
+                        requestExit(
+                            automation = automation,
+                            reason = ExitReason.AUTOMATION_DISABLED,
+                            occurrenceId = state.occurrenceId
+                        )
+                    }
+                    else -> markLegacyActive(state)
                 }
             }
 
@@ -250,7 +260,17 @@ class CallStateMonitor @Inject constructor(
 
             val current = runtimeStore.current(automationId)
             if (current?.source == SOURCE) {
-                markLegacyActive(current)
+                if (!automation.enabled ||
+                    automation.triggers.none { it.type == TriggerType.CALL_STATE }
+                ) {
+                    requestExit(
+                        automation = automation,
+                        reason = ExitReason.AUTOMATION_DISABLED,
+                        occurrenceId = current.occurrenceId
+                    )
+                } else {
+                    markLegacyActive(current)
+                }
             } else {
                 // Another stateful source owns this automation. A stale call
                 // marker must never authorize that foreign lifecycle's exit.
