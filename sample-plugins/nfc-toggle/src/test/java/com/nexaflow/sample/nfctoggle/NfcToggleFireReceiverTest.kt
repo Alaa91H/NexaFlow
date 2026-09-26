@@ -62,7 +62,11 @@ class NfcToggleFireReceiverTest {
                 null,
                 null
             )
-            shadowOf(Looper.getMainLooper()).idle()
+            val deadline = System.currentTimeMillis() + 5_000L
+            while (captured == null && System.currentTimeMillis() < deadline) {
+                shadowOf(Looper.getMainLooper()).idle()
+                Thread.sleep(10L)
+            }
         } finally {
             context.unregisterReceiver(receiver)
         }
