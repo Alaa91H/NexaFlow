@@ -81,6 +81,14 @@ class RepositoryImplTest {
             rows.value = rows.value.filterNot { it.id == automation.id } + automation
         }
 
+        override suspend fun insertAutomations(automations: List<AutomationEntity>) {
+            var next = rows.value
+            automations.forEach { automation ->
+                next = next.filterNot { it.id == automation.id } + automation
+            }
+            rows.value = next
+        }
+
         override suspend fun updateAutomation(automation: AutomationEntity) {
             insertAutomation(automation)
         }
@@ -150,6 +158,21 @@ class RepositoryImplTest {
         override suspend fun clearHistory() {
             rows.value = emptyList()
         }
+    }
+
+    @Test
+    fun `automation repository batch save maps and persists every row`() = runTest {
+        val dao = FakeAutomationDao()
+        val repository = AutomationRepositoryImpl(dao)
+
+        repository.saveAutomationsAtomically(
+            listOf(
+                automation("batch-a"),
+                automation("batch-b")
+            )
+        )
+
+        assertEquals(setOf("batch-a", "batch-b"), dao.rows.value.map { it.id }.toSet())
     }
 
     // endregion
