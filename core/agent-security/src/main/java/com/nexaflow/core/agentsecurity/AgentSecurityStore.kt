@@ -15,7 +15,8 @@ interface AgentSecurityStore {
 
 /**
  * Stores one versioned state document inside the existing Keystore-backed
- * SecureStorage boundary. Corrupt/unsupported state fails closed.
+ * SecureStorage boundary. Corrupt/unsupported state reads fail closed, while
+ * mutations are rejected so damaged authority state is never silently reset.
  */
 class EncryptedAgentSecurityStore(
     private val secureStorage: SecureStorage,
@@ -28,13 +29,13 @@ class EncryptedAgentSecurityStore(
     private val mutex = Mutex()
 
     override suspend fun read(): AgentSecurityStateV1 = mutex.withLock {
-        loadUnlocked()
+        loadUnlocked(failOnCorruption = false)
     }
 
     override suspend fun <T> mutate(
         block: (AgentSecurityStateV1) -> Pair<AgentSecurityStateV1, T>
     ): T = mutex.withLock {
-        val current = loadUnlocked()
+        val current = loadUnlocked(failOnCorruption = true)
         val (next, result) = block(current)
         require(next.schemaVersion == AgentSecurityStateV1.CURRENT_SCHEMA_VERSION) {
             "Unsupported agent security state version"
@@ -46,14 +47,22 @@ class EncryptedAgentSecurityStore(
         result
     }
 
-    private suspend fun loadUnlocked(): AgentSecurityStateV1 {
+    private suspend fun loadUnlocked(
+        failOnCorruption: Boolean
+    ): AgentSecurityStateV1 {
         val encoded = secureStorage.get(STORAGE_KEY) ?: return AgentSecurityStateV1()
         val decoded = runCatching {
             json.decodeFromString(AgentSecurityStateV1.serializer(), encoded)
-        }.getOrNull() ?: return AgentSecurityStateV1()
-        return decoded.takeIf {
-            it.schemaVersion == AgentSecurityStateV1.CURRENT_SCHEMA_VERSION
-        } ?: AgentSecurityStateV1()
+        }.getOrNull()
+        if (decoded == null ||
+            decoded.schemaVersion != AgentSecurityStateV1.CURRENT_SCHEMA_VERSION
+        ) {
+            if (failOnCorruption) {
+                error("Agent security state is unreadable")
+            }
+            return AgentSecurityStateV1()
+        }
+        return decoded
     }
 
     companion object {
