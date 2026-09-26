@@ -246,6 +246,7 @@ dependencies {
 
     // Project Modules
     implementation(project(":core:database"))
+    implementation(project(":core:automation-control"))
     implementation(project(":core:security"))
     implementation(project(":core:agent-security"))
     implementation(project(":core:datastore"))

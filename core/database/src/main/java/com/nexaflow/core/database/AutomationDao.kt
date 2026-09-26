@@ -16,6 +16,10 @@ interface AutomationDao {
     @Query("SELECT * FROM automations WHERE id = :id")
     suspend fun getAutomationById(id: String): AutomationEntity?
 
+    /** Transaction-local snapshot used by atomic dependency revalidation. */
+    @Query("SELECT * FROM automations")
+    suspend fun getAllAutomationsSnapshot(): List<AutomationEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAutomation(automation: AutomationEntity)
 

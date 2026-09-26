@@ -3,6 +3,11 @@ package com.nexaflow.app.di
 import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.nexaflow.core.automationcontrol.AutomationAuditSink
+import com.nexaflow.core.automationcontrol.AutomationCommandService
+import com.nexaflow.core.automationcontrol.AutomationMutationPersistence
+import com.nexaflow.core.automationcontrol.WorkflowDryRunInspector
+import com.nexaflow.core.database.AgentPlatformDao
 import com.nexaflow.core.database.AppDatabase
 import com.nexaflow.core.database.AutomationDao
 import com.nexaflow.core.database.CorruptionRecoveryFactory
@@ -60,6 +65,8 @@ import com.nexaflow.data.repository.AutomationRepositoryImpl
 import com.nexaflow.data.repository.HealthRepositoryImpl
 import com.nexaflow.data.repository.HistoryRepositoryImpl
 import com.nexaflow.data.repository.PluginRepositoryImpl
+import com.nexaflow.data.repository.RoomAutomationAuditSink
+import com.nexaflow.data.repository.RoomAutomationMutationPersistence
 import com.nexaflow.data.repository.VariableRepositoryImpl
 import com.nexaflow.domain.repositories.AutomationRepository
 import com.nexaflow.domain.repositories.HealthRepository
@@ -114,6 +121,11 @@ object AppModule {
     @Provides
     fun provideVariableDao(database: AppDatabase): VariableDao {
         return database.variableDao()
+    }
+
+    @Provides
+    fun provideAgentPlatformDao(database: AppDatabase): AgentPlatformDao {
+        return database.agentPlatformDao()
     }
 
     @Provides
@@ -238,6 +250,24 @@ object AppModule {
     fun provideAutomationRepository(dao: AutomationDao): AutomationRepository {
         return AutomationRepositoryImpl(dao)
     }
+
+    @Provides
+    @Singleton
+    fun provideAutomationMutationPersistence(
+        database: AppDatabase,
+        automationDao: AutomationDao,
+        agentPlatformDao: AgentPlatformDao
+    ): AutomationMutationPersistence = RoomAutomationMutationPersistence(
+        database = database,
+        automationDao = automationDao,
+        agentPlatformDao = agentPlatformDao
+    )
+
+    @Provides
+    @Singleton
+    fun provideAutomationAuditSink(
+        agentPlatformDao: AgentPlatformDao
+    ): AutomationAuditSink = RoomAutomationAuditSink(agentPlatformDao)
 
     @Provides
     @Singleton
@@ -379,6 +409,20 @@ object AppModule {
         deviceStateProvider = {
             AndroidCapabilityDeviceStateReader(context).capture(System.currentTimeMillis())
         }
+    )
+
+    @Provides
+    @Singleton
+    fun provideAutomationCommandService(
+        automationRepository: AutomationRepository,
+        workflowDryRunService: WorkflowDryRunService,
+        mutationPersistence: AutomationMutationPersistence,
+        auditSink: AutomationAuditSink
+    ): AutomationCommandService = AutomationCommandService(
+        repository = automationRepository,
+        dryRunInspector = WorkflowDryRunInspector(workflowDryRunService),
+        mutationPersistence = mutationPersistence,
+        auditSink = auditSink
     )
 
     @Provides
