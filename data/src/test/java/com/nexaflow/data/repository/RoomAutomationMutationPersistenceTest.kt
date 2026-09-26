@@ -117,6 +117,10 @@ class RoomAutomationMutationPersistenceTest {
             AutomationPersistenceResult.IdempotentReplay("generated-id", 1L),
             replay
         )
+        assertEquals(
+            "IDEMPOTENCY_REPLAY",
+            database.agentPlatformDao().latestAudit(1).single().eventType
+        )
     }
 
     @Test
@@ -165,6 +169,10 @@ class RoomAutomationMutationPersistenceTest {
             occurredAt = 250L
         )
         assertEquals(AutomationPersistenceResult.IdempotencyConflict, conflict)
+        assertEquals(
+            "IDEMPOTENCY_CONFLICT",
+            database.agentPlatformDao().latestAudit(1).single().eventType
+        )
     }
 
     @Test
